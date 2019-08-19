@@ -37,6 +37,7 @@ internal class ResourceEventSerializationTests : JUnit5Minutests {
         "apiVersion": "${createdEvent.apiVersion}",
         "kind": "${createdEvent.kind}",
         "name": "${createdEvent.name}",
+        "application": "${createdEvent.application}",
         "timestamp": "${createdEvent.timestamp}"
       }
     """.trimIndent()
@@ -48,6 +49,7 @@ internal class ResourceEventSerializationTests : JUnit5Minutests {
       apiVersion: "${createdEvent.apiVersion}"
       kind: "${createdEvent.kind}"
       name: "${createdEvent.name}"
+      application: "${createdEvent.application}"
       timestamp: "${createdEvent.timestamp}"
     """.trimIndent()
 
@@ -66,6 +68,7 @@ internal class ResourceEventSerializationTests : JUnit5Minutests {
           .has("name")
           .has("apiVersion")
           .has("kind")
+          .has("application")
           .has("timestamp")
           .has("type")
           .path("type")
@@ -91,6 +94,7 @@ internal class ResourceEventSerializationTests : JUnit5Minutests {
           .has("name")
           .has("apiVersion")
           .has("kind")
+          .has("application")
           .has("timestamp")
           .has("type")
           .path("type")

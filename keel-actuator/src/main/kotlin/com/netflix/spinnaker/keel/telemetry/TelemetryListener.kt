@@ -4,6 +4,7 @@ import com.netflix.spectator.api.BasicTag
 import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.keel.actuation.ScheduledResourceCheckStarting
+import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceCheckResult
 import org.slf4j.LoggerFactory
 import org.springframework.context.event.EventListener
@@ -38,7 +39,8 @@ class TelemetryListener(
         BasicTag("resourceName", event.name),
         BasicTag("apiVersion", event.apiVersion.toString()),
         BasicTag("resourceKind", event.kind),
-        BasicTag("resourceState", event.state.name)
+        BasicTag("resourceState", event.state.name),
+        BasicTag("resourceApplication", event.application)
       )
     ).safeIncrement()
   }
@@ -71,6 +73,19 @@ class TelemetryListener(
     lastResourceCheck = clock.instant()
   }
 
+  @EventListener(ResourceActuationLaunched::class)
+  fun onResourceActuationLaunched(event: ResourceActuationLaunched) {
+    spectator.counter(
+      RESOURCE_ACTUATION_LAUNCHED_COUNTER_ID,
+      listOf(
+        BasicTag("resourceName", event.name),
+        BasicTag("apiVersion", event.apiVersion.toString()),
+        BasicTag("resourceKind", event.kind),
+        BasicTag("resourceApplication", event.application)
+      )
+    ).safeIncrement()
+  }
+
   private fun Counter.safeIncrement() =
     try {
       increment()
@@ -83,6 +98,7 @@ class TelemetryListener(
   companion object {
     private const val RESOURCE_CHECKED_COUNTER_ID = "keel.resource.checked"
     private const val RESOURCE_CHECK_SKIPPED_COUNTER_ID = "keel.resource.check.skipped"
+    private const val RESOURCE_ACTUATION_LAUNCHED_COUNTER_ID = "keel.resource.actuation.launched"
     private const val ARTIFACT_UPDATED_COUNTER_ID = "keel.artifact.updated"
     private const val RESOURCE_CHECK_DRIFT_GAUGE = "keel.resource.check.drift"
   }

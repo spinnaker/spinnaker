@@ -30,6 +30,7 @@ internal object TelemetryListenerTests : JUnit5Minutests {
     kind = "cluster",
     name = "ec2:cluster:prod:ap-south-1:keel-main",
     uid = randomUID(),
+    application = "fnord",
     timestamp = Instant.now()
   )
 
@@ -72,6 +73,10 @@ internal object TelemetryListenerTests : JUnit5Minutests {
           any {
             key().isEqualTo("resourceName")
             value().isEqualTo(event.name)
+          }
+          any {
+            key().isEqualTo("resourceApplication")
+            value().isEqualTo(event.application)
           }
           any {
             key().isEqualTo("resourceState")

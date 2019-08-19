@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.ser.std.ToStringSerializer
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.UID
+import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.name
 import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.events.ResourceState.Diff
@@ -58,6 +59,7 @@ sealed class ResourceEvent {
   abstract val apiVersion: ApiVersion
   abstract val kind: String
   abstract val name: String
+  abstract val application: String
   abstract val timestamp: Instant
 
   /**
@@ -85,6 +87,7 @@ data class ResourceCreated(
   override val apiVersion: ApiVersion,
   override val kind: String,
   override val name: String,
+  override val application: String,
   override val timestamp: Instant
 ) : ResourceEvent() {
 
@@ -93,6 +96,7 @@ data class ResourceCreated(
     resource.apiVersion,
     resource.kind,
     resource.name.value,
+    resource.application,
     clock.instant()
   )
 }
@@ -108,6 +112,7 @@ data class ResourceUpdated(
   override val apiVersion: ApiVersion,
   override val kind: String,
   override val name: String,
+  override val application: String,
   val delta: Map<String, Any?>,
   override val timestamp: Instant
 ) : ResourceEvent() {
@@ -116,6 +121,7 @@ data class ResourceUpdated(
     resource.apiVersion,
     resource.kind,
     resource.name.value,
+    resource.application,
     delta,
     clock.instant()
   )
@@ -126,6 +132,7 @@ data class ResourceDeleted(
   override val apiVersion: ApiVersion,
   override val kind: String,
   override val name: String,
+  override val application: String,
   override val timestamp: Instant
 ) : ResourceEvent() {
   constructor(resource: Resource<*>, clock: Clock = Companion.clock) : this(
@@ -133,6 +140,7 @@ data class ResourceDeleted(
     resource.apiVersion,
     resource.kind,
     resource.name.value,
+    resource.application,
     clock.instant()
   )
 }
@@ -152,6 +160,7 @@ data class ResourceMissing(
   override val apiVersion: ApiVersion,
   override val kind: String,
   override val name: String,
+  override val application: String,
   override val timestamp: Instant
 ) : ResourceCheckResult() {
   @JsonIgnore
@@ -162,6 +171,7 @@ data class ResourceMissing(
     resource.apiVersion,
     resource.kind,
     resource.name.value,
+    resource.application,
     clock.instant()
   )
 }
@@ -176,6 +186,7 @@ data class ResourceDeltaDetected(
   override val apiVersion: ApiVersion,
   override val kind: String,
   override val name: String,
+  override val application: String,
   val delta: Map<String, Any?>,
   override val timestamp: Instant
 ) : ResourceCheckResult() {
@@ -187,6 +198,7 @@ data class ResourceDeltaDetected(
     resource.apiVersion,
     resource.kind,
     resource.name.value,
+    resource.application,
     delta,
     clock.instant()
   )
@@ -201,6 +213,7 @@ data class ResourceActuationLaunched(
   override val apiVersion: ApiVersion,
   override val kind: String,
   override val name: String,
+  override val application: String,
   val plugin: String,
   val tasks: List<Task>,
   override val timestamp: Instant
@@ -211,6 +224,7 @@ data class ResourceActuationLaunched(
       resource.apiVersion,
       resource.kind,
       resource.name.value,
+      resource.application,
       plugin,
       tasks,
       clock.instant()
@@ -226,6 +240,7 @@ data class ResourceDeltaResolved(
   override val apiVersion: ApiVersion,
   override val kind: String,
   override val name: String,
+  override val application: String,
   override val timestamp: Instant,
   val desired: Any,
   val current: Any
@@ -239,6 +254,7 @@ data class ResourceDeltaResolved(
       resource.apiVersion,
       resource.kind,
       resource.name.value,
+      resource.application,
       clock.instant(),
       resource.spec,
       current
@@ -250,6 +266,7 @@ data class ResourceValid(
   override val apiVersion: ApiVersion,
   override val kind: String,
   override val name: String,
+  override val application: String,
   override val timestamp: Instant
 ) : ResourceCheckResult() {
   @JsonIgnore
@@ -264,6 +281,7 @@ data class ResourceValid(
       resource.apiVersion,
       resource.kind,
       resource.name.value,
+      resource.application,
       clock.instant()
     )
 }

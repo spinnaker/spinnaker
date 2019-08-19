@@ -198,11 +198,12 @@ internal class ResourceTaggerTests : JUnit5Minutests {
 
       test("we don't tag named images") {
         onCreateEvent(ResourceCreated(
-          randomUID(),
-          SPINNAKER_API_V1.subApi("bakery"),
-          "image",
-          "bakery:image:keel",
-          clock.instant()
+          uid = randomUID(),
+          apiVersion = SPINNAKER_API_V1.subApi("bakery"),
+          kind = "image",
+          name = "bakery:image:keel",
+          application = "keel",
+          timestamp = clock.instant()
         ))
         verify { resourcePersister.create(any()) wasNot Called }
       }
@@ -212,22 +213,50 @@ internal class ResourceTaggerTests : JUnit5Minutests {
       }
 
       test("we tag clbs") {
-        onCreateEvent(ResourceCreated(randomUID(), SPINNAKER_API_V1.subApi("ec2"), "classic-load-balancer", "ec2:classic-load-balancer:test:us-east-1:keel-managed", clock.instant()))
+        onCreateEvent(ResourceCreated(
+          uid = randomUID(),
+          apiVersion = SPINNAKER_API_V1.subApi("ec2"),
+          kind = "classic-load-balancer",
+          name = "ec2:classic-load-balancer:test:us-east-1:keel-managed",
+          application = "keel",
+          timestamp = clock.instant()
+        ))
         verify { resourcePersister.create(any()) }
       }
 
       test("we tag albs") {
-        onCreateEvent(ResourceCreated(randomUID(), SPINNAKER_API_V1.subApi("ec2"), "application-load-balancer", "ec2:application-load-balancer:test:us-east-1:keel-managed", clock.instant()))
+        onCreateEvent(ResourceCreated(
+          uid = randomUID(),
+          apiVersion = SPINNAKER_API_V1.subApi("ec2"),
+          kind = "application-load-balancer",
+          name = "ec2:application-load-balancer:test:us-east-1:keel-managed",
+          application = "keel",
+          timestamp = clock.instant()
+        ))
         verify { resourcePersister.create(any()) }
       }
 
       test("we tag security groups") {
-        onCreateEvent(ResourceCreated(randomUID(), SPINNAKER_API_V1.subApi("ec2"), "securityGroup", "ec2:securityGroup:test:us-west-2:keel-managed", clock.instant()))
+        onCreateEvent(ResourceCreated(
+          uid = randomUID(),
+          apiVersion = SPINNAKER_API_V1.subApi("ec2"),
+          kind = "securityGroup",
+          name = "ec2:securityGroup:test:us-west-2:keel-managed",
+          application = "keel",
+          timestamp = clock.instant()
+        ))
         verify { resourcePersister.create(any()) }
       }
 
       test("we tag clusters") {
-        onCreateEvent(ResourceCreated(randomUID(), SPINNAKER_API_V1.subApi("ec2"), "cluster", "ec2:cluster:test:us-west-2:keeldemo-test", clock.instant()))
+        onCreateEvent(ResourceCreated(
+          uid = randomUID(),
+          apiVersion = SPINNAKER_API_V1.subApi("ec2"),
+          kind = "cluster",
+          name = "ec2:cluster:test:us-west-2:keeldemo-test",
+          application = "keel",
+          timestamp = clock.instant()
+        ))
         verify { resourcePersister.create(any()) }
       }
     }
