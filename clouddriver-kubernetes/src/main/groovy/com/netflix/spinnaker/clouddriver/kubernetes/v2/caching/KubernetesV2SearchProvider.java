@@ -24,8 +24,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.LogicalKey;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.LogicalKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.KubernetesCacheUtils;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesAccountResolver;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourceProperties;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.search.SearchProvider;
@@ -54,7 +54,7 @@ public class KubernetesV2SearchProvider implements SearchProvider {
   private final KubernetesCacheUtils cacheUtils;
   private final ObjectMapper mapper;
   private final KubernetesSpinnakerKindMap kindMap;
-  private final KubernetesResourcePropertyRegistry registry;
+  private final KubernetesAccountResolver resourcePropertyResolver;
   private final List<String> defaultTypes;
   private final Set<String> logicalTypes;
   private final Set<String> allCaches;
@@ -64,11 +64,11 @@ public class KubernetesV2SearchProvider implements SearchProvider {
       KubernetesCacheUtils cacheUtils,
       KubernetesSpinnakerKindMap kindMap,
       ObjectMapper objectMapper,
-      KubernetesResourcePropertyRegistry registry) {
+      KubernetesAccountResolver resourcePropertyResolver) {
     this.cacheUtils = cacheUtils;
     this.mapper = objectMapper;
     this.kindMap = kindMap;
-    this.registry = registry;
+    this.resourcePropertyResolver = resourcePropertyResolver;
 
     this.defaultTypes =
         kindMap.allKubernetesKinds().stream()
@@ -139,7 +139,9 @@ public class KubernetesV2SearchProvider implements SearchProvider {
       type = kindMap.translateKubernetesKind(infraKey.getKubernetesKind()).toString();
 
       KubernetesResourceProperties properties =
-          registry.get(infraKey.getAccount(), infraKey.getKubernetesKind());
+          resourcePropertyResolver
+              .getResourcePropertyRegistry(infraKey.getAccount())
+              .get(infraKey.getKubernetesKind());
       if (properties == null) {
         log.warn(
             "No hydrator for type {}, this is possibly a developer error",

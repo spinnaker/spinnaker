@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurati
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.agent.KubernetesV1CachingAgentDispatcher
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.AccountResourcePropertyRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry
@@ -48,7 +49,8 @@ class KubernetesV1ProviderSynchronizableSpec extends Specification {
     namerRegistry,
     accountCredentialsRepository,
     Mock(KubectlJobExecutor),
-    configFileService
+    configFileService,
+    null
   )
 
   def synchronizeAccounts(KubernetesConfigurationProperties configurationProperties) {

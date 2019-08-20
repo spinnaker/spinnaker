@@ -28,12 +28,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class RegistryUtils {
   private static Optional<KubernetesHandler> lookupHandler(
-      KubernetesResourcePropertyRegistry propertyRegistry, String account, KubernetesKind kind) {
+      ResourcePropertyRegistry propertyRegistry, KubernetesKind kind) {
     if (kind == null) {
       return Optional.empty();
     }
 
-    KubernetesResourceProperties properties = propertyRegistry.get(account, kind);
+    KubernetesResourceProperties properties = propertyRegistry.get(kind);
     if (properties == null) {
       return Optional.empty();
     }
@@ -48,20 +48,17 @@ public class RegistryUtils {
   }
 
   public static void removeSensitiveKeys(
-      KubernetesResourcePropertyRegistry propertyRegistry,
-      String account,
-      KubernetesManifest manifest) {
-    lookupHandler(propertyRegistry, account, manifest.getKind())
+      ResourcePropertyRegistry propertyRegistry, KubernetesManifest manifest) {
+    lookupHandler(propertyRegistry, manifest.getKind())
         .ifPresent(h -> h.removeSensitiveKeys(manifest));
   }
 
   public static void addRelationships(
-      KubernetesResourcePropertyRegistry propertyRegistry,
-      String account,
+      ResourcePropertyRegistry propertyRegistry,
       KubernetesKind kind,
       Map<KubernetesKind, List<KubernetesManifest>> allResources,
       Map<KubernetesManifest, List<KubernetesManifest>> relationshipMap) {
-    lookupHandler(propertyRegistry, account, kind)
+    lookupHandler(propertyRegistry, kind)
         .ifPresent(h -> h.addRelationships(allResources, relationshipMap));
   }
 }

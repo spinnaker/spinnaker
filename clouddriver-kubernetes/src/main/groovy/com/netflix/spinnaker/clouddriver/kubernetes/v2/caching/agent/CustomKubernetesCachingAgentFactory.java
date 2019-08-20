@@ -23,7 +23,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import java.util.Collection;
@@ -35,7 +34,6 @@ public class CustomKubernetesCachingAgentFactory {
   public static KubernetesV2OnDemandCachingAgent create(
       KubernetesKind kind,
       KubernetesNamedAccountCredentials<KubernetesV2Credentials> namedAccountCredentials,
-      KubernetesResourcePropertyRegistry propertyRegistry,
       ObjectMapper objectMapper,
       Registry registry,
       int agentIndex,
@@ -44,7 +42,6 @@ public class CustomKubernetesCachingAgentFactory {
     return new Agent(
         kind,
         namedAccountCredentials,
-        propertyRegistry,
         objectMapper,
         registry,
         agentIndex,
@@ -58,20 +55,12 @@ public class CustomKubernetesCachingAgentFactory {
     Agent(
         KubernetesKind kind,
         KubernetesNamedAccountCredentials<KubernetesV2Credentials> namedAccountCredentials,
-        KubernetesResourcePropertyRegistry propertyRegistry,
         ObjectMapper objectMapper,
         Registry registry,
         int agentIndex,
         int agentCount,
         Long agentInterval) {
-      super(
-          namedAccountCredentials,
-          propertyRegistry,
-          objectMapper,
-          registry,
-          agentIndex,
-          agentCount,
-          agentInterval);
+      super(namedAccountCredentials, objectMapper, registry, agentIndex, agentCount, agentInterval);
       this.kind = kind;
     }
 

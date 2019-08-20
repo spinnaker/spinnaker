@@ -21,7 +21,6 @@ import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.C
 
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation;
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.converters.KubernetesAtomicOperationConverterHelper;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.artifact.KubernetesCleanupArtifactsDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.artifact.KubernetesCleanupArtifactsOperation;
 import com.netflix.spinnaker.clouddriver.model.ArtifactProvider;
@@ -38,12 +37,9 @@ public class KubernetesCleanupArtifactsConverter
     extends AbstractAtomicOperationsCredentialsSupport {
   @Autowired ArtifactProvider artifactProvider;
 
-  @Autowired KubernetesResourcePropertyRegistry registry;
-
   @Override
   public AtomicOperation convertOperation(Map input) {
-    return new KubernetesCleanupArtifactsOperation(
-        convertDescription(input), artifactProvider, registry);
+    return new KubernetesCleanupArtifactsOperation(convertDescription(input), artifactProvider);
   }
 
   @Override

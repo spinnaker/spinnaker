@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.security
 
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.ResourcePropertyRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiGroup
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor
@@ -27,9 +28,11 @@ class KubernetesV2CredentialsSpec extends Specification {
   Registry registry = Stub(Registry)
   KubectlJobExecutor kubectlJobExecutor = Stub(KubectlJobExecutor)
   String NAMESPACE = "my-namespace"
+  ResourcePropertyRegistry resourcePropertyRegistry = Mock(ResourcePropertyRegistry)
+
 
   private buildCredentials(KubernetesConfigurationProperties.ManagedAccount managedAccount) {
-    return new KubernetesV2Credentials(registry, kubectlJobExecutor, managedAccount, null)
+    return new KubernetesV2Credentials(registry, kubectlJobExecutor, managedAccount, resourcePropertyRegistry, null)
   }
 
   void "Built-in Kubernetes kinds are considered valid by default"() {

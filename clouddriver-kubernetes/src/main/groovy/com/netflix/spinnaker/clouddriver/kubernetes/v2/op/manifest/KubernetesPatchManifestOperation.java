@@ -26,7 +26,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.JsonPatch;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPatchOptions.MergeStrategy;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourceProperties;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesPatchManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.OperationResult;
@@ -45,17 +44,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class KubernetesPatchManifestOperation implements AtomicOperation<OperationResult> {
   private final KubernetesPatchManifestDescription description;
   private final KubernetesV2Credentials credentials;
-  private final KubernetesResourcePropertyRegistry registry;
   private final String accountName;
   private static final String OP_NAME = "PATCH_KUBERNETES_MANIFEST";
 
   @Autowired private ObjectMapper objectMapper;
 
-  public KubernetesPatchManifestOperation(
-      KubernetesPatchManifestDescription description, KubernetesResourcePropertyRegistry registry) {
+  public KubernetesPatchManifestOperation(KubernetesPatchManifestDescription description) {
     this.description = description;
     this.credentials = (KubernetesV2Credentials) description.getCredentials().getCredentials();
-    this.registry = registry;
     this.accountName = description.getCredentials().getName();
   }
 
@@ -105,7 +101,7 @@ public class KubernetesPatchManifestOperation implements AtomicOperation<Operati
       result.getBoundArtifacts().addAll(replaceResult.getBoundArtifacts());
     }
 
-    result.removeSensitiveKeys(registry, accountName);
+    result.removeSensitiveKeys(credentials.getResourcePropertyRegistry());
     return result;
   }
 
@@ -141,7 +137,8 @@ public class KubernetesPatchManifestOperation implements AtomicOperation<Operati
   }
 
   private KubernetesHandler findPatchHandler(KubernetesCoordinates objToPatch) {
-    KubernetesResourceProperties properties = registry.get(accountName, objToPatch.getKind());
+    KubernetesResourceProperties properties =
+        credentials.getResourcePropertyRegistry().get(objToPatch.getKind());
     if (properties == null) {
       throw new IllegalArgumentException(
           "Unsupported Kubernetes object kind '" + objToPatch.getKind() + "', unable to continue");

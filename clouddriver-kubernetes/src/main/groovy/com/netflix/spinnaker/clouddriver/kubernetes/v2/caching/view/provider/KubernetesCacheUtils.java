@@ -24,8 +24,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.ManifestBasedModel;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.data.KubernetesV2CacheData;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesAccountResolver;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourceProperties;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
@@ -49,16 +49,16 @@ import org.springframework.stereotype.Component;
 public class KubernetesCacheUtils {
   private final Cache cache;
   private final KubernetesSpinnakerKindMap kindMap;
-  private final KubernetesResourcePropertyRegistry registry;
+  private final KubernetesAccountResolver resourcePropertyResolver;
 
   @Autowired
   public KubernetesCacheUtils(
       Cache cache,
       KubernetesSpinnakerKindMap kindMap,
-      KubernetesResourcePropertyRegistry resourcePropertyRegistry) {
+      KubernetesAccountResolver resourcePropertyResolver) {
     this.cache = cache;
     this.kindMap = kindMap;
-    this.registry = resourcePropertyRegistry;
+    this.resourcePropertyResolver = resourcePropertyResolver;
   }
 
   public Collection<CacheData> getAllKeys(String type) {
@@ -172,7 +172,10 @@ public class KubernetesCacheUtils {
         (Keys.InfrastructureCacheKey) Keys.parseKey(cacheData.primaryData().getId()).get();
     KubernetesManifest manifest = KubernetesCacheDataConverter.getManifest(cacheData.primaryData());
 
-    KubernetesResourceProperties properties = registry.get(key.getAccount(), manifest.getKind());
+    KubernetesResourceProperties properties =
+        resourcePropertyResolver
+            .getResourcePropertyRegistry(key.getAccount())
+            .get(manifest.getKind());
     KubernetesHandler handler = properties.getHandler();
     if (handler instanceof ModelHandler) {
       return (T) ((ModelHandler) handler).fromCacheData(cacheData);

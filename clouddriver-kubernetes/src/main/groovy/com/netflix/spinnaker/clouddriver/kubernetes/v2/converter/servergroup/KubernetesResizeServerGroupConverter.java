@@ -21,25 +21,22 @@ import static com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations.R
 
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesOperation;
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.converters.KubernetesAtomicOperationConverterHelper;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.servergroup.KubernetesResizeServerGroupDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.servergroup.KubernetesResizeServerGroupOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
 import java.util.Map;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @KubernetesOperation(RESIZE_SERVER_GROUP)
 @Component
 public class KubernetesResizeServerGroupConverter
     extends AbstractAtomicOperationsCredentialsSupport {
-  @Autowired private KubernetesResourcePropertyRegistry registry;
 
   @Override
   public AtomicOperation convertOperation(Map input) {
-    return new KubernetesResizeServerGroupOperation(convertDescription(input), registry);
+    return new KubernetesResizeServerGroupOperation(convertDescription(input));
   }
 
   @Override

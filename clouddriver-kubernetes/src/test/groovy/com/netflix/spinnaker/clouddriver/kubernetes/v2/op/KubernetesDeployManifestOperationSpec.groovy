@@ -22,9 +22,10 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.KubernetesUnversionedArtifactConverter
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.KubernetesVersionedArtifactConverter
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourceProperties
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.ResourcePropertyRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.*
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.names.KubernetesManifestNamer
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesReplicaSetHandler
@@ -93,6 +94,25 @@ spec:
       .setSource(KubernetesDeployManifestDescription.Source.text)
   }
 
+  ResourcePropertyRegistry getResourcePropertyRegistry() {
+    def registry = Mock(ResourcePropertyRegistry) {
+      get(KubernetesKind.REPLICA_SET) >> Mock(KubernetesResourceProperties) {
+        getHandler() >> new KubernetesReplicaSetHandler()
+        isVersioned() >> true
+        getVersionedConverter() >> Mock(KubernetesVersionedArtifactConverter) {
+          getDeployedName(_) >> "$NAME-$VERSION"
+          toArtifact(_, _, _) >> new Artifact()
+        }
+      }
+      get(KubernetesKind.SERVICE) >> Mock(KubernetesResourceProperties) {
+        getHandler() >> new KubernetesServiceHandler()
+        isVersioned() >> false
+        getUnversionedConverter() >> new KubernetesUnversionedArtifactConverter()
+      }
+    }
+    return registry
+  }
+
   KubernetesDeployManifestOperation createMockDeployer(
     KubernetesV2Credentials credentials,
     KubernetesDeployManifestDescription deployDescription
@@ -102,25 +122,14 @@ spec:
     namedCredentialsMock.getName() >> ACCOUNT
     deployDescription.setCredentials(namedCredentialsMock)
 
-    credentials.deploy(_, _) >> null
-
-    def replicaSetDeployer = new KubernetesReplicaSetHandler()
-    replicaSetDeployer.versioned() >> true
-    replicaSetDeployer.kind() >> KIND
-    def serviceDeployer = new KubernetesServiceHandler()
-    def versionedArtifactConverterMock = Mock(KubernetesVersionedArtifactConverter)
-    versionedArtifactConverterMock.getDeployedName(_) >> "$NAME-$VERSION"
-    versionedArtifactConverterMock.toArtifact(_, _, _) >> new Artifact()
-    def registry = new KubernetesResourcePropertyRegistry([replicaSetDeployer, serviceDeployer],
-        new KubernetesSpinnakerKindMap())
+    credentials.deploy(_) >> null
+    credentials.getResourcePropertyRegistry() >> getResourcePropertyRegistry()
 
     NamerRegistry.lookup().withProvider(KubernetesCloudProvider.ID)
       .withAccount(ACCOUNT)
       .setNamer(KubernetesManifest.class, new KubernetesManifestNamer())
 
-    registry.get("any", KubernetesKind.REPLICA_SET).versionedConverter = versionedArtifactConverterMock
-    
-    def deployOp = new KubernetesDeployManifestOperation(deployDescription, registry, null)
+    def deployOp = new KubernetesDeployManifestOperation(deployDescription, null)
 
     return deployOp
   }

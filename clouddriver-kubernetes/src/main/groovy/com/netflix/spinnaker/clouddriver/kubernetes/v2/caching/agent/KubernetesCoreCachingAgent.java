@@ -24,7 +24,6 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import java.util.ArrayList;
@@ -39,20 +38,12 @@ import lombok.extern.slf4j.Slf4j;
 public class KubernetesCoreCachingAgent extends KubernetesV2OnDemandCachingAgent {
   public KubernetesCoreCachingAgent(
       KubernetesNamedAccountCredentials<KubernetesV2Credentials> namedAccountCredentials,
-      KubernetesResourcePropertyRegistry propertyRegistry,
       ObjectMapper objectMapper,
       Registry registry,
       int agentIndex,
       int agentCount,
       Long agentInterval) {
-    super(
-        namedAccountCredentials,
-        propertyRegistry,
-        objectMapper,
-        registry,
-        agentIndex,
-        agentCount,
-        agentInterval);
+    super(namedAccountCredentials, objectMapper, registry, agentIndex, agentCount, agentInterval);
   }
 
   public Collection<AgentDataType> getProvidedDataTypes() {

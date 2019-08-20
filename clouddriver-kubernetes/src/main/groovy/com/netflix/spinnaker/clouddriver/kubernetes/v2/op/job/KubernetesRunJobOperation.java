@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.job.KubernetesRunJobOperationDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesDeployManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
@@ -41,17 +40,13 @@ public class KubernetesRunJobOperation
   private static final String OP_NAME = "RUN_KUBERNETES_JOB";
   private final KubernetesRunJobOperationDescription description;
   private final KubernetesV2Credentials credentials;
-  private final KubernetesResourcePropertyRegistry registry;
   private final Namer namer;
   private final ArtifactProvider provider;
 
   public KubernetesRunJobOperation(
-      KubernetesRunJobOperationDescription description,
-      KubernetesResourcePropertyRegistry registry,
-      ArtifactProvider provider) {
+      KubernetesRunJobOperationDescription description, ArtifactProvider provider) {
     this.description = description;
     this.credentials = (KubernetesV2Credentials) description.getCredentials().getCredentials();
-    this.registry = registry;
     this.provider = provider;
     this.namer =
         NamerRegistry.lookup()
@@ -103,7 +98,7 @@ public class KubernetesRunJobOperation
     deployManifestDescription.setMoniker(moniker);
 
     KubernetesDeployManifestOperation deployManifestOperation =
-        new KubernetesDeployManifestOperation(deployManifestDescription, registry, provider);
+        new KubernetesDeployManifestOperation(deployManifestDescription, provider);
     OperationResult operationResult = deployManifestOperation.operate(new ArrayList());
     KubernetesRunJobDeploymentResult deploymentResult =
         new KubernetesRunJobDeploymentResult(operationResult);

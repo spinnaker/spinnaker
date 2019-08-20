@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.manifest;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.JsonPatch;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesEnableDisableManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.CanLoadBalance;
@@ -25,10 +24,8 @@ import java.util.List;
 
 public class KubernetesEnableManifestOperation
     extends AbstractKubernetesEnableDisableManifestOperation {
-  public KubernetesEnableManifestOperation(
-      KubernetesEnableDisableManifestDescription description,
-      KubernetesResourcePropertyRegistry registry) {
-    super(description, registry);
+  public KubernetesEnableManifestOperation(KubernetesEnableDisableManifestDescription description) {
+    super(description);
   }
 
   @Override

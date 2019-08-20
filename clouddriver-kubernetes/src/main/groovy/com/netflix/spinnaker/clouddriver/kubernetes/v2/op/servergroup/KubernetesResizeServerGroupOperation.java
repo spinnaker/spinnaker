@@ -21,7 +21,6 @@ import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourceProperties;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.servergroup.KubernetesResizeServerGroupDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.CanResize;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler;
@@ -32,17 +31,13 @@ import java.util.List;
 public class KubernetesResizeServerGroupOperation implements AtomicOperation<Void> {
   private final KubernetesResizeServerGroupDescription description;
   private final KubernetesV2Credentials credentials;
-  private final KubernetesResourcePropertyRegistry registry;
   private final String accountName;
   private static final String OP_NAME = "RESIZE_KUBERNETES_SERVER_GROUP";
 
-  public KubernetesResizeServerGroupOperation(
-      KubernetesResizeServerGroupDescription description,
-      KubernetesResourcePropertyRegistry registry) {
+  public KubernetesResizeServerGroupOperation(KubernetesResizeServerGroupDescription description) {
     this.description = description;
     this.credentials = (KubernetesV2Credentials) description.getCredentials().getCredentials();
     this.accountName = description.getCredentials().getName();
-    this.registry = registry;
   }
 
   private static Task getTask() {
@@ -55,7 +50,8 @@ public class KubernetesResizeServerGroupOperation implements AtomicOperation<Voi
     KubernetesCoordinates coordinates = description.getCoordinates();
 
     getTask().updateStatus(OP_NAME, "Looking up resource properties...");
-    KubernetesResourceProperties properties = registry.get(accountName, coordinates.getKind());
+    KubernetesResourceProperties properties =
+        credentials.getResourcePropertyRegistry().get(coordinates.getKind());
     KubernetesHandler deployer = properties.getHandler();
 
     if (!(deployer instanceof CanResize)) {

@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourceProperties;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.ResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
@@ -27,9 +27,8 @@ import java.util.List;
 public interface HasPods {
   List<KubernetesManifest> pods(KubernetesV2Credentials credentials, KubernetesManifest object);
 
-  static HasPods lookupProperties(
-      KubernetesResourcePropertyRegistry registry, String accountName, KubernetesKind kind) {
-    KubernetesResourceProperties hasPodsProperties = registry.get(accountName, kind);
+  static HasPods lookupProperties(ResourcePropertyRegistry registry, KubernetesKind kind) {
+    KubernetesResourceProperties hasPodsProperties = registry.get(kind);
     if (hasPodsProperties == null) {
       throw new IllegalArgumentException(
           "No properties are registered for "

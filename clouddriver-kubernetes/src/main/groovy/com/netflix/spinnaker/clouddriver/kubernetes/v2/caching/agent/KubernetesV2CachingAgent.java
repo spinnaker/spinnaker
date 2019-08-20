@@ -28,7 +28,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.KubernetesCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesCachingPolicy;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.RegistryUtils;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
@@ -54,18 +53,14 @@ public abstract class KubernetesV2CachingAgent
 
   @Getter protected final Long agentInterval;
 
-  private final KubernetesResourcePropertyRegistry propertyRegistry;
-
   protected KubernetesV2CachingAgent(
       KubernetesNamedAccountCredentials<KubernetesV2Credentials> namedAccountCredentials,
-      KubernetesResourcePropertyRegistry propertyRegistry,
       ObjectMapper objectMapper,
       Registry registry,
       int agentIndex,
       int agentCount,
       Long agentInterval) {
     super(namedAccountCredentials, objectMapper, registry, agentIndex, agentCount);
-    this.propertyRegistry = propertyRegistry;
     this.agentInterval = agentInterval;
   }
 
@@ -160,7 +155,7 @@ public abstract class KubernetesV2CachingAgent
 
     resources.values().stream()
         .flatMap(Collection::stream)
-        .peek(m -> RegistryUtils.removeSensitiveKeys(propertyRegistry, accountName, m))
+        .peek(m -> RegistryUtils.removeSensitiveKeys(credentials.getResourcePropertyRegistry(), m))
         .forEach(
             rs -> {
               try {
@@ -190,7 +185,7 @@ public abstract class KubernetesV2CachingAgent
             k -> {
               try {
                 RegistryUtils.addRelationships(
-                    propertyRegistry, accountName, k, allResources, result);
+                    credentials.getResourcePropertyRegistry(), k, allResources, result);
               } catch (Exception e) {
                 log.warn("{}: Failure adding relationships for {}", getAgentType(), k, e);
               }

@@ -22,6 +22,7 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.AccountResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
@@ -138,6 +139,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials>
     private final AccountCredentialsRepository accountCredentialsRepository;
     private final KubectlJobExecutor jobExecutor;
     private final ConfigFileService configFileService;
+    private final AccountResourcePropertyRegistry.Factory resourcePropertyRegistryFactory;
 
     KubernetesV1Credentials buildV1Credentials(
         KubernetesConfigurationProperties.ManagedAccount managedAccount) {
@@ -168,7 +170,11 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials>
               KubernetesManifest.class,
               namerRegistry.getNamingStrategy(managedAccount.getNamingStrategy()));
       return new KubernetesV2Credentials(
-          spectatorRegistry, jobExecutor, managedAccount, getKubeconfigFile(managedAccount));
+          spectatorRegistry,
+          jobExecutor,
+          managedAccount,
+          resourcePropertyRegistryFactory.create(),
+          getKubeconfigFile(managedAccount));
     }
 
     private void validateAccount(KubernetesConfigurationProperties.ManagedAccount managedAccount) {

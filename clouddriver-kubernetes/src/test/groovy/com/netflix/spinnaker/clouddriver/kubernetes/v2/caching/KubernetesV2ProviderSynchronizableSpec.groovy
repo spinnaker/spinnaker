@@ -21,7 +21,7 @@ import com.netflix.spinnaker.cats.module.CatsModule
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgentDispatcher
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.AccountResourcePropertyRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.names.KubernetesManifestNamer
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor
@@ -41,7 +41,7 @@ class KubernetesV2ProviderSynchronizableSpec extends Specification {
   ConfigFileService configFileService = Mock(ConfigFileService)
   KubernetesV2Provider kubernetesV2Provider = new KubernetesV2Provider()
   KubernetesV2CachingAgentDispatcher agentDispatcher = Mock(KubernetesV2CachingAgentDispatcher)
-  KubernetesResourcePropertyRegistry kubernetesResourcePropertyRegistry = Mock(KubernetesResourcePropertyRegistry)
+  AccountResourcePropertyRegistry.Factory resourcePropertyRegistryFactory = Mock(AccountResourcePropertyRegistry.Factory)
 
   KubernetesNamedAccountCredentials.CredentialFactory credentialFactory = new KubernetesNamedAccountCredentials.CredentialFactory(
     "userAgent",
@@ -49,7 +49,8 @@ class KubernetesV2ProviderSynchronizableSpec extends Specification {
     namerRegistry,
     accountCredentialsRepository,
     Mock(KubectlJobExecutor),
-    configFileService
+    configFileService,
+    resourcePropertyRegistryFactory
   )
 
   def synchronizeAccounts(KubernetesConfigurationProperties configurationProperties) {
@@ -57,7 +58,6 @@ class KubernetesV2ProviderSynchronizableSpec extends Specification {
       kubernetesV2Provider,
       accountCredentialsRepository,
       agentDispatcher,
-      kubernetesResourcePropertyRegistry,
       configurationProperties,
       credentialFactory,
       new KubernetesSpinnakerKindMap(),

@@ -32,6 +32,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentia
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.JsonPatch;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPatchOptions;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPodMetric;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.ResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiGroup;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
@@ -113,15 +114,18 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   private String cachedDefaultNamespace;
   private final Supplier<List<String>> liveNamespaceSupplier;
   private final Supplier<List<KubernetesKind>> liveCrdSupplier;
+  @Getter private final ResourcePropertyRegistry resourcePropertyRegistry;
 
   public KubernetesV2Credentials(
       Registry registry,
       KubectlJobExecutor jobExecutor,
       KubernetesConfigurationProperties.ManagedAccount managedAccount,
+      ResourcePropertyRegistry resourcePropertyRegistry,
       String kubeconfigFile) {
     this.registry = registry;
     this.clock = registry.clock();
     this.jobExecutor = jobExecutor;
+    this.resourcePropertyRegistry = resourcePropertyRegistry;
 
     this.accountName = managedAccount.getName();
     this.namespaces = managedAccount.getNamespaces();
@@ -201,7 +205,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
                           boolean isNamespaced = scope.equalsIgnoreCase("namespaced");
 
                           return KubernetesKind.getOrRegisterKind(
-                              name, false, isNamespaced, kubernetesApiGroup);
+                              name, isNamespaced, kubernetesApiGroup);
                         })
                     .collect(Collectors.toList());
               } catch (KubectlException e) {

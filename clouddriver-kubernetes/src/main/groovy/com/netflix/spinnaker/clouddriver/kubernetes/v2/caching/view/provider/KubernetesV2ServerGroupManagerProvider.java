@@ -25,7 +25,6 @@ import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.KubernetesV2ServerGroupManager;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.data.KubernetesV2ServerGroupManagerCacheData;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.model.ServerGroupManagerProvider;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -40,13 +39,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class KubernetesV2ServerGroupManagerProvider
     implements ServerGroupManagerProvider<KubernetesV2ServerGroupManager> {
-  private final KubernetesResourcePropertyRegistry registry;
   private final KubernetesCacheUtils cacheUtils;
 
   @Autowired
-  public KubernetesV2ServerGroupManagerProvider(
-      KubernetesResourcePropertyRegistry registry, KubernetesCacheUtils cacheUtils) {
-    this.registry = registry;
+  public KubernetesV2ServerGroupManagerProvider(KubernetesCacheUtils cacheUtils) {
     this.cacheUtils = cacheUtils;
   }
 

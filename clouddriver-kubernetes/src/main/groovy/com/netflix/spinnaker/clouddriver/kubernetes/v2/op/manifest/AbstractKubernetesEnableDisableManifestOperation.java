@@ -21,7 +21,6 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.JsonPatch;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPatchOptions;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesEnableDisableManifestDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
@@ -40,7 +39,6 @@ public abstract class AbstractKubernetesEnableDisableManifestOperation
     implements AtomicOperation<OperationResult> {
   private final KubernetesEnableDisableManifestDescription description;
   private final KubernetesV2Credentials credentials;
-  private final KubernetesResourcePropertyRegistry registry;
   private final String accountName;
   private final String OP_NAME = getVerbName().toUpperCase() + "_MANIFEST";
 
@@ -52,12 +50,10 @@ public abstract class AbstractKubernetesEnableDisableManifestOperation
       KubernetesManifest target);
 
   public AbstractKubernetesEnableDisableManifestOperation(
-      KubernetesEnableDisableManifestDescription description,
-      KubernetesResourcePropertyRegistry registry) {
+      KubernetesEnableDisableManifestDescription description) {
     this.description = description;
     this.credentials = (KubernetesV2Credentials) description.getCredentials().getCredentials();
     this.accountName = description.getCredentials().getName();
-    this.registry = registry;
   }
 
   private static Task getTask() {
@@ -89,7 +85,7 @@ public abstract class AbstractKubernetesEnableDisableManifestOperation
     }
 
     CanLoadBalance loadBalancerHandler =
-        CanLoadBalance.lookupProperties(registry, accountName, name);
+        CanLoadBalance.lookupProperties(credentials.getResourcePropertyRegistry(), name);
     KubernetesManifest loadBalancer =
         credentials.get(name.getLeft(), target.getNamespace(), name.getRight());
 
@@ -105,7 +101,8 @@ public abstract class AbstractKubernetesEnableDisableManifestOperation
 
     HasPods podHandler = null;
     try {
-      podHandler = HasPods.lookupProperties(registry, accountName, target.getKind());
+      podHandler =
+          HasPods.lookupProperties(credentials.getResourcePropertyRegistry(), target.getKind());
     } catch (IllegalArgumentException e) {
       // this is OK, the workload might not have pods
     }

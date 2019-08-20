@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.JsonPatch;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourceProperties;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.ResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import java.util.List;
@@ -32,10 +32,8 @@ public interface CanLoadBalance {
   List<JsonPatch> attachPatch(KubernetesManifest loadBalancer, KubernetesManifest target);
 
   static CanLoadBalance lookupProperties(
-      KubernetesResourcePropertyRegistry registry,
-      String accountName,
-      Pair<KubernetesKind, String> name) {
-    KubernetesResourceProperties loadBalancerProperties = registry.get(accountName, name.getLeft());
+      ResourcePropertyRegistry registry, Pair<KubernetesKind, String> name) {
+    KubernetesResourceProperties loadBalancerProperties = registry.get(name.getLeft());
     if (loadBalancerProperties == null) {
       throw new IllegalArgumentException(
           "No properties are registered for "

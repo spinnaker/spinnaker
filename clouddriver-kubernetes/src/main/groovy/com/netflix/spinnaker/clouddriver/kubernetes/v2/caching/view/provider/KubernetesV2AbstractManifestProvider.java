@@ -16,19 +16,17 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider;
 
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.KubernetesV2Manifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesAccountResolver;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPodMetric;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourceProperties;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.ResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestAnnotater;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.model.ManifestProvider;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.moniker.Moniker;
 import java.util.Comparator;
 import java.util.List;
@@ -36,28 +34,22 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
-@Component
 @Slf4j
 public abstract class KubernetesV2AbstractManifestProvider
     implements ManifestProvider<KubernetesV2Manifest> {
-  protected abstract AccountCredentialsRepository getCredentialsRepository();
+  private final KubernetesAccountResolver resourcePropertyResolver;
 
-  protected abstract KubernetesResourcePropertyRegistry getRegistry();
+  public KubernetesV2AbstractManifestProvider(KubernetesAccountResolver resourcePropertyResolver) {
+    this.resourcePropertyResolver = resourcePropertyResolver;
+  }
+
+  protected final ResourcePropertyRegistry getRegistry(String account) {
+    return resourcePropertyResolver.getResourcePropertyRegistry(account);
+  }
 
   protected Optional<KubernetesV2Credentials> getCredentials(String account) {
-    AccountCredentials credentials = getCredentialsRepository().getOne(account);
-
-    if (credentials == null || !(credentials instanceof KubernetesNamedAccountCredentials)) {
-      return Optional.empty();
-    }
-
-    if (!(credentials.getCredentials() instanceof KubernetesV2Credentials)) {
-      return Optional.empty();
-    }
-
-    return Optional.ofNullable((KubernetesV2Credentials) credentials.getCredentials());
+    return resourcePropertyResolver.getCredentials(account);
   }
 
   protected boolean isAccountRelevant(String account) {
@@ -81,7 +73,7 @@ public abstract class KubernetesV2AbstractManifestProvider
     String namespace = manifest.getNamespace();
     KubernetesKind kind = manifest.getKind();
 
-    KubernetesResourceProperties properties = getRegistry().get(account, kind);
+    KubernetesResourceProperties properties = getRegistry(account).get(kind);
     if (properties == null) {
       return null;
     }

@@ -20,7 +20,6 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.artifact;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourceProperties;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.artifact.KubernetesCleanupArtifactsDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
@@ -47,18 +46,14 @@ public class KubernetesCleanupArtifactsOperation implements AtomicOperation<Oper
   private final KubernetesV2Credentials credentials;
   private final String accountName;
   private final ArtifactProvider artifactProvider;
-  private final KubernetesResourcePropertyRegistry registry;
   private static final String OP_NAME = "CLEANUP_KUBERNETES_ARTIFACTS";
 
   public KubernetesCleanupArtifactsOperation(
-      KubernetesCleanupArtifactsDescription description,
-      ArtifactProvider artifactProvider,
-      KubernetesResourcePropertyRegistry registry) {
+      KubernetesCleanupArtifactsDescription description, ArtifactProvider artifactProvider) {
     this.description = description;
     this.credentials = (KubernetesV2Credentials) description.getCredentials().getCredentials();
     this.accountName = description.getCredentials().getName();
     this.artifactProvider = artifactProvider;
-    this.registry = registry;
   }
 
   private static Task getTask() {
@@ -84,7 +79,7 @@ public class KubernetesCleanupArtifactsOperation implements AtomicOperation<Oper
           }
           String kind = type.substring("kubernetes/".length());
           KubernetesResourceProperties properties =
-              registry.get(accountName, KubernetesKind.fromString(kind));
+              credentials.getResourcePropertyRegistry().get(KubernetesKind.fromString(kind));
           if (properties == null) {
             log.warn("No properties for artifact {}, ignoring", a);
             return;

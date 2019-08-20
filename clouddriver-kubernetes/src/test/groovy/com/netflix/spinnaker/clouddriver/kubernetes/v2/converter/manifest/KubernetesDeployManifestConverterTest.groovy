@@ -26,7 +26,7 @@ import spock.lang.Specification
 class KubernetesDeployManifestConverterTest extends Specification {
 
   def converter = new KubernetesDeployManifestConverter(
-    Mock(AccountCredentialsProvider), new ObjectMapper(), null, null)
+    Mock(AccountCredentialsProvider), new ObjectMapper(), null)
   def inputMap = new HashMap()
   def manifestList = new ArrayList()
 

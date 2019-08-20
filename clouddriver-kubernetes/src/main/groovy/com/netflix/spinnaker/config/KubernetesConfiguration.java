@@ -27,7 +27,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.agent.Kubernetes
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.KubernetesV2Provider;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.KubernetesV2ProviderSynchronizable;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgentDispatcher;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
@@ -81,7 +80,6 @@ public class KubernetesConfiguration {
       KubernetesV2Provider kubernetesV2Provider,
       AccountCredentialsRepository accountCredentialsRepository,
       KubernetesV2CachingAgentDispatcher kubernetesV2CachingAgentDispatcher,
-      KubernetesResourcePropertyRegistry kubernetesResourcePropertyRegistry,
       KubernetesConfigurationProperties kubernetesConfigurationProperties,
       KubernetesNamedAccountCredentials.CredentialFactory credentialFactory,
       KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap,
@@ -90,7 +88,6 @@ public class KubernetesConfiguration {
         kubernetesV2Provider,
         accountCredentialsRepository,
         kubernetesV2CachingAgentDispatcher,
-        kubernetesResourcePropertyRegistry,
         kubernetesConfigurationProperties,
         credentialFactory,
         kubernetesSpinnakerKindMap,

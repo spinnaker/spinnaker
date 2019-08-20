@@ -25,7 +25,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.caching.KubernetesCachingAge
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.KubernetesCachingAgentDispatcher;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourceProperties;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.ResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -42,11 +42,14 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class KubernetesV2CachingAgentDispatcher implements KubernetesCachingAgentDispatcher {
-  @Autowired private ObjectMapper objectMapper;
+  private final ObjectMapper objectMapper;
+  private final Registry registry;
 
-  @Autowired private Registry registry;
-
-  @Autowired private KubernetesResourcePropertyRegistry propertyRegistry;
+  @Autowired
+  public KubernetesV2CachingAgentDispatcher(ObjectMapper objectMapper, Registry registry) {
+    this.objectMapper = objectMapper;
+    this.registry = registry;
+  }
 
   @Override
   public Collection<KubernetesCachingAgent> buildAllCachingAgents(
@@ -57,6 +60,8 @@ public class KubernetesV2CachingAgentDispatcher implements KubernetesCachingAgen
         Optional.ofNullable(credentials.getCacheIntervalSeconds())
             .map(TimeUnit.SECONDS::toMillis)
             .orElse(null);
+
+    ResourcePropertyRegistry propertyRegistry = v2Credentials.getResourcePropertyRegistry();
 
     IntStream.range(0, credentials.getCacheThreads())
         .boxed()
@@ -70,7 +75,6 @@ public class KubernetesV2CachingAgentDispatcher implements KubernetesCachingAgen
                         h ->
                             h.buildCachingAgent(
                                 credentials,
-                                propertyRegistry,
                                 objectMapper,
                                 registry,
                                 i,

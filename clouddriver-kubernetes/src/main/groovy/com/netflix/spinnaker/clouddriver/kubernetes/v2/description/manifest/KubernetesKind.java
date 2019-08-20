@@ -127,8 +127,6 @@ public final class KubernetesKind {
   private final boolean hasClusterRelationship;
   // was this kind found after spinnaker started?
   @Getter private final boolean isDynamic;
-  // was this kind added by a user in their clouddriver.yml?
-  @Getter private final boolean isRegistered;
 
   private static KubernetesKind createAndRegisterKind(
       @Nonnull String name,
@@ -137,8 +135,7 @@ public final class KubernetesKind {
       boolean isNamespaced,
       boolean hasClusterRelationship) {
     return kindRegistry.registerKind(
-        new KubernetesKind(
-            name, apiGroup, alias, isNamespaced, hasClusterRelationship, false, true));
+        new KubernetesKind(name, apiGroup, alias, isNamespaced, hasClusterRelationship, false));
   }
 
   private KubernetesKind(
@@ -147,14 +144,12 @@ public final class KubernetesKind {
       @Nullable String alias,
       boolean isNamespaced,
       boolean hasClusterRelationship,
-      boolean isDynamic,
-      boolean isRegistered) {
+      boolean isDynamic) {
     this.scopedKind = new ScopedKind(name, apiGroup);
     this.alias = alias;
     this.isNamespaced = isNamespaced;
     this.hasClusterRelationship = hasClusterRelationship;
     this.isDynamic = isDynamic;
-    this.isRegistered = isRegistered;
   }
 
   public boolean hasClusterRelationship() {
@@ -202,33 +197,26 @@ public final class KubernetesKind {
                     null,
                     true,
                     false,
-                    true,
-                    false));
+                    true));
   }
 
   @Nonnull
   public static KubernetesKind getOrRegisterKind(
       @Nonnull final String name,
-      final boolean registered,
       final boolean namespaced,
       @Nullable final KubernetesApiGroup apiGroup) {
     return kindRegistry.getOrRegisterKind(
         name,
         apiGroup,
         () -> {
-          log.info(
-              "Dynamically registering {}, (namespaced: {}, registered: {})",
-              name,
-              namespaced,
-              registered);
+          log.info("Dynamically registering {}, (namespaced: {})", name, namespaced);
           return new KubernetesKind(
               name,
               Optional.ofNullable(apiGroup).orElse(KubernetesApiGroup.NONE),
               null,
               namespaced,
               false,
-              true,
-              registered);
+              true);
         });
   }
 
@@ -236,7 +224,7 @@ public final class KubernetesKind {
   public static KubernetesKind getOrRegisterKind(
       @Nonnull final String qualifiedName, boolean isNamespaced) {
     ScopedKind scopedKind = parseQualifiedKind(qualifiedName);
-    return getOrRegisterKind(scopedKind.getName(), true, isNamespaced, scopedKind.getApiGroup());
+    return getOrRegisterKind(scopedKind.getName(), isNamespaced, scopedKind.getApiGroup());
   }
 
   @Nonnull

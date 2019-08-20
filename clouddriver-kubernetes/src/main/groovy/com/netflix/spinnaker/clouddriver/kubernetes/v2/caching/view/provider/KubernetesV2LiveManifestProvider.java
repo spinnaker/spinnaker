@@ -17,17 +17,15 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.KubernetesV2Manifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesAccountResolver;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPodMetric;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,15 +34,9 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class KubernetesV2LiveManifestProvider extends KubernetesV2AbstractManifestProvider {
-  @Getter private final AccountCredentialsRepository credentialsRepository;
-  @Getter private final KubernetesResourcePropertyRegistry registry;
-
   @Autowired
-  public KubernetesV2LiveManifestProvider(
-      AccountCredentialsRepository credentialsRepository,
-      KubernetesResourcePropertyRegistry registry) {
-    this.credentialsRepository = credentialsRepository;
-    this.registry = registry;
+  public KubernetesV2LiveManifestProvider(KubernetesAccountResolver resourcePropertyResolver) {
+    super(resourcePropertyResolver);
   }
 
   @Override
