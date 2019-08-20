@@ -3,9 +3,9 @@ package com.netflix.spinnaker.keel.actuation
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
-import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.name
@@ -81,8 +81,8 @@ class ResourcePersister(
   fun update(name: ResourceName, updated: SubmittedResource<*>): Resource<out ResourceSpec> {
     log.debug("Updating $name")
     val handler = handlers.supporting(updated.apiVersion, updated.kind)
-    val existing = resourceRepository.get(name, ResourceSpec::class.java)
-    val resource = existing.copy(spec = updated.spec as ResourceSpec)
+    val existing = resourceRepository.get(name)
+    val resource = existing.withSpec(updated.spec, handler.supportedKind.second)
     val normalized = handler.normalize(resource)
 
     val diff = ResourceDiff(normalized.spec, existing.spec)
@@ -99,6 +99,14 @@ class ResourcePersister(
     }
   }
 
+  private fun <T : ResourceSpec> Resource<T>.withSpec(spec: Any, type: Class<out ResourceSpec>): Resource<T> {
+    check(type.isAssignableFrom(spec.javaClass)) {
+      "Spec type is incorrect: expected ${type.simpleName} but found ${spec.javaClass.simpleName}"
+    }
+    @Suppress("UNCHECKED_CAST")
+    return copy(spec = spec as T)
+  }
+
   fun delete(name: ResourceName): Resource<out ResourceSpec> =
     resourceRepository
       .get<ResourceSpec>(name)
@@ -109,7 +117,7 @@ class ResourcePersister(
 
   private fun ResourceName.isRegistered(): Boolean =
     try {
-      resourceRepository.get(this, ResourceSpec::class.java)
+      resourceRepository.get(this)
       true
     } catch (e: NoSuchResourceException) {
       false

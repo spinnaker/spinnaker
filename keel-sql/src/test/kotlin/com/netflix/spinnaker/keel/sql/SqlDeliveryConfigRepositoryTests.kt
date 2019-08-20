@@ -15,7 +15,7 @@ internal object SqlDeliveryConfigRepositoryTests : DeliveryConfigRepositoryTests
     SqlDeliveryConfigRepository(jooq, Clock.systemDefaultZone(), DummyResourceTypeIdentifier)
 
   override fun createResourceRepository(): SqlResourceRepository =
-    SqlResourceRepository(jooq, Clock.systemDefaultZone(), configuredObjectMapper())
+    SqlResourceRepository(jooq, Clock.systemDefaultZone(), DummyResourceTypeIdentifier, configuredObjectMapper())
 
   override fun createArtifactRepository(): SqlArtifactRepository =
     SqlArtifactRepository(jooq, Clock.systemDefaultZone())

@@ -24,7 +24,7 @@ internal object SqlResourceRepositoryPeriodicallyCheckedTests :
   private val jooq = testDatabase.context
 
   override val factory: (clock: Clock) -> SqlResourceRepository = { clock ->
-    SqlResourceRepository(jooq, clock, configuredObjectMapper())
+    SqlResourceRepository(jooq, clock, DummyResourceTypeIdentifier, configuredObjectMapper())
   }
 
   override fun flush() {

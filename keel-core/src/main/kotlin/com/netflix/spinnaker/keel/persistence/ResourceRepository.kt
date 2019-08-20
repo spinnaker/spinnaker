@@ -51,7 +51,7 @@ interface ResourceRepository : PeriodicallyCheckedRepository<ResourceHeader> {
    * @return The resource represented by [name] or `null` if [name] is unknown.
    * @throws NoSuchResourceException if [name] does not map to a resource in the repository.
    */
-  fun <T : ResourceSpec> get(name: ResourceName, specType: Class<T>): Resource<T>
+  fun get(name: ResourceName): Resource<out ResourceSpec>
 
   /**
    * Retrieves a single resource by its unique [uid].
@@ -59,7 +59,7 @@ interface ResourceRepository : PeriodicallyCheckedRepository<ResourceHeader> {
    * @return The resource represented by [uid] or `null` if [uid] is unknown.
    * @throws NoSuchResourceException if [uid] does not map to a resource in the repository.
    */
-  fun <T : ResourceSpec> get(uid: UID, specType: Class<T>): Resource<T>
+  fun get(uid: UID): Resource<out ResourceSpec>
 
   fun hasManagedResources(application: String): Boolean
 
@@ -100,8 +100,13 @@ interface ResourceRepository : PeriodicallyCheckedRepository<ResourceHeader> {
   override fun itemsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<ResourceHeader>
 }
 
-inline fun <reified T : ResourceSpec> ResourceRepository.get(name: ResourceName): Resource<T> = get(name, T::class.java)
-inline fun <reified T : ResourceSpec> ResourceRepository.get(uid: UID): Resource<T> = get(uid, T::class.java)
+@Suppress("UNCHECKED_CAST")
+inline fun <reified T : ResourceSpec> ResourceRepository.get(name: ResourceName): Resource<T> =
+  get(name).also { check(it.spec is T) } as Resource<T>
+
+@Suppress("UNCHECKED_CAST")
+inline fun <reified T : ResourceSpec> ResourceRepository.get(uid: UID): Resource<T> =
+  get(uid).also { check(it.spec is T) } as Resource<T>
 
 sealed class NoSuchResourceException(override val message: String?) : RuntimeException(message)
 

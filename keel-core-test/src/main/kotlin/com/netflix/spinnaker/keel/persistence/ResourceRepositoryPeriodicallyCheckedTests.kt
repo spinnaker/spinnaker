@@ -18,10 +18,8 @@ abstract class ResourceRepositoryPeriodicallyCheckedTests<S : ResourceRepository
   }
 
   override val updateOne: Fixture<ResourceHeader, S>.() -> ResourceHeader = {
-    subject.get(
-      ResourceName("test:whatever:fnord-1"),
-      DummyResourceSpec::class.java
-    )
+    subject
+      .get<DummyResourceSpec>(ResourceName("test:whatever:fnord-1"))
       .let {
         it.copy(spec = it.spec.copy(data = randomString()))
       }

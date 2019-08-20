@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.keel.rest
 
-import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.events.ResourceEvent
@@ -35,7 +34,7 @@ class EventController(
     @RequestParam("since", defaultValue = "1970-01-01T00:00:00Z") since: Instant
   ): List<ResourceEvent> {
     log.debug("Getting state history for: $name")
-    return resourceRepository.get(name, ResourceSpec::class.java).let { resource ->
+    return resourceRepository.get(name).let { resource ->
       resourceRepository
         .eventHistory(resource.uid)
         .filter { it.timestamp > since }

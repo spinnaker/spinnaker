@@ -18,6 +18,7 @@ import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_EVENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_LAST_CHECKED
+import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
 import de.huxhorn.sulky.ulid.ULID
 import org.jooq.DSLContext
 import org.slf4j.LoggerFactory
@@ -29,6 +30,7 @@ import java.time.Instant.EPOCH
 open class SqlResourceRepository(
   private val jooq: DSLContext,
   private val clock: Clock,
+  private val resourceTypeIdentifier: ResourceTypeIdentifier,
   private val objectMapper: ObjectMapper
 ) : ResourceRepository {
 
@@ -43,7 +45,7 @@ open class SqlResourceRepository(
       .forEach(callback)
   }
 
-  override fun <T : ResourceSpec> get(uid: UID, specType: Class<T>): Resource<T> {
+  override fun get(uid: UID): Resource<out ResourceSpec> {
     return jooq
       .select(RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.METADATA, RESOURCE.SPEC)
       .from(RESOURCE)
@@ -54,12 +56,12 @@ open class SqlResourceRepository(
           ApiVersion(apiVersion),
           kind,
           objectMapper.readValue<Map<String, Any?>>(metadata).asResourceMetadata(),
-          objectMapper.readValue(spec, specType)
+          objectMapper.readValue(spec, resourceTypeIdentifier.identify(apiVersion.let(::ApiVersion), kind))
         )
       } ?: throw NoSuchResourceUID(uid)
   }
 
-  override fun <T : ResourceSpec> get(name: ResourceName, specType: Class<T>): Resource<T> {
+  override fun get(name: ResourceName): Resource<out ResourceSpec> {
     return jooq
       .select(RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.METADATA, RESOURCE.SPEC)
       .from(RESOURCE)
@@ -70,7 +72,7 @@ open class SqlResourceRepository(
           ApiVersion(apiVersion),
           kind,
           objectMapper.readValue<Map<String, Any?>>(metadata).asResourceMetadata(),
-          objectMapper.readValue(spec, specType)
+          objectMapper.readValue(spec, resourceTypeIdentifier.identify(apiVersion.let(::ApiVersion), kind))
         )
       } ?: throw NoSuchResourceName(name)
   }

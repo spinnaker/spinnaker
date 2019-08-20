@@ -14,6 +14,7 @@ internal object SqlResourceRepositoryTests : ResourceRepositoryTests<SqlResource
     return SqlResourceRepository(
       jooq,
       clock,
+      DummyResourceTypeIdentifier,
       configuredObjectMapper()
     )
   }

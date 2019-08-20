@@ -22,7 +22,7 @@ class ArtifactListener(
 ) {
   @EventListener(ArtifactEvent::class)
   fun onArtifactEvent(event: ArtifactEvent) {
-    log.info("Received artifact event: {}", event)
+    log.debug("Received artifact event: {}", event)
     event
       .artifacts
       .filter { it.type.toUpperCase() in artifactTypeNames }

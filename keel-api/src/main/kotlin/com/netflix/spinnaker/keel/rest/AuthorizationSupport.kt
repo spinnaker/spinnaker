@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
-import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.name
 import com.netflix.spinnaker.keel.api.serviceAccount
@@ -39,7 +38,7 @@ class AuthorizationSupport(
 
   fun userCanModifyResource(name: String): Boolean =
     try {
-      val resource = resourceRepository.get(ResourceName(name), ResourceSpec::class.java)
+      val resource = resourceRepository.get(ResourceName(name))
       userCanModifySpec(resource.serviceAccount, resource.name)
     } catch (e: NoSuchResourceException) {
       // If resource doesn't exist return true so a 404 is propagated from the controller.

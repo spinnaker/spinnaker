@@ -34,14 +34,23 @@ class SqlConfiguration {
   }
 
   @Bean
-  fun resourceRepository(jooq: DSLContext, clock: Clock, objectMapper: ObjectMapper) =
-    SqlResourceRepository(jooq, clock, objectMapper)
+  fun resourceRepository(
+    jooq: DSLContext,
+    clock: Clock,
+    resourceTypeIdentifier: ResourceTypeIdentifier,
+    objectMapper: ObjectMapper
+  ) =
+    SqlResourceRepository(jooq, clock, resourceTypeIdentifier, objectMapper)
 
   @Bean
   fun artifactRepository(jooq: DSLContext, clock: Clock) =
     SqlArtifactRepository(jooq, clock)
 
   @Bean
-  fun deliveryConfigRepository(jooq: DSLContext, clock: Clock, resourceTypeIdentifier: ResourceTypeIdentifier) =
+  fun deliveryConfigRepository(
+    jooq: DSLContext,
+    clock: Clock,
+    resourceTypeIdentifier: ResourceTypeIdentifier
+  ) =
     SqlDeliveryConfigRepository(jooq, clock, resourceTypeIdentifier)
 }

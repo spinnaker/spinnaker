@@ -54,8 +54,7 @@ class ResourceActuator(
 
       log.debug("Checking resource {}", name)
 
-      val type = plugin.supportedKind.second
-      val resource = resourceRepository.get(name, type)
+      val resource = resourceRepository.get(name)
 
       val (desired, current) = plugin.resolve(resource)
       val diff = ResourceDiff(desired, current)

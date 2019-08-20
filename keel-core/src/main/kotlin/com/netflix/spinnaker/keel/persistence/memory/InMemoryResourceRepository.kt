@@ -15,9 +15,9 @@
  */
 package com.netflix.spinnaker.keel.persistence.memory
 
-import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.UID
 import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.name
@@ -27,7 +27,6 @@ import com.netflix.spinnaker.keel.persistence.NoSuchResourceName
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceUID
 import com.netflix.spinnaker.keel.persistence.ResourceHeader
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
-import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
@@ -46,24 +45,15 @@ class InMemoryResourceRepository(
     }
   }
 
-  private val mapper = configuredObjectMapper()
-
   @Suppress("UNCHECKED_CAST")
-  override fun <T : ResourceSpec> get(name: ResourceName, specType: Class<T>): Resource<T> =
+  override fun get(name: ResourceName): Resource<out ResourceSpec> =
     resources.values.find { it.name == name }?.let {
-      get(it.uid, specType)
+      get(it.uid)
     } ?: throw NoSuchResourceName(name)
 
   @Suppress("UNCHECKED_CAST")
-  override fun <T : ResourceSpec> get(uid: UID, specType: Class<T>): Resource<T> =
-    resources[uid]?.let {
-      if (specType.isAssignableFrom(it.spec.javaClass)) {
-        it as Resource<T>
-      } else {
-        val convertedSpec = mapper.convertValue(it.spec, specType)
-        (it as Resource<ResourceSpec>).copy(spec = convertedSpec) as Resource<T>
-      }
-    } ?: throw NoSuchResourceUID(uid)
+  override fun get(uid: UID): Resource<out ResourceSpec> =
+    resources[uid] ?: throw NoSuchResourceUID(uid)
 
   override fun hasManagedResources(application: String): Boolean =
     resources.any { it.value.application == application }
