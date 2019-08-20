@@ -2,6 +2,7 @@
 
 var gateHost = '{%gate.baseUrl%}';
 var artifactsEnabled = '{%features.artifacts%}' === 'true';
+var artifactsRewriteEnabled = '{%features.artifactsRewrite%}' === 'true';
 var atlasWebComponentsUrl = '{%canary.atlasWebComponentsUrl%}';
 var authEnabled = '{%features.auth%}' === 'true';
 var authEndpoint = gateHost + '/auth/user';
@@ -149,6 +150,7 @@ window.spinnakerSettings = {
   defaultTimeZone: timezone, // see http://momentjs.com/timezone/docs/#/data-utilities/
   feature: {
     artifacts: artifactsEnabled,
+    artifactsRewrite: artifactsRewriteEnabled,
     canary: mineCanaryEnabled,
     chaosMonkey: chaosEnabled,
     displayTimestampsInUserLocalTime: displayTimestampsInUserLocalTime,
