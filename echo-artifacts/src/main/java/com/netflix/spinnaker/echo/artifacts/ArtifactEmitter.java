@@ -63,8 +63,8 @@ public class ArtifactEmitter {
       sentEvent.put("eventName", artifactEmitterProperties.getEventName());
       sentEvent.put(
           artifactEmitterProperties.getFieldName(), objectMapper.convertValue(event, Map.class));
-
       keelService.sendArtifactEvent(sentEvent);
+      log.debug("Sending artifacts {}", event.getArtifacts());
     } catch (Exception e) {
       log.error("Could not send event {} to Keel", event, e);
     }
