@@ -11,6 +11,7 @@ import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -32,6 +33,7 @@ class BakeryConfiguration {
     orcaService: OrcaService,
     igorService: ArtifactService,
     imageService: ImageService,
+    publisher: ApplicationEventPublisher,
     normalizers: List<ResourceNormalizer<*>>
   ) = ImageHandler(
     objectMapper,
@@ -41,6 +43,7 @@ class BakeryConfiguration {
     orcaService,
     igorService,
     imageService,
+    publisher,
     normalizers
   )
 }

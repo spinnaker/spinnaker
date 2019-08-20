@@ -17,7 +17,7 @@ import retrofit2.converter.jackson.JacksonConverterFactory
 @ConditionalOnProperty("front50.enabled")
 class Front50Config {
   @Bean
-  fun front50Endpoint(@Value("\${front50.baseUrl}") front50BaseUrl: String): HttpUrl =
+  fun front50Endpoint(@Value("\${front50.base-url}") front50BaseUrl: String): HttpUrl =
     HttpUrl.parse(front50BaseUrl)
       ?: throw BeanCreationException("Invalid URL: $front50BaseUrl")
 

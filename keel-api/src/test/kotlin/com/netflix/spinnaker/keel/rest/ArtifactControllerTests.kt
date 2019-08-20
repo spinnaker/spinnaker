@@ -23,11 +23,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(
   classes = [KeelApplication::class, MockEurekaConfiguration::class],
-  properties = [
-    "clouddriver.baseUrl=https://localhost:8081",
-    "orca.baseUrl=https://localhost:8082",
-    "front50.baseUrl=https://localhost:8083"
-  ],
   webEnvironment = MOCK
 )
 @AutoConfigureMockMvc
@@ -57,24 +52,6 @@ internal class ArtifactControllerTests {
     mvc
       .perform(request)
       .andExpect(status().isCreated)
-  }
-
-  @Test
-  fun `if an artifact is already registered endpoint responds with a conflict`() {
-    artifactRepository.register(DeliveryArtifact("fnord", DEB))
-
-    val request = post("/artifacts")
-      .accept(APPLICATION_YAML)
-      .contentType(APPLICATION_YAML)
-      .content(
-        """---
-          |name: fnord
-          |type: DEB
-        """.trimMargin()
-      )
-    mvc
-      .perform(request)
-      .andExpect(status().isConflict)
   }
 
   @Test

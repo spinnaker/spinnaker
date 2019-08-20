@@ -38,11 +38,6 @@ import strikt.assertions.succeeded
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(
   classes = [KeelApplication::class, MockEurekaConfiguration::class, DummyResourceConfiguration::class],
-  properties = [
-    "clouddriver.baseUrl=https://localhost:8081",
-    "orca.baseUrl=https://localhost:8082",
-    "front50.baseUrl=https://localhost:8083"
-  ],
   webEnvironment = MOCK
 )
 @AutoConfigureMockMvc

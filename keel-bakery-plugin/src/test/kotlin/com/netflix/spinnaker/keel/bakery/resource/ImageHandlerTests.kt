@@ -28,6 +28,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.runBlocking
+import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.hasSize
@@ -43,6 +44,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
     val igorService = mockk<ArtifactService>()
     val baseImageCache = mockk<BaseImageCache>()
     val imageService = mockk<ImageService>()
+    val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
     val handler = ImageHandler(
       configuredObjectMapper(),
       artifactRepository,
@@ -51,6 +53,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
       orcaService,
       igorService,
       imageService,
+      publisher,
       emptyList()
     )
     val resource = resource(

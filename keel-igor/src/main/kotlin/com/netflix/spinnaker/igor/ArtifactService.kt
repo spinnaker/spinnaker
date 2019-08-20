@@ -6,9 +6,14 @@ import retrofit2.http.Path
 
 interface ArtifactService {
 
-  @GET("/artifacts/rocket/{application}/{version}")
+  @GET("/artifacts/rocket/{packageName}/{version}")
   suspend fun getArtifact(
-    @Path("application") application: String,
+    @Path("packageName") packageName: String,
     @Path("version") version: String
   ): Artifact
+
+  @GET("/artifacts/rocket/{packageName}")
+  suspend fun getVersions(
+    @Path("packageName") packageName: String
+  ): List<String> // sorted in descending order
 }

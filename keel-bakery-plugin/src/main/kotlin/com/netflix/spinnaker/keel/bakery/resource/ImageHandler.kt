@@ -18,6 +18,7 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.Image
 import com.netflix.spinnaker.keel.diff.ResourceDiff
+import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.events.Task
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
@@ -28,6 +29,7 @@ import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 
 class ImageHandler(
   override val objectMapper: ObjectMapper,
@@ -37,6 +39,7 @@ class ImageHandler(
   private val orcaService: OrcaService,
   private val igorService: ArtifactService,
   private val imageService: ImageService,
+  private val publisher: ApplicationEventPublisher,
   override val normalizers: List<ResourceNormalizer<*>>
 ) : ResolvableResourceHandler<ImageSpec, Image> {
 
@@ -50,6 +53,12 @@ class ImageHandler(
   override suspend fun desired(resource: Resource<ImageSpec>): Image =
     with(resource) {
       val artifact = DeliveryArtifact(spec.artifactName, DEB)
+
+      if (!artifactRepository.isRegistered(artifact.name, artifact.type)) {
+        // we clearly care about this artifact, let's register it.
+        publisher.publishEvent(ArtifactRegisteredEvent(artifact))
+      }
+
       val latestVersion = artifact.findLatestVersion()
       val baseImage = baseImageCache.getBaseImage(spec.baseOs, spec.baseLabel)
       val baseAmi = findBaseAmi(baseImage, resource.serviceAccount)
