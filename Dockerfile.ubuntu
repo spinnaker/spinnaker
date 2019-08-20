@@ -1,4 +1,4 @@
-FROM debian:stable-slim
+FROM ubuntu:bionic
 MAINTAINER delivery-engineering@netflix.com
 COPY --from=compile /compiled_sources/build/webpack /opt/deck/html
 COPY --from=compile /compiled_sources/docker        /opt/deck/docker
