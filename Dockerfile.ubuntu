@@ -1,4 +1,4 @@
-FROM openjdk:8-jre-alpine
+FROM ubuntu:bionic
 MAINTAINER delivery-engineering@netflix.com
 COPY --from=compile /compiled_sources/rosco-web/build/install/rosco /opt/rosco
 COPY --from=compile /compiled_sources/rosco-web/config              /opt/rosco
@@ -6,7 +6,7 @@ COPY --from=compile /compiled_sources/rosco-web/config/packer       /opt/rosco/c
 
 WORKDIR /packer
 
-RUN apk --no-cache add --update bash wget curl openssl && \
+RUN apt-get update && apt-get -y install openjdk-8-jre-headless wget unzip curl && \
   wget https://releases.hashicorp.com/packer/1.4.2/packer_1.4.2_linux_amd64.zip && \
   unzip packer_1.4.2_linux_amd64.zip && \
   rm packer_1.4.2_linux_amd64.zip
@@ -18,7 +18,6 @@ RUN wget https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get &&
   ./get && \
   rm get
 
-RUN adduser -D -S spinnaker
+RUN adduser --disabled-login --system spinnaker
 USER spinnaker
 CMD ["/opt/rosco/bin/rosco"]
-
