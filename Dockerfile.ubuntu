@@ -1,8 +1,8 @@
-# Not using the alpine image because it lacks a package gRPC needed to establish pub/sub listeners.
-FROM openjdk:8
+
+FROM ubuntu:bionic
 MAINTAINER delivery-engineering@netflix.com
 COPY --from=compile /compiled_sources/echo-web/build/install/echo /opt/echo
-
+RUN apt-get update && apt-get -y install openjdk-8-jre-headless wget
 RUN adduser --disabled-login --system spinnaker
 USER spinnaker
 CMD ["/opt/echo/bin/echo"]
