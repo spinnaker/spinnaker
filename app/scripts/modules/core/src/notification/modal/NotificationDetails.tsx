@@ -57,7 +57,7 @@ export class NotificationDetails extends React.Component<INotificationDetailsPro
     if (whenOption !== 'manualJudgment' && ['email', 'slack', 'googlechat'].includes(type)) {
       return (
         <FormikFormField
-          name={'message.' + whenOption + '.text'}
+          name={`message["${whenOption}"].text`}
           input={props => <TextAreaInput {...props} placeholder="enter a custom notification message (optional)" />}
         />
       );
