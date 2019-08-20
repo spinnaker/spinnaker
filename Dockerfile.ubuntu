@@ -1,0 +1,7 @@
+FROM ubuntu:bionic
+MAINTAINER delivery-engineering@netflix.com
+COPY --from=compile /compiled_sources/front50-web/build/install/front50 /opt/front50
+RUN apt-get update && apt-get -y install openjdk-8-jre-headless wget
+RUN adduser --disabled-login --system spinnaker
+USER spinnaker
+CMD ["/opt/front50/bin/front50"]
