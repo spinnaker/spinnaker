@@ -9,7 +9,7 @@ import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.Called
-import io.mockk.coVerifyAll
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -74,12 +74,11 @@ internal object CheckSchedulerTests : JUnit5Minutests {
       test("all resources are checked") {
         checkResources()
 
-        coVerifyAll {
-          with(resources.first()) {
-            resourceActuator.checkResource(name, apiVersion, kind)
-          }
-          with(resources.last()) {
-            resourceActuator.checkResource(name, apiVersion, kind)
+        resources.forEach { resource ->
+          coVerify(timeout = 500) {
+            with(resource) {
+              resourceActuator.checkResource(name, apiVersion, kind)
+            }
           }
         }
       }
