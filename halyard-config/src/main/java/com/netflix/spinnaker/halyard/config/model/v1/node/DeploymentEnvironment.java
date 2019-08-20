@@ -104,6 +104,7 @@ public class DeploymentEnvironment extends Node {
   private Map<String, List<Map>> initContainers = new HashMap<>();
   private Map<String, List<Map>> hostAliases = new HashMap<>();
   private Map<String, AffinityConfig> affinity = new HashMap<>();
+  private Map<String, List<Toleration>> tolerations = new HashMap<>();
   private Map<String, String> nodeSelectors = new HashMap<>();
   private GitConfig gitConfig = new GitConfig();
   private LivenessProbeConfig livenessProbeConfig = new LivenessProbeConfig();

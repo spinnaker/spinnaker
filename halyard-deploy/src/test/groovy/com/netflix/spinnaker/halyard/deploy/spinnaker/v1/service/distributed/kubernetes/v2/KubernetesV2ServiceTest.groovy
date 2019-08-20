@@ -21,6 +21,7 @@ import com.netflix.spinnaker.halyard.config.config.v1.StrictObjectMapper
 import com.netflix.spinnaker.halyard.config.model.v1.node.AffinityConfig
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration
 import com.netflix.spinnaker.halyard.config.model.v1.node.SidecarConfig
+import com.netflix.spinnaker.halyard.config.model.v1.node.Toleration
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService
@@ -372,5 +373,25 @@ class KubernetesV2ServiceTest extends Specification {
 
         then:
         yaml.contains('"podAntiAffinity":{"preferredDuringSchedulingIgnoredDuringExecution":[{"weight":100,"podAffinityTerm":{"labelSelector":{"matchExpressions":[{"key":"test_key","operator":"In","values":["test_value"]}]},"namespaces":["test_namespace"],"topologyKey":"failure-domain.beta.kubernetes.io/zone"}}]}}')
+    }
+
+    def "Can we set PodTolerations"() {
+        setup:
+        def executor = Mock(KubernetesV2Executor)
+        def toleration = new Toleration(
+                key: "test",
+                value: "a",
+                effect: "NoSchedule",
+                operator: Toleration.Operator.Equal
+        )
+
+        details.deploymentConfiguration = new DeploymentConfiguration()
+        details.deploymentConfiguration.deploymentEnvironment.tolerations.put("spin-orca", Collections.singletonList(toleration))
+
+        when:
+        String yaml = testService.getPodSpecYaml(executor, details, config)
+
+        then:
+        yaml.contains('"tolerations": [{"key":"test","operator":"Equal","value":"a","effect":"NoSchedule"}]')
     }
 }

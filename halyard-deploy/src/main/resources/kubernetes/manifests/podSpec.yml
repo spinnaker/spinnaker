@@ -47,6 +47,10 @@
     "affinity": {{ affinity }},
   {% endif %}
 
+  {% if tolerations %}
+    "tolerations": {{ tolerations }},
+  {% endif %}
+
   {% if securityContext != null %}
   "securityContext": {
     {% if securityContext.runAsUser != null %}

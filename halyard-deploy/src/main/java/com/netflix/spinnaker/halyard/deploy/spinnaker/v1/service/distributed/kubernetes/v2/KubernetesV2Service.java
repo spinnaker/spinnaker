@@ -27,6 +27,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.CustomSizing;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment;
 import com.netflix.spinnaker.halyard.config.model.v1.node.SidecarConfig;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Toleration;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
@@ -261,6 +262,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
         .addBinding("terminationGracePeriodSeconds", terminationGracePeriodSeconds())
         .addBinding("nodeSelector", settings.getKubernetes().getNodeSelector())
         .addBinding("affinity", getAffinity(details))
+        .addBinding("tolerations", getTolerations(details))
         .addBinding(
             "volumes", combineVolumes(configSources, settings.getKubernetes(), sidecarConfigs))
         .addBinding("securityContext", settings.getKubernetes().getSecurityContext())
@@ -678,6 +680,31 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
     } catch (JsonProcessingException e) {
       throw new HalException(
           Problem.Severity.FATAL, "Invalid affinity format: " + e.getMessage(), e);
+    }
+  }
+
+  default String getTolerations(AccountDeploymentDetails<KubernetesAccount> details) {
+    List<Toleration> toleration =
+        details
+            .getDeploymentConfiguration()
+            .getDeploymentEnvironment()
+            .getTolerations()
+            .getOrDefault(getService().getServiceName(), new ArrayList<>());
+
+    if (toleration.isEmpty()) {
+      toleration =
+          details
+              .getDeploymentConfiguration()
+              .getDeploymentEnvironment()
+              .getTolerations()
+              .getOrDefault(getService().getBaseCanonicalName(), new ArrayList<>());
+    }
+
+    try {
+      return getObjectMapper().writeValueAsString(toleration);
+    } catch (JsonProcessingException e) {
+      throw new HalException(
+          Problem.Severity.FATAL, "Invalid tolerations format: " + e.getMessage(), e);
     }
   }
 
