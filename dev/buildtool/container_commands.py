@@ -18,20 +18,17 @@ import copy
 import logging
 import os
 import shutil
-import yaml
 
 from buildtool import (
-    SPINNAKER_HALYARD_REPOSITORY_NAME,
-    BomSourceCodeManager,
-    BranchSourceCodeManager,
-    GradleCommandFactory,
-    GradleCommandProcessor,
+  SPINNAKER_HALYARD_REPOSITORY_NAME,
+  BomSourceCodeManager,
+  BranchSourceCodeManager,
+  GradleCommandFactory,
+  GradleCommandProcessor,
 
-    check_subprocess,
-    check_subprocesses_to_logfile,
-    write_to_path,
-    raise_and_log_error,
-    ConfigError)
+  check_subprocess,
+  check_subprocesses_to_logfile
+)
 
 
 class BuildContainerCommand(GradleCommandProcessor):
@@ -45,8 +42,18 @@ class BuildContainerCommand(GradleCommandProcessor):
         source_repository_names=source_repository_names, **kwargs)
 
   def _do_can_skip_repository(self, repository):
-    build_version = self.scm.get_repository_service_build_version(repository)
-    return self.__check_gcb_image(repository, build_version)
+    image_name = self.scm.repository_name_to_service_name(repository.name)
+    version = self.scm.get_repository_service_build_version(repository)
+
+    for variant in ('slim', 'ubuntu'):
+      tag = f"{version}-{variant}"
+      if not self.__gcb_image_exists(image_name, tag):
+        return False
+
+    labels = {'repository': repository.name, 'artifact': 'gcr-container'}
+    logging.info('Already have %s -- skipping build', image_name)
+    self.metrics.inc_counter('ReuseArtifact', labels)
+    return True
 
   def _do_repository(self, repository):
     """Implements RepositoryCommandProcessor interface."""
@@ -54,10 +61,9 @@ class BuildContainerCommand(GradleCommandProcessor):
     build_version = scm.get_repository_service_build_version(repository)
     self.__build_with_gcb(repository, build_version)
 
-  def __check_gcb_image(self, repository, version):
+  def __gcb_image_exists(self, image_name, version):
     """Determine if gcb image already exists."""
     options = self.options
-    image_name = self.scm.repository_name_to_service_name(repository.name)
     command = ['gcloud', '--account', options.gcb_service_account,
                'container', 'images', 'list-tags',
                options.docker_registry + '/' + image_name,
@@ -65,9 +71,6 @@ class BuildContainerCommand(GradleCommandProcessor):
                '--format=json']
     got = check_subprocess(' '.join(command))
     if got.strip() != '[]':
-      labels = {'repository': repository.name, 'artifact': 'gcr-container'}
-      logging.info('Already have %s -- skipping build', image_name)
-      self.metrics.inc_counter('ReuseArtifact', labels)
       return True
     return False
 
@@ -90,15 +93,18 @@ class BuildContainerCommand(GradleCommandProcessor):
     if os.path.isdir(gradle_cache):
       shutil.rmtree(gradle_cache)
 
+    cloudbuild_config = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cloudbuild.yml')
+    service_name = self.scm.repository_name_to_service_name(repository.name)
     # Note this command assumes a cwd of git_dir
     command = ('gcloud builds submit '
                ' --account={account} --project={project}'
-               ' --substitutions=TAG_NAME={tag_name}'
-               ' --config=cloudbuild.yaml .'
+               ' --substitutions=TAG_NAME={tag_name},_IMAGE_NAME={image_name}'
+               ' --config={cloudbuild_config} .'
                .format(account=options.gcb_service_account,
                        project=options.gcb_project,
-                       repo_name=repository.name,
-                       tag_name=build_version))
+                       tag_name=build_version,
+                       image_name=service_name,
+                       cloudbuild_config=cloudbuild_config))
 
     logfile = self.get_logfile_path(name + '-gcb-build')
     labels = {'repository': repository.name}
