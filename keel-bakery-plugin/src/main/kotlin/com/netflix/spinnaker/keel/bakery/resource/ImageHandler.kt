@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.bakery.resource
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.igor.ArtifactService
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
@@ -83,13 +84,11 @@ class ImageHandler(
     resource: Resource<ImageSpec>,
     resourceDiff: ResourceDiff<Image>
   ): List<Task> {
-    val (_, application, version) = resourceDiff.desired.appVersion.let { appVersion ->
-      Regex("([\\w_]+)-(.+)")
-        .find(appVersion)
-        ?.groupValues
-        ?: throw IllegalStateException("Could not parse app version $appVersion")
-    }
-    val artifact = igorService.getArtifact(application, version)
+    val appVersion = AppVersion.parseName(resourceDiff.desired.appVersion)
+    val packageName = appVersion.packageName
+    val version = resourceDiff.desired.appVersion.substringAfter("$packageName-")
+    val artifact = igorService.getArtifact(packageName, version)
+
     log.info("baking new image for {}", resource.spec.artifactName)
     val description = "Bake ${resourceDiff.desired.appVersion}"
     val taskRef = orcaService.orchestrate(
