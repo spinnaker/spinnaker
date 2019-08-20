@@ -649,7 +649,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         }
 
         it("marks the task as failed but continue") {
-          verify(queue).push(CompleteTask(message, FAILED_CONTINUE))
+          verify(queue).push(CompleteTask(message, FAILED_CONTINUE, TERMINAL))
         }
       }
 

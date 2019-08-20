@@ -152,10 +152,11 @@ class RunTaskHandler(
           queue.push(CompleteTask(message, SUCCEEDED))
         } else {
           log.error("Error running ${message.taskType.simpleName} for ${message.executionType}[${message.executionId}]", e)
+          val status = stage.failureStatus(default = TERMINAL)
           stage.context["exception"] = exceptionDetails
           repository.storeStage(stage)
-          queue.push(CompleteTask(message, stage.failureStatus()))
-          trackResult(stage, thisInvocationStartTimeMs, taskModel, stage.failureStatus())
+          queue.push(CompleteTask(message, status, TERMINAL))
+          trackResult(stage, thisInvocationStartTimeMs, taskModel, status)
         }
       }
     }
