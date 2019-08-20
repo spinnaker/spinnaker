@@ -1,0 +1,8 @@
+FROM gcr.io/spinnaker-marketplace/gradle_cache
+MAINTAINER delivery-engineering@netflix.com
+
+ENV GRADLE_USER_HOME /gradle_cache/.gradle
+COPY . compiled_sources
+WORKDIR compiled_sources
+
+RUN ./gradlew clouddriver-web:installDist -x test
