@@ -19,8 +19,8 @@
 package com.netflix.spinnaker.keel.tagging
 
 import com.netflix.spinnaker.keel.actuation.ResourcePersister
-import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.SubmittedMetadata
 import com.netflix.spinnaker.keel.api.SubmittedResource
@@ -140,7 +140,7 @@ class ResourceTagger(
     }
   }
 
-  @Scheduled(fixedDelayString = "\${keel.resource-tagger.account-sync-frequency:PT600S}")
+  @Scheduled(fixedDelayString = "\${keel.resource-tagger.account-sync-frequency:PT600S}", initialDelay = 30000)
   private fun syncAccounts() {
     val now = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
     if (now - accountsUpdateFrequencyS > accountsUpdateTimeS) {
