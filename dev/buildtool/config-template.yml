@@ -158,13 +158,10 @@
 # Container Commands
 ################################
 # docker_registry:
-# container_env_vars: GRADLE_USER_HOME=/gradle_cache/.gradle
-# container_builder: gcb
 # gcb_project:
 # gcb_service_account:
-# container_base_image:
-# force_clean_gradle_cache: true
-
+# image_variants: alpine,ubuntu
+# image_default_variant: alpine
 
 ################################
 # Halyard Commands
