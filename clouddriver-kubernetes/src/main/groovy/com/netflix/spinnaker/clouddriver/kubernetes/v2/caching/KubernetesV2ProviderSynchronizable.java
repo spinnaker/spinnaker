@@ -41,13 +41,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class KubernetesV2ProviderSynchronizable implements CredentialsInitializerSynchronizable {
 
-  private KubernetesV2Provider kubernetesV2Provider;
-  private AccountCredentialsRepository accountCredentialsRepository;
-  private KubernetesV2CachingAgentDispatcher kubernetesV2CachingAgentDispatcher;
-  private KubernetesConfigurationProperties kubernetesConfigurationProperties;
-  private KubernetesNamedAccountCredentials.CredentialFactory credentialFactory;
-  private KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap;
-  private CatsModule catsModule;
+  private final KubernetesV2Provider kubernetesV2Provider;
+  private final AccountCredentialsRepository accountCredentialsRepository;
+  private final KubernetesV2CachingAgentDispatcher kubernetesV2CachingAgentDispatcher;
+  private final KubernetesConfigurationProperties kubernetesConfigurationProperties;
+  private final KubernetesNamedAccountCredentials.CredentialFactory credentialFactory;
+  private final KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap;
+  private final CatsModule catsModule;
 
   public KubernetesV2ProviderSynchronizable(
       KubernetesV2Provider kubernetesV2Provider,

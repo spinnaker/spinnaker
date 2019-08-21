@@ -41,10 +41,10 @@ import lombok.extern.slf4j.Slf4j;
 @NoArgsConstructor
 @Slf4j
 public class KubernetesV2Instance extends ManifestBasedModel implements Instance {
-  Long launchTime;
-  List<Map<String, Object>> health = new ArrayList<>();
-  KubernetesManifest manifest;
-  Keys.InfrastructureCacheKey key;
+  private Long launchTime;
+  private List<Map<String, Object>> health = new ArrayList<>();
+  private KubernetesManifest manifest;
+  private Keys.InfrastructureCacheKey key;
 
   private KubernetesV2Instance(KubernetesManifest manifest, String key) {
     this.manifest = manifest;

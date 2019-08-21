@@ -31,13 +31,13 @@ import lombok.Data;
 
 @Data
 public class KubernetesV2Cluster implements Cluster {
-  String name;
-  Moniker moniker;
-  String type = KubernetesCloudProvider.ID;
-  String accountName;
-  Set<ServerGroup> serverGroups = new HashSet<>();
-  Set<LoadBalancer> loadBalancers = new HashSet<>();
-  String application;
+  private String name;
+  private Moniker moniker;
+  private String type = KubernetesCloudProvider.ID;
+  private String accountName;
+  private Set<ServerGroup> serverGroups = new HashSet<>();
+  private Set<LoadBalancer> loadBalancers = new HashSet<>();
+  private String application;
 
   public KubernetesV2Cluster(String rawKey) {
     Keys.ClusterCacheKey key = (Keys.ClusterCacheKey) Keys.parseKey(rawKey).get();

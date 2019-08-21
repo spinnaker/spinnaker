@@ -64,7 +64,7 @@ public class KubernetesManifestAnnotater {
   private static final String KUBECTL_LAST_APPLIED_CONFIGURATION =
       KUBECTL_ANNOTATION_PREFIX + "/last-applied-configuration";
 
-  private static ObjectMapper objectMapper = new ObjectMapper();
+  private static final ObjectMapper objectMapper = new ObjectMapper();
 
   private static void storeAnnotation(Map<String, String> annotations, String key, Object value) {
     if (value == null) {

@@ -195,7 +195,7 @@ public class Keys {
     private final String location;
     private final String version;
 
-    public ArtifactCacheKey(String[] parts) {
+    protected ArtifactCacheKey(String[] parts) {
       if (parts.length != 6) {
         throw new IllegalArgumentException("Malformed artifact key" + Arrays.toString(parts));
       }
@@ -228,7 +228,7 @@ public class Keys {
     private static final LogicalKind logicalKind = LogicalKind.APPLICATIONS;
     private final String name;
 
-    public ApplicationCacheKey(String[] parts) {
+    protected ApplicationCacheKey(String[] parts) {
       if (parts.length != 4) {
         throw new IllegalArgumentException("Malformed application key" + Arrays.toString(parts));
       }
@@ -295,7 +295,7 @@ public class Keys {
     private final String namespace;
     private final String name;
 
-    public InfrastructureCacheKey(String[] parts) {
+    protected InfrastructureCacheKey(String[] parts) {
       if (parts.length != 6) {
         throw new IllegalArgumentException(
             "Malformed infrastructure key " + Arrays.toString(parts));
@@ -341,7 +341,7 @@ public class Keys {
     private final String namespace;
     private final String name;
 
-    public MetricCacheKey(String[] parts) {
+    protected MetricCacheKey(String[] parts) {
       if (parts.length != 6) {
         throw new IllegalArgumentException("Malformed metric key " + Arrays.toString(parts));
       }

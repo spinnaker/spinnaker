@@ -31,13 +31,11 @@ import java.util.List;
 public class KubernetesResizeServerGroupOperation implements AtomicOperation<Void> {
   private final KubernetesResizeServerGroupDescription description;
   private final KubernetesV2Credentials credentials;
-  private final String accountName;
   private static final String OP_NAME = "RESIZE_KUBERNETES_SERVER_GROUP";
 
   public KubernetesResizeServerGroupOperation(KubernetesResizeServerGroupDescription description) {
     this.description = description;
     this.credentials = (KubernetesV2Credentials) description.getCredentials().getCredentials();
-    this.accountName = description.getCredentials().getName();
   }
 
   private static Task getTask() {

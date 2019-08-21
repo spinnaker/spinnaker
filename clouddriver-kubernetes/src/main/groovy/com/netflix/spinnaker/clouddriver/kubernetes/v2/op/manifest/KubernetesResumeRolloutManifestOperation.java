@@ -31,14 +31,12 @@ import java.util.List;
 public class KubernetesResumeRolloutManifestOperation implements AtomicOperation<Void> {
   private final KubernetesResumeRolloutManifestDescription description;
   private final KubernetesV2Credentials credentials;
-  private final String accountName;
   private static final String OP_NAME = "RESUME_ROLLOUT_KUBERNETES_MANIFEST";
 
   public KubernetesResumeRolloutManifestOperation(
       KubernetesResumeRolloutManifestDescription description) {
     this.description = description;
     this.credentials = (KubernetesV2Credentials) description.getCredentials().getCredentials();
-    this.accountName = description.getCredentials().getName();
   }
 
   private static Task getTask() {

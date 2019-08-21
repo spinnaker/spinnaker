@@ -44,7 +44,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class KubernetesPatchManifestOperation implements AtomicOperation<OperationResult> {
   private final KubernetesPatchManifestDescription description;
   private final KubernetesV2Credentials credentials;
-  private final String accountName;
   private static final String OP_NAME = "PATCH_KUBERNETES_MANIFEST";
 
   @Autowired private ObjectMapper objectMapper;
@@ -52,7 +51,6 @@ public class KubernetesPatchManifestOperation implements AtomicOperation<Operati
   public KubernetesPatchManifestOperation(KubernetesPatchManifestDescription description) {
     this.description = description;
     this.credentials = (KubernetesV2Credentials) description.getCredentials().getCredentials();
-    this.accountName = description.getCredentials().getName();
   }
 
   private static Task getTask() {

@@ -156,11 +156,9 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
         .updateStatus(
             OP_NAME,
             "Deploy order is: "
-                + String.join(
-                    ", ",
-                    deployManifests.stream()
-                        .map(KubernetesManifest::getFullResourceName)
-                        .collect(Collectors.toList())));
+                + deployManifests.stream()
+                    .map(KubernetesManifest::getFullResourceName)
+                    .collect(Collectors.joining(", ")));
 
     OperationResult result = new OperationResult();
     for (KubernetesManifest manifest : deployManifests) {

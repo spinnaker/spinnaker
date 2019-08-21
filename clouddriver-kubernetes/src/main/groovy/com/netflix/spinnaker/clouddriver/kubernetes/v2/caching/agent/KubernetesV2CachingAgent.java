@@ -132,7 +132,7 @@ public abstract class KubernetesV2CachingAgent
     Map<String, Object> details = defaultIntrospectionDetails();
 
     try {
-      Long start = System.currentTimeMillis();
+      long start = System.currentTimeMillis();
       Map<KubernetesKind, List<KubernetesManifest>> primaryResourceList = loadPrimaryResourceList();
       details.put("timeSpentInKubectlMs", System.currentTimeMillis() - start);
       return buildCacheResult(primaryResourceList);

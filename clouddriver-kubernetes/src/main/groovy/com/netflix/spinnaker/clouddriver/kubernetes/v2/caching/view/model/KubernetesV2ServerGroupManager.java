@@ -39,11 +39,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class KubernetesV2ServerGroupManager extends ManifestBasedModel
     implements ServerGroupManager {
-  KubernetesManifest manifest;
-  Keys.InfrastructureCacheKey key;
-  Set<ServerGroupSummary> serverGroups;
+  private KubernetesManifest manifest;
+  private Keys.InfrastructureCacheKey key;
+  private Set<ServerGroupSummary> serverGroups;
 
-  KubernetesV2ServerGroupManager(
+  private KubernetesV2ServerGroupManager(
       KubernetesManifest manifest, String key, Set<ServerGroupSummary> serverGroups) {
     this.manifest = manifest;
     this.key = (Keys.InfrastructureCacheKey) Keys.parseKey(key).get();

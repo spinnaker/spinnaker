@@ -106,9 +106,9 @@ public class KubernetesVersionedArtifactConverter extends KubernetesArtifactConv
                 })
             .filter(Objects::nonNull)
             .filter(i -> i >= 0)
+            .sorted(Integer::compareTo)
             .collect(Collectors.toList());
 
-    taken.sort(Integer::compareTo);
     int sequence = 0;
     if (!taken.isEmpty()) {
       sequence = taken.get(taken.size() - 1) + 1;

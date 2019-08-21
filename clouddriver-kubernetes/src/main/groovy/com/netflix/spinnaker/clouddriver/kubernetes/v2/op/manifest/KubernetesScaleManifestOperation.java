@@ -31,13 +31,11 @@ import java.util.List;
 public class KubernetesScaleManifestOperation implements AtomicOperation<Void> {
   private final KubernetesScaleManifestDescription description;
   private final KubernetesV2Credentials credentials;
-  private final String accountName;
   private static final String OP_NAME = "SCALE_KUBERNETES_MANIFEST";
 
   public KubernetesScaleManifestOperation(KubernetesScaleManifestDescription description) {
     this.description = description;
     this.credentials = (KubernetesV2Credentials) description.getCredentials().getCredentials();
-    this.accountName = description.getCredentials().getName();
   }
 
   private static Task getTask() {

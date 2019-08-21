@@ -39,7 +39,6 @@ public abstract class AbstractKubernetesEnableDisableManifestOperation
     implements AtomicOperation<OperationResult> {
   private final KubernetesEnableDisableManifestDescription description;
   private final KubernetesV2Credentials credentials;
-  private final String accountName;
   private final String OP_NAME = getVerbName().toUpperCase() + "_MANIFEST";
 
   protected abstract String getVerbName();
@@ -49,18 +48,17 @@ public abstract class AbstractKubernetesEnableDisableManifestOperation
       KubernetesManifest loadBalancer,
       KubernetesManifest target);
 
-  public AbstractKubernetesEnableDisableManifestOperation(
+  protected AbstractKubernetesEnableDisableManifestOperation(
       KubernetesEnableDisableManifestDescription description) {
     this.description = description;
     this.credentials = (KubernetesV2Credentials) description.getCredentials().getCredentials();
-    this.accountName = description.getCredentials().getName();
   }
 
   private static Task getTask() {
     return TaskRepository.threadLocalTask.get();
   }
 
-  public List<String> determineLoadBalancers(KubernetesManifest target) {
+  private List<String> determineLoadBalancers(KubernetesManifest target) {
     getTask().updateStatus(OP_NAME, "Getting load balancer list to " + getVerbName() + "...");
     List<String> result = description.getLoadBalancers();
     if (result != null && !result.isEmpty()) {

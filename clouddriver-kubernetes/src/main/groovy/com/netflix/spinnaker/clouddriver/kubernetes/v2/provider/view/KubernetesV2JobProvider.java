@@ -31,6 +31,7 @@ import io.kubernetes.client.models.V1Job;
 import io.kubernetes.client.models.V1Pod;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -42,8 +43,8 @@ import org.springframework.stereotype.Component;
 public class KubernetesV2JobProvider implements JobProvider<KubernetesV2JobStatus> {
 
   @Getter private String platform = "kubernetes";
-  private AccountCredentialsProvider accountCredentialsProvider;
-  private List<ManifestProvider> manifestProviderList;
+  private final AccountCredentialsProvider accountCredentialsProvider;
+  private final List<ManifestProvider> manifestProviderList;
 
   KubernetesV2JobProvider(
       AccountCredentialsProvider accountCredentialsProvider,
@@ -107,7 +108,7 @@ public class KubernetesV2JobProvider implements JobProvider<KubernetesV2JobStatu
     List<Manifest> manifests =
         manifestProviderList.stream()
             .map(p -> p.getManifest(account, location, id, false))
-            .filter(m -> m != null)
+            .filter(Objects::nonNull)
             .collect(Collectors.toList());
 
     if (manifests.isEmpty()) {

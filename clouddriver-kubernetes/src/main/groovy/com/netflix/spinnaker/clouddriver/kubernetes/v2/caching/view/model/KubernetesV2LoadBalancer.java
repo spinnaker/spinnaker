@@ -41,9 +41,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class KubernetesV2LoadBalancer extends ManifestBasedModel
     implements LoadBalancer, LoadBalancerProvider.Details {
-  Set<LoadBalancerServerGroup> serverGroups = new HashSet<>();
-  KubernetesManifest manifest;
-  Keys.InfrastructureCacheKey key;
+  private Set<LoadBalancerServerGroup> serverGroups = new HashSet<>();
+  private KubernetesManifest manifest;
+  private Keys.InfrastructureCacheKey key;
 
   private KubernetesV2LoadBalancer(
       KubernetesManifest manifest, String key, Set<LoadBalancerServerGroup> serverGroups) {

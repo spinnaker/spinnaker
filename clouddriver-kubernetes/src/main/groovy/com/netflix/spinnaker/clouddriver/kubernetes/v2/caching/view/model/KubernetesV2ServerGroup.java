@@ -56,18 +56,18 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 @Slf4j
 public class KubernetesV2ServerGroup extends ManifestBasedModel implements ServerGroup {
-  Boolean disabled;
-  Set<String> zones = new HashSet<>();
-  Set<Instance> instances = new HashSet<>();
-  Set<String> loadBalancers = new HashSet<>();
-  Set<String> securityGroups = new HashSet<>();
-  List<ServerGroupManagerSummary> serverGroupManagers = new ArrayList<>();
-  Map<String, Object> launchConfig = new HashMap<>();
-  Capacity capacity = new Capacity();
-  ImageSummary imageSummary;
-  ImagesSummary imagesSummary;
-  KubernetesManifest manifest;
-  Keys.InfrastructureCacheKey key;
+  private Boolean disabled;
+  private Set<String> zones = new HashSet<>();
+  private Set<Instance> instances = new HashSet<>();
+  private Set<String> loadBalancers = new HashSet<>();
+  private Set<String> securityGroups = new HashSet<>();
+  private List<ServerGroupManagerSummary> serverGroupManagers = new ArrayList<>();
+  private Map<String, Object> launchConfig = new HashMap<>();
+  private Capacity capacity = new Capacity();
+  private ImageSummary imageSummary;
+  private ImagesSummary imagesSummary;
+  private KubernetesManifest manifest;
+  private Keys.InfrastructureCacheKey key;
 
   @JsonIgnore private static final ArtifactReplacer dockerImageReplacer;
 
@@ -121,7 +121,7 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
     return disabled;
   }
 
-  protected KubernetesV2ServerGroup(
+  private KubernetesV2ServerGroup(
       KubernetesManifest manifest,
       String key,
       List<KubernetesV2Instance> instances,
@@ -138,7 +138,7 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
     Object odesired =
         ((Map<String, Object>) manifest.getOrDefault("spec", new HashMap<String, Object>()))
             .getOrDefault("replicas", 0);
-    Integer desired = 0;
+    int desired = 0;
 
     if (odesired instanceof Number) {
       desired = ((Number) odesired).intValue();
@@ -255,10 +255,8 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
   public ImagesSummary getImagesSummary() {
     Map<String, Object> buildInfo = getBuildInfo();
     Set<String> images = (HashSet<String>) buildInfo.get("images");
-    return new ImagesSummary() {
-      @Override
-      public List<? extends ImageSummary> getSummaries() {
-        return singletonList(
+    return () ->
+        singletonList(
             new ImageSummary() {
 
               @Override
@@ -288,7 +286,5 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
                     .build();
               }
             });
-      }
-    };
   }
 }

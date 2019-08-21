@@ -84,7 +84,7 @@ public class KubernetesCacheUtils {
     return Optional.ofNullable(result);
   }
 
-  public Collection<String> aggregateRelationshipsBySpinnakerKind(
+  private Collection<String> aggregateRelationshipsBySpinnakerKind(
       CacheData source, SpinnakerKind kind) {
     return kindMap.translateSpinnakerKind(kind).stream()
         .map(g -> source.getRelationships().get(g.toString()))

@@ -71,7 +71,7 @@ public class KubernetesValidationUtil {
     return true;
   }
 
-  public boolean validateNotEmpty(String attribute, String value) {
+  private boolean validateNotEmpty(String attribute, String value) {
     if (StringUtils.isEmpty(value)) {
       reject("empty", attribute);
       return false;

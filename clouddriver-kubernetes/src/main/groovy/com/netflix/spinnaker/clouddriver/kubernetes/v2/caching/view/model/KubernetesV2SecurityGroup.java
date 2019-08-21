@@ -64,7 +64,7 @@ public class KubernetesV2SecurityGroup extends ManifestBasedModel implements Sec
     return KubernetesV2SecurityGroupSummary.builder().id(id).name(id).build();
   }
 
-  KubernetesV2SecurityGroup(
+  private KubernetesV2SecurityGroup(
       KubernetesManifest manifest, String key, Set<Rule> inboundRules, Set<Rule> outboundRules) {
     this.manifest = manifest;
     this.id = manifest.getFullResourceName();

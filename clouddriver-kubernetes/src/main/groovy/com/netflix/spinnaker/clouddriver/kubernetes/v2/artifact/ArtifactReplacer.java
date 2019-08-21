@@ -57,7 +57,7 @@ public class ArtifactReplacer {
           .mappingProvider(new JacksonMappingProvider())
           .build();
 
-  List<Replacer> replacers = new ArrayList<>();
+  private final List<Replacer> replacers = new ArrayList<>();
 
   public ArtifactReplacer addReplacer(Replacer replacer) {
     replacers.add(replacer);

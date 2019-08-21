@@ -144,7 +144,7 @@ public class KubernetesV2ClusterProvider implements ClusterProvider<KubernetesV2
 
     Optional<CacheData> serverGroupData =
         cacheUtils.getSingleEntryWithRelationships(
-            kind.toString(), key, relatedTypes.toArray(new String[relatedTypes.size()]));
+            kind.toString(), key, relatedTypes.toArray(new String[0]));
 
     return serverGroupData
         .map(

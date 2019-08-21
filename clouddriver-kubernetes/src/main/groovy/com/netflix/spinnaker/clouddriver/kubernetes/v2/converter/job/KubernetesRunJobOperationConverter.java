@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component;
 @KubernetesOperation(RUN_JOB)
 @Component
 public class KubernetesRunJobOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
-  private KubernetesV2ArtifactProvider artifactProvider;
+  private final KubernetesV2ArtifactProvider artifactProvider;
 
   public KubernetesRunJobOperationConverter(KubernetesV2ArtifactProvider artifactProvider) {
     this.artifactProvider = artifactProvider;

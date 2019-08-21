@@ -59,7 +59,7 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatc
     return new ArrayList<>();
   }
 
-  public List<String> sensitiveKeys() {
+  protected List<String> sensitiveKeys() {
     return new ArrayList<>();
   }
 

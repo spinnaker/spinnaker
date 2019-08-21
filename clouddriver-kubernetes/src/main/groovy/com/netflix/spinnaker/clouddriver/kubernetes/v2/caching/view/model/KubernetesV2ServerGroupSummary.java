@@ -29,10 +29,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class KubernetesV2ServerGroupSummary implements ServerGroupSummary {
-  String name;
-  String account;
-  String namespace;
-  Moniker moniker;
+  private String name;
+  private String account;
+  private String namespace;
+  private Moniker moniker;
 
   public String getRegion() {
     return namespace;

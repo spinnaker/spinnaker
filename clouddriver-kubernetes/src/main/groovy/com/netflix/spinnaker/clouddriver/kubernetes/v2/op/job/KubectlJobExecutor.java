@@ -65,7 +65,7 @@ public class KubectlJobExecutor {
     this.jobExecutor = jobExecutor;
   }
 
-  public String configCurrentContext(KubernetesV2Credentials credentials) {
+  private String configCurrentContext(KubernetesV2Credentials credentials) {
     List<String> command = kubectlAuthPrefix(credentials);
     command.add("config");
     command.add("current-context");
@@ -471,15 +471,6 @@ public class KubectlJobExecutor {
     return null;
   }
 
-  private void logDebugMessages(String jobId, JobResult<String> jobResult) {
-    if (jobResult != null) {
-      log.info("{} stdout:\n{}", jobId, jobResult.getOutput());
-      log.info("{} stderr:\n{}", jobId, jobResult.getError());
-    } else {
-      log.info("{} job status not set");
-    }
-  }
-
   private List<String> kubectlAuthPrefix(KubernetesV2Credentials credentials) {
     List<String> command = new ArrayList<>();
     if (StringUtils.isNotEmpty(credentials.getKubectlExecutable())) {
@@ -556,8 +547,7 @@ public class KubectlJobExecutor {
     command.add("json");
 
     command.add("get");
-    command.add(
-        String.join(",", kind.stream().map(KubernetesKind::toString).collect(Collectors.toList())));
+    command.add(kind.stream().map(KubernetesKind::toString).collect(Collectors.joining(",")));
 
     return command;
   }
@@ -791,13 +781,13 @@ public class KubectlJobExecutor {
   }
 
   public static class NoResourceTypeException extends RuntimeException {
-    public NoResourceTypeException(String message) {
+    protected NoResourceTypeException(String message) {
       super(message);
     }
   }
 
   public static class KubectlException extends RuntimeException {
-    public KubectlException(String message) {
+    protected KubectlException(String message) {
       super(message);
     }
 

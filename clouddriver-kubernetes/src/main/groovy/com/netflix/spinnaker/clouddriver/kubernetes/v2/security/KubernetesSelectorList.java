@@ -31,7 +31,7 @@ public class KubernetesSelectorList {
 
   public KubernetesSelectorList() {}
 
-  public KubernetesSelectorList(List<KubernetesSelector> selectors) {
+  private KubernetesSelectorList(List<KubernetesSelector> selectors) {
     this.selectors.addAll(selectors);
   }
 
@@ -59,8 +59,7 @@ public class KubernetesSelectorList {
 
   @Override
   public String toString() {
-    return String.join(
-        ",", selectors.stream().map(KubernetesSelector::toString).collect(Collectors.toList()));
+    return selectors.stream().map(KubernetesSelector::toString).collect(Collectors.joining(","));
   }
 
   public static KubernetesSelectorList fromMatchLabels(Map<String, String> matchLabels) {
@@ -83,7 +82,7 @@ public class KubernetesSelectorList {
             .collect(Collectors.toList()));
   }
 
-  public static KubernetesSelector fromMatchExpression(MatchExpression matchExpression) {
+  private static KubernetesSelector fromMatchExpression(MatchExpression matchExpression) {
     KubernetesSelector.Kind kind;
     switch (matchExpression.getOperator()) {
       case In:

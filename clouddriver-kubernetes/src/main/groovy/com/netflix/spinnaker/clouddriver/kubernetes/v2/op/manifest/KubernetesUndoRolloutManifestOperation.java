@@ -31,14 +31,12 @@ import java.util.List;
 public class KubernetesUndoRolloutManifestOperation implements AtomicOperation<Void> {
   private final KubernetesUndoRolloutManifestDescription description;
   private final KubernetesV2Credentials credentials;
-  private final String accountName;
   private static final String OP_NAME = "UNDO_ROLLOUT_KUBERNETES_MANIFEST";
 
   public KubernetesUndoRolloutManifestOperation(
       KubernetesUndoRolloutManifestDescription description) {
     this.description = description;
     this.credentials = (KubernetesV2Credentials) description.getCredentials().getCredentials();
-    this.accountName = description.getCredentials().getName();
   }
 
   private static Task getTask() {

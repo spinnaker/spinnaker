@@ -106,7 +106,7 @@ public class KubernetesIngressHandler extends KubernetesHandler {
     }
   }
 
-  public static List<String> attachedServices(KubernetesManifest manifest) {
+  private static List<String> attachedServices(KubernetesManifest manifest) {
     if (manifest.getApiVersion().equals(EXTENSIONS_V1BETA1)) {
       V1beta1Ingress v1beta1Ingress =
           KubernetesCacheDataConverter.getResource(manifest, V1beta1Ingress.class);

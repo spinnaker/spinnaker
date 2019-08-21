@@ -33,7 +33,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
 public class KubernetesManifest extends HashMap<String, Object> {
-  private static ObjectMapper mapper = new ObjectMapper();
+  private static final ObjectMapper mapper = new ObjectMapper();
 
   @Nullable private KubernetesKind computedKind;
 
@@ -198,8 +198,7 @@ public class KubernetesManifest extends HashMap<String, Object> {
     if (!spec.containsKey("replicas")) {
       return null;
     }
-    Double replicas = (Double) spec.get("replicas");
-    return replicas;
+    return (Double) spec.get("replicas");
   }
 
   @JsonIgnore

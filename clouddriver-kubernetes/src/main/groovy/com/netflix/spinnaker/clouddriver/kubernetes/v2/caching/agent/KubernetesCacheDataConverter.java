@@ -50,7 +50,7 @@ import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
 public class KubernetesCacheDataConverter {
-  private static ObjectMapper mapper = new ObjectMapper();
+  private static final ObjectMapper mapper = new ObjectMapper();
   private static final JSON json = new JSON();
   // TODO(lwander): make configurable
   @Getter private static final int logicalTtlSeconds = toIntExact(TimeUnit.MINUTES.toSeconds(10));
@@ -61,7 +61,7 @@ public class KubernetesCacheDataConverter {
   // consensus on this yet.
   @Getter private static final List<KubernetesKind> stickyKinds = Arrays.asList(SERVICE, POD);
 
-  public static Optional<Keys.CacheKey> convertAsArtifact(
+  private static Optional<Keys.CacheKey> convertAsArtifact(
       KubernetesCacheData kubernetesCacheData, String account, KubernetesManifest manifest) {
     String namespace = manifest.getNamespace();
     Optional<Artifact> optional = KubernetesManifestAnnotater.getArtifact(manifest);
@@ -118,12 +118,11 @@ public class KubernetesCacheDataConverter {
 
     added
         .getRelationships()
-        .entrySet()
         .forEach(
-            entry ->
+            (key, value) ->
                 relationships.merge(
-                    entry.getKey(),
-                    entry.getValue(),
+                    key,
+                    value,
                     (a, b) -> {
                       Collection<String> res = new HashSet<>(Math.max(a.size(), b.size()));
                       res.addAll(a);
@@ -304,7 +303,8 @@ public class KubernetesCacheDataConverter {
     }
   }
 
-  static void logMalformedManifest(Supplier<String> contextMessage, KubernetesManifest manifest) {
+  private static void logMalformedManifest(
+      Supplier<String> contextMessage, KubernetesManifest manifest) {
     if (manifest == null) {
       log.warn("{}: manifest may not be null", contextMessage.get());
       return;
@@ -323,13 +323,11 @@ public class KubernetesCacheDataConverter {
     }
   }
 
-  static int relationshipCount(Collection<CacheData> data) {
-    return data.stream().map(d -> relationshipCount(d)).reduce(0, (a, b) -> a + b);
+  private static int relationshipCount(Collection<CacheData> data) {
+    return data.stream().mapToInt(KubernetesCacheDataConverter::relationshipCount).sum();
   }
 
-  static int relationshipCount(CacheData data) {
-    return data.getRelationships().values().stream()
-        .map(Collection::size)
-        .reduce(0, (a, b) -> a + b);
+  private static int relationshipCount(CacheData data) {
+    return data.getRelationships().values().stream().mapToInt(Collection::size).sum();
   }
 }

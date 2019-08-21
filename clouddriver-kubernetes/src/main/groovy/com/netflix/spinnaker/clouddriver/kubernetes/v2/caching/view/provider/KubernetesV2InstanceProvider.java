@@ -19,19 +19,16 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider;
 
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.KubernetesV2Instance;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesAccountResolver;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.model.ContainerLog;
 import com.netflix.spinnaker.clouddriver.model.InstanceProvider;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
-import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
 import io.kubernetes.client.models.V1Container;
 import io.kubernetes.client.models.V1Pod;
 import java.util.ArrayList;
@@ -47,20 +44,13 @@ import org.springframework.stereotype.Component;
 public class KubernetesV2InstanceProvider
     implements InstanceProvider<KubernetesV2Instance, List<ContainerLog>> {
   private final KubernetesCacheUtils cacheUtils;
-  private final KubernetesSpinnakerKindMap kindMap;
-  private final AccountCredentialsRepository accountCredentialsRepository;
-  private final KubectlJobExecutor jobExecutor;
+  private final KubernetesAccountResolver accountResolver;
 
   @Autowired
   KubernetesV2InstanceProvider(
-      KubernetesCacheUtils cacheUtils,
-      KubernetesSpinnakerKindMap kindMap,
-      AccountCredentialsRepository accountCredentialsRepository,
-      KubectlJobExecutor jobExecutor) {
+      KubernetesCacheUtils cacheUtils, KubernetesAccountResolver accountResolver) {
     this.cacheUtils = cacheUtils;
-    this.kindMap = kindMap;
-    this.accountCredentialsRepository = accountCredentialsRepository;
-    this.jobExecutor = jobExecutor;
+    this.accountResolver = accountResolver;
   }
 
   @Override
@@ -93,18 +83,12 @@ public class KubernetesV2InstanceProvider
 
   @Override
   public List<ContainerLog> getConsoleOutput(String account, String location, String fullName) {
-    KubernetesNamedAccountCredentials<KubernetesV2Credentials> credentials;
-    try {
-      credentials =
-          (KubernetesNamedAccountCredentials) accountCredentialsRepository.getOne(account);
-    } catch (Exception e) {
+    Optional<KubernetesV2Credentials> optionalCredentials = accountResolver.getCredentials(account);
+    if (!optionalCredentials.isPresent()) {
       log.warn("Failure getting account {}", account);
       return null;
     }
-
-    if (credentials == null || credentials.getProviderVersion() != ProviderVersion.v2) {
-      return null;
-    }
+    KubernetesV2Credentials credentials = optionalCredentials.get();
 
     Pair<KubernetesKind, String> parsedName;
     try {
@@ -117,9 +101,9 @@ public class KubernetesV2InstanceProvider
 
     V1Pod pod =
         KubernetesCacheDataConverter.getResource(
-            credentials.getCredentials().get(KubernetesKind.POD, location, name), V1Pod.class);
+            credentials.get(KubernetesKind.POD, location, name), V1Pod.class);
 
-    List<ContainerLog> result = new ArrayList();
+    List<ContainerLog> result = new ArrayList<>();
 
     // Short-circuit if pod cannot be found
     if (pod == null) {
@@ -133,7 +117,7 @@ public class KubernetesV2InstanceProvider
       ContainerLog log = new ContainerLog();
       log.setName(container.getName());
       try {
-        log.setOutput(credentials.getCredentials().logs(location, name, container.getName()));
+        log.setOutput(credentials.logs(location, name, container.getName()));
       } catch (KubectlJobExecutor.KubectlException e) {
         // Typically happens if the container/pod isn't running yet
         log.setOutput(e.getMessage());
