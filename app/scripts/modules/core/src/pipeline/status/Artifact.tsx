@@ -34,7 +34,7 @@ export class Artifact extends React.Component<IArtifactProps> {
 
   public render() {
     const { artifact, isDefault } = this.props;
-    const { name, version, type } = artifact;
+    const { name, reference, version, type } = artifact;
 
     return (
       <div className="artifact-details">
@@ -48,7 +48,7 @@ export class Artifact extends React.Component<IArtifactProps> {
               )}
             </dt>
             <dd>
-              <div className="artifact-name">{name}</div>
+              <div className="artifact-name">{name || reference}</div>
               {version && <div className="artifact-version"> - {version}</div>}
             </dd>
           </div>

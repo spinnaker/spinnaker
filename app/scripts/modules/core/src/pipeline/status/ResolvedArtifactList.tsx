@@ -29,10 +29,10 @@ export class ResolvedArtifactList extends React.Component<IResolvedArtifactListP
       return set;
     }, new Set());
 
-    const decoratedArtifacts = artifacts.filter(({ name, type }) => name && type);
+    const decoratedArtifacts = artifacts.filter(({ name, reference, type }) => (name || reference) && type);
     const decoratedExpectedArtifacts = resolvedExpectedArtifacts
       .map(rea => rea.boundArtifact)
-      .filter(({ name, type }) => name && type);
+      .filter(({ name, reference, type }) => (name || reference) && type);
 
     // if there's none, don't show it
     if (!showingExpandedArtifacts || (decoratedArtifacts.length === 0 && decoratedExpectedArtifacts.length === 0)) {
