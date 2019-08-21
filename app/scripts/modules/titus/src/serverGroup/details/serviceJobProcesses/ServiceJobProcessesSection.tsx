@@ -10,6 +10,7 @@ import {
   TextAreaInput,
   TaskMonitorModal,
   Application,
+  robotToHuman,
 } from '@spinnaker/core';
 
 import { ITitusServerGroupDetailsSectionProps } from '../sections/ITitusServerGroupDetailsSectionProps';
@@ -43,7 +44,15 @@ const EditTitusServiceJobProcessesModal: React.SFC<IEditTitusServiceJobProcesses
           <FormikFormField
             label="Service Job Processes"
             name="serviceJobProcesses"
-            input={props => <ChecklistInput {...props} stringOptions={Object.keys(serverGroup.serviceJobProcesses)} />}
+            input={props => (
+              <ChecklistInput
+                {...props}
+                options={Object.keys(serverGroup.serviceJobProcesses).map((value: string) => ({
+                  value,
+                  label: robotToHuman(value),
+                }))}
+              />
+            )}
           />
 
           <FormikFormField
@@ -107,7 +116,7 @@ export class ServiceJobProcessesSection extends React.Component<ITitusServerGrou
                 style={{ visibility: serviceJobProcesses[process] ? 'visible' : 'hidden' }}
                 className="fa fa-check small"
               />
-              <span className={!serviceJobProcesses[process] ? 'text-disabled' : ''}>{process} </span>
+              <span className={!serviceJobProcesses[process] ? 'text-disabled' : ''}>{robotToHuman(process)} </span>
             </li>
           ))}
         </ul>

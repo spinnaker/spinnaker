@@ -10,6 +10,7 @@ import {
   PlatformHealthOverride,
   Application,
   ChecklistInput,
+  robotToHuman,
 } from '@spinnaker/core';
 
 import { ITitusServerGroupCommand } from '../../../configure/serverGroupConfiguration.service';
@@ -125,7 +126,10 @@ export class ServerGroupParameters extends React.Component<IServerGroupParameter
           <div className="col-md-4">
             <ChecklistInput
               value={enabledProcesses(values.serviceJobProcesses)}
-              stringOptions={union(processesList, Object.keys(values.serviceJobProcesses))}
+              options={union(processesList, Object.keys(values.serviceJobProcesses)).map((value: string) => ({
+                value,
+                label: robotToHuman(value),
+              }))}
               onChange={(e: React.ChangeEvent<any>) =>
                 setFieldValue(
                   'serviceJobProcesses',
