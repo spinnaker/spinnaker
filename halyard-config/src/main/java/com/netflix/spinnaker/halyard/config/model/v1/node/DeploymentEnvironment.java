@@ -91,9 +91,35 @@ public class DeploymentEnvironment extends Node {
     }
   }
 
+  public enum ImageVariant {
+    SLIM("Based on an Alpine image"),
+    UBUNTU("Based on Canonical's ubuntu:bionic image");
+
+    @Getter final String description;
+
+    ImageVariant(String description) {
+      this.description = description;
+    }
+
+    public static ImageVariant fromString(String name) {
+      for (ImageVariant variant : values()) {
+        if (variant.toString().equalsIgnoreCase(name)) {
+          return variant;
+        }
+      }
+
+      throw new IllegalArgumentException(
+          "ImageVariant \""
+              + name
+              + "\" is not a valid choice. The options are: "
+              + Arrays.toString(ImageVariant.values()));
+    }
+  }
+
   private Size size = Size.SMALL;
   private DeploymentType type = DeploymentType.LocalDebian;
   private String accountName;
+  private ImageVariant imageVariant = ImageVariant.SLIM;
   private Boolean bootstrapOnly;
   private Boolean updateVersions = true;
   private Consul consul = new Consul();

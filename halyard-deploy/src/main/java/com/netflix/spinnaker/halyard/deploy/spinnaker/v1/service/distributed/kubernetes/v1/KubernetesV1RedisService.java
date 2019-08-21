@@ -48,6 +48,8 @@ import redis.clients.jedis.Jedis;
 @Data
 public class KubernetesV1RedisService extends RedisService
     implements KubernetesV1DistributedService<Jedis> {
+  private static final String artifactId = "gcr.io/kubernetes-spinnaker/redis-cluster:v2";
+
   @Delegate @Autowired KubernetesV1DistributedServiceDelegate distributedServiceDelegate;
 
   @Delegate(excludes = HasServiceSettings.class)
@@ -92,14 +94,10 @@ public class KubernetesV1RedisService extends RedisService
     String location = kubernetesSharedServiceSettings.getDeployLocation();
     settings
         .setAddress(buildAddress(location))
-        .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+        .setArtifactId(artifactId)
         .setLocation(location)
         .setEnabled(true);
     return settings;
-  }
-
-  public String getArtifactId(String deploymentName) {
-    return "gcr.io/kubernetes-spinnaker/redis-cluster:v2";
   }
 
   final DeployPriority deployPriority = new DeployPriority(5);

@@ -20,8 +20,6 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.ku
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.KubernetesUtil;
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesImageDescription;
 import com.netflix.spinnaker.halyard.config.model.v1.node.AffinityConfig;
 import com.netflix.spinnaker.halyard.config.model.v1.node.CustomSizing;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
@@ -31,13 +29,10 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Toleration;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
-import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import com.netflix.spinnaker.halyard.core.resource.v1.JinjaJarResource;
 import com.netflix.spinnaker.halyard.core.resource.v1.TemplatedResource;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
-import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ConfigSource;
@@ -47,6 +42,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerMonitoringDaemonService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedService.DeployPriority;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.SidecarService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.KubernetesService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.KubernetesSharedServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v2.KubernetesV2Utils.SecretMountPair;
 import io.fabric8.utils.Strings;
@@ -66,16 +62,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 
-public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
+public interface KubernetesV2Service<T> extends HasServiceSettings<T>, KubernetesService {
   String getServiceName();
-
-  String getDockerRegistry(String deploymentName, SpinnakerArtifact artifact);
 
   String getSpinnakerStagingPath(String deploymentName);
 
   String getSpinnakerStagingDependenciesPath(String deploymentName);
-
-  ArtifactService getArtifactService();
 
   ServiceSettings defaultServiceSettings(DeploymentConfiguration deploymentConfiguration);
 
@@ -760,20 +752,6 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
     return result;
   }
 
-  default String getArtifactId(String deploymentName) {
-    String artifactName = getArtifact().getName();
-    String version = getArtifactService().getArtifactVersion(deploymentName, getArtifact());
-    version = Versions.isLocal(version) ? Versions.fromLocal(version) : version;
-
-    KubernetesImageDescription image =
-        KubernetesImageDescription.builder()
-            .registry(getDockerRegistry(deploymentName, getArtifact()))
-            .repository(artifactName)
-            .tag(version)
-            .build();
-    return KubernetesUtil.getImageId(image);
-  }
-
   default String buildAddress(String namespace) {
     return Strings.join(".", getServiceName(), namespace);
   }
@@ -785,7 +763,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T> {
     String location = kubernetesSharedServiceSettings.getDeployLocation();
     settings
         .setAddress(buildAddress(location))
-        .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+        .setArtifactId(getArtifactId(deploymentConfiguration))
         .setLocation(location)
         .setEnabled(isEnabled(deploymentConfiguration));
     if (runsOnJvm()) {

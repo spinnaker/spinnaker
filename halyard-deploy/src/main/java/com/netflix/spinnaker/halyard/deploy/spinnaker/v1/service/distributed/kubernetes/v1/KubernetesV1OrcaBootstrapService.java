@@ -55,15 +55,11 @@ public class KubernetesV1OrcaBootstrapService extends OrcaBootstrapService
     String location = kubernetesSharedServiceSettings.getDeployLocation();
     settings
         .setAddress(buildAddress(location))
-        .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+        .setArtifactId(getArtifactId(deploymentConfiguration))
         .setLocation(location)
         .setMonitored(false)
         .setEnabled(true);
     return settings;
-  }
-
-  public String getArtifactId(String deploymentName) {
-    return KubernetesV1DistributedService.super.getArtifactId(deploymentName);
   }
 
   final DeployPriority deployPriority = new DeployPriority(10);

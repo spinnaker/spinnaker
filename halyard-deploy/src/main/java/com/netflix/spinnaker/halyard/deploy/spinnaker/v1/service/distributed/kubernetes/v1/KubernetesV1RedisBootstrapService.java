@@ -35,6 +35,8 @@ import redis.clients.jedis.Jedis;
 @Data
 public class KubernetesV1RedisBootstrapService extends RedisBootstrapService
     implements KubernetesV1DistributedService<Jedis> {
+  private static final String artifactId = "gcr.io/kubernetes-spinnaker/redis-cluster:v2";
+
   @Delegate @Autowired KubernetesV1DistributedServiceDelegate distributedServiceDelegate;
 
   @Delegate(excludes = HasServiceSettings.class)
@@ -50,17 +52,13 @@ public class KubernetesV1RedisBootstrapService extends RedisBootstrapService
     String location = kubernetesSharedServiceSettings.getDeployLocation();
     settings
         .setAddress(buildAddress(location))
-        .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+        .setArtifactId(artifactId)
         .setLocation(location)
         .setSafeToUpdate(
             true) // It's OK to flush this redis fully since we generally redeploy bootstrap
         // clouddriver & orca
         .setEnabled(true);
     return settings;
-  }
-
-  public String getArtifactId(String deploymentName) {
-    return "gcr.io/kubernetes-spinnaker/redis-cluster:v2";
   }
 
   final DeployPriority deployPriority = new DeployPriority(20);

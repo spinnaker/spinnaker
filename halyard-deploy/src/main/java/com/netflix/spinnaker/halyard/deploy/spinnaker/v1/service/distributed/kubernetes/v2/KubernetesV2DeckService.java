@@ -86,7 +86,7 @@ public class KubernetesV2DeckService extends DeckService
         new KubernetesSharedServiceSettings(deploymentConfiguration);
     ServiceSettings settings = defaultServiceSettings(deploymentConfiguration);
     settings
-        .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+        .setArtifactId(getArtifactId(deploymentConfiguration))
         .setLocation(kubernetesSharedServiceSettings.getDeployLocation())
         .setEnabled(true);
     return settings;

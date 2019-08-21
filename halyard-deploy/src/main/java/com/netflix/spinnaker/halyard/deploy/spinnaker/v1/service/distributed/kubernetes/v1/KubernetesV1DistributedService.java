@@ -48,14 +48,12 @@ import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
 import com.netflix.spinnaker.halyard.core.job.v1.JobRequest;
 import com.netflix.spinnaker.halyard.core.job.v1.JobStatus;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
-import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails.Instance;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ConfigSource;
@@ -66,6 +64,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerMonito
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.SidecarService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.KubernetesService;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerStatus;
 import io.fabric8.kubernetes.api.model.LocalObjectReference;
@@ -97,9 +96,8 @@ import org.springframework.util.SocketUtils;
 
 public interface KubernetesV1DistributedService<T>
     extends DistributedService<T, KubernetesAccount>,
-        LogCollector<T, AccountDeploymentDetails<KubernetesAccount>> {
-  String getDockerRegistry(String deploymentName, SpinnakerArtifact artifact);
-
+        LogCollector<T, AccountDeploymentDetails<KubernetesAccount>>,
+        KubernetesService {
   ArtifactService getArtifactService();
 
   ServiceInterfaceFactory getServiceInterfaceFactory();
@@ -124,20 +122,6 @@ public interface KubernetesV1DistributedService<T>
 
   default String buildAddress(String namespace) {
     return Strings.join(".", getServiceName(), namespace);
-  }
-
-  default String getArtifactId(String deploymentName) {
-    String artifactName = getArtifact().getName();
-    String version = getArtifactService().getArtifactVersion(deploymentName, getArtifact());
-    version = Versions.isLocal(version) ? Versions.fromLocal(version) : version;
-
-    KubernetesImageDescription image =
-        KubernetesImageDescription.builder()
-            .registry(getDockerRegistry(deploymentName, getArtifact()))
-            .repository(artifactName)
-            .tag(version)
-            .build();
-    return KubernetesUtil.getImageId(image);
   }
 
   default List<LocalObjectReference> getImagePullSecrets(ServiceSettings settings) {

@@ -49,14 +49,10 @@ public class KubernetesV1FiatService extends FiatService
     String location = kubernetesSharedServiceSettings.getDeployLocation();
     settings
         .setAddress(buildAddress(location))
-        .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+        .setArtifactId(getArtifactId(deploymentConfiguration))
         .setLocation(location)
         .setEnabled(deploymentConfiguration.getSecurity().getAuthz().isEnabled());
     return settings;
-  }
-
-  public String getArtifactId(String deploymentName) {
-    return KubernetesV1DistributedService.super.getArtifactId(deploymentName);
   }
 
   final DeployPriority deployPriority = new DeployPriority(0);

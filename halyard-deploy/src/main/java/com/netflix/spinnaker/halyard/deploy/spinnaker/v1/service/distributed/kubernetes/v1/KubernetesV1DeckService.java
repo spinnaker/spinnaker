@@ -58,14 +58,10 @@ public class KubernetesV1DeckService extends DeckService
         new KubernetesSharedServiceSettings(deploymentConfiguration);
     Settings settings = new Settings(deploymentConfiguration.getSecurity().getUiSecurity());
     settings
-        .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+        .setArtifactId(getArtifactId(deploymentConfiguration))
         .setLocation(kubernetesSharedServiceSettings.getDeployLocation())
         .setEnabled(true);
     return settings;
-  }
-
-  public String getArtifactId(String deploymentName) {
-    return KubernetesV1DistributedService.super.getArtifactId(deploymentName);
   }
 
   @Override
