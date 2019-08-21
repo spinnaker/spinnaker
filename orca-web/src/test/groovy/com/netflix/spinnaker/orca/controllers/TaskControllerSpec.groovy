@@ -32,6 +32,7 @@ import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import java.time.Clock
 import java.time.Instant
@@ -146,6 +147,42 @@ class TaskControllerSpec extends Specification {
     new JsonSlurper().parseText(response.contentAsString).variables == [
       [key: "customOutput", value: "variable"]
     ]
+  }
+
+  @Unroll
+  void 'duplicate empty keys are not saved into the list of variables'() {
+    setup:
+    def variables = [
+      mystringkey: "",
+      mystringkey2: "mystringval",
+      mymapkey: [:],
+      mymapkey2: [
+        childkey:"childVal"
+      ],
+      mylistkey: [],
+      mylistkey2: ["why", "oh", "why"]
+    ]
+
+    when:
+    def entry = [(thekey): value].entrySet().first()
+    def result = TaskController.shouldReplace(entry, variables)
+
+    then:
+    result == shouldReplace
+
+    where:
+    thekey            | value    | shouldReplace
+    "mystringkey"     | "hi"     | true
+    "mystringkey2"    | ""       | false
+    "mymapkey"        | [k: "v"] | true
+    "mymapkey2"       | [:]      | false
+    "mylistkey"       | ["hi"]   | true
+    "mylistkey2"      | ["hi"]   | true
+    "mylistkey2"      | []       | false
+    "mynewkey"        | [:]      | true
+    "mynewkey"        | ["hi"]   | true
+    "mynewkey"        | "hi"     | true
+
   }
 
   void '/tasks returns [] when there are no tasks'() {

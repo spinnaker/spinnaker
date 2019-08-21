@@ -712,11 +712,19 @@ class TaskController {
     return aStartTime <=> bStartTime ?: b.id <=> a.id
   }
 
+  static boolean shouldReplace(Map.Entry<String, Object> entry, Map variables) {
+    // a duplicate key with an empty value should
+    // not overwrite a previous key with a non empty value
+    return isNullOrEmpty(variables[entry.key]) || !isNullOrEmpty(entry.value)
+  }
+
   private OrchestrationViewModel convert(Execution orchestration) {
     def variables = [:]
     for (stage in orchestration.stages) {
       for (entry in stage.context.entrySet()) {
-        variables[entry.key] = entry.value
+        if (shouldReplace(entry, variables)) {
+          variables[entry.key] = entry.value
+        }
       }
     }
     new OrchestrationViewModel(
@@ -747,6 +755,19 @@ class TaskController {
       .collect(Collectors.toList())
 
     return pipelineConfigIds
+  }
+
+  private static boolean isNullOrEmpty(Object value) {
+    if (value == null) {
+      return true
+    } else if (value instanceof Collection) {
+      return value.isEmpty()
+    } else if (value instanceof String) {
+      return value.length() == 0
+    } else if (value == [:]) {
+      return true
+    }
+    return false
   }
 
   @VisibleForTesting
