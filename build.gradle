@@ -1,12 +1,6 @@
-buildscript {
-  repositories {
-    jcenter()
-    maven { url "https://plugins.gradle.org/m2/" }
-  }
-  dependencies {
-    classpath "com.netflix.nebula:gradle-netflixoss-project-plugin:$gradleNetflixOssProjectVersion"
-    classpath "com.diffplug.spotless:spotless-plugin-gradle:$spotlessVersion"
-  }
+plugins {
+  id "nebula.netflixoss" version "8.0.0"
+  id "com.diffplug.gradle.spotless" version "3.23.1"
 }
 
 allprojects {
@@ -16,9 +10,10 @@ allprojects {
   }
 
   apply plugin: 'nebula.netflixoss'
-  apply plugin: 'idea'
   apply plugin: 'com.diffplug.gradle.spotless'
+  apply plugin: 'idea'
   apply plugin: 'groovy'
+  apply plugin: 'java-gradle-plugin'
 
   spotless {
     java {

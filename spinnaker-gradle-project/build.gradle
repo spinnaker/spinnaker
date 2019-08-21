@@ -2,3 +2,12 @@ dependencies {
   compile project(":spinnaker-dev-plugin")
   compile project(":spinnaker-publishing-plugin")
 }
+
+gradlePlugin {
+    plugins {
+        spinnakerBintrayPublishing {
+            id = 'spinnaker.project'
+            implementationClass = 'com.netflix.spinnaker.gradle.project.SpinnakerProjectPlugin'
+        }
+    }
+}

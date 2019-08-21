@@ -4,4 +4,31 @@ dependencies {
   compile "com.diffplug.spotless:spotless-plugin-gradle:$spotlessVersion"
   compile 'org.eclipse.jgit:org.eclipse.jgit:5.4.0.201906121030-r'
 }
-
+gradlePlugin {
+    plugins {
+        codeStyle {
+          id = "spinnaker.codestyle"
+          implementationClass = "com.netflix.spinnaker.gradle.codestyle.SpinnakerCodeStylePlugin"
+        }
+        baseProjectConventions {
+          id = "spinnaker.base-project-conventions"
+          implementationClass = "com.netflix.spinnaker.gradle.baseproject.SpinnakerBaseProjectConventionsPlugin"
+        }
+        ideaConfig {
+          id = "spinnaker.ideaconfig"
+          implementationClass = "com.netflix.spinnaker.gradle.idea.SpinnakerIdeaConfigPlugin"
+        }
+        application {
+          id = "spinnaker.application"
+          implementationClass = "com.netflix.spinnaker.gradle.application.SpinnakerApplicationPlugin"
+        }
+        baseProject {
+          id = "spinnaker.base-project"
+          implementationClass = "com.netflix.spinnaker.gradle.baseproject.SpinnakerBaseProjectPlugin"
+        }
+        licenseReport {
+          id = "spinnaker.license-report"
+          implementationClass = "com.netflix.spinnaker.gradle.SpinnakerLicenseReportPlugin"
+        }
+    }
+}
