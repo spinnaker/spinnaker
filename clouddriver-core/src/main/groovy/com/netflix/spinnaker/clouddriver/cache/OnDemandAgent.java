@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,7 +58,8 @@ public interface OnDemandAgent {
 
   boolean handles(OnDemandType type, String cloudProvider);
 
-  static class OnDemandResult {
+  @Data
+  class OnDemandResult {
     String sourceAgentType;
     Collection<String> authoritativeTypes = new ArrayList<>();
     CacheResult cacheResult;
@@ -94,7 +96,7 @@ public interface OnDemandAgent {
           .sequence(sequence != null ? Integer.valueOf(sequence) : null)
           .build();
     } catch (Exception e) {
-      logger.warn("Unable to build moniker (details: {})", e);
+      logger.warn("Unable to build moniker", e);
       return null;
     }
   }
