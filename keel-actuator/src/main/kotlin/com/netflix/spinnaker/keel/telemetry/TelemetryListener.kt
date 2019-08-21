@@ -13,27 +13,22 @@ import org.springframework.stereotype.Component
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
-import javax.annotation.PostConstruct
+import java.util.concurrent.atomic.AtomicReference
 
 @Component
 class TelemetryListener(
   private val spectator: Registry,
   private val clock: Clock
 ) {
-  private var lastResourceCheck: Instant = clock.instant()
-
-  @PostConstruct
-  fun registerMeters() {
-    PolledMeter
-      .using(spectator)
-      .withName(RESOURCE_CHECK_DRIFT_GAUGE)
-      .monitorValue(lastResourceCheck) {
-        Duration
-          .between(it, clock.instant())
-          .toMillis()
-          .toDouble()
-      }
-  }
+  private val lastResourceCheck: AtomicReference<Instant> = PolledMeter
+    .using(spectator)
+    .withName(RESOURCE_CHECK_DRIFT_GAUGE)
+    .monitorValue(AtomicReference(clock.instant())) {
+      Duration
+        .between(it.get(), clock.instant())
+        .toMillis()
+        .toDouble()
+    }
 
   @EventListener(ResourceCheckResult::class)
   fun onResourceChecked(event: ResourceCheckResult) {
@@ -74,7 +69,7 @@ class TelemetryListener(
 
   @EventListener(ScheduledResourceCheckStarting::class)
   fun onScheduledCheckStarting(event: ScheduledResourceCheckStarting) {
-    lastResourceCheck = clock.instant()
+    lastResourceCheck.set(clock.instant())
   }
 
   @EventListener(ResourceActuationLaunched::class)

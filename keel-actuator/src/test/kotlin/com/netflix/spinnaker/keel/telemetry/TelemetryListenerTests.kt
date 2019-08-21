@@ -12,6 +12,7 @@ import dev.minutest.rootContext
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
+import io.mockk.spyk
 import io.mockk.verify
 import org.junit.jupiter.api.fail
 import strikt.api.Assertion
@@ -21,9 +22,9 @@ import strikt.assertions.isEqualTo
 import java.time.Clock
 import java.time.Instant
 
-internal object TelemetryListenerTests : JUnit5Minutests {
+internal class TelemetryListenerTests : JUnit5Minutests {
 
-  private val registry = mockk<Registry>()
+  private val registry = spyk<Registry>(NoopRegistry())
   private val counter = mockk<Counter>(relaxUnitFun = true)
   private val event = ResourceValid(
     apiVersion = SPINNAKER_API_V1.subApi("ec2"),
