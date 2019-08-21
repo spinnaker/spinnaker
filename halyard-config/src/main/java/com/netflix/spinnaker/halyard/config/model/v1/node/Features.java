@@ -50,6 +50,12 @@ public class Features extends Node {
   private Boolean artifacts;
 
   @ValidForSpinnakerVersion(
+      lowerBound = "1.15.0",
+      tooLowMessage =
+          "Artifacts rewrite is a rewrite of the artifacts ui. Artifacts are not configurable prior to this release. Will be stable at a later release.")
+  private Boolean artifactsRewrite;
+
+  @ValidForSpinnakerVersion(
       lowerBound = "1.5.0",
       tooLowMessage =
           "Canary is not configurable prior to this release. Will be stable at a later release.")
