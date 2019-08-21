@@ -61,6 +61,30 @@ public class ComponentSizingEditCommand extends AbstractComponentSizingUpdateCom
               + "sidecar containers (e.g. the monitoring daemon). Example: 1Gi.")
   private String limitsMemory;
 
+  @Parameter(
+      names = "--container-requests-cpu",
+      description =
+          "Sets the cpu request for the container running the spinnaker service. Example: 250m.")
+  private String containerRequestsCpu;
+
+  @Parameter(
+      names = "--container-requests-memory",
+      description =
+          "Sets the memory request for the container running the spinnaker service. Example: 512Mi.")
+  private String containerRequestsMemory;
+
+  @Parameter(
+      names = "--container-limits-cpu",
+      description =
+          "Sets the cpu limit for the container running the spinnaker service. Example: 1.")
+  private String containerLimitsCpu;
+
+  @Parameter(
+      names = "--container-limits-memory",
+      description =
+          "Sets the memory limit for the container running the spinnaker service. Example: 1Gi.")
+  private String containerLimitsMemory;
+
   public ComponentSizingEditCommand(SpinnakerService.Type spinnakerService) {
     super(spinnakerService, "edit");
   }
@@ -80,11 +104,13 @@ public class ComponentSizingEditCommand extends AbstractComponentSizingUpdateCom
   private CustomSizing edit(CustomSizing customSizing) {
     Map serviceSizing =
         customSizing.computeIfAbsent(spinnakerService.getServiceName(), (k) -> new HashMap<>());
-    edit(serviceSizing);
+    Map containerSizing =
+        customSizing.computeIfAbsent(spinnakerService.getCanonicalName(), (k) -> new HashMap<>());
+    edit(serviceSizing, containerSizing);
     return customSizing;
   }
 
-  private void edit(Map serviceSizing) {
+  private void edit(Map serviceSizing, Map containerSizing) {
     putIfNotNull(serviceSizing, "replicas", replicas);
 
     Map limits = (Map) serviceSizing.computeIfAbsent("limits", (k) -> new HashMap<>());
@@ -94,6 +120,15 @@ public class ComponentSizingEditCommand extends AbstractComponentSizingUpdateCom
     Map requests = (Map) serviceSizing.computeIfAbsent("requests", (k) -> new HashMap<>());
     putIfNotNull(requests, "cpu", requestsCpu);
     putIfNotNull(requests, "memory", requestsMemory);
+
+    Map containerLimits = (Map) containerSizing.computeIfAbsent("limits", (k) -> new HashMap<>());
+    putIfNotNull(containerLimits, "cpu", containerLimitsCpu);
+    putIfNotNull(containerLimits, "memory", containerLimitsMemory);
+
+    Map containerRequests =
+        (Map) containerSizing.computeIfAbsent("requests", (k) -> new HashMap<>());
+    putIfNotNull(containerRequests, "cpu", containerRequestsCpu);
+    putIfNotNull(containerRequests, "memory", containerRequestsMemory);
   }
 
   private void putIfNotNull(Map map, String key, Object value) {

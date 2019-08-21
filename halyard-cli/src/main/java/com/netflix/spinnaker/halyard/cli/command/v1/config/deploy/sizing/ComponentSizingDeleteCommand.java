@@ -40,6 +40,7 @@ public class ComponentSizingDeleteCommand extends AbstractComponentSizingUpdateC
   }
 
   private CustomSizing delete(CustomSizing customSizing) {
+    customSizing.put(spinnakerService.getCanonicalName(), null);
     customSizing.put(spinnakerService.getServiceName(), null);
     return customSizing;
   }

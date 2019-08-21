@@ -25,6 +25,7 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
+import java.util.HashMap;
 import java.util.Map;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -62,11 +63,34 @@ public class NamedComponentSizingCommand extends AbstractConfigCommand {
         .setFormat(STRING)
         .setUserFormatted(true)
         .setOperation(
-            () ->
-                Daemon.getDeploymentEnvironment(currentDeployment, !noValidate)
-                    .get()
-                    .getCustomSizing()
-                    .get(spinnakerService.getServiceName()))
+            () -> {
+              Map serviceSizing =
+                  Daemon.getDeploymentEnvironment(currentDeployment, !noValidate)
+                      .get()
+                      .getCustomSizing()
+                      .get(spinnakerService.getServiceName());
+
+              Map containerSizing =
+                  Daemon.getDeploymentEnvironment(currentDeployment, !noValidate)
+                      .get()
+                      .getCustomSizing()
+                      .get(spinnakerService.getCanonicalName());
+
+              if (serviceSizing == null && containerSizing == null) {
+                return null;
+              }
+
+              Map result = new HashMap();
+              if (serviceSizing != null) {
+                result.put(spinnakerService.getServiceName(), serviceSizing);
+              }
+
+              if (containerSizing != null) {
+                result.put(spinnakerService.getCanonicalName(), containerSizing);
+              }
+
+              return result;
+            })
         .get();
   }
 }

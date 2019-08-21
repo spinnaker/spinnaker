@@ -4174,6 +4174,10 @@ hal config deploy component-sizing clouddriver edit [parameters]
 ```
 
 #### Parameters
+ * `--container-limits-cpu`: Sets the cpu limit for the container running the spinnaker service. Example: 1.
+ * `--container-limits-memory`: Sets the memory limit for the container running the spinnaker service. Example: 1Gi.
+ * `--container-requests-cpu`: Sets the cpu request for the container running the spinnaker service. Example: 250m.
+ * `--container-requests-memory`: Sets the memory request for the container running the spinnaker service. Example: 512Mi.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--pod-limits-cpu`: Sets the cpu limit for the container running the spinnaker service, as well as any sidecar containers (e.g. the monitoring daemon). Example: 1.
@@ -4227,6 +4231,10 @@ hal config deploy component-sizing clouddriver-bootstrap edit [parameters]
 ```
 
 #### Parameters
+ * `--container-limits-cpu`: Sets the cpu limit for the container running the spinnaker service. Example: 1.
+ * `--container-limits-memory`: Sets the memory limit for the container running the spinnaker service. Example: 1Gi.
+ * `--container-requests-cpu`: Sets the cpu request for the container running the spinnaker service. Example: 250m.
+ * `--container-requests-memory`: Sets the memory request for the container running the spinnaker service. Example: 512Mi.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--pod-limits-cpu`: Sets the cpu limit for the container running the spinnaker service, as well as any sidecar containers (e.g. the monitoring daemon). Example: 1.
@@ -4280,6 +4288,10 @@ hal config deploy component-sizing clouddriver-caching edit [parameters]
 ```
 
 #### Parameters
+ * `--container-limits-cpu`: Sets the cpu limit for the container running the spinnaker service. Example: 1.
+ * `--container-limits-memory`: Sets the memory limit for the container running the spinnaker service. Example: 1Gi.
+ * `--container-requests-cpu`: Sets the cpu request for the container running the spinnaker service. Example: 250m.
+ * `--container-requests-memory`: Sets the memory request for the container running the spinnaker service. Example: 512Mi.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--pod-limits-cpu`: Sets the cpu limit for the container running the spinnaker service, as well as any sidecar containers (e.g. the monitoring daemon). Example: 1.
@@ -4333,6 +4345,10 @@ hal config deploy component-sizing clouddriver-ro edit [parameters]
 ```
 
 #### Parameters
+ * `--container-limits-cpu`: Sets the cpu limit for the container running the spinnaker service. Example: 1.
+ * `--container-limits-memory`: Sets the memory limit for the container running the spinnaker service. Example: 1Gi.
+ * `--container-requests-cpu`: Sets the cpu request for the container running the spinnaker service. Example: 250m.
+ * `--container-requests-memory`: Sets the memory request for the container running the spinnaker service. Example: 512Mi.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--pod-limits-cpu`: Sets the cpu limit for the container running the spinnaker service, as well as any sidecar containers (e.g. the monitoring daemon). Example: 1.
@@ -4386,6 +4402,10 @@ hal config deploy component-sizing clouddriver-ro-deck edit [parameters]
 ```
 
 #### Parameters
+ * `--container-limits-cpu`: Sets the cpu limit for the container running the spinnaker service. Example: 1.
+ * `--container-limits-memory`: Sets the memory limit for the container running the spinnaker service. Example: 1Gi.
+ * `--container-requests-cpu`: Sets the cpu request for the container running the spinnaker service. Example: 250m.
+ * `--container-requests-memory`: Sets the memory request for the container running the spinnaker service. Example: 512Mi.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--pod-limits-cpu`: Sets the cpu limit for the container running the spinnaker service, as well as any sidecar containers (e.g. the monitoring daemon). Example: 1.
@@ -4439,6 +4459,10 @@ hal config deploy component-sizing clouddriver-rw edit [parameters]
 ```
 
 #### Parameters
+ * `--container-limits-cpu`: Sets the cpu limit for the container running the spinnaker service. Example: 1.
+ * `--container-limits-memory`: Sets the memory limit for the container running the spinnaker service. Example: 1Gi.
+ * `--container-requests-cpu`: Sets the cpu request for the container running the spinnaker service. Example: 250m.
+ * `--container-requests-memory`: Sets the memory request for the container running the spinnaker service. Example: 512Mi.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--pod-limits-cpu`: Sets the cpu limit for the container running the spinnaker service, as well as any sidecar containers (e.g. the monitoring daemon). Example: 1.
@@ -4492,6 +4516,10 @@ hal config deploy component-sizing consul-client edit [parameters]
 ```
 
 #### Parameters
+ * `--container-limits-cpu`: Sets the cpu limit for the container running the spinnaker service. Example: 1.
+ * `--container-limits-memory`: Sets the memory limit for the container running the spinnaker service. Example: 1Gi.
+ * `--container-requests-cpu`: Sets the cpu request for the container running the spinnaker service. Example: 250m.
+ * `--container-requests-memory`: Sets the memory request for the container running the spinnaker service. Example: 512Mi.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--pod-limits-cpu`: Sets the cpu limit for the container running the spinnaker service, as well as any sidecar containers (e.g. the monitoring daemon). Example: 1.
@@ -4545,6 +4573,10 @@ hal config deploy component-sizing consul-server edit [parameters]
 ```
 
 #### Parameters
+ * `--container-limits-cpu`: Sets the cpu limit for the container running the spinnaker service. Example: 1.
+ * `--container-limits-memory`: Sets the memory limit for the container running the spinnaker service. Example: 1Gi.
+ * `--container-requests-cpu`: Sets the cpu request for the container running the spinnaker service. Example: 250m.
+ * `--container-requests-memory`: Sets the memory request for the container running the spinnaker service. Example: 512Mi.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--pod-limits-cpu`: Sets the cpu limit for the container running the spinnaker service, as well as any sidecar containers (e.g. the monitoring daemon). Example: 1.
@@ -4598,6 +4630,10 @@ hal config deploy component-sizing deck edit [parameters]
 ```
 
 #### Parameters
+ * `--container-limits-cpu`: Sets the cpu limit for the container running the spinnaker service. Example: 1.
+ * `--container-limits-memory`: Sets the memory limit for the container running the spinnaker service. Example: 1Gi.
+ * `--container-requests-cpu`: Sets the cpu request for the container running the spinnaker service. Example: 250m.
+ * `--container-requests-memory`: Sets the memory request for the container running the spinnaker service. Example: 512Mi.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--pod-limits-cpu`: Sets the cpu limit for the container running the spinnaker service, as well as any sidecar containers (e.g. the monitoring daemon). Example: 1.
@@ -4651,6 +4687,10 @@ hal config deploy component-sizing echo edit [parameters]
 ```
 
 #### Parameters
+ * `--container-limits-cpu`: Sets the cpu limit for the container running the spinnaker service. Example: 1.
+ * `--container-limits-memory`: Sets the memory limit for the container running the spinnaker service. Example: 1Gi.
+ * `--container-requests-cpu`: Sets the cpu request for the container running the spinnaker service. Example: 250m.
+ * `--container-requests-memory`: Sets the memory request for the container running the spinnaker service. Example: 512Mi.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--pod-limits-cpu`: Sets the cpu limit for the container running the spinnaker service, as well as any sidecar containers (e.g. the monitoring daemon). Example: 1.
@@ -4704,6 +4744,10 @@ hal config deploy component-sizing echo-scheduler edit [parameters]
 ```
 
 #### Parameters
+ * `--container-limits-cpu`: Sets the cpu limit for the container running the spinnaker service. Example: 1.
+ * `--container-limits-memory`: Sets the memory limit for the container running the spinnaker service. Example: 1Gi.
+ * `--container-requests-cpu`: Sets the cpu request for the container running the spinnaker service. Example: 250m.
+ * `--container-requests-memory`: Sets the memory request for the container running the spinnaker service. Example: 512Mi.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--pod-limits-cpu`: Sets the cpu limit for the container running the spinnaker service, as well as any sidecar containers (e.g. the monitoring daemon). Example: 1.
@@ -4757,6 +4801,10 @@ hal config deploy component-sizing echo-worker edit [parameters]
 ```
 
 #### Parameters
+ * `--container-limits-cpu`: Sets the cpu limit for the container running the spinnaker service. Example: 1.
+ * `--container-limits-memory`: Sets the memory limit for the container running the spinnaker service. Example: 1Gi.
+ * `--container-requests-cpu`: Sets the cpu request for the container running the spinnaker service. Example: 250m.
+ * `--container-requests-memory`: Sets the memory request for the container running the spinnaker service. Example: 512Mi.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--pod-limits-cpu`: Sets the cpu limit for the container running the spinnaker service, as well as any sidecar containers (e.g. the monitoring daemon). Example: 1.
@@ -4810,6 +4858,10 @@ hal config deploy component-sizing fiat edit [parameters]
 ```
 
 #### Parameters
+ * `--container-limits-cpu`: Sets the cpu limit for the container running the spinnaker service. Example: 1.
+ * `--container-limits-memory`: Sets the memory limit for the container running the spinnaker service. Example: 1Gi.
+ * `--container-requests-cpu`: Sets the cpu request for the container running the spinnaker service. Example: 250m.
+ * `--container-requests-memory`: Sets the memory request for the container running the spinnaker service. Example: 512Mi.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--pod-limits-cpu`: Sets the cpu limit for the container running the spinnaker service, as well as any sidecar containers (e.g. the monitoring daemon). Example: 1.
@@ -4863,6 +4915,10 @@ hal config deploy component-sizing front50 edit [parameters]
 ```
 
 #### Parameters
+ * `--container-limits-cpu`: Sets the cpu limit for the container running the spinnaker service. Example: 1.
+ * `--container-limits-memory`: Sets the memory limit for the container running the spinnaker service. Example: 1Gi.
+ * `--container-requests-cpu`: Sets the cpu request for the container running the spinnaker service. Example: 250m.
+ * `--container-requests-memory`: Sets the memory request for the container running the spinnaker service. Example: 512Mi.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--pod-limits-cpu`: Sets the cpu limit for the container running the spinnaker service, as well as any sidecar containers (e.g. the monitoring daemon). Example: 1.
@@ -4916,6 +4972,10 @@ hal config deploy component-sizing gate edit [parameters]
 ```
 
 #### Parameters
+ * `--container-limits-cpu`: Sets the cpu limit for the container running the spinnaker service. Example: 1.
+ * `--container-limits-memory`: Sets the memory limit for the container running the spinnaker service. Example: 1Gi.
+ * `--container-requests-cpu`: Sets the cpu request for the container running the spinnaker service. Example: 250m.
+ * `--container-requests-memory`: Sets the memory request for the container running the spinnaker service. Example: 512Mi.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--pod-limits-cpu`: Sets the cpu limit for the container running the spinnaker service, as well as any sidecar containers (e.g. the monitoring daemon). Example: 1.
@@ -4969,6 +5029,10 @@ hal config deploy component-sizing igor edit [parameters]
 ```
 
 #### Parameters
+ * `--container-limits-cpu`: Sets the cpu limit for the container running the spinnaker service. Example: 1.
+ * `--container-limits-memory`: Sets the memory limit for the container running the spinnaker service. Example: 1Gi.
+ * `--container-requests-cpu`: Sets the cpu request for the container running the spinnaker service. Example: 250m.
+ * `--container-requests-memory`: Sets the memory request for the container running the spinnaker service. Example: 512Mi.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--pod-limits-cpu`: Sets the cpu limit for the container running the spinnaker service, as well as any sidecar containers (e.g. the monitoring daemon). Example: 1.
@@ -5022,6 +5086,10 @@ hal config deploy component-sizing kayenta edit [parameters]
 ```
 
 #### Parameters
+ * `--container-limits-cpu`: Sets the cpu limit for the container running the spinnaker service. Example: 1.
+ * `--container-limits-memory`: Sets the memory limit for the container running the spinnaker service. Example: 1Gi.
+ * `--container-requests-cpu`: Sets the cpu request for the container running the spinnaker service. Example: 250m.
+ * `--container-requests-memory`: Sets the memory request for the container running the spinnaker service. Example: 512Mi.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--pod-limits-cpu`: Sets the cpu limit for the container running the spinnaker service, as well as any sidecar containers (e.g. the monitoring daemon). Example: 1.
@@ -5075,6 +5143,10 @@ hal config deploy component-sizing monitoring-daemon edit [parameters]
 ```
 
 #### Parameters
+ * `--container-limits-cpu`: Sets the cpu limit for the container running the spinnaker service. Example: 1.
+ * `--container-limits-memory`: Sets the memory limit for the container running the spinnaker service. Example: 1Gi.
+ * `--container-requests-cpu`: Sets the cpu request for the container running the spinnaker service. Example: 250m.
+ * `--container-requests-memory`: Sets the memory request for the container running the spinnaker service. Example: 512Mi.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--pod-limits-cpu`: Sets the cpu limit for the container running the spinnaker service, as well as any sidecar containers (e.g. the monitoring daemon). Example: 1.
@@ -5128,6 +5200,10 @@ hal config deploy component-sizing orca edit [parameters]
 ```
 
 #### Parameters
+ * `--container-limits-cpu`: Sets the cpu limit for the container running the spinnaker service. Example: 1.
+ * `--container-limits-memory`: Sets the memory limit for the container running the spinnaker service. Example: 1Gi.
+ * `--container-requests-cpu`: Sets the cpu request for the container running the spinnaker service. Example: 250m.
+ * `--container-requests-memory`: Sets the memory request for the container running the spinnaker service. Example: 512Mi.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--pod-limits-cpu`: Sets the cpu limit for the container running the spinnaker service, as well as any sidecar containers (e.g. the monitoring daemon). Example: 1.
@@ -5181,6 +5257,10 @@ hal config deploy component-sizing orca-bootstrap edit [parameters]
 ```
 
 #### Parameters
+ * `--container-limits-cpu`: Sets the cpu limit for the container running the spinnaker service. Example: 1.
+ * `--container-limits-memory`: Sets the memory limit for the container running the spinnaker service. Example: 1Gi.
+ * `--container-requests-cpu`: Sets the cpu request for the container running the spinnaker service. Example: 250m.
+ * `--container-requests-memory`: Sets the memory request for the container running the spinnaker service. Example: 512Mi.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--pod-limits-cpu`: Sets the cpu limit for the container running the spinnaker service, as well as any sidecar containers (e.g. the monitoring daemon). Example: 1.
@@ -5234,6 +5314,10 @@ hal config deploy component-sizing redis edit [parameters]
 ```
 
 #### Parameters
+ * `--container-limits-cpu`: Sets the cpu limit for the container running the spinnaker service. Example: 1.
+ * `--container-limits-memory`: Sets the memory limit for the container running the spinnaker service. Example: 1Gi.
+ * `--container-requests-cpu`: Sets the cpu request for the container running the spinnaker service. Example: 250m.
+ * `--container-requests-memory`: Sets the memory request for the container running the spinnaker service. Example: 512Mi.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--pod-limits-cpu`: Sets the cpu limit for the container running the spinnaker service, as well as any sidecar containers (e.g. the monitoring daemon). Example: 1.
@@ -5287,6 +5371,10 @@ hal config deploy component-sizing redis-bootstrap edit [parameters]
 ```
 
 #### Parameters
+ * `--container-limits-cpu`: Sets the cpu limit for the container running the spinnaker service. Example: 1.
+ * `--container-limits-memory`: Sets the memory limit for the container running the spinnaker service. Example: 1Gi.
+ * `--container-requests-cpu`: Sets the cpu request for the container running the spinnaker service. Example: 250m.
+ * `--container-requests-memory`: Sets the memory request for the container running the spinnaker service. Example: 512Mi.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--pod-limits-cpu`: Sets the cpu limit for the container running the spinnaker service, as well as any sidecar containers (e.g. the monitoring daemon). Example: 1.
@@ -5340,6 +5428,10 @@ hal config deploy component-sizing rosco edit [parameters]
 ```
 
 #### Parameters
+ * `--container-limits-cpu`: Sets the cpu limit for the container running the spinnaker service. Example: 1.
+ * `--container-limits-memory`: Sets the memory limit for the container running the spinnaker service. Example: 1Gi.
+ * `--container-requests-cpu`: Sets the cpu request for the container running the spinnaker service. Example: 250m.
+ * `--container-requests-memory`: Sets the memory request for the container running the spinnaker service. Example: 512Mi.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--pod-limits-cpu`: Sets the cpu limit for the container running the spinnaker service, as well as any sidecar containers (e.g. the monitoring daemon). Example: 1.
@@ -5393,6 +5485,10 @@ hal config deploy component-sizing vault-client edit [parameters]
 ```
 
 #### Parameters
+ * `--container-limits-cpu`: Sets the cpu limit for the container running the spinnaker service. Example: 1.
+ * `--container-limits-memory`: Sets the memory limit for the container running the spinnaker service. Example: 1Gi.
+ * `--container-requests-cpu`: Sets the cpu request for the container running the spinnaker service. Example: 250m.
+ * `--container-requests-memory`: Sets the memory request for the container running the spinnaker service. Example: 512Mi.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--pod-limits-cpu`: Sets the cpu limit for the container running the spinnaker service, as well as any sidecar containers (e.g. the monitoring daemon). Example: 1.
@@ -5446,6 +5542,10 @@ hal config deploy component-sizing vault-server edit [parameters]
 ```
 
 #### Parameters
+ * `--container-limits-cpu`: Sets the cpu limit for the container running the spinnaker service. Example: 1.
+ * `--container-limits-memory`: Sets the memory limit for the container running the spinnaker service. Example: 1Gi.
+ * `--container-requests-cpu`: Sets the cpu request for the container running the spinnaker service. Example: 250m.
+ * `--container-requests-memory`: Sets the memory request for the container running the spinnaker service. Example: 512Mi.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--pod-limits-cpu`: Sets the cpu limit for the container running the spinnaker service, as well as any sidecar containers (e.g. the monitoring daemon). Example: 1.
