@@ -22,6 +22,7 @@ import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.model.application.Application
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO
 import com.netflix.spinnaker.front50.model.application.ApplicationPermissionDAO
+import com.netflix.spinnaker.kork.exceptions.SystemException
 import groovy.util.logging.Slf4j
 import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
@@ -33,11 +34,10 @@ import retrofit.RetrofitError
 @Slf4j
 @RestController
 @RequestMapping("/permissions")
-@ConditionalOnExpression('${spinnaker.gcs.enabled:false} || ${spinnaker.s3.enabled:false} || ${spinnaker.azs.enabled:false} || ${spinnaker.oracle.enabled:false}')
 public class PermissionsController {
 
   @Autowired
-  ApplicationPermissionDAO applicationPermissionDAO
+  Optional<ApplicationPermissionDAO> applicationPermissionDAO
 
   @Autowired
   ApplicationDAO applicationDAO
@@ -54,7 +54,7 @@ public class PermissionsController {
   @ApiOperation(value = "", notes = "Get all application permissions. Internal use only.")
   @RequestMapping(method = RequestMethod.GET, value = "/applications")
   Set<Application.Permission> getAllApplicationPermissions() {
-    Map<String, Application.Permission> actualPermissions = applicationPermissionDAO
+    Map<String, Application.Permission> actualPermissions = applicationPermissionDAO()
         .all()
         .collectEntries { Application.Permission perm ->
       return [(perm.name.toLowerCase()): perm]
@@ -74,14 +74,14 @@ public class PermissionsController {
 
   @RequestMapping(method = RequestMethod.GET, value = "/applications/{appName:.+}")
   Application.Permission getApplicationPermission(@PathVariable String appName) {
-      return applicationPermissionDAO.findById(appName)
+      return applicationPermissionDAO().findById(appName)
   }
 
   @ApiOperation(value = "", notes = "Create an application permission.")
   @RequestMapping(method = RequestMethod.POST, value = "/applications")
   Application.Permission createApplicationPermission(
       @RequestBody Application.Permission newPermission) {
-    def perm = applicationPermissionDAO.create(newPermission.id, newPermission)
+    def perm = applicationPermissionDAO().create(newPermission.id, newPermission)
     syncUsers(perm, null)
     return perm
   }
@@ -91,8 +91,8 @@ public class PermissionsController {
       @PathVariable String appName,
       @RequestBody Application.Permission newPermission) {
     try {
-      def oldPermission = applicationPermissionDAO.findById(appName)
-      applicationPermissionDAO.update(appName, newPermission)
+      def oldPermission = applicationPermissionDAO().findById(appName)
+      applicationPermissionDAO().update(appName, newPermission)
       syncUsers(newPermission, oldPermission)
     } catch (NotFoundException nfe) {
       createApplicationPermission(newPermission)
@@ -102,8 +102,8 @@ public class PermissionsController {
 
   @RequestMapping(method = RequestMethod.DELETE, value = "/applications/{appName:.+}")
   void deleteApplicationPermission(@PathVariable String appName) {
-    def oldPermission = applicationPermissionDAO.findById(appName)
-    applicationPermissionDAO.delete(appName)
+    def oldPermission = applicationPermissionDAO().findById(appName)
+    applicationPermissionDAO().delete(appName)
     syncUsers(null, oldPermission)
   }
 
@@ -131,5 +131,13 @@ public class PermissionsController {
         log.warn("Error syncing users", re)
       }
     }
+  }
+
+  private ApplicationPermissionDAO applicationPermissionDAO() {
+    if (!applicationPermissionDAO.isPresent()) {
+      throw new SystemException("Configured storage service does not support application permissions")
+    }
+
+    return applicationPermissionDAO.get()
   }
 }
