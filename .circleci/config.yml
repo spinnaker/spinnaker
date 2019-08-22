@@ -14,6 +14,7 @@ workflows:
 jobs:
   build:
     machine: true
+    parallelism: 16
     steps:
       - checkout
       - run:
