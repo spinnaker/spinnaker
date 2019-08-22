@@ -30,6 +30,7 @@ import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.Tag;
 import com.netflix.spectator.api.Timer;
+import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller;
 import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
 import java.io.IOException;
@@ -140,7 +141,7 @@ final class ImagesTest {
             .credentials(new FakeGoogleCredentials())
             .compute(compute)
             .build();
-    return new Images(credentials, registry);
+    return new Images(credentials, new GoogleOperationPoller(), registry);
   }
 
   private static Tag tag(String key, String value) {

@@ -21,88 +21,72 @@ import com.google.api.services.compute.ComputeRequest;
 import com.google.api.services.compute.model.InstanceGroupManager;
 import com.google.api.services.compute.model.InstanceGroupManagersAbandonInstancesRequest;
 import com.google.api.services.compute.model.Operation;
-import com.google.common.collect.ImmutableMap;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.clouddriver.google.GoogleExecutor;
-import com.netflix.spinnaker.clouddriver.google.compute.GoogleComputeOperationRequestImpl.OperationWaiter;
-import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil;
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
-final class ZoneGoogleServerGroupManagers extends AbstractGoogleServerGroupManagers {
+final class ZoneGoogleServerGroupManagers implements GoogleServerGroupManagers {
 
+  private final GoogleNamedAccountCredentials credentials;
+  private final ZonalGoogleComputeRequestFactory requestFactory;
   private final Compute.InstanceGroupManagers managers;
+  private final String instanceGroupName;
   private final String zone;
 
   ZoneGoogleServerGroupManagers(
       GoogleNamedAccountCredentials credentials,
-      GoogleOperationPoller poller,
+      GoogleOperationPoller operationPoller,
       Registry registry,
       String instanceGroupName,
       String zone) {
-    super(credentials, poller, registry, instanceGroupName);
+    this.credentials = credentials;
+    this.requestFactory =
+        new ZonalGoogleComputeRequestFactory(
+            "instanceGroupManagers", credentials, operationPoller, registry);
     this.managers = credentials.getCompute().instanceGroupManagers();
+    this.instanceGroupName = instanceGroupName;
     this.zone = zone;
   }
 
   @Override
-  ComputeRequest<Operation> performAbandonInstances(List<String> instances) throws IOException {
-
+  public GoogleComputeOperationRequest<ComputeRequest<Operation>> abandonInstances(
+      List<String> instances) throws IOException {
     InstanceGroupManagersAbandonInstancesRequest request =
         new InstanceGroupManagersAbandonInstancesRequest();
     request.setInstances(instances);
-    return managers.abandonInstances(getProject(), zone, getInstanceGroupName(), request);
+    return requestFactory.wrapOperationRequest(
+        managers.abandonInstances(credentials.getProject(), zone, instanceGroupName, request),
+        "abandonInstances",
+        zone);
   }
 
   @Override
-  ComputeRequest<Operation> performDelete() throws IOException {
-    return managers.delete(getProject(), zone, getInstanceGroupName());
+  public GoogleComputeOperationRequest<ComputeRequest<Operation>> delete() throws IOException {
+    return requestFactory.wrapOperationRequest(
+        managers.delete(credentials.getProject(), zone, instanceGroupName), "delete", zone);
   }
 
   @Override
-  ComputeRequest<InstanceGroupManager> performGet() throws IOException {
-    return managers.get(getProject(), zone, getInstanceGroupName());
+  public GoogleComputeGetRequest<ComputeRequest<InstanceGroupManager>, InstanceGroupManager> get()
+      throws IOException {
+    return requestFactory.wrapGetRequest(
+        managers.get(credentials.getProject(), zone, instanceGroupName), "get", zone);
   }
 
   @Override
-  ComputeRequest<Operation> performPatch(InstanceGroupManager content) throws IOException {
-    return managers.patch(getProject(), zone, getInstanceGroupName(), content);
+  public GoogleComputeOperationRequest patch(InstanceGroupManager content) throws IOException {
+    return requestFactory.wrapOperationRequest(
+        managers.patch(credentials.getProject(), zone, instanceGroupName, content), "patch", zone);
   }
 
   @Override
-  ComputeRequest<Operation> performUpdate(InstanceGroupManager content) throws IOException {
-    return managers.update(getProject(), zone, getInstanceGroupName(), content);
-  }
-
-  @Override
-  OperationWaiter getOperationWaiter(
-      GoogleNamedAccountCredentials credentials, GoogleOperationPoller poller) {
-    return (operation, task, phase) ->
-        poller.waitForZonalOperation(
-            credentials.getCompute(),
-            credentials.getProject(),
-            GCEUtil.getLocalName(operation.getZone()),
-            operation.getName(),
-            /* timeoutSeconds= */ null,
-            task,
-            GCEUtil.getLocalName(operation.getTargetLink()),
-            phase);
-  }
-
-  @Override
-  String getManagersType() {
-    return "instanceGroupManagers";
-  }
-
-  @Override
-  Map<String, String> getRegionOrZoneTags() {
-    return ImmutableMap.of(
-        GoogleExecutor.getTAG_SCOPE(),
-        GoogleExecutor.getSCOPE_ZONAL(),
-        GoogleExecutor.getTAG_ZONE(),
+  public GoogleComputeOperationRequest<ComputeRequest<Operation>> update(
+      InstanceGroupManager content) throws IOException {
+    return requestFactory.wrapOperationRequest(
+        managers.update(credentials.getProject(), zone, instanceGroupName, content),
+        "update",
         zone);
   }
 }

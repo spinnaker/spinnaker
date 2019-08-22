@@ -23,7 +23,7 @@ import java.io.IOException;
 import javax.annotation.Nullable;
 
 public class FakeGoogleComputeRequest<RequestT extends ComputeRequest<ResponseT>, ResponseT>
-    implements GoogleComputeRequest<RequestT, ResponseT> {
+    implements GoogleComputeGetRequest<RequestT, ResponseT> {
 
   private final RequestT request;
   private final ResponseT response;
