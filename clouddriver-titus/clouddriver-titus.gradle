@@ -20,7 +20,7 @@ repositories {
 }
 
 dependencies {
-  protobuf 'com.netflix.titus:titus-api-definitions:0.0.1-rc59'
+  protobuf 'com.netflix.titus:titus-api-definitions:0.0.1-rc62'
 
   implementation project(":cats:cats-core")
   implementation project(":clouddriver-aws")

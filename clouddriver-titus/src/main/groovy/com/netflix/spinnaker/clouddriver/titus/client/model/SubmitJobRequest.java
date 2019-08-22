@@ -84,6 +84,7 @@ public class SubmitJobRequest {
   private int cpu;
   private int gpu;
   private int memory;
+  private int sharedMemory;
   private int disk;
   private int retries;
   private int runtimeLimitSecs;
@@ -158,6 +159,11 @@ public class SubmitJobRequest {
 
   public SubmitJobRequest withMemory(int memory) {
     this.memory = memory;
+    return this;
+  }
+
+  public SubmitJobRequest withSharedMemory(int sharedMemory) {
+    this.sharedMemory = sharedMemory;
     return this;
   }
 
@@ -327,6 +333,10 @@ public class SubmitJobRequest {
 
   public int getMemory() {
     return memory;
+  }
+
+  public int getSharedMemory() {
+    return sharedMemory;
   }
 
   public int getDisk() {

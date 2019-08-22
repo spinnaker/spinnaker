@@ -35,6 +35,7 @@ public class JobDescription {
   private int instancesMin;
   private int cpu;
   private int memory;
+  private int sharedMemory;
   private int disk;
   private int gpu;
   private int retries;
@@ -83,6 +84,7 @@ public class JobDescription {
     instancesMax = request.getInstanceMax();
     cpu = request.getCpu();
     memory = request.getMemory();
+    sharedMemory = request.getSharedMemory();
     disk = request.getDisk();
     ports = request.getPorts();
     networkMbps = request.getNetworkMbps();
@@ -462,6 +464,10 @@ public class JobDescription {
 
     if (memory != 0) {
       containerResources.setMemoryMB(memory);
+    }
+
+    if (sharedMemory != 0) {
+      containerResources.setShmSizeMB(sharedMemory);
     }
 
     if (disk != 0) {

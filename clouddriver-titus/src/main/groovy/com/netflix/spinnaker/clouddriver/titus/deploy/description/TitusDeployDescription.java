@@ -90,6 +90,7 @@ public class TitusDeployDescription extends AbstractTitusCredentialsDescription
             .withInstancesDesired(capacity.getDesired())
             .withCpu(resources.getCpu())
             .withMemory(resources.getMemory())
+            .withSharedMemory(resources.getSharedMemory())
             .withDisk(resources.getDisk())
             .withRetries(retries)
             .withRuntimeLimitSecs(runtimeLimitSecs)
@@ -160,6 +161,7 @@ public class TitusDeployDescription extends AbstractTitusCredentialsDescription
   public static class Resources {
     private int cpu;
     private int memory;
+    private int sharedMemory;
     private int disk;
     private int gpu;
     private int networkMbps;
