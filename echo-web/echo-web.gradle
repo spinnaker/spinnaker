@@ -35,6 +35,8 @@ dependencies {
     implementation project(':echo-pubsub-core')
     implementation project(':echo-pubsub-aws')
     implementation project(':echo-pubsub-google')
+    implementation project(':echo-proto')
+    implementation project(':echo-telemetry')
     implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"
     implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
     implementation "org.springframework.boot:spring-boot-starter-web"

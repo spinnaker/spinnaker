@@ -1,0 +1,83 @@
+syntax = "proto3";
+
+package spinnaker.echo;
+
+option java_package = "com.netflix.spinnaker.echo.proto";
+option java_multiple_files = true;
+
+message EventProto {
+    SpinnakerInstance spinnaker_instance = 1;
+}
+
+message SpinnakerInstance {
+    string id = 1;
+    string version = 2;
+    Application application = 3;
+}
+
+message Application {
+    string id = 1;
+    Execution execution = 2;
+}
+
+message Execution {
+    string id = 1;
+    Type type = 2;
+
+    enum Type {
+        UNKNOWN = 0;
+        PIPELINE = 1;
+        ORCHESTRATION = 2;
+        MANAGED_PIPELINE_TEMPLATE_V1 = 3;
+        MANAGED_PIPELINE_TEMPLATE_V2 = 4;
+    }
+
+    Trigger trigger = 3;
+
+    message Trigger {
+        Type type = 1;
+
+        // Sourced from https://github.com/spinnaker/echo/tree/master/echo-model/src/main/java/com/netflix/spinnaker/echo/model/trigger
+        enum Type {
+            UNKNOWN = 0;
+            ARTIFACTORY = 1;
+            BUILD = 2;
+            DOCKER = 3;
+            GIT = 4;
+            MANUAL = 5;
+            PUBSUB = 6;
+            WEBHOOK = 7;
+        }
+    }
+
+    repeated Stage stages = 4;
+    Status status = 5;
+}
+
+message Stage {
+    string type =  1;
+    Status status = 2;
+    CloudProvider cloud_provider = 3;
+}
+
+message CloudProvider {
+    string id = 1;
+    string variant = 2;
+}
+
+// Sourced from https://github.com/spinnaker/orca/blob/master/orca-core/src/main/java/com/netflix/spinnaker/orca/ExecutionStatus.java
+enum Status {
+    UNKNOWN = 0;
+    NOT_STARTED = 1;
+    RUNNING = 2;
+    PAUSED = 3;
+    SUSPENDED = 4;
+    SUCCEEDED = 5;
+    FAILED_CONTINUE = 6;
+    TERMINAL = 7;
+    CANCELED = 8;
+    REDIRECT = 9;
+    STOPPED = 10;
+    SKIPPED = 11;
+    BUFFERED = 12;
+}

@@ -27,7 +27,9 @@ include 'echo-artifacts',
         'echo-pubsub-aws',
         'echo-pubsub-google',
         'echo-test',
-        'echo-bom'
+        'echo-bom',
+        'echo-telemetry',
+        'echo-proto'
 
 rootProject.name = 'echo'
 
