@@ -14,7 +14,8 @@ workflows:
 jobs:
   build:
     machine: true
-    parallelism: 16
+    parallelism: 12
+    resource_class: xlarge
     steps:
       - checkout
       - run:
