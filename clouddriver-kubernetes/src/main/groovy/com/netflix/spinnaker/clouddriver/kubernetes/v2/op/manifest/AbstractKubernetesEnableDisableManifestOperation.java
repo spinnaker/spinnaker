@@ -78,7 +78,9 @@ public abstract class AbstractKubernetesEnableDisableManifestOperation
       name = KubernetesManifest.fromFullResourceName(loadBalancerName);
     } catch (IllegalArgumentException e) {
       throw new IllegalArgumentException(
-          "Load balancers must be specified in the form '<kind> <name>', e.g. 'service my-service'",
+          String.format(
+              "Failed to perform operation with load balancer '%s'. Load balancers must be specified in the form '{kind} {name}', e.g. 'service my-service'",
+              loadBalancerName),
           e);
     }
 
