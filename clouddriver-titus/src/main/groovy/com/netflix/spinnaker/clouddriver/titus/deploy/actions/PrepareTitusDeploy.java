@@ -372,14 +372,20 @@ public class PrepareTitusDeploy extends AbstractTitusDeployAction
     saga.log("Resolving security groups");
 
     // Determine if we should configure the app default security group...
+    // First check for a label, falling back to the value (if any) passed via the description.
     boolean useApplicationDefaultSecurityGroup =
         Boolean.valueOf(
-            description.getLabels().getOrDefault(USE_APPLICATION_DEFAULT_SG_LABEL, "true"));
+            description
+                .getLabels()
+                .getOrDefault(
+                    USE_APPLICATION_DEFAULT_SG_LABEL,
+                    String.valueOf(description.isUseApplicationDefaultSecurityGroup())));
     if (!useApplicationDefaultSecurityGroup) {
       description.getLabels().put(USE_APPLICATION_DEFAULT_SG_LABEL, "false");
     } else {
       description.getLabels().remove(USE_APPLICATION_DEFAULT_SG_LABEL);
     }
+    description.setUseApplicationDefaultSecurityGroup(useApplicationDefaultSecurityGroup);
 
     // Resolve the provided security groups, asserting that they actually exist.
     // TODO(rz): Seems kinda odd that we'd do resolution & validation here and not in... a validator

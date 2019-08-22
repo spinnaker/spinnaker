@@ -144,10 +144,17 @@ class PrepareTitusDeployActionSpec extends Specification {
   }
 
   @Unroll
-  def "security groups include app security group (defaultAppSg=#useFlag)"() {
+  def "security groups include app security group (label=#labelValue, desc=#descriptionValue, includesAppGroup=#includesAppGroup)"() {
     given:
     TitusDeployDescription description = createTitusDeployDescription()
-    description.labels[PrepareTitusDeploy.USE_APPLICATION_DEFAULT_SG_LABEL] = useFlag.toString()
+
+    and:
+    if (labelValue != null) {
+      description.labels[PrepareTitusDeploy.USE_APPLICATION_DEFAULT_SG_LABEL] = labelValue.toString()
+    }
+    if (descriptionValue != null) {
+      description.useApplicationDefaultSecurityGroup = descriptionValue
+    }
 
     when:
     subject.resolveSecurityGroups(saga, description)
@@ -156,14 +163,21 @@ class PrepareTitusDeployActionSpec extends Specification {
     awsLookupUtil.securityGroupIdExists(_, _, "sg-abcd1234") >> true
     awsLookupUtil.convertSecurityGroupNameToId(_, _, "spindemo") >> "sg-spindemo"
 
-    if (useFlag) {
+    if (includesAppGroup) {
       description.securityGroups == ["sg-abcd1234", "sg-spindemo"]
     } else {
       description.securityGroups == ["sg-abcd1234"]
     }
 
     where:
-    useFlag << [true, false]
+    labelValue | descriptionValue || includesAppGroup
+    null       | null             || true
+    true       | null             || true
+    false      | null             || false
+    true       | true             || true
+    true       | false            || true
+    null       | true             || true
+    null       | false            || false
   }
 
   private TitusDeployDescription createTitusDeployDescription() {

@@ -56,6 +56,14 @@ public class TitusDeployDescription extends AbstractTitusCredentialsDescription
   private DisruptionBudget disruptionBudget;
   private SubmitJobRequest.Constraints constraints = new SubmitJobRequest.Constraints();
   private ServiceJobProcesses serviceJobProcesses;
+
+  /**
+   * Will be overridden by any the label {@code PrepareTitusDeploy.USE_APPLICATION_DEFAULT_SG_LABEL}
+   *
+   * <p>TODO(rz): Redundant; migrate off this property or the label (pref to migrate off the label)
+   */
+  @Deprecated private boolean useApplicationDefaultSecurityGroup = true;
+
   /**
    * If false, the newly created server group will not pick up scaling policies and actions from an
    * ancestor group
