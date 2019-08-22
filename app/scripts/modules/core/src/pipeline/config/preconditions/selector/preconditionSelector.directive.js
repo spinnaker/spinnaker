@@ -15,6 +15,7 @@ module.exports = angular
         level: '=',
         strategy: '=',
         application: '=',
+        upstreamStages: '=',
       },
       templateUrl: require('./preconditionSelector.html'),
       controller: 'PreconditionSelectorCtrl',
@@ -40,6 +41,13 @@ module.exports = angular
 
       this.clearContext = function() {
         $scope.precondition.context = null;
+      };
+
+      this.setContext = function(context) {
+        // Called from React component
+        $scope.$applyAsync(() => {
+          $scope.precondition.context = context;
+        });
       };
 
       this.getPreconditionContextTemplateUrl = function() {

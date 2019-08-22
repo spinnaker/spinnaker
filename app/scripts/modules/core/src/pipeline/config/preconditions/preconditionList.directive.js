@@ -17,6 +17,7 @@ module.exports = angular
         parent: '=',
         strategy: '=',
         application: '=',
+        upstreamStages: '=',
       },
       templateUrl: require('./preconditionList.directive.html'),
       controller: 'PreconditionListCtrl',
@@ -43,6 +44,9 @@ module.exports = angular
             },
             application: function() {
               return $scope.application;
+            },
+            upstreamStages: function() {
+              return $scope.upstreamStages;
             },
           },
         });
