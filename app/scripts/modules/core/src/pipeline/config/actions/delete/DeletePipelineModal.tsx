@@ -1,0 +1,105 @@
+import * as React from 'react';
+import { Modal } from 'react-bootstrap';
+import { isEmpty, set } from 'lodash';
+import { $log } from 'ngimport';
+
+import { Application } from 'core/application';
+import { IPipeline } from 'core/domain';
+import { ModalClose } from 'core/modal';
+import { IModalComponentProps } from 'core/presentation';
+import { ReactInjector } from 'core/reactShims';
+import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
+
+export interface IDeletePipelineModalProps extends IModalComponentProps {
+  application: Application;
+  pipeline: IPipeline;
+}
+
+export function DeletePipelineModal(props: IDeletePipelineModalProps) {
+  const [errorMessage, setErrorMessage] = React.useState<string>(null);
+  const [deleteError, setDeleteError] = React.useState<boolean>(false);
+  const [deleting, setDeleting] = React.useState<boolean>(false);
+  const { application, dismissModal, pipeline } = props;
+
+  function deletePipeline() {
+    setDeleting(true);
+
+    PipelineConfigService.deletePipeline(application.name, pipeline, pipeline.name).then(
+      () => {
+        const idsToUpdatedIndices = {};
+        const isPipelineStrategy = pipeline.strategy === true;
+        const data = isPipelineStrategy ? application.strategyConfigs.data : application.pipelineConfigs.data;
+        data.splice(data.findIndex((p: any) => p.id === pipeline.id), 1);
+        data.forEach((p: IPipeline, index: number) => {
+          if (p.index !== index) {
+            p.index = index;
+            set(idsToUpdatedIndices, p.id, index);
+          }
+        });
+        if (!isEmpty(idsToUpdatedIndices)) {
+          PipelineConfigService.reorderPipelines(application.name, idsToUpdatedIndices, isPipelineStrategy);
+        }
+        ReactInjector.$state.go('^.executions', null, { location: 'replace' });
+        dismissModal();
+      },
+      response => {
+        $log.warn(response);
+        setDeleting(false);
+        setDeleteError(true);
+        setErrorMessage(response.message || 'No message provided');
+      },
+    );
+  }
+
+  return (
+    <>
+      <Modal key="modal" show={true} onHide={() => {}}>
+        <ModalClose dismiss={dismissModal} />
+        <Modal.Header>
+          <h3>Really Delete {pipeline.strategy === true ? 'Strategy' : 'Pipeline'}?</h3>
+        </Modal.Header>
+        <Modal.Body>
+          {deleteError && (
+            <div className="alert alert-danger">
+              <p>Could not delete {pipeline.strategy === true ? 'strategy' : 'pipeline'}.</p>
+              <p>
+                <b>Reason: </b>
+                {errorMessage}
+              </p>
+              <p>
+                <a onClick={() => setDeleteError(false)}>[dismiss]</a>
+              </p>
+            </div>
+          )}
+          <form role="form" name="form" className="form-horizontal">
+            <div className="form-group">
+              <div className="col-md-12">
+                <p>
+                  Are you sure you want to delete the {pipeline.strategy === true ? 'strategy: ' : 'pipeline: '}
+                  {pipeline.name}?
+                </p>
+              </div>
+            </div>
+          </form>
+        </Modal.Body>
+        <Modal.Footer>
+          <button className="btn btn-default" onClick={() => dismissModal()} type="button">
+            Cancel
+          </button>
+          <button className="btn btn-primary" onClick={() => deletePipeline()}>
+            {!deleting && (
+              <span>
+                <span className="far fa-check-circle" /> Delete
+              </span>
+            )}
+            {deleting && (
+              <span className="pulsing">
+                <span className="fa fa-cog fa-spin" /> Deleting&hellip;
+              </span>
+            )}
+          </button>
+        </Modal.Footer>
+      </Modal>
+    </>
+  );
+}

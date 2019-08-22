@@ -14,6 +14,7 @@ import { EXECUTION_BUILD_TITLE } from '../executionBuild/ExecutionBuildTitle';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 import { ExecutionsTransformer } from 'core/pipeline/service/ExecutionsTransformer';
 import { EditPipelineJsonModal } from 'core/pipeline/config/actions/pipelineJson/EditPipelineJsonModal';
+import { DeletePipelineModal } from 'core/pipeline/config/actions/delete/DeletePipelineModal';
 import { ShowPipelineTemplateJsonModal } from 'core/pipeline/config/actions/templateJson/ShowPipelineTemplateJsonModal';
 import { PipelineTemplateV2Service } from 'core/pipeline';
 import { PipelineTemplateWriter } from 'core/pipeline/config/templates/PipelineTemplateWriter';
@@ -104,15 +105,7 @@ module.exports = angular
       };
 
       this.deletePipeline = () => {
-        $uibModal.open({
-          templateUrl: require('./actions/delete/deletePipelineModal.html'),
-          controller: 'DeletePipelineModalCtrl',
-          controllerAs: 'deletePipelineModalCtrl',
-          resolve: {
-            pipeline: () => $scope.pipeline,
-            application: () => $scope.application,
-          },
-        });
+        ReactModal.show(DeletePipelineModal, { pipeline: $scope.pipeline, application: $scope.application });
       };
 
       this.addStage = (newStage = { isNew: true }) => {
