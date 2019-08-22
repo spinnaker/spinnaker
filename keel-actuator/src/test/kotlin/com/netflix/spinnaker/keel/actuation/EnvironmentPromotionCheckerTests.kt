@@ -13,6 +13,8 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.runBlocking
+import strikt.api.expectCatching
+import strikt.assertions.succeeded
 
 internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
 
@@ -43,11 +45,26 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
   }
 
   fun tests() = rootContext<Fixture> {
-    context("multiple versions of an artifact exist") {
-      fixture {
-        Fixture()
+    fixture {
+      Fixture()
+    }
+
+    context("no versions of an artifact exist") {
+      before {
+        every {
+          artifactRepository.versions(artifact)
+        } returns emptyList()
       }
 
+      test("the check does not throw an exception") {
+        expectCatching {
+          subject.checkEnvironments(deliveryConfig)
+        }
+          .succeeded()
+      }
+    }
+
+    context("multiple versions of an artifact exist") {
       before {
         every {
           artifactRepository.versions(artifact)
