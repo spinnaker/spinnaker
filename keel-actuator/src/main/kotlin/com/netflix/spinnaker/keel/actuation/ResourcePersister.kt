@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.actuation
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
@@ -13,6 +14,7 @@ import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceDeleted
 import com.netflix.spinnaker.keel.events.ResourceUpdated
+import com.netflix.spinnaker.keel.exceptions.InvalidResourceStructureException
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
@@ -34,7 +36,8 @@ class ResourcePersister(
   private val resourceRepository: ResourceRepository,
   private val handlers: List<ResolvableResourceHandler<*, *>>,
   private val clock: Clock,
-  private val publisher: ApplicationEventPublisher
+  private val publisher: ApplicationEventPublisher,
+  private val objectMapper: ObjectMapper
 ) {
   @Transactional(propagation = REQUIRED)
   fun upsert(deliveryConfig: SubmittedDeliveryConfig): DeliveryConfig =
@@ -46,7 +49,7 @@ class ResourcePersister(
         Environment(
           name = env.name,
           resources = env.resources.mapTo(mutableSetOf()) { resource ->
-            upsert(resource)
+            upsert<ResourceSpec>(resource)
           }
         )
       }
@@ -58,19 +61,37 @@ class ResourcePersister(
         deliveryConfigRepository.store(it)
       }
 
-  fun upsert(resource: SubmittedResource<*>): Resource<out ResourceSpec> =
-    handlers.supporting(resource.apiVersion, resource.kind)
-      .normalize(resource)
+  fun <T : ResourceSpec> upsert(resource: SubmittedResource<Map<String, Any?>>): Resource<T> =
+    handlers
+      .supporting(resource.apiVersion, resource.kind)
+      .run {
+        @Suppress("UNCHECKED_CAST")
+        resource.withParsedSpec(supportedKind.second) as SubmittedResource<T>
+      }
       .let {
         if (it.name.isRegistered()) {
-          update(it.name, resource)
+          update(it.name, it)
         } else {
-          create(resource)
+          create(it)
         }
       }
 
-  fun create(resource: SubmittedResource<*>): Resource<out ResourceSpec> =
-    handlers.supporting(resource.apiVersion, resource.kind)
+  private fun <T : ResourceSpec> SubmittedResource<Map<String, Any?>>.withParsedSpec(specType: Class<T>): SubmittedResource<T> =
+    try {
+      @Suppress("UNCHECKED_CAST")
+      // I encourage you to look away from this line of code for the sake of your sanity
+      (this as SubmittedResource<T>) // clearly that's a lie, but type erasure
+        .copy(spec = objectMapper.convertValue(spec, specType))
+    } catch (e: IllegalArgumentException) {
+      throw InvalidResourceStructureException(
+        "Submitted resource with an incorrect structure, cannot convert to $kind",
+        spec.toString(),
+        e
+      )
+    }
+
+  fun <T : ResourceSpec> create(resource: SubmittedResource<T>): Resource<T> =
+    handlerFor(resource)
       .normalize(resource)
       .also {
         log.debug("Creating $it")
@@ -78,10 +99,18 @@ class ResourcePersister(
         publisher.publishEvent(ResourceCreated(it, clock))
       }
 
-  fun update(name: ResourceName, updated: SubmittedResource<*>): Resource<out ResourceSpec> {
+  @Suppress("UNCHECKED_CAST")
+  private fun <T : ResourceSpec> handlerFor(resource: SubmittedResource<T>) =
+    handlers.supporting(
+        resource.apiVersion,
+        resource.kind
+      ) as ResolvableResourceHandler<T, *>
+
+  fun <T : ResourceSpec> update(name: ResourceName, updated: SubmittedResource<T>): Resource<T> {
     log.debug("Updating $name")
-    val handler = handlers.supporting(updated.apiVersion, updated.kind)
-    val existing = resourceRepository.get(name)
+    val handler = handlerFor(updated)
+    @Suppress("UNCHECKED_CAST")
+    val existing = resourceRepository.get(name) as Resource<T>
     val resource = existing.withSpec(updated.spec, handler.supportedKind.second)
     val normalized = handler.normalize(resource)
 

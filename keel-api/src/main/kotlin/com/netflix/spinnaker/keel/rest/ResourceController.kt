@@ -15,20 +15,16 @@
  */
 package com.netflix.spinnaker.keel.rest
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.actuation.ResourcePersister
-import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.exceptions.FailedNormalizationException
 import com.netflix.spinnaker.keel.exceptions.InvalidResourceStructureException
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
-import com.netflix.spinnaker.keel.persistence.get
-import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
 import com.netflix.spinnaker.keel.plugin.UnsupportedKind
-import com.netflix.spinnaker.keel.plugin.supporting
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus.BAD_REQUEST
@@ -51,9 +47,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping(path = ["/resources"])
 class ResourceController(
   private val resourceRepository: ResourceRepository,
-  private val resourcePersister: ResourcePersister,
-  private val handlers: List<ResolvableResourceHandler<*, *>>,
-  private val objectMapper: ObjectMapper
+  private val resourcePersister: ResourcePersister
 ) {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -72,15 +66,9 @@ class ResourceController(
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
   @PreAuthorize("@authorizationSupport.userCanModifySpec(#resource.metadata.serviceAccount, #resource.spec)")
-  fun upsert(@RequestBody resource: SubmittedResource<Any>): Resource<out ResourceSpec> {
-    val handler = handlers.supporting(resource.apiVersion, resource.kind)
-    val specType = handler.supportedKind.second
-    val parsedSpec = objectMapper.convertValue(resource.spec, specType)
-
-    resource.copy(spec = parsedSpec).let {
-      log.debug("Upserting: $it")
-      return resourcePersister.upsert(it)
-    }
+  fun upsert(@RequestBody resource: SubmittedResource<Map<String, Any?>>): Resource<out ResourceSpec> {
+    log.debug("Upserting: $resource")
+    return resourcePersister.upsert(resource)
   }
 
   @DeleteMapping(

@@ -5,9 +5,9 @@ import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
-import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
+import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.api.SubmittedEnvironment
@@ -26,6 +26,7 @@ import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
+import com.netflix.spinnaker.keel.test.asMap
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.mockk
@@ -63,32 +64,30 @@ internal class ResourcePersisterTests : JUnit5Minutests {
       resourceRepository,
       listOf(DummyResourceHandler),
       clock,
-      publisher
+      publisher,
+      configuredObjectMapper()
     )
 
     lateinit var resource: Resource<DummyResourceSpec>
     lateinit var deliveryConfig: DeliveryConfig
 
     @Suppress("UNCHECKED_CAST")
-    fun create(submittedResource: SubmittedResource<DummyResourceSpec>) {
-      resource = subject.upsert(submittedResource) as Resource<DummyResourceSpec>
+    fun create(submittedResource: SubmittedResource<Map<String, Any?>>) {
+      resource = subject.upsert(submittedResource)
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun update(updatedSpec: ResourceSpec) {
+    fun update(updatedSpec: DummyResourceSpec) {
       resource = subject.upsert(SubmittedResource(
         metadata = SubmittedMetadata("keel@spinnaker"),
         apiVersion = resource.apiVersion,
         kind = resource.kind,
-        spec = updatedSpec
-      )) as Resource<DummyResourceSpec>
+        spec = updatedSpec.asMap()
+      ))
     }
 
     fun resourcesDueForCheck() =
       resourceRepository.itemsDueForCheck(Duration.ofMinutes(1), Int.MAX_VALUE)
-
-    fun eventHistory() =
-      resourceRepository.eventHistory(resource.uid)
 
     fun create(submittedDeliveryConfig: SubmittedDeliveryConfig) {
       deliveryConfig = subject.upsert(submittedDeliveryConfig)
@@ -113,7 +112,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
               metadata = SubmittedMetadata("keel@spinnaker"),
               apiVersion = SPINNAKER_API_V1.subApi("test"),
               kind = "whatever",
-              spec = DummyResourceSpec(data = "o hai")
+              spec = DummyResourceSpec(data = "o hai").asMap()
             ))
           }
 
@@ -141,12 +140,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
           context("after an update") {
             before {
               resourcesDueForCheck()
-              subject.upsert(SubmittedResource(
-                metadata = SubmittedMetadata("keel@spinnaker"),
-                apiVersion = resource.apiVersion,
-                kind = resource.kind,
-                spec = DummyResourceSpec(name = resource.spec.name, data = "kthxbye")
-              ))
+              update(DummyResourceSpec(name = resource.spec.name, data = "kthxbye"))
             }
 
             test("stores the updated resource") {
@@ -214,7 +208,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
                     apiVersion = SPINNAKER_API_V1.subApi("test"),
                     kind = "whatever",
                     metadata = SubmittedMetadata("keel@spinnaker"),
-                    spec = DummyResourceSpec("test", "resource in test")
+                    spec = DummyResourceSpec("test", "resource in test").asMap()
                   ))
                 ),
                 SubmittedEnvironment(
@@ -223,7 +217,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
                     apiVersion = SPINNAKER_API_V1.subApi("test"),
                     kind = "whatever",
                     metadata = SubmittedMetadata("keel@spinnaker"),
-                    spec = DummyResourceSpec("prod", "resource in prod")
+                    spec = DummyResourceSpec("prod", "resource in prod").asMap()
                   ))
                 )
               )
@@ -264,21 +258,25 @@ internal class ResourcePersisterTests : JUnit5Minutests {
             apiVersion = SPINNAKER_API_V1.subApi("test"),
             kind = "whatever",
             metadata = SubmittedMetadata("keel@spinnaker"),
-            spec = DummyResourceSpec("test", "resource in test")
+            spec = DummyResourceSpec("test", "resource in test").asMap()
           ).also {
             create(it)
           }
-            .copy(spec = DummyResourceSpec("test", "updated resource in test"))
+            .run {
+              copy(spec = spec + mapOf("data" to "updated resource in test"))
+            }
 
           val resource2 = SubmittedResource(
             apiVersion = SPINNAKER_API_V1.subApi("test"),
             kind = "whatever",
             metadata = SubmittedMetadata("keel@spinnaker"),
-            spec = DummyResourceSpec("prod", "resource in prod")
+            spec = DummyResourceSpec("prod", "resource in prod").asMap()
           ).also {
             create(it)
           }
-            .copy(spec = DummyResourceSpec("prod", "updated resource in prod"))
+            .run {
+              copy(spec = spec + mapOf("data" to "updated resource in prod"))
+            }
 
           create(
             SubmittedDeliveryConfig(

@@ -32,6 +32,7 @@ import com.netflix.spinnaker.keel.tags.EntityRef
 import com.netflix.spinnaker.keel.tags.EntityTag
 import com.netflix.spinnaker.keel.tags.KEEL_TAG_NAME
 import com.netflix.spinnaker.keel.tags.TagValue
+import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
@@ -129,7 +130,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
 
       test("cluster is tagged") {
         onCreateEvent(ResourceCreated(rCluster))
-        verify { resourcePersister.create(any()) }
+        verify { resourcePersister.create<DummyResourceSpec>(any()) }
       }
     }
 
@@ -140,7 +141,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
       }
 
       every {
-        resourcePersister.update(clusterTagName, any())
+        resourcePersister.update<DummyResourceSpec>(clusterTagName, any())
       } answers {
         Resource(
           secondArg(),
@@ -160,7 +161,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
       test("removes cluster tag on delete") {
         onDeleteEvent(ResourceDeleted(rCluster, clock))
 
-        verify { resourcePersister.update(clusterTagName, any()) }
+        verify { resourcePersister.update<DummyResourceSpec>(clusterTagName, any()) }
       }
     }
 
@@ -205,11 +206,11 @@ internal class ResourceTaggerTests : JUnit5Minutests {
           application = "keel",
           timestamp = clock.instant()
         ))
-        verify { resourcePersister.create(any()) wasNot Called }
+        verify { resourcePersister.create<DummyResourceSpec>(any()) wasNot Called }
       }
       test("we don't tag tags") {
         onCreateEvent(ResourceCreated(rClusterTag))
-        verify { resourcePersister.create(any()) wasNot Called }
+        verify { resourcePersister.create<DummyResourceSpec>(any()) wasNot Called }
       }
 
       test("we tag clbs") {
@@ -221,7 +222,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
           application = "keel",
           timestamp = clock.instant()
         ))
-        verify { resourcePersister.create(any()) }
+        verify { resourcePersister.create<DummyResourceSpec>(any()) }
       }
 
       test("we tag albs") {
@@ -233,7 +234,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
           application = "keel",
           timestamp = clock.instant()
         ))
-        verify { resourcePersister.create(any()) }
+        verify { resourcePersister.create<DummyResourceSpec>(any()) }
       }
 
       test("we tag security groups") {
@@ -245,7 +246,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
           application = "keel",
           timestamp = clock.instant()
         ))
-        verify { resourcePersister.create(any()) }
+        verify { resourcePersister.create<DummyResourceSpec>(any()) }
       }
 
       test("we tag clusters") {
@@ -257,7 +258,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
           application = "keel",
           timestamp = clock.instant()
         ))
-        verify { resourcePersister.create(any()) }
+        verify { resourcePersister.create<DummyResourceSpec>(any()) }
       }
     }
   }

@@ -48,6 +48,9 @@ data class SubmittedResource<T : Any>(
   val spec: T
 )
 
+val <T : ResourceSpec> SubmittedResource<T>.name: ResourceName
+  get() = "${apiVersion.prefix}:$kind:${spec.name}".let(::ResourceName)
+
 /**
  * Required metadata to be submitted with a resource
  */
