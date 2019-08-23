@@ -19,7 +19,7 @@ export function DeletePipelineModal(props: IDeletePipelineModalProps) {
   const [errorMessage, setErrorMessage] = React.useState<string>(null);
   const [deleteError, setDeleteError] = React.useState<boolean>(false);
   const [deleting, setDeleting] = React.useState<boolean>(false);
-  const { application, dismissModal, pipeline } = props;
+  const { application, closeModal, dismissModal, pipeline } = props;
 
   function deletePipeline() {
     setDeleting(true);
@@ -40,7 +40,7 @@ export function DeletePipelineModal(props: IDeletePipelineModalProps) {
           PipelineConfigService.reorderPipelines(application.name, idsToUpdatedIndices, isPipelineStrategy);
         }
         ReactInjector.$state.go('^.executions', null, { location: 'replace' });
-        dismissModal();
+        closeModal();
       },
       response => {
         $log.warn(response);
@@ -67,7 +67,15 @@ export function DeletePipelineModal(props: IDeletePipelineModalProps) {
                 {errorMessage}
               </p>
               <p>
-                <a onClick={() => setDeleteError(false)}>[dismiss]</a>
+                <a
+                  className="btn btn-link"
+                  onClick={e => {
+                    e.preventDefault();
+                    setDeleteError(false);
+                  }}
+                >
+                  [dismiss]
+                </a>
               </p>
             </div>
           )}

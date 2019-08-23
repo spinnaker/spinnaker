@@ -15,6 +15,7 @@ import { PipelineConfigService } from 'core/pipeline/config/services/PipelineCon
 import { ExecutionsTransformer } from 'core/pipeline/service/ExecutionsTransformer';
 import { EditPipelineJsonModal } from 'core/pipeline/config/actions/pipelineJson/EditPipelineJsonModal';
 import { DeletePipelineModal } from 'core/pipeline/config/actions/delete/DeletePipelineModal';
+import { DisablePipelineModal } from 'core/pipeline/config/actions/disable/DisablePipelineModal';
 import { ShowPipelineTemplateJsonModal } from 'core/pipeline/config/actions/templateJson/ShowPipelineTemplateJsonModal';
 import { PipelineTemplateV2Service } from 'core/pipeline';
 import { PipelineTemplateWriter } from 'core/pipeline/config/templates/PipelineTemplateWriter';
@@ -222,15 +223,8 @@ module.exports = angular
 
       // Disabling a pipeline also just toggles the disabled flag - it does not save any pending changes
       this.disablePipeline = () => {
-        $uibModal
-          .open({
-            templateUrl: require('./actions/disable/disablePipelineModal.html'),
-            controller: 'DisablePipelineModalCtrl as ctrl',
-            resolve: {
-              pipeline: () => getOriginal(),
-            },
-          })
-          .result.then(() => disableToggled(true))
+        ReactModal.show(DisablePipelineModal, { pipeline: $scope.pipeline })
+          .then(() => disableToggled(true))
           .catch(() => {});
       };
 
