@@ -24,12 +24,15 @@ import static java.util.stream.Collectors.toList;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.artifacts.maven.MavenArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryCloudProvider;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.artifacts.CloudFoundryArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ProcessStats;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.CloudFoundryServerGroupNameResolver;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeployCloudFoundryServerGroupDescription;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryServerGroup;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.ServerGroupMetaDataEnvVar;
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult;
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
@@ -181,10 +184,54 @@ public class DeployCloudFoundryServerGroupAtomicOperation
         .updateStatus(
             PHASE, "Creating Cloud Foundry application '" + description.getServerGroupName() + "'");
 
+    CloudFoundryServerGroup serverGroup =
+        client
+            .getApplications()
+            .createApplication(
+                description.getServerGroupName(),
+                description.getSpace(),
+                description.getApplicationAttributes().getBuildpacks(),
+                getEnvironmentVars(description));
+    getTask()
+        .updateStatus(
+            PHASE, "Created Cloud Foundry application '" + description.getServerGroupName() + "'");
+
+    return serverGroup;
+  }
+
+  private static Map<String, String> getEnvironmentVars(
+      DeployCloudFoundryServerGroupDescription description) {
     Map<String, String> environmentVars =
         Optional.ofNullable(description.getApplicationAttributes().getEnv())
             .map(HashMap::new)
             .orElse(new HashMap<>());
+
+    final Artifact applicationArtifact = description.getApplicationArtifact();
+    if (CloudFoundryArtifactCredentials.TYPE.equals(applicationArtifact.getType())) {
+      CloudFoundryClient client = description.getClient();
+      final CloudFoundrySpace orgAndSpaceName =
+          CloudFoundrySpace.fromRegion(applicationArtifact.getLocation());
+      final Optional<CloudFoundryOrganization> orgOptional =
+          client.getOrganizations().findByName(orgAndSpaceName.getOrganization().getName());
+      orgOptional.ifPresent(
+          org -> {
+            final CloudFoundrySpace space =
+                client.getSpaces().findByName(org.getId(), orgAndSpaceName.getName());
+            if (space != null) {
+              final CloudFoundryServerGroup serverGroup =
+                  client
+                      .getApplications()
+                      .findServerGroupByNameAndSpaceId(
+                          applicationArtifact.getName(), space.getId());
+              if (serverGroup != null) {
+                serverGroup.getEnv().entrySet().stream()
+                    .filter(e -> e.getKey().startsWith(ServerGroupMetaDataEnvVar.PREFIX))
+                    .forEach(i -> environmentVars.put(i.getKey(), i.getValue().toString()));
+              }
+            }
+          });
+    }
+
     final ExternalReference artifactInfo = resolveArtifactInfo(description);
     artifactInfo
         .getName()
@@ -212,19 +259,7 @@ public class DeployCloudFoundryServerGroupAtomicOperation
             executionId ->
                 environmentVars.put(ServerGroupMetaDataEnvVar.PipelineId.envVarName, executionId));
 
-    CloudFoundryServerGroup serverGroup =
-        client
-            .getApplications()
-            .createApplication(
-                description.getServerGroupName(),
-                description.getSpace(),
-                description.getApplicationAttributes().getBuildpacks(),
-                environmentVars);
-    getTask()
-        .updateStatus(
-            PHASE, "Created Cloud Foundry application '" + description.getServerGroupName() + "'");
-
-    return serverGroup;
+    return environmentVars;
   }
 
   private static ExternalReference resolveArtifactInfo(
