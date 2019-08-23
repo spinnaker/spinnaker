@@ -2,8 +2,8 @@
 * aglover
 * ajordens
 * alanmquach
-* anph
 * anotherchrisberry
+* anph
 * archana-s
 * asher
 * brandonnelson3
@@ -11,9 +11,9 @@
 * christopherthielen
 * claymccoy
 * csanden
+* danielpeach
 * dibyom
 * dorbin
-* danielpeach
 * dreynaud
 * duftler
 * edwinavalos
@@ -36,9 +36,9 @@
 * robfletcher
 * robzienert
 * sbwsg
-* stewchen
 * skandragon
 * skim1420
+* stewchen
 * tomaslin
 * ttomsu
 * wjoel
