@@ -42,6 +42,7 @@ export class BakeKustomizeConfigForm extends React.Component<
             onArtifactEdited={(artifact: IArtifact) => {
               this.props.formik.setFieldValue('inputArtifact.id', null);
               this.props.formik.setFieldValue('inputArtifact.artifact', artifact);
+              this.props.formik.setFieldValue('inputArtifact.account', artifact.artifactAccount);
             }}
             onExpectedArtifactSelected={(artifact: IArtifact) => {
               this.props.formik.setFieldValue('inputArtifact.id', artifact.id);

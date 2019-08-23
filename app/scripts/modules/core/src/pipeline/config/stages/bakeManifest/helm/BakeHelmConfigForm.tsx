@@ -27,6 +27,7 @@ export class BakeHelmConfigForm extends React.Component<IBakeHelmConfigFormProps
   private onTemplateArtifactEdited = (artifact: IArtifact, index: number) => {
     this.props.formik.setFieldValue(`inputArtifacts[${index}].id`, null);
     this.props.formik.setFieldValue(`inputArtifacts[${index}].artifact`, artifact);
+    this.props.formik.setFieldValue(`inputArtifacts[${index}].account`, artifact.artifactAccount);
   };
 
   private onTemplateArtifactSelected = (id: string, index: number) => {
