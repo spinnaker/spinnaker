@@ -78,9 +78,9 @@ public class GoogleComputeApiFactory {
   }
 
   public <RequestT extends ComputeRequest<ResponseT>, ResponseT>
-      ComputeBatchRequest<RequestT, ResponseT> createBatchRequest(
+      BatchComputeRequest<RequestT, ResponseT> createBatchRequest(
           GoogleNamedAccountCredentials credentials) {
-    return new ComputeBatchRequestImpl<>(
+    return new BatchComputeRequestImpl<>(
         credentials.getCompute(), registry, clouddriverUserAgentApplicationName, batchExecutor);
   }
 

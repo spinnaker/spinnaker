@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.google.model
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.api.client.json.GenericJson
 import com.google.api.services.compute.model.*
 import com.netflix.spinnaker.clouddriver.consul.model.ConsulHealth
 import com.netflix.spinnaker.clouddriver.consul.model.ConsulNode
@@ -50,7 +51,13 @@ class GoogleInstance implements GoogleLabeledResource {
   List<NetworkInterface> networkInterfaces
   String networkName
   Metadata metadata
-  List<Disk> disks
+  // This should be List<AttachedDisk> but objectMapper.convertValue doesn't work with
+  // AttachedDisks. We deserialize the JSON to a Map first, which turns the diskSizeGb value into an
+  // Integer. Then convertValue tries to assign it to the Long field and throws an exception. We
+  // could solve this with a mixin (see AmazonObjectMapperConfigurer) but since no one actually
+  // cares about the type, we just use GenericJson to pass through the data to deck without
+  // interpreting it at all.
+  List<? extends GenericJson> disks
   List<ServiceAccount> serviceAccounts
   String selfLink
   Tags tags
@@ -84,7 +91,7 @@ class GoogleInstance implements GoogleLabeledResource {
     Map placement = ["availabilityZone": GoogleInstance.this.zone]
     List<NetworkInterface> networkInterfaces = GoogleInstance.this.networkInterfaces
     Metadata metadata = GoogleInstance.this.metadata
-    List<Disk> disks = GoogleInstance.this.disks
+    List<? extends GenericJson> disks = GoogleInstance.this.disks
     List<ServiceAccount> serviceAccounts = GoogleInstance.this.serviceAccounts
     String selfLink = GoogleInstance.this.selfLink
     String serverGroup = GoogleInstance.this.serverGroup

@@ -41,7 +41,7 @@ import com.google.api.services.compute.model.StatefulPolicy;
 import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTask;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
-import com.netflix.spinnaker.clouddriver.google.compute.FakeComputeBatchRequest;
+import com.netflix.spinnaker.clouddriver.google.compute.FakeBatchComputeRequest;
 import com.netflix.spinnaker.clouddriver.google.compute.FakeGoogleComputeOperationRequest;
 import com.netflix.spinnaker.clouddriver.google.compute.FakeGoogleComputeRequest;
 import com.netflix.spinnaker.clouddriver.google.compute.GoogleComputeApiFactory;
@@ -118,7 +118,7 @@ final class StatefullyUpdateBootImageAtomicOperationTest {
         .thenReturn(mockInstanceTemplates);
     lenient()
         .when(mockComputeApiFactory.createBatchRequest(any()))
-        .thenReturn(new FakeComputeBatchRequest<>());
+        .thenReturn(new FakeBatchComputeRequest<>());
 
     operation =
         new StatefullyUpdateBootImageAtomicOperation(

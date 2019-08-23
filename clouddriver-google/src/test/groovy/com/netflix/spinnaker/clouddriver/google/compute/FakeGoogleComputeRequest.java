@@ -44,7 +44,13 @@ public class FakeGoogleComputeRequest<RequestT extends ComputeRequest<ResponseT>
 
   public static <RequestT extends ComputeRequest<ResponseT>, ResponseT>
       FakeGoogleComputeRequest<RequestT, ResponseT> createWithException(IOException exception) {
-    return new FakeGoogleComputeRequest<RequestT, ResponseT>(exception, /* request= */ null);
+    return createWithException(exception, /* request= */ null);
+  }
+
+  public static <RequestT extends ComputeRequest<ResponseT>, ResponseT>
+      FakeGoogleComputeRequest<RequestT, ResponseT> createWithException(
+          IOException exception, RequestT request) {
+    return new FakeGoogleComputeRequest<>(exception, request);
   }
 
   FakeGoogleComputeRequest(ResponseT response, @Nullable RequestT request) {

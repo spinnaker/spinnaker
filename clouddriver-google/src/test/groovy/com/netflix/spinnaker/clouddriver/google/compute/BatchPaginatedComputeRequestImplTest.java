@@ -17,8 +17,11 @@
 package com.netflix.spinnaker.clouddriver.google.compute;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
+import com.google.api.client.googleapis.testing.json.GoogleJsonResponseExceptionFactoryTesting;
+import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.Image;
 import com.google.api.services.compute.model.ImageList;
@@ -37,7 +40,7 @@ final class BatchPaginatedComputeRequestImplTest {
   void execute() throws IOException {
 
     BatchPaginatedComputeRequestImpl<Compute.Images.List, ImageList, Image> batchRequest =
-        new BatchPaginatedComputeRequestImpl<>(FakeComputeBatchRequest::new);
+        new BatchPaginatedComputeRequestImpl<>(FakeBatchComputeRequest::new);
 
     ImageListRequestGenerator set1 = new ImageListRequestGenerator();
     set1.itemPrefix = "set1-";
@@ -66,6 +69,42 @@ final class BatchPaginatedComputeRequestImplTest {
         .containsExactlyInAnyOrder(
             "set1-1", "set1-2", "set1-3", "set1-4", "set1-5", "set1-6", "set3-1", "set3-2",
             "set3-3", "set3-4");
+  }
+
+  @Test
+  void nullItems() throws IOException {
+
+    BatchPaginatedComputeRequestImpl<Compute.Images.List, ImageList, Image> batchRequest =
+        new BatchPaginatedComputeRequestImpl<>(FakeBatchComputeRequest::new);
+    batchRequest.queue(
+        new PaginatedComputeRequestImpl<>(
+            pageToken ->
+                FakeGoogleComputeRequest.createWithResponse(
+                    new ImageList().setItems(null), mock(Compute.Images.List.class)),
+            ImageList::getNextPageToken,
+            ImageList::getItems));
+
+    ImmutableSet<Image> result = batchRequest.execute("batchContext");
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  void exception() {
+
+    BatchPaginatedComputeRequestImpl<Compute.Images.List, ImageList, Image> batchRequest =
+        new BatchPaginatedComputeRequestImpl<>(FakeBatchComputeRequest::new);
+    batchRequest.queue(
+        new PaginatedComputeRequestImpl<>(
+            pageToken ->
+                FakeGoogleComputeRequest.createWithException(
+                    GoogleJsonResponseExceptionFactoryTesting.newMock(
+                        JacksonFactory.getDefaultInstance(), 500, "bad news"),
+                    mock(Compute.Images.List.class)),
+            ImageList::getNextPageToken,
+            ImageList::getItems));
+
+    assertThatThrownBy(() -> batchRequest.execute("batchContext")).hasMessageContaining("bad news");
   }
 
   private static class ImageListRequestGenerator

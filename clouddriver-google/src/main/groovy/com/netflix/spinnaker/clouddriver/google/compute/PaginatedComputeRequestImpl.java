@@ -21,7 +21,9 @@ import static com.google.api.client.util.Strings.isNullOrEmpty;
 import com.google.api.services.compute.ComputeRequest;
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
+import javax.annotation.Nullable;
 
 final class PaginatedComputeRequestImpl<
         RequestT extends ComputeRequest<ResponseT>, ResponseT, ItemT>
@@ -39,6 +41,7 @@ final class PaginatedComputeRequestImpl<
 
   @FunctionalInterface
   interface ItemRetriever<ResponseT, ItemT> {
+    @Nullable
     List<ItemT> getItems(ResponseT response);
   }
 
@@ -73,7 +76,7 @@ final class PaginatedComputeRequestImpl<
       GoogleComputeRequest<RequestT, ResponseT> request = requestGenerator.createRequest(pageToken);
       requestModifier.accept(request.getRequest());
       ResponseT response = request.execute();
-      pageConsumer.accept(itemRetriever.getItems(response));
+      Optional.ofNullable(itemRetriever.getItems(response)).ifPresent(pageConsumer);
       pageToken = nextPageTokenRetriever.getNextPageToken(response);
     } while (!isNullOrEmpty(pageToken));
   }

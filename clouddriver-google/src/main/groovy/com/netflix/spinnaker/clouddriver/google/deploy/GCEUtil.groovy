@@ -30,7 +30,6 @@ import com.google.api.services.compute.model.*
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactUtils
-import com.netflix.spinnaker.clouddriver.consul.provider.ConsulProviderUtils
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.google.GoogleExecutorTraits
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
@@ -42,7 +41,6 @@ import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.google.model.*
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
-import com.netflix.spinnaker.clouddriver.google.model.health.GoogleInstanceHealth
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
 import com.netflix.spinnaker.clouddriver.google.batch.GoogleBatchRequest
@@ -2029,37 +2027,8 @@ class GCEUtil {
     List<GoogleInstance> instances = []
 
     instanceAggregatedList?.items?.each { String zone, InstancesScopedList instancesScopedList ->
-      def localZoneName = Utils.getLocalName(zone)
       instancesScopedList?.instances?.each { Instance instance ->
-        def consulNode = credentials.consulConfig?.enabled ?
-          ConsulProviderUtils.getHealths(credentials.consulConfig, instance.getName())
-          : null
-        long instanceTimestamp = instance.creationTimestamp ?
-          Utils.getTimeFromTimestamp(instance.creationTimestamp) :
-          Long.MAX_VALUE
-        String instanceName = Utils.getLocalName(instance.name)
-        def googleInstance = new GoogleInstance(
-          name: instanceName,
-          account: credentials.project,
-          gceId: instance.id,
-          instanceType: Utils.getLocalName(instance.machineType),
-          cpuPlatform: instance.cpuPlatform,
-          launchTime: instanceTimestamp,
-          zone: localZoneName,
-          region: credentials.regionFromZone(localZoneName),
-          networkInterfaces: instance.networkInterfaces,
-          networkName: Utils.decorateXpnResourceIdIfNeeded(credentials.project, instance.networkInterfaces?.getAt(0)?.network),
-          metadata: instance.metadata,
-          disks: instance.disks,
-          serviceAccounts: instance.serviceAccounts,
-          selfLink: instance.selfLink,
-          tags: instance.tags,
-          labels: instance.labels,
-          consulNode: consulNode,
-          instanceHealth: new GoogleInstanceHealth(
-            status: GoogleInstanceHealth.Status.valueOf(instance.getStatus())
-          ))
-        instances << googleInstance
+        instances << GoogleInstances.createFromComputeInstance(instance, credentials)
       }
     }
 

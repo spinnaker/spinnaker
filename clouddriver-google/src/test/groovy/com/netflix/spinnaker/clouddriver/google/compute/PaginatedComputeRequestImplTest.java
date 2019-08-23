@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google.compute;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
 import com.google.api.services.compute.Compute;
@@ -51,6 +52,36 @@ final class PaginatedComputeRequestImplTest {
         .extracting(Image::getName)
         .containsExactly(
             "myImage-1", "myImage-2", "myImage-3", "myImage-4", "myImage-5", "myImage-6");
+  }
+
+  @Test
+  void nullItems() throws IOException {
+
+    PaginatedComputeRequestImpl<Compute.Images.List, ImageList, Image> request =
+        new PaginatedComputeRequestImpl<>(
+            pageToken ->
+                FakeGoogleComputeRequest.createWithResponse(
+                    new ImageList().setItems(null), mock(Compute.Images.List.class)),
+            ImageList::getNextPageToken,
+            ImageList::getItems);
+
+    ImmutableList<Image> result = request.execute();
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  void exception() {
+
+    PaginatedComputeRequestImpl<Compute.Images.List, ImageList, Image> request =
+        new PaginatedComputeRequestImpl<>(
+            pageToken ->
+                FakeGoogleComputeRequest.createWithException(
+                    new IOException("bad news"), mock(Compute.Images.List.class)),
+            ImageList::getNextPageToken,
+            ImageList::getItems);
+
+    assertThatThrownBy(request::execute).hasMessageContaining("bad news");
   }
 
   private static class ImageListRequestGenerator

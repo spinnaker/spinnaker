@@ -20,11 +20,6 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceIllegalStateException.checkResourceState;
 import static java.util.stream.Collectors.toList;
 
-import com.google.api.client.googleapis.batch.json.JsonBatchCallback;
-import com.google.api.client.googleapis.json.GoogleJsonError;
-import com.google.api.client.http.HttpHeaders;
-import com.google.api.client.http.HttpStatusCodes;
-import com.google.api.client.util.Throwables;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.Compute.InstanceTemplates.Get;
 import com.google.api.services.compute.model.AttachedDisk;
@@ -34,11 +29,11 @@ import com.google.api.services.compute.model.InstanceGroupManagerUpdatePolicy;
 import com.google.api.services.compute.model.InstanceTemplate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.util.concurrent.SettableFuture;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
-import com.netflix.spinnaker.clouddriver.google.compute.ComputeBatchRequest;
+import com.netflix.spinnaker.clouddriver.google.compute.GetFirstBatchComputeRequest;
 import com.netflix.spinnaker.clouddriver.google.compute.GoogleComputeApiFactory;
+import com.netflix.spinnaker.clouddriver.google.compute.GoogleComputeGetRequest;
 import com.netflix.spinnaker.clouddriver.google.compute.GoogleComputeRequest;
 import com.netflix.spinnaker.clouddriver.google.compute.GoogleServerGroupManagers;
 import com.netflix.spinnaker.clouddriver.google.compute.Images;
@@ -53,8 +48,8 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCrede
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
-import java.util.concurrent.ExecutionException;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
@@ -172,36 +167,19 @@ public class StatefullyUpdateBootImageAtomicOperation extends GoogleAtomicOperat
 
     Images imagesApi = computeApiFactory.createImages(credentials);
 
-    SettableFuture<Image> foundImage = SettableFuture.create();
-
-    ComputeBatchRequest<Compute.Images.Get, Image> batchRequest =
-        computeApiFactory.createBatchRequest(credentials);
+    GetFirstBatchComputeRequest<Compute.Images.Get, Image> batchRequest =
+        GetFirstBatchComputeRequest.create(computeApiFactory.createBatchRequest(credentials));
     for (String project : getImageProjects(credentials)) {
-      GoogleComputeRequest<Compute.Images.Get, Image> request =
+      GoogleComputeGetRequest<Compute.Images.Get, Image> request =
           imagesApi.get(project, description.getBootImage());
-      batchRequest.queue(request, new ImageListCallback(project, foundImage));
+      batchRequest.queue(request);
     }
-    batchRequest.execute("findImage");
+    Optional<Image> image = batchRequest.execute("findImage");
 
-    // If #execute() returned and foundImage still hasn't been set, then we must not have found one.
-    // Set an exception to bubble up to the caller. (This does nothing if foundImage was already set
-    // with a result.)
-    foundImage.setException(
-        new GoogleResourceIllegalStateException(
-            "Couldn't find an image named " + description.getBootImage()));
-
-    Image image;
-    try {
-      image = foundImage.get();
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new RuntimeException(e);
-    } catch (ExecutionException e) {
-      Throwables.propagateIfPossible(e.getCause());
-      throw new RuntimeException(e.getCause());
-    }
-
-    return image;
+    return image.orElseThrow(
+        () ->
+            new GoogleResourceIllegalStateException(
+                "Couldn't find an image named " + description.getBootImage()));
   }
 
   private ImmutableSet<String> getImageProjects(GoogleNamedAccountCredentials credentials) {
@@ -210,32 +188,6 @@ public class StatefullyUpdateBootImageAtomicOperation extends GoogleAtomicOperat
         .addAll(credentials.getImageProjects())
         .addAll(googleConfigurationProperties.getBaseImageProjects())
         .build();
-  }
-
-  private static class ImageListCallback extends JsonBatchCallback<Image> {
-
-    final String project;
-    final SettableFuture<Image> foundImage;
-
-    ImageListCallback(String project, SettableFuture<Image> foundImage) {
-      this.project = project;
-      this.foundImage = foundImage;
-    }
-
-    @Override
-    public void onSuccess(Image image, HttpHeaders responseHeaders) {
-      foundImage.set(image);
-    }
-
-    @Override
-    public void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) {
-      // Only a single project (of the many we query) will actually contain this image, so 404s are
-      // expected.
-      if (e.getCode() != HttpStatusCodes.STATUS_CODE_NOT_FOUND) {
-        log.warn(
-            String.format("Error retrieving images from project %s: %s", project, e.getMessage()));
-      }
-    }
   }
 
   private static String getNewTemplateName(String serverGroupName) {

@@ -29,6 +29,7 @@ import com.google.api.client.http.LowLevelHttpResponse;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.testing.http.MockLowLevelHttpResponse;
 import com.google.api.services.compute.Compute;
+import com.google.api.services.compute.Compute.Images.Get;
 import com.google.api.services.compute.model.Image;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -47,7 +48,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
-public class ComputeBatchRequestImplTest {
+public class BatchComputeRequestImplTest {
 
   private static final String USER_AGENT = "spinnaker-test";
   private static final String MIME_BOUNDARY = "batch_foobarbaz";
@@ -67,8 +68,8 @@ public class ComputeBatchRequestImplTest {
 
     Compute compute = computeWithResponses();
 
-    ComputeBatchRequest<Compute.Images.Get, Image> batchRequest =
-        new ComputeBatchRequestImpl<>(
+    BatchComputeRequest<Get, Image> batchRequest =
+        new BatchComputeRequestImpl<>(
             compute, registry, USER_AGENT, MoreExecutors.newDirectExecutorService());
 
     batchRequest.execute("batchContext");
@@ -79,8 +80,8 @@ public class ComputeBatchRequestImplTest {
 
     Compute compute = computeWithResponses(() -> successBatchResponse(1));
 
-    ComputeBatchRequest<Compute.Images.Get, Image> batchRequest =
-        new ComputeBatchRequestImpl<>(
+    BatchComputeRequest<Get, Image> batchRequest =
+        new BatchComputeRequestImpl<>(
             compute, registry, USER_AGENT, MoreExecutors.newDirectExecutorService());
 
     CountResponses responses = new CountResponses();
@@ -96,20 +97,20 @@ public class ComputeBatchRequestImplTest {
   public void singleBatch() throws IOException {
 
     Compute compute =
-        computeWithResponses(() -> successBatchResponse(ComputeBatchRequestImpl.MAX_BATCH_SIZE));
+        computeWithResponses(() -> successBatchResponse(BatchComputeRequestImpl.MAX_BATCH_SIZE));
 
-    ComputeBatchRequest<Compute.Images.Get, Image> batchRequest =
-        new ComputeBatchRequestImpl<>(
+    BatchComputeRequest<Get, Image> batchRequest =
+        new BatchComputeRequestImpl<>(
             compute, registry, USER_AGENT, MoreExecutors.newDirectExecutorService());
 
     CountResponses responses = new CountResponses();
-    for (int i = 0; i < ComputeBatchRequestImpl.MAX_BATCH_SIZE; ++i) {
+    for (int i = 0; i < BatchComputeRequestImpl.MAX_BATCH_SIZE; ++i) {
       batchRequest.queue(request(compute), responses);
     }
 
     batchRequest.execute("batchContext");
 
-    assertThat(responses.successes).hasValue(ComputeBatchRequestImpl.MAX_BATCH_SIZE);
+    assertThat(responses.successes).hasValue(BatchComputeRequestImpl.MAX_BATCH_SIZE);
     assertThat(responses.failures).hasValue(0);
   }
 
@@ -118,22 +119,22 @@ public class ComputeBatchRequestImplTest {
 
     Compute compute =
         computeWithResponses(
-            () -> successBatchResponse(ComputeBatchRequestImpl.MAX_BATCH_SIZE),
-            () -> successBatchResponse(ComputeBatchRequestImpl.MAX_BATCH_SIZE),
+            () -> successBatchResponse(BatchComputeRequestImpl.MAX_BATCH_SIZE),
+            () -> successBatchResponse(BatchComputeRequestImpl.MAX_BATCH_SIZE),
             () -> successBatchResponse(37));
 
-    ComputeBatchRequest<Compute.Images.Get, Image> batchRequest =
-        new ComputeBatchRequestImpl<>(
+    BatchComputeRequest<Get, Image> batchRequest =
+        new BatchComputeRequestImpl<>(
             compute, registry, USER_AGENT, MoreExecutors.newDirectExecutorService());
 
     CountResponses responses = new CountResponses();
-    for (int i = 0; i < ComputeBatchRequestImpl.MAX_BATCH_SIZE * 2 + 37; ++i) {
+    for (int i = 0; i < BatchComputeRequestImpl.MAX_BATCH_SIZE * 2 + 37; ++i) {
       batchRequest.queue(request(compute), responses);
     }
 
     batchRequest.execute("batchContext");
 
-    assertThat(responses.successes).hasValue(ComputeBatchRequestImpl.MAX_BATCH_SIZE * 2 + 37);
+    assertThat(responses.successes).hasValue(BatchComputeRequestImpl.MAX_BATCH_SIZE * 2 + 37);
     assertThat(responses.failures).hasValue(0);
   }
 
@@ -150,8 +151,8 @@ public class ComputeBatchRequestImplTest {
 
     Compute compute = computeWithResponses(() -> batchResponse(responseContent.toString()));
 
-    ComputeBatchRequest<Compute.Images.Get, Image> batchRequest =
-        new ComputeBatchRequestImpl<>(
+    BatchComputeRequest<Get, Image> batchRequest =
+        new BatchComputeRequestImpl<>(
             compute, registry, USER_AGENT, MoreExecutors.newDirectExecutorService());
 
     CountResponses responses = new CountResponses();
@@ -170,7 +171,7 @@ public class ComputeBatchRequestImplTest {
 
     Compute compute =
         computeWithResponses(
-            () -> successBatchResponse(ComputeBatchRequestImpl.MAX_BATCH_SIZE),
+            () -> successBatchResponse(BatchComputeRequestImpl.MAX_BATCH_SIZE),
             () -> {
               throw new IOException("first exception");
             },
@@ -186,12 +187,12 @@ public class ComputeBatchRequestImplTest {
               }
             });
 
-    ComputeBatchRequest<Compute.Images.Get, Image> batchRequest =
-        new ComputeBatchRequestImpl<>(
+    BatchComputeRequest<Get, Image> batchRequest =
+        new BatchComputeRequestImpl<>(
             compute, registry, USER_AGENT, MoreExecutors.newDirectExecutorService());
 
     CountResponses responses = new CountResponses();
-    for (int i = 0; i < ComputeBatchRequestImpl.MAX_BATCH_SIZE * 3; ++i) {
+    for (int i = 0; i < BatchComputeRequestImpl.MAX_BATCH_SIZE * 3; ++i) {
       batchRequest.queue(request(compute), responses);
     }
 
@@ -205,16 +206,16 @@ public class ComputeBatchRequestImplTest {
 
     Compute compute =
         computeWithResponses(
-            () -> successBatchResponse(ComputeBatchRequestImpl.MAX_BATCH_SIZE),
-            () -> successBatchResponse(ComputeBatchRequestImpl.MAX_BATCH_SIZE),
+            () -> successBatchResponse(BatchComputeRequestImpl.MAX_BATCH_SIZE),
+            () -> successBatchResponse(BatchComputeRequestImpl.MAX_BATCH_SIZE),
             () -> successBatchResponse(37));
 
-    ComputeBatchRequest<Compute.Images.Get, Image> batchRequest =
-        new ComputeBatchRequestImpl<>(
+    BatchComputeRequest<Get, Image> batchRequest =
+        new BatchComputeRequestImpl<>(
             compute, registry, USER_AGENT, MoreExecutors.newDirectExecutorService());
 
     CountResponses responses = new CountResponses();
-    for (int i = 0; i < ComputeBatchRequestImpl.MAX_BATCH_SIZE * 2 + 37; ++i) {
+    for (int i = 0; i < BatchComputeRequestImpl.MAX_BATCH_SIZE * 2 + 37; ++i) {
       batchRequest.queue(request(compute), responses);
     }
 
@@ -239,7 +240,7 @@ public class ComputeBatchRequestImplTest {
             tag("success", "true"),
             tag("status", "2xx"),
             tag("statusCode", "200"));
-    assertThat(counter.actualCount()).isEqualTo(ComputeBatchRequestImpl.MAX_BATCH_SIZE * 2 + 37);
+    assertThat(counter.actualCount()).isEqualTo(BatchComputeRequestImpl.MAX_BATCH_SIZE * 2 + 37);
   }
 
   @Test
@@ -251,8 +252,8 @@ public class ComputeBatchRequestImplTest {
               throw new IOException("uh oh");
             });
 
-    ComputeBatchRequest<Compute.Images.Get, Image> batchRequest =
-        new ComputeBatchRequestImpl<>(
+    BatchComputeRequest<Get, Image> batchRequest =
+        new BatchComputeRequestImpl<>(
             compute, registry, USER_AGENT, MoreExecutors.newDirectExecutorService());
 
     CountResponses responses = new CountResponses();
@@ -293,8 +294,8 @@ public class ComputeBatchRequestImplTest {
               throw new HttpResponseException(404, "uh oh");
             });
 
-    ComputeBatchRequest<Compute.Images.Get, Image> batchRequest =
-        new ComputeBatchRequestImpl<>(
+    BatchComputeRequest<Get, Image> batchRequest =
+        new BatchComputeRequestImpl<>(
             compute, registry, USER_AGENT, MoreExecutors.newDirectExecutorService());
 
     CountResponses responses = new CountResponses();

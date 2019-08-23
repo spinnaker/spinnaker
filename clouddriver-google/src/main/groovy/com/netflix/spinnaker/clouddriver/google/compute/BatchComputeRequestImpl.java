@@ -47,8 +47,8 @@ import lombok.AllArgsConstructor;
 import lombok.Value;
 import org.apache.http.client.HttpResponseException;
 
-final class ComputeBatchRequestImpl<RequestT extends ComputeRequest<ResponseT>, ResponseT>
-    implements ComputeBatchRequest<RequestT, ResponseT> {
+final class BatchComputeRequestImpl<RequestT extends ComputeRequest<ResponseT>, ResponseT>
+    implements BatchComputeRequest<RequestT, ResponseT> {
 
   // Platform-specified max to not overwhelm batch backends.
   @VisibleForTesting static final int MAX_BATCH_SIZE = 100;
@@ -61,7 +61,7 @@ final class ComputeBatchRequestImpl<RequestT extends ComputeRequest<ResponseT>, 
   private final ListeningExecutorService executor;
   private final List<QueuedRequest<RequestT, ResponseT>> queuedRequests;
 
-  ComputeBatchRequestImpl(
+  BatchComputeRequestImpl(
       Compute compute, Registry registry, String userAgent, ListeningExecutorService executor) {
     this.compute = compute;
     this.registry = registry;

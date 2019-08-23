@@ -1003,11 +1003,7 @@ final class GoogleZonalServerGroupCachingAgentTest {
   }
 
   private static Instance instance(String name) {
-    return new Instance()
-        .setName(name)
-        .setZone(ZONE)
-        .setId(BigInteger.valueOf(1))
-        .setStatus("RUNNING");
+    return new Instance().setName(name).setZone(ZONE);
   }
 
   private static Moniker moniker(String serverGroupName) {
