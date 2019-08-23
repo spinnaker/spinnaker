@@ -8657,7 +8657,7 @@ hal config provider kubernetes disable [parameters]
 ---
 ## hal config provider kubernetes edit
 
-Due to how the Kubenretes provider shards its cache resources, there is opportunity to tune how its caching should be handled. This command exists to allow you tune this caching behavior.
+Due to how the Kubernetes provider shards its cache resources, there is opportunity to tune how its caching should be handled. This command exists to allow you tune this caching behavior.
 
 #### Usage
 ```

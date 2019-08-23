@@ -34,7 +34,7 @@ public class KubernetesEditProviderCommand
   String shortDescription = "Set provider-wide properties for the Kubernetes provider";
 
   String longDescription =
-      "Due to how the Kubenretes provider shards its cache resources, there is opportunity to "
+      "Due to how the Kubernetes provider shards its cache resources, there is opportunity to "
           + "tune how its caching should be handled. This command exists to allow you tune this caching behavior.";
 
   protected String getProviderName() {
