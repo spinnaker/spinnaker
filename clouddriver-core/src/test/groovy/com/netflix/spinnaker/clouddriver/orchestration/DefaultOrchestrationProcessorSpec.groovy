@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.orchestration
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Spectator
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTask
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -50,6 +51,7 @@ class DefaultOrchestrationProcessorSpec extends Specification {
     processor.applicationContext = applicationContext
     processor.taskRepository = taskRepository
     processor.registry = Spectator.globalRegistry()
+    processor.objectMapper = new ObjectMapper( )
   }
 
   void "complete the task when everything goes as planned"() {
