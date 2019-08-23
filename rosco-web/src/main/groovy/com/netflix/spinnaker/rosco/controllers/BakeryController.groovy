@@ -241,6 +241,13 @@ class BakeryController {
     def bake = bakeStore.retrieveBakeDetailsById(bakeId)
 
     if (bake) {
+      if (bake.artifacts?.size() > 0) {
+        bake.artifact = bake.artifacts.find{ it.location == region}
+        bake.regions = bake.artifacts.location
+        bake.ami = bake.artifact.reference
+        bake.artifacts = null
+
+      }
       return bake
     }
 

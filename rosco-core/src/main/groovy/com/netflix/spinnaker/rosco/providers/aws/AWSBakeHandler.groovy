@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.rosco.providers.aws
 
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeOptions
@@ -33,6 +34,12 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
 
   private static final String IMAGE_NAME_TOKEN = "amazon-(chroot|ebs): Creating the AMI:"
   private static final String UNENCRYPTED_IMAGE_NAME_TOKEN = "(==> |)amazon-(chroot|ebs): Creating unencrypted AMI"
+  // AMI_EXTRACTOR finds amis from the format produced by packer ie:
+  // eu-north-1: ami-076cf277a86b6e5b4
+  // us-east-1: ami-2c014644
+  private static final String AMI_EXTRACTOR = "[a-z]{2}-[a-z]{2,10}-[0-9]:\\sami-[a-z0-9]{8,}"
+  private static final String AMI_TYPE = "aws/image"
+  private static final String PACKER_BUILD_FINISHED = "==> Builds finished. The artifacts of successful builds are:"
 
   ImageNameFactory imageNameFactory = new ImageNameFactory()
 
@@ -170,9 +177,10 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
   Bake scrapeCompletedBakeResults(String region, String bakeId, String logsContent) {
     String amiId
     String imageName
-
+    List<Artifact> artifacts = new ArrayList<>()
     // TODO(duftler): Presently scraping the logs for the image name/id. Would be better to not be reliant on the log
     // format not changing. Resolve this by storing bake details in redis and querying oort for amiId from amiName.
+    boolean foundAmisCreated = false
     logsContent.eachLine { String line ->
       if (line =~ IMAGE_NAME_TOKEN) {
         imageName = line.split(" ").last()
@@ -181,9 +189,19 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
         imageName = line.split(" ").first()
       } else if (line =~ "$region:") {
         amiId = line.split(" ").last()
+      } else if (line =~ PACKER_BUILD_FINISHED) {
+        foundAmisCreated = true
+      }
+
+      if (foundAmisCreated && line =~ AMI_EXTRACTOR) {
+        Artifact a = new Artifact()
+        a.type = AMI_TYPE
+        a.location = line.split(": ").first()
+        a.reference = line.split(": ").last()
+        artifacts.add(a)
       }
     }
 
-    return new Bake(id: bakeId, ami: amiId, image_name: imageName)
+    return new Bake(id: bakeId, ami: amiId, image_name: imageName, artifacts: artifacts)
   }
 }

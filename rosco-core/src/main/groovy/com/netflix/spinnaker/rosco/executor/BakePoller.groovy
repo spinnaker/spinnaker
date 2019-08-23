@@ -222,6 +222,13 @@ class BakePoller implements ApplicationListener<ContextRefreshedEvent> {
               bakeDetails.artifact = cloudProviderBakeHandler.produceArtifactDecorationFrom(
                 bakeRequest, bakeRecipe, bakeDetails, cloudProvider, region
               )
+
+              // The artifacts that are found does not have the complete context as they are extracted from the logs.
+              bakeDetails.artifacts.each {
+                it.name = bakeRecipe.name
+                it.uuid = bakeDetails.id
+              }
+
               bakeStore.updateBakeDetails(bakeDetails)
             }
 

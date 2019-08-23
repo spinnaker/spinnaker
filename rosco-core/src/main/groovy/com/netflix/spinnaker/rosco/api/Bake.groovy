@@ -16,11 +16,12 @@
 
 package com.netflix.spinnaker.rosco.api
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
 import io.swagger.annotations.ApiModelProperty
-import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
 
 /**
  * The details of a completed bake.
@@ -35,5 +36,9 @@ class Bake {
   String id
   String ami
   String image_name
+  List <String> regions
   Artifact artifact
+
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  List<Artifact> artifacts
 }

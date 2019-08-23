@@ -237,6 +237,53 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
       }
   }
 
+  void 'can scrape copied amis'() {
+    setup:
+      @Subject
+      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: awsBakeryDefaults)
+
+    when:
+      def logsContent =
+        "==> amazon-chroot: Unmounting the root device...\n" +
+        "==> amazon-chroot: Detaching EBS volume...\n" +
+        "==> amazon-chroot: Creating snapshot...\n" +
+        "    amazon-chroot: Snapshot ID: snap-06452c9aceea2437f\n" +
+        "==> amazon-chroot: Registering the AMI...\n" +
+        "==> amazon-chroot: AMI: ami-0450240c900844342\n" +
+        "==> amazon-chroot: Waiting for AMI to become ready...\n" +
+        "==> amazon-chroot: Copying AMI (ami-0450240c900844342) to other regions...\n" +
+        "    amazon-chroot: Copying to: eu-north-1\n" +
+        "    amazon-chroot: Avoiding copying AMI to duplicate region eu-west-1\n" +
+        "    amazon-chroot: Waiting for all copies to complete...\n" +
+        "==> amazon-chroot: Modifying attributes on snapshot (snap-06452c9aceea2437f)...\n" +
+        "==> amazon-chroot: Modifying attributes on snapshot (snap-00a31182e306507b8)...\n" +
+        "==> amazon-chroot: Adding tags to AMI (ami-076cf277a86b6e5b4)...\n" +
+        "==> amazon-chroot: Tagging snapshot: snap-00a31182e306507b8\n" +
+        "==> amazon-chroot: Creating snapshot tags\n" +
+        "==> amazon-chroot: Adding tags to AMI (ami-0450240c900844342)...\n" +
+        "==> amazon-chroot: Tagging snapshot: snap-06452c9aceea2437f\n" +
+        "==> amazon-chroot: Creating snapshot tags\n" +
+        "==> amazon-chroot: Deleting the created EBS volume...\n" +
+        "Build 'amazon-chroot' finished.\n" +
+        "\n" +
+        "==> Builds finished. The artifacts of successful builds are:\n" +
+        "--> amazon-chroot: AMIs were created:\n" +
+        "eu-north-1: ami-076cf277a86b6e5b4\n" +
+        "eu-west-1: ami-0450240c900844342"
+
+      Bake bake = awsBakeHandler.scrapeCompletedBakeResults("eu-west-1", "123", logsContent)
+
+    then:
+      with (bake) {
+        id == "123"
+        ami == "ami-0450240c900844342"
+
+        artifacts.size() == 2
+        artifacts.find{it.location == "eu-north-1"}.reference == "ami-076cf277a86b6e5b4"
+        artifacts.find{it.location == "eu-west-1"}.reference == "ami-0450240c900844342"
+      }
+  }
+
   void 'can scrape packer (Windows) logs for image name'() {
     setup:
     @Subject
