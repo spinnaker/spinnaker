@@ -18,10 +18,8 @@ package com.netflix.spinnaker.keel.rest
 import com.netflix.spinnaker.keel.actuation.ResourcePersister
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
-import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.exceptions.FailedNormalizationException
-import com.netflix.spinnaker.keel.exceptions.InvalidResourceStructureException
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.plugin.UnsupportedKind
@@ -56,7 +54,7 @@ class ResourceController(
     path = ["/{name}"],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
-  fun get(@PathVariable("name") name: ResourceName): Resource<out ResourceSpec> {
+  fun get(@PathVariable("name") name: ResourceName): Resource<*> {
     log.debug("Getting: $name")
     return resourceRepository.get(name)
   }
@@ -66,7 +64,7 @@ class ResourceController(
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
   @PreAuthorize("@authorizationSupport.userCanModifySpec(#resource.metadata.serviceAccount, #resource.spec)")
-  fun upsert(@RequestBody resource: SubmittedResource<Map<String, Any?>>): Resource<out ResourceSpec> {
+  fun upsert(@RequestBody resource: SubmittedResource<*>): Resource<*> {
     log.debug("Upserting: $resource")
     return resourcePersister.upsert(resource)
   }
@@ -98,17 +96,7 @@ class ResourceController(
   @ResponseStatus(UNPROCESSABLE_ENTITY)
   fun onParseFailure(e: FailedNormalizationException): Map<String, Any?> {
     log.error(e.message)
-    return mapOf("message" to (e.cause.message ?: e.message))
-  }
-
-  @ExceptionHandler(InvalidResourceStructureException::class)
-  @ResponseStatus(BAD_REQUEST)
-  fun onParseFailure(e: InvalidResourceStructureException): Map<String, Any?> {
-    log.error(e.message)
-    return mapOf(
-      "message" to e.message,
-      "cause" to e.cause.message
-    )
+    return mapOf("message" to (e.cause?.message ?: e.message))
   }
 
   @ExceptionHandler(UnsupportedKind::class)

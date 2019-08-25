@@ -15,12 +15,15 @@
  */
 package com.netflix.spinnaker.keel
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.jsontype.NamedType
 import com.netflix.spinnaker.keel.info.InstanceIdSupplier
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceVersionTracker
 import com.netflix.spinnaker.keel.plugin.KeelPlugin
+import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
 import com.netflix.spinnaker.kork.PlatformComponents
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -74,6 +77,22 @@ class KeelApplication {
 
   @Autowired(required = false)
   var plugins: List<KeelPlugin> = emptyList()
+
+  @Autowired
+  lateinit var objectMappers: List<ObjectMapper>
+
+  @PostConstruct
+  fun registerResourceSpecSubtypes() {
+    plugins
+      .filterIsInstance<ResolvableResourceHandler<*, *>>()
+      .map { it.supportedKind }
+      .forEach { (kind, type) ->
+        objectMappers.forEach { objectMapper ->
+          log.info("Registering ResourceSpec sub-type {}: {}", kind.singular, type.simpleName)
+          objectMapper.registerSubtypes(NamedType(type, kind.singular))
+        }
+      }
+  }
 
   @PostConstruct
   fun initialStatus() {

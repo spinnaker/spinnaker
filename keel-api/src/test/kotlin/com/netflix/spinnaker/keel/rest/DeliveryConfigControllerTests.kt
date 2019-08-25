@@ -14,7 +14,6 @@ import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepos
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
-import com.netflix.spinnaker.keel.test.asMap
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -83,7 +82,7 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
                   apiVersion = SPINNAKER_API_V1.subApi("test"),
                   kind = "whatever",
                   metadata = SubmittedMetadata("keel@spinnaker"),
-                  spec = DummyResourceSpec(data = "resource in test").asMap()
+                  spec = DummyResourceSpec(data = "resource in test")
                 ))
               ),
               SubmittedEnvironment(
@@ -92,7 +91,7 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
                   apiVersion = SPINNAKER_API_V1.subApi("test"),
                   kind = "whatever",
                   metadata = SubmittedMetadata("keel@spinnaker"),
-                  spec = DummyResourceSpec(data = "resource in prod").asMap()
+                  spec = DummyResourceSpec(data = "resource in prod")
                 ))
               )
             )

@@ -23,14 +23,16 @@ fun configuredObjectMapper(): ObjectMapper =
 /**
  * Factory method for [YAMLMapper]s configured how we like 'em.
  */
-fun configuredYamlMapper(): ObjectMapper =
+fun configuredYamlMapper(): YAMLMapper =
   YAMLMapper().configureMe()
 
-private fun ObjectMapper.configureMe() =
-  registerKotlinModule()
-    .registerULIDModule()
-    .registerModule(JavaTimeModule())
-    .configureSaneDateTimeRepresentation()
+private fun <T : ObjectMapper> T.configureMe(): T =
+  apply {
+    registerKotlinModule()
+      .registerULIDModule()
+      .registerModule(JavaTimeModule())
+      .configureSaneDateTimeRepresentation()
+  }
 
 private fun ObjectMapper.registerULIDModule(): ObjectMapper =
   registerModule(SimpleModule("ULID").apply {

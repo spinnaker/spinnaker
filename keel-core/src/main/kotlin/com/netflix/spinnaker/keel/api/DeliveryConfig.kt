@@ -16,7 +16,7 @@ data class SubmittedDeliveryConfig(
 
 data class SubmittedEnvironment(
   val name: String,
-  val resources: Set<SubmittedResource<Map<String, Any?>>>
+  val resources: Set<SubmittedResource<*>>
 )
 
 val DeliveryConfig.resources: Set<Resource<*>>

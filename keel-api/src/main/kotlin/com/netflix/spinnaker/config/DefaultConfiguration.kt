@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.netflix.spinnaker.fiat.shared.EnableFiatAutoConfig
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.keel.api.ApiVersion
@@ -17,15 +18,14 @@ import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
 import com.netflix.spinnaker.keel.plugin.supporting
 import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
+import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import de.huxhorn.sulky.ulid.ULID
-import org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE
 import org.springframework.beans.factory.getBeansOfType
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Scope
 import org.springframework.core.Ordered.HIGHEST_PRECEDENCE
 import java.time.Clock
 
@@ -40,9 +40,10 @@ class DefaultConfiguration {
   fun idGenerator(): ULID = ULID()
 
   @Bean
-  // prototype as we want to customize config for some uses
-  @Scope(SCOPE_PROTOTYPE)
   fun objectMapper(): ObjectMapper = configuredObjectMapper()
+
+  @Bean
+  fun yamlMapper(): YAMLMapper = configuredYamlMapper()
 
   @Bean
   @ConditionalOnMissingBean

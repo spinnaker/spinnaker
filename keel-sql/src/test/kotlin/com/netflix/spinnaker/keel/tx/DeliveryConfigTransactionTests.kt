@@ -17,7 +17,6 @@ import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigName
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.test.DummyResourceHandler
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
-import com.netflix.spinnaker.keel.test.asMap
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
 import com.ninjasquad.springmockk.SpykBean
 import dev.minutest.junit.JUnit5Minutests
@@ -90,7 +89,7 @@ internal class DeliveryConfigTransactionTests : JUnit5Minutests {
             apiVersion = SPINNAKER_API_V1.subApi("test"),
             kind = "whatever",
             metadata = SubmittedMetadata("keel@spinnaker"),
-            spec = DummyResourceSpec("test", "resource in test", "keel").asMap()
+            spec = DummyResourceSpec("test", "resource in test", "keel")
           ))
         ),
         SubmittedEnvironment(
@@ -99,7 +98,7 @@ internal class DeliveryConfigTransactionTests : JUnit5Minutests {
             apiVersion = SPINNAKER_API_V1.subApi("test"),
             kind = "whatever",
             metadata = SubmittedMetadata("keel@spinnaker"),
-            spec = DummyResourceSpec("prod", "resource in prod", "keel").asMap()
+            spec = DummyResourceSpec("prod", "resource in prod", "keel")
           ))
         )
       )

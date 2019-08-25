@@ -15,6 +15,9 @@
  */
 package com.netflix.spinnaker.keel.api
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.fasterxml.jackson.annotation.JsonTypeInfo.As
+import com.fasterxml.jackson.annotation.JsonTypeInfo.Id
 import de.huxhorn.sulky.ulid.ULID
 
 /**
@@ -41,10 +44,15 @@ data class Resource<T : ResourceSpec>(
 /**
  * External representation of a resource that would be submitted to the API
  */
-data class SubmittedResource<T : Any>(
+data class SubmittedResource<T : ResourceSpec>(
   val metadata: SubmittedMetadata,
   val apiVersion: ApiVersion,
   val kind: String,
+  @JsonTypeInfo(
+    use = Id.NAME,
+    include = As.EXTERNAL_PROPERTY,
+    property = "kind"
+  )
   val spec: T
 )
 

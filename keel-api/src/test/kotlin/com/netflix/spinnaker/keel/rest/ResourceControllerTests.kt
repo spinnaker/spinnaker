@@ -84,7 +84,7 @@ internal class ResourceControllerTests {
     verify {
       resourcePersister
         .upsert<DummyResourceSpec>(match {
-          it.spec["data"] == "o hai"
+          it.spec.data == "o hai"
         })
     }
   }
@@ -117,7 +117,7 @@ internal class ResourceControllerTests {
     verify {
       resourcePersister
         .upsert<DummyResourceSpec>(match {
-          it.spec["data"] == "o hai"
+          it.spec.data == "o hai"
         })
     }
   }
@@ -172,7 +172,7 @@ internal class ResourceControllerTests {
     verify {
       resourcePersister
         .upsert<DummyResourceSpec>(match {
-          it.spec["data"] == "kthxbye"
+          it.spec.data == "kthxbye"
         })
     }
   }

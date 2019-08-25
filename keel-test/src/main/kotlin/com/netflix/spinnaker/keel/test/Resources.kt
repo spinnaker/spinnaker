@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.keel.test
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.ResourceSpec
@@ -71,11 +70,6 @@ data class DummyResourceSpec(
   val data: String = randomString(),
   override val application: String = "fnord"
 ) : ResourceSpec
-
-private val objectMapper by lazy { configuredObjectMapper() }
-
-fun DummyResourceSpec.asMap(): Map<String, Any?> =
-  objectMapper.convertValue(this)
 
 data class DummyResource(
   val name: String = randomString(),

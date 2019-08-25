@@ -14,7 +14,6 @@ import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceDeleted
 import com.netflix.spinnaker.keel.events.ResourceUpdated
-import com.netflix.spinnaker.keel.exceptions.InvalidResourceStructureException
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
@@ -49,7 +48,7 @@ class ResourcePersister(
         Environment(
           name = env.name,
           resources = env.resources.mapTo(mutableSetOf()) { resource ->
-            upsert<ResourceSpec>(resource)
+            upsert(resource)
           }
         )
       }
@@ -61,34 +60,14 @@ class ResourcePersister(
         deliveryConfigRepository.store(it)
       }
 
-  fun <T : ResourceSpec> upsert(resource: SubmittedResource<Map<String, Any?>>): Resource<T> =
-    handlers
-      .supporting(resource.apiVersion, resource.kind)
-      .run {
-        @Suppress("UNCHECKED_CAST")
-        resource.withParsedSpec(supportedKind.second) as SubmittedResource<T>
-      }
-      .let {
+  fun <T : ResourceSpec> upsert(resource: SubmittedResource<T>): Resource<T> =
+      resource.let {
         if (it.name.isRegistered()) {
           update(it.name, it)
         } else {
           create(it)
         }
       }
-
-  private fun <T : ResourceSpec> SubmittedResource<Map<String, Any?>>.withParsedSpec(specType: Class<T>): SubmittedResource<T> =
-    try {
-      @Suppress("UNCHECKED_CAST")
-      // I encourage you to look away from this line of code for the sake of your sanity
-      (this as SubmittedResource<T>) // clearly that's a lie, but type erasure
-        .copy(spec = objectMapper.convertValue(spec, specType))
-    } catch (e: IllegalArgumentException) {
-      throw InvalidResourceStructureException(
-        "Submitted resource with an incorrect structure, cannot convert to $kind",
-        spec.toString(),
-        e
-      )
-    }
 
   fun <T : ResourceSpec> create(resource: SubmittedResource<T>): Resource<T> =
     handlerFor(resource)

@@ -15,14 +15,14 @@
  */
 package com.netflix.spinnaker.keel.yaml
 
-import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import org.springframework.http.MediaType
 import org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter
+import org.springframework.stereotype.Component
 
 const val APPLICATION_YAML_VALUE = "application/x-yaml"
-val APPLICATION_YAML = MediaType.parseMediaType(APPLICATION_YAML_VALUE)
+val APPLICATION_YAML: MediaType = MediaType.parseMediaType(APPLICATION_YAML_VALUE)
 
-class YamlHttpMessageConverter : AbstractJackson2HttpMessageConverter(
-  configuredYamlMapper(),
-  APPLICATION_YAML
-)
+@Component
+class YamlHttpMessageConverter(yamlMapper: YAMLMapper) :
+  AbstractJackson2HttpMessageConverter(yamlMapper, APPLICATION_YAML)
