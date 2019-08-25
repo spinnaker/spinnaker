@@ -47,7 +47,7 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
   private val mapper = ObjectMapper().registerKotlinModule()
   private val yamlMapper = configuredYamlMapper()
 
-  private val normalizers: List<ResourceNormalizer<*>> = listOf(ClassicLoadBalancerNormalizer(mapper))
+  private val normalizers: List<ResourceNormalizer<*>> = listOf(ClassicLoadBalancerNormalizer())
 
   private val yaml = """
     |---

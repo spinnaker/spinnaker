@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.keel.ec2.normalizers
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancer
@@ -9,25 +8,20 @@ import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import org.springframework.stereotype.Component
 
 @Component
-class ApplicationLoadBalancerNormalizer(
-  private val objectMapper: ObjectMapper
-) : ResourceNormalizer<ApplicationLoadBalancer> {
+class ApplicationLoadBalancerNormalizer : ResourceNormalizer<ApplicationLoadBalancer> {
   override val apiVersion = SPINNAKER_API_V1.subApi("ec2")
   override val supportedKind = "application-load-balancer"
 
-  override fun normalize(resource: Resource<*>): Resource<ApplicationLoadBalancer> {
-    @Suppress("UNCHECKED_CAST")
-    val r = resource as Resource<ApplicationLoadBalancer>
-
-    if (r.spec.listeners.any { it.defaultActions.isEmpty() } || r.spec.securityGroupNames.isEmpty()) {
-      val listeners = r.spec.listeners.map {
+  override fun normalize(resource: Resource<ApplicationLoadBalancer>): Resource<ApplicationLoadBalancer> {
+    if (resource.spec.listeners.any { it.defaultActions.isEmpty() } || resource.spec.securityGroupNames.isEmpty()) {
+      val listeners = resource.spec.listeners.map {
         if (it.defaultActions.isEmpty()) {
           val defaultActions = if (it.defaultActions.isEmpty()) {
             setOf(
               ApplicationLoadBalancerModel.Action(
                 type = "forward",
                 order = 1,
-                targetGroupName = r.spec.targetGroups.first().name,
+                targetGroupName = resource.spec.targetGroups.first().name,
                 redirectConfig = null
               )
             )
@@ -56,16 +50,16 @@ class ApplicationLoadBalancerNormalizer(
       }
         .toSet()
 
-      val securityGroupNames = if (r.spec.securityGroupNames.isEmpty()) {
-        setOf("${r.spec.moniker.app}-elb")
+      val securityGroupNames = if (resource.spec.securityGroupNames.isEmpty()) {
+        setOf("${resource.spec.moniker.app}-elb")
       } else {
-        r.spec.securityGroupNames
+        resource.spec.securityGroupNames
       }
 
-      val spec: ApplicationLoadBalancer = r.spec.copy(listeners = listeners, securityGroupNames = securityGroupNames)
-      return r.copy(spec = spec)
+      val spec = resource.spec.copy(listeners = listeners, securityGroupNames = securityGroupNames)
+      return resource.copy(spec = spec)
     }
 
-    return r
+    return resource
   }
 }

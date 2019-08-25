@@ -69,10 +69,10 @@ interface ResolvableResourceHandler<S : ResourceSpec, R : Any> : KeelPlugin {
   fun normalize(resource: Resource<S>): Resource<S> =
     normalizers
       .filter { it.handles(resource.apiVersion, resource.kind) }
+      .filterIsInstance<ResourceNormalizer<S>>()
       .fold(resource) { r, normalizer ->
         log.debug("Normalizing ${r.name} with ${normalizer.javaClass}")
-        @Suppress("UNCHECKED_CAST")
-        normalizer.normalize(r) as Resource<S>
+        normalizer.normalize(r)
       }
 
   /**
