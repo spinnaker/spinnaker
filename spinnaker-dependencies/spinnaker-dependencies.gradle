@@ -28,6 +28,7 @@ ext {
     jsch          : "0.0.9",
     okhttp        : "2.7.0",
     okhttp3       : "3.14.2",
+    resilience4j  : "0.17.0",
     retrofit      : "1.9.0",
     retrofit2     : "2.6.1",
     spectator     : "0.75.0",
@@ -113,7 +114,9 @@ dependencies {
     api("de.danielbechler:java-object-diff:0.95")
     api("de.huxhorn.sulky:de.huxhorn.sulky.ulid:8.2.0")
     api("dev.minutest:minutest:1.7.0")
-    api("io.github.resilience4j:resilience4j-retry:0.13.2")
+    api("io.github.resilience4j:resilience4j-kotlin:${versions.resilience4j}")
+    api("io.github.resilience4j:resilience4j-retry:${versions.resilience4j}")
+    api("io.github.resilience4j:resilience4j-spring-boot2:${versions.resilience4j}")
     api("io.mockk:mockk:1.9.3")
     api("io.springfox:springfox-swagger-ui:${versions.swagger}")
     api("io.springfox:springfox-swagger2:${versions.swagger}")

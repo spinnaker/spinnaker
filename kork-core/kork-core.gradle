@@ -13,6 +13,7 @@ dependencies {
   api "com.netflix.spectator:spectator-api"
   api "com.google.code.findbugs:jsr305"
   api "javax.inject:javax.inject:1"
+  api "io.github.resilience4j:resilience4j-retry"
 
   implementation "com.netflix.netflix-commons:netflix-eventbus"
   implementation "com.netflix.archaius:archaius-core"

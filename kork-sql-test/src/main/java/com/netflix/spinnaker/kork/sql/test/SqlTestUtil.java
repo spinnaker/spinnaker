@@ -168,13 +168,18 @@ public class SqlTestUtil {
     GlobalConfiguration configuration =
         LiquibaseConfiguration.getInstance().getConfiguration(GlobalConfiguration.class);
 
+    context.execute("set foreign_key_checks=0");
     context.meta().getTables().stream()
         .filter(
             table ->
                 table.getSchema().getName().equals(schema)
                     && !table.getName().equals(configuration.getDatabaseChangeLogTableName())
                     && !table.getName().equals(configuration.getDatabaseChangeLogLockTableName()))
-        .forEach(table -> context.truncate(table.getName()).execute());
+        .forEach(
+            table -> {
+              context.truncate(table.getName()).execute();
+            });
+    context.execute("set foreign_key_checks=1");
   }
 
   public static class TestDatabase implements Closeable {
