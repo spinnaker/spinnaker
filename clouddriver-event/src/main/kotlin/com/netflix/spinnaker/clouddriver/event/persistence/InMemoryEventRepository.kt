@@ -71,9 +71,12 @@ class InMemoryEventRepository(
     events.getOrPut(aggregate) { mutableListOf() }.let { aggregateEvents ->
       val currentSequence = aggregateEvents.map { it.metadata.sequence }.max() ?: 0
 
-      newEvents.forEachIndexed { index, sagaEvent ->
+      newEvents.forEachIndexed { index, newEvent ->
+        newEvent.aggregateType = aggregateType
+        newEvent.aggregateId = aggregateId
+
         // TODO(rz): Plugin more metadata (provenance, serviceVersion, etc)
-        sagaEvent.metadata = EventMetadata(
+        newEvent.metadata = EventMetadata(
           sequence = currentSequence + (index + 1),
           originatingVersion = originatingVersion
         )

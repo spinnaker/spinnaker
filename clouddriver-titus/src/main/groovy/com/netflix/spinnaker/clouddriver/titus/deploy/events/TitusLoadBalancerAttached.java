@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.titus.deploy.events;
 import com.netflix.spinnaker.clouddriver.saga.SagaEvent;
 import javax.annotation.Nonnull;
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 
 @Getter
 public class TitusLoadBalancerAttached extends SagaEvent {
@@ -26,12 +25,8 @@ public class TitusLoadBalancerAttached extends SagaEvent {
   @Nonnull private final String jobUri;
   @Nonnull private final String targetGroupArn;
 
-  public TitusLoadBalancerAttached(
-      @NotNull String sagaName,
-      @NotNull String sagaId,
-      @Nonnull String jobUri,
-      @Nonnull String targetGroupArn) {
-    super(sagaName, sagaId);
+  public TitusLoadBalancerAttached(@Nonnull String jobUri, @Nonnull String targetGroupArn) {
+    super();
     this.jobUri = jobUri;
     this.targetGroupArn = targetGroupArn;
   }

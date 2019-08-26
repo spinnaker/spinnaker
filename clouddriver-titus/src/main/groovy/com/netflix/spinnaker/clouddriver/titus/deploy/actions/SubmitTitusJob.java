@@ -148,13 +148,11 @@ public class SubmitTitusJob implements SagaAction<SubmitTitusJob.SubmitTitusJobC
     return new Result(
         new ManyCommands(
             new AttachTitusServiceLoadBalancersCommand(
-                saga.getName(), saga.getId(), description, jobUri, command.targetGroupLookupResult),
+                description, jobUri, command.targetGroupLookupResult),
             new CopyTitusServiceScalingPoliciesCommand(
-                saga.getName(), saga.getId(), description, jobUri, nextServerGroupName[0])),
+                description, jobUri, nextServerGroupName[0])),
         Collections.singletonList(
             new TitusJobSubmitted(
-                saga.getName(),
-                saga.getId(),
                 Collections.singletonMap(description.getRegion(), nextServerGroupName[0]),
                 jobUri,
                 JobType.from(description.getJobType()))));
@@ -170,13 +168,11 @@ public class SubmitTitusJob implements SagaAction<SubmitTitusJob.SubmitTitusJobC
     @Nullable @NonFinal private LoadFront50App.Front50App front50App;
 
     public SubmitTitusJobCommand(
-        @NotNull String sagaName,
-        @NotNull String sagaId,
         @Nonnull TitusDeployDescription description,
         @Nonnull SubmitJobRequest submitJobRequest,
         @Nonnull String nextServerGroupName,
         @Nullable TargetGroupLookupHelper.TargetGroupLookupResult targetGroupLookupResult) {
-      super(sagaName, sagaId);
+      super();
       this.description = description;
       this.submitJobRequest = submitJobRequest;
       this.nextServerGroupName = nextServerGroupName;

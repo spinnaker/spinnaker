@@ -118,11 +118,7 @@ public class CopyTitusServiceScalingPolicies extends AbstractTitusDeployAction
               autoscalingClient.createScalingPolicy(builder.build());
               saga.addEvent(
                   new TitusScalingPolicyCopied(
-                      saga.getName(),
-                      saga.getId(),
-                      serverGroupName,
-                      description.getRegion(),
-                      policy.getId().getId()));
+                      serverGroupName, description.getRegion(), policy.getId().getId()));
             }
           });
     }
@@ -161,12 +157,10 @@ public class CopyTitusServiceScalingPolicies extends AbstractTitusDeployAction
     @Nonnull private final String deployedServerGroupName;
 
     public CopyTitusServiceScalingPoliciesCommand(
-        @NotNull String sagaName,
-        @NotNull String sagaId,
         @Nonnull TitusDeployDescription description,
         @Nonnull String jobUri,
         @Nonnull String deployedServerGroupName) {
-      super(sagaName, sagaId);
+      super();
       this.description = description;
       this.jobUri = jobUri;
       this.deployedServerGroupName = deployedServerGroupName;

@@ -56,18 +56,17 @@ public class TitusDeployHandler implements DeployHandler<TitusDeployDescription>
                 })
             .completionHandler(TitusDeployCompletionHandler.class);
 
-    // TODO(rz): Refactor SagaCommand to be an interface, set this information via a single place.
     final String sagaName = TitusDeployHandler.class.getSimpleName();
     final String sagaId = Optional.ofNullable(getTask().getRequestId()).orElse(getTask().getId());
 
     final TitusDeploymentResult result =
         sagaService.applyBlocking(
+            sagaName,
+            sagaId,
             flow,
             new LoadFront50AppCommand(
-                sagaName,
-                sagaId,
                 inputDescription.getApplication(),
-                new PrepareTitusDeployCommand(sagaName, sagaId, inputDescription),
+                new PrepareTitusDeployCommand(inputDescription),
                 true));
 
     if (result == null) {

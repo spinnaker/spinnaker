@@ -68,9 +68,7 @@ public class AttachTitusServiceLoadBalancers
               targetGroupArn -> {
                 loadBalancerClient.addLoadBalancer(jobUri, targetGroupArn);
                 saga.log("Attached %s to %s", targetGroupArn, jobUri);
-                saga.addEvent(
-                    new TitusLoadBalancerAttached(
-                        saga.getName(), saga.getId(), jobUri, targetGroupArn));
+                saga.addEvent(new TitusLoadBalancerAttached(jobUri, targetGroupArn));
               });
 
       saga.log("Load balancers applied");
@@ -87,12 +85,10 @@ public class AttachTitusServiceLoadBalancers
     @Nullable private final TargetGroupLookupHelper.TargetGroupLookupResult targetGroupLookupResult;
 
     public AttachTitusServiceLoadBalancersCommand(
-        @NotNull String sagaName,
-        @NotNull String sagaId,
         @Nonnull TitusDeployDescription description,
         @Nonnull String jobUri,
         @Nullable TargetGroupLookupHelper.TargetGroupLookupResult targetGroupLookupResult) {
-      super(sagaName, sagaId);
+      super();
       this.description = description;
       this.jobUri = jobUri;
       this.targetGroupLookupResult = targetGroupLookupResult;

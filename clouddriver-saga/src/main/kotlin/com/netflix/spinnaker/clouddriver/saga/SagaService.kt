@@ -69,7 +69,7 @@ class SagaService(
 
   private val actionInvocationsId = registry.createId("sagas.actions.invocations")
 
-  fun <T> applyBlocking(flow: SagaFlow, startingCommand: SagaCommand): T? {
+  fun <T> applyBlocking(sagaName: String, sagaId: String, flow: SagaFlow, startingCommand: SagaCommand): T? {
     val initialSaga = initializeSaga(startingCommand)
 
     log.info("Applying saga: ${initialSaga.name}/${initialSaga.id}")
@@ -102,8 +102,6 @@ class SagaService(
           log.error(
             "Encountered error while applying action '${action.javaClass.simpleName}' on ${saga.name}/${saga.id}", e)
           saga.addEvent(SagaActionErrorOccurred(
-            sagaName = saga.name,
-            sagaId = saga.id,
             actionName = action.javaClass.simpleName,
             error = e,
             retryable = when (e) {
@@ -124,7 +122,7 @@ class SagaService(
         saga.setSequence(stepCommand.metadata.sequence)
 
         val newEvents: MutableList<SagaEvent> = result.events.toMutableList().also {
-          it.add(SagaCommandCompleted(saga, getStepCommandName(stepCommand)))
+          it.add(SagaCommandCompleted(getStepCommandName(stepCommand)))
         }
 
         val nextCommand = result.nextCommand

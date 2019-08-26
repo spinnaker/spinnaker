@@ -67,7 +67,7 @@ class SpringExampleTest : JUnit5Minutests {
 
             val result = ctx
               .getBean(SagaService::class.java)
-              .applyBlocking<String>(flow, DoAction1("spring", "testid"))
+              .applyBlocking<String>("test", "test", flow, DoAction1())
 
             expectThat(result).isEqualTo("yayyyyy complete!")
           }

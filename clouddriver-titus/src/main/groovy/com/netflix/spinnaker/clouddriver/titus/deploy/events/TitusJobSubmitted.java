@@ -20,7 +20,6 @@ import com.netflix.spinnaker.clouddriver.titus.JobType;
 import java.util.Map;
 import javax.annotation.Nonnull;
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 
 @Getter
 public class TitusJobSubmitted extends SagaEvent {
@@ -30,12 +29,10 @@ public class TitusJobSubmitted extends SagaEvent {
   @Nonnull private final JobType jobType;
 
   public TitusJobSubmitted(
-      @NotNull String sagaName,
-      @NotNull String sagaId,
       @Nonnull Map<String, String> serverGroupNameByRegion,
       @Nonnull String jobUri,
       @Nonnull JobType jobType) {
-    super(sagaName, sagaId);
+    super();
     this.serverGroupNameByRegion = serverGroupNameByRegion;
     this.jobUri = jobUri;
     this.jobType = jobType;

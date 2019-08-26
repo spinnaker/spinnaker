@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.titus.deploy.events;
 import com.netflix.spinnaker.clouddriver.saga.SagaEvent;
 import javax.annotation.Nonnull;
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 
 @Getter
 public class TitusScalingPolicyCopied extends SagaEvent {
@@ -27,12 +26,8 @@ public class TitusScalingPolicyCopied extends SagaEvent {
   @Nonnull private final String sourcePolicyId;
 
   public TitusScalingPolicyCopied(
-      @NotNull String sagaName,
-      @NotNull String sagaId,
-      @Nonnull String serverGroupName,
-      @Nonnull String region,
-      @Nonnull String sourcePolicyId) {
-    super(sagaName, sagaId);
+      @Nonnull String serverGroupName, @Nonnull String region, @Nonnull String sourcePolicyId) {
+    super();
     this.serverGroupName = serverGroupName;
     this.region = region;
     this.sourcePolicyId = sourcePolicyId;

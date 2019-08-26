@@ -20,28 +20,26 @@ import com.netflix.spinnaker.clouddriver.saga.flow.SagaAction
 import com.netflix.spinnaker.clouddriver.saga.models.Saga
 import java.util.function.Predicate
 
-class ShouldBranch(sagaName: String, sagaId: String) : SagaEvent(sagaName, sagaId)
+class ShouldBranch : SagaEvent()
 
 @JsonTypeName("doAction1")
 class DoAction1(
-  sagaName: String,
-  sagaId: String,
   val branch: Boolean = true
-) : SagaCommand(sagaName, sagaId)
+) : SagaCommand()
 
 @JsonTypeName("doAction2")
-class DoAction2(sagaName: String, sagaId: String) : SagaCommand(sagaName, sagaId)
+class DoAction2 : SagaCommand()
 
 @JsonTypeName("doAction3")
-class DoAction3(sagaName: String, sagaId: String) : SagaCommand(sagaName, sagaId)
+class DoAction3 : SagaCommand()
 
 class Action1 : SagaAction<DoAction1> {
   override fun apply(command: DoAction1, saga: Saga): SagaAction.Result {
-    val events = if (command.branch) listOf(ShouldBranch(saga.name, saga.id)) else listOf()
+    val events = if (command.branch) listOf(ShouldBranch()) else listOf()
     return SagaAction.Result(
       ManyCommands(
-        DoAction2(saga.name, saga.id),
-        DoAction3(saga.name, saga.id)
+        DoAction2(),
+        DoAction3()
       ),
       events
     )

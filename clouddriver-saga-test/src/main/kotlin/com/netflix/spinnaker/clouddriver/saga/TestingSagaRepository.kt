@@ -40,6 +40,8 @@ class TestingSagaRepository : SagaRepository {
     saga.getPendingEvents()
       .plus(additionalEvents)
       .forEachIndexed { index, event ->
+        event.aggregateType = saga.name
+        event.aggregateId = saga.id
         event.metadata = EventMetadata(
           sequence = currentSequence + index + 1,
           originatingVersion = originatingVersion

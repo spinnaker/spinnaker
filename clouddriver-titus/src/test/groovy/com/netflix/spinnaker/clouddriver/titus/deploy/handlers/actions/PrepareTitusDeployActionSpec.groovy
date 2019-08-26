@@ -38,9 +38,6 @@ import spock.lang.Unroll
 
 class PrepareTitusDeployActionSpec extends Specification {
 
-  private static final String SAGA_NAME = "saga"
-  private static final String SAGA_ID = "id"
-
   NetflixTitusCredentials netflixTitusCredentials = new NetflixTitusCredentials(
     'test', 'test', 'test', [new TitusRegion('us-east-1', 'test', 'http://foo', false, false, "blah", "blah", 7104, [])], 'test', 'test', 'test', 'test', false, '', 'mainvpc', [], "", false, false, false
   )
@@ -59,7 +56,7 @@ class PrepareTitusDeployActionSpec extends Specification {
   AccountCredentialsProvider accountCredentialsProvider = Mock()
   AwsConfiguration.DeployDefaults deployDefaults = Mock()
 
-  Saga saga = new Saga(SAGA_NAME, SAGA_ID)
+  Saga saga = new Saga("titusDeploy", "id")
 
   @Subject
   PrepareTitusDeploy subject = new PrepareTitusDeploy(
@@ -225,7 +222,7 @@ class PrepareTitusDeployActionSpec extends Specification {
 
   private static PrepareTitusDeployCommand createCommand(
     TitusDeployDescription description, String email, boolean platformHealthOnly) {
-    return new PrepareTitusDeployCommand(SAGA_NAME, SAGA_ID, description).with {
+    return new PrepareTitusDeployCommand(description).with {
       it.front50App = new LoadFront50App.Front50App(email, platformHealthOnly)
       it
     }

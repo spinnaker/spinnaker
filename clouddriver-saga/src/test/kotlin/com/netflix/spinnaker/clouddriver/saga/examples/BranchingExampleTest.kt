@@ -49,12 +49,12 @@ class BranchingExampleTest : AbstractSagaTest() {
         .completionHandler(ThingsCompletedHandler::class.java)
 
       test("branch skipped") {
-        expectThat(sagaService.applyBlocking<String>(flow, PrepareForThings("mytest", "id", false)))
+        expectThat(sagaService.applyBlocking<String>("test", "test", flow, PrepareForThings(false)))
           .isEqualTo("not branch")
       }
 
       test("branch entered") {
-        expectThat(sagaService.applyBlocking<String>(flow, PrepareForThings("mytest", "id", true)))
+        expectThat(sagaService.applyBlocking<String>("test", "test", flow, PrepareForThings(true)))
           .isEqualTo("branch")
       }
     }
@@ -75,20 +75,20 @@ class BranchingExampleTest : AbstractSagaTest() {
   }
 
   @JsonTypeName("prepareForThings")
-  class PrepareForThings(sagaName: String, sagaId: String, val doOptionalThings: Boolean) : SagaCommand(sagaName, sagaId)
+  class PrepareForThings(val doOptionalThings: Boolean) : SagaCommand()
 
   @JsonTypeName("doTheThing")
-  class DoTheThing(sagaName: String, sagaId: String) : SagaCommand(sagaName, sagaId)
+  class DoTheThing : SagaCommand()
 
   @JsonTypeName("doAnOptionalThing")
-  class DoAnOptionalThing(sagaName: String, sagaId: String) : SagaCommand(sagaName, sagaId)
+  class DoAnOptionalThing : SagaCommand()
 
   @JsonTypeName("finishThings")
-  class FinishThings(sagaName: String, sagaId: String) : SagaCommand(sagaName, sagaId)
+  class FinishThings : SagaCommand()
 
   class PrepareAction : SagaAction<PrepareForThings> {
     override fun apply(command: PrepareForThings, saga: Saga): SagaAction.Result {
-      return SagaAction.Result(DoTheThing(saga.name, saga.id))
+      return SagaAction.Result(DoTheThing())
     }
   }
 
@@ -97,9 +97,9 @@ class BranchingExampleTest : AbstractSagaTest() {
       // TODO(rz): Add a condition predicate that just checks for whether or not the command exists at all instead?
       return SagaAction.Result(
         ManyCommands(
-          DoAnOptionalThing(saga.name, saga.id),
-          FinishThings(saga.name, saga.id
-        ))
+          DoAnOptionalThing(),
+          FinishThings()
+        )
       )
     }
   }

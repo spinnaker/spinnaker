@@ -44,7 +44,7 @@ class SagaFlowIteratorTest : AbstractSagaTest() {
     }
 
     test("iterates conditional actions") {
-      saga.addEventForTest(ShouldBranch(saga.name, saga.id))
+      saga.addEventForTest(ShouldBranch())
 
       expect {
         that(subject.hasNext()).isTrue()

@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.clouddriver.saga
 
 import com.netflix.spinnaker.clouddriver.saga.flow.SagaFlow
-import com.netflix.spinnaker.clouddriver.saga.models.Saga
 import dev.minutest.rootContext
 import strikt.api.expectThat
 import strikt.assertions.contains
@@ -38,10 +37,8 @@ class SagaServiceTest : AbstractSagaTest() {
         .then(Action2::class.java)
         .then(Action3::class.java)
 
-      val saga = Saga("test", "test")
-
       test("applies all commands") {
-        sagaService.applyBlocking<String>(flow, DoAction1(saga.name, saga.id))
+        sagaService.applyBlocking<String>("test", "test", flow, DoAction1())
 
         expectThat(sagaRepository.get("test", "test"))
           .isNotNull()

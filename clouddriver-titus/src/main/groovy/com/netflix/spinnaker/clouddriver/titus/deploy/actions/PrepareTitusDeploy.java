@@ -178,12 +178,7 @@ public class PrepareTitusDeploy extends AbstractTitusDeployAction
 
     return new Result(
         new SubmitTitusJobCommand(
-            saga.getName(),
-            saga.getId(),
-            description,
-            submitJobRequest,
-            nextServerGroupName,
-            targetGroupLookupResult),
+            description, submitJobRequest, nextServerGroupName, targetGroupLookupResult),
         Collections.emptyList());
   }
 
@@ -449,9 +444,8 @@ public class PrepareTitusDeploy extends AbstractTitusDeployAction
     private final TitusDeployDescription description;
     @NonFinal private LoadFront50App.Front50App front50App;
 
-    public PrepareTitusDeployCommand(
-        @NotNull String sagaName, @NotNull String sagaId, TitusDeployDescription description) {
-      super(sagaName, sagaId);
+    public PrepareTitusDeployCommand(TitusDeployDescription description) {
+      super();
       this.description = description;
     }
 
@@ -464,7 +458,7 @@ public class PrepareTitusDeploy extends AbstractTitusDeployAction
   private static class SecurityGroupNotFoundException extends TitusException {
     SecurityGroupNotFoundException(String message) {
       super(message);
-      setRetryable(false);
+      setRetryable(true);
     }
   }
 

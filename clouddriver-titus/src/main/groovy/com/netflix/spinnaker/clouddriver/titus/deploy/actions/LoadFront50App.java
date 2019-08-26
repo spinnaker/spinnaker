@@ -135,12 +135,8 @@ public class LoadFront50App implements SagaAction<LoadFront50App.LoadFront50AppC
     @Nonnull private final boolean allowMissing;
 
     public LoadFront50AppCommand(
-        @NotNull String sagaName,
-        @NotNull String sagaId,
-        @Nonnull String appName,
-        @Nonnull SagaCommand nextCommand,
-        boolean allowMissing) {
-      super(sagaName, sagaId);
+        @Nonnull String appName, @Nonnull SagaCommand nextCommand, boolean allowMissing) {
+      super();
       this.appName = appName;
       this.nextCommand = nextCommand;
       this.allowMissing = allowMissing;

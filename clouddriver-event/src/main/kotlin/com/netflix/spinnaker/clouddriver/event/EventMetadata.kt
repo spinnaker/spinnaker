@@ -24,12 +24,12 @@ import java.time.Instant
  * @param originatingVersion The aggregate version that originated this event
  * @param timestamp The time at which the event was created
  * @param serviceVersion The version of the service (clouddriver) that created the event
- * @param provenance Where the event was generated and by what
+ * @param source Where/what generated the event
  */
 data class EventMetadata(
   val sequence: Long,
   val originatingVersion: Long,
   val timestamp: Instant = Instant.now(),
   val serviceVersion: String = "unknown",
-  val provenance: String = "unknown"
+  val source: String = "unknown"
 )

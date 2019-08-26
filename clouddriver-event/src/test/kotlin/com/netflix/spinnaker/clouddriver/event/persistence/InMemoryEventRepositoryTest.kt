@@ -58,7 +58,7 @@ class InMemoryEventRepositoryTest : JUnit5Minutests {
       }
 
       val event2 = MyEvent("agg", "id", "hello rob")
-      subject.save(event2.aggregateType, event.aggregateId, 1L, listOf(event2))
+      subject.save(event2.aggregateType, event2.aggregateId, 1L, listOf(event2))
 
       expectThat(subject.list("agg", "id")) {
         get { size }.isEqualTo(2)
@@ -101,7 +101,9 @@ class InMemoryEventRepositoryTest : JUnit5Minutests {
       val event3 = MyEvent("type3", "id", "three")
 
       test("not providing a type") {
-        listOf(event1, event2, event3).forEach { subject.save(it.aggregateType, it.aggregateId, 0L, listOf(it)) }
+        listOf(event1, event2, event3).forEach {
+          subject.save(it.aggregateType, it.aggregateId, 0L, listOf(it))
+        }
 
         expectThat(subject.listAggregates(null)) {
           map { it.type }.containsExactly("type1", "type2", "type3")
@@ -109,7 +111,9 @@ class InMemoryEventRepositoryTest : JUnit5Minutests {
       }
 
       test("providing a type") {
-        listOf(event1, event2, event3).forEach { subject.save(it.aggregateType, it.aggregateId, 0L, listOf(it)) }
+        listOf(event1, event2, event3).forEach {
+          subject.save(it.aggregateType, it.aggregateId, 0L, listOf(it))
+        }
 
         expectThat(subject.listAggregates(event1.aggregateType)) {
           map { it.type }.containsExactly("type1")
@@ -117,7 +121,9 @@ class InMemoryEventRepositoryTest : JUnit5Minutests {
       }
 
       test("providing a non-existent type") {
-        listOf(event1, event2, event3).forEach { subject.save(it.aggregateType, it.aggregateId, 0L, listOf(it)) }
+        listOf(event1, event2, event3).forEach {
+          subject.save(it.aggregateType, it.aggregateId, 0L, listOf(it))
+        }
 
         expectThat(subject.listAggregates("unknown")) {
           isEmpty()
@@ -135,5 +141,14 @@ class InMemoryEventRepositoryTest : JUnit5Minutests {
     )
   }
 
-  private inner class MyEvent(aggregateType: String, aggregateId: String, val value: String) : SpinnakerEvent(aggregateType, aggregateId)
+  private inner class MyEvent(
+    aggregateType: String,
+    aggregateId: String,
+    val value: String
+  ) : SpinnakerEvent() {
+    init {
+      this.aggregateType = aggregateType
+      this.aggregateId = aggregateId
+    }
+  }
 }

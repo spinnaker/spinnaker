@@ -21,9 +21,9 @@ import java.util.UUID
 /**
  * The base event class for the event sourcing library.
  *
- * @param aggregateType The type of aggregate the event is for
- * @param aggregateId The id of the aggregate the event is for
  * @property id A unique ID for the event. This value is for tracing, rather than loading events
+ * @property aggregateType The type of aggregate the event is for
+ * @property aggregateId The id of the aggregate the event is for
  * @property metadata Associated metadata about the event; not actually part of the "event proper"
  */
 @JsonTypeInfo(
@@ -31,11 +31,10 @@ import java.util.UUID
   include = JsonTypeInfo.As.PROPERTY,
   property = "spinEventType"
 )
-abstract class SpinnakerEvent(
-  val aggregateType: String,
-  val aggregateId: String
-) {
+abstract class SpinnakerEvent {
   val id = UUID.randomUUID().toString()
 
+  lateinit var aggregateType: String
+  lateinit var aggregateId: String
   lateinit var metadata: EventMetadata
 }
