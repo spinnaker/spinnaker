@@ -34,6 +34,7 @@ import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.name
 import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.events.ResourceState.Diff
+import com.netflix.spinnaker.keel.events.ResourceState.Error
 import com.netflix.spinnaker.keel.events.ResourceState.Missing
 import com.netflix.spinnaker.keel.events.ResourceState.Ok
 import java.time.Clock
@@ -286,6 +287,28 @@ data class ResourceValid(
     )
 }
 
+data class ResourceCheckError(
+  override val uid: UID,
+  override val apiVersion: ApiVersion,
+  override val kind: String,
+  override val name: String,
+  override val application: String,
+  override val timestamp: Instant,
+  val exception: Throwable
+) : ResourceCheckResult() {
+  @JsonIgnore
+  override val state = Error
+
+  constructor(resource: Resource<*>, exception: Throwable, clock: Clock = Companion.clock) : this(
+    resource.uid,
+    resource.apiVersion,
+    resource.kind,
+    resource.name.value,
+    resource.application,
+    clock.instant(),
+    exception
+  )
+}
 /**
  * The reference to a task launched (currently always in Orca) to resolve a difference between the
  * desired and actual states of a managed resource.

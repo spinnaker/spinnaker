@@ -20,20 +20,6 @@ data class ResourceCheckSkipped(
   )
 }
 
-data class ResourceCheckError(
-  val apiVersion: ApiVersion,
-  val kind: String,
-  val name: ResourceName,
-  val exception: Throwable
-) : TelemetryEvent() {
-  constructor(resource: Resource<*>, exception: Throwable) : this(
-    resource.apiVersion,
-    resource.kind,
-    resource.name,
-    exception
-  )
-}
-
 data class ArtifactVersionUpdated(
   val name: String,
   val type: ArtifactType
