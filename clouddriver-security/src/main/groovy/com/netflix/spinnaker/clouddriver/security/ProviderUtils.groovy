@@ -55,8 +55,28 @@ public class ProviderUtils {
    * credentialsType, and (if specified) of provdierVersion version.
    */
   public static <T extends AccountCredentials> Set<T> buildThreadSafeSetOfAccounts(AccountCredentialsRepository accountCredentialsRepository, Class<T> credentialsType, ProviderVersion version) {
+    buildThreadSafeSetOfAccounts(accountCredentialsRepository, credentialsType, null, version)
+  }
+
+  /**
+   * Build a thread-safe set containing each account in the accountCredentialsRepository that is of type
+   * credentialsType, and (if specified) for a cloud provider.
+   */
+  public static <T extends AccountCredentials> Set<T> buildThreadSafeSetOfAccounts(AccountCredentialsRepository accountCredentialsRepository, Class<T> credentialsType, String cloudProvider) {
+    buildThreadSafeSetOfAccounts(accountCredentialsRepository, credentialsType, cloudProvider, null)
+  }
+
+  /**
+   * Build a thread-safe set containing each account in the accountCredentialsRepository that is of type
+   * credentialsType, (if specified) cloud provider, and (if specified) of providerVersion version.
+   */
+  public static <T extends AccountCredentials> Set<T> buildThreadSafeSetOfAccounts(AccountCredentialsRepository accountCredentialsRepository, Class<T> credentialsType, String cloudProvider, ProviderVersion version) {
     def allAccounts = Collections.newSetFromMap(new ConcurrentHashMap<T, Boolean>())
     allAccounts.addAll(accountCredentialsRepository.all.findResults { credentialsType.isInstance(it) ? credentialsType.cast(it) : null })
+
+    if (cloudProvider != null) {
+      allAccounts = allAccounts.findAll { acc -> acc.cloudProvider == cloudProvider }
+    }
 
     if (version != null) {
       allAccounts = allAccounts.findAll { acc -> acc.providerVersion == version }

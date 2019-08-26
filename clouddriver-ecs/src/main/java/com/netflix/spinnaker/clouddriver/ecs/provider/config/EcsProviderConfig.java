@@ -82,85 +82,83 @@ public class EcsProviderConfig {
     Set<String> scheduledAccounts = ProviderUtils.getScheduledAccounts(ecsProvider);
     Set<NetflixAmazonCredentials> allAccounts =
         ProviderUtils.buildThreadSafeSetOfAccounts(
-            accountCredentialsRepository, NetflixAmazonCredentials.class);
+            accountCredentialsRepository, NetflixAmazonCredentials.class, EcsCloudProvider.ID);
     List<Agent> newAgents = new LinkedList<>();
 
     for (NetflixAmazonCredentials credentials : allAccounts) {
-      if (credentials.getCloudProvider().equals(EcsCloudProvider.ID)) {
-        newAgents.add(
-            new IamRoleCachingAgent(
-                credentials,
-                amazonClientProvider,
-                awsCredentialsProvider,
-                iamPolicyReader)); // IAM is region-agnostic, so one caching agent per account is
-        // enough
+      newAgents.add(
+          new IamRoleCachingAgent(
+              credentials,
+              amazonClientProvider,
+              awsCredentialsProvider,
+              iamPolicyReader)); // IAM is region-agnostic, so one caching agent per account is
+      // enough
 
-        for (AWSRegion region : credentials.getRegions()) {
-          if (!scheduledAccounts.contains(credentials.getName())) {
-            newAgents.add(
-                new EcsClusterCachingAgent(
-                    credentials, region.getName(), amazonClientProvider, awsCredentialsProvider));
-            newAgents.add(
-                new ServiceCachingAgent(
-                    credentials,
-                    region.getName(),
-                    amazonClientProvider,
-                    awsCredentialsProvider,
-                    registry));
-            newAgents.add(
-                new TaskCachingAgent(
-                    credentials,
-                    region.getName(),
-                    amazonClientProvider,
-                    awsCredentialsProvider,
-                    registry));
-            newAgents.add(
-                new ContainerInstanceCachingAgent(
-                    credentials,
-                    region.getName(),
-                    amazonClientProvider,
-                    awsCredentialsProvider,
-                    registry));
-            newAgents.add(
-                new TaskDefinitionCachingAgent(
-                    credentials,
-                    region.getName(),
-                    amazonClientProvider,
-                    awsCredentialsProvider,
-                    registry,
-                    objectMapper));
-            newAgents.add(
-                new TaskHealthCachingAgent(
-                    credentials,
-                    region.getName(),
-                    amazonClientProvider,
-                    awsCredentialsProvider,
-                    objectMapper));
-            newAgents.add(
-                new EcsCloudMetricAlarmCachingAgent(
-                    credentials, region.getName(), amazonClientProvider, awsCredentialsProvider));
-            newAgents.add(
-                new ScalableTargetsCachingAgent(
-                    credentials,
-                    region.getName(),
-                    amazonClientProvider,
-                    awsCredentialsProvider,
-                    objectMapper));
-            newAgents.add(
-                new SecretCachingAgent(
-                    credentials,
-                    region.getName(),
-                    amazonClientProvider,
-                    awsCredentialsProvider,
-                    objectMapper));
-            newAgents.add(
-                new ServiceDiscoveryCachingAgent(
-                    credentials,
-                    region.getName(),
-                    amazonClientProvider,
-                    awsCredentialsProvider,
-                    objectMapper));
-          }
+      for (AWSRegion region : credentials.getRegions()) {
+        if (!scheduledAccounts.contains(credentials.getName())) {
+          newAgents.add(
+              new EcsClusterCachingAgent(
+                  credentials, region.getName(), amazonClientProvider, awsCredentialsProvider));
+          newAgents.add(
+              new ServiceCachingAgent(
+                  credentials,
+                  region.getName(),
+                  amazonClientProvider,
+                  awsCredentialsProvider,
+                  registry));
+          newAgents.add(
+              new TaskCachingAgent(
+                  credentials,
+                  region.getName(),
+                  amazonClientProvider,
+                  awsCredentialsProvider,
+                  registry));
+          newAgents.add(
+              new ContainerInstanceCachingAgent(
+                  credentials,
+                  region.getName(),
+                  amazonClientProvider,
+                  awsCredentialsProvider,
+                  registry));
+          newAgents.add(
+              new TaskDefinitionCachingAgent(
+                  credentials,
+                  region.getName(),
+                  amazonClientProvider,
+                  awsCredentialsProvider,
+                  registry,
+                  objectMapper));
+          newAgents.add(
+              new TaskHealthCachingAgent(
+                  credentials,
+                  region.getName(),
+                  amazonClientProvider,
+                  awsCredentialsProvider,
+                  objectMapper));
+          newAgents.add(
+              new EcsCloudMetricAlarmCachingAgent(
+                  credentials, region.getName(), amazonClientProvider, awsCredentialsProvider));
+          newAgents.add(
+              new ScalableTargetsCachingAgent(
+                  credentials,
+                  region.getName(),
+                  amazonClientProvider,
+                  awsCredentialsProvider,
+                  objectMapper));
+          newAgents.add(
+              new SecretCachingAgent(
+                  credentials,
+                  region.getName(),
+                  amazonClientProvider,
+                  awsCredentialsProvider,
+                  objectMapper));
+          newAgents.add(
+              new ServiceDiscoveryCachingAgent(
+                  credentials,
+                  region.getName(),
+                  amazonClientProvider,
+                  awsCredentialsProvider,
+                  objectMapper));
         }
       }
     }

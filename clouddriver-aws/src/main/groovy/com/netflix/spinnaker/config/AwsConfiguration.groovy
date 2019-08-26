@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties
 import com.netflix.spinnaker.clouddriver.aws.agent.CleanupAlarmsAgent
 import com.netflix.spinnaker.clouddriver.aws.agent.CleanupDetachedInstancesAgent
@@ -219,7 +220,7 @@ class AwsConfiguration {
                                                     AccountCredentialsRepository accountCredentialsRepository,
                                                     DeployDefaults deployDefaults) {
     def scheduledAccounts = ProviderUtils.getScheduledAccounts(awsCleanupProvider)
-    Set<NetflixAmazonCredentials> allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, NetflixAmazonCredentials)
+    Set<NetflixAmazonCredentials> allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, NetflixAmazonCredentials, AmazonCloudProvider.ID)
 
     List<Agent> newlyAddedAgents = []
 

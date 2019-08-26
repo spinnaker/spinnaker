@@ -103,6 +103,24 @@ class ProviderUtilsSpec extends Specification {
       credentialsType         | accountNameSet
       TestAccountCredentials2 | ["google-account-1", "google-account-2", "google-account-3"] as Set
       TestAccountCredentials1 | ["aws-account-1", "aws-account-2", "aws-account-3"] as Set
+      AccountCredentials      | ["google-account-1", "google-account-2", "google-account-3", "aws-account-1", "aws-account-2", "aws-account-3"] as Set
+  }
+
+  @Unroll
+  void "should collect accounts matching specified credentials type and cloud provider"() {
+    when:
+    def accountSet = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, credentialsType, cloudProvider)
+
+    then:
+    accountSet.collect { it.name } as Set == accountNameSet
+
+    where:
+    credentialsType         | cloudProvider | accountNameSet
+    TestAccountCredentials2 | "testCloudProvider" | ["google-account-1", "google-account-2", "google-account-3"] as Set
+    TestAccountCredentials2 | "otherCloudProvider" | [] as Set
+    TestAccountCredentials1 | "testCloudProvider" | ["aws-account-1", "aws-account-2", "aws-account-3"] as Set
+    TestAccountCredentials1 | "otherCloudProvider" | [] as Set
+    AccountCredentials      | "testCloudProvider" | ["google-account-1", "google-account-2", "google-account-3", "aws-account-1", "aws-account-2", "aws-account-3"] as Set
   }
 
   void "should reschedule specified agents"() {

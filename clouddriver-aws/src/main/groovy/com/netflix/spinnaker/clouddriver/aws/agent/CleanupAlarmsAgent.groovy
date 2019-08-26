@@ -23,6 +23,7 @@ import com.amazonaws.services.cloudwatch.model.MetricAlarm
 import com.amazonaws.services.cloudwatch.model.StateValue
 import com.amazonaws.services.gamelift.model.DescribeScalingPoliciesRequest
 import com.netflix.spinnaker.cats.agent.RunnableAgent
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsCleanupProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
@@ -119,7 +120,7 @@ class CleanupAlarmsAgent implements RunnableAgent, CustomScheduledAgent {
   }
 
   private Set<NetflixAmazonCredentials> getAccounts() {
-    ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, NetflixAmazonCredentials)
+    ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, NetflixAmazonCredentials, AmazonCloudProvider.ID)
   }
 
   private static Set<String> getAttachedAlarms(AmazonAutoScaling autoScaling) {

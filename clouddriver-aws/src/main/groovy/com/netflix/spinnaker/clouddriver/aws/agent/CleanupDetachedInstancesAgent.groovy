@@ -21,6 +21,7 @@ import com.amazonaws.services.ec2.model.Filter
 import com.amazonaws.services.ec2.model.Instance
 import com.amazonaws.services.ec2.model.TerminateInstancesRequest
 import com.netflix.spinnaker.cats.agent.RunnableAgent
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
@@ -107,7 +108,7 @@ class CleanupDetachedInstancesAgent implements RunnableAgent, CustomScheduledAge
   }
 
   private Set<NetflixAmazonCredentials> getAccounts() {
-    ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, NetflixAmazonCredentials)
+    ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, NetflixAmazonCredentials, AmazonCloudProvider.ID)
   }
 
   /**

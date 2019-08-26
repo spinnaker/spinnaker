@@ -110,7 +110,7 @@ class AwsProviderConfig {
                                       EddaTimeoutConfig eddaTimeoutConfig,
                                       DynamicConfigService dynamicConfigService) {
     def scheduledAccounts = ProviderUtils.getScheduledAccounts(awsProvider)
-    Set<NetflixAmazonCredentials> allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, NetflixAmazonCredentials)
+    Set<NetflixAmazonCredentials> allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, NetflixAmazonCredentials, AmazonCloudProvider.ID)
 
     List<Agent> newlyAddedAgents = []
 

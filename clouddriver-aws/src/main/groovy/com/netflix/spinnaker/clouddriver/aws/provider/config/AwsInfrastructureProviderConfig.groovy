@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.aws.provider.config
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsInfrastructureProvider
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonElasticIpCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonInstanceTypeCachingAgent
@@ -68,7 +69,7 @@ class AwsInfrastructureProviderConfig {
                                                            Registry registry,
                                                            EddaTimeoutConfig eddaTimeoutConfig) {
     def scheduledAccounts = ProviderUtils.getScheduledAccounts(awsInfrastructureProvider)
-    def allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, NetflixAmazonCredentials)
+    def allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository, NetflixAmazonCredentials, AmazonCloudProvider.ID)
 
     Set<String> regions = new HashSet<>();
     allAccounts.each { NetflixAmazonCredentials credentials ->
