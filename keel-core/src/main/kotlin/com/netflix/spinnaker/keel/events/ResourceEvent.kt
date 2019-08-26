@@ -53,7 +53,9 @@ import java.time.Instant
   Type(value = ResourceMissing::class, name = "ResourceMissing"),
   Type(value = ResourceActuationLaunched::class, name = "ResourceActuationLaunched"),
   Type(value = ResourceDeltaDetected::class, name = "ResourceDeltaDetected"),
-  Type(value = ResourceDeltaResolved::class, name = "ResourceDeltaResolved")
+  Type(value = ResourceDeltaResolved::class, name = "ResourceDeltaResolved"),
+  Type(value = ResourceValid::class, name = "ResourceValid"),
+  Type(value = ResourceCheckError::class, name = "ResourceCheckError")
 )
 sealed class ResourceEvent {
   abstract val uid: UID
