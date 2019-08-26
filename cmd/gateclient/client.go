@@ -147,7 +147,10 @@ func NewGateClient(flags *pflag.FlagSet) (*GatewayClient, error) {
 	if defaultHeaders != "" {
 		headers := strings.Split(defaultHeaders, ",")
 		for _, element := range headers {
-			header := strings.Split(element, "=")
+			header := strings.SplitN(element, "=", 2)
+			if len(header) != 2 {
+				return nil, fmt.Errorf("Bad default-header value, use key=value form: %s", element)
+			}
 			m[strings.TrimSpace(header[0])] = strings.TrimSpace(header[1])
 		}
 	}
