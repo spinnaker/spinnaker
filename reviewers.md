@@ -6,10 +6,9 @@
 * jammy-louie
 * jmelchio
 * kathrynlewis
-* kevinawoo
 * michaeljqzq
 * mybayern1974
 * ncknt
-* stuart-pollock
 * plumpy
 * scottfrederick
+* stuart-pollock
