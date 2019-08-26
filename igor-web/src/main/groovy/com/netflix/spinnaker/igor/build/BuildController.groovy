@@ -249,7 +249,7 @@ class BuildController {
     private BuildOperations getBuildService(String master) {
         def buildService = buildServices.getService(master)
         if (buildService == null) {
-            throw new NotFoundException("Master '${master}' not found}")
+            throw new NotFoundException("Master '${master}' not found")
         }
         return buildService
     }

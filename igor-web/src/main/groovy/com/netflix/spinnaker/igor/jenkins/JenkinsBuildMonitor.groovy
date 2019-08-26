@@ -49,7 +49,7 @@ import static net.logstash.logback.argument.StructuredArguments.kv
  */
 @Service
 @SuppressWarnings('CatchException')
-@ConditionalOnProperty('jenkins.enabled')
+@ConditionalOnProperty('jenkins.enabled && ${jenkins.poller.enabled:true}')
 class JenkinsBuildMonitor extends CommonPollingMonitor<JobDelta, JobPollingDelta> {
 
     private final JenkinsCache cache
@@ -159,7 +159,7 @@ class JenkinsBuildMonitor extends CommonPollingMonitor<JobDelta, JobPollingDelta
             log.error("Error processing builds for [{}:{}]", kv("master", master), kv("job", job.name), e)
             if (e.cause instanceof RetrofitError) {
                 def re = (RetrofitError) e.cause
-                log.error("Error communicating with jenkins for [{}:{}]: {}", kv("master", master), kv("job", job.name), kv("url", re.url), re);
+                log.error("Error communicating with jenkins for [{}:{}]: {}", kv("master", master), kv("job", job.name), kv("url", re.url), re)
             }
         }
     }
