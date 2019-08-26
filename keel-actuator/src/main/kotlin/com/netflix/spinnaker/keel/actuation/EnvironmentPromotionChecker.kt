@@ -4,13 +4,16 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.constraints.ConstraintEvaluator
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
+import com.netflix.spinnaker.keel.telemetry.ArtifactVersionApproved
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 
 @Component
 class EnvironmentPromotionChecker(
   private val artifactRepository: ArtifactRepository,
-  private val constraints: List<ConstraintEvaluator<*>>
+  private val constraints: List<ConstraintEvaluator<*>>,
+  private val publisher: ApplicationEventPublisher
 ) {
 
   suspend fun checkEnvironments(deliveryConfig: DeliveryConfig) {
@@ -31,7 +34,19 @@ class EnvironmentPromotionChecker(
                 }
               }
             }
-            artifactRepository.approveVersionFor(deliveryConfig, artifact, version, environment.name)
+            if (artifactRepository.latestVersionApprovedIn(deliveryConfig, artifact, environment.name) != version) {
+              log.info(
+                "Approved {} {} version {} for {} environment {} in {}",
+                artifact.name,
+                artifact.type,
+                version,
+                deliveryConfig.name,
+                environment.name,
+                deliveryConfig.application
+              )
+              publisher.publishEvent(ArtifactVersionApproved(deliveryConfig.application, deliveryConfig.name, environment.name, artifact.name, artifact.type, version))
+              artifactRepository.approveVersionFor(deliveryConfig, artifact, version, environment.name)
+            }
           }
         }
       }

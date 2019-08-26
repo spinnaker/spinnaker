@@ -7,12 +7,14 @@ import com.netflix.spinnaker.keel.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.constraints.ConstraintEvaluator
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
+import com.netflix.spinnaker.keel.telemetry.ArtifactVersionApproved
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.runBlocking
+import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectCatching
 import strikt.assertions.succeeded
 
@@ -27,9 +29,11 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
     val constraintEvaluator = mockk<ConstraintEvaluator<*>>() {
       every { constraintType } returns DependsOnConstraint::class.java
     }
+    val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
     val subject = EnvironmentPromotionChecker(
       artifactRepository,
-      listOf(constraintEvaluator)
+      listOf(constraintEvaluator),
+      publisher
     )
 
     val artifact = DeliveryArtifact(
@@ -69,6 +73,10 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
         every {
           artifactRepository.versions(artifact)
         } returns listOf("2.0", "1.2", "1.1", "1.0")
+
+        every {
+          artifactRepository.latestVersionApprovedIn(deliveryConfig, artifact, environment.name)
+        } returns "1.0"
       }
 
       context("there are no constraints on the environment") {
@@ -81,6 +89,43 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
         test("the environment is assigned the latest version of an artifact") {
           verify {
             artifactRepository.approveVersionFor(deliveryConfig, artifact, "2.0", environment.name)
+          }
+        }
+
+        test("a telemetry event is fired") {
+          verify {
+            publisher.publishEvent(ArtifactVersionApproved(
+              deliveryConfig.application,
+              deliveryConfig.name,
+              environment.name,
+              artifact.name,
+              artifact.type,
+              "2.0"
+            ))
+          }
+        }
+      }
+
+      context("the latest version of the artifact was already approved for this environment") {
+        before {
+          every {
+            artifactRepository.latestVersionApprovedIn(deliveryConfig, artifact, environment.name)
+          } returns "2.0"
+
+          runBlocking {
+            subject.checkEnvironments(deliveryConfig)
+          }
+        }
+
+        test("the environment is not assigned a new version") {
+          verify(exactly = 0) {
+            artifactRepository.approveVersionFor(any(), any(), any(), any())
+          }
+        }
+
+        test("no telemetry event is fired") {
+          verify(exactly = 0) {
+            publisher.publishEvent(ofType<ArtifactVersionApproved>())
           }
         }
       }
@@ -99,6 +144,10 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
             artifactRepository.versions(artifact)
           } returns listOf("2.0", "1.2", "1.1", "1.0")
 
+          every {
+            artifactRepository.latestVersionApprovedIn(deliveryConfig, artifact, environment.name)
+          } returns "1.0"
+
           every { constraintEvaluator.canPromote(artifact, "2.0", deliveryConfig, environment.name) } returns false
           every { constraintEvaluator.canPromote(artifact, "1.2", deliveryConfig, environment.name) } returns true
           every { constraintEvaluator.canPromote(artifact, "1.1", deliveryConfig, environment.name) } returns true
@@ -112,6 +161,19 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
         test("the environment is assigned the latest version of an artifact that passes the constraint") {
           verify {
             artifactRepository.approveVersionFor(deliveryConfig, artifact, "1.2", environment.name)
+          }
+        }
+
+        test("a telemetry event is fired") {
+          verify {
+            publisher.publishEvent(ArtifactVersionApproved(
+              deliveryConfig.application,
+              deliveryConfig.name,
+              environment.name,
+              artifact.name,
+              artifact.type,
+              "1.2"
+            ))
           }
         }
       }

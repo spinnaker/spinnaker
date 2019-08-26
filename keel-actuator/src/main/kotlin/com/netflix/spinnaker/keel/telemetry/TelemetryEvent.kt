@@ -24,3 +24,12 @@ data class ArtifactVersionUpdated(
   val name: String,
   val type: ArtifactType
 ) : TelemetryEvent()
+
+data class ArtifactVersionApproved(
+  val application: String,
+  val deliveryConfigName: String,
+  val environmentName: String,
+  val artifactName: String,
+  val artifactType: ArtifactType,
+  val artifactVersion: String
+) : TelemetryEvent()
