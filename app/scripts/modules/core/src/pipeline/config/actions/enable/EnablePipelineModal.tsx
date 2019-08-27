@@ -6,17 +6,17 @@ import { ModalClose } from 'core/modal';
 import { IModalComponentProps } from 'core/presentation';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 
-export interface IDisablePipelineModalProps extends IModalComponentProps {
+export interface IEnablePipelineModalProps extends IModalComponentProps {
   pipeline: IPipeline;
 }
 
-export function DisablePipelineModal(props: IDisablePipelineModalProps) {
+export function EnablePipelineModal(props: IEnablePipelineModalProps) {
   const [errorMessage, setErrorMessage] = React.useState<string>(null);
   const [saveError, setSaveError] = React.useState<boolean>(false);
   const { closeModal, dismissModal, pipeline } = props;
 
-  function disablePipeline() {
-    PipelineConfigService.savePipeline({ ...pipeline, disabled: true }).then(
+  function enablePipeline() {
+    PipelineConfigService.savePipeline({ ...pipeline, disabled: false }).then(
       () => closeModal(),
       response => {
         setSaveError(true);
@@ -30,12 +30,12 @@ export function DisablePipelineModal(props: IDisablePipelineModalProps) {
       <Modal key="modal" show={true} onHide={() => {}}>
         <ModalClose dismiss={dismissModal} />
         <Modal.Header>
-          <h3>Really Disable Pipeline?</h3>
+          <h3>Really Enable Pipeline?</h3>
         </Modal.Header>
         <Modal.Body>
           {saveError && (
             <div className="alert alert-danger">
-              <p>Could not disable pipeline.</p>
+              <p>Could not enable pipeline.</p>
               <p>
                 <b>Reason: </b>
                 {errorMessage}
@@ -56,11 +56,7 @@ export function DisablePipelineModal(props: IDisablePipelineModalProps) {
           <form role="form" name="form" className="form-horizontal">
             <div className="form-group">
               <div className="col-md-12">
-                <p>Are you sure you want to disable {pipeline.name}?</p>
-                <p>
-                  This will prevent any triggers from firing, and will also prevent users from running the pipeline
-                  manually.
-                </p>
+                <p>Are you sure you want to enable {pipeline.name}?</p>
               </div>
             </div>
           </form>
@@ -69,8 +65,8 @@ export function DisablePipelineModal(props: IDisablePipelineModalProps) {
           <button className="btn btn-default" onClick={dismissModal} type="button">
             Cancel
           </button>
-          <button className="btn btn-primary" onClick={disablePipeline} type="button">
-            Disable pipeline
+          <button className="btn btn-primary" onClick={enablePipeline} type="button">
+            Enable pipeline
           </button>
         </Modal.Footer>
       </Modal>

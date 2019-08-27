@@ -91,10 +91,10 @@ export function DeletePipelineModal(props: IDeletePipelineModalProps) {
           </form>
         </Modal.Body>
         <Modal.Footer>
-          <button className="btn btn-default" onClick={() => dismissModal()} type="button">
+          <button className="btn btn-default" onClick={dismissModal} type="button">
             Cancel
           </button>
-          <button className="btn btn-primary" onClick={() => deletePipeline()}>
+          <button className="btn btn-primary" onClick={deletePipeline}>
             {!deleting && (
               <span>
                 <span className="far fa-check-circle" /> Delete
