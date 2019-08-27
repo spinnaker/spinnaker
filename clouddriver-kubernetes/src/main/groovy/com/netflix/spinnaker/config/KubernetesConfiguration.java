@@ -28,6 +28,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.KubernetesV2Provi
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.KubernetesV2ProviderSynchronizable;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgentDispatcher;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.GlobalKubernetesKindRegistry;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKindProperties;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import java.util.Collections;
@@ -73,6 +75,11 @@ public class KubernetesConfiguration {
   @Bean
   public KubernetesV2Provider kubernetesV2Provider() {
     return new KubernetesV2Provider();
+  }
+
+  @Bean
+  public GlobalKubernetesKindRegistry globalKubernetesKindRegistry() {
+    return new GlobalKubernetesKindRegistry(KubernetesKindProperties.getGlobalKindProperties());
   }
 
   @Bean

@@ -23,12 +23,16 @@ import com.netflix.spinnaker.clouddriver.kubernetes.config.CustomKubernetesResou
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.KubernetesUnversionedArtifactConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.KubernetesVersionedArtifactConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKindProperties;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKindRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.CustomKubernetesHandlerFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 
 @Getter
+@Slf4j
 public class KubernetesResourceProperties {
   private final KubernetesHandler handler;
   private final boolean versioned;
@@ -43,7 +47,7 @@ public class KubernetesResourceProperties {
   }
 
   public static KubernetesResourceProperties fromCustomResource(
-      CustomKubernetesResource customResource) {
+      CustomKubernetesResource customResource, KubernetesKindRegistry kindRegistry) {
     String deployPriority = customResource.getDeployPriority();
     int deployPriorityValue;
     if (StringUtils.isEmpty(deployPriority)) {
@@ -57,10 +61,21 @@ public class KubernetesResourceProperties {
       }
     }
 
+    KubernetesKind kubernetesKind = KubernetesKind.fromString(customResource.getKubernetesKind());
+    kindRegistry.getOrRegisterKind(
+        kubernetesKind,
+        () -> {
+          log.info(
+              "Dynamically registering {}, (namespaced: {})",
+              kubernetesKind.toString(),
+              customResource.isNamespaced());
+          return new KubernetesKindProperties(
+              kubernetesKind, customResource.isNamespaced(), false, true);
+        });
+
     KubernetesHandler handler =
         CustomKubernetesHandlerFactory.create(
-            KubernetesKind.getOrRegisterKind(
-                customResource.getKubernetesKind(), customResource.isNamespaced()),
+            kubernetesKind,
             KubernetesSpinnakerKindMap.SpinnakerKind.fromString(customResource.getSpinnakerKind()),
             customResource.isVersioned(),
             deployPriorityValue);

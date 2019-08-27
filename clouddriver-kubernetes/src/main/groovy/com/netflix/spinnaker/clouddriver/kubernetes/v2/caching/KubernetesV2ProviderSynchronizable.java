@@ -162,7 +162,8 @@ public class KubernetesV2ProviderSynchronizable implements CredentialsInitialize
                 cr -> {
                   try {
                     KubernetesResourceProperties properties =
-                        KubernetesResourceProperties.fromCustomResource(cr);
+                        KubernetesResourceProperties.fromCustomResource(
+                            cr, v2Credentials.getKindRegistry());
                     v2Credentials.getResourcePropertyRegistry().register(properties);
                   } catch (Exception e) {
                     log.warn("Error encountered registering {}: ", cr, e);

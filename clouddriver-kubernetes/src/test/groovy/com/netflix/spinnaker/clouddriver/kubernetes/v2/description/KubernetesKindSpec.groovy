@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description
 
-
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiGroup
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -39,6 +39,32 @@ class KubernetesKindSpec extends Specification {
     "networkPolicy"         | KubernetesKind.NETWORK_POLICY
     "NETWORKPOLICY"         | KubernetesKind.NETWORK_POLICY
     "networkpolicy"         | KubernetesKind.NETWORK_POLICY
+  }
+
+  @Unroll
+  void "kinds from core API groups are returned if any core API group is input"() {
+    when:
+    def kind = KubernetesKind.from(name, apiGroup)
+
+    then:
+    result == kind
+
+    where:
+    name         | apiGroup                      | result
+    "replicaSet" | null                          | KubernetesKind.REPLICA_SET
+    "replicaSet" | KubernetesApiGroup.APPS       | KubernetesKind.REPLICA_SET
+    "replicaSet" | KubernetesApiGroup.EXTENSIONS | KubernetesKind.REPLICA_SET
+    "rs"         | null                          | KubernetesKind.REPLICA_SET
+    "rs"         | KubernetesApiGroup.APPS       | KubernetesKind.REPLICA_SET
+
+  }
+
+  void "kinds from custom API groups do not return core Kubernetes kinds"() {
+    when:
+    def kind = KubernetesKind.from("replicaSet", KubernetesApiGroup.fromString("custom"))
+
+    then:
+    kind != KubernetesKind.REPLICA_SET
   }
 
   @Unroll

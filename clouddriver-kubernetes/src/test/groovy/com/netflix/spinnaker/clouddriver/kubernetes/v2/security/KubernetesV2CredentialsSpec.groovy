@@ -19,8 +19,11 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.security
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.ResourcePropertyRegistry
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.GlobalKubernetesKindRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiGroup
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKindProperties
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKindRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor
 import spock.lang.Specification
 
@@ -29,10 +32,13 @@ class KubernetesV2CredentialsSpec extends Specification {
   KubectlJobExecutor kubectlJobExecutor = Stub(KubectlJobExecutor)
   String NAMESPACE = "my-namespace"
   ResourcePropertyRegistry resourcePropertyRegistry = Mock(ResourcePropertyRegistry)
+  KubernetesKindRegistry.Factory kindRegistryFactory = new KubernetesKindRegistry.Factory(
+    new GlobalKubernetesKindRegistry(KubernetesKindProperties.getGlobalKindProperties())
+  )
 
 
   private buildCredentials(KubernetesConfigurationProperties.ManagedAccount managedAccount) {
-    return new KubernetesV2Credentials(registry, kubectlJobExecutor, managedAccount, resourcePropertyRegistry, null)
+    return new KubernetesV2Credentials(registry, kubectlJobExecutor, managedAccount, resourcePropertyRegistry, kindRegistryFactory.create(), null)
   }
 
   void "Built-in Kubernetes kinds are considered valid by default"() {
@@ -112,7 +118,7 @@ class KubernetesV2CredentialsSpec extends Specification {
 
     kubectlJobExecutor.apiResources(_) >> {
       return [
-        new KubernetesKind.ScopedKind("Deployment", KubernetesApiGroup.APPS)
+        KubernetesKind.from("Deployment", KubernetesApiGroup.APPS)
       ]
     }
 
@@ -138,8 +144,8 @@ class KubernetesV2CredentialsSpec extends Specification {
 
     kubectlJobExecutor.apiResources(_) >> {
       return [
-        new KubernetesKind.ScopedKind("Deployment", KubernetesApiGroup.APPS),
-        new KubernetesKind.ScopedKind("ReplicaSet", KubernetesApiGroup.APPS)
+        KubernetesKind.from("Deployment", KubernetesApiGroup.APPS),
+        KubernetesKind.from("ReplicaSet", KubernetesApiGroup.APPS)
       ]
     }
 

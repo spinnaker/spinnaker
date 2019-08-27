@@ -35,6 +35,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPod
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.ResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiGroup;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKindProperties;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKindRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor.KubectlException;
@@ -115,22 +117,38 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   private final Supplier<List<String>> liveNamespaceSupplier;
   private final Supplier<List<KubernetesKind>> liveCrdSupplier;
   @Getter private final ResourcePropertyRegistry resourcePropertyRegistry;
+  @Getter private final KubernetesKindRegistry kindRegistry;
 
   public KubernetesV2Credentials(
       Registry registry,
       KubectlJobExecutor jobExecutor,
       KubernetesConfigurationProperties.ManagedAccount managedAccount,
       ResourcePropertyRegistry resourcePropertyRegistry,
+      KubernetesKindRegistry kindRegistry,
       String kubeconfigFile) {
     this.registry = registry;
     this.clock = registry.clock();
     this.jobExecutor = jobExecutor;
     this.resourcePropertyRegistry = resourcePropertyRegistry;
+    this.kindRegistry = kindRegistry;
 
     this.accountName = managedAccount.getName();
     this.namespaces = managedAccount.getNamespaces();
     this.omitNamespaces = managedAccount.getOmitNamespaces();
-    this.kinds = KubernetesKind.getOrRegisterKinds(managedAccount.getKinds());
+    this.kinds =
+        managedAccount.getKinds().stream()
+            .map(KubernetesKind::fromString)
+            .map(
+                k ->
+                    kindRegistry.getOrRegisterKind(
+                        k,
+                        () -> {
+                          log.info(
+                              "Dynamically registering {}, (namespaced: {})", k.toString(), true);
+                          return new KubernetesKindProperties(k, true, false, true);
+                        }))
+            .map(KubernetesKindProperties::getKubernetesKind)
+            .collect(Collectors.toList());
     // omitKinds is a simple placeholder that we can use to compare one instance to another
     // when refreshing credentials.
     this.omitKinds = managedAccount.getOmitKinds();
@@ -205,9 +223,19 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
                               KubernetesApiGroup.fromString(group);
                           boolean isNamespaced = scope.equalsIgnoreCase("namespaced");
 
-                          return KubernetesKind.getOrRegisterKind(
-                              name, isNamespaced, kubernetesApiGroup);
+                          KubernetesKind kind = KubernetesKind.from(name, kubernetesApiGroup);
+                          return kindRegistry.getOrRegisterKind(
+                              kind,
+                              () -> {
+                                log.info(
+                                    "Dynamically registering {}, (namespaced: {})",
+                                    kind.toString(),
+                                    isNamespaced);
+                                return new KubernetesKindProperties(
+                                    kind, isNamespaced, false, true);
+                              });
                         })
+                    .map(KubernetesKindProperties::getKubernetesKind)
                     .collect(Collectors.toList());
               } catch (KubectlException e) {
                 // not logging here -- it will generate a lot of noise in cases where crds aren't
@@ -366,7 +394,10 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     // otherwise, checking all namespaces for all kinds is too expensive in large clusters (imagine
     // a cluster with 100s of namespaces).
     String checkNamespace = namespaces.get(0);
-    List<KubernetesKind> allKinds = KubernetesKind.getRegisteredKinds();
+    List<KubernetesKind> allKinds =
+        kindRegistry.getRegisteredKinds().stream()
+            .map(KubernetesKindProperties::getKubernetesKind)
+            .collect(Collectors.toList());
 
     log.info(
         "Checking permissions on configured kinds for account {}... {}", accountName, allKinds);
@@ -374,12 +405,12 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
 
     // compute list of kinds we explicitly know the server doesn't support
     try {
-      Set<KubernetesKind.ScopedKind> availableResources = jobExecutor.apiResources(this);
+      Set<KubernetesKind> availableResources = jobExecutor.apiResources(this);
       Map<KubernetesKind, InvalidKindReason> unavailableKinds =
           allKinds.stream()
               .filter(Objects::nonNull)
               .filter(k -> !k.equals(KubernetesKind.NONE))
-              .filter(k -> !availableResources.contains(k.getScopedKind()))
+              .filter(k -> !availableResources.contains(k))
               .collect(Collectors.toConcurrentMap(k -> k, k -> InvalidKindReason.READ_ERROR));
 
       omitKindsComputed.putAll(unavailableKinds);
@@ -392,9 +423,13 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
             .parallelStream()
             .filter(Objects::nonNull)
             .filter(k -> !k.equals(KubernetesKind.NONE))
-            .filter(k -> !omitKindsComputed.keySet().contains(k))
+            .filter(k -> !omitKindsComputed.containsKey(k))
+            .map(kindRegistry::getRegisteredKind)
             .filter(k -> !canReadKind(k, checkNamespace))
-            .collect(Collectors.toConcurrentMap(k -> k, k -> InvalidKindReason.READ_ERROR));
+            .collect(
+                Collectors.toConcurrentMap(
+                    KubernetesKindProperties::getKubernetesKind,
+                    k -> InvalidKindReason.READ_ERROR));
     long endTime = System.nanoTime();
     long duration = (endTime - startTime) / 1000000;
     log.info("determineOmitKinds for account {} took {} ms", accountName, duration);
@@ -415,15 +450,15 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     }
   }
 
-  private boolean canReadKind(KubernetesKind kind, String checkNamespace) {
+  private boolean canReadKind(KubernetesKindProperties kind, String checkNamespace) {
     log.info("Checking if {} is readable in account '{}'...", kind, accountName);
     boolean allowed;
     if (kind.isNamespaced()) {
       allowed =
           jobExecutor.authCanINamespaced(
-              this, checkNamespace, kind.getScopedKind().getName(), "list");
+              this, checkNamespace, kind.getKubernetesKind().getName(), "list");
     } else {
-      allowed = jobExecutor.authCanI(this, kind.getScopedKind().getName(), "list");
+      allowed = jobExecutor.authCanI(this, kind.getKubernetesKind().getName(), "list");
     }
 
     if (!allowed) {

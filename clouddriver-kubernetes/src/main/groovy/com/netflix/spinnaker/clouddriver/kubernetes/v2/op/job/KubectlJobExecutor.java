@@ -568,7 +568,7 @@ public class KubectlJobExecutor {
     return status.getOutput();
   }
 
-  public Set<KubernetesKind.ScopedKind> apiResources(KubernetesV2Credentials credentials) {
+  public Set<KubernetesKind> apiResources(KubernetesV2Credentials credentials) {
     List<String> command = kubectlAuthPrefix(credentials);
     command.add("api-resources");
 

@@ -16,117 +16,57 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description
 
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiGroup
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKindRegistry
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.*
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
 class KubernetesKindRegistrySpec extends Specification {
   static final KubernetesApiGroup CUSTOM_API_GROUP =  KubernetesApiGroup.fromString("test")
-  static final KubernetesKind CUSTOM_KIND = KubernetesKind.fromString("customKind", CUSTOM_API_GROUP)
+  static final KubernetesKind CUSTOM_KIND = KubernetesKind.from("customKind", CUSTOM_API_GROUP)
+  static final KubernetesKindProperties REPLICA_SET_PROPERTIES = KubernetesKindProperties.withDefaultProperties(KubernetesKind.REPLICA_SET)
+  static final KubernetesKindProperties CUSTOM_KIND_PROPERTIES = new KubernetesKindProperties(CUSTOM_KIND, true, true, true)
+
+  final GlobalKubernetesKindRegistry globalRegistry = Mock(GlobalKubernetesKindRegistry)
+  final KubernetesKindRegistry.Factory factory = new KubernetesKindRegistry.Factory(globalRegistry)
 
   @Unroll
-  void "kinds from core API groups are returned if any core API group is input"() {
+  void "getRegisteredKind returns kinds that have been registered, and falls back to the global registry otherwise"() {
     given:
-    @Subject KubernetesKindRegistry kindRegistry = new KubernetesKindRegistry()
-    kindRegistry.registerKind(KubernetesKind.REPLICA_SET)
+    @Subject KubernetesKindRegistry kindRegistry = factory.create()
+    KubernetesKindProperties result
+    KubernetesKindProperties globalResult = new KubernetesKindProperties(CUSTOM_KIND, false, false, false)
 
     when:
-    def kind = kindRegistry.getRegisteredKind(name, apiGroup)
+    result = kindRegistry.getRegisteredKind(CUSTOM_KIND)
 
     then:
-    result == kind.orElse(null)
+    1 * globalRegistry.getRegisteredKind(CUSTOM_KIND) >> globalResult
+    result == globalResult
 
-    where:
-    name         | apiGroup                      | result
-    "replicaSet" | null                          | KubernetesKind.REPLICA_SET
-    "replicaSet" | KubernetesApiGroup.APPS       | KubernetesKind.REPLICA_SET
-    "replicaSet" | KubernetesApiGroup.EXTENSIONS | KubernetesKind.REPLICA_SET
-    "replicaSet" | CUSTOM_API_GROUP              | null
-    "rs"         | null                          | KubernetesKind.REPLICA_SET
-    "rs"         | KubernetesApiGroup.APPS       | KubernetesKind.REPLICA_SET
-    "replicaSet" | KubernetesApiGroup.EXTENSIONS | KubernetesKind.REPLICA_SET
-    "replicaSet" | CUSTOM_API_GROUP              | null
+    when:
+    kindRegistry.registerKind(CUSTOM_KIND_PROPERTIES)
+    result = kindRegistry.getRegisteredKind(CUSTOM_KIND)
 
+    then:
+    0 * kindRegistry.getRegisteredKind(CUSTOM_KIND)
+    result == CUSTOM_KIND_PROPERTIES
   }
 
   @Unroll
-  void "getRegisteredKind returns kinds that have been registered"() {
+  void "getRegisteredKinds returns all kinds that are registered, including global kinds"() {
     given:
-    @Subject KubernetesKindRegistry kindRegistry = new KubernetesKindRegistry()
-    KubernetesKind result
+    @Subject KubernetesKindRegistry kindRegistry = factory.create()
+    Collection<KubernetesKindProperties> kinds
 
     when:
-    result = kindRegistry.getRegisteredKind("customKind", CUSTOM_API_GROUP).orElse(null)
-
-    then:
-    result == null
-
-    when:
-    kindRegistry.registerKind(CUSTOM_KIND)
-    result = kindRegistry.getRegisteredKind("customKind", CUSTOM_API_GROUP).orElse(null)
-
-    then:
-    result == CUSTOM_KIND
-  }
-
-  @Unroll
-  void "getOrRegisterKind registers kinds that are not in the registry"() {
-    given:
-    @Subject KubernetesKindRegistry kindRegistry = new KubernetesKindRegistry()
-    KubernetesKind result
-
-    when:
-    result = kindRegistry.getOrRegisterKind("customKind", CUSTOM_API_GROUP, {CUSTOM_KIND})
-
-    then:
-    result == CUSTOM_KIND
-
-    when:
-    result = kindRegistry.getRegisteredKind("customKind", CUSTOM_API_GROUP).orElse(null)
-
-    then:
-    result == CUSTOM_KIND
-  }
-
-  @Unroll
-  void "getOrRegisterKind does not call the supplier for a kind that is already registered"() {
-    given:
-    @Subject KubernetesKindRegistry kindRegistry = new KubernetesKindRegistry()
-    kindRegistry.registerKind(CUSTOM_KIND)
-
-    when:
-    def result = kindRegistry.getOrRegisterKind("customKind", CUSTOM_API_GROUP, {
-      throw new Exception("Should not have called supplier")
-    })
-
-    then:
-    result == CUSTOM_KIND
-    noExceptionThrown()
-  }
-
-  @Unroll
-  void "getRegisteredKinds returns all kinds that are registered"() {
-    given:
-    @Subject KubernetesKindRegistry kindRegistry = new KubernetesKindRegistry()
-    Collection<KubernetesKind> kinds
-
-    when:
+    kindRegistry.registerKind(CUSTOM_KIND_PROPERTIES)
     kinds = kindRegistry.getRegisteredKinds()
 
     then:
-    kinds.isEmpty()
-
-    when:
-    kindRegistry.registerKind(KubernetesKind.REPLICA_SET)
-    kindRegistry.registerKind(CUSTOM_KIND)
-    kinds = kindRegistry.getRegisteredKinds()
-
-    then:
+    1 * globalRegistry.getRegisteredKinds() >> [REPLICA_SET_PROPERTIES]
     kinds.size() == 2
-    kinds.contains(KubernetesKind.REPLICA_SET)
-    kinds.contains(CUSTOM_KIND)
+    kinds.contains(REPLICA_SET_PROPERTIES)
+    kinds.contains(CUSTOM_KIND_PROPERTIES)
   }
 }

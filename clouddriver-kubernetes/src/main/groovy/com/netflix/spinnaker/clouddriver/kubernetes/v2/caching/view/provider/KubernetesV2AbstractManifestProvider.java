@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPod
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourceProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.ResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKindRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestAnnotater;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler;
@@ -33,6 +34,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -44,12 +46,18 @@ public abstract class KubernetesV2AbstractManifestProvider
     this.resourcePropertyResolver = resourcePropertyResolver;
   }
 
+  @Nonnull
   protected final ResourcePropertyRegistry getRegistry(String account) {
     return resourcePropertyResolver.getResourcePropertyRegistry(account);
   }
 
   protected Optional<KubernetesV2Credentials> getCredentials(String account) {
     return resourcePropertyResolver.getCredentials(account);
+  }
+
+  @Nonnull
+  protected KubernetesKindRegistry getKindRegistry(String account) {
+    return resourcePropertyResolver.getKindRegistry(account);
   }
 
   protected boolean isAccountRelevant(String account) {

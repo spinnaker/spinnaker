@@ -17,10 +17,12 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKindRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import java.util.Optional;
+import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -29,12 +31,15 @@ import org.springframework.stereotype.Component;
 public class KubernetesAccountResolver {
   private final AccountCredentialsRepository credentialsRepository;
   private final ResourcePropertyRegistry globalResourcePropertyRegistry;
+  private final KubernetesKindRegistry.Factory kindRegistryFactory;
 
   public KubernetesAccountResolver(
       AccountCredentialsRepository credentialsRepository,
-      ResourcePropertyRegistry globalResourcePropertyRegistry) {
+      ResourcePropertyRegistry globalResourcePropertyRegistry,
+      KubernetesKindRegistry.Factory kindRegistryFactory) {
     this.credentialsRepository = credentialsRepository;
     this.globalResourcePropertyRegistry = globalResourcePropertyRegistry;
+    this.kindRegistryFactory = kindRegistryFactory;
   }
 
   public Optional<KubernetesV2Credentials> getCredentials(String account) {
@@ -46,9 +51,17 @@ public class KubernetesAccountResolver {
         .map(c -> (KubernetesV2Credentials) c);
   }
 
+  @Nonnull
   public ResourcePropertyRegistry getResourcePropertyRegistry(String account) {
     return getCredentials(account)
         .map(KubernetesV2Credentials::getResourcePropertyRegistry)
         .orElse(globalResourcePropertyRegistry);
+  }
+
+  @Nonnull
+  public KubernetesKindRegistry getKindRegistry(String account) {
+    return getCredentials(account)
+        .map(KubernetesV2Credentials::getKindRegistry)
+        .orElseGet(kindRegistryFactory::create);
   }
 }

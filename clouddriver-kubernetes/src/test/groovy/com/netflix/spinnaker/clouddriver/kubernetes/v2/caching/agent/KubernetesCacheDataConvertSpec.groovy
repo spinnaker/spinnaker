@@ -19,12 +19,14 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.CacheData
-import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPodMetric
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.GlobalKubernetesKindRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKindProperties
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKindRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestAnnotater
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.names.KubernetesManifestNamer
@@ -45,6 +47,10 @@ class KubernetesCacheDataConvertSpec extends Specification {
   KubernetesManifest stringToManifest(String input) {
     return mapper.convertValue(yaml.load(input), KubernetesManifest.class)
   }
+
+  KubernetesKindRegistry.Factory kindRegistryFactory = new KubernetesKindRegistry.Factory(
+    new GlobalKubernetesKindRegistry(KubernetesKindProperties.getGlobalKindProperties())
+  )
 
   @Unroll
   def "given a correctly annotated manifest, build attributes & infer relationships"() {
@@ -73,7 +79,7 @@ metadata:
 
     when:
     KubernetesCacheData kubernetesCacheData = new KubernetesCacheData()
-    KubernetesCacheDataConverter.convertAsResource(kubernetesCacheData, account, manifest, [], false)
+    KubernetesCacheDataConverter.convertAsResource(kubernetesCacheData, account, kindRegistryFactory.create(), manifest, [], false)
     def optional = kubernetesCacheData.toCacheData().stream().filter({
       cd -> cd.id == Keys.InfrastructureCacheKey.createKey(kind, account, namespace, name)
     }).findFirst()

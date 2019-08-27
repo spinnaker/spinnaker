@@ -34,8 +34,8 @@ mutatingwebhookconfigurations                  admissionregistration.k8s.io   fa
 
     then:
     [
-      new KubernetesKind.ScopedKind("Binding", KubernetesApiGroup.fromString("")),
-      new KubernetesKind.ScopedKind("MutatingWebhookConfiguration", KubernetesApiGroup.fromString("admissionregistration.k8s.io"))
+      KubernetesKind.from("Binding", KubernetesApiGroup.fromString("")),
+      KubernetesKind.from("MutatingWebhookConfiguration", KubernetesApiGroup.fromString("admissionregistration.k8s.io"))
     ] as Set == result
   }
 }

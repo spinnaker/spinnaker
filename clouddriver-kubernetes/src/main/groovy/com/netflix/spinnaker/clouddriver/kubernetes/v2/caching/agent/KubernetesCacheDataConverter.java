@@ -32,6 +32,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPod
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesCachingProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKindRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestAnnotater;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.names.KubernetesManifestNamer;
@@ -153,6 +154,7 @@ public class KubernetesCacheDataConverter {
   public static void convertAsResource(
       KubernetesCacheData kubernetesCacheData,
       String account,
+      KubernetesKindRegistry kindRegistry,
       KubernetesManifest manifest,
       List<KubernetesManifest> resourceRelationships,
       boolean onlySpinnakerManaged) {
@@ -166,7 +168,8 @@ public class KubernetesCacheDataConverter {
       return;
     }
 
-    logMalformedManifest(() -> "Converting " + manifest + " to a cached resource", manifest);
+    logMalformedManifest(
+        () -> "Converting " + manifest + " to a cached resource", manifest, kindRegistry);
 
     KubernetesKind kind = manifest.getKind();
 
@@ -205,7 +208,7 @@ public class KubernetesCacheDataConverter {
               + ":"
               + manifest.getFullResourceName());
     } else {
-      if (kind != null && kind.hasClusterRelationship()) {
+      if (kindRegistry.getRegisteredKind(kind).hasClusterRelationship()) {
         addLogicalRelationships(kubernetesCacheData, key, account, moniker);
       }
     }
@@ -304,7 +307,9 @@ public class KubernetesCacheDataConverter {
   }
 
   private static void logMalformedManifest(
-      Supplier<String> contextMessage, KubernetesManifest manifest) {
+      Supplier<String> contextMessage,
+      KubernetesManifest manifest,
+      KubernetesKindRegistry kindRegistry) {
     if (manifest == null) {
       log.warn("{}: manifest may not be null", contextMessage.get());
       return;
@@ -318,7 +323,8 @@ public class KubernetesCacheDataConverter {
       log.warn("{}: manifest name may not be null, {}", contextMessage.get(), manifest);
     }
 
-    if (StringUtils.isEmpty(manifest.getNamespace()) && manifest.getKind().isNamespaced()) {
+    if (StringUtils.isEmpty(manifest.getNamespace())
+        && kindRegistry.getRegisteredKind(manifest.getKind()).isNamespaced()) {
       log.warn("{}: manifest namespace may not be null, {}", contextMessage.get(), manifest);
     }
   }

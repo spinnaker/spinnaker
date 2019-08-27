@@ -23,7 +23,7 @@ import java.util.Set;
 
 public class KubernetesApiResourceParser {
 
-  public static Set<KubernetesKind.ScopedKind> parse(String input) {
+  public static Set<KubernetesKind> parse(String input) {
     String[] lines = input.trim().split("\n");
     String headerRow = lines[0];
     int nameIndex = headerRow.indexOf("NAME");
@@ -39,13 +39,13 @@ public class KubernetesApiResourceParser {
           "api-resources input not in the proper format. expected to find NAME header.");
     }
 
-    Set<KubernetesKind.ScopedKind> kinds = new HashSet<>();
+    Set<KubernetesKind> kinds = new HashSet<>();
 
     for (int i = 1; i < lines.length; i++) {
       String line = lines[i];
       String apiGroup = line.substring(apiGroupIndex, namespaceIndex).trim();
       String kind = line.substring(kindIndex).trim();
-      kinds.add(new KubernetesKind.ScopedKind(kind, KubernetesApiGroup.fromString(apiGroup)));
+      kinds.add(KubernetesKind.from(kind, KubernetesApiGroup.fromString(apiGroup)));
     }
 
     return kinds;

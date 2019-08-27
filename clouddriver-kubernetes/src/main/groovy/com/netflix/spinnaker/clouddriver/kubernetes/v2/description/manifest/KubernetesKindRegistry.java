@@ -19,79 +19,71 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Component;
 
 public class KubernetesKindRegistry {
-  private final Map<KubernetesKind.ScopedKind, KubernetesKind> nameMap = new ConcurrentHashMap<>();
-  private final Map<KubernetesKind.ScopedKind, KubernetesKind> aliasMap = new ConcurrentHashMap<>();
+  private final Map<KubernetesKind, KubernetesKindProperties> kindMap = new ConcurrentHashMap<>();
+  private final GlobalKubernetesKindRegistry globalKindRegistry;
 
-  /** Registers a given {@link KubernetesKind} into the registry and returns the kind */
-  @Nonnull
-  public synchronized KubernetesKind registerKind(@Nonnull KubernetesKind kind) {
-    nameMap.put(kind.getScopedKind(), kind);
-    if (kind.getAlias() != null) {
-      aliasMap.put(
-          new KubernetesKind.ScopedKind(kind.getAlias(), kind.getScopedKind().getApiGroup()), kind);
-    }
-    return kind;
+  private KubernetesKindRegistry(GlobalKubernetesKindRegistry globalKindRegistry) {
+    this.globalKindRegistry = globalKindRegistry;
+  }
+
+  /** Registers a given {@link KubernetesKindProperties} into the registry */
+  public void registerKind(@Nonnull KubernetesKindProperties kind) {
+    kindMap.put(kind.getKubernetesKind(), kind);
   }
 
   /**
-   * Searches the registry for a {@link KubernetesKind} with the supplied name and apiGroup. If a
-   * kind is found, it is returned. If no kind is found, the provided {@link Supplier}&lt;{@link
-   * KubernetesKind}&gt; is invoked and the resulting kind is registered.
-   *
-   * <p>This method is guaranteed to atomically check and register the kind.
+   * Searches the registry for a {@link KubernetesKindProperties} with the supplied {@link
+   * KubernetesKind}. If the kind has been registered, returns the {@link KubernetesKindProperties}
+   * that were registered for the kind; otherwise, calls the provided {@link Supplier} and registers
+   * the resulting {@link KubernetesKindProperties}.
    */
   @Nonnull
-  public synchronized KubernetesKind getOrRegisterKind(
-      @Nonnull final String name,
-      @Nullable final KubernetesApiGroup apiGroup,
-      @Nonnull Supplier<KubernetesKind> supplier) {
-    return getRegisteredKind(name, apiGroup).orElseGet(() -> registerKind(supplier.get()));
+  public KubernetesKindProperties getOrRegisterKind(
+      @Nonnull KubernetesKind kind, @Nonnull Supplier<KubernetesKindProperties> supplier) {
+    return kindMap.computeIfAbsent(kind, k -> supplier.get());
   }
 
   /**
-   * Searches the registry for a {@link KubernetesKind} with the supplied name and apiGroup. Returns
-   * an {@link Optional}&lt;{@link KubernetesKind}&gt; containing the kind, or an empty {@link
-   * Optional} if no kind is found.
-   *
-   * <p>Kinds whose API groups are different but are both is a native API groups (see {@link
-   * KubernetesApiGroup#isNativeGroup()}) are considered to match.
+   * Searches the registry for a {@link KubernetesKindProperties} with the supplied {@link
+   * KubernetesKind}. If the kind has been registered, returns the {@link KubernetesKindProperties}
+   * that were registered for the kind; otherwise, looks for the kind in the {@link
+   * GlobalKubernetesKindRegistry} and returns the properties found there.
    */
   @Nonnull
-  public Optional<KubernetesKind> getRegisteredKind(
-      @Nonnull final String name, @Nullable final KubernetesApiGroup apiGroup) {
-    if (StringUtils.isEmpty(name)) {
-      return Optional.of(KubernetesKind.NONE);
-    }
-
-    if (name.equalsIgnoreCase(KubernetesKind.NONE.toString())) {
-      throw new IllegalArgumentException("The 'NONE' kind cannot be read.");
-    }
-
-    KubernetesKind.ScopedKind searchKey = new KubernetesKind.ScopedKind(name, apiGroup);
-    KubernetesKind result = nameMap.get(searchKey);
+  public KubernetesKindProperties getRegisteredKind(@Nonnull KubernetesKind kind) {
+    KubernetesKindProperties result = kindMap.get(kind);
     if (result != null) {
-      return Optional.of(result);
+      return result;
     }
 
-    result = aliasMap.get(searchKey);
-    if (result != null) {
-      return Optional.of(result);
-    }
-
-    return Optional.empty();
+    return globalKindRegistry.getRegisteredKind(kind);
   }
 
   /** Returns a list of all registered kinds */
   @Nonnull
-  public List<KubernetesKind> getRegisteredKinds() {
-    return new ArrayList<>(nameMap.values());
+  public List<KubernetesKindProperties> getRegisteredKinds() {
+    List<KubernetesKindProperties> result = new ArrayList<>(kindMap.values());
+    result.addAll(globalKindRegistry.getRegisteredKinds());
+    return result;
+  }
+
+  @Component
+  public static class Factory {
+    private final GlobalKubernetesKindRegistry globalKindRegistry;
+
+    public Factory(GlobalKubernetesKindRegistry globalKindRegistry) {
+      this.globalKindRegistry = globalKindRegistry;
+    }
+
+    @Nonnull
+    public KubernetesKindRegistry create() {
+      return new KubernetesKindRegistry(globalKindRegistry);
+    }
   }
 }
