@@ -25,6 +25,7 @@ import com.netflix.spinnaker.kork.expressions.ExpressionFunctionProvider;
 import com.netflix.spinnaker.orca.StageResolver;
 import com.netflix.spinnaker.orca.Task;
 import com.netflix.spinnaker.orca.TaskResolver;
+import com.netflix.spinnaker.orca.api.SimpleStage;
 import com.netflix.spinnaker.orca.commands.ForceExecutionCancellationCommand;
 import com.netflix.spinnaker.orca.events.ExecutionEvent;
 import com.netflix.spinnaker.orca.events.ExecutionListenerAdapter;
@@ -40,8 +41,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import java.time.Clock;
 import java.time.Duration;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -187,8 +187,11 @@ public class OrcaConfiguration {
   }
 
   @Bean
-  public StageResolver stageResolver(Collection<StageDefinitionBuilder> stageDefinitionBuilders) {
-    return new StageResolver(stageDefinitionBuilders);
+  public StageResolver stageResolver(
+      Collection<StageDefinitionBuilder> stageDefinitionBuilders,
+      Optional<Collection<SimpleStage>> simpleStages) {
+    Collection<SimpleStage> stages = simpleStages.orElseGet(ArrayList::new);
+    return new StageResolver(stageDefinitionBuilders, stages);
   }
 
   @Bean(name = EVENT_LISTENER_FACTORY_BEAN_NAME)

@@ -19,6 +19,7 @@ apply from: "$rootDir/gradle/spek.gradle"
 
 dependencies {
   api(project(":orca-core"))
+  api(project(":orca-api"))
   implementation(project(":orca-kotlin"))
   implementation("org.jetbrains.kotlin:kotlin-reflect")
   implementation("com.netflix.spinnaker.keiko:keiko-spring:$keikoVersion")

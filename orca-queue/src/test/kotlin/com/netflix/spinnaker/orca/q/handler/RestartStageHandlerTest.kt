@@ -22,6 +22,9 @@ import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
 import com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL
 import com.netflix.spinnaker.orca.StageResolver
+import com.netflix.spinnaker.orca.api.SimpleStage
+import com.netflix.spinnaker.orca.api.SimpleStageInput
+import com.netflix.spinnaker.orca.api.SimpleStageOutput
 import com.netflix.spinnaker.orca.fixture.pipeline
 import com.netflix.spinnaker.orca.fixture.stage
 import com.netflix.spinnaker.orca.pipeline.DefaultStageDefinitionBuilderFactory
@@ -77,6 +80,14 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
   val pendingExecutionService: PendingExecutionService = mock()
   val clock = fixedClock()
 
+  val emptyApiStage = object : SimpleStage<Object> {
+    override fun getName() = "emptyApiStage"
+
+    override fun execute(simpleStageInput: SimpleStageInput<Object>): SimpleStageOutput<Any, Any> {
+      return SimpleStageOutput()
+    }
+  }
+
   subject(GROUP) {
     RestartStageHandler(
       queue,
@@ -87,6 +98,9 @@ object RestartStageHandlerTest : SubjectSpek<RestartStageHandler>({
             singleTaskStage,
             stageWithSyntheticBefore,
             stageWithNestedSynthetics
+          ),
+          listOf(
+            emptyApiStage
           )
         )
       ),

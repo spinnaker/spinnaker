@@ -33,6 +33,7 @@ dependencies {
   implementation("net.logstash.logback:logstash-logback-encoder")
 
   implementation(project(":orca-core"))
+  implementation(project(":orca-api"))
   implementation(project(":orca-redis"))
   implementation(project(":orca-bakery"))
   implementation(project(":orca-clouddriver"))

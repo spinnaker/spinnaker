@@ -16,6 +16,7 @@
 
 include "orca-extensionpoint",
   "orca-core",
+  "orca-api",
   "orca-core-tck",
   "orca-redis",
   "orca-test-redis",
