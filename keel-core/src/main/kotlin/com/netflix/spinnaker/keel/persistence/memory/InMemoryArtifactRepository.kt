@@ -45,9 +45,9 @@ class InMemoryArtifactRepository : ArtifactRepository {
     artifact: DeliveryArtifact,
     version: String,
     targetEnvironment: String
-  ) {
+  ): Boolean {
     val key = Triple(artifact, deliveryConfig, targetEnvironment)
-    approvedVersions[key] = version
+    return approvedVersions.put(key, version) != version
   }
 
   override fun latestVersionApprovedIn(

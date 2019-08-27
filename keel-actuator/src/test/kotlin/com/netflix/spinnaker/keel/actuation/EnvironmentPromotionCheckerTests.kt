@@ -75,8 +75,8 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
         } returns listOf("2.0", "1.2", "1.1", "1.0")
 
         every {
-          artifactRepository.latestVersionApprovedIn(deliveryConfig, artifact, environment.name)
-        } returns "1.0"
+          artifactRepository.approveVersionFor(deliveryConfig, artifact, "2.0", environment.name)
+        } returns true
       }
 
       context("there are no constraints on the environment") {
@@ -109,17 +109,11 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
       context("the latest version of the artifact was already approved for this environment") {
         before {
           every {
-            artifactRepository.latestVersionApprovedIn(deliveryConfig, artifact, environment.name)
-          } returns "2.0"
+            artifactRepository.approveVersionFor(deliveryConfig, artifact, "2.0", environment.name)
+          } returns false
 
           runBlocking {
             subject.checkEnvironments(deliveryConfig)
-          }
-        }
-
-        test("the environment is not assigned a new version") {
-          verify(exactly = 0) {
-            artifactRepository.approveVersionFor(any(), any(), any(), any())
           }
         }
 
@@ -145,8 +139,8 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
           } returns listOf("2.0", "1.2", "1.1", "1.0")
 
           every {
-            artifactRepository.latestVersionApprovedIn(deliveryConfig, artifact, environment.name)
-          } returns "1.0"
+            artifactRepository.approveVersionFor(deliveryConfig, artifact, "1.2", environment.name)
+          } returns true
 
           every { constraintEvaluator.canPromote(artifact, "2.0", deliveryConfig, environment.name) } returns false
           every { constraintEvaluator.canPromote(artifact, "1.2", deliveryConfig, environment.name) } returns true

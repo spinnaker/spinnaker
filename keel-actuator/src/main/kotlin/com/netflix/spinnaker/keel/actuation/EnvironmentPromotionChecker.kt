@@ -34,7 +34,10 @@ class EnvironmentPromotionChecker(
                 }
               }
             }
-            if (artifactRepository.latestVersionApprovedIn(deliveryConfig, artifact, environment.name) != version) {
+
+            val isNewVersion = artifactRepository
+              .approveVersionFor(deliveryConfig, artifact, version, environment.name)
+            if (isNewVersion) {
               log.info(
                 "Approved {} {} version {} for {} environment {} in {}",
                 artifact.name,
@@ -44,8 +47,16 @@ class EnvironmentPromotionChecker(
                 environment.name,
                 deliveryConfig.application
               )
-              publisher.publishEvent(ArtifactVersionApproved(deliveryConfig.application, deliveryConfig.name, environment.name, artifact.name, artifact.type, version))
-              artifactRepository.approveVersionFor(deliveryConfig, artifact, version, environment.name)
+              publisher.publishEvent(
+                ArtifactVersionApproved(
+                  deliveryConfig.application,
+                  deliveryConfig.name,
+                  environment.name,
+                  artifact.name,
+                  artifact.type,
+                  version
+                )
+              )
             }
           }
         }

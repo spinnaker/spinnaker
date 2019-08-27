@@ -31,13 +31,16 @@ interface ArtifactRepository {
    * Marks [version] as approved for deployment to [targetEnvironment]. This means it has passed
    * any constraints on the environment and may be selected for use in the desired state of any
    * clusters in the environment.
+   *
+   * @return `true` if the approved version for the environment changed, `false` if this version was
+   * _already_ approved.
    */
   fun approveVersionFor(
     deliveryConfig: DeliveryConfig,
     artifact: DeliveryArtifact,
     version: String,
     targetEnvironment: String
-  )
+  ): Boolean
 
   /**
    * @return `true` if [version] has (previously or currently) been deployed successfully to

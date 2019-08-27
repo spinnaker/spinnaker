@@ -6,6 +6,7 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.containsExactly
@@ -15,6 +16,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isNull
 import strikt.assertions.isTrue
+import strikt.assertions.succeeded
 
 abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests {
   abstract fun factory(): T
@@ -135,6 +137,22 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
         test("the version is not considered successfully deployed yet") {
           expectThat(subject.wasSuccessfullyDeployedTo(manifest, artifact1, version1_0, environment1.name))
             .isFalse()
+        }
+
+        test("promoting the same version again returns false") {
+          expectCatching {
+            subject.approveVersionFor(manifest, artifact1, version1_0, environment1.name)
+          }
+            .succeeded()
+            .isFalse()
+        }
+
+        test("promoting a new version returns true") {
+          expectCatching {
+            subject.approveVersionFor(manifest, artifact1, version1_1, environment1.name)
+          }
+            .succeeded()
+            .isTrue()
         }
 
         context("the version is marked as successfully deployed") {

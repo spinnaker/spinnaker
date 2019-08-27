@@ -96,17 +96,16 @@ class SqlArtifactRepository(
     artifact: DeliveryArtifact,
     version: String,
     targetEnvironment: String
-  ) {
+  ): Boolean {
     val environment = deliveryConfig.environmentNamed(targetEnvironment)
-    jooq
+    return jooq
       .insertInto(ENVIRONMENT_ARTIFACT_VERSIONS)
       .set(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID, deliveryConfig.getUidFor(environment))
       .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID, artifact.uid)
       .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION, version)
       .set(ENVIRONMENT_ARTIFACT_VERSIONS.APPROVED_AT, currentTimestamp())
-      .onDuplicateKeyUpdate()
-      .set(ENVIRONMENT_ARTIFACT_VERSIONS.APPROVED_AT, currentTimestamp())
-      .execute()
+      .onDuplicateKeyIgnore()
+      .execute() > 0
   }
 
   override fun wasSuccessfullyDeployedTo(
