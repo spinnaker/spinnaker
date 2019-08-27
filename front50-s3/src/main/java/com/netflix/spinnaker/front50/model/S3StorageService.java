@@ -46,6 +46,7 @@ public class S3StorageService implements StorageService {
   private final String region;
   private final Boolean versioning;
   private final Integer maxKeys;
+  private final ServerSideEncryption serverSideEncryption;
 
   public S3StorageService(
       ObjectMapper objectMapper,
@@ -55,7 +56,8 @@ public class S3StorageService implements StorageService {
       Boolean readOnlyMode,
       String region,
       Boolean versioning,
-      Integer maxKeys) {
+      Integer maxKeys,
+      ServerSideEncryption serverSideEncryption) {
     this.objectMapper = objectMapper;
     this.amazonS3 = amazonS3;
     this.bucket = bucket;
@@ -64,6 +66,7 @@ public class S3StorageService implements StorageService {
     this.region = region;
     this.versioning = versioning;
     this.maxKeys = maxKeys;
+    this.serverSideEncryption = serverSideEncryption;
   }
 
   @Override
@@ -170,6 +173,14 @@ public class S3StorageService implements StorageService {
       objectMetadata.setContentLength(bytes.length);
       objectMetadata.setContentMD5(
           new String(org.apache.commons.codec.binary.Base64.encodeBase64(DigestUtils.md5(bytes))));
+
+      if (serverSideEncryption != null
+          && serverSideEncryption.equals(ServerSideEncryption.AES256)) {
+        objectMetadata.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
+      } else if (serverSideEncryption != null
+          && serverSideEncryption.equals(ServerSideEncryption.AWSKMS)) {
+        objectMetadata.setSSEAlgorithm(SSEAlgorithm.KMS.getAlgorithm());
+      }
 
       amazonS3.putObject(
           bucket,
@@ -281,6 +292,11 @@ public class S3StorageService implements StorageService {
     return Duration.ofSeconds(2).toMillis();
   }
 
+  public enum ServerSideEncryption {
+    AWSKMS,
+    AES256
+  }
+
   private void writeLastModified(String group) {
     if (readOnlyMode) {
       throw new ReadOnlyModeException();
@@ -294,6 +310,14 @@ public class S3StorageService implements StorageService {
       objectMetadata.setContentLength(bytes.length);
       objectMetadata.setContentMD5(
           new String(org.apache.commons.codec.binary.Base64.encodeBase64(DigestUtils.md5(bytes))));
+
+      if (serverSideEncryption != null
+          && serverSideEncryption.equals(ServerSideEncryption.AES256)) {
+        objectMetadata.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
+      } else if (serverSideEncryption != null
+          && serverSideEncryption.equals(ServerSideEncryption.AWSKMS)) {
+        objectMetadata.setSSEAlgorithm(SSEAlgorithm.KMS.getAlgorithm());
+      }
 
       amazonS3.putObject(
           bucket,

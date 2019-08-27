@@ -379,7 +379,7 @@ class S3ApplicationsControllerTck extends ApplicationsControllerTck {
     amazonS3.setEndpoint("http://127.0.0.1:9999")
     S3TestHelper.setupBucket(amazonS3, "front50")
 
-    def storageService = new S3StorageService(new ObjectMapper(), amazonS3, "front50", "test", false, "us_east1", true, 10000)
+    def storageService = new S3StorageService(new ObjectMapper(), amazonS3, "front50", "test", false, "us_east1", true, 10000, null)
     applicationDAO = new DefaultApplicationDAO(storageService, scheduler, new DefaultObjectKeyLoader(storageService), 0, false, new NoopRegistry())
     return applicationDAO
   }

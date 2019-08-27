@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.front50.config;
 
+import com.netflix.spinnaker.front50.model.S3StorageService.ServerSideEncryption;
+
 public class S3BucketProperties {
   private String bucket;
   private String region;
@@ -28,6 +30,7 @@ public class S3BucketProperties {
   private String proxyProtocol;
   private Boolean versioning = true; // enabled by default
   private Boolean pathStyleAccess = true; // enable by default
+  private ServerSideEncryption serverSideEncryption; // options are "AWSKMS" and "AES256"
 
   public String getBucket() {
     return bucket;
@@ -99,5 +102,13 @@ public class S3BucketProperties {
 
   public void setPathStyleAccess(Boolean pathStyleAccess) {
     this.pathStyleAccess = pathStyleAccess;
+  }
+
+  public ServerSideEncryption getServerSideEncryption() {
+    return serverSideEncryption;
+  }
+
+  public void setServerSideEncryption(ServerSideEncryption serverSideEncryption) {
+    this.serverSideEncryption = serverSideEncryption;
   }
 }

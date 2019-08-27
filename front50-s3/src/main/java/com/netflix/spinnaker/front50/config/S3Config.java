@@ -150,7 +150,8 @@ public class S3Config extends CommonStorageServiceDAOConfig {
             s3Properties.isFailoverEnabled(),
             s3Properties.getRegion(),
             s3Properties.getVersioning(),
-            s3Properties.getMaxKeys());
+            s3Properties.getMaxKeys(),
+            s3Properties.getServerSideEncryption());
     service.ensureBucketExists();
 
     return service;
