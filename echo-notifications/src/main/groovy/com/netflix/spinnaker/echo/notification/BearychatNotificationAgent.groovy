@@ -94,7 +94,7 @@ class BearychatNotificationAgent extends AbstractEventNotificationAgent {
         attachments: "" ))
 
     } catch (Exception e) {
-      log.error('failed to send slack message ', e)
+      log.error('failed to send bearychat message ', e)
     }
   }
 }
