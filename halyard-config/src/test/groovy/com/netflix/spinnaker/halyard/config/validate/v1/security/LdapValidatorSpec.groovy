@@ -32,11 +32,13 @@ class LdapValidatorSpec extends Specification {
     problemSet.empty
 
     where:
-    description         | enabled | ldapUrl                     | userDnPattern  | userSearchBase | userSearchFilter | managerDn | managerPassword | groupSearchBase
-    "not enabled"       | false   | null                        | null           | null           | null             | null      | null            | null
-    "user DN pattern"   | true    | "ldaps://ldap.some.com:123" | "some pattern" | null           | null             | null      | null            | null
-    "search and filter" | true    | "ldap://ldap.some.com:123"  | null           | "sub"          | "ou=foo"         | null      | null            | null
-    "search and filter" | true    | "ldap://ldap.some.com:123"  | null           | "sub"          | "ou=foo"         | "admin"   | "secret"        | "ou=company"
+    description                | enabled | ldapUrl                             | userDnPattern  | userSearchBase | userSearchFilter | managerDn | managerPassword | groupSearchBase
+    "not enabled"              | false   | null                                | null           | null           | null             | null      | null            | null
+    "user DN pattern"          | true    | "ldaps://ldap.some.com:123"         | "some pattern" | null           | null             | null      | null            | null
+    "search and filter"        | true    | "ldap://ldap.some.com:123"          | null           | "sub"          | "ou=foo"         | null      | null            | null
+    "search and filter"        | true    | "ldap://ldap.some.com:123"          | null           | "sub"          | "ou=foo"         | "admin"   | "secret"        | "ou=company"
+    "search and root in url"   | true    | "ldap://ldap.some.com:123/root_dn"  | null           | null           | "ou=foo"         | "admin"   | "secret"        | "ou=company"
+    "search and root no mgr"   | true    | "ldap://ldap.some.com:123/root_dn"  | null           | null           | "ou=foo"         | null      | null            | "ou=company"
   }
 
   @Unroll
