@@ -1,7 +1,7 @@
 @font-face {
   font-family: 'icomoon';
-  src: url('fonts/icomoon.woff2?x2k723') format('woff2'), url('fonts/icomoon.ttf?x2k723') format('truetype'),
-    url('fonts/icomoon.woff?x2k723') format('woff'), url('fonts/icomoon.svg?x2k723#icomoon') format('svg');
+  src: url('fonts/icomoon.woff2?2dhlzx') format('woff2'), url('fonts/icomoon.ttf?2dhlzx') format('truetype'),
+    url('fonts/icomoon.woff?2dhlzx') format('woff'), url('fonts/icomoon.svg?2dhlzx#icomoon') format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -22,17 +22,11 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-.icon-arrow-button-down:before {
-  content: '\e90e';
+.icon-illuminated-sm:before {
+  content: '\e932';
 }
-.icon-arrow-button-right:before {
-  content: '\e92f';
-}
-.icon-arrow-down-1:before {
-  content: '\e930';
-}
-.icon-arrow-up-1:before {
-  content: '\e931';
+.icon-illuminated:before {
+  content: '\e933';
 }
 .icon-maps-mark:before {
   content: '\e90d';
@@ -127,12 +121,6 @@
 .icon-view-1:before {
   content: '\e90a';
 }
-.icon-sitemap:before {
-  content: '\e910';
-}
-.icon-spinner:before {
-  content: '\e911';
-}
 .icon-navigation-left-circle:before {
   content: '\e912';
 }
@@ -174,4 +162,22 @@
 }
 .icon-critical:before {
   content: '\e902';
+}
+.icon-sitemap:before {
+  content: '\e910';
+}
+.icon-spinner:before {
+  content: '\e911';
+}
+.icon-arrow-button-down:before {
+  content: '\e90e';
+}
+.icon-arrow-button-right:before {
+  content: '\e92f';
+}
+.icon-arrow-down-1:before {
+  content: '\e930';
+}
+.icon-arrow-up-1:before {
+  content: '\e931';
 }
