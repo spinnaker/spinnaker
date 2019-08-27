@@ -34,6 +34,7 @@ class IgorConfigurationProperties {
 
         @Canonical
         static class BuildProperties {
+            boolean pollingEnabled = true
             int pollInterval = 60 /* seconds */
             int lookBackWindowMins = 10
             boolean handleFirstBuilds = true

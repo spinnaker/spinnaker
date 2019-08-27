@@ -85,25 +85,28 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
 
   @Override
   public void onApplicationEvent(RemoteStatusChangedEvent event) {
-    log.info("Started");
+    if (!isPollingEnabled()) {
+      log.info("Polling disabled, not scheduling periodic work");
+      return;
+    }
+
     initialize();
     worker.schedulePeriodically(
-        () -> {
-          registry
-              .timer(pollCycleTimingId.withTag("monitor", getClass().getSimpleName()))
-              .record(
-                  () -> {
-                    if (isInService()) {
-                      poll(true);
-                      lastPoll.set(System.currentTimeMillis());
-                    } else {
-                      log.info(
-                          "not in service (lastPoll: {})",
-                          (lastPoll == null) ? "n/a" : lastPoll.toString());
-                      lastPoll.set(0);
-                    }
-                  });
-        },
+        () ->
+            registry
+                .timer(pollCycleTimingId.withTag("monitor", getClass().getSimpleName()))
+                .record(
+                    () -> {
+                      if (isInService()) {
+                        poll(true);
+                        lastPoll.set(System.currentTimeMillis());
+                      } else {
+                        log.info(
+                            "not in service (lastPoll: {})",
+                            (lastPoll == null) ? "n/a" : lastPoll.toString());
+                        lastPoll.set(0);
+                      }
+                    }),
         0,
         getPollInterval(),
         TimeUnit.SECONDS);
@@ -219,19 +222,29 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
 
   @Override
   public boolean isInService() {
+    if (!isPollingEnabled()) {
+      log.info("not in service because spinnaker.build.pollingEnabled is set to false");
+      return false;
+    }
+
     if (discoveryClient.isPresent()) {
       InstanceStatus remoteStatus = discoveryClient.get().getInstanceRemoteStatus();
       log.info("current remote status {}", remoteStatus);
       return remoteStatus == InstanceStatus.UP;
-    } else {
-      log.info("no DiscoveryClient, assuming InService");
-      return true;
     }
+
+    log.info("no DiscoveryClient, assuming InService");
+    return true;
   }
 
   @Override
   public int getPollInterval() {
     return igorProperties.getSpinnaker().getBuild().getPollInterval();
+  }
+
+  @Override
+  public boolean isPollingEnabled() {
+    return igorProperties.getSpinnaker().getBuild().isPollingEnabled();
   }
 
   @Override

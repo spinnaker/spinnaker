@@ -49,7 +49,7 @@ import static net.logstash.logback.argument.StructuredArguments.kv
  */
 @Service
 @SuppressWarnings('CatchException')
-@ConditionalOnProperty('jenkins.enabled && ${jenkins.poller.enabled:true}')
+@ConditionalOnProperty('jenkins.enabled')
 class JenkinsBuildMonitor extends CommonPollingMonitor<JobDelta, JobPollingDelta> {
 
     private final JenkinsCache cache

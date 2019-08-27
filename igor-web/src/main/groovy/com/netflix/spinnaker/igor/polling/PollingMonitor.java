@@ -28,4 +28,6 @@ public interface PollingMonitor extends ApplicationListener<RemoteStatusChangedE
   Long getLastPoll();
 
   int getPollInterval();
+
+  boolean isPollingEnabled();
 }
