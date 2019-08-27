@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver
 
-
 import com.google.common.hash.Hashing
 import com.netflix.spinnaker.orca.ExecutionContext
 import com.netflix.spinnaker.orca.clouddriver.model.Task
@@ -56,10 +55,8 @@ class KatoService {
 
   private static String requestId(Object payload) {
     final ExecutionContext context = ExecutionContext.get()
-    return "${context.getStageId()}-${context.getStageStartTime()}-${requestHash(payload)}".toString()
-  }
-
-  private static String requestHash(Object payload) {
-    return Hashing.sha256().hashBytes(OrcaObjectMapper.getInstance().writeValueAsBytes(payload))
+    final byte[] payloadBytes = OrcaObjectMapper.getInstance().writeValueAsBytes(payload)
+    return Hashing.sha256().hashBytes(
+      "${context.getStageId()}-${context.getStageStartTime()}-${payloadBytes}".toString().bytes)
   }
 }
