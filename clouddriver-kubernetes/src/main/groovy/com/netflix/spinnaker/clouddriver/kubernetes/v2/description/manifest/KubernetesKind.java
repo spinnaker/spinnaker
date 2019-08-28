@@ -115,6 +115,7 @@ public class KubernetesKind {
   private static KubernetesKind createWithAlias(
       @Nonnull String name, @Nullable String alias, @Nullable KubernetesApiGroup apiGroup) {
     KubernetesKind kind = new KubernetesKind(name, apiGroup);
+    aliasMap.put(kind, kind);
     if (alias != null) {
       aliasMap.put(new KubernetesKind(alias, apiGroup), kind);
     }
@@ -147,8 +148,8 @@ public class KubernetesKind {
   @Override
   public String toString() {
     if (apiGroup.isNativeGroup()) {
-      return lcName;
+      return name;
     }
-    return lcName + "." + apiGroup.toString();
+    return name + "." + apiGroup.toString();
   }
 }

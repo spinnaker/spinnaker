@@ -114,7 +114,7 @@ class KubernetesCacheDataSpec extends Specification {
     def application = cacheData.stream().filter({cd -> cd.id == APPLICATION_KEY.toString()}).findFirst().get()
     // Ensure that the default "name" key was added to the logical key
     application.attributes.get("name") == "app"
-    def applicationRelationships = application.relationships.get("replicaset") as Collection<String>
+    def applicationRelationships = application.relationships.get("replicaSet") as Collection<String>
     applicationRelationships.size() == 1
     applicationRelationships.contains(REPLICA_SET_KEY.toString())
   }
