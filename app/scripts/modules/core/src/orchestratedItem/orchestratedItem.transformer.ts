@@ -173,7 +173,7 @@ export class OrchestratedItemTransformer {
     if (generalException) {
       const errors = get(generalException, 'details.errors', []).filter(m => !!m);
       if (errors.length) {
-        return errors.join(', ');
+        return errors.join('\n\n');
       }
       if (generalException.details && generalException.details.error) {
         return generalException.details.error;

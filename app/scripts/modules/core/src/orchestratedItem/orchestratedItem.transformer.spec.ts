@@ -36,7 +36,7 @@ describe('orchestratedItem transformer', () => {
     });
 
     it('returns general exception if present', () => {
-      expect(getMessage({ context: { exception: { details: { errors: ['E1', 'E2'] } } } })).toBe('E1, E2');
+      expect(getMessage({ context: { exception: { details: { errors: ['E1', 'E2'] } } } })).toBe('E1\n\nE2');
       expect(getMessage({ context: { exception: { details: { errors: [] } } } })).toBe(null);
       expect(getMessage({ context: {} })).toBe(null);
     });
@@ -61,7 +61,7 @@ describe('orchestratedItem transformer', () => {
           },
         },
       };
-      expect(getMessage(stage)).toBe('E1, E2');
+      expect(getMessage(stage)).toBe('E1\n\nE2');
     });
 
     it('returns exception when it is in the last kato task', () => {
@@ -116,7 +116,7 @@ describe('orchestratedItem transformer', () => {
           },
         ],
       };
-      expect(getMessage(task)).toBe('error 1, error 2');
+      expect(getMessage(task)).toBe('error 1\n\nerror 2');
     });
 
     it('returns null if an exception variable is present but has no details', () => {
