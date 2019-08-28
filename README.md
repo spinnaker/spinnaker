@@ -1,17 +1,47 @@
 # Echo
 [![Build Status](https://api.travis-ci.org/spinnaker/echo.svg?branch=master)](https://travis-ci.org/spinnaker/echo)
 
-`Echo` serves as a router for events that happen within Spinnaker.
+`Echo` serves as two purposes within Spinnaker:  
+1. a router for events (e.g. a new build is detected by Igor which should trigger a pipeline)
+2. a scheduler for CRON triggered pipelines.
+
+The following high level diagram shows how events flow through `echo`:  
+![echo high level architecture](docs/echo.png)
+  
+
+1. `igor` sends events to `echo` when it discovers a delta in a service that it monitors (see [igor readme](https://github.com/spinnaker/igor/#common-polling-architecture) for more details)  
+    e.g. A new build has completed or a new docker image was found in the docker registry
+
+2. `gate` sends events to `echo` as a result of user triggered actions  
+    e.g. User manually kicks off a pipeline from the UI (`deck`) or a user submit a pipeline or an orchestration for execution via the API (`gate`)
+
+3. `swabbie` sent a notification request to `echo`
+    e.g. A resource is about to be deleted and swabbie would like an email notification to be sent out to the owner
+   
+4. `echo` submits the pipeline/orchestration to `orca` for execution
+
+5. `orca` sends events to `echo` when:
+    - a stage is starting/completed so `echo` can send notifications if any are defined on the stage
+    - a pipeline (or orchestration) is starting/completed so `echo` can send notification as above
+    - a manual judgement stage is reached - a notifcation from 
+    - the user has clicked the page button on the application page
+
+6. `echo` uses external services (e.g. email/slack) to send notifications.  
+    Notifications can either be a result of an event received by `echo` (e.g. stage completed which has a notification on completion), or a specific notification request from another service (e.g. orca will send a notifcation for Manual Judgement stage)
+
+7. `echo` can also send events to any URL (ala webhook style)
+
 
 ## Outgoing Events
 
-It provides integrations for outgoing notifications in the `echo-notifications` package via:
+Echo provides integrations for outgoing notifications in the `echo-notifications` package via:
 
-*  email
-*  Slack
-*  Bearychat
-*  Google Chat
-*  sms ( via Twilio )
+* email
+* Slack
+* Bearychat
+* Google Chat
+* sms (via Twilio)
+* PagerDuty
 
 `Echo` is also able to send events within Spinnaker to a predefined url, which is configurable under the `echo-rest` module.
 
