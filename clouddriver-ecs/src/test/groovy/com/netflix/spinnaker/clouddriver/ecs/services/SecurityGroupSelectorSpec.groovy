@@ -96,7 +96,7 @@ class SecurityGroupSelectorSpec extends Specification {
 
     accountMapper.fromEcsAccountNameToAws(ECS_ACCOUNT) >> awsAccount
 
-    amazonSecurityGroupProvider.getAllByAccountAndRegion(_, _, _) >> [sg1, sg2, sg3, sg4]
+    amazonSecurityGroupProvider.getAllByAccountAndRegion(_, AWS_ACCOUNT, _) >> [sg1, sg2, sg3, sg4]
 
     amazonPrimitiveConverter.convertToEcsSecurityGroup([sg1, sg2, sg3, sg4]) >> [ecsSG1, ecsSG2, ecsSG3, ecsSG4]
 

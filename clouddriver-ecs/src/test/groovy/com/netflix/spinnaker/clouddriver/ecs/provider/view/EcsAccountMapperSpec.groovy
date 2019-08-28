@@ -47,4 +47,25 @@ class EcsAccountMapperSpec extends Specification {
     retrievedEcsAccount.name == ecsAccount.name
     retrievedAwsAccount.name == awsAccount.name
   }
+
+  def 'should map an AWS account name to its ECS account name'() {
+    given:
+    awsAccount.name >> 'awsAccountNameHere'
+    ecsAccount.name >> 'ecsAccountNameHere'
+    ecsAccount.awsAccount >> awsAccount.name
+
+
+    def accounts = [ ecsAccount, awsAccount ]
+    accountCredentialsProvider.getAll() >> accounts
+
+    def ecsAccountMapper = new EcsAccountMapper(accountCredentialsProvider)
+
+    when:
+    def retrievedEcsAccount = ecsAccountMapper.fromAwsAccountNameToEcsAccountName(awsAccount.name)
+    def retrievedAwsAccount = ecsAccountMapper.fromEcsAccountNameToAwsAccountName(ecsAccount.name)
+
+    then:
+    retrievedEcsAccount == ecsAccount.name
+    retrievedAwsAccount == awsAccount.name
+  }
 }

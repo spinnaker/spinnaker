@@ -33,12 +33,16 @@ class EcsSecurityGroupProvider implements SecurityGroupProvider<EcsSecurityGroup
 
   final AmazonPrimitiveConverter amazonPrimitiveConverter;
 
+  final EcsAccountMapper ecsAccountMapper;
+
   @Autowired
   EcsSecurityGroupProvider(
       AmazonPrimitiveConverter amazonPrimitiveConverter,
-      AmazonSecurityGroupProvider amazonSecurityGroupProvider) {
+      AmazonSecurityGroupProvider amazonSecurityGroupProvider,
+      EcsAccountMapper ecsAccountMapper) {
     this.amazonPrimitiveConverter = amazonPrimitiveConverter;
     this.amazonSecurityGroupProvider = amazonSecurityGroupProvider;
+    this.ecsAccountMapper = ecsAccountMapper;
   }
 
   @Override
@@ -55,28 +59,32 @@ class EcsSecurityGroupProvider implements SecurityGroupProvider<EcsSecurityGroup
 
   @Override
   public Collection<EcsSecurityGroup> getAllByAccount(boolean includeRules, String account) {
+    String awsAccount = ecsAccountMapper.fromEcsAccountNameToAwsAccountName(account);
     return amazonPrimitiveConverter.convertToEcsSecurityGroup(
-        amazonSecurityGroupProvider.getAllByAccount(includeRules, account));
+        amazonSecurityGroupProvider.getAllByAccount(includeRules, awsAccount));
   }
 
   @Override
   public Collection<EcsSecurityGroup> getAllByAccountAndName(
       boolean includeRules, String account, String name) {
+    String awsAccount = ecsAccountMapper.fromEcsAccountNameToAwsAccountName(account);
     return amazonPrimitiveConverter.convertToEcsSecurityGroup(
-        amazonSecurityGroupProvider.getAllByAccountAndName(includeRules, account, name));
+        amazonSecurityGroupProvider.getAllByAccountAndName(includeRules, awsAccount, name));
   }
 
   @Override
   public Collection<EcsSecurityGroup> getAllByAccountAndRegion(
       boolean includeRules, String account, String region) {
+    String awsAccount = ecsAccountMapper.fromEcsAccountNameToAwsAccountName(account);
     return amazonPrimitiveConverter.convertToEcsSecurityGroup(
-        amazonSecurityGroupProvider.getAllByAccountAndRegion(includeRules, account, region));
+        amazonSecurityGroupProvider.getAllByAccountAndRegion(includeRules, awsAccount, region));
   }
 
   @Override
   public EcsSecurityGroup get(String account, String region, String name, String vpcId) {
+    String awsAccount = ecsAccountMapper.fromEcsAccountNameToAwsAccountName(account);
     return amazonPrimitiveConverter.convertToEcsSecurityGroup(
-        amazonSecurityGroupProvider.get(account, region, name, vpcId));
+        amazonSecurityGroupProvider.get(awsAccount, region, name, vpcId));
   }
 
   @Override

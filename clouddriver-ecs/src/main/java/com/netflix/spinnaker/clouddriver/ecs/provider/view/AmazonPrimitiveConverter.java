@@ -53,6 +53,10 @@ public class AmazonPrimitiveConverter {
   }
 
   public EcsSecurityGroup convertToEcsSecurityGroup(AmazonSecurityGroup securityGroup) {
+    if (securityGroup == null) {
+      return null;
+    }
+
     NetflixECSCredentials account =
         accountMapper.fromAwsAccountNameToEcs(securityGroup.getAccountName());
     if (account == null) {
@@ -89,6 +93,10 @@ public class AmazonPrimitiveConverter {
   }
 
   public EcsSubnet convertToEcsSubnet(AmazonSubnet subnet) {
+    if (subnet == null) {
+      return null;
+    }
+
     NetflixECSCredentials ecsAccount = accountMapper.fromAwsAccountNameToEcs(subnet.getAccount());
     if (ecsAccount == null) {
       return null;
