@@ -186,7 +186,7 @@ internal class ImageResolverTests : JUnit5Minutests {
 
         context("a version of the artifact has been approved for the environment") {
           before {
-            artifactRepository.approveVersionFor(deliveryConfig, artifact, "1.1.0", "test")
+            artifactRepository.approveVersionFor(deliveryConfig, artifact, "${artifact.name}-1.1.0", "test")
             coEvery {
               cloudDriverService.namedImages(any(), any(), any())
             } answers {
@@ -215,7 +215,7 @@ internal class ImageResolverTests : JUnit5Minutests {
 
         context("no image is found for the artifact version") {
           before {
-            artifactRepository.approveVersionFor(deliveryConfig, artifact, "1.1.0", "test")
+            artifactRepository.approveVersionFor(deliveryConfig, artifact, "${artifact.name}-1.1.0", "test")
             coEvery {
               cloudDriverService.namedImages(any(), any(), any())
             } returns emptyList()
@@ -247,7 +247,7 @@ internal class ImageResolverTests : JUnit5Minutests {
           }
 
           before {
-            artifactRepository.approveVersionFor(deliveryConfig, artifact, "1.1.0", "test")
+            artifactRepository.approveVersionFor(deliveryConfig, artifact, "${artifact.name}-1.1.0", "test")
             coEvery {
               cloudDriverService.namedImages(any(), any(), any())
             } answers {

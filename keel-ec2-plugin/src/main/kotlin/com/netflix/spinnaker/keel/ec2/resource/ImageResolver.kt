@@ -41,12 +41,11 @@ class ImageResolver(
         val environment = deliveryConfigRepository.environmentFor(resource.uid)
         val artifact = imageProvider.deliveryArtifact
         val artifactName = if (deliveryConfig != null && environment != null) {
-          val version = promotionRepository.latestVersionApprovedIn(
+          promotionRepository.latestVersionApprovedIn(
             deliveryConfig,
             artifact,
             environment.name
           ) ?: throw NoImageSatisfiesConstraints(artifact.name, environment.name)
-          "${artifact.name}-$version"
         } else {
           artifact.name
         }
