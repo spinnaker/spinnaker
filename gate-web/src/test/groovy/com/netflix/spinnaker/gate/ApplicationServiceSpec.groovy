@@ -207,6 +207,44 @@ class ApplicationServiceSpec extends Specification {
     email = "foo@bar.bz"
   }
 
+  void "should properly merge accounts for retrieved apps with clusterNames"() {
+    setup:
+    HystrixRequestContext.initializeContext()
+
+    def service = new ApplicationService()
+    def front50 = Mock(Front50Service)
+    def clouddriver = Mock(ClouddriverService)
+    def config = new ServiceConfiguration(services: [front50: new Service()])
+
+    service.serviceConfiguration = config
+    service.front50Service = front50
+    service.clouddriverService = clouddriver
+    service.executorService = Executors.newFixedThreadPool(1)
+
+    and:
+    def clouddriverApp1 = [name: name.toUpperCase(), attributes: [name: name], clusterNames: [prod: ["cluster-prod"]]]
+    def clouddriverApp2 = [name: name.toUpperCase(), attributes: [name: name], clusterNames: [dev: ["cluster-dev"]]]
+    def front50App = [name: name.toLowerCase(), email: email, accounts: "test"]
+
+    when:
+    service.refreshApplicationsCache()
+    def apps = service.getAllApplications()
+
+    then:
+    1 * clouddriver.getAllApplicationsUnrestricted(true) >> [clouddriverApp1, clouddriverApp2]
+    1 * front50.getAllApplicationsUnrestricted() >> [front50App]
+
+    1 == apps.size()
+    apps[0].email == email
+    apps[0].name == name
+    apps[0].clusters == null
+    apps[0].accounts == "prod,dev"
+
+    where:
+    name = "foo"
+    email = "foo@bar.bz"
+  }
+
   @Unroll
   void "should merge accounts"() {
     expect:

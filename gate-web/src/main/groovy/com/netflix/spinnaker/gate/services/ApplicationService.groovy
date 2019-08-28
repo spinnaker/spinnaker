@@ -178,10 +178,15 @@ class ApplicationService {
         if (app.clusters) {
           (mergedApp.clusters as Map).putAll(app.clusters as Map)
         }
-        String accounts = (app.clusters as Map)?.keySet()?.join(',') ?:
-          (app.clusterNames as Map)?.keySet()?.join(',')
 
-        mergedApp.attributes.accounts = accounts
+        Set<String> accounts = (app.clusters as Map)?.keySet() ?: (app.clusterNames as Map)?.keySet()
+        if (accounts) {
+          if (mergedApp.attributes.cloudDriverAccounts) {
+            accounts = new HashSet<String>(accounts)
+            accounts.addAll(mergedApp.attributes.cloudDriverAccounts.split(',').toList())
+          }
+          mergedApp.attributes.cloudDriverAccounts = accounts.join(',')
+        }
 
         (app["attributes"] as Map).entrySet().each {
           if (it.value && !(mergedApp.attributes as Map)[it.key]) {
@@ -201,6 +206,14 @@ class ApplicationService {
       // ensure that names are consistently lower-cased.
       mergedApp.name = key.toLowerCase()
       mergedApp.attributes['name'] = mergedApp.name
+    }
+
+    // Overwrite any Front50 account names
+    merged.each { key, mergedApp ->
+      if (mergedApp.attributes.cloudDriverAccounts) {
+        mergedApp.attributes.accounts = mergedApp.attributes.cloudDriverAccounts
+        (mergedApp.attributes as Map).remove('cloudDriverAccounts')
+      }
     }
 
     Set<String> applicationFilter = applicationServiceConfig.config?.includedAccounts?.split(',')?.toList()?.findResults {
