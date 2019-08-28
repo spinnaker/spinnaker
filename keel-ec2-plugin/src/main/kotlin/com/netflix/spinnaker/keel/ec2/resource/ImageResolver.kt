@@ -24,7 +24,7 @@ class ImageResolver(
   private val dynamicConfigService: DynamicConfigService,
   private val cloudDriverService: CloudDriverService,
   private val deliveryConfigRepository: DeliveryConfigRepository,
-  private val promotionRepository: ArtifactRepository,
+  private val artifactRepository: ArtifactRepository,
   private val imageService: ImageService
 ) {
 
@@ -41,7 +41,7 @@ class ImageResolver(
         val environment = deliveryConfigRepository.environmentFor(resource.uid)
         val artifact = imageProvider.deliveryArtifact
         val artifactName = if (deliveryConfig != null && environment != null) {
-          promotionRepository.latestVersionApprovedIn(
+          artifactRepository.latestVersionApprovedIn(
             deliveryConfig,
             artifact,
             environment.name
