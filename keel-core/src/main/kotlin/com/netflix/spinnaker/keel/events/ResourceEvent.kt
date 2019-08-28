@@ -296,10 +296,16 @@ data class ResourceCheckError(
   override val name: String,
   override val application: String,
   override val timestamp: Instant,
-  val exception: Throwable
+  @JsonIgnore val exception: Throwable
 ) : ResourceCheckResult() {
   @JsonIgnore
   override val state = Error
+
+  val exceptionMessage: String?
+    get() = exception.message
+
+  val exceptionType: String
+    get() = exception.javaClass.simpleName
 
   constructor(resource: Resource<*>, exception: Throwable, clock: Clock = Companion.clock) : this(
     resource.uid,
