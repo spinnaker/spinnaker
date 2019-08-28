@@ -125,6 +125,7 @@ export interface ISpinnakerSettings {
   providers?: {
     [key: string]: IProviderSettings; // allows custom providers not typed in here (good for testing too)
   };
+  plugins: Array<{ name: string; location: string }>;
   pubsubProviders: string[];
   quietPeriod: [string | number, string | number];
   resetProvider: (provider: string) => () => void;
