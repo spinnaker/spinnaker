@@ -5,6 +5,7 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers.PubsubEventHandler;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService;
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties;
+import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.fiat.shared.FiatStatus;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
@@ -65,8 +66,11 @@ public class PipelineTriggerConfiguration {
 
   @Bean
   @ConditionalOnMissingBean(PubsubEventHandler.class)
-  PubsubEventHandler pubsubEventHandler(Registry registry, ObjectMapper objectMapper) {
-    return new PubsubEventHandler(registry, objectMapper);
+  PubsubEventHandler pubsubEventHandler(
+      Registry registry,
+      ObjectMapper objectMapper,
+      FiatPermissionEvaluator fiatPermissionEvaluator) {
+    return new PubsubEventHandler(registry, objectMapper, fiatPermissionEvaluator);
   }
 
   @Bean

@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.test.RetrofitStubs
+import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import spock.lang.Specification
 import spock.lang.Subject
@@ -29,9 +30,14 @@ class DockerEventHandlerSpec extends Specification implements RetrofitStubs {
   def registry = new NoopRegistry()
   def objectMapper = new ObjectMapper()
   def handlerSupport = new EventHandlerSupport()
+  def fiatPermissionEvaluator = Mock(FiatPermissionEvaluator)
 
   @Subject
-  def eventHandler = new DockerEventHandler(registry, objectMapper)
+  def eventHandler = new DockerEventHandler(registry, objectMapper, fiatPermissionEvaluator)
+
+  void setup() {
+    fiatPermissionEvaluator.hasPermission(_ as String, _ as String, "APPLICATION", "EXECUTE") >> true
+  }
 
   @Unroll
   def "triggers pipelines for successful builds for #triggerType"() {

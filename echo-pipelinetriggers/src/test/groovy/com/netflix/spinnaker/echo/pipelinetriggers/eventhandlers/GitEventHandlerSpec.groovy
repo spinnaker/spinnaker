@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.test.RetrofitStubs
+import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -28,9 +29,14 @@ class GitEventHandlerSpec extends Specification implements RetrofitStubs {
   def registry = new NoopRegistry()
   def objectMapper = new ObjectMapper()
   def handlerSupport = new EventHandlerSupport()
+  def fiatPermissionEvaluator = Mock(FiatPermissionEvaluator)
 
   @Subject
-  def eventHandler = new GitEventHandler(registry, objectMapper)
+  def eventHandler = new GitEventHandler(registry, objectMapper, fiatPermissionEvaluator)
+
+  void setup() {
+    fiatPermissionEvaluator.hasPermission(_ as String, _ as String, "APPLICATION", "EXECUTE") >> true
+  }
 
   @Unroll
   def "triggers pipelines for successful builds for #triggerType"() {

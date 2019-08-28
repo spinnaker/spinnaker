@@ -22,6 +22,7 @@ import com.netflix.spinnaker.echo.model.Metadata
 import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.echo.model.trigger.ArtifactoryEvent
+import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact
 import spock.lang.Specification
@@ -29,9 +30,14 @@ import spock.lang.Subject
 
 class ArtifactoryEventHandlerSpec extends Specification {
   def handlerSupport = new EventHandlerSupport()
-  
+  def fiatPermissionEvaluator = Mock(FiatPermissionEvaluator)
+
   @Subject
-  private ArtifactoryEventHandler eventHandler = new ArtifactoryEventHandler(new NoopRegistry(), new ObjectMapper())
+  private ArtifactoryEventHandler eventHandler = new ArtifactoryEventHandler(new NoopRegistry(), new ObjectMapper(), fiatPermissionEvaluator)
+
+  void setup() {
+    fiatPermissionEvaluator.hasPermission(_ as String, _ as String, "APPLICATION", "EXECUTE") >> true
+  }
 
   def 'getMatchingPipelinesTriggersEnabledArtifactoryPipeline'() {
     given:

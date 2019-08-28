@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.GitEvent;
+import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,8 +48,11 @@ public class GitEventHandler extends BaseTriggerEventHandler<GitEvent> {
       Collections.singletonList(GIT_TRIGGER_TYPE);
 
   @Autowired
-  public GitEventHandler(Registry registry, ObjectMapper objectMapper) {
-    super(registry, objectMapper);
+  public GitEventHandler(
+      Registry registry,
+      ObjectMapper objectMapper,
+      FiatPermissionEvaluator fiatPermissionEvaluator) {
+    super(registry, objectMapper, fiatPermissionEvaluator);
   }
 
   @Override

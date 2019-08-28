@@ -7,6 +7,7 @@ import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.model.trigger.BuildEvent
 import com.netflix.spinnaker.echo.services.IgorService
 import com.netflix.spinnaker.echo.test.RetrofitStubs
+import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.kork.core.RetrySupport
 import spock.lang.Specification
 import spock.lang.Subject
@@ -20,6 +21,7 @@ class BuildEventHandlerSpec extends Specification implements RetrofitStubs {
   def igorService = Mock(IgorService)
   def buildInformation = new BuildInfoService(igorService, new RetrySupport())
   def handlerSupport = new EventHandlerSupport()
+  def fiatPermissionEvaluator = Mock(FiatPermissionEvaluator)
 
   String MASTER_NAME = "jenkins-server"
   String JOB_NAME = "my-job"
@@ -33,7 +35,11 @@ class BuildEventHandlerSpec extends Specification implements RetrofitStubs {
   ]
 
   @Subject
-  def eventHandler = new BuildEventHandler(registry, objectMapper, Optional.of(buildInformation))
+  def eventHandler = new BuildEventHandler(registry, objectMapper, Optional.of(buildInformation), fiatPermissionEvaluator)
+
+  void setup() {
+    fiatPermissionEvaluator.hasPermission(_ as String, _ as String, "APPLICATION", "EXECUTE") >> true
+  }
 
   @Unroll
   def "triggers pipelines for successful builds for #triggerType"() {
@@ -274,6 +280,33 @@ class BuildEventHandlerSpec extends Specification implements RetrofitStubs {
     1 * igorService.getPropertyFile(BUILD_NUMBER, PROPERTY_FILE, MASTER_NAME, JOB_NAME) >> PROPERTIES
     outputTrigger.buildInfo.equals(BUILD_INFO)
     outputTrigger.properties.equals(PROPERTIES)
+  }
+
+  @Unroll
+  def "#description1 trigger a pipeline if the user #description2 access to the application"() {
+    given:
+    def pipeline = Pipeline.builder()
+      .application("application")
+      .name("pipeline")
+      .id("id")
+      .triggers([trigger])
+      .build()
+
+    def cache = handlerSupport.pipelineCache(pipeline)
+    def event = createBuildEventWith(SUCCESS)
+
+    when:
+    def matchingPipelines = eventHandler.getMatchingPipelines(event, cache)
+
+    then:
+    0 * fiatPermissionEvaluator.hasPermission(_ as String, _ as String, "APPLICATION", "EXECUTE")
+    1 * fiatPermissionEvaluator.hasPermission(trigger.runAsUser?: "anonymous", "application", "APPLICATION", "EXECUTE") >> hasPermission
+    matchingPipelines.size() == (hasPermission ? 1 : 0)
+
+    where:
+    trigger                            | hasPermission | description1 | description2
+    enabledConcourseTrigger            | false         | "should not" | "does not have"
+    enabledJenkinsTriggerWithRunAsUser | true          | "should"     | "has"
   }
 
   def getBuildEvent() {

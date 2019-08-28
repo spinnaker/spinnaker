@@ -17,6 +17,7 @@ package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.echo.test.RetrofitStubs
+import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact
 import spock.lang.Shared
@@ -28,6 +29,7 @@ class WebhookEventHandlerSpec extends Specification implements RetrofitStubs {
   def registry = new NoopRegistry()
   def objectMapper = new ObjectMapper()
   def handlerSupport = new EventHandlerSupport()
+  def fiatPermissionEvaluator = Mock(FiatPermissionEvaluator)
 
   @Shared
   def goodExpectedArtifacts = [
@@ -41,7 +43,11 @@ class WebhookEventHandlerSpec extends Specification implements RetrofitStubs {
   ]
 
   @Subject
-  def eventHandler = new WebhookEventHandler(registry, objectMapper)
+  def eventHandler = new WebhookEventHandler(registry, objectMapper, fiatPermissionEvaluator)
+
+  void setup() {
+    fiatPermissionEvaluator.hasPermission(_ as String, _ as String, "APPLICATION", "EXECUTE") >> true
+  }
 
   def 'triggers pipelines for successful builds for webhook'() {
     given:

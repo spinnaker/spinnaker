@@ -22,6 +22,7 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.build.BuildInfoService;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.BuildEvent;
+import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import com.netflix.spinnaker.security.User;
@@ -49,8 +50,11 @@ public class BuildEventHandler extends BaseTriggerEventHandler<BuildEvent> {
 
   @Autowired
   public BuildEventHandler(
-      Registry registry, ObjectMapper objectMapper, Optional<BuildInfoService> buildInfoService) {
-    super(registry, objectMapper);
+      Registry registry,
+      ObjectMapper objectMapper,
+      Optional<BuildInfoService> buildInfoService,
+      FiatPermissionEvaluator fiatPermissionEvaluator) {
+    super(registry, objectMapper, fiatPermissionEvaluator);
     this.buildInfoService = buildInfoService;
   }
 
