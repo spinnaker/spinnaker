@@ -118,8 +118,8 @@ class KubernetesKindSpec extends Specification {
 
     where:
     name                    | expectedString
-    "replicaSet"            | "replicaSet"
-    "replicaSet.apps"       | "replicaSet"
+    "replicaSet"            | "replicaset"
+    "replicaSet.apps"       | "replicaset"
     "deployment.extensions" | "deployment"
   }
 
