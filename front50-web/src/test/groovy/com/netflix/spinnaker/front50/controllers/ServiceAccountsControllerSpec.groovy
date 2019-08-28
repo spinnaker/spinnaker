@@ -25,18 +25,18 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 class ServiceAccountsControllerSpec extends Specification {
-  def serviceAccountDAO = Mock(ServiceAccountDAO)
-  def fiatService = Mock(FiatService)
-  def fiatClientConfigurationProperties = Mock(FiatClientConfigurationProperties)
-  def fiatPermissionsEvaluator = Mock(FiatPermissionEvaluator)
+  ServiceAccountDAO serviceAccountDAO = Mock(ServiceAccountDAO)
+  FiatService fiatService = Mock(FiatService)
+  FiatClientConfigurationProperties fiatClientConfigurationProperties = Mock(FiatClientConfigurationProperties)
+  FiatPermissionEvaluator fiatPermissionsEvaluator = Mock(FiatPermissionEvaluator)
 
   @Subject
   def controller = new ServiceAccountsController(
-    serviceAccountDAO: serviceAccountDAO,
-    fiatService: fiatService,
-    fiatClientConfigurationProperties: fiatClientConfigurationProperties,
-    fiatPermissionEvaluator: fiatPermissionsEvaluator,
-    roleSync: true
+    Optional.of(serviceAccountDAO),
+    Optional.of(fiatService),
+    fiatClientConfigurationProperties,
+    fiatPermissionsEvaluator,
+    true
   )
 
   def "should invalidate local cache"() {
