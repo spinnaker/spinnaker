@@ -97,6 +97,27 @@ internal class ImageServiceTests {
     )
   )
 
+  val image4 = NamedImage(
+    imageName = "my-package-foo-0.0.1_rc.99-h100",
+    attributes = mapOf(
+      "virtualizationType" to "hvm",
+      "creationDate" to "2019-08-28T13:09:54.000Z"
+    ),
+    tagsByImageId = mapOf(
+      "ami-003" to mapOf(
+        "build_host" to "https://jenkins/",
+        "appversion" to "my-package-foo-0.0.1~rc.99-h100.8192e02/JENKINS-job/100",
+        "creator" to "emburns@netflix.com",
+        "base_ami_version" to "nflx-base-5.292.0-h988",
+        "creation_time" to "2018-10-31 13:09:55 UTC"
+      )
+    ),
+    accounts = setOf("test"),
+    amis = mapOf(
+      "us-west-1" to listOf("ami-004")
+    )
+  )
+
   val newestImage = listOf(image1, image2, image3)
     .maxBy { it.creationDate } ?: error("can't find latest image in fixture")
 
@@ -111,8 +132,8 @@ internal class ImageServiceTests {
   @Test
   fun `get latest image returns actual latest image`() {
     coEvery {
-      cloudDriver.namedImages(DEFAULT_SERVICE_ACCOUNT, "my-package", "test")
-    } returns listOf(image2, image3, image1)
+      cloudDriver.namedImages(DEFAULT_SERVICE_ACCOUNT, "my-package-", "test")
+    } returns listOf(image2, image4, image3, image1)
 
     runBlocking {
       val image = subject.getLatestImage("my-package", "test")
@@ -126,8 +147,8 @@ internal class ImageServiceTests {
   @Test
   fun `get latest named image returns actual latest image`() {
     coEvery {
-      cloudDriver.namedImages(DEFAULT_SERVICE_ACCOUNT, "my-package", "test")
-    } returns listOf(image2, image3, image1)
+      cloudDriver.namedImages(DEFAULT_SERVICE_ACCOUNT, "my-package-", "test")
+    } returns listOf(image2, image4, image3, image1)
 
     runBlocking {
       val image = subject.getLatestNamedImage("my-package", "test")
@@ -141,7 +162,7 @@ internal class ImageServiceTests {
   @Test
   fun `no image provided if image not found for latest from artifact`() {
     coEvery {
-      cloudDriver.namedImages(DEFAULT_SERVICE_ACCOUNT, "my-package", "test")
+      cloudDriver.namedImages(DEFAULT_SERVICE_ACCOUNT, "my-package-", "test")
     } returns emptyList()
 
     runBlocking {
@@ -154,8 +175,8 @@ internal class ImageServiceTests {
   @Test
   fun `get named image from jenkins info works`() {
     coEvery {
-      cloudDriver.namedImages(DEFAULT_SERVICE_ACCOUNT, "my-package", "test")
-    } returns listOf(image2, image3, image1)
+      cloudDriver.namedImages(DEFAULT_SERVICE_ACCOUNT, "my-package-", "test")
+    } returns listOf(image2, image4, image3, image1)
 
     runBlocking {
       val image = subject.getNamedImageFromJenkinsInfo(

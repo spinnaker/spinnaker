@@ -17,9 +17,11 @@
  */
 package com.netflix.spinnaker.keel.clouddriver
 
+import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.keel.clouddriver.model.Image
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImageComparator
+import com.netflix.spinnaker.keel.clouddriver.model.appVersion
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -29,9 +31,11 @@ class ImageService(
   val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
 
   suspend fun getLatestImage(artifactName: String, account: String): Image? {
-    return cloudDriverService.namedImages(DEFAULT_SERVICE_ACCOUNT, artifactName, account)
+    return cloudDriverService.namedImages(DEFAULT_SERVICE_ACCOUNT, "$artifactName-", account)
       .sortedWith(NamedImageComparator)
-      .lastOrNull()
+      .lastOrNull {
+        AppVersion.parseName(it.appVersion).packageName == artifactName
+      }
       ?.let { namedImage ->
         namedImage
           .tagsByImageId
@@ -57,15 +61,19 @@ class ImageService(
   /**
    * Get the latest named image for a package
    */
-  suspend fun getLatestNamedImage(packageName: String, account: String): NamedImage? {
-    return cloudDriverService.namedImages(DEFAULT_SERVICE_ACCOUNT, packageName, account)
+  suspend fun getLatestNamedImage(packageName: String, account: String): NamedImage? =
+    cloudDriverService.namedImages(DEFAULT_SERVICE_ACCOUNT, "$packageName-", account)
       .sortedWith(NamedImageComparator)
-      .lastOrNull()
-  }
+      .lastOrNull {
+        AppVersion.parseName(it.appVersion).packageName == packageName
+      }
 
   suspend fun getNamedImageFromJenkinsInfo(packageName: String, account: String, buildHost: String, buildName: String, buildNumber: String): NamedImage? {
-    return cloudDriverService.namedImages(DEFAULT_SERVICE_ACCOUNT, packageName, account)
+    return cloudDriverService.namedImages(DEFAULT_SERVICE_ACCOUNT, "$packageName-", account)
       .sortedWith(NamedImageComparator)
+      .filter {
+        AppVersion.parseName(it.appVersion).packageName == packageName
+      }
       .lastOrNull { namedImage ->
         val allTags = getAllTags(namedImage)
         amiMatches(allTags, buildHost, buildName, buildNumber)

@@ -14,7 +14,6 @@ import com.netflix.spinnaker.keel.api.ec2.cluster.Location
 import com.netflix.spinnaker.keel.api.ec2.image.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.image.IdImageProvider
 import com.netflix.spinnaker.keel.api.ec2.image.ImageProvider
-import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.appVersion
@@ -51,10 +50,8 @@ internal class ImageResolverTests : JUnit5Minutests {
     val deliveryConfigRepository = InMemoryDeliveryConfigRepository()
     val artifactRepository = InMemoryArtifactRepository()
     val imageService = mockk<ImageService>()
-    val cloudDriverService = mockk<CloudDriverService>()
     private val subject = ImageResolver(
       dynamicConfigService,
-      cloudDriverService,
       deliveryConfigRepository,
       artifactRepository,
       imageService
@@ -162,10 +159,9 @@ internal class ImageResolverTests : JUnit5Minutests {
       context("the resource is not in an environment") {
         before {
           coEvery {
-            cloudDriverService.namedImages(any(), any(), any())
+            imageService.getLatestNamedImage(artifact.name, any())
           } answers {
-            val name = secondArg<String>()
-            images.filter { it.appVersion.startsWith(name) }
+            images.lastOrNull { it.appVersion.startsWith(firstArg<String>()) }
           }
         }
 
@@ -188,10 +184,9 @@ internal class ImageResolverTests : JUnit5Minutests {
           before {
             artifactRepository.approveVersionFor(deliveryConfig, artifact, "${artifact.name}-1.1.0", "test")
             coEvery {
-              cloudDriverService.namedImages(any(), any(), any())
+              imageService.getLatestNamedImage("${artifact.name}-1.1.0", any())
             } answers {
-              val name = secondArg<String>()
-              images.filter { it.appVersion == name }
+              images.lastOrNull { it.appVersion.startsWith(firstArg<String>()) }
             }
           }
 
@@ -217,8 +212,8 @@ internal class ImageResolverTests : JUnit5Minutests {
           before {
             artifactRepository.approveVersionFor(deliveryConfig, artifact, "${artifact.name}-1.1.0", "test")
             coEvery {
-              cloudDriverService.namedImages(any(), any(), any())
-            } returns emptyList()
+              imageService.getLatestNamedImage("${artifact.name}-1.1.0", any())
+            } returns null
           }
 
           after {
@@ -249,10 +244,9 @@ internal class ImageResolverTests : JUnit5Minutests {
           before {
             artifactRepository.approveVersionFor(deliveryConfig, artifact, "${artifact.name}-1.1.0", "test")
             coEvery {
-              cloudDriverService.namedImages(any(), any(), any())
+              imageService.getLatestNamedImage("${artifact.name}-1.1.0", any())
             } answers {
-              val name = secondArg<String>()
-              images.filter { it.appVersion == name }
+              images.lastOrNull { it.appVersion.startsWith(firstArg<String>()) }
             }
           }
 
