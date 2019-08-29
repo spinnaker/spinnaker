@@ -103,8 +103,8 @@ function TriggerForm(triggerFormProps: ITriggerProps & { formik: FormikProps<ITr
       triggerExpectedArtifactIds.push(expectedArtifact.id);
     }
 
-    updateTriggerFields({ expectedArtifactIds: triggerExpectedArtifactIds });
     updateExpectedArtifacts(pipelineExpectedArtifacts);
+    updateTriggerFields({ expectedArtifactIds: triggerExpectedArtifactIds });
   };
 
   const showRunAsUser = SETTINGS.feature.fiatEnabled && !SETTINGS.feature.managedServiceAccounts;
