@@ -87,7 +87,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
 
   @Include @Getter private final Integer kubectlRequestTimeoutSeconds;
 
-  @Include @Getter private final String kubeconfigFile;
+  @Getter private final String kubeconfigFile;
 
   @Include private final String kubeconfigFileHash;
 
