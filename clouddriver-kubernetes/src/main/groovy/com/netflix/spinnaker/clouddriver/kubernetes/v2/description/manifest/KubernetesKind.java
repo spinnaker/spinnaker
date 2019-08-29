@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Nonnull;
@@ -131,6 +133,7 @@ public class KubernetesKind {
   }
 
   @Nonnull
+  @JsonCreator
   public static KubernetesKind fromString(@Nonnull String qualifiedKind) {
     KubernetesApiGroup apiGroup;
     String kindName;
@@ -146,6 +149,7 @@ public class KubernetesKind {
   }
 
   @Override
+  @JsonValue
   public String toString() {
     if (apiGroup.isNativeGroup()) {
       return name;
