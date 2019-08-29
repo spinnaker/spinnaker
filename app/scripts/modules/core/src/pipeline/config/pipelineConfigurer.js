@@ -17,6 +17,8 @@ import { EditPipelineJsonModal } from 'core/pipeline/config/actions/pipelineJson
 import { DeletePipelineModal } from 'core/pipeline/config/actions/delete/DeletePipelineModal';
 import { DisablePipelineModal } from 'core/pipeline/config/actions/disable/DisablePipelineModal';
 import { EnablePipelineModal } from 'core/pipeline/config/actions/enable/EnablePipelineModal';
+import { LockPipelineModal } from 'core/pipeline/config/actions/lock/LockPipelineModal';
+import { UnlockPipelineModal } from 'core/pipeline/config/actions/unlock/UnlockPipelineModal';
 import { ShowPipelineTemplateJsonModal } from 'core/pipeline/config/actions/templateJson/ShowPipelineTemplateJsonModal';
 import { PipelineTemplateV2Service } from 'core/pipeline';
 import { PipelineTemplateWriter } from 'core/pipeline/config/templates/PipelineTemplateWriter';
@@ -231,28 +233,17 @@ module.exports = angular
 
       // Locking a pipeline persists any pending changes
       this.lockPipeline = () => {
-        $uibModal
-          .open({
-            templateUrl: require('./actions/lock/lockPipelineModal.html'),
-            controller: 'LockPipelineModalCtrl as ctrl',
-            resolve: {
-              pipeline: () => $scope.pipeline,
-            },
+        ReactModal.show(LockPipelineModal, { pipeline: $scope.pipeline })
+          .then(pipeline => {
+            $scope.pipeline.locked = pipeline.locked;
+            setOriginal($scope.pipeline);
           })
-          .result.then(() => setOriginal($scope.pipeline))
           .catch(() => {});
       };
 
       this.unlockPipeline = () => {
-        $uibModal
-          .open({
-            templateUrl: require('./actions/unlock/unlockPipelineModal.html'),
-            controller: 'unlockPipelineModalCtrl as ctrl',
-            resolve: {
-              pipeline: () => $scope.pipeline,
-            },
-          })
-          .result.then(function() {
+        ReactModal.show(UnlockPipelineModal, { pipeline: $scope.pipeline })
+          .then(() => {
             delete $scope.pipeline.locked;
             setOriginal($scope.pipeline);
           })

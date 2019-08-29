@@ -4,7 +4,7 @@ import { Modal } from 'react-bootstrap';
 import { IPipeline } from 'core/domain';
 import { ModalClose } from 'core/modal';
 import { IModalComponentProps } from 'core/presentation';
-import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
+import { PipelineConfigService } from 'core/pipeline';
 
 export interface IDisablePipelineModalProps extends IModalComponentProps {
   pipeline: IPipeline;

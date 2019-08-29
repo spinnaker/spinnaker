@@ -2,7 +2,7 @@ import * as React from 'react';
 
 import 'brace/mode/json';
 
-import { IPipeline, IStage } from 'core/domain';
+import { IPipeline, IPipelineLock, IStage } from 'core/domain';
 import { JsonUtils, noop } from 'core/utils';
 import { IModalComponentProps, JsonEditor } from 'core/presentation';
 import { PipelineJSONService } from 'core/pipeline/config/services/pipelineJSON.service';
@@ -16,7 +16,7 @@ export interface IEditPipelineJsonModalState {
   errorMessage?: string;
   pipelineJSON: string;
   pipelinePlanJSON?: string;
-  locked: boolean;
+  locked: IPipelineLock;
   isStrategy: boolean;
   activeTab: mode;
 }

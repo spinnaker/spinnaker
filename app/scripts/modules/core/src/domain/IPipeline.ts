@@ -13,7 +13,7 @@ export interface IPipeline {
   isNew?: boolean;
   keepWaitingPipelines: boolean;
   lastModifiedBy?: string;
-  locked?: boolean;
+  locked?: IPipelineLock;
   limitConcurrent: boolean;
   name: string;
   notifications?: INotification[];
@@ -31,6 +31,12 @@ export interface IPipeline {
     type: string;
   };
   type?: string;
+}
+
+export interface IPipelineLock {
+  ui: boolean;
+  allowUnlockUi?: boolean;
+  description?: string;
 }
 
 export interface IParameter extends ITemplateInheritable {
