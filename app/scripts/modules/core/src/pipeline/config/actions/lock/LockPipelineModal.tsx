@@ -72,15 +72,15 @@ export function LockPipelineModal(props: ILockPipelineModalProps) {
             <FormField
               label="Unlock via UI"
               help={<HelpField id="pipeline.config.lock.allowUnlockUi" />}
-              input={props => <CheckboxInput {...props} />}
+              input={inputProps => <CheckboxInput {...inputProps} />}
               onChange={() => setAllowUnlockUi(!allowUnlockUi)}
               value={allowUnlockUi}
             />
             <FormField
               label="Description"
               help={<HelpField id="pipeline.config.lock.description" />}
-              input={props => (
-                <TextInput {...props} placeholder="This pipeline is locked and does not allow modification" />
+              input={inputProps => (
+                <TextInput {...inputProps} placeholder="This pipeline is locked and does not allow modification" />
               )}
               onChange={e => setDescription(e.target.value)}
               value={description}
