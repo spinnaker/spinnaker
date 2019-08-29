@@ -16,12 +16,17 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiGroup
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class KubernetesKindSpec extends Specification {
+  @Shared ObjectMapper objectMapper = new ObjectMapper()
+  @Shared KubernetesKind CUSTOM_RESOURCE_KIND = KubernetesKind.from("deployment", KubernetesApiGroup.fromString("stable.example.com"))
+
   @Unroll
   void "creates built-in API kinds by name"() {
     when:
@@ -151,5 +156,35 @@ class KubernetesKindSpec extends Specification {
     where:
     name                            | expectedString
     "deployment.stable.example.com" | "deployment.stable.example.com"
+  }
+
+  void "deserializes kinds from their string representation"() {
+    when:
+    def kind = objectMapper.convertValue(input, KubernetesKind.class)
+
+    then:
+    kind == expectedKind
+
+    where:
+    input                           | expectedKind
+    "replicaSet"                    | KubernetesKind.REPLICA_SET
+    "ReplicaSet"                    | KubernetesKind.REPLICA_SET
+    "replicaSet"                    | KubernetesKind.REPLICA_SET
+    "service"                       | KubernetesKind.SERVICE
+    "deployment.stable.example.com" | CUSTOM_RESOURCE_KIND
+  }
+
+  void "serializes kinds to their string representation"() {
+    when:
+    def serialized = objectMapper.writeValueAsString(kind)
+
+    then:
+    serialized == '"' + expectedSerialized + '"'
+
+    where:
+    kind                       | expectedSerialized
+    KubernetesKind.REPLICA_SET | "replicaSet"
+    KubernetesKind.SERVICE     | "service"
+    CUSTOM_RESOURCE_KIND       | "deployment.stable.example.com"
   }
 }
