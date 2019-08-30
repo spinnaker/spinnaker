@@ -165,6 +165,10 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
       Service loadBalancerService,
       TaskDefinition taskDefinition) {
 
+    if (taskDefinition == null) {
+      return null;
+    }
+
     List<LoadBalancer> loadBalancers = loadBalancerService.getLoadBalancers();
 
     for (LoadBalancer loadBalancer : loadBalancers) {
