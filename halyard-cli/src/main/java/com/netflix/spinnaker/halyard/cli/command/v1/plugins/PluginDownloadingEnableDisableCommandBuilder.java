@@ -41,7 +41,7 @@ public class PluginDownloadingEnableDisableCommandBuilder implements CommandBuil
 
     @Override
     public String getCommandName() {
-      return isEnable() ? "enableDownloading" : "disableDownloading";
+      return isEnable() ? "enable-downloading" : "disable-downloading";
     }
 
     private PluginDownloadingEnableDisableCommand(boolean enable) {

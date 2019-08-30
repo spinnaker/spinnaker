@@ -551,10 +551,10 @@
  * [**hal plugins add**](#hal-plugins-add)
  * [**hal plugins delete**](#hal-plugins-delete)
  * [**hal plugins disable**](#hal-plugins-disable)
- * [**hal plugins disableDownloading**](#hal-plugins-disableDownloading)
+ * [**hal plugins disable-downloading**](#hal-plugins-disable-downloading)
  * [**hal plugins edit**](#hal-plugins-edit)
  * [**hal plugins enable**](#hal-plugins-enable)
- * [**hal plugins enableDownloading**](#hal-plugins-enableDownloading)
+ * [**hal plugins enable-downloading**](#hal-plugins-enable-downloading)
  * [**hal plugins list**](#hal-plugins-list)
  * [**hal shutdown**](#hal-shutdown)
  * [**hal spin**](#hal-spin)
@@ -10665,10 +10665,10 @@ hal plugins [parameters] [subcommands]
  * `add`: Add a plugin
  * `delete`: Delete a plugin
  * `disable`: Enable or disable all plugins
- * `disableDownloading`: Enable or disable the ability for Spinnaker services to download jars for plugins
+ * `disable-downloading`: Enable or disable the ability for Spinnaker services to download jars for plugins
  * `edit`: Edit a plugin
  * `enable`: Enable or disable all plugins
- * `enableDownloading`: Enable or disable the ability for Spinnaker services to download jars for plugins
+ * `enable-downloading`: Enable or disable the ability for Spinnaker services to download jars for plugins
  * `list`: List all plugins
 
 ---
@@ -10721,13 +10721,13 @@ hal plugins disable [parameters]
 
 
 ---
-## hal plugins disableDownloading
+## hal plugins disable-downloading
 
 Enable or disable the ability for Spinnaker services to download jars for plugins
 
 #### Usage
 ```
-hal plugins disableDownloading [parameters]
+hal plugins disable-downloading [parameters]
 ```
 
 #### Parameters
@@ -10769,13 +10769,13 @@ hal plugins enable [parameters]
 
 
 ---
-## hal plugins enableDownloading
+## hal plugins enable-downloading
 
 Enable or disable the ability for Spinnaker services to download jars for plugins
 
 #### Usage
 ```
-hal plugins enableDownloading [parameters]
+hal plugins enable-downloading [parameters]
 ```
 
 #### Parameters
