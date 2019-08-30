@@ -45,8 +45,6 @@ import retrofit.converter.JacksonConverter;
 @Slf4j
 public class NewRelicConfiguration {
 
-  private static final String NEWRELIC_INSIGHTS_ENDPOINT = "https://insights-api.newrelic.com";
-
   @Bean
   @ConfigurationProperties("kayenta.newrelic")
   NewRelicConfigurationProperties newrelicConfigurationProperties() {
@@ -105,13 +103,17 @@ public class NewRelicConfiguration {
               .applicationKey(account.getApplicationKey())
               .build();
 
-      RemoteService remoteService = new RemoteService().setBaseUrl(NEWRELIC_INSIGHTS_ENDPOINT);
+      RemoteService endpoint = account.getEndpoint();
+
+      if (endpoint == null) {
+        endpoint = new RemoteService().setBaseUrl("https://insights-api.newrelic.com");
+      }
 
       NewRelicNamedAccountCredentials.NewRelicNamedAccountCredentialsBuilder
           accountCredentialsBuilder =
               NewRelicNamedAccountCredentials.builder()
                   .name(name)
-                  .endpoint(remoteService)
+                  .endpoint(endpoint)
                   .credentials(credentials);
 
       if (!CollectionUtils.isEmpty(supportedTypes)) {
@@ -120,7 +122,7 @@ public class NewRelicConfiguration {
               retrofitClientFactory.createClient(
                   NewRelicRemoteService.class,
                   new JacksonConverter(objectMapper),
-                  remoteService,
+                  endpoint,
                   okHttpClient));
         }
         accountCredentialsBuilder.supportedTypes(supportedTypes);

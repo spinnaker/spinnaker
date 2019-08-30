@@ -87,6 +87,7 @@ kayenta:
 #      defaultLocationKey: server_region # Optional, if omitted requests must supply the _location_key if it is needed.
 #      supportedTypes:
 #        - METRICS_STORE
+#      endpoint.baseUrl: https://insights-api.newrelic.com
 
   prometheus:
     enabled: false
