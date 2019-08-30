@@ -24,6 +24,7 @@ import logging
 import os
 import shutil
 import stat
+import subprocess
 import sys
 import tempfile
 import time
@@ -1308,7 +1309,10 @@ class GoogleValidateBomDeployer(GenericVmValidateBomDeployer):
         .format(gcloud_account=options.deploy_hal_google_service_account,
                 project=options.deploy_google_project,
                 zone=options.deploy_google_zone,
-                instance=options.deploy_google_instance))
+                instance=options.deploy_google_instance),
+        # Setting this to PIPE means it will get logged instead of getting
+        # commingled with stdout into the response
+        stderr=subprocess.PIPE)
     nic = decode_json(response)['networkInterfaces'][0]
 
     use_internal_ip = options.deploy_google_use_internal_ip
