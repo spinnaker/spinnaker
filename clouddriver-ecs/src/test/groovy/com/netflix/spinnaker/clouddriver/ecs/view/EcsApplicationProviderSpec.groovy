@@ -40,17 +40,16 @@ class EcsApplicationProviderSpec extends Specification {
 
   def 'should return an application'() {
     given:
-    def credentials = TestCredential.named('test')
-    def appName = 'test'
+    def accountName = 'test-account'
+    def credentials = TestCredential.named(accountName)
+    def appName = 'testapp'
     def serviceName = appName + '-kcats-liated'
     Map<String, Set<String>> clusterNames = new HashMap<>()
-    clusterNames.put(appName, Collections.singleton(serviceName))
+    clusterNames.put(accountName, Collections.singleton(serviceName))
 
     def givenApp = (Application) new EcsApplication(appName,
       [
-        iamRole       : null,
-        desiredCount  : '1',
-        taskDefinition: null
+        name: appName
       ],
       clusterNames)
 

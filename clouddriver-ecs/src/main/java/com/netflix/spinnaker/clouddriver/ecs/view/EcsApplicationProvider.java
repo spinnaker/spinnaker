@@ -118,17 +118,15 @@ public class EcsApplicationProvider implements ApplicationProvider {
   private HashMap<String, Application> inferApplicationFromServices(
       HashMap<String, Application> applicationHashMap, Service service, boolean expand) {
 
-    HashMap<String, String> attributes =
-        new HashMap<>(); // After POC we'll figure exactly what info we want to put in here
+    HashMap<String, String> attributes = new HashMap<>();
     String appName = service.getApplicationName();
     String serviceName = service.getServiceName();
-    attributes.put("iamRole", service.getRoleArn());
-    attributes.put("taskDefinition", service.getTaskDefinition());
-    attributes.put("desiredCount", String.valueOf(service.getDesiredCount()));
+    String accountName = service.getAccount();
+    attributes.put("name", service.getApplicationName());
 
     HashMap<String, Set<String>> clusterNames = new HashMap<>();
     if (expand) {
-      clusterNames.put(appName, Sets.newHashSet(serviceName));
+      clusterNames.put(accountName, Sets.newHashSet(serviceName));
     }
 
     EcsApplication application = new EcsApplication(appName, attributes, clusterNames);
@@ -138,7 +136,7 @@ public class EcsApplicationProvider implements ApplicationProvider {
     } else {
       applicationHashMap.get(appName).getAttributes().putAll(application.getAttributes());
       if (expand) {
-        applicationHashMap.get(appName).getClusterNames().get(appName).add(serviceName);
+        applicationHashMap.get(appName).getClusterNames().get(accountName).add(serviceName);
       }
     }
 
