@@ -28,8 +28,9 @@ import org.springframework.validation.Errors;
 @EcsOperation(AtomicOperations.TERMINATE_INSTANCES)
 @Component("ecsTerminateInstancesDescriptionValidator")
 public class TerminateInstancesDescriptionValidator extends CommonValidator {
-  public static final Pattern TASK_ID_PATTERN =
+  public static final Pattern OLD_TASK_ID_PATTERN =
       Pattern.compile("[\\da-f]{8}-[\\da-f]{4}-[\\da-f]{4}-[\\da-f]{4}-[\\da-f]{12}");
+  public static final Pattern NEW_TASK_ID_PATTERN = Pattern.compile("[\\da-f]{32}");
 
   public TerminateInstancesDescriptionValidator() {
     super("terminateInstancesDescription");
@@ -50,7 +51,8 @@ public class TerminateInstancesDescriptionValidator extends CommonValidator {
           .getEcsTaskIds()
           .forEach(
               taskId -> {
-                if (!TASK_ID_PATTERN.matcher(taskId).find()) {
+                if (!OLD_TASK_ID_PATTERN.matcher(taskId).find()
+                    && !NEW_TASK_ID_PATTERN.matcher(taskId).find()) {
                   rejectValue(errors, "ecsTaskIds." + taskId, "invalid");
                 }
               });

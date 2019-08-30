@@ -65,7 +65,7 @@ class TerminateInstanceDescriptionValidatorSpec extends AbstractValidatorSpec {
     def description = new TerminateInstancesDescription()
     description.credentials = TestCredential.named('test')
     description.region = 'us-west-1'
-    description.ecsTaskIds = ['deadbeef-33f7-4637-ab84-606f0c77af42']
+    description.ecsTaskIds = ['deadbeef-33f7-4637-ab84-606f0c77af42', 'deadbeef33f74637ab84606f0c77af42']
     description
   }
 }

@@ -29,6 +29,7 @@ import com.netflix.spinnaker.clouddriver.ecs.services.ContainerInformationServic
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class EcsInstanceProviderSpec extends Specification {
   def accountCredentialsProvider = Mock(AccountCredentialsProvider)
@@ -41,12 +42,10 @@ class EcsInstanceProviderSpec extends Specification {
   def provider = new EcsInstanceProvider(containerInformationService, taskCacheClient,
                                          containerInstanceCacheClient)
 
+  @Unroll
   def 'should return an EcsTask'() {
     given:
-    def region = 'us-west-1'
     def account = 'test-account'
-    def taskId = 'deadbeef-94f3-4994-8e81-339c4d1be1ba'
-    def taskArn = 'arn:aws:ecs:' + region + ':123456789012:task/' + taskId
     def address = '127.0.0.1:1337'
     def startTime = System.currentTimeMillis()
 
@@ -79,5 +78,26 @@ class EcsInstanceProviderSpec extends Specification {
 
     then:
     taskInstance == ecsTask
+
+    where:
+    region      | taskId                                 | taskArn
+    'us-west-1' | 'deadbeef-94f3-4994-8e81-339c4d1be1ba' | 'arn:aws:ecs:us-west-1:123456789012:task/deadbeef-94f3-4994-8e81-339c4d1be1ba'
+    'us-west-1' | 'deadbeef94f349948e81339c4d1be1ba'     | 'arn:aws:ecs:us-west-1:123456789012:task/my-cluster-123/deadbeef94f349948e81339c4d1be1ba'
+    'us-west-1' | 'arn:aws:ecs:us-west-1:123456789012:task/deadbeef-94f3-4994-8e81-339c4d1be1ba' | 'foo'
+    'us-west-1' | 'arn:aws:ecs:us-west-1:123456789012:task/my-cluster-123/deadbeef94f349948e81339c4d1be1ba' | 'foo'
+  }
+
+  @Unroll
+  def 'should return null for invalid ECS task ID'() {
+    when:
+    def taskInstance = provider.getInstance(account, region, taskId)
+
+    then:
+    taskInstance == null
+
+    where:
+    account        | region      | taskId
+    'test-account' | 'us-west-1' | 'i-deadbeef'
+    'test-account' | 'us-west-1' | 'arn:aws:ecs:us-west-1:123456789012:cluster/my-cluster-name'
   }
 }
