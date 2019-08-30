@@ -37,7 +37,7 @@ from buildtool.base_metrics import BaseMetricsRegistry
 # this module does not offer encapsulated configuration.
 ERROR_LOGFILE_DIR = 'errors'
 
-def start_subprocess(cmd, stream=None, stdout=None, echo=False, **kwargs):
+def start_subprocess(cmd, stream=None, stdout=None, stderr=None, echo=False, **kwargs):
   """Starts a subprocess and returns handle to it."""
   split_cmd = shlex.split(cmd)
   actual_command = cmd if kwargs.get('shell') else split_cmd
@@ -58,7 +58,7 @@ def start_subprocess(cmd, stream=None, stdout=None, echo=False, **kwargs):
       actual_command,
       close_fds=True,
       stdout=stdout or subprocess.PIPE,
-      stderr=subprocess.STDOUT,
+      stderr=stderr or subprocess.STDOUT,
       **kwargs)
   logging.log(log_level, 'Running %s as pid %s', split_cmd[0], process.pid)
   process.start_date = start_date
@@ -88,6 +88,14 @@ def wait_subprocess(process, stream=None, echo=False, postprocess_hook=None):
         stream.write(decoded_line)
         stream.flush()
 
+  if process.stderr is not None:
+    log_level = logging.INFO if echo else logging.DEBUG
+    # stderr isn't going to another file handle; log it
+    for raw_line in iter(process.stderr.readline, ''):
+      decoded_line = raw_line.decode(encoding='utf-8')
+      logging.log(log_level, 'PID %s wrote to stderr: %s', process.pid, decoded_line)
+
+   
   process.wait()
   if stream is None and process.stdout is not None:
     # Close stdout pipe if we didnt give a stream.
