@@ -1,18 +1,29 @@
 package com.netflix.spinnaker.rosco.manifests.helm;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
 import com.netflix.spinnaker.rosco.jobs.BakeRecipe;
 import com.netflix.spinnaker.rosco.manifests.TemplateUtils;
+import com.netflix.spinnaker.rosco.services.ClouddriverService;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.xml.bind.DatatypeConverter;
 import org.springframework.stereotype.Component;
 
 @Component
 public class HelmTemplateUtils extends TemplateUtils {
+
+  public HelmTemplateUtils(ClouddriverService clouddriverService) {
+    super(clouddriverService);
+  }
+
   public BakeRecipe buildBakeRecipe(BakeManifestEnvironment env, HelmBakeManifestRequest request) {
     BakeRecipe result = new BakeRecipe();
     result.setName(request.getOutputName());
@@ -67,5 +78,25 @@ public class HelmTemplateUtils extends TemplateUtils {
     result.setCommand(command);
 
     return result;
+  }
+
+  private String nameFromReference(String reference) {
+    try {
+      MessageDigest md = MessageDigest.getInstance("MD5");
+      return DatatypeConverter.printHexBinary(md.digest(reference.getBytes()));
+    } catch (NoSuchAlgorithmException e) {
+      throw new RuntimeException("Failed to save bake manifest: " + e.getMessage(), e);
+    }
+  }
+
+  protected Path downloadArtifactToTmpFile(BakeManifestEnvironment env, Artifact artifact)
+      throws IOException {
+    if (artifact.getReference() == null) {
+      throw new InvalidRequestException("Input artifact has an empty 'reference' field.");
+    }
+    File targetFile =
+        env.getStagingPath().resolve(nameFromReference(artifact.getReference())).toFile();
+    downloadArtifact(artifact, targetFile);
+    return targetFile.toPath();
   }
 }

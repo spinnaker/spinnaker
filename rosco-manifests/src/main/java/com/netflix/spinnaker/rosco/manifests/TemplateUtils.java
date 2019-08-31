@@ -2,62 +2,38 @@ package com.netflix.spinnaker.rosco.manifests;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.core.RetrySupport;
-import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
 import com.netflix.spinnaker.rosco.services.ClouddriverService;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
-import javax.xml.bind.DatatypeConverter;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import retrofit.client.Response;
 
 @Component
 @Slf4j
-public abstract class TemplateUtils {
-  @Autowired ClouddriverService clouddriverService;
-
+public class TemplateUtils {
+  private final ClouddriverService clouddriverService;
   private RetrySupport retrySupport = new RetrySupport();
 
-  private String nameFromReference(String reference) {
-    try {
-      MessageDigest md = MessageDigest.getInstance("MD5");
-      return DatatypeConverter.printHexBinary(md.digest(reference.getBytes()));
-    } catch (NoSuchAlgorithmException e) {
-      throw new RuntimeException("Failed to save bake manifest: " + e.getMessage(), e);
-    }
+  public TemplateUtils(ClouddriverService clouddriverService) {
+    this.clouddriverService = clouddriverService;
   }
 
-  protected Path downloadArtifactToTmpFile(BakeManifestEnvironment env, Artifact artifact)
-      throws IOException {
-    if (artifact.getReference() == null) {
-      throw new InvalidRequestException("Input artifact has an empty 'reference' field.");
+  protected void downloadArtifact(Artifact artifact, File targetFile) throws IOException {
+    try (OutputStream outputStream = new FileOutputStream(targetFile)) {
+      Response response =
+          retrySupport.retry(() -> clouddriverService.fetchArtifact(artifact), 5, 1000, true);
+      if (response.getBody() != null) {
+        try (InputStream inputStream = response.getBody().in()) {
+          IOUtils.copy(inputStream, outputStream);
+        }
+      }
     }
-    Path path =
-        Paths.get(env.getStagingPath().toString(), nameFromReference(artifact.getReference()));
-    OutputStream outputStream = new FileOutputStream(path.toString());
-
-    Response response =
-        retrySupport.retry(() -> clouddriverService.fetchArtifact(artifact), 5, 1000, true);
-
-    if (response.getBody() != null) {
-      InputStream inputStream = response.getBody().in();
-      IOUtils.copy(inputStream, outputStream);
-      inputStream.close();
-    }
-    outputStream.close();
-
-    return path;
   }
 
   public static class BakeManifestEnvironment {

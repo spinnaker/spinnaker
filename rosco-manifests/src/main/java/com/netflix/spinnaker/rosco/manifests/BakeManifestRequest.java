@@ -1,9 +1,7 @@
 package com.netflix.spinnaker.rosco.manifests;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import lombok.Data;
 
@@ -12,18 +10,17 @@ public class BakeManifestRequest {
   TemplateRenderer templateRenderer;
   String outputName;
   String outputArtifactName;
-  List<Artifact> inputArtifacts;
   Map<String, Object> overrides;
 
   public enum TemplateRenderer {
-    HELM2;
+    HELM2,
+    KUSTOMIZE;
 
     @JsonCreator
     public TemplateRenderer fromString(String value) {
       if (value == null) {
         return null;
       }
-
       return Arrays.stream(values())
           .filter(v -> value.equalsIgnoreCase(v.toString()))
           .findFirst()
