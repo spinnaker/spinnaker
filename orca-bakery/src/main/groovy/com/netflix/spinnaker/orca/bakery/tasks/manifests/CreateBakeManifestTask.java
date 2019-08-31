@@ -24,7 +24,9 @@ import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.bakery.api.BakeryService;
+import com.netflix.spinnaker.orca.bakery.api.manifests.BakeManifestRequest;
 import com.netflix.spinnaker.orca.bakery.api.manifests.helm.HelmBakeManifestRequest;
+import com.netflix.spinnaker.orca.bakery.api.manifests.kustomize.KustomizeBakeManifestRequest;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
@@ -69,8 +71,14 @@ public class CreateBakeManifestTask implements RetryableTask {
     List<InputArtifactPair> inputArtifactsObj = context.getInputArtifacts();
     List<Artifact> inputArtifacts;
 
+    // kustomize depends on a single input artifact so we may not have a list here
+    // but we still want the resolution provided by the stream below
     if (inputArtifactsObj == null || inputArtifactsObj.isEmpty()) {
-      throw new IllegalArgumentException("At least one input artifact to bake must be supplied");
+      if (context.getInputArtifact() != null) {
+        inputArtifactsObj.add(context.getInputArtifact());
+      } else {
+        throw new IllegalArgumentException("At least one input artifact to bake must be supplied");
+      }
     }
 
     inputArtifacts =
@@ -104,24 +112,32 @@ public class CreateBakeManifestTask implements RetryableTask {
 
     String outputArtifactName = expectedArtifacts.get(0).getMatchArtifact().getName();
 
+    // TODO(ethanfrogers): encapsulate this into the HelmBakeManifestRequest
     Map<String, Object> overrides = context.getOverrides();
     Boolean evaluateOverrideExpressions = context.getEvaluateOverrideExpressions();
     if (evaluateOverrideExpressions != null && evaluateOverrideExpressions) {
+
       overrides =
           contextParameterProcessor.process(
               overrides, contextParameterProcessor.buildExecutionContext(stage, true), true);
     }
 
-    HelmBakeManifestRequest request = new HelmBakeManifestRequest();
-    request.setInputArtifacts(inputArtifacts);
-    request.setTemplateRenderer(context.getTemplateRenderer());
-    request.setOutputName(context.getOutputName());
-    request.setOverrides(overrides);
-    request.setNamespace(context.getNamespace());
-    request.setOutputArtifactName(outputArtifactName);
+    BakeManifestRequest request;
+    switch (context.getTemplateRenderer().toUpperCase()) {
+      case "HELM2":
+        request =
+            new HelmBakeManifestRequest(context, inputArtifacts, outputArtifactName, overrides);
+        break;
+      case "KUSTOMIZE":
+        Artifact inputArtifact = inputArtifacts.get(0);
+        request = new KustomizeBakeManifestRequest(context, inputArtifact, outputArtifactName);
+        break;
+      default:
+        throw new IllegalArgumentException(
+            "Invalid template renderer " + context.getTemplateRenderer());
+    }
 
-    log.info("Requesting {}", request);
-    Artifact result = bakery.bakeManifest(request);
+    Artifact result = bakery.bakeManifest(request.getTemplateRenderer(), request);
 
     Map<String, Object> outputs = new HashMap<>();
     outputs.put("artifacts", Collections.singleton(result));

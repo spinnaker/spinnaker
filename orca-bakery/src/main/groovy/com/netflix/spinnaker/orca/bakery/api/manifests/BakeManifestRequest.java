@@ -18,24 +18,23 @@
 package com.netflix.spinnaker.orca.bakery.api.manifests;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import java.util.List;
-import java.util.Map;
 import lombok.Data;
 
 @Data
 public class BakeManifestRequest {
   @JsonProperty("templateRenderer")
-  String templateRenderer;
-
-  @JsonProperty("inputArtifacts")
-  List<Artifact> inputArtifacts;
-
-  List<Artifact> values;
+  private String templateRenderer;
 
   @JsonProperty("outputName")
-  String outputName;
+  private String outputName;
 
-  @JsonProperty("overrides")
-  Map<String, Object> overrides;
+  @JsonProperty("outputArtifactName")
+  private String outputArtifactName;
+
+  public BakeManifestRequest(
+      String templateRenderer, String outputArtifactName, String outputName) {
+    this.templateRenderer = templateRenderer;
+    this.outputArtifactName = outputArtifactName;
+    this.outputName = outputName;
+  }
 }

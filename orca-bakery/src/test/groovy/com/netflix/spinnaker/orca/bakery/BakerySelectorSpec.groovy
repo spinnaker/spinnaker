@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.bakery.api.BakeRequest
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import com.netflix.spinnaker.orca.bakery.api.BaseImage
+import com.netflix.spinnaker.orca.bakery.api.manifests.BakeManifestRequest
 import com.netflix.spinnaker.orca.bakery.api.manifests.helm.HelmBakeManifestRequest
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfigurationProperties
 import com.netflix.spinnaker.orca.pipeline.model.Execution
@@ -39,7 +40,7 @@ import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class BakerySelectorSpec extends Specification {
   def bakeryConfigProperties = new BakeryConfigurationProperties(
-    baseUrl: "http://bakery.com", 
+    baseUrl: "http://bakery.com",
     baseUrls: [
       new BaseUrl(
         baseUrl: "http://rosco.us-east-1.com",
@@ -126,7 +127,7 @@ class BakerySelectorSpec extends Specification {
     }
 
     @Override
-    Artifact bakeManifest(@Body HelmBakeManifestRequest bakeRequest) {
+    Artifact bakeManifest(@Path("type") String type, @Body BakeManifestRequest bakeRequest) {
       return null
     }
 

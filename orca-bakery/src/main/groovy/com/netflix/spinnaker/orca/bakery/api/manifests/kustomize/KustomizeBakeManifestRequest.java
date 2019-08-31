@@ -1,7 +1,7 @@
 /*
- * Copyright 2018 Mirantis, Inc.
+ * Copyright 2019 Armory
  *
- * Licensed under the Apache License, Version 2.0 (the "License")
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -12,45 +12,29 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
-package com.netflix.spinnaker.orca.bakery.api.manifests.helm;
+package com.netflix.spinnaker.orca.bakery.api.manifests.kustomize;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.orca.bakery.api.manifests.BakeManifestRequest;
 import com.netflix.spinnaker.orca.bakery.tasks.manifests.BakeManifestContext;
-import java.util.List;
-import java.util.Map;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class HelmBakeManifestRequest extends BakeManifestRequest {
-  @JsonProperty("namespace")
-  private String namespace;
+public class KustomizeBakeManifestRequest extends BakeManifestRequest {
+  @JsonProperty("inputArtifact")
+  private Artifact inputArtifact;
 
-  @JsonProperty("overrides")
-  private Map<String, Object> overrides;
-
-  @JsonProperty("inputArtifacts")
-  private List<Artifact> inputArtifacts;
-
-  private List<Artifact> values;
-
-  public HelmBakeManifestRequest(
-      BakeManifestContext bakeManifestContext,
-      List<Artifact> inputArtifacts,
-      String outputArtifactName,
-      Map<String, Object> overrides) {
+  public KustomizeBakeManifestRequest(
+      BakeManifestContext bakeManifestContext, Artifact inputArtifact, String outputArtifactName) {
     super(
         bakeManifestContext.getTemplateRenderer(),
         outputArtifactName,
         bakeManifestContext.getOutputName());
-    this.setOverrides(overrides);
-    this.setNamespace(bakeManifestContext.getNamespace());
-    this.setInputArtifacts(inputArtifacts);
+    this.inputArtifact = inputArtifact;
   }
 }

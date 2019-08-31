@@ -17,16 +17,18 @@
 package com.netflix.spinnaker.orca.bakery.api
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
-import com.netflix.spinnaker.orca.bakery.api.manifests.helm.HelmBakeManifestRequest
+import com.netflix.spinnaker.orca.bakery.api.manifests.BakeManifestRequest
 import retrofit.http.*
 import rx.Observable
+
 
 /**
  * An interface to the Bakery's REST API.
  */
 interface BakeryService {
-  @POST("/api/v2/manifest/bake/helm")
-  Artifact bakeManifest(@Body HelmBakeManifestRequest bakeRequest)
+
+  @POST("/api/v2/manifest/bake/{type}")
+  Artifact bakeManifest(@Path("type") String type, @Body BakeManifestRequest bake)
 
   @POST("/api/v1/{region}/bake")
   Observable<BakeStatus> createBake(@Path("region") String region, @Body BakeRequest bake, @Query("rebake") String rebake)
