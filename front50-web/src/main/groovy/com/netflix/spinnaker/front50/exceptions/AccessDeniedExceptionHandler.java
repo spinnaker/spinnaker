@@ -19,6 +19,8 @@ package com.netflix.spinnaker.front50.exceptions;
 import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
@@ -27,12 +29,20 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 @ControllerAdvice
 public class AccessDeniedExceptionHandler {
+  private final Logger log = LoggerFactory.getLogger(getClass());
+
   private final DefaultErrorAttributes defaultErrorAttributes = new DefaultErrorAttributes();
 
   @ExceptionHandler(AccessDeniedException.class)
   public void handleNotFoundException(
       Exception e, HttpServletResponse response, HttpServletRequest request) throws IOException {
     storeException(request, response, e);
+    log.error(
+        "Encountered exception while processing request {}:{}",
+        request.getMethod(),
+        request.getRequestURI(),
+        e);
+
     response.sendError(HttpStatus.FORBIDDEN.value(), "Access is denied");
   }
 
