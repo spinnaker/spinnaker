@@ -1,5 +1,6 @@
 export * from './CheckboxInput';
 export * from './ChecklistInput';
+export * from './DayPickerInput';
 export * from './JsonEditor';
 export * from './NumberInput';
 export * from './RadioButtonInput';
