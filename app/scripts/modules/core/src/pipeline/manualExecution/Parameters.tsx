@@ -1,12 +1,9 @@
 import * as React from 'react';
 import { FormikProps } from 'formik';
-import DayPickerInput from 'react-day-picker/DayPickerInput';
 
 import { HelpField } from 'core/help';
 import { IParameter, IPipelineCommand } from 'core/domain';
-import { FormikFormField, ReactSelectInput, TextInput } from 'core/presentation';
-
-import 'react-day-picker/lib/style.css';
+import { FormikFormField, ReactSelectInput, TextInput, DayPickerInput } from 'core/presentation';
 
 export interface IParametersProps {
   formik: FormikProps<IPipelineCommand>;
@@ -14,11 +11,6 @@ export interface IParametersProps {
 }
 
 export class Parameters extends React.Component<IParametersProps> {
-  private dateSelected = (date: Date, name: string): void => {
-    /* We need to use bracket notation because parameter names are strings that can have all sorts of characters */
-    this.props.formik.setFieldValue('parameter["' + name + '"]', date.toISOString().slice(0, 10));
-  };
-
   private shouldInclude = (p: IParameter) => {
     const { values } = this.props.formik;
     if (p.conditional) {
@@ -46,6 +38,8 @@ export class Parameters extends React.Component<IParametersProps> {
     const { parameters } = this.props;
     const hasRequiredParameters = parameters.some(p => p.required);
     const visibleParameters = parameters.filter(p => !p.conditional || this.shouldInclude(p));
+    /* We need to use bracket notation because parameter names are strings that can have all sorts of characters */
+    const formikFieldNameForParam = (param: IParameter) => `parameters["${param.name}"]`;
     return (
       <>
         <p className="manual-execution-parameters-description">
@@ -62,20 +56,18 @@ export class Parameters extends React.Component<IParametersProps> {
                 </div>
                 {!parameter.hasOptions && parameter.constraint === 'date' && (
                   <div className="col-md-6">
-                    <DayPickerInput
-                      format={'yyyy-MM-dd'}
-                      onDayChange={(date: Date) => this.dateSelected(date, parameter.name)}
+                    <FormikFormField
+                      name={formikFieldNameForParam(parameter)}
+                      fastField={false}
+                      input={props => <DayPickerInput {...props} format={'yyyy-MM-dd'} />}
+                      required={parameter.required}
                     />
                   </div>
                 )}
                 {!parameter.hasOptions && !parameter.constraint && (
                   <div className="col-md-6">
                     <FormikFormField
-                      name={
-                        'parameters["' +
-                        parameter.name +
-                        '"]' /* We need to use bracket notation because parameter names are strings that can have all sorts of characters */
-                      }
+                      name={formikFieldNameForParam(parameter)}
                       fastField={false}
                       input={props => <TextInput {...props} inputClassName={'form-control input-sm'} />}
                       required={parameter.required}
@@ -85,11 +77,7 @@ export class Parameters extends React.Component<IParametersProps> {
                 {parameter.hasOptions && (
                   <div className="col-md-6">
                     <FormikFormField
-                      name={
-                        'parameters["' +
-                        parameter.name +
-                        '"]' /* We need to use bracket notation because parameter names are strings that can have all sorts of characters */
-                      }
+                      name={formikFieldNameForParam(parameter)}
                       fastField={false}
                       input={props => (
                         <ReactSelectInput
