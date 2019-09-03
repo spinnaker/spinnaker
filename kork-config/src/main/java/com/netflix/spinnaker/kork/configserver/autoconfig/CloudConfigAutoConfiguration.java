@@ -16,37 +16,51 @@
 
 package com.netflix.spinnaker.kork.configserver.autoconfig;
 
+import com.netflix.spinnaker.kork.configserver.CloudConfigResourceService;
 import com.netflix.spinnaker.kork.configserver.ConfigFileService;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.cloud.config.server.EnableConfigServer;
+import org.springframework.cloud.config.server.bootstrap.ConfigServerBootstrapConfiguration;
+import org.springframework.cloud.config.server.config.CompositeConfiguration;
 import org.springframework.cloud.config.server.config.ConfigServerAutoConfiguration;
+import org.springframework.cloud.config.server.config.ConfigServerEncryptionConfiguration;
+import org.springframework.cloud.config.server.config.ResourceRepositoryConfiguration;
 import org.springframework.cloud.config.server.environment.EnvironmentRepository;
 import org.springframework.cloud.config.server.resource.ResourceRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 @Configuration
-@AutoConfigureAfter(ConfigServerAutoConfiguration.class)
-public class ConfigFileServiceAutoConfiguration {
+@AutoConfigureAfter({ConfigServerAutoConfiguration.class, ConfigServerBootstrapConfiguration.class})
+public class CloudConfigAutoConfiguration {
+  @Bean
+  ConfigFileService configFileService() {
+    return new ConfigFileService();
+  }
+
   @Configuration
   @Conditional(RemoteConfigSourceConfigured.class)
-  @EnableConfigServer
+  @Import({
+    CompositeConfiguration.class,
+    ResourceRepositoryConfiguration.class,
+    ConfigServerEncryptionConfiguration.class
+  })
   static class RemoteConfigSourceConfiguration {
     @Bean
-    ConfigFileService configFileService(
+    CloudConfigResourceService cloudConfigResourceService(
         ResourceRepository resourceRepository, EnvironmentRepository environmentRepository) {
-      return new ConfigFileService(resourceRepository, environmentRepository);
+      return new CloudConfigResourceService(resourceRepository, environmentRepository);
     }
   }
 
   @Configuration
   static class DefaultConfiguration {
     @Bean
-    @ConditionalOnMissingBean(ConfigFileService.class)
-    ConfigFileService configFileService() {
-      return new ConfigFileService();
+    @ConditionalOnMissingBean(CloudConfigResourceService.class)
+    CloudConfigResourceService cloudConfigResourceService() {
+      return new CloudConfigResourceService();
     }
   }
 }
