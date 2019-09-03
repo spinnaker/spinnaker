@@ -151,8 +151,8 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
       return true;
     }
     if (resourceName == null || resourceType == null || authorization == null) {
-      log.debug(
-          "Permission denied due to null argument. resourceName={}, resourceType={}, "
+      log.warn(
+          "Permission denied because at least one of the required arguments was null. resourceName={}, resourceType={}, "
               + "authorization={}",
           resourceName,
           resourceType,
