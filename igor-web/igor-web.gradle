@@ -57,6 +57,7 @@ dependencies {
 
     implementation "com.google.apis:google-api-services-cloudbuild"
     implementation "com.google.apis:google-api-services-storage"
+    implementation "com.netflix.spinnaker.kork:kork-config"
     implementation "com.netflix.spinnaker.kork:kork-core"
     implementation "com.netflix.spinnaker.kork:kork-artifacts"
     implementation "com.netflix.spinnaker.kork:kork-stackdriver"

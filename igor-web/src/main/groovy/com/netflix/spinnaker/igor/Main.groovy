@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.igor
 
 import com.netflix.config.ConfigurationManager
+import com.netflix.spinnaker.kork.boot.DefaultPropertiesBuilder
+import com.netflix.spinnaker.kork.configserver.ConfigServerBootstrap
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
@@ -34,35 +36,28 @@ import java.security.Security
 @Configuration
 @EnableAutoConfiguration(exclude = [GroovyTemplateAutoConfiguration])
 @EnableConfigurationProperties(IgorConfigurationProperties)
-@ComponentScan([ 'com.netflix.spinnaker.config', 'com.netflix.spinnaker.igor'])
+@ComponentScan(['com.netflix.spinnaker.config', 'com.netflix.spinnaker.igor'])
 class Main extends SpringBootServletInitializer {
 
-    static final Map<String, String> DEFAULT_PROPS = [
-      'netflix.environment'              : 'test',
-      'netflix.account'                  : '${netflix.environment}',
-      'netflix.stack'                    : 'test',
-      'spring.config.additional-location': '${user.home}/.spinnaker/',
-      'spring.application.name'          : 'igor',
-      'spring.config.name'               : 'spinnaker,${spring.application.name}',
-      'spring.profiles.active'           : '${netflix.environment},local'
-    ]
+  static final Map<String, Object> DEFAULT_PROPS = new DefaultPropertiesBuilder().build()
 
-    static {
-        /**
-         * We often operate in an environment where we expect resolution of DNS names for remote dependencies to change
-         * frequently, so it's best to tell the JVM to avoid caching DNS results internally.
-         */
-        InetAddressCachePolicy.cachePolicy = InetAddressCachePolicy.NEVER
-        Security.setProperty('networkaddress.cache.ttl', '0')
-        ConfigurationManager.loadCascadedPropertiesFromResources("hystrix")
-    }
+  static {
+    /**
+     * We often operate in an environment where we expect resolution of DNS names for remote dependencies to change
+     * frequently, so it's best to tell the JVM to avoid caching DNS results internally.
+     */
+    InetAddressCachePolicy.cachePolicy = InetAddressCachePolicy.NEVER
+    Security.setProperty('networkaddress.cache.ttl', '0')
+    ConfigurationManager.loadCascadedPropertiesFromResources("hystrix")
+  }
 
-    static void main(String... args) {
-        new SpringApplicationBuilder().properties(DEFAULT_PROPS).sources(Main).run(args)
-    }
+  static void main(String... args) {
+    ConfigServerBootstrap.systemProperties("igor")
+    new SpringApplicationBuilder().properties(DEFAULT_PROPS).sources(Main).run(args)
+  }
 
-    @Override
-    SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-        application.properties(DEFAULT_PROPS).sources(Main)
-    }
+  @Override
+  SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+    application.properties(DEFAULT_PROPS).sources(Main)
+  }
 }
