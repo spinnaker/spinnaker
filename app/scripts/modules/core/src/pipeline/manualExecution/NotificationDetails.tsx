@@ -3,9 +3,11 @@ import { FormikProps } from 'formik';
 import { Option } from 'react-select';
 
 import { INotification, INotificationTypeConfig, IPipelineCommand } from 'core/domain';
-import { CheckboxInput, FormikFormField, HoverablePopover } from 'core/presentation';
+import { CheckboxInput, FormikFormField, HoverablePopover, LayoutProvider } from 'core/presentation';
 import { Registry } from 'core/registry';
 import { NotificationSelector, NotificationTransformer } from 'core/notification';
+
+import { ManualExecutionFieldLayout } from './layout/ManualExecutionFieldLayout';
 
 export interface INotificationDetailsProps {
   formik: FormikProps<IPipelineCommand>;
@@ -94,11 +96,13 @@ export class NotificationDetails extends React.Component<INotificationDetailsPro
           )}
         </div>
         {values.notificationEnabled && (
-          <NotificationSelector
-            onNotificationTypeChange={onNotificationTypeChange}
-            fieldName={'notification'}
-            type={values.notification.type}
-          />
+          <LayoutProvider value={ManualExecutionFieldLayout}>
+            <NotificationSelector
+              onNotificationTypeChange={onNotificationTypeChange}
+              fieldName={'notification'}
+              type={values.notification.type}
+            />
+          </LayoutProvider>
         )}
       </>
     );

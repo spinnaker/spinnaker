@@ -16,20 +16,14 @@ export class HipchatNotificationType extends React.Component<INotificationTypeCu
             </div>
           </div>
         )}
-        <div className="sp-margin-m-bottom">
-          <div className={'form-group'}>
-            <label className={'col-md-4 sm-label-right'}>HipChat Room</label>
-            <div className="col-md-6">
-              <FormikFormField
-                name={fieldName ? `${fieldName}.address` : 'address'}
-                input={props => (
-                  <TextInput inputClassName={'form-control input-sm'} {...props} placeholder="enter a HipChat room" />
-                )}
-                required={true}
-              />
-            </div>
-          </div>
-        </div>
+        <FormikFormField
+          label="HipChat Room"
+          name={fieldName ? `${fieldName}.address` : 'address'}
+          input={props => (
+            <TextInput inputClassName={'form-control input-sm'} {...props} placeholder="enter a HipChat room" />
+          )}
+          required={true}
+        />
       </>
     );
   }
