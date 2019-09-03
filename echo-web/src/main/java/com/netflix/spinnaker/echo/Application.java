@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.echo;
 
-import java.util.Collections;
-import java.util.HashMap;
+import com.netflix.spinnaker.kork.boot.DefaultPropertiesBuilder;
+import com.netflix.spinnaker.kork.configserver.ConfigServerBootstrap;
 import java.util.Map;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration;
@@ -34,21 +34,10 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 @ComponentScan({"com.netflix.spinnaker.echo.config", "com.netflix.spinnaker.config"})
 public class Application extends SpringBootServletInitializer {
-  private static final Map<String, Object> DEFAULT_PROPS = buildDefaults();
-
-  private static Map<String, Object> buildDefaults() {
-    Map<String, String> defaults = new HashMap<>();
-    defaults.put("netflix.environment", "test");
-    defaults.put("netflix.account", "${netflix.environment}");
-    defaults.put("netflix.stack", "test");
-    defaults.put("spring.config.additional-location", "${user.home}/.spinnaker/");
-    defaults.put("spring.application.name", "echo");
-    defaults.put("spring.config.name", "spinnaker,${spring.application.name}");
-    defaults.put("spring.profiles.active", "${netflix.environment},local");
-    return Collections.unmodifiableMap(defaults);
-  }
+  private static final Map<String, Object> DEFAULT_PROPS = new DefaultPropertiesBuilder().build();
 
   public static void main(String... args) {
+    ConfigServerBootstrap.systemProperties("echo");
     System.setProperty("spring.main.allow-bean-definition-overriding", "true");
     new SpringApplicationBuilder().properties(DEFAULT_PROPS).sources(Application.class).run(args);
   }
