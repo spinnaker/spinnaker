@@ -159,7 +159,7 @@ internal class ImageResolverTests : JUnit5Minutests {
       context("the resource is not in an environment") {
         before {
           coEvery {
-            imageService.getLatestNamedImage(artifact.name, any())
+            imageService.getLatestNamedImage(artifact.name, any(), resourceRegion)
           } answers {
             images.lastOrNull { it.appVersion.startsWith(firstArg<String>()) }
           }
@@ -184,7 +184,7 @@ internal class ImageResolverTests : JUnit5Minutests {
           before {
             artifactRepository.approveVersionFor(deliveryConfig, artifact, "${artifact.name}-1.1.0", "test")
             coEvery {
-              imageService.getLatestNamedImage("${artifact.name}-1.1.0", any())
+              imageService.getLatestNamedImage("${artifact.name}-1.1.0", any(), resourceRegion)
             } answers {
               images.lastOrNull { it.appVersion.startsWith(firstArg<String>()) }
             }
@@ -212,7 +212,7 @@ internal class ImageResolverTests : JUnit5Minutests {
           before {
             artifactRepository.approveVersionFor(deliveryConfig, artifact, "${artifact.name}-1.1.0", "test")
             coEvery {
-              imageService.getLatestNamedImage("${artifact.name}-1.1.0", any())
+              imageService.getLatestNamedImage("${artifact.name}-1.1.0", any(), resourceRegion)
             } returns null
           }
 
@@ -244,7 +244,7 @@ internal class ImageResolverTests : JUnit5Minutests {
           before {
             artifactRepository.approveVersionFor(deliveryConfig, artifact, "${artifact.name}-1.1.0", "test")
             coEvery {
-              imageService.getLatestNamedImage("${artifact.name}-1.1.0", any())
+              imageService.getLatestNamedImage("${artifact.name}-1.1.0", any(), resourceRegion)
             } answers {
               images.lastOrNull { it.appVersion.startsWith(firstArg<String>()) }
             }

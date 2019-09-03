@@ -59,10 +59,13 @@ class ImageService(
   }
 
   /**
-   * Get the latest named image for a package
+   * Get the latest named image for a package.
+   *
+   * @param region if supplied the latest image in this region is returned, if `null` the latest
+   * image regardless of region.
    */
-  suspend fun getLatestNamedImage(packageName: String, account: String): NamedImage? =
-    cloudDriverService.namedImages(DEFAULT_SERVICE_ACCOUNT, "$packageName-", account)
+  suspend fun getLatestNamedImage(packageName: String, account: String, region: String? = null): NamedImage? =
+    cloudDriverService.namedImages(DEFAULT_SERVICE_ACCOUNT, "$packageName-", account, region)
       .sortedWith(NamedImageComparator)
       .lastOrNull {
         AppVersion.parseName(it.appVersion).packageName == packageName

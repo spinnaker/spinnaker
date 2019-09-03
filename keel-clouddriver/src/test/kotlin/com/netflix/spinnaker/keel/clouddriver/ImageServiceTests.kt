@@ -24,7 +24,9 @@ import com.netflix.spinnaker.keel.clouddriver.model.creationDate
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
@@ -51,7 +53,8 @@ internal class ImageServiceTests {
     ),
     accounts = setOf("test"),
     amis = mapOf(
-      "us-west-1" to listOf("ami-001")
+      "us-west-1" to listOf("ami-001"),
+      "ap-south-1" to listOf("ami-001")
     )
   )
 
@@ -72,10 +75,12 @@ internal class ImageServiceTests {
     ),
     accounts = setOf("test"),
     amis = mapOf(
-      "us-west-1" to listOf("ami-002")
+      "us-west-1" to listOf("ami-002"),
+      "ap-south-1" to listOf("ami-002")
     )
   )
 
+  // image that is only in one region
   val image3 = NamedImage(
     imageName = "my-package-0.0.1_rc.99-h100",
     attributes = mapOf(
@@ -97,6 +102,7 @@ internal class ImageServiceTests {
     )
   )
 
+  // mismatched app name (desired app name is a substring of this one)
   val image4 = NamedImage(
     imageName = "my-package-foo-0.0.1_rc.99-h100",
     attributes = mapOf(
@@ -114,7 +120,30 @@ internal class ImageServiceTests {
     ),
     accounts = setOf("test"),
     amis = mapOf(
-      "us-west-1" to listOf("ami-004")
+      "us-west-1" to listOf("ami-004"),
+      "ap-south-1" to listOf("ami-004")
+    )
+  )
+
+  // image3 but in a different region
+  val image5 = NamedImage(
+    imageName = "my-package-0.0.1_rc.99-h100",
+    attributes = mapOf(
+      "virtualizationType" to "hvm",
+      "creationDate" to "2018-10-31T13:09:54.000Z"
+    ),
+    tagsByImageId = mapOf(
+      "ami-003" to mapOf(
+        "build_host" to "https://jenkins/",
+        "appversion" to "my-package-0.0.1~rc.99-h100.8192e02/JENKINS-job/100",
+        "creator" to "emburns@netflix.com",
+        "base_ami_version" to "nflx-base-5.292.0-h988",
+        "creation_time" to "2018-10-31 13:24:55 UTC"
+      )
+    ),
+    accounts = setOf("test"),
+    amis = mapOf(
+      "ap-south-1" to listOf("ami-005")
     )
   )
 
@@ -123,7 +152,7 @@ internal class ImageServiceTests {
 
   @Test
   fun `namedImages are in chronological order`() {
-    val sortedImages = listOf(image2, image3, image1).sortedWith(NamedImageComparator)
+    val sortedImages = listOf(image2, image3, image1, image5).sortedWith(NamedImageComparator)
     expectThat(sortedImages.last()) {
       get { imageName }.isEqualTo("my-package-0.0.1_rc.99-h100")
     }
@@ -133,7 +162,7 @@ internal class ImageServiceTests {
   fun `get latest image returns actual latest image`() {
     coEvery {
       cloudDriver.namedImages(DEFAULT_SERVICE_ACCOUNT, "my-package-", "test")
-    } returns listOf(image2, image4, image3, image1)
+    } returns listOf(image2, image4, image3, image1, image5)
 
     runBlocking {
       val image = subject.getLatestImage("my-package", "test")
@@ -148,7 +177,7 @@ internal class ImageServiceTests {
   fun `get latest named image returns actual latest image`() {
     coEvery {
       cloudDriver.namedImages(DEFAULT_SERVICE_ACCOUNT, "my-package-", "test")
-    } returns listOf(image2, image4, image3, image1)
+    } returns listOf(image2, image4, image3, image1, image5)
 
     runBlocking {
       val image = subject.getLatestNamedImage("my-package", "test")
@@ -158,6 +187,26 @@ internal class ImageServiceTests {
         .isEqualTo(newestImage.imageName)
     }
   }
+
+  @TestFactory
+  fun `get latest named image can be filtered by region`() =
+    mapOf("us-west-1" to "ami-003", "ap-south-1" to "ami-005").map { (region, imageId) ->
+      dynamicTest("get latest image can be filtered by region ($region)") {
+        coEvery {
+          cloudDriver.namedImages(DEFAULT_SERVICE_ACCOUNT, "my-package-", "test", region)
+        } answers {
+          listOf(image2, image4, image3, image1, image5).filter { it.amis.keys.contains(region) }
+        }
+
+        runBlocking {
+          val image = subject.getLatestNamedImage("my-package", "test", region)
+          expectThat(image)
+            .isNotNull()
+            .get { imageId }
+            .isEqualTo(imageId)
+        }
+      }
+    }
 
   @Test
   fun `no image provided if image not found for latest from artifact`() {

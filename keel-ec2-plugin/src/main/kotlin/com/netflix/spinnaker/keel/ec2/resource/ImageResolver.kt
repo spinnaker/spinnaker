@@ -28,6 +28,7 @@ class ImageResolver(
 
   // TODO: we may (probably will) want to make the parameter type more generic
   suspend fun resolveImageId(resource: Resource<ClusterSpec>): String {
+    val region = resource.spec.location.region
     when (val imageProvider = resource.spec.launchConfiguration.imageProvider) {
       is IdImageProvider -> {
         return imageProvider.imageId
@@ -47,12 +48,12 @@ class ImageResolver(
         }
         val account = dynamicConfigService.getConfig("images.default-account", "test")
         val namedImage = imageService
-          .getLatestNamedImage(artifactName, account) ?: throw NoImageFound(artifactName)
+          .getLatestNamedImage(artifactName, account, region) ?: throw NoImageFound(artifactName)
 
         log.info("Image found for {}: {}", artifactName, namedImage)
 
-        return namedImage.amis[resource.spec.location.region]?.first()
-          ?: throw NoImageFoundForRegion(artifactName, resource.spec.location.region) // todo eb: when are there multiple?
+        return namedImage.amis[region]?.first()
+          ?: throw NoImageFoundForRegion(artifactName, region) // todo eb: when are there multiple?
       }
       is JenkinsImageProvider -> {
         val namedImage = imageService.getNamedImageFromJenkinsInfo(
@@ -64,8 +65,8 @@ class ImageResolver(
         ) ?: throw NoImageFound(imageProvider.packageName)
 
         log.info("Image found for {}: {}", imageProvider.packageName, namedImage)
-        val amis = namedImage.amis[resource.spec.location.region]
-          ?: throw NoImageFoundForRegion(imageProvider.packageName, resource.spec.location.region)
+        val amis = namedImage.amis[region]
+          ?: throw NoImageFoundForRegion(imageProvider.packageName, region)
         return amis.first() // todo eb: when are there multiple?
       }
       else -> {
