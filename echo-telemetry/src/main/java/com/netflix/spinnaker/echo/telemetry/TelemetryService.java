@@ -19,8 +19,9 @@ package com.netflix.spinnaker.echo.telemetry;
 import retrofit.client.Response;
 import retrofit.http.Body;
 import retrofit.http.POST;
+import retrofit.mime.TypedInput;
 
 public interface TelemetryService {
-  @POST("/}")
-  Response sendMessage(@Body String body);
+  @POST("/log")
+  Response log(@Body TypedInput body);
 }

@@ -16,50 +16,65 @@
 
 package com.netflix.spinnaker.echo.config;
 
-import static retrofit.Endpoints.newFixedEndpoint;
-
 import com.netflix.spinnaker.echo.telemetry.TelemetryService;
+import com.netflix.spinnaker.retrofit.RetrofitConfigurationProperties;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
-import groovy.transform.CompileStatic;
+import com.squareup.okhttp.OkHttpClient;
+import java.util.concurrent.TimeUnit;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import retrofit.Endpoint;
 import retrofit.RestAdapter;
-import retrofit.client.Client;
+import retrofit.client.OkClient;
 import retrofit.converter.JacksonConverter;
 
 @Slf4j
 @Configuration
 @ConditionalOnProperty("telemetry.enabled")
-@CompileStatic
-class TelemetryConfig {
-
-  @Value("${telemetry.endpoint}")
-  String endpoint;
-
-  @Bean
-  Endpoint telemetryEndpoint() {
-    return newFixedEndpoint(endpoint);
-  }
+@EnableConfigurationProperties(TelemetryConfig.TelemetryConfigProps.class)
+public class TelemetryConfig {
 
   @Bean
   public TelemetryService telemetryService(
-      Endpoint telemetryEndpoint, Client retrofitClient, RestAdapter.LogLevel retrofitLogLevel) {
+      RetrofitConfigurationProperties retrofitConfigurationProperties,
+      TelemetryConfigProps configProps) {
     log.info("Telemetry service loaded");
 
     TelemetryService client =
         new RestAdapter.Builder()
-            .setEndpoint(telemetryEndpoint)
+            .setEndpoint(configProps.endpoint)
             .setConverter(new JacksonConverter())
-            .setClient(retrofitClient)
-            .setLogLevel(RestAdapter.LogLevel.FULL)
+            .setClient(telemetryOkClient(configProps))
+            .setLogLevel(retrofitConfigurationProperties.getLogLevel())
             .setLog(new Slf4jRetrofitLogger(TelemetryService.class))
             .build()
             .create(TelemetryService.class);
 
     return client;
+  }
+
+  private OkClient telemetryOkClient(TelemetryConfigProps configProps) {
+    OkHttpClient httpClient = new OkHttpClient();
+    httpClient.setConnectTimeout(configProps.connectionTimeoutMillis, TimeUnit.MILLISECONDS);
+    httpClient.setReadTimeout(configProps.readTimeoutMillis, TimeUnit.MILLISECONDS);
+    return new OkClient(httpClient);
+  }
+
+  @Data
+  @ConfigurationProperties(prefix = "telemetry")
+  public static class TelemetryConfigProps {
+
+    public static final String DEFAULT_TELEMETRY_ENDPOINT = "https://stats.spinnaker.io/log";
+
+    boolean enabled = false;
+    String endpoint = DEFAULT_TELEMETRY_ENDPOINT;
+    String instanceId;
+    String spinnakerVersion = "unknown";
+    int connectionTimeoutMillis = 3000;
+    int readTimeoutMillis = 5000;
   }
 }

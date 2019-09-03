@@ -28,7 +28,6 @@ buildscript {
 // this override is needed to omit compileOnly dependencies from generated pom.xml
           classpath "com.netflix.nebula:nebula-publishing-plugin:12.0.1"
         }
-        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.8'
     }
 }
 

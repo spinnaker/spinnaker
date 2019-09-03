@@ -15,6 +15,7 @@
  */
 
 include 'echo-artifacts',
+        'echo-bom',
         'echo-core',
         'echo-model',
         'echo-web',
@@ -26,10 +27,8 @@ include 'echo-artifacts',
         'echo-pubsub-core',
         'echo-pubsub-aws',
         'echo-pubsub-google',
-        'echo-test',
-        'echo-bom',
         'echo-telemetry',
-        'echo-proto'
+        'echo-test',
 
 rootProject.name = 'echo'
 

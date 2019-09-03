@@ -17,9 +17,10 @@
 dependencies {
   implementation project(':echo-model')
   implementation project(':echo-notifications')
-  implementation project(':echo-proto')
+  implementation 'com.google.guava:guava'
+  implementation 'com.google.protobuf:protobuf-java-util'
+  implementation "com.netflix.spinnaker.kork:kork-proto"
+  implementation 'com.netflix.spinnaker.kork:kork-web'
   implementation 'com.squareup.retrofit:retrofit'
   implementation 'com.squareup.retrofit:converter-jackson'
-  implementation 'com.netflix.spinnaker.kork:kork-web'
-  implementation 'com.google.protobuf:protobuf-java-util:3.7.1'
 }
