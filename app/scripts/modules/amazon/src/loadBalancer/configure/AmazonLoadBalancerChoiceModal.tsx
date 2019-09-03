@@ -5,21 +5,25 @@ import { ILoadBalancerModalProps, ModalClose, ReactModal, noop } from '@spinnake
 
 import { IAmazonLoadBalancerConfig, LoadBalancerTypes } from './LoadBalancerTypes';
 
-export interface IAmazonLoadBalancerChoiceModalState {
+export interface IAmazonLoadBalancerChoiceModalProps extends ILoadBalancerModalProps {
   choices: IAmazonLoadBalancerConfig[];
+}
+
+export interface IAmazonLoadBalancerChoiceModalState {
   selectedChoice: IAmazonLoadBalancerConfig;
 }
 
 export class AmazonLoadBalancerChoiceModal extends React.Component<
-  ILoadBalancerModalProps,
+  IAmazonLoadBalancerChoiceModalProps,
   IAmazonLoadBalancerChoiceModalState
 > {
-  public static defaultProps: Partial<ILoadBalancerModalProps> = {
+  public static defaultProps: Partial<IAmazonLoadBalancerChoiceModalProps> = {
     closeModal: noop,
     dismissModal: noop,
+    choices: LoadBalancerTypes,
   };
 
-  public static show(props: ILoadBalancerModalProps): Promise<void> {
+  public static show(props: IAmazonLoadBalancerChoiceModalProps): Promise<void> {
     return ReactModal.show(
       AmazonLoadBalancerChoiceModal,
       {
@@ -30,11 +34,10 @@ export class AmazonLoadBalancerChoiceModal extends React.Component<
     );
   }
 
-  constructor(props: ILoadBalancerModalProps) {
+  constructor(props: IAmazonLoadBalancerChoiceModalProps) {
     super(props);
     this.state = {
-      choices: LoadBalancerTypes,
-      selectedChoice: LoadBalancerTypes[0],
+      selectedChoice: props.choices[0],
     };
   }
 
@@ -58,7 +61,8 @@ export class AmazonLoadBalancerChoiceModal extends React.Component<
   };
 
   public render() {
-    const { choices, selectedChoice } = this.state;
+    const { choices } = this.props;
+    const { selectedChoice } = this.state;
 
     return (
       <>
