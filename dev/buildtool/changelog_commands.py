@@ -30,6 +30,7 @@ except ImportError:
   from urllib.request import urlopen
   from urllib.error import HTTPError
 
+from retrying import retry
 
 from buildtool import (
     SPINNAKER_GITHUB_IO_REPOSITORY_NAME,
@@ -537,23 +538,32 @@ class PushChangelogCommand(CommandProcessor):
     if not os.path.exists(git_dir):
       logging.debug('Cloning gist from %s', gist_url)
       ensure_dir_exists(os.path.dirname(git_dir))
-      self.__git.check_run(os.path.dirname(git_dir), 'clone ' + gist_url)
+      self.git_run_with_retries(os.path.dirname(git_dir), 'clone ' + gist_url)
     else:
       logging.debug('Updating gist in "%s"', git_dir)
-      self.__git.check_run(git_dir, 'fetch origin master')
-      self.__git.check_run(git_dir, 'checkout master')
+      self.git_run_with_retries(git_dir, 'fetch origin master')
+      self.git_run_with_retries(git_dir, 'checkout master')
 
     dest_path = os.path.join(
         git_dir, '%s-raw-changelog.md' % options.git_branch)
     logging.debug('Copying "%s" to "%s"', options.changelog_path, dest_path)
     shutil.copyfile(options.changelog_path, dest_path)
 
-    self.__git.check_run(git_dir, 'add ' + os.path.basename(dest_path))
+    self.git_run_with_retries(git_dir, 'add ' + os.path.basename(dest_path))
     self.__git.check_commit_or_no_changes(
         git_dir, '-a -m "Updated %s"' % os.path.basename(dest_path))
 
     logging.debug('Pushing back gist')
-    self.__git.check_run(git_dir, 'push -f origin master')
+    self.git_run_with_retries(git_dir, 'push -f origin master')
+
+
+  # For some reason gist.github.com seems to have a lot of connection timeout
+  # errors, which we don't really see with normal github. I'm not sure why, but
+  # let's just retry and see if that helps.
+  # Retry every 2^n seconds (with a maximum of 16 seconds), giving up after 2 minutes.
+  @retry(stop_max_delay=120000, wait_exponential_multiplier=1000, wait_exponential_max=16000)
+  def git_run_with_retries(self, git_dir, command, **kwargs):
+    self.__git.check_run(git_dir, command, **kwargs)
 
 
 def register_commands(registry, subparsers, defaults):
