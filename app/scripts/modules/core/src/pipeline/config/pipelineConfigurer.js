@@ -19,6 +19,7 @@ import { DisablePipelineModal } from 'core/pipeline/config/actions/disable/Disab
 import { EnablePipelineModal } from 'core/pipeline/config/actions/enable/EnablePipelineModal';
 import { LockPipelineModal } from 'core/pipeline/config/actions/lock/LockPipelineModal';
 import { UnlockPipelineModal } from 'core/pipeline/config/actions/unlock/UnlockPipelineModal';
+import { RenamePipelineModal } from 'core/pipeline/config/actions/rename/RenamePipelineModal';
 import { ShowPipelineTemplateJsonModal } from 'core/pipeline/config/actions/templateJson/ShowPipelineTemplateJsonModal';
 import { PipelineTemplateV2Service } from 'core/pipeline';
 import { PipelineTemplateWriter } from 'core/pipeline/config/templates/PipelineTemplateWriter';
@@ -171,17 +172,9 @@ module.exports = angular
       };
 
       this.renamePipeline = () => {
-        $uibModal
-          .open({
-            templateUrl: require('./actions/rename/renamePipelineModal.html'),
-            controller: 'RenamePipelineModalCtrl',
-            controllerAs: 'renamePipelineModalCtrl',
-            resolve: {
-              pipeline: () => $scope.pipeline,
-              application: () => $scope.application,
-            },
-          })
-          .result.then(() => {
+        ReactModal.show(RenamePipelineModal, { pipeline: $scope.pipeline, application: $scope.application })
+          .then(pipelineName => {
+            $scope.pipeline.name = pipelineName;
             setOriginal($scope.pipeline);
             markDirty();
           })

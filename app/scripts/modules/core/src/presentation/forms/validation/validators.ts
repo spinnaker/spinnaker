@@ -52,6 +52,14 @@ const skipIfUndefined = (actualValidator: IValidator): IValidator => {
   };
 };
 
+const valueUnique = (list: any[], message?: string): IValidator => {
+  return (val: any, label = THIS_FIELD) => {
+    list = list || [];
+    message = message || `${label} must be not be included in (${list.join(', ')})`;
+    return list.includes(val) && message;
+  };
+};
+
 /**
  * A collection of reusable Validator factories.
  *
@@ -67,6 +75,7 @@ export const Validators = {
   minValue,
   oneOf,
   skipIfUndefined,
+  valueUnique,
 };
 
 // Typescript kludge:
