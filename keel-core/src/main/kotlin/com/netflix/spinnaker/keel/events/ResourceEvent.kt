@@ -296,7 +296,8 @@ data class ResourceCheckError(
   override val name: String,
   override val application: String,
   override val timestamp: Instant,
-  val exception: Throwable
+  val exceptionType: Class<Throwable>,
+  val exceptionMessage: String?
 ) : ResourceCheckResult() {
   @JsonIgnore
   override val state = Error
@@ -308,7 +309,8 @@ data class ResourceCheckError(
     resource.name.value,
     resource.application,
     clock.instant(),
-    exception
+    exception.javaClass,
+    exception.message
   )
 }
 /**
