@@ -19,8 +19,9 @@ package com.netflix.spinnaker.rosco.manifests.kustomize;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.rosco.jobs.BakeRecipe;
 import com.netflix.spinnaker.rosco.jobs.JobExecutor;
+import com.netflix.spinnaker.rosco.manifests.BakeManifestEnvironment;
 import com.netflix.spinnaker.rosco.manifests.BakeManifestService;
-import com.netflix.spinnaker.rosco.manifests.TemplateUtils.BakeManifestEnvironment;
+import java.io.IOException;
 import java.util.Base64;
 import org.springframework.stereotype.Component;
 
@@ -47,15 +48,17 @@ public class KustomizeBakeManifestService
     return type.toUpperCase().equals(KUSTOMIZE);
   }
 
-  public Artifact bake(KustomizeBakeManifestRequest kustomizeBakeManifestRequest) {
-    BakeManifestEnvironment env = new BakeManifestEnvironment();
-    BakeRecipe recipe = kustomizeTemplateUtils.buildBakeRecipe(env, kustomizeBakeManifestRequest);
+  public Artifact bake(KustomizeBakeManifestRequest kustomizeBakeManifestRequest)
+      throws IOException {
+    try (BakeManifestEnvironment env = BakeManifestEnvironment.create()) {
+      BakeRecipe recipe = kustomizeTemplateUtils.buildBakeRecipe(env, kustomizeBakeManifestRequest);
 
-    byte[] bakeResult = doBake(env, recipe);
-    return Artifact.builder()
-        .type("embedded/base64")
-        .name(kustomizeBakeManifestRequest.getOutputArtifactName())
-        .reference(Base64.getEncoder().encodeToString(bakeResult))
-        .build();
+      byte[] bakeResult = doBake(recipe);
+      return Artifact.builder()
+          .type("embedded/base64")
+          .name(kustomizeBakeManifestRequest.getOutputArtifactName())
+          .reference(Base64.getEncoder().encodeToString(bakeResult))
+          .build();
+    }
   }
 }

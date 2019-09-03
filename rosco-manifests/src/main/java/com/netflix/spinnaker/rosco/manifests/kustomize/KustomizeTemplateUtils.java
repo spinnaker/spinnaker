@@ -19,6 +19,7 @@ package com.netflix.spinnaker.rosco.manifests.kustomize;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
 import com.netflix.spinnaker.rosco.jobs.BakeRecipe;
+import com.netflix.spinnaker.rosco.manifests.BakeManifestEnvironment;
 import com.netflix.spinnaker.rosco.manifests.TemplateUtils;
 import com.netflix.spinnaker.rosco.manifests.kustomize.mapping.Kustomization;
 import com.netflix.spinnaker.rosco.services.ClouddriverService;

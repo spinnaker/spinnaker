@@ -3,13 +3,12 @@ package com.netflix.spinnaker.rosco.manifests;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.rosco.services.ClouddriverService;
-import java.io.*;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.UUID;
-import lombok.Getter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Component;
 import retrofit.client.Response;
@@ -32,28 +31,6 @@ public class TemplateUtils {
         try (InputStream inputStream = response.getBody().in()) {
           IOUtils.copy(inputStream, outputStream);
         }
-      }
-    }
-  }
-
-  public static class BakeManifestEnvironment {
-    @Getter
-    private final Path stagingPath =
-        Paths.get(System.getProperty("java.io.tmpdir"), UUID.randomUUID().toString());
-
-    public BakeManifestEnvironment() {
-      boolean success = stagingPath.toFile().mkdirs();
-      if (!success) {
-        log.warn("Failed to make directory " + stagingPath + "...");
-      }
-    }
-
-    public void cleanup() {
-      try {
-        FileUtils.deleteDirectory(stagingPath.toFile());
-      } catch (IOException e) {
-        throw new RuntimeException(
-            "Failed to cleanup bake manifest environment: " + e.getMessage(), e);
       }
     }
   }

@@ -3,8 +3,9 @@ package com.netflix.spinnaker.rosco.manifests.helm;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.rosco.jobs.BakeRecipe;
 import com.netflix.spinnaker.rosco.jobs.JobExecutor;
+import com.netflix.spinnaker.rosco.manifests.BakeManifestEnvironment;
 import com.netflix.spinnaker.rosco.manifests.BakeManifestService;
-import com.netflix.spinnaker.rosco.manifests.TemplateUtils.BakeManifestEnvironment;
+import java.io.IOException;
 import java.util.Base64;
 import org.springframework.stereotype.Component;
 
@@ -28,15 +29,16 @@ public class HelmBakeManifestService extends BakeManifestService<HelmBakeManifes
     return type.toUpperCase().equals(HELM_TYPE);
   }
 
-  public Artifact bake(HelmBakeManifestRequest bakeManifestRequest) {
-    BakeManifestEnvironment env = new BakeManifestEnvironment();
-    BakeRecipe recipe = helmTemplateUtils.buildBakeRecipe(env, bakeManifestRequest);
+  public Artifact bake(HelmBakeManifestRequest bakeManifestRequest) throws IOException {
+    try (BakeManifestEnvironment env = BakeManifestEnvironment.create()) {
+      BakeRecipe recipe = helmTemplateUtils.buildBakeRecipe(env, bakeManifestRequest);
 
-    byte[] bakeResult = doBake(env, recipe);
-    return Artifact.builder()
-        .type("embedded/base64")
-        .name(bakeManifestRequest.getOutputArtifactName())
-        .reference(Base64.getEncoder().encodeToString(bakeResult))
-        .build();
+      byte[] bakeResult = doBake(recipe);
+      return Artifact.builder()
+          .type("embedded/base64")
+          .name(bakeManifestRequest.getOutputArtifactName())
+          .reference(Base64.getEncoder().encodeToString(bakeResult))
+          .build();
+    }
   }
 }
