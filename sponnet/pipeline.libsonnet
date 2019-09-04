@@ -73,7 +73,16 @@
         kind: matchArtifact.kind,
       },
     },
-    withDefaultArtifact(defaultArtifact):: self + { defaultArtifact: defaultArtifact },
+    withDefaultArtifact(defaultArtifact):: self + {
+      defaultArtifact+: {
+        reference: defaultArtifact.reference,
+        type: defaultArtifact.type,
+        kind: if defaultArtifact.kind == 'custom' then defaultArtifact else 'default.' + defaultArtifact.kind,
+        // TODO: Some Artifact types (docker) don't require version to be set. It may be better to do this differently.
+        [if 'version' in defaultArtifact then 'version']: defaultArtifact.version,
+        [if 'name' in defaultArtifact then 'name']: defaultArtifact.name,
+      },
+    },
     withDisplayName(displayName):: self + { displayName: displayName },
     withUsePriorArtifact(usePriorArtifact):: self + { usePriorArtifact: usePriorArtifact },
     withUseDefaultArtifact(useDefaultArtifact):: self + { useDefaultArtifact: useDefaultArtifact },
