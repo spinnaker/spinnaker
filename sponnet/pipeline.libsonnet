@@ -163,9 +163,9 @@
       pubsubSystem: pubsubSystem,
       subscriptionName: subscriptionName,
       attributeConstraints: {},
-      addAttributeConstraints(key, value):: self + {attributeConstraints +: {[key]: value}},
+      addAttributeConstraints(key, value):: self + { attributeConstraints+: { [key]: value } },
       payloadConstraints: {},
-      addPayloadConstraints(key, value):: self + {payloadConstraints +: {[key]: value}},
+      addPayloadConstraints(key, value):: self + { payloadConstraints+: { [key]: value } },
     },
   },
 
