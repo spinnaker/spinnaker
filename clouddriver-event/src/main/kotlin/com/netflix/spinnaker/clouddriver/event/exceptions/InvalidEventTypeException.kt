@@ -13,20 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.clouddriver.event
+package com.netflix.spinnaker.clouddriver.event.exceptions
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.netflix.spinnaker.kork.exceptions.IntegrationException
 
 /**
- * The base type for the eventing library. All library-level code is contained within [EventMetadata].
+ * Thrown when a [SpinnakerEvent] cannot be created.
  */
-@JsonTypeInfo(
-  use = JsonTypeInfo.Id.NAME,
-  include = JsonTypeInfo.As.PROPERTY,
-  property = "eventType"
-)
-interface SpinnakerEvent {
-  fun getMetadata(): EventMetadata
-
-  fun setMetadata(eventMetadata: EventMetadata)
-}
+class InvalidEventTypeException(cause: Throwable) : IntegrationException(cause), EventingException

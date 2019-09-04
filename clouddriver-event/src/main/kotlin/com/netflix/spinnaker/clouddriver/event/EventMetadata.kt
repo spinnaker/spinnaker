@@ -20,6 +20,9 @@ import java.time.Instant
 /**
  * Metadata for a [SpinnakerEvent].
  *
+ * @param id A unique ID for the event (not used beyond tracing, debugging)
+ * @param aggregateType The type of aggregate the event is for
+ * @param aggregateId The id of the aggregate the event is for
  * @param sequence Auto-incrementing number for event ordering
  * @param originatingVersion The aggregate version that originated this event
  * @param timestamp The time at which the event was created
@@ -27,6 +30,9 @@ import java.time.Instant
  * @param source Where/what generated the event
  */
 data class EventMetadata(
+  val id: String,
+  val aggregateType: String,
+  val aggregateId: String,
   val sequence: Long,
   val originatingVersion: Long,
   val timestamp: Instant = Instant.now(),

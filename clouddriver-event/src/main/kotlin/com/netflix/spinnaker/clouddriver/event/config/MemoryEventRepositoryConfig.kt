@@ -19,7 +19,7 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.event.persistence.EventRepository
 import com.netflix.spinnaker.clouddriver.event.persistence.InMemoryEventRepository
 import org.slf4j.LoggerFactory
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationEventPublisher
@@ -34,7 +34,7 @@ import javax.validation.constraints.Min
 import kotlin.reflect.KClass
 
 @Configuration
-@ConditionalOnProperty("spinnaker.clouddriver.eventing.memory-repository.enabled", matchIfMissing = true)
+@ConditionalOnMissingBean(EventRepository::class)
 @EnableConfigurationProperties(MemoryEventRepositoryConfigProperties::class)
 open class MemoryEventRepositoryConfig {
 

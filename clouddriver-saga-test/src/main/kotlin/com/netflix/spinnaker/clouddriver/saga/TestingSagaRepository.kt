@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.saga
 import com.netflix.spinnaker.clouddriver.event.EventMetadata
 import com.netflix.spinnaker.clouddriver.saga.models.Saga
 import com.netflix.spinnaker.clouddriver.saga.persistence.SagaRepository
+import java.util.UUID
 
 class TestingSagaRepository : SagaRepository {
 
@@ -34,18 +35,19 @@ class TestingSagaRepository : SagaRepository {
   override fun save(saga: Saga, additionalEvents: List<SagaEvent>) {
     sagas.putIfAbsent(createId(saga), saga)
 
-    val currentSequence = saga.getEvents().map { it.metadata.sequence }.max() ?: 0
+    val currentSequence = saga.getEvents().map { it.getMetadata().sequence }.max() ?: 0
     val originatingVersion = saga.getVersion()
 
     saga.getPendingEvents()
       .plus(additionalEvents)
       .forEachIndexed { index, event ->
-        event.aggregateType = saga.name
-        event.aggregateId = saga.id
-        event.metadata = EventMetadata(
+        event.setMetadata(EventMetadata(
+          id = UUID.randomUUID().toString(),
+          aggregateType = saga.name,
+          aggregateId = saga.id,
           sequence = currentSequence + index + 1,
           originatingVersion = originatingVersion
-        )
+        ))
         saga.addEventForTest(event)
       }
   }

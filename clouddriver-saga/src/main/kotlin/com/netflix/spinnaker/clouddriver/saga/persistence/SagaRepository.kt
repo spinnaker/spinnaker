@@ -26,6 +26,8 @@ interface SagaRepository {
   /**
    * List all [Saga]s that match the provided [criteria].
    *
+   * TODO(rz): Support pagination
+   *
    * @param criteria Query criteria for Sagas
    * @return A list of matching Sagas
    */

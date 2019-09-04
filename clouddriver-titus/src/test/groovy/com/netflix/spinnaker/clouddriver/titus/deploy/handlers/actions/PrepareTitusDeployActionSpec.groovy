@@ -222,9 +222,9 @@ class PrepareTitusDeployActionSpec extends Specification {
 
   private static PrepareTitusDeployCommand createCommand(
     TitusDeployDescription description, String email, boolean platformHealthOnly) {
-    return new PrepareTitusDeployCommand(description).with {
-      it.front50App = new LoadFront50App.Front50App(email, platformHealthOnly)
-      it
-    }
+    return PrepareTitusDeployCommand.builder()
+      .description(description)
+      .front50App(new LoadFront50App.Front50App(email, platformHealthOnly))
+      .build()
   }
 }

@@ -13,20 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.clouddriver.event
-
-import com.fasterxml.jackson.annotation.JsonTypeInfo
+package com.netflix.spinnaker.clouddriver.event.exceptions
 
 /**
- * The base type for the eventing library. All library-level code is contained within [EventMetadata].
+ * Marker
  */
-@JsonTypeInfo(
-  use = JsonTypeInfo.Id.NAME,
-  include = JsonTypeInfo.As.PROPERTY,
-  property = "eventType"
-)
-interface SpinnakerEvent {
-  fun getMetadata(): EventMetadata
-
-  fun setMetadata(eventMetadata: EventMetadata)
-}
+interface EventingException

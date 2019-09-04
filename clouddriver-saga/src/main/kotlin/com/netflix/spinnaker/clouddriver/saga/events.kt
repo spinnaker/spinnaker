@@ -17,22 +17,22 @@ package com.netflix.spinnaker.clouddriver.saga
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonTypeName
-import com.netflix.spinnaker.clouddriver.event.SpinnakerEvent
+import com.netflix.spinnaker.clouddriver.event.AbstractSpinnakerEvent
 import com.netflix.spinnaker.clouddriver.saga.models.Saga
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException
 
 /**
  * Root event type for [Saga]s.
  *
- * @property sagaName Alias for [aggregateType]
- * @property sagaId Alias for [aggregateId]
+ * @property sagaName Alias for [metadata.aggregateType]
+ * @property sagaId Alias for [metadata.aggregateId]
  */
-abstract class SagaEvent : SpinnakerEvent() {
+abstract class SagaEvent : AbstractSpinnakerEvent() {
   val sagaName
-    @JsonIgnore get() = aggregateType
+    @JsonIgnore get() = getMetadata().aggregateType
 
   val sagaId
-    @JsonIgnore get() = aggregateId
+    @JsonIgnore get() = getMetadata().aggregateId
 }
 
 /**
@@ -45,7 +45,7 @@ abstract class SagaEvent : SpinnakerEvent() {
  */
 @JsonTypeName("sagaSaved")
 class SagaSaved(
-  val saga: Saga
+  val sequence: Long
 ) : SagaEvent()
 
 /**
@@ -160,6 +160,7 @@ class SagaCommandCompleted(
  * This event is unwrapped prior to being added to the event log; so all [SagaCommand]s defined within this
  * wrapper will show up as their own distinct log entries.
  */
+@JsonTypeName("sagaManyCommandsWrapper")
 class ManyCommands(
   command1: SagaCommand,
   vararg extraCommands: SagaCommand

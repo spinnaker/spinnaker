@@ -70,7 +70,7 @@ class SagaService(
   private val actionInvocationsId = registry.createId("sagas.actions.invocations")
 
   fun <T> applyBlocking(sagaName: String, sagaId: String, flow: SagaFlow, startingCommand: SagaCommand): T? {
-    val initialSaga = initializeSaga(startingCommand)
+    val initialSaga = initializeSaga(startingCommand, sagaName, sagaId)
 
     log.info("Applying saga: ${initialSaga.name}/${initialSaga.id}")
 
@@ -119,7 +119,7 @@ class SagaService(
             "Failed to apply action ${action.javaClass.simpleName} for ${saga.name}/${saga.id}", e)
         }
 
-        saga.setSequence(stepCommand.metadata.sequence)
+        saga.setSequence(stepCommand.getMetadata().sequence)
 
         val newEvents: MutableList<SagaEvent> = result.events.toMutableList().also {
           it.add(SagaCommandCompleted(getStepCommandName(stepCommand)))
@@ -149,32 +149,32 @@ class SagaService(
     return invokeCompletionHandler(initialSaga, flow)
   }
 
-  private fun initializeSaga(command: SagaCommand): Saga {
-    return sagaRepository.get(command.sagaName, command.sagaId)
-      ?: Saga(command.sagaName, command.sagaId)
+  private fun initializeSaga(command: SagaCommand, sagaName: String, sagaId: String): Saga {
+    return sagaRepository.get(sagaName, sagaId)
+      ?: Saga(sagaName, sagaId)
         .also {
-          log.debug("Initializing new saga: ${it.name}/${it.id}")
+          log.debug("Initializing new saga: $sagaName/$sagaId")
           it.addEvent(command)
           sagaRepository.save(it)
         }
   }
 
   private fun <T> invokeCompletionHandler(saga: Saga, flow: SagaFlow): T? {
-    if (flow.completionHandler != null) {
-      val handler = applicationContext.getBean(flow.completionHandler)
-      val result = sagaRepository.get(saga.name, saga.id)
-        ?.let { handler.handle(it) }
-        ?: throw SagaNotFoundException("Could not find Saga to complete by ${saga.name}/${saga.id}")
+    return flow.completionHandler
+      ?.let { completionHandler ->
+        val handler = applicationContext.getBean(completionHandler)
+        val result = sagaRepository.get(saga.name, saga.id)
+          ?.let { handler.handle(it) }
+          ?: throw SagaNotFoundException("Could not find Saga to complete by ${saga.name}/${saga.id}")
 
-      // TODO(rz): Haha... :(
-      try {
-        @Suppress("UNCHECKED_CAST")
-        return result as T?
-      } catch (e: ClassCastException) {
-        throw SagaIntegrationException("The completion handler is incompatible with the expected return type", e)
+        // TODO(rz): Haha... :(
+        try {
+          @Suppress("UNCHECKED_CAST")
+          return result as T?
+        } catch (e: ClassCastException) {
+          throw SagaIntegrationException("The completion handler is incompatible with the expected return type", e)
+        }
       }
-    }
-    return null
   }
 
   private fun getRequiredCommand(action: SagaAction<SagaCommand>): Class<SagaCommand> {

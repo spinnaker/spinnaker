@@ -22,6 +22,12 @@ import com.netflix.spinnaker.kork.exceptions.SystemException
  *
  * The process which originated the event must be retryable.
  */
-class AggregateChangeRejectedException(message: String) : SystemException(message) {
+class AggregateChangeRejectedException(
+  aggregateVersion: Long,
+  originatingVersion: Long
+) : SystemException(
+  "Attempting to save new events against an old aggregate version " +
+    "(version: $aggregateVersion, originatingVersion: $originatingVersion)"
+) {
   override fun getRetryable() = true
 }

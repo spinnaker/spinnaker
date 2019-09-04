@@ -17,8 +17,13 @@ package com.netflix.spinnaker.clouddriver.titus.deploy.actions;
 
 import static java.lang.String.format;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service;
+import com.netflix.spinnaker.clouddriver.event.CompositeSpinnakerEvent;
+import com.netflix.spinnaker.clouddriver.event.SpinnakerEvent;
 import com.netflix.spinnaker.clouddriver.saga.ManyCommands;
 import com.netflix.spinnaker.clouddriver.saga.SagaCommand;
 import com.netflix.spinnaker.clouddriver.saga.exceptions.SagaIntegrationException;
@@ -26,13 +31,14 @@ import com.netflix.spinnaker.clouddriver.saga.flow.SagaAction;
 import com.netflix.spinnaker.clouddriver.saga.models.Saga;
 import com.netflix.spinnaker.kork.exceptions.SystemException;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Value;
 import org.jetbrains.annotations.NotNull;
@@ -127,25 +133,29 @@ public class LoadFront50App implements SagaAction<LoadFront50App.LoadFront50AppC
     }
   }
 
-  @EqualsAndHashCode(callSuper = true)
-  @Getter
-  public static class LoadFront50AppCommand extends SagaCommand {
-    @Nonnull private final String appName;
-    @Nonnull private final SagaCommand nextCommand;
-    @Nonnull private final boolean allowMissing;
-
-    public LoadFront50AppCommand(
-        @Nonnull String appName, @Nonnull SagaCommand nextCommand, boolean allowMissing) {
-      super();
-      this.appName = appName;
-      this.nextCommand = nextCommand;
-      this.allowMissing = allowMissing;
-    }
-  }
-
   /** Marks a SagaCommand as being aware of the result of the LoadFront50App SagaAction. */
   interface Front50AppAware {
     void setFront50App(Front50App app);
+  }
+
+  @Builder(builderClassName = "LoadFront50AppCommandBuilder", toBuilder = true)
+  @JsonDeserialize(builder = LoadFront50AppCommand.LoadFront50AppCommandBuilder.class)
+  @JsonTypeName("loadFront50AppCommand")
+  @EqualsAndHashCode(callSuper = true)
+  @Value
+  public static class LoadFront50AppCommand extends SagaCommand implements CompositeSpinnakerEvent {
+    @Nonnull private String appName;
+    @Nonnull private SagaCommand nextCommand;
+    private boolean allowMissing;
+
+    @NotNull
+    @Override
+    public List<SpinnakerEvent> getComposedEvents() {
+      return Collections.singletonList(nextCommand);
+    }
+
+    @JsonPOJOBuilder(withPrefix = "")
+    public static class LoadFront50AppCommandBuilder {}
   }
 
   @Value

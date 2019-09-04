@@ -16,11 +16,14 @@
 package com.netflix.spinnaker.clouddriver.saga.config
 
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.clouddriver.event.SpinnakerEvent
 import com.netflix.spinnaker.clouddriver.event.config.EventSourceAutoConfiguration
 import com.netflix.spinnaker.clouddriver.event.persistence.EventRepository
 import com.netflix.spinnaker.clouddriver.saga.SagaService
 import com.netflix.spinnaker.clouddriver.saga.persistence.DefaultSagaRepository
 import com.netflix.spinnaker.clouddriver.saga.persistence.SagaRepository
+import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer.ClassSubtypeLocator
+import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer.SubtypeLocator
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -47,6 +50,14 @@ open class SagaAutoConfiguration {
     registry: Registry
   ): SagaService =
     SagaService(sagaRepository, registry)
+
+  @Bean
+  open fun sagaEventSubtypeLocator(): SubtypeLocator {
+    return ClassSubtypeLocator(
+      SpinnakerEvent::class.java,
+      listOf("com.netflix.spinnaker.clouddriver.saga")
+    )
+  }
 }
 
 @ConfigurationProperties("spinnaker.clouddriver.sagas")

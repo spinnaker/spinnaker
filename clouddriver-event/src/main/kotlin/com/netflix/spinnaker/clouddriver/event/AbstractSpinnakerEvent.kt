@@ -15,18 +15,21 @@
  */
 package com.netflix.spinnaker.clouddriver.event
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.netflix.spinnaker.clouddriver.event.exceptions.UninitializedEventException
 
-/**
- * The base type for the eventing library. All library-level code is contained within [EventMetadata].
- */
-@JsonTypeInfo(
-  use = JsonTypeInfo.Id.NAME,
-  include = JsonTypeInfo.As.PROPERTY,
-  property = "eventType"
-)
-interface SpinnakerEvent {
-  fun getMetadata(): EventMetadata
+abstract class AbstractSpinnakerEvent : SpinnakerEvent {
+  /**
+   * Not a lateinit to make Java/Lombok & Jackson compatibility a little easier, although behavior is exactly the same.
+   */
+  @JsonIgnore
+  private var metadata: EventMetadata? = null
 
-  fun setMetadata(eventMetadata: EventMetadata)
+  override fun getMetadata(): EventMetadata {
+    return metadata ?: throw UninitializedEventException()
+  }
+
+  override fun setMetadata(eventMetadata: EventMetadata) {
+    metadata = eventMetadata
+  }
 }

@@ -23,6 +23,8 @@ package com.netflix.spinnaker.clouddriver.event
  * latest event state; any modification to an [Aggregate] event log will increment this value.
  * When an operation is attempted on an [version] which is not head, the event framework will
  * reject the change.
+ *
+ * TODO(rz): Add `currentSequence` to make resuming aggregate processing in-flight easier.
  */
 class Aggregate(
   val type: String,

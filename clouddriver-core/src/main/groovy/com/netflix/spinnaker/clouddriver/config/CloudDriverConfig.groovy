@@ -18,17 +18,18 @@ package com.netflix.spinnaker.clouddriver.config
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation
 import com.netflix.spinnaker.cats.agent.NoopExecutionInstrumentation
 import com.netflix.spinnaker.cats.redis.cache.RedisCacheOptions
 import com.netflix.spinnaker.clouddriver.cache.CacheConfig
-import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
 import com.netflix.spinnaker.clouddriver.cache.NoopOnDemandCacheUpdater
 import com.netflix.spinnaker.clouddriver.cache.OnDemandCacheUpdater
 import com.netflix.spinnaker.clouddriver.core.CloudProvider
-
 import com.netflix.spinnaker.clouddriver.core.NoopAtomicOperationConverter
 import com.netflix.spinnaker.clouddriver.core.NoopCloudProvider
 import com.netflix.spinnaker.clouddriver.core.ProjectClustersService
@@ -127,6 +128,7 @@ class CloudDriverConfig {
         jacksonObjectMapperBuilder.serializationInclusion(JsonInclude.Include.NON_NULL)
         jacksonObjectMapperBuilder.failOnEmptyBeans(false)
         jacksonObjectMapperBuilder.failOnUnknownProperties(false)
+        jacksonObjectMapperBuilder.modules(new Jdk8Module(), new JavaTimeModule(), new KotlinModule())
       }
     }
   }

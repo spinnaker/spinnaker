@@ -17,6 +17,9 @@ package com.netflix.spinnaker.clouddriver.titus.deploy.actions;
 
 import static java.lang.String.format;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.netflix.frigga.Names;
@@ -36,7 +39,6 @@ import com.netflix.spinnaker.clouddriver.titus.caching.utils.AwsLookupUtil;
 import com.netflix.spinnaker.clouddriver.titus.client.TitusClient;
 import com.netflix.spinnaker.clouddriver.titus.client.model.DisruptionBudget;
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job;
-import com.netflix.spinnaker.clouddriver.titus.client.model.SubmitJobRequest;
 import com.netflix.spinnaker.clouddriver.titus.client.model.disruption.AvailabilityPercentageLimit;
 import com.netflix.spinnaker.clouddriver.titus.client.model.disruption.ContainerHealthProvider;
 import com.netflix.spinnaker.clouddriver.titus.client.model.disruption.HourlyTimeWindow;
@@ -56,6 +58,7 @@ import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import lombok.experimental.NonFinal;
@@ -118,6 +121,8 @@ public class PrepareTitusDeploy extends AbstractTitusDeployAction
   public Result apply(@NotNull PrepareTitusDeployCommand command, @NotNull Saga saga) {
     final TitusDeployDescription description = command.description;
 
+    prepareDeployDescription(description);
+
     final TitusClient titusClient =
         titusClientProvider.getTitusClient(
             description.getCredentials(), command.description.getRegion());
@@ -150,14 +155,6 @@ public class PrepareTitusDeploy extends AbstractTitusDeployAction
 
     resolveSecurityGroups(saga, description);
 
-    SubmitJobRequest submitJobRequest = description.toSubmitJobRequest(dockerImage);
-
-    if (front50App != null && !isNullOrEmpty(front50App.getEmail())) {
-      submitJobRequest.withUser(front50App.getEmail());
-    } else if (!isNullOrEmpty(description.getUser())) {
-      submitJobRequest.withUser(description.getUser());
-    }
-
     TargetGroupLookupHelper.TargetGroupLookupResult targetGroupLookupResult = null;
     if (!description.getTargetGroups().isEmpty()) {
       targetGroupLookupResult = validateLoadBalancers(description);
@@ -172,14 +169,31 @@ public class PrepareTitusDeploy extends AbstractTitusDeployAction
       description.getLabels().remove(LABEL_TARGET_GROUPS);
     }
 
-    String nextServerGroupName =
-        TitusJobNameResolver.resolveJobName(titusClient, description, submitJobRequest);
+    String nextServerGroupName = TitusJobNameResolver.resolveJobName(titusClient, description);
     saga.log("Resolved server group name to %s", nextServerGroupName);
 
+    String user = resolveUser(front50App, description);
+
     return new Result(
-        new SubmitTitusJobCommand(
-            description, submitJobRequest, nextServerGroupName, targetGroupLookupResult),
+        SubmitTitusJobCommand.builder()
+            .description(description)
+            .submitJobRequest(
+                description.toSubmitJobRequest(dockerImage, nextServerGroupName, user))
+            .nextServerGroupName(nextServerGroupName)
+            .targetGroupLookupResult(targetGroupLookupResult)
+            .build(),
         Collections.emptyList());
+  }
+
+  @Nullable
+  private String resolveUser(
+      LoadFront50App.Front50App front50App, TitusDeployDescription description) {
+    if (front50App != null && !isNullOrEmpty(front50App.getEmail())) {
+      return front50App.getEmail();
+    } else if (!isNullOrEmpty(description.getUser())) {
+      return description.getUser();
+    }
+    return null;
   }
 
   private void configureDisruptionBudget(
@@ -438,21 +452,22 @@ public class PrepareTitusDeploy extends AbstractTitusDeployAction
         Joiner.on(",").join(description.getSecurityGroups()));
   }
 
-  @EqualsAndHashCode(callSuper = true)
+  @Builder(builderClassName = "PrepareTitusDeployCommandBuilder", toBuilder = true)
+  @JsonDeserialize(builder = PrepareTitusDeployCommand.PrepareTitusDeployCommandBuilder.class)
+  @JsonTypeName("prepareTitusDeployCommand")
   @Value
+  @EqualsAndHashCode(callSuper = true)
   public static class PrepareTitusDeployCommand extends SagaCommand implements Front50AppAware {
-    private final TitusDeployDescription description;
+    private TitusDeployDescription description;
     @NonFinal private LoadFront50App.Front50App front50App;
-
-    public PrepareTitusDeployCommand(TitusDeployDescription description) {
-      super();
-      this.description = description;
-    }
 
     @Override
     public void setFront50App(LoadFront50App.Front50App app) {
       this.front50App = app;
     }
+
+    @JsonPOJOBuilder(withPrefix = "")
+    public static class PrepareTitusDeployCommandBuilder {}
   }
 
   private static class SecurityGroupNotFoundException extends TitusException {

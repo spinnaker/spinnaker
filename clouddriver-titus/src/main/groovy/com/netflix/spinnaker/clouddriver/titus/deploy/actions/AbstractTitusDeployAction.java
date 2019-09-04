@@ -71,4 +71,14 @@ abstract class AbstractTitusDeployAction {
     }
     return null;
   }
+
+  /** Re-sets credentials into a deserialized {@code TitusDeployDescription}. */
+  void prepareDeployDescription(final TitusDeployDescription description) {
+    if (description.getCredentials() == null) {
+      AccountCredentials credentials =
+          accountCredentialsRepository.getOne(description.getAccount());
+      TitusUtils.assertTitusAccountCredentialsType(credentials);
+      description.setCredentials((NetflixTitusCredentials) credentials);
+    }
+  }
 }

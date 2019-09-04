@@ -209,13 +209,13 @@ public class RegionScopedTitusClient implements TitusClient {
       jobDescription.setUser(jobDescription.getUser() + "@netflix.com");
     }
     if (jobDescription.getJobGroupSequence() == null
-        && jobDescription.getType().equals("service")) {
+        && "service".equals(jobDescription.getType())) {
       try {
         int sequence = Names.parseName(jobDescription.getName()).getSequence();
         jobDescription.setJobGroupSequence(String.format("v%03d", sequence));
       } catch (Exception e) {
-        log.error("Cannot get job group sequence", e);
-        // fail silently if we can't get a job group sequence
+        // fail silently if we can't get a job group sequence: This is normal if no prior jobs
+        // exist.
       }
     }
     jobDescription.getLabels().put("name", jobDescription.getName());

@@ -16,13 +16,26 @@
 
 package com.netflix.spinnaker.clouddriver.titus.client.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Value;
+import lombok.experimental.Wither;
 
+@JsonDeserialize(builder = SubmitJobRequest.SubmitJobRequestBuilder.class)
+@Builder(builderClassName = "SubmitJobRequestBuilder", toBuilder = true)
+@Wither
+@Value
 public class SubmitJobRequest {
+  @Getter
+  @Value
   public static class Constraint {
     enum ConstraintType {
       SOFT,
@@ -42,24 +55,10 @@ public class SubmitJobRequest {
 
     private final ConstraintType constraintType;
     private final String constraint;
-
-    public Constraint(ConstraintType constraintType, String constraint) {
-      this.constraintType = constraintType;
-      this.constraint = constraint;
-    }
-
-    public ConstraintType getConstraintType() {
-      return constraintType;
-    }
-
-    public String getConstraint() {
-      return constraint;
-    }
   }
 
   @Data
   public static class Constraints {
-
     public Map hard;
     public Map soft;
   }
@@ -77,7 +76,7 @@ public class SubmitJobRequest {
   private String entryPoint;
   private String iamProfile;
   private String capacityGroup;
-  private Boolean inService = true;
+  @Builder.Default private Boolean inService = true;
   private int instancesMin;
   private int instancesMax;
   private int instancesDesired;
@@ -93,357 +92,21 @@ public class SubmitJobRequest {
   private int[] ports;
   private Map<String, String> env;
   private boolean allocateIpAddress;
-  private List<Constraint> constraints = new ArrayList<>();
-  private Map<String, String> labels = new HashMap<String, String>();
-  private Map<String, String> containerAttributes = new HashMap<String, String>();
-  private List<String> securityGroups = null;
-  private MigrationPolicy migrationPolicy = null;
-  private DisruptionBudget disruptionBudget = null;
-
-  private Constraints containerConstraints = null;
-  private ServiceJobProcesses serviceJobProcesses = null;
-
-  public DisruptionBudget getDisruptionBudget() {
-    return disruptionBudget;
-  }
-
-  public SubmitJobRequest withJobType(String jobType) {
-    this.jobType = jobType;
-    return this;
-  }
-
-  public SubmitJobRequest withJobName(String jobName) {
-    this.jobName = jobName;
-    return this;
-  }
-
-  public SubmitJobRequest withApplication(String application) {
-    this.application = application;
-    return this;
-  }
-
-  public SubmitJobRequest withDockerImageName(String dockerImageName) {
-    this.dockerImageName = dockerImageName;
-    return this;
-  }
-
-  public SubmitJobRequest withDockerImageVersion(String dockerImageVersion) {
-    this.dockerImageVersion = dockerImageVersion;
-    return this;
-  }
-
-  public SubmitJobRequest withDockerDigest(String dockerDigest) {
-    this.dockerDigest = dockerDigest;
-    return this;
-  }
-
-  public SubmitJobRequest withInstancesMin(int instancesMin) {
-    this.instancesMin = instancesMin;
-    return this;
-  }
-
-  public SubmitJobRequest withInstancesMax(int instancesMax) {
-    this.instancesMax = instancesMax;
-    return this;
-  }
-
-  public SubmitJobRequest withInstancesDesired(int instancesDesired) {
-    this.instancesDesired = instancesDesired;
-    return this;
-  }
-
-  public SubmitJobRequest withCpu(int cpu) {
-    this.cpu = cpu;
-    return this;
-  }
-
-  public SubmitJobRequest withMemory(int memory) {
-    this.memory = memory;
-    return this;
-  }
-
-  public SubmitJobRequest withSharedMemory(int sharedMemory) {
-    this.sharedMemory = sharedMemory;
-    return this;
-  }
-
-  public SubmitJobRequest withDisk(int disk) {
-    this.disk = disk;
-    return this;
-  }
-
-  public SubmitJobRequest withRetries(int retries) {
-    this.retries = retries;
-    return this;
-  }
-
-  public SubmitJobRequest withRuntimeLimitSecs(int runtimeLimitSecs) {
-    this.runtimeLimitSecs = runtimeLimitSecs;
-    return this;
-  }
-
-  public SubmitJobRequest withGpu(int gpu) {
-    this.gpu = gpu;
-    return this;
-  }
-
-  public SubmitJobRequest withPorts(int[] ports) {
-    this.ports = ports;
-    return this;
-  }
-
-  public SubmitJobRequest withNetworkMbps(int networkMbps) {
-    this.networkMbps = networkMbps;
-    return this;
-  }
-
-  public SubmitJobRequest withEnv(Map<String, String> env) {
-    this.env = env;
-    return this;
-  }
-
-  public SubmitJobRequest withAllocateIpAddress(boolean allocateIpAddress) {
-    this.allocateIpAddress = allocateIpAddress;
-    return this;
-  }
-
-  public SubmitJobRequest withStack(String stack) {
-    this.stack = stack;
-    return this;
-  }
-
-  public SubmitJobRequest withDetail(String detail) {
-    this.detail = detail;
-    return this;
-  }
-
-  public SubmitJobRequest withUser(String user) {
-    this.user = user;
-    return this;
-  }
-
-  public SubmitJobRequest withEntryPoint(String entryPoint) {
-    this.entryPoint = entryPoint;
-    return this;
-  }
-
-  public SubmitJobRequest withIamProfile(String iamProfile) {
-    this.iamProfile = iamProfile;
-    return this;
-  }
-
-  public SubmitJobRequest withSecurityGroups(List securityGroups) {
-    this.securityGroups = securityGroups;
-    return this;
-  }
-
-  public SubmitJobRequest withCapacityGroup(String capacityGroup) {
-    this.capacityGroup = capacityGroup;
-    return this;
-  }
-
-  public SubmitJobRequest withConstraint(Constraint constraint) {
-    this.constraints.add(constraint);
-    return this;
-  }
-
-  public SubmitJobRequest withLabels(Map labels) {
-    this.labels = labels;
-    return this;
-  }
-
-  public SubmitJobRequest withContainerAttributes(Map containerAttributes) {
-    this.containerAttributes = containerAttributes;
-    return this;
-  }
-
-  public SubmitJobRequest withLabel(String key, String value) {
-    this.labels.put(key, value);
-    return this;
-  }
-
-  public SubmitJobRequest withInService(Boolean inService) {
-    this.inService = inService;
-    return this;
-  }
-
-  public SubmitJobRequest withMigrationPolicy(MigrationPolicy migrationPolicy) {
-    this.migrationPolicy = migrationPolicy;
-    return this;
-  }
-
-  public SubmitJobRequest withEfs(Efs efs) {
-    this.efs = efs;
-    return this;
-  }
-
-  public SubmitJobRequest withCredentials(String credentials) {
-    this.credentials = credentials;
-    return this;
-  }
-
-  public SubmitJobRequest withDisruptionBudget(DisruptionBudget disruptionBudget) {
-    this.disruptionBudget = disruptionBudget;
-    return this;
-  }
-
-  public SubmitJobRequest withConstraints(Constraints constraints) {
-    this.containerConstraints = constraints;
-    return this;
-  }
-
-  public SubmitJobRequest withServiceJobProcesses(ServiceJobProcesses serviceJobProcesses) {
-    this.serviceJobProcesses = serviceJobProcesses;
-    return this;
-  }
-
-  // Getters
-
-  public String getJobType() {
-    return jobType;
-  }
-
-  public int getInstanceMin() {
-    return instancesMin;
-  }
-
-  public int getInstanceMax() {
-    return instancesMax;
-  }
-
-  public int getInstanceDesired() {
-    return instancesDesired;
-  }
-
-  public int getCpu() {
-    return cpu;
-  }
-
-  public int getGpu() {
-    return gpu;
-  }
-
-  public int getRetries() {
-    return retries;
-  }
-
-  public int getRuntimeLimitSecs() {
-    return runtimeLimitSecs;
-  }
-
-  public int getMemory() {
-    return memory;
-  }
-
-  public int getSharedMemory() {
-    return sharedMemory;
-  }
-
-  public int getDisk() {
-    return disk;
-  }
-
-  public int getNetworkMbps() {
-    return networkMbps;
-  }
-
-  public int[] getPorts() {
-    return ports;
-  }
-
-  public Map<String, String> getEnv() {
-    return env;
-  }
-
-  public String getApplication() {
-    return application;
-  }
-
-  public String getJobName() {
-    return jobName;
-  }
-
-  public String getDockerImageName() {
-    return dockerImageName;
-  }
-
-  public String getDockerImageVersion() {
-    return dockerImageVersion;
-  }
-
-  public String getDockerDigest() {
-    return dockerDigest;
-  }
-
-  public boolean getAllocateIpAddress() {
-    return allocateIpAddress;
-  }
-
-  public String getStack() {
-    return stack;
-  }
-
-  public String getDetail() {
-    return detail;
-  }
-
-  public String getUser() {
-    return user;
-  }
-
-  public List<Constraint> getConstraints() {
-    return constraints;
-  }
-
-  public List<String> getSecurityGroups() {
-    return securityGroups;
-  }
-
-  public String getEntryPoint() {
-    return entryPoint;
-  }
-
-  public String getIamProfile() {
-    return iamProfile;
-  }
-
-  public Boolean getInService() {
-    return inService;
-  }
-
-  public String getCapacityGroup() {
-    return capacityGroup;
-  }
-
-  public Map<String, String> getLabels() {
-    return labels;
-  }
-
-  public Map<String, String> getContainerAttributes() {
-    return containerAttributes;
-  }
-
+  @Builder.Default private List<Constraint> constraints = new ArrayList<>();
+  @Builder.Default private Map<String, String> labels = new HashMap<String, String>();
+  @Builder.Default private Map<String, String> containerAttributes = new HashMap<String, String>();
+  @Builder.Default private List<String> securityGroups = null;
+  @Builder.Default private MigrationPolicy migrationPolicy = null;
+  @Builder.Default private DisruptionBudget disruptionBudget = null;
+
+  @Builder.Default private Constraints containerConstraints = null;
+  @Builder.Default private ServiceJobProcesses serviceJobProcesses = null;
+
+  @JsonIgnore
   public JobDescription getJobDescription() {
     return new JobDescription(this);
   }
 
-  public Efs getEfs() {
-    return efs;
-  }
-
-  public String getCredentials() {
-    return credentials;
-  }
-
-  public MigrationPolicy getMigrationPolicy() {
-    return migrationPolicy;
-  }
-
-  public Constraints getContainerConstraints() {
-    return containerConstraints;
-  }
-
-  public ServiceJobProcesses getServiceJobProcesses() {
-    return serviceJobProcesses;
-  }
+  @JsonPOJOBuilder(withPrefix = "")
+  public static class SubmitJobRequestBuilder {}
 }

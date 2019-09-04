@@ -27,6 +27,7 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.scheduling.annotation.Scheduled
 import java.time.Duration
 import java.time.Instant
+import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.max
 
@@ -63,23 +64,21 @@ class InMemoryEventRepository(
     if (aggregate.version != originatingVersion) {
       // If this is being thrown, ensure that the originating process is retried on the latest aggregate version
       // by re-reading the newEvents list.
-      throw AggregateChangeRejectedException(
-        "Attempting to save newEvents against an old aggregate version " +
-        "(version: ${aggregate.version}, originatingVersion: $originatingVersion)")
+      throw AggregateChangeRejectedException(aggregate.version, originatingVersion)
     }
 
     events.getOrPut(aggregate) { mutableListOf() }.let { aggregateEvents ->
-      val currentSequence = aggregateEvents.map { it.metadata.sequence }.max() ?: 0
+      val currentSequence = aggregateEvents.map { it.getMetadata().sequence }.max() ?: 0
 
       newEvents.forEachIndexed { index, newEvent ->
-        newEvent.aggregateType = aggregateType
-        newEvent.aggregateId = aggregateId
-
         // TODO(rz): Plugin more metadata (provenance, serviceVersion, etc)
-        newEvent.metadata = EventMetadata(
+        newEvent.setMetadata(EventMetadata(
+          id = UUID.randomUUID().toString(),
+          aggregateType = aggregateType,
+          aggregateId = aggregateId,
           sequence = currentSequence + (index + 1),
           originatingVersion = originatingVersion
-        )
+        ))
       }
 
       registry.counter(eventWriteCountId).increment(newEvents.size.toLong())
@@ -103,13 +102,31 @@ class InMemoryEventRepository(
       ?: throw MissingAggregateEventsException(aggregateType, aggregateId)
   }
 
-  override fun listAggregates(aggregateType: String?): List<Aggregate> {
+  override fun listAggregates(criteria: EventRepository.ListAggregatesCriteria): EventRepository.ListAggregatesResult {
     val aggregates = events.keys
-    return if (aggregateType != null) {
-      aggregates.filter { it.type == aggregateType }
-    } else {
-      aggregates.toList()
-    }
+
+    val result = aggregates.toList()
+      .let { list ->
+        criteria.aggregateType?.let { requiredType -> list.filter { it.type == requiredType } } ?: list
+      }
+      .let { list ->
+        criteria.token?.let { nextPageToken ->
+          val start = list.indexOf(list.find { "${it.type}/${it.id}" == nextPageToken })
+          val end = (start + criteria.perPage).let {
+            if (it > list.size - 1) {
+              list.size
+            } else {
+              criteria.perPage
+            }
+          }
+          list.subList(start, end)
+        } ?: list
+      }
+
+    return EventRepository.ListAggregatesResult(
+      aggregates = result,
+      nextPageToken = result.lastOrNull()?.let { "${it.type}/${it.id}" }
+    )
   }
 
   private fun getAggregate(aggregateType: String, aggregateId: String): Aggregate {
@@ -134,7 +151,7 @@ class InMemoryEventRepository(
         val horizon = Instant.now().minus(maxAge)
         log.info("Cleaning up aggregates last updated earlier than $maxAge ($horizon)")
         events.entries
-          .filter { it.value.any { event -> event.metadata.timestamp.isBefore(horizon) } }
+          .filter { it.value.any { event -> event.getMetadata().timestamp.isBefore(horizon) } }
           .map { it.key }
           .forEach {
             log.trace("Cleaning up $it")
@@ -150,7 +167,7 @@ class InMemoryEventRepository(
           .flatMap { entry ->
             entry.value.map { Pair(entry.key, it) }
           }
-          .sortedBy { it.second.metadata.timestamp }
+          .sortedBy { it.second.getMetadata().timestamp }
           .subList(0, max(events.size - maxCount, 0))
           .forEach {
             log.trace("Cleaning up ${it.first}")

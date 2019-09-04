@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.saga.flow.SagaAction
 import com.netflix.spinnaker.clouddriver.saga.models.Saga
 import java.util.function.Predicate
 
+@JsonTypeName("shouldBranch")
 class ShouldBranch : SagaEvent()
 
 @JsonTypeName("doAction1")

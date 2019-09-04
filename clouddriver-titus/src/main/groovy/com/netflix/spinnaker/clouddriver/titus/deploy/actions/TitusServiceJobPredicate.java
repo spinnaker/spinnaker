@@ -30,10 +30,9 @@ public class TitusServiceJobPredicate implements Predicate<Saga> {
         .filter(e -> PrepareTitusDeployCommand.class.isAssignableFrom(e.getClass()))
         .findFirst()
         .map(
-            e -> {
-              String jobType = ((PrepareTitusDeployCommand) e).getDescription().getJobType();
-              return JobType.isEqual(jobType, JobType.SERVICE);
-            })
+            e ->
+                JobType.SERVICE.isEqual(
+                    ((PrepareTitusDeployCommand) e).getDescription().getJobType()))
         .orElseThrow(
             () ->
                 new TitusException(

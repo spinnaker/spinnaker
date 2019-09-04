@@ -79,48 +79,58 @@ public class TitusDeployDescription extends AbstractTitusCredentialsDescription
     return Arrays.asList(application);
   }
 
+  /** For Jackson deserialization. */
+  public void setApplications(List<String> applications) {
+    if (!applications.isEmpty()) {
+      application = applications.get(0);
+    }
+  }
+
   @Nonnull
-  public SubmitJobRequest toSubmitJobRequest(@Nonnull DockerImage dockerImage) {
-    final SubmitJobRequest submitJobRequest =
-        new SubmitJobRequest()
-            .withApplication(application)
-            .withDockerImageName(dockerImage.getImageName())
-            .withInstancesMin(capacity.getMin())
-            .withInstancesMax(capacity.getMax())
-            .withInstancesDesired(capacity.getDesired())
-            .withCpu(resources.getCpu())
-            .withMemory(resources.getMemory())
-            .withSharedMemory(resources.getSharedMemory())
-            .withDisk(resources.getDisk())
-            .withRetries(retries)
-            .withRuntimeLimitSecs(runtimeLimitSecs)
-            .withGpu(resources.getGpu())
-            .withNetworkMbps(resources.getNetworkMbps())
-            .withEfs(efs)
-            .withPorts(resources.getPorts())
-            .withEnv(env)
-            .withAllocateIpAddress(resources.isAllocateIpAddress())
-            .withStack(stack)
-            .withDetail(freeFormDetails)
-            .withEntryPoint(entryPoint)
-            .withIamProfile(iamProfile)
-            .withCapacityGroup(capacityGroup)
-            .withLabels(labels)
-            .withInService(inService)
-            .withMigrationPolicy(migrationPolicy)
-            .withCredentials(getCredentials().getName())
-            .withContainerAttributes(containerAttributes)
-            .withDisruptionBudget(disruptionBudget)
-            .withServiceJobProcesses(serviceJobProcesses);
+  public SubmitJobRequest toSubmitJobRequest(
+      @Nonnull DockerImage dockerImage, @Nonnull String jobName, String user) {
+    final SubmitJobRequest.SubmitJobRequestBuilder submitJobRequest =
+        SubmitJobRequest.builder()
+            .jobName(jobName)
+            .user(user)
+            .application(application)
+            .dockerImageName(dockerImage.getImageName())
+            .instancesMin(capacity.getMin())
+            .instancesMax(capacity.getMax())
+            .instancesDesired(capacity.getDesired())
+            .cpu(resources.getCpu())
+            .memory(resources.getMemory())
+            .sharedMemory(resources.getSharedMemory())
+            .disk(resources.getDisk())
+            .retries(retries)
+            .runtimeLimitSecs(runtimeLimitSecs)
+            .gpu(resources.getGpu())
+            .networkMbps(resources.getNetworkMbps())
+            .efs(efs)
+            .ports(resources.getPorts())
+            .env(env)
+            .allocateIpAddress(resources.isAllocateIpAddress())
+            .stack(stack)
+            .detail(freeFormDetails)
+            .entryPoint(entryPoint)
+            .iamProfile(iamProfile)
+            .capacityGroup(capacityGroup)
+            .labels(labels)
+            .inService(inService)
+            .migrationPolicy(migrationPolicy)
+            .credentials(getCredentials().getName())
+            .containerAttributes(containerAttributes)
+            .disruptionBudget(disruptionBudget)
+            .serviceJobProcesses(serviceJobProcesses);
 
     if (!securityGroups.isEmpty()) {
-      submitJobRequest.withSecurityGroups(securityGroups);
+      submitJobRequest.securityGroups(securityGroups);
     }
 
     if (dockerImage.getImageDigest() != null) {
-      submitJobRequest.withDockerDigest(dockerImage.getImageDigest());
+      submitJobRequest.dockerDigest(dockerImage.getImageDigest());
     } else {
-      submitJobRequest.withDockerImageVersion(dockerImage.getImageVersion());
+      submitJobRequest.dockerImageVersion(dockerImage.getImageVersion());
     }
 
     /**
@@ -130,24 +140,25 @@ public class TitusDeployDescription extends AbstractTitusCredentialsDescription
      * list
      */
     if (constraints.getHard() != null || constraints.getSoft() != null) {
-      submitJobRequest.withConstraints(constraints);
+      submitJobRequest.containerConstraints(constraints);
     } else {
       log.warn("Use of deprecated constraints payload: {}-{}", application, stack);
+
+      List<SubmitJobRequest.Constraint> constraints = new ArrayList<>();
       if (hardConstraints != null) {
-        hardConstraints.forEach(
-            c -> submitJobRequest.withConstraint(SubmitJobRequest.Constraint.hard(c)));
+        hardConstraints.forEach(c -> constraints.add(SubmitJobRequest.Constraint.hard(c)));
       }
       if (softConstraints != null) {
-        softConstraints.forEach(
-            c -> submitJobRequest.withConstraint(SubmitJobRequest.Constraint.soft(c)));
+        softConstraints.forEach(c -> constraints.add(SubmitJobRequest.Constraint.soft(c)));
       }
+      submitJobRequest.constraints(constraints);
     }
 
     if (jobType != null) {
-      submitJobRequest.withJobType(jobType);
+      submitJobRequest.jobType(jobType);
     }
 
-    return submitJobRequest;
+    return submitJobRequest.build();
   }
 
   @Data

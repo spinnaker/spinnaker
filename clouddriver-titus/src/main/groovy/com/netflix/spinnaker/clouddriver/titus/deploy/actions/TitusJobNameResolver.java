@@ -17,19 +17,14 @@ package com.netflix.spinnaker.clouddriver.titus.deploy.actions;
 
 import com.netflix.spinnaker.clouddriver.titus.JobType;
 import com.netflix.spinnaker.clouddriver.titus.client.TitusClient;
-import com.netflix.spinnaker.clouddriver.titus.client.model.SubmitJobRequest;
 import com.netflix.spinnaker.clouddriver.titus.deploy.TitusServerGroupNameResolver;
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.TitusDeployDescription;
 
 /** Helper class for resolving Titus job names. */
 class TitusJobNameResolver {
 
-  static String resolveJobName(
-      TitusClient titusClient,
-      TitusDeployDescription description,
-      SubmitJobRequest submitJobRequest) {
-    if (JobType.isEqual(submitJobRequest.getJobType(), JobType.BATCH)) {
-      submitJobRequest.withJobName(description.getApplication());
+  static String resolveJobName(TitusClient titusClient, TitusDeployDescription description) {
+    if (JobType.isEqual(description.getJobType(), JobType.BATCH)) {
       return description.getApplication();
     }
 
@@ -52,7 +47,6 @@ class TitusJobNameResolver {
               description.getFreeFormDetails(),
               false);
     }
-    submitJobRequest.withJobName(nextServerGroupName);
 
     return nextServerGroupName;
   }

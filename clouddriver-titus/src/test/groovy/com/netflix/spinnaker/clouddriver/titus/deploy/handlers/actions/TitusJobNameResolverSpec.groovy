@@ -20,7 +20,6 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.titus.JobType
 import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job
-import com.netflix.spinnaker.clouddriver.titus.client.model.SubmitJobRequest
 import com.netflix.spinnaker.clouddriver.titus.deploy.actions.TitusJobNameResolver
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.TitusDeployDescription
 import spock.lang.Specification
@@ -51,13 +50,9 @@ class TitusJobNameResolverSpec extends Specification {
         ]
       }
     }
-    SubmitJobRequest submitJobRequest = new SubmitJobRequest().with {
-      it.jobType = description.jobType
-      it
-    }
 
     when:
-    String result = TitusJobNameResolver.resolveJobName(titusClient, description, submitJobRequest)
+    String result = TitusJobNameResolver.resolveJobName(titusClient, description)
 
     then:
     result == expected

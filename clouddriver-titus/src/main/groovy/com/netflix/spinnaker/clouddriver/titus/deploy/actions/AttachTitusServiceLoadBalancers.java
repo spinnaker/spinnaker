@@ -15,37 +15,48 @@
  */
 package com.netflix.spinnaker.clouddriver.titus.deploy.actions;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.TargetGroupLookupHelper;
 import com.netflix.spinnaker.clouddriver.saga.SagaCommand;
 import com.netflix.spinnaker.clouddriver.saga.flow.SagaAction;
 import com.netflix.spinnaker.clouddriver.saga.models.Saga;
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider;
 import com.netflix.spinnaker.clouddriver.titus.client.TitusLoadBalancerClient;
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.TitusDeployDescription;
 import com.netflix.spinnaker.clouddriver.titus.deploy.events.TitusLoadBalancerAttached;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.Value;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class AttachTitusServiceLoadBalancers
+public class AttachTitusServiceLoadBalancers extends AbstractTitusDeployAction
     implements SagaAction<AttachTitusServiceLoadBalancers.AttachTitusServiceLoadBalancersCommand> {
 
   private final TitusClientProvider titusClientProvider;
 
   @Autowired
-  public AttachTitusServiceLoadBalancers(TitusClientProvider titusClientProvider) {
-    this.titusClientProvider = titusClientProvider;
+  public AttachTitusServiceLoadBalancers(
+      AccountCredentialsRepository accountCredentialsRepository,
+      TitusClientProvider titusClientProvider,
+      TitusClientProvider titusClientProvider1) {
+    super(accountCredentialsRepository, titusClientProvider);
+    this.titusClientProvider = titusClientProvider1;
   }
 
   @NotNull
   @Override
   public Result apply(@NotNull AttachTitusServiceLoadBalancersCommand command, @NotNull Saga saga) {
     final TitusDeployDescription description = command.description;
+
+    prepareDeployDescription(description);
 
     TitusLoadBalancerClient loadBalancerClient =
         titusClientProvider.getTitusLoadBalancerClient(
@@ -68,7 +79,11 @@ public class AttachTitusServiceLoadBalancers
               targetGroupArn -> {
                 loadBalancerClient.addLoadBalancer(jobUri, targetGroupArn);
                 saga.log("Attached %s to %s", targetGroupArn, jobUri);
-                saga.addEvent(new TitusLoadBalancerAttached(jobUri, targetGroupArn));
+                saga.addEvent(
+                    TitusLoadBalancerAttached.builder()
+                        .jobUri(jobUri)
+                        .targetGroupArn(targetGroupArn)
+                        .build());
               });
 
       saga.log("Load balancers applied");
@@ -77,21 +92,20 @@ public class AttachTitusServiceLoadBalancers
     return new Result();
   }
 
+  @Builder(builderClassName = "AttachTitusServiceLoadBalancersCommandBuilder", toBuilder = true)
+  @JsonDeserialize(
+      builder =
+          AttachTitusServiceLoadBalancersCommand.AttachTitusServiceLoadBalancersCommandBuilder
+              .class)
+  @JsonTypeName("attachTitusServiceLoadBalancersCommand")
   @EqualsAndHashCode(callSuper = true)
-  @Getter
+  @Value
   public static class AttachTitusServiceLoadBalancersCommand extends SagaCommand {
-    @Nonnull private final TitusDeployDescription description;
-    @Nonnull private final String jobUri;
-    @Nullable private final TargetGroupLookupHelper.TargetGroupLookupResult targetGroupLookupResult;
+    @Nonnull private TitusDeployDescription description;
+    @Nonnull private String jobUri;
+    @Nullable private TargetGroupLookupHelper.TargetGroupLookupResult targetGroupLookupResult;
 
-    public AttachTitusServiceLoadBalancersCommand(
-        @Nonnull TitusDeployDescription description,
-        @Nonnull String jobUri,
-        @Nullable TargetGroupLookupHelper.TargetGroupLookupResult targetGroupLookupResult) {
-      super();
-      this.description = description;
-      this.jobUri = jobUri;
-      this.targetGroupLookupResult = targetGroupLookupResult;
-    }
+    @JsonPOJOBuilder(withPrefix = "")
+    public static class AttachTitusServiceLoadBalancersCommandBuilder {}
   }
 }

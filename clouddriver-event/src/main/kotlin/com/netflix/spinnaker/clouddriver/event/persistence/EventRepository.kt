@@ -17,6 +17,8 @@ package com.netflix.spinnaker.clouddriver.event.persistence
 
 import com.netflix.spinnaker.clouddriver.event.Aggregate
 import com.netflix.spinnaker.clouddriver.event.SpinnakerEvent
+import javax.validation.constraints.Max
+import javax.validation.constraints.Positive
 
 /**
  * The [EventRepository] is responsible for reading and writing immutable event logs from a persistent store.
@@ -49,8 +51,30 @@ interface EventRepository {
   /**
    * List all aggregates for a given type.
    *
-   * @param aggregateType The aggregate collection name. If not provided, all aggregates will be returned.
-   * @return An unordered list of matching aggregates.
+   * @param criteria The criteria to limit the response by
+   * @return A list of matching aggregates
    */
-  fun listAggregates(aggregateType: String?): List<Aggregate>
+  fun listAggregates(criteria: ListAggregatesCriteria): ListAggregatesResult
+
+  /**
+   * @param aggregateType The type of [Aggregate] to return. If unset, all types will be returned.
+   * @param token The page token to paginate from. It will return the first results
+   * @param perPage The number of [Aggregate]s to return in each response
+   */
+  class ListAggregatesCriteria(
+    val aggregateType: String? = null,
+    val token: String? = null,
+
+    @Positive @Max(1000)
+    val perPage: Int = 100
+  )
+
+  /**
+   * @param aggregates The collection of [Aggregate]s returned
+   * @param nextPageToken The next page token
+   */
+  class ListAggregatesResult(
+    val aggregates: List<Aggregate>,
+    val nextPageToken: String? = null
+  )
 }

@@ -13,20 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.clouddriver.event
+package com.netflix.spinnaker.clouddriver.event.exceptions
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.netflix.spinnaker.kork.exceptions.IntegrationException
 
 /**
- * The base type for the eventing library. All library-level code is contained within [EventMetadata].
+ * Thrown when an event's metadata is attempted to be retrieved before it has been initialized
+ * by the library.
  */
-@JsonTypeInfo(
-  use = JsonTypeInfo.Id.NAME,
-  include = JsonTypeInfo.As.PROPERTY,
-  property = "eventType"
-)
-interface SpinnakerEvent {
-  fun getMetadata(): EventMetadata
-
-  fun setMetadata(eventMetadata: EventMetadata)
-}
+class UninitializedEventException : IntegrationException(
+  "Cannot access event metadata before initialization"
+), EventingException

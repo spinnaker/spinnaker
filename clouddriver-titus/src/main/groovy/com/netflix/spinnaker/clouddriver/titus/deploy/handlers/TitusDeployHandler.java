@@ -64,10 +64,12 @@ public class TitusDeployHandler implements DeployHandler<TitusDeployDescription>
             sagaName,
             sagaId,
             flow,
-            new LoadFront50AppCommand(
-                inputDescription.getApplication(),
-                new PrepareTitusDeployCommand(inputDescription),
-                true));
+            LoadFront50AppCommand.builder()
+                .appName(inputDescription.getApplication())
+                .nextCommand(
+                    PrepareTitusDeployCommand.builder().description(inputDescription).build())
+                .allowMissing(true)
+                .build());
 
     if (result == null) {
       // "This should never happen"

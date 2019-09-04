@@ -15,7 +15,9 @@
  */
 package com.netflix.spinnaker.clouddriver.saga.persistence
 
+import com.netflix.spinnaker.clouddriver.event.Aggregate
 import com.netflix.spinnaker.clouddriver.event.persistence.EventRepository
+import com.netflix.spinnaker.clouddriver.event.persistence.EventRepository.ListAggregatesCriteria
 import com.netflix.spinnaker.clouddriver.saga.SagaEvent
 import com.netflix.spinnaker.clouddriver.saga.SagaSaved
 import com.netflix.spinnaker.clouddriver.saga.models.Saga
@@ -33,9 +35,17 @@ class DefaultSagaRepository(
 
   override fun list(criteria: SagaRepository.ListCriteria): List<Saga> {
     val sagas = if (criteria.names != null && criteria.names.isNotEmpty()) {
-      criteria.names.flatMap { eventRepository.listAggregates(it) }
+      var token: String? = null
+      val aggregates: MutableList<Aggregate> = mutableListOf()
+      do {
+        eventRepository.listAggregates(ListAggregatesCriteria(token = token, perPage = 1_000)).let {
+          aggregates.addAll(it.aggregates)
+          token = it.nextPageToken
+        }
+      } while (token != null)
+      aggregates
     } else {
-      eventRepository.listAggregates(null)
+      eventRepository.listAggregates(ListAggregatesCriteria()).aggregates
     }.mapNotNull { get(it.type, it.id) }
 
     return if (criteria.running == null) {
@@ -54,14 +64,11 @@ class DefaultSagaRepository(
     return events
       .filterIsInstance<SagaSaved>()
       .last()
-      .saga
       .let {
-        // Copy the Saga: We don't want to accidentally mutate the saga that's in the event if the
-        // eventRepository is in-memory only.
         Saga(
-          name = it.name,
-          id = it.id,
-          sequence = it.getSequence()
+          name = it.sagaName,
+          id = it.sagaId,
+          sequence = it.sequence
         )
       }
       .also { saga ->
@@ -74,7 +81,7 @@ class DefaultSagaRepository(
     if (additionalEvents.isNotEmpty()) {
       events.addAll(additionalEvents)
     }
-    events.add(SagaSaved(saga))
+    events.add(SagaSaved(saga.getSequence()))
     eventRepository.save(saga.name, saga.id, saga.getVersion(), events)
   }
 }

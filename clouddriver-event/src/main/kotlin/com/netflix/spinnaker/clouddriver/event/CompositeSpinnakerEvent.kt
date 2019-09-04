@@ -15,18 +15,17 @@
  */
 package com.netflix.spinnaker.clouddriver.event
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.fasterxml.jackson.annotation.JsonIgnore
 
 /**
- * The base type for the eventing library. All library-level code is contained within [EventMetadata].
+ * Marks a [SpinnakerEvent] as being constructed of multiple [SpinnakerEvent]s.
+ *
+ * This interface is necessary to correctly hydrate [EventMetadata] on [SpinnakerEvent] before persisting.
  */
-@JsonTypeInfo(
-  use = JsonTypeInfo.Id.NAME,
-  include = JsonTypeInfo.As.PROPERTY,
-  property = "eventType"
-)
-interface SpinnakerEvent {
-  fun getMetadata(): EventMetadata
-
-  fun setMetadata(eventMetadata: EventMetadata)
+interface CompositeSpinnakerEvent : SpinnakerEvent {
+  /**
+   * Returns a list of the composed [SpinnakerEvent]s.
+   */
+  @JsonIgnore
+  fun getComposedEvents(): List<SpinnakerEvent>
 }
