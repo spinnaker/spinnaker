@@ -4,7 +4,6 @@ import com.netflix.spinnaker.gate.services.internal.KeelService;
 import com.netflix.spinnaker.kork.manageddelivery.model.ResourceEvent;
 import groovy.util.logging.Slf4j;
 import io.swagger.annotations.ApiOperation;
-import java.time.Instant;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +33,7 @@ public class HistoryController {
   @RequestMapping(value = "/{name}", method = RequestMethod.GET)
   List<ResourceEvent> getHistory(
       @PathVariable("name") String name,
-      @RequestParam(value = "since", required = false) Instant since) {
-    return keelService.getResourceEvents(name, since);
+      @RequestParam(value = "limit", required = false) Integer limit) {
+    return keelService.getResourceEvents(name, limit);
   }
 }
