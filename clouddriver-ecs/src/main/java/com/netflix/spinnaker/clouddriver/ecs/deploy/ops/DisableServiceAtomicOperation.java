@@ -16,6 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.deploy.ops;
 
+import com.amazonaws.services.applicationautoscaling.AWSApplicationAutoScaling;
+import com.amazonaws.services.applicationautoscaling.model.RegisterScalableTargetRequest;
+import com.amazonaws.services.applicationautoscaling.model.ScalableDimension;
+import com.amazonaws.services.applicationautoscaling.model.ServiceNamespace;
+import com.amazonaws.services.applicationautoscaling.model.SuspendedState;
 import com.amazonaws.services.ecs.AmazonECS;
 import com.amazonaws.services.ecs.model.UpdateServiceRequest;
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.ModifyServiceDescription;
@@ -37,10 +42,27 @@ public class DisableServiceAtomicOperation
 
   private void disableService() {
     AmazonECS ecs = getAmazonEcsClient();
+    AWSApplicationAutoScaling autoScalingClient = getAmazonApplicationAutoScalingClient();
 
     String service = description.getServerGroupName();
     String account = description.getCredentialAccount();
     String cluster = getCluster(service, account);
+
+    updateTaskStatus(
+        String.format("Suspending autoscaling on %s server group for %s.", service, account));
+    RegisterScalableTargetRequest suspendRequest =
+        new RegisterScalableTargetRequest()
+            .withServiceNamespace(ServiceNamespace.Ecs)
+            .withScalableDimension(ScalableDimension.EcsServiceDesiredCount)
+            .withResourceId(String.format("service/%s/%s", cluster, service))
+            .withSuspendedState(
+                new SuspendedState()
+                    .withDynamicScalingInSuspended(true)
+                    .withDynamicScalingOutSuspended(true)
+                    .withScheduledScalingSuspended(true));
+    autoScalingClient.registerScalableTarget(suspendRequest);
+    updateTaskStatus(
+        String.format("Autoscaling on server group %s suspended for %s.", service, account));
 
     updateTaskStatus(String.format("Disabling %s server group for %s.", service, account));
     UpdateServiceRequest request =

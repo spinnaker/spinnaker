@@ -702,14 +702,6 @@ public class CreateServerGroupAtomicOperation
     return amazonClientProvider.getAmazonEcs(sourceCredentials, sourceRegion, false);
   }
 
-  private AWSApplicationAutoScaling getAmazonApplicationAutoScalingClient() {
-    AWSCredentialsProvider credentialsProvider = getCredentials().getCredentialsProvider();
-    NetflixAmazonCredentials credentialAccount = description.getCredentials();
-
-    return amazonClientProvider.getAmazonApplicationAutoScaling(
-        credentialAccount, getRegion(), false);
-  }
-
   private AmazonElasticLoadBalancing getAmazonElasticLoadBalancingClient() {
     AWSCredentialsProvider credentialsProvider = getCredentials().getCredentialsProvider();
     NetflixAmazonCredentials credentialAccount = description.getCredentials();

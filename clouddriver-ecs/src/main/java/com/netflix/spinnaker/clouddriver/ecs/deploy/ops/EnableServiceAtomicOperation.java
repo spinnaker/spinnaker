@@ -16,16 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.deploy.ops;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.applicationautoscaling.AWSApplicationAutoScaling;
-import com.amazonaws.services.applicationautoscaling.model.DescribeScalableTargetsRequest;
-import com.amazonaws.services.applicationautoscaling.model.DescribeScalableTargetsResult;
-import com.amazonaws.services.applicationautoscaling.model.ScalableDimension;
-import com.amazonaws.services.applicationautoscaling.model.ScalableTarget;
-import com.amazonaws.services.applicationautoscaling.model.ServiceNamespace;
+import com.amazonaws.services.applicationautoscaling.model.*;
 import com.amazonaws.services.ecs.AmazonECS;
 import com.amazonaws.services.ecs.model.UpdateServiceRequest;
-import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.ModifyServiceDescription;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,6 +40,7 @@ public class EnableServiceAtomicOperation
 
   private void enableService() {
     AmazonECS ecsClient = getAmazonEcsClient();
+    AWSApplicationAutoScaling autoScalingClient = getAmazonApplicationAutoScalingClient();
 
     String service = description.getServerGroupName();
     String account = description.getCredentialAccount();
@@ -60,6 +55,22 @@ public class EnableServiceAtomicOperation
     updateTaskStatus(String.format("Enabling %s server group for %s.", service, account));
     ecsClient.updateService(request);
     updateTaskStatus(String.format("Server group %s enabled for %s.", service, account));
+
+    updateTaskStatus(
+        String.format("Resuming autoscaling on %s server group for %s.", service, account));
+    RegisterScalableTargetRequest resumeRequest =
+        new RegisterScalableTargetRequest()
+            .withServiceNamespace(ServiceNamespace.Ecs)
+            .withScalableDimension(ScalableDimension.EcsServiceDesiredCount)
+            .withResourceId(String.format("service/%s/%s", cluster, service))
+            .withSuspendedState(
+                new SuspendedState()
+                    .withDynamicScalingInSuspended(false)
+                    .withDynamicScalingOutSuspended(false)
+                    .withScheduledScalingSuspended(false));
+    autoScalingClient.registerScalableTarget(resumeRequest);
+    updateTaskStatus(
+        String.format("Autoscaling on server group %s resumed for %s.", service, account));
   }
 
   private Integer getMaxCapacity(String cluster) {
@@ -93,13 +104,5 @@ public class EnableServiceAtomicOperation
     }
 
     throw new Error("Multiple Scalable Targets found");
-  }
-
-  private AWSApplicationAutoScaling getAmazonApplicationAutoScalingClient() {
-    AWSCredentialsProvider credentialsProvider = getCredentials().getCredentialsProvider();
-    String region = description.getRegion();
-    NetflixAmazonCredentials credentialAccount = description.getCredentials();
-
-    return amazonClientProvider.getAmazonApplicationAutoScaling(credentialAccount, region, false);
   }
 }

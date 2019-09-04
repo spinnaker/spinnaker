@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.deploy.ops;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.applicationautoscaling.AWSApplicationAutoScaling;
 import com.amazonaws.services.applicationautoscaling.model.RegisterScalableTargetRequest;
 import com.amazonaws.services.applicationautoscaling.model.ScalableDimension;
@@ -24,7 +23,6 @@ import com.amazonaws.services.applicationautoscaling.model.ServiceNamespace;
 import com.amazonaws.services.ecs.AmazonECS;
 import com.amazonaws.services.ecs.model.Service;
 import com.amazonaws.services.ecs.model.UpdateServiceRequest;
-import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.ResizeServiceDescription;
 import com.netflix.spinnaker.clouddriver.ecs.services.ContainerInformationService;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
@@ -97,13 +95,5 @@ public class ResizeServiceAtomicOperation
         String.format(
             "Done resizing Scalable Target of %s to %s instances",
             service.getServiceName(), desiredCount));
-  }
-
-  private AWSApplicationAutoScaling getAmazonApplicationAutoScalingClient() {
-    AWSCredentialsProvider credentialsProvider = getCredentials().getCredentialsProvider();
-    String region = description.getRegion();
-    NetflixAmazonCredentials credentialAccount = description.getCredentials();
-
-    return amazonClientProvider.getAmazonApplicationAutoScaling(credentialAccount, region, false);
   }
 }

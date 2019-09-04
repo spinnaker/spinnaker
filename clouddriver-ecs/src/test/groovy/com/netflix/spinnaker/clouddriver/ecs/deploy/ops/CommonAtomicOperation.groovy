@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.deploy.ops
 
+import com.amazonaws.services.applicationautoscaling.AWSApplicationAutoScaling
 import com.amazonaws.services.ecs.AmazonECS
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -29,6 +30,7 @@ class CommonAtomicOperation extends Specification{
   def accountCredentialsProvider = Mock(AccountCredentialsProvider)
   def containerInformationService = Mock(ContainerInformationService)
   def ecs = Mock(AmazonECS)
+  def autoscaling = Mock(AWSApplicationAutoScaling)
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))

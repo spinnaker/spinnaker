@@ -32,6 +32,7 @@ class DisableServiceAtomicOperationSpec extends CommonAtomicOperation {
     operation.containerInformationService = containerInformationService
 
     amazonClientProvider.getAmazonEcs(_, _, _) >> ecs
+    amazonClientProvider.getAmazonApplicationAutoScaling(_, _, _) >> autoscaling
     containerInformationService.getClusterName(_, _, _) >> 'cluster-name'
     accountCredentialsProvider.getCredentials(_) >> TestCredential.named("test")
 
@@ -39,6 +40,7 @@ class DisableServiceAtomicOperationSpec extends CommonAtomicOperation {
     operation.operate([])
 
     then:
+    1 * autoscaling.registerScalableTarget(_)
     1 * ecs.updateService(_)
   }
 }

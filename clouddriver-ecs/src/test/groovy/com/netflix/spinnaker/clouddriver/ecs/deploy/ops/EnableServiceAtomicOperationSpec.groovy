@@ -22,8 +22,6 @@ import com.netflix.spinnaker.clouddriver.ecs.TestCredential
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.ModifyServiceDescription
 
 class EnableServiceAtomicOperationSpec extends CommonAtomicOperation {
-  def autoscaling = Mock(AWSApplicationAutoScaling)
-
   void 'should execute the operation'() {
     given:
     def operation = new EnableServiceAtomicOperation(new ModifyServiceDescription(
@@ -47,5 +45,6 @@ class EnableServiceAtomicOperationSpec extends CommonAtomicOperation {
     then:
     1 * autoscaling.describeScalableTargets(_) >> new DescribeScalableTargetsResult().withScalableTargets([])
     1 * ecs.updateService(_)
+    1 * autoscaling.registerScalableTarget(_)
   }
 }
