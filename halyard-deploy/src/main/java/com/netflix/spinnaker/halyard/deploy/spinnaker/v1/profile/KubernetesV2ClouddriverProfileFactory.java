@@ -25,6 +25,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.Kubern
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
+import com.netflix.spinnaker.kork.configserver.CloudConfigResourceService;
 import com.netflix.spinnaker.kork.configserver.ConfigFileService;
 import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import java.io.FileWriter;
@@ -48,16 +49,19 @@ public class KubernetesV2ClouddriverProfileFactory extends ClouddriverProfileFac
   private final SecretSessionManager secretSessionManager;
 
   private final ConfigFileService configFileService;
+  private final CloudConfigResourceService cloudConfigResourceService;
 
   public KubernetesV2ClouddriverProfileFactory(
       ObjectMapper objectMapper,
       Yaml yamlParser,
       SecretSessionManager secretSessionManager,
-      ConfigFileService configFileService) {
+      ConfigFileService configFileService,
+      CloudConfigResourceService cloudConfigResourceService) {
     this.objectMapper = objectMapper;
     this.yamlParser = yamlParser;
     this.secretSessionManager = secretSessionManager;
     this.configFileService = configFileService;
+    this.cloudConfigResourceService = cloudConfigResourceService;
   }
 
   @Override
@@ -73,22 +77,8 @@ public class KubernetesV2ClouddriverProfileFactory extends ClouddriverProfileFac
     }
 
     String kubeconfigFile = account.getKubeconfigFile();
-    String kubeconfigContents;
+    String kubeconfigContents = getKubconfigFileContents(kubeconfigFile);
     String context = account.getContext();
-    try {
-      if (EncryptedSecret.isEncryptedSecret(kubeconfigFile)) {
-        kubeconfigContents = secretSessionManager.decrypt(kubeconfigFile);
-      } else {
-        kubeconfigContents = configFileService.getContents(kubeconfigFile);
-      }
-    } catch (Exception e) {
-      throw new IllegalStateException(
-          "Failed to read kubeconfig file '"
-              + kubeconfigFile
-              + "', but validation passed: "
-              + e.getMessage(),
-          e);
-    }
 
     Object obj = yamlParser.load(kubeconfigContents);
     Map<String, Object> parsedKubeconfig =
@@ -160,6 +150,28 @@ public class KubernetesV2ClouddriverProfileFactory extends ClouddriverProfileFac
       throw new HalException(
           Problem.Severity.FATAL,
           "Unable to write the kubeconfig file to the staging area. This may be a user permissions issue.");
+    }
+  }
+
+  private String getKubconfigFileContents(String kubeconfigFile) {
+    try {
+      if (EncryptedSecret.isEncryptedSecret(kubeconfigFile)) {
+        return secretSessionManager.decrypt(kubeconfigFile);
+      }
+
+      if (CloudConfigResourceService.isCloudConfigResource(kubeconfigFile)) {
+        String localPath = cloudConfigResourceService.getLocalPath(kubeconfigFile);
+        return configFileService.getContents(localPath);
+      }
+
+      return kubeconfigFile;
+    } catch (Exception e) {
+      throw new IllegalStateException(
+          "Failed to read kubeconfig file '"
+              + kubeconfigFile
+              + "', but validation passed: "
+              + e.getMessage(),
+          e);
     }
   }
 }
