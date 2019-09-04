@@ -48,6 +48,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
@@ -424,12 +425,9 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
             .filter(Objects::nonNull)
             .filter(k -> !k.equals(KubernetesKind.NONE))
             .filter(k -> !omitKindsComputed.containsKey(k))
-            .map(kindRegistry::getRegisteredKind)
             .filter(k -> !canReadKind(k, checkNamespace))
             .collect(
-                Collectors.toConcurrentMap(
-                    KubernetesKindProperties::getKubernetesKind,
-                    k -> InvalidKindReason.READ_ERROR));
+                Collectors.toConcurrentMap(Function.identity(), k -> InvalidKindReason.READ_ERROR));
     long endTime = System.nanoTime();
     long duration = (endTime - startTime) / 1000000;
     log.info("determineOmitKinds for account {} took {} ms", accountName, duration);
@@ -450,15 +448,13 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     }
   }
 
-  private boolean canReadKind(KubernetesKindProperties kind, String checkNamespace) {
+  private boolean canReadKind(KubernetesKind kind, String checkNamespace) {
     log.info("Checking if {} is readable in account '{}'...", kind, accountName);
     boolean allowed;
-    if (kind.isNamespaced()) {
-      allowed =
-          jobExecutor.authCanINamespaced(
-              this, checkNamespace, kind.getKubernetesKind().getName(), "list");
+    if (kindRegistry.getRegisteredKind(kind).isNamespaced()) {
+      allowed = jobExecutor.authCanINamespaced(this, checkNamespace, kind.getName(), "list");
     } else {
-      allowed = jobExecutor.authCanI(this, kind.getKubernetesKind().getName(), "list");
+      allowed = jobExecutor.authCanI(this, kind.getName(), "list");
     }
 
     if (!allowed) {
