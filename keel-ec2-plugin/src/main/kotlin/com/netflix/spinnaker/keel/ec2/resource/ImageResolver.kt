@@ -1,5 +1,8 @@
 package com.netflix.spinnaker.keel.ec2.resource
 
+import com.netflix.spinnaker.keel.api.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.NoImageFound
 import com.netflix.spinnaker.keel.api.NoImageFoundForRegion
 import com.netflix.spinnaker.keel.api.NoImageSatisfiesConstraints
@@ -37,15 +40,8 @@ class ImageResolver(
         val deliveryConfig = deliveryConfigRepository.deliveryConfigFor(resource.uid)
         val environment = deliveryConfigRepository.environmentFor(resource.uid)
         val artifact = imageProvider.deliveryArtifact
-        val artifactName = if (deliveryConfig != null && environment != null) {
-          artifactRepository.latestVersionApprovedIn(
-            deliveryConfig,
-            artifact,
-            environment.name
-          ) ?: throw NoImageSatisfiesConstraints(artifact.name, environment.name)
-        } else {
-          artifact.name
-        }
+        val artifactName = determineArtifactName(artifact, deliveryConfig, environment)
+
         val account = dynamicConfigService.getConfig("images.default-account", "test")
         val namedImage = imageService
           .getLatestNamedImage(artifactName, account, region) ?: throw NoImageFound(artifactName)
@@ -73,6 +69,27 @@ class ImageResolver(
         throw UnsupportedStrategy(imageProvider::class.simpleName.orEmpty(), ImageProvider::class.simpleName.orEmpty())
       }
     }
+  }
+
+  /**
+   * Supplies a specific version if a [deliveryConfig] and [environment] are provided,
+   * otherwise just returns the package name.
+   *
+   * Formats the name to comply with AMI naming conventions.
+   */
+  private fun determineArtifactName(artifact: DeliveryArtifact, deliveryConfig: DeliveryConfig?, environment: Environment?): String {
+    val name = if (deliveryConfig != null && environment != null) {
+      artifactRepository.latestVersionApprovedIn(
+        deliveryConfig,
+        artifact,
+        environment.name
+      ) ?: throw NoImageSatisfiesConstraints(artifact.name, environment.name)
+    } else {
+      artifact.name
+    }
+
+    // image names have _ instead of ~
+    return name.replace("~", "_")
   }
 
   private inline fun <reified T> DynamicConfigService.getConfig(configName: String, defaultValue: T) =
