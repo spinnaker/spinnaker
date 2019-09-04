@@ -92,7 +92,11 @@ public class ManualEventHandler implements TriggerEventHandler<ManualEvent> {
     String application = content.getApplication();
     String pipelineNameOrId = content.getPipelineNameOrId();
     if (pipelineMatches(application, pipelineNameOrId, pipeline)) {
-      return Optional.of(buildTrigger(pipelineCache.refresh(pipeline), content.getTrigger()));
+      try {
+        return Optional.of(buildTrigger(pipelineCache.refresh(pipeline), content.getTrigger()));
+      } catch (Exception e) {
+        return Optional.of(pipeline.withErrorMessage(e.toString()));
+      }
     } else {
       return Optional.empty();
     }
@@ -126,26 +130,49 @@ public class ManualEventHandler implements TriggerEventHandler<ManualEvent> {
     String master = manualTrigger.getMaster();
     String job = manualTrigger.getJob();
     Integer buildNumber = manualTrigger.getBuildNumber();
+
+    ArrayList<String> pipelineErrors = new ArrayList<>();
+
     if (buildInfoService.isPresent()
         && StringUtils.isNoneEmpty(master, job)
         && buildNumber != null) {
       BuildEvent buildEvent = buildInfoService.get().getBuildEvent(master, job, buildNumber);
-      trigger =
-          trigger
-              .withBuildInfo(buildInfoService.get().getBuildInfo(buildEvent))
-              .withProperties(
-                  buildInfoService
-                      .get()
-                      .getProperties(buildEvent, manualTrigger.getPropertyFile()));
-      artifacts.addAll(
-          buildInfoService.get().getArtifactsFromBuildEvent(buildEvent, manualTrigger));
+      try {
+        trigger = trigger.withBuildInfo(buildInfoService.get().getBuildInfo(buildEvent));
+      } catch (Exception e) {
+        pipelineErrors.add("Could not get build from build server: " + e.toString());
+      }
+
+      try {
+        trigger =
+            trigger.withProperties(
+                buildInfoService.get().getProperties(buildEvent, manualTrigger.getPropertyFile()));
+      } catch (Exception e) {
+        pipelineErrors.add("Could not get property file from build server: " + e.toString());
+      }
+
+      try {
+        artifacts.addAll(
+            buildInfoService.get().getArtifactsFromBuildEvent(buildEvent, manualTrigger));
+      } catch (Exception e) {
+        pipelineErrors.add("Could not get all artifacts from build server: " + e.toString());
+      }
     }
 
-    if (artifactInfoService.isPresent() && !CollectionUtils.isEmpty(manualTrigger.getArtifacts())) {
-      List<Artifact> resolvedArtifacts = resolveArtifacts(manualTrigger.getArtifacts());
-      artifacts.addAll(resolvedArtifacts);
-      // update the artifacts on the manual trigger with the resolved artifacts
-      trigger = trigger.withArtifacts(convertToListOfMaps(resolvedArtifacts));
+    try {
+      if (artifactInfoService.isPresent()
+          && !CollectionUtils.isEmpty(manualTrigger.getArtifacts())) {
+        List<Artifact> resolvedArtifacts = resolveArtifacts(manualTrigger.getArtifacts());
+        artifacts.addAll(resolvedArtifacts);
+        // update the artifacts on the manual trigger with the resolved artifacts
+        trigger = trigger.withArtifacts(convertToListOfMaps(resolvedArtifacts));
+      }
+    } catch (Exception e) {
+      pipelineErrors.add("Could not resolve artifacts: " + e.toString());
+    }
+
+    if (!pipelineErrors.isEmpty()) {
+      pipeline = pipeline.withErrorMessage(String.join("\n", pipelineErrors));
     }
 
     return pipeline

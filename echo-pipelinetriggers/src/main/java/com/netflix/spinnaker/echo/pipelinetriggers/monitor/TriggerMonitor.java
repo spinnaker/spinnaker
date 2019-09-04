@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers.monitor;
 
+import com.google.common.base.Strings;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.events.EchoEventListener;
@@ -74,12 +75,17 @@ public class TriggerMonitor<T extends TriggerEvent> implements EchoEventListener
     try {
       List<Pipeline> matchingPipelines = eventHandler.getMatchingPipelines(event, pipelineCache);
       matchingPipelines.stream()
+          .filter(p -> Strings.isNullOrEmpty(p.getErrorMessage()))
           .map(pipelinePostProcessorHandler::process)
           .forEach(
               p -> {
                 recordMatchingPipeline(p);
                 pipelineInitiator.startPipeline(p, PipelineInitiator.TriggerSource.EVENT);
               });
+
+      matchingPipelines.stream()
+          .filter(p -> !Strings.isNullOrEmpty(p.getErrorMessage()))
+          .forEach(pipelineInitiator::recordPipelineFailure);
     } catch (TimeoutException e) {
       log.error("Failed to get pipeline configs", e);
     }

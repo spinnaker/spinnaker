@@ -103,6 +103,10 @@ public class PipelineInitiator {
     EVENT
   }
 
+  public void recordPipelineFailure(Pipeline pipeline) {
+    orca.recordFailure(pipeline);
+  }
+
   public void startPipeline(Pipeline pipeline, TriggerSource triggerSource) {
     if (enabled) {
       try {

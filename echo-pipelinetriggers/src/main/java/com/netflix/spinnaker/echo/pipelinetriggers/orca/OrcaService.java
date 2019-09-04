@@ -21,6 +21,7 @@ import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.util.Collection;
 import java.util.Map;
+import retrofit.client.Response;
 import retrofit.http.Body;
 import retrofit.http.GET;
 import retrofit.http.POST;
@@ -30,6 +31,9 @@ public interface OrcaService {
 
   @POST("/orchestrate")
   TriggerResponse trigger(@Body Pipeline pipeline);
+
+  @POST("/fail")
+  Response recordFailure(@Body Pipeline pipeline);
 
   @POST("/plan")
   Map plan(@Body Map pipelineConfig, @Query("resolveArtifacts") boolean resolveArtifacts);
