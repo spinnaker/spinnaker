@@ -74,7 +74,7 @@
       },
     },
     withDefaultArtifact(defaultArtifact):: self + {
-      defaultArtifact+: {
+      defaultArtifact: {
         reference: defaultArtifact.reference,
         type: defaultArtifact.type,
         kind: if defaultArtifact.kind == 'custom' then defaultArtifact else 'default.' + defaultArtifact.kind,
