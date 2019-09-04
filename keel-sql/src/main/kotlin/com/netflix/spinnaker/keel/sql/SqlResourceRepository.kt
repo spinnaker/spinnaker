@@ -6,13 +6,11 @@ import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.ResourceSpec
-import com.netflix.spinnaker.keel.api.UID
 import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.id
-import com.netflix.spinnaker.keel.api.uid
+import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceId
-import com.netflix.spinnaker.keel.persistence.NoSuchResourceUID
 import com.netflix.spinnaker.keel.persistence.ResourceHeader
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
@@ -21,7 +19,7 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_LAST_CHE
 import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
 import de.huxhorn.sulky.ulid.ULID
 import org.jooq.DSLContext
-import org.slf4j.LoggerFactory
+import org.jooq.impl.DSL.select
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
@@ -36,29 +34,13 @@ open class SqlResourceRepository(
 
   override fun allResources(callback: (ResourceHeader) -> Unit) {
     jooq
-      .select(RESOURCE.UID, RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.ID)
+      .select(RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.ID)
       .from(RESOURCE)
       .fetch()
-      .map { (uid, apiVersion, kind, id) ->
-        ResourceHeader(ULID.parseULID(uid), ResourceId(id), ApiVersion(apiVersion), kind)
+      .map { (apiVersion, kind, id) ->
+        ResourceHeader(ResourceId(id), ApiVersion(apiVersion), kind)
       }
       .forEach(callback)
-  }
-
-  override fun get(uid: UID): Resource<out ResourceSpec> {
-    return jooq
-      .select(RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.METADATA, RESOURCE.SPEC)
-      .from(RESOURCE)
-      .where(RESOURCE.UID.eq(uid.toString()))
-      .fetchOne()
-      ?.let { (apiVersion, kind, metadata, spec) ->
-        Resource(
-          ApiVersion(apiVersion),
-          kind,
-          objectMapper.readValue<Map<String, Any?>>(metadata).asResourceMetadata(),
-          objectMapper.readValue(spec, resourceTypeIdentifier.identify(apiVersion.let(::ApiVersion), kind))
-        )
-      } ?: throw NoSuchResourceUID(uid)
   }
 
   override fun get(id: ResourceId): Resource<out ResourceSpec> {
@@ -95,12 +77,17 @@ open class SqlResourceRepository(
   }
 
   override fun store(resource: Resource<*>) {
-    val uid = resource.uid.toString()
+    val uid = jooq.select(RESOURCE.UID)
+      .from(RESOURCE)
+      .where(RESOURCE.ID.eq(resource.id.value))
+      .fetchOne(RESOURCE.UID)
+      ?: randomUID().toString()
+
     val updatePairs = mapOf(
       RESOURCE.API_VERSION to resource.apiVersion.toString(),
       RESOURCE.KIND to resource.kind,
       RESOURCE.ID to resource.id.value,
-      RESOURCE.METADATA to objectMapper.writeValueAsString(resource.metadata),
+      RESOURCE.METADATA to objectMapper.writeValueAsString(resource.metadata + ("uid" to uid)),
       RESOURCE.SPEC to objectMapper.writeValueAsString(resource.spec),
       RESOURCE.APPLICATION to resource.application
     )
@@ -121,25 +108,21 @@ open class SqlResourceRepository(
       .execute()
   }
 
-  override fun eventHistory(uid: UID, limit: Int): List<ResourceEvent> {
+  override fun eventHistory(id: ResourceId, limit: Int): List<ResourceEvent> {
     require(limit > 0) { "limit must be a positive integer" }
-    jooq
-      .selectOne()
-      .from(RESOURCE)
-      .where(RESOURCE.UID.eq(uid.toString()))
-      .fetchOne()
-      .let {
-        if (it == null) throw NoSuchResourceUID(uid)
-      }
     return jooq
       .select(RESOURCE_EVENT.JSON)
-      .from(RESOURCE_EVENT)
-      .where(RESOURCE_EVENT.UID.eq(uid.toString()))
+      .from(RESOURCE_EVENT, RESOURCE)
+      .where(RESOURCE.ID.eq(id.toString()))
+      .and(RESOURCE.UID.eq(RESOURCE_EVENT.UID))
       .orderBy(RESOURCE_EVENT.TIMESTAMP.desc())
       .limit(limit)
       .fetch()
       .map { (json) ->
         objectMapper.readValue<ResourceEvent>(json)
+      }
+      .ifEmpty {
+        throw NoSuchResourceId(id)
       }
   }
 
@@ -149,8 +132,9 @@ open class SqlResourceRepository(
     if (event.ignoreRepeatedInHistory) {
       val previousEvent = jooq
         .select(RESOURCE_EVENT.JSON)
-        .from(RESOURCE_EVENT)
-        .where(RESOURCE_EVENT.UID.eq(event.uid.toString()))
+        .from(RESOURCE_EVENT, RESOURCE)
+        .where(RESOURCE.ID.eq(event.id))
+        .and(RESOURCE.UID.eq(RESOURCE_EVENT.UID))
         .orderBy(RESOURCE_EVENT.TIMESTAMP.desc())
         .limit(1)
         .fetchOne()
@@ -161,13 +145,11 @@ open class SqlResourceRepository(
       if (event.javaClass == previousEvent?.javaClass) return
     }
 
-    jooq.insertInto(RESOURCE_EVENT)
-      .columns(RESOURCE_EVENT.UID, RESOURCE_EVENT.TIMESTAMP, RESOURCE_EVENT.JSON)
-      .values(
-        event.uid.toString(),
-        event.timestamp.atZone(clock.zone).toLocalDateTime(),
-        objectMapper.writeValueAsString(event)
-      )
+    jooq
+      .insertInto(RESOURCE_EVENT)
+      .set(RESOURCE_EVENT.UID, select(RESOURCE.UID).from(RESOURCE).where(RESOURCE.ID.eq(event.id)))
+      .set(RESOURCE_EVENT.TIMESTAMP, event.timestamp.atZone(clock.zone).toLocalDateTime())
+      .set(RESOURCE_EVENT.JSON, objectMapper.writeValueAsString(event))
       .execute()
   }
 
@@ -208,13 +190,11 @@ open class SqlResourceRepository(
               .execute()
           }
         }
-        .map { (uid, apiVersion, kind, id) ->
-          ResourceHeader(ULID.parseULID(uid), ResourceId(id), ApiVersion(apiVersion), kind)
+        .map { (_, apiVersion, kind, id) ->
+          ResourceHeader(ResourceId(id), ApiVersion(apiVersion), kind)
         }
     }
   }
-
-  private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   private fun Instant.toLocal() = atZone(clock.zone).toLocalDateTime()
 }

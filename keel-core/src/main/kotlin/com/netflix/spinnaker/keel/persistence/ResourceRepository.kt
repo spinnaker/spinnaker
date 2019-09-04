@@ -19,20 +19,16 @@ import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceId
-import com.netflix.spinnaker.keel.api.UID
 import com.netflix.spinnaker.keel.api.id
-import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.events.ResourceEvent
 import java.time.Duration
 
 data class ResourceHeader(
-  val uid: UID,
   val id: ResourceId,
   val apiVersion: ApiVersion,
   val kind: String
 ) {
   constructor(resource: Resource<*>) : this(
-    resource.uid,
     resource.id,
     resource.apiVersion,
     resource.kind
@@ -52,14 +48,6 @@ interface ResourceRepository : PeriodicallyCheckedRepository<ResourceHeader> {
    * @throws NoSuchResourceException if [id] does not map to a resource in the repository.
    */
   fun get(id: ResourceId): Resource<out ResourceSpec>
-
-  /**
-   * Retrieves a single resource by its unique [uid].
-   *
-   * @return The resource represented by [uid] or `null` if [uid] is unknown.
-   * @throws NoSuchResourceException if [uid] does not map to a resource in the repository.
-   */
-  fun get(uid: UID): Resource<out ResourceSpec>
 
   fun hasManagedResources(application: String): Boolean
 
@@ -83,10 +71,10 @@ interface ResourceRepository : PeriodicallyCheckedRepository<ResourceHeader> {
   /**
    * Retrieves the history of state change events for the resource represented by [uid].
    *
-   * @param uid the resource id.
+   * @param id the resource id.
    * @param limit the maximum number of events to return.
    */
-  fun eventHistory(uid: UID, limit: Int = DEFAULT_MAX_EVENTS): List<ResourceEvent>
+  fun eventHistory(id: ResourceId, limit: Int = DEFAULT_MAX_EVENTS): List<ResourceEvent>
 
   /**
    * Records an event associated with a resource.
@@ -111,11 +99,6 @@ interface ResourceRepository : PeriodicallyCheckedRepository<ResourceHeader> {
 inline fun <reified T : ResourceSpec> ResourceRepository.get(id: ResourceId): Resource<T> =
   get(id).also { check(it.spec is T) } as Resource<T>
 
-@Suppress("UNCHECKED_CAST")
-inline fun <reified T : ResourceSpec> ResourceRepository.get(uid: UID): Resource<T> =
-  get(uid).also { check(it.spec is T) } as Resource<T>
-
 sealed class NoSuchResourceException(override val message: String?) : RuntimeException(message)
 
 class NoSuchResourceId(id: ResourceId) : NoSuchResourceException("No resource with id $id exists in the repository")
-class NoSuchResourceUID(uid: UID) : NoSuchResourceException("No resource with uid $uid exists in the repository")

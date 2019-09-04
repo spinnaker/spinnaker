@@ -2,9 +2,9 @@ package com.netflix.spinnaker.keel.persistence.memory
 
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
-import com.netflix.spinnaker.keel.api.UID
+import com.netflix.spinnaker.keel.api.ResourceId
+import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.resources
-import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigName
 import java.time.Clock
@@ -28,16 +28,16 @@ class InMemoryDeliveryConfigRepository(
     }
   }
 
-  override fun environmentFor(resourceUID: UID): Environment? =
+  override fun environmentFor(resourceId: ResourceId): Environment? =
     configs
       .values
       .flatMap { it.environments }
-      .firstOrNull { it.resourceUids.contains(resourceUID) }
+      .firstOrNull { it.resourceIds.contains(resourceId) }
 
-  override fun deliveryConfigFor(resourceUID: UID): DeliveryConfig? =
+  override fun deliveryConfigFor(resourceId: ResourceId): DeliveryConfig? =
     configs
       .values
-      .firstOrNull { it.resourceUids.contains(resourceUID) }
+      .firstOrNull { it.resourceIds.contains(resourceId) }
 
   override fun itemsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<DeliveryConfig> {
     val cutoff = clock.instant().minus(minTimeSinceLastCheck)
@@ -57,9 +57,9 @@ class InMemoryDeliveryConfigRepository(
     configs.clear()
   }
 
-  private val Environment.resourceUids: Iterable<UID>
-    get() = resources.map { it.uid }
+  private val Environment.resourceIds: Iterable<ResourceId>
+    get() = resources.map { it.id }
 
-  private val DeliveryConfig.resourceUids: Iterable<UID>
-    get() = resources.map { it.uid }
+  private val DeliveryConfig.resourceIds: Iterable<ResourceId>
+    get() = resources.map { it.id }
 }

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.keel.tagging
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
@@ -61,7 +62,7 @@ internal class KeelTagHandlerTests : JUnit5Minutests {
 
   val clock = MutableClock()
 
-  val keelId = "ec2:cluster:test:us-west-1:emburnstest-managed-reference"
+  val keelId = ResourceId("ec2:cluster:test:us-west-1:emburnstest-managed-reference")
   val entityRef = EntityRef(
     entityType = "servergroup",
     entityId = "emburnstest-managed-reference-v005",

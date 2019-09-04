@@ -11,7 +11,7 @@ import com.netflix.spinnaker.keel.api.ec2.image.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.image.IdImageProvider
 import com.netflix.spinnaker.keel.api.ec2.image.ImageProvider
 import com.netflix.spinnaker.keel.api.ec2.image.JenkinsImageProvider
-import com.netflix.spinnaker.keel.api.uid
+import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
@@ -35,8 +35,8 @@ class ImageResolver(
         return imageProvider.imageId
       }
       is ArtifactImageProvider -> {
-        val deliveryConfig = deliveryConfigRepository.deliveryConfigFor(resource.uid)
-        val environment = deliveryConfigRepository.environmentFor(resource.uid)
+        val deliveryConfig = deliveryConfigRepository.deliveryConfigFor(resource.id)
+        val environment = deliveryConfigRepository.environmentFor(resource.id)
         val artifact = imageProvider.deliveryArtifact
         val account = dynamicConfigService.getConfig("images.default-account", "test")
 

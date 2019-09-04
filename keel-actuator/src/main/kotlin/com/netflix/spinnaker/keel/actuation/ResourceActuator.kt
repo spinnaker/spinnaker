@@ -4,7 +4,7 @@ import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.ResourceSpec
-import com.netflix.spinnaker.keel.api.uid
+import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceCheckError
@@ -82,7 +82,7 @@ class ResourceActuator(
         else -> {
           log.info("Resource {} is valid", id)
           // TODO: not sure this logic belongs here
-          val lastEvent = resourceRepository.eventHistory(uid = resource.uid, limit = 1).first()
+          val lastEvent = resourceRepository.eventHistory(resource.id, limit = 1).first()
           if (lastEvent is ResourceDeltaDetected || lastEvent is ResourceActuationLaunched) {
             publisher.publishEvent(ResourceDeltaResolved(resource, current, clock))
           } else {

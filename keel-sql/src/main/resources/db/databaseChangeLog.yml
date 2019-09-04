@@ -29,3 +29,6 @@ databaseChangeLog:
   - include:
       file: changelog/20190808-delivery-config-check-timestamp.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20190904-rename-name-to-id.yml
+      relativeToChangelogFile: true

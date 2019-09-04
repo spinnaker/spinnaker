@@ -5,7 +5,6 @@ import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.Tag
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.events.ResourceValid
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -30,7 +29,6 @@ internal class TelemetryListenerTests : JUnit5Minutests {
     apiVersion = SPINNAKER_API_V1.subApi("ec2"),
     kind = "cluster",
     id = "ec2:cluster:prod:ap-south-1:keel-main",
-    uid = randomUID(),
     application = "fnord",
     timestamp = Instant.now()
   )
@@ -72,7 +70,7 @@ internal class TelemetryListenerTests : JUnit5Minutests {
             value().isEqualTo(event.kind)
           }
           any {
-            key().isEqualTo("resourceName")
+            key().isEqualTo("resourceId")
             value().isEqualTo(event.id)
           }
           any {

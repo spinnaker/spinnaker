@@ -3,11 +3,10 @@ package com.netflix.spinnaker.keel.test
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Monikered
-import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
+import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
@@ -58,7 +57,6 @@ fun <T : ResourceSpec> resource(
     kind = kind,
     spec = spec,
     metadata = mapOf(
-      "uid" to randomUID(),
       "id" to "${apiVersion.prefix}:$kind:$id",
       "application" to application,
       "serviceAccount" to "keel@spinnaker"

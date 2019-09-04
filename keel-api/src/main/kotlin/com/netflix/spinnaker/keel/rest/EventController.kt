@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.api.ResourceId
-import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
@@ -34,10 +33,8 @@ class EventController(
     @RequestParam("limit") limit: Int?
   ): List<ResourceEvent> {
     log.debug("Getting state history for: $id")
-    return resourceRepository.get(id).let { resource ->
-      resourceRepository
-        .eventHistory(resource.uid, limit ?: DEFAULT_MAX_EVENTS)
-    }
+    return resourceRepository
+      .eventHistory(id, limit ?: DEFAULT_MAX_EVENTS)
   }
 
   // TODO: would be nice to make this common with ResourceController

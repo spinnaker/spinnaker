@@ -33,7 +33,6 @@ internal class ResourceEventSerializationTests : JUnit5Minutests {
     get() = """
       {
         "type": "${createdEvent.javaClass.simpleName}",
-        "uid": "${createdEvent.uid}",
         "apiVersion": "${createdEvent.apiVersion}",
         "kind": "${createdEvent.kind}",
         "id": "${createdEvent.id}",
@@ -45,7 +44,6 @@ internal class ResourceEventSerializationTests : JUnit5Minutests {
   val Fixture.yaml: String
     get() = """
       --- !<${createdEvent.javaClass.simpleName}>
-      uid: "${createdEvent.uid}"
       apiVersion: "${createdEvent.apiVersion}"
       kind: "${createdEvent.kind}"
       id: "${createdEvent.id}"
@@ -64,7 +62,6 @@ internal class ResourceEventSerializationTests : JUnit5Minutests {
       test("can serialize a ResourceCreated event") {
         val json = mapper.valueToTree<ObjectNode>(createdEvent)
         expectThat(json)
-          .has("uid")
           .has("id")
           .has("apiVersion")
           .has("kind")
@@ -90,7 +87,6 @@ internal class ResourceEventSerializationTests : JUnit5Minutests {
       test("can serialize a ResourceCreated event") {
         val json = mapper.valueToTree<ObjectNode>(createdEvent)
         expectThat(json)
-          .has("uid")
           .has("id")
           .has("apiVersion")
           .has("kind")

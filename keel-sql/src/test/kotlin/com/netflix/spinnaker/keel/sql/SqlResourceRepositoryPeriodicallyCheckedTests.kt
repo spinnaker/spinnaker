@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.sql
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.persistence.ResourceHeader
 import com.netflix.spinnaker.keel.persistence.ResourceRepositoryPeriodicallyCheckedTests
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
@@ -74,8 +75,8 @@ internal object SqlResourceRepositoryPeriodicallyCheckedTests :
 
       test("metadata is persisted") {
         jooq
-          .select(field<String>("metadata"))
-          .from("resource")
+          .select(RESOURCE.METADATA)
+          .from(RESOURCE)
           .fetchOne()
           .let { (metadata) ->
             configuredObjectMapper().readValue<Map<String, Any?>>(metadata)
@@ -89,8 +90,8 @@ internal object SqlResourceRepositoryPeriodicallyCheckedTests :
 
       test("uid is stored consistently") {
         jooq
-          .select(field<String>("uid"), field<String>("metadata"))
-          .from("resource")
+          .select(RESOURCE.UID, RESOURCE.METADATA)
+          .from(RESOURCE)
           .fetchOne()
           .also { (uid, metadata) ->
             val metadataMap = configuredObjectMapper().readValue<Map<String, Any?>>(metadata)

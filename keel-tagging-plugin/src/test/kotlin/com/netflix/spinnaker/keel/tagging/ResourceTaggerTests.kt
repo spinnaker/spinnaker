@@ -79,7 +79,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
     apiVersion = SPINNAKER_API_V1.subApi("tag"),
     kind = "keel-tag",
     spec = KeelTagSpec(
-      keelId = clusterId.toString(),
+      keelId = clusterId,
       entityRef = EntityRef("cluster", "keel", "keel", "ap-south-1", "test", "1234", "aws"),
       tagState = TagDesired(tag = EntityTag(
         value = TagValue(
@@ -98,7 +98,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
     apiVersion = SPINNAKER_API_V1.subApi("tag"),
     kind = "keel-tag",
     spec = KeelTagSpec(
-      clusterId.toString(),
+      clusterId,
       EntityRef("cluster", "keel", "keel", "ap-south-1", "test", "1234", "aws"),
       TagNotDesired(clock.millis())
     )
@@ -199,7 +199,6 @@ internal class ResourceTaggerTests : JUnit5Minutests {
 
       test("we don't tag named images") {
         onCreateEvent(ResourceCreated(
-          uid = randomUID(),
           apiVersion = SPINNAKER_API_V1.subApi("bakery"),
           kind = "image",
           id = "bakery:image:keel",
@@ -215,7 +214,6 @@ internal class ResourceTaggerTests : JUnit5Minutests {
 
       test("we tag clbs") {
         onCreateEvent(ResourceCreated(
-          uid = randomUID(),
           apiVersion = SPINNAKER_API_V1.subApi("ec2"),
           kind = "classic-load-balancer",
           id = "ec2:classic-load-balancer:test:us-east-1:keel-managed",
@@ -227,7 +225,6 @@ internal class ResourceTaggerTests : JUnit5Minutests {
 
       test("we tag albs") {
         onCreateEvent(ResourceCreated(
-          uid = randomUID(),
           apiVersion = SPINNAKER_API_V1.subApi("ec2"),
           kind = "application-load-balancer",
           id = "ec2:application-load-balancer:test:us-east-1:keel-managed",
@@ -239,7 +236,6 @@ internal class ResourceTaggerTests : JUnit5Minutests {
 
       test("we tag security groups") {
         onCreateEvent(ResourceCreated(
-          uid = randomUID(),
           apiVersion = SPINNAKER_API_V1.subApi("ec2"),
           kind = "securityGroup",
           id = "ec2:securityGroup:test:us-west-2:keel-managed",
@@ -251,7 +247,6 @@ internal class ResourceTaggerTests : JUnit5Minutests {
 
       test("we tag clusters") {
         onCreateEvent(ResourceCreated(
-          uid = randomUID(),
           apiVersion = SPINNAKER_API_V1.subApi("ec2"),
           kind = "cluster",
           id = "ec2:cluster:test:us-west-2:keeldemo-test",

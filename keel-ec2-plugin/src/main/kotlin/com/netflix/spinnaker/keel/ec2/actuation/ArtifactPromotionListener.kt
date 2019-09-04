@@ -39,10 +39,10 @@ class ArtifactPromotionListener(
         "Found ${amis.size} images for image id $deployedImage when 1 was expected"
       }
       val appVersion = amis.first().appVersion
-      val deliveryConfig = deliveryConfigRepository.deliveryConfigFor(event.uid)
-      val environment = deliveryConfigRepository.environmentFor(event.uid)
+      val deliveryConfig = deliveryConfigRepository.deliveryConfigFor(event.resourceId)
+      val environment = deliveryConfigRepository.environmentFor(event.resourceId)
       if (deliveryConfig == null || environment == null) {
-        log.warn("Resource ${event.id} is not part of a delivery environment")
+        log.warn("Resource ${event.resourceId} is not part of a delivery environment")
       } else {
         artifactRepository.markAsSuccessfullyDeployedTo(
           deliveryConfig,

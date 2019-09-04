@@ -7,9 +7,9 @@ import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.UID
+import com.netflix.spinnaker.keel.api.ResourceId
+import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.randomUID
-import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigName
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_ARTIFACT
@@ -22,6 +22,7 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import org.jooq.DSLContext
+import org.jooq.impl.DSL.select
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
@@ -76,7 +77,7 @@ class SqlDeliveryConfigRepository(
         environment.resources.forEach { resource ->
           jooq.insertInto(ENVIRONMENT_RESOURCE)
             .set(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID, environmentUID)
-            .set(ENVIRONMENT_RESOURCE.RESOURCE_UID, resource.uid.toString())
+            .set(ENVIRONMENT_RESOURCE.RESOURCE_UID, select(RESOURCE.UID).from(RESOURCE).where(RESOURCE.ID.eq(resource.id.value)))
             .onDuplicateKeyIgnore()
             .execute()
         }
@@ -134,11 +135,12 @@ class SqlDeliveryConfigRepository(
       }
       ?: throw NoSuchDeliveryConfigName(name)
 
-  override fun environmentFor(resourceUID: UID): Environment? =
+  override fun environmentFor(resourceId: ResourceId): Environment? =
     jooq
       .select(ENVIRONMENT.UID, ENVIRONMENT.NAME, ENVIRONMENT.CONSTRAINTS)
-      .from(ENVIRONMENT, ENVIRONMENT_RESOURCE)
-      .where(ENVIRONMENT_RESOURCE.RESOURCE_UID.eq(resourceUID.toString()))
+      .from(ENVIRONMENT, ENVIRONMENT_RESOURCE, RESOURCE)
+      .where(RESOURCE.ID.eq(resourceId.value))
+      .and(ENVIRONMENT_RESOURCE.RESOURCE_UID.eq(RESOURCE.UID))
       .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(ENVIRONMENT.UID))
       .fetchOne { (uid, name, constraintsJson) ->
         Environment(
@@ -148,12 +150,13 @@ class SqlDeliveryConfigRepository(
         )
       }
 
-  override fun deliveryConfigFor(resourceUID: UID): DeliveryConfig? =
+  override fun deliveryConfigFor(resourceId: ResourceId): DeliveryConfig? =
     // TODO: this implementation could be more efficient by sharing code with get(name)
     jooq
       .select(DELIVERY_CONFIG.NAME)
-      .from(ENVIRONMENT, ENVIRONMENT_RESOURCE, DELIVERY_CONFIG)
-      .where(ENVIRONMENT_RESOURCE.RESOURCE_UID.eq(resourceUID.toString()))
+      .from(ENVIRONMENT, ENVIRONMENT_RESOURCE, RESOURCE, DELIVERY_CONFIG)
+      .where(RESOURCE.ID.eq(resourceId.value))
+      .and(ENVIRONMENT_RESOURCE.RESOURCE_UID.eq(RESOURCE.UID))
       .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(ENVIRONMENT.UID))
       .and(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(DELIVERY_CONFIG.UID))
       .fetchOne { (name) ->

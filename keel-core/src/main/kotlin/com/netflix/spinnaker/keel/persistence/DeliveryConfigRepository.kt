@@ -2,7 +2,7 @@ package com.netflix.spinnaker.keel.persistence
 
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
-import com.netflix.spinnaker.keel.api.UID
+import com.netflix.spinnaker.keel.api.ResourceId
 
 interface DeliveryConfigRepository : PeriodicallyCheckedRepository<DeliveryConfig> {
 
@@ -10,9 +10,9 @@ interface DeliveryConfigRepository : PeriodicallyCheckedRepository<DeliveryConfi
 
   fun get(name: String): DeliveryConfig
 
-  fun environmentFor(resourceUID: UID): Environment?
+  fun environmentFor(resourceId: ResourceId): Environment?
 
-  fun deliveryConfigFor(resourceUID: UID): DeliveryConfig?
+  fun deliveryConfigFor(resourceId: ResourceId): DeliveryConfig?
 }
 
 sealed class NoSuchDeliveryConfigException(message: String) : RuntimeException(message)

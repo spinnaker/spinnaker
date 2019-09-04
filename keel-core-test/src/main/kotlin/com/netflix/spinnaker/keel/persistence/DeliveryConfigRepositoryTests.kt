@@ -8,8 +8,8 @@ import com.netflix.spinnaker.keel.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.resources
-import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.resource
@@ -74,11 +74,11 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
     }
 
     fun getEnvironment(resource: Resource<*>) = expectCatching {
-      repository.environmentFor(resource.uid)
+      repository.environmentFor(resource.id)
     }
 
     fun getDeliveryConfig(resource: Resource<*>) = expectCatching {
-      repository.deliveryConfigFor(resource.uid)
+      repository.deliveryConfigFor(resource.id)
     }
   }
 

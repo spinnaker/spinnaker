@@ -18,7 +18,6 @@ package com.netflix.spinnaker.keel.api
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id
-import de.huxhorn.sulky.ulid.ULID
 
 /**
  * Internal representation of a resource.
@@ -31,7 +30,6 @@ data class Resource<T : ResourceSpec>(
 ) {
   init {
     require(kind.isNotEmpty()) { "resource kind must be defined" }
-    require(metadata["uid"].isValidULID()) { "resource uid must be a valid ULID" }
     require(metadata["id"].isValidId()) { "resource id must be a valid id" }
     require(metadata["serviceAccount"].isValidServiceAccount()) { "serviceAccount must be a valid service account" }
     require(metadata["application"].isValidApplication()) { "application must be a valid application" }
@@ -39,6 +37,27 @@ data class Resource<T : ResourceSpec>(
 
   constructor(resource: SubmittedResource<T>, metadata: Map<String, Any?>) :
     this(resource.apiVersion, resource.kind, metadata, resource.spec)
+
+  // TODO: this is kinda dirty, but because we add uid to the metadata when persisting we don't really want to consider it in equality checks
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+
+    other as Resource<*>
+
+    if (apiVersion != other.apiVersion) return false
+    if (kind != other.kind) return false
+    if (spec != other.spec) return false
+
+    return true
+  }
+
+  override fun hashCode(): Int {
+    var result = apiVersion.hashCode()
+    result = 31 * result + kind.hashCode()
+    result = 31 * result + spec.hashCode()
+    return result
+  }
 }
 
 /**
@@ -66,9 +85,6 @@ data class SubmittedMetadata(
   val serviceAccount: String
 )
 
-val <T : ResourceSpec> Resource<T>.uid: UID
-  get() = metadata.getValue("uid").toString().let(ULID::parseULID)
-
 val <T : ResourceSpec> Resource<T>.id: ResourceId
   get() = metadata.getValue("id").toString().let(::ResourceId)
 
@@ -77,15 +93,6 @@ val <T : ResourceSpec> Resource<T>.serviceAccount: String
 
 val <T : ResourceSpec> Resource<T>.application: String
   get() = metadata.getValue("application").toString()
-
-private fun Any?.isValidULID() =
-  when (this) {
-    is UID -> true
-    is String -> runCatching {
-      ULID.parseULID(toString())
-    }.isSuccess
-    else -> false
-  }
 
 private fun Any?.isValidId() =
   when (this) {

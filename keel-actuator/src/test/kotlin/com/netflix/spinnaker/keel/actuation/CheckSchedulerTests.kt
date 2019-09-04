@@ -2,7 +2,6 @@ package com.netflix.spinnaker.keel.actuation
 
 import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.ResourceHeader
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
@@ -24,13 +23,11 @@ internal object CheckSchedulerTests : JUnit5Minutests {
   private val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
   private val resources = listOf(
     ResourceHeader(
-      uid = randomUID(),
       id = ResourceId("ec2:security-group:prod:ap-south-1:keel-sg"),
       apiVersion = SPINNAKER_API_V1.subApi("ec2"),
       kind = "security-group"
     ),
     ResourceHeader(
-      uid = randomUID(),
       id = ResourceId("ec2:cluster:prod:ap-south-1:keel"),
       apiVersion = SPINNAKER_API_V1.subApi("ec2"),
       kind = "cluster"

@@ -18,8 +18,6 @@ package com.netflix.spinnaker.keel.persistence
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.id
-import com.netflix.spinnaker.keel.api.randomUID
-import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
@@ -54,7 +52,6 @@ import strikt.assertions.map
 import strikt.assertions.none
 import java.time.Clock
 import java.time.Duration
-import java.time.Instant
 import java.time.Period
 import java.util.UUID.randomUUID
 
@@ -87,8 +84,8 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
       }
 
       test("getting state history throws an exception") {
-        expectThrows<NoSuchResourceUID> {
-          subject.eventHistory(randomUID())
+        expectThrows<NoSuchResourceId> {
+          subject.eventHistory(ResourceId("whatever"))
         }
       }
 
@@ -116,13 +113,13 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         }
       }
 
-      test("it can be retrieved by name") {
+      test("it can be retrieved by id") {
         val retrieved = subject.get<DummyResourceSpec>(resource.id)
         expectThat(retrieved).isEqualTo(resource)
       }
 
       test("it can be retrieved by uid") {
-        val retrieved = subject.get<DummyResourceSpec>(resource.uid)
+        val retrieved = subject.get<DummyResourceSpec>(resource.id)
         expectThat(retrieved).isEqualTo(resource)
       }
 
@@ -136,8 +133,8 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
           subject.allResources(callback)
 
           verifyAll {
-            callback(match { it.uid == resource.uid })
-            callback(match { it.uid == anotherResource.uid })
+            callback(match { it.id == resource.id })
+            callback(match { it.id == anotherResource.id })
           }
         }
 
@@ -172,7 +169,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
           }
 
           test("the event is not included in the history") {
-            expectThat(subject.eventHistory(resource.uid))
+            expectThat(subject.eventHistory(resource.id))
               .none { isA<ResourceValid>() }
           }
         }
@@ -185,7 +182,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
           }
 
           test("the event is included in the history") {
-            expectThat(subject.eventHistory(resource.uid))
+            expectThat(subject.eventHistory(resource.id))
               .hasSize(2)
               .first()
               .isA<ResourceUpdated>()
@@ -199,7 +196,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
             }
 
             test("the event is included in the history") {
-              expectThat(subject.eventHistory(resource.uid))
+              expectThat(subject.eventHistory(resource.id))
                 .hasSize(3)
                 .first()
                 .isA<ResourceDeltaDetected>()
@@ -212,7 +209,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
               }
 
               test("the event is not included in the history") {
-                expectThat(subject.eventHistory(resource.uid))
+                expectThat(subject.eventHistory(resource.id))
                   .and {
                     first().isA<ResourceDeltaDetected>()
                     second().not().isA<ResourceDeltaDetected>()
@@ -228,7 +225,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
             }
 
             test("the new state is included in the history") {
-              expectThat(subject.eventHistory(resource.uid))
+              expectThat(subject.eventHistory(resource.id))
                 .hasSize(3)
                 .and {
                   first().isA<ResourceUpdated>()
@@ -257,8 +254,8 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         }
 
         test("events for the resource are also deleted") {
-          expectThrows<NoSuchResourceException>() {
-            subject.eventHistory(resource.uid)
+          expectThrows<NoSuchResourceException> {
+            subject.eventHistory(resource.id)
           }
         }
       }
@@ -276,29 +273,29 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         }
 
         test("default limit is 10 events") {
-          expectThat(subject.eventHistory(resource.uid))
+          expectThat(subject.eventHistory(resource.id))
             .isNotEmpty()
             .hasSize(ResourceRepository.DEFAULT_MAX_EVENTS)
         }
 
         test("events can be limited by number") {
-          expectThat(subject.eventHistory(resource.uid, limit = 3))
+          expectThat(subject.eventHistory(resource.id, limit = 3))
             .hasSize(3)
         }
 
         test("the limit can be higher than the default") {
-          expectThat(subject.eventHistory(resource.uid, limit = 20))
+          expectThat(subject.eventHistory(resource.id, limit = 20))
             .hasSize(13)
         }
 
         test("zero limit is not allowed") {
-          expectCatching { subject.eventHistory(resource.uid, limit = 0) }
+          expectCatching { subject.eventHistory(resource.id, limit = 0) }
             .failed()
             .isA<IllegalArgumentException>()
         }
 
         test("negative limit is not allowed") {
-          expectCatching { subject.eventHistory(resource.uid, limit = -1) }
+          expectCatching { subject.eventHistory(resource.id, limit = -1) }
             .failed()
             .isA<IllegalArgumentException>()
         }
@@ -332,9 +329,6 @@ fun <T : Any> Assertion.Builder<T>.isNotIn(expected: Collection<T>) =
 
 fun <T : List<E>, E> Assertion.Builder<T>.second(): Assertion.Builder<E> =
   get("second element %s") { this[1] }
-
-val <T : ResourceEvent> Assertion.Builder<T>.timestamp: Assertion.Builder<Instant>
-  get() = get { timestamp }
 
 fun randomString(length: Int = 8) =
   randomUUID()

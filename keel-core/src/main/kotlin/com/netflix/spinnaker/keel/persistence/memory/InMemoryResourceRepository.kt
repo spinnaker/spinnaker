@@ -18,13 +18,10 @@ package com.netflix.spinnaker.keel.persistence.memory
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.ResourceSpec
-import com.netflix.spinnaker.keel.api.UID
 import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.id
-import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceId
-import com.netflix.spinnaker.keel.persistence.NoSuchResourceUID
 import com.netflix.spinnaker.keel.persistence.ResourceHeader
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import java.time.Clock
@@ -35,9 +32,9 @@ import java.time.Instant.EPOCH
 class InMemoryResourceRepository(
   private val clock: Clock = Clock.systemDefaultZone()
 ) : ResourceRepository {
-  private val resources = mutableMapOf<UID, Resource<*>>()
-  private val events = mutableMapOf<UID, MutableList<ResourceEvent>>()
-  private val lastCheckTimes = mutableMapOf<UID, Instant>()
+  private val resources = mutableMapOf<ResourceId, Resource<*>>()
+  private val events = mutableMapOf<ResourceId, MutableList<ResourceEvent>>()
+  private val lastCheckTimes = mutableMapOf<ResourceId, Instant>()
 
   override fun allResources(callback: (ResourceHeader) -> Unit) {
     resources.values.forEach {
@@ -47,13 +44,7 @@ class InMemoryResourceRepository(
 
   @Suppress("UNCHECKED_CAST")
   override fun get(id: ResourceId): Resource<out ResourceSpec> =
-    resources.values.find { it.id == id }?.let {
-      get(it.uid)
-    } ?: throw NoSuchResourceId(id)
-
-  @Suppress("UNCHECKED_CAST")
-  override fun get(uid: UID): Resource<out ResourceSpec> =
-    resources[uid] ?: throw NoSuchResourceUID(uid)
+    resources.values.find { it.id == id } ?: throw NoSuchResourceId(id)
 
   override fun hasManagedResources(application: String): Boolean =
     resources.any { it.value.application == application }
@@ -64,15 +55,15 @@ class InMemoryResourceRepository(
       .map { it.value.id.toString() }
 
   override fun store(resource: Resource<*>) {
-    resources[resource.uid] = resource
-    lastCheckTimes[resource.uid] = EPOCH
+    resources[resource.id] = resource
+    lastCheckTimes[resource.id] = EPOCH
   }
 
   override fun delete(id: ResourceId) {
     resources
       .values
       .filter { it.id == id }
-      .map { it.uid }
+      .map { it.id }
       .singleOrNull()
       ?.also {
         resources.remove(it)
@@ -81,15 +72,15 @@ class InMemoryResourceRepository(
       ?: throw NoSuchResourceId(id)
   }
 
-  override fun eventHistory(uid: UID, limit: Int): List<ResourceEvent> {
+  override fun eventHistory(id: ResourceId, limit: Int): List<ResourceEvent> {
     require(limit > 0) { "limit must be a positive integer" }
-    return events[uid]?.take(limit) ?: throw NoSuchResourceUID(uid)
+    return events[id]?.take(limit) ?: throw NoSuchResourceId(id)
   }
 
   override fun appendHistory(event: ResourceEvent) {
     if (event.ignoreInHistory) return
 
-    events.computeIfAbsent(event.uid) {
+    events.computeIfAbsent(event.resourceId) {
       mutableListOf()
     }
       .let {

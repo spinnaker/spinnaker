@@ -15,7 +15,6 @@ import com.netflix.spinnaker.keel.api.SubmittedMetadata
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.resources
-import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceUpdated
 import com.netflix.spinnaker.keel.persistence.get
@@ -133,7 +132,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
             expectThat(resourcesDueForCheck())
               .hasSize(1)
               .first()
-              .get { uid }.isEqualTo(resource.uid)
+              .get { id }.isEqualTo(resource.id)
           }
 
           context("after an update") {
@@ -158,7 +157,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
               expectThat(resourcesDueForCheck())
                 .hasSize(1)
                 .first()
-                .get { uid }.isEqualTo(resource.uid)
+                .get { id }.isEqualTo(resource.id)
             }
           }
 
@@ -236,9 +235,9 @@ internal class ResourcePersisterTests : JUnit5Minutests {
         test("individual resources are persisted") {
           expectThat(resourceRepository.size()).isEqualTo(2)
 
-          deliveryConfig.resources.map { it.uid }.forEach { uid ->
+          deliveryConfig.resources.map { it.id }.forEach { id ->
             expectCatching {
-              resourceRepository.get<DummyResourceSpec>(uid)
+              resourceRepository.get<DummyResourceSpec>(id)
             }.succeeded()
           }
         }
@@ -307,7 +306,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
 
         test("resources are updated") {
           deliveryConfig.resources.forEach { resource ->
-            expectThat(resourceRepository.get<ResourceSpec>(resource.uid))
+            expectThat(resourceRepository.get<ResourceSpec>(resource.id))
               .get { spec }
               .isEqualTo(resource.spec)
               .isA<DummyResourceSpec>()

@@ -29,10 +29,9 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.UID
+import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.id
-import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.events.ResourceState.Diff
 import com.netflix.spinnaker.keel.events.ResourceState.Error
 import com.netflix.spinnaker.keel.events.ResourceState.Missing
@@ -58,12 +57,15 @@ import java.time.Instant
   Type(value = ResourceCheckError::class, name = "ResourceCheckError")
 )
 sealed class ResourceEvent {
-  abstract val uid: UID
   abstract val apiVersion: ApiVersion
   abstract val kind: String
-  abstract val id: String
+  abstract val id: String // TODO: should be ResourceId but Jackson can't handle inline classes
   abstract val application: String
   abstract val timestamp: Instant
+
+  val resourceId: ResourceId
+    @JsonIgnore
+    get() = ResourceId(id)
 
   /**
    * Should the event be recorded in a resource's history?
@@ -86,7 +88,6 @@ sealed class ResourceEvent {
  * A new resource was registered for management.
  */
 data class ResourceCreated(
-  override val uid: UID,
   override val apiVersion: ApiVersion,
   override val kind: String,
   override val id: String,
@@ -95,7 +96,6 @@ data class ResourceCreated(
 ) : ResourceEvent() {
 
   constructor(resource: Resource<*>, clock: Clock = Companion.clock) : this(
-    resource.uid,
     resource.apiVersion,
     resource.kind,
     resource.id.value,
@@ -111,7 +111,6 @@ data class ResourceCreated(
  * updated version).
  */
 data class ResourceUpdated(
-  override val uid: UID,
   override val apiVersion: ApiVersion,
   override val kind: String,
   override val id: String,
@@ -120,7 +119,6 @@ data class ResourceUpdated(
   override val timestamp: Instant
 ) : ResourceEvent() {
   constructor(resource: Resource<*>, delta: Map<String, Any?>, clock: Clock = Companion.clock) : this(
-    resource.uid,
     resource.apiVersion,
     resource.kind,
     resource.id.value,
@@ -131,7 +129,6 @@ data class ResourceUpdated(
 }
 
 data class ResourceDeleted(
-  override val uid: UID,
   override val apiVersion: ApiVersion,
   override val kind: String,
   override val id: String,
@@ -139,7 +136,6 @@ data class ResourceDeleted(
   override val timestamp: Instant
 ) : ResourceEvent() {
   constructor(resource: Resource<*>, clock: Clock = Companion.clock) : this(
-    resource.uid,
     resource.apiVersion,
     resource.kind,
     resource.id.value,
@@ -159,7 +155,6 @@ abstract class ResourceCheckResult : ResourceEvent() {
  * A managed resource does not currently exist in the cloud.
  */
 data class ResourceMissing(
-  override val uid: UID,
   override val apiVersion: ApiVersion,
   override val kind: String,
   override val id: String,
@@ -170,7 +165,6 @@ data class ResourceMissing(
   override val state = Missing
 
   constructor(resource: Resource<*>, clock: Clock = Companion.clock) : this(
-    resource.uid,
     resource.apiVersion,
     resource.kind,
     resource.id.value,
@@ -185,7 +179,6 @@ data class ResourceMissing(
  * @property delta The difference between the "base" spec (desired) and "working" spec (actual).
  */
 data class ResourceDeltaDetected(
-  override val uid: UID,
   override val apiVersion: ApiVersion,
   override val kind: String,
   override val id: String,
@@ -197,7 +190,6 @@ data class ResourceDeltaDetected(
   override val state = Diff
 
   constructor(resource: Resource<*>, delta: Map<String, Any?>, clock: Clock = Companion.clock) : this(
-    resource.uid,
     resource.apiVersion,
     resource.kind,
     resource.id.value,
@@ -212,7 +204,6 @@ data class ResourceDeltaDetected(
  * resource.
  */
 data class ResourceActuationLaunched(
-  override val uid: UID,
   override val apiVersion: ApiVersion,
   override val kind: String,
   override val id: String,
@@ -223,7 +214,6 @@ data class ResourceActuationLaunched(
 ) : ResourceEvent() {
   constructor(resource: Resource<*>, plugin: String, tasks: List<Task>, clock: Clock = Companion.clock) :
     this(
-      resource.uid,
       resource.apiVersion,
       resource.kind,
       resource.id.value,
@@ -239,7 +229,6 @@ data class ResourceActuationLaunched(
  * (or the resource did not exist).
  */
 data class ResourceDeltaResolved(
-  override val uid: UID,
   override val apiVersion: ApiVersion,
   override val kind: String,
   override val id: String,
@@ -251,21 +240,18 @@ data class ResourceDeltaResolved(
   @JsonIgnore
   override val state = Ok
 
-  constructor(resource: Resource<*>, current: Any, clock: Clock = Companion.clock) :
-    this(
-      resource.uid,
-      resource.apiVersion,
-      resource.kind,
-      resource.id.value,
-      resource.application,
-      clock.instant(),
-      resource.spec,
-      current
-    )
+  constructor(resource: Resource<*>, current: Any, clock: Clock = Companion.clock) : this(
+    resource.apiVersion,
+    resource.kind,
+    resource.id.value,
+    resource.application,
+    clock.instant(),
+    resource.spec,
+    current
+  )
 }
 
 data class ResourceValid(
-  override val uid: UID,
   override val apiVersion: ApiVersion,
   override val kind: String,
   override val id: String,
@@ -280,7 +266,6 @@ data class ResourceValid(
 
   constructor(resource: Resource<*>, clock: Clock = Companion.clock) :
     this(
-      resource.uid,
       resource.apiVersion,
       resource.kind,
       resource.id.value,
@@ -290,7 +275,6 @@ data class ResourceValid(
 }
 
 data class ResourceCheckError(
-  override val uid: UID,
   override val apiVersion: ApiVersion,
   override val kind: String,
   override val id: String,
@@ -303,7 +287,6 @@ data class ResourceCheckError(
   override val state = Error
 
   constructor(resource: Resource<*>, exception: Throwable, clock: Clock = Companion.clock) : this(
-    resource.uid,
     resource.apiVersion,
     resource.kind,
     resource.id.value,
@@ -313,6 +296,7 @@ data class ResourceCheckError(
     exception.message
   )
 }
+
 /**
  * The reference to a task launched (currently always in Orca) to resolve a difference between the
  * desired and actual states of a managed resource.

@@ -28,7 +28,6 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.Credential
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceDeleted
-import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.get
@@ -86,7 +85,7 @@ class ResourceTagger(
   @EventListener(ResourceCreated::class)
   fun onCreateEvent(event: ResourceCreated) {
     if (event.resourceId.shouldTag()) {
-      log.debug("Persisting tag desired for resource {} because it exists now", event.resourceId.toString())
+      log.debug("Persisting tag desired for resource {} because it exists now", event.resourceId)
       val spec = event.resourceId.generateKeelTagSpec()
       persistTagState(spec)
     }
@@ -95,10 +94,10 @@ class ResourceTagger(
   @EventListener(ResourceDeleted::class)
   fun onDeleteEvent(event: ResourceDeleted) {
     if (event.resourceId.shouldTag()) {
-      log.debug("Persisting no tag desired for resource {} because it is no longer managed", event.resourceId.toString())
+      log.debug("Persisting no tag desired for resource {} because it is no longer managed", event.resourceId)
       val entityRef = event.resourceId.toEntityRef()
       val spec = KeelTagSpec(
-        keelId = event.id,
+        keelId = event.resourceId,
         entityRef = entityRef,
         tagState = TagNotDesired(startTime = clock.millis())
       )
@@ -162,12 +161,9 @@ class ResourceTagger(
       spec = this
     ) as SubmittedResource<ResourceSpec>
 
-  private val ResourceEvent.resourceId: ResourceId
-    get() = ResourceId(id)
-
   private fun ResourceId.generateKeelTagSpec() =
     KeelTagSpec(
-      toString(),
+      this,
       toEntityRef(),
       generateTagDesired()
     )
