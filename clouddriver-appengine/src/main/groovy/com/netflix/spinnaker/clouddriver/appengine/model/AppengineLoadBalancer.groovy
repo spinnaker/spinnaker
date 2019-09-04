@@ -101,4 +101,5 @@ enum ShardBy {
   UNSPECIFIED,
   COOKIE,
   IP,
+  RANDOM,
 }
