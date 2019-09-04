@@ -31,6 +31,7 @@ import java.time.Clock
 import java.time.Duration
 import java.time.Instant
 import java.time.Instant.EPOCH
+import java.time.Period
 
 class InMemoryResourceRepository(
   private val clock: Clock = Clock.systemDefaultZone()
@@ -81,8 +82,16 @@ class InMemoryResourceRepository(
       ?: throw NoSuchResourceName(name)
   }
 
-  override fun eventHistory(uid: UID): List<ResourceEvent> =
-    events[uid] ?: throw NoSuchResourceUID(uid)
+  override fun eventHistory(uid: UID, maxAge: Period, limit: Int): List<ResourceEvent> {
+    val cutoff = clock.instant().minus(maxAge)
+    return events[uid]
+      ?.filter { it.timestamp >= cutoff }
+      ?.let {
+        if (limit > 0) it.take(limit)
+        else it
+      }
+      ?: throw NoSuchResourceUID(uid)
+  }
 
   override fun appendHistory(event: ResourceEvent) {
     if (event.ignoreInHistory) return

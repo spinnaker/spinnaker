@@ -24,6 +24,7 @@ import com.netflix.spinnaker.keel.api.name
 import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.events.ResourceEvent
 import java.time.Duration
+import java.time.Period
 
 data class ResourceHeader(
   val uid: UID,
@@ -82,8 +83,12 @@ interface ResourceRepository : PeriodicallyCheckedRepository<ResourceHeader> {
 
   /**
    * Retrieves the history of state change events for the resource represented by [uid].
+   *
+   * @param uid the resource id.
+   * @param maxAge the maximum age of events to return.
+   * @param limit the maximum number of events to return. Zero means unlimited.
    */
-  fun eventHistory(uid: UID): List<ResourceEvent>
+  fun eventHistory(uid: UID, maxAge: Period = Period.ofDays(3), limit: Int = 0): List<ResourceEvent>
 
   /**
    * Records an event associated with a resource.

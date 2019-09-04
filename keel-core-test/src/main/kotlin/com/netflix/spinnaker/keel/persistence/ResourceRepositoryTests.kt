@@ -20,8 +20,11 @@ import com.netflix.spinnaker.keel.api.ResourceName
 import com.netflix.spinnaker.keel.api.name
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.api.uid
+import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
+import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
+import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.events.ResourceUpdated
 import com.netflix.spinnaker.keel.events.ResourceValid
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
@@ -37,13 +40,19 @@ import io.mockk.verifyAll
 import strikt.api.Assertion
 import strikt.api.expectThat
 import strikt.api.expectThrows
+import strikt.assertions.all
 import strikt.assertions.first
 import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import strikt.assertions.isGreaterThanOrEqualTo
+import strikt.assertions.isNotEmpty
+import strikt.assertions.map
 import strikt.assertions.none
 import java.time.Clock
 import java.time.Duration
+import java.time.Instant
+import java.time.Period
 import java.util.UUID.randomUUID
 
 abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests {
@@ -250,6 +259,45 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
           }
         }
       }
+
+      context("fetching event history for the resource") {
+        before {
+          repeat(3) {
+            clock.incrementBy(ONE_DAY)
+            subject.appendHistory(ResourceUpdated(resource, emptyMap(), clock))
+            subject.appendHistory(ResourceDeltaDetected(resource, emptyMap(), clock))
+            subject.appendHistory(ResourceActuationLaunched(resource, "whatever", emptyList(), clock))
+            subject.appendHistory(ResourceDeltaResolved(resource, resource.spec, clock))
+          }
+          clock.incrementBy(ONE_DAY)
+        }
+
+        test("default limit is 3 days") {
+          val maxAge = Period.ofDays(3)
+          expectThat(subject.eventHistory(resource.uid))
+            .isNotEmpty()
+            .areNoOlderThan(maxAge)
+        }
+
+        test("events can be limited by age") {
+          val maxAge = Period.ofDays(1)
+          expectThat(subject.eventHistory(resource.uid, maxAge))
+            .isNotEmpty()
+            .areNoOlderThan(maxAge)
+        }
+
+        test("events can be limited by number") {
+          expectThat(subject.eventHistory(resource.uid, limit = 3))
+            .hasSize(3)
+        }
+
+        test("events can be limited by age and number") {
+          val maxAge = Period.ofDays(2)
+          expectThat(subject.eventHistory(resource.uid, maxAge, limit = 3))
+            .hasSize(3)
+            .areNoOlderThan(maxAge)
+        }
+      }
     }
   }
 
@@ -259,7 +307,15 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
   companion object {
     val ONE_SECOND: Duration = Duration.ofSeconds(1)
+    val ONE_DAY: Duration = Duration.ofDays(1)
   }
+
+  fun <T : Iterable<E>, E : ResourceEvent> Assertion.Builder<T>.areNoOlderThan(age: Period): Assertion.Builder<T> =
+    and {
+      val cutoff = clock.instant().minus(age)
+      map { it.timestamp }
+        .all { isGreaterThanOrEqualTo(cutoff) }
+    }
 }
 
 operator fun Duration.div(divisor: Long): Duration = dividedBy(divisor)
@@ -272,13 +328,8 @@ fun <T : Any> Assertion.Builder<T>.isNotIn(expected: Collection<T>) =
 fun <T : List<E>, E> Assertion.Builder<T>.second(): Assertion.Builder<E> =
   get("second element %s") { this[1] }
 
-fun randomData(length: Int = 4): Map<String, Any> {
-  val map = mutableMapOf<String, Any>()
-  (0 until length).forEach { _ ->
-    map[randomString()] = randomString()
-  }
-  return map
-}
+val <T : ResourceEvent> Assertion.Builder<T>.timestamp: Assertion.Builder<Instant>
+  get() = get { timestamp }
 
 fun randomString(length: Int = 8) =
   randomUUID()

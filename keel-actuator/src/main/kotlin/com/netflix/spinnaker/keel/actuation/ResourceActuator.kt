@@ -82,7 +82,7 @@ class ResourceActuator(
         else -> {
           log.info("Resource {} is valid", name)
           // TODO: not sure this logic belongs here
-          val lastEvent = resourceRepository.eventHistory(resource.uid).first()
+          val lastEvent = resourceRepository.eventHistory(uid = resource.uid, limit = 1).first()
           if (lastEvent is ResourceDeltaDetected || lastEvent is ResourceActuationLaunched) {
             publisher.publishEvent(ResourceDeltaResolved(resource, current, clock))
           } else {

@@ -3,9 +3,9 @@ package com.netflix.spinnaker.keel.sql
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.ApiVersion
-import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.UID
 import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.name
@@ -26,6 +26,7 @@ import java.time.Clock
 import java.time.Duration
 import java.time.Instant
 import java.time.Instant.EPOCH
+import java.time.Period
 
 open class SqlResourceRepository(
   private val jooq: DSLContext,
@@ -121,19 +122,31 @@ open class SqlResourceRepository(
       .execute()
   }
 
-  override fun eventHistory(uid: UID): List<ResourceEvent> =
+  override fun eventHistory(uid: UID, maxAge: Period, limit: Int): List<ResourceEvent> {
     jooq
+      .selectOne()
+      .from(RESOURCE)
+      .where(RESOURCE.UID.eq(uid.toString()))
+      .fetchOne()
+      .let {
+        if (it == null) throw NoSuchResourceUID(uid)
+      }
+    return jooq
       .select(RESOURCE_EVENT.JSON)
       .from(RESOURCE_EVENT)
       .where(RESOURCE_EVENT.UID.eq(uid.toString()))
+      .and(RESOURCE_EVENT.TIMESTAMP.greaterOrEqual(clock.instant().minus(maxAge).toLocal()))
       .orderBy(RESOURCE_EVENT.TIMESTAMP.desc())
+      .apply {
+        if (limit > 0) {
+          limit(limit)
+        }
+      }
       .fetch()
       .map { (json) ->
         objectMapper.readValue<ResourceEvent>(json)
       }
-      .ifEmpty {
-        throw NoSuchResourceUID(uid)
-      }
+  }
 
   override fun appendHistory(event: ResourceEvent) {
     if (event.ignoreInHistory) return

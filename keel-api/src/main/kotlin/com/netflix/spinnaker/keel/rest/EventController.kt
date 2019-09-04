@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
-import java.time.Instant
+import java.time.Period
 
 @RestController
 @RequestMapping(path = ["/resources/events"])
@@ -31,13 +31,13 @@ class EventController(
   )
   fun eventHistory(
     @PathVariable("name") name: ResourceName,
-    @RequestParam("since", defaultValue = "1970-01-01T00:00:00Z") since: Instant
+    @RequestParam("maxAge", defaultValue = "P3D") maxAge: Period,
+    @RequestParam("limit", defaultValue = "0") limit: Int
   ): List<ResourceEvent> {
     log.debug("Getting state history for: $name")
     return resourceRepository.get(name).let { resource ->
       resourceRepository
-        .eventHistory(resource.uid)
-        .filter { it.timestamp > since }
+        .eventHistory(resource.uid, maxAge, limit)
     }
   }
 
