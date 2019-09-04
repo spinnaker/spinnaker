@@ -159,7 +159,14 @@
       withSource(source):: self + { source: source },
       addPayloadConstraint(key, value):: self + { payloadConstraints +: super.payloadConstraints + { [key]: value }},
     },
-
+    pubsub(name, pubsubSystem, subscriptionName):: trigger(name, 'pubsub') {
+      pubsubSystem: pubsubSystem,
+      subscriptionName: subscriptionName,
+      attributeConstraints: {},
+      addAttributeConstraints(key, value):: self + { attributeConstraints+: { [key]: value } },
+      payloadConstraints: {},
+      addPayloadConstraints(key, value):: self + { payloadConstraints+: { [key]: value } },
+    },
   },
 
   // stages
