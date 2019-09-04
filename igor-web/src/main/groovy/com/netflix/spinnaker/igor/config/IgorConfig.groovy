@@ -83,6 +83,7 @@ class IgorConfig extends WebMvcConfigurerAdapter {
     StrictHttpFirewall httpFirewall() {
       def firewall = new StrictHttpFirewall()
       firewall.allowUrlEncodedSlash = true
+      firewall.allowUrlEncodedPercent = true
       return firewall
     }
 
