@@ -17,7 +17,7 @@
  */
 package com.netflix.spinnaker.keel.veto
 
-import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryApplicationVetoRepository
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.veto.application.ApplicationVeto
@@ -31,7 +31,7 @@ import strikt.assertions.isTrue
 
 class ApplicationVetoTests : JUnit5Minutests {
   val appName = "keeldemo"
-  val resourceName = ResourceName("ec2:securityGroup:test:us-west-2:keeldemo-managed")
+  val resourceName = ResourceId("ec2:securityGroup:test:us-west-2:keeldemo-managed")
 
   internal
 

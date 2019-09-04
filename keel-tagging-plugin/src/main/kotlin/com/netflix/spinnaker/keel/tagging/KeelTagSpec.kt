@@ -39,7 +39,7 @@ data class KeelTagSpec(
   val tagState: TagState
 ) : ResourceSpec {
   @JsonIgnore
-  override val name: String = keelId
+  override val id: String = keelId
 
   @JsonIgnore
   override val application: String = entityRef.application

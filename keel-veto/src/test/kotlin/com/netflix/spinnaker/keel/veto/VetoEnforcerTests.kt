@@ -17,7 +17,7 @@
  */
 package com.netflix.spinnaker.keel.veto
 
-import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryApplicationVetoRepository
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.veto.application.ApplicationVeto
@@ -46,7 +46,7 @@ class VetoEnforcerTests : JUnit5Minutests {
       }
 
       test("no vetos means it's allowed") {
-        val response = subject.canCheck(ResourceName(appName))
+        val response = subject.canCheck(ResourceId(appName))
         expectThat(response.allowed).isTrue()
       }
 
@@ -58,7 +58,7 @@ class VetoEnforcerTests : JUnit5Minutests {
           )
         )
 
-        val response = subject.canCheck(ResourceName(appName))
+        val response = subject.canCheck(ResourceId(appName))
         expectThat(response.allowed).isFalse()
       }
     }

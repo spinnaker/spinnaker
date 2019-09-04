@@ -4,14 +4,14 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.UID
 import com.netflix.spinnaker.keel.api.application
-import com.netflix.spinnaker.keel.api.name
+import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.events.ResourceEvent
-import com.netflix.spinnaker.keel.persistence.NoSuchResourceName
+import com.netflix.spinnaker.keel.persistence.NoSuchResourceId
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceUID
 import com.netflix.spinnaker.keel.persistence.ResourceHeader
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
@@ -36,11 +36,11 @@ open class SqlResourceRepository(
 
   override fun allResources(callback: (ResourceHeader) -> Unit) {
     jooq
-      .select(RESOURCE.UID, RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.NAME)
+      .select(RESOURCE.UID, RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.ID)
       .from(RESOURCE)
       .fetch()
-      .map { (uid, apiVersion, kind, name) ->
-        ResourceHeader(ULID.parseULID(uid), ResourceName(name), ApiVersion(apiVersion), kind)
+      .map { (uid, apiVersion, kind, id) ->
+        ResourceHeader(ULID.parseULID(uid), ResourceId(id), ApiVersion(apiVersion), kind)
       }
       .forEach(callback)
   }
@@ -61,11 +61,11 @@ open class SqlResourceRepository(
       } ?: throw NoSuchResourceUID(uid)
   }
 
-  override fun get(name: ResourceName): Resource<out ResourceSpec> {
+  override fun get(id: ResourceId): Resource<out ResourceSpec> {
     return jooq
       .select(RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.METADATA, RESOURCE.SPEC)
       .from(RESOURCE)
-      .where(RESOURCE.NAME.eq(name.value))
+      .where(RESOURCE.ID.eq(id.value))
       .fetchOne()
       ?.let { (apiVersion, kind, metadata, spec) ->
         Resource(
@@ -74,7 +74,7 @@ open class SqlResourceRepository(
           objectMapper.readValue<Map<String, Any?>>(metadata).asResourceMetadata(),
           objectMapper.readValue(spec, resourceTypeIdentifier.identify(apiVersion.let(::ApiVersion), kind))
         )
-      } ?: throw NoSuchResourceName(name)
+      } ?: throw NoSuchResourceId(id)
   }
 
   override fun hasManagedResources(application: String): Boolean {
@@ -88,10 +88,10 @@ open class SqlResourceRepository(
 
   override fun getByApplication(application: String): List<String> {
     return jooq
-      .select(RESOURCE.NAME)
+      .select(RESOURCE.ID)
       .from(RESOURCE)
       .where(RESOURCE.APPLICATION.eq(application))
-      .fetch(RESOURCE.NAME)
+      .fetch(RESOURCE.ID)
   }
 
   override fun store(resource: Resource<*>) {
@@ -99,7 +99,7 @@ open class SqlResourceRepository(
     val updatePairs = mapOf(
       RESOURCE.API_VERSION to resource.apiVersion.toString(),
       RESOURCE.KIND to resource.kind,
-      RESOURCE.NAME to resource.name.value,
+      RESOURCE.ID to resource.id.value,
       RESOURCE.METADATA to objectMapper.writeValueAsString(resource.metadata),
       RESOURCE.SPEC to objectMapper.writeValueAsString(resource.spec),
       RESOURCE.APPLICATION to resource.application
@@ -171,13 +171,13 @@ open class SqlResourceRepository(
       .execute()
   }
 
-  override fun delete(name: ResourceName) {
+  override fun delete(id: ResourceId) {
     val uid = jooq.select(RESOURCE.UID)
       .from(RESOURCE)
-      .where(RESOURCE.NAME.eq(name.value))
+      .where(RESOURCE.ID.eq(id.value))
       .fetchOne(RESOURCE.UID)
       ?.let(ULID::parseULID)
-      ?: throw NoSuchResourceName(name)
+      ?: throw NoSuchResourceId(id)
     jooq.deleteFrom(RESOURCE)
       .where(RESOURCE.UID.eq(uid.toString()))
       .execute()
@@ -190,7 +190,7 @@ open class SqlResourceRepository(
     val now = clock.instant()
     val cutoff = now.minus(minTimeSinceLastCheck).toLocal()
     return jooq.inTransaction {
-      select(RESOURCE.UID, RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.NAME)
+      select(RESOURCE.UID, RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.ID)
         .from(RESOURCE, RESOURCE_LAST_CHECKED)
         .where(RESOURCE.UID.eq(RESOURCE_LAST_CHECKED.RESOURCE_UID))
         .and(RESOURCE_LAST_CHECKED.AT.lessOrEqual(cutoff))
@@ -208,8 +208,8 @@ open class SqlResourceRepository(
               .execute()
           }
         }
-        .map { (uid, apiVersion, kind, name) ->
-          ResourceHeader(ULID.parseULID(uid), ResourceName(name), ApiVersion(apiVersion), kind)
+        .map { (uid, apiVersion, kind, id) ->
+          ResourceHeader(ULID.parseULID(uid), ResourceId(id), ApiVersion(apiVersion), kind)
         }
     }
   }

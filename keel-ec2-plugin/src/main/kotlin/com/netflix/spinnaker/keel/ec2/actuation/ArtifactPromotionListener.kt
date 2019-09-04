@@ -42,7 +42,7 @@ class ArtifactPromotionListener(
       val deliveryConfig = deliveryConfigRepository.deliveryConfigFor(event.uid)
       val environment = deliveryConfigRepository.environmentFor(event.uid)
       if (deliveryConfig == null || environment == null) {
-        log.warn("Resource ${event.name} is not part of a delivery environment")
+        log.warn("Resource ${event.id} is not part of a delivery environment")
       } else {
         artifactRepository.markAsSuccessfullyDeployedTo(
           deliveryConfig,

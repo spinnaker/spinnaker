@@ -29,5 +29,5 @@ data class SecurityGroup(
   val description: String?,
   val inboundRules: Set<SecurityGroupRule> = emptySet()
 ) : Monikered {
-  override val name = "$accountName:$region:${moniker.name}"
+  override val id = "$accountName:$region:${moniker.name}"
 }

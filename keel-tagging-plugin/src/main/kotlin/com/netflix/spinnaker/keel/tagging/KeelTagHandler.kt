@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.api.name
+import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.diff.ResourceDiff
@@ -119,7 +119,7 @@ class KeelTagHandler(
         desired.entityRef.application,
         description,
         listOf(Job(job["type"].toString(), job)),
-        OrchestrationTrigger(resource.name.toString())
+        OrchestrationTrigger(resource.id.toString())
       ))
     log.info("Started task {} to upsert entity tags", taskResponse.ref)
     return listOf(Task(id = taskResponse.taskId, name = description))
@@ -185,4 +185,4 @@ class KeelTagHandler(
     )
 }
 
-const val KEEL_TAG_NAME_PREFIX = "tag:keel-tag"
+const val KEEL_TAG_ID_PREFIX = "tag:keel-tag"

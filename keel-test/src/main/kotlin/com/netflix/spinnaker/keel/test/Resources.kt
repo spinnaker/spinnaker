@@ -20,16 +20,16 @@ val TEST_API = SPINNAKER_API_V1.subApi("test")
 fun resource(
   apiVersion: ApiVersion = TEST_API,
   kind: String = "whatever",
-  name: String = randomString(),
+  id: String = randomString(),
   application: String = "fnord"
 ): Resource<DummyResourceSpec> =
-  DummyResourceSpec(name = name, application = application)
+  DummyResourceSpec(id = id, application = application)
     .let { spec ->
       resource(
         apiVersion = apiVersion,
         kind = kind,
         spec = spec,
-        name = spec.name,
+        id = spec.id,
         application = application
       )
     }
@@ -42,7 +42,7 @@ fun <T : Monikered> resource(
   apiVersion = apiVersion,
   kind = kind,
   spec = spec,
-  name = spec.moniker.name,
+  id = spec.moniker.name,
   application = spec.application
 )
 
@@ -50,7 +50,7 @@ fun <T : ResourceSpec> resource(
   apiVersion: ApiVersion = TEST_API,
   kind: String = "whatever",
   spec: T,
-  name: String = spec.name,
+  id: String = spec.id,
   application: String = "fnord"
 ): Resource<T> =
   Resource(
@@ -59,23 +59,23 @@ fun <T : ResourceSpec> resource(
     spec = spec,
     metadata = mapOf(
       "uid" to randomUID(),
-      "name" to "${apiVersion.prefix}:$kind:$name",
+      "id" to "${apiVersion.prefix}:$kind:$id",
       "application" to application,
       "serviceAccount" to "keel@spinnaker"
     )
   )
 
 data class DummyResourceSpec(
-  override val name: String = randomString(),
+  override val id: String = randomString(),
   val data: String = randomString(),
   override val application: String = "fnord"
 ) : ResourceSpec
 
 data class DummyResource(
-  val name: String = randomString(),
+  val id: String = randomString(),
   val data: String = randomString()
 ) {
-  constructor(spec: DummyResourceSpec) : this(spec.name, spec.data)
+  constructor(spec: DummyResourceSpec) : this(spec.id, spec.data)
 }
 
 fun randomString(length: Int = 8) =

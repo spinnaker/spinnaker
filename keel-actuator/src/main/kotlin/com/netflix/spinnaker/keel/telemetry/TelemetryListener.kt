@@ -29,7 +29,7 @@ class TelemetryListener(
     spectator.counter(
       RESOURCE_CHECKED_COUNTER_ID,
       listOf(
-        BasicTag("resourceName", event.name),
+        BasicTag("resourceName", event.id),
         BasicTag("apiVersion", event.apiVersion.toString()),
         BasicTag("resourceKind", event.kind),
         BasicTag("resourceState", event.state.name),
@@ -43,7 +43,7 @@ class TelemetryListener(
     spectator.counter(
       RESOURCE_CHECK_SKIPPED_COUNTER_ID,
       listOf(
-        BasicTag("resourceName", event.name.value),
+        BasicTag("resourceName", event.id.value),
         BasicTag("apiVersion", event.apiVersion.toString()),
         BasicTag("resourceKind", event.kind)
       )
@@ -79,7 +79,7 @@ class TelemetryListener(
     spectator.counter(
       RESOURCE_ACTUATION_LAUNCHED_COUNTER_ID,
       listOf(
-        BasicTag("resourceName", event.name),
+        BasicTag("resourceName", event.id),
         BasicTag("apiVersion", event.apiVersion.toString()),
         BasicTag("resourceKind", event.kind),
         BasicTag("resourceApplication", event.application)

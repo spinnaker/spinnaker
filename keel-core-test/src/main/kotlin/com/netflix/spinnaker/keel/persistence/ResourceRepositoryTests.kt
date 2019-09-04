@@ -16,8 +16,8 @@
 package com.netflix.spinnaker.keel.persistence
 
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceName
-import com.netflix.spinnaker.keel.api.name
+import com.netflix.spinnaker.keel.api.ResourceId
+import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
@@ -93,8 +93,8 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
       }
 
       test("deleting a non-existent resource throws an exception") {
-        expectThrows<NoSuchResourceName> {
-          subject.delete(ResourceName("whatever"))
+        expectThrows<NoSuchResourceId> {
+          subject.delete(ResourceId("whatever"))
         }
       }
     }
@@ -117,7 +117,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
       }
 
       test("it can be retrieved by name") {
-        val retrieved = subject.get<DummyResourceSpec>(resource.name)
+        val retrieved = subject.get<DummyResourceSpec>(resource.id)
         expectThat(retrieved).isEqualTo(resource)
       }
 
@@ -158,7 +158,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         }
 
         test("it replaces the original resource") {
-          expectThat(subject.get<DummyResourceSpec>(resource.name))
+          expectThat(subject.get<DummyResourceSpec>(resource.id))
             .get(Resource<*>::spec)
             .isEqualTo(updatedResource.spec)
         }
@@ -241,7 +241,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
       context("deleting the resource") {
         before {
-          subject.delete(resource.name)
+          subject.delete(resource.id)
         }
 
         test("the resource is no longer returned when listing all resources") {
@@ -252,7 +252,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
         test("the resource can no longer be retrieved by name") {
           expectThrows<NoSuchResourceException> {
-            subject.get<DummyResourceSpec>(resource.name)
+            subject.get<DummyResourceSpec>(resource.id)
           }
         }
 

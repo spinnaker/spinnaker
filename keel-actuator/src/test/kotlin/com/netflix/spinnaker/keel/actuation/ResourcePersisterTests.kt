@@ -13,7 +13,7 @@ import com.netflix.spinnaker.keel.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.api.SubmittedEnvironment
 import com.netflix.spinnaker.keel.api.SubmittedMetadata
 import com.netflix.spinnaker.keel.api.SubmittedResource
-import com.netflix.spinnaker.keel.api.name
+import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.resources
 import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.events.ResourceCreated
@@ -116,9 +116,9 @@ internal class ResourcePersisterTests : JUnit5Minutests {
           }
 
           test("stores the normalized resource") {
-            val persistedResource = resourceRepository.get<DummyResourceSpec>(resource.name)
+            val persistedResource = resourceRepository.get<DummyResourceSpec>(resource.id)
             expectThat(persistedResource) {
-              get { name }.isEqualTo(resource.name)
+              get { id }.isEqualTo(resource.id)
               get { spec.data }.isEqualTo("o hai")
             }
           }
@@ -139,11 +139,11 @@ internal class ResourcePersisterTests : JUnit5Minutests {
           context("after an update") {
             before {
               resourcesDueForCheck()
-              update(DummyResourceSpec(name = resource.spec.name, data = "kthxbye"))
+              update(DummyResourceSpec(id = resource.spec.id, data = "kthxbye"))
             }
 
             test("stores the updated resource") {
-              expectThat(resourceRepository.get<DummyResourceSpec>(resource.name))
+              expectThat(resourceRepository.get<DummyResourceSpec>(resource.id))
                 .get { spec.data }
                 .isEqualTo("kthxbye")
             }

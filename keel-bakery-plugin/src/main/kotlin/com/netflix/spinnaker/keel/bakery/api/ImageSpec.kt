@@ -12,5 +12,5 @@ data class ImageSpec(
   override val application: String // the application an image is baked in
 ) : ResourceSpec {
   @JsonIgnore
-  override val name: String = artifactName
+  override val id: String = artifactName
 }

@@ -36,7 +36,7 @@ internal class ResourceEventSerializationTests : JUnit5Minutests {
         "uid": "${createdEvent.uid}",
         "apiVersion": "${createdEvent.apiVersion}",
         "kind": "${createdEvent.kind}",
-        "name": "${createdEvent.name}",
+        "id": "${createdEvent.id}",
         "application": "${createdEvent.application}",
         "timestamp": "${createdEvent.timestamp}"
       }
@@ -48,7 +48,7 @@ internal class ResourceEventSerializationTests : JUnit5Minutests {
       uid: "${createdEvent.uid}"
       apiVersion: "${createdEvent.apiVersion}"
       kind: "${createdEvent.kind}"
-      name: "${createdEvent.name}"
+      id: "${createdEvent.id}"
       application: "${createdEvent.application}"
       timestamp: "${createdEvent.timestamp}"
     """.trimIndent()
@@ -65,7 +65,7 @@ internal class ResourceEventSerializationTests : JUnit5Minutests {
         val json = mapper.valueToTree<ObjectNode>(createdEvent)
         expectThat(json)
           .has("uid")
-          .has("name")
+          .has("id")
           .has("apiVersion")
           .has("kind")
           .has("application")
@@ -91,7 +91,7 @@ internal class ResourceEventSerializationTests : JUnit5Minutests {
         val json = mapper.valueToTree<ObjectNode>(createdEvent)
         expectThat(json)
           .has("uid")
-          .has("name")
+          .has("id")
           .has("apiVersion")
           .has("kind")
           .has("application")

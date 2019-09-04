@@ -3,20 +3,20 @@ package com.netflix.spinnaker.keel.telemetry
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.ArtifactType
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceName
-import com.netflix.spinnaker.keel.api.name
+import com.netflix.spinnaker.keel.api.ResourceId
+import com.netflix.spinnaker.keel.api.id
 
 sealed class TelemetryEvent
 
 data class ResourceCheckSkipped(
   val apiVersion: ApiVersion,
   val kind: String,
-  val name: ResourceName
+  val id: ResourceId
 ) : TelemetryEvent() {
   constructor(resource: Resource<*>) : this(
     resource.apiVersion,
     resource.kind,
-    resource.name
+    resource.id
   )
 }
 

@@ -5,11 +5,11 @@ import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.api.SubmittedResource
-import com.netflix.spinnaker.keel.api.name
+import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceDeleted
@@ -62,8 +62,8 @@ class ResourcePersister(
 
   fun <T : ResourceSpec> upsert(resource: SubmittedResource<T>): Resource<T> =
       resource.let {
-        if (it.name.isRegistered()) {
-          update(it.name, it)
+        if (it.id.isRegistered()) {
+          update(it.id, it)
         } else {
           create(it)
         }
@@ -85,18 +85,18 @@ class ResourcePersister(
         resource.kind
       ) as ResolvableResourceHandler<T, *>
 
-  fun <T : ResourceSpec> update(name: ResourceName, updated: SubmittedResource<T>): Resource<T> {
-    log.debug("Updating $name")
+  fun <T : ResourceSpec> update(id: ResourceId, updated: SubmittedResource<T>): Resource<T> {
+    log.debug("Updating $id")
     val handler = handlerFor(updated)
     @Suppress("UNCHECKED_CAST")
-    val existing = resourceRepository.get(name) as Resource<T>
+    val existing = resourceRepository.get(id) as Resource<T>
     val resource = existing.withSpec(updated.spec, handler.supportedKind.second)
     val normalized = handler.normalize(resource)
 
     val diff = ResourceDiff(normalized.spec, existing.spec)
 
     return if (diff.hasChanges()) {
-      log.debug("Resource {} updated: {}", normalized.name, diff.toDebug())
+      log.debug("Resource {} updated: {}", normalized.id, diff.toDebug())
       normalized
         .also {
           resourceRepository.store(it)
@@ -115,15 +115,15 @@ class ResourcePersister(
     return copy(spec = spec as T)
   }
 
-  fun delete(name: ResourceName): Resource<out ResourceSpec> =
+  fun delete(id: ResourceId): Resource<out ResourceSpec> =
     resourceRepository
-      .get<ResourceSpec>(name)
+      .get<ResourceSpec>(id)
       .also {
-        resourceRepository.delete(name)
+        resourceRepository.delete(id)
         publisher.publishEvent(ResourceDeleted(it, clock))
       }
 
-  private fun ResourceName.isRegistered(): Boolean =
+  private fun ResourceId.isRegistered(): Boolean =
     try {
       resourceRepository.get(this)
       true

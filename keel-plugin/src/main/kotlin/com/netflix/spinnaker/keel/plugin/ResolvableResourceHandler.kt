@@ -4,10 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
-import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.SubmittedResource
-import com.netflix.spinnaker.keel.api.name
+import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.events.Task
@@ -46,7 +46,7 @@ interface ResolvableResourceHandler<S : ResourceSpec, R : Any> : KeelPlugin {
    */
   fun normalize(resource: SubmittedResource<S>): Resource<S> {
     val metadata = mapOf(
-      "name" to resource.name.toString(),
+      "id" to resource.id.toString(),
       "uid" to randomUID().toString(),
       "serviceAccount" to resource.metadata.serviceAccount,
       "application" to resource.spec.application
@@ -71,7 +71,7 @@ interface ResolvableResourceHandler<S : ResourceSpec, R : Any> : KeelPlugin {
       .filter { it.handles(resource.apiVersion, resource.kind) }
       .filterIsInstance<ResourceNormalizer<S>>()
       .fold(resource) { r, normalizer ->
-        log.debug("Normalizing ${r.name} with ${normalizer.javaClass}")
+        log.debug("Normalizing ${r.id} with ${normalizer.javaClass}")
         normalizer.normalize(r)
       }
 
@@ -153,7 +153,7 @@ interface ResolvableResourceHandler<S : ResourceSpec, R : Any> : KeelPlugin {
   /**
    * @return `true` if this plugin is still busy running a previous actuation, `false` otherwise.
    */
-  suspend fun actuationInProgress(name: ResourceName): Boolean = false
+  suspend fun actuationInProgress(id: ResourceId): Boolean = false
 }
 
 /**

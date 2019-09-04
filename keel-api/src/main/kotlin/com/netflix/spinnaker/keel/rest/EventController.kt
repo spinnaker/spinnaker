@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.rest
 
-import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
@@ -26,15 +26,15 @@ class EventController(
   private val log by lazy { getLogger(javaClass) }
 
   @GetMapping(
-    path = ["/{name}"],
+    path = ["/{id}"],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
   fun eventHistory(
-    @PathVariable("name") name: ResourceName,
+    @PathVariable("id") id: ResourceId,
     @RequestParam("limit") limit: Int?
   ): List<ResourceEvent> {
-    log.debug("Getting state history for: $name")
-    return resourceRepository.get(name).let { resource ->
+    log.debug("Getting state history for: $id")
+    return resourceRepository.get(id).let { resource ->
       resourceRepository
         .eventHistory(resource.uid, limit ?: DEFAULT_MAX_EVENTS)
     }

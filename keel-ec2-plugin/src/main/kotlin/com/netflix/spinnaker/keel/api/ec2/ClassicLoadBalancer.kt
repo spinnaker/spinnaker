@@ -27,5 +27,5 @@ data class ClassicLoadBalancer(
   }
 
   @JsonIgnore
-  override val name: String = "${location.accountName}:${location.region}:${moniker.name}"
+  override val id: String = "${location.accountName}:${location.region}:${moniker.name}"
 }

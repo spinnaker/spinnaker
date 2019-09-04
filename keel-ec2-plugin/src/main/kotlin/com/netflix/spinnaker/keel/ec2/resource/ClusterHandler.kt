@@ -3,7 +3,7 @@ package com.netflix.spinnaker.keel.ec2.resource
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
-import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
@@ -17,7 +17,7 @@ import com.netflix.spinnaker.keel.api.ec2.cluster.Health
 import com.netflix.spinnaker.keel.api.ec2.cluster.LaunchConfiguration
 import com.netflix.spinnaker.keel.api.ec2.cluster.Location
 import com.netflix.spinnaker.keel.api.ec2.cluster.Scaling
-import com.netflix.spinnaker.keel.api.name
+import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
@@ -102,16 +102,16 @@ class ClusterHandler(
           spec.moniker.app,
           description,
           listOf(Job(job["type"].toString(), job)),
-          OrchestrationTrigger(resource.name.toString())
+          OrchestrationTrigger(resource.id.toString())
         ))
       .also { log.info("Started task {} to upsert cluster", it.ref) }
       // TODO: ugleee
       .let { listOf(Task(id = it.taskId, name = description)) }
   }
 
-  override suspend fun actuationInProgress(name: ResourceName) =
+  override suspend fun actuationInProgress(id: ResourceId) =
     orcaService
-      .getCorrelatedExecutions(name.value)
+      .getCorrelatedExecutions(id.value)
       .isNotEmpty()
 
   /**

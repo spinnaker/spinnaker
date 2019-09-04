@@ -31,7 +31,7 @@ import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.UID
 import com.netflix.spinnaker.keel.api.application
-import com.netflix.spinnaker.keel.api.name
+import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.events.ResourceState.Diff
 import com.netflix.spinnaker.keel.events.ResourceState.Error
@@ -61,7 +61,7 @@ sealed class ResourceEvent {
   abstract val uid: UID
   abstract val apiVersion: ApiVersion
   abstract val kind: String
-  abstract val name: String
+  abstract val id: String
   abstract val application: String
   abstract val timestamp: Instant
 
@@ -89,7 +89,7 @@ data class ResourceCreated(
   override val uid: UID,
   override val apiVersion: ApiVersion,
   override val kind: String,
-  override val name: String,
+  override val id: String,
   override val application: String,
   override val timestamp: Instant
 ) : ResourceEvent() {
@@ -98,7 +98,7 @@ data class ResourceCreated(
     resource.uid,
     resource.apiVersion,
     resource.kind,
-    resource.name.value,
+    resource.id.value,
     resource.application,
     clock.instant()
   )
@@ -114,7 +114,7 @@ data class ResourceUpdated(
   override val uid: UID,
   override val apiVersion: ApiVersion,
   override val kind: String,
-  override val name: String,
+  override val id: String,
   override val application: String,
   val delta: Map<String, Any?>,
   override val timestamp: Instant
@@ -123,7 +123,7 @@ data class ResourceUpdated(
     resource.uid,
     resource.apiVersion,
     resource.kind,
-    resource.name.value,
+    resource.id.value,
     resource.application,
     delta,
     clock.instant()
@@ -134,7 +134,7 @@ data class ResourceDeleted(
   override val uid: UID,
   override val apiVersion: ApiVersion,
   override val kind: String,
-  override val name: String,
+  override val id: String,
   override val application: String,
   override val timestamp: Instant
 ) : ResourceEvent() {
@@ -142,7 +142,7 @@ data class ResourceDeleted(
     resource.uid,
     resource.apiVersion,
     resource.kind,
-    resource.name.value,
+    resource.id.value,
     resource.application,
     clock.instant()
   )
@@ -162,7 +162,7 @@ data class ResourceMissing(
   override val uid: UID,
   override val apiVersion: ApiVersion,
   override val kind: String,
-  override val name: String,
+  override val id: String,
   override val application: String,
   override val timestamp: Instant
 ) : ResourceCheckResult() {
@@ -173,7 +173,7 @@ data class ResourceMissing(
     resource.uid,
     resource.apiVersion,
     resource.kind,
-    resource.name.value,
+    resource.id.value,
     resource.application,
     clock.instant()
   )
@@ -188,7 +188,7 @@ data class ResourceDeltaDetected(
   override val uid: UID,
   override val apiVersion: ApiVersion,
   override val kind: String,
-  override val name: String,
+  override val id: String,
   override val application: String,
   val delta: Map<String, Any?>,
   override val timestamp: Instant
@@ -200,7 +200,7 @@ data class ResourceDeltaDetected(
     resource.uid,
     resource.apiVersion,
     resource.kind,
-    resource.name.value,
+    resource.id.value,
     resource.application,
     delta,
     clock.instant()
@@ -215,7 +215,7 @@ data class ResourceActuationLaunched(
   override val uid: UID,
   override val apiVersion: ApiVersion,
   override val kind: String,
-  override val name: String,
+  override val id: String,
   override val application: String,
   val plugin: String,
   val tasks: List<Task>,
@@ -226,7 +226,7 @@ data class ResourceActuationLaunched(
       resource.uid,
       resource.apiVersion,
       resource.kind,
-      resource.name.value,
+      resource.id.value,
       resource.application,
       plugin,
       tasks,
@@ -242,7 +242,7 @@ data class ResourceDeltaResolved(
   override val uid: UID,
   override val apiVersion: ApiVersion,
   override val kind: String,
-  override val name: String,
+  override val id: String,
   override val application: String,
   override val timestamp: Instant,
   val desired: Any,
@@ -256,7 +256,7 @@ data class ResourceDeltaResolved(
       resource.uid,
       resource.apiVersion,
       resource.kind,
-      resource.name.value,
+      resource.id.value,
       resource.application,
       clock.instant(),
       resource.spec,
@@ -268,7 +268,7 @@ data class ResourceValid(
   override val uid: UID,
   override val apiVersion: ApiVersion,
   override val kind: String,
-  override val name: String,
+  override val id: String,
   override val application: String,
   override val timestamp: Instant
 ) : ResourceCheckResult() {
@@ -283,7 +283,7 @@ data class ResourceValid(
       resource.uid,
       resource.apiVersion,
       resource.kind,
-      resource.name.value,
+      resource.id.value,
       resource.application,
       clock.instant()
     )
@@ -293,7 +293,7 @@ data class ResourceCheckError(
   override val uid: UID,
   override val apiVersion: ApiVersion,
   override val kind: String,
-  override val name: String,
+  override val id: String,
   override val application: String,
   override val timestamp: Instant,
   val exceptionType: Class<Throwable>,
@@ -306,7 +306,7 @@ data class ResourceCheckError(
     resource.uid,
     resource.apiVersion,
     resource.kind,
-    resource.name.value,
+    resource.id.value,
     resource.application,
     clock.instant(),
     exception.javaClass,

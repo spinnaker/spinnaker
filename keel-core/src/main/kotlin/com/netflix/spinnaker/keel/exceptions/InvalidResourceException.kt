@@ -19,7 +19,7 @@
 package com.netflix.spinnaker.keel.exceptions
 
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.name
+import com.netflix.spinnaker.keel.api.id
 
 sealed class InvalidResourceException(
   message: String?,
@@ -31,5 +31,5 @@ class FailedNormalizationException(
   resource: Resource<*>,
   cause: Throwable
 ) : InvalidResourceException(
-  "Resource ${resource.name} failed normalization with error: $errorMessage. Resource: $resource", cause
+  "Resource ${resource.id} failed normalization with error: $errorMessage. Resource: $resource", cause
 )

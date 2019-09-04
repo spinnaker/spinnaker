@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.name
+import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceCreated
@@ -63,7 +63,7 @@ internal class EventControllerTests : JUnit5Minutests {
 
   object Fixture {
     val resource: Resource<*> = resource()
-    val eventsUri: URI = URI.create("/resources/events/${resource.name}")
+    val eventsUri: URI = URI.create("/resources/events/${resource.id}")
   }
 
   fun tests() = rootContext<Fixture> {
@@ -71,7 +71,7 @@ internal class EventControllerTests : JUnit5Minutests {
 
     context("no resource exists") {
       test("event eventHistory endpoint responds with 404") {
-        val request = get("/resources/events/${resource.name}")
+        val request = get("/resources/events/${resource.id}")
           .accept(APPLICATION_JSON)
         mvc
           .perform(request)

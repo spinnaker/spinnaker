@@ -19,9 +19,9 @@ package com.netflix.spinnaker.keel.tagging
 
 import com.netflix.spinnaker.keel.actuation.ResourcePersister
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.api.name
+import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.Credential
@@ -55,8 +55,8 @@ internal class ResourceTaggerTests : JUnit5Minutests {
   private val cloudDriverService = mockk<CloudDriverService>()
   private val clock = MutableClock()
 
-  private val clusterName = ResourceName("ec2:cluster:test:ap-south-1:keel")
-  private val clusterTagName = ResourceName("$KEEL_TAG_NAME_PREFIX:ec2:cluster:test:ap-south-1:keel")
+  private val clusterId = ResourceId("ec2:cluster:test:ap-south-1:keel")
+  private val clusterTagId = ResourceId("$KEEL_TAG_ID_PREFIX:ec2:cluster:test:ap-south-1:keel")
 
   private val accounts: Set<Credential> = setOf(
     Credential(
@@ -72,19 +72,19 @@ internal class ResourceTaggerTests : JUnit5Minutests {
   private val rCluster = resource(
     apiVersion = SPINNAKER_API_V1.subApi("ec2"),
     kind = "cluster",
-    name = "test:ap-south-1:keel"
+    id = "test:ap-south-1:keel"
   )
 
   private val rClusterTag = resource(
     apiVersion = SPINNAKER_API_V1.subApi("tag"),
     kind = "keel-tag",
     spec = KeelTagSpec(
-      keelId = clusterName.toString(),
+      keelId = clusterId.toString(),
       entityRef = EntityRef("cluster", "keel", "keel", "ap-south-1", "test", "1234", "aws"),
       tagState = TagDesired(tag = EntityTag(
         value = TagValue(
           message = KEEL_TAG_MESSAGE,
-          keelResourceId = clusterName.toString(),
+          keelResourceId = clusterId.toString(),
           type = "notice"
         ),
         namespace = KEEL_TAG_NAMESPACE,
@@ -98,7 +98,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
     apiVersion = SPINNAKER_API_V1.subApi("tag"),
     kind = "keel-tag",
     spec = KeelTagSpec(
-      clusterName.toString(),
+      clusterId.toString(),
       EntityRef("cluster", "keel", "keel", "ap-south-1", "test", "1234", "aws"),
       TagNotDesired(clock.millis())
     )
@@ -141,12 +141,12 @@ internal class ResourceTaggerTests : JUnit5Minutests {
       }
 
       every {
-        resourcePersister.update<DummyResourceSpec>(clusterTagName, any())
+        resourcePersister.update<DummyResourceSpec>(clusterTagId, any())
       } answers {
         Resource(
           secondArg(),
           mapOf(
-            "name" to clusterTagName.value,
+            "id" to clusterTagId.value,
             "uid" to randomUID(),
             "serviceAccount" to "keel@spinnaker",
             "application" to "keel"
@@ -161,7 +161,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
       test("removes cluster tag on delete") {
         onDeleteEvent(ResourceDeleted(rCluster, clock))
 
-        verify { resourcePersister.update<DummyResourceSpec>(clusterTagName, any()) }
+        verify { resourcePersister.update<DummyResourceSpec>(clusterTagId, any()) }
       }
     }
 
@@ -171,7 +171,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
       }
 
       every {
-        resourcePersister.delete(rClusterTagNotDesired.name)
+        resourcePersister.delete(rClusterTagNotDesired.id)
       } returns rClusterTagNotDesired
 
       after {
@@ -181,14 +181,14 @@ internal class ResourceTaggerTests : JUnit5Minutests {
       test("they're not removed if they're new") {
         removeTags()
 
-        verify { resourcePersister.delete(rClusterTagNotDesired.name) wasNot Called }
+        verify { resourcePersister.delete(rClusterTagNotDesired.id) wasNot Called }
       }
 
       test("they're removed if they're old") {
         clock.incrementBy(Duration.ofMinutes(61))
         removeTags()
 
-        verify { resourcePersister.delete(rClusterTagNotDesired.name) }
+        verify { resourcePersister.delete(rClusterTagNotDesired.id) }
       }
     }
 
@@ -202,7 +202,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
           uid = randomUID(),
           apiVersion = SPINNAKER_API_V1.subApi("bakery"),
           kind = "image",
-          name = "bakery:image:keel",
+          id = "bakery:image:keel",
           application = "keel",
           timestamp = clock.instant()
         ))
@@ -218,7 +218,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
           uid = randomUID(),
           apiVersion = SPINNAKER_API_V1.subApi("ec2"),
           kind = "classic-load-balancer",
-          name = "ec2:classic-load-balancer:test:us-east-1:keel-managed",
+          id = "ec2:classic-load-balancer:test:us-east-1:keel-managed",
           application = "keel",
           timestamp = clock.instant()
         ))
@@ -230,7 +230,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
           uid = randomUID(),
           apiVersion = SPINNAKER_API_V1.subApi("ec2"),
           kind = "application-load-balancer",
-          name = "ec2:application-load-balancer:test:us-east-1:keel-managed",
+          id = "ec2:application-load-balancer:test:us-east-1:keel-managed",
           application = "keel",
           timestamp = clock.instant()
         ))
@@ -242,7 +242,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
           uid = randomUID(),
           apiVersion = SPINNAKER_API_V1.subApi("ec2"),
           kind = "securityGroup",
-          name = "ec2:securityGroup:test:us-west-2:keel-managed",
+          id = "ec2:securityGroup:test:us-west-2:keel-managed",
           application = "keel",
           timestamp = clock.instant()
         ))
@@ -254,7 +254,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
           uid = randomUID(),
           apiVersion = SPINNAKER_API_V1.subApi("ec2"),
           kind = "cluster",
-          name = "ec2:cluster:test:us-west-2:keeldemo-test",
+          id = "ec2:cluster:test:us-west-2:keeldemo-test",
           application = "keel",
           timestamp = clock.instant()
         ))

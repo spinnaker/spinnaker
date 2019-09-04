@@ -19,7 +19,7 @@
 package com.netflix.spinnaker.keel.tagging
 
 import com.netflix.spinnaker.keel.actuation.ResourcePersister
-import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.SubmittedMetadata
@@ -85,20 +85,20 @@ class ResourceTagger(
 
   @EventListener(ResourceCreated::class)
   fun onCreateEvent(event: ResourceCreated) {
-    if (event.resourceName.shouldTag()) {
-      log.debug("Persisting tag desired for resource {} because it exists now", event.resourceName.toString())
-      val spec = event.resourceName.generateKeelTagSpec()
+    if (event.resourceId.shouldTag()) {
+      log.debug("Persisting tag desired for resource {} because it exists now", event.resourceId.toString())
+      val spec = event.resourceId.generateKeelTagSpec()
       persistTagState(spec)
     }
   }
 
   @EventListener(ResourceDeleted::class)
   fun onDeleteEvent(event: ResourceDeleted) {
-    if (event.resourceName.shouldTag()) {
-      log.debug("Persisting no tag desired for resource {} because it is no longer managed", event.resourceName.toString())
-      val entityRef = event.resourceName.toEntityRef()
+    if (event.resourceId.shouldTag()) {
+      log.debug("Persisting no tag desired for resource {} because it is no longer managed", event.resourceId.toString())
+      val entityRef = event.resourceId.toEntityRef()
       val spec = KeelTagSpec(
-        keelId = event.name,
+        keelId = event.id,
         entityRef = entityRef,
         tagState = TagNotDesired(startTime = clock.millis())
       )
@@ -108,7 +108,7 @@ class ResourceTagger(
 
   private fun persistTagState(spec: KeelTagSpec) {
     val submitted = spec.toSubmittedResource()
-    val name = ResourceName(spec.generateTagNameFromKeelId())
+    val name = ResourceId(spec.generateTagNameFromKeelId())
 
     if (tagExists(name)) {
       resourcePersister.update(name, submitted)
@@ -117,9 +117,9 @@ class ResourceTagger(
     }
   }
 
-  private fun tagExists(tagResourceName: ResourceName): Boolean =
+  private fun tagExists(tagResourceId: ResourceId): Boolean =
     try {
-      resourceRepository.get<KeelTagSpec>(tagResourceName)
+      resourceRepository.get<KeelTagSpec>(tagResourceId)
       true
     } catch (e: NoSuchResourceException) {
       false
@@ -130,11 +130,11 @@ class ResourceTagger(
     log.info("Cleaning up old keel tags")
     resourceRepository.allResources { resourceHeader ->
       if (resourceHeader.apiVersion == SPINNAKER_API_V1.subApi("tag")) {
-        val tagResource = resourceRepository.get<KeelTagSpec>(resourceHeader.name)
+        val tagResource = resourceRepository.get<KeelTagSpec>(resourceHeader.id)
         if (tagResource.spec.tagState is TagNotDesired) {
           val tagState = tagResource.spec.tagState as TagNotDesired
           if (tagState.startTime < clock.millis() - Duration.ofHours(removedTagRetentionHours).toMillis()) {
-            resourcePersister.delete(resourceHeader.name)
+            resourcePersister.delete(resourceHeader.id)
           }
         }
       }
@@ -162,17 +162,17 @@ class ResourceTagger(
       spec = this
     ) as SubmittedResource<ResourceSpec>
 
-  private val ResourceEvent.resourceName: ResourceName
-    get() = ResourceName(name)
+  private val ResourceEvent.resourceId: ResourceId
+    get() = ResourceId(id)
 
-  private fun ResourceName.generateKeelTagSpec() =
+  private fun ResourceId.generateKeelTagSpec() =
     KeelTagSpec(
       toString(),
       toEntityRef(),
       generateTagDesired()
     )
 
-  private fun ResourceName.generateTagDesired() =
+  private fun ResourceId.generateTagDesired() =
     TagDesired(tag = EntityTag(
       value = TagValue(
         message = KEEL_TAG_MESSAGE,
@@ -185,12 +185,12 @@ class ResourceTagger(
     )
     )
 
-  private fun ResourceName.shouldTag(): Boolean {
+  private fun ResourceId.shouldTag(): Boolean {
     val (_, resourceType, _, _, _) = toString().split(":")
     return taggableResources.contains(resourceType)
   }
 
-  private fun ResourceName.toEntityRef(): EntityRef {
+  private fun ResourceId.toEntityRef(): EntityRef {
     val (pluginGroup, resourceType, account, region, resourceId) = toString().toLowerCase().split(":")
     val accountId = try {
       val fullAccount = accounts.first { a -> a.name == account }

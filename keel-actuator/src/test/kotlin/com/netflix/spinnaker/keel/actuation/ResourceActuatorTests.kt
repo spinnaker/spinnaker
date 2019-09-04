@@ -2,7 +2,7 @@ package com.netflix.spinnaker.keel.actuation
 
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.api.name
+import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceCheckError
@@ -75,16 +75,16 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
       context("the resource check is not vetoed") {
         before {
-          every { veto.check(resource.name) } returns VetoResponse(true)
+          every { veto.check(resource.id) } returns VetoResponse(true)
         }
 
         context("the plugin is already actuating this resource") {
           before {
-            coEvery { plugin1.actuationInProgress(resource.name) } returns true
+            coEvery { plugin1.actuationInProgress(resource.id) } returns true
 
             with(resource) {
               runBlocking {
-                subject.checkResource(name, apiVersion, kind)
+                subject.checkResource(id, apiVersion, kind)
               }
             }
           }
@@ -107,7 +107,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
         context("the plugin is not already actuating this resource") {
           before {
-            coEvery { plugin1.actuationInProgress(resource.name) } returns false
+            coEvery { plugin1.actuationInProgress(resource.id) } returns false
           }
 
           context("the current state matches the desired state") {
@@ -126,7 +126,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
                 with(resource) {
                   runBlocking {
-                    subject.checkResource(name, apiVersion, kind)
+                    subject.checkResource(id, apiVersion, kind)
                   }
                 }
               }
@@ -151,7 +151,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
               before {
                 with(resource) {
                   runBlocking {
-                    subject.checkResource(name, apiVersion, kind)
+                    subject.checkResource(id, apiVersion, kind)
                   }
                 }
               }
@@ -181,7 +181,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
               with(resource) {
                 runBlocking {
-                  subject.checkResource(name, apiVersion, kind)
+                  subject.checkResource(id, apiVersion, kind)
                 }
               }
             }
@@ -206,7 +206,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
               with(resource) {
                 runBlocking {
-                  subject.checkResource(name, apiVersion, kind)
+                  subject.checkResource(id, apiVersion, kind)
                 }
               }
             }
@@ -230,7 +230,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
               with(resource) {
                 runBlocking {
-                  subject.checkResource(name, apiVersion, kind)
+                  subject.checkResource(id, apiVersion, kind)
                 }
               }
             }
@@ -252,7 +252,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
               with(resource) {
                 runBlocking {
-                  subject.checkResource(name, apiVersion, kind)
+                  subject.checkResource(id, apiVersion, kind)
                 }
               }
             }
@@ -271,13 +271,13 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
       context("the resource check is vetoed") {
         before {
-          every { veto.check(resource.name) } returns VetoResponse(false)
+          every { veto.check(resource.id) } returns VetoResponse(false)
         }
 
         test("checking skipped") {
           with(resource) {
             runBlocking {
-              subject.checkResource(name, apiVersion, kind)
+              subject.checkResource(id, apiVersion, kind)
             }
           }
 

@@ -17,7 +17,7 @@ package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.actuation.ResourcePersister
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.exceptions.FailedNormalizationException
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
@@ -51,12 +51,12 @@ class ResourceController(
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   @GetMapping(
-    path = ["/{name}"],
+    path = ["/{id}"],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
-  fun get(@PathVariable("name") name: ResourceName): Resource<*> {
-    log.debug("Getting: $name")
-    return resourceRepository.get(name)
+  fun get(@PathVariable("id") id: ResourceId): Resource<*> {
+    log.debug("Getting: $id")
+    return resourceRepository.get(id)
   }
 
   @PostMapping(
@@ -70,13 +70,13 @@ class ResourceController(
   }
 
   @DeleteMapping(
-    path = ["/{name}"],
+    path = ["/{id}"],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
-  @PreAuthorize("@authorizationSupport.userCanModifyResource(#name)")
-  fun delete(@PathVariable("name") name: ResourceName): Resource<*> {
-    log.debug("Deleting: $name")
-    return resourcePersister.delete(name)
+  @PreAuthorize("@authorizationSupport.userCanModifyResource(#id)")
+  fun delete(@PathVariable("id") id: ResourceId): Resource<*> {
+    log.debug("Deleting: $id")
+    return resourcePersister.delete(id)
   }
 
   @ExceptionHandler(NoSuchResourceException::class)

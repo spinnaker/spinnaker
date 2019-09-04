@@ -32,7 +32,7 @@ data class Resource<T : ResourceSpec>(
   init {
     require(kind.isNotEmpty()) { "resource kind must be defined" }
     require(metadata["uid"].isValidULID()) { "resource uid must be a valid ULID" }
-    require(metadata["name"].isValidName()) { "resource name must be a valid name" }
+    require(metadata["id"].isValidId()) { "resource id must be a valid id" }
     require(metadata["serviceAccount"].isValidServiceAccount()) { "serviceAccount must be a valid service account" }
     require(metadata["application"].isValidApplication()) { "application must be a valid application" }
   }
@@ -56,8 +56,8 @@ data class SubmittedResource<T : ResourceSpec>(
   val spec: T
 )
 
-val <T : ResourceSpec> SubmittedResource<T>.name: ResourceName
-  get() = "${apiVersion.prefix}:$kind:${spec.name}".let(::ResourceName)
+val <T : ResourceSpec> SubmittedResource<T>.id: ResourceId
+  get() = "${apiVersion.prefix}:$kind:${spec.id}".let(::ResourceId)
 
 /**
  * Required metadata to be submitted with a resource
@@ -69,8 +69,8 @@ data class SubmittedMetadata(
 val <T : ResourceSpec> Resource<T>.uid: UID
   get() = metadata.getValue("uid").toString().let(ULID::parseULID)
 
-val <T : ResourceSpec> Resource<T>.name: ResourceName
-  get() = metadata.getValue("name").toString().let(::ResourceName)
+val <T : ResourceSpec> Resource<T>.id: ResourceId
+  get() = metadata.getValue("id").toString().let(::ResourceId)
 
 val <T : ResourceSpec> Resource<T>.serviceAccount: String
   get() = metadata.getValue("serviceAccount").toString()
@@ -87,7 +87,7 @@ private fun Any?.isValidULID() =
     else -> false
   }
 
-private fun Any?.isValidName() =
+private fun Any?.isValidId() =
   when (this) {
     is String -> isNotBlank()
     else -> false

@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.keel.veto.application
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.persistence.ApplicationVetoRepository
 import com.netflix.spinnaker.keel.veto.Veto
 import com.netflix.spinnaker.keel.veto.VetoResponse
@@ -31,8 +31,8 @@ class ApplicationVeto(
   val objectMapper: ObjectMapper
 ) : Veto {
 
-  override fun check(name: ResourceName): VetoResponse {
-    val appName = name.toString().split(":").last().split("-").first()
+  override fun check(id: ResourceId): VetoResponse {
+    val appName = id.toString().split(":").last().split("-").first()
     if (applicationVetoRepository.appVetoed(appName)) {
       return VetoResponse(allowed = false, message = "Application $appName has been opted out.")
     }

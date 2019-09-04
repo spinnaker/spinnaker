@@ -53,7 +53,7 @@ class CheckScheduler(
       val job = launch {
         resourceRepository
           .launchForEachItem {
-            resourceActuator.checkResource(it.name, it.apiVersion, it.kind)
+            resourceActuator.checkResource(it.id, it.apiVersion, it.kind)
           }
       }
 

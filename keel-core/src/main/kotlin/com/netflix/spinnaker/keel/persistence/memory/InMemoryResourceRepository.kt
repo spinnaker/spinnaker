@@ -16,14 +16,14 @@
 package com.netflix.spinnaker.keel.persistence.memory
 
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.UID
 import com.netflix.spinnaker.keel.api.application
-import com.netflix.spinnaker.keel.api.name
+import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.events.ResourceEvent
-import com.netflix.spinnaker.keel.persistence.NoSuchResourceName
+import com.netflix.spinnaker.keel.persistence.NoSuchResourceId
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceUID
 import com.netflix.spinnaker.keel.persistence.ResourceHeader
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
@@ -46,10 +46,10 @@ class InMemoryResourceRepository(
   }
 
   @Suppress("UNCHECKED_CAST")
-  override fun get(name: ResourceName): Resource<out ResourceSpec> =
-    resources.values.find { it.name == name }?.let {
+  override fun get(id: ResourceId): Resource<out ResourceSpec> =
+    resources.values.find { it.id == id }?.let {
       get(it.uid)
-    } ?: throw NoSuchResourceName(name)
+    } ?: throw NoSuchResourceId(id)
 
   @Suppress("UNCHECKED_CAST")
   override fun get(uid: UID): Resource<out ResourceSpec> =
@@ -61,24 +61,24 @@ class InMemoryResourceRepository(
   override fun getByApplication(application: String): List<String> =
     resources
       .filterValues { it.application == application }
-      .map { it.value.name.toString() }
+      .map { it.value.id.toString() }
 
   override fun store(resource: Resource<*>) {
     resources[resource.uid] = resource
     lastCheckTimes[resource.uid] = EPOCH
   }
 
-  override fun delete(name: ResourceName) {
+  override fun delete(id: ResourceId) {
     resources
       .values
-      .filter { it.name == name }
+      .filter { it.id == id }
       .map { it.uid }
       .singleOrNull()
       ?.also {
         resources.remove(it)
         events.remove(it)
       }
-      ?: throw NoSuchResourceName(name)
+      ?: throw NoSuchResourceId(id)
   }
 
   override fun eventHistory(uid: UID, limit: Int): List<ResourceEvent> {

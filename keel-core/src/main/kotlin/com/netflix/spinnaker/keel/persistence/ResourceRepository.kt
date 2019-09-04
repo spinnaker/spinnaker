@@ -18,22 +18,22 @@ package com.netflix.spinnaker.keel.persistence
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.UID
-import com.netflix.spinnaker.keel.api.name
+import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.events.ResourceEvent
 import java.time.Duration
 
 data class ResourceHeader(
   val uid: UID,
-  val name: ResourceName,
+  val id: ResourceId,
   val apiVersion: ApiVersion,
   val kind: String
 ) {
   constructor(resource: Resource<*>) : this(
     resource.uid,
-    resource.name,
+    resource.id,
     resource.apiVersion,
     resource.kind
   )
@@ -46,12 +46,12 @@ interface ResourceRepository : PeriodicallyCheckedRepository<ResourceHeader> {
   fun allResources(callback: (ResourceHeader) -> Unit)
 
   /**
-   * Retrieves a single resource by its unique [name].
+   * Retrieves a single resource by its unique [id].
    *
-   * @return The resource represented by [name] or `null` if [name] is unknown.
-   * @throws NoSuchResourceException if [name] does not map to a resource in the repository.
+   * @return The resource represented by [id] or `null` if [id] is unknown.
+   * @throws NoSuchResourceException if [id] does not map to a resource in the repository.
    */
-  fun get(name: ResourceName): Resource<out ResourceSpec>
+  fun get(id: ResourceId): Resource<out ResourceSpec>
 
   /**
    * Retrieves a single resource by its unique [uid].
@@ -76,9 +76,9 @@ interface ResourceRepository : PeriodicallyCheckedRepository<ResourceHeader> {
   fun store(resource: Resource<*>)
 
   /**
-   * Deletes the resource represented by [name].
+   * Deletes the resource represented by [id].
    */
-  fun delete(name: ResourceName)
+  fun delete(id: ResourceId)
 
   /**
    * Retrieves the history of state change events for the resource represented by [uid].
@@ -108,8 +108,8 @@ interface ResourceRepository : PeriodicallyCheckedRepository<ResourceHeader> {
 }
 
 @Suppress("UNCHECKED_CAST")
-inline fun <reified T : ResourceSpec> ResourceRepository.get(name: ResourceName): Resource<T> =
-  get(name).also { check(it.spec is T) } as Resource<T>
+inline fun <reified T : ResourceSpec> ResourceRepository.get(id: ResourceId): Resource<T> =
+  get(id).also { check(it.spec is T) } as Resource<T>
 
 @Suppress("UNCHECKED_CAST")
 inline fun <reified T : ResourceSpec> ResourceRepository.get(uid: UID): Resource<T> =
@@ -117,5 +117,5 @@ inline fun <reified T : ResourceSpec> ResourceRepository.get(uid: UID): Resource
 
 sealed class NoSuchResourceException(override val message: String?) : RuntimeException(message)
 
-class NoSuchResourceName(name: ResourceName) : NoSuchResourceException("No resource named $name exists in the repository")
+class NoSuchResourceId(id: ResourceId) : NoSuchResourceException("No resource with id $id exists in the repository")
 class NoSuchResourceUID(uid: UID) : NoSuchResourceException("No resource with uid $uid exists in the repository")

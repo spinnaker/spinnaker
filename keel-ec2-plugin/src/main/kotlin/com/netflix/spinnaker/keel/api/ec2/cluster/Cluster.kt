@@ -31,5 +31,5 @@ data class Cluster(
   val scaling: Scaling = Scaling(),
   val tags: Map<String, String> = emptyMap()
 ) : Monikered {
-  override val name = "${location.accountName}:${location.region}:${moniker.name}"
+  override val id = "${location.accountName}:${location.region}:${moniker.name}"
 }

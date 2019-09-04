@@ -8,10 +8,10 @@ import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.NoKnownArtifactVersions
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
-import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.application
-import com.netflix.spinnaker.keel.api.name
+import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.bakery.BaseImageCache
 import com.netflix.spinnaker.keel.bakery.api.ImageSpec
@@ -114,7 +114,7 @@ class ImageHandler(
           )
         ),
         trigger = OrchestrationTrigger(
-          correlationId = resource.name.toString(),
+          correlationId = resource.id.toString(),
           artifacts = listOf(artifact)
         )
       )
@@ -126,9 +126,9 @@ class ImageHandler(
     TODO("not implemented")
   }
 
-  override suspend fun actuationInProgress(name: ResourceName) =
+  override suspend fun actuationInProgress(id: ResourceId) =
     orcaService
-      .getCorrelatedExecutions(name.value)
+      .getCorrelatedExecutions(id.value)
       .isNotEmpty()
 
   private suspend fun findBaseAmi(baseImage: String, serviceAccount: String): String {

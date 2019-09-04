@@ -4,13 +4,13 @@ import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.actuation.ResourcePersister
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.api.SubmittedEnvironment
 import com.netflix.spinnaker.keel.api.SubmittedMetadata
 import com.netflix.spinnaker.keel.api.SubmittedResource
-import com.netflix.spinnaker.keel.api.name
+import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigName
@@ -68,10 +68,10 @@ internal class DeliveryConfigTransactionTests : JUnit5Minutests {
   @Autowired
   lateinit var jooq: DSLContext
 
-  private fun ResourceRepository.allResourceNames(): List<ResourceName> =
-    mutableListOf<ResourceName>()
+  private fun ResourceRepository.allResourceNames(): List<ResourceId> =
+    mutableListOf<ResourceId>()
       .also { list ->
-        allResources { list.add(it.name) }
+        allResources { list.add(it.id) }
       }
 
   object Fixture {
@@ -117,7 +117,7 @@ internal class DeliveryConfigTransactionTests : JUnit5Minutests {
       before {
         every {
           resourceRepository.store(match {
-            it.name == ResourceName("test:whatever:prod")
+            it.id == ResourceId("test:whatever:prod")
           })
         } throws DataAccessException("o noes")
 

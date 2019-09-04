@@ -18,7 +18,7 @@ package com.netflix.spinnaker.keel.ec2.resource
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
-import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.securityGroup.CidrRule
 import com.netflix.spinnaker.keel.api.ec2.securityGroup.CrossAccountReferenceRule
@@ -28,7 +28,7 @@ import com.netflix.spinnaker.keel.api.ec2.securityGroup.SecurityGroup
 import com.netflix.spinnaker.keel.api.ec2.securityGroup.SecurityGroupRule
 import com.netflix.spinnaker.keel.api.ec2.securityGroup.SecurityGroupRule.Protocol
 import com.netflix.spinnaker.keel.api.ec2.securityGroup.SelfReferenceRule
-import com.netflix.spinnaker.keel.api.name
+import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
@@ -81,7 +81,7 @@ class SecurityGroupHandler(
             spec.moniker.app,
             description,
             listOf(spec.toCreateJob()),
-            OrchestrationTrigger(resource.name.toString())
+            OrchestrationTrigger(resource.id.toString())
           ))
     }
     log.info("Started task {} to create security group", taskRef.ref)
@@ -103,7 +103,7 @@ class SecurityGroupHandler(
             spec.moniker.app,
             description,
             listOf(spec.toUpdateJob()),
-            OrchestrationTrigger(resource.name.toString())
+            OrchestrationTrigger(resource.id.toString())
           ))
     }
     log.info("Started task {} to update security group", taskRef.ref)
@@ -120,15 +120,15 @@ class SecurityGroupHandler(
             spec.moniker.app,
             "Delete security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
             listOf(spec.toDeleteJob()),
-            OrchestrationTrigger(resource.name.toString())
+            OrchestrationTrigger(resource.id.toString())
           ))
     }
     log.info("Started task {} to upsert security group", taskRef.ref)
   }
 
-  override suspend fun actuationInProgress(name: ResourceName) =
+  override suspend fun actuationInProgress(id: ResourceId) =
     orcaService
-      .getCorrelatedExecutions(name.value)
+      .getCorrelatedExecutions(id.value)
       .isNotEmpty()
 
   private suspend fun CloudDriverService.getSecurityGroup(spec: SecurityGroup, serviceAccount: String): SecurityGroup? =
@@ -204,7 +204,7 @@ class SecurityGroupHandler(
         "application" to moniker.app,
         "credentials" to accountName,
         "cloudProvider" to CLOUD_PROVIDER,
-        "name" to name,
+        "name" to moniker.name,
         "regions" to listOf(region),
         "vpcId" to cloudDriverCache.networkBy(vpcName, accountName, region).id,
         "description" to description,
@@ -230,7 +230,7 @@ class SecurityGroupHandler(
         "application" to moniker.app,
         "credentials" to accountName,
         "cloudProvider" to CLOUD_PROVIDER,
-        "name" to name,
+        "name" to moniker.name,
         "regions" to listOf(region),
         "vpcId" to cloudDriverCache.networkBy(vpcName, accountName, region).id,
         "description" to description,
@@ -251,7 +251,7 @@ class SecurityGroupHandler(
         "application" to moniker.app,
         "credentials" to accountName,
         "cloudProvider" to CLOUD_PROVIDER,
-        "securityGroupName" to name,
+        "securityGroupName" to moniker.name,
         "regions" to listOf(region),
         "vpcId" to vpcName,
         "accountName" to accountName

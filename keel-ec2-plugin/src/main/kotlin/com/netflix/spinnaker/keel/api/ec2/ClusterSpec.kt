@@ -38,5 +38,5 @@ data class ClusterSpec(
   val tags: Map<String, String> = emptyMap()
 ) : Monikered, ResourceSpec {
   @JsonIgnore
-  override val name: String = "${location.accountName}:${location.region}:${moniker.name}"
+  override val id: String = "${location.accountName}:${location.region}:${moniker.name}"
 }

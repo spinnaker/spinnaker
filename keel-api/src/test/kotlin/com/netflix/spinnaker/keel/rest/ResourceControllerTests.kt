@@ -2,8 +2,8 @@ package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.actuation.ResourcePersister
-import com.netflix.spinnaker.keel.api.name
-import com.netflix.spinnaker.keel.persistence.NoSuchResourceName
+import com.netflix.spinnaker.keel.api.id
+import com.netflix.spinnaker.keel.persistence.NoSuchResourceId
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
@@ -179,7 +179,7 @@ internal class ResourceControllerTests {
 
   @Test
   fun `attempting to update an unknown resource results in a 404`() {
-    every { resourcePersister.upsert<DummyResourceSpec>(any()) } throws NoSuchResourceName(resource.name)
+    every { resourcePersister.upsert<DummyResourceSpec>(any()) } throws NoSuchResourceId(resource.id)
     every { authorizationSupport.userCanModifySpec("keel@spinnaker", any()) } returns true
 
     val request = post("/resources")
@@ -226,7 +226,7 @@ internal class ResourceControllerTests {
   fun `can get a resource as YAML`() {
     resourceRepository.store(resource)
 
-    val request = get("/resources/${resource.name}")
+    val request = get("/resources/${resource.id}")
       .accept(APPLICATION_YAML)
     val result = mvc
       .perform(request)
@@ -240,20 +240,20 @@ internal class ResourceControllerTests {
 
   @Test
   fun `can delete a resource`() {
-    every { resourcePersister.delete(resource.name) } returns resource
-    every { authorizationSupport.userCanModifyResource(resource.name.toString()) } returns true
+    every { resourcePersister.delete(resource.id) } returns resource
+    every { authorizationSupport.userCanModifyResource(resource.id.toString()) } returns true
     resourceRepository.store(resource)
 
-    val request = delete("/resources/${resource.name}")
+    val request = delete("/resources/${resource.id}")
       .accept(APPLICATION_YAML)
     mvc
       .perform(request)
       .andExpect(status().isOk)
 
-    verify { resourcePersister.delete(resource.name) }
+    verify { resourcePersister.delete(resource.id) }
 
     // clean up after the test
-    resourceRepository.delete(resource.name)
+    resourceRepository.delete(resource.id)
   }
 
   @Test

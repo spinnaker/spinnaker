@@ -51,7 +51,7 @@ internal object SqlResourceRepositoryPeriodicallyCheckedTests :
     context("many threads are checking simultaneously") {
       before {
         repeat(1000) { i ->
-          val resource = resource(name = "fnord-$i")
+          val resource = resource(id = "fnord-$i")
           subject.store(resource)
         }
       }
@@ -83,7 +83,7 @@ internal object SqlResourceRepositoryPeriodicallyCheckedTests :
           .also { metadata ->
             expectThat(metadata)
               .containsKey("uid")
-              .containsKey("name")
+              .containsKey("id")
           }
       }
 

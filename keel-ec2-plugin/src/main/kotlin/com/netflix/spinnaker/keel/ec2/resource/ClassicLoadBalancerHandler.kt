@@ -3,13 +3,13 @@ package com.netflix.spinnaker.keel.ec2.resource
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
-import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancer
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerListener
 import com.netflix.spinnaker.keel.api.ec2.LoadBalancerType
 import com.netflix.spinnaker.keel.api.ec2.cluster.Location
-import com.netflix.spinnaker.keel.api.name
+import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
@@ -70,7 +70,7 @@ class ClassicLoadBalancerHandler(
               spec.moniker.app,
               description,
               listOf(spec.toUpsertJob()),
-              OrchestrationTrigger(resource.name.toString())
+              OrchestrationTrigger(resource.id.toString())
             )
           )
       }
@@ -93,7 +93,7 @@ class ClassicLoadBalancerHandler(
               spec.moniker.app,
               description,
               listOf(spec.toDeleteJob()),
-              OrchestrationTrigger(resource.name.toString())
+              OrchestrationTrigger(resource.id.toString())
             )
           )
       }
@@ -101,8 +101,8 @@ class ClassicLoadBalancerHandler(
     log.info("Started task ${taskRef.ref} to $description")
   }
 
-  override suspend fun actuationInProgress(name: ResourceName) =
-    orcaService.getCorrelatedExecutions(name.value).isNotEmpty()
+  override suspend fun actuationInProgress(id: ResourceId) =
+    orcaService.getCorrelatedExecutions(id.value).isNotEmpty()
 
   private fun CloudDriverService.getClassicLoadBalancer(spec: ClassicLoadBalancer, serviceAccount: String): ClassicLoadBalancer? =
     runBlocking {

@@ -2,7 +2,7 @@ package com.netflix.spinnaker.keel.actuation
 
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceName
+import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.diff.ResourceDiff
@@ -35,25 +35,25 @@ class ResourceActuator(
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  suspend fun checkResource(name: ResourceName, apiVersion: ApiVersion, kind: String) {
-    val response = vetoEnforcer.canCheck(name)
+  suspend fun checkResource(id: ResourceId, apiVersion: ApiVersion, kind: String) {
+    val response = vetoEnforcer.canCheck(id)
     if (!response.allowed) {
-      log.debug("Skipping actuation for resource {} because it was vetoed: {}", name, response.message)
-      publisher.publishEvent(ResourceCheckSkipped(apiVersion, kind, name))
+      log.debug("Skipping actuation for resource {} because it was vetoed: {}", id, response.message)
+      publisher.publishEvent(ResourceCheckSkipped(apiVersion, kind, id))
       return
     }
 
     val plugin = handlers.supporting(apiVersion, kind)
 
-    if (plugin.actuationInProgress(name)) {
-      log.debug("Actuation for resource {} is already running, skipping checks", name)
-      publisher.publishEvent(ResourceCheckSkipped(apiVersion, kind, name))
+    if (plugin.actuationInProgress(id)) {
+      log.debug("Actuation for resource {} is already running, skipping checks", id)
+      publisher.publishEvent(ResourceCheckSkipped(apiVersion, kind, id))
       return
     }
 
-    log.debug("Checking resource {}", name)
+    log.debug("Checking resource {}", id)
 
-    val resource = resourceRepository.get(name)
+    val resource = resourceRepository.get(id)
 
     try {
       val (desired, current) = plugin.resolve(resource)
@@ -61,7 +61,7 @@ class ResourceActuator(
 
       when {
         current == null -> {
-          log.warn("Resource {} is missing", name)
+          log.warn("Resource {} is missing", id)
           publisher.publishEvent(ResourceMissing(resource, clock))
 
           plugin.create(resource, diff)
@@ -70,8 +70,8 @@ class ResourceActuator(
             }
         }
         diff.hasChanges() -> {
-          log.warn("Resource {} is invalid", name)
-          log.info("Resource {} delta: {}", name, diff.toDebug())
+          log.warn("Resource {} is invalid", id)
+          log.info("Resource {} delta: {}", id, diff.toDebug())
           publisher.publishEvent(ResourceDeltaDetected(resource, diff.toDeltaJson(), clock))
 
           plugin.update(resource, diff)
@@ -80,7 +80,7 @@ class ResourceActuator(
             }
         }
         else -> {
-          log.info("Resource {} is valid", name)
+          log.info("Resource {} is valid", id)
           // TODO: not sure this logic belongs here
           val lastEvent = resourceRepository.eventHistory(uid = resource.uid, limit = 1).first()
           if (lastEvent is ResourceDeltaDetected || lastEvent is ResourceActuationLaunched) {
@@ -91,7 +91,7 @@ class ResourceActuator(
         }
       }
     } catch (e: Exception) {
-      log.error("Resource check for {} failed due to \"{}\"", name, e.message)
+      log.error("Resource check for {} failed due to \"{}\"", id, e.message)
       publisher.publishEvent(ResourceCheckError(resource, e, clock))
     }
   }
