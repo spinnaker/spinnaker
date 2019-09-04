@@ -37,17 +37,13 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import strikt.api.expectThat
-import strikt.assertions.all
 import strikt.assertions.containsExactly
 import strikt.assertions.hasSize
-import strikt.assertions.isGreaterThanOrEqualTo
 import strikt.assertions.map
 import strikt.jackson.hasSize
 import strikt.jackson.isArray
 import java.net.URI
 import java.time.Duration
-import java.time.Instant
-import java.time.Period
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(
@@ -88,15 +84,17 @@ internal class EventControllerTests : JUnit5Minutests {
         with(resourceRepository) {
           store(resource)
           appendHistory(ResourceCreated(resource, clock))
-          clock.incrementBy(Duration.ofDays(2))
-          appendHistory(ResourceDeltaDetected(resource, emptyMap(), clock))
-          clock.incrementBy(Duration.ofMinutes(10))
-          appendHistory(ResourceActuationLaunched(resource, "a-plugin", listOf(Task(id = randomUID().toString(), name = "i did a thing")), clock))
-          clock.incrementBy(Duration.ofMinutes(10))
-          appendHistory(ResourceDeltaResolved(resource, resource.spec, clock))
-          clock.incrementBy(Duration.ofDays(1))
-          appendHistory(ResourceUpdated(resource, emptyMap(), clock))
-          clock.incrementBy(Duration.ofDays(1).plusMinutes(10))
+          clock.incrementBy(TEN_MINUTES)
+          repeat(3) {
+            appendHistory(ResourceUpdated(resource, emptyMap(), clock))
+            clock.incrementBy(TEN_MINUTES)
+            appendHistory(ResourceDeltaDetected(resource, emptyMap(), clock))
+            clock.incrementBy(TEN_MINUTES)
+            appendHistory(ResourceActuationLaunched(resource, "a-plugin", listOf(Task(id = randomUID().toString(), name = "i did a thing")), clock))
+            clock.incrementBy(TEN_MINUTES)
+            appendHistory(ResourceDeltaResolved(resource, resource.spec, clock))
+            clock.incrementBy(TEN_MINUTES)
+          }
         }
       }
 
@@ -106,7 +104,7 @@ internal class EventControllerTests : JUnit5Minutests {
 
       setOf(APPLICATION_YAML, APPLICATION_JSON).forEach { accept ->
         context("getting event history as $accept") {
-          test("the list contains events within the last 3 days") {
+          test("the list contains the most recent 10 events") {
             val request = get(eventsUri).accept(accept)
             val result = mvc
               .perform(request)
@@ -115,11 +113,7 @@ internal class EventControllerTests : JUnit5Minutests {
               .andReturn()
             expectThat(result.response.contentAsTree)
               .isArray()
-              .hasSize(4)
-              .map { it.path("timestamp").textValue().let(Instant::parse) }
-              .all {
-                isGreaterThanOrEqualTo(clock.instant().minus(Period.ofDays(3)))
-              }
+              .hasSize(10)
           }
 
           test("every event specifies its type") {
@@ -130,36 +124,22 @@ internal class EventControllerTests : JUnit5Minutests {
               .andExpect(content().contentTypeCompatibleWith(accept))
               .andReturn()
             expectThat(result.response.contentAs<List<ResourceEvent>>())
-              .hasSize(4)
+              .hasSize(10)
               .map { it.javaClass }
               .containsExactly(
+                ResourceDeltaResolved::class.java,
+                ResourceActuationLaunched::class.java,
+                ResourceDeltaDetected::class.java,
                 ResourceUpdated::class.java,
                 ResourceDeltaResolved::class.java,
                 ResourceActuationLaunched::class.java,
-                ResourceDeltaDetected::class.java
+                ResourceDeltaDetected::class.java,
+                ResourceUpdated::class.java,
+                ResourceDeltaResolved::class.java,
+                ResourceActuationLaunched::class.java
               )
           }
         }
-      }
-
-      test("can limit the age of events returned") {
-        val maxAge = Period.ofDays(2)
-        val request = get(eventsUri)
-          .param("maxAge", maxAge.toString())
-          .accept(APPLICATION_JSON)
-        val result = mvc
-          .perform(request)
-          .andExpect(status().isOk)
-          .andReturn()
-        expectThat(result.response.contentAsTree)
-          .isArray()
-          .and {
-            hasSize(1)
-            map { it.path("timestamp").textValue().let(Instant::parse) }
-              .all {
-                isGreaterThanOrEqualTo(clock.instant().minus(maxAge))
-              }
-          }
       }
 
       test("can limit the number of events returned") {
@@ -175,18 +155,11 @@ internal class EventControllerTests : JUnit5Minutests {
           .isArray()
           .hasSize(limit)
       }
-
-      test("responds with an empty array if no events newer than the specified max age") {
-        val maxAge = Period.ofDays(1)
-        val request = get(eventsUri)
-          .param("maxAge", maxAge.toString())
-          .accept(APPLICATION_JSON)
-        mvc
-          .perform(request)
-          .andExpect(status().isOk)
-          .andExpect(content().json("[]"))
-      }
     }
+  }
+
+  companion object {
+    val TEN_MINUTES: Duration = Duration.ofMinutes(10)
   }
 }
 

@@ -26,7 +26,6 @@ import java.time.Clock
 import java.time.Duration
 import java.time.Instant
 import java.time.Instant.EPOCH
-import java.time.Period
 
 open class SqlResourceRepository(
   private val jooq: DSLContext,
@@ -122,7 +121,8 @@ open class SqlResourceRepository(
       .execute()
   }
 
-  override fun eventHistory(uid: UID, maxAge: Period, limit: Int): List<ResourceEvent> {
+  override fun eventHistory(uid: UID, limit: Int): List<ResourceEvent> {
+    require(limit > 0) { "limit must be a positive integer" }
     jooq
       .selectOne()
       .from(RESOURCE)
@@ -135,13 +135,8 @@ open class SqlResourceRepository(
       .select(RESOURCE_EVENT.JSON)
       .from(RESOURCE_EVENT)
       .where(RESOURCE_EVENT.UID.eq(uid.toString()))
-      .and(RESOURCE_EVENT.TIMESTAMP.greaterOrEqual(clock.instant().minus(maxAge).toLocal()))
       .orderBy(RESOURCE_EVENT.TIMESTAMP.desc())
-      .apply {
-        if (limit > 0) {
-          limit(limit)
-        }
-      }
+      .limit(limit)
       .fetch()
       .map { (json) ->
         objectMapper.readValue<ResourceEvent>(json)

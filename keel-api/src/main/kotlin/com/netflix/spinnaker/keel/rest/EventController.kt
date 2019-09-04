@@ -5,6 +5,7 @@ import com.netflix.spinnaker.keel.api.uid
 import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
+import com.netflix.spinnaker.keel.persistence.ResourceRepository.Companion.DEFAULT_MAX_EVENTS
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import org.slf4j.LoggerFactory.getLogger
 import org.springframework.http.HttpStatus.NOT_FOUND
@@ -16,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
-import java.time.Period
 
 @RestController
 @RequestMapping(path = ["/resources/events"])
@@ -31,13 +31,12 @@ class EventController(
   )
   fun eventHistory(
     @PathVariable("name") name: ResourceName,
-    @RequestParam("maxAge", defaultValue = "P3D") maxAge: Period,
-    @RequestParam("limit", defaultValue = "0") limit: Int
+    @RequestParam("limit") limit: Int?
   ): List<ResourceEvent> {
     log.debug("Getting state history for: $name")
     return resourceRepository.get(name).let { resource ->
       resourceRepository
-        .eventHistory(resource.uid, maxAge, limit)
+        .eventHistory(resource.uid, limit ?: DEFAULT_MAX_EVENTS)
     }
   }
 

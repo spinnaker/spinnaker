@@ -30,6 +30,7 @@ import com.netflix.spinnaker.keel.events.ResourceValid
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.time.MutableClock
+import dev.minutest.RootContextBuilder
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.Called
@@ -38,9 +39,11 @@ import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifyAll
 import strikt.api.Assertion
+import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.all
+import strikt.assertions.failed
 import strikt.assertions.first
 import strikt.assertions.hasSize
 import strikt.assertions.isA
@@ -68,7 +71,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
     val callback: (ResourceHeader) -> Unit = mockk(relaxed = true) // has to be relaxed due to https://github.com/mockk/mockk/issues/272
   )
 
-  fun tests() = rootContext<Fixture<T>> {
+  fun tests(): RootContextBuilder = rootContext<Fixture<T>> {
     fixture {
       Fixture(subject = factory(clock))
     }
@@ -263,27 +266,19 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
       context("fetching event history for the resource") {
         before {
           repeat(3) {
-            clock.incrementBy(ONE_DAY)
+            clock.incrementBy(TEN_MINUTES)
             subject.appendHistory(ResourceUpdated(resource, emptyMap(), clock))
             subject.appendHistory(ResourceDeltaDetected(resource, emptyMap(), clock))
             subject.appendHistory(ResourceActuationLaunched(resource, "whatever", emptyList(), clock))
             subject.appendHistory(ResourceDeltaResolved(resource, resource.spec, clock))
           }
-          clock.incrementBy(ONE_DAY)
+          clock.incrementBy(TEN_MINUTES)
         }
 
-        test("default limit is 3 days") {
-          val maxAge = Period.ofDays(3)
+        test("default limit is 10 events") {
           expectThat(subject.eventHistory(resource.uid))
             .isNotEmpty()
-            .areNoOlderThan(maxAge)
-        }
-
-        test("events can be limited by age") {
-          val maxAge = Period.ofDays(1)
-          expectThat(subject.eventHistory(resource.uid, maxAge))
-            .isNotEmpty()
-            .areNoOlderThan(maxAge)
+            .hasSize(ResourceRepository.DEFAULT_MAX_EVENTS)
         }
 
         test("events can be limited by number") {
@@ -291,11 +286,21 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
             .hasSize(3)
         }
 
-        test("events can be limited by age and number") {
-          val maxAge = Period.ofDays(2)
-          expectThat(subject.eventHistory(resource.uid, maxAge, limit = 3))
-            .hasSize(3)
-            .areNoOlderThan(maxAge)
+        test("the limit can be higher than the default") {
+          expectThat(subject.eventHistory(resource.uid, limit = 20))
+            .hasSize(13)
+        }
+
+        test("zero limit is not allowed") {
+          expectCatching { subject.eventHistory(resource.uid, limit = 0) }
+            .failed()
+            .isA<IllegalArgumentException>()
+        }
+
+        test("negative limit is not allowed") {
+          expectCatching { subject.eventHistory(resource.uid, limit = -1) }
+            .failed()
+            .isA<IllegalArgumentException>()
         }
       }
     }
@@ -307,7 +312,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
   companion object {
     val ONE_SECOND: Duration = Duration.ofSeconds(1)
-    val ONE_DAY: Duration = Duration.ofDays(1)
+    val TEN_MINUTES: Duration = Duration.ofMinutes(10)
   }
 
   fun <T : Iterable<E>, E : ResourceEvent> Assertion.Builder<T>.areNoOlderThan(age: Period): Assertion.Builder<T> =
