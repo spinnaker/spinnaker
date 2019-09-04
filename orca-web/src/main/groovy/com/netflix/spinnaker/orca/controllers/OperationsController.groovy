@@ -21,6 +21,7 @@ import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.shared.FiatService
 import com.netflix.spinnaker.fiat.shared.FiatStatus
+import com.netflix.spinnaker.kork.exceptions.SpinnakerException
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import com.netflix.spinnaker.kork.web.exceptions.ValidationException
 import com.netflix.spinnaker.orca.clouddriver.service.JobService
@@ -123,6 +124,19 @@ class OperationsController {
     return planPipeline(pipelineConfig, resolveArtifacts)
   }
 
+  /**
+   * Used by echo to mark an execution failure if it fails to materialize the pipeline
+   * (e.g. because the artifacts couldn't be resolved)
+   *
+   * @param pipeline pipeline json
+   */
+  @RequestMapping(value = '/fail', method = RequestMethod.POST)
+  void failPipeline(@RequestBody Map pipeline) {
+    String errorMessage = pipeline.remove("errorMessage")
+
+    recordPipelineFailure(pipeline, errorMessage)
+  }
+
   private Map buildPipelineConfig(String pipelineConfigId, Map trigger) {
     if (front50Service == null) {
       throw new UnsupportedOperationException("Front50 is not enabled, no way to retrieve pipeline configs. Fix this by setting front50.enabled: true")
@@ -177,6 +191,35 @@ class OperationsController {
       log.info("Failed to start pipeline {} based on request body {}", id, request)
       throw pipelineError
     }
+  }
+
+  private void recordPipelineFailure(Map pipeline, String errorMessage) {
+    // While we are recording the failure for this execution, we still want to
+    // parse/validate/realize the pipeline as best as we can. This way the UI
+    // can visualize the pipeline as best as possible.
+    // Additionally, if there are any failures we will record all errors for the
+    // user to be aware of and address
+    Exception pipelineError = null
+    try {
+      pipeline = parseAndValidatePipeline(pipeline)
+    } catch (Exception e) {
+      pipelineError = e
+    }
+
+    def augmentedContext = [
+      trigger: pipeline.trigger,
+      templateVariables: pipeline.templateVariables ?: [:]
+    ]
+    def processedPipeline = contextParameterProcessor.process(pipeline, augmentedContext, false)
+    processedPipeline.trigger = objectMapper.convertValue(processedPipeline.trigger, Trigger)
+
+    if (pipelineError != null) {
+      pipelineError = new SpinnakerException(errorMessage, pipelineError)
+    } else {
+      pipelineError = new SpinnakerException(errorMessage)
+    }
+
+    markPipelineFailed(processedPipeline, pipelineError)
   }
 
   public Map parseAndValidatePipeline(Map pipeline) {
