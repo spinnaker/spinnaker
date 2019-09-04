@@ -18,11 +18,16 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Notification.NotificationType;
 import com.netflix.spinnaker.halyard.config.model.v1.notifications.GithubStatusNotification;
 import com.netflix.spinnaker.halyard.config.model.v1.notifications.SlackNotification;
 import com.netflix.spinnaker.halyard.config.model.v1.notifications.TwilioNotification;
+import java.util.Optional;
+import java.util.stream.Stream;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -46,8 +51,18 @@ public class Notifications extends Node implements Cloneable {
   }
 
   public static Class<? extends Notification> translateNotificationType(String notificationName) {
-    Class<? extends Notification> n;
-    switch (Notification.NotificationType.valueOf(notificationName)) {
+
+    Optional<NotificationType> notificationType =
+        Stream.of(NotificationType.values())
+            .filter(type -> type.getName().equals(notificationName))
+            .findAny();
+
+    checkArgument(
+        notificationType.isPresent(),
+        "No notification type with name %s handled by halyard",
+        notificationName);
+
+    switch (notificationType.get()) {
       case SLACK:
         return SlackNotification.class;
       case TWILIO:
