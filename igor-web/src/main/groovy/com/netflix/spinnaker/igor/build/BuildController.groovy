@@ -222,7 +222,10 @@ class BuildController {
     static void validateJobParameters(JobConfig jobConfig, Map<String, String> requestParams) {
         jobConfig.parameterDefinitionList.each { parameterDefinition ->
             String matchingParam = requestParams[parameterDefinition.name]
-            if (matchingParam != null && parameterDefinition.type == 'ChoiceParameterDefinition' && !parameterDefinition.choices.contains(matchingParam)) {
+            if (matchingParam != null &&
+                parameterDefinition.type == 'ChoiceParameterDefinition' &&
+                parameterDefinition.choices != null &&
+                !parameterDefinition.choices.contains(matchingParam)) {
                 throw new InvalidJobParameterException("`${matchingParam}` is not a valid choice " +
                     "for `${parameterDefinition.name}`. Valid choices are: ${parameterDefinition.choices.join(', ')}")
             }

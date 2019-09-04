@@ -42,6 +42,7 @@ import retrofit.client.Response
 import spock.lang.Shared
 import spock.lang.Specification
 
+import static com.netflix.spinnaker.igor.build.BuildController.*
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
@@ -310,4 +311,39 @@ class BuildControllerSpec extends Specification {
         response.status == HttpStatus.BAD_REQUEST.value()
         response.errorMessage == "Job '${JOB_NAME}' is not buildable. It may be disabled."
     }
+
+  void 'validation successful for null list of choices'() {
+    given:
+    Map<String, String> requestParams = ["hey" : "you"]
+    ParameterDefinition parameterDefinition = new ParameterDefinition()
+    parameterDefinition.choices = null
+    parameterDefinition.type = "ChoiceParameterDefinition"
+    parameterDefinition.name = "hey"
+    JobConfig jobConfig = new JobConfig()
+    jobConfig.parameterDefinitionList = [parameterDefinition]
+
+    when:
+    validateJobParameters(jobConfig, requestParams)
+
+    then:
+    noExceptionThrown()
+  }
+
+  void 'validation failed for option not in list of choices'() {
+    given:
+    Map<String, String> requestParams = ["hey" : "you"]
+    ParameterDefinition parameterDefinition = new ParameterDefinition()
+    parameterDefinition.choices = ["why", "not"]
+    parameterDefinition.type = "ChoiceParameterDefinition"
+    parameterDefinition.name = "hey"
+    JobConfig jobConfig = new JobConfig()
+    jobConfig.parameterDefinitionList = [parameterDefinition]
+
+    when:
+    validateJobParameters(jobConfig, requestParams)
+
+    then:
+    thrown(InvalidJobParameterException)
+  }
+
 }
