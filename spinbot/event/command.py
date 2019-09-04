@@ -7,6 +7,6 @@ def GetCommands(text):
         line = line.strip()
         # todo(lwander): parameterize
         if line.startswith('@spinnakerbot'):
-            command = line[len('@spinnakerbot'):].strip()
+            command = line[len('@spinnakerbot'):].replace(": :", "::").strip()
             if len(command) > 0:
                 yield command.split()

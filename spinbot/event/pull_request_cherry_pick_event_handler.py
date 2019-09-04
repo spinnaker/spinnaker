@@ -29,7 +29,7 @@ class PullRequestCherryPickEventHandler(Handler):
             return
 
         for command in GetCommands(event.payload.get('comment', {}).get('body')):
-            if command[0] == 'cherry-pick':
+            if command[0] in ['cherry-pick', ':cherries::pick:']:
                 if len(command) != 2:
                     pull_request.create_issue_comment(invalid_command_format)
                     return
