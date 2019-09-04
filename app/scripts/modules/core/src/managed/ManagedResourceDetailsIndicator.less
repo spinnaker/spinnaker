@@ -1,4 +1,13 @@
-.ManagedResourceDetailsIndicator > .icon {
+// Selector specificity is the worst
+.band.band-info.ManagedResourceDetailsIndicator {
+  padding: 8px 10px 10px;
+}
+
+.ManagedResourceDetailsIndicator .rainbow-icon {
   text-shadow: 0px 1px 4px rgba(0, 0, 0, 0.5);
   padding-right: 5px;
+}
+
+.ManagedResourceDetailsIndicator .summary-message {
+  cursor: help;
 }
