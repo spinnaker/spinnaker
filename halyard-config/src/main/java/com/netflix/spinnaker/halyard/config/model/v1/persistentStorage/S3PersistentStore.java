@@ -36,10 +36,16 @@ public class S3PersistentStore extends PersistentStore {
 
   private String endpoint;
   private String accessKeyId;
+  private ServerSideEncryption serverSideEncryption;
   @Secret private String secretAccessKey;
 
   @Override
   public PersistentStoreType persistentStoreType() {
     return PersistentStoreType.S3;
+  }
+
+  public enum ServerSideEncryption {
+    AES256,
+    AWSKMS
   }
 }

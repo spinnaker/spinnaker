@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.persistentStorage.s3;
 
+import static com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.S3PersistentStore.ServerSideEncryption;
+
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.persistentStorage.AbstractPersistentStoreEditCommand;
@@ -67,6 +69,14 @@ public class S3EditCommand extends AbstractPersistentStoreEditCommand<S3Persiste
               + " See https://docs.aws.amazon.com/AmazonS3/latest/dev/VirtualHosting.html#VirtualHostingExamples.")
   private Boolean pathStyleAccess = false;
 
+  @Parameter(
+      names = "--server-side-encryption",
+      description =
+          "Use Amazon Server-Side Encryption ('x-amz-server-side-encryption' header). "
+              + "Supports 'AES256' (for Amazon S3-managed encryption keys, equivalent to a header value of 'AES256')"
+              + " and 'AWSKMS' (for AWS KMS-managed encryption keys, equivalent to a header value of 'aws:kms'.")
+  private ServerSideEncryption serverSideEncryption;
+
   @Parameter(names = "--assume-role", description = AwsCommandProperties.ASSUME_ROLE_DESCRIPTION)
   private String assumeRole;
 
@@ -96,6 +106,10 @@ public class S3EditCommand extends AbstractPersistentStoreEditCommand<S3Persiste
         isSet(accessKeyId) ? accessKeyId : persistentStore.getAccessKeyId());
     persistentStore.setSecretAccessKey(
         isSet(secretAccessKey) ? secretAccessKey : persistentStore.getSecretAccessKey());
+    persistentStore.setServerSideEncryption(
+        isSet(serverSideEncryption)
+            ? serverSideEncryption
+            : persistentStore.getServerSideEncryption());
 
     if (persistentStore.getBucket() == null) {
       String bucketName = "spin-" + UUID.randomUUID().toString();
