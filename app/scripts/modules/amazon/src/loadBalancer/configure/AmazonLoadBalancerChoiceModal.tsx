@@ -6,7 +6,7 @@ import { ILoadBalancerModalProps, ModalClose, ReactModal, noop } from '@spinnake
 import { IAmazonLoadBalancerConfig, LoadBalancerTypes } from './LoadBalancerTypes';
 
 export interface IAmazonLoadBalancerChoiceModalProps extends ILoadBalancerModalProps {
-  choices: IAmazonLoadBalancerConfig[];
+  choices?: IAmazonLoadBalancerConfig[];
 }
 
 export interface IAmazonLoadBalancerChoiceModalState {
