@@ -21,7 +21,12 @@ export interface ITriggersPageContentProps {
 
 export function TriggersPageContent(props: ITriggersPageContentProps) {
   const showProperties = SETTINGS.feature.quietPeriod || SETTINGS.feature.managedServiceAccounts;
-  const { pipeline, application, updatePipelineConfig } = props;
+  const {
+    pipeline,
+    pipeline: { triggers = [] },
+    application,
+    updatePipelineConfig,
+  } = props;
   // must keep track of state to avoid race condition -- Remove once PipelineConfigurer is converted over to React
   const [expectedArtifacts, setExpectedArtifacts] = React.useState<IExpectedArtifact[]>(
     props.pipeline.expectedArtifacts ? props.pipeline.expectedArtifacts : [],
@@ -37,20 +42,20 @@ export function TriggersPageContent(props: ITriggersPageContentProps) {
     if (triggerTypes.length === 1) {
       newTrigger = { enabled: true, type: triggerTypes[0].key };
     }
-    updatePipelineConfig({ triggers: [...pipeline.triggers, newTrigger] });
+    updatePipelineConfig({ triggers: [...triggers, newTrigger] });
   }
 
   function removeTrigger(triggerIndex: number): void {
-    const triggers = pipeline.triggers.slice(0);
-    triggers.splice(triggerIndex, 1);
-    updatePipelineConfig({ triggers });
+    const newTriggers = triggers.slice(0);
+    newTriggers.splice(triggerIndex, 1);
+    updatePipelineConfig({ triggers: newTriggers });
   }
 
   function updateTrigger(index: number, changes: Partial<ITrigger>) {
-    const triggers = pipeline.triggers.slice(0);
-    extend(triggers[index], changes);
+    const updatedTriggers = triggers.slice(0);
+    extend(updatedTriggers[index], changes);
     PipelineConfigValidator.validatePipeline(pipeline);
-    updatePipelineConfig({ triggers });
+    updatePipelineConfig({ triggers: updatedTriggers });
     if (SETTINGS.feature['artifactsRewrite']) {
       removeUnusedExpectedArtifacts(pipeline);
     }
@@ -79,7 +84,7 @@ export function TriggersPageContent(props: ITriggersPageContentProps) {
 
   return (
     <div className="triggers">
-      {pipeline.triggers.length > 0 && showProperties && (
+      {triggers.length > 0 && showProperties && (
         <div className="form-horizontal panel-pipeline-phase">
           <div className="form-group row">
             <div className="col-md-12">
@@ -119,7 +124,7 @@ export function TriggersPageContent(props: ITriggersPageContentProps) {
           </div>
         </div>
       )}
-      {pipeline.triggers.map((trigger, index) => (
+      {triggers.map((trigger, index) => (
         <div className="trigger-config" key={index}>
           <Trigger
             application={application}
@@ -132,7 +137,7 @@ export function TriggersPageContent(props: ITriggersPageContentProps) {
           />
         </div>
       ))}
-      {pipeline.triggers.length === 0 && (
+      {triggers.length === 0 && (
         <div className="row">
           <p className="col-md-12">You don't have any triggers configured for {pipeline.name}.</p>
         </div>

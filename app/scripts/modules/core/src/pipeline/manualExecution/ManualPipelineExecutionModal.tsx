@@ -261,7 +261,7 @@ export class ManualExecutionModal extends React.Component<IManualExecutionModalP
         trigger.type = head(triggers).type;
       }
       // Find the pipeline.trigger that matches trigger (the trigger from the execution being re-run)
-      const matchingTrigger = pipeline.triggers.find(t =>
+      const matchingTrigger = (pipeline.triggers || []).find(t =>
         Object.keys(t)
           .filter(k => k !== 'description')
           .every(k => get(t, k) === get(this.props.trigger, k)),
