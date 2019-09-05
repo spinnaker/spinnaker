@@ -1,8 +1,6 @@
 package com.netflix.spinnaker.keel.ec2.resource
 
-import com.netflix.spinnaker.keel.api.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.DeliveryConfig
-import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.keel.api.NoImageFound
 import com.netflix.spinnaker.keel.api.NoImageFoundForRegion
 import com.netflix.spinnaker.keel.api.NoImageSatisfiesConstraints
@@ -40,16 +38,37 @@ class ImageResolver(
         val deliveryConfig = deliveryConfigRepository.deliveryConfigFor(resource.uid)
         val environment = deliveryConfigRepository.environmentFor(resource.uid)
         val artifact = imageProvider.deliveryArtifact
-        val artifactName = determineArtifactName(artifact, deliveryConfig, environment)
-
         val account = dynamicConfigService.getConfig("images.default-account", "test")
-        val namedImage = imageService
-          .getLatestNamedImage(artifactName, account, region) ?: throw NoImageFound(artifactName)
 
-        log.info("Image found for {}: {}", artifactName, namedImage)
+        return if (deliveryConfig != null && environment != null) {
+          val artifactVersion = artifactRepository.latestVersionApprovedIn(
+            deliveryConfig,
+            artifact,
+            environment.name
+          ) ?: throw NoImageSatisfiesConstraints(artifact.name, environment.name)
+          val image = imageService.getLatestNamedImage(
+            appVersion = AppVersion.parseName(artifactVersion),
+            account = account,
+            region = region
+          ) ?: throw NoImageFound(artifactVersion)
 
-        return namedImage.amis[region]?.first()
-          ?: throw NoImageFoundForRegion(artifactName, region) // todo eb: when are there multiple?
+          image.amis[region]?.first()
+            ?.also {
+              log.info("Image found for {}: {}", artifactVersion, image)
+            } ?: throw NoImageFoundForRegion(artifactVersion, region)
+        } else {
+          val image = imageService.getLatestNamedImage(
+            packageName = artifact.name,
+            account = account,
+            region = region
+          ) ?: throw NoImageFound(artifact.name)
+
+          image.amis[region]?.first()
+            ?.also {
+              log.info("Image found for {}: {}", artifact.name, image)
+            }
+            ?: throw NoImageFoundForRegion(artifact.name, region)
+        }
       }
       is JenkinsImageProvider -> {
         val namedImage = imageService.getNamedImageFromJenkinsInfo(
@@ -69,27 +88,6 @@ class ImageResolver(
         throw UnsupportedStrategy(imageProvider::class.simpleName.orEmpty(), ImageProvider::class.simpleName.orEmpty())
       }
     }
-  }
-
-  /**
-   * Supplies a specific version if a [deliveryConfig] and [environment] are provided,
-   * otherwise just returns the package name.
-   *
-   * Formats the name to comply with AMI naming conventions.
-   */
-  private fun determineArtifactName(artifact: DeliveryArtifact, deliveryConfig: DeliveryConfig?, environment: Environment?): String {
-    val name = if (deliveryConfig != null && environment != null) {
-      artifactRepository.latestVersionApprovedIn(
-        deliveryConfig,
-        artifact,
-        environment.name
-      ) ?: throw NoImageSatisfiesConstraints(artifact.name, environment.name)
-    } else {
-      artifact.name
-    }
-
-    // image names have _ instead of ~
-    return name.replace("~", "_")
   }
 
   private inline fun <reified T> DynamicConfigService.getConfig(configName: String, defaultValue: T) =

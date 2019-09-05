@@ -31,7 +31,7 @@ class ImageService(
   val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
 
   suspend fun getLatestImage(artifactName: String, account: String): Image? {
-    return cloudDriverService.namedImages(DEFAULT_SERVICE_ACCOUNT, "$artifactName-", account)
+    return cloudDriverService.namedImages(DEFAULT_SERVICE_ACCOUNT, artifactName, account)
       .sortedWith(NamedImageComparator)
       .lastOrNull {
         AppVersion.parseName(it.appVersion).packageName == artifactName
@@ -65,14 +65,34 @@ class ImageService(
    * image regardless of region.
    */
   suspend fun getLatestNamedImage(packageName: String, account: String, region: String? = null): NamedImage? =
-    cloudDriverService.namedImages(DEFAULT_SERVICE_ACCOUNT, "$packageName-", account, region)
+    cloudDriverService.namedImages(DEFAULT_SERVICE_ACCOUNT, packageName, account, region)
       .sortedWith(NamedImageComparator)
       .lastOrNull {
         AppVersion.parseName(it.appVersion).packageName == packageName
       }
 
-  suspend fun getNamedImageFromJenkinsInfo(packageName: String, account: String, buildHost: String, buildName: String, buildNumber: String): NamedImage? {
-    return cloudDriverService.namedImages(DEFAULT_SERVICE_ACCOUNT, "$packageName-", account)
+  /**
+   * Get a specific image for an app version.
+   *
+   * @param region if supplied the latest image in this region is returned, if `null` the latest
+   * image regardless of region.
+   */
+  suspend fun getLatestNamedImage(appVersion: AppVersion, account: String, region: String? = null): NamedImage? =
+    cloudDriverService.namedImages(
+      serviceAccount = DEFAULT_SERVICE_ACCOUNT,
+      imageName = appVersion.toImageName().replace("~", "_"),
+      account = account,
+      region = region
+    )
+      .sortedWith(NamedImageComparator)
+      .lastOrNull {
+        AppVersion.parseName(it.appVersion).run {
+          packageName == appVersion.packageName && version == appVersion.version && commit == appVersion.commit
+        }
+      }
+
+  suspend fun getNamedImageFromJenkinsInfo(packageName: String, account: String, buildHost: String, buildName: String, buildNumber: String): NamedImage? =
+    cloudDriverService.namedImages(DEFAULT_SERVICE_ACCOUNT, packageName, account)
       .sortedWith(NamedImageComparator)
       .filter {
         AppVersion.parseName(it.appVersion).packageName == packageName
@@ -81,7 +101,6 @@ class ImageService(
         val allTags = getAllTags(namedImage)
         amiMatches(allTags, buildHost, buildName, buildNumber)
       }
-  }
 
   private fun getAllTags(image: NamedImage): Map<String, String> {
     val allTags = HashMap<String, String>()
@@ -112,3 +131,5 @@ class ImageService(
     return true
   }
 }
+
+private fun AppVersion.toImageName() = "$packageName-$version-h$buildNumber.$commit"

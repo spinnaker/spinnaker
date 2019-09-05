@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.ec2.resource
 
+import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
@@ -58,12 +59,12 @@ internal class ImageResolverTests : JUnit5Minutests {
     )
     val images = listOf(
       NamedImage(
-        imageName = "fnord-1.0.0",
+        imageName = "fnord-1.0.0-123456",
         attributes = mapOf(
           "creationDate" to "2019-07-28T13:01:00.000Z"
         ),
         tagsByImageId = mapOf(
-          "ami-1" to mapOf("appversion" to "fnord-1.0.0")
+          "ami-1" to mapOf("appversion" to "fnord-1.0.0-123456")
         ),
         accounts = setOf(account),
         amis = mapOf(
@@ -71,12 +72,12 @@ internal class ImageResolverTests : JUnit5Minutests {
         )
       ),
       NamedImage(
-        imageName = "fnord-1.1.0",
+        imageName = "fnord-1.1.0-123456",
         attributes = mapOf(
           "creationDate" to "2019-07-29T13:01:00.000Z"
         ),
         tagsByImageId = mapOf(
-          "ami-2" to mapOf("appversion" to "fnord-1.1.0")
+          "ami-2" to mapOf("appversion" to "fnord-1.1.0-123456")
         ),
         accounts = setOf(account),
         amis = mapOf(
@@ -84,12 +85,12 @@ internal class ImageResolverTests : JUnit5Minutests {
         )
       ),
       NamedImage(
-        imageName = "fnord-1.2.0",
+        imageName = "fnord-1.2.0-123456",
         attributes = mapOf(
           "creationDate" to "2019-07-30T13:01:00.000Z"
         ),
         tagsByImageId = mapOf(
-          "ami-3" to mapOf("appversion" to "fnord-1.2.0")
+          "ami-3" to mapOf("appversion" to "fnord-1.2.0-123456")
         ),
         accounts = setOf(account),
         amis = mapOf(
@@ -182,11 +183,11 @@ internal class ImageResolverTests : JUnit5Minutests {
 
         context("a version of the artifact has been approved for the environment") {
           before {
-            artifactRepository.approveVersionFor(deliveryConfig, artifact, "${artifact.name}-1.1.0", "test")
+            artifactRepository.approveVersionFor(deliveryConfig, artifact, "${artifact.name}-1.1.0-123456", "test")
             coEvery {
-              imageService.getLatestNamedImage("${artifact.name}-1.1.0", any(), resourceRegion)
+              imageService.getLatestNamedImage(AppVersion.parseName("${artifact.name}-1.1.0-123456"), any(), resourceRegion)
             } answers {
-              images.lastOrNull { it.appVersion.startsWith(firstArg<String>()) }
+              images.lastOrNull { AppVersion.parseName(it.appVersion).version == firstArg<AppVersion>().version }
             }
           }
 
@@ -210,9 +211,9 @@ internal class ImageResolverTests : JUnit5Minutests {
 
         context("no image is found for the artifact version") {
           before {
-            artifactRepository.approveVersionFor(deliveryConfig, artifact, "${artifact.name}-1.1.0", "test")
+            artifactRepository.approveVersionFor(deliveryConfig, artifact, "${artifact.name}-1.1.0-123456", "test")
             coEvery {
-              imageService.getLatestNamedImage("${artifact.name}-1.1.0", any(), resourceRegion)
+              imageService.getLatestNamedImage(AppVersion.parseName("${artifact.name}-1.1.0-123456"), any(), resourceRegion)
             } returns null
           }
 
@@ -242,11 +243,11 @@ internal class ImageResolverTests : JUnit5Minutests {
           }
 
           before {
-            artifactRepository.approveVersionFor(deliveryConfig, artifact, "${artifact.name}-1.1.0", "test")
+            artifactRepository.approveVersionFor(deliveryConfig, artifact, "${artifact.name}-1.1.0-123456", "test")
             coEvery {
-              imageService.getLatestNamedImage("${artifact.name}-1.1.0", any(), resourceRegion)
+              imageService.getLatestNamedImage(AppVersion.parseName("${artifact.name}-1.1.0-123456"), any(), resourceRegion)
             } answers {
-              images.lastOrNull { it.appVersion.startsWith(firstArg<String>()) }
+              images.lastOrNull { AppVersion.parseName(it.appVersion).version == firstArg<AppVersion>().version }
             }
           }
 

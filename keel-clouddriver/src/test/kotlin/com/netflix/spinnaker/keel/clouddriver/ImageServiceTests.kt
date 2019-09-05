@@ -17,11 +17,13 @@
  */
 package com.netflix.spinnaker.keel.clouddriver
 
+import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImageComparator
 import com.netflix.spinnaker.keel.clouddriver.model.appVersion
 import com.netflix.spinnaker.keel.clouddriver.model.creationDate
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.DynamicTest.dynamicTest
@@ -161,11 +163,18 @@ internal class ImageServiceTests {
   @Test
   fun `get latest image returns actual latest image`() {
     coEvery {
-      cloudDriver.namedImages(DEFAULT_SERVICE_ACCOUNT, "my-package-", "test")
+      cloudDriver.namedImages(
+        serviceAccount = DEFAULT_SERVICE_ACCOUNT,
+        imageName = "my-package",
+        account = "test"
+      )
     } returns listOf(image2, image4, image3, image1, image5)
 
     runBlocking {
-      val image = subject.getLatestImage("my-package", "test")
+      val image = subject.getLatestImage(
+        artifactName = "my-package",
+        account = "test"
+      )
       expectThat(image)
         .isNotNull()
         .get { appVersion }
@@ -176,11 +185,18 @@ internal class ImageServiceTests {
   @Test
   fun `get latest named image returns actual latest image`() {
     coEvery {
-      cloudDriver.namedImages(DEFAULT_SERVICE_ACCOUNT, "my-package-", "test")
+      cloudDriver.namedImages(
+        serviceAccount = DEFAULT_SERVICE_ACCOUNT,
+        imageName = "my-package",
+        account = "test"
+      )
     } returns listOf(image2, image4, image3, image1, image5)
 
     runBlocking {
-      val image = subject.getLatestNamedImage("my-package", "test")
+      val image = subject.getLatestNamedImage(
+        packageName = "my-package",
+        account = "test"
+      )
       expectThat(image)
         .isNotNull()
         .get { imageName }
@@ -193,13 +209,22 @@ internal class ImageServiceTests {
     mapOf("us-west-1" to "ami-003", "ap-south-1" to "ami-005").map { (region, imageId) ->
       dynamicTest("get latest image can be filtered by region ($region)") {
         coEvery {
-          cloudDriver.namedImages(DEFAULT_SERVICE_ACCOUNT, "my-package-", "test", region)
+          cloudDriver.namedImages(
+            serviceAccount = DEFAULT_SERVICE_ACCOUNT,
+            imageName = "my-package",
+            account = "test",
+            region = region
+          )
         } answers {
           listOf(image2, image4, image3, image1, image5).filter { it.amis.keys.contains(region) }
         }
 
         runBlocking {
-          val image = subject.getLatestNamedImage("my-package", "test", region)
+          val image = subject.getLatestNamedImage(
+            packageName = "my-package",
+            account = "test",
+            region = region
+          )
           expectThat(image)
             .isNotNull()
             .get { imageId }
@@ -211,20 +236,53 @@ internal class ImageServiceTests {
   @Test
   fun `no image provided if image not found for latest from artifact`() {
     coEvery {
-      cloudDriver.namedImages(DEFAULT_SERVICE_ACCOUNT, "my-package-", "test")
+      cloudDriver.namedImages(
+        serviceAccount = DEFAULT_SERVICE_ACCOUNT,
+        imageName = "my-package",
+        account = "test",
+        region = null
+      )
     } returns emptyList()
 
     runBlocking {
-      val image = subject.getLatestNamedImage("my-package", "test")
+      val image = subject.getLatestNamedImage(
+        packageName = "my-package",
+        account = "test"
+      )
       expectThat(image)
         .isNull()
     }
   }
 
   @Test
+  fun `searching for a very specific image version returns the correct one`() {
+    coEvery {
+      cloudDriver.namedImages(any(), any(), any())
+    } returns listOf(image2)
+
+    runBlocking {
+      val image = subject.getLatestNamedImage(
+        appVersion = AppVersion.parseName("my-package-0.0.1~rc.98-h99.4cb755c"),
+        account = "test"
+      )
+      expectThat(image)
+        .isNotNull()
+        .isEqualTo(image2)
+    }
+
+    coVerify {
+      cloudDriver.namedImages(
+        serviceAccount = DEFAULT_SERVICE_ACCOUNT,
+        imageName = "my-package-0.0.1_rc.98-h99.4cb755c",
+        account = "test"
+      )
+    }
+  }
+
+  @Test
   fun `get named image from jenkins info works`() {
     coEvery {
-      cloudDriver.namedImages(DEFAULT_SERVICE_ACCOUNT, "my-package-", "test")
+      cloudDriver.namedImages(DEFAULT_SERVICE_ACCOUNT, "my-package", "test")
     } returns listOf(image2, image4, image3, image1)
 
     runBlocking {
