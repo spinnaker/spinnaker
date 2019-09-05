@@ -18,11 +18,9 @@ package com.netflix.spinnaker.endpoint;
 import static java.lang.String.format;
 
 import com.netflix.spinnaker.config.ResolvedEnvironmentConfigurationProperties;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.endpoint.Sanitizer;
 import org.springframework.boot.actuate.endpoint.annotation.Endpoint;
 import org.springframework.boot.actuate.endpoint.annotation.ReadOperation;
@@ -36,10 +34,13 @@ public class ResolvedEnvironmentEndpoint {
   private final Sanitizer sanitizer = new Sanitizer();
   private final Environment environment;
 
+  @Autowired
   public ResolvedEnvironmentEndpoint(
       Environment environment, ResolvedEnvironmentConfigurationProperties properties) {
     this.environment = environment;
-    sanitizer.setKeysToSanitize(properties.getKeysToSanitize().toArray(new String[0]));
+    Optional.ofNullable(properties.getKeysToSanitize())
+        .map(p -> p.toArray(new String[0]))
+        .ifPresent(sanitizer::setKeysToSanitize);
   }
 
   @ReadOperation
@@ -62,7 +63,7 @@ public class ResolvedEnvironmentEndpoint {
     SortedSet<String> result = new TreeSet<>();
     MutablePropertySources sources;
 
-    if (environment != null && environment instanceof ConfigurableEnvironment) {
+    if (environment instanceof ConfigurableEnvironment) {
       sources = ((ConfigurableEnvironment) environment).getPropertySources();
     } else {
       sources = new StandardEnvironment().getPropertySources();
