@@ -25,6 +25,7 @@ ext {
     groovy        : "2.5.7", //this needs to keep in sync with the version from boot... if we could get rid of groovy-all we'd no longer need this
     hystrix       : "1.4.21",
     jsch          : "0.0.9",
+    protobuf      : "3.9.1",
     okhttp        : "2.7.0",
     okhttp3       : "3.14.2",
     resilience4j  : "0.17.0",
@@ -58,6 +59,7 @@ dependencies {
   api(platform("org.spockframework:spock-bom:1.3-groovy-2.5"))
   api(platform("com.oracle.oci.sdk:oci-java-sdk-bom:1.5.17"))
   api(platform("org.testcontainers:testcontainers-bom:1.12.0"))
+  api(platform("com.google.protobuf:protobuf-bom:${versions.protobuf}"))
 
   constraints {
     api("cglib:cglib-nodep:3.2.0")

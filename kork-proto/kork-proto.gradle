@@ -1,0 +1,23 @@
+plugins {
+  id "java-library"
+  id "com.google.protobuf" version "0.8.10"
+}
+
+dependencies {
+  api(platform(project(":spinnaker-dependencies")))
+
+  implementation "com.google.protobuf:protobuf-java"
+}
+
+protobuf {
+  protoc {
+    // TODO: figure out how to reference version in BOM.
+    artifact = "com.google.protobuf:protoc:3.9.1"
+  }
+}
+
+idea {
+  module {
+    generatedSourceDirs += file("${protobuf.generatedFilesBaseDir}/main/java")
+  }
+}
