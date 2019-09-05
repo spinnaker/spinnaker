@@ -30,12 +30,15 @@ import lombok.extern.slf4j.Slf4j;
  * the mapping from (provider, account, resource) -&lt; namer must happen within Spinnaker.
  */
 public class NamerRegistry {
-  private final List<NamingStrategy> namingStrategies;
-  private static Namer defaultNamer = new FriggaReflectiveNamer();
+
+  private static Namer<Object> DEFAULT_NAMER = new FriggaReflectiveNamer();
+
   private static ProviderLookup providerLookup = new ProviderLookup();
 
-  public static Namer getDefaultNamer() {
-    return defaultNamer;
+  private final List<NamingStrategy> namingStrategies;
+
+  public static Namer<Object> getDefaultNamer() {
+    return DEFAULT_NAMER;
   }
 
   public static ProviderLookup lookup() {
@@ -58,18 +61,18 @@ public class NamerRegistry {
 
   @Slf4j
   public static class ResourceLookup {
-    private ConcurrentHashMap<Class, Namer> map = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<Class<?>, Namer<?>> map = new ConcurrentHashMap<>();
 
-    public Namer withResource(Class resource) {
+    public <T> Namer<T> withResource(Class<T> resource) {
       if (!map.containsKey(resource)) {
         log.debug("Looking up a namer for a non-registered resource");
-        return getDefaultNamer();
+        return (Namer<T>) getDefaultNamer();
       } else {
-        return map.get(resource);
+        return (Namer<T>) map.get(resource);
       }
     }
 
-    public void setNamer(Class resource, Namer namer) {
+    public <T> void setNamer(Class<T> resource, Namer<T> namer) {
       map.put(resource, namer);
     }
   }

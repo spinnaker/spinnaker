@@ -25,6 +25,8 @@ import com.netflix.spinnaker.moniker.Moniker
 import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
 
+import javax.annotation.Nullable
+
 @Slf4j
 @Component("GoogleKeys")
 class Keys implements KeyParser {
@@ -78,6 +80,7 @@ class Keys implements KeyParser {
     return false
   }
 
+  @Nullable
   static Map<String, String> parse(String key) {
     def parts = key.split(':')
 

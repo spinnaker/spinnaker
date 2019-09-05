@@ -55,6 +55,7 @@ import com.google.api.services.compute.model.Tags;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.netflix.spectator.api.DefaultRegistry;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
@@ -64,6 +65,8 @@ import com.netflix.spinnaker.cats.provider.DefaultProviderCache;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent.OnDemandResult;
 import com.netflix.spinnaker.clouddriver.google.cache.Keys;
+import com.netflix.spinnaker.clouddriver.google.compute.GoogleComputeApiFactory;
+import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleLabeledResource;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup;
@@ -77,6 +80,7 @@ import java.math.BigInteger;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
 import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -370,6 +374,124 @@ final class GoogleZonalServerGroupCachingAgentTest {
 
     // Since there is no persistent boot disk, we remove all boot disks.
     assertThat(diskNames).containsExactly("disk2", "disk4", "disk5");
+
+    // These are copied from the original test code
+    diskNames =
+        retrieveCachedDiskNames(
+            new AttachedDisk().setBoot(true).setType("PERSISTENT").setDeviceName("disk0"));
+    assertThat(diskNames).containsExactly("disk0");
+
+    diskNames =
+        retrieveCachedDiskNames(
+            new AttachedDisk().setBoot(true).setType("PERSISTENT").setDeviceName("disk0"),
+            new AttachedDisk().setBoot(false).setType("PERSISTENT").setDeviceName("disk1"));
+    assertThat(diskNames).containsExactly("disk0", "disk1");
+
+    diskNames =
+        retrieveCachedDiskNames(
+            new AttachedDisk().setBoot(false).setType("PERSISTENT").setDeviceName("disk0"),
+            new AttachedDisk().setBoot(true).setType("PERSISTENT").setDeviceName("disk1"));
+    assertThat(diskNames).containsExactly("disk1", "disk0");
+
+    diskNames =
+        retrieveCachedDiskNames(
+            new AttachedDisk().setBoot(true).setType("PERSISTENT").setDeviceName("disk0"),
+            new AttachedDisk().setBoot(false).setType("PERSISTENT").setDeviceName("disk1"),
+            new AttachedDisk().setBoot(false).setType("PERSISTENT").setDeviceName("disk2"));
+    assertThat(diskNames).containsExactly("disk0", "disk1", "disk2");
+
+    diskNames =
+        retrieveCachedDiskNames(
+            new AttachedDisk().setBoot(false).setType("PERSISTENT").setDeviceName("disk0"),
+            new AttachedDisk().setBoot(true).setType("PERSISTENT").setDeviceName("disk1"),
+            new AttachedDisk().setBoot(false).setType("PERSISTENT").setDeviceName("disk2"));
+    assertThat(diskNames).containsExactly("disk1", "disk0", "disk2");
+
+    // Mix in a SCRATCH disk.
+    diskNames =
+        retrieveCachedDiskNames(
+            new AttachedDisk().setBoot(true).setType("PERSISTENT").setDeviceName("disk0"),
+            new AttachedDisk().setBoot(false).setType("SCRATCH").setDeviceName("disk1"));
+    assertThat(diskNames).containsExactly("disk0", "disk1");
+
+    diskNames =
+        retrieveCachedDiskNames(
+            new AttachedDisk().setBoot(true).setType("PERSISTENT").setDeviceName("disk0"),
+            new AttachedDisk().setBoot(false).setType("PERSISTENT").setDeviceName("disk1"),
+            new AttachedDisk().setBoot(false).setType("SCRATCH").setDeviceName("disk2"));
+    assertThat(diskNames).containsExactly("disk0", "disk1", "disk2");
+
+    diskNames =
+        retrieveCachedDiskNames(
+            new AttachedDisk().setBoot(false).setType("PERSISTENT").setDeviceName("disk0"),
+            new AttachedDisk().setBoot(true).setType("PERSISTENT").setDeviceName("disk1"),
+            new AttachedDisk().setBoot(false).setType("SCRATCH").setDeviceName("disk2"));
+    assertThat(diskNames).containsExactly("disk1", "disk0", "disk2");
+
+    diskNames =
+        retrieveCachedDiskNames(
+            new AttachedDisk().setBoot(false).setType("SCRATCH").setDeviceName("disk0"),
+            new AttachedDisk().setBoot(true).setType("PERSISTENT").setDeviceName("disk1"),
+            new AttachedDisk().setBoot(false).setType("PERSISTENT").setDeviceName("disk2"),
+            new AttachedDisk().setBoot(false).setType("PERSISTENT").setDeviceName("disk3"));
+    assertThat(diskNames).containsExactly("disk0", "disk1", "disk2", "disk3");
+
+    diskNames =
+        retrieveCachedDiskNames(
+            new AttachedDisk().setBoot(false).setType("PERSISTENT").setDeviceName("disk0"),
+            new AttachedDisk().setBoot(true).setType("PERSISTENT").setDeviceName("disk1"),
+            new AttachedDisk().setBoot(false).setType("SCRATCH").setDeviceName("disk2"),
+            new AttachedDisk().setBoot(false).setType("PERSISTENT").setDeviceName("disk3"));
+    assertThat(diskNames).containsExactly("disk1", "disk0", "disk2", "disk3");
+
+    // Boot disk missing (really shouldn't happen, but want to ensure we don't disturb the results).
+    diskNames =
+        retrieveCachedDiskNames(
+            new AttachedDisk().setBoot(false).setType("PERSISTENT").setDeviceName("disk0"));
+    assertThat(diskNames).containsExactly("disk0");
+
+    diskNames =
+        retrieveCachedDiskNames(
+            new AttachedDisk().setBoot(false).setType("PERSISTENT").setDeviceName("disk0"),
+            new AttachedDisk().setBoot(false).setType("PERSISTENT").setDeviceName("disk1"));
+    assertThat(diskNames).containsExactly("disk0", "disk1");
+
+    diskNames =
+        retrieveCachedDiskNames(
+            new AttachedDisk().setBoot(false).setType("PERSISTENT").setDeviceName("disk0"),
+            new AttachedDisk().setBoot(false).setType("PERSISTENT").setDeviceName("disk1"),
+            new AttachedDisk().setBoot(false).setType("PERSISTENT").setDeviceName("disk2"));
+    assertThat(diskNames).containsExactly("disk0", "disk1", "disk2");
+
+    // Mix in a SCRATCH disk and Boot disk missing.
+    diskNames =
+        retrieveCachedDiskNames(
+            new AttachedDisk().setBoot(false).setType("PERSISTENT").setDeviceName("disk0"),
+            new AttachedDisk().setBoot(false).setType("SCRATCH").setDeviceName("disk1"));
+    assertThat(diskNames).containsExactly("disk0", "disk1");
+
+    diskNames =
+        retrieveCachedDiskNames(
+            new AttachedDisk().setBoot(false).setType("PERSISTENT").setDeviceName("disk0"),
+            new AttachedDisk().setBoot(false).setType("PERSISTENT").setDeviceName("disk1"),
+            new AttachedDisk().setBoot(false).setType("SCRATCH").setDeviceName("disk2"));
+    assertThat(diskNames).containsExactly("disk0", "disk1", "disk2");
+
+    diskNames =
+        retrieveCachedDiskNames(
+            new AttachedDisk().setBoot(false).setType("SCRATCH").setDeviceName("disk0"),
+            new AttachedDisk().setBoot(false).setType("PERSISTENT").setDeviceName("disk1"),
+            new AttachedDisk().setBoot(false).setType("PERSISTENT").setDeviceName("disk2"),
+            new AttachedDisk().setBoot(false).setType("PERSISTENT").setDeviceName("disk3"));
+    assertThat(diskNames).containsExactly("disk0", "disk1", "disk2", "disk3");
+
+    diskNames =
+        retrieveCachedDiskNames(
+            new AttachedDisk().setBoot(false).setType("PERSISTENT").setDeviceName("disk0"),
+            new AttachedDisk().setBoot(false).setType("PERSISTENT").setDeviceName("disk1"),
+            new AttachedDisk().setBoot(false).setType("SCRATCH").setDeviceName("disk2"),
+            new AttachedDisk().setBoot(false).setType("PERSISTENT").setDeviceName("disk3"));
+    assertThat(diskNames).containsExactly("disk0", "disk1", "disk2", "disk3");
   }
 
   private List<String> retrieveCachedDiskNames(AttachedDisk... inputDisks) {
@@ -851,7 +973,7 @@ final class GoogleZonalServerGroupCachingAgentTest {
 
     assertThat(pendingRequests).hasSize(1);
     assertThat(getOnlyElement(pendingRequests))
-        .containsExactly(
+        .containsOnly(
             entry("details", Keys.parse(key)),
             entry("moniker", moniker("mig1-v001")),
             entry("cacheTime", 12345),
@@ -917,7 +1039,10 @@ final class GoogleZonalServerGroupCachingAgentTest {
   void handle_serverGroupExists() throws IOException {
     Compute compute =
         new StubComputeFactory()
-            .setInstanceGroupManagers(instanceGroupManager("myservergroup-v001"))
+            .setInstanceGroupManagers(
+                instanceGroupManager("myservergroup-v001")
+                    .setInstanceTemplate(
+                        "http://compute/global/instanceTemplates/my-instance-template"))
             .create();
     GoogleZonalServerGroupCachingAgent cachingAgent = createCachingAgent(compute);
     ProviderCache providerCache = inMemoryProviderCache();
@@ -982,17 +1107,20 @@ final class GoogleZonalServerGroupCachingAgentTest {
 
   public static GoogleZonalServerGroupCachingAgent createCachingAgent(Compute compute) {
     return new GoogleZonalServerGroupCachingAgent(
-        "user-agent",
         new GoogleNamedAccountCredentials.Builder()
             .project(PROJECT)
             .name(ACCOUNT_NAME)
             .compute(compute)
             .regionToZonesMap(ImmutableMap.of(REGION, ImmutableList.of(ZONE)))
             .build(),
-        new ObjectMapper(),
+        new GoogleComputeApiFactory(
+            new GoogleOperationPoller(),
+            new DefaultRegistry(),
+            "user-agent",
+            MoreExecutors.listeningDecorator(Executors.newCachedThreadPool())),
         new DefaultRegistry(),
         REGION,
-        101L);
+        new ObjectMapper());
   }
 
   private static InstanceGroupManager instanceGroupManager(String name) {

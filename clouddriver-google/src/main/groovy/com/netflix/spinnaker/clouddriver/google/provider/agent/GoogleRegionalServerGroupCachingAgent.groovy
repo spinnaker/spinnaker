@@ -21,9 +21,11 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
+import com.google.api.services.compute.Compute
 import com.google.api.services.compute.ComputeRequest
 import com.google.api.services.compute.model.*
 import com.netflix.frigga.Names
+import com.netflix.frigga.ami.AppVersion
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
@@ -33,6 +35,7 @@ import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
+import com.netflix.spinnaker.clouddriver.google.GoogleExecutor
 import com.netflix.spinnaker.clouddriver.google.GoogleExecutorTraits
 import com.netflix.spinnaker.clouddriver.google.batch.GoogleBatchRequest
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
@@ -42,7 +45,9 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleDistributionPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancingPolicy
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.PaginatedRequest
+import com.netflix.spinnaker.clouddriver.google.security.AccountForClient
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.moniker.Moniker
 import groovy.transform.Canonical
@@ -53,6 +58,7 @@ import java.util.concurrent.TimeUnit
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.*
+import static com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil.*
 
 @Slf4j
 class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent implements OnDemandAgent, GoogleExecutorTraits {
@@ -133,7 +139,7 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
     GoogleBatchRequest instanceGroupsRequest = buildGoogleBatchRequest()
     GoogleBatchRequest autoscalerRequest = buildGoogleBatchRequest()
 
-    List<InstanceTemplate> instanceTemplates = GoogleZonalServerGroupCachingAgent.fetchInstanceTemplates(cachingAgent, compute, project)
+    List<InstanceTemplate> instanceTemplates = fetchInstanceTemplates(cachingAgent, compute, project)
     List<GoogleInstance> instances = GCEUtil.fetchInstances(this, credentials)
 
     InstanceGroupManagerCallbacks instanceGroupManagerCallbacks = new InstanceGroupManagerCallbacks(
@@ -168,6 +174,26 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
     executeIfRequestsAreQueued(autoscalerRequest, "RegionalServerGroupCaching.autoscaler")
 
     serverGroups
+  }
+
+  static List<InstanceTemplate> fetchInstanceTemplates(AbstractGoogleCachingAgent cachingAgent, Compute compute, String project) {
+    List<InstanceTemplate> instanceTemplates = new PaginatedRequest<InstanceTemplateList>(cachingAgent) {
+      @Override
+      protected ComputeRequest<InstanceTemplateList> request (String pageToken) {
+        return compute.instanceTemplates().list(project).setPageToken(pageToken)
+      }
+
+      @Override
+      String getNextPageToken(InstanceTemplateList t) {
+        return t.getNextPageToken();
+      }
+    }.timeExecute(
+      { InstanceTemplateList list -> list.getItems() },
+      "compute.instanceTemplates.list", GoogleExecutor.TAG_SCOPE, GoogleExecutor.SCOPE_GLOBAL,
+      "account", AccountForClient.getAccount(compute)
+    )
+
+    return instanceTemplates
   }
 
   @Override
@@ -286,7 +312,7 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
       }
       log.debug("Writing cache entry for cluster key ${clusterKey} adding relationships for application ${appKey} and server group ${serverGroupKey}")
 
-      GoogleZonalServerGroupCachingAgent.populateLoadBalancerKeys(serverGroup, loadBalancerKeys, accountName, region)
+      populateLoadBalancerKeys(serverGroup, loadBalancerKeys, accountName, region)
 
       loadBalancerKeys.each { String loadBalancerKey ->
         cacheResultBuilder.namespace(LOAD_BALANCERS.ns).keep(loadBalancerKey).with {
@@ -294,7 +320,7 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
         }
       }
 
-      if (GoogleZonalServerGroupCachingAgent.shouldUseOnDemandData(cacheResultBuilder, serverGroupKey)) {
+      if (shouldUseOnDemandData(cacheResultBuilder, serverGroupKey)) {
         moveOnDemandDataToNamespace(cacheResultBuilder, serverGroup)
       } else {
         cacheResultBuilder.namespace(SERVER_GROUPS.ns).keep(serverGroupKey).with {
@@ -315,6 +341,11 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
     log.debug("Evicting ${cacheResultBuilder.onDemand.toEvict.size()} onDemand entries in ${agentType}")
 
     cacheResultBuilder.build()
+  }
+
+  static boolean shouldUseOnDemandData(CacheResultBuilder cacheResultBuilder, String serverGroupKey) {
+    CacheData cacheData = cacheResultBuilder.onDemand.toKeep[serverGroupKey]
+    return cacheData ? cacheData.attributes.cacheTime >= cacheResultBuilder.startTime : false
   }
 
   void moveOnDemandDataToNamespace(CacheResultBuilder cacheResultBuilder,
@@ -455,7 +486,7 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
         Utils.deriveNetworkLoadBalancerNamesFromTargetPoolUrls(instanceGroupManager.getTargetPools())
 
       InstanceTemplate template = instanceTemplates.find { it -> it.getName() == instanceTemplateName }
-      GoogleZonalServerGroupCachingAgent.populateServerGroupWithTemplate(serverGroup, providerCache, loadBalancerNames,
+      populateServerGroupWithTemplate(serverGroup, providerCache, loadBalancerNames,
           template, accountName, project, objectMapper)
       def instanceMetadata = template?.properties?.metadata
       if (instanceMetadata) {
@@ -463,6 +494,156 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
         serverGroup.selectZones = metadataMap?.get(GCEUtil.SELECT_ZONES) ?: false
       }
     }
+  }
+
+  static void populateServerGroupWithTemplate(GoogleServerGroup serverGroup, ProviderCache providerCache,
+                                              List<String> loadBalancerNames, InstanceTemplate instanceTemplate,
+                                              String accountName, String project, ObjectMapper objectMapper) {
+    serverGroup.with {
+      networkName = Utils.decorateXpnResourceIdIfNeeded(project, instanceTemplate?.properties?.networkInterfaces?.getAt(0)?.network)
+      canIpForward = instanceTemplate?.properties?.canIpForward
+      instanceTemplateTags = instanceTemplate?.properties?.tags?.items
+      instanceTemplateServiceAccounts = instanceTemplate?.properties?.serviceAccounts
+      instanceTemplateLabels = instanceTemplate?.properties?.labels
+      launchConfig.with {
+        launchConfigurationName = instanceTemplate?.name
+        instanceType = instanceTemplate?.properties?.machineType
+        minCpuPlatform = instanceTemplate?.properties?.minCpuPlatform
+      }
+    }
+    // "instanceTemplate = instanceTemplate" in the above ".with{ }" blocks doesn't work because Groovy thinks it's
+    // assigning the same variable to itself, instead of to the "launchConfig" entry
+    serverGroup.launchConfig.instanceTemplate = instanceTemplate
+
+    sortWithBootDiskFirst(serverGroup)
+
+    def sourceImageUrl = instanceTemplate?.properties?.disks?.find { disk ->
+      disk.boot
+    }?.initializeParams?.sourceImage
+    if (sourceImageUrl) {
+      serverGroup.launchConfig.imageId = Utils.getLocalName(sourceImageUrl)
+
+      def imageKey = Keys.getImageKey(accountName, serverGroup.launchConfig.imageId)
+      def image = providerCache.get(IMAGES.ns, imageKey)
+
+      extractBuildInfo(image?.attributes?.image?.description, serverGroup)
+    }
+
+    def instanceMetadata = instanceTemplate?.properties?.metadata
+    setLoadBalancerMetadataOnInstance(loadBalancerNames, instanceMetadata, serverGroup, objectMapper)
+  }
+
+  static void populateLoadBalancerKeys(GoogleServerGroup serverGroup, List<String> loadBalancerKeys, String accountName, String region) {
+    serverGroup.asg.get(REGIONAL_LOAD_BALANCER_NAMES).each { String loadBalancerName ->
+      loadBalancerKeys << Keys.getLoadBalancerKey(region, accountName, loadBalancerName)
+    }
+    serverGroup.asg.get(GLOBAL_LOAD_BALANCER_NAMES).each { String loadBalancerName ->
+      loadBalancerKeys << Keys.getLoadBalancerKey("global", accountName, loadBalancerName)
+    }
+  }
+
+  static void sortWithBootDiskFirst(GoogleServerGroup serverGroup) {
+    // Ensure that the boot disk is listed as the first persistent disk.
+    if (serverGroup.launchConfig.instanceTemplate?.properties?.disks) {
+      def persistentDisks = serverGroup.launchConfig.instanceTemplate.properties.disks.findAll { it.type == "PERSISTENT" }
+
+      if (persistentDisks && !persistentDisks.first().boot) {
+        def sortedDisks = []
+        def firstBootDisk = persistentDisks.find { it.boot }
+
+        if (firstBootDisk) {
+          sortedDisks << firstBootDisk
+        }
+
+        sortedDisks.addAll(serverGroup.launchConfig.instanceTemplate.properties.disks.findAll { !it.boot })
+        serverGroup.launchConfig.instanceTemplate.properties.disks = sortedDisks
+      }
+    }
+  }
+
+  /**
+   * Set load balancing metadata on the server group from the instance template.
+   *
+   * @param loadBalancerNames -- Network load balancer names specified by target pools.
+   * @param instanceMetadata -- Metadata associated with the instance template.
+   * @param serverGroup -- Server groups built from the instance template.
+   */
+  static void setLoadBalancerMetadataOnInstance(List<String> loadBalancerNames,
+                                                Metadata instanceMetadata,
+                                                GoogleServerGroup serverGroup,
+                                                ObjectMapper objectMapper) {
+    if (instanceMetadata) {
+      def metadataMap = Utils.buildMapFromMetadata(instanceMetadata)
+      def regionalLBNameList = metadataMap?.get(REGIONAL_LOAD_BALANCER_NAMES)?.split(",")
+      def globalLBNameList = metadataMap?.get(GLOBAL_LOAD_BALANCER_NAMES)?.split(",")
+      def backendServiceList = metadataMap?.get(BACKEND_SERVICE_NAMES)?.split(",")
+      def policyJson = metadataMap?.get(LOAD_BALANCING_POLICY)
+
+      if (globalLBNameList) {
+        serverGroup.asg.put(GLOBAL_LOAD_BALANCER_NAMES, globalLBNameList)
+      }
+      if (backendServiceList) {
+        serverGroup.asg.put(BACKEND_SERVICE_NAMES, backendServiceList)
+      }
+      if (policyJson) {
+        serverGroup.asg.put(LOAD_BALANCING_POLICY, objectMapper.readValue(policyJson, GoogleHttpLoadBalancingPolicy))
+      }
+
+      if (regionalLBNameList) {
+        serverGroup.asg.put(REGIONAL_LOAD_BALANCER_NAMES, regionalLBNameList)
+
+        // The isDisabled property of a server group is set based on whether there are associated target pools,
+        // and whether the metadata of the server group contains a list of load balancers to actually associate
+        // the server group with.
+        // We set the disabled state for L4 lBs here (before writing into the cache) and calculate
+        // the L7 disabled state when we read the server groups from the cache.
+        serverGroup.setDisabled(loadBalancerNames.empty)
+      }
+    }
+  }
+
+  static void extractBuildInfo(String imageDescription, GoogleServerGroup googleServerGroup) {
+    if (imageDescription) {
+      def descriptionTokens = imageDescription?.tokenize(",")
+      def appVersionTag = findTagValue(descriptionTokens, "appversion")
+      Map buildInfo = null
+
+      if (appVersionTag) {
+        def appVersion = AppVersion.parseName(appVersionTag)
+
+        if (appVersion) {
+          buildInfo = [package_name: appVersion.packageName, version: appVersion.version, commit: appVersion.commit] as Map<Object, Object>
+
+          if (appVersion.buildJobName) {
+            buildInfo.jenkins = [name: appVersion.buildJobName, number: appVersion.buildNumber]
+          }
+
+          def buildHostTag = findTagValue(descriptionTokens, "build_host")
+
+          if (buildHostTag && buildInfo.containsKey("jenkins")) {
+            ((Map)buildInfo.jenkins).host = buildHostTag
+          }
+
+          def buildInfoUrlTag = findTagValue(descriptionTokens, "build_info_url")
+
+          if (buildInfoUrlTag) {
+            buildInfo.buildInfoUrl = buildInfoUrlTag
+          }
+        }
+
+        if (buildInfo) {
+          googleServerGroup.buildInfo = buildInfo
+        }
+      }
+    }
+  }
+
+  static String findTagValue(List<String> descriptionTokens, String tagKey) {
+    def matchingKeyValuePair = descriptionTokens?.find { keyValuePair ->
+      keyValuePair.trim().startsWith("$tagKey: ")
+    }
+
+    matchingKeyValuePair ? matchingKeyValuePair.trim().substring(tagKey.length() + 2) : null
   }
 
   class AutoscalerSingletonCallback<Autoscaler> extends JsonBatchCallback<Autoscaler> {

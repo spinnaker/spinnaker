@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
+import com.netflix.spinnaker.clouddriver.google.compute.GoogleComputeApiFactory
 import com.netflix.spinnaker.config.GoogleConfiguration
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.google.provider.GoogleInfrastructureProvider
@@ -46,7 +47,8 @@ class GoogleInfrastructureProviderConfig {
                                                             GoogleConfigurationProperties googleConfigurationProperties,
                                                             AccountCredentialsRepository accountCredentialsRepository,
                                                             ObjectMapper objectMapper,
-                                                            Registry registry) {
+                                                            Registry registry,
+                                                            GoogleComputeApiFactory computeApiFactory) {
     def googleInfrastructureProvider =
         new GoogleInfrastructureProvider(Collections.newSetFromMap(new ConcurrentHashMap<Agent, Boolean>()))
 
@@ -55,7 +57,8 @@ class GoogleInfrastructureProviderConfig {
                                             googleInfrastructureProvider,
                                             accountCredentialsRepository,
                                             objectMapper,
-                                            registry)
+                                            registry,
+                                            computeApiFactory)
 
     googleInfrastructureProvider
   }
@@ -66,7 +69,8 @@ class GoogleInfrastructureProviderConfig {
     GoogleInfrastructureProvider googleInfrastructureProvider,
     AccountCredentialsRepository accountCredentialsRepository,
     ObjectMapper objectMapper,
-    Registry registry) {
+    Registry registry,
+    GoogleComputeApiFactory computeApiFactory) {
     def scheduledAccounts = ProviderUtils.getScheduledAccounts(googleInfrastructureProvider)
     def allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository,
                                                                  GoogleNamedAccountCredentials)
@@ -160,12 +164,11 @@ class GoogleInfrastructureProviderConfig {
                                                                         registry,
                                                                         region,
                                                                         googleConfigurationProperties.maxMIGPageSize)
-          newlyAddedAgents << new GoogleZonalServerGroupCachingAgent(clouddriverUserAgentApplicationName,
-                                                                     credentials,
-                                                                     objectMapper,
+          newlyAddedAgents << new GoogleZonalServerGroupCachingAgent(credentials,
+                                                                     computeApiFactory,
                                                                      registry,
                                                                      region,
-                                                                     googleConfigurationProperties.maxMIGPageSize)
+                                                                     objectMapper)
         }
 
         // If there is an agent scheduler, then this provider has been through the AgentController in the past.

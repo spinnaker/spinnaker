@@ -22,8 +22,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.google.api.services.compute.model.AutoscalingPolicy
 import com.google.api.services.compute.model.InstanceGroupManagerActionsSummary
 import com.google.api.services.compute.model.InstanceGroupManagerAutoHealingPolicy
+import com.google.api.services.compute.model.ServiceAccount
 import com.google.api.services.compute.model.StatefulPolicy
-import com.google.api.services.iam.v1.model.ServiceAccount
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerView

@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import javax.annotation.Nullable;
 import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -101,6 +102,7 @@ public interface OnDemandAgent {
     }
   }
 
+  @Nullable
   OnDemandResult handle(ProviderCache providerCache, Map<String, ?> data);
 
   Collection<Map> pendingOnDemandRequests(ProviderCache providerCache);
