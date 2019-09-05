@@ -35,12 +35,12 @@ import com.netflix.spinnaker.keel.tags.EntityTag
  * the [KEEL_TAG_NAMESPACE].
  */
 data class KeelTagSpec(
-  val keelId: ResourceId,
+  val keelId: String,
   val entityRef: EntityRef,
   val tagState: TagState
 ) : ResourceSpec {
   @JsonIgnore
-  override val id: String = keelId.value
+  override val id: String = keelId
 
   @JsonIgnore
   override val application: String = entityRef.application

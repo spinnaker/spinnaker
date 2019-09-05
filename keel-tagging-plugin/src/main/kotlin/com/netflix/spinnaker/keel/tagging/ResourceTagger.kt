@@ -97,7 +97,7 @@ class ResourceTagger(
       log.debug("Persisting no tag desired for resource {} because it is no longer managed", event.resourceId)
       val entityRef = event.resourceId.toEntityRef()
       val spec = KeelTagSpec(
-        keelId = event.resourceId,
+        keelId = event.resourceId.value,
         entityRef = entityRef,
         tagState = TagNotDesired(startTime = clock.millis())
       )
@@ -163,7 +163,7 @@ class ResourceTagger(
 
   private fun ResourceId.generateKeelTagSpec() =
     KeelTagSpec(
-      this,
+      value,
       toEntityRef(),
       generateTagDesired()
     )

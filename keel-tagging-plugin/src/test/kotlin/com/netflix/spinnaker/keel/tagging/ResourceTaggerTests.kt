@@ -79,7 +79,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
     apiVersion = SPINNAKER_API_V1.subApi("tag"),
     kind = "keel-tag",
     spec = KeelTagSpec(
-      keelId = clusterId,
+      keelId = clusterId.value,
       entityRef = EntityRef("cluster", "keel", "keel", "ap-south-1", "test", "1234", "aws"),
       tagState = TagDesired(tag = EntityTag(
         value = TagValue(
@@ -98,7 +98,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
     apiVersion = SPINNAKER_API_V1.subApi("tag"),
     kind = "keel-tag",
     spec = KeelTagSpec(
-      clusterId,
+      clusterId.value,
       EntityRef("cluster", "keel", "keel", "ap-south-1", "test", "1234", "aws"),
       TagNotDesired(clock.millis())
     )

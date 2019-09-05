@@ -85,7 +85,7 @@ internal class KeelTagHandlerTests : JUnit5Minutests {
   )
 
   val specWithTag = KeelTagSpec(
-    keelId = keelId,
+    keelId = keelId.value,
     entityRef = entityRef,
     tagState = TagDesired(
       tag = managedByKeelTag

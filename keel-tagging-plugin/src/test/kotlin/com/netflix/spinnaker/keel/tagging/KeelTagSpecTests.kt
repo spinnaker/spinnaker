@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.keel.tagging
 
-import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.tags.EntityRef
 import com.netflix.spinnaker.keel.tags.EntityTag
@@ -18,7 +17,7 @@ internal class KeelTagSpecTests : JUnit5Minutests {
     context("difference exists in whether tag is desired") {
       fixture {
         val resource = KeelTagSpec(
-          ResourceId("ec2:cluster:mgmt:us-west-2:keel-prestaging"),
+          "ec2:cluster:mgmt:us-west-2:keel-prestaging",
           EntityRef("cluster", "keel-prestaging", "keel", "us-west-2", "mgmt", "12345", "aws"),
           TagDesired(
             EntityTag(
