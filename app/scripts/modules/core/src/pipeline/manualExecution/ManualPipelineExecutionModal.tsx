@@ -3,7 +3,7 @@ import * as React from 'react';
 import { Formik, Form } from 'formik';
 import { Modal } from 'react-bootstrap';
 import { Observable, Subject } from 'rxjs';
-import { assign, clone, compact, extend, get, head, uniq, isArray } from 'lodash';
+import { assign, clone, compact, extend, get, head, uniq, isArray, pickBy } from 'lodash';
 
 import { SubmitButton, ModalClose } from 'core/modal';
 import { Application } from 'core/application';
@@ -53,6 +53,8 @@ export interface IManualExecutionModalState {
   triggerComponent?: React.ComponentType<ITriggerTemplateComponentProps>;
   triggers: ITrigger[];
 }
+
+const TRIGGER_FIELDS_TO_EXCLUDE = ['correlationId', 'eventId', 'executionId'];
 
 export class ManualExecutionModal extends React.Component<IManualExecutionModalProps, IManualExecutionModalState> {
   private formikRef = React.createRef<Formik<any>>();
@@ -256,7 +258,10 @@ export class ManualExecutionModal extends React.Component<IManualExecutionModalP
     const triggers = this.formatTriggers(pipeline && pipeline.triggers ? pipeline.triggers : []);
     let trigger: ITrigger;
     if (this.props.trigger) {
-      trigger = clone(this.props.trigger);
+      // Certain fields like correlationId will cause unexepcted behavior if used to trigger
+      // a different execution, others are just left unused. Let's exclude them.
+      trigger = pickBy(this.props.trigger, (_, key) => !TRIGGER_FIELDS_TO_EXCLUDE.includes(key));
+
       if (trigger.type === 'manual' && triggers.length) {
         trigger.type = head(triggers).type;
       }
