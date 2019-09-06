@@ -15,8 +15,9 @@
 package pipeline_template
 
 import (
-	"github.com/spf13/cobra"
 	"io"
+
+	"github.com/spf13/cobra"
 )
 
 type pipelineTemplateOptions struct{}
@@ -43,5 +44,7 @@ func NewPipelineTemplateCmd(out io.Writer) *cobra.Command {
 	cmd.AddCommand(NewSaveCmd(options))
 	cmd.AddCommand(NewDeleteCmd(options))
 	cmd.AddCommand(NewPlanCmd(options))
+	cmd.AddCommand(NewUseCmd(options))
+
 	return cmd
 }

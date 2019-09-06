@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spinnaker/spin/cmd/application"
 	"github.com/spinnaker/spin/cmd/pipeline"
-	"github.com/spinnaker/spin/cmd/pipeline-template"
+	pipeline_template "github.com/spinnaker/spin/cmd/pipeline-template"
 	"github.com/spinnaker/spin/cmd/project"
 	"github.com/spinnaker/spin/version"
 )
