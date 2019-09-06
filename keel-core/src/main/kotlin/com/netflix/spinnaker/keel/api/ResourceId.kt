@@ -15,7 +15,13 @@
  */
 package com.netflix.spinnaker.keel.api
 
-@Suppress("EXPERIMENTAL_FEATURE_WARNING")
-inline class ResourceId(val value: String) {
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer
+import com.netflix.spinnaker.keel.serialization.ResourceIdDeserializer
+
+@JsonSerialize(using = ToStringSerializer::class)
+@JsonDeserialize(using = ResourceIdDeserializer::class)
+data class ResourceId(val value: String) {
   override fun toString(): String = value
 }

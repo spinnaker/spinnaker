@@ -19,7 +19,6 @@ package com.netflix.spinnaker.keel.tagging
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.id
@@ -60,16 +59,17 @@ class KeelTagHandler(
     "keel-tag",
     "keel-tags"
   ) to KeelTagSpec::class.java
-  override suspend fun desired(resource: Resource<KeelTagSpec>): TaggedResource =
+  override suspend fun desired(resource: Resource<KeelTagSpec>): TaggedResource {
     when (resource.spec.tagState) {
       is TagDesired -> {
         val desiredTag = (resource.spec.tagState as TagDesired).tag
-        TaggedResource(ResourceId(resource.spec.keelId), resource.spec.entityRef, desiredTag)
+        return TaggedResource(resource.spec.keelId, resource.spec.entityRef, desiredTag)
       }
       is TagNotDesired -> {
-        TaggedResource(ResourceId(resource.spec.keelId), resource.spec.entityRef, null)
+        return TaggedResource(resource.spec.keelId, resource.spec.entityRef, null)
       }
     }
+  }
 
   override suspend fun current(resource: Resource<KeelTagSpec>): TaggedResource? {
     val entityTags = getEntityTags(resource)
@@ -77,22 +77,22 @@ class KeelTagHandler(
     when (resource.spec.tagState) {
       is TagDesired -> {
         val desiredTag = (resource.spec.tagState as TagDesired).tag
-        val desired = TaggedResource(ResourceId(resource.spec.keelId), resource.spec.entityRef, desiredTag)
+        val desired = TaggedResource(resource.spec.keelId, resource.spec.entityRef, desiredTag)
         return if (entityTags.containsTag(desiredTag)) {
           desired
         } else {
-          TaggedResource(ResourceId(resource.spec.keelId), resource.spec.entityRef, null)
+          TaggedResource(resource.spec.keelId, resource.spec.entityRef, null)
         }
       }
       is TagNotDesired -> {
         return if (entityTags.containsKeelTag()) {
           TaggedResource(
-            ResourceId(resource.spec.keelId),
+            resource.spec.keelId,
             resource.spec.entityRef,
             entityTags.tags.find { it.namespace == KEEL_TAG_NAMESPACE && it.name == KEEL_TAG_NAME }
           )
         } else {
-          TaggedResource(ResourceId(resource.spec.keelId), resource.spec.entityRef, null)
+          TaggedResource(resource.spec.keelId, resource.spec.entityRef, null)
         }
       }
     }
