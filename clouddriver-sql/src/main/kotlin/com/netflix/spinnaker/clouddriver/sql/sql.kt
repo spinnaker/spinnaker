@@ -17,6 +17,7 @@ package com.netflix.spinnaker.clouddriver.sql
 
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
+import io.github.resilience4j.retry.Retry
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.field
@@ -33,14 +34,29 @@ internal val taskStatesFields = listOf("id", "task_id", "created_at", "state", "
 internal val taskResultsFields = listOf("id", "task_id", "body").map { field(it) }
 
 /**
- * Run the provided [fn] in a transaction.
+ * Run the provided [fn] in a transaction, retrying on failures using [retryProperties].
  */
+@Deprecated("use transactional(retry, fn) instead")
 internal fun DSLContext.transactional(retryProperties: RetryProperties, fn: (DSLContext) -> Unit) {
   retrySupport.retry({
     transaction { ctx ->
       fn(DSL.using(ctx))
     }
   }, retryProperties.maxRetries, retryProperties.backoffMs, false)
+}
+
+/**
+ * Run the provided [fn] in a transaction, retrying on failures using [retry].
+ */
+internal fun DSLContext.transactional(
+  retry: Retry,
+  fn: (DSLContext) -> Unit
+) {
+  retry.executeRunnable {
+    transaction { ctx ->
+      fn(DSL.using(ctx))
+    }
+  }
 }
 
 /**

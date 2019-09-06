@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.config
+package com.netflix.spinnaker.clouddriver.sql.event
 
-enum class ConnectionPools(
-  val value: String
-) {
-  TASKS("tasks"),
-  CACHE_WRITER("cacheWriter"),
-  CACHE_READER("cacheReader"),
-  EVENTS("events")
+import com.netflix.spinnaker.clouddriver.event.exceptions.EventingException
+import com.netflix.spinnaker.clouddriver.sql.exceptions.SqlException
+import com.netflix.spinnaker.kork.exceptions.SystemException
+
+class SqlEventSystemException(message: String, cause: Throwable?) : SystemException(
+  message,
+  cause
+), EventingException, SqlException {
+  constructor(message: String) : this(message, null)
 }

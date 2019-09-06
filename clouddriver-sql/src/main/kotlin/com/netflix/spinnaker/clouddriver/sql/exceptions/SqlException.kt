@@ -1,11 +1,11 @@
 /*
- * Copyright 2018 Netflix, Inc.
+ * Copyright 2019 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,13 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.config
+package com.netflix.spinnaker.clouddriver.sql.exceptions
 
-import org.springframework.boot.context.properties.ConfigurationProperties
-import java.util.concurrent.TimeUnit
-
-@ConfigurationProperties("sql.agent.task-cleanup")
-class SqlTaskCleanupAgentProperties(
-  var completedTtlMs: Long = TimeUnit.MINUTES.toMillis(60),
-  var batchSize: Int = 100
-)
+/**
+ * Marker
+ */
+interface SqlException

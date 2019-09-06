@@ -1,0 +1,159 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-event-aggregates-table
+      author: robzienert
+      changes:
+        - createTable:
+            tableName: event_aggregates
+            columns:
+              - column:
+                  name: aggregate_type
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+              - column:
+                  name: aggregate_id
+                  type: char(64)
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+              - column:
+                  name: token
+                  type: char(26)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: version
+                  type: bigint(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_change_timestamp
+                  type: timestamp
+        - modifySql:
+            dbms: mysql
+            append:
+              value: " engine innodb"
+      rollback:
+        - dropTable:
+            tableName: event_aggregates
+
+  - changeSet:
+      id: create-event-aggregates-table-indices
+      author: robzienert
+      changes:
+        - createIndex:
+            indexName: aggregate_type_token_idx
+            tableName: event_aggregates
+            columns:
+              - column:
+                  name: aggregate_type
+              - column:
+                  name: token
+        - createIndex:
+            indexName: aggregate_token_idx
+            tableName: event_aggregates
+            columns:
+              - column:
+                  name: token
+        - createIndex:
+            indexName: aggregate_last_change_timestamp_idx
+            tableName: event_aggregates
+            columns:
+              - column:
+                  name: last_change_timestamp
+      rollback:
+        - dropIndex:
+            indexName: aggregate_type_token_idx
+            tableName: event_aggregates
+        - dropIndex:
+            indexName: aggregate_token_idx
+            tableName: event_aggregates
+
+  - changeSet:
+      id: create-events-table
+      author: robzienert
+      changes:
+        - createTable:
+            tableName: events
+            columns:
+              - column:
+                  name: id
+                  type: char(36)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: aggregate_type
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: aggregate_id
+                  type: char(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: sequence
+                  type: bigint(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: originating_version
+                  type: bigint(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: timestamp
+                  type: timestamp(6)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: metadata
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: data
+                  type: longtext
+                  constraints:
+                    nullable: false
+        - modifySql:
+            dbms: mysql
+            append:
+              value: " engine innodb"
+      rollback:
+        - dropTable:
+            tableName: events
+
+  - changeSet:
+      id: create-events-table-indices
+      author: robzienert
+      changes:
+        - createIndex:
+            indexName: event_aggregate_type_id_sequence_idx
+            tableName: events
+            columns:
+              - column:
+                  name: aggregate_type
+              - column:
+                  name: aggregate_id
+              - column:
+                  name: sequence
+        - addForeignKeyConstraint:
+            baseColumnNames: aggregate_type,aggregate_id
+            baseTableName: events
+            constraintName: event_aggregate_fk
+            onDelete: CASCADE
+            onUpdate: RESTRICT
+            referencedColumnNames: aggregate_type,aggregate_id
+            referencedTableName: event_aggregates
+      rollback:
+        - dropIndex:
+            indexName: event_aggregate_type_id_sequence_idx
+            tableName: events
+        - dropForeignKeyConstraint:
+            constraintName: event_aggregate_fk
+            baseTableName: events
