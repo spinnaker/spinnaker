@@ -17,6 +17,7 @@
  */
 package com.netflix.spinnaker.gate.services.internal;
 
+import com.netflix.spinnaker.kork.manageddelivery.model.DeliveryConfig;
 import com.netflix.spinnaker.kork.manageddelivery.model.Resource;
 import com.netflix.spinnaker.kork.manageddelivery.model.ResourceEvent;
 import java.util.List;
@@ -41,6 +42,12 @@ public interface KeelService {
 
   @DELETE("/resources/{name}")
   Resource deleteResource(@Path("name") String name);
+
+  @GET("/delivery-configs/{name}")
+  DeliveryConfig getManifest(@Path("name") String name);
+
+  @POST("/delivery-configs")
+  DeliveryConfig upsertManifest(@Body DeliveryConfig manifest);
 
   @GET("/application/{application}")
   Map getApplicationDetails(
