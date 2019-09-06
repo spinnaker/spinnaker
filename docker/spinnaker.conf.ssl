@@ -8,6 +8,9 @@
   ProxyPass "/gate" "{%API_HOST%}" retry=0
   ProxyPassReverse "/gate" "{%API_HOST%}"
 
+  ErrorLog /dev/stderr
+  TransferLog /dev/stdout
+
   <Directory "/opt/deck/html/">
     Require all granted
   </Directory>
