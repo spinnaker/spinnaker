@@ -3,18 +3,21 @@ package com.netflix.spinnaker.keel.persistence.memory
 import com.netflix.spinnaker.keel.api.ArtifactType
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
-import com.netflix.spinnaker.keel.persistence.ArtifactAlreadyRegistered
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 class InMemoryArtifactRepository : ArtifactRepository {
   private val artifacts = mutableMapOf<DeliveryArtifact, MutableList<String>>()
   private val approvedVersions = mutableMapOf<Triple<DeliveryArtifact, DeliveryConfig, String>, String>()
   private val deployedVersions = mutableMapOf<Triple<DeliveryArtifact, DeliveryConfig, String>, MutableList<String>>()
+  private val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
 
   override fun register(artifact: DeliveryArtifact) {
     if (artifacts.containsKey(artifact)) {
-      throw ArtifactAlreadyRegistered(artifact)
+      log.warn("Duplicate artifact registered: {}", artifact)
+      return
     }
     artifacts[artifact] = mutableListOf()
   }

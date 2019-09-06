@@ -11,6 +11,7 @@ import com.netflix.spinnaker.keel.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.diff.ResourceDiff
+import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceDeleted
 import com.netflix.spinnaker.keel.events.ResourceUpdated
@@ -61,13 +62,13 @@ class ResourcePersister(
       }
 
   fun <T : ResourceSpec> upsert(resource: SubmittedResource<T>): Resource<T> =
-      resource.let {
-        if (it.id.isRegistered()) {
-          update(it.id, it)
-        } else {
-          create(it)
-        }
+    resource.let {
+      if (it.id.isRegistered()) {
+        update(it.id, it)
+      } else {
+        create(it)
       }
+    }
 
   fun <T : ResourceSpec> create(resource: SubmittedResource<T>): Resource<T> =
     handlerFor(resource)
@@ -81,9 +82,9 @@ class ResourcePersister(
   @Suppress("UNCHECKED_CAST")
   private fun <T : ResourceSpec> handlerFor(resource: SubmittedResource<T>) =
     handlers.supporting(
-        resource.apiVersion,
-        resource.kind
-      ) as ResolvableResourceHandler<T, *>
+      resource.apiVersion,
+      resource.kind
+    ) as ResolvableResourceHandler<T, *>
 
   fun <T : ResourceSpec> update(id: ResourceId, updated: SubmittedResource<T>): Resource<T> {
     log.debug("Updating $id")
@@ -134,6 +135,7 @@ class ResourcePersister(
   private fun DeliveryArtifact.register() {
     if (!artifactRepository.isRegistered(name, type)) {
       artifactRepository.register(this)
+      publisher.publishEvent(ArtifactRegisteredEvent(this))
     }
   }
 

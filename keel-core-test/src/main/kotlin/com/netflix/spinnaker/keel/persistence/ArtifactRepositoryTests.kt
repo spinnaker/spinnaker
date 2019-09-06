@@ -73,10 +73,10 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
         subject.register(artifact1)
       }
 
-      test("re-registering the same artifact raises an exception") {
-        expectThrows<ArtifactAlreadyRegistered> {
-          subject.register(artifact1)
-        }
+      test("re-registering the same artifact does not raise an exception") {
+        subject.register(artifact1)
+
+        expectThat(subject.isRegistered(artifact1.name, artifact1.type)).isTrue()
       }
 
       context("no versions exist") {

@@ -48,20 +48,27 @@ class ArtifactListener(
     val artifact = event.artifact
     if (artifactRepository.isRegistered(artifact.name, artifact.type)) {
       log.debug("Artifact {} is already registered", artifact)
-      return
+    } else {
+      log.debug("Registering artifact {}", artifact)
+      artifactRepository.register(artifact)
     }
-    artifactRepository.register(artifact)
+
+    if (artifactRepository.versions(artifact).isEmpty()) {
+      storeLatestVersion(artifact)
+    }
+  }
+
+  protected fun storeLatestVersion(artifact: DeliveryArtifact) =
     runBlocking {
       artifactService
         .getVersions(artifact.name)
         .firstOrNull()
         ?.let { firstVersion ->
           val version = "${artifact.name}-$firstVersion"
-          log.debug("Registering latest version {} for newly registered artifact {}", version, artifact)
+          log.debug("Storing latest version {} for registered artifact {}", version, artifact)
           artifactRepository.store(artifact, version)
         }
     }
-  }
 
   private val artifactTypeNames by lazy { ArtifactType.values().map(ArtifactType::name) }
 

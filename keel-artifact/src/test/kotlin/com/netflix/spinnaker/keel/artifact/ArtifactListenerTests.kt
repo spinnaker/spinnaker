@@ -58,6 +58,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
     context("the artifact is not something we're tracking") {
       before {
         every { repository.isRegistered(any(), any()) } returns false
+        every { repository.versions(any()) } returns listOf("0.227.0-h141.bd97556")
 
         listener.onArtifactEvent(event)
       }
@@ -71,9 +72,10 @@ internal class ArtifactListenerTests : JUnit5Minutests {
       }
     }
 
-    context("the artifact is registered") {
+    context("the artifact is registered with versions") {
       before {
         every { repository.isRegistered(artifact.name, artifact.type) } returns true
+        every { repository.versions(artifact) } returns listOf("0.227.0-h141.bd97556")
       }
 
       context("the version was already known") {
@@ -137,6 +139,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
     context("artifact is already registered") {
       before {
         every { repository.isRegistered("fnord", DEB) } returns true
+        every { repository.versions(any()) } returns listOf("0.227.0-h141.bd97556")
         listener.onArtifactRegisteredEvent(event)
       }
 
@@ -153,6 +156,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
       context("there are versions of the artifact") {
         before {
           every { repository.store(any(), any()) } returns false
+          every { repository.versions(any()) } returns emptyList()
           coEvery { artifactService.getVersions("fnord") } returns
             listOf(
               "0.227.0-h141.bd97556",
@@ -174,6 +178,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
       context("there no versions of the artifact") {
         before {
           coEvery { artifactService.getVersions("fnord") } returns listOf()
+          coEvery { repository.versions(any()) } returns listOf()
 
           listener.onArtifactRegisteredEvent(event)
         }

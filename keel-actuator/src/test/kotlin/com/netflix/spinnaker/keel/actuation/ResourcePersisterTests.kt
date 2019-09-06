@@ -15,6 +15,7 @@ import com.netflix.spinnaker.keel.api.SubmittedMetadata
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.resources
+import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceUpdated
 import com.netflix.spinnaker.keel.persistence.get
@@ -230,6 +231,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
 
         test("artifacts are persisted") {
           expectThat(artifactRepository.isRegistered("keel", DEB)).isTrue()
+          verify { publisher.publishEvent(ArtifactRegisteredEvent(DeliveryArtifact("keel", DEB))) }
         }
 
         test("individual resources are persisted") {

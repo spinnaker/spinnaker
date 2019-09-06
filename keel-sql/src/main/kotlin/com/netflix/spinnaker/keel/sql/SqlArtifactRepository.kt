@@ -5,7 +5,6 @@ import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.randomUID
-import com.netflix.spinnaker.keel.persistence.ArtifactAlreadyRegistered
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_ARTIFACT
@@ -33,7 +32,7 @@ class SqlArtifactRepository(
       .onDuplicateKeyIgnore()
       .execute()
       .also { count ->
-        if (count == 0) throw ArtifactAlreadyRegistered(artifact)
+        if (count == 0) log.warn("Duplicate artifact registered: {}", artifact)
       }
   }
 
