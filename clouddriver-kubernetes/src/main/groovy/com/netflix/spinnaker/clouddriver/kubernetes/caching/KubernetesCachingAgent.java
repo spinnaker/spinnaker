@@ -23,8 +23,6 @@ import com.netflix.spinnaker.cats.agent.AccountAware;
 import com.netflix.spinnaker.cats.agent.CachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
-import java.util.List;
-import java.util.stream.Collectors;
 import lombok.Getter;
 
 public abstract class KubernetesCachingAgent<C extends KubernetesCredentials>
@@ -36,12 +34,6 @@ public abstract class KubernetesCachingAgent<C extends KubernetesCredentials>
 
   protected final int agentIndex;
   protected final int agentCount;
-
-  protected List<String> namespaces;
-
-  public List<String> getNamespaces() {
-    return namespaces;
-  }
 
   protected KubernetesCachingAgent(
       KubernetesNamedAccountCredentials<C> namedAccountCredentials,
@@ -56,20 +48,11 @@ public abstract class KubernetesCachingAgent<C extends KubernetesCredentials>
 
     this.agentIndex = agentIndex;
     this.agentCount = agentCount;
-
-    reloadNamespaces();
   }
 
   @Override
   public String getAgentType() {
     return String.format(
         "%s/%s[%d/%d]", accountName, this.getClass().getSimpleName(), agentIndex + 1, agentCount);
-  }
-
-  protected void reloadNamespaces() {
-    namespaces =
-        credentials.getDeclaredNamespaces().stream()
-            .filter(n -> agentCount == 1 || Math.abs(n.hashCode() % agentCount) == agentIndex)
-            .collect(Collectors.toList());
   }
 }

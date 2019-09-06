@@ -83,7 +83,6 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
   @Override
   public CacheResult loadData(ProviderCache providerCache) {
     log.info(getAgentType() + ": agent is starting");
-    reloadNamespaces();
     Map<String, Object> details = defaultIntrospectionDetails();
 
     Long start = System.currentTimeMillis();
@@ -312,8 +311,7 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
       namespace = "";
     }
 
-    reloadNamespaces();
-    if (!StringUtils.isEmpty(namespace) && !namespaces.contains(namespace)) {
+    if (!StringUtils.isEmpty(namespace) && !getNamespaces().contains(namespace)) {
       return null;
     }
 

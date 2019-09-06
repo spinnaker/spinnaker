@@ -23,11 +23,14 @@ import com.netflix.spinnaker.clouddriver.kubernetes.caching.KubernetesCachingAge
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.KubernetesV1Provider;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.Getter;
 
 public abstract class KubernetesV1CachingAgent
     extends KubernetesCachingAgent<KubernetesV1Credentials> {
   @Getter protected final String providerName = KubernetesV1Provider.PROVIDER_NAME;
+  protected List<String> namespaces;
 
   protected KubernetesV1CachingAgent(
       KubernetesNamedAccountCredentials<KubernetesV1Credentials> namedAccountCredentials,
@@ -36,5 +39,17 @@ public abstract class KubernetesV1CachingAgent
       int agentIndex,
       int agentCount) {
     super(namedAccountCredentials, objectMapper, registry, agentIndex, agentCount);
+    reloadNamespaces();
+  }
+
+  public List<String> getNamespaces() {
+    return namespaces;
+  }
+
+  protected void reloadNamespaces() {
+    namespaces =
+        credentials.getDeclaredNamespaces().stream()
+            .filter(n -> agentCount == 1 || Math.abs(n.hashCode() % agentCount) == agentIndex)
+            .collect(Collectors.toList());
   }
 }

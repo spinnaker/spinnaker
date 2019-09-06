@@ -28,9 +28,9 @@ import com.netflix.spinnaker.cats.agent.DefaultCacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
-import com.netflix.spinnaker.clouddriver.kubernetes.caching.KubernetesCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPodMetric;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import java.util.Collection;
@@ -43,11 +43,9 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class KubernetesMetricCachingAgent extends KubernetesCachingAgent<KubernetesV2Credentials>
+public class KubernetesMetricCachingAgent extends KubernetesV2CachingAgent
     implements AgentIntervalAware {
   @Getter protected String providerName = KubernetesCloudProvider.ID;
-
-  @Getter private final Long agentInterval;
 
   @Getter
   protected Collection<AgentDataType> providedDataTypes =
@@ -61,17 +59,19 @@ public class KubernetesMetricCachingAgent extends KubernetesCachingAgent<Kuberne
       int agentIndex,
       int agentCount,
       Long agentInterval) {
-    super(namedAccountCredentials, objectMapper, registry, agentIndex, agentCount);
-    this.agentInterval = agentInterval;
+    super(namedAccountCredentials, objectMapper, registry, agentIndex, agentCount, agentInterval);
+  }
+
+  @Override
+  protected List<KubernetesKind> primaryKinds() {
+    return Collections.emptyList();
   }
 
   @Override
   public CacheResult loadData(ProviderCache providerCache) {
     log.info(getAgentType() + ": agent is starting");
-    reloadNamespaces();
-
     List<KubernetesPodMetric> podMetrics =
-        namespaces
+        getNamespaces()
             .parallelStream()
             .map(
                 n -> {

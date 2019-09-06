@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentIntervalAware;
 import com.netflix.spinnaker.cats.agent.CacheResult;
@@ -66,7 +67,7 @@ public abstract class KubernetesV2CachingAgent
 
   protected Map<String, Object> defaultIntrospectionDetails() {
     Map<String, Object> result = new HashMap<>();
-    result.put("namespaces", namespaces);
+    result.put("namespaces", getNamespaces());
     result.put("kinds", primaryKinds());
     return result;
   }
@@ -75,7 +76,7 @@ public abstract class KubernetesV2CachingAgent
 
   protected Map<KubernetesKind, List<KubernetesManifest>> loadPrimaryResourceList() {
     Map<KubernetesKind, List<KubernetesManifest>> result =
-        namespaces
+        getNamespaces()
             .parallelStream()
             .map(
                 n -> {
@@ -128,7 +129,6 @@ public abstract class KubernetesV2CachingAgent
   @Override
   public CacheResult loadData(ProviderCache providerCache) {
     log.info(getAgentType() + ": agent is starting");
-    reloadNamespaces();
     Map<String, Object> details = defaultIntrospectionDetails();
 
     try {
@@ -192,5 +192,11 @@ public abstract class KubernetesV2CachingAgent
               }
             });
     return result;
+  }
+
+  protected ImmutableList<String> getNamespaces() {
+    return credentials.getDeclaredNamespaces().stream()
+        .filter(n -> agentCount == 1 || Math.abs(n.hashCode() % agentCount) == agentIndex)
+        .collect(ImmutableList.toImmutableList());
   }
 }
