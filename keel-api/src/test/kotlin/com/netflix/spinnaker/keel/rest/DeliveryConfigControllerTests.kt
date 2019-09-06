@@ -4,6 +4,7 @@ import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.actuation.ResourcePersister
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.api.SubmittedEnvironment
@@ -33,6 +34,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
+import strikt.assertions.isNotNull
 import strikt.assertions.succeeded
 
 @ExtendWith(SpringExtension::class)
@@ -92,7 +94,8 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
                   kind = "whatever",
                   metadata = SubmittedMetadata("keel@spinnaker"),
                   spec = DummyResourceSpec(data = "resource in prod")
-                ))
+                )),
+                constraints = setOf(DependsOnConstraint("test"))
               )
             )
           )
@@ -138,6 +141,8 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
         |      data: resource in test
         |      application: someapp
         |- name: prod
+        |  constraints:
+        |  - environment: test
         |  resources:
         |  - apiVersion: test.spinnaker.netflix.com/v1
         |    kind: whatever
@@ -178,6 +183,11 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
         |    },
         |    {
         |      "name": "prod",
+        |      "constraints": [
+        |        {
+        |          "environment": "test"
+        |        }
+        |      ],
         |      "resources": [
         |        {
         |          "apiVersion": "test.spinnaker.netflix.com/v1",
@@ -221,6 +231,16 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
 
           test("each individual resource is persisted") {
             expectThat(resourceRepository.size()).isEqualTo(2)
+          }
+
+          test("prod constraint is persisted") {
+            expectThat(
+              deliveryConfigRepository
+                .get("keel-manifest")
+                .environments
+                .find { it.name == "prod" }
+                ?.constraints
+            ).isNotNull()
           }
         }
       }

@@ -50,7 +50,8 @@ class ResourcePersister(
           name = env.name,
           resources = env.resources.mapTo(mutableSetOf()) { resource ->
             upsert(resource)
-          }
+          },
+          constraints = env.constraints
         )
       }
     )

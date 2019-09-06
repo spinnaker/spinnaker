@@ -208,7 +208,8 @@ internal class ResourcePersisterTests : JUnit5Minutests {
                     kind = "whatever",
                     metadata = SubmittedMetadata("keel@spinnaker"),
                     spec = DummyResourceSpec("test", "resource in test")
-                  ))
+                  )),
+                  constraints = emptySet()
                 ),
                 SubmittedEnvironment(
                   name = "prod",
@@ -217,7 +218,8 @@ internal class ResourcePersisterTests : JUnit5Minutests {
                     kind = "whatever",
                     metadata = SubmittedMetadata("keel@spinnaker"),
                     spec = DummyResourceSpec("prod", "resource in prod")
-                  ))
+                  )),
+                  constraints = emptySet()
                 )
               )
             )
@@ -286,11 +288,13 @@ internal class ResourcePersisterTests : JUnit5Minutests {
               environments = setOf(
                 SubmittedEnvironment(
                   name = "test",
-                  resources = setOf(resource1)
+                  resources = setOf(resource1),
+                  constraints = emptySet()
                 ),
                 SubmittedEnvironment(
                   name = "prod",
-                  resources = setOf(resource2)
+                  resources = setOf(resource2),
+                  constraints = emptySet()
                 )
               )
             )
