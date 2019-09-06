@@ -20,6 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.validator;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials.KubernetesKindStatus;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import java.util.ArrayList;
@@ -125,10 +126,9 @@ public class KubernetesValidationUtil {
 
   private boolean validateKind(KubernetesKind kind, KubernetesV2Credentials credentials) {
     if (!credentials.isValidKind(kind)) {
-      KubernetesV2Credentials.InvalidKindReason invalidReason =
-          credentials.getInvalidKindReason(kind);
-      if (invalidReason != null) {
-        reject(invalidReason.getErrorMessage(kind), kind.toString());
+      KubernetesKindStatus kindStatus = credentials.getKindStatus(kind);
+      if (kindStatus != KubernetesKindStatus.VALID) {
+        reject(kindStatus.getErrorMessage(kind), kind.toString());
       } else {
         reject("notValidKind", kind.toString());
       }

@@ -49,7 +49,6 @@ class KubernetesV2CredentialsSpec extends Specification {
         checkPermissionsOnStartup: false,
       )
     )
-    credentials.initialize()
 
     then:
     credentials.isValidKind(KubernetesKind.DEPLOYMENT) == true
@@ -65,7 +64,6 @@ class KubernetesV2CredentialsSpec extends Specification {
         kinds: []
       )
     )
-    credentials.initialize()
 
     then:
     credentials.isValidKind(KubernetesKind.DEPLOYMENT) == true
@@ -81,7 +79,6 @@ class KubernetesV2CredentialsSpec extends Specification {
         kinds: ["deployment"]
       )
     )
-    credentials.initialize()
 
     then:
     credentials.isValidKind(KubernetesKind.DEPLOYMENT) == true
@@ -97,67 +94,78 @@ class KubernetesV2CredentialsSpec extends Specification {
         omitKinds: ["deployment"]
       )
     )
-    credentials.initialize()
 
     then:
     credentials.isValidKind(KubernetesKind.DEPLOYMENT) == false
     credentials.isValidKind(KubernetesKind.REPLICA_SET) == true
   }
 
-  void "Kinds that are not available on the server are considered invalid"() {
-    when:
-    KubernetesV2Credentials credentials = buildCredentials(
-      new KubernetesConfigurationProperties.ManagedAccount(
-        namespaces: [NAMESPACE],
-        checkPermissionsOnStartup: true,
-      )
-    )
-    credentials.initialize()
-
-    then:
-
-    kubectlJobExecutor.apiResources(_) >> {
-      return [
-        KubernetesKind.from("Deployment", KubernetesApiGroup.APPS)
-      ]
-    }
-
-    kubectlJobExecutor.authCanINamespaced(_, _, "deployment", _) >> {
-      return true
-    }
-
-    credentials.isValidKind(KubernetesKind.DEPLOYMENT) == true
-    credentials.isValidKind(KubernetesKind.REPLICA_SET) == false
-  }
-
   void "Kinds that are not readable are considered invalid"() {
-    when:
+    given:
     KubernetesV2Credentials credentials = buildCredentials(
       new KubernetesConfigurationProperties.ManagedAccount(
         namespaces: [NAMESPACE],
         checkPermissionsOnStartup: true,
       )
     )
-    credentials.initialize()
-
-    then:
-
-    kubectlJobExecutor.apiResources(_) >> {
-      return [
-        KubernetesKind.from("Deployment", KubernetesApiGroup.APPS),
-        KubernetesKind.from("ReplicaSet", KubernetesApiGroup.APPS)
-      ]
-    }
-
     kubectlJobExecutor.authCanINamespaced(_, _, "deployment", _) >> {
       return false
     }
-
     kubectlJobExecutor.authCanINamespaced(_, _, "replicaSet", _) >> {
       return true
     }
 
+    expect:
     credentials.isValidKind(KubernetesKind.DEPLOYMENT) == false
     credentials.isValidKind(KubernetesKind.REPLICA_SET) == true
+  }
+
+  void "Metrics are properly set on the account when not checking permissions"() {
+    given:
+    KubernetesV2Credentials credentials = buildCredentials(
+      new KubernetesConfigurationProperties.ManagedAccount(
+        namespaces: [NAMESPACE],
+        checkPermissionsOnStartup: false,
+        metrics: metrics
+      )
+    )
+
+    expect:
+    credentials.isMetricsEnabled() == metrics
+
+    where:
+    metrics << [true, false]
+  }
+
+  void "Metrics are properly enabled when readable"() {
+    given:
+    KubernetesV2Credentials credentials = buildCredentials(
+      new KubernetesConfigurationProperties.ManagedAccount(
+        namespaces: [NAMESPACE],
+        checkPermissionsOnStartup: true,
+        metrics: true
+      )
+    )
+    kubectlJobExecutor.topPod(_ as KubernetesV2Credentials, NAMESPACE, _) >> Collections.emptyList()
+
+    expect:
+    credentials.isMetricsEnabled() == true
+  }
+
+  void "Metrics are properly disabled when not readable"() {
+    given:
+    KubernetesV2Credentials credentials = buildCredentials(
+      new KubernetesConfigurationProperties.ManagedAccount(
+        namespaces: [NAMESPACE],
+        checkPermissionsOnStartup: true,
+        metrics: true
+      )
+    )
+    kubectlJobExecutor.topPod(_ as KubernetesV2Credentials, NAMESPACE, _) >> {
+      throw new KubectlJobExecutor.KubectlException("Error", new Exception())
+    }
+
+    expect:
+    credentials.isMetricsEnabled() == false
   }
 }

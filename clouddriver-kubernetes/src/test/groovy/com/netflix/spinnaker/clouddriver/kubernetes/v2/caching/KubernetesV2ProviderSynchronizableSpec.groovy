@@ -116,7 +116,7 @@ class KubernetesV2ProviderSynchronizableSpec extends Specification {
     accountCredentials.isServiceAccount() == false
     accountCredentials.isOnlySpinnakerManaged() == false
     accountCredentials.isDebug() == false
-    accountCredentials.isMetrics() == true
+    accountCredentials.isMetricsEnabled() == true
     accountCredentials.isLiveManifestCalls() == false
   }
 }

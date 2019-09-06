@@ -17,11 +17,14 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.security;
 
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static lombok.EqualsAndHashCode.Include;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.google.common.base.Suppliers;
+import com.google.common.collect.ImmutableSet;
 import com.netflix.spectator.api.Clock;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.CustomKubernetesResource;
@@ -47,8 +50,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
@@ -76,11 +79,9 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
 
   @Include @Getter private final List<String> omitNamespaces;
 
-  @Include private final List<KubernetesKind> kinds;
+  @Include private final ImmutableSet<KubernetesKind> kinds;
 
-  @Include List<String> omitKinds;
-
-  private final Map<KubernetesKind, InvalidKindReason> omitKindsComputed;
+  @Include private final ImmutableSet<KubernetesKind> omitKinds;
 
   @Include @Getter private final List<CustomKubernetesResource> customResources;
 
@@ -108,9 +109,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
 
   @Include @JsonIgnore @Getter private final List<String> oAuthScopes;
 
-  @Include @Getter private boolean metrics;
-
-  @Getter private boolean metricsComputed;
+  @Include private boolean metrics;
 
   @Include @Getter private final boolean debug;
 
@@ -119,6 +118,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   private final Supplier<List<KubernetesKind>> liveCrdSupplier;
   @Getter private final ResourcePropertyRegistry resourcePropertyRegistry;
   @Getter private final KubernetesKindRegistry kindRegistry;
+  private final PermissionValidator permissionValidator;
 
   public KubernetesV2Credentials(
       Registry registry,
@@ -149,17 +149,14 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
                           return new KubernetesKindProperties(k, true, false, true);
                         }))
             .map(KubernetesKindProperties::getKubernetesKind)
-            .collect(Collectors.toList());
+            .collect(toImmutableSet());
     // omitKinds is a simple placeholder that we can use to compare one instance to another
     // when refreshing credentials.
-    this.omitKinds = managedAccount.getOmitKinds();
-
-    this.omitKindsComputed =
+    this.omitKinds =
         managedAccount.getOmitKinds().stream()
             .map(KubernetesKind::fromString)
-            .collect(
-                Collectors.toMap(
-                    k -> k, k -> InvalidKindReason.EXPLICITLY_OMITTED_BY_CONFIGURATION));
+            .collect(toImmutableSet());
+    this.permissionValidator = new PermissionValidator();
 
     this.customResources = managedAccount.getCustomResources();
 
@@ -179,7 +176,6 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     this.oAuthScopes = managedAccount.getOAuthScopes();
 
     this.metrics = managedAccount.isMetrics();
-    this.metricsComputed = managedAccount.isMetrics();
 
     this.debug = managedAccount.isDebug();
 
@@ -272,7 +268,8 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     }
   }
 
-  public enum InvalidKindReason {
+  public enum KubernetesKindStatus {
+    VALID("Kind [%s] is a valid kind"),
     KIND_NONE("Kind [%s] is invalid"),
     EXPLICITLY_OMITTED_BY_CONFIGURATION(
         "Kind [%s] included in 'omitKinds' of kubernetes account configuration"),
@@ -282,7 +279,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
 
     private final String errorMessage;
 
-    InvalidKindReason(String errorMessage) {
+    KubernetesKindStatus(String errorMessage) {
       this.errorMessage = errorMessage;
     }
 
@@ -292,17 +289,33 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   }
 
   public boolean isValidKind(@Nonnull KubernetesKind kind) {
-    return getInvalidKindReason(kind) == null;
+    return getKindStatus(kind) == KubernetesKindStatus.VALID;
   }
 
-  public InvalidKindReason getInvalidKindReason(@Nonnull KubernetesKind kind) {
+  /**
+   * Returns the status of a given kubernetes kind with respect to the current account. Checks of
+   * whether a kind is readable are cached for the lifetime of the process (and are only performed
+   * when a kind is otherwise considered valid for the account).
+   */
+  @Nonnull
+  public KubernetesKindStatus getKindStatus(@Nonnull KubernetesKind kind) {
     if (kind.equals(KubernetesKind.NONE)) {
-      return InvalidKindReason.KIND_NONE;
-    } else if (!this.kinds.isEmpty()) {
-      return !kinds.contains(kind) ? InvalidKindReason.MISSING_FROM_ALLOWED_KINDS : null;
-    } else {
-      return this.omitKindsComputed.getOrDefault(kind, null);
+      return KubernetesKindStatus.KIND_NONE;
     }
+
+    if (!kinds.isEmpty()) {
+      return kinds.contains(kind)
+          ? KubernetesKindStatus.VALID
+          : KubernetesKindStatus.MISSING_FROM_ALLOWED_KINDS;
+    }
+
+    if (omitKinds.contains(kind)) {
+      return KubernetesKindStatus.EXPLICITLY_OMITTED_BY_CONFIGURATION;
+    }
+
+    return permissionValidator.isKindReadable(kind)
+        ? KubernetesKindStatus.VALID
+        : KubernetesKindStatus.READ_ERROR;
   }
 
   public String getDefaultNamespace() {
@@ -352,10 +365,6 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     // ensure this is called at least once before the credentials object is created to ensure all
     // crds are registered
     this.liveCrdSupplier.get();
-
-    if (checkPermissionsOnStartup) {
-      determineOmitKinds();
-    }
   }
 
   public List<KubernetesKind> getCrds() {
@@ -379,92 +388,8 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     return result;
   }
 
-  private void determineOmitKinds() {
-    List<String> namespaces = getDeclaredNamespaces();
-
-    if (namespaces.isEmpty()) {
-      log.warn(
-          "There are no namespaces configured (or loadable) -- please check that the list of 'omitNamespaces' for account '"
-              + accountName
-              + "' doesn't prevent access from all namespaces in this cluster, or that the cluster is reachable.");
-      return;
-    }
-
-    // we are making the assumption that the roles granted to spinnaker for this account in all
-    // namespaces are identical.
-    // otherwise, checking all namespaces for all kinds is too expensive in large clusters (imagine
-    // a cluster with 100s of namespaces).
-    String checkNamespace = namespaces.get(0);
-    List<KubernetesKind> allKinds =
-        kindRegistry.getRegisteredKinds().stream()
-            .map(KubernetesKindProperties::getKubernetesKind)
-            .collect(Collectors.toList());
-
-    log.info(
-        "Checking permissions on configured kinds for account {}... {}", accountName, allKinds);
-    long startTime = System.nanoTime();
-
-    // compute list of kinds we explicitly know the server doesn't support
-    try {
-      Set<KubernetesKind> availableResources = jobExecutor.apiResources(this);
-      Map<KubernetesKind, InvalidKindReason> unavailableKinds =
-          allKinds.stream()
-              .filter(Objects::nonNull)
-              .filter(k -> !k.equals(KubernetesKind.NONE))
-              .filter(k -> !availableResources.contains(k))
-              .collect(Collectors.toConcurrentMap(k -> k, k -> InvalidKindReason.READ_ERROR));
-
-      omitKindsComputed.putAll(unavailableKinds);
-    } catch (Exception e) {
-      log.warn("Failed to evaluate kinds available on server. {}.", e.getMessage());
-    }
-
-    Map<KubernetesKind, InvalidKindReason> unreadableKinds =
-        allKinds
-            .parallelStream()
-            .filter(Objects::nonNull)
-            .filter(k -> !k.equals(KubernetesKind.NONE))
-            .filter(k -> !omitKindsComputed.containsKey(k))
-            .filter(k -> !canReadKind(k, checkNamespace))
-            .collect(
-                Collectors.toConcurrentMap(Function.identity(), k -> InvalidKindReason.READ_ERROR));
-    long endTime = System.nanoTime();
-    long duration = (endTime - startTime) / 1000000;
-    log.info("determineOmitKinds for account {} took {} ms", accountName, duration);
-    omitKindsComputed.putAll(unreadableKinds);
-
-    if (metricsComputed) {
-      try {
-        log.info("Checking if pod metrics are readable for account {}...", accountName);
-        topPod(checkNamespace, null);
-      } catch (Exception e) {
-        log.warn(
-            "Could not read pod metrics in account '{}' for reason: {}",
-            accountName,
-            e.getMessage());
-        log.debug("Reading logs for account '{}' failed with exception: ", accountName, e);
-        metricsComputed = false;
-      }
-    }
-  }
-
-  private boolean canReadKind(KubernetesKind kind, String checkNamespace) {
-    log.info("Checking if {} is readable in account '{}'...", kind, accountName);
-    boolean allowed;
-    if (kindRegistry.getRegisteredKind(kind).isNamespaced()) {
-      allowed = jobExecutor.authCanINamespaced(this, checkNamespace, kind.getName(), "list");
-    } else {
-      allowed = jobExecutor.authCanI(this, kind.getName(), "list");
-    }
-
-    if (!allowed) {
-      log.info(
-          "Kind {} will not be cached in account '{}' because it cannot be listed.",
-          kind,
-          accountName);
-    }
-
-    return allowed;
+  public boolean isMetricsEnabled() {
+    return metrics && permissionValidator.isMetricsReadable();
   }
 
   public KubernetesManifest get(KubernetesKind kind, String namespace, String name) {
@@ -668,6 +593,111 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
       } else {
         return result;
       }
+    }
+  }
+
+  /**
+   * Handles validating which kubernetes kinds the current account has permission to read, as well
+   * as whether the current account has permission to read pod metrics.
+   */
+  private class PermissionValidator {
+    private final Supplier<String> checkNamespace = Suppliers.memoize(this::computeCheckNamespace);
+    private final Map<KubernetesKind, Boolean> readableKinds = new ConcurrentHashMap<>();
+    private final Supplier<Boolean> metricsReadable = Suppliers.memoize(this::checkMetricsReadable);
+
+    private String getCheckNamespace() {
+      return checkNamespace.get();
+    }
+
+    private String computeCheckNamespace() {
+      List<String> namespaces = getDeclaredNamespaces();
+
+      if (namespaces.isEmpty()) {
+        log.warn(
+            "There are no namespaces configured (or loadable) -- please check that the list of"
+                + " 'omitNamespaces' for account '{}' doesn't prevent access from all namespaces"
+                + " in this cluster, or that the cluster is reachable.",
+            accountName);
+        return null;
+      }
+
+      // we are making the assumption that the roles granted to spinnaker for this account in all
+      // namespaces are identical.
+      // otherwise, checking all namespaces for all kinds is too expensive in large clusters
+      // (imagine a cluster with 100s of namespaces).
+      return namespaces.get(0);
+    }
+
+    private boolean skipPermissionChecks() {
+      // checkPermissionsOnStartup exists from when permission checks were done at startup (and took
+      // a long time); this flag was added to skip the checks and assume all kinds were readable.
+      // Now that permissions are checked on-the-fly, this flag is probably not necessary, but for
+      // now we'll continue to support the prior behavior, which is to short-circuit and assume all
+      // kinds are readable before checking.
+      // Before removing this flag, we'll need to check that nobody is depending on Spinnaker
+      // skipping permission checks for reasons other than performance.  (For example, users may
+      // be relying on the skipped permission checks because of differences in permissions between
+      // namespaces.)
+      return !checkPermissionsOnStartup;
+    }
+
+    private boolean canReadKind(KubernetesKind kind) {
+      if (skipPermissionChecks()) {
+        return true;
+      }
+      log.info("Checking if {} is readable in account '{}'...", kind, accountName);
+      boolean allowed;
+      if (kindRegistry.getRegisteredKind(kind).isNamespaced()) {
+        allowed =
+            jobExecutor.authCanINamespaced(
+                KubernetesV2Credentials.this, getCheckNamespace(), kind.getName(), "list");
+      } else {
+        allowed = jobExecutor.authCanI(KubernetesV2Credentials.this, kind.getName(), "list");
+      }
+
+      if (!allowed) {
+        log.info(
+            "Kind {} will not be cached in account '{}' because it cannot be listed.",
+            kind,
+            accountName);
+      }
+
+      return allowed;
+    }
+
+    private boolean checkMetricsReadable() {
+      if (skipPermissionChecks()) {
+        return true;
+      }
+      try {
+        log.info("Checking if pod metrics are readable for account {}...", accountName);
+        topPod(getCheckNamespace(), null);
+        return true;
+      } catch (Exception e) {
+        log.warn(
+            "Could not read pod metrics in account '{}' for reason: {}",
+            accountName,
+            e.getMessage());
+        log.debug("Reading logs for account '{}' failed with exception: ", accountName, e);
+        return false;
+      }
+    }
+
+    /**
+     * Returns whether the given kind is readable for the current kubernetes account. This check is
+     * cached for each kind for the lifetime of the process, and subsequent calls return the cached
+     * value.
+     */
+    boolean isKindReadable(@Nonnull KubernetesKind kind) {
+      return readableKinds.computeIfAbsent(kind, this::canReadKind);
+    }
+
+    /**
+     * Returns whether metrics are readable for the current kubernetes account. This check is cached
+     * for the lifetime of the process, and subsequent calls return the cached value.
+     */
+    boolean isMetricsReadable() {
+      return metricsReadable.get();
     }
   }
 }
