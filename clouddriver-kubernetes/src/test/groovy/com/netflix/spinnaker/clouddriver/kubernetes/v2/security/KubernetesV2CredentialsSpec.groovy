@@ -108,11 +108,11 @@ class KubernetesV2CredentialsSpec extends Specification {
         checkPermissionsOnStartup: true,
       )
     )
-    kubectlJobExecutor.authCanINamespaced(_, _, "deployment", _) >> {
-      return false
+    kubectlJobExecutor.list(_ as KubernetesV2Credentials, [KubernetesKind.DEPLOYMENT], NAMESPACE, _ as KubernetesSelectorList) >> {
+      throw new KubectlJobExecutor.KubectlException("Error", new Exception())
     }
-    kubectlJobExecutor.authCanINamespaced(_, _, "replicaSet", _) >> {
-      return true
+    kubectlJobExecutor.list(_ as KubernetesV2Credentials, [KubernetesKind.REPLICA_SET], NAMESPACE, _ as KubernetesSelectorList) >> {
+      return Collections.emptyList()
     }
 
     expect:

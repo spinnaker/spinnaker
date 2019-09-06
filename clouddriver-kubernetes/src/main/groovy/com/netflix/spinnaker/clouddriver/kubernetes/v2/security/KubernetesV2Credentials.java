@@ -646,23 +646,20 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
         return true;
       }
       log.info("Checking if {} is readable in account '{}'...", kind, accountName);
-      boolean allowed;
-      if (kindRegistry.getRegisteredKind(kind).isNamespaced()) {
-        allowed =
-            jobExecutor.authCanINamespaced(
-                KubernetesV2Credentials.this, getCheckNamespace(), kind.getName(), "list");
-      } else {
-        allowed = jobExecutor.authCanI(KubernetesV2Credentials.this, kind.getName(), "list");
-      }
-
-      if (!allowed) {
+      try {
+        if (kindRegistry.getRegisteredKind(kind).isNamespaced()) {
+          list(kind, checkNamespace.get());
+        } else {
+          list(kind, null);
+        }
+        return true;
+      } catch (Exception e) {
         log.info(
             "Kind {} will not be cached in account '{}' because it cannot be listed.",
             kind,
             accountName);
+        return false;
       }
-
-      return allowed;
     }
 
     private boolean checkMetricsReadable() {
