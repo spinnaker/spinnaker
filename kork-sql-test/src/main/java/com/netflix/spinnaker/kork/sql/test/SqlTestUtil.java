@@ -25,13 +25,18 @@ import java.io.Closeable;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Comparator;
+import liquibase.ContextExpression;
 import liquibase.Liquibase;
+import liquibase.changelog.ChangeLogParameters;
+import liquibase.changelog.DatabaseChangeLog;
 import liquibase.configuration.GlobalConfiguration;
 import liquibase.configuration.LiquibaseConfiguration;
 import liquibase.database.DatabaseFactory;
 import liquibase.database.jvm.JdbcConnection;
 import liquibase.exception.DatabaseException;
 import liquibase.exception.LiquibaseException;
+import liquibase.exception.SetupException;
 import liquibase.resource.ClassLoaderResourceAccessor;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
@@ -142,14 +147,31 @@ public class SqlTestUtil {
 
     Liquibase migrate;
     try {
+      DatabaseChangeLog changeLog = new DatabaseChangeLog();
+
+      changeLog.setChangeLogParameters(
+          new ChangeLogParameters(
+              DatabaseFactory.getInstance()
+                  .findCorrectDatabaseImplementation(
+                      new JdbcConnection(dataSource.getConnection()))));
+
+      changeLog.includeAll(
+          "db/changelog/",
+          false,
+          null,
+          false,
+          Comparator.comparing(String::toString),
+          new ClassLoaderResourceAccessor(),
+          new ContextExpression());
+
       migrate =
           new Liquibase(
-              "db/changelog-master.yml",
+              changeLog,
               new ClassLoaderResourceAccessor(),
               DatabaseFactory.getInstance()
                   .findCorrectDatabaseImplementation(
                       new JdbcConnection(dataSource.getConnection())));
-    } catch (DatabaseException | SQLException e) {
+    } catch (DatabaseException | SQLException | SetupException e) {
       throw new DatabaseInitializationFailed(e);
     }
 
