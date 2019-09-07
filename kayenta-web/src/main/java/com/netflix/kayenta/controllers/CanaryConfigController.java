@@ -111,14 +111,20 @@ public class CanaryConfigController {
     canaryConfig.setUpdatedTimestampIso(
         Instant.ofEpochMilli(canaryConfig.getUpdatedTimestamp()).toString());
 
-    String canaryConfigId = UUID.randomUUID() + "";
+    if (StringUtils.isEmpty(canaryConfig.getId())) {
+      // Ensure that the canary config id is stored within the canary config itself.
+      canaryConfig = canaryConfig.toBuilder().id(UUID.randomUUID() + "").build();
+    }
 
-    // TODO(duftler): Serialize the canary config within a canary run?
+    String canaryConfigId = canaryConfig.getId();
+
     validateNameAndApplicationAttributes(canaryConfig);
 
     try {
       configurationService.loadObject(
           resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG, canaryConfigId);
+
+      throw new IllegalArgumentException("Canary config '" + canaryConfigId + "' already exists.");
     } catch (NotFoundException e) {
       configurationService.storeObject(
           resolvedConfigurationAccountName,
@@ -130,8 +136,6 @@ public class CanaryConfigController {
 
       return CanaryConfigUpdateResponse.builder().canaryConfigId(canaryConfigId).build();
     }
-
-    throw new IllegalArgumentException("Canary config '" + canaryConfigId + "' already exists.");
   }
 
   @ApiOperation(value = "Update a canary config")
@@ -168,6 +172,11 @@ public class CanaryConfigController {
           resolvedConfigurationAccountName, ObjectType.CANARY_CONFIG, canaryConfigId);
     } catch (Exception e) {
       throw new IllegalArgumentException("Canary config '" + canaryConfigId + "' does not exist.");
+    }
+
+    // Ensure that the canary config id is stored within the canary config itself.
+    if (StringUtils.isEmpty(canaryConfig.getId())) {
+      canaryConfig = canaryConfig.toBuilder().id(canaryConfigId).build();
     }
 
     configurationService.storeObject(

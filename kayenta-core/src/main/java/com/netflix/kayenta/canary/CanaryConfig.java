@@ -39,6 +39,8 @@ public class CanaryConfig {
 
   @NotNull @Getter @Setter private String name;
 
+  @Getter private String id;
+
   @NotNull @Getter private String description;
 
   @NotNull @Getter private String configVersion;
