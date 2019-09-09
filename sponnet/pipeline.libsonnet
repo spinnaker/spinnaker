@@ -24,9 +24,9 @@
     withVariableValues(variables):: self + { variables: variables },  // variables are key-value pairs of <variable name> -> <variable value>
   },
 
-  moniker(app, cluster):: {
+  moniker(app, cluster=null):: {
     app: app,
-    cluster: cluster,
+    [if cluster != null then "cluster"]: cluster,
     withStack(stack):: self + { stack: stack },
     withDetail(detail):: self + { detail: detail },
   },
