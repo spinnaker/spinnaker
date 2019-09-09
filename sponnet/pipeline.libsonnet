@@ -347,6 +347,16 @@
       withMaster(master):: self + { master: master },
     },
 
+    // Google Cloud Build stages
+
+    googleCloudBuild(name): stage(name, 'googleCloudBuild') {
+      withBuildDefinitionText(buildDefinition):: self + {
+        buildDefinitionSource: 'text',
+        buildDefinition: buildDefinition,
+      },
+      withAccount(account):: self + { account: account },
+    },
+
   },
 
   // kubernetes-provider help
