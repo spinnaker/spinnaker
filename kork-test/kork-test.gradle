@@ -1,5 +1,18 @@
 apply plugin: "java-library"
+apply from: "$rootDir/gradle/kotlin.gradle"
 
 dependencies {
   api(platform(project(":spinnaker-dependencies")))
+  api "com.google.code.findbugs:jsr305"
+
+
+  implementation project(":kork-exceptions")
+  implementation "org.slf4j:slf4j-api"
+  implementation "com.netflix.spinnaker.moniker:moniker"
+  implementation "com.fasterxml.jackson.core:jackson-core"
+  implementation "com.fasterxml.jackson.core:jackson-databind"
+  implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
+  implementation "org.springframework:spring-core"
+  implementation "org.jetbrains:annotations"
+  implementation "org.apache.commons:commons-lang3"
 }

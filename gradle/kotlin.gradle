@@ -20,10 +20,12 @@ apply plugin: "kotlin-spring"
 dependencies {
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation "org.junit.platform:junit-platform-runner"
-  testImplementation "org.jetbrains.spek:spek-api"
-  testImplementation "com.nhaarman:mockito-kotlin:1.5.0"
+  testImplementation "org.jetbrains.spek:spek-api" // Deprecated
+  testImplementation "com.nhaarman:mockito-kotlin:1.5.0" // Deprecated
   testImplementation "org.assertj:assertj-core"
   testImplementation "io.strikt:strikt-core"
+  testImplementation "dev.minutest:minutest"
+  testImplementation "io.mockk:mockk"
 
   testRuntimeOnly "org.junit.platform:junit-platform-launcher"
   testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
