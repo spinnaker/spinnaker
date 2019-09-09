@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.stereotype.Component;
@@ -46,6 +47,7 @@ public class KubernetesEventHandler extends KubernetesHandler {
     throw new IllegalStateException("Events cannot be deployed.");
   }
 
+  @Nonnull
   @Override
   public KubernetesKind kind() {
     return EVENT;
@@ -56,6 +58,7 @@ public class KubernetesEventHandler extends KubernetesHandler {
     return false;
   }
 
+  @Nonnull
   @Override
   public KubernetesSpinnakerKindMap.SpinnakerKind spinnakerKind() {
     return KubernetesSpinnakerKindMap.SpinnakerKind.UNCLASSIFIED;

@@ -82,9 +82,6 @@ public abstract class KubernetesV2AbstractManifestProvider
     KubernetesKind kind = manifest.getKind();
 
     KubernetesResourceProperties properties = getRegistry(account).get(kind);
-    if (properties == null) {
-      return null;
-    }
 
     Function<KubernetesManifest, String> lastEventTimestamp =
         (m) -> (String) m.getOrDefault("lastTimestamp", m.getOrDefault("firstTimestamp", "n/a"));

@@ -40,6 +40,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -51,6 +52,7 @@ public class KubernetesIngressHandler extends KubernetesHandler {
     return NETWORK_RESOURCE_PRIORITY.getValue();
   }
 
+  @Nonnull
   @Override
   public KubernetesKind kind() {
     return KubernetesKind.INGRESS;
@@ -61,6 +63,7 @@ public class KubernetesIngressHandler extends KubernetesHandler {
     return false;
   }
 
+  @Nonnull
   @Override
   public SpinnakerKind spinnakerKind() {
     return SpinnakerKind.LOAD_BALANCERS;

@@ -34,6 +34,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.model.Manifest;
+import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 
 public class CustomKubernetesHandlerFactory {
@@ -68,6 +69,7 @@ public class CustomKubernetesHandlerFactory {
       return deployPriority;
     }
 
+    @Nonnull
     @Override
     public KubernetesKind kind() {
       return kubernetesKind;
@@ -78,6 +80,7 @@ public class CustomKubernetesHandlerFactory {
       return versioned;
     }
 
+    @Nonnull
     @Override
     public SpinnakerKind spinnakerKind() {
       return spinnakerKind;

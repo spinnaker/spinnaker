@@ -34,12 +34,6 @@ public interface CanLoadBalance {
   static CanLoadBalance lookupProperties(
       ResourcePropertyRegistry registry, Pair<KubernetesKind, String> name) {
     KubernetesResourceProperties loadBalancerProperties = registry.get(name.getLeft());
-    if (loadBalancerProperties == null) {
-      throw new IllegalArgumentException(
-          "No properties are registered for "
-              + name
-              + ", are you sure it's a valid load balancer type?");
-    }
 
     KubernetesHandler loadBalancerHandler = loadBalancerProperties.getHandler();
     if (loadBalancerHandler == null) {

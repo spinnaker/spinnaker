@@ -36,6 +36,7 @@ import com.netflix.spinnaker.clouddriver.model.Manifest.Warning;
 import com.netflix.spinnaker.clouddriver.model.ManifestProvider;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.*;
+import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -47,10 +48,12 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatc
 
   public abstract int deployPriority();
 
+  @Nonnull
   public abstract KubernetesKind kind();
 
   public abstract boolean versioned();
 
+  @Nonnull
   public abstract SpinnakerKind spinnakerKind();
 
   public abstract Status status(KubernetesManifest manifest);

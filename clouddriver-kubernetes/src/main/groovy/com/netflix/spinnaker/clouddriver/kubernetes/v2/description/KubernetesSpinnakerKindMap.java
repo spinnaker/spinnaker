@@ -18,12 +18,14 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSetMultimap;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
@@ -58,29 +60,33 @@ public class KubernetesSpinnakerKindMap {
     }
   }
 
-  private final Map<SpinnakerKind, Set<KubernetesKind>> spinnakerToKubernetes = new HashMap<>();
-  private final Map<KubernetesKind, SpinnakerKind> kubernetesToSpinnaker = new HashMap<>();
+  private final ImmutableMap<KubernetesKind, SpinnakerKind> kubernetesToSpinnaker;
+  private final ImmutableSetMultimap<SpinnakerKind, KubernetesKind> spinnakerToKubernetes;
 
-  void addRelationship(SpinnakerKind spinnakerKind, KubernetesKind kubernetesKind) {
-    Set<KubernetesKind> kinds = spinnakerToKubernetes.get(spinnakerKind);
-    if (kinds == null) {
-      kinds = new HashSet<>();
+  public KubernetesSpinnakerKindMap(List<KubernetesHandler> handlers) {
+    ImmutableMap.Builder<KubernetesKind, SpinnakerKind> kubernetesToSpinnakerBuilder =
+        new ImmutableMap.Builder<>();
+    ImmutableSetMultimap.Builder<SpinnakerKind, KubernetesKind> spinnakerToKubernetesBuilder =
+        new ImmutableSetMultimap.Builder<>();
+    for (KubernetesHandler handler : handlers) {
+      SpinnakerKind spinnakerKind = handler.spinnakerKind();
+      KubernetesKind kubernetesKind = handler.kind();
+      kubernetesToSpinnakerBuilder.put(kubernetesKind, spinnakerKind);
+      spinnakerToKubernetesBuilder.put(spinnakerKind, kubernetesKind);
     }
-
-    kinds.add(kubernetesKind);
-    spinnakerToKubernetes.put(spinnakerKind, kinds);
-    kubernetesToSpinnaker.put(kubernetesKind, spinnakerKind);
+    this.kubernetesToSpinnaker = kubernetesToSpinnakerBuilder.build();
+    this.spinnakerToKubernetes = spinnakerToKubernetesBuilder.build();
   }
 
   public SpinnakerKind translateKubernetesKind(KubernetesKind kubernetesKind) {
     return kubernetesToSpinnaker.getOrDefault(kubernetesKind, SpinnakerKind.UNCLASSIFIED);
   }
 
-  public Set<KubernetesKind> translateSpinnakerKind(SpinnakerKind spinnakerKind) {
+  public ImmutableSet<KubernetesKind> translateSpinnakerKind(SpinnakerKind spinnakerKind) {
     return spinnakerToKubernetes.get(spinnakerKind);
   }
 
-  public Set<KubernetesKind> allKubernetesKinds() {
+  public ImmutableSet<KubernetesKind> allKubernetesKinds() {
     return kubernetesToSpinnaker.keySet();
   }
 

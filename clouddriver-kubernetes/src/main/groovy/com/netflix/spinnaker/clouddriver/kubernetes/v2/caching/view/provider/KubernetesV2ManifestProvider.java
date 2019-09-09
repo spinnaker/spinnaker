@@ -97,9 +97,6 @@ public class KubernetesV2ManifestProvider extends KubernetesV2AbstractManifestPr
       String account, String location, String kind, String app, String cluster, Sort sort) {
     KubernetesResourceProperties properties =
         getRegistry(account).get(KubernetesKind.fromString(kind));
-    if (properties == null) {
-      return null;
-    }
 
     KubernetesHandler handler = properties.getHandler();
 

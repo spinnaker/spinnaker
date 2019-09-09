@@ -24,7 +24,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgentDispatcher;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourceProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.security.*;
@@ -156,19 +155,6 @@ public class KubernetesV2ProviderSynchronizable implements CredentialsInitialize
       for (KubernetesNamedAccountCredentials credentials : allAccounts) {
         KubernetesV2Credentials v2Credentials =
             (KubernetesV2Credentials) credentials.getCredentials();
-        v2Credentials
-            .getCustomResources()
-            .forEach(
-                cr -> {
-                  try {
-                    KubernetesResourceProperties properties =
-                        KubernetesResourceProperties.fromCustomResource(
-                            cr, v2Credentials.getKindRegistry());
-                    v2Credentials.getResourcePropertyRegistry().register(properties);
-                  } catch (Exception e) {
-                    log.warn("Error encountered registering {}: ", cr, e);
-                  }
-                });
         v2Credentials.initialize();
         List<Agent> newlyAddedAgents =
             kubernetesV2CachingAgentDispatcher.buildAllCachingAgents(credentials).stream()

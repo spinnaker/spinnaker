@@ -29,12 +29,6 @@ public interface HasPods {
 
   static HasPods lookupProperties(ResourcePropertyRegistry registry, KubernetesKind kind) {
     KubernetesResourceProperties hasPodsProperties = registry.get(kind);
-    if (hasPodsProperties == null) {
-      throw new IllegalArgumentException(
-          "No properties are registered for "
-              + kind
-              + ", are you sure it's a valid pod manager type?");
-    }
     KubernetesHandler hasPodsHandler = hasPodsProperties.getHandler();
     if (hasPodsHandler == null) {
       throw new IllegalArgumentException(

@@ -34,9 +34,6 @@ public class RegistryUtils {
     }
 
     KubernetesResourceProperties properties = propertyRegistry.get(kind);
-    if (properties == null) {
-      return Optional.empty();
-    }
 
     KubernetesHandler handler = properties.getHandler();
 

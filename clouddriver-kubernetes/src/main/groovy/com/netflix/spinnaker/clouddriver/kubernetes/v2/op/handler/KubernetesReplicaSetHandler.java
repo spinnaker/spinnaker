@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -61,6 +62,7 @@ public class KubernetesReplicaSetHandler extends KubernetesHandler
     return WORKLOAD_CONTROLLER_PRIORITY.getValue();
   }
 
+  @Nonnull
   @Override
   public KubernetesKind kind() {
     return KubernetesKind.REPLICA_SET;
@@ -71,6 +73,7 @@ public class KubernetesReplicaSetHandler extends KubernetesHandler
     return true;
   }
 
+  @Nonnull
   @Override
   public SpinnakerKind spinnakerKind() {
     return SpinnakerKind.SERVER_GROUPS;

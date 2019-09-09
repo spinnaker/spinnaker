@@ -34,6 +34,7 @@ import io.kubernetes.client.models.V1JobStatus;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import javax.annotation.Nonnull;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -54,6 +55,7 @@ public class KubernetesJobHandler extends KubernetesHandler implements ServerGro
     return WORKLOAD_CONTROLLER_PRIORITY.getValue();
   }
 
+  @Nonnull
   @Override
   public KubernetesKind kind() {
     return KubernetesKind.JOB;
@@ -64,6 +66,7 @@ public class KubernetesJobHandler extends KubernetesHandler implements ServerGro
     return false;
   }
 
+  @Nonnull
   @Override
   public KubernetesSpinnakerKindMap.SpinnakerKind spinnakerKind() {
     return KubernetesSpinnakerKindMap.SpinnakerKind.SERVER_GROUPS;

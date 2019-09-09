@@ -16,13 +16,16 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description;
 
+import com.google.common.collect.ImmutableCollection;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
-import java.util.Collection;
+import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 
+@ParametersAreNonnullByDefault
 public interface ResourcePropertyRegistry {
+  @Nonnull
   KubernetesResourceProperties get(KubernetesKind kind);
 
-  Collection<KubernetesResourceProperties> values();
-
-  void register(KubernetesResourceProperties properties);
+  @Nonnull
+  ImmutableCollection<KubernetesResourceProperties> values();
 }

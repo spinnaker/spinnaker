@@ -32,6 +32,7 @@ import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
 import io.kubernetes.client.models.V1beta2DaemonSet;
 import io.kubernetes.client.models.V1beta2DaemonSetStatus;
 import java.util.Map;
+import javax.annotation.Nonnull;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -53,6 +54,7 @@ public class KubernetesDaemonSetHandler extends KubernetesHandler
     return WORKLOAD_CONTROLLER_PRIORITY.getValue();
   }
 
+  @Nonnull
   @Override
   public KubernetesKind kind() {
     return KubernetesKind.DAEMON_SET;
@@ -63,6 +65,7 @@ public class KubernetesDaemonSetHandler extends KubernetesHandler
     return false;
   }
 
+  @Nonnull
   @Override
   public SpinnakerKind spinnakerKind() {
     return SpinnakerKind.SERVER_GROUPS;

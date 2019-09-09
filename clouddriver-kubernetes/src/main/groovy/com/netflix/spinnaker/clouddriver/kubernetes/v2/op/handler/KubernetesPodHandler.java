@@ -33,6 +33,7 @@ import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
 import io.kubernetes.client.models.V1Pod;
 import io.kubernetes.client.models.V1PodStatus;
 import java.util.Map;
+import javax.annotation.Nonnull;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -51,6 +52,7 @@ public class KubernetesPodHandler extends KubernetesHandler {
     return WORKLOAD_PRIORITY.getValue();
   }
 
+  @Nonnull
   @Override
   public KubernetesKind kind() {
     return KubernetesKind.POD;
@@ -61,6 +63,7 @@ public class KubernetesPodHandler extends KubernetesHandler {
     return true;
   }
 
+  @Nonnull
   @Override
   public SpinnakerKind spinnakerKind() {
     return SpinnakerKind.INSTANCES;

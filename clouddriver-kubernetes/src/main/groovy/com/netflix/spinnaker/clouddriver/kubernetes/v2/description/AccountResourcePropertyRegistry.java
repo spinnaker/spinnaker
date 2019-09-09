@@ -17,24 +17,33 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description;
 
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
+
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 import org.springframework.stereotype.Component;
 
+@ParametersAreNonnullByDefault
 public class AccountResourcePropertyRegistry implements ResourcePropertyRegistry {
   private final GlobalResourcePropertyRegistry globalResourcePropertyRegistry;
-
-  private final ConcurrentHashMap<KubernetesKind, KubernetesResourceProperties> propertyMap =
-      new ConcurrentHashMap<>();
+  private final ImmutableMap<KubernetesKind, KubernetesResourceProperties> propertyMap;
 
   private AccountResourcePropertyRegistry(
-      GlobalResourcePropertyRegistry globalResourcePropertyRegistry) {
+      GlobalResourcePropertyRegistry globalResourcePropertyRegistry,
+      Collection<KubernetesResourceProperties> resourceProperties) {
     this.globalResourcePropertyRegistry = globalResourcePropertyRegistry;
+    this.propertyMap =
+        resourceProperties.stream()
+            .collect(toImmutableMap(p -> p.getHandler().kind(), Function.identity()));
   }
 
+  @Override
   @Nonnull
   public KubernetesResourceProperties get(KubernetesKind kind) {
     KubernetesResourceProperties accountResult = propertyMap.get(kind);
@@ -45,16 +54,13 @@ public class AccountResourcePropertyRegistry implements ResourcePropertyRegistry
     return globalResourcePropertyRegistry.get(kind);
   }
 
-  public void register(KubernetesResourceProperties properties) {
-    propertyMap.put(properties.getHandler().kind(), properties);
-  }
-
-  public Collection<KubernetesResourceProperties> values() {
-    Collection<KubernetesResourceProperties> result =
-        new ArrayList<>(globalResourcePropertyRegistry.values());
-    result.addAll(propertyMap.values());
-
-    return result;
+  @Override
+  @Nonnull
+  public ImmutableCollection<KubernetesResourceProperties> values() {
+    return new ImmutableList.Builder<KubernetesResourceProperties>()
+        .addAll(globalResourcePropertyRegistry.values())
+        .addAll(propertyMap.values())
+        .build();
   }
 
   @Component
@@ -65,8 +71,10 @@ public class AccountResourcePropertyRegistry implements ResourcePropertyRegistry
       this.globalResourcePropertyRegistry = globalResourcePropertyRegistry;
     }
 
-    public AccountResourcePropertyRegistry create() {
-      return new AccountResourcePropertyRegistry(globalResourcePropertyRegistry);
+    public AccountResourcePropertyRegistry create(
+        Collection<KubernetesResourceProperties> resourceProperties) {
+      return new AccountResourcePropertyRegistry(
+          globalResourcePropertyRegistry, resourceProperties);
     }
   }
 }

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description
 
+import com.google.common.collect.ImmutableList
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesReplicaSetHandler
@@ -26,20 +27,20 @@ class AccountResourcePropertyRegistrySpec extends Specification {
     given:
     def replicaSetProperties = new KubernetesResourceProperties(new KubernetesReplicaSetHandler(), true)
     def globalResourcePropertyRegistry = Mock(GlobalResourcePropertyRegistry) {
-      values() >> []
+      values() >> ImmutableList.of()
       get(_ as KubernetesKind) >> KubernetesKind.NONE
     }
     def factory = new AccountResourcePropertyRegistry.Factory(globalResourcePropertyRegistry)
 
     when:
-    AccountResourcePropertyRegistry registry = factory.create()
+    AccountResourcePropertyRegistry registry = factory.create([])
 
     then:
     registry instanceof AccountResourcePropertyRegistry
     registry.values().isEmpty()
 
     when:
-    registry.register(replicaSetProperties)
+    registry = factory.create([replicaSetProperties])
 
     then:
     registry.values().size() == 1
@@ -50,13 +51,13 @@ class AccountResourcePropertyRegistrySpec extends Specification {
     given:
     def properties = new KubernetesResourceProperties(Mock(KubernetesHandler), true)
     def globalResourcePropertyRegistry = Mock(GlobalResourcePropertyRegistry) {
-      values() >> [properties]
+      values() >> ImmutableList.of(properties)
       get(KubernetesKind.DEPLOYMENT) >> properties
     }
     def factory = new AccountResourcePropertyRegistry.Factory(globalResourcePropertyRegistry)
 
     when:
-    AccountResourcePropertyRegistry registry = factory.create()
+    AccountResourcePropertyRegistry registry = factory.create([])
 
     then:
     registry instanceof AccountResourcePropertyRegistry

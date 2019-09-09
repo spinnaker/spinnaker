@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.security
 
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.AccountResourcePropertyRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.ResourcePropertyRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.GlobalKubernetesKindRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiGroup
@@ -31,14 +32,14 @@ class KubernetesV2CredentialsSpec extends Specification {
   Registry registry = Stub(Registry)
   KubectlJobExecutor kubectlJobExecutor = Stub(KubectlJobExecutor)
   String NAMESPACE = "my-namespace"
-  ResourcePropertyRegistry resourcePropertyRegistry = Mock(ResourcePropertyRegistry)
+  AccountResourcePropertyRegistry.Factory resourcePropertyRegistryFactory = Mock(AccountResourcePropertyRegistry.Factory)
   KubernetesKindRegistry.Factory kindRegistryFactory = new KubernetesKindRegistry.Factory(
     new GlobalKubernetesKindRegistry(KubernetesKindProperties.getGlobalKindProperties())
   )
 
 
   private buildCredentials(KubernetesConfigurationProperties.ManagedAccount managedAccount) {
-    return new KubernetesV2Credentials(registry, kubectlJobExecutor, managedAccount, resourcePropertyRegistry, kindRegistryFactory.create(), null)
+    return new KubernetesV2Credentials(registry, kubectlJobExecutor, managedAccount, resourcePropertyRegistryFactory, kindRegistryFactory.create(), null)
   }
 
   void "Built-in Kubernetes kinds are considered valid by default"() {

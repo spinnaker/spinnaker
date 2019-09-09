@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpi
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
+import javax.annotation.Nonnull;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -34,6 +35,7 @@ public class KubernetesPodDisruptionBudgetHandler extends KubernetesHandler {
     return PDB_PRIORITY.getValue();
   }
 
+  @Nonnull
   @Override
   public KubernetesKind kind() {
     return KubernetesKind.POD_DISRUPTION_BUDGET;
@@ -44,6 +46,7 @@ public class KubernetesPodDisruptionBudgetHandler extends KubernetesHandler {
     return false;
   }
 
+  @Nonnull
   @Override
   public KubernetesSpinnakerKindMap.SpinnakerKind spinnakerKind() {
     return KubernetesSpinnakerKindMap.SpinnakerKind.UNCLASSIFIED;

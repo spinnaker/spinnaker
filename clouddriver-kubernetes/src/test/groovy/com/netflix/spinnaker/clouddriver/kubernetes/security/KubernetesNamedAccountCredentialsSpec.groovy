@@ -35,7 +35,7 @@ import java.nio.file.Files
 
 class KubernetesNamedAccountCredentialsSpec extends Specification {
 
-  KubernetesSpinnakerKindMap kindMap = new KubernetesSpinnakerKindMap()
+  KubernetesSpinnakerKindMap kindMap = new KubernetesSpinnakerKindMap([])
   AccountCredentialsRepository accountCredentialsRepository = Mock(AccountCredentialsRepository)
   NamerRegistry namerRegistry = new NamerRegistry([new KubernetesManifestNamer()])
   ConfigFileService configFileService = new ConfigFileService()

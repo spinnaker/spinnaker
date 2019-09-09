@@ -33,6 +33,7 @@ import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
 import io.kubernetes.client.models.V1beta2Deployment;
 import io.kubernetes.client.models.V1beta2DeploymentCondition;
 import io.kubernetes.client.models.V1beta2DeploymentStatus;
+import javax.annotation.Nonnull;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -59,6 +60,7 @@ public class KubernetesDeploymentHandler extends KubernetesHandler
     return WORKLOAD_CONTROLLER_PRIORITY.getValue();
   }
 
+  @Nonnull
   @Override
   public KubernetesKind kind() {
     return KubernetesKind.DEPLOYMENT;
@@ -69,6 +71,7 @@ public class KubernetesDeploymentHandler extends KubernetesHandler
     return false;
   }
 
+  @Nonnull
   @Override
   public KubernetesSpinnakerKindMap.SpinnakerKind spinnakerKind() {
     return KubernetesSpinnakerKindMap.SpinnakerKind.SERVER_GROUP_MANAGERS;

@@ -37,6 +37,7 @@ import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.moniker.Namer;
 import java.util.*;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -108,12 +109,6 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
       }
 
       KubernetesResourceProperties properties = findResourceProperties(manifest);
-      if (properties == null) {
-        throw new IllegalArgumentException(
-            "Unsupported Kubernetes object kind '"
-                + manifest.getKind().toString()
-                + "', unable to continue.");
-      }
       KubernetesHandler deployer = properties.getHandler();
       if (deployer == null) {
         throw new IllegalArgumentException(
@@ -336,6 +331,7 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
         .build();
   }
 
+  @Nonnull
   private KubernetesResourceProperties findResourceProperties(KubernetesManifest manifest) {
     KubernetesKind kind = manifest.getKind();
     getTask().updateStatus(OP_NAME, "Finding deployer for " + kind + "...");

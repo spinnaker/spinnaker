@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpi
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.Manifest;
+import javax.annotation.Nonnull;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -31,6 +32,7 @@ public class KubernetesPodPresetHandler extends KubernetesHandler {
     return DeployPriority.WORKLOAD_MODIFIER_PRIORITY.getValue();
   }
 
+  @Nonnull
   @Override
   public KubernetesKind kind() {
     return KubernetesKind.POD_PRESET;
@@ -41,6 +43,7 @@ public class KubernetesPodPresetHandler extends KubernetesHandler {
     return false;
   }
 
+  @Nonnull
   @Override
   public KubernetesSpinnakerKindMap.SpinnakerKind spinnakerKind() {
     return KubernetesSpinnakerKindMap.SpinnakerKind.UNCLASSIFIED;

@@ -16,36 +16,40 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description;
 
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
+
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler;
-import java.util.Collection;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesUnregisteredCustomResourceHandler;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
+@ParametersAreNonnullByDefault
 public class GlobalResourcePropertyRegistry implements ResourcePropertyRegistry {
-  private final ConcurrentHashMap<KubernetesKind, KubernetesResourceProperties> globalProperties =
-      new ConcurrentHashMap<>();
-  private final KubernetesSpinnakerKindMap kindMap;
+  private final ImmutableMap<KubernetesKind, KubernetesResourceProperties> globalProperties;
+  private final KubernetesResourceProperties defaultProperties;
 
   @Autowired
   public GlobalResourcePropertyRegistry(
-      List<KubernetesHandler> handlers, KubernetesSpinnakerKindMap kindMap) {
-    this.kindMap = kindMap;
-    registerHandlers(handlers);
+      List<KubernetesHandler> handlers,
+      KubernetesUnregisteredCustomResourceHandler defaultHandler) {
+    this.globalProperties =
+        handlers.stream()
+            .collect(
+                toImmutableMap(
+                    KubernetesHandler::kind,
+                    h -> new KubernetesResourceProperties(h, h.versioned())));
+    this.defaultProperties =
+        new KubernetesResourceProperties(defaultHandler, defaultHandler.versioned());
   }
 
-  private void registerHandlers(List<KubernetesHandler> handlers) {
-    for (KubernetesHandler handler : handlers) {
-      KubernetesResourceProperties properties =
-          new KubernetesResourceProperties(handler, handler.versioned());
-      register(properties);
-    }
-  }
-
+  @Override
   @Nonnull
   public KubernetesResourceProperties get(KubernetesKind kind) {
     KubernetesResourceProperties globalResult = globalProperties.get(kind);
@@ -53,16 +57,12 @@ public class GlobalResourcePropertyRegistry implements ResourcePropertyRegistry 
       return globalResult;
     }
 
-    return globalProperties.get(KubernetesKind.NONE);
+    return defaultProperties;
   }
 
-  public Collection<KubernetesResourceProperties> values() {
+  @Override
+  @Nonnull
+  public ImmutableCollection<KubernetesResourceProperties> values() {
     return globalProperties.values();
-  }
-
-  public void register(KubernetesResourceProperties properties) {
-    KubernetesHandler handler = properties.getHandler();
-    kindMap.addRelationship(handler.spinnakerKind(), handler.kind());
-    globalProperties.put(handler.kind(), properties);
   }
 }

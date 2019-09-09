@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpi
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
+import javax.annotation.Nonnull;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -35,6 +36,7 @@ public class KubernetesUnregisteredCustomResourceHandler extends KubernetesHandl
     return LOWEST_PRIORITY.getValue();
   }
 
+  @Nonnull
   @Override
   public KubernetesKind kind() {
     return KubernetesKind.NONE;
@@ -45,9 +47,10 @@ public class KubernetesUnregisteredCustomResourceHandler extends KubernetesHandl
     return false;
   }
 
+  @Nonnull
   @Override
   public SpinnakerKind spinnakerKind() {
-    return null;
+    return SpinnakerKind.UNCLASSIFIED;
   }
 
   @Override

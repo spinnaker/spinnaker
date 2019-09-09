@@ -80,10 +80,6 @@ public class KubernetesCleanupArtifactsOperation implements AtomicOperation<Oper
           String kind = type.substring("kubernetes/".length());
           KubernetesResourceProperties properties =
               credentials.getResourcePropertyRegistry().get(KubernetesKind.fromString(kind));
-          if (properties == null) {
-            log.warn("No properties for artifact {}, ignoring", a);
-            return;
-          }
 
           getTask().updateStatus(OP_NAME, "Deleting artifact '" + a + '"');
           KubernetesHandler handler = properties.getHandler();

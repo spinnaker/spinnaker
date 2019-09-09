@@ -29,6 +29,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
 import io.kubernetes.client.models.V2alpha1CronJob;
 import io.kubernetes.client.models.V2alpha1CronJobStatus;
+import javax.annotation.Nonnull;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -50,6 +51,7 @@ public class KubernetesCronJobHandler extends KubernetesHandler
     return WORKLOAD_CONTROLLER_PRIORITY.getValue();
   }
 
+  @Nonnull
   @Override
   public KubernetesKind kind() {
     return KubernetesKind.CRON_JOB;
@@ -60,6 +62,7 @@ public class KubernetesCronJobHandler extends KubernetesHandler
     return false;
   }
 
+  @Nonnull
   @Override
   public KubernetesSpinnakerKindMap.SpinnakerKind spinnakerKind() {
     return KubernetesSpinnakerKindMap.SpinnakerKind.SERVER_GROUPS;

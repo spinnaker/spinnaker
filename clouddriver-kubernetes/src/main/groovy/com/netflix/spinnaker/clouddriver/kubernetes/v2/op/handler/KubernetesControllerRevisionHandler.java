@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpi
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
+import javax.annotation.Nonnull;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -32,6 +33,7 @@ public class KubernetesControllerRevisionHandler extends KubernetesHandler {
     throw new IllegalStateException("Controller revisions cannot be deployed.");
   }
 
+  @Nonnull
   @Override
   public KubernetesKind kind() {
     return KubernetesKind.CONTROLLER_REVISION;
@@ -42,6 +44,7 @@ public class KubernetesControllerRevisionHandler extends KubernetesHandler {
     return false;
   }
 
+  @Nonnull
   @Override
   public SpinnakerKind spinnakerKind() {
     return SpinnakerKind.UNCLASSIFIED;

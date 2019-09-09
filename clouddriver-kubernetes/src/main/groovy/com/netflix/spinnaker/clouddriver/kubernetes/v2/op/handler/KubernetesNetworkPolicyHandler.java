@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
 import java.util.Map;
+import javax.annotation.Nonnull;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -37,6 +38,7 @@ public class KubernetesNetworkPolicyHandler extends KubernetesHandler {
     return NETWORK_RESOURCE_PRIORITY.getValue();
   }
 
+  @Nonnull
   @Override
   public KubernetesKind kind() {
     return KubernetesKind.NETWORK_POLICY;
@@ -47,6 +49,7 @@ public class KubernetesNetworkPolicyHandler extends KubernetesHandler {
     return false;
   }
 
+  @Nonnull
   @Override
   public SpinnakerKind spinnakerKind() {
     return SpinnakerKind.SECURITY_GROUPS;

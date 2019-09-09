@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -51,6 +52,7 @@ public class KubernetesServiceHandler extends KubernetesHandler implements CanLo
     return NETWORK_RESOURCE_PRIORITY.getValue();
   }
 
+  @Nonnull
   @Override
   public KubernetesKind kind() {
     return KubernetesKind.SERVICE;
@@ -61,6 +63,7 @@ public class KubernetesServiceHandler extends KubernetesHandler implements CanLo
     return false;
   }
 
+  @Nonnull
   @Override
   public SpinnakerKind spinnakerKind() {
     return SpinnakerKind.LOAD_BALANCERS;

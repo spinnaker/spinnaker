@@ -175,7 +175,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials>
           spectatorRegistry,
           jobExecutor,
           managedAccount,
-          resourcePropertyRegistryFactory.create(),
+          resourcePropertyRegistryFactory,
           kindRegistryFactory.create(),
           getKubeconfigFile(managedAccount));
     }

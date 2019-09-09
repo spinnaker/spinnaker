@@ -137,10 +137,6 @@ public class KubernetesPatchManifestOperation implements AtomicOperation<Operati
   private KubernetesHandler findPatchHandler(KubernetesCoordinates objToPatch) {
     KubernetesResourceProperties properties =
         credentials.getResourcePropertyRegistry().get(objToPatch.getKind());
-    if (properties == null) {
-      throw new IllegalArgumentException(
-          "Unsupported Kubernetes object kind '" + objToPatch.getKind() + "', unable to continue");
-    }
     KubernetesHandler patchHandler = properties.getHandler();
     if (patchHandler == null) {
       throw new IllegalArgumentException(

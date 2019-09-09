@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
 import java.util.Collections;
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -36,6 +37,7 @@ public class KubernetesSecretHandler extends KubernetesHandler {
     return MOUNTABLE_DATA_PRIORITY.getValue();
   }
 
+  @Nonnull
   @Override
   public KubernetesKind kind() {
     return KubernetesKind.SECRET;
@@ -51,6 +53,7 @@ public class KubernetesSecretHandler extends KubernetesHandler {
     return true;
   }
 
+  @Nonnull
   @Override
   public SpinnakerKind spinnakerKind() {
     return SpinnakerKind.CONFIGS;

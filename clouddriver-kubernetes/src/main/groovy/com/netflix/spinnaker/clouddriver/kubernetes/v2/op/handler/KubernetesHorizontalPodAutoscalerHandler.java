@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpi
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
+import javax.annotation.Nonnull;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -40,6 +41,7 @@ public class KubernetesHorizontalPodAutoscalerHandler extends KubernetesHandler 
     return WORKLOAD_ATTACHMENT_PRIORITY.getValue();
   }
 
+  @Nonnull
   @Override
   public KubernetesKind kind() {
     return KubernetesKind.HORIZONTAL_POD_AUTOSCALER;
@@ -50,6 +52,7 @@ public class KubernetesHorizontalPodAutoscalerHandler extends KubernetesHandler 
     return false;
   }
 
+  @Nonnull
   @Override
   public SpinnakerKind spinnakerKind() {
     return SpinnakerKind.UNCLASSIFIED;

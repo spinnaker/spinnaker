@@ -63,7 +63,7 @@ class KubernetesV2ProviderSynchronizableSpec extends Specification {
       agentDispatcher,
       configurationProperties,
       credentialFactory,
-      new KubernetesSpinnakerKindMap(),
+      new KubernetesSpinnakerKindMap([]),
       catsModule
     )
 
