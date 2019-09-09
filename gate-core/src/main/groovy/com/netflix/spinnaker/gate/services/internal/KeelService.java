@@ -19,7 +19,6 @@ package com.netflix.spinnaker.gate.services.internal;
 
 import com.netflix.spinnaker.kork.manageddelivery.model.DeliveryConfig;
 import com.netflix.spinnaker.kork.manageddelivery.model.Resource;
-import com.netflix.spinnaker.kork.manageddelivery.model.ResourceEvent;
 import java.util.List;
 import java.util.Map;
 import retrofit.http.Body;
@@ -32,7 +31,8 @@ import retrofit.http.Query;
 public interface KeelService {
 
   @GET("/resources/events/{name}")
-  List<ResourceEvent> getResourceEvents(@Path("name") String name, @Query("limit") Integer limit);
+  List<Map<String, Object>> getResourceEvents(
+      @Path("name") String name, @Query("limit") Integer limit);
 
   @GET("/resources/{name}")
   Resource getResource(@Path("name") String name);
