@@ -6,7 +6,6 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.sql.pending.SqlPendingExecutionService
 import com.netflix.spinnaker.q.Queue
 import org.jooq.DSLContext
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -23,7 +22,7 @@ class SqlPendingExecutionConfiguration {
     jooq: DSLContext,
     queue: Queue,
     repository: ExecutionRepository,
-    @Qualifier("redisQueueObjectMapper") mapper: ObjectMapper,
+    mapper: ObjectMapper,
     clock: Clock,
     registry: Registry,
     sqlProperties: SqlProperties,

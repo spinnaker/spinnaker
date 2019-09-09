@@ -21,9 +21,9 @@ import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.netflix.spinnaker.orca.TaskResolver
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
-import com.netflix.spinnaker.orca.q.redis.migration.ExecutionTypeDeserializer
-import com.netflix.spinnaker.orca.q.redis.migration.OrcaToKeikoSerializationMigrator
-import com.netflix.spinnaker.orca.q.redis.migration.TaskTypeDeserializer
+import com.netflix.spinnaker.orca.q.migration.ExecutionTypeDeserializer
+import com.netflix.spinnaker.orca.q.migration.OrcaToKeikoSerializationMigrator
+import com.netflix.spinnaker.orca.q.migration.TaskTypeDeserializer
 import com.netflix.spinnaker.orca.q.redis.pending.RedisPendingExecutionService
 import com.netflix.spinnaker.q.metrics.EventPublisher
 import com.netflix.spinnaker.q.migration.SerializationMigrator
@@ -46,6 +46,10 @@ import java.util.Optional
 
 @Configuration
 @EnableConfigurationProperties(ObjectMapperSubtypeProperties::class)
+@ConditionalOnProperty(
+  value = ["keiko.queue.redis.enabled"],
+  havingValue = "true",
+  matchIfMissing = true)
 class RedisOrcaQueueConfiguration : RedisQueueConfiguration() {
 
   @Autowired
@@ -70,7 +74,8 @@ class RedisOrcaQueueConfiguration : RedisQueueConfiguration() {
     }
   }
 
-  @Bean fun orcaToKeikoSerializationMigrator(objectMapper: ObjectMapper) = OrcaToKeikoSerializationMigrator(objectMapper)
+  @Bean
+  fun orcaToKeikoSerializationMigrator(objectMapper: ObjectMapper) = OrcaToKeikoSerializationMigrator(objectMapper)
 
   @Bean
   @ConditionalOnProperty(value = ["redis.cluster-enabled"], havingValue = "false", matchIfMissing = true)

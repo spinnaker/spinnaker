@@ -41,7 +41,7 @@ class SqlHealthcheckActivator(
 
   private val log = LoggerFactory.getLogger(javaClass)
 
-  internal val _enabled = AtomicBoolean(false)
+  val _enabled = AtomicBoolean(false)
   private val _healthException: AtomicReference<Exception> = AtomicReference()
 
   private val healthyCounter = AtomicInteger(0)

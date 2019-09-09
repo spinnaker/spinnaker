@@ -309,9 +309,15 @@ abstract class QueueIntegrationTest {
         requisiteStageRefIds = listOf("2a1")
       }
       stage {
-        refId = "2b"
-        type = "dummy"
+        refId = "2b1"
+        type = "wait"
+        context = mapOf("waitTime" to 2)
         requisiteStageRefIds = listOf("1")
+      }
+      stage {
+        refId = "2b2"
+        type = "dummy"
+        requisiteStageRefIds = listOf("2b1")
       }
       stage {
         refId = "3"
@@ -332,7 +338,7 @@ abstract class QueueIntegrationTest {
       assertThat(stageByRef("1").status).isEqualTo(SUCCEEDED)
       assertThat(stageByRef("2a1").status).isEqualTo(TERMINAL)
       assertThat(stageByRef("2a2").status).isEqualTo(NOT_STARTED)
-      assertThat(stageByRef("2b").status).isEqualTo(SUCCEEDED)
+      assertThat(stageByRef("2b2").status).isEqualTo(NOT_STARTED)
       assertThat(stageByRef("3").status).isEqualTo(NOT_STARTED)
     }
   }
@@ -454,16 +460,22 @@ abstract class QueueIntegrationTest {
     val parentPipeline = pipeline {
       application = "spinnaker"
       stage {
-        refId = "1"
+        refId = "1a"
+        type = "wait"
+        context = mapOf("waitTime" to 2)
+      }
+      stage {
+        refId = "1b"
         type = "pipeline"
         context = mapOf("executionId" to childPipeline.id)
+        requisiteStageRefIds = linkedSetOf("1a")
       }
     }
 
     repository.store(childPipeline)
     repository.store(parentPipeline)
 
-    whenever(dummyTask.execute(argThat { refId == "1" })) doReturn TaskResult.ofStatus(CANCELED)
+    whenever(dummyTask.execute(argThat { refId == "1b" })) doReturn TaskResult.ofStatus(CANCELED)
     context.runParentToCompletion(parentPipeline, childPipeline, runner::start, repository)
 
     repository.retrieve(PIPELINE, parentPipeline.id).apply {
@@ -492,20 +504,27 @@ abstract class QueueIntegrationTest {
         context = mapOf("waitTime" to 60)
       }
       stage {
-        refId = "2"
-        type = "dummy"
+        refId = "2a"
+        type = "wait"
+        context = mapOf("waitTime" to 2)
         requisiteStageRefIds = emptyList()
+      }
+      stage {
+        refId = "2b"
+        type = "dummy"
+        requisiteStageRefIds = listOf("2a")
       }
     }
     repository.store(pipeline)
 
-    whenever(dummyTask.execute(argThat { refId == "2" })) doReturn TaskResult.ofStatus(TERMINAL)
+    whenever(dummyTask.execute(argThat { refId == "2b" })) doReturn TaskResult.ofStatus(TERMINAL)
 
     context.runToCompletion(pipeline, runner::start, repository)
 
     repository.retrieve(PIPELINE, pipeline.id).apply {
       assertThat(status).isEqualTo(TERMINAL)
-      assertThat(stageByRef("2").status).isEqualTo(TERMINAL)
+      assertThat(stageByRef("2b").status).isEqualTo(TERMINAL)
+      assertThat(stageByRef("2a").status).isEqualTo(SUCCEEDED)
       assertThat(stageByRef("1").status).isEqualTo(CANCELED)
       assertThat(stageByRef("1").startTime).isGreaterThan(1L)
       assertThat(stageByRef("1").endTime).isGreaterThan(1L)

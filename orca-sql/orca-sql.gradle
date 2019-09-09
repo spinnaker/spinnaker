@@ -20,8 +20,7 @@ apply from: "$rootDir/gradle/spock.gradle"
 dependencies {
   implementation(project(":orca-core"))
 
-  // TODO rz - Prefer definitely not having this
-  implementation(project(":orca-queue-redis"))
+  implementation(project(":orca-queue"))
   implementation("com.netflix.spectator:spectator-api")
   implementation("com.netflix.spinnaker.keiko:keiko-core:$keikoVersion")
   implementation("com.netflix.spinnaker.kork:kork-core")

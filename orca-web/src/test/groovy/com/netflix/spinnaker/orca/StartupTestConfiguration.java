@@ -31,6 +31,7 @@ class StartupTestConfiguration {
   @Bean
   @Primary
   Queue queue(Clock clock, EventPublisher publisher) {
-    return new InMemoryQueue(clock, Duration.ofMinutes(1), Collections.emptyList(), publisher);
+    return new InMemoryQueue(
+        clock, Duration.ofMinutes(1), Collections.emptyList(), false, publisher);
   }
 }
