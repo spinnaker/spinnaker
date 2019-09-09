@@ -18,22 +18,23 @@ package com.netflix.spinnaker.kork.version;
 import java.util.List;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 
 /** Attempts to resolve the version of a service. */
 @Slf4j
-public class ServiceVersion implements ApplicationContextAware {
+public class ServiceVersion {
 
   private static final String UNKNOWN_VERSION = "unknown";
 
   private final List<VersionResolver> resolvers;
-  private ApplicationContext applicationContext;
+  private final ApplicationContext applicationContext;
+
+  private String resolvedServiceVersion;
 
   @Autowired
-  public ServiceVersion(List<VersionResolver> resolvers) {
+  public ServiceVersion(ApplicationContext applicationContext, List<VersionResolver> resolvers) {
+    this.applicationContext = applicationContext;
     this.resolvers = resolvers;
   }
 
@@ -45,31 +46,25 @@ public class ServiceVersion implements ApplicationContextAware {
    */
   @Nonnull
   public String resolve() {
-    if (applicationContext == null) {
-      log.error("ApplicationContext has not been set: Cannot determine service version");
-      return UNKNOWN_VERSION;
-    }
+    if (resolvedServiceVersion == null) {
+      for (VersionResolver resolver : resolvers) {
+        final String resolverName = resolver.getClass().getSimpleName();
+        log.trace("Attempting to resolve service version: {}", resolverName);
 
-    for (VersionResolver resolver : resolvers) {
-      final String resolverName = resolver.getClass().getSimpleName();
-      log.trace("Attempting to resolve service version: {}", resolverName);
-
-      try {
-        String version = resolver.resolve(applicationContext.getApplicationName());
-        if (version != null) {
-          return version;
+        try {
+          String version = resolver.resolve(applicationContext.getApplicationName());
+          if (version != null) {
+            resolvedServiceVersion = version;
+            break;
+          }
+        } catch (Exception e) {
+          log.error("Failed while resolving version: {}", resolverName, e);
         }
-      } catch (Exception e) {
-        log.error("Failed while resolving version: {}", resolverName, e);
       }
+
+      resolvedServiceVersion = UNKNOWN_VERSION;
     }
 
-    log.warn("Could not resolve service version");
-    return UNKNOWN_VERSION;
-  }
-
-  @Override
-  public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-    this.applicationContext = applicationContext;
+    return resolvedServiceVersion;
   }
 }

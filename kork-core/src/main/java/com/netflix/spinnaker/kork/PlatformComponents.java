@@ -26,6 +26,7 @@ import com.netflix.spinnaker.kork.version.VersionResolver;
 import io.github.resilience4j.retry.RetryRegistry;
 import java.util.List;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -39,8 +40,9 @@ import org.springframework.context.annotation.Import;
 })
 public class PlatformComponents {
   @Bean
-  ServiceVersion serviceVersion(List<VersionResolver> versionResolvers) {
-    return new ServiceVersion(versionResolvers);
+  ServiceVersion serviceVersion(
+      ApplicationContext applicationContext, List<VersionResolver> versionResolvers) {
+    return new ServiceVersion(applicationContext, versionResolvers);
   }
 
   @Bean
