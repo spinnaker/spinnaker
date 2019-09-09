@@ -124,7 +124,7 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
         }
       }
 
-      context("the environment has constraints") {
+      context("the environment has constraints and a version can be found") {
         deriveFixture {
           copy(environment = Environment(
             name = "staging",
@@ -168,6 +168,37 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
               artifact.type,
               "1.2"
             ))
+          }
+        }
+      }
+
+      context("the environment has constraints and a version cannot be found") {
+        deriveFixture {
+          copy(environment = Environment(
+            name = "staging",
+            constraints = setOf(DependsOnConstraint("test"))
+          ))
+        }
+
+        before {
+          // TODO: sucks that this is necessary but when using deriveFixture you get a different mockk
+          every {
+            artifactRepository.versions(artifact)
+          } returns listOf("1.0")
+
+          every { constraintEvaluator.canPromote(artifact, "1.0", deliveryConfig, environment.name) } returns false
+        }
+
+        test("no exception is thrown") {
+          expectCatching {
+            subject.checkEnvironments(deliveryConfig)
+          }
+            .succeeded()
+        }
+
+        test("no artifact is registered") {
+          verify(exactly = 0) {
+            artifactRepository.approveVersionFor(deliveryConfig, artifact, "1.0", environment.name)
           }
         }
       }

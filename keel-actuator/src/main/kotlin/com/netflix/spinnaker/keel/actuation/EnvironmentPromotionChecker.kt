@@ -26,37 +26,41 @@ class EnvironmentPromotionChecker(
         } else {
           deliveryConfig.environments.forEach { environment ->
             val version = if (environment.constraints.isEmpty()) {
-              versions.first()
+              versions.firstOrNull()
             } else {
-              versions.first { v ->
+              versions.firstOrNull { v ->
                 constraints.all { constraintEvaluator ->
                   !environment.hasSupportedConstraint(constraintEvaluator) || constraintEvaluator.canPromote(artifact, v, deliveryConfig, environment.name)
                 }
               }
             }
 
-            val isNewVersion = artifactRepository
-              .approveVersionFor(deliveryConfig, artifact, version, environment.name)
-            if (isNewVersion) {
-              log.info(
-                "Approved {} {} version {} for {} environment {} in {}",
-                artifact.name,
-                artifact.type,
-                version,
-                deliveryConfig.name,
-                environment.name,
-                deliveryConfig.application
-              )
-              publisher.publishEvent(
-                ArtifactVersionApproved(
-                  deliveryConfig.application,
-                  deliveryConfig.name,
-                  environment.name,
+            if (version == null) {
+              log.warn("No version of {} passes constraints for environment {}", artifact.name, environment.name)
+            } else {
+              val isNewVersion = artifactRepository
+                .approveVersionFor(deliveryConfig, artifact, version, environment.name)
+              if (isNewVersion) {
+                log.info(
+                  "Approved {} {} version {} for {} environment {} in {}",
                   artifact.name,
                   artifact.type,
-                  version
+                  version,
+                  deliveryConfig.name,
+                  environment.name,
+                  deliveryConfig.application
                 )
-              )
+                publisher.publishEvent(
+                  ArtifactVersionApproved(
+                    deliveryConfig.application,
+                    deliveryConfig.name,
+                    environment.name,
+                    artifact.name,
+                    artifact.type,
+                    version
+                  )
+                )
+              }
             }
           }
         }
