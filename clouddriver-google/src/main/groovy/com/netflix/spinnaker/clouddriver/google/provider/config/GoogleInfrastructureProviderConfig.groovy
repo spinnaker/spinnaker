@@ -158,12 +158,11 @@ class GoogleInfrastructureProviderConfig {
                                                                         objectMapper,
                                                                         registry,
                                                                         region)
-          newlyAddedAgents << new GoogleRegionalServerGroupCachingAgent(clouddriverUserAgentApplicationName,
-                                                                        credentials,
-                                                                        objectMapper,
+          newlyAddedAgents << new GoogleRegionalServerGroupCachingAgent(credentials,
+                                                                        computeApiFactory,
                                                                         registry,
                                                                         region,
-                                                                        googleConfigurationProperties.maxMIGPageSize)
+                                                                        objectMapper)
           newlyAddedAgents << new GoogleZonalServerGroupCachingAgent(credentials,
                                                                      computeApiFactory,
                                                                      registry,

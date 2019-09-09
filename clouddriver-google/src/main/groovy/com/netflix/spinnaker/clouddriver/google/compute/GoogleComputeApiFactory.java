@@ -59,6 +59,15 @@ public class GoogleComputeApiFactory {
     return new InstanceTemplates(credentials, operationPoller, registry);
   }
 
+  public RegionAutoscalers createRegionAutoscalers(GoogleNamedAccountCredentials credentials) {
+    return new RegionAutoscalers(credentials, operationPoller, registry);
+  }
+
+  public RegionInstanceGroupManagers createRegionInstanceGroupManagers(
+      GoogleNamedAccountCredentials credentials) {
+    return new RegionInstanceGroupManagers(credentials, operationPoller, registry);
+  }
+
   public ZoneAutoscalers createZoneAutoscalers(GoogleNamedAccountCredentials credentials) {
     return new ZoneAutoscalers(credentials, operationPoller, registry);
   }
