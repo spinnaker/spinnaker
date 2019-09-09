@@ -332,22 +332,6 @@ class GateConfig extends RedisHttpSessionConfiguration {
     )
   }
 
-  @Bean
-  OriginValidator gateOriginValidator(
-    @Value('${services.deck.base-url:}') String deckBaseUrl,
-    @Value('${services.deck.redirect-host-pattern:#{null}}') String redirectHostPattern,
-    @Value('${cors.allowed-origins-pattern:#{null}}') String allowedOriginsPattern,
-    @Value('${cors.expect-localhost:false}') boolean expectLocalhost) {
-    return new GateOriginValidator(deckBaseUrl, redirectHostPattern, allowedOriginsPattern, expectLocalhost)
-  }
-
-  @Bean
-  FilterRegistrationBean simpleCORSFilter(OriginValidator gateOriginValidator) {
-    def frb = new FilterRegistrationBean(new CorsFilter(gateOriginValidator))
-    frb.setOrder(Ordered.HIGHEST_PRECEDENCE)
-    return frb
-  }
-
   /**
    * This AuthenticatedRequestFilter pulls the email and accounts out of the Spring
    * security context in order to enabling forwarding them to downstream components.
@@ -372,7 +356,7 @@ class GateConfig extends RedisHttpSessionConfiguration {
     def frb = new FilterRegistrationBean(securityFilter)
     frb.order = 0
     frb.name = AbstractSecurityWebApplicationInitializer.DEFAULT_FILTER_NAME
-    return frb;
+    return frb
   }
 
   @Bean

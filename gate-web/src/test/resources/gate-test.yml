@@ -20,3 +20,23 @@ services:
   mine.enabled: false
 
   swabbie.enabled: false
+
+---
+
+spring:
+  profiles: alloworigincors
+
+cors:
+  allow-mode: "list"
+  allowed-origins: >
+    https://testblah.domain.net,
+    https://testblah.somewhere.net
+
+---
+
+spring:
+  profiles: regexcors
+
+cors:
+  allowedOriginsPattern: '^https?://(?:localhost|[^/]+\.somewhere\.net)(?::[1-9]\d*)?/?$'
+  expectLocalhost: true
