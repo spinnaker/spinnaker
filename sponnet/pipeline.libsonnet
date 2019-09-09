@@ -282,6 +282,7 @@
       withManifestArtifactAccount(account):: self + { manifestArtifactAccount: account },
       // Add/Default to embedded-artifact? If so add:  /* , manifestArtifactAccount: 'embedded-artifact' */
       withManifestArtifact(artifact):: self + { manifestArtifactId: artifact.id, source: 'artifact' },
+      withRequiredArtifactIds(artifacts):: self + { requiredArtifactIds: [a.id for a in artifacts] },
       withManifests(manifests):: self + if std.type(manifests) == 'array' then { manifests: manifests } else { manifests: [manifests] },
       withMoniker(moniker):: self + { moniker: moniker },
       withSkipExpressionEvaluation():: self + { skipExpressionEvaluation: true },
