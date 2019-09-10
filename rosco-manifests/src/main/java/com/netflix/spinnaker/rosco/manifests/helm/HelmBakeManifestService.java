@@ -37,7 +37,9 @@ public class HelmBakeManifestService extends BakeManifestService<HelmBakeManifes
       return Artifact.builder()
           .type("embedded/base64")
           .name(bakeManifestRequest.getOutputArtifactName())
-          .reference(Base64.getEncoder().encodeToString(bakeResult))
+          .reference(
+              Base64.getEncoder()
+                  .encodeToString(helmTemplateUtils.removeTestsDirectoryTemplates(bakeResult)))
           .build();
     }
   }
