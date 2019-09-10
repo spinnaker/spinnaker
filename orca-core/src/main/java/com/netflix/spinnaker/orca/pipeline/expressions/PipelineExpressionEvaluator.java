@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline.expressions;
 
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.expressions.ExpressionEvaluationSummary;
 import com.netflix.spinnaker.kork.expressions.ExpressionFunctionProvider;
 import com.netflix.spinnaker.kork.expressions.ExpressionTransform;
@@ -44,6 +45,7 @@ public class PipelineExpressionEvaluator {
 
   private static Class[] extraAllowedReturnTypes =
       new Class[] {
+        Artifact.class,
         Execution.class,
         Stage.class,
         Trigger.class,
