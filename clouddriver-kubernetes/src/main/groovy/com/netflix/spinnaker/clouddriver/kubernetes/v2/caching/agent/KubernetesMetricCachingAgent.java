@@ -69,6 +69,10 @@ public class KubernetesMetricCachingAgent extends KubernetesV2CachingAgent
 
   @Override
   public CacheResult loadData(ProviderCache providerCache) {
+    if (!credentials.isMetricsEnabled()) {
+      return new DefaultCacheResult(Collections.emptyMap());
+    }
+
     log.info(getAgentType() + ": agent is starting");
     List<KubernetesPodMetric> podMetrics =
         getNamespaces()

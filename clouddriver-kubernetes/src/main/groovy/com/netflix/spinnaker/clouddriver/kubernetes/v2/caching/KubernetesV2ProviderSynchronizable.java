@@ -25,7 +25,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurati
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgentDispatcher;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.security.*;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -153,9 +152,6 @@ public class KubernetesV2ProviderSynchronizable implements CredentialsInitialize
 
     try {
       for (KubernetesNamedAccountCredentials credentials : allAccounts) {
-        KubernetesV2Credentials v2Credentials =
-            (KubernetesV2Credentials) credentials.getCredentials();
-        v2Credentials.initialize();
         List<Agent> newlyAddedAgents =
             kubernetesV2CachingAgentDispatcher.buildAllCachingAgents(credentials).stream()
                 .map(c -> (Agent) c)

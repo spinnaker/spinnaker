@@ -62,7 +62,6 @@ public class KubernetesV2CachingAgentDispatcher implements KubernetesCachingAgen
     ResourcePropertyRegistry propertyRegistry = v2Credentials.getResourcePropertyRegistry();
 
     IntStream.range(0, credentials.getCacheThreads())
-        .boxed()
         .forEach(
             i ->
                 propertyRegistry.values().stream()
@@ -80,20 +79,17 @@ public class KubernetesV2CachingAgentDispatcher implements KubernetesCachingAgen
                     .filter(Objects::nonNull)
                     .forEach(c -> result.add((KubernetesCachingAgent) c)));
 
-    if (v2Credentials.isMetricsEnabled()) {
-      IntStream.range(0, credentials.getCacheThreads())
-          .boxed()
-          .forEach(
-              i ->
-                  result.add(
-                      new KubernetesMetricCachingAgent(
-                          credentials,
-                          objectMapper,
-                          registry,
-                          i,
-                          credentials.getCacheThreads(),
-                          agentInterval)));
-    }
+    IntStream.range(0, credentials.getCacheThreads())
+        .forEach(
+            i ->
+                result.add(
+                    new KubernetesMetricCachingAgent(
+                        credentials,
+                        objectMapper,
+                        registry,
+                        i,
+                        credentials.getCacheThreads(),
+                        agentInterval)));
 
     return result.stream()
         .collect(Collectors.toMap(KubernetesCachingAgent::getAgentType, c -> c, (a, b) -> b))
