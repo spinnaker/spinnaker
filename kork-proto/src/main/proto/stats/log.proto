@@ -9,17 +9,17 @@ option java_multiple_files = true;
 
 message Event {
   SpinnakerInstance spinnaker_instance = 1;
+  Application application = 2;
+  Execution execution = 3;
 }
 
 message SpinnakerInstance {
   string id = 1;
   string version = 2;
-  Application application = 3;
 }
 
 message Application {
   string id = 1;
-  Execution execution = 2;
 }
 
 message Execution {
