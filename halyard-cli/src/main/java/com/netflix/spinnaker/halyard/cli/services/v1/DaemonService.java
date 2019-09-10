@@ -927,6 +927,22 @@ public interface DaemonService {
       @Path("pluginName") String pluginName,
       @Query("validate") boolean validate);
 
+  @GET("/v1/config/deployments/{deploymentName}/telemetry/")
+  DaemonTask<Halconfig, Object> getTelemetry(
+      @Path("deploymentName") String deploymentName, @Query("validate") boolean validate);
+
+  @PUT("/v1/config/deployments/{deploymentName}/telemetry/")
+  DaemonTask<Halconfig, Void> setTelemetry(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate,
+      @Body Telemetry telemetry);
+
+  @PUT("/v1/config/deployments/{deploymentName}/telemetry/enabled/")
+  DaemonTask<Halconfig, Void> setTelemetryEnabled(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate,
+      @Body boolean enabled);
+
   @GET("/v1/spin/install/latest")
   DaemonTask<Halconfig, Object> installSpin();
 }

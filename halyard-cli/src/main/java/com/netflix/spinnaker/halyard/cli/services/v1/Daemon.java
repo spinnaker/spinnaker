@@ -1369,6 +1369,30 @@ public class Daemon {
     };
   }
 
+  public static Supplier<Telemetry> getTelemetry(String deploymentName, boolean validate) {
+    return () -> {
+      Object rawTelemetry =
+          ResponseUnwrapper.get(getService().getTelemetry(deploymentName, validate));
+      return getObjectMapper().convertValue(rawTelemetry, new TypeReference<Telemetry>() {});
+    };
+  }
+
+  public static Supplier<Void> setTelemetryEnableDisable(
+      String deploymentName, boolean validate, boolean enable) {
+    return () -> {
+      ResponseUnwrapper.get(getService().setTelemetryEnabled(deploymentName, validate, enable));
+      return null;
+    };
+  }
+
+  public static Supplier<Void> setTelemetry(
+      String deploymentName, boolean validate, Telemetry telemetry) {
+    return () -> {
+      ResponseUnwrapper.get(getService().setTelemetry(deploymentName, validate, telemetry));
+      return null;
+    };
+  }
+
   private static DaemonService service;
   private static ObjectMapper objectMapper;
 

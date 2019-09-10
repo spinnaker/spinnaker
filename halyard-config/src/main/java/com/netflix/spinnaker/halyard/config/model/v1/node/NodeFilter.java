@@ -349,6 +349,11 @@ public class NodeFilter implements Cloneable {
     return this;
   }
 
+  public NodeFilter setTelemetry() {
+    matchers.add(Node.thisNodeAcceptor(Telemetry.class));
+    return this;
+  }
+
   public NodeFilter() {
     withAnyHalconfigFile();
   }

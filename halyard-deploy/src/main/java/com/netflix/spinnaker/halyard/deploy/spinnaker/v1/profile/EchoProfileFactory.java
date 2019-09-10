@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
+import com.netflix.spinnaker.halyard.config.config.v1.ResourceConfig;
 import com.netflix.spinnaker.halyard.config.model.v1.ci.gcb.GoogleCloudBuild;
 import com.netflix.spinnaker.halyard.config.model.v1.node.*;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
@@ -24,10 +25,16 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerServic
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class EchoProfileFactory extends SpringProfileFactory {
+
+  @Autowired String spinconfigBucket;
+
+  @Autowired boolean gcsEnabled;
+
   @Override
   public SpinnakerArtifact getArtifact() {
     return SpinnakerArtifact.ECHO;
@@ -82,6 +89,23 @@ public class EchoProfileFactory extends SpringProfileFactory {
       }
     }
 
+    Telemetry telemetry = deploymentConfiguration.getTelemetry();
+    if (telemetry != null) {
+
+      // We don't want to accidentally log any PII that may be stuffed into custom BOM bucket names,
+      // so we should only log the version if using our public releases (as indicated by using our
+      // public GCS bucket).
+      String telemetryVersion = "custom";
+      if (gcsEnabled
+          && spinconfigBucket.equalsIgnoreCase(ResourceConfig.DEFAULT_HALCONFIG_BUCKET)) {
+        telemetryVersion = deploymentConfiguration.getVersion();
+      }
+      telemetry.setSpinnakerVersion(telemetryVersion);
+      profile.appendContents(
+          yamlToString(
+              deploymentConfiguration.getName(), profile, new TelemetryWrapper(telemetry)));
+    }
+
     profile.appendContents(profile.getBaseContents()).setRequiredFiles(files);
   }
 
@@ -109,6 +133,15 @@ public class EchoProfileFactory extends SpringProfileFactory {
 
     GCBWrapper(GoogleCloudBuild gcb) {
       this.gcb = gcb;
+    }
+  }
+
+  @Data
+  private static class TelemetryWrapper {
+    private Telemetry telemetry;
+
+    TelemetryWrapper(Telemetry telemetry) {
+      this.telemetry = telemetry;
     }
   }
 }

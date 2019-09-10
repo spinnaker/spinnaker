@@ -90,6 +90,8 @@ public class DeploymentConfiguration extends Node {
 
   Webhook webhook = new Webhook();
 
+  Telemetry telemetry = new Telemetry();
+
   @Override
   public String getNodeName() {
     return name;

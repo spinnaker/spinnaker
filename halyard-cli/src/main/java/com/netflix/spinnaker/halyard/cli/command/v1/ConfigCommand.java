@@ -25,6 +25,7 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.CiCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.ProviderCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.pubsubs.PubsubCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.repository.RepositoryCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.telemetry.TelemetryCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.webhook.WebhookCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
@@ -70,6 +71,7 @@ public class ConfigCommand extends AbstractConfigCommand {
     registerSubcommand(new CiCommand());
     registerSubcommand(new ListCommand());
     registerSubcommand(new RepositoryCommand());
+    registerSubcommand(new TelemetryCommand());
   }
 
   @Override
