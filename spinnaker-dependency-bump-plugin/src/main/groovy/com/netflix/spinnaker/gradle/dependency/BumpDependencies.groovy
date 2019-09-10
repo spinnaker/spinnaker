@@ -40,7 +40,7 @@ class BumpDependencies extends DefaultTask {
     
     ```
     GITHUB_ACCESS_TOKEN=
-    ./gradlew mergeAllAutoBumpPRs -Pgithub.token=$GITHUB_ACCESS_TOKEN
+    ./gradlew mergeAllAutoBumpPRs -Pgithub.token=$GITHUB_ACCESS_TOKEN -PenablePublishing=true
     ```
     
     If something has gone wrong, and you don't want to manually close all of the autobump PRs, you can
@@ -48,7 +48,7 @@ class BumpDependencies extends DefaultTask {
     
     ```
     GITHUB_ACCESS_TOKEN=
-    ./gradlew closeAllAutoBumpPRs -Pgithub.token=$GITHUB_ACCESS_TOKEN
+    ./gradlew closeAllAutoBumpPRs -Pgithub.token=$GITHUB_ACCESS_TOKEN -PenablePublishing=true
     ```
     '''.stripIndent()
 
