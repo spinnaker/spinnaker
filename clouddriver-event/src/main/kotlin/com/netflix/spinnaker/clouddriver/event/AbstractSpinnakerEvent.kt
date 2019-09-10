@@ -18,6 +18,11 @@ package com.netflix.spinnaker.clouddriver.event
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.clouddriver.event.exceptions.UninitializedEventException
 
+/**
+ * WARNING: Do not use this base class with Lombok events, you will have a bad time! Only use in Kotlin classes.
+ * For some reason, Lombok / Jackson can't find methods to deserialize, so the Java classes have to implement the
+ * interface directly. I'm not sure if this is a result of writing in Kotlin, or an issue in Lombok and/or Jackson.
+ */
 abstract class AbstractSpinnakerEvent : SpinnakerEvent {
   /**
    * Not a lateinit to make Java/Lombok & Jackson compatibility a little easier, although behavior is exactly the same.

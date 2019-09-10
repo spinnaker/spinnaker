@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service;
 import com.netflix.spinnaker.clouddriver.event.CompositeSpinnakerEvent;
+import com.netflix.spinnaker.clouddriver.event.EventMetadata;
 import com.netflix.spinnaker.clouddriver.event.SpinnakerEvent;
 import com.netflix.spinnaker.clouddriver.saga.ManyCommands;
 import com.netflix.spinnaker.clouddriver.saga.SagaCommand;
@@ -38,9 +39,9 @@ import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.Value;
+import lombok.experimental.NonFinal;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -141,12 +142,17 @@ public class LoadFront50App implements SagaAction<LoadFront50App.LoadFront50AppC
   @Builder(builderClassName = "LoadFront50AppCommandBuilder", toBuilder = true)
   @JsonDeserialize(builder = LoadFront50AppCommand.LoadFront50AppCommandBuilder.class)
   @JsonTypeName("loadFront50AppCommand")
-  @EqualsAndHashCode(callSuper = true)
   @Value
-  public static class LoadFront50AppCommand extends SagaCommand implements CompositeSpinnakerEvent {
+  public static class LoadFront50AppCommand implements SagaCommand, CompositeSpinnakerEvent {
     @Nonnull private String appName;
     @Nonnull private SagaCommand nextCommand;
     private boolean allowMissing;
+    @NonFinal private EventMetadata metadata;
+
+    @Override
+    public void setMetadata(EventMetadata metadata) {
+      this.metadata = metadata;
+    }
 
     @NotNull
     @Override

@@ -66,8 +66,8 @@ class DefaultSagaRepository(
       .last()
       .let {
         Saga(
-          name = it.sagaName,
-          id = it.sagaId,
+          name = it.getMetadata().aggregateType,
+          id = it.getMetadata().aggregateId,
           sequence = it.sequence
         )
       }

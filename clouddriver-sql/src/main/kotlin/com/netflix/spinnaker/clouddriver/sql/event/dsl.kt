@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.sql.event
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.event.Aggregate
+import com.netflix.spinnaker.clouddriver.event.CompositeSpinnakerEvent
 import com.netflix.spinnaker.clouddriver.event.EventMetadata
 import com.netflix.spinnaker.clouddriver.event.SpinnakerEvent
 import com.netflix.spinnaker.clouddriver.event.exceptions.InvalidEventTypeException
@@ -25,14 +26,13 @@ import org.jooq.Condition
 import org.jooq.Record
 import org.jooq.Select
 import org.jooq.SelectConditionStep
-import org.jooq.SelectWhereStep
+import org.jooq.SelectJoinStep
 import org.jooq.impl.DSL.currentTimestamp
-import java.sql.ResultSet
 
 /**
  * Adds an arbitrary number of [conditions] to a query joined by `AND` operator.
  */
-internal fun <R : Record> SelectWhereStep<R>.withConditions(conditions: List<Condition>): SelectConditionStep<R> {
+internal fun <R : Record> SelectJoinStep<R>.withConditions(conditions: List<Condition>): SelectConditionStep<R> {
   return if (conditions.isNotEmpty()) this.where(
     conditions.reduce { acc, condition -> acc.and(condition) }
   ) else {
@@ -69,23 +69,6 @@ internal fun Select<out Record>.fetchAggregates(): List<SqlAggregate> =
   }
 
 /**
- * Maps a jOOQ result set to an [Aggregate] collection.
- */
-internal class AggregateMapper {
-  fun map(rs: ResultSet): Collection<Aggregate> {
-    val results = mutableListOf<Aggregate>()
-    while (rs.next()) {
-      results.add(Aggregate(
-        rs.getString("aggregate_type"),
-        rs.getString("aggregate_id"),
-        rs.getLong("version")
-      ))
-    }
-    return results
-  }
-}
-
-/**
  * Converts a [SpinnakerEvent] to a SQL event row. The values are ordered the same as the schema's columns.
  */
 internal fun SpinnakerEvent.toSqlValues(objectMapper: ObjectMapper): Collection<Any> = listOf(
@@ -108,9 +91,15 @@ internal fun Select<out Record>.fetchEvents(objectMapper: ObjectMapper): List<Sp
     mutableListOf<SpinnakerEvent>().apply {
       while (rs.next()) {
         try {
-          add(objectMapper.readValue(rs.getString("data"), SpinnakerEvent::class.java).apply {
+          val event = objectMapper.readValue(rs.getString("data"), SpinnakerEvent::class.java).apply {
             setMetadata(objectMapper.readValue(rs.getString("metadata"), EventMetadata::class.java))
-          })
+          }
+          if (event is CompositeSpinnakerEvent) {
+            event.getComposedEvents().forEach {
+              it.setMetadata(event.getMetadata().copy(id = "N/A", sequence = -1))
+            }
+          }
+          add(event)
         } catch (e: JsonProcessingException) {
           throw InvalidEventTypeException(e)
         }

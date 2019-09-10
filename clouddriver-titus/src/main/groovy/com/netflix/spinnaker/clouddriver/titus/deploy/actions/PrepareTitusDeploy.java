@@ -26,6 +26,7 @@ import com.netflix.frigga.Names;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.TargetGroupLookupHelper;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory;
+import com.netflix.spinnaker.clouddriver.event.EventMetadata;
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
 import com.netflix.spinnaker.clouddriver.saga.SagaCommand;
 import com.netflix.spinnaker.clouddriver.saga.flow.SagaAction;
@@ -59,7 +60,6 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
 import lombok.Value;
 import lombok.experimental.NonFinal;
 import org.jetbrains.annotations.NotNull;
@@ -456,14 +456,19 @@ public class PrepareTitusDeploy extends AbstractTitusDeployAction
   @JsonDeserialize(builder = PrepareTitusDeployCommand.PrepareTitusDeployCommandBuilder.class)
   @JsonTypeName("prepareTitusDeployCommand")
   @Value
-  @EqualsAndHashCode(callSuper = true)
-  public static class PrepareTitusDeployCommand extends SagaCommand implements Front50AppAware {
+  public static class PrepareTitusDeployCommand implements SagaCommand, Front50AppAware {
     private TitusDeployDescription description;
     @NonFinal private LoadFront50App.Front50App front50App;
+    @NonFinal private EventMetadata metadata;
 
     @Override
-    public void setFront50App(LoadFront50App.Front50App app) {
-      this.front50App = app;
+    public void setFront50App(LoadFront50App.Front50App front50App) {
+      this.front50App = front50App;
+    }
+
+    @Override
+    public void setMetadata(EventMetadata metadata) {
+      this.metadata = metadata;
     }
 
     @JsonPOJOBuilder(withPrefix = "")

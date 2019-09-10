@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.saga.examples
 
 import com.fasterxml.jackson.annotation.JsonTypeName
+import com.netflix.spinnaker.clouddriver.saga.AbstractSagaEvent
 import com.netflix.spinnaker.clouddriver.saga.AbstractSagaTest
 import com.netflix.spinnaker.clouddriver.saga.ManyCommands
 import com.netflix.spinnaker.clouddriver.saga.SagaCommand
@@ -75,16 +76,16 @@ class BranchingExampleTest : AbstractSagaTest() {
   }
 
   @JsonTypeName("prepareForThings")
-  class PrepareForThings(val doOptionalThings: Boolean) : SagaCommand()
+  class PrepareForThings(val doOptionalThings: Boolean) : AbstractSagaEvent(), SagaCommand
 
   @JsonTypeName("doTheThing")
-  class DoTheThing : SagaCommand()
+  class DoTheThing : AbstractSagaEvent(), SagaCommand
 
   @JsonTypeName("doAnOptionalThing")
-  class DoAnOptionalThing : SagaCommand()
+  class DoAnOptionalThing : AbstractSagaEvent(), SagaCommand
 
   @JsonTypeName("finishThings")
-  class FinishThings : SagaCommand()
+  class FinishThings : AbstractSagaEvent(), SagaCommand
 
   class PrepareAction : SagaAction<PrepareForThings> {
     override fun apply(command: PrepareForThings, saga: Saga): SagaAction.Result {

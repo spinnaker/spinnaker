@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.TargetGroupLookupHelper;
+import com.netflix.spinnaker.clouddriver.event.EventMetadata;
 import com.netflix.spinnaker.clouddriver.saga.SagaCommand;
 import com.netflix.spinnaker.clouddriver.saga.flow.SagaAction;
 import com.netflix.spinnaker.clouddriver.saga.models.Saga;
@@ -30,8 +31,8 @@ import com.netflix.spinnaker.clouddriver.titus.deploy.events.TitusLoadBalancerAt
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
 import lombok.Value;
+import lombok.experimental.NonFinal;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -98,12 +99,17 @@ public class AttachTitusServiceLoadBalancers extends AbstractTitusDeployAction
           AttachTitusServiceLoadBalancersCommand.AttachTitusServiceLoadBalancersCommandBuilder
               .class)
   @JsonTypeName("attachTitusServiceLoadBalancersCommand")
-  @EqualsAndHashCode(callSuper = true)
   @Value
-  public static class AttachTitusServiceLoadBalancersCommand extends SagaCommand {
+  public static class AttachTitusServiceLoadBalancersCommand implements SagaCommand {
     @Nonnull private TitusDeployDescription description;
     @Nonnull private String jobUri;
     @Nullable private TargetGroupLookupHelper.TargetGroupLookupResult targetGroupLookupResult;
+    @NonFinal private EventMetadata metadata;
+
+    @Override
+    public void setMetadata(EventMetadata metadata) {
+      this.metadata = metadata;
+    }
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class AttachTitusServiceLoadBalancersCommandBuilder {}

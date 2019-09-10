@@ -38,6 +38,7 @@ import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.currentTimestamp
 import org.jooq.impl.DSL.field
+import org.jooq.impl.DSL.max
 import org.jooq.impl.DSL.table
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
@@ -113,9 +114,8 @@ class SqlEventRepository(
 
           // Events have their own auto-incrementing sequence within an aggregate; so we need to get the last sequence
           // and generate from there.
-          val lastSequence = ctx.select(field("sequence")).from(EVENTS_TABLE)
+          val lastSequence = ctx.select(max(field("sequence"))).from(EVENTS_TABLE)
             .where(aggregateCondition)
-            .orderBy(field("timestamp").desc())
             .limit(1)
             .fetchOne(0, Long::class.java)
 

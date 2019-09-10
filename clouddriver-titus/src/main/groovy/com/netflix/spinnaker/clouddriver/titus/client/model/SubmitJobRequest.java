@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.titus.client.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.util.ArrayList;
@@ -25,7 +26,6 @@ import java.util.List;
 import java.util.Map;
 import lombok.Builder;
 import lombok.Data;
-import lombok.Getter;
 import lombok.Value;
 import lombok.experimental.Wither;
 
@@ -34,7 +34,9 @@ import lombok.experimental.Wither;
 @Wither
 @Value
 public class SubmitJobRequest {
-  @Getter
+
+  @JsonDeserialize(builder = Constraint.ConstraintBuilder.class)
+  @Builder(builderClassName = "ConstraintBuilder", toBuilder = true)
   @Value
   public static class Constraint {
     enum ConstraintType {
@@ -53,8 +55,11 @@ public class SubmitJobRequest {
       return new Constraint(ConstraintType.SOFT, constraint);
     }
 
-    private final ConstraintType constraintType;
-    private final String constraint;
+    @JsonProperty private final ConstraintType constraintType;
+    @JsonProperty private final String constraint;
+
+    @JsonPOJOBuilder(withPrefix = "")
+    public static class ConstraintBuilder {}
   }
 
   @Data

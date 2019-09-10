@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.titus.deploy.actions;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import com.netflix.spinnaker.clouddriver.event.EventMetadata;
 import com.netflix.spinnaker.clouddriver.saga.SagaCommand;
 import com.netflix.spinnaker.clouddriver.saga.flow.SagaAction;
 import com.netflix.spinnaker.clouddriver.saga.models.Saga;
@@ -42,8 +43,8 @@ import java.util.List;
 import java.util.Optional;
 import javax.annotation.Nonnull;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
 import lombok.Value;
+import lombok.experimental.NonFinal;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -164,12 +165,17 @@ public class CopyTitusServiceScalingPolicies extends AbstractTitusDeployAction
           CopyTitusServiceScalingPoliciesCommand.CopyTitusServiceScalingPoliciesCommandBuilder
               .class)
   @JsonTypeName("copyTitusServiceScalingPoliciesCommand")
-  @EqualsAndHashCode(callSuper = true)
   @Value
-  public static class CopyTitusServiceScalingPoliciesCommand extends SagaCommand {
+  public static class CopyTitusServiceScalingPoliciesCommand implements SagaCommand {
     @Nonnull private TitusDeployDescription description;
     @Nonnull private String jobUri;
     @Nonnull private String deployedServerGroupName;
+    @NonFinal private EventMetadata metadata;
+
+    @Override
+    public void setMetadata(EventMetadata metadata) {
+      this.metadata = metadata;
+    }
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class CopyTitusServiceScalingPoliciesCommandBuilder {}

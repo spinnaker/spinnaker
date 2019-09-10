@@ -15,6 +15,8 @@
  */
 package com.netflix.spinnaker.clouddriver.event
 
+import com.fasterxml.jackson.annotation.JsonGetter
+import com.fasterxml.jackson.annotation.JsonSetter
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 
 /**
@@ -26,7 +28,9 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
   property = "eventType"
 )
 interface SpinnakerEvent {
+  @JsonGetter
   fun getMetadata(): EventMetadata
 
+  @JsonSetter
   fun setMetadata(eventMetadata: EventMetadata)
 }

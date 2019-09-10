@@ -18,22 +18,28 @@ package com.netflix.spinnaker.clouddriver.titus.deploy.events;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import com.netflix.spinnaker.clouddriver.event.EventMetadata;
 import com.netflix.spinnaker.clouddriver.saga.SagaEvent;
 import javax.annotation.Nonnull;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
 import lombok.Value;
+import lombok.experimental.NonFinal;
 
 @Builder(builderClassName = "TitusScalingPolicyCopiedBuilder", toBuilder = true)
 @JsonDeserialize(builder = TitusScalingPolicyCopied.TitusScalingPolicyCopiedBuilder.class)
 @JsonTypeName("titusScalingPolicyCopied")
 @Value
-@EqualsAndHashCode(callSuper = true)
-public class TitusScalingPolicyCopied extends SagaEvent {
+public class TitusScalingPolicyCopied implements SagaEvent {
 
   @Nonnull private final String serverGroupName;
   @Nonnull private final String region;
   @Nonnull private final String sourcePolicyId;
+  @NonFinal private EventMetadata metadata;
+
+  @Override
+  public void setMetadata(EventMetadata metadata) {
+    this.metadata = metadata;
+  }
 
   @JsonPOJOBuilder(withPrefix = "")
   public static class TitusScalingPolicyCopiedBuilder {}

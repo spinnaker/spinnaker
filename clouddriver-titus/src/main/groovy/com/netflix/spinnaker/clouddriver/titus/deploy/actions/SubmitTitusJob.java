@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.TargetGroupLookupHelper;
+import com.netflix.spinnaker.clouddriver.event.EventMetadata;
 import com.netflix.spinnaker.clouddriver.saga.ManyCommands;
 import com.netflix.spinnaker.clouddriver.saga.SagaCommand;
 import com.netflix.spinnaker.clouddriver.saga.flow.SagaAction;
@@ -41,7 +42,6 @@ import io.grpc.StatusRuntimeException;
 import java.util.Collections;
 import javax.annotation.Nonnull;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
 import lombok.Value;
 import lombok.experimental.NonFinal;
 import org.jetbrains.annotations.NotNull;
@@ -183,18 +183,23 @@ public class SubmitTitusJob extends AbstractTitusDeployAction
   @Builder(builderClassName = "SubmitTitusJobCommandBuilder", toBuilder = true)
   @JsonDeserialize(builder = SubmitTitusJobCommand.SubmitTitusJobCommandBuilder.class)
   @JsonTypeName("submitTitusJobCommand")
-  @EqualsAndHashCode(callSuper = true)
   @Value
-  public static class SubmitTitusJobCommand extends SagaCommand implements Front50AppAware {
+  public static class SubmitTitusJobCommand implements SagaCommand, Front50AppAware {
     @Nonnull private TitusDeployDescription description;
     @Nonnull private SubmitJobRequest submitJobRequest;
     @Nonnull private String nextServerGroupName;
     private TargetGroupLookupHelper.TargetGroupLookupResult targetGroupLookupResult;
     @NonFinal private LoadFront50App.Front50App front50App;
+    @NonFinal private EventMetadata metadata;
 
     @Override
-    public void setFront50App(LoadFront50App.Front50App app) {
-      this.front50App = app;
+    public void setFront50App(LoadFront50App.Front50App front50App) {
+      this.front50App = front50App;
+    }
+
+    @Override
+    public void setMetadata(EventMetadata metadata) {
+      this.metadata = metadata;
     }
 
     @JsonPOJOBuilder(withPrefix = "")

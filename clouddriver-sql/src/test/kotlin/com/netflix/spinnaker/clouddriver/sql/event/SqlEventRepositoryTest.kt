@@ -89,6 +89,16 @@ class SqlEventRepositoryTest : JUnit5Minutests {
         }
       }
 
+      test("events correctly increment sequence across transactions") {
+        subject.save("agg", "1", 0, listOf(MyEvent("1"), MyEvent("2")))
+        subject.save("agg", "1", 1, listOf(MyEvent("3"), MyEvent("4")))
+
+        expectThat(subject.list("agg", "1"))
+          .get { map { it.getMetadata().sequence } }
+            .isA<List<Long>>()
+            .containsExactly(1, 2, 3, 4)
+      }
+
       context("listing aggregates") {
         fun Fixture.setupAggregates() {
           subject.save("foo", "1", 0, listOf(MyEvent("hi foo")))

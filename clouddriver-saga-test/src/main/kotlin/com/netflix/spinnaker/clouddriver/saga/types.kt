@@ -21,18 +21,18 @@ import com.netflix.spinnaker.clouddriver.saga.models.Saga
 import java.util.function.Predicate
 
 @JsonTypeName("shouldBranch")
-class ShouldBranch : SagaEvent()
+class ShouldBranch : AbstractSagaEvent()
 
 @JsonTypeName("doAction1")
 class DoAction1(
   val branch: Boolean = true
-) : SagaCommand()
+) : AbstractSagaEvent(), SagaCommand
 
 @JsonTypeName("doAction2")
-class DoAction2 : SagaCommand()
+class DoAction2 : AbstractSagaEvent(), SagaCommand
 
 @JsonTypeName("doAction3")
-class DoAction3 : SagaCommand()
+class DoAction3 : AbstractSagaEvent(), SagaCommand
 
 class Action1 : SagaAction<DoAction1> {
   override fun apply(command: DoAction1, saga: Saga): SagaAction.Result {

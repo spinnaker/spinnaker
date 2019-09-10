@@ -18,24 +18,30 @@ package com.netflix.spinnaker.clouddriver.titus.deploy.events;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import com.netflix.spinnaker.clouddriver.event.EventMetadata;
 import com.netflix.spinnaker.clouddriver.saga.SagaEvent;
 import com.netflix.spinnaker.clouddriver.titus.JobType;
 import java.util.Map;
 import javax.annotation.Nonnull;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
 import lombok.Value;
+import lombok.experimental.NonFinal;
 
 @Builder(builderClassName = "TitusJobSubmittedBuilder", toBuilder = true)
 @JsonDeserialize(builder = TitusJobSubmitted.TitusJobSubmittedBuilder.class)
 @JsonTypeName("titusJobSubmitted")
 @Value
-@EqualsAndHashCode(callSuper = true)
-public class TitusJobSubmitted extends SagaEvent {
+public class TitusJobSubmitted implements SagaEvent {
 
   @Nonnull private final Map<String, String> serverGroupNameByRegion;
   @Nonnull private final String jobUri;
   @Nonnull private final JobType jobType;
+  @NonFinal private EventMetadata metadata;
+
+  @Override
+  public void setMetadata(EventMetadata metadata) {
+    this.metadata = metadata;
+  }
 
   @JsonPOJOBuilder(withPrefix = "")
   public static class TitusJobSubmittedBuilder {}
