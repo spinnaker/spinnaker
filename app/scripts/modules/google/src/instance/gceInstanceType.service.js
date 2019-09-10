@@ -5,6 +5,8 @@ import _ from 'lodash';
 
 import { AccountService, SETTINGS } from '@spinnaker/core';
 
+import { GCE_INSTANCE_TYPE_DISK_DEFAULTS } from './gceInstanceTypeDisks';
+
 module.exports = angular.module('spinnaker.gce.instanceType.service', []).factory('gceInstanceTypeService', [
   '$http',
   '$q',
@@ -237,7 +239,10 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', []).factor
       const initializedCategories = _.cloneDeep(categories);
       return AccountService.getAllAccountDetailsForProvider('gce').then(accountDetails => {
         // All GCE accounts have the same instance type disk defaults, so we can pick the first one.
-        const instanceTypeDisks = _.get(accountDetails, '[0].instanceTypeDisks');
+        let instanceTypeDisks = _.get(accountDetails, '[0].instanceTypeDisks');
+        if (_.isEmpty(instanceTypeDisks)) {
+          instanceTypeDisks = GCE_INSTANCE_TYPE_DISK_DEFAULTS;
+        }
         if (instanceTypeDisks) {
           const families = _.flatten(initializedCategories.map(category => category.families));
           families.forEach(family => {
