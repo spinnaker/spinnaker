@@ -19,11 +19,12 @@ package com.netflix.spinnaker.echo.notification
 import com.netflix.spinnaker.echo.googlechat.GoogleChatMessage
 import com.netflix.spinnaker.echo.googlechat.GoogleChatService
 import com.netflix.spinnaker.echo.model.Event
+import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 import spock.util.concurrent.BlockingVariable
 
-public class GoogleChatNotificationAgentSpec {
+public class GoogleChatNotificationAgentSpec extends Specification {
 
   def googleChat = Mock(GoogleChatService)
   @Subject
@@ -41,7 +42,7 @@ public class GoogleChatNotificationAgentSpec {
     agent.sendNotifications([address: webhookURL], application, event, [type: type, link: "link"], status)
 
     then:
-    actualMessage.get().text ==~ expectedMessage
+    actualMessage.get().message ==~ expectedMessage
 
     where:
     status      || expectedMessage
@@ -67,7 +68,7 @@ public class GoogleChatNotificationAgentSpec {
     agent.sendNotifications([address: webhookURL, message: message], application, event, [type: type, link: "link"], status)
 
     then:
-    actualMessage.get().text ==~ expectedMessage
+    actualMessage.get().message ==~ expectedMessage
 
     where:
     status      || expectedMessage
@@ -96,7 +97,7 @@ public class GoogleChatNotificationAgentSpec {
     agent.sendNotifications([address: webhookURL], application, event, [type: type], "etc")
 
     then:
-    actualMessage.get().text == expectedMessage
+    actualMessage.get().message == expectedMessage
 
     where:
     customMessage        || expectedMessage
@@ -107,9 +108,9 @@ public class GoogleChatNotificationAgentSpec {
     webhookURL = "https://chat.googleapis.com/v1/spaces/spooky"
     application = "whatever"
     event = new Event(content: [
-    execution: [id: "1", name: "foo-pipeline"],
-    context: [ customMessage: customMessage ],
-    name: 'a stage'
+      execution: [id: "1", name: "foo-pipeline"],
+      context  : [customMessage: customMessage],
+      name     : 'a stage'
     ])
     type = "stage"
   }
