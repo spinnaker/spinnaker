@@ -21,6 +21,8 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/spinnaker/spin/util"
 )
 
 func TestExecutionList_basic(t *testing.T) {
@@ -81,9 +83,11 @@ func TestExecutionList_fail(t *testing.T) {
 // testGateExecutionListSuccess spins up a local http server that we will configure the GateClient
 // to direct requests to. Responds with a 200 and a well-formed execution list.
 func testGateExecutionListSuccess() *httptest.Server {
-	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux := util.TestGateMuxWithVersionHandler()
+	mux.Handle("/executions/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, strings.TrimSpace(executionListJson))
 	}))
+	return httptest.NewServer(mux)
 }
 
 const executionListJson = `

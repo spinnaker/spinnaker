@@ -21,6 +21,8 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/spinnaker/spin/util"
 )
 
 func TestPipelineTemplatePlan_basic(t *testing.T) {
@@ -123,7 +125,7 @@ func TestPipelineTemplatePlan_flags(t *testing.T) {
 // to direct requests to. Responds with 404 NotFound to indicate a pipeline template doesn't exist,
 // and Accepts POST calls.
 func gateServerPlanSuccess() *httptest.Server {
-	mux := http.NewServeMux()
+	mux := util.TestGateMuxWithVersionHandler()
 	mux.Handle("/v2/pipelineTemplates/plan", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
 			fmt.Fprintln(w, strings.TrimSpace(testPipelineTemplatePlanResp))

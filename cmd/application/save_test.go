@@ -22,6 +22,8 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
+
+	"github.com/spinnaker/spin/util"
 )
 
 const (
@@ -240,7 +242,7 @@ func GateServerFail() *httptest.Server {
 // testGatePipelineExecuteSuccess spins up a local http server that we will configure the GateClient
 // to direct requests to. Responds with successful responses to pipeline execute API calls.
 func testGateApplicationSaveSuccess() *httptest.Server {
-	mux := http.NewServeMux()
+	mux := util.TestGateMuxWithVersionHandler()
 	mux.Handle("/tasks", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		payload := map[string]string{
 			"ref": "/tasks/id",

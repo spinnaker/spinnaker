@@ -15,10 +15,12 @@
 package execution
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -86,6 +88,14 @@ func TestExecutionCancel_failure(t *testing.T) {
 // to direct requests to. Responds with a 200 and a well-formed pipeline get response.
 func testGateExecutionCancelSuccess() *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "")
+		if strings.Contains(r.URL.String(), "/version") {
+			payload := map[string]string{
+				"version": "Unknown",
+			}
+			b, _ := json.Marshal(&payload)
+			fmt.Fprintln(w, string(b))
+		} else {
+			fmt.Fprintln(w, "")
+		}
 	}))
 }

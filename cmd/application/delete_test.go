@@ -21,6 +21,8 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
+
+	"github.com/spinnaker/spin/util"
 )
 
 func TestApplicationDelete_basic(t *testing.T) {
@@ -80,8 +82,8 @@ func TestApplicationDelete_flags(t *testing.T) {
 // testGateApplicationDeleteSuccess spins up a local http server that we will configure the GateClient
 // to direct requests to. Responds with successful responses to pipeline execute API calls.
 func testGateApplicationDeleteSuccess() *httptest.Server {
-	mux := http.NewServeMux()
-	mux.Handle("/applications/" + APP, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux := util.TestGateMuxWithVersionHandler()
+	mux.Handle("/applications/"+APP, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		payload := map[string]string{} // We don't use the payload, we are just checking if the target app exists.
 		b, _ := json.Marshal(&payload)
 		fmt.Fprintln(w, string(b))
@@ -106,8 +108,10 @@ func testGateApplicationDeleteSuccess() *httptest.Server {
 // GateAppDeleteFail spins up a local http server that we will configure the GateClient
 // to direct requests to. Responds with a 500 InternalServerError.
 func GateAppDeleteFail() *httptest.Server {
-	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux := util.TestGateMuxWithVersionHandler()
+	mux.Handle("/applications/"+APP, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// TODO(jacobkiefer): Mock more robust errors once implemented upstream.
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}))
+	return httptest.NewServer(mux)
 }

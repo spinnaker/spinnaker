@@ -24,6 +24,7 @@ import (
 	"testing"
 
 	gate "github.com/spinnaker/spin/gateapi"
+	"github.com/spinnaker/spin/util"
 )
 
 // TODO(jacobkiefer): This test overlaps heavily with pipeline_save_test.go,
@@ -145,7 +146,7 @@ func TestPipelineExecute_missingapp(t *testing.T) {
 // testGatePipelineExecuteSuccess spins up a local http server that we will configure the GateClient
 // to direct requests to. Responds with successful responses to pipeline execute API calls.
 func testGatePipelineExecuteSuccess() *httptest.Server {
-	mux := http.NewServeMux()
+	mux := util.TestGateMuxWithVersionHandler()
 	mux.Handle("/pipelines/app/one", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		resp := gate.ResponseEntity{StatusCode: "201 Accepted", StatusCodeValue: 201}
 		b, _ := json.Marshal(&resp)
