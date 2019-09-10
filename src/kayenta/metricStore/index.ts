@@ -4,3 +4,4 @@ import './prometheus';
 import './signalfx';
 import './stackdriver';
 import './graphite';
+import './newrelic';
