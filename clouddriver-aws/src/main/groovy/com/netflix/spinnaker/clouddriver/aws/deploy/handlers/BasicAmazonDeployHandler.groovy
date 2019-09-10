@@ -324,7 +324,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       deploymentResult.deployments.add(
           new DeploymentResult.Deployment(
               cloudProvider: "aws",
-              account: description.getCredentialAccount(),
+              account: description.getAccount(),
               location: region,
               serverGroupName: asgName,
               capacity: capacity

@@ -43,7 +43,7 @@ public class EnableServiceAtomicOperation
     AWSApplicationAutoScaling autoScalingClient = getAmazonApplicationAutoScalingClient();
 
     String service = description.getServerGroupName();
-    String account = description.getCredentialAccount();
+    String account = description.getAccount();
     String cluster = getCluster(service, account);
 
     UpdateServiceRequest request =

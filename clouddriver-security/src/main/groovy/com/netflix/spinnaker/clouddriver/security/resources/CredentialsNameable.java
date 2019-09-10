@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.security.resources;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 
 /**
@@ -25,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 public interface CredentialsNameable extends AccountNameable {
   AccountCredentials getCredentials();
 
+  @JsonProperty("credentials")
   @Override
   default String getAccount() {
     return getCredentials().getName();

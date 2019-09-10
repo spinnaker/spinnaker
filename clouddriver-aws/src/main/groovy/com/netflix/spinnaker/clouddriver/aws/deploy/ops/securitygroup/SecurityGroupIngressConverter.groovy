@@ -68,7 +68,7 @@ class SecurityGroupIngressConverter {
       permission
     }
     description.securityGroupIngress.each { ingress ->
-      final accountName = ingress.accountName ?: description.credentialAccount
+      final accountName = ingress.accountName ?: description.account
       final accountId = ingress.accountId ?: securityGroupLookup.getAccountIdForName(accountName)
       final vpcId = ingress.vpcId ?: description.vpcId
       def newUserIdGroupPair = null
@@ -96,7 +96,7 @@ class SecurityGroupIngressConverter {
     }
     new ConvertedIngress(ipPermissions, new MissingSecurityGroups(
       all: missing,
-      selfReferencing: missing.findAll { it.name == description.name && it.accountName == description.credentialAccount }
+      selfReferencing: missing.findAll { it.name == description.name && it.accountName == description.account }
     ))
   }
 

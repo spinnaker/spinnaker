@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.deploy.ops;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.applicationautoscaling.AWSApplicationAutoScaling;
 import com.amazonaws.services.ecs.AmazonECS;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
@@ -53,7 +52,6 @@ public abstract class AbstractEcsAtomicOperation<T extends AbstractECSDescriptio
   }
 
   AmazonECS getAmazonEcsClient() {
-    AWSCredentialsProvider credentialsProvider = getCredentials().getCredentialsProvider();
     String region = getRegion();
     NetflixAmazonCredentials credentialAccount = description.getCredentials();
 
@@ -61,7 +59,6 @@ public abstract class AbstractEcsAtomicOperation<T extends AbstractECSDescriptio
   }
 
   AWSApplicationAutoScaling getAmazonApplicationAutoScalingClient() {
-    AWSCredentialsProvider credentialsProvider = getCredentials().getCredentialsProvider();
     String region = getRegion();
     NetflixAmazonCredentials credentialAccount = description.getCredentials();
 
@@ -73,8 +70,7 @@ public abstract class AbstractEcsAtomicOperation<T extends AbstractECSDescriptio
   }
 
   AmazonCredentials getCredentials() {
-    return (AmazonCredentials)
-        accountCredentialsProvider.getCredentials(description.getCredentialAccount());
+    return (AmazonCredentials) accountCredentialsProvider.getCredentials(description.getAccount());
   }
 
   void updateTaskStatus(String status) {

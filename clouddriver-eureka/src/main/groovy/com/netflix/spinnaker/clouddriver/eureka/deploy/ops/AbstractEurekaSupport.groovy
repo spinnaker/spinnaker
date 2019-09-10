@@ -113,7 +113,7 @@ abstract class AbstractEurekaSupport {
         if (index % eurekaSupportConfigurationProperties.attemptShortCircuitEveryNInstances == 0) {
           try {
             def hasUpInstances = doesCachedClusterContainDiscoveryStatus(
-              clusterProviders, description.credentialAccount, description.region, description.asgName, "UP"
+              clusterProviders, description.account, description.region, description.asgName, "UP"
             )
             if (hasUpInstances.present && !hasUpInstances.get()) {
               // there are no UP instances, we can return early
@@ -121,7 +121,7 @@ abstract class AbstractEurekaSupport {
               break
             }
           } catch (Exception e) {
-            def account = description.credentialAccount
+            def account = description.account
             def region = description.region
             def asgName = description.asgName
             AbstractEurekaSupport.log.error("[$phaseName] - Unable to verify cached discovery status (account: ${account}, region: ${region}, asgName: ${asgName}", e)

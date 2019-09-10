@@ -16,11 +16,32 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.deploy.ops;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.applicationautoscaling.AWSApplicationAutoScaling;
-import com.amazonaws.services.applicationautoscaling.model.*;
+import com.amazonaws.services.applicationautoscaling.model.DescribeScalableTargetsRequest;
+import com.amazonaws.services.applicationautoscaling.model.DescribeScalableTargetsResult;
+import com.amazonaws.services.applicationautoscaling.model.RegisterScalableTargetRequest;
+import com.amazonaws.services.applicationautoscaling.model.ScalableDimension;
+import com.amazonaws.services.applicationautoscaling.model.ScalableTarget;
+import com.amazonaws.services.applicationautoscaling.model.ServiceNamespace;
 import com.amazonaws.services.ecs.AmazonECS;
-import com.amazonaws.services.ecs.model.*;
+import com.amazonaws.services.ecs.model.AwsVpcConfiguration;
+import com.amazonaws.services.ecs.model.ContainerDefinition;
+import com.amazonaws.services.ecs.model.CreateServiceRequest;
+import com.amazonaws.services.ecs.model.DeploymentConfiguration;
+import com.amazonaws.services.ecs.model.DescribeServicesRequest;
+import com.amazonaws.services.ecs.model.DescribeServicesResult;
+import com.amazonaws.services.ecs.model.KeyValuePair;
+import com.amazonaws.services.ecs.model.LoadBalancer;
+import com.amazonaws.services.ecs.model.LogConfiguration;
+import com.amazonaws.services.ecs.model.NetworkConfiguration;
+import com.amazonaws.services.ecs.model.PortMapping;
+import com.amazonaws.services.ecs.model.RegisterTaskDefinitionRequest;
+import com.amazonaws.services.ecs.model.RegisterTaskDefinitionResult;
+import com.amazonaws.services.ecs.model.RepositoryCredentials;
+import com.amazonaws.services.ecs.model.Service;
+import com.amazonaws.services.ecs.model.ServiceRegistry;
+import com.amazonaws.services.ecs.model.Tag;
+import com.amazonaws.services.ecs.model.TaskDefinition;
 import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest;
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsResult;
@@ -45,8 +66,19 @@ import com.netflix.spinnaker.clouddriver.ecs.services.SecurityGroupSelector;
 import com.netflix.spinnaker.clouddriver.ecs.services.SubnetSelector;
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -115,7 +147,7 @@ public class CreateServerGroupAtomicOperation
     if (description.isCopySourceScalingPoliciesAndActions() && sourceTarget != null) {
       updateTaskStatus("Copying scaling policies...");
       ecsCloudMetricService.copyScalingPolicies(
-          description.getCredentialAccount(),
+          description.getAccount(),
           getRegion(),
           service.getServiceName(),
           resourceId,
@@ -388,20 +420,14 @@ public class CreateServerGroupAtomicOperation
     updateTaskStatus(
         String.format(
             "Creating %s of %s with %s for %s.",
-            desiredCount,
-            newServerGroupName,
-            taskDefinitionArn,
-            description.getCredentialAccount()));
+            desiredCount, newServerGroupName, taskDefinitionArn, description.getAccount()));
 
     Service service = ecs.createService(request).getService();
 
     updateTaskStatus(
         String.format(
             "Done creating %s of %s with %s for %s.",
-            desiredCount,
-            newServerGroupName,
-            taskDefinitionArn,
-            description.getCredentialAccount()));
+            desiredCount, newServerGroupName, taskDefinitionArn, description.getAccount()));
 
     return service;
   }
@@ -703,7 +729,6 @@ public class CreateServerGroupAtomicOperation
   }
 
   private AmazonElasticLoadBalancing getAmazonElasticLoadBalancingClient() {
-    AWSCredentialsProvider credentialsProvider = getCredentials().getCredentialsProvider();
     NetflixAmazonCredentials credentialAccount = description.getCredentials();
 
     return amazonClientProvider.getAmazonElasticLoadBalancingV2(
@@ -711,7 +736,6 @@ public class CreateServerGroupAtomicOperation
   }
 
   private AmazonIdentityManagement getAmazonIdentityManagementClient() {
-    AWSCredentialsProvider credentialsProvider = getCredentials().getCredentialsProvider();
     NetflixAmazonCredentials credentialAccount = description.getCredentials();
 
     return amazonClientProvider.getAmazonIdentityManagement(credentialAccount, getRegion(), false);

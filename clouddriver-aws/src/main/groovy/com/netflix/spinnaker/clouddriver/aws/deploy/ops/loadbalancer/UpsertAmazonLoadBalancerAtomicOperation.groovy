@@ -146,7 +146,7 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
             IngressLoadBalancerBuilder.IngressLoadBalancerGroupResult ingressLoadBalancerResult = ingressLoadBalancerBuilder.ingressApplicationLoadBalancerGroup(
               application,
               region,
-              description.credentialAccount,
+              description.account,
               description.credentials,
               description.vpcId,
               ports,

@@ -37,7 +37,7 @@ public class TerminateInstancesAtomicOperation
       updateTaskStatus("Terminating instance: " + taskId);
       String clusterArn =
           containerInformationService.getClusterArn(
-              description.getCredentialAccount(), description.getRegion(), taskId);
+              description.getAccount(), description.getRegion(), taskId);
       StopTaskRequest request = new StopTaskRequest().withTask(taskId).withCluster(clusterArn);
       ecs.stopTask(request);
     }

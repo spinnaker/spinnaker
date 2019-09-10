@@ -61,8 +61,7 @@ public abstract class AbstractLambdaAtomicOperation<T extends AbstractLambdaFunc
   }
 
   protected AmazonCredentials getCredentials() {
-    return (AmazonCredentials)
-        accountCredentialsProvider.getCredentials(description.getCredentialAccount());
+    return (AmazonCredentials) accountCredentialsProvider.getCredentials(description.getAccount());
   }
 
   void updateTaskStatus(String status) {

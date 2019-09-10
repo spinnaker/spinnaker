@@ -55,7 +55,7 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
     ConvertedIngress ipPermissionsFromDescription = convertDescriptionToIngress(securityGroupLookup, description, true)
 
     def securityGroupUpdater = securityGroupLookup.getSecurityGroupByName(
-      description.credentialAccount,
+      description.account,
       description.name,
       description.vpcId
     )
@@ -74,14 +74,14 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
       } catch (AmazonServiceException e) {
         if (e.errorCode == "InvalidGroup.Duplicate") {
           securityGroupUpdater = securityGroupLookup.getSecurityGroupByName(
-            description.credentialAccount,
+            description.account,
             description.name,
             description.vpcId
           ).get()
           existingIpPermissions = SecurityGroupIngressConverter.
             flattenPermissions(securityGroupUpdater.securityGroup)
         } else {
-          task.updateStatus BASE_PHASE, "Failed to create security group '${description.name}' in ${description.credentialAccount}: ${e.errorMessage}"
+          task.updateStatus BASE_PHASE, "Failed to create security group '${description.name}' in ${description.account}: ${e.errorMessage}"
           throw e
         }
       }
@@ -124,7 +124,7 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
 
     if (ipPermissionsFromDescription.missingSecurityGroups.anyMissing(ignoreSelfReferencingRules)) {
       def missingSecurityGroupDescriptions = ipPermissionsFromDescription.missingSecurityGroups.all.collect {
-        "'${it.name ?: it.id}' in '${it.accountName ?: description.credentialAccount}' ${it.vpcId ?: description.vpcId ?: 'EC2-classic'}"
+        "'${it.name ?: it.id}' in '${it.accountName ?: description.account}' ${it.vpcId ?: description.vpcId ?: 'EC2-classic'}"
       }
       def securityGroupsDoNotExistErrorMessage = "The following security groups do not exist: ${missingSecurityGroupDescriptions.join(", ")}"
       task.updateStatus BASE_PHASE, securityGroupsDoNotExistErrorMessage

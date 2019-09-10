@@ -112,7 +112,7 @@ class SecurityGroupLookupFactory {
     }
 
     SecurityGroupUpdater createSecurityGroup(UpsertSecurityGroupDescription description) {
-      final credentials = getCredentialsForName(description.credentialAccount)
+      final credentials = getCredentialsForName(description.account)
       final request = new CreateSecurityGroupRequest(description.name, description.description)
       if (description.vpcId) {
         request.withVpcId(description.vpcId)
@@ -152,7 +152,7 @@ class SecurityGroupLookupFactory {
       }
 
       if (!skipEdda) {
-        getEddaSecurityGroups(amazonEC2, description.credentialAccount, region).add(newSecurityGroup)
+        getEddaSecurityGroups(amazonEC2, description.account, region).add(newSecurityGroup)
       }
       new SecurityGroupUpdater(newSecurityGroup, amazonEC2)
     }
