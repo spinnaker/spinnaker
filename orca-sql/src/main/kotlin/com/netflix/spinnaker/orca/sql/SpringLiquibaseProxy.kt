@@ -49,6 +49,12 @@ class SpringLiquibaseProxy(
     // First do the OSS migrations
     super.afterPropertiesSet()
 
+    SpringLiquibase().apply {
+      changeLog = "classpath:db/changelog-keiko.yml"
+      dataSource = createDataSource()
+      resourceLoader = this@SpringLiquibaseProxy.resourceLoader
+    }.afterPropertiesSet()
+
     // Then if anything else has been defined, do that afterwards
     sqlProperties.migration.additionalChangeLogs
       .filter { !it.isEmpty() }
