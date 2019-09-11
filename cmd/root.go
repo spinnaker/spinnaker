@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/spinnaker/spin/cmd/canary"
 	"io"
 
 	"github.com/spf13/cobra"
@@ -45,6 +46,7 @@ func NewCmdRoot(out io.Writer) *cobra.Command {
 
 	// create subcommands
 	cmd.AddCommand(application.NewApplicationCmd(out))
+	cmd.AddCommand(canary.NewCanaryCmd(out))
 	cmd.AddCommand(pipeline.NewPipelineCmd(out))
 	cmd.AddCommand(pipeline_template.NewPipelineTemplateCmd(out))
 	cmd.AddCommand(project.NewProjectCmd(out))
