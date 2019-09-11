@@ -169,6 +169,10 @@ const editingMetric = handleActions(
       ...state,
       query: { ...state.query, metricName: action.payload.metricName },
     }),
+    [Actions.UPDATE_NEWRELIC_SELECT]: (state: ICanaryMetricConfig, action: Action & any) => ({
+      ...state,
+      query: { ...state.query, select: action.payload.select },
+    }),
     [Actions.SELECT_TEMPLATE]: (state: ICanaryMetricConfig, action: Action & any) => ({
       ...state,
       query: { ...state.query, customFilterTemplate: action.payload.name },

@@ -1,8 +1,8 @@
 import metricStoreConfigStore from '../metricStoreConfig.service';
-import { queryFinder } from './metricConfigurer';
+import NewRelicMetricConfigurer, { queryFinder } from './metricConfigurer';
 
 metricStoreConfigStore.register({
   name: 'newrelic',
-  metricConfigurer: null,
+  metricConfigurer: NewRelicMetricConfigurer,
   queryFinder,
 });

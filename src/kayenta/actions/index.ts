@@ -46,6 +46,7 @@ export const SET_CONFIG_JSON_MODAL_TAB_STATE = 'set_config_json_modal_tab_state'
 export const UPDATE_ATLAS_QUERY = 'update_atlas_query';
 export const UPDATE_DATADOG_METRIC_TYPE = 'update_datadog_metric_type';
 export const UPDATE_DATADOG_METRIC_NAME = 'update_datadog_metric_name';
+export const UPDATE_NEWRELIC_SELECT = 'update_newrelic_select';
 export const COPY_SELECTED_CONFIG = 'copy_selected_config';
 export const CREATE_NEW_CONFIG = 'create_new_config';
 export const EDIT_GROUP_BEGIN = 'edit_group_name_begin';

@@ -128,6 +128,7 @@ export const updateStackdriverMetricResourceField = createAction<{
   value: IStackdriverCanaryMetricSetQueryConfig[keyof IStackdriverCanaryMetricSetQueryConfig];
 }>(Actions.UPDATE_STACKDRIVER_METRIC_QUERY_FIELD);
 export const updateDatadogMetricName = createAction<{ metricName: string }>(Actions.UPDATE_DATADOG_METRIC_NAME);
+export const updateNewRelicSelect = createAction<{ select: string }>(Actions.UPDATE_NEWRELIC_SELECT);
 export const loadExecutionsRequest = createAction(Actions.LOAD_EXECUTIONS_REQUEST);
 export const loadExecutionsFailure = createAction<{ error: Error }>(Actions.LOAD_EXECUTIONS_FAILURE);
 export const loadExecutionsSuccess = createAction<{ executions: ICanaryExecutionStatusResult[] }>(

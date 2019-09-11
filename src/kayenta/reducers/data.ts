@@ -128,6 +128,9 @@ const metricsServiceMetadata = combineReducers<IMetricsServiceMetadataState>({
         // no longer apply to the filter.
         return action.payload.metricType ? state : [];
       },
+      [Actions.UPDATE_NEWRELIC_SELECT]: (state: IMetricsServiceMetadata, action: Action & any) => {
+        return action.payload.select ? state : [];
+      },
       [Actions.UPDATE_GRAPHITE_METRIC_NAME]: (state: IMetricsServiceMetadata, action: Action & any) => {
         return action.payload.metricName ? state : [];
       },
