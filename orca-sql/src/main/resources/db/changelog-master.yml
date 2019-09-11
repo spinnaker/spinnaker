@@ -38,3 +38,6 @@ databaseChangeLog:
 - include:
     file: changelog/20190711-create-pending-table.yml
     relativeToChangelogFile: true
+- include:
+    file: changelog/20190911-notification-cluster-lock.yml
+    relativeToChangelogFile: true

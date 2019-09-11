@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-notification-lock-table
+      author: afeldman
+      changes:
+        - createTable:
+            tableName: notification_lock
+            columns:
+              - column:
+                  name: lock_name
+                  type: varchar(256)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: expiry
+                  type: bigint(13)
+                  constraints:
+                    nullable: false

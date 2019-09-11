@@ -27,6 +27,7 @@ import com.netflix.spinnaker.orca.telemetry.RedisInstrumentedExecutionRepository
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.*;
@@ -67,6 +68,7 @@ public class RedisConfiguration {
       value = "redis.cluster-enabled",
       havingValue = "false",
       matchIfMissing = true)
+  @ConditionalOnMissingBean(NotificationClusterLock.class)
   public NotificationClusterLock redisNotificationClusterLock(
       RedisClientSelector redisClientSelector) {
     return new RedisNotificationClusterLock(redisClientSelector);
@@ -74,6 +76,7 @@ public class RedisConfiguration {
 
   @Bean
   @ConditionalOnProperty(value = "redis.cluster-enabled")
+  @ConditionalOnMissingBean(NotificationClusterLock.class)
   public NotificationClusterLock redisClusterNotificationClusterLock(JedisCluster cluster) {
     return new RedisClusterNotificationClusterLock(cluster);
   }
