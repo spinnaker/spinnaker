@@ -114,7 +114,7 @@ class GceDeployStagePreProcessor implements DeployStagePreProcessor  {
   }
 
   private static boolean shouldPinSourceServerGroup(String strategy) {
-    return (Strategy.fromStrategyKey(strategy) != Strategy.RED_BLACK)
+    return (Strategy.fromStrategyKey(strategy) == Strategy.RED_BLACK)
     // || Strategy.fromStrategyKey(strategy) == Strategy.ROLLING_RED_BLACK TODO(jacobkiefer): Insert if/when RRB is implemented for GCE.
   }
 
