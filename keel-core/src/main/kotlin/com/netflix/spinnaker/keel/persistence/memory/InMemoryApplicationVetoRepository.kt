@@ -18,10 +18,15 @@
 package com.netflix.spinnaker.keel.persistence.memory
 
 import com.netflix.spinnaker.keel.persistence.ApplicationVetoRepository
-import org.springframework.stereotype.Component
+import org.slf4j.LoggerFactory
 
-@Component
 class InMemoryApplicationVetoRepository : ApplicationVetoRepository {
+
+  private val log by lazy { LoggerFactory.getLogger(javaClass) }
+
+  init {
+    log.info("ApplicationVetoRepository implementation: ${javaClass.simpleName}")
+  }
 
   private val optedOut: MutableSet<String> = mutableSetOf()
 

@@ -20,10 +20,18 @@ package com.netflix.spinnaker.keel.sql
 import com.netflix.spinnaker.keel.persistence.ApplicationVetoRepository
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.APPLICATION_VETO
 import org.jooq.DSLContext
+import org.slf4j.LoggerFactory
 
 class SqlApplicationVetoRepository(
   private val jooq: DSLContext
 ) : ApplicationVetoRepository {
+
+  private val log by lazy { LoggerFactory.getLogger(javaClass) }
+
+  init {
+    log.info("ApplicationVetoRepository implementation: ${javaClass.simpleName}")
+  }
+
   override fun appVetoed(application: String): Boolean =
     jooq
       .selectOne()

@@ -6,10 +6,12 @@ import com.netflix.spinnaker.fiat.shared.EnableFiatAutoConfig
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.ResourceSpec
+import com.netflix.spinnaker.keel.persistence.ApplicationVetoRepository
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceVersionTracker
+import com.netflix.spinnaker.keel.persistence.memory.InMemoryApplicationVetoRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
@@ -59,6 +61,10 @@ class DefaultConfiguration {
     artifactRepository: ArtifactRepository
   ): DeliveryConfigRepository =
     InMemoryDeliveryConfigRepository()
+
+  @Bean
+  @ConditionalOnMissingBean
+  fun applicationVetoRepository(): ApplicationVetoRepository = InMemoryApplicationVetoRepository()
 
   @Bean
   @ConditionalOnMissingBean(ResourceVersionTracker::class)

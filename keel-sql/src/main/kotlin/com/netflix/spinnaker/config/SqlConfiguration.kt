@@ -2,6 +2,7 @@ package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
+import com.netflix.spinnaker.keel.sql.SqlApplicationVetoRepository
 import com.netflix.spinnaker.keel.sql.SqlArtifactRepository
 import com.netflix.spinnaker.keel.sql.SqlDeliveryConfigRepository
 import com.netflix.spinnaker.keel.sql.SqlResourceRepository
@@ -53,4 +54,10 @@ class SqlConfiguration {
     resourceTypeIdentifier: ResourceTypeIdentifier
   ) =
     SqlDeliveryConfigRepository(jooq, clock, resourceTypeIdentifier)
+
+  @Bean
+  fun applicationVetoRepository(
+    jooq: DSLContext
+  ) =
+    SqlApplicationVetoRepository(jooq)
 }

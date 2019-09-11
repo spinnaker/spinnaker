@@ -23,6 +23,7 @@ import com.netflix.spinnaker.keel.persistence.ApplicationVetoRepository
 import com.netflix.spinnaker.keel.veto.Veto
 import com.netflix.spinnaker.keel.veto.VetoResponse
 import com.netflix.spinnaker.keel.veto.exceptions.MalformedMessageException
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
@@ -30,6 +31,7 @@ class ApplicationVeto(
   val applicationVetoRepository: ApplicationVetoRepository,
   val objectMapper: ObjectMapper
 ) : Veto {
+  private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   override fun check(id: ResourceId): VetoResponse {
     val appName = id.toString().split(":").last().split("-").first()
@@ -46,6 +48,7 @@ class ApplicationVeto(
     )
 
   override fun passMessage(message: Map<String, Any>) {
+    log.debug("${this.javaClass.simpleName} received message: {}", message)
     try {
       val appInfo = objectMapper.convertValue(message, MessageFormat::class.java)
       if (appInfo.optedOut) {
