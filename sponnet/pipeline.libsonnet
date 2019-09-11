@@ -71,6 +71,7 @@
         name: matchArtifact.name,
         type: matchArtifact.type,
         kind: matchArtifact.kind,
+        [if 'artifactAccount' in matchArtifact then 'artifactAccount']: matchArtifact.artifactAccount,
       },
     },
     withDefaultArtifact(defaultArtifact):: self + {
@@ -81,6 +82,7 @@
         // TODO: Some Artifact types (docker) don't require version to be set. It may be better to do this differently.
         [if 'version' in defaultArtifact then 'version']: defaultArtifact.version,
         [if 'name' in defaultArtifact then 'name']: defaultArtifact.name,
+        [if 'artifactAccount' in defaultArtifact then 'artifactAccount']: defaultArtifact.artifactAccount,
       },
     },
     withDisplayName(displayName):: self + { displayName: displayName },
