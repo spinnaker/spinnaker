@@ -40,7 +40,7 @@ class CloudFoundryDeployStagePreProcessor implements DeployStagePreProcessor {
   public List<StageDefinition> onFailureStageDefinitions(Stage stage) {
     CfRollingRedBlackStageData stageData = stage.mapTo(CfRollingRedBlackStageData.class);
     List<StageDefinition> stageDefinitions = new ArrayList<>();
-    Strategy strategy = Strategy.fromStrategy(stageData.getStrategy());
+    Strategy strategy = Strategy.fromStrategyKey(stageData.getStrategy());
 
     if (strategy.equals(Strategy.CF_ROLLING_RED_BLACK)
         && (stageData.getRollback() != null && stageData.getRollback().isOnFailure())) {

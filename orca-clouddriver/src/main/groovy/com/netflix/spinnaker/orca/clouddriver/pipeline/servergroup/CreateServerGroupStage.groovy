@@ -109,7 +109,7 @@ class CreateServerGroupStage extends AbstractDeployStrategyStage {
     def strategySupportsRollback = false
     def additionalRollbackContext = [:]
 
-    def strategy = Strategy.fromStrategy(stageData.strategy)
+    def strategy = Strategy.fromStrategyKey(stageData.strategy)
     if (strategy == Strategy.ROLLING_RED_BLACK) {
       // rollback is always supported regardless of where the failure occurred
       strategySupportsRollback = true

@@ -1,7 +1,7 @@
 /*
- * Copyright 2016 Netflix, Inc.
+ * Copyright 2019 Netflix, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License")
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -14,9 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.pipeline.model;
+package com.netflix.spinnaker.orca.deploymentmonitor.models;
 
-public enum SyntheticStageOwner {
-  STAGE_BEFORE,
-  STAGE_AFTER
+import lombok.Data;
+
+@Data
+public class StatusAdditionalData {
+  private String key;
+  private String text;
+  private String link;
 }

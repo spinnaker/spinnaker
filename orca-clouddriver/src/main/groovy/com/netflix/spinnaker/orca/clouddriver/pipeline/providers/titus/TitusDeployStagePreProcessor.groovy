@@ -20,6 +20,7 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.titus
 import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.ApplySourceServerGroupCapacityStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.CaptureSourceServerGroupCapacityTask
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.DeployStagePreProcessor
+import com.netflix.spinnaker.orca.kato.pipeline.strategy.Strategy
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
@@ -33,7 +34,7 @@ class TitusDeployStagePreProcessor implements DeployStagePreProcessor {
   @Override
   List<StepDefinition> additionalSteps(Stage stage) {
     def stageData = stage.mapTo(StageData)
-    if (stageData.strategy == "rollingredblack") {
+    if (Strategy.fromStrategyKey(stageData.strategy) == Strategy.ROLLING_RED_BLACK) {
       // rolling red/black has no need to snapshot capacities
       return []
     }
@@ -56,7 +57,7 @@ class TitusDeployStagePreProcessor implements DeployStagePreProcessor {
   List<StageDefinition> afterStageDefinitions(Stage stage) {
     def stageData = stage.mapTo(StageData)
     def stageDefinitions = []
-    if (stageData.strategy != "rollingredblack") {
+    if (Strategy.fromStrategyKey(stageData.strategy) != Strategy.ROLLING_RED_BLACK) {
       // rolling red/black has no need to apply a snapshotted capacity (on the newly created server group)
       stageDefinitions << new StageDefinition(
         name: "restoreMinCapacityFromSnapshot",

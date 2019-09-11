@@ -76,7 +76,7 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
    */
   protected Strategy strategy(Stage stage) {
     def stageData = stage.mapTo(StageData)
-    Strategy.fromStrategy(stageData.strategy)
+    Strategy.fromStrategyKey(stageData.strategy)
   }
 
   @Override

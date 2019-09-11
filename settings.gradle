@@ -14,54 +14,55 @@
  * limitations under the License.
  */
 
-include "orca-extensionpoint",
-  "orca-core",
-  "orca-api",
-  "orca-core-tck",
-  "orca-redis",
-  "orca-test-redis",
-  "orca-retrofit",
-  "orca-front50",
+include "orca-api",
+  "orca-applications",
   "orca-bakery",
+  "orca-bom",
+  "orca-clouddriver",
+  "orca-core-tck",
+  "orca-core",
+  "orca-deploymentmonitor",
   "orca-dry-run",
   "orca-echo",
   "orca-eureka",
-  "orca-igor",
-  "orca-clouddriver",
-  "orca-kayenta",
-  "orca-kotlin",
-  "orca-keel",
-  "orca-mine",
-  "orca-test",
-  "orca-test-groovy",
-  "orca-test-kotlin",
+  "orca-extensionpoint",
   "orca-flex",
-  "orca-webhook",
-  "orca-web",
-  "orca-applications",
-  "orca-queue",
+  "orca-front50",
+  "orca-igor",
+  "orca-integrations-cloudfoundry",
+  "orca-integrations-gremlin",
+  "orca-kayenta",
+  "orca-keel",
+  "orca-kotlin",
+  "orca-migration",
+  "orca-mine",
+  "orca-pipelinetemplate",
+  "orca-qos",
   "orca-queue-redis",
   "orca-queue-sql",
   "orca-queue-tck",
-  "orca-pipelinetemplate",
-  "orca-validation",
-  "orca-qos",
-  "orca-migration",
-  "orca-sql",
+  "orca-queue",
+  "orca-redis",
+  "orca-retrofit",
   "orca-sql-mysql",
-  "orca-integrations-gremlin",
-  "orca-integrations-cloudfoundry",
-  "orca-bom"
+  "orca-sql",
+  "orca-test-groovy",
+  "orca-test-kotlin",
+  "orca-test-redis",
+  "orca-test",
+  "orca-validation",
+  "orca-web",
+  "orca-webhook"
 
 rootProject.name = "orca"
 
 def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
+    project.buildFileName = "${project.name}.gradle"
+    project.children.each {
+        setBuildFile(it)
+    }
 }
 
 rootProject.children.each {
-  setBuildFile it
+    setBuildFile it
 }

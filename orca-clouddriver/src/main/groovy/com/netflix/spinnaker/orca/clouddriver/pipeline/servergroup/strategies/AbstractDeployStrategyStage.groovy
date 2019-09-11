@@ -76,7 +76,6 @@ abstract class AbstractDeployStrategyStage extends AbstractCloudProviderAwareSta
   @Override
   void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder
-    // TODO(ttomsu): This is currently an AWS-only stage. I need to add and support the "useSourceCapacity" option.
       .withTask("determineSourceServerGroup", DetermineSourceServerGroupTask)
       .withTask("determineHealthProviders", DetermineHealthProvidersTask)
 
@@ -87,9 +86,7 @@ abstract class AbstractDeployStrategyStage extends AbstractCloudProviderAwareSta
       }
     }
 
-    Strategy strategy = (Strategy) strategies.findResult(noStrategy, {
-      it.name.equalsIgnoreCase(stage.context.strategy) ? it : null
-    })
+    Strategy strategy = getStrategy(stage)
     if (!strategy.replacesBasicSteps()) {
       (basicTasks(stage) ?: []).each {
         builder.withTask(it.name, it.implementingClass)

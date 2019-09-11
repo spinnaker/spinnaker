@@ -28,6 +28,7 @@ dependencies {
   implementation(project(":orca-retrofit"))
   implementation(project(":orca-front50"))
   implementation(project(":orca-bakery"))
+  implementation(project(":orca-deploymentmonitor"))
   implementation("com.netflix.spinnaker.moniker:moniker")
   implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
   implementation("io.kubernetes:client-java:1.0.0-beta1")

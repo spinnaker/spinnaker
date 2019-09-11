@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.kato.pipeline
 
 import javax.annotation.Nonnull
-import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CloneServerGroupStage

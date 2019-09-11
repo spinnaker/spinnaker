@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.Ab
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.DeployStagePreProcessor
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupResolver
+import com.netflix.spinnaker.orca.kato.pipeline.strategy.Strategy
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
 import com.netflix.spinnaker.orca.pipeline.CheckPreconditionsStage
@@ -50,7 +51,7 @@ class AwsDeployStagePreProcessor implements DeployStagePreProcessor {
   @Override
   List<StepDefinition> additionalSteps(Stage stage) {
     def stageData = stage.mapTo(StageData)
-    if (stageData.strategy == "rollingredblack") {
+    if (Strategy.fromStrategyKey(stageData.strategy) == Strategy.ROLLING_RED_BLACK) {
       // rolling red/black has no need to snapshot capacities
       return []
     }
@@ -113,7 +114,7 @@ class AwsDeployStagePreProcessor implements DeployStagePreProcessor {
   List<StageDefinition> afterStageDefinitions(Stage stage) {
     def stageData = stage.mapTo(StageData)
     def stageDefinitions = []
-    if (stageData.strategy != "rollingredblack") {
+    if (Strategy.fromStrategyKey(stageData.strategy) != Strategy.ROLLING_RED_BLACK) {
       // rolling red/black has no need to apply a snapshotted capacity (on the newly created server group)
       stageDefinitions << new StageDefinition(
         name: "restoreMinCapacityFromSnapshot",
@@ -151,12 +152,12 @@ class AwsDeployStagePreProcessor implements DeployStagePreProcessor {
 
   private static boolean shouldPinSourceServerGroup(String strategy) {
     // TODO-AJ consciously only enabling for rolling red/black -- will add support for other strategies after it's working
-    return strategy == "rollingredblack"
+    return (Strategy.fromStrategyKey(strategy) == Strategy.ROLLING_RED_BLACK)
   }
 
   private static boolean shouldCheckServerGroupsPreconditions(StageData stageData) {
     // TODO(dreynaud): enabling cautiously for RRB only for testing, but we would ideally roll this out to other strategies
-    return stageData.strategy in ["rollingredblack"] && stageData.maxInitialAsgs != -1
+    return (Strategy.fromStrategyKey(stageData.strategy) == Strategy.ROLLING_RED_BLACK) && (stageData.maxInitialAsgs != -1)
   }
 
   private Optional<Map<String, Object>> getResizeContext(StageData stageData) {
@@ -189,7 +190,7 @@ class AwsDeployStagePreProcessor implements DeployStagePreProcessor {
 
   private StageDefinition buildUnpinServerGroupStage(StageData stageData, boolean deployFailed) {
     if (!shouldPinSourceServerGroup(stageData.strategy)) {
-      return null;
+      return null
     }
 
     if (stageData.scaleDown && !deployFailed) {
