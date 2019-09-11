@@ -59,7 +59,7 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
     def creds = Stub(AccountCredentialsProvider) {
       getCredentials('target') >> target
     }
-    def op = new AllowLaunchAtomicOperation(new AllowLaunchDescription(amiName: 'super-awesome-ami', account: 'target', credentials: source))
+    def op = new AllowLaunchAtomicOperation(new AllowLaunchDescription(amiName: 'super-awesome-ami', targetAccount: 'target', credentials: source))
     op.accountCredentialsProvider = creds
     op.amazonClientProvider = provider
 
@@ -95,7 +95,7 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
       describeImages(_) >> null
     }
     def provider = Mock(AmazonClientProvider)
-    def description = new AllowLaunchDescription(account: "prod", amiName: "ami-123456", region: "us-west-1", credentials: testCredentials)
+    def description = new AllowLaunchDescription(targetAccount: "prod", amiName: "ami-123456", region: "us-west-1", credentials: testCredentials)
     def op = new AllowLaunchAtomicOperation(description)
     op.amazonClientProvider = provider
     op.accountCredentialsProvider = Mock(AccountCredentialsProvider)
@@ -126,7 +126,7 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
     def targetAmazonEc2 = Mock(AmazonEC2)
     def provider = Mock(AmazonClientProvider)
 
-    def description = new AllowLaunchDescription(account: "prod", amiName: "ami-123456", region: "us-west-1", credentials: testCredentials)
+    def description = new AllowLaunchDescription(targetAccount: "prod", amiName: "ami-123456", region: "us-west-1", credentials: testCredentials)
     def op = new AllowLaunchAtomicOperation(description)
     op.amazonClientProvider = provider
     op.accountCredentialsProvider = Mock(AccountCredentialsProvider)
@@ -161,7 +161,7 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
     def targetAmazonEc2 = Mock(AmazonEC2)
     def provider = Mock(AmazonClientProvider)
 
-    def description = new AllowLaunchDescription(account: "test", amiName: "ami-123456", region: "us-west-1", credentials: testCredentials)
+    def description = new AllowLaunchDescription(targetAccount: "test", amiName: "ami-123456", region: "us-west-1", credentials: testCredentials)
     def op = new AllowLaunchAtomicOperation(description)
     op.amazonClientProvider = provider
     op.accountCredentialsProvider = Mock(AccountCredentialsProvider)
@@ -194,7 +194,7 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
     def sourceAmazonEc2 = Mock(AmazonEC2)
     def targetAmazonEc2 = Mock(AmazonEC2)
 
-    def description = new AllowLaunchDescription(account: 'target', amiName: 'ami-123456', region: 'us-west-1', credentials: sourceCredentials)
+    def description = new AllowLaunchDescription(targetAccount: 'target', amiName: 'ami-123456', region: 'us-west-1', credentials: sourceCredentials)
     def op = new AllowLaunchAtomicOperation(description)
     op.amazonClientProvider = Mock(AmazonClientProvider)
     op.accountCredentialsProvider = Mock(AccountCredentialsProvider)
@@ -235,7 +235,7 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
     def ownerAmazonEc2 = Mock(AmazonEC2)
     def targetAmazonEc2 = Mock(AmazonEC2)
 
-    def description = new AllowLaunchDescription(account: 'target', amiName: 'ami-123456', region: 'us-west-1', credentials: ownerCredentials)
+    def description = new AllowLaunchDescription(targetAccount: 'target', amiName: 'ami-123456', region: 'us-west-1', credentials: ownerCredentials)
     def op = new AllowLaunchAtomicOperation(description)
     op.amazonClientProvider = Mock(AmazonClientProvider)
     op.accountCredentialsProvider = Mock(AccountCredentialsProvider)
@@ -272,7 +272,7 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
     def sourceAmazonEc2 = Mock(AmazonEC2)
     def targetAmazonEc2 = Mock(AmazonEC2)
 
-    def description = new AllowLaunchDescription(account: 'target', amiName: 'ami-123456', region: 'us-west-2', credentials: sourceCredentials)
+    def description = new AllowLaunchDescription(targetAccount: 'target', amiName: 'ami-123456', region: 'us-west-2', credentials: sourceCredentials)
     def op = new AllowLaunchAtomicOperation(description)
     op.amazonClientProvider = Mock(AmazonClientProvider)
     op.accountCredentialsProvider = Mock(AccountCredentialsProvider)
@@ -314,7 +314,7 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
     def ownerAmazonEc2 = Mock(AmazonEC2)
     def targetAmazonEc2 = Mock(AmazonEC2)
 
-    def description = new AllowLaunchDescription(account: 'target', amiName: 'ami-123456', region: 'us-west-1', credentials: ownerCredentials)
+    def description = new AllowLaunchDescription(targetAccount: 'target', amiName: 'ami-123456', region: 'us-west-1', credentials: ownerCredentials)
     def op = new AllowLaunchAtomicOperation(description)
     op.amazonClientProvider = Mock(AmazonClientProvider)
     op.accountCredentialsProvider = Mock(AccountCredentialsProvider)

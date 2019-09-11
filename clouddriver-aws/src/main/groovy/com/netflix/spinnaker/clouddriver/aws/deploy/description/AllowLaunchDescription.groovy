@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
 class AllowLaunchDescription extends AbstractAmazonCredentialsDescription {
-  String account
+  String targetAccount
   String amiName
   String region
 

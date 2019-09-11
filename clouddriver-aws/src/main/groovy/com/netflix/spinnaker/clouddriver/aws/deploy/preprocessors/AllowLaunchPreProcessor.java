@@ -18,42 +18,21 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.preprocessors;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.AllowLaunchDescription;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationDescriptionPreProcessor;
 import java.util.Map;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-/**
- * Normalizes the use of `account` vs `credentials`, ensuring that both are always set; prefers the
- * value from `credentials`.
- */
-@Slf4j
 @Component
-public class CredentialsAccountNormalizationPreProcessor
-    implements AtomicOperationDescriptionPreProcessor {
+public class AllowLaunchPreProcessor implements AtomicOperationDescriptionPreProcessor {
   @Override
   public boolean supports(Class descriptionClass) {
-    return !AllowLaunchDescription.class.isAssignableFrom(descriptionClass);
+    return AllowLaunchDescription.class.isAssignableFrom(descriptionClass);
   }
 
   @Override
   public Map process(Map description) {
-    final String account = (String) description.get("account");
-    final String credentials = (String) description.get("credentials");
-
-    if (account != null && credentials != null && !account.equals(credentials)) {
-      log.warn(
-          "Passed 'account' ({}) and 'credentials' ({}), but values are not equal",
-          account,
-          credentials);
-      description.put("account", credentials);
-    }
-
-    if (credentials == null && account != null) {
-      description.put("credentials", account);
-    }
-    if (account == null && credentials != null) {
-      description.put("account", credentials);
-    }
-
+    // Backwards-compatibility from when AllowLaunch used to overload "account" from the abstract
+    // AWS description.
+    description.putIfAbsent("targetAccount", description.get("account"));
+    description.put("account", description.get("credentials"));
     return description;
   }
 }

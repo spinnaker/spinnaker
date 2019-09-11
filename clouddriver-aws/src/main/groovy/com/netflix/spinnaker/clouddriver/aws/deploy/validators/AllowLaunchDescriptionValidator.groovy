@@ -36,10 +36,10 @@ class AllowLaunchDescriptionValidator extends DescriptionValidator<AllowLaunchDe
     if (!description.region) {
       errors.rejectValue("region", "allowLaunchDescription.region.empty")
     }
-    if (!description.account) {
-      errors.rejectValue("account", "allowLaunchDescription.account.empty")
-    } else if (!accountCredentialsProvider.all.collect { it.name }.contains(description.account)) {
-      errors.rejectValue("account", "allowLaunchDescription.account.not.configured")
+    if (!description.targetAccount) {
+      errors.rejectValue("targetAccount", "allowLaunchDescription.targetAccount.empty")
+    } else if (!accountCredentialsProvider.all.collect { it.name }.contains(description.targetAccount)) {
+      errors.rejectValue("targetAccount", "allowLaunchDescription.targetAccount.not.configured")
     }
   }
 }

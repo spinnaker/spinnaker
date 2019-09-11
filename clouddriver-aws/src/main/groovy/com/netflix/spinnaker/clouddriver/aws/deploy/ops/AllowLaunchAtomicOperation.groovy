@@ -58,7 +58,7 @@ class AllowLaunchAtomicOperation implements AtomicOperation<ResolvedAmiResult> {
     task.updateStatus BASE_PHASE, "Initializing Allow Launch Operation..."
 
     def sourceCredentials = description.credentials
-    def targetCredentials = accountCredentialsProvider.getCredentials(description.account) as NetflixAmazonCredentials
+    def targetCredentials = accountCredentialsProvider.getCredentials(description.targetAccount) as NetflixAmazonCredentials
     def sourceAmazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, description.region, true)
     def targetAmazonEC2 = amazonClientProvider.getAmazonEC2(targetCredentials, description.region, true)
 
@@ -94,7 +94,7 @@ class AllowLaunchAtomicOperation implements AtomicOperation<ResolvedAmiResult> {
     if (amiLocation == ResolvedAmiLocation.TARGET) {
       task.updateStatus BASE_PHASE, "AMI found in target account: skipping allow launch"
     } else {
-      task.updateStatus BASE_PHASE, "Allowing launch of $description.amiName from $description.account"
+      task.updateStatus BASE_PHASE, "Allowing launch of $description.amiName from $description.account/$description.region to $description.targetAccount"
 
       OperationPoller.retryWithBackoff({ o ->
         sourceAmazonEC2.modifyImageAttribute(new ModifyImageAttributeRequest().withImageId(resolvedAmi.amiId).withLaunchPermission(
@@ -136,7 +136,7 @@ class AllowLaunchAtomicOperation implements AtomicOperation<ResolvedAmiResult> {
       }
     }
 
-    task.updateStatus BASE_PHASE, "Done allowing launch of $description.amiName from $description.account."
+    task.updateStatus BASE_PHASE, "Done allowing launch of $description.amiName from $description.account/$description.region to $description.targetAccount."
     resolvedAmi
   }
 

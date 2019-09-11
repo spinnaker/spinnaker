@@ -36,7 +36,7 @@ class AllowLaunchDescriptionValidatorSpec extends Specification {
     then:
     1 * errors.rejectValue("amiName", _)
     1 * errors.rejectValue("region", _)
-    1 * errors.rejectValue("account", _)
+    1 * errors.rejectValue("targetAccount", _)
   }
 
   void "unconfigured account is rejected"() {
@@ -44,7 +44,7 @@ class AllowLaunchDescriptionValidatorSpec extends Specification {
     AllowLaunchDescriptionValidator validator = new AllowLaunchDescriptionValidator()
     def credentialsHolder = Mock(AccountCredentialsProvider)
     validator.accountCredentialsProvider = credentialsHolder
-    def description = new AllowLaunchDescription(account: "foo")
+    def description = new AllowLaunchDescription(targetAccount: "foo")
     def errors = Mock(Errors)
 
     when:
@@ -52,6 +52,6 @@ class AllowLaunchDescriptionValidatorSpec extends Specification {
 
     then:
     1 * credentialsHolder.getAll() >> { [TestCredential.named('prod')] }
-    1 * errors.rejectValue("account", _)
+    1 * errors.rejectValue("targetAccount", _)
   }
 }

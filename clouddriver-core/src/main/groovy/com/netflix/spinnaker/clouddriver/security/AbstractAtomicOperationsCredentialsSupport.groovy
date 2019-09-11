@@ -39,7 +39,7 @@ abstract class AbstractAtomicOperationsCredentialsSupport implements AtomicOpera
 
   def <T extends AccountCredentials> T getCredentialsObject(String name) {
     if (name == null) {
-      throw new InvalidRequestException("credential name is required")
+      throw new InvalidRequestException("credentials are required")
     }
     T credential
     try {
@@ -49,7 +49,7 @@ abstract class AbstractAtomicOperationsCredentialsSupport implements AtomicOpera
       }
       credential = (T) repoCredential
     } catch (Exception e) {
-      throw new InvalidRequestException("credential not found (name: ${name}, names: ${accountCredentialsProvider.getAll()*.name})", e)
+      throw new InvalidRequestException("credentials not found (name: ${name}, names: ${accountCredentialsProvider.getAll()*.name})", e)
     }
 
     return credential
