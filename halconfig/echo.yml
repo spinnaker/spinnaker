@@ -21,8 +21,6 @@ orca:
   enabled: ${services.orca.enabled:false}
   baseUrl: ${services.orca.baseUrl:http://localhost:8083}
 
-endpoints.health.sensitive: false
-
 scheduler:
   enabled: ${services.echo.cron.enabled:true}
   threadPoolSize: 20
