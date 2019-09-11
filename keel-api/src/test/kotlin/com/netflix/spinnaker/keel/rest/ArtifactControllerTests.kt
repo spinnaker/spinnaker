@@ -59,9 +59,9 @@ internal class ArtifactControllerTests {
     val artifact = DeliveryArtifact("fnord", DEB)
     with(artifactRepository) {
       register(artifact)
-      store(artifact, "fnord-1.0/builds/1")
-      store(artifact, "fnord-2.0/builds/2")
-      store(artifact, "fnord-2.1/builds/3")
+      store(artifact, "fnord-1.0.0-41595c4")
+      store(artifact, "fnord-2.0.0-608bd90")
+      store(artifact, "fnord-2.1.0-18ed1dc")
     }
 
     val request = get("/artifacts/${artifact.name}/${artifact.type}")
@@ -71,9 +71,9 @@ internal class ArtifactControllerTests {
       .andExpect(status().isOk)
       .andExpect(content().string(
         """---
-          |- "fnord-2.1/builds/3"
-          |- "fnord-2.0/builds/2"
-          |- "fnord-1.0/builds/1"
+          |- "fnord-2.1.0-18ed1dc"
+          |- "fnord-2.0.0-608bd90"
+          |- "fnord-1.0.0-41595c4"
         """.trimMargin()
       ))
   }

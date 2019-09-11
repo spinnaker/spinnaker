@@ -38,9 +38,9 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
       artifacts = setOf(artifact1, artifact2),
       environments = setOf(environment1, environment2)
     )
-    val version1_0 = "1.0"
-    val version1_1 = "1.1"
-    val version1_2 = "1.2"
+    val version1 = "keeldemo-0.0.1~dev.8-h8.41595c4"
+    val version2 = "keeldemo-0.0.1~dev.9-h9.3d2c8ff"
+    val version3 = "keeldemo-0.0.1~dev.10-h10.1d2d542"
   }
 
   fun tests() = rootContext<Fixture<T>> {
@@ -57,7 +57,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
 
       test("registering a new version throws an exception") {
         expectThrows<NoSuchArtifactException> {
-          subject.store(artifact1, version1_0)
+          subject.store(artifact1, version1)
         }
       }
 
@@ -87,20 +87,32 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
 
       context("an artifact version already exists") {
         before {
-          subject.store(artifact1, version1_0)
+          subject.store(artifact1, version1)
         }
 
         test("registering the same version is a no-op") {
-          val result = subject.store(artifact1, version1_0)
+          val result = subject.store(artifact1, version1)
           expectThat(result).isFalse()
           expectThat(subject.versions(artifact1)).hasSize(1)
         }
 
         test("registering a new version adds it to the list") {
-          val result = subject.store(artifact1, version1_1)
+          val result = subject.store(artifact1, version2)
 
           expectThat(result).isTrue()
-          expectThat(subject.versions(artifact1)).containsExactly(version1_1, version1_0)
+          expectThat(subject.versions(artifact1)).containsExactly(version2, version1)
+        }
+      }
+
+      context("sorting is consistent") {
+        before {
+          listOf(version1, version2, version3).forEach {
+            subject.store(artifact1, it)
+          }
+        }
+
+        test("versions are returned newest first") {
+          expectThat(subject.versions(artifact1)).containsExactly(version3, version2, version1)
         }
       }
     }
@@ -117,7 +129,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
         }
 
         test("versions are not considered successfully deployed") {
-          setOf(version1_0, version1_1, version1_2).forEach {
+          setOf(version1, version2, version3).forEach {
             expectThat(subject.wasSuccessfullyDeployedTo(manifest, artifact1, it, environment1.name))
               .isFalse()
           }
@@ -126,22 +138,22 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
 
       context("a version has been promoted to an environment") {
         before {
-          subject.approveVersionFor(manifest, artifact1, version1_0, environment1.name)
+          subject.approveVersionFor(manifest, artifact1, version1, environment1.name)
         }
 
         test("the approved version for that environment matches") {
           expectThat(subject.latestVersionApprovedIn(manifest, artifact1, environment1.name))
-            .isEqualTo(version1_0)
+            .isEqualTo(version1)
         }
 
         test("the version is not considered successfully deployed yet") {
-          expectThat(subject.wasSuccessfullyDeployedTo(manifest, artifact1, version1_0, environment1.name))
+          expectThat(subject.wasSuccessfullyDeployedTo(manifest, artifact1, version1, environment1.name))
             .isFalse()
         }
 
         test("promoting the same version again returns false") {
           expectCatching {
-            subject.approveVersionFor(manifest, artifact1, version1_0, environment1.name)
+            subject.approveVersionFor(manifest, artifact1, version1, environment1.name)
           }
             .succeeded()
             .isFalse()
@@ -149,7 +161,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
 
         test("promoting a new version returns true") {
           expectCatching {
-            subject.approveVersionFor(manifest, artifact1, version1_1, environment1.name)
+            subject.approveVersionFor(manifest, artifact1, version2, environment1.name)
           }
             .succeeded()
             .isTrue()
@@ -157,41 +169,41 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
 
         context("the version is marked as successfully deployed") {
           before {
-            subject.markAsSuccessfullyDeployedTo(manifest, artifact1, version1_0, environment1.name)
+            subject.markAsSuccessfullyDeployedTo(manifest, artifact1, version1, environment1.name)
           }
 
           test("the version is now considered successfully deployed") {
-            expectThat(subject.wasSuccessfullyDeployedTo(manifest, artifact1, version1_0, environment1.name))
+            expectThat(subject.wasSuccessfullyDeployedTo(manifest, artifact1, version1, environment1.name))
               .isTrue()
           }
 
           context("a new version is promoted to the same environment") {
             before {
-              subject.approveVersionFor(manifest, artifact1, version1_1, environment1.name)
+              subject.approveVersionFor(manifest, artifact1, version2, environment1.name)
             }
 
             test("the latest approved version changes") {
               expectThat(subject.latestVersionApprovedIn(manifest, artifact1, environment1.name))
-                .isEqualTo(version1_1)
+                .isEqualTo(version2)
             }
 
             test("the version is not considered successfully deployed yet") {
-              expectThat(subject.wasSuccessfullyDeployedTo(manifest, artifact1, version1_1, environment1.name))
+              expectThat(subject.wasSuccessfullyDeployedTo(manifest, artifact1, version2, environment1.name))
                 .isFalse()
             }
 
             context("the new version is marked as successfully deployed") {
               before {
-                subject.markAsSuccessfullyDeployedTo(manifest, artifact1, version1_1, environment1.name)
+                subject.markAsSuccessfullyDeployedTo(manifest, artifact1, version2, environment1.name)
               }
 
               test("the old version is still considered successfully deployed") {
-                expectThat(subject.wasSuccessfullyDeployedTo(manifest, artifact1, version1_0, environment1.name))
+                expectThat(subject.wasSuccessfullyDeployedTo(manifest, artifact1, version1, environment1.name))
                   .isTrue()
               }
 
               test("the new version is also considered successfully deployed") {
-                expectThat(subject.wasSuccessfullyDeployedTo(manifest, artifact1, version1_1, environment1.name))
+                expectThat(subject.wasSuccessfullyDeployedTo(manifest, artifact1, version2, environment1.name))
                   .isTrue()
               }
             }
@@ -200,33 +212,33 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
 
         context("a version of a different artifact is promoted to the environment") {
           before {
-            subject.approveVersionFor(manifest, artifact2, version1_2, environment1.name)
+            subject.approveVersionFor(manifest, artifact2, version3, environment1.name)
           }
 
           test("the approved version of the original artifact remains the same") {
             expectThat(subject.latestVersionApprovedIn(manifest, artifact1, environment1.name))
-              .isEqualTo(version1_0)
+              .isEqualTo(version1)
           }
 
           test("the approved version of the new artifact matches") {
             expectThat(subject.latestVersionApprovedIn(manifest, artifact2, environment1.name))
-              .isEqualTo(version1_2)
+              .isEqualTo(version3)
           }
         }
 
         context("a different version of the same artifact is promoted to another environment") {
           before {
-            subject.approveVersionFor(manifest, artifact1, version1_1, environment2.name)
+            subject.approveVersionFor(manifest, artifact1, version2, environment2.name)
           }
 
           test("the approved version in the original environment is unaffected") {
             expectThat(subject.latestVersionApprovedIn(manifest, artifact1, environment1.name))
-              .isEqualTo(version1_0)
+              .isEqualTo(version1)
           }
 
           test("the approved version in the new environment matches") {
             expectThat(subject.latestVersionApprovedIn(manifest, artifact1, environment2.name))
-              .isEqualTo(version1_1)
+              .isEqualTo(version2)
           }
         }
       }

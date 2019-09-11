@@ -5,6 +5,7 @@ import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
+import com.netflix.spinnaker.keel.persistence.sortAppVersion
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -41,7 +42,7 @@ class InMemoryArtifactRepository : ArtifactRepository {
     }
 
   override fun versions(artifact: DeliveryArtifact): List<String> =
-    artifacts[artifact] ?: throw NoSuchArtifactException(artifact)
+    artifacts[artifact]?.sortAppVersion() ?: throw NoSuchArtifactException(artifact)
 
   override fun approveVersionFor(
     deliveryConfig: DeliveryConfig,

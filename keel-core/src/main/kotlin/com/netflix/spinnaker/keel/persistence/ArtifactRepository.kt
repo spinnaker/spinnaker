@@ -1,5 +1,7 @@
 package com.netflix.spinnaker.keel.persistence
 
+import com.netflix.frigga.ami.AppVersion
+import com.netflix.rocket.semver.DebianVersionComparator
 import com.netflix.spinnaker.keel.api.ArtifactType
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
@@ -64,6 +66,19 @@ interface ArtifactRepository {
     targetEnvironment: String
   )
 }
+
+private val VERSION_COMPARATOR: Comparator<String> = object : Comparator<String> {
+  override fun compare(s1: String, s2: String): Int {
+    return debComparator.compare(s1.toVersion(), s2.toVersion())
+  }
+
+  private val debComparator = DebianVersionComparator()
+
+  private fun String.toVersion() = AppVersion.parseName(this).version
+}
+
+fun Collection<String>.sortAppVersion() =
+  sortedWith(VERSION_COMPARATOR.reversed())
 
 class NoSuchArtifactException(name: String, type: ArtifactType) :
   RuntimeException("No $type artifact named $name is registered") {

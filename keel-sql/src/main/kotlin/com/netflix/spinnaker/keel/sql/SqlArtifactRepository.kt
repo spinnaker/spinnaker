@@ -12,6 +12,7 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_ARTIFACT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_VERSIONS
+import com.netflix.spinnaker.keel.persistence.sortAppVersion
 import org.jooq.DSLContext
 import org.jooq.Record1
 import org.jooq.Select
@@ -67,9 +68,9 @@ class SqlArtifactRepository(
         .where(DELIVERY_ARTIFACT.UID.eq(DELIVERY_ARTIFACT_VERSION.DELIVERY_ARTIFACT_UID))
         .and(DELIVERY_ARTIFACT.NAME.eq(artifact.name))
         .and(DELIVERY_ARTIFACT.TYPE.eq(artifact.type.name))
-        .orderBy(DELIVERY_ARTIFACT_VERSION.VERSION.desc()) // TODO: this is not going to work
         .fetch()
         .getValues(DELIVERY_ARTIFACT_VERSION.VERSION)
+        .sortAppVersion()
     } else {
       throw NoSuchArtifactException(artifact)
     }

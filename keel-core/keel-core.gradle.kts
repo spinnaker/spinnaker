@@ -28,9 +28,14 @@ dependencies {
   api("de.danielbechler:java-object-diff")
   api("org.springframework:spring-context")
   api("org.springframework.boot:spring-boot-autoconfigure")
+  api("com.netflix.frigga:frigga")
 
   testImplementation(project(":keel-test"))
   testImplementation(project (":keel-core-test"))
   testImplementation("io.strikt:strikt-jackson")
   testImplementation("dev.minutest:minutest")
+
+  testImplementation("org.assertj:assertj-core")
+  testImplementation("org.junit.jupiter:junit-jupiter-api")
+  testImplementation("org.junit.jupiter:junit-jupiter-params")
 }

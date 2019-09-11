@@ -24,11 +24,11 @@ class SqlArtifactRepositoryTests : ArtifactRepositoryTests<SqlArtifactRepository
   override fun Fixture<SqlArtifactRepository>.persist() {
     with(subject) {
       register(artifact1)
-      setOf(version1_0, version1_1, version1_2).forEach {
+      setOf(version1, version2, version3).forEach {
         store(artifact1, it)
       }
       register(artifact2)
-      setOf(version1_0, version1_1, version1_2).forEach {
+      setOf(version1, version2, version3).forEach {
         store(artifact2, it)
       }
     }
