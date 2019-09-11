@@ -1,4 +1,4 @@
-package com.netflix.rocket.semver;
+package com.netflix.rocket.semver.shaded;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.of;

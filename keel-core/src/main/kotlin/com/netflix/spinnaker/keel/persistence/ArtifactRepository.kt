@@ -1,10 +1,12 @@
 package com.netflix.spinnaker.keel.persistence
 
 import com.netflix.frigga.ami.AppVersion
-import com.netflix.rocket.semver.DebianVersionComparator
+import com.netflix.rocket.semver.shaded.DebianVersionComparator
 import com.netflix.spinnaker.keel.api.ArtifactType
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
+import org.slf4j.LoggerFactory
+import org.springframework.util.comparator.NullSafeComparator
 
 interface ArtifactRepository {
 
@@ -68,13 +70,21 @@ interface ArtifactRepository {
 }
 
 private val VERSION_COMPARATOR: Comparator<String> = object : Comparator<String> {
-  override fun compare(s1: String, s2: String): Int {
-    return debComparator.compare(s1.toVersion(), s2.toVersion())
-  }
+  override fun compare(s1: String, s2: String) =
+    debComparator.compare(s1.toVersion(), s2.toVersion())
 
-  private val debComparator = DebianVersionComparator()
+  private val debComparator = NullSafeComparator(DebianVersionComparator(), true)
 
-  private fun String.toVersion() = AppVersion.parseName(this).version
+  private fun String.toVersion() = AppVersion
+    .parseName(this)
+    ?.version
+    .also {
+      if (it == null) {
+        log.warn("Unparseable artifact version \"{}\" encountered", it)
+      }
+    }
+
+  private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }
 
 fun Collection<String>.sortAppVersion() =

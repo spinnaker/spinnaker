@@ -1,4 +1,4 @@
-package com.netflix.rocket.semver;
+package com.netflix.rocket.semver.shaded;
 
 import java.util.Comparator;
 import java.util.regex.Matcher;
