@@ -19,10 +19,13 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacer;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacer.ReplaceResult;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.Replacer;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgentFactory;
@@ -44,7 +47,11 @@ import lombok.extern.slf4j.Slf4j;
 public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatch {
   protected static final ObjectMapper objectMapper = new ObjectMapper();
 
-  private final ArtifactReplacer artifactReplacer = new ArtifactReplacer();
+  private final ArtifactReplacer artifactReplacer;
+
+  public KubernetesHandler() {
+    this.artifactReplacer = new ArtifactReplacer(artifactReplacers());
+  }
 
   public abstract int deployPriority();
 
@@ -66,8 +73,9 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatc
     return new ArrayList<>();
   }
 
-  protected void registerReplacer(ArtifactReplacer.Replacer replacer) {
-    artifactReplacer.addReplacer(replacer);
+  @Nonnull
+  protected ImmutableList<Replacer> artifactReplacers() {
+    return ImmutableList.of();
   }
 
   public ReplaceResult replaceArtifacts(
@@ -82,7 +90,7 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatc
 
   protected abstract KubernetesV2CachingAgentFactory cachingAgentFactory();
 
-  public Set<Artifact> listArtifacts(KubernetesManifest manifest) {
+  public ImmutableSet<Artifact> listArtifacts(KubernetesManifest manifest) {
     return artifactReplacer.findAll(manifest);
   }
 

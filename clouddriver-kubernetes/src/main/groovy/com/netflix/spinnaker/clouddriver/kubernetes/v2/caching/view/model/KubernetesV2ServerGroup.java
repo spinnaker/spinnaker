@@ -20,12 +20,13 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model;
 import static java.util.Collections.singletonList;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.Ints;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacer;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacerFactory;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.Replacer;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.data.KubernetesV2ServerGroupCacheData;
@@ -69,12 +70,9 @@ public class KubernetesV2ServerGroup extends ManifestBasedModel implements Serve
   private KubernetesManifest manifest;
   private Keys.InfrastructureCacheKey key;
 
-  @JsonIgnore private static final ArtifactReplacer dockerImageReplacer;
-
-  static {
-    dockerImageReplacer = new ArtifactReplacer();
-    dockerImageReplacer.addReplacer(ArtifactReplacerFactory.dockerImageReplacer());
-  }
+  @JsonIgnore
+  private static final ArtifactReplacer dockerImageReplacer =
+      new ArtifactReplacer(ImmutableList.of(Replacer.dockerImage()));
 
   @Override
   public ServerGroup.InstanceCounts getInstanceCounts() {

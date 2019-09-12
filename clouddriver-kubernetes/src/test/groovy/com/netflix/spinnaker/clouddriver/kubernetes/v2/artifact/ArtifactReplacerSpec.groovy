@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.common.collect.ImmutableList
 import com.netflix.spinnaker.clouddriver.artifacts.kubernetes.KubernetesArtifactType
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
@@ -33,8 +34,7 @@ spec:
     kind: Deployment
     name: $name
 """
-    def artifactReplacer = new ArtifactReplacer()
-    artifactReplacer.addReplacer(ArtifactReplacerFactory.hpaDeploymentReplacer())
+    def artifactReplacer = new ArtifactReplacer(ImmutableList.of(Replacer.hpaDeployment()))
     def manifest = stringToManifest(hpaManifest)
     def artifacts = artifactReplacer.findAll(manifest)
 
@@ -60,8 +60,7 @@ spec:
     kind: UNKNOWN
     name: $name
 """
-    def artifactReplacer = new ArtifactReplacer()
-    artifactReplacer.addReplacer(ArtifactReplacerFactory.hpaDeploymentReplacer())
+    def artifactReplacer = new ArtifactReplacer(ImmutableList.of(Replacer.hpaDeployment()))
     def manifest = stringToManifest(hpaManifest)
     def artifacts = artifactReplacer.findAll(manifest)
 
@@ -71,7 +70,7 @@ spec:
 
   @Unroll
   def "correctly extracts Docker artifacts from image names"() {
-    expect:
+    when:
     def deploymentManifest = """
 apiVersion: apps/v1
 kind: Deployment
@@ -95,11 +94,11 @@ spec:
         ports:
         - containerPort: 80
 """
-    def artifactReplacer = new ArtifactReplacer()
-    artifactReplacer.addReplacer(ArtifactReplacerFactory.dockerImageReplacer())
+    def artifactReplacer = new ArtifactReplacer(ImmutableList.of(Replacer.dockerImage()))
     def manifest = stringToManifest(deploymentManifest)
     def artifacts = artifactReplacer.findAll(manifest)
 
+    then:
     artifacts.size() == 1
     Artifact artifact = artifacts.toList().get(0)
     artifact.getType() == KubernetesArtifactType.DockerImage.type
@@ -124,7 +123,7 @@ spec:
 
   @Unroll
   def "correctly extracts Docker artifacts from image names in initContainers"() {
-    expect:
+    when:
     def deploymentManifest = """
 apiVersion: apps/v1
 kind: Deployment
@@ -148,11 +147,11 @@ spec:
         ports:
         - containerPort: 80
 """
-    def artifactReplacer = new ArtifactReplacer()
-    artifactReplacer.addReplacer(ArtifactReplacerFactory.dockerImageReplacer())
+    def artifactReplacer = new ArtifactReplacer(ImmutableList.of(Replacer.dockerImage()))
     def manifest = stringToManifest(deploymentManifest)
     def artifacts = artifactReplacer.findAll(manifest)
 
+    then:
     artifacts.size() == 1
     Artifact artifact = artifacts.toList().get(0)
     artifact.getType() == KubernetesArtifactType.DockerImage.type

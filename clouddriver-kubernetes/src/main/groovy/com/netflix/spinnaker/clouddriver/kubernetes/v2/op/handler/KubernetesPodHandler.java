@@ -19,8 +19,8 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.WORKLOAD_PRIORITY;
 
-import com.netflix.spinnaker.clouddriver.artifacts.kubernetes.KubernetesArtifactType;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacer;
+import com.google.common.collect.ImmutableList;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.Replacer;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCoreCachingAgent;
@@ -38,13 +38,10 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class KubernetesPodHandler extends KubernetesHandler {
-  public KubernetesPodHandler() {
-    registerReplacer(
-        ArtifactReplacer.Replacer.builder()
-            .replacePath("$.spec.containers.[?( @.image == \"{%name%}\" )].image")
-            .findPath("$.spec.containers.*.image")
-            .type(KubernetesArtifactType.DockerImage)
-            .build());
+  @Nonnull
+  @Override
+  protected ImmutableList<Replacer> artifactReplacers() {
+    return ImmutableList.of(Replacer.podDockerImage());
   }
 
   @Override

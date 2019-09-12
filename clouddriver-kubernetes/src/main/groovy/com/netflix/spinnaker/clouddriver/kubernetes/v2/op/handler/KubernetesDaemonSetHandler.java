@@ -19,7 +19,8 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.WORKLOAD_CONTROLLER_PRIORITY;
 
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacerFactory;
+import com.google.common.collect.ImmutableList;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.Replacer;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCoreCachingAgent;
@@ -39,14 +40,17 @@ import org.springframework.stereotype.Component;
 public class KubernetesDaemonSetHandler extends KubernetesHandler
     implements CanResize, CanPauseRollout, CanResumeRollout, CanUndoRollout, ServerGroupHandler {
 
-  public KubernetesDaemonSetHandler() {
-    registerReplacer(ArtifactReplacerFactory.dockerImageReplacer());
-    registerReplacer(ArtifactReplacerFactory.configMapVolumeReplacer());
-    registerReplacer(ArtifactReplacerFactory.secretVolumeReplacer());
-    registerReplacer(ArtifactReplacerFactory.configMapEnvFromReplacer());
-    registerReplacer(ArtifactReplacerFactory.secretEnvFromReplacer());
-    registerReplacer(ArtifactReplacerFactory.configMapKeyValueFromReplacer());
-    registerReplacer(ArtifactReplacerFactory.secretKeyValueFromReplacer());
+  @Nonnull
+  @Override
+  protected ImmutableList<Replacer> artifactReplacers() {
+    return ImmutableList.of(
+        Replacer.dockerImage(),
+        Replacer.configMapVolume(),
+        Replacer.secretVolume(),
+        Replacer.configMapEnv(),
+        Replacer.secretEnv(),
+        Replacer.configMapKeyValue(),
+        Replacer.secretKeyValue());
   }
 
   @Override
