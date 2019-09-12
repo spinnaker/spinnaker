@@ -52,6 +52,7 @@ export interface IPagerState {
   accountName: string;
   app: string;
   hideNoApps: boolean;
+  notFoundApps: string[];
   filterString: string;
   initialKeys: string[];
   selectedKeys: Map<string, IPagerDutyService>;
@@ -99,6 +100,7 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
       app: $stateParams.app || '',
       filterString: $stateParams.q || '',
       hideNoApps: $stateParams.hideNoApps || false,
+      notFoundApps: [],
       initialKeys: $stateParams.keys || [],
       sortBy: $stateParams.by || 'service',
       sortDirection: $stateParams.direction || SortDirection.ASC,
@@ -114,7 +116,8 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
       PagerDutyReader.listOnCalls(),
       PagerDutyReader.listServices(),
     ).subscribe((results: [IApplicationSummary[], { [id: string]: IOnCall[] }, IPagerDutyService[]]) => {
-      const sortedData = this.getOnCallsByService(results[0], results[1], results[2]);
+      const [applications, onCalls, services] = results;
+      const sortedData = this.getOnCallsByService(applications, onCalls, services);
       Object.assign(this.allData, sortedData);
       const { app, initialKeys, filterString, hideNoApps, sortBy, sortDirection } = this.state;
       this.runFilter(app, initialKeys, filterString, sortBy, sortDirection, hideNoApps);
@@ -158,6 +161,10 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
     }
   }
 
+  private findServiceByApplicationName(applicationName: string): IOnCallsByService {
+    return this.allData.find(data => data.applications.some(application => application.name === applicationName));
+  }
+
   @Debounce(25)
   private runFilter(
     app: string,
@@ -169,12 +176,26 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
   ) {
     const selectedKeys: Map<string, IPagerDutyService> = new Map();
     if (app) {
-      const foundService = this.allData.find(data => data.applications.find(a => a.name === app) !== undefined);
-      if (foundService) {
-        selectedKeys.set(foundService.service.integration_key, foundService.service);
-        this.setState({ sortedData: [foundService], selectedKeys });
+      const foundServices: IOnCallsByService[] = [];
+      const notFoundApps: string[] = [];
+
+      app.split(',').forEach(applicationName => {
+        const service = this.findServiceByApplicationName(applicationName);
+        if (service) {
+          foundServices.push(service);
+        } else {
+          notFoundApps.push(applicationName);
+        }
+      });
+
+      if (foundServices.length > 0) {
+        foundServices.forEach(foundService =>
+          selectedKeys.set(foundService.service.integration_key, foundService.service),
+        );
+        this.setState({ sortedData: foundServices, selectedKeys, notFoundApps });
         return;
       }
+
       if (!filterString) {
         filterString = app;
       }
@@ -471,9 +492,10 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
   };
 
   public render() {
-    const { app, filterString, hideNoApps, selectedKeys, sortBy, sortDirection, sortedData } = this.state;
+    const { app, filterString, hideNoApps, notFoundApps, selectedKeys, sortBy, sortDirection, sortedData } = this.state;
 
-    const forceOpen = app && selectedKeys.size === sortedData.length && sortedData.length !== 0;
+    const forceOpen =
+      app && selectedKeys.size === sortedData.length && sortedData.length !== 0 && notFoundApps.length === 0;
 
     return (
       <div className="infrastructure">
@@ -491,6 +513,24 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
         </div>
 
         <div className="container main-content on-call scrollable-columns">
+          {notFoundApps.length > 0 && (
+            <div className="alert alert-warning">
+              <p>
+                PagerDuty Services were not found for the following applications:{' '}
+                {notFoundApps.map((applicationName, i) => (
+                  <>
+                    <UISref
+                      to="home.applications.application.insight.clusters"
+                      params={{ application: applicationName }}
+                    >
+                      <a className="clickable">{applicationName}</a>
+                    </UISref>
+                    {i + 1 < notFoundApps.length && ', '}
+                  </>
+                ))}
+              </p>
+            </div>
+          )}
           <div className="on-call-filter">
             <span>Filter </span>
             <input
