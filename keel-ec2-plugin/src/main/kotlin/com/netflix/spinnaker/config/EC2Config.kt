@@ -31,6 +31,7 @@ import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.time.Clock
@@ -62,7 +63,8 @@ class EC2Config {
     imageResolver: ImageResolver,
     clock: Clock,
     objectMapper: ObjectMapper,
-    normalizers: List<ResourceNormalizer<*>>
+    normalizers: List<ResourceNormalizer<*>>,
+    publisher: ApplicationEventPublisher
   ): ClusterHandler =
     ClusterHandler(
       cloudDriverService,
@@ -70,6 +72,7 @@ class EC2Config {
       orcaService,
       imageResolver,
       clock,
+      publisher,
       objectMapper,
       normalizers
     )

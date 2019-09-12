@@ -2,8 +2,8 @@ package com.netflix.spinnaker.keel.ec2.resource
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceId
+import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
@@ -17,6 +17,7 @@ import com.netflix.spinnaker.keel.api.ec2.cluster.Health
 import com.netflix.spinnaker.keel.api.ec2.cluster.LaunchConfiguration
 import com.netflix.spinnaker.keel.api.ec2.cluster.Location
 import com.netflix.spinnaker.keel.api.ec2.cluster.Scaling
+import com.netflix.spinnaker.keel.api.ec2.image.ArtifactAlreadyDeployedEvent
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
@@ -37,6 +38,7 @@ import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import retrofit2.HttpException
 import java.time.Clock
 import java.time.Duration
@@ -50,6 +52,7 @@ class ClusterHandler(
   private val orcaService: OrcaService,
   private val imageResolver: ImageResolver,
   private val clock: Clock,
+  private val publisher: ApplicationEventPublisher,
   override val objectMapper: ObjectMapper,
   override val normalizers: List<ResourceNormalizer<*>>
 ) : ResolvableResourceHandler<ClusterSpec, Cluster> {
@@ -246,6 +249,11 @@ class ClusterHandler(
         CLOUD_PROVIDER
       )
         .run {
+          publisher.publishEvent(ArtifactAlreadyDeployedEvent(
+            resourceId = "ec2:cluster:${spec.id}",
+            imageId = launchConfig.imageId
+          ))
+
           Cluster(
             moniker = Moniker(app = moniker.app, stack = moniker.stack, detail = moniker.detail),
             location = Location(

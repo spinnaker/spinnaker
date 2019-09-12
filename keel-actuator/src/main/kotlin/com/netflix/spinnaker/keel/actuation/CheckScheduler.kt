@@ -24,7 +24,7 @@ class CheckScheduler(
   private val deliveryConfigRepository: DeliveryConfigRepository,
   private val resourceActuator: ResourceActuator,
   private val environmentPromotionChecker: EnvironmentPromotionChecker,
-  @Value("\${keel.resource-check.min-age-minutes:1}") private val resourceCheckMinAgeMinutes: Long,
+  @Value("\${keel.resource-check.min-age-duration:60s}") private val resourceCheckMinAgeDuration: Duration,
   @Value("\${keel.resource-check.batch-size:1}") private val resourceCheckBatchSize: Int,
   private val publisher: ApplicationEventPublisher
 ) : CoroutineScope {
@@ -85,7 +85,7 @@ class CheckScheduler(
   }
 
   private fun <T : Any> PeriodicallyCheckedRepository<T>.launchForEachItem(block: suspend CoroutineScope.(T) -> Unit) {
-    itemsDueForCheck(Duration.ofMinutes(resourceCheckMinAgeMinutes), resourceCheckBatchSize)
+    itemsDueForCheck(resourceCheckMinAgeDuration, resourceCheckBatchSize)
       .forEach {
         launch { block(it) }
       }

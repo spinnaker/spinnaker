@@ -13,6 +13,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import org.springframework.context.ApplicationEventPublisher
+import java.time.Duration
 
 internal object CheckSchedulerTests : JUnit5Minutests {
 
@@ -41,7 +42,7 @@ internal object CheckSchedulerTests : JUnit5Minutests {
         deliveryConfigRepository = deliveryConfigRepository,
         resourceActuator = resourceActuator,
         environmentPromotionChecker = environmentPromotionChecker,
-        resourceCheckMinAgeMinutes = 5,
+        resourceCheckMinAgeDuration = Duration.ofMinutes(5),
         resourceCheckBatchSize = 2,
         publisher = publisher
       )

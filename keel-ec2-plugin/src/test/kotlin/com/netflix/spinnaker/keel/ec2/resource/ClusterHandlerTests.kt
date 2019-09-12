@@ -43,6 +43,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.runBlocking
+import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectThat
 import strikt.assertions.get
 import strikt.assertions.isEqualTo
@@ -135,6 +136,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
   val imageResolver = mockk<ImageResolver>()
   val objectMapper = ObjectMapper().registerKotlinModule()
   val normalizers = emptyList<ResourceNormalizer<Cluster>>()
+  val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
 
   fun tests() = rootContext<ClusterHandler> {
     fixture {
@@ -144,6 +146,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         orcaService,
         imageResolver,
         Clock.systemDefaultZone(),
+        publisher,
         objectMapper,
         normalizers
       )
