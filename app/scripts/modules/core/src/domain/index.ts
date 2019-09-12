@@ -31,6 +31,7 @@ export * from './IJenkinsInfo';
 export * from '../widgets/Keys';
 
 export * from './ILoadBalancer';
+export * from './ILoadBalancerIncompatibility';
 
 export * from './IManifest';
 

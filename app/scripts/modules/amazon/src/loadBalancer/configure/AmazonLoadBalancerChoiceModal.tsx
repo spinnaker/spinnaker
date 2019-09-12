@@ -1,29 +1,32 @@
 import * as React from 'react';
 import { Button, Modal } from 'react-bootstrap';
 
-import { ILoadBalancerModalProps, ModalClose, ReactModal, noop } from '@spinnaker/core';
+import {
+  ILoadBalancerIncompatibility,
+  ILoadBalancerModalProps,
+  ModalClose,
+  ReactModal,
+  noop,
+  CloudProviderRegistry,
+} from '@spinnaker/core';
 
 import { IAmazonLoadBalancerConfig, LoadBalancerTypes } from './LoadBalancerTypes';
 
-export interface IAmazonLoadBalancerChoiceModalProps extends ILoadBalancerModalProps {
-  choices?: IAmazonLoadBalancerConfig[];
-}
-
 export interface IAmazonLoadBalancerChoiceModalState {
+  choices: IAmazonLoadBalancerConfig[];
   selectedChoice: IAmazonLoadBalancerConfig;
 }
 
 export class AmazonLoadBalancerChoiceModal extends React.Component<
-  IAmazonLoadBalancerChoiceModalProps,
+  ILoadBalancerModalProps,
   IAmazonLoadBalancerChoiceModalState
 > {
-  public static defaultProps: Partial<IAmazonLoadBalancerChoiceModalProps> = {
+  public static defaultProps: Partial<ILoadBalancerModalProps> = {
     closeModal: noop,
     dismissModal: noop,
-    choices: LoadBalancerTypes,
   };
 
-  public static show(props: IAmazonLoadBalancerChoiceModalProps): Promise<void> {
+  public static show(props: ILoadBalancerModalProps): Promise<void> {
     return ReactModal.show(
       AmazonLoadBalancerChoiceModal,
       {
@@ -34,10 +37,11 @@ export class AmazonLoadBalancerChoiceModal extends React.Component<
     );
   }
 
-  constructor(props: IAmazonLoadBalancerChoiceModalProps) {
+  constructor(props: ILoadBalancerModalProps) {
     super(props);
     this.state = {
-      selectedChoice: props.choices[0],
+      choices: LoadBalancerTypes,
+      selectedChoice: LoadBalancerTypes[0],
     };
   }
 
@@ -60,9 +64,43 @@ export class AmazonLoadBalancerChoiceModal extends React.Component<
     this.props.dismissModal(reason);
   };
 
+  private getIncompatibility(choice: IAmazonLoadBalancerConfig, cloudProvider: string): ILoadBalancerIncompatibility {
+    const { loadBalancer } = CloudProviderRegistry.getProvider(cloudProvider);
+    const {
+      incompatibleLoadBalancerTypes = [],
+    }: { incompatibleLoadBalancerTypes: ILoadBalancerIncompatibility[] } = loadBalancer;
+
+    return incompatibleLoadBalancerTypes.find(lb => lb.type === choice.type);
+  }
+
+  private isIncompatibleWithAllProviders(choice: IAmazonLoadBalancerConfig) {
+    const {
+      app: { attributes },
+    } = this.props;
+    const { cloudProviders = [] }: { cloudProviders: string[] } = attributes;
+
+    if (cloudProviders.length > 0) {
+      return cloudProviders.every((cloudProvider: string) => !!this.getIncompatibility(choice, cloudProvider));
+    }
+
+    // If the list of cloud providers is empty, assume it is compatible by default
+    return true;
+  }
+
   public render() {
-    const { choices } = this.props;
-    const { selectedChoice } = this.state;
+    const {
+      app: { attributes },
+    } = this.props;
+    const { cloudProviders = [] }: { cloudProviders: string[] } = attributes;
+    const { choices, selectedChoice } = this.state;
+
+    // Remove any choices that are not compatible with all configured cloud providers
+    const filteredChoices = choices.filter(choice => !this.isIncompatibleWithAllProviders(choice));
+
+    // Compute incompatibilities with the current selected choice so we can display a warning
+    const incompatibilities: ILoadBalancerIncompatibility[] = cloudProviders
+      .map(cloudProvider => this.getIncompatibility(selectedChoice, cloudProvider))
+      .filter((x: ILoadBalancerIncompatibility) => x);
 
     return (
       <>
@@ -73,7 +111,7 @@ export class AmazonLoadBalancerChoiceModal extends React.Component<
         <Modal.Body>
           <div className="modal-body">
             <div className="card-choices">
-              {choices.map(choice => (
+              {filteredChoices.map(choice => (
                 <div
                   key={choice.type}
                   className={`card ${selectedChoice === choice ? 'active' : ''}`}
@@ -85,6 +123,16 @@ export class AmazonLoadBalancerChoiceModal extends React.Component<
                 </div>
               ))}
             </div>
+            <>
+              {incompatibilities.length > 0 &&
+                incompatibilities.map(incompatibility => (
+                  <div className="alert alert-warning">
+                    <p>
+                      <i className="fa fa-exclamation-triangle" /> {incompatibility.reason}
+                    </p>
+                  </div>
+                ))}
+            </>
             <div className="load-balancer-description" />
           </div>
         </Modal.Body>

@@ -1,6 +1,7 @@
 import { module } from 'angular';
 
 import { CloudProviderRegistry, DeploymentStrategyRegistry } from '@spinnaker/core';
+import { AmazonLoadBalancersTag } from '@spinnaker/amazon';
 
 import { TITUS_MIGRATION_CONFIG_COMPONENT } from './migration/titusMigrationConfig.component';
 import { TITUS_SERVERGROUP_DETAILS_CAPACITYDETAILSSECTION } from './serverGroup/details/capacityDetailsSection.component';
@@ -12,8 +13,6 @@ import './pipeline/stages/runJob/titusRunJobStage';
 import { TitusCloneServerGroupModal } from './serverGroup/configure/wizard/TitusCloneServerGroupModal';
 
 import './logo/titus.logo.less';
-import { defaultsDeep } from 'lodash';
-import { TitusLoadBalancerChoiceModal } from './loadBalancers/TitusLoadBalancerChoiceModal';
 
 // load all templates into the $templateCache
 const templates = require.context('./', true, /\.html$/);
@@ -61,12 +60,16 @@ module(TITUS_MODULE, [
       reader: 'titusSecurityGroupReader',
       useProvider: 'aws',
     },
-    loadBalancer: defaultsDeep(
-      {
-        CreateLoadBalancerModal: TitusLoadBalancerChoiceModal,
-      },
-      CloudProviderRegistry.getProvider('aws').loadBalancer,
-    ),
+    loadBalancer: {
+      LoadBalancersTag: AmazonLoadBalancersTag,
+      incompatibleLoadBalancerTypes: [
+        {
+          type: 'classic',
+          reason: 'Classic Load Balancers cannot be used with Titus as they do not have IP based target groups.',
+        },
+      ],
+      useProvider: 'aws',
+    },
     instance: {
       detailsTemplateUrl: require('./instance/details/instanceDetails.html'),
       detailsController: 'titusInstanceDetailsCtrl',
