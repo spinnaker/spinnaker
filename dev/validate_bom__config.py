@@ -45,6 +45,8 @@ interface, which is provided via free functions.
 
 import logging
 import os
+import random
+import string
 
 from buildtool import (
     add_parser_argument,
@@ -1553,6 +1555,19 @@ hystrix:
 '''
     script.append('echo "{}" > ~/.hal/default/profiles/gate-local.yml'.format(hystrix_config))
     script.append('echo "{}" > ~/.hal/default/profiles/front50-local.yml'.format(hystrix_config))
+
+    # Good enough ULID impl for our purposes.
+    fake_ulid = ''.join(random.choice(string.ascii_uppercase + string.digits)
+                        for _ in range(26))
+    telemetry_config = '''\
+telemetry:
+  enabled: true
+  endpoint: https://stats-staging.spinnaker.io
+  instanceId: {}
+  spinnakerVersion: {}
+'''.format(fake_ulid, options.deploy_version)
+
+    script.append('echo "{}" > ~/.hal/default/profiles/echo-local.yml'.format(telemetry_config))
 
     if options.halyard_profile_dir:
       # Unpack the tar file into halyard's defualt profile directory.
