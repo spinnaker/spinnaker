@@ -22,6 +22,7 @@ import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.exceptions.FailedNormalizationException
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
+import com.netflix.spinnaker.keel.persistence.ResourceStatus
 import com.netflix.spinnaker.keel.plugin.UnsupportedKind
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import org.slf4j.LoggerFactory
@@ -57,6 +58,14 @@ class ResourceController(
   fun get(@PathVariable("id") id: ResourceId): Resource<*> {
     log.debug("Getting: $id")
     return resourceRepository.get(id)
+  }
+
+  @GetMapping(
+    path = ["/{id}/status"],
+    produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
+  )
+  fun getStatus(@PathVariable("id") id: ResourceId): ResourceStatus {
+    return resourceRepository.getStatus(id)
   }
 
   @PostMapping(

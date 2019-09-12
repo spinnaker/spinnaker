@@ -16,11 +16,25 @@
 package com.netflix.spinnaker.keel.persistence
 
 import com.netflix.spinnaker.keel.api.ApiVersion
-import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceId
+import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.id
+import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
+import com.netflix.spinnaker.keel.events.ResourceCheckError
+import com.netflix.spinnaker.keel.events.ResourceCreated
+import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
+import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
 import com.netflix.spinnaker.keel.events.ResourceEvent
+import com.netflix.spinnaker.keel.events.ResourceMissing
+import com.netflix.spinnaker.keel.events.ResourceValid
+import com.netflix.spinnaker.keel.persistence.ResourceStatus.ACTUATING
+import com.netflix.spinnaker.keel.persistence.ResourceStatus.CREATED
+import com.netflix.spinnaker.keel.persistence.ResourceStatus.DIFF
+import com.netflix.spinnaker.keel.persistence.ResourceStatus.ERROR
+import com.netflix.spinnaker.keel.persistence.ResourceStatus.HAPPY
+import com.netflix.spinnaker.keel.persistence.ResourceStatus.UNHAPPY
+import com.netflix.spinnaker.keel.persistence.ResourceStatus.UNKNOWN
 import java.time.Duration
 
 data class ResourceHeader(
@@ -90,6 +104,52 @@ interface ResourceRepository : PeriodicallyCheckedRepository<ResourceHeader> {
    */
   override fun itemsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<ResourceHeader>
 
+  fun getStatus(id: ResourceId): ResourceStatus {
+    val history = eventHistory(id, 10)
+    return when {
+      history.isHappy() -> HAPPY
+      history.isUnhappy() -> UNHAPPY
+      history.isDiff() -> DIFF
+      history.isActuating() -> ACTUATING
+      history.isError() -> ERROR
+      history.isCreated() -> CREATED
+      else -> UNKNOWN
+    }
+  }
+
+  private fun List<ResourceEvent>.isHappy(): Boolean {
+    return first() is ResourceValid || first() is ResourceDeltaResolved
+  }
+
+  private fun List<ResourceEvent>.isActuating(): Boolean {
+    return first() is ResourceActuationLaunched
+  }
+
+  private fun List<ResourceEvent>.isError(): Boolean {
+    return first() is ResourceCheckError
+  }
+
+  private fun List<ResourceEvent>.isCreated(): Boolean {
+    return first() is ResourceCreated
+  }
+
+  private fun List<ResourceEvent>.isDiff(): Boolean {
+    return first() is ResourceDeltaDetected || first() is ResourceMissing
+  }
+
+  /**
+   * Checks last 10 events for flapping between only ResourceActuationLaunched and ResourceDeltaDetected
+   */
+  private fun List<ResourceEvent>.isUnhappy(): Boolean {
+    val recentSliceOfHistory = this.subList(0, Math.min(10, this.size))
+    val filteredHistory = recentSliceOfHistory.filter { it is ResourceDeltaDetected || it is ResourceActuationLaunched }
+    if (filteredHistory.size != recentSliceOfHistory.size) {
+      // there are other events, we're not thrashing.
+      return false
+    }
+    return true
+  }
+
   companion object {
     const val DEFAULT_MAX_EVENTS: Int = 10
   }
@@ -102,3 +162,7 @@ inline fun <reified T : ResourceSpec> ResourceRepository.get(id: ResourceId): Re
 sealed class NoSuchResourceException(override val message: String?) : RuntimeException(message)
 
 class NoSuchResourceId(id: ResourceId) : NoSuchResourceException("No resource with id $id exists in the repository")
+
+enum class ResourceStatus {
+  HAPPY, ACTUATING, UNHAPPY, CREATED, DIFF, ERROR, UNKNOWN
+}
