@@ -28,6 +28,10 @@ RUN curl -o aws-iam-authenticator https://amazon-eks.s3-us-west-2.amazonaws.com/
 
 ENV PATH "$PATH:/usr/local/bin/aws-iam-authenticator"
 
+RUN wget -O /tmp/get-pip.py https://bootstrap.pypa.io/get-pip.py && \
+    python /tmp/get-pip.py && \
+    pip install --upgrade awscli==1.16.208
+
 RUN useradd -m spinnaker
 
 USER spinnaker
