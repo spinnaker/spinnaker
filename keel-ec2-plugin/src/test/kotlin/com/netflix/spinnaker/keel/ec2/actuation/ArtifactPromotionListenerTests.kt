@@ -14,7 +14,6 @@ import com.netflix.spinnaker.keel.api.ec2.cluster.Location
 import com.netflix.spinnaker.keel.api.ec2.image.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.image.IdImageProvider
 import com.netflix.spinnaker.keel.api.ec2.securityGroup.SecurityGroup
-import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
 import com.netflix.spinnaker.keel.model.Moniker
@@ -24,7 +23,6 @@ import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.Called
-import io.mockk.coEvery
 import io.mockk.mockk
 import io.mockk.verify
 
@@ -50,10 +48,7 @@ internal class ArtifactPromotionListenerTests : JUnit5Minutests {
 
     private val deliveryConfigRepository = InMemoryDeliveryConfigRepository()
     val artifactRepository = mockk<ArtifactRepository>(relaxUnitFun = true)
-    private val cloudDriverService = mockk<CloudDriverService>() {
-      coEvery { namedImages(imageId, "test", "ap-south-1") } returns listOf(ami)
-    }
-    private val subject = ArtifactPromotionListener(deliveryConfigRepository, artifactRepository, cloudDriverService)
+    private val subject = ArtifactPromotionListener(deliveryConfigRepository, artifactRepository)
 
     val artifact = DeliveryArtifact(
       name = "fnord",
@@ -113,6 +108,7 @@ internal class ArtifactPromotionListenerTests : JUnit5Minutests {
       location,
       LaunchConfiguration(
         imageId,
+        appVersion,
         launchConfiguration.instanceType,
         launchConfiguration.ebsOptimized,
         launchConfiguration.iamRole,

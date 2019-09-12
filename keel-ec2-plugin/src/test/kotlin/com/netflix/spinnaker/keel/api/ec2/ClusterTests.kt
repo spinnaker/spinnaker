@@ -36,6 +36,7 @@ internal object ClusterTests : JUnit5Minutests {
             |  subnet: internal (vpc0)
             |launchConfiguration:
             |  imageId: ami-01fdaa2821a7ea01e
+            |  appVersion: mimirdemo-3.18.0-h207.e06f231
             |  instanceType: m5.large
             |  ebsOptimized: true
             |  instanceMonitoring: false

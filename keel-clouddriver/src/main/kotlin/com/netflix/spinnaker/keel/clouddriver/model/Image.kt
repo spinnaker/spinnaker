@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.keel.clouddriver.model
 
 /**
- * The resolved representation of an [ImageSpec].
+ * The resolved representation of an AMI.
  */
 data class Image(
   val baseAmiVersion: String,

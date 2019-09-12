@@ -68,11 +68,11 @@ class ClusterHandler(
 
   override suspend fun desired(resource: Resource<ClusterSpec>): Cluster =
     with(resource.spec) {
-      val imageId = imageResolver.resolveImageId(resource)
+      val (imageId, appVersion) = imageResolver.resolveImageId(resource)
       Cluster(
         moniker = moniker,
         location = location,
-        launchConfiguration = launchConfiguration.generateLaunchConfiguration(imageId),
+        launchConfiguration = launchConfiguration.generateLaunchConfiguration(imageId, appVersion),
         capacity = capacity,
         dependencies = dependencies,
         health = health,
@@ -273,13 +273,14 @@ class ClusterHandler(
             ),
             launchConfiguration = launchConfig.run {
               LaunchConfiguration(
-                imageId,
-                instanceType,
-                ebsOptimized,
-                iamInstanceProfile,
-                keyName,
-                instanceMonitoring.enabled,
-                ramdiskId.orNull()
+                imageId = imageId,
+                appVersion = "",
+                instanceType = instanceType,
+                ebsOptimized = ebsOptimized,
+                iamRole = iamInstanceProfile,
+                keyPair = keyName,
+                instanceMonitoring = instanceMonitoring.enabled,
+                ramdiskId = ramdiskId.orNull()
               )
             },
             capacity = capacity.let { Capacity(it.min, it.max, it.desired) },

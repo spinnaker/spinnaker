@@ -50,6 +50,7 @@ class EC2Config {
   ): ImageResolver =
     ImageResolver(
       dynamicConfigService,
+      cloudDriverService,
       deliveryConfigRepository,
       artifactRepository,
       imageService

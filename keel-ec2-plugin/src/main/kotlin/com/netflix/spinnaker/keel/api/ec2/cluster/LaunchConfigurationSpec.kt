@@ -28,9 +28,10 @@ data class LaunchConfigurationSpec(
   val instanceMonitoring: Boolean = false,
   val ramdiskId: String? = null
 ) {
-  fun generateLaunchConfiguration(imageId: String): LaunchConfiguration {
-    return LaunchConfiguration(
+  fun generateLaunchConfiguration(imageId: String, appVersion: String) =
+    LaunchConfiguration(
       imageId = imageId,
+      appVersion = appVersion,
       instanceType = instanceType,
       ebsOptimized = ebsOptimized,
       iamRole = iamRole,
@@ -38,5 +39,4 @@ data class LaunchConfigurationSpec(
       instanceMonitoring = instanceMonitoring,
       ramdiskId = ramdiskId
     )
-  }
 }

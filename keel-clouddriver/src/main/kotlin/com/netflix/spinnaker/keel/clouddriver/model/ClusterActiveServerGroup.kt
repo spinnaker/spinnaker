@@ -1,11 +1,13 @@
 package com.netflix.spinnaker.keel.clouddriver.model
 
+import com.fasterxml.jackson.annotation.JsonCreator
 import com.netflix.spinnaker.keel.model.Moniker
 
 data class ClusterActiveServerGroup(
   val name: String,
   val region: String,
   val zones: Set<String>,
+  val image: ClusterImage,
   val launchConfig: LaunchConfig,
   val asg: AutoScalingGroup,
   val vpcId: String,
@@ -17,6 +19,25 @@ data class ClusterActiveServerGroup(
   val accountName: String,
   val moniker: Moniker
 )
+
+data class ClusterImage(
+  val imageId: String,
+  val appVersion: String
+) {
+  @JsonCreator
+  constructor(
+    imageId: String,
+    tags: List<Map<String, Any?>>
+  ) : this(
+    imageId,
+    tags.first {
+      it["key"] == "appversion"
+    }
+      ["value"]
+      .toString()
+      .substringBefore("/")
+  )
+}
 
 data class LaunchConfig(
   val ramdiskId: String?,

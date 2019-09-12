@@ -18,6 +18,7 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.AutoScalingGroup
 import com.netflix.spinnaker.keel.clouddriver.model.ClusterActiveServerGroup
+import com.netflix.spinnaker.keel.clouddriver.model.ClusterImage
 import com.netflix.spinnaker.keel.clouddriver.model.InstanceMonitoring
 import com.netflix.spinnaker.keel.clouddriver.model.LaunchConfig
 import com.netflix.spinnaker.keel.clouddriver.model.Network
@@ -86,7 +87,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
   val cluster = Cluster(
     moniker = spec.moniker,
     location = spec.location,
-    launchConfiguration = spec.launchConfiguration.generateLaunchConfiguration("i-123543254134"),
+    launchConfiguration = spec.launchConfiguration.generateLaunchConfiguration("i-123543254134", "keel-0.252.0-h168.35fe253/SPINNAKER-rocket-package-keel/168"),
     capacity = spec.capacity,
     dependencies = spec.dependencies
   )
@@ -100,6 +101,10 @@ internal class ClusterHandlerTests : JUnit5Minutests {
     "keel-test-v069",
     spec.location.region,
     spec.location.availabilityZones,
+    ClusterImage(
+      (spec.launchConfiguration.imageProvider as IdImageProvider).imageId,
+      "keel-0.252.0-h168.35fe253"
+    ),
     LaunchConfig(
       spec.launchConfiguration.ramdiskId,
       spec.launchConfiguration.ebsOptimized,
@@ -204,10 +209,9 @@ internal class ClusterHandlerTests : JUnit5Minutests {
 
       derivedContext<Cluster?>("fetching the current cluster state") {
         deriveFixture {
-          val current = runBlocking {
+          runBlocking {
             current(resource)
           }
-          current
         }
 
         test("the current model is converted to a cluster") {

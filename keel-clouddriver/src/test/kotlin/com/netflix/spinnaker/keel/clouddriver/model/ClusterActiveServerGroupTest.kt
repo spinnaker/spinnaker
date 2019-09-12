@@ -18,6 +18,10 @@ object ClusterActiveServerGroupTest : ModelParsingTestSupport<CloudDriverService
     targetGroups = emptySet(),
     region = "eu-west-1",
     zones = setOf("eu-west-1b", "eu-west-1c", "eu-west-1a"),
+    image = ClusterImage(
+      imageId = "ami-05a878bfa321e03b4",
+      appVersion = "mimirdemo-3.16.0-h205.121d4ac"
+    ),
     launchConfig = LaunchConfig(
       ramdiskId = "",
       ebsOptimized = false,

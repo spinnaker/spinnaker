@@ -15,6 +15,7 @@ import com.netflix.spinnaker.keel.api.ec2.cluster.Location
 import com.netflix.spinnaker.keel.api.ec2.image.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.image.IdImageProvider
 import com.netflix.spinnaker.keel.api.ec2.image.ImageProvider
+import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.appVersion
@@ -48,11 +49,13 @@ internal class ImageResolverTests : JUnit5Minutests {
         getConfig(String::class.java, "images.default-account", any())
       } returns account
     }
+    val cloudDriverService = mockk<CloudDriverService>()
     val deliveryConfigRepository = InMemoryDeliveryConfigRepository()
     val artifactRepository = InMemoryArtifactRepository()
     val imageService = mockk<ImageService>()
     private val subject = ImageResolver(
       dynamicConfigService,
+      cloudDriverService,
       deliveryConfigRepository,
       artifactRepository,
       imageService
@@ -131,7 +134,7 @@ internal class ImageResolverTests : JUnit5Minutests {
       )
     )
 
-    fun resolve(): String = runBlocking {
+    fun resolve(): Pair<String, String> = runBlocking {
       subject.resolveImageId(resource)
     }
   }
@@ -140,13 +143,22 @@ internal class ImageResolverTests : JUnit5Minutests {
     derivedContext<Fixture<IdImageProvider>>("a simple image id") {
       fixture {
         Fixture(
-          IdImageProvider("ami-12345678")
+          IdImageProvider("ami-2")
         )
+      }
+
+      before {
+        coEvery {
+          cloudDriverService.namedImages(any(), any(), any(), any())
+        } answers {
+          val amiId = secondArg<String>()
+          images.filter { it.tagsByImageId.containsKey(amiId) }
+        }
       }
 
       test("just returns the image id") {
         expectThat(resolve())
-          .isEqualTo(imageProvider.imageId)
+          .isEqualTo(imageProvider.imageId to "fnord-1.1.0-123456")
       }
     }
 
@@ -168,7 +180,7 @@ internal class ImageResolverTests : JUnit5Minutests {
 
         test("returns the most recent version of the artifact") {
           expectThat(resolve())
-            .isEqualTo("ami-3")
+            .isEqualTo("ami-3" to "fnord-1.2.0-123456")
         }
       }
 
@@ -197,7 +209,7 @@ internal class ImageResolverTests : JUnit5Minutests {
 
           test("returns the image id of the approved version") {
             expectThat(resolve())
-              .isEqualTo("ami-2") // TODO: false moniker
+              .isEqualTo("ami-2" to "fnord-1.1.0-123456") // TODO: false moniker
           }
         }
 
