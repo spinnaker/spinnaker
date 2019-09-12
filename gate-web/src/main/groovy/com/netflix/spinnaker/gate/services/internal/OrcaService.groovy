@@ -137,4 +137,7 @@ interface OrcaService {
 
   @POST("/concourse/stage/start")
   Response concourseStageExecution(@Query("stageId") String stageId, @Query("job") String job, @Query("buildNumber") Integer buildNumber, @Body String emptyBody);
+
+  @GET("/capabilities/deploymentMonitors")
+  List<Object> getDeploymentMonitors();
 }
