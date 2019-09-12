@@ -574,7 +574,7 @@ abstract class QueueIntegrationTest {
     repository.retrieve(PIPELINE, pipeline.id).apply {
       assertThat(status).isEqualTo(SUCCEEDED)
       assertThat(stages.size).isEqualTo(2)
-      assertThat(stages.first().type).isEqualTo(RestrictExecutionDuringTimeWindow.TYPE)
+      assertThat(stages.map { it.type }).contains(RestrictExecutionDuringTimeWindow.TYPE)
       assertThat(stages.map { it.status }).allMatch { it == SUCCEEDED }
     }
   }
@@ -612,9 +612,12 @@ abstract class QueueIntegrationTest {
       assertSoftly {
         assertThat(status).isEqualTo(SUCCEEDED)
         assertThat(stages.size).isEqualTo(5)
-        assertThat(stages.first().type).isEqualTo(RestrictExecutionDuringTimeWindow.TYPE)
-        assertThat(stages[1..3].map { it.type }).allMatch { it == "dummy" }
-        assertThat(stages.last().type).isEqualTo("parallel")
+        assertThat(stages.map { it.type }).containsExactlyInAnyOrder(
+          RestrictExecutionDuringTimeWindow.TYPE,
+          "dummy",
+          "dummy",
+          "dummy",
+          "parallel")
         assertThat(stages.map { it.status }).allMatch { it == SUCCEEDED }
       }
     }

@@ -19,8 +19,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER
-import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
 import org.jooq.DSLContext
 import org.slf4j.LoggerFactory
 import java.sql.ResultSet
@@ -77,24 +75,7 @@ class ExecutionMapper(
         }
 
         executions.forEach { execution ->
-          val stages = mutableListOf<Stage>()
-
-          stages.addAll(
-            execution.stages.filter { it.parentStageId == null }
-              .sortedBy { it.refId }
-          )
-
-          execution.stages.filter { it.parentStageId != null }
-            .sortedBy { it.refId }
-            .forEach {
-              when (it.syntheticStageOwner) {
-                STAGE_BEFORE -> stages.add(stages.indexOf(it.parent), it)
-                STAGE_AFTER -> stages.add(stages.indexOf(it.parent) + 1, it)
-              }
-            }
-
-          execution.stages.clear()
-          execution.stages.addAll(stages)
+          execution.stages.sortBy { it.refId }
         }
       }
     }
