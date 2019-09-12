@@ -23,6 +23,7 @@ import com.netflix.spinnaker.echo.config.TelemetryConfig;
 import com.netflix.spinnaker.echo.events.EchoEventListener;
 import com.netflix.spinnaker.echo.model.Event;
 import com.netflix.spinnaker.kork.proto.stats.Application;
+import com.netflix.spinnaker.kork.proto.stats.CloudProvider;
 import com.netflix.spinnaker.kork.proto.stats.Execution;
 import com.netflix.spinnaker.kork.proto.stats.SpinnakerInstance;
 import com.netflix.spinnaker.kork.proto.stats.Stage;
@@ -147,10 +148,23 @@ public class TelemetryEventListener implements EchoEventListener {
   }
 
   private Stage toStage(Map stage) {
-    return Stage.newBuilder()
-        .setType(stage.getOrDefault("type", "unknown").toString())
-        .setStatus(Status.valueOf(stage.getOrDefault("status", "UNKNOWN").toString().toUpperCase()))
-        .build();
+    Status status =
+        Status.valueOf(stage.getOrDefault("status", "UNKNOWN").toString().toUpperCase());
+    Stage.Builder stageBuilder =
+        Stage.newBuilder()
+            .setType(stage.getOrDefault("type", "unknown").toString())
+            .setStatus(status);
+
+    Map<String, Object> context =
+        (Map<String, Object>) stage.getOrDefault("context", new HashMap<>());
+    if (context.containsKey("cloudProvider")) {
+      String cloudProvider = context.get("cloudProvider").toString();
+      stageBuilder.setCloudProvider(CloudProvider.newBuilder().setId(cloudProvider).build());
+
+      // TODO(ttomsu): Figure out how to detect Kubernetes "flavor" - i.e. GKE, EKS, vanilla, etc.
+    }
+
+    return stageBuilder.build();
   }
 
   private String hash(String clearText) {
