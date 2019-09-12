@@ -40,6 +40,12 @@ public class ManagedController {
     return keelService.getResource(name);
   }
 
+  @ApiOperation(value = "Get status of a resource", response = Resource.class)
+  @RequestMapping(value = "/resources/{name}/status", method = GET)
+  String getResourceStatus(@PathVariable("name") String name) {
+    return keelService.getResourceStatus(name);
+  }
+
   @ApiOperation(value = "Create or update a resource", response = Resource.class)
   @RequestMapping(value = "/resources", method = POST)
   Resource upsertResource(@RequestBody Resource resource) {

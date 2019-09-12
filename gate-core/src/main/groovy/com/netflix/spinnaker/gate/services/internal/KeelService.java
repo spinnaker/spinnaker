@@ -37,6 +37,9 @@ public interface KeelService {
   @GET("/resources/{name}")
   Resource getResource(@Path("name") String name);
 
+  @GET("/resources/{name}/status")
+  String getResourceStatus(@Path("name") String name);
+
   @POST("/resources")
   Resource upsertResource(@Body Resource resource);
 
