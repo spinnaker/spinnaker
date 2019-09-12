@@ -31,6 +31,7 @@ export interface IPipeline {
     type: string;
   };
   type?: string;
+  updateTs?: number;
 }
 
 export interface IPipelineLock {

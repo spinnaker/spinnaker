@@ -19,7 +19,6 @@ import './pipelineConfig.less';
 
 module.exports = angular.module('spinnaker.core.pipeline.config', [
   CREATE_PIPELINE_COMPONENT,
-  require('./actions/actions.module').name,
   PIPELINE_GRAPH_COMPONENT,
   require('./stages/stage.module').name,
   require('./stages/baseProviderStage/baseProviderStage').name,

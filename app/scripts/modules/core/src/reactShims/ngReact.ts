@@ -5,7 +5,6 @@ import IInjectorService = angular.auto.IInjectorService;
 import { addEntityTagLinksWrapperComponent } from 'core/entityTag/addEntityTagLinks.component';
 import { accountRegionClusterSelectorWrapperComponent } from 'core/widgets/accountRegionClusterSelectorWrapper.component';
 import { buttonBusyIndicatorComponent } from '../forms/buttonBusyIndicator/buttonBusyIndicator.component';
-import { IDiffViewProps } from '../pipeline/config/actions/history/DiffView';
 import { entitySourceComponent } from 'core/entityTag/entitySource.component';
 import { helpFieldWrapperComponent } from '../help/helpField.component';
 import { IAccountRegionClusterSelectorProps } from 'core/widgets/AccountRegionClusterSelector';
@@ -29,7 +28,6 @@ import { targetSelectComponent, ITargetSelectProps } from 'core/pipeline/config/
 import { taskMonitorWrapperComponent } from 'core/task/monitor/taskMonitor.directive';
 import { viewChangesLinkWrapper } from 'core/diffs/viewChangesLink.component';
 import { viewScalingActivitiesLink } from 'core/serverGroup/details/scalingActivities/viewScalingActivitiesLink.component';
-import { diffViewComponent } from '../pipeline/config/actions/history/diffView.component';
 import { IInstanceArchetypeSelectorProps } from 'core/serverGroup/configure/common/InstanceArchetypeSelector';
 import { IInstanceTypeSelectorProps } from 'core/serverGroup/configure/common/InstanceTypeSelector';
 import { v2InstanceArchetypeSelector } from 'core/serverGroup/configure/common/v2instanceArchetypeSelector.component';
@@ -45,7 +43,6 @@ export class NgReactInjector extends ReactInject {
   public AccountRegionClusterSelector: React.ComponentClass<IAccountRegionClusterSelectorProps> = angular2react('accountRegionClusterSelectorWrapper', accountRegionClusterSelectorWrapperComponent, this.$injectorProxy) as any;
   public AddEntityTagLinks: React.ComponentClass<IAddEntityTagLinksProps>                       = angular2react('addEntityTagLinksWrapper', addEntityTagLinksWrapperComponent, this.$injectorProxy) as any;
   public ButtonBusyIndicator: React.ComponentClass<IButtonBusyIndicatorProps>                   = angular2react('buttonBusyIndicator', buttonBusyIndicatorComponent, this.$injectorProxy) as any;
-  public DiffView: React.ComponentClass<IDiffViewProps>                                         = angular2react('diffView', diffViewComponent, this.$injectorProxy) as any;
   public EntitySource: React.ComponentClass<IEntitySourceProps>                                 = angular2react('entitySource', entitySourceComponent, this.$injectorProxy) as any;
   public HelpField: React.ComponentClass<IHelpFieldProps>                                       = angular2react('helpFieldWrapper', helpFieldWrapperComponent, this.$injectorProxy) as any;
   public InsightLayout: React.ComponentClass<IInsightLayoutProps>                               = angular2react('insightLayout', insightLayoutComponent, this.$injectorProxy) as any;

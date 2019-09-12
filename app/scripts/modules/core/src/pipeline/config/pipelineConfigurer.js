@@ -20,6 +20,7 @@ import { EnablePipelineModal } from 'core/pipeline/config/actions/enable/EnableP
 import { LockPipelineModal } from 'core/pipeline/config/actions/lock/LockPipelineModal';
 import { UnlockPipelineModal } from 'core/pipeline/config/actions/unlock/UnlockPipelineModal';
 import { RenamePipelineModal } from 'core/pipeline/config/actions/rename/RenamePipelineModal';
+import { ShowPipelineHistoryModal } from 'core/pipeline/config/actions/history/ShowPipelineHistoryModal';
 import { ShowPipelineTemplateJsonModal } from 'core/pipeline/config/actions/templateJson/ShowPipelineTemplateJsonModal';
 import { PipelineTemplateV2Service } from 'core/pipeline';
 import { PipelineTemplateWriter } from 'core/pipeline/config/templates/PipelineTemplateWriter';
@@ -244,19 +245,12 @@ module.exports = angular
       };
 
       this.showHistory = () => {
-        $uibModal
-          .open({
-            templateUrl: require('./actions/history/showHistory.modal.html'),
-            controller: 'ShowHistoryCtrl',
-            controllerAs: 'ctrl',
-            size: 'lg modal-fullscreen',
-            resolve: {
-              pipelineConfigId: () => $scope.pipeline.id,
-              isStrategy: $scope.pipeline.strategy,
-              currentConfig: () => ($scope.viewState.isDirty ? JSON.parse(angular.toJson($scope.pipeline)) : null),
-            },
-          })
-          .result.then(newConfig => {
+        ReactModal.show(ShowPipelineHistoryModal, {
+          pipelineConfigId: $scope.pipeline.id,
+          isStrategy: $scope.pipeline.strategy,
+          currentConfig: $scope.viewState.isDirty ? JSON.parse(angular.toJson($scope.pipeline)) : null,
+        })
+          .then(newConfig => {
             $scope.renderablePipeline = newConfig;
             $scope.pipeline = newConfig;
             $scope.$broadcast('pipeline-json-edited');
