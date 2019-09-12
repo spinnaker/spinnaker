@@ -126,12 +126,6 @@ func GateServerFail() *httptest.Server {
 	}))
 }
 
-const gateVersionJson = `
-{
-  "version": "1.0.0"
-}
-`
-
 const malformedCanaryConfigListJson = `
  {
   "applications": [

@@ -38,6 +38,7 @@ func NewCanaryConfigCmd(out io.Writer) *cobra.Command {
 
 	// create subcommands
 	cmd.AddCommand(NewListCmd(options))
+	cmd.AddCommand(NewGetCmd(options))
 
 	return cmd
 }
