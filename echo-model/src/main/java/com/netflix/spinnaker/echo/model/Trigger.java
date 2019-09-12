@@ -149,6 +149,9 @@ public class Trigger {
   // Configuration for artifactory triggers
   String artifactorySearchName;
 
+  // Configuration for nexus triggers
+  String nexusSearchName;
+
   // Artifact constraints
   List<String> expectedArtifactIds;
 
@@ -248,6 +251,10 @@ public class Trigger {
 
   public Trigger atArtifactorySearchName(final String artifactorySearchName) {
     return this.toBuilder().artifactorySearchName(artifactorySearchName).build();
+  }
+
+  public Trigger atNexusSearchName(final String nexusSearchName) {
+    return this.toBuilder().nexusSearchName(nexusSearchName).build();
   }
 
   @JsonPOJOBuilder(withPrefix = "")
