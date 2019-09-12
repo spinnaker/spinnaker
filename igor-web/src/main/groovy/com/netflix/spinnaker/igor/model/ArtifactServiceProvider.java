@@ -19,5 +19,6 @@ package com.netflix.spinnaker.igor.model;
 
 public enum ArtifactServiceProvider {
   CUSTOM,
-  ARTIFACTORY
+  ARTIFACTORY,
+  NEXUS
 }

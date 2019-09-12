@@ -38,6 +38,7 @@ class NexusEventPosterTest {
     final NexusRepo nexusRepo = new NexusRepo();
     nexusRepo.setName("nexus-snapshots");
     nexusRepo.setRepo("maven-snapshots");
+    nexusRepo.setBaseUrl("http://localhost:8082/repository/");
     nexusRepo.setNodeId("123");
     nexusProperties.setRepos(Collections.singletonList(nexusRepo));
   }
@@ -65,6 +66,8 @@ class NexusEventPosterTest {
             .name("com.example" + ":" + "demo")
             .version("0.0.1-SNAPSHOT")
             .provenance("maven-snapshots")
+            .location(
+                "http://localhost:8082/service/rest/repository/browse/maven-snapshots/com/example/demo/0.0.1-SNAPSHOT/0.0.1-20190828.022502-3/")
             .build();
     verify(echoService)
         .postEvent(
@@ -86,6 +89,8 @@ class NexusEventPosterTest {
             .name("com.example" + ":" + "demo")
             .version("0.0.1-SNAPSHOT")
             .provenance("maven-snapshots")
+            .location(
+                "http://localhost:8082/service/rest/repository/browse/maven-snapshots/com/example/demo/0.0.1-SNAPSHOT/0.0.1-20190828.022502-3/")
             .build();
     verify(echoService)
         .postEvent(
@@ -138,6 +143,8 @@ class NexusEventPosterTest {
             .name("com.example" + ":" + "demo")
             .version("0.0.1-SNAPSHOT")
             .provenance("DNE")
+            .location(
+                "http://localhost:8082/service/rest/repository/browse/maven-snapshots/com/example/demo/0.0.1-SNAPSHOT/0.0.1-20190828.022502-3/")
             .build();
     verify(echoService)
         .postEvent(

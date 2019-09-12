@@ -21,9 +21,13 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.igor.config.NexusProperties;
 import com.netflix.spinnaker.igor.history.EchoService;
 import com.netflix.spinnaker.igor.nexus.model.NexusAssetWebhookPayload;
+import com.netflix.spinnaker.igor.nexus.model.NexusRepo;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -47,6 +51,11 @@ public class NexusController {
     this.registry = registry;
 
     missedNotificationId = registry.createId("webhook.missedEchoNotification");
+  }
+
+  @GetMapping("/names")
+  List<String> getNexusNames() {
+    return nexusProperties.getRepos().stream().map(NexusRepo::getName).collect(Collectors.toList());
   }
 
   @PostMapping(path = "/webhook", consumes = "application/json")

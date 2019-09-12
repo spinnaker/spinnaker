@@ -48,23 +48,50 @@ public class NexusEventPoster {
       final String version = nameList.get(nameList.size() - 2);
       final String artifactId = nameList.get(nameList.size() - 3);
       final String group = Strings.join(nameList.subList(0, nameList.size() - 3), '.');
-      final Artifact artifact =
-          Artifact.builder()
-              .type("maven/file")
-              .reference(group + ":" + artifactId + ":" + version)
-              .name(group + ":" + artifactId)
-              .version(version)
-              .provenance(payload.getRepositoryName())
-              .build();
+      final String path = Strings.join(nameList.subList(0, nameList.size() - 3), '/');
+      final String specificArtifactName =
+          nameList.subList(nameList.size() - 1, nameList.size()).get(0);
+      final String specificArtifactVersion =
+          specificArtifactName.substring(
+              specificArtifactName.indexOf('-') + 1, specificArtifactName.lastIndexOf(".pom"));
       final Optional<NexusRepo> oRepo = findNexusRepo(payload);
       oRepo.ifPresent(
-          repo -> {
-            AuthenticatedRequest.allowAnonymous(
-                () ->
-                    echoService.postEvent(
-                        new NexusAssetEvent(
-                            new NexusAssetEvent.Content(repo.getName(), artifact))));
-          });
+          repo ->
+              AuthenticatedRequest.allowAnonymous(
+                  () -> {
+                    String location = null;
+                    if (repo.getBaseUrl() != null) {
+                      String baseUrl =
+                          repo.getBaseUrl()
+                              .replace("/repository", "/service/rest/repository/browse");
+                      if (!baseUrl.endsWith("/")) {
+                        baseUrl = baseUrl + "/";
+                      }
+                      location =
+                          baseUrl
+                              + repo.getRepo()
+                              + "/"
+                              + path
+                              + "/"
+                              + artifactId
+                              + "/"
+                              + version
+                              + "/"
+                              + specificArtifactVersion
+                              + "/";
+                    }
+                    final Artifact artifact =
+                        Artifact.builder()
+                            .type("maven/file")
+                            .reference(group + ":" + artifactId + ":" + version)
+                            .name(group + ":" + artifactId)
+                            .version(version)
+                            .provenance(payload.getRepositoryName())
+                            .location(location)
+                            .build();
+                    return echoService.postEvent(
+                        new NexusAssetEvent(new NexusAssetEvent.Content(repo.getName(), artifact)));
+                  }));
     }
   }
 
