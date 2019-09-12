@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.description;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.resources.CredentialsNameable;
@@ -29,6 +30,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class KubernetesAtomicOperationDescription
     implements DeployDescription, CredentialsNameable {
+  @JsonProperty("account")
   String account;
+
   KubernetesNamedAccountCredentials credentials;
 }
