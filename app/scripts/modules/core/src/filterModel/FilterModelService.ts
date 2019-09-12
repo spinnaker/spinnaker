@@ -1,6 +1,6 @@
 import { cloneDeep, size, some, isNil, reduce, forOwn, includes, pick } from 'lodash';
 
-import { IFilterModel, IFilterConfig } from './IFilterModel';
+import { IFilterModel, IFilterConfig, ITrueKeyModel } from './IFilterModel';
 import { ReactInjector } from 'core/reactShims';
 
 export class FilterModelService {
@@ -204,17 +204,6 @@ export class FilterModelService {
     };
   }
 
-  public static checkCategoryFilters(model: IFilterModel) {
-    return (target: any) => {
-      if (this.isFilterable(model.sortFilter.category)) {
-        const checkedCategories = this.getCheckValues(model.sortFilter.category);
-        return includes(checkedCategories, target.type) || includes(checkedCategories, target.category);
-      } else {
-        return true;
-      }
-    };
-  }
-
   private static addTagsForSection(model: IFilterModel, property: IFilterConfig) {
     const key = property.model;
     const label = property.filterLabel || property.model;
@@ -231,7 +220,9 @@ export class FilterModelService {
             label,
             value: translator[value] || value,
             clear() {
-              delete (modelVal as any)[value];
+              // do not reuse the modelVal variable - it's possible it has been reassigned since the tag was created
+              const toClearFrom: ITrueKeyModel = model.sortFilter[key] as ITrueKeyModel;
+              delete toClearFrom[value];
               model.applyParamsToUrl();
             },
           });

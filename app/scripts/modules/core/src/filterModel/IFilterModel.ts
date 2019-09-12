@@ -10,37 +10,41 @@ export interface IFilterConfig {
   array?: boolean;
 }
 
+export interface ITrueKeyModel {
+  [key: string]: boolean;
+}
+
 // The sortFilter objects are generated, so leaving all fields as required
 // In addition, there should technically be a few different ISortFilter
 // sub-interfaces (Clusters, Pipeline, Load Balancer, etc)
 // but I want to delete all this stuff in favor of router params eventually
 // anyway, so keeping the interface consolidated for now.
 export interface ISortFilter {
-  account: { [key: string]: boolean };
-  availabilityZone: { [key: string]: boolean };
+  account: ITrueKeyModel;
+  availabilityZone: ITrueKeyModel;
   category: { [key: string]: any };
   clusters: { [key: string]: any };
   count: number;
-  detail: { [key: string]: boolean };
+  detail: ITrueKeyModel;
   filter: string;
   groupBy: string;
   instanceSort: string;
-  instanceType: { [key: string]: boolean };
-  labels: { [key: string]: boolean };
+  instanceType: ITrueKeyModel;
+  labels: ITrueKeyModel;
   listInstances: boolean;
   maxInstances: number;
   minInstances: number;
   multiselect: boolean;
-  pipeline: { [key: string]: boolean };
-  providerType: { [key: string]: boolean };
-  region: { [key: string]: boolean };
+  pipeline: ITrueKeyModel;
+  providerType: ITrueKeyModel;
+  region: ITrueKeyModel;
   showAllInstances: boolean;
   showInstances: boolean;
   showLoadBalancers: boolean;
   showServerGroups: boolean;
   showDurations: boolean;
-  stack: { [key: string]: boolean };
-  status: { [key: string]: boolean };
+  stack: ITrueKeyModel;
+  status: ITrueKeyModel;
 }
 
 export interface IFilterModel {
