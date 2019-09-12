@@ -20,6 +20,7 @@ import (
 )
 
 type canaryConfigOptions struct{}
+
 const (
 	canaryConfigShort   = ""
 	canaryConfigLong    = ""
@@ -37,8 +38,9 @@ func NewCanaryConfigCmd(out io.Writer) *cobra.Command {
 	}
 
 	// create subcommands
-	cmd.AddCommand(NewListCmd(options))
 	cmd.AddCommand(NewGetCmd(options))
+	cmd.AddCommand(NewListCmd(options))
+	cmd.AddCommand(NewSaveCmd(options))
 
 	return cmd
 }
