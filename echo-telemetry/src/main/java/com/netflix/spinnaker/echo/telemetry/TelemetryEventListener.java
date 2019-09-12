@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -109,8 +110,14 @@ public class TelemetryEventListener implements EchoEventListener {
           Execution.Trigger.Type.valueOf(
               trigger.getOrDefault("type", "UNKNOWN").toString().toUpperCase());
 
-      List<Map> stages = (List<Map>) execution.getOrDefault("stages", new ArrayList<>());
-      List<Stage> protoStages = stages.stream().map(this::toStage).collect(Collectors.toList());
+      List<Map<String, Object>> stages =
+          (List<Map<String, Object>>) execution.getOrDefault("stages", new ArrayList<>());
+      List<Stage> protoStages =
+          stages.stream()
+              .map(this::toStage)
+              .filter(Optional::isPresent)
+              .map(Optional::get)
+              .collect(Collectors.toList());
 
       Execution.Builder executionBuilder =
           Execution.newBuilder()
@@ -147,7 +154,15 @@ public class TelemetryEventListener implements EchoEventListener {
     }
   }
 
-  private Stage toStage(Map stage) {
+  @SuppressWarnings("unchecked")
+  private Optional<Stage> toStage(Map<String, Object> stage) {
+    // Only interested in user-configured stages.
+    if (stage.get("syntheticStageOwner") != null
+        && !stage.get("syntheticStageOwner").toString().isEmpty()) {
+      log.debug("Discarding synthetic stage");
+      return Optional.empty();
+    }
+
     Status status =
         Status.valueOf(stage.getOrDefault("status", "UNKNOWN").toString().toUpperCase());
     Stage.Builder stageBuilder =
@@ -164,7 +179,7 @@ public class TelemetryEventListener implements EchoEventListener {
       // TODO(ttomsu): Figure out how to detect Kubernetes "flavor" - i.e. GKE, EKS, vanilla, etc.
     }
 
-    return stageBuilder.build();
+    return Optional.of(stageBuilder.build());
   }
 
   private String hash(String clearText) {
