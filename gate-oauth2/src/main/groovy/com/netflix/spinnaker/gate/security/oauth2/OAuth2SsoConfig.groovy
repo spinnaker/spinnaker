@@ -38,6 +38,8 @@ import org.springframework.security.web.authentication.LoginUrlAuthenticationEnt
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter
 import org.springframework.session.web.http.DefaultCookieSerializer
 import org.springframework.stereotype.Component
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter
 
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -81,6 +83,7 @@ class OAuth2SsoConfig extends WebSecurityConfigurerAdapter {
     authConfig.configure(http)
 
     http.exceptionHandling().authenticationEntryPoint(entryPoint)
+    http.addFilterBefore(new BasicAuthenticationFilter(authenticationManager()), UsernamePasswordAuthenticationFilter)
     http.addFilterBefore(externalAuthTokenFilter, AbstractPreAuthenticatedProcessingFilter.class)
   }
 
