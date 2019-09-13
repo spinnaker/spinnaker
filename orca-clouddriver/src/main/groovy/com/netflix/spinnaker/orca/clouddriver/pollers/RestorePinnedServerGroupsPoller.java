@@ -74,7 +74,7 @@ public class RestorePinnedServerGroupsPoller extends AbstractPollingNotification
       Registry registry,
       ExecutionLauncher executionLauncher,
       ExecutionRepository executionRepository,
-      @Value("${pollers.restorePinnedServerGroups.username:spinnaker}") String username) {
+      @Value("${pollers.restore-pinned-server-groups.username:spinnaker}") String username) {
     this(
         notificationClusterLock,
         objectMapper,

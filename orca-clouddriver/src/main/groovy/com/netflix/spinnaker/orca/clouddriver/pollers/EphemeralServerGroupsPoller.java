@@ -46,7 +46,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-@ConditionalOnExpression(value = "${pollers.ephemeralServerGroups.enabled:false}")
+@ConditionalOnExpression(value = "${pollers.ephemeral-server-groups.enabled:false}")
 public class EphemeralServerGroupsPoller extends AbstractPollingNotificationAgent {
   private static final Logger log = LoggerFactory.getLogger(EphemeralServerGroupsPoller.class);
 

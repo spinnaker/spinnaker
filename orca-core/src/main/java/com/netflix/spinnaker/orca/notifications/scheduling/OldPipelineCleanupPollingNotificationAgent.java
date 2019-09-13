@@ -112,9 +112,9 @@ public class OldPipelineCleanupPollingNotificationAgent extends AbstractPollingN
       ExecutionRepository executionRepository,
       Clock clock,
       Registry registry,
-      @Value("${pollers.oldPipelineCleanup.intervalMs:3600000}") long pollingIntervalMs,
-      @Value("${pollers.oldPipelineCleanup.thresholdDays:30}") int thresholdDays,
-      @Value("${pollers.oldPipelineCleanup.minimumPipelineExecutions:5}")
+      @Value("${pollers.old-pipeline-cleanup.interval-ms:3600000}") long pollingIntervalMs,
+      @Value("${pollers.old-pipeline-cleanup.threshold-days:30}") int thresholdDays,
+      @Value("${pollers.old-pipeline-cleanup.minimum-pipeline-executions:5}")
           int minimumPipelineExecutions) {
     super(clusterLock);
     this.executionRepository = executionRepository;

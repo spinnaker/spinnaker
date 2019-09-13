@@ -136,7 +136,7 @@ public class RestrictExecutionDuringTimeWindow implements StageDefinitionBuilder
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    @Value("${tasks.executionWindow.timezone:America/Los_Angeles}")
+    @Value("${tasks.execution-window.timezone:America/Los_Angeles}")
     String timeZoneId;
 
     @Override

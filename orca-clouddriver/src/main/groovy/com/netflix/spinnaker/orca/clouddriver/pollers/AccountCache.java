@@ -35,7 +35,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConditionalOnExpression(value = "${pollers.accountCache.enabled:false}")
+@ConditionalOnExpression(value = "${pollers.account-cache.enabled:false}")
 public class AccountCache extends AbstractPollingNotificationAgent {
   private final Logger log = LoggerFactory.getLogger(AccountCache.class);
 

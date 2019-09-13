@@ -33,7 +33,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @ConditionalOnBean(ConditionSupplier.class)
-@ConditionalOnExpression("${tasks.evaluateCondition.enabled:false}")
+@ConditionalOnExpression("${tasks.evaluate-condition.enabled:false}")
 public class ConditionAwareDeployStagePreprocessor implements DeployStagePreProcessor {
   private final Logger log = LoggerFactory.getLogger(ConditionAwareDeployStagePreprocessor.class);
   private final WaitForConditionStage waitForConditionStage;
