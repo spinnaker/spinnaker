@@ -64,13 +64,13 @@ public class ClouddriverService implements HealthTrackable, InitializingBean {
     return applicationCache.get();
   }
 
-  @Scheduled(fixedDelayString = "${fiat.clouddriverRefreshMs:30000}")
+  @Scheduled(fixedDelayString = "${fiat.clouddriver-refresh-ms:30000}")
   public void refreshAccounts() {
     accountCache.set(clouddriverApi.getAccounts());
     healthTracker.success();
   }
 
-  @Scheduled(fixedDelayString = "${fiat.clouddriverRefreshMs:30000}")
+  @Scheduled(fixedDelayString = "${fiat.clouddriver-refresh-ms:30000}")
   public void refreshApplications() {
     applicationCache.set(clouddriverApi.getApplications());
     healthTracker.success();

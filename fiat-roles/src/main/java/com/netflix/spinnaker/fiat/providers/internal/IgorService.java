@@ -57,7 +57,7 @@ public class IgorService implements HealthTrackable, InitializingBean {
     return buildServicesCache.get();
   }
 
-  @Scheduled(fixedDelayString = "${fiat.igorRefreshMs:30000}")
+  @Scheduled(fixedDelayString = "${fiat.igor-refresh-ms:30000}")
   public void refreshBuildServices() {
     if (igorEnabled) {
       buildServicesCache.set(igorApi.getBuildMasters());

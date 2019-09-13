@@ -95,7 +95,7 @@ public class Front50Service implements HealthTrackable, InitializingBean {
     log.info("Falling back to {} cache. {}", resource, message);
   }
 
-  @Scheduled(fixedDelayString = "${fiat.front50RefreshMs:30000}")
+  @Scheduled(fixedDelayString = "${fiat.front50-refresh-ms:30000}")
   private void refreshCache() {
     try {
       // Initialize caches (also indicates service is healthy)
