@@ -32,6 +32,7 @@ import (
 	"os/user"
 	"path/filepath"
 	"strings"
+  "syscall"
 
 	"github.com/spinnaker/spin/config"
 	iap "github.com/spinnaker/spin/config/auth/iap"
@@ -46,6 +47,7 @@ import (
 	"encoding/base64"
 
 	gate "github.com/spinnaker/spin/gateapi"
+	"golang.org/x/crypto/ssh/terminal"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )
@@ -381,7 +383,7 @@ func (m *GatewayClient) authenticateOAuth2() error {
 
 			authURL := config.AuthCodeURL("state-token", oauth2.AccessTypeOffline, oauth2.ApprovalForce, challengeMethod, codeChallenge)
 			util.UI.Output(fmt.Sprintf("Navigate to %s and authenticate", authURL))
-			code := prompt()
+			code := prompt("Paste authorization code:")
 
 			newToken, err = config.Exchange(context.Background(), code, codeVerifier)
 			if err != nil {
@@ -468,6 +470,15 @@ func (m *GatewayClient) login(accessToken string) error {
 func (m *GatewayClient) authenticateLdap() error {
 	auth := m.Config.Auth
 	if auth != nil && auth.Enabled && auth.Ldap != nil {
+    if auth.Ldap.Username == "" {
+      auth.Ldap.Username = prompt("Username:")
+    }
+
+    if auth.Ldap.Password == "" {
+      auth.Ldap.Password = securePrompt("Password:")
+    }
+
+
 		if !auth.Ldap.IsValid() {
 			return errors.New("Incorrect LDAP auth configuration. Must include username and password.")
 		}
@@ -540,9 +551,16 @@ func generateCodeVerifier() (verifier string, code string, err error) {
 	return verifier, code, nil
 }
 
-func prompt() string {
+func prompt(inputMsg string) string {
 	reader := bufio.NewReader(os.Stdin)
-	util.UI.Output("Paste authorization code:")
+	util.UI.Output(inputMsg)
 	text, _ := reader.ReadString('\n')
 	return strings.TrimSpace(text)
+}
+
+func securePrompt(inputMsg string) string {
+	util.UI.Output(inputMsg)
+  byteSecret, _ := terminal.ReadPassword(int(syscall.Stdin))
+  secret := string(byteSecret)
+	return strings.TrimSpace(secret)
 }

@@ -13,6 +13,7 @@ require (
 	github.com/posener/complete v1.2.1 // indirect
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.3
+	golang.org/x/crypto v0.0.0-20190605123033-f99c8df09eb5
 	golang.org/x/net v0.0.0-20190909003024-a7b16738d86b
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	golang.org/x/sys v0.0.0-20190910064555-bbd175535a8b // indirect
