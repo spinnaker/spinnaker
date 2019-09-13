@@ -6,6 +6,7 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import strikt.api.expect
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.api.expectThrows
@@ -240,6 +241,23 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
             expectThat(subject.latestVersionApprovedIn(manifest, artifact1, environment2.name))
               .isEqualTo(version2)
           }
+        }
+      }
+    }
+
+    context("artifact approval querying") {
+      before {
+        persist()
+        subject.approveVersionFor(manifest, artifact2, version1, environment1.name)
+        subject.approveVersionFor(manifest, artifact2, version2, environment1.name)
+        subject.approveVersionFor(manifest, artifact2, version3, environment1.name)
+      }
+
+      test("we can query for all the versions and know they're approved") {
+        expect {
+          that(subject.isApprovedFor(manifest, artifact2, version1, environment1.name)).isTrue()
+          that(subject.isApprovedFor(manifest, artifact2, version2, environment1.name)).isTrue()
+          that(subject.isApprovedFor(manifest, artifact2, version3, environment1.name)).isTrue()
         }
       }
     }

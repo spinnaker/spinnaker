@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory
 
 class InMemoryArtifactRepository : ArtifactRepository {
   private val artifacts = mutableMapOf<DeliveryArtifact, MutableList<String>>()
-  private val approvedVersions = mutableMapOf<Triple<DeliveryArtifact, DeliveryConfig, String>, String>()
+  private val approvedVersions = mutableMapOf<Triple<DeliveryArtifact, DeliveryConfig, String>, MutableList<String>>()
   private val deployedVersions = mutableMapOf<Triple<DeliveryArtifact, DeliveryConfig, String>, MutableList<String>>()
   private val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -51,7 +51,22 @@ class InMemoryArtifactRepository : ArtifactRepository {
     targetEnvironment: String
   ): Boolean {
     val key = Triple(artifact, deliveryConfig, targetEnvironment)
-    return approvedVersions.put(key, version) != version
+    val versions = approvedVersions.getOrDefault(key, mutableListOf())
+    val isNew = !versions.contains(version)
+    versions.add(version)
+    approvedVersions[key] = versions
+    return isNew
+  }
+
+  override fun isApprovedFor(
+    deliveryConfig: DeliveryConfig,
+    artifact: DeliveryArtifact,
+    version: String,
+    targetEnvironment: String
+  ): Boolean {
+    val key = Triple(artifact, deliveryConfig, targetEnvironment)
+    val versions = approvedVersions.getOrDefault(key, mutableListOf())
+    return versions.contains(version)
   }
 
   override fun latestVersionApprovedIn(
@@ -60,7 +75,7 @@ class InMemoryArtifactRepository : ArtifactRepository {
     targetEnvironment: String
   ): String? {
     val key = Triple(artifact, deliveryConfig, targetEnvironment)
-    return approvedVersions[key]
+    return approvedVersions.getOrDefault(key, mutableListOf()).sortAppVersion().firstOrNull()
   }
 
   override fun wasSuccessfullyDeployedTo(

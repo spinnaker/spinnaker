@@ -156,7 +156,7 @@ internal class CurrentlyDeployedImageApproverTests : JUnit5Minutests {
         deliveryConfigRepository.store(deliveryConfig)
         resourceRepository.store(artifactCluster)
 
-        every { artifactRepository.latestVersionApprovedIn(deliveryConfig, artifact, testEnv.name) } returns appVersion
+        every { artifactRepository.isApprovedFor(deliveryConfig, artifact, appVersion, testEnv.name) } returns true
         every { artifactRepository.wasSuccessfullyDeployedTo(deliveryConfig, artifact, appVersion, testEnv.name) } returns false
         coEvery { cloudDriverService.namedImages(any(), imageId, null) } returns listOf(ami)
 
@@ -174,7 +174,7 @@ internal class CurrentlyDeployedImageApproverTests : JUnit5Minutests {
         deliveryConfigRepository.store(deliveryConfig)
         resourceRepository.store(artifactCluster)
 
-        every { artifactRepository.latestVersionApprovedIn(deliveryConfig, artifact, testEnv.name) } returns appVersion
+        every { artifactRepository.isApprovedFor(deliveryConfig, artifact, appVersion, testEnv.name) } returns true
         every { artifactRepository.wasSuccessfullyDeployedTo(deliveryConfig, artifact, appVersion, testEnv.name) } returns true
         coEvery { cloudDriverService.namedImages(any(), imageId, null) } returns listOf(ami)
 
@@ -182,7 +182,25 @@ internal class CurrentlyDeployedImageApproverTests : JUnit5Minutests {
         subject.artifactAlreadyDeployedEventHandler(event)
       }
 
-      test("running version is the latest version") {
+      test("version was already marked as deployed") {
+        verify(exactly = 0) { artifactRepository.markAsSuccessfullyDeployedTo(deliveryConfig, artifact, appVersion, testEnv.name) }
+      }
+    }
+
+    context("cluster has artifact image provider but version wasn't approved") {
+      before {
+        deliveryConfigRepository.store(deliveryConfig)
+        resourceRepository.store(artifactCluster)
+
+        every { artifactRepository.isApprovedFor(deliveryConfig, artifact, appVersion, testEnv.name) } returns false
+        every { artifactRepository.wasSuccessfullyDeployedTo(deliveryConfig, artifact, appVersion, testEnv.name) } returns false
+        coEvery { cloudDriverService.namedImages(any(), imageId, null) } returns listOf(ami)
+
+        val event = ArtifactAlreadyDeployedEvent(artifactCluster.id.toString(), imageId)
+        subject.artifactAlreadyDeployedEventHandler(event)
+      }
+
+      test("does nothing because version wasn't approved for that env yet") {
         verify(exactly = 0) { artifactRepository.markAsSuccessfullyDeployedTo(deliveryConfig, artifact, appVersion, testEnv.name) }
       }
     }

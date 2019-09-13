@@ -47,6 +47,16 @@ interface ArtifactRepository {
   ): Boolean
 
   /**
+   * @return [true] if version is approved for the [targetEnvironment], false otherwise
+   */
+  fun isApprovedFor(
+    deliveryConfig: DeliveryConfig,
+    artifact: DeliveryArtifact,
+    version: String,
+    targetEnvironment: String
+  ): Boolean
+
+  /**
    * @return `true` if [version] has (previously or currently) been deployed successfully to
    * [targetEnvironment].
    */

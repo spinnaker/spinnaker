@@ -108,6 +108,22 @@ class SqlArtifactRepository(
       .execute() > 0
   }
 
+  override fun isApprovedFor(
+    deliveryConfig: DeliveryConfig,
+    artifact: DeliveryArtifact,
+    version: String,
+    targetEnvironment: String
+  ): Boolean {
+    val environment = deliveryConfig.environmentNamed(targetEnvironment)
+    val versions = jooq
+      .select(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION)
+      .from(ENVIRONMENT_ARTIFACT_VERSIONS)
+      .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(deliveryConfig.getUidFor(environment)))
+      .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
+      .fetch(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION, String::class.java)
+    return versions.contains(version)
+  }
+
   override fun wasSuccessfullyDeployedTo(
     deliveryConfig: DeliveryConfig,
     artifact: DeliveryArtifact,

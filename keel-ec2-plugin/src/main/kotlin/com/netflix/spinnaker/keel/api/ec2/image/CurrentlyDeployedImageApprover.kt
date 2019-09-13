@@ -54,21 +54,29 @@ class CurrentlyDeployedImageApprover(
           val image = cloudDriverService.namedImages(resource.serviceAccount, event.imageId, null).first()
           val appversion = image.appVersion
 
-          val wasSuccessfullyDeployed = artifactRepository.wasSuccessfullyDeployedTo(
+          val approvedForEnv = artifactRepository.isApprovedFor(
             deliveryConfig = deliveryConfig,
             artifact = artifact,
             version = appversion,
             targetEnvironment = env.name
           )
           // should only mark as successfully deployed if it's already approved for the environment
-          if (!wasSuccessfullyDeployed) {
-            log.info("Approving {} for {} in {} because it is already deployed", appversion, env.name, deliveryConfig.name)
-            artifactRepository.markAsSuccessfullyDeployedTo(
+          if (approvedForEnv) {
+            val wasSuccessfullyDeployed = artifactRepository.wasSuccessfullyDeployedTo(
               deliveryConfig = deliveryConfig,
               artifact = artifact,
               version = appversion,
               targetEnvironment = env.name
             )
+            if (!wasSuccessfullyDeployed) {
+              log.info("Marking {} as deployed in {} for config {} because it is already deployed", appversion, env.name, deliveryConfig.name)
+              artifactRepository.markAsSuccessfullyDeployedTo(
+                deliveryConfig = deliveryConfig,
+                artifact = artifact,
+                version = appversion,
+                targetEnvironment = env.name
+              )
+            }
           }
         }
       }
