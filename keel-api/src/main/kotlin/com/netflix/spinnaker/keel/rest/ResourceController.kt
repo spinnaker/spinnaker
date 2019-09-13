@@ -30,7 +30,7 @@ import org.springframework.http.HttpStatus.BAD_REQUEST
 import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
-import org.springframework.http.converter.HttpMessageNotReadableException
+import org.springframework.http.converter.HttpMessageConversionException
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.ExceptionHandler
@@ -72,7 +72,7 @@ class ResourceController(
     consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
-  @PreAuthorize("@authorizationSupport.userCanModifySpec(#resource.metadata.serviceAccount, #resource.spec)")
+  @PreAuthorize("@authorizationSupport.userCanModifySpec(#resource.metadata[serviceAccount], #resource.spec)")
   fun upsert(@RequestBody resource: SubmittedResource<*>): Resource<*> {
     log.debug("Upserting: $resource")
     return resourcePersister.upsert(resource)
@@ -94,9 +94,9 @@ class ResourceController(
     log.error(e.message)
   }
 
-  @ExceptionHandler(HttpMessageNotReadableException::class)
+  @ExceptionHandler(HttpMessageConversionException::class)
   @ResponseStatus(BAD_REQUEST)
-  fun onParseFailure(e: HttpMessageNotReadableException): Map<String, Any?> {
+  fun onParseFailure(e: HttpMessageConversionException): Map<String, Any?> {
     log.error(e.message)
     return mapOf("message" to (e.cause?.message ?: e.message))
   }

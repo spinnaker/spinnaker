@@ -64,7 +64,7 @@ data class Resource<T : ResourceSpec>(
  * External representation of a resource that would be submitted to the API
  */
 data class SubmittedResource<T : ResourceSpec>(
-  val metadata: SubmittedMetadata,
+  val metadata: Map<String, Any?>,
   val apiVersion: ApiVersion,
   val kind: String,
   @JsonTypeInfo(
@@ -73,17 +73,14 @@ data class SubmittedResource<T : ResourceSpec>(
     property = "kind"
   )
   val spec: T
-)
+) {
+  init {
+    require(metadata["serviceAccount"].isValidServiceAccount()) { "serviceAccount must be a valid service account" }
+  }
+}
 
 val <T : ResourceSpec> SubmittedResource<T>.id: ResourceId
   get() = "${apiVersion.prefix}:$kind:${spec.id}".let(::ResourceId)
-
-/**
- * Required metadata to be submitted with a resource
- */
-data class SubmittedMetadata(
-  val serviceAccount: String
-)
 
 val <T : ResourceSpec> Resource<T>.id: ResourceId
   get() = metadata.getValue("id").toString().let(::ResourceId)

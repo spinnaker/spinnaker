@@ -11,7 +11,6 @@ import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.api.SubmittedEnvironment
-import com.netflix.spinnaker.keel.api.SubmittedMetadata
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.resources
@@ -78,7 +77,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
     @Suppress("UNCHECKED_CAST")
     fun update(updatedSpec: DummyResourceSpec) {
       resource = subject.upsert(SubmittedResource(
-        metadata = SubmittedMetadata("keel@spinnaker"),
+        metadata = mapOf("serviceAccount" to "keel@spinnaker"),
         apiVersion = resource.apiVersion,
         kind = resource.kind,
         spec = updatedSpec
@@ -108,7 +107,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
         context("creation") {
           before {
             create(SubmittedResource(
-              metadata = SubmittedMetadata("keel@spinnaker"),
+              metadata = mapOf("serviceAccount" to "keel@spinnaker"),
               apiVersion = SPINNAKER_API_V1.subApi("test"),
               kind = "whatever",
               spec = DummyResourceSpec(data = "o hai")
@@ -206,7 +205,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
                   resources = setOf(SubmittedResource(
                     apiVersion = SPINNAKER_API_V1.subApi("test"),
                     kind = "whatever",
-                    metadata = SubmittedMetadata("keel@spinnaker"),
+                    metadata = mapOf("serviceAccount" to "keel@spinnaker"),
                     spec = DummyResourceSpec("test", "resource in test")
                   )),
                   constraints = emptySet()
@@ -216,7 +215,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
                   resources = setOf(SubmittedResource(
                     apiVersion = SPINNAKER_API_V1.subApi("test"),
                     kind = "whatever",
-                    metadata = SubmittedMetadata("keel@spinnaker"),
+                    metadata = mapOf("serviceAccount" to "keel@spinnaker"),
                     spec = DummyResourceSpec("prod", "resource in prod")
                   )),
                   constraints = emptySet()
@@ -259,7 +258,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
           val resource1 = SubmittedResource(
             apiVersion = SPINNAKER_API_V1.subApi("test"),
             kind = "whatever",
-            metadata = SubmittedMetadata("keel@spinnaker"),
+            metadata = mapOf("serviceAccount" to "keel@spinnaker"),
             spec = DummyResourceSpec("test", "resource in test")
           ).also {
             create(it)
@@ -271,7 +270,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
           val resource2 = SubmittedResource(
             apiVersion = SPINNAKER_API_V1.subApi("test"),
             kind = "whatever",
-            metadata = SubmittedMetadata("keel@spinnaker"),
+            metadata = mapOf("serviceAccount" to "keel@spinnaker"),
             spec = DummyResourceSpec("prod", "resource in prod")
           ).also {
             create(it)

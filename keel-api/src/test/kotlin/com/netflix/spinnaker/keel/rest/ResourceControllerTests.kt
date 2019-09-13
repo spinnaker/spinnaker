@@ -211,8 +211,7 @@ internal class ResourceControllerTests {
           |apiVersion: test.spinnaker.netflix.com/v1
           |kind: whatever
           |metadata:
-          |  serviceAccount: keel@spinnaker
-          |  name: i-should-not-be-naming-my-resources-that-is-keels-job
+          |  name: i-forgot-my-service-account
           |spec:
           |  data: o hai"""
           .trimMargin()

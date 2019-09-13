@@ -45,10 +45,9 @@ interface ResolvableResourceHandler<S : ResourceSpec, R : Any> : KeelPlugin {
    * applied, etc.
    */
   fun normalize(resource: SubmittedResource<S>): Resource<S> {
-    val metadata = mapOf(
+    val metadata = resource.metadata + mapOf(
       "id" to resource.id.toString(),
       "uid" to randomUID().toString(),
-      "serviceAccount" to resource.metadata.serviceAccount,
       "application" to resource.spec.application
     )
     val hydratedResource = Resource(

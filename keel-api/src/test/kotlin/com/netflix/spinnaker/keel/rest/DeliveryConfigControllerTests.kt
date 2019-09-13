@@ -8,7 +8,6 @@ import com.netflix.spinnaker.keel.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.api.SubmittedEnvironment
-import com.netflix.spinnaker.keel.api.SubmittedMetadata
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
@@ -83,7 +82,7 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
                 resources = setOf(SubmittedResource(
                   apiVersion = SPINNAKER_API_V1.subApi("test"),
                   kind = "whatever",
-                  metadata = SubmittedMetadata("keel@spinnaker"),
+                  metadata = mapOf("serviceAccount" to "keel@spinnaker"),
                   spec = DummyResourceSpec(data = "resource in test")
                 ))
               ),
@@ -92,7 +91,7 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
                 resources = setOf(SubmittedResource(
                   apiVersion = SPINNAKER_API_V1.subApi("test"),
                   kind = "whatever",
-                  metadata = SubmittedMetadata("keel@spinnaker"),
+                  metadata = mapOf("serviceAccount" to "keel@spinnaker"),
                   spec = DummyResourceSpec(data = "resource in prod")
                 )),
                 constraints = setOf(DependsOnConstraint("test"))

@@ -8,7 +8,6 @@ import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.api.SubmittedEnvironment
-import com.netflix.spinnaker.keel.api.SubmittedMetadata
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
@@ -88,7 +87,7 @@ internal class DeliveryConfigTransactionTests : JUnit5Minutests {
           resources = setOf(SubmittedResource(
             apiVersion = SPINNAKER_API_V1.subApi("test"),
             kind = "whatever",
-            metadata = SubmittedMetadata("keel@spinnaker"),
+            metadata = mapOf("serviceAccount" to "keel@spinnaker"),
             spec = DummyResourceSpec("test", "resource in test", "keel")
           ))
         ),
@@ -97,7 +96,7 @@ internal class DeliveryConfigTransactionTests : JUnit5Minutests {
           resources = setOf(SubmittedResource(
             apiVersion = SPINNAKER_API_V1.subApi("test"),
             kind = "whatever",
-            metadata = SubmittedMetadata("keel@spinnaker"),
+            metadata = mapOf("serviceAccount" to "keel@spinnaker"),
             spec = DummyResourceSpec("prod", "resource in prod", "keel")
           ))
         )
