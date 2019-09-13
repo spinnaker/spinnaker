@@ -2,7 +2,6 @@ package com.netflix.spinnaker.keel.clouddriver.model
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.netflix.spinnaker.keel.model.Moniker
-import java.lang.RuntimeException
 
 data class ClusterActiveServerGroup(
   val name: String,
