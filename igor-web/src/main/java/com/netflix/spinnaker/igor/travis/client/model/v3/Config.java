@@ -17,23 +17,30 @@
 
 package com.netflix.spinnaker.igor.travis.client.model.v3;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.netflix.spinnaker.igor.build.model.GenericParameterDefinition;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.simpleframework.xml.Default;
 
 @Default
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Slf4j
 public class Config {
-  @JsonProperty("global_env")
   private List<Object> globalEnv;
 
   @JsonProperty("merge_mode")
@@ -75,12 +82,34 @@ public class Config {
         .collect(Collectors.toList());
   }
 
+  @JsonGetter("global_env")
   public List<Object> getGlobalEnv() {
     return globalEnv;
   }
 
-  public void setGlobalEnv(List<Object> globalEnv) {
-    this.globalEnv = globalEnv;
+  @JsonSetter("global_env")
+  @SuppressWarnings("unchecked")
+  public void setGlobalEnv(Object globalEnv) {
+    if (globalEnv instanceof String) {
+      // Matches space separated KEY=VALUE pairs. See ConfigSpec for matching examples
+      Pattern pattern = Pattern.compile("(\\S*?)=(?>(?>[\"'])(.*?)(?>[\"'])|(\\S*))");
+      Matcher matcher = pattern.matcher((String) globalEnv);
+      List<String> env = new ArrayList<>();
+      while (matcher.find()) {
+        String key = matcher.group(1);
+        String value = matcher.group(2);
+        if (StringUtils.isBlank(value)) {
+          value = matcher.group(3);
+        }
+        value = StringUtils.trimToEmpty(value);
+        env.add(key + "=" + value);
+      }
+      this.globalEnv = new ArrayList<>(env);
+    } else if (globalEnv instanceof List) {
+      this.globalEnv = (List) globalEnv;
+    } else {
+      log.warn("Unknown type for 'global_env', ignoring: {}", globalEnv);
+    }
   }
 
   public String getMergeMode() {

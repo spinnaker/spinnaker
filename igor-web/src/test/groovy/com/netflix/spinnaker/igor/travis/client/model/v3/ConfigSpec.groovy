@@ -78,4 +78,44 @@ class ConfigSpec extends Specification {
         null                   || null
     }
 
+    @Unroll
+    def "should handle different env_var types"() {
+        given:
+        Config config = new Config()
+
+        when:
+        config.setGlobalEnv(globalEnv)
+
+        then:
+        config.globalEnv == expectedGlobalEnv
+
+        where:
+        globalEnv                                                                     || expectedGlobalEnv
+        ["KEY_1=value 1", "KEY_2=value 2"]                                            || ["KEY_1=value 1", "KEY_2=value 2"]
+        "TF_INPUT=false " +
+            "SOME_KEY=\"with spaces\" " +
+            "ANOTHER_KEY=withoutspaces " +
+            "lowercase-key=\"string with=equals sign\" " +
+            "REGION=eu-west-1 " +
+            "STACK_NAME=testing " +
+            "A_USER=user@schibsted.com " +
+            "A_PWD=[secure] " +
+            "KEY_ID=\"SOMEKEYID\" " +
+            "SOME_SECRET=[secure] " +
+            "ROLE='arn:aws:iam::0123456789:role/MyRole' " +
+            "KEY=whatabout=this\\\\ " +
+            "KEY2=\"and=this\\\\\""                                                   || ["TF_INPUT=false",
+                                                                                          "SOME_KEY=with spaces",
+                                                                                          "ANOTHER_KEY=withoutspaces",
+                                                                                          "lowercase-key=string with=equals sign",
+                                                                                          "REGION=eu-west-1",
+                                                                                          "STACK_NAME=testing",
+                                                                                          "A_USER=user@schibsted.com",
+                                                                                          "A_PWD=[secure]",
+                                                                                          "KEY_ID=SOMEKEYID",
+                                                                                          "SOME_SECRET=[secure]",
+                                                                                          "ROLE=arn:aws:iam::0123456789:role/MyRole",
+                                                                                          "KEY=whatabout=this\\\\",
+                                                                                          "KEY2=and=this\\\\"]
+    }
 }

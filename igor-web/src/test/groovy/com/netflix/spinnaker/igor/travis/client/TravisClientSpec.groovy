@@ -694,6 +694,130 @@ class TravisClientSpec extends Specification {
 
     }
 
+    def "should parse v3 config section correctly"() {
+        given:
+        setResponse '''{
+          "@type": "builds",
+          "@href": "/api/repo/my-org%2Fmy-project/builds?limit=1&include=job.config",
+          "@representation": "standard",
+          "@pagination": {
+            "limit": 1,
+            "offset": 0,
+            "count": 1213,
+            "is_first": true,
+            "is_last": false,
+            "next": {
+              "@href": "/api/repo/my-org%2Fmy-project/builds?include=job.config&limit=1&offset=1",
+              "offset": 1,
+              "limit": 1
+            },
+            "prev": null,
+            "first": {
+              "@href": "/api/repo/my-org%2Fmy-project/builds?limit=1&include=job.config",
+              "offset": 0,
+              "limit": 1
+            },
+            "last": {
+              "@href": "/api/repo/my-org%2Fmy-project/builds?include=job.config&limit=1&offset=1212",
+              "offset": 1212,
+              "limit": 1
+            }
+          },
+          "builds": [
+            {
+              "@type": "build",
+              "@href": "/api/build/8078881",
+              "@representation": "standard",
+              "@permissions": {
+                "read": true,
+                "cancel": true,
+                "restart": true
+              },
+              "id": 8078881,
+              "number": "1213",
+              "state": "errored",
+              "duration": 19,
+              "event_type": "cron",
+              "previous_state": "failed",
+              "pull_request_title": null,
+              "pull_request_number": null,
+              "started_at": "2019-09-04T10:47:53Z",
+              "finished_at": "2019-09-04T10:48:12Z",
+              "repository": {
+                "@type": "repository",
+                "@href": "/api/repo/10094",
+                "@representation": "minimal",
+                "id": 10094,
+                "name": "my-project",
+                "slug": "my-org/my-project"
+              },
+              "branch": {
+                "@type": "branch",
+                "@href": "/api/repo/10094/branch/master",
+                "@representation": "minimal",
+                "name": "master"
+              },
+              "tag": null,
+              "commit": {
+                "@type": "commit",
+                "@representation": "minimal",
+                "id": 4571457,
+                "sha": "8af6ccfec7ea3cac6c3e01751186bc9ca5b6062e",
+                "ref": null,
+                "message": "Release 0.1.28",
+                "compare_url": "https://github.acme.com/my-org/my-project/compare/7a7214f554e2b8e313354af08c1010ad90f1e612...8af6ccfec7ea3cac6c3e01751186bc9ca5b6062e",
+                "committed_at": "2019-04-24T21:54:13Z"
+              },
+              "jobs": [
+                {
+                  "@type": "job",
+                  "@href": "/api/job/8078882",
+                  "@representation": "minimal",
+                  "id": 8078882,
+                  "config": {
+                    "language": "python",
+                    "cache": "pip",
+                    "install": "script/bootstrap",
+                    "script": "script/cibuild",
+                    "after_script": "script/cleanup",
+                    ".result": "configured",
+                    "global_env": "REGION=eu-west-1 STACK_NAME=testing A_USER=user@schibsted.com A_PWD=[secure] KEY_ID=\\"MY_KEY\\" A_SECRET=[secure] ROLE='arn:aws:iam::0123456789:role/myRole'",
+                    "os": "linux",
+                    "group": "stable",
+                    "dist": "trusty",
+                    "addons": {}
+                  }
+                }
+              ],
+              "stages": [],
+              "created_by": {
+                "@type": "user",
+                "@href": "/api/user/574",
+                "@representation": "minimal",
+                "id": 574,
+                "login": "spinnaker"
+              },
+              "updated_at": "2019-09-04T10:48:12.782Z"
+            }
+          ]
+        }'''
+
+        when:
+        V3Builds builds = client.v3builds("someToken", "org/repo", 1, "job.config")
+
+        then:
+        builds.builds.size() == 1
+        builds.builds[0].jobs[0].config.globalEnv == [
+            "REGION=eu-west-1",
+            "STACK_NAME=testing",
+            "A_USER=user@schibsted.com",
+            "A_PWD=[secure]",
+            "KEY_ID=MY_KEY",
+            "A_SECRET=[secure]",
+            "ROLE=arn:aws:iam::0123456789:role/myRole"
+        ]
+    }
+
     private void setResponse(String body) {
         server.enqueue(
             new MockResponse()
