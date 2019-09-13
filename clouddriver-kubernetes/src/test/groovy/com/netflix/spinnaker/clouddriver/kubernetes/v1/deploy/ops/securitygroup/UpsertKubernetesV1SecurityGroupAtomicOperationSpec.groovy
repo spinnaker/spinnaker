@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v1.api.KubernetesApiAdaptor
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.securitygroup.KubernetesIngressTlS
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.securitygroup.KubernetesSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import io.fabric8.kubernetes.api.model.extensions.Ingress
 import io.fabric8.kubernetes.api.model.extensions.IngressTLS
@@ -60,7 +61,7 @@ class UpsertKubernetesV1SecurityGroupAtomicOperationSpec extends Specification {
     dockerRegistry = Mock(LinkedDockerRegistryConfiguration)
     dockerRegistries = [dockerRegistry]
     accountCredentialsRepositoryMock = Mock(AccountCredentialsRepository)
-    credentials = new KubernetesV1Credentials(apiMock, NAMESPACES, [], [], accountCredentialsRepositoryMock)
+    credentials = new KubernetesV1Credentials(apiMock, NAMESPACES, [], [], accountCredentialsRepositoryMock, new KubernetesSpinnakerKindMap(Collections.emptyList()))
     namedAccountCredentials = Mock(KubernetesNamedAccountCredentials) {
       getCredentials() >> credentials
     }

@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.loadba
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.loadbalancer.KubernetesNamedServicePort
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import io.fabric8.kubernetes.api.model.ObjectMeta
 import io.fabric8.kubernetes.api.model.Service
@@ -68,7 +69,7 @@ class UpsertKubernetesLoadBalancerAtomicOperationSpec extends Specification {
     dockerRegistry = Mock(LinkedDockerRegistryConfiguration)
     dockerRegistries = [dockerRegistry]
     accountCredentialsRepositoryMock = Mock(AccountCredentialsRepository)
-    credentials = new KubernetesV1Credentials(apiMock, NAMESPACES, [], [], accountCredentialsRepositoryMock)
+    credentials = new KubernetesV1Credentials(apiMock, NAMESPACES, [], [], accountCredentialsRepositoryMock, new KubernetesSpinnakerKindMap(Collections.emptyList()))
     namedAccountCredentials = Mock(KubernetesNamedAccountCredentials) {
       getCredentials() >> credentials
     }

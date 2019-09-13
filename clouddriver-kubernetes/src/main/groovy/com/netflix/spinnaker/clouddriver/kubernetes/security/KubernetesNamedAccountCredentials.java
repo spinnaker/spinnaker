@@ -18,31 +18,18 @@ package com.netflix.spinnaker.clouddriver.kubernetes.security;
 
 import static lombok.EqualsAndHashCode.Include;
 
-import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
-import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
-import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.AccountResourcePropertyRegistry;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKindRegistry;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
-import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
+import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties.ManagedAccount;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
-import com.netflix.spinnaker.kork.configserver.ConfigFileService;
 import java.util.*;
+import javax.annotation.ParametersAreNonnullByDefault;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Component;
 
 @Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ParametersAreNonnullByDefault
 public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials>
     implements AccountCredentials<C> {
   private final String cloudProvider = "kubernetes";
@@ -67,12 +54,8 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials>
 
   @Include private final Long cacheIntervalSeconds;
 
-  private final KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap;
-
   public KubernetesNamedAccountCredentials(
-      KubernetesConfigurationProperties.ManagedAccount managedAccount,
-      KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap,
-      CredentialFactory factory) {
+      ManagedAccount managedAccount, KubernetesCredentialFactory<C> credentialFactory) {
     this.name = managedAccount.getName();
     this.providerVersion = managedAccount.getProviderVersion();
     this.environment =
@@ -84,7 +67,6 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials>
             .orElse(managedAccount.getProviderVersion().toString());
     this.cacheThreads = managedAccount.getCacheThreads();
     this.cacheIntervalSeconds = managedAccount.getCacheIntervalSeconds();
-    this.kubernetesSpinnakerKindMap = kubernetesSpinnakerKindMap;
 
     Permissions permissions = managedAccount.getPermissions().build();
     if (permissions.isRestricted()) {
@@ -95,18 +77,7 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials>
       this.requiredGroupMembership =
           Collections.unmodifiableList(managedAccount.getRequiredGroupMembership());
     }
-
-    switch (managedAccount.getProviderVersion()) {
-      case v1:
-        this.credentials = (C) factory.buildV1Credentials(managedAccount);
-        break;
-      case v2:
-        this.credentials = (C) factory.buildV2Credentials(managedAccount);
-        break;
-      default:
-        throw new IllegalArgumentException(
-            "Unknown provider type: " + managedAccount.getProviderVersion());
-    }
+    this.credentials = credentialFactory.build(managedAccount);
   }
 
   public List<String> getNamespaces() {
@@ -114,101 +85,6 @@ public class KubernetesNamedAccountCredentials<C extends KubernetesCredentials>
   }
 
   public Map<String, String> getSpinnakerKindMap() {
-    if (kubernetesSpinnakerKindMap == null) {
-      return Collections.emptyMap();
-    }
-    Map<String, String> kindMap =
-        new HashMap<>(kubernetesSpinnakerKindMap.kubernetesToSpinnakerKindStringMap());
-    C creds = getCredentials();
-    if (creds instanceof KubernetesV2Credentials) {
-      ((KubernetesV2Credentials) creds)
-          .getCustomResources()
-          .forEach(
-              customResource ->
-                  kindMap.put(
-                      customResource.getKubernetesKind(), customResource.getSpinnakerKind()));
-    }
-    return kindMap;
-  }
-
-  @Component
-  @RequiredArgsConstructor
-  public static class CredentialFactory {
-    private final String userAgent;
-    private final Registry spectatorRegistry;
-    private final NamerRegistry namerRegistry;
-    private final AccountCredentialsRepository accountCredentialsRepository;
-    private final KubectlJobExecutor jobExecutor;
-    private final ConfigFileService configFileService;
-    private final AccountResourcePropertyRegistry.Factory resourcePropertyRegistryFactory;
-    private final KubernetesKindRegistry.Factory kindRegistryFactory;
-
-    KubernetesV1Credentials buildV1Credentials(
-        KubernetesConfigurationProperties.ManagedAccount managedAccount) {
-      validateAccount(managedAccount);
-      return new KubernetesV1Credentials(
-          managedAccount.getName(),
-          getKubeconfigFile(managedAccount),
-          managedAccount.getContext(),
-          managedAccount.getCluster(),
-          managedAccount.getUser(),
-          userAgent,
-          managedAccount.isServiceAccount(),
-          managedAccount.isConfigureImagePullSecrets(),
-          managedAccount.getNamespaces(),
-          managedAccount.getOmitNamespaces(),
-          managedAccount.getDockerRegistries(),
-          spectatorRegistry,
-          accountCredentialsRepository);
-    }
-
-    KubernetesV2Credentials buildV2Credentials(
-        KubernetesConfigurationProperties.ManagedAccount managedAccount) {
-      validateAccount(managedAccount);
-      NamerRegistry.lookup()
-          .withProvider(KubernetesCloudProvider.ID)
-          .withAccount(managedAccount.getName())
-          .setNamer(
-              KubernetesManifest.class,
-              namerRegistry.getNamingStrategy(managedAccount.getNamingStrategy()));
-      return new KubernetesV2Credentials(
-          spectatorRegistry,
-          jobExecutor,
-          managedAccount,
-          resourcePropertyRegistryFactory,
-          kindRegistryFactory.create(),
-          getKubeconfigFile(managedAccount));
-    }
-
-    private void validateAccount(KubernetesConfigurationProperties.ManagedAccount managedAccount) {
-      if (StringUtils.isEmpty(managedAccount.getName())) {
-        throw new IllegalArgumentException("Account name for Kubernetes provider missing.");
-      }
-
-      if (!managedAccount.getOmitNamespaces().isEmpty()
-          && !managedAccount.getNamespaces().isEmpty()) {
-        throw new IllegalArgumentException(
-            "At most one of 'namespaces' and 'omitNamespaces' can be specified");
-      }
-
-      if (!managedAccount.getOmitKinds().isEmpty() && !managedAccount.getKinds().isEmpty()) {
-        throw new IllegalArgumentException(
-            "At most one of 'kinds' and 'omitKinds' can be specified");
-      }
-    }
-
-    private String getKubeconfigFile(
-        KubernetesConfigurationProperties.ManagedAccount managedAccount) {
-      if (StringUtils.isNotEmpty(managedAccount.getKubeconfigFile())) {
-        return configFileService.getLocalPath(managedAccount.getKubeconfigFile());
-      }
-
-      if (StringUtils.isNotEmpty(managedAccount.getKubeconfigContents())) {
-        return configFileService.getLocalPathForContents(
-            managedAccount.getKubeconfigContents(), managedAccount.getName());
-      }
-
-      return System.getProperty("user.home") + "/.kube/config";
-    }
+    return credentials.getSpinnakerKindMap();
   }
 }

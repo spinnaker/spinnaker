@@ -19,17 +19,18 @@ import com.netflix.spinnaker.cats.module.CatsModule;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.health.KubernetesHealthIndicator;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.KubernetesUtil;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.KubernetesV1Provider;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.KubernetesV1ProviderSynchronizable;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.agent.KubernetesV1CachingAgentDispatcher;
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.KubernetesV2Provider;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.KubernetesV2ProviderSynchronizable;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgentDispatcher;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.GlobalKubernetesKindRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKindProperties;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import java.util.Collections;
@@ -88,7 +89,7 @@ public class KubernetesConfiguration {
       AccountCredentialsRepository accountCredentialsRepository,
       KubernetesV2CachingAgentDispatcher kubernetesV2CachingAgentDispatcher,
       KubernetesConfigurationProperties kubernetesConfigurationProperties,
-      KubernetesNamedAccountCredentials.CredentialFactory credentialFactory,
+      KubernetesV2Credentials.Factory credentialFactory,
       KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap,
       CatsModule catsModule) {
     return new KubernetesV2ProviderSynchronizable(
@@ -107,7 +108,7 @@ public class KubernetesConfiguration {
       AccountCredentialsRepository accountCredentialsRepository,
       KubernetesV1CachingAgentDispatcher kubernetesV1CachingAgentDispatcher,
       KubernetesConfigurationProperties kubernetesConfigurationProperties,
-      KubernetesNamedAccountCredentials.CredentialFactory credentialFactory,
+      KubernetesV1Credentials.Factory credentialFactory,
       KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap,
       CatsModule catsModule) {
     return new KubernetesV1ProviderSynchronizable(

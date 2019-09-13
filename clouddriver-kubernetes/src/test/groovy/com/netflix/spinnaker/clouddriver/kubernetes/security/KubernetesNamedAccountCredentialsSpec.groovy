@@ -24,8 +24,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpi
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKindRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.names.KubernetesManifestNamer
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion
 import com.netflix.spinnaker.fiat.model.Authorization
 import com.netflix.spinnaker.kork.configserver.ConfigFileService
@@ -34,22 +34,20 @@ import spock.lang.Specification
 import java.nio.file.Files
 
 class KubernetesNamedAccountCredentialsSpec extends Specification {
-
-  KubernetesSpinnakerKindMap kindMap = new KubernetesSpinnakerKindMap([])
-  AccountCredentialsRepository accountCredentialsRepository = Mock(AccountCredentialsRepository)
+  KubernetesSpinnakerKindMap kindMap = new KubernetesSpinnakerKindMap(Collections.emptyList())
   NamerRegistry namerRegistry = new NamerRegistry([new KubernetesManifestNamer()])
   ConfigFileService configFileService = new ConfigFileService()
   AccountResourcePropertyRegistry.Factory resourcePropertyRegistryFactory = Mock(AccountResourcePropertyRegistry.Factory)
   KubernetesKindRegistry.Factory kindRegistryFactory = Mock(KubernetesKindRegistry.Factory)
-  KubernetesNamedAccountCredentials.CredentialFactory credentialFactory = new KubernetesNamedAccountCredentials.CredentialFactory(
-    "userAgent",
+  KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap = new KubernetesSpinnakerKindMap(Collections.emptyList())
+  KubernetesV2Credentials.Factory credentialFactory = new KubernetesV2Credentials.Factory(
     new NoopRegistry(),
     namerRegistry,
-    accountCredentialsRepository,
     Mock(KubectlJobExecutor),
     configFileService,
     resourcePropertyRegistryFactory,
-    kindRegistryFactory
+    kindRegistryFactory,
+    kubernetesSpinnakerKindMap
   )
 
 
@@ -77,8 +75,8 @@ class KubernetesNamedAccountCredentialsSpec extends Specification {
 
 
     when:
-      def account1 = new KubernetesNamedAccountCredentials(account1Def, kindMap, credentialFactory)
-      def account2 = new KubernetesNamedAccountCredentials(account2Def, kindMap, credentialFactory)
+      def account1 = new KubernetesNamedAccountCredentials(account1Def, credentialFactory)
+      def account2 = new KubernetesNamedAccountCredentials(account2Def, credentialFactory)
 
     then:
       account1.equals(account2)

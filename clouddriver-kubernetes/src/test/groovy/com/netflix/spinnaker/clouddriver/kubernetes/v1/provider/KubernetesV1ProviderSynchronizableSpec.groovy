@@ -41,18 +41,14 @@ class KubernetesV1ProviderSynchronizableSpec extends Specification {
   KubernetesV1Provider v1Provider = Mock(KubernetesV1Provider)
   AccountCredentialsRepository accountCredentialsRepository = Mock(AccountCredentialsRepository)
   KubernetesV1CachingAgentDispatcher agentDispatcher = Mock(KubernetesV1CachingAgentDispatcher)
-  NamerRegistry namerRegistry = Mock(NamerRegistry)
   ConfigFileService configFileService = new ConfigFileService()
 
-  KubernetesNamedAccountCredentials.CredentialFactory credentialFactory = new KubernetesNamedAccountCredentials.CredentialFactory(
+  KubernetesV1Credentials.Factory credentialFactory = new KubernetesV1Credentials.Factory(
     "userAgent",
     new NoopRegistry(),
-    namerRegistry,
     accountCredentialsRepository,
-    Mock(KubectlJobExecutor),
     configFileService,
-    null,
-    null
+    new KubernetesSpinnakerKindMap(Collections.emptyList())
   )
 
   def synchronizeAccounts(KubernetesConfigurationProperties configurationProperties) {
@@ -62,7 +58,7 @@ class KubernetesV1ProviderSynchronizableSpec extends Specification {
       agentDispatcher,
       configurationProperties,
       credentialFactory,
-      new KubernetesSpinnakerKindMap([]),
+      new KubernetesSpinnakerKindMap(Collections.emptyList()),
       catsModule
     )
 

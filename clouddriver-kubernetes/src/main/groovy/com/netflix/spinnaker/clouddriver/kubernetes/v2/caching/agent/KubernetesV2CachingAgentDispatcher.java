@@ -39,7 +39,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
-public class KubernetesV2CachingAgentDispatcher implements KubernetesCachingAgentDispatcher {
+public class KubernetesV2CachingAgentDispatcher
+    implements KubernetesCachingAgentDispatcher<KubernetesV2Credentials> {
   private final ObjectMapper objectMapper;
   private final Registry registry;
 
@@ -50,10 +51,10 @@ public class KubernetesV2CachingAgentDispatcher implements KubernetesCachingAgen
   }
 
   @Override
-  public Collection<KubernetesCachingAgent> buildAllCachingAgents(
-      KubernetesNamedAccountCredentials credentials) {
-    KubernetesV2Credentials v2Credentials = (KubernetesV2Credentials) credentials.getCredentials();
-    List<KubernetesCachingAgent> result = new ArrayList<>();
+  public Collection<KubernetesCachingAgent<KubernetesV2Credentials>> buildAllCachingAgents(
+      KubernetesNamedAccountCredentials<KubernetesV2Credentials> credentials) {
+    KubernetesV2Credentials v2Credentials = credentials.getCredentials();
+    List<KubernetesCachingAgent<KubernetesV2Credentials>> result = new ArrayList<>();
     Long agentInterval =
         Optional.ofNullable(credentials.getCacheIntervalSeconds())
             .map(TimeUnit.SECONDS::toMillis)
@@ -77,7 +78,7 @@ public class KubernetesV2CachingAgentDispatcher implements KubernetesCachingAgen
                                 credentials.getCacheThreads(),
                                 agentInterval))
                     .filter(Objects::nonNull)
-                    .forEach(c -> result.add((KubernetesCachingAgent) c)));
+                    .forEach(result::add));
 
     IntStream.range(0, credentials.getCacheThreads())
         .forEach(

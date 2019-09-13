@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.api.KubernetesApiAdaptor
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -48,7 +49,7 @@ class KubernetesLoadBalancerCachingAgentSpec extends Specification {
 
     def accountCredentialsRepositoryMock = Mock(AccountCredentialsRepository)
 
-    kubernetesCredentials = new KubernetesV1Credentials(apiMock, [], [], [], accountCredentialsRepositoryMock)
+    kubernetesCredentials = new KubernetesV1Credentials(apiMock, [], [], [], accountCredentialsRepositoryMock, new KubernetesSpinnakerKindMap(Collections.emptyList()))
 
     def namedCrededentialsMock = Mock(KubernetesNamedAccountCredentials)
     namedCrededentialsMock.getCredentials() >> kubernetesCredentials

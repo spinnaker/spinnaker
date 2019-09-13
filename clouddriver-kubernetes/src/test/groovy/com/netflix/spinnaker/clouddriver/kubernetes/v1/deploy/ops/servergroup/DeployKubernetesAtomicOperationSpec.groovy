@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.server
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.exception.KubernetesResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.api.model.apps.ReplicaSet
@@ -132,7 +133,7 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
 
     dockerRegistry = Mock(LinkedDockerRegistryConfiguration)
     dockerRegistries = [dockerRegistry]
-    credentials = new KubernetesV1Credentials(apiMock, [NAMESPACE], [], DOCKER_REGISTRY_ACCOUNTS, accountCredentialsRepositoryMock,)
+    credentials = new KubernetesV1Credentials(apiMock, [NAMESPACE], [], DOCKER_REGISTRY_ACCOUNTS, accountCredentialsRepositoryMock, new KubernetesSpinnakerKindMap(Collections.emptyList()))
     namedAccountCredentials = Mock(KubernetesNamedAccountCredentials) {
       getCredentials() >> credentials
     }

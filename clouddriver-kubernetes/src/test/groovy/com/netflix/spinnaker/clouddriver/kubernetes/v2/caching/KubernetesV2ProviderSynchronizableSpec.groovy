@@ -32,28 +32,29 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion
 import com.netflix.spinnaker.kork.configserver.ConfigFileService
+import groovy.transform.CompileStatic
 import spock.lang.Specification
 
 class KubernetesV2ProviderSynchronizableSpec extends Specification {
 
   CatsModule catsModule = Mock(CatsModule)
   AccountCredentialsRepository accountCredentialsRepository = Mock(AccountCredentialsRepository)
-  NamerRegistry namerRegistry = Mock(NamerRegistry)
+  NamerRegistry namerRegistry = new NamerRegistry([new KubernetesManifestNamer()])
   ConfigFileService configFileService = Mock(ConfigFileService)
   KubernetesV2Provider kubernetesV2Provider = new KubernetesV2Provider()
   KubernetesV2CachingAgentDispatcher agentDispatcher = Mock(KubernetesV2CachingAgentDispatcher)
   AccountResourcePropertyRegistry.Factory resourcePropertyRegistryFactory = Mock(AccountResourcePropertyRegistry.Factory)
   KubernetesKindRegistry.Factory kindRegistryFactory = Mock(KubernetesKindRegistry.Factory)
+  KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap = new KubernetesSpinnakerKindMap(Collections.emptyList())
 
-  KubernetesNamedAccountCredentials.CredentialFactory credentialFactory = new KubernetesNamedAccountCredentials.CredentialFactory(
-    "userAgent",
+  KubernetesV2Credentials.Factory credentialFactory = new KubernetesV2Credentials.Factory(
     new NoopRegistry(),
     namerRegistry,
-    accountCredentialsRepository,
     Mock(KubectlJobExecutor),
     configFileService,
     resourcePropertyRegistryFactory,
-    kindRegistryFactory
+    kindRegistryFactory,
+    kubernetesSpinnakerKindMap
   )
 
   def synchronizeAccounts(KubernetesConfigurationProperties configurationProperties) {
@@ -63,7 +64,7 @@ class KubernetesV2ProviderSynchronizableSpec extends Specification {
       agentDispatcher,
       configurationProperties,
       credentialFactory,
-      new KubernetesSpinnakerKindMap([]),
+      new KubernetesSpinnakerKindMap(Collections.emptyList()),
       catsModule
     )
 
@@ -101,7 +102,6 @@ class KubernetesV2ProviderSynchronizableSpec extends Specification {
     1 * accountCredentialsRepository.save("test-account", _ as KubernetesNamedAccountCredentials) >> { _, creds ->
       credentials = creds
     }
-    1 * namerRegistry.getNamingStrategy("kubernetesAnnotations") >> Mock(KubernetesManifestNamer)
 
     credentials.getName() == "test-account"
     credentials.getProviderVersion() == ProviderVersion.v2

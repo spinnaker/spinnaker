@@ -18,7 +18,10 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.security;
 
 import java.util.List;
+import java.util.Map;
 
 public interface KubernetesCredentials {
   List<String> getDeclaredNamespaces();
+
+  Map<String, String> getSpinnakerKindMap();
 }

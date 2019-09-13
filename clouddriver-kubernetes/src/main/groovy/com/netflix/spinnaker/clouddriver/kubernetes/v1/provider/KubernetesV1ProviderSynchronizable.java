@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.caching.KubernetesCachingAge
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.agent.KubernetesV1CachingAgentDispatcher;
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
@@ -44,7 +45,7 @@ public class KubernetesV1ProviderSynchronizable implements CredentialsInitialize
   private AccountCredentialsRepository accountCredentialsRepository;
   private KubernetesV1CachingAgentDispatcher kubernetesV1CachingAgentDispatcher;
   private KubernetesConfigurationProperties kubernetesConfigurationProperties;
-  private KubernetesNamedAccountCredentials.CredentialFactory credentialFactory;
+  private KubernetesV1Credentials.Factory credentialFactory;
   private KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap;
   private CatsModule catsModule;
 
@@ -53,7 +54,7 @@ public class KubernetesV1ProviderSynchronizable implements CredentialsInitialize
       AccountCredentialsRepository accountCredentialsRepository,
       KubernetesV1CachingAgentDispatcher kubernetesV1CachingAgentDispatcher,
       KubernetesConfigurationProperties kubernetesConfigurationProperties,
-      KubernetesNamedAccountCredentials.CredentialFactory credentialFactory,
+      KubernetesV1Credentials.Factory credentialFactory,
       KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap,
       CatsModule catsModule) {
     this.kubernetesV1Provider = kubernetesV1Provider;
@@ -98,15 +99,14 @@ public class KubernetesV1ProviderSynchronizable implements CredentialsInitialize
     List<String> changedAccounts = new ArrayList<>();
     Set<String> newAndChangedAccounts = new HashSet<>();
 
-    deletedAccounts.stream().forEach(accountCredentialsRepository::delete);
+    deletedAccounts.forEach(accountCredentialsRepository::delete);
 
     kubernetesConfigurationProperties.getAccounts().stream()
         .filter(a -> ProviderVersion.v1.equals(a.getProviderVersion()))
         .forEach(
             managedAccount -> {
               KubernetesNamedAccountCredentials credentials =
-                  new KubernetesNamedAccountCredentials(
-                      managedAccount, kubernetesSpinnakerKindMap, credentialFactory);
+                  new KubernetesNamedAccountCredentials<>(managedAccount, credentialFactory);
 
               AccountCredentials existingCredentials =
                   accountCredentialsRepository.getOne(managedAccount.getName());
