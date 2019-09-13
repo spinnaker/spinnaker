@@ -23,6 +23,7 @@ import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.ClusterActiveServerGroup
+import com.netflix.spinnaker.keel.clouddriver.model.RequiredTagMissing
 import com.netflix.spinnaker.keel.clouddriver.model.Tag
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
@@ -32,6 +33,7 @@ import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.orca.OrcaService
+import com.netflix.spinnaker.keel.plugin.CannotResolveCurrentState
 import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
 import com.netflix.spinnaker.keel.plugin.ResourceConflict
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
@@ -82,7 +84,7 @@ class ClusterHandler(
     }
 
   override suspend fun current(resource: Resource<ClusterSpec>): Cluster? =
-    cloudDriverService.getCluster(resource.spec, resource.serviceAccount)
+    cloudDriverService.getCluster(resource)
 
   override suspend fun upsert(
     resource: Resource<ClusterSpec>,
@@ -247,19 +249,19 @@ class ClusterHandler(
       }
     }
 
-  private suspend fun CloudDriverService.getCluster(spec: ClusterSpec, serviceAccount: String): Cluster? {
+  private suspend fun CloudDriverService.getCluster(resource: Resource<ClusterSpec>): Cluster? {
     try {
       return activeServerGroup(
-        serviceAccount,
-        spec.moniker.app,
-        spec.location.accountName,
-        spec.moniker.name,
-        spec.location.region,
+        resource.serviceAccount,
+        resource.spec.moniker.app,
+        resource.spec.location.accountName,
+        resource.spec.moniker.name,
+        resource.spec.location.region,
         CLOUD_PROVIDER
       )
         .run {
           publisher.publishEvent(ArtifactAlreadyDeployedEvent(
-            resourceId = "ec2:cluster:${spec.id}",
+            resourceId = resource.id.value,
             imageId = launchConfig.imageId
           ))
 
@@ -274,7 +276,7 @@ class ClusterHandler(
             launchConfiguration = launchConfig.run {
               LaunchConfiguration(
                 imageId = imageId,
-                appVersion = "",
+                appVersion = image.appVersion,
                 instanceType = instanceType,
                 ebsOptimized = ebsOptimized,
                 iamRole = iamInstanceProfile,
@@ -306,7 +308,9 @@ class ClusterHandler(
       if (e.isNotFound) {
         return null
       }
-      throw e
+      throw CannotResolveCurrentState(resource.id, e)
+    } catch (e: RequiredTagMissing) {
+      throw CannotResolveCurrentState(resource.id, e)
     }
   }
 

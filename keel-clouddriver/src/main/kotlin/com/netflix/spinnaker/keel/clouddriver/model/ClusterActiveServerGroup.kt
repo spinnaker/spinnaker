@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.clouddriver.model
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.netflix.spinnaker.keel.model.Moniker
+import java.lang.RuntimeException
 
 data class ClusterActiveServerGroup(
   val name: String,
@@ -30,14 +31,17 @@ data class ClusterImage(
     tags: List<Map<String, Any?>>
   ) : this(
     imageId,
-    tags.first {
-      it["key"] == "appversion"
-    }
-      ["value"]
-      .toString()
-      .substringBefore("/")
+    appVersion = tags
+      .firstOrNull { it["key"] == "appversion" }
+      ?.get("value")
+      ?.toString()
+      ?.substringBefore("/")
+      ?: throw RequiredTagMissing("appversion", imageId)
   )
 }
+
+class RequiredTagMissing(tagName: String, imageId: String) :
+  RuntimeException("Required tag \"$tagName\" was not found on AMI $imageId")
 
 data class LaunchConfig(
   val ramdiskId: String?,
