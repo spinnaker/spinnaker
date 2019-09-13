@@ -27,7 +27,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.server
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description.servergroup.KubernetesResourceDescription
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import io.fabric8.kubernetes.api.model.*
 import spock.lang.Specification
@@ -113,7 +112,7 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
     accountCredentialsRepositoryMock = Mock(AccountCredentialsRepository)
     dockerRegistry = Mock(LinkedDockerRegistryConfiguration)
     dockerRegistries = [dockerRegistry]
-    credentials = new KubernetesV1Credentials(apiMock, [], [], [], accountCredentialsRepositoryMock, new KubernetesSpinnakerKindMap(Collections.emptyList()))
+    credentials = new KubernetesV1Credentials(apiMock, [], [], [], accountCredentialsRepositoryMock)
     namedAccountCredentials = Mock(KubernetesNamedAccountCredentials) {
       getCredentials() >> credentials
     }

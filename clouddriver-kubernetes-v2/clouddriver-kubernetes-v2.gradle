@@ -1,0 +1,33 @@
+tasks.compileGroovy.enabled = false
+sourceSets.main.java.srcDirs = ['src/main/java']
+
+dependencies {
+  implementation project(":clouddriver-kubernetes")
+  implementation project(":clouddriver-artifacts")
+  implementation project(":clouddriver-core")
+  implementation project(":cats:cats-core")
+  implementation project(":clouddriver-security")
+
+  compileOnly "org.projectlombok:lombok"
+  annotationProcessor "org.projectlombok:lombok"
+  testAnnotationProcessor "org.projectlombok:lombok"
+
+  implementation "org.codehaus.groovy:groovy-all"
+
+  implementation "com.netflix.frigga:frigga"
+  implementation "com.netflix.spinnaker.kork:kork-artifacts"
+  implementation "com.netflix.spinnaker.kork:kork-config"
+  implementation "com.netflix.spinnaker.moniker:moniker"
+  implementation "io.kubernetes:client-java:5.0.0"
+  implementation "org.springframework.boot:spring-boot-actuator"
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation 'com.jayway.jsonpath:json-path:2.3.0'
+  implementation "com.github.ben-manes.caffeine:guava"
+
+  testImplementation "cglib:cglib-nodep"
+  testImplementation "org.objenesis:objenesis"
+  testImplementation "org.spockframework:spock-core"
+  testImplementation "org.spockframework:spock-spring"
+  testImplementation "org.springframework:spring-test"
+  testImplementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
+}

@@ -25,7 +25,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurati
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.agent.KubernetesV1CachingAgentDispatcher;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.security.CredentialsInitializerSynchronizable;
@@ -46,7 +45,6 @@ public class KubernetesV1ProviderSynchronizable implements CredentialsInitialize
   private KubernetesV1CachingAgentDispatcher kubernetesV1CachingAgentDispatcher;
   private KubernetesConfigurationProperties kubernetesConfigurationProperties;
   private KubernetesV1Credentials.Factory credentialFactory;
-  private KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap;
   private CatsModule catsModule;
 
   public KubernetesV1ProviderSynchronizable(
@@ -55,14 +53,12 @@ public class KubernetesV1ProviderSynchronizable implements CredentialsInitialize
       KubernetesV1CachingAgentDispatcher kubernetesV1CachingAgentDispatcher,
       KubernetesConfigurationProperties kubernetesConfigurationProperties,
       KubernetesV1Credentials.Factory credentialFactory,
-      KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap,
       CatsModule catsModule) {
     this.kubernetesV1Provider = kubernetesV1Provider;
     this.accountCredentialsRepository = accountCredentialsRepository;
     this.kubernetesV1CachingAgentDispatcher = kubernetesV1CachingAgentDispatcher;
     this.kubernetesConfigurationProperties = kubernetesConfigurationProperties;
     this.credentialFactory = credentialFactory;
-    this.kubernetesSpinnakerKindMap = kubernetesSpinnakerKindMap;
     this.catsModule = catsModule;
 
     ScheduledExecutorService poller =
