@@ -237,8 +237,8 @@ internal class ResourceTaggerTests : JUnit5Minutests {
       test("we tag security groups") {
         onCreateEvent(ResourceCreated(
           apiVersion = SPINNAKER_API_V1.subApi("ec2"),
-          kind = "securityGroup",
-          id = "ec2:securityGroup:test:us-west-2:keel-managed",
+          kind = "security-group",
+          id = "ec2:security-group:test:us-west-2:keel-managed",
           application = "keel",
           timestamp = clock.instant()
         ))
