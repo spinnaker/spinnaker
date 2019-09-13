@@ -22,7 +22,6 @@ import com.netflix.spinnaker.keel.clouddriver.model.ClusterImage
 import com.netflix.spinnaker.keel.clouddriver.model.InstanceMonitoring
 import com.netflix.spinnaker.keel.clouddriver.model.LaunchConfig
 import com.netflix.spinnaker.keel.clouddriver.model.Network
-import com.netflix.spinnaker.keel.clouddriver.model.RequiredTagMissing
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.ServerGroupCapacity
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
@@ -34,7 +33,6 @@ import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
-import com.netflix.spinnaker.keel.plugin.CannotResolveCurrentState
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
@@ -47,12 +45,8 @@ import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.runBlocking
 import org.springframework.context.ApplicationEventPublisher
-import strikt.api.expectCatching
 import strikt.api.expectThat
-import strikt.assertions.cause
-import strikt.assertions.failed
 import strikt.assertions.get
-import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
@@ -205,25 +199,6 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         expectThat(slot.captured.job.first()) {
           get("type").isEqualTo("createServerGroup")
         }
-      }
-    }
-
-    context("the currently deployed image is missing its appversion tag") {
-      before {
-        coEvery { cloudDriverService.activeServerGroup() } throws RequiredTagMissing(
-          "appversion",
-          activeServerGroupResponse.image.imageId
-        )
-      }
-
-      test("resolving the current model results in an exception") {
-        expectCatching {
-          current(resource)
-        }
-          .failed()
-          .isA<CannotResolveCurrentState>()
-          .cause
-          .isA<RequiredTagMissing>()
       }
     }
 

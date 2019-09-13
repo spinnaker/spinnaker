@@ -281,7 +281,7 @@ data class ResourceCheckError(
   override val id: String,
   override val application: String,
   override val timestamp: Instant,
-  val exceptionType: Class<Throwable>,
+  val exceptionType: Class<out Throwable>,
   val exceptionMessage: String?
 ) : ResourceCheckResult() {
   @JsonIgnore

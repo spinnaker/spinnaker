@@ -6,6 +6,7 @@ import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceCheckError
+import com.netflix.spinnaker.keel.events.ResourceCheckResult
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
 import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
@@ -13,6 +14,8 @@ import com.netflix.spinnaker.keel.events.ResourceMissing
 import com.netflix.spinnaker.keel.events.ResourceValid
 import com.netflix.spinnaker.keel.events.Task
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
+import com.netflix.spinnaker.keel.plugin.CannotResolveCurrentState
+import com.netflix.spinnaker.keel.plugin.CannotResolveDesiredState
 import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
 import com.netflix.spinnaker.keel.telemetry.ResourceCheckSkipped
 import com.netflix.spinnaker.keel.test.DummyResource
@@ -27,10 +30,14 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import io.mockk.verifySequence
 import kotlinx.coroutines.runBlocking
 import org.springframework.context.ApplicationEventPublisher
+import strikt.api.expectThat
+import strikt.assertions.isA
+import strikt.assertions.isEqualTo
 import java.time.Clock
 
 internal class ResourceActuatorTests : JUnit5Minutests {
@@ -223,7 +230,33 @@ internal class ResourceActuatorTests : JUnit5Minutests {
             }
           }
 
-          context("plugin throws an exception on resource resolution") {
+          context("plugin throws an exception in current state resolution") {
+            before {
+              coEvery { plugin1.desired(resource) } returns DummyResource(resource.spec)
+              coEvery { plugin1.current(resource) } throws RuntimeException("o noes")
+
+              with(resource) {
+                runBlocking {
+                  subject.checkResource(id, apiVersion, kind)
+                }
+              }
+            }
+
+            test("the resource is not updated") {
+              coVerify(exactly = 0) { plugin1.update(any(), any()) }
+            }
+
+            test("a telemetry event is published with the wrapped exception") {
+              val event = slot<ResourceCheckResult>()
+              verify { publisher.publishEvent(capture(event)) }
+              expectThat(event.captured)
+                .isA<ResourceCheckError>()
+                .get { exceptionType }
+                .isEqualTo(CannotResolveCurrentState::class.java)
+            }
+          }
+
+          context("plugin throws an exception in desired state resolution") {
             before {
               coEvery { plugin1.desired(resource) } throws RuntimeException("o noes")
               coEvery { plugin1.current(resource) } returns null
@@ -239,8 +272,13 @@ internal class ResourceActuatorTests : JUnit5Minutests {
               coVerify(exactly = 0) { plugin1.update(any(), any()) }
             }
 
-            test("a telemetry event is published") {
-              verify { publisher.publishEvent(ofType<ResourceCheckError>()) }
+            test("a telemetry event is published with the wrapped exception") {
+              val event = slot<ResourceCheckResult>()
+              verify { publisher.publishEvent(capture(event)) }
+              expectThat(event.captured)
+                .isA<ResourceCheckError>()
+                .get { exceptionType }
+                .isEqualTo(CannotResolveDesiredState::class.java)
             }
           }
 

@@ -14,6 +14,8 @@ import com.netflix.spinnaker.keel.events.ResourceMissing
 import com.netflix.spinnaker.keel.events.ResourceValid
 import com.netflix.spinnaker.keel.events.Task
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
+import com.netflix.spinnaker.keel.plugin.CannotResolveCurrentState
+import com.netflix.spinnaker.keel.plugin.CannotResolveDesiredState
 import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
 import com.netflix.spinnaker.keel.plugin.supporting
 import com.netflix.spinnaker.keel.telemetry.ResourceCheckSkipped
@@ -98,8 +100,20 @@ class ResourceActuator(
 
   private suspend fun ResolvableResourceHandler<*, *>.resolve(resource: Resource<out ResourceSpec>): Pair<Any, Any?> =
     coroutineScope {
-      val desired = async { desired(resource) }
-      val current = async { current(resource) }
+      val desired = async {
+        try {
+          desired(resource)
+        } catch (e: Throwable) {
+          throw CannotResolveDesiredState(resource.id, e)
+        }
+      }
+      val current = async {
+        try {
+          current(resource)
+        } catch (e: Throwable) {
+          throw CannotResolveCurrentState(resource.id, e)
+        }
+      }
       desired.await() to current.await()
     }
 

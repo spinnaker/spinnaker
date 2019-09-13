@@ -23,7 +23,6 @@ import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.ClusterActiveServerGroup
-import com.netflix.spinnaker.keel.clouddriver.model.RequiredTagMissing
 import com.netflix.spinnaker.keel.clouddriver.model.Tag
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
@@ -33,7 +32,6 @@ import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.orca.OrcaService
-import com.netflix.spinnaker.keel.plugin.CannotResolveCurrentState
 import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
 import com.netflix.spinnaker.keel.plugin.ResourceConflict
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
@@ -308,9 +306,7 @@ class ClusterHandler(
       if (e.isNotFound) {
         return null
       }
-      throw CannotResolveCurrentState(resource.id, e)
-    } catch (e: RequiredTagMissing) {
-      throw CannotResolveCurrentState(resource.id, e)
+      throw e
     }
   }
 
