@@ -489,6 +489,140 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
     1 * regionForwardingRuleOperationGet.execute() >> forwardingRuleInsertOp
   }
 
+  void "should create a network load balancer with the no session affinity if session affinity values was not provided"() {
+    setup:
+    def computeMock = Mock(Compute)
+    def regionOperations = Mock(Compute.RegionOperations)
+    def regionTargetPoolOperationGet = Mock(Compute.RegionOperations.Get)
+    def targetPools = Mock(Compute.TargetPools)
+    def targetPoolsInsert = Mock(Compute.TargetPools.Insert)
+    def targetPoolsInsertOp = new Operation(
+      targetLink: "target-pool",
+      name: TARGET_POOL_OP_NAME,
+      status: DONE)
+    def regions = Mock(Compute.Regions)
+    def regionsList = Mock(Compute.Regions.List)
+    def regionsListReal = new RegionList(
+      items: [new Region(name: REGION_US), new Region(name: REGION_ASIA), new Region(name: REGION_EUROPE)])
+    def forwardingRules = Mock(Compute.ForwardingRules)
+    def forwardingRulesInsert = Mock(Compute.ForwardingRules.Insert)
+    def regionForwardingRuleOperationGet = Mock(Compute.RegionOperations.Get)
+    def forwardingRuleInsertOp = new Operation(
+      targetLink: "forwarding-rule",
+      name: LOAD_BALANCER_NAME,
+      status: DONE)
+    def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
+    def description = new UpsertGoogleLoadBalancerDescription(
+      loadBalancerName: LOAD_BALANCER_NAME,
+      region: REGION_US,
+      accountName: ACCOUNT_NAME,
+      credentials: credentials
+    )
+    @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
+    operation.registry = registry
+    operation.safeRetry = safeRetry
+    operation.googleOperationPoller =
+      new GoogleOperationPoller(
+        googleConfigurationProperties: new GoogleConfigurationProperties(),
+        threadSleeper: threadSleeperMock,
+        registry: registry,
+        safeRetry: safeRetry
+      )
+
+    when:
+    operation.operate([])
+
+    then:
+    1 * computeMock.regions() >> regions
+    1 * regions.list(PROJECT_NAME) >> regionsList
+    1 * regionsList.execute() >> regionsListReal
+    3 * computeMock.forwardingRules() >> forwardingRules
+    1 * forwardingRules.get(PROJECT_NAME, REGION_US, LOAD_BALANCER_NAME) >>
+      { throw GoogleJsonResponseExceptionFactoryTesting.newMock(new MockJsonFactory(), 404, "not found") }
+    1 * forwardingRules.get(PROJECT_NAME, REGION_ASIA, LOAD_BALANCER_NAME) >>
+      { throw GoogleJsonResponseExceptionFactoryTesting.newMock(new MockJsonFactory(), 404, "not found") }
+    1 * forwardingRules.get(PROJECT_NAME, REGION_EUROPE, LOAD_BALANCER_NAME) >>
+      { throw GoogleJsonResponseExceptionFactoryTesting.newMock(new MockJsonFactory(), 404, "not found") }
+    0 * computeMock.httpHealthChecks()
+    1 * computeMock.targetPools() >> targetPools
+    1 * targetPools.insert(PROJECT_NAME, REGION_US, { it.getSessionAffinity() == null }) >> targetPoolsInsert
+    1 * targetPoolsInsert.execute() >> targetPoolsInsertOp
+    1 * computeMock.forwardingRules() >> forwardingRules
+    1 * forwardingRules.insert(PROJECT_NAME, REGION_US, {it.IPAddress == null && it.portRange == Constants.DEFAULT_PORT_RANGE}) >> forwardingRulesInsert
+    1 * forwardingRulesInsert.execute() >> forwardingRuleInsertOp
+
+    2 * computeMock.regionOperations() >> regionOperations
+    1 * regionOperations.get(PROJECT_NAME, REGION_US, TARGET_POOL_OP_NAME) >> regionTargetPoolOperationGet
+    1 * regionTargetPoolOperationGet.execute() >> targetPoolsInsertOp
+    1 * regionOperations.get(PROJECT_NAME, REGION_US, LOAD_BALANCER_NAME) >> regionForwardingRuleOperationGet
+    1 * regionForwardingRuleOperationGet.execute() >> forwardingRuleInsertOp
+  }
+
+  void "should throw an exception if changing session affinity for already existing target pool with instances"() {
+    setup:
+      def task = Mock(Task)
+      def computeMock = Mock(Compute)
+      def regions = Mock(Compute.Regions)
+      def regionsList = Mock(Compute.Regions.List)
+      def regionsListReal = new RegionList(
+        items: [new Region(name: REGION_US), new Region(name: REGION_ASIA), new Region(name: REGION_EUROPE)])
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def forwardingRuleReal = new ForwardingRule(
+        name: LOAD_BALANCER_NAME,
+        region: REGION_US,
+        target: TARGET_POOL_NAME,
+        IPProtocol: Constants.DEFAULT_IP_PROTOCOL,
+        portRange: Constants.DEFAULT_PORT_RANGE)
+      def targetPools = Mock(Compute.TargetPools)
+      def targetPoolsList = Mock(Compute.TargetPools.List)
+      def targetPoolsListReal = new TargetPoolList(items: [
+        new TargetPool(
+          name: TARGET_POOL_NAME,
+          sessionAffinity: GoogleSessionAffinity.NONE,
+          instances: ["instance1", "instance2", "instance3"]
+        )
+      ])
+      def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
+      def description = new UpsertGoogleLoadBalancerDescription(
+        loadBalancerName: LOAD_BALANCER_NAME,
+        region: REGION_US,
+        healthCheck: [:],
+        accountName: ACCOUNT_NAME,
+        sessionAffinity: GoogleSessionAffinity.CLIENT_IP,
+        credentials: credentials)
+      @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
+      operation.registry = registry
+      operation.safeRetry = safeRetry
+      operation.googleOperationPoller =
+        new GoogleOperationPoller(
+          googleConfigurationProperties: new GoogleConfigurationProperties(),
+          threadSleeper: threadSleeperMock,
+          registry: registry,
+          safeRetry: safeRetry
+        )
+
+    when:
+      operation.operate([])
+
+    then:
+      // Query existing forwarding rules.
+      1 * computeMock.regions() >> regions
+      1 * regions.list(PROJECT_NAME) >> regionsList
+      1 * regionsList.execute() >> regionsListReal
+      1 * computeMock.forwardingRules() >> forwardingRules
+      1 * forwardingRules.get(PROJECT_NAME, REGION_US, LOAD_BALANCER_NAME) >> forwardingRulesGet
+      1 * forwardingRulesGet.execute() >> forwardingRuleReal
+
+      // Query existing target pools.
+      1 * computeMock.targetPools() >> targetPools
+      1 * targetPools.list(PROJECT_NAME, REGION_US) >> targetPoolsList
+      1 * targetPoolsList.execute() >> targetPoolsListReal
+
+      //1 * task.fail()
+
+  }
+
   void "should neither create anything new, nor edit anything existing, if a forwarding rule with the same name already exists in the same region"() {
     setup:
       def computeMock = Mock(Compute)

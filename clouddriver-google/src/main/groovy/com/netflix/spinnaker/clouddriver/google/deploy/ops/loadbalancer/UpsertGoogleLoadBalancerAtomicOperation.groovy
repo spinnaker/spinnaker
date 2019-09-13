@@ -132,6 +132,19 @@ class UpsertGoogleLoadBalancerAtomicOperation extends GoogleAtomicOperation<Map>
         project, region, GCEUtil.getLocalName(existingForwardingRule.target), compute, task, BASE_PHASE, this)
 
       if (existingTargetPool) {
+        GoogleSessionAffinity newSessionAffinity
+        if (description.sessionAffinity == null) {
+          newSessionAffinity = GoogleSessionAffinity.NONE
+        } else {
+          newSessionAffinity = description.sessionAffinity
+        }
+        boolean sessionAffinityChanged = newSessionAffinity != GoogleSessionAffinity.valueOf(existingTargetPool.getSessionAffinity())
+        if (sessionAffinityChanged && existingTargetPool.instances.any()) {
+          task.updateStatus BASE_PHASE, "Impossible to change Session Affinity for target pool with existing instances."
+          task.fail()
+          return
+        }
+
         // Existing set of instances is only updated if the instances property is specified on description. We don't
         // want all instances removed from an existing target pool if the instances property is not specified on the
         // description.
@@ -187,19 +200,6 @@ class UpsertGoogleLoadBalancerAtomicOperation extends GoogleAtomicOperation<Map>
     def targetPoolName
     def targetPoolResourceOperation
     def targetPoolResourceLink
-
-    boolean sessionAffinityChanged
-    if (existingTargetPool == null) {
-      sessionAffinityChanged = description.sessionAffinity != GoogleSessionAffinity.NONE
-    }
-    else {
-      sessionAffinityChanged = description.sessionAffinity != GoogleSessionAffinity.valueOf(existingTargetPool.getSessionAffinity())
-    }
-
-    if (sessionAffinityChanged && existingTargetPool != null && existingTargetPool.instances.any()) {
-        task.updateStatus BASE_PHASE, "Impossible to change Session Affinity for target pool $targetPoolName with existing instances in $region"
-        task.fail()
-    }
 
     // There's a chance that the target pool doesn't in fact get updated. If needToUpdateTargetPool was set because
     // the description.instances property was specified, but the specified set matches the existing set of instances,
