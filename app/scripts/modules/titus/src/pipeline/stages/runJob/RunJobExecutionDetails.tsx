@@ -148,6 +148,12 @@ export class RunJobExecutionDetails extends React.Component<
               <div className="well alert alert-info">
                 <a target="_blank" href={`${titusUiEndpoint}jobs/${jobId}/tasks/${taskId}/logs`}>
                   View Execution Logs
+                </a><br/>
+                <a target="_blank" href={`${titusUiEndpoint}jobs/${jobId}/tasks/${taskId}/logs/archived?file=stdout&view=Finished&open=true`}>
+                  Stdout
+                </a><br/>
+                <a target="_blank" href={`${titusUiEndpoint}jobs/${jobId}/tasks/${taskId}/logs/archived?file=stderr&view=Finished&open=true`}>
+                  Stderr
                 </a>
               </div>
             </div>
