@@ -494,6 +494,31 @@ class TriggerSpec extends Specification {
 '''
   }
 
+  def "can parse an nexus trigger"() {
+    given:
+        def trigger = mapper.readValue(triggerJson, Trigger)
+
+    expect:
+        trigger instanceof NexusTrigger
+        with(trigger) {
+          nexusSearchName == "search-name"
+        }
+
+    where:
+        triggerJson = '''
+{
+  "account": "theaccount",
+  "enabled": true,
+  "job": "the-job",
+  "master": "master",
+  "organization": "org",
+  "nexusSearchName": "search-name",
+  "nexusRepository": "libs-demo-local",
+  "type": "nexus"
+}
+'''
+  }
+
   def pubSubTrigger = '''
 {
   "attributeConstraints": {

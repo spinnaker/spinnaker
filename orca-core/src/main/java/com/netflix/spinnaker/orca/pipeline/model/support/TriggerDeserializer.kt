@@ -27,6 +27,7 @@ import com.netflix.spinnaker.orca.pipeline.model.DockerTrigger
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.GitTrigger
 import com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger
+import com.netflix.spinnaker.orca.pipeline.model.NexusTrigger
 import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
 import com.netflix.spinnaker.orca.pipeline.model.Trigger
 
@@ -111,6 +112,18 @@ internal class TriggerDeserializer :
           get("strategy")?.booleanValue() == true,
           get("artifactorySearchName").textValue()
         )
+        looksLikeNexus() -> NexusTrigger(
+          get("type").textValue(),
+          get("correlationId")?.textValue(),
+          get("user")?.textValue() ?: "[anonymous]",
+          get("parameters")?.mapValue(parser) ?: mutableMapOf(),
+          get("artifacts")?.listValue(parser) ?: mutableListOf(),
+          get("notifications")?.listValue(parser) ?: mutableListOf(),
+          get("rebake")?.booleanValue() == true,
+          get("dryRun")?.booleanValue() == true,
+          get("strategy")?.booleanValue() == true,
+          get("nexusSearchName").textValue()
+        )
         looksLikeGit() -> GitTrigger(
           get("type").textValue(),
           get("correlationId")?.textValue(),
@@ -165,6 +178,9 @@ internal class TriggerDeserializer :
 
   private fun JsonNode.looksLikeArtifactory() =
     hasNonNull("artifactorySearchName")
+
+  private fun JsonNode.looksLikeNexus() =
+    hasNonNull("nexusSearchName")
 
   private fun JsonNode.looksLikeCustom() =
     customTriggerSuppliers.any { it.predicate.invoke(this) }

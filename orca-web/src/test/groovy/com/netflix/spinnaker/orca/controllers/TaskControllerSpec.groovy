@@ -378,6 +378,9 @@ class TaskControllerSpec extends Specification {
       ],
       [pipelineConfigId: "1", id: "test-4", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(2, HOURS).toEpochMilli(),
        trigger: new ArtifactoryTrigger("libs-demo-local")
+      ],
+      [pipelineConfigId: "1", id: "test-5", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(2, HOURS).toEpochMilli(),
+       trigger: new NexusTrigger("libs-nexus-local")
       ]
     ]
 
@@ -405,7 +408,7 @@ class TaskControllerSpec extends Specification {
     List results = new ObjectMapper().readValue(response.contentAsString, List)
 
     then:
-    results.id == ['test-1', 'test-2', 'test-3', 'test-4']
+    results.id == ['test-1', 'test-2', 'test-3', 'test-4', 'test-5']
   }
 
   void '/applications/{application}/pipelines/search should only return pipelines of given types'() {
@@ -426,6 +429,9 @@ class TaskControllerSpec extends Specification {
       ],
       [pipelineConfigId: "1", id: "test-5", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(2, HOURS).toEpochMilli(),
        trigger: new ArtifactoryTrigger("libs-demo-local")
+      ],
+      [pipelineConfigId: "1", id: "test-6", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(2, HOURS).toEpochMilli(),
+       trigger: new NexusTrigger("libs-nexus-local")
       ]
     ]
 
@@ -475,6 +481,9 @@ class TaskControllerSpec extends Specification {
       ],
       [pipelineConfigId: "1", id: "test-5", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(2, HOURS).toEpochMilli(),
        trigger: new ArtifactoryTrigger("libs-demo-local"), eventId: wrongEventId
+      ],
+      [pipelineConfigId: "1", id: "test-6", startTime: clock.instant().minus(daysOfExecutionHistory, DAYS).minus(2, HOURS).toEpochMilli(),
+       trigger: new NexusTrigger("libs-nexus-local"), eventId: wrongEventId
       ]
     ]
 
