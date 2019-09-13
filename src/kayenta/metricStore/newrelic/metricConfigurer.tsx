@@ -16,14 +16,14 @@ interface INewRelicMetricConfigurerDispatchProps {
   changeSelect: (event: any) => void;
 }
 
-type INewRelicConfigurerProps = INewRelicMetricConfigurerStateProps & INewRelicMetricConfigurerDispatchProps;
+type INewRelicMetricConfigurerProps = INewRelicMetricConfigurerStateProps & INewRelicMetricConfigurerDispatchProps;
 
 export const queryFinder = (metric: ICanaryMetricConfig) => get(metric, 'query.select', '');
 
 /*
  * Component for configuring a New Relic metric
  */
-function NewRelicMetricConfigurer({ changeSelect, editingMetric }: NewRelicMetricConfigurerProps) {
+function NewRelicMetricConfigurer({ changeSelect, editingMetric }: INewRelicMetricConfigurerProps) {
   return (
     <>
       <FormRow label="NRQL Select">
