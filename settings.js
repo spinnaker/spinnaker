@@ -214,6 +214,7 @@ window.spinnakerSettings = {
   searchVersion: 1,
   triggerTypes: [
     'artifactory',
+    'nexus',
     'concourse',
     'cron',
     'docker',

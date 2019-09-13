@@ -18,6 +18,12 @@ export interface IArtifactoryTrigger extends ITrigger {
   type: 'artifactory';
 }
 
+export interface INexusTrigger extends ITrigger {
+  nexusSearchName: string;
+  nexusRepository: string;
+  type: 'nexus';
+}
+
 export interface IGitTrigger extends ITrigger {
   source: 'stash' | 'github' | 'bitbucket' | 'gitlab';
   secret?: string;

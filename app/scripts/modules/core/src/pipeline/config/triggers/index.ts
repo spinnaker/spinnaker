@@ -1,6 +1,7 @@
 'use strict';
 
 import './artifactory/artifactory.trigger';
+import './nexus/nexus.trigger';
 import './concourse/concourse.trigger';
 import './cron/cron.trigger';
 import './git/git.trigger';
