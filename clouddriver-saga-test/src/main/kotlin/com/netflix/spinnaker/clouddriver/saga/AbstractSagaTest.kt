@@ -50,6 +50,7 @@ abstract class AbstractSagaTest : JUnit5Minutests {
           ShouldBranchPredicate::class.java
         )
       }
+      registerBeans(applicationContext, *options.registerTypes.toTypedArray())
 
       sagaService = SagaService(sagaRepository, NoopRegistry()).apply {
         setApplicationContext(applicationContext)
@@ -60,10 +61,12 @@ abstract class AbstractSagaTest : JUnit5Minutests {
   /**
    * @param mockSaga Whether or not to use mockk for the [SagaRepository] or the [TestingSagaRepository]
    * @param registerDefaultTestTypes Whether or not to register the canned test types for "autowiring"
+   * @param registerTypes Types to register (additive if [registerDefaultTestTypes] is true)
    */
   open inner class FixtureOptions(
     val mockSaga: Boolean = false,
-    val registerDefaultTestTypes: Boolean = true
+    val registerDefaultTestTypes: Boolean = true,
+    val registerTypes: List<Class<*>> = listOf()
   )
 
   protected fun registerBeans(applicationContext: ApplicationContext, vararg clazz: Class<*>) {

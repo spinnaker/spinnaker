@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.clouddriver.saga
 
-import com.fasterxml.jackson.annotation.JsonTypeName
 import com.google.common.annotations.Beta
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.saga.exceptions.SagaIntegrationException
@@ -191,12 +190,6 @@ class SagaService(
     }
     throw SagaSystemException("Resolved next action is not a SagaCommand: ${rawClass.simpleName}")
   }
-
-  /**
-   * TODO(rz): Do we want our own annotation instead of relying on [JsonTypeName]?
-   */
-  private fun getStepCommandName(command: SagaCommand): String =
-    command.javaClass.getAnnotation(JsonTypeName::class.java)?.value ?: command.javaClass.simpleName
 
   override fun setApplicationContext(applicationContext: ApplicationContext) {
     this.applicationContext = applicationContext

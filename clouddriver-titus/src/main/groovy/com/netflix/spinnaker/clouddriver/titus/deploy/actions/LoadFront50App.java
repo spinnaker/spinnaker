@@ -124,11 +124,11 @@ public class LoadFront50App implements SagaAction<LoadFront50App.LoadFront50AppC
             "Failed to convert front50 application to internal model", e);
       }
     } catch (Exception e) {
-      log.error("Failed to load front50 application attributes for {}", command.getAppName(), e);
       if (command.isAllowMissing()) {
         // It's ok to not load the front50 application
         return new Result(command.nextCommand, Collections.emptyList());
       }
+      log.error("Failed to load front50 application attributes for {}", command.getAppName(), e);
       throw new SystemException(
           format("Failed to load front50 application: %s", command.getAppName()), e);
     }

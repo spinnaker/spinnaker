@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.saga.AbstractSagaTest
 import com.netflix.spinnaker.clouddriver.saga.Action1
 import com.netflix.spinnaker.clouddriver.saga.Action2
 import com.netflix.spinnaker.clouddriver.saga.Action3
+import com.netflix.spinnaker.clouddriver.saga.SagaCommandCompleted
 import com.netflix.spinnaker.clouddriver.saga.ShouldBranch
 import com.netflix.spinnaker.clouddriver.saga.ShouldBranchPredicate
 import dev.minutest.rootContext
@@ -52,6 +53,18 @@ class SagaFlowIteratorTest : AbstractSagaTest() {
         that(subject.hasNext()).isTrue()
         that(subject.next()).get { action }.isA<Action2>()
         that(subject.hasNext()).isTrue()
+        that(subject.next()).get { action }.isA<Action3>()
+        that(subject.hasNext()).isFalse()
+      }
+    }
+
+    test("seeks iterator with partially applied saga") {
+      saga.addEventForTest(SagaCommandCompleted("doAction1"))
+      saga.addEventForTest(ShouldBranch())
+
+      expect {
+        that(subject.hasNext()).isTrue()
+        that(subject.next()).get { action }.isA<Action2>()
         that(subject.next()).get { action }.isA<Action3>()
         that(subject.hasNext()).isFalse()
       }

@@ -16,8 +16,11 @@
 package com.netflix.spinnaker.clouddriver.saga.flow
 
 import com.netflix.spinnaker.clouddriver.saga.SagaCommand
+import com.netflix.spinnaker.clouddriver.saga.SagaCommandCompleted
 import com.netflix.spinnaker.clouddriver.saga.exceptions.SagaNotFoundException
 import com.netflix.spinnaker.clouddriver.saga.exceptions.SagaSystemException
+import com.netflix.spinnaker.clouddriver.saga.flow.seekers.SagaCommandCompletedEventSeeker
+import com.netflix.spinnaker.clouddriver.saga.flow.seekers.SagaCommandEventSeeker
 import com.netflix.spinnaker.clouddriver.saga.models.Saga
 import com.netflix.spinnaker.clouddriver.saga.persistence.SagaRepository
 import com.netflix.spinnaker.kork.exceptions.SystemException
@@ -48,6 +51,7 @@ class SagaFlowIterator(
   private val context = Context(saga.name, saga.id)
 
   private var index: Int = 0
+  private var seeked: Boolean = false
 
   // toList.toMutableList copies the list so while we mutate stuff, it's all internal
   private var steps = flow.steps.toList().toMutableList()
@@ -59,10 +63,21 @@ class SagaFlowIterator(
       return false
     }
 
+    // The iterator needs the latest state of a saga to correctly determine in the next step to take.
+    // This is kind of handy, since we can pass this newly refreshed state straight to the iterator consumer so they
+    // don't need to concern themselves with that.
     latestSaga = sagaRepository.get(context.sagaName, context.sagaId)
       ?: throw SagaNotFoundException("Could not find Saga (${context.sagaName}/${context.sagaId} for flow traversal")
 
+    // To support resuming sagas, we want to seek to the next step that has not been processed,
+    // which may not be the first step
+    seekToNextStep(latestSaga)
+
     val nextStep = steps[index]
+
+    // If the next step is a condition, try to wire it up from the [ApplicationContext] and run it against the latest
+    // state. If the predicate is true, its nested [SagaFlow] will be injected into the current steps list, replacing
+    // the condition step's location. If the condition is false, then we just remove the step from the list.
     if (nextStep is SagaFlow.ConditionStep) {
       val predicate = try {
         applicationContext.getBean(nextStep.predicate)
@@ -79,6 +94,29 @@ class SagaFlowIterator(
     }
 
     return index < steps.size
+  }
+
+  /**
+   * Seeks the iterator to the next step that needs to be (re)started, if the saga has already begun.
+   *
+   * Multiple strategies are used to locate the correct index to seek to. The highest index returned from the [Seeker]
+   * strategies will be used for seeking.
+   *
+   * TODO(rz): What if there is more than 1 of a particular command in a flow? :thinking_face: May need more metadata
+   * in the [SagaCommandCompleted] event passed along...
+   */
+  private fun seekToNextStep(saga: Saga) {
+    if (seeked) {
+      // We only want to seek once
+      return
+    }
+    seeked = true
+
+    index = listOf(SagaCommandCompletedEventSeeker(), SagaCommandEventSeeker())
+      .mapNotNull { it.invoke(index, steps, saga)?.coerceAtLeast(0) }
+      .max()
+      ?: index
+    log.info("Seeking to step index $index")
   }
 
   override fun next(): IteratorState {
@@ -130,3 +168,11 @@ class SagaFlowIterator(
     val sagaId: String
   )
 }
+
+/**
+ * Allows multiple strategies to be used to locate the correct starting point for the [SagaFlowIterator].
+ *
+ * If a Seeker cannot determine an index, null should be returned. If multiple Seekers return an index, the
+ * highest value will be used.
+ */
+internal typealias Seeker = (currentIndex: Int, steps: List<SagaFlow.Step>, saga: Saga) -> Int?

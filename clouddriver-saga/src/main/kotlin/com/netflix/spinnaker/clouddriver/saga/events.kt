@@ -37,7 +37,7 @@ abstract class AbstractSagaEvent : AbstractSpinnakerEvent(), SagaEvent
  * This event does not attempt to find a difference in state, trading off persistence verbosity for a little bit
  * of a simpler implementation.
  *
- * @param saga The [Saga]'s newly saved state
+ * @param sequence The [Saga]'s latest sequence
  */
 @JsonTypeName("sagaSaved")
 class SagaSaved(
