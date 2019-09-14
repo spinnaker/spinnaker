@@ -103,7 +103,7 @@ export class AdditionalFields extends React.Component<IRollingRedBlackStrategyAd
         <div className="col-md-12 form-inline">
           <label>
             Wait
-            <HelpField content="Time to wait before disabling all old server groups in this cluster" />
+            <HelpField content="Time to wait after each percentage step before disabling instances in the old server group" />
           </label>
           <input
             className="form-control input-sm"
@@ -119,7 +119,7 @@ export class AdditionalFields extends React.Component<IRollingRedBlackStrategyAd
         <div className="col-md-12" style={{ marginTop: '5px' }}>
           <label>
             Run a Pipeline
-            <HelpField content="Pipeline to run before disabling all old server groups in this cluster" />
+            <HelpField content="Pipeline to run after each percentage step before disabling instances in the old server group" />
           </label>
           <PipelineSelector command={command.pipelineBeforeCleanup} type="pipelines" />
         </div>
