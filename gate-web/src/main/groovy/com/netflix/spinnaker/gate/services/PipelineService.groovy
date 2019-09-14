@@ -130,10 +130,6 @@ class PipelineService {
     orcaServiceSelector.withContext(RequestContext.get()).getPipeline(id)
   }
 
-  List<Map> getPipelineLogs(String id) {
-    orcaServiceSelector.withContext(RequestContext.get()).getPipelineLogs(id)
-  }
-
   Map cancelPipeline(String id, String reason, boolean force) {
     setApplicationForExecution(id)
     orcaServiceSelector.withContext(RequestContext.get()).cancelPipeline(id, reason, force, "")

@@ -139,18 +139,6 @@ class PipelineController {
     }
   }
 
-  @ApiOperation(value = "Retrieve pipeline execution logs", response = List.class)
-  @RequestMapping(value = "{id}/logs", method = RequestMethod.GET)
-  List<Map> getPipelineLogs(@PathVariable("id") String id) {
-    try {
-      pipelineService.getPipelineLogs(id)
-    } catch (RetrofitError e) {
-      if (e.response?.status == 404) {
-        throw new NotFoundException("Pipeline not found (id: ${id})")
-      }
-    }
-  }
-
   @ApiOperation(value = "Cancel a pipeline execution")
   @RequestMapping(value = "{id}/cancel", method = RequestMethod.PUT)
   void cancelPipeline(@PathVariable("id") String id,
