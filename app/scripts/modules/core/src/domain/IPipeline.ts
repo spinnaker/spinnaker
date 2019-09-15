@@ -15,6 +15,7 @@ export interface IPipeline {
   lastModifiedBy?: string;
   locked?: IPipelineLock;
   limitConcurrent: boolean;
+  manualStartAlert?: IPipelineManualStartAlert;
   name: string;
   notifications?: INotification[];
   respectQuietPeriod?: boolean;
@@ -32,6 +33,11 @@ export interface IPipeline {
   };
   type?: string;
   updateTs?: number;
+}
+
+export interface IPipelineManualStartAlert {
+  type: 'danger' | 'warning' | 'info';
+  message: string;
 }
 
 export interface IPipelineLock {

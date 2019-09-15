@@ -8,7 +8,7 @@ import { assign, clone, compact, extend, get, head, uniq, isArray, pickBy } from
 import { SubmitButton, ModalClose } from 'core/modal';
 import { Application } from 'core/application';
 import { AuthenticationService } from 'core/authentication';
-import { buildValidators, IModalComponentProps, ReactModal, SpinFormik } from 'core/presentation';
+import { buildValidators, IModalComponentProps, ReactModal, SpinFormik, Markdown } from 'core/presentation';
 import {
   IExecution,
   IExecutionTrigger,
@@ -325,6 +325,7 @@ export class ManualExecutionModal extends React.Component<IManualExecutionModalP
       triggerComponent,
       triggers,
     } = this.state;
+    const { manualStartAlert } = pipeline;
     const notifications = applicationNotifications.concat(pipelineNotifications);
     const pipelineCommand = this.generateInitialValues(pipeline);
     return (
@@ -364,6 +365,14 @@ export class ManualExecutionModal extends React.Component<IManualExecutionModalP
                 )}
                 {currentPipelineExecutions.length > 0 && (
                   <CurrentlyRunningExecutions currentlyRunningExecutions={currentPipelineExecutions} />
+                )}
+                {manualStartAlert && (
+                  <Markdown
+                    className={`alert alert-${
+                      ['danger', 'warning', 'info'].includes(manualStartAlert.type) ? manualStartAlert.type : 'warning'
+                    }`}
+                    message={manualStartAlert.message}
+                  />
                 )}
                 {triggers && triggers.length > 0 && (
                   <Triggers
