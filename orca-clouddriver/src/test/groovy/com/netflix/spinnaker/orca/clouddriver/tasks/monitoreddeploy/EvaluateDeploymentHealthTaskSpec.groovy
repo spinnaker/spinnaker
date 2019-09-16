@@ -90,10 +90,10 @@ class EvaluateDeploymentHealthTaskSpec extends Specification {
   def "should handle bad responses from 3rd party monitor"() {
     given:
     def monitorServiceStub = Stub(DeploymentMonitorService) {
-//    broadcastStarting(_) >> {
+//    notifyStarting(_) >> {
 //    }
 //
-//    broadcastCompleted(_) >> {
+//    notifyCompleted(_) >> {
 //    }
 //
       evaluateHealth(_) >> {

@@ -39,7 +39,7 @@ public class NotifyDeployCompletedTask extends MonitoredDeployBaseTask {
   public @Nonnull TaskResult executeInternal() {
     // TODO(mvulfson): actually populate the request data
     DeploymentCompletedRequest request = new DeploymentCompletedRequest(stage);
-    monitorDefinition.getService().broadcastCompleted(request);
+    monitorDefinition.getService().notifyCompleted(request);
 
     return TaskResult.ofStatus(ExecutionStatus.SUCCEEDED);
   }

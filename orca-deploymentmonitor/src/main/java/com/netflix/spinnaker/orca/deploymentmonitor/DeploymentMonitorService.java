@@ -23,10 +23,10 @@ import retrofit.http.POST;
 
 public interface DeploymentMonitorService {
   @POST("/deployment/starting")
-  EvaluateHealthResponse broadcastStarting(@Body RequestBase request);
+  EvaluateHealthResponse notifyStarting(@Body RequestBase request);
 
   @POST("/deployment/completed")
-  Response broadcastCompleted(@Body DeploymentCompletedRequest request);
+  Response notifyCompleted(@Body DeploymentCompletedRequest request);
 
   @POST("/deployment/evaluateHealth")
   EvaluateHealthResponse evaluateHealth(@Body EvaluateHealthRequest request);

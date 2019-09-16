@@ -56,10 +56,10 @@ class MonitoredDeployStrategy implements Strategy {
   WaitStage waitStage
 
   @Autowired
-  NotifyDeployStartingStage broadcastDeployStartingStage
+  NotifyDeployStartingStage notifyDeployStartingStage
 
   @Autowired
-  NotifyDeployCompletedStage broadcastDeployCompletedStage
+  NotifyDeployCompletedStage notifyDeployCompletedStage
 
   @Autowired
   EvaluateDeploymentHealthStage evaluateDeploymentHealthStage
@@ -181,15 +181,15 @@ class MonitoredDeployStrategy implements Strategy {
     }
 
     if (mdsd.deploymentMonitor.id) {
-      def broadcastDeployStartingStage = newStage(
+      def notifyDeployStartingStage = newStage(
         stage.execution,
-        broadcastDeployStartingStage.type,
+        this.notifyDeployStartingStage.type,
         "Notify monitored deploy starting",
         evalContext,
         stage,
         SyntheticStageOwner.STAGE_AFTER
       )
-      stages << broadcastDeployStartingStage
+      stages << notifyDeployStartingStage
     } else {
       log.warn("No deployment monitor specified, all monitoring will be skipped")
     }
@@ -304,8 +304,8 @@ class MonitoredDeployStrategy implements Strategy {
     if (mdsd.deploymentMonitor.id) {
       stages << newStage(
         stage.execution,
-        broadcastDeployCompletedStage.type,
-        "Broadcast Monitored Deployment Completed",
+        notifyDeployCompletedStage.type,
+        "Notify monitored deploy complete",
         evalContext,
         stage,
         SyntheticStageOwner.STAGE_AFTER

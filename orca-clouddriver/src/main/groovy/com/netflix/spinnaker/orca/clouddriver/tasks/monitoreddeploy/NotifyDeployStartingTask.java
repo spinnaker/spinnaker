@@ -43,7 +43,7 @@ public class NotifyDeployStartingTask extends MonitoredDeployBaseTask {
   @Override
   public @Nonnull TaskResult executeInternal() {
     RequestBase request = new RequestBase(stage);
-    EvaluateHealthResponse response = monitorDefinition.getService().broadcastStarting(request);
+    EvaluateHealthResponse response = monitorDefinition.getService().notifyStarting(request);
 
     sanitizeAndLogResponse(response);
 
