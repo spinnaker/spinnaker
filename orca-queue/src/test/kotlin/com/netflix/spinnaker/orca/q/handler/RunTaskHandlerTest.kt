@@ -603,7 +603,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
         beforeGroup {
           whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
-          whenever(task.timeout) doReturn timeout.toMillis()
+          whenever(task.getDynamicTimeout(any())) doReturn timeout.toMillis()
         }
 
         afterGroup(::resetMocks)
@@ -639,7 +639,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
         beforeGroup {
           whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
-          whenever(task.timeout) doReturn timeout.toMillis()
+          whenever(task.getDynamicTimeout(any())) doReturn timeout.toMillis()
         }
 
         afterGroup(::resetMocks)
@@ -670,7 +670,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
         beforeGroup {
           whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
-          whenever(task.timeout) doReturn timeout.toMillis()
+          whenever(task.getDynamicTimeout(any())) doReturn timeout.toMillis()
         }
 
         afterGroup(::resetMocks)
@@ -708,7 +708,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
         beforeGroup {
           whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
-          whenever(task.timeout) doReturn timeout.toMillis()
+          whenever(task.getDynamicTimeout(any())) doReturn timeout.toMillis()
         }
 
         afterGroup(::resetMocks)
@@ -742,7 +742,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
         beforeGroup {
           whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
-          whenever(task.timeout) doReturn timeout.toMillis()
+          whenever(task.getDynamicTimeout(any())) doReturn timeout.toMillis()
         }
 
         afterGroup(::resetMocks)
@@ -780,7 +780,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
         beforeGroup {
           whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
-          whenever(task.timeout) doReturn timeout.toMillis()
+          whenever(task.getDynamicTimeout(any())) doReturn timeout.toMillis()
         }
 
         afterGroup(::resetMocks)
@@ -826,7 +826,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
         beforeGroup {
           whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
-          whenever(task.timeout) doReturn timeout.toMillis()
+          whenever(task.getDynamicTimeout(any())) doReturn timeout.toMillis()
         }
 
         afterGroup(::resetMocks)
@@ -868,7 +868,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
         beforeGroup {
           whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
-          whenever(task.timeout) doReturn timeout.toMillis()
+          whenever(task.getDynamicTimeout(any())) doReturn timeout.toMillis()
         }
 
         afterGroup(::resetMocks)
@@ -878,6 +878,89 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         }
 
         it("fails the task") {
+          verify(queue).push(CompleteTask(message, TERMINAL))
+        }
+
+        it("does not execute the task") {
+          verify(task, never()).execute(any())
+        }
+      }
+    }
+
+    describe("handles onTimeout responses") {
+      val timeout = Duration.ofMinutes(5)
+      val pipeline = pipeline {
+        stage {
+          type = "whatever"
+          task {
+            id = "1"
+            status = RUNNING
+            startTime = clock.instant().minusMillis(timeout.toMillis() + 1).toEpochMilli()
+          }
+        }
+      }
+
+      val message = RunTask(pipeline.type, pipeline.id, "foo", pipeline.stages.first().id, "1", DummyTask::class.java)
+
+      given("the task returns fail_continue") {
+        beforeGroup {
+          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+          whenever(task.getDynamicTimeout(any())) doReturn timeout.toMillis()
+          whenever(task.onTimeout(any())) doReturn TaskResult.ofStatus(FAILED_CONTINUE)
+        }
+
+        afterGroup(::resetMocks)
+
+        action("the handler receives a message") {
+          subject.handle(message)
+        }
+
+        it("marks the task fail_continue") {
+          verify(queue).push(CompleteTask(message, FAILED_CONTINUE))
+        }
+
+        it("does not execute the task") {
+          verify(task, never()).execute(any())
+        }
+      }
+
+      given("the task returns terminal") {
+        beforeGroup {
+          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+          whenever(task.getDynamicTimeout(any())) doReturn timeout.toMillis()
+          whenever(task.onTimeout(any())) doReturn TaskResult.ofStatus(TERMINAL)
+        }
+
+        afterGroup(::resetMocks)
+
+        action("the handler receives a message") {
+          subject.handle(message)
+        }
+
+        it("marks the task terminal") {
+          verify(queue).push(CompleteTask(message, TERMINAL))
+        }
+
+        it("does not execute the task") {
+          verify(task, never()).execute(any())
+        }
+      }
+
+      given("the task returns succeeded") {
+        beforeGroup {
+          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+          whenever(task.getDynamicTimeout(any())) doReturn timeout.toMillis()
+          whenever(task.onTimeout(any())) doReturn TaskResult.ofStatus(SUCCEEDED)
+        }
+
+        afterGroup(::resetMocks)
+
+        action("the handler receives a message") {
+          subject.handle(message)
+          subject
+        }
+
+        it("marks the task terminal") {
           verify(queue).push(CompleteTask(message, TERMINAL))
         }
 
@@ -911,7 +994,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
             beforeGroup {
               whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
-              whenever(task.timeout) doReturn timeout.toMillis()
+              whenever(task.getDynamicTimeout(any())) doReturn timeout.toMillis()
             }
 
             afterGroup(::resetMocks)
@@ -944,7 +1027,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
               beforeGroup {
                 whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
-                whenever(task.timeout) doReturn timeout.toMillis()
+                whenever(task.getDynamicTimeout(any())) doReturn timeout.toMillis()
               }
 
               afterGroup(::resetMocks)
@@ -983,7 +1066,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
               beforeGroup {
                 whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
-                whenever(task.timeout) doReturn timeout.toMillis()
+                whenever(task.getDynamicTimeout(any())) doReturn timeout.toMillis()
               }
 
               afterGroup(::resetMocks)
@@ -1018,7 +1101,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
               beforeGroup {
                 whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
-                whenever(task.timeout) doReturn timeout.toMillis()
+                whenever(task.getDynamicTimeout(any())) doReturn timeout.toMillis()
               }
 
               afterGroup(::resetMocks)
@@ -1057,7 +1140,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
               beforeGroup {
                 whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
-                whenever(task.timeout) doReturn timeout.toMillis()
+                whenever(task.getDynamicTimeout(any())) doReturn timeout.toMillis()
               }
 
               afterGroup(::resetMocks)

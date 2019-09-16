@@ -27,6 +27,10 @@ public interface RetryableTask extends Task {
 
   long getTimeout();
 
+  default long getDynamicTimeout(Stage stage) {
+    return getTimeout();
+  }
+
   default long getDynamicBackoffPeriod(Duration taskDuration) {
     return getBackoffPeriod();
   }

@@ -29,6 +29,8 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+import javax.annotation.Nonnull
+import javax.annotation.Nullable
 import java.util.concurrent.TimeUnit
 
 @Component
@@ -50,13 +52,15 @@ public class WaitOnJobCompletion extends AbstractCloudProviderAwareTask implemen
 
   static final String REFRESH_TYPE = "Job"
 
-  @Override
-  void onTimeout(Stage stage) {
+  @Override @Nullable
+  TaskResult onTimeout(@Nonnull Stage stage) {
     jobUtils.cancelWait(stage)
+
+    return null
   }
 
   @Override
-  void onCancel(Stage stage) {
+  void onCancel(@Nonnull Stage stage) {
     jobUtils.cancelWait(stage)
   }
 

@@ -84,6 +84,7 @@ class RunTaskHandler(
 
       val thisInvocationStartTimeMs = clock.millis()
       val execution = stage.execution
+      var taskResult: TaskResult? = null
 
       try {
         taskExecutionInterceptors.forEach { t -> stage = t.beforeTaskExecution(task, stage) }
@@ -104,15 +105,22 @@ class RunTaskHandler(
             registry
               .timeoutCounter(stage.execution.type, stage.execution.application, stage.type, taskModel.name)
               .increment()
-            task.onTimeout(stage)
-            throw e
+            taskResult = task.onTimeout(stage)
+
+            if (!setOf(TERMINAL, FAILED_CONTINUE).contains(taskResult?.status)) {
+              log.error("Task ${task.javaClass.name} returned invalid status (${taskResult?.status} for onTimeout")
+              throw e
+            }
           }
 
           stage.withAuth {
             stage.withLoggingContext(taskModel) {
-              var taskResult = task.execute(stage.withMergedContext())
-              taskExecutionInterceptors.forEach { t -> taskResult = t.afterTaskExecution(task, stage, taskResult) }
-              taskResult.let { result: TaskResult ->
+              if (taskResult == null) {
+                taskResult = task.execute(stage.withMergedContext())
+                taskExecutionInterceptors.forEach { t -> taskResult = t.afterTaskExecution(task, stage, taskResult) }
+              }
+
+              taskResult!!.let { result: TaskResult ->
                 // TODO: rather send this data with CompleteTask message
                 stage.processTaskOutput(result)
                 when (result.status) {
@@ -230,7 +238,7 @@ class RunTaskHandler(
           if (this is OverridableTimeoutRetryableTask && stage.parentWithTimeout.isPresent)
             stage.parentWithTimeout.get().timeout.get().toDuration()
           else
-            timeout.toDuration()
+            getDynamicTimeout(stage).toDuration()
           )
         if (elapsedTime.minus(pausedDuration) > actualTimeout) {
           val durationString = formatTimeout(elapsedTime.toMillis())

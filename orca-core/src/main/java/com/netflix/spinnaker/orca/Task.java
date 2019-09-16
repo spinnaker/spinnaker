@@ -24,12 +24,15 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public interface Task {
   @Nonnull
   TaskResult execute(@Nonnull Stage stage);
 
-  default void onTimeout(@Nonnull Stage stage) {}
+  default @Nullable TaskResult onTimeout(@Nonnull Stage stage) {
+    return null;
+  }
 
   default void onCancel(@Nonnull Stage stage) {}
 

@@ -26,6 +26,9 @@ import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+import javax.annotation.Nonnull
+import javax.annotation.Nullable
+
 @Slf4j
 @Component
 class RunJobTask extends AbstractCloudProviderAwareTask implements RetryableTask {
@@ -43,12 +46,15 @@ class RunJobTask extends AbstractCloudProviderAwareTask implements RetryableTask
   long timeout = 60000
 
   @Override
-  void onTimeout(Stage stage) {
+  @Nullable
+  TaskResult onTimeout(@Nonnull Stage stage) {
     jobUtils.cancelWait(stage)
+
+    return null;
   }
 
   @Override
-  void onCancel(Stage stage) {
+  void onCancel(@Nonnull Stage stage) {
     jobUtils.cancelWait(stage)
   }
 

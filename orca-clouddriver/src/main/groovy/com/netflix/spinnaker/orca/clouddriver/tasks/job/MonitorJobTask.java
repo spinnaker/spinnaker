@@ -18,16 +18,17 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.job;
 
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import groovy.transform.CompileStatic;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-@CompileStatic
 public class MonitorJobTask extends MonitorKatoTask {
-  final JobUtils jobUtils;
+  private final JobUtils jobUtils;
 
   @Autowired
   public MonitorJobTask(Registry registry, JobUtils jobUtils) {
@@ -41,12 +42,14 @@ public class MonitorJobTask extends MonitorKatoTask {
   }
 
   @Override
-  public void onTimeout(Stage stage) {
+  public @Nullable TaskResult onTimeout(@Nonnull Stage stage) {
     jobUtils.cancelWait(stage);
+
+    return null;
   }
 
   @Override
-  public void onCancel(Stage stage) {
+  public void onCancel(@Nonnull Stage stage) {
     jobUtils.cancelWait(stage);
   }
 }
