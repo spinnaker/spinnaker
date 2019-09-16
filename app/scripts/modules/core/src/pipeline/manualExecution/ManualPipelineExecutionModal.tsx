@@ -325,7 +325,6 @@ export class ManualExecutionModal extends React.Component<IManualExecutionModalP
       triggerComponent,
       triggers,
     } = this.state;
-    const { manualStartAlert } = pipeline;
     const notifications = applicationNotifications.concat(pipelineNotifications);
     const pipelineCommand = this.generateInitialValues(pipeline);
     return (
@@ -366,12 +365,14 @@ export class ManualExecutionModal extends React.Component<IManualExecutionModalP
                 {currentPipelineExecutions.length > 0 && (
                   <CurrentlyRunningExecutions currentlyRunningExecutions={currentPipelineExecutions} />
                 )}
-                {manualStartAlert && (
+                {pipeline && pipeline.manualStartAlert && (
                   <Markdown
                     className={`alert alert-${
-                      ['danger', 'warning', 'info'].includes(manualStartAlert.type) ? manualStartAlert.type : 'warning'
+                      ['danger', 'warning', 'info'].includes(pipeline.manualStartAlert.type)
+                        ? pipeline.manualStartAlert.type
+                        : 'warning'
                     }`}
-                    message={manualStartAlert.message}
+                    message={pipeline.manualStartAlert.message}
                   />
                 )}
                 {triggers && triggers.length > 0 && (
