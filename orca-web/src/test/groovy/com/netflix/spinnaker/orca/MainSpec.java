@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca;
 
-import com.netflix.spinnaker.orca.locks.LockManager;
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import org.junit.Test;
@@ -33,8 +32,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @TestPropertySource(properties = {"spring.config.location=classpath:orca-test.yml"})
 public class MainSpec {
   @MockBean ExecutionRepository executionRepository;
-
-  @MockBean LockManager lockManager;
 
   @MockBean NotificationClusterLock notificationClusterLock;
 

@@ -11,7 +11,6 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Deter
 import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
 import com.netflix.spinnaker.orca.front50.pipeline.PipelineStage
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy
-import com.netflix.spinnaker.orca.locks.LockingConfigurationProperties
 import com.netflix.spinnaker.orca.pipeline.WaitStage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import org.springframework.mock.env.MockEnvironment
@@ -22,11 +21,10 @@ import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class RollingRedBlackStrategySpec extends Specification {
   def env = new MockEnvironment()
-  def config = new LockingConfigurationProperties(new SpringDynamicConfigService(environment: env))
   def dynamicConfigService = Mock(DynamicConfigService)
   def trafficGuard = Mock(TrafficGuard)
   def disableServerGroupStage = new DisableServerGroupStage(dynamicConfigService)
-  def scaleDownClusterStage = new ScaleDownClusterStage(trafficGuard, config, dynamicConfigService)
+  def scaleDownClusterStage = new ScaleDownClusterStage(dynamicConfigService)
   def resizeServerGroupStage = new ResizeServerGroupStage()
   def waitStage = new WaitStage()
   def pipelineStage = Mock(PipelineStage)

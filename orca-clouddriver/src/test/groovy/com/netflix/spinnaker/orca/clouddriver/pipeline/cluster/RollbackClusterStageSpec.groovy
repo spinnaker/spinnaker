@@ -20,7 +20,6 @@ import com.netflix.spinnaker.kork.dynamicconfig.SpringDynamicConfigService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper
 import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
-import com.netflix.spinnaker.orca.locks.LockingConfigurationProperties
 import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.mock.env.MockEnvironment
@@ -33,14 +32,9 @@ class RollbackClusterStageSpec extends Specification {
 
   def trafficGuard = Mock(TrafficGuard)
   def env = new MockEnvironment()
-  def lockingConfig = new LockingConfigurationProperties(new SpringDynamicConfigService(environment: env))
 
   @Subject
-  def stageBuilder = new RollbackClusterStage(trafficGuard, lockingConfig)
-
-  def setup() {
-    env.setProperty('locking.enabled', 'true')
-  }
+  def stageBuilder = new RollbackClusterStage()
 
   def "should not build any aroundStages()"() {
     expect:
@@ -119,71 +113,5 @@ class RollbackClusterStageSpec extends Specification {
     [interestingHealthProviderNames: ["Amazon"]]                       || [interestingHealthProviderNames: ["Amazon"]]
     [sourceServerGroupCapacitySnapshot: null]                          || [sourceServerGroupCapacitySnapshot: null]         // do not care if value is null
     [sourceServerGroupCapacitySnapshot: [min: 0, max: 10, desired: 5]] || [sourceServerGroupCapacitySnapshot: [min: 0, max: 10, desired: 5]]
-  }
-
-  def "should add locking stages to traffic guarded clusters"() {
-    def stage = stage {
-      context = [
-        credentials           : 'test',
-        moniker               : [
-          app: 'foo',
-          cluster: 'foo-main',
-          stack: 'main'],
-        regions               : ["us-west-2", "us-east-1"],
-        waitTimeBetweenRegions: 60,
-      ]
-      outputs = [
-        rollbackTypes   : [
-          "us-west-2": "EXPLICIT",
-          "us-east-1": "PREVIOUS_IMAGE"
-        ],
-        rollbackContexts: [
-          "us-west-2": ["foo": "bar"],
-          "us-east-1": ["bar": "baz"]
-        ]
-      ]
-    }
-
-    when:
-    def afterStages = buildAfterStages(stage)
-
-    then:
-    1 * trafficGuard.hasDisableLock(MonikerHelper.friggaToMoniker('foo-main'), 'test', Location.region('us-east-1')) >> true
-    1 * trafficGuard.hasDisableLock(MonikerHelper.friggaToMoniker('foo-main'), 'test', Location.region('us-west-2')) >> true
-    afterStages*.type           == ["acquireLock", "rollbackServerGroup", "releaseLock", "wait", "acquireLock", "rollbackServerGroup", "releaseLock"]
-    afterStages*.context.region == [ null        , "us-west-2"          ,  null        ,  null ,  null        , "us-east-1"          ,  null]
-  }
-
-  def "should only add locking stages to regions with traffic guards"() {
-    def stage = stage {
-      context = [
-        credentials           : 'test',
-        moniker               : [
-          app: 'foo',
-          cluster: 'foo-main',
-          stack: 'main'],
-        regions               : ["us-west-2", "us-east-1"],
-        waitTimeBetweenRegions: 60,
-      ]
-      outputs = [
-        rollbackTypes   : [
-          "us-west-2": "EXPLICIT",
-          "us-east-1": "PREVIOUS_IMAGE"
-        ],
-        rollbackContexts: [
-          "us-west-2": ["foo": "bar"],
-          "us-east-1": ["bar": "baz"]
-        ]
-      ]
-    }
-
-    when:
-    def afterStages = buildAfterStages(stage)
-
-    then:
-    1 * trafficGuard.hasDisableLock(MonikerHelper.friggaToMoniker('foo-main'), 'test', Location.region('us-west-2')) >> true
-    1 * trafficGuard.hasDisableLock(MonikerHelper.friggaToMoniker('foo-main'), 'test', Location.region('us-east-1')) >> false
-    afterStages*.type           == ["acquireLock", "rollbackServerGroup", "releaseLock", "wait", "rollbackServerGroup"]
-    afterStages*.context.region == [ null        , "us-west-2"          ,  null        ,  null , "us-east-1"]
   }
 }

@@ -23,7 +23,6 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.DisableClusterSta
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ScaleDownClusterStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ShrinkClusterStage
 import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
-import com.netflix.spinnaker.orca.locks.LockingConfigurationProperties
 import com.netflix.spinnaker.orca.pipeline.WaitStage
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -35,13 +34,12 @@ class RedBlackStrategySpec extends Specification {
 
   def trafficGuard = Stub(TrafficGuard)
   def env = new MockEnvironment()
-  def config = new LockingConfigurationProperties(new SpringDynamicConfigService(environment: env))
 
   def dynamicConfigService = Mock(DynamicConfigService)
 
-  def disableClusterStage = new DisableClusterStage(trafficGuard, config, dynamicConfigService)
-  def shrinkClusterStage = new ShrinkClusterStage(trafficGuard, config, dynamicConfigService, disableClusterStage)
-  def scaleDownClusterStage = new ScaleDownClusterStage(trafficGuard, config, dynamicConfigService)
+  def disableClusterStage = new DisableClusterStage(dynamicConfigService)
+  def shrinkClusterStage = new ShrinkClusterStage(dynamicConfigService, disableClusterStage)
+  def scaleDownClusterStage = new ScaleDownClusterStage(dynamicConfigService)
   def waitStage = new WaitStage()
 
   def "should compose flow"() {

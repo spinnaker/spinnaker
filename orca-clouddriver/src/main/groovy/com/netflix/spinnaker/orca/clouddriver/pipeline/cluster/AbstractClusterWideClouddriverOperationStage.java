@@ -27,12 +27,7 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractClusterWideClouddriverTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractWaitForClusterWideClouddriverTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask;
-import com.netflix.spinnaker.orca.clouddriver.utils.ClusterLockHelper;
 import com.netflix.spinnaker.orca.clouddriver.utils.MonikerHelper;
-import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard;
-import com.netflix.spinnaker.orca.locks.LockingConfigurationProperties;
-import com.netflix.spinnaker.orca.pipeline.AcquireLockStage;
-import com.netflix.spinnaker.orca.pipeline.ReleaseLockStage;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder;
@@ -45,16 +40,10 @@ import javax.annotation.Nonnull;
 public abstract class AbstractClusterWideClouddriverOperationStage
     implements StageDefinitionBuilder {
 
-  private final TrafficGuard trafficGuard;
-  private final LockingConfigurationProperties lockingConfigurationProperties;
   private final DynamicConfigService dynamicConfigService;
 
   protected AbstractClusterWideClouddriverOperationStage(
-      TrafficGuard trafficGuard,
-      LockingConfigurationProperties lockingConfigurationProperties,
       DynamicConfigService dynamicConfigService) {
-    this.trafficGuard = Objects.requireNonNull(trafficGuard);
-    this.lockingConfigurationProperties = Objects.requireNonNull(lockingConfigurationProperties);
     this.dynamicConfigService = dynamicConfigService;
   }
 
@@ -69,52 +58,8 @@ public abstract class AbstractClusterWideClouddriverOperationStage
     return taskClassSimpleName;
   }
 
-  @Override
-  public final void beforeStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
-    if (lockingConfigurationProperties.isEnabled()) {
-      List<Location> locations = locationsFromStage(parent.getContext());
-      ClusterSelection clusterSelection = parent.mapTo(ClusterSelection.class);
-      for (Location location : locations) {
-        String lockName =
-            ClusterLockHelper.clusterLockName(
-                clusterSelection.getMoniker(), clusterSelection.getCredentials(), location);
-        if (trafficGuard.hasDisableLock(
-            clusterSelection.getMoniker(), clusterSelection.getCredentials(), location)) {
-          graph.add(
-              stage -> {
-                stage.setType(AcquireLockStage.PIPELINE_TYPE);
-                stage.getContext().put("lock", Collections.singletonMap("lockName", lockName));
-              });
-        }
-      }
-    }
-    addAdditionalBeforeStages(parent, graph);
-  }
-
   protected void addAdditionalBeforeStages(
       @Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {}
-
-  @Override
-  public final void afterStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
-    addAdditionalAfterStages(parent, graph);
-    if (lockingConfigurationProperties.isEnabled()) {
-      List<Location> locations = locationsFromStage(parent.getContext());
-      ClusterSelection clusterSelection = parent.mapTo(ClusterSelection.class);
-      for (Location location : locations) {
-        String lockName =
-            ClusterLockHelper.clusterLockName(
-                clusterSelection.getMoniker(), clusterSelection.getCredentials(), location);
-        if (trafficGuard.hasDisableLock(
-            clusterSelection.getMoniker(), clusterSelection.getCredentials(), location)) {
-          graph.append(
-              stage -> {
-                stage.setType(ReleaseLockStage.PIPELINE_TYPE);
-                stage.getContext().put("lock", Collections.singletonMap("lockName", lockName));
-              });
-        }
-      }
-    }
-  }
 
   protected void addAdditionalAfterStages(
       @Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {}

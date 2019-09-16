@@ -31,7 +31,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class CloudFoundryDeployStagePreProcessorTest {
-  private RollbackClusterStage rollbackClusterStage = new RollbackClusterStage(null, null);
+  private RollbackClusterStage rollbackClusterStage = new RollbackClusterStage();
   private ServerGroupForceCacheRefreshStage serverGroupForceCacheRefreshStage =
       new ServerGroupForceCacheRefreshStage();
   private CloudFoundryDeployStagePreProcessor preProcessor =

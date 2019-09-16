@@ -20,7 +20,6 @@ import com.netflix.spinnaker.kork.dynamicconfig.SpringDynamicConfigService
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.DeployStagePreProcessor
 import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
-import com.netflix.spinnaker.orca.locks.LockingConfigurationProperties
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Task
 import org.springframework.mock.env.MockEnvironment
@@ -37,11 +36,10 @@ class CreateServerGroupStageSpec extends Specification {
   def deployStagePreProcessor = Mock(DeployStagePreProcessor)
   def trafficGuard = Stub(TrafficGuard)
   def env = new MockEnvironment()
-  def lockingConfig = new LockingConfigurationProperties(new SpringDynamicConfigService(environment: env))
 
   @Subject
   def createServerGroupStage = new CreateServerGroupStage(
-    rollbackClusterStage: new RollbackClusterStage(trafficGuard, lockingConfig),
+    rollbackClusterStage: new RollbackClusterStage(),
     destroyServerGroupStage: new DestroyServerGroupStage(),
     deployStagePreProcessors: [ deployStagePreProcessor ]
   )
