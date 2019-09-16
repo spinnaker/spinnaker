@@ -28,6 +28,8 @@ import com.netflix.spinnaker.kork.proto.stats.Execution;
 import com.netflix.spinnaker.kork.proto.stats.SpinnakerInstance;
 import com.netflix.spinnaker.kork.proto.stats.Stage;
 import com.netflix.spinnaker.kork.proto.stats.Status;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,6 +49,8 @@ import retrofit.mime.TypedString;
 @ConditionalOnProperty("telemetry.enabled")
 public class TelemetryEventListener implements EchoEventListener {
 
+  protected static final String TELEMETRY_REGISTRY_NAME = "telemetry";
+
   private static final Set<String> LOGGABLE_DETAIL_TYPES =
       ImmutableSet.of(
           "orca:orchestration:complete",
@@ -61,12 +65,16 @@ public class TelemetryEventListener implements EchoEventListener {
 
   private final TelemetryConfig.TelemetryConfigProps telemetryConfigProps;
 
+  private final CircuitBreakerRegistry registry;
+
   @Autowired
   public TelemetryEventListener(
       TelemetryService telemetryService,
-      TelemetryConfig.TelemetryConfigProps telemetryConfigProps) {
+      TelemetryConfig.TelemetryConfigProps telemetryConfigProps,
+      CircuitBreakerRegistry registry) {
     this.telemetryService = telemetryService;
     this.telemetryConfigProps = telemetryConfigProps;
+    this.registry = registry;
   }
 
   @SuppressWarnings("unchecked")
@@ -147,8 +155,16 @@ public class TelemetryEventListener implements EchoEventListener {
               .build();
 
       String content = JSON_PRINTER.print(loggedEvent);
-      telemetryService.log(new TypedJsonString(content));
+
+      registry
+          .circuitBreaker(TELEMETRY_REGISTRY_NAME)
+          .executeCallable(() -> telemetryService.log(new TypedJsonString(content)));
       log.debug("Telemetry sent!");
+    } catch (CallNotPermittedException cnpe) {
+      log.debug(
+          "Telemetry not set: {} circuit breaker tripped - {}",
+          TELEMETRY_REGISTRY_NAME,
+          cnpe.getMessage());
     } catch (Exception e) {
       log.warn("Could not send Telemetry event {}", event, e);
     }

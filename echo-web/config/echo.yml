@@ -24,3 +24,17 @@ webhooks:
   artifacts:
     enabled: false
     sources: []
+
+resilience4j.circuitbreaker:
+  instances:
+    telemetry:
+      # Startup config...
+      registerHealthIndicator: true
+      # Warming up...
+      minimumNumberOfCalls: 5
+      slidingWindowSize: 10
+      slidingWindowType: COUNT_BASED
+      # When tripped...
+      waitDurationInOpenState: 12h
+      # Try to get back to a working state...
+      permittedNumberOfCallsInHalfOpenState: 1

@@ -5,13 +5,18 @@ import com.netflix.spinnaker.echo.config.TelemetryConfig
 import com.netflix.spinnaker.echo.model.Event
 import com.netflix.spinnaker.kork.proto.stats.*
 import com.netflix.spinnaker.kork.proto.stats.Event as EventProto
+import groovy.util.logging.Slf4j
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry
 import retrofit.client.Response
 import spock.lang.Specification
 import spock.lang.Subject
 
+@Slf4j
 class TelemetryEventListenerSpec extends Specification {
 
   def service = Mock(TelemetryService)
+  def registry = CircuitBreakerRegistry.ofDefaults()
+  def circuitBreaker = registry.circuitBreaker(TelemetryEventListener.TELEMETRY_REGISTRY_NAME)
 
   def instanceId = "test-instance"
   def spinnakerVersion = "1.2.3"
@@ -22,12 +27,52 @@ class TelemetryEventListenerSpec extends Specification {
   def executionId = "execution_id"
   def executionHash = "6d6de5b8d67c11fff6d817ea3e1190bc63857de0329d253b21aef6e5c6bbebf9"
 
+  Event validEvent = new Event(
+    details: [
+      type       : "orca:pipeline:complete",
+      application: applicationName,
+    ],
+    content: [
+      execution: [
+        id     : executionId,
+        type   : "PIPELINE",
+        status : "SUCCEEDED",
+        trigger: [
+          type: "GIT"
+        ],
+        stages : [
+          [
+            type               : "deploy",
+            status             : "SUCCEEDED",
+            syntheticStageOwner: null,
+            context            : [
+              "cloudProvider": "nine"
+            ]
+          ],
+          [
+            type               : "removed",
+            syntheticStageOwner: "somethingNonNull",
+            status             : "SUCCEEDED"
+          ],
+          [
+            type  : "wait",
+            status: "TERMINAL"
+          ],
+        ]
+      ]
+    ]
+  )
+
+  def setup() {
+    circuitBreaker.reset()
+  }
+
   def "test Event validation"() {
     given:
     def configProps = new TelemetryConfig.TelemetryConfigProps()
 
     @Subject
-    def listener = new TelemetryEventListener(service, configProps)
+    def listener = new TelemetryEventListener(service, configProps, registry)
 
     when: "null details"
     listener.processEvent(new Event())
@@ -68,7 +113,7 @@ class TelemetryEventListenerSpec extends Specification {
     when: "no execution in content"
     listener.processEvent(new Event(
       details: [
-        type: "orca:orchestration:complete",
+        type       : "orca:orchestration:complete",
         application: "foobar",
       ],
       content: [
@@ -87,44 +132,10 @@ class TelemetryEventListenerSpec extends Specification {
       .setSpinnakerVersion(spinnakerVersion)
 
     @Subject
-    def listener = new TelemetryEventListener(service, configProps)
+    def listener = new TelemetryEventListener(service, configProps, registry)
 
     when:
-    listener.processEvent(new Event(
-      details: [
-        type       : "orca:pipeline:complete",
-        application: applicationName,
-      ],
-      content: [
-        execution: [
-          id     : executionId,
-          type   : "PIPELINE",
-          status : "SUCCEEDED",
-          trigger: [
-            type: "GIT"
-          ],
-          stages : [
-            [
-              type  : "deploy",
-              status: "SUCCEEDED",
-              syntheticStageOwner: null,
-              context: [
-                "cloudProvider": "nine"
-              ]
-            ],
-            [
-              type: "removed",
-              syntheticStageOwner: "somethingNonNull",
-              status: "SUCCEEDED"
-            ],
-            [
-              type  : "wait",
-              status: "TERMINAL"
-            ],
-          ]
-        ]
-      ]
-    ))
+    listener.processEvent(validEvent)
 
     then:
     1 * service.log(_) >> { List args ->
@@ -168,5 +179,28 @@ class TelemetryEventListenerSpec extends Specification {
 
       return new Response("url", 200, "", [], null)
     }
+  }
+
+  def "test circuit breaker"() {
+    given:
+    def configProps = new TelemetryConfig.TelemetryConfigProps()
+      .setInstanceId(instanceId)
+      .setSpinnakerVersion(spinnakerVersion)
+
+    @Subject
+    def listener = new TelemetryEventListener(service, configProps, registry)
+
+    circuitBreaker.transitionToOpenState()
+    boolean eventSendAttempted = false
+    circuitBreaker.getEventPublisher().onCallNotPermitted { event ->
+      log.debug("Event send attempted, and blocked by open circuit breaker.")
+      eventSendAttempted = true
+    }
+
+    when:
+    listener.processEvent(validEvent)
+
+    then:
+    eventSendAttempted
   }
 }

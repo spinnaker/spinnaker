@@ -16,8 +16,6 @@
 
 dependencies {
   implementation project(':echo-model')
-  implementation project(':echo-notifications')
-  implementation 'com.google.guava:guava'
   implementation 'com.google.protobuf:protobuf-java-util'
   implementation "com.netflix.spinnaker.kork:kork-proto"
   implementation 'com.netflix.spinnaker.kork:kork-web'

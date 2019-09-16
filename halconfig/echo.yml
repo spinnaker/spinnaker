@@ -34,3 +34,17 @@ scheduler:
 redis:
   connection: ${services.redis.baseUrl:redis://localhost:6379}
   enabled: ${services.redis.enabled:false}
+
+resilience4j.circuitbreaker:
+  instances:
+    telemetry:
+      # Startup config...
+      registerHealthIndicator: true
+      # Warming up...
+      minimumNumberOfCalls: 5
+      slidingWindowSize: 10
+      slidingWindowType: COUNT_BASED
+      # When tripped...
+      waitDurationInOpenState: 12h
+      # Try to get back to a working state...
+      permittedNumberOfCallsInHalfOpenState: 1
