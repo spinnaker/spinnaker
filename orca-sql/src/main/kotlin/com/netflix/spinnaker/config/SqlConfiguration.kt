@@ -128,9 +128,10 @@ class SqlConfiguration {
 
   @Bean("dbHealthIndicator") fun dbHealthIndicator(
     sqlHealthcheckActivator: SqlHealthcheckActivator,
-    sqlProperties: SqlProperties
+    sqlProperties: SqlProperties,
+    dynamicConfigService: DynamicConfigService
   ) =
-    SqlHealthIndicator(sqlHealthcheckActivator, sqlProperties.connectionPool.dialect)
+    SqlHealthIndicator(sqlHealthcheckActivator, sqlProperties.connectionPool.dialect, dynamicConfigService)
 
   @ConditionalOnProperty("execution-repository.sql.enabled")
   @ConditionalOnMissingBean(NotificationClusterLock::class)

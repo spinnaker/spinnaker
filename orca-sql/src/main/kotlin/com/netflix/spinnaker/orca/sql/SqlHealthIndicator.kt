@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.orca.sql
 
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import org.jooq.SQLDialect
 import org.springframework.boot.actuate.health.AbstractHealthIndicator
 import org.springframework.boot.actuate.health.Health
@@ -26,11 +27,14 @@ import org.springframework.boot.actuate.health.Health
  */
 class SqlHealthIndicator(
   private val sqlHealthcheckActivator: SqlHealthcheckActivator,
-  private val sqlDialect: SQLDialect
+  private val sqlDialect: SQLDialect,
+  private val dynamicConfigService: DynamicConfigService
 ) : AbstractHealthIndicator() {
 
   override fun doHealthCheck(builder: Health.Builder) {
-    if (sqlHealthcheckActivator.enabled) {
+    val overrideHealth = dynamicConfigService.isEnabled("sql.override-spring-health-check", false)
+
+    if (overrideHealth || sqlHealthcheckActivator.enabled) {
       builder.up().withDetail("database", sqlDialect.name)
     } else {
       builder.down().withDetail("database", sqlDialect.name).let {
