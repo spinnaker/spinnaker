@@ -46,7 +46,7 @@ public class UpsertImageTagsTask extends AbstractCloudProviderAwareTask implemen
 
   @Autowired RetrySupport retrySupport;
 
-  @Value("${tasks.upsert-image-tags-timeoutMillis:600000}")
+  @Value("${tasks.upsert-image-tags-timeout-millis:600000}")
   private Long upsertImageTagsTimeoutMillis;
 
   @Override
