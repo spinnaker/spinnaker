@@ -24,22 +24,20 @@ import spock.lang.Specification
 class KubernetesKindPropertiesSpec extends Specification {
   def "creates and returns the supplied properties"() {
     when:
-    def properties = new KubernetesKindProperties(KubernetesKind.REPLICA_SET, true, true, true)
+    def properties = KubernetesKindProperties.create(KubernetesKind.REPLICA_SET, true)
 
     then:
     properties.getKubernetesKind() == KubernetesKind.REPLICA_SET
     properties.isNamespaced()
-    properties.hasClusterRelationship()
-    properties.isDynamic()
+    !properties.hasClusterRelationship()
 
     when:
-    properties = new KubernetesKindProperties(KubernetesKind.REPLICA_SET, false, false, false)
+    properties = KubernetesKindProperties.create(KubernetesKind.REPLICA_SET, false)
 
     then:
     properties.getKubernetesKind() == KubernetesKind.REPLICA_SET
     !properties.isNamespaced()
     !properties.hasClusterRelationship()
-    !properties.isDynamic()
   }
 
   def "sets default properties to the expected values"() {
@@ -49,15 +47,25 @@ class KubernetesKindPropertiesSpec extends Specification {
     then:
     properties.isNamespaced()
     !properties.hasClusterRelationship()
-    properties.isDynamic()
   }
 
   def "returns expected results for built-in kinds"() {
     when:
     def defaultProperties = KubernetesKindProperties.getGlobalKindProperties()
+    def replicaSetProperties = defaultProperties.stream()
+      .filter({p -> p.getKubernetesKind().equals(KubernetesKind.REPLICA_SET)})
+      .findFirst()
+    def namespaceProperties = defaultProperties.stream()
+      .filter({p -> p.getKubernetesKind().equals(KubernetesKind.NAMESPACE)})
+      .findFirst()
 
     then:
-    defaultProperties.contains(new KubernetesKindProperties(KubernetesKind.REPLICA_SET, true, true, false))
-    defaultProperties.contains(new KubernetesKindProperties(KubernetesKind.NAMESPACE, false, false, false))
+    replicaSetProperties.isPresent()
+    replicaSetProperties.get().isNamespaced()
+    replicaSetProperties.get().hasClusterRelationship()
+
+    namespaceProperties.isPresent()
+    !namespaceProperties.get().isNamespaced()
+    !namespaceProperties.get().hasClusterRelationship()
   }
 }

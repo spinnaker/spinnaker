@@ -16,8 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.google.common.collect.ImmutableCollection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
@@ -53,7 +52,9 @@ public class KubernetesKindRegistry {
    * Searches the registry for a {@link KubernetesKindProperties} with the supplied {@link
    * KubernetesKind}. If the kind has been registered, returns the {@link KubernetesKindProperties}
    * that were registered for the kind; otherwise, looks for the kind in the {@link
-   * GlobalKubernetesKindRegistry} and returns the properties found there.
+   * GlobalKubernetesKindRegistry} and returns the properties found there. If the kind is not
+   * registered either globally or in the account, returns a {@link KubernetesKindProperties} with
+   * default properties.
    */
   @Nonnull
   public KubernetesKindProperties getRegisteredKind(@Nonnull KubernetesKind kind) {
@@ -62,15 +63,15 @@ public class KubernetesKindRegistry {
       return result;
     }
 
-    return globalKindRegistry.getRegisteredKind(kind);
+    return globalKindRegistry
+        .getRegisteredKind(kind)
+        .orElse(KubernetesKindProperties.withDefaultProperties(kind));
   }
 
-  /** Returns a list of all registered kinds */
+  /** Returns a list of all global kinds */
   @Nonnull
-  public List<KubernetesKindProperties> getRegisteredKinds() {
-    List<KubernetesKindProperties> result = new ArrayList<>(kindMap.values());
-    result.addAll(globalKindRegistry.getRegisteredKinds());
-    return result;
+  public ImmutableCollection<KubernetesKindProperties> getGlobalKinds() {
+    return globalKindRegistry.getRegisteredKinds();
   }
 
   @Component
