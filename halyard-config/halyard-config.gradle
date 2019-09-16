@@ -28,6 +28,7 @@ dependencies {
   implementation 'io.fabric8:kubernetes-client:4.1.1'
   implementation 'com.squareup.retrofit:retrofit'
   implementation 'com.jcraft:jsch'
+  implementation 'de.huxhorn.sulky:de.huxhorn.sulky.ulid'
 
 //  TODO: add clouddriverDCOS once that's merged
   implementation project(':halyard-core')

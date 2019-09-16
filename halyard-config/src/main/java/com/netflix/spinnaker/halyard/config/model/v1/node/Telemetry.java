@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
-import java.util.UUID;
+import de.huxhorn.sulky.ulid.ULID;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -33,7 +33,7 @@ public class Telemetry extends Node {
 
   private Boolean enabled = false;
   private String endpoint = DEFAULT_TELEMETRY_ENDPOINT;
-  private String instanceId = UUID.randomUUID().toString();
+  private String instanceId = new ULID().nextULID();
   private String spinnakerVersion;
   private int connectionTimeoutMillis = 3000;
   private int readTimeoutMillis = 5000;
