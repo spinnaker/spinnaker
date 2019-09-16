@@ -84,7 +84,7 @@ export class AmazonLoadBalancerChoiceModal extends React.Component<
     }
 
     // If the list of cloud providers is empty, assume it is compatible by default
-    return true;
+    return false;
   }
 
   public render() {
