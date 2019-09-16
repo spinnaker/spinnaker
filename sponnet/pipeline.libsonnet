@@ -297,7 +297,9 @@
       withAccount(account):: self + { account: account },
       withKinds(kinds):: self + if std.type(kinds) == 'array' then { kinds: kinds } else { kinds: [kinds] },
       withNamespace(namespace):: self + { location: namespace },
-      withLabelSelectors(selectors):: self + if std.type(selectors) == 'array' then { labelSelectors: { selectors: selectors } } else { labelSelectors: { selectors: [selectors] } },
+      withLabelSelectors(selectors)::
+        local selectorsArray = if std.type(selectors) == 'array' then selectors else [selectors];
+        self + { mode: 'label', labelSelectors: { selectors: selectors } },
       withGracePeriodSeconds(seconds):: self.options { gracePeriodSeconds: seconds },
       withManifestName(kind, name):: self.options { manifestName: kind + ' ' + name },
     },
