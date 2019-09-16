@@ -24,7 +24,7 @@ def cloudProviderProjects = [
   'cloudfoundry': [':clouddriver-cloudfoundry'],
   'dcos': [':clouddriver-dcos'],
   'gce': [':clouddriver-consul', ':clouddriver-google', ':clouddriver-google-common'],
-  'kubernetes': [':clouddriver-kubernetes', ':clouddriver-kubernetes-v2', ':clouddriver-docker'],
+  'kubernetes': [':clouddriver-kubernetes', ':clouddriver-kubernetes-v1', ':clouddriver-kubernetes-v2', ':clouddriver-docker'],
   'oracle': [':clouddriver-oracle']
 ]
 cloudProviderProjects.put('gcp', cloudProviderProjects['appengine'] + cloudProviderProjects['gce'] + cloudProviderProjects['kubernetes'])

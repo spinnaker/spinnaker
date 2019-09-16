@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Google, Inc.
+ * Copyright 2019 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -18,18 +18,15 @@ package com.netflix.spinnaker.config;
 import com.netflix.spinnaker.cats.module.CatsModule;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
-import com.netflix.spinnaker.clouddriver.kubernetes.health.KubernetesHealthIndicator;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.KubernetesUtil;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.KubernetesV1Provider;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.KubernetesV1ProviderSynchronizable;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.agent.KubernetesV1CachingAgentDispatcher;
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials;
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -41,19 +38,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 @ConditionalOnProperty("kubernetes.enabled")
 @ComponentScan({"com.netflix.spinnaker.clouddriver.kubernetes"})
-public class KubernetesConfiguration {
-  @Bean
-  @ConfigurationProperties("kubernetes")
-  public KubernetesConfigurationProperties kubernetesConfigurationProperties() {
-    return new KubernetesConfigurationProperties();
-  }
-
-  @Bean
-  public KubernetesHealthIndicator kubernetesHealthIndicator(
-      AccountCredentialsProvider accountCredentialsProvider) {
-    return new KubernetesHealthIndicator(accountCredentialsProvider);
-  }
-
+public class KubernetesV1Configuration {
   @Bean
   public KubernetesUtil kubernetesUtil() {
     return new KubernetesUtil();
