@@ -16,17 +16,27 @@
 
 package com.netflix.spinnaker.clouddriver.config
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.data.task.InMemoryTaskRepository
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DefaultDeployHandlerRegistry
 import com.netflix.spinnaker.clouddriver.deploy.DeployHandler
 import com.netflix.spinnaker.clouddriver.deploy.DeployHandlerRegistry
+import com.netflix.spinnaker.clouddriver.deploy.DescriptionAuthorizer
 import com.netflix.spinnaker.clouddriver.deploy.NullOpDeployHandler
 import com.netflix.spinnaker.clouddriver.orchestration.AnnotationsBasedAtomicOperationsRegistry
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationDescriptionPreProcessor
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationsRegistry
 import com.netflix.spinnaker.clouddriver.orchestration.DefaultOrchestrationProcessor
+import com.netflix.spinnaker.clouddriver.orchestration.ExceptionClassifier
+import com.netflix.spinnaker.clouddriver.orchestration.OperationsService
 import com.netflix.spinnaker.clouddriver.orchestration.OrchestrationProcessor
+import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEventHandler
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
+import com.netflix.spinnaker.clouddriver.security.AllowedAccountsValidator
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -46,8 +56,22 @@ class DeployConfiguration {
 
   @Bean
   @ConditionalOnMissingBean(OrchestrationProcessor)
-  OrchestrationProcessor orchestrationProcessor() {
-    new DefaultOrchestrationProcessor()
+  OrchestrationProcessor orchestrationProcessor(
+    TaskRepository taskRepository,
+    ApplicationContext applicationContext,
+    Registry registry,
+    Optional<Collection<OperationEventHandler>> operationEventHandlers,
+    ObjectMapper objectMapper,
+    ExceptionClassifier exceptionClassifier
+  ) {
+    new DefaultOrchestrationProcessor(
+      taskRepository,
+      applicationContext,
+      registry,
+      operationEventHandlers,
+      objectMapper,
+      exceptionClassifier
+    )
   }
 
   @Bean
@@ -59,5 +83,26 @@ class DeployConfiguration {
   @Bean
   AtomicOperationsRegistry atomicOperationsRegistry() {
     new AnnotationsBasedAtomicOperationsRegistry()
+  }
+
+  @Bean
+  OperationsService operationsService(
+    AtomicOperationsRegistry atomicOperationsRegistry,
+    DescriptionAuthorizer descriptionAuthorizer,
+    Optional<Collection<AllowedAccountsValidator>> allowedAccountsValidators,
+    Optional<List<AtomicOperationDescriptionPreProcessor>> atomicOperationDescriptionPreProcessors,
+    AccountCredentialsRepository accountCredentialsRepository,
+    Registry registry,
+    ObjectMapper objectMapper
+  ) {
+    return new OperationsService(
+      atomicOperationsRegistry,
+      descriptionAuthorizer,
+      allowedAccountsValidators,
+      atomicOperationDescriptionPreProcessors,
+      accountCredentialsRepository,
+      registry,
+      objectMapper
+    )
   }
 }

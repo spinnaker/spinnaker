@@ -55,7 +55,7 @@ class SqlTaskRepository(
   }
 
   override fun create(phase: String, status: String, clientRequestId: String): Task {
-    var task = SqlTask(ulid.nextULID(), ClouddriverHostname.ID, clientRequestId, clock.millis(), this)
+    var task = SqlTask(ulid.nextULID(), ClouddriverHostname.ID, clientRequestId, clock.millis(), mutableListOf(), this)
     val historyId = ulid.nextULID()
 
     withPool(POOL_NAME) {
@@ -69,7 +69,8 @@ class SqlTaskRepository(
             field("id") to task.id,
             field("owner_id") to task.ownerId,
             field("request_id") to task.requestId,
-            field("created_at") to task.startTimeMs
+            field("created_at") to task.startTimeMs,
+            field("saga_ids") to mapper.writeValueAsString(task.sagaIds)
           )
 
           ctx.insertInto(tasksTable, *pairs.keys.toTypedArray()).values(*pairs.values.toTypedArray()).execute()
@@ -193,11 +194,11 @@ class SqlTaskRepository(
     withPool(POOL_NAME) {
       jooq.transactional(sqlRetryProperties.transactions) { ctx ->
         /**
-         *  (select id as task_id, owner_id, request_id, created_at, null as body, null as state, null as phase, null as status from tasks_copy where id = '01D2H4H50VTF7CGBMP0D6HTGTF')
+         *  (select id as task_id, owner_id, request_id, created_at, saga_ids, null as body, null as state, null as phase, null as status from tasks_copy where id = '01D2H4H50VTF7CGBMP0D6HTGTF')
          *  UNION ALL
-         *  (select task_id, null as owner_id, null as request_id, null as created_at, null as body, state, phase, status from task_states_copy where task_id = '01D2H4H50VTF7CGBMP0D6HTGTF')
+         *  (select task_id, null as owner_id, null as request_id, null as created_at, null as saga_ids, null as body, state, phase, status from task_states_copy where task_id = '01D2H4H50VTF7CGBMP0D6HTGTF')
          *  UNION ALL
-         *  (select task_id, null as owner_id, null as request_id, null as created_at, body, null as state, null as phase, null as status from task_results_copy where task_id = '01D2H4H50VTF7CGBMP0D6HTGTF')
+         *  (select task_id, null as owner_id, null as request_id, null as created_at, null as saga_ids, body, null as state, null as phase, null as status from task_results_copy where task_id = '01D2H4H50VTF7CGBMP0D6HTGTF')
          */
         tasks.addAll(
           ctx
@@ -206,6 +207,7 @@ class SqlTaskRepository(
               field("owner_id"),
               field("request_id"),
               field("created_at"),
+              field("saga_ids"),
               field(sql("null")).`as`("body"),
               field(sql("null")).`as`("state"),
               field(sql("null")).`as`("phase"),
@@ -220,6 +222,7 @@ class SqlTaskRepository(
                   field(sql("null")).`as`("owner_id"),
                   field(sql("null")).`as`("request_id"),
                   field(sql("null")).`as`("created_at"),
+                  field(sql("null")).`as`("saga_ids"),
                   field(sql("null")).`as`("body"),
                   field("state"),
                   field("phase"),
@@ -235,6 +238,7 @@ class SqlTaskRepository(
                   field(sql("null")).`as`("owner_id"),
                   field(sql("null")).`as`("request_id"),
                   field(sql("null")).`as`("created_at"),
+                  field(sql("null")).`as`("saga_ids"),
                   field("body"),
                   field(sql("null")).`as`("state"),
                   field(sql("null")).`as`("phase"),

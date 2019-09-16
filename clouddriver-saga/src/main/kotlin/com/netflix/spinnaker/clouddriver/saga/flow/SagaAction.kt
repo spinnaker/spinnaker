@@ -40,6 +40,17 @@ interface SagaAction<in T : SagaCommand> {
   fun apply(command: T, saga: Saga): Result
 
   /**
+   * In the event of an exception being raised from [apply], a [SagaAction] can implement custom error handling logic.
+   *
+   * By default, nothing happens.
+   *
+   * @param command The input [SagaCommand] that was acted on
+   * @param saga The [Saga] state used to apply the [command]
+   * @param exception The resulting exception
+   */
+//  fun recover(command: T, saga: Saga, exception: Exception): Result = Result()
+
+  /**
    * @property nextCommand The next [SagaCommand] to run, if any. [ManyCommands] can be used to emit more
    *                       than one command if necessary
    * @property events A list of events to publish to subscribers

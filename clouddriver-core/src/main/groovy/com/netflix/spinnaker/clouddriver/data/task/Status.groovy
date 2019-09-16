@@ -46,4 +46,9 @@ public interface Status {
    * Informs whether the task has failed or not. A "failed" state is always indicitive of a "completed" state.
    */
   Boolean isFailed()
+
+  /**
+   * Informs whether a failed task is retryable or not.
+   */
+  Boolean isRetryable()
 }

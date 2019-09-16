@@ -17,8 +17,10 @@
 package com.netflix.spinnaker.clouddriver.orchestration
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Spectator
+import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.clouddriver.config.ExceptionClassifierConfigurationProperties
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTask
+import com.netflix.spinnaker.clouddriver.data.task.SagaId
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.slf4j.MDC
@@ -27,6 +29,7 @@ import org.springframework.context.ApplicationContext
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 import java.util.concurrent.TimeUnit
 
@@ -44,14 +47,21 @@ class DefaultOrchestrationProcessorSpec extends Specification {
 
   def setup() {
     taskKey = UUID.randomUUID().toString()
-    processor = new DefaultOrchestrationProcessor()
+
+    taskRepository = Mock(TaskRepository)
     applicationContext = Mock(ApplicationContext)
     applicationContext.getAutowireCapableBeanFactory() >> Mock(AutowireCapableBeanFactory)
-    taskRepository = Mock(TaskRepository)
-    processor.applicationContext = applicationContext
-    processor.taskRepository = taskRepository
-    processor.registry = Spectator.globalRegistry()
-    processor.objectMapper = new ObjectMapper( )
+
+    processor = new DefaultOrchestrationProcessor(
+      taskRepository,
+      applicationContext,
+      new NoopRegistry(),
+      Optional.empty(),
+      new ObjectMapper(),
+      new ExceptionClassifier(new ExceptionClassifierConfigurationProperties(
+        nonRetryableClasses: [NonRetryableException.class.getName()]
+      ))
+    )
   }
 
   void "complete the task when everything goes as planned"() {
@@ -68,9 +78,13 @@ class DefaultOrchestrationProcessorSpec extends Specification {
     !task.status.isFailed()
   }
 
-  void "fail the task when exception is thrown"() {
+  @Unroll
+  void "fail the task when exception is thrown (#exception.class.simpleName, #sagaId)"() {
     setup:
     def task = new DefaultTask("1")
+    if (sagaId) {
+      task.sagaIdentifiers.add(sagaId)
+    }
     def atomicOperation = Mock(AtomicOperation)
 
     when:
@@ -78,8 +92,16 @@ class DefaultOrchestrationProcessorSpec extends Specification {
 
     then:
     1 * taskRepository.create(_, _, taskKey) >> task
-    1 * atomicOperation.operate(_) >> { throw new RuntimeException() }
+    1 * atomicOperation.operate(_) >> { throw exception }
     task.status.isFailed()
+    task.status.retryable == retryable
+
+    where:
+    exception                   | sagaId               || retryable
+    new RuntimeException()      | null                 || false
+    new NonRetryableException() | null                 || false
+    new RuntimeException()      | new SagaId("a", "a") || true
+    new NonRetryableException() | new SagaId("a", "a") || false
   }
 
   void "failure should be logged in the result objects"() {
@@ -134,4 +156,6 @@ class DefaultOrchestrationProcessorSpec extends Specification {
     processor.executorService.shutdown()
     processor.executorService.awaitTermination(5, TimeUnit.SECONDS)
   }
+
+  private static class NonRetryableException extends RuntimeException {}
 }

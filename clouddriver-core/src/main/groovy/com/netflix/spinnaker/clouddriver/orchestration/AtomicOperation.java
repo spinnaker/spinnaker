@@ -29,7 +29,7 @@ import java.util.List;
 public interface AtomicOperation<R> {
   /**
    * This method will initiate the operation's work. In this, operation's can get a handle on prior
-   * output results from the requiremed method argument.
+   * output results from the required method argument.
    *
    * @param priorOutputs
    * @return parameterized type

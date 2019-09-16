@@ -22,13 +22,16 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.core.ClouddriverHostname;
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTaskStatus;
+import com.netflix.spinnaker.clouddriver.data.task.SagaId;
 import com.netflix.spinnaker.clouddriver.data.task.Status;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskDisplayStatus;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.data.task.TaskState;
+import com.netflix.spinnaker.kork.exceptions.SystemException;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -52,6 +55,8 @@ public class RedisTaskRepository implements TaskRepository {
   private static final String TASK_KEY_MAP = "kato:taskmap";
   private static final TypeReference<Map<String, String>> HISTORY_TYPE =
       new TypeReference<Map<String, String>>() {};
+  private static final TypeReference<List<SagaId>> SAGA_IDS_TYPE =
+      new TypeReference<List<SagaId>>() {};
 
   private static final int TASK_TTL = (int) TimeUnit.HOURS.toSeconds(12);
 
@@ -84,7 +89,13 @@ public class RedisTaskRepository implements TaskRepository {
     String taskId = UUID.randomUUID().toString();
 
     JedisTask task =
-        new JedisTask(taskId, System.currentTimeMillis(), this, ClouddriverHostname.ID, false);
+        new JedisTask(
+            taskId,
+            System.currentTimeMillis(),
+            this,
+            ClouddriverHostname.ID,
+            new ArrayList<>(),
+            false);
     addToHistory(DefaultTaskStatus.create(phase, status, TaskState.STARTED), task);
     set(taskId, task);
     Long newTask =
@@ -133,11 +144,23 @@ public class RedisTaskRepository implements TaskRepository {
       }
     }
     if (taskMap.containsKey("id") && taskMap.containsKey("startTimeMs")) {
+      List<SagaId> sagaIds;
+      if (taskMap.containsKey("sagaIds")) {
+        try {
+          sagaIds = mapper.readValue(taskMap.get("sagaIds"), SAGA_IDS_TYPE);
+        } catch (IOException e) {
+          throw new SystemException("Could not deserialize sagaIds key", e);
+        }
+      } else {
+        sagaIds = new ArrayList<>();
+      }
+
       return new JedisTask(
           taskMap.get("id"),
           Long.parseLong(taskMap.get("startTimeMs")),
           this,
           taskMap.get("ownerId"),
+          sagaIds,
           oldTask);
     }
     return null;
@@ -202,6 +225,11 @@ public class RedisTaskRepository implements TaskRepository {
     data.put("id", task.getId());
     data.put("startTimeMs", Long.toString(task.getStartTimeMs()));
     data.put("ownerId", task.getOwnerId());
+    try {
+      data.put("sagaIds", mapper.writeValueAsString(task.getSagaIds()));
+    } catch (JsonProcessingException e) {
+      throw new SystemException("Failed to serialize saga ids into Task", e);
+    }
     retry(
         () ->
             redisClientDelegate.withCommandsClient(

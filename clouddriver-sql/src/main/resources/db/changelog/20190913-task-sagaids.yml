@@ -1,0 +1,23 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-task-sagaids-column
+      author: robzienert
+      changes:
+        - addColumn:
+            tableName: tasks
+            columns:
+              - name: saga_ids
+                type: text
+                afterColumn: created_at
+      rollback:
+        - dropColumn:
+            tableName: tasks
+            columnName: saga_ids
+
+  - changeSet:
+      id: mysql-update-state-enum-values
+      author: robzienert
+      changes:
+        - sql:
+            dbms: mysql
+            sql: ALTER TABLE `task_states` MODIFY COLUMN `state` ENUM("STARTED", "COMPLETED", "FAILED", "FAILED_RETRYABLE") NOT NULL DEFAULT "STARTED"

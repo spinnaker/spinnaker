@@ -16,198 +16,160 @@
 
 package com.netflix.spinnaker.clouddriver.controllers
 
-import com.netflix.spectator.api.Registry
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.clouddriver.data.task.Task
-import com.netflix.spinnaker.clouddriver.deploy.DescriptionAuthorizer
-import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidationErrors
-import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidationException
-import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationConverter
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationDescriptionPreProcessor
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationNotFoundException
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationsRegistry
+import com.netflix.spinnaker.clouddriver.orchestration.OperationsService
 import com.netflix.spinnaker.clouddriver.orchestration.OrchestrationProcessor
-import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
-import com.netflix.spinnaker.clouddriver.security.AllowedAccountsValidator
-import com.netflix.spinnaker.clouddriver.security.ProviderVersion
-import com.netflix.spinnaker.clouddriver.security.config.SecurityConfig
-import com.netflix.spinnaker.security.AuthenticatedRequest
-import groovy.transform.Canonical
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import groovy.util.logging.Slf4j
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.MessageSource
-import org.springframework.validation.Errors
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+
+import javax.annotation.Nonnull
+import javax.annotation.Nullable
+import javax.annotation.PreDestroy
+import java.util.concurrent.TimeUnit
+
+import static java.lang.String.format
 
 @Slf4j
 @RestController
 class OperationsController {
 
-  @Autowired MessageSource messageSource
-  @Autowired OrchestrationProcessor orchestrationProcessor
-  @Autowired Registry registry
-  @Autowired (required = false) Collection<AllowedAccountsValidator> allowedAccountValidators = []
-  @Autowired (required = false) List<AtomicOperationDescriptionPreProcessor> atomicOperationDescriptionPreProcessors = []
-  @Autowired AtomicOperationsRegistry atomicOperationsRegistry
-  @Autowired SecurityConfig.OperationsSecurityConfigurationProperties opsSecurityConfigProps
-  @Autowired AccountCredentialsRepository accountCredentialsRepository
+  private final OperationsService operationsService
+  private final OrchestrationProcessor orchestrationProcessor
+  private final TaskRepository taskRepository
+  private final long shutdownWaitSeconds
 
-  @Autowired DescriptionAuthorizer descriptionAuthorizer
-
-  /*
-   * APIs
-   * ----------------------------------------------------------------------------------------------------------------------------
-   */
-
-  /**
+  OperationsController(
+    OperationsService operationsService,
+    OrchestrationProcessor orchestrationProcessor,
+    TaskRepository taskRepository,
+    @Value('${admin.tasks.shutdown-wait-seconds:-1}') long shutdownWaitSeconds) {
+    this.operationsService = operationsService
+    this.orchestrationProcessor = orchestrationProcessor
+    this.taskRepository = taskRepository
+    this.shutdownWaitSeconds = shutdownWaitSeconds
+  }
+/**
    * @deprecated Use /{cloudProvider}/ops instead
    */
   @Deprecated
-  @RequestMapping(value = "/ops", method = RequestMethod.POST)
-  Map<String, String> operations(@RequestParam(value = "clientRequestId", required = false) String clientRequestId,
-                                 @RequestBody List<Map<String, Map>> requestBody) {
-    List<AtomicOperation> atomicOperations = collectAtomicOperations(requestBody)
-    start(atomicOperations, clientRequestId)
+  @PostMapping("/ops")
+  StartOperationResult operations(
+    @RequestParam(value = "clientRequestId", required = false) String clientRequestId,
+    @RequestBody List<Map<String, Map>> requestBody) {
+    List<AtomicOperation> atomicOperations = operationsService.collectAtomicOperations(requestBody)
+    return start(atomicOperations, clientRequestId)
   }
 
   /**
    * @deprecated Use /{cloudProvider}/ops/{name} instead
    */
   @Deprecated
-  @RequestMapping(value = "/ops/{name}", method = RequestMethod.POST)
-  Map<String, String> operation(@PathVariable("name") String name,
-                                @RequestParam(value = "clientRequestId", required = false) String clientRequestId,
-                                @RequestBody Map requestBody) {
-    List<AtomicOperation> atomicOperations = collectAtomicOperations([[(name): requestBody]])
-    start(atomicOperations, clientRequestId)
+  @PostMapping("/ops/{name}")
+  StartOperationResult operation(
+    @PathVariable("name") String name,
+    @RequestParam(value = "clientRequestId", required = false) String clientRequestId,
+    @RequestBody Map requestBody) {
+    List<AtomicOperation> atomicOperations = operationsService.collectAtomicOperations([[(name): requestBody]])
+    return start(atomicOperations, clientRequestId)
   }
 
-  @RequestMapping(value = "/{cloudProvider}/ops", method = RequestMethod.POST)
-  Map<String, String> cloudProviderOperations(@PathVariable("cloudProvider") String cloudProvider,
-                                              @RequestParam(value = "clientRequestId", required = false) String clientRequestId,
-                                              @RequestBody List<Map<String, Map>> requestBody) {
-    List<AtomicOperation> atomicOperations = collectAtomicOperations(cloudProvider, requestBody)
-    start(atomicOperations, clientRequestId)
+  @PostMapping("/{cloudProvider}/ops")
+  StartOperationResult cloudProviderOperations(
+    @PathVariable("cloudProvider") String cloudProvider,
+    @RequestParam(value = "clientRequestId", required = false) String clientRequestId,
+    @RequestBody List<Map<String, Map>> requestBody) {
+    List<AtomicOperation> atomicOperations = operationsService.collectAtomicOperations(cloudProvider, requestBody)
+    return start(atomicOperations, clientRequestId)
   }
 
-  @RequestMapping(value = "/{cloudProvider}/ops/{name}", method = RequestMethod.POST)
-  Map<String, String> cloudProviderOperation(@PathVariable("cloudProvider") String cloudProvider,
-                                             @PathVariable("name") String name,
-                                             @RequestParam(value = "clientRequestId", required = false) String clientRequestId,
-                                             @RequestBody Map requestBody) {
-    List<AtomicOperation> atomicOperations = collectAtomicOperations(cloudProvider, [[(name): requestBody]])
-    start(atomicOperations, clientRequestId)
+  @PostMapping("/{cloudProvider}/ops/{name}")
+  StartOperationResult cloudProviderOperation(
+    @PathVariable("cloudProvider") String cloudProvider,
+    @PathVariable("name") String name,
+    @RequestParam(value = "clientRequestId", required = false) String clientRequestId,
+    @RequestBody Map requestBody) {
+    List<AtomicOperation> atomicOperations = operationsService.collectAtomicOperations(cloudProvider, [[(name): requestBody]])
+    return start(atomicOperations, clientRequestId)
   }
 
-  /*
-   * ----------------------------------------------------------------------------------------------------------------------------
+  @GetMapping("/task/{id}")
+  Task get(@PathVariable("id") String id) {
+    Task t = taskRepository.get(id)
+    if (!t) {
+      throw new NotFoundException("Task not found (id: ${id})")
+    }
+    return t
+  }
+
+  @GetMapping("/task")
+  List<Task> list() {
+    taskRepository.list()
+  }
+
+  /**
+   * Endpoint to allow Orca to resume Tasks, if they're backed by Sagas.
+   *
+   * @param id
    */
-
-  private List<AtomicOperation> collectAtomicOperations(List<Map<String, Map>> inputs) {
-    collectAtomicOperations(null, inputs)
-  }
-
-  private List<AtomicOperation> collectAtomicOperations(String cloudProvider, List<Map<String, Map>> inputs) {
-    def results = convert(cloudProvider, inputs)
-    def atomicOperations = []
-    for (bindingResult in results) {
-      if (bindingResult.errors.hasErrors()) {
-        throw new DescriptionValidationException(bindingResult.errors)
-      } else {
-        atomicOperations.addAll(bindingResult.atomicOperations)
-      }
-    }
-    atomicOperations
-  }
-
-  private ProviderVersion getOperationVersion(Map operation) {
-    def providerVersion = ProviderVersion.v1
-    try {
-      String accountName = operation.credentials ?: operation.accountName ?: operation.account
-      if (accountName) {
-        def credentials = accountCredentialsRepository.getOne(accountName)
-        providerVersion = credentials.getProviderVersion()
-      } else {
-        log.warn "Unable to get account name from operation: $operation"
-      }
-    } catch (Exception e) {
-      log.warn "Unable to determine account version", e
+  @PostMapping("/task/{id}:resume")
+  void resumeTask(@PathVariable("id") String id) {
+    Task t = taskRepository.get(id);
+    if (t == null) {
+      throw new NotFoundException("Task not found (id: $id)")
     }
 
-    return providerVersion
+    // TODO(rz): Check if task is failed: Only allow resuming failed tasks
+    // TODO(rz): Lookup saga
+
+    throw new UnsupportedOperationException("omg, pickles")
   }
 
-  private List<AtomicOperationBindingResult> convert(String cloudProvider, List<Map<String, Map>> inputs) {
-    def username = AuthenticatedRequest.getSpinnakerUser().orElse("unknown")
-    def allowedAccounts = AuthenticatedRequest.getSpinnakerAccounts().orElse("").split(",") as List<String>
+  /**
+   * TODO(rz): Seems like a weird place to put this logic...?
+   */
+  @PreDestroy
+  void destroy() {
+    long start = System.currentTimeMillis()
+    def tasks = taskRepository.listByThisInstance()
+    while (tasks && !tasks.isEmpty() &&
+      (System.currentTimeMillis() - start) / TimeUnit.SECONDS.toMillis(1) < shutdownWaitSeconds) {
+      log.info("There are {} task(s) still running... sleeping before shutting down", tasks.size())
+      sleep(1000)
+      tasks = taskRepository.listByThisInstance()
+    }
 
-    def descriptions = []
-    inputs.collectMany { Map<String, Map> input ->
-      input.collect { String k, Map v ->
-        def providerVersion = getOperationVersion(v)
-        def converter = atomicOperationsRegistry.getAtomicOperationConverter(k, cloudProvider ?: v.cloudProvider, providerVersion)
-
-        v = processDescriptionInput(atomicOperationDescriptionPreProcessors, converter, v)
-        def description = converter.convertDescription(v)
-
-        descriptions << description
-        def errors = new DescriptionValidationErrors(description)
-
-        def validator = atomicOperationsRegistry.getAtomicOperationDescriptionValidator(
-          DescriptionValidator.getValidatorName(k), cloudProvider ?: v.cloudProvider, providerVersion
-        )
-        if (validator) {
-          validator.validate(descriptions, description, errors)
-        } else {
-          log.warn(
-            "No validator found for operation `${description?.class?.simpleName}` and cloud provider $cloudProvider"
-          );
-        }
-
-        allowedAccountValidators.each {
-          it.validate(username, allowedAccounts, description, errors)
-        }
-
-        descriptionAuthorizer.authorize(description, errors)
-
-        AtomicOperation atomicOperation = converter.convertOperation(v)
-        if (!atomicOperation) {
-          throw new AtomicOperationNotFoundException(k)
-        }
-        if (errors.hasErrors()) {
-          registry.counter("validationErrors", "operation", atomicOperation.class.simpleName).increment()
-        }
-        new AtomicOperationBindingResult(atomicOperation, errors)
-      }
+    if (tasks && !tasks.isEmpty()) {
+      log.error("Shutting down while tasks '{}' are still in progress!", tasks)
     }
   }
 
-  private Map<String, String> start(List<AtomicOperation> atomicOperations, String key) {
-    key = key ?: UUID.randomUUID().toString()
-    Task task = orchestrationProcessor.process(atomicOperations, key)
-    [id: task.id, resourceUri: "/task/${task.id}".toString()]
+  private StartOperationResult start(@Nonnull List<AtomicOperation> atomicOperations, @Nullable String id) {
+    Task task =
+      orchestrationProcessor.process(
+        atomicOperations, Optional.ofNullable(id).orElse(UUID.randomUUID().toString()));
+    return new StartOperationResult(task.getId());
   }
 
-  static Map processDescriptionInput(Collection<AtomicOperationDescriptionPreProcessor> descriptionPreProcessors,
-                                     AtomicOperationConverter converter,
-                                     Map descriptionInput) {
-    def descriptionClass = converter.metaClass.methods.find { it.name == "convertDescription" }.returnType
-    descriptionPreProcessors.findAll { it.supports(descriptionClass) }.each {
-      descriptionInput = it.process(descriptionInput)
+  static class StartOperationResult {
+    @JsonProperty private final String id
+
+    StartOperationResult(String id) {
+      this.id = id
     }
 
-    return descriptionInput
-  }
-
-  @Canonical
-  static class AtomicOperationBindingResult {
-    AtomicOperation atomicOperations
-    Errors errors
+    @JsonProperty
+    String getResourceUri() {
+      return format("/task/%s", id)
+    }
   }
 }

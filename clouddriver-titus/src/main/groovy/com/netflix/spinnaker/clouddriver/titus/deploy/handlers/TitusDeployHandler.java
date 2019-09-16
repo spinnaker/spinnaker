@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.clouddriver.titus.deploy.handlers;
 
+import com.netflix.spinnaker.clouddriver.data.task.SagaId;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription;
@@ -58,6 +59,11 @@ public class TitusDeployHandler implements DeployHandler<TitusDeployDescription>
 
     final String sagaName = TitusDeployHandler.class.getSimpleName();
     final String sagaId = Optional.ofNullable(getTask().getRequestId()).orElse(getTask().getId());
+
+    // TODO(rz): This is pretty inelegant. Would be better to inject the saga; so the
+    // AtomicOperation doesn't need the sagaService at all. Just pass the SagaFlow
+    // and initial commands.
+    getTask().addSagaId(new SagaId(sagaName, sagaId));
 
     final TitusDeploymentResult result =
         sagaService.applyBlocking(

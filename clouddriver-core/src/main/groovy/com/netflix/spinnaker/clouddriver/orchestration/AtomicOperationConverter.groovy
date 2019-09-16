@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.orchestration
 
-import com.netflix.spinnaker.clouddriver.security.ProviderVersion
+
+import javax.annotation.Nullable
 
 /**
  * Implementations of this trait will provide an object capable of converting a Map of input parameters to an
@@ -29,6 +30,7 @@ trait AtomicOperationConverter implements VersionedCloudProviderOperation {
    * @param input
    * @return atomic operation
    */
+  @Nullable
   abstract AtomicOperation convertOperation(Map input)
 
   /**

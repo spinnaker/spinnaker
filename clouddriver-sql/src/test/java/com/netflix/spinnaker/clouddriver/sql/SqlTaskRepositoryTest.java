@@ -44,6 +44,8 @@ public class SqlTaskRepositoryTest extends TaskRepositoryTck {
 
   @After
   public void cleanup() {
-    SqlTestUtil.cleanupDb(database.context);
+    if (database != null) {
+      SqlTestUtil.cleanupDb(database.context);
+    }
   }
 }

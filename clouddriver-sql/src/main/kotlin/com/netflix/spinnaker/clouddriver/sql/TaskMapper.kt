@@ -15,8 +15,10 @@
  */
 package com.netflix.spinnaker.clouddriver.sql
 
+import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTaskStatus
+import com.netflix.spinnaker.clouddriver.data.task.SagaId
 import com.netflix.spinnaker.clouddriver.data.task.Status
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskState
@@ -32,6 +34,8 @@ class TaskMapper(
 
   companion object {
     private val log = LoggerFactory.getLogger(TaskMapper::class.java)
+
+    private val SAGA_IDS_TYPE = object : TypeReference<List<SagaId>>() {}
   }
 
   fun map(rs: ResultSet): Collection<Task> {
@@ -46,6 +50,7 @@ class TaskMapper(
           rs.getString("owner_id"),
           rs.getString("request_id"),
           rs.getLong("created_at"),
+          sagaIds(rs.getString("saga_ids")),
           sqlTaskRepository
         ).let {
           tasks[it.id] = it
@@ -83,5 +88,12 @@ class TaskMapper(
       task.hydrateHistory(history.getOrDefault(task.id, mutableListOf()))
       task
     }
+  }
+
+  private fun sagaIds(sagaIdsValue: String?): MutableList<SagaId> {
+    if (sagaIdsValue == null) {
+      return mutableListOf()
+    }
+    return mapper.readValue(sagaIdsValue, SAGA_IDS_TYPE)
   }
 }

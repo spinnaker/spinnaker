@@ -17,10 +17,13 @@
 package com.netflix.spinnaker.clouddriver.data.task.jedis
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.netflix.spinnaker.clouddriver.data.task.SagaId
 import com.netflix.spinnaker.clouddriver.data.task.Status
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskState
 import groovy.util.logging.Slf4j
+
+import javax.annotation.Nonnull
 
 @Slf4j
 class JedisTask implements Task {
@@ -32,15 +35,24 @@ class JedisTask implements Task {
   final long startTimeMs
   final String ownerId
   final String requestId
+  final List<SagaId> sagaIds
 
   @JsonIgnore
   final boolean previousRedis
 
-  JedisTask(String id, long startTimeMs, RedisTaskRepository repository, String ownerId, boolean previousRedis) {
+  JedisTask(
+    String id,
+    long startTimeMs,
+    RedisTaskRepository repository,
+    String ownerId,
+    List<SagaId> sagaIds,
+    boolean previousRedis
+  ) {
     this.id = id
     this.startTimeMs = startTimeMs
     this.repository = repository
     this.ownerId = ownerId
+    this.sagaIds = sagaIds
     this.previousRedis = previousRedis
   }
 
@@ -57,10 +69,20 @@ class JedisTask implements Task {
     repository.addToHistory(repository.currentState(this).update(TaskState.COMPLETED), this)
   }
 
+  @Deprecated
   @Override
   void fail() {
     checkMutable()
     repository.addToHistory(repository.currentState(this).update(TaskState.FAILED), this)
+  }
+
+  @Override
+  void fail(boolean retryable) {
+    checkMutable()
+    repository.addToHistory(
+      repository.currentState(this).update(retryable ? TaskState.FAILED_RETRYABLE : TaskState.FAILED),
+      this
+    )
   }
 
   @Override
@@ -93,6 +115,16 @@ class JedisTask implements Task {
   @Override
   Status getStatus() {
     repository.currentState(this)
+  }
+
+  @Override
+  void addSagaId(@Nonnull SagaId sagaId) {
+    this.sagaIds.add(sagaId)
+  }
+
+  @Override
+  boolean hasSagaIds() {
+    return !sagaIds.isEmpty()
   }
 
   private void checkMutable() {

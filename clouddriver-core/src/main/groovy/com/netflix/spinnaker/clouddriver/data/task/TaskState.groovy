@@ -19,13 +19,18 @@ package com.netflix.spinnaker.clouddriver.data.task
 enum TaskState {
   STARTED,
   COMPLETED,
-  FAILED
+  FAILED,
+  FAILED_RETRYABLE
 
   boolean isCompleted() {
     this != STARTED
   }
 
   boolean isFailed() {
-    this == FAILED
+    this == FAILED || this == FAILED_RETRYABLE
+  }
+
+  boolean isRetryable() {
+    this == FAILED_RETRYABLE
   }
 }

@@ -24,8 +24,9 @@ import java.lang.annotation.Target
 /**
  * Marker annotation for documentation purposes. Methods annotated with @Nullable indicate that the method may return a null value.
  *
- *
+ * @deprecated Because why use this and not {@code javax.annotation.Nullable}?
  */
+@Deprecated
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.SOURCE)
 @interface Nullable {

@@ -62,6 +62,7 @@ public abstract class TaskRepositoryTck<T extends TaskRepository> {
     assertThat(t1.getStatus().isFailed()).isEqualTo(t2.getStatus().isFailed());
     assertThat(t1.getStatus().isCompleted()).isFalse();
     assertThat(t1.getStatus().isFailed()).isFalse();
+    assertThat(t1.getStatus().isRetryable()).isFalse();
   }
 
   @Test
@@ -73,6 +74,19 @@ public abstract class TaskRepositoryTck<T extends TaskRepository> {
 
     assertThat(t2.getStatus().isCompleted()).isTrue();
     assertThat(t2.getStatus().isFailed()).isTrue();
+    assertThat(t2.getStatus().isRetryable()).isFalse();
+  }
+
+  @Test
+  public void testRetryableStatus() {
+    Task t1 = subject.create("TEST", "Test Status");
+    t1.fail(true);
+
+    Task t2 = subject.get(t1.getId());
+
+    assertThat(t2.getStatus().isCompleted()).isTrue();
+    assertThat(t2.getStatus().isFailed()).isTrue();
+    assertThat(t2.getStatus().isRetryable()).isTrue();
   }
 
   @Test

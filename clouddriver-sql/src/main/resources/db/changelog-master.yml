@@ -11,3 +11,6 @@ databaseChangeLog:
 - include:
     file: changelog/20190822-initial-event-schema.yml
     relativeToChangelogFile: true
+- include:
+    file: changelog/20190913-task-sagaids.yml
+    relativeToChangelogFile: true

@@ -98,6 +98,8 @@ class SagaService(
               .increment()
           }
         } catch (e: Exception) {
+          // TODO(rz): Add SagaAction.recover()
+
           log.error(
             "Encountered error while applying action '${action.javaClass.simpleName}' on ${saga.name}/${saga.id}", e)
           saga.addEvent(SagaActionErrorOccurred(

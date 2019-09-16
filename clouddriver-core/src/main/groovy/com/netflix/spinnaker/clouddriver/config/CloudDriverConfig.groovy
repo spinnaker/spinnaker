@@ -75,6 +75,10 @@ import com.netflix.spinnaker.clouddriver.model.SubnetProvider
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry
 import com.netflix.spinnaker.clouddriver.names.NamingStrategy
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationConverter
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationDescriptionPreProcessor
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationsRegistry
+import com.netflix.spinnaker.clouddriver.orchestration.ExceptionClassifier
+import com.netflix.spinnaker.clouddriver.orchestration.OperationsService
 import com.netflix.spinnaker.clouddriver.search.ApplicationSearchProvider
 import com.netflix.spinnaker.clouddriver.search.NoopSearchProvider
 import com.netflix.spinnaker.clouddriver.search.ProjectSearchProvider
@@ -82,6 +86,7 @@ import com.netflix.spinnaker.clouddriver.search.SearchProvider
 import com.netflix.spinnaker.clouddriver.search.executor.SearchExecutorConfig
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
+import com.netflix.spinnaker.clouddriver.security.AllowedAccountsValidator
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
@@ -111,7 +116,7 @@ import java.time.Clock
   SearchExecutorConfig
 ])
 @PropertySource(value = "classpath:META-INF/clouddriver-core.properties", ignoreResourceNotFound = true)
-@EnableConfigurationProperties(ProjectClustersCachingAgentProperties)
+@EnableConfigurationProperties([ProjectClustersCachingAgentProperties, ExceptionClassifierConfigurationProperties])
 class CloudDriverConfig {
 
   @Bean
@@ -344,5 +349,10 @@ class CloudDriverConfig {
       objectMapper,
       fiatPermissionEvaluator
     )
+  }
+
+  @Bean
+  ExceptionClassifier exceptionClassifier(ExceptionClassifierConfigurationProperties properties) {
+    return new ExceptionClassifier(properties)
   }
 }
