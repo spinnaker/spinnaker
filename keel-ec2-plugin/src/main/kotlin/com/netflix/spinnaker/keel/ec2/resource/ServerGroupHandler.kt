@@ -6,12 +6,12 @@ import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.Capacity
-import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
+import com.netflix.spinnaker.keel.api.ec2.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
 import com.netflix.spinnaker.keel.api.ec2.Metric
 import com.netflix.spinnaker.keel.api.ec2.ScalingProcess
 import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
-import com.netflix.spinnaker.keel.api.ec2.cluster.Cluster
+import com.netflix.spinnaker.keel.api.ec2.cluster.ServerGroup
 import com.netflix.spinnaker.keel.api.ec2.cluster.Dependencies
 import com.netflix.spinnaker.keel.api.ec2.cluster.Health
 import com.netflix.spinnaker.keel.api.ec2.cluster.LaunchConfiguration
@@ -22,7 +22,7 @@ import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
-import com.netflix.spinnaker.keel.clouddriver.model.ClusterActiveServerGroup
+import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.Tag
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
@@ -46,7 +46,7 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-class ClusterHandler(
+class ServerGroupHandler(
   private val cloudDriverService: CloudDriverService,
   private val cloudDriverCache: CloudDriverCache,
   private val orcaService: OrcaService,
@@ -55,21 +55,21 @@ class ClusterHandler(
   private val publisher: ApplicationEventPublisher,
   override val objectMapper: ObjectMapper,
   override val normalizers: List<ResourceNormalizer<*>>
-) : ResolvableResourceHandler<ClusterSpec, Cluster> {
+) : ResolvableResourceHandler<ServerGroupSpec, ServerGroup> {
 
   override val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
 
   override val apiVersion = SPINNAKER_API_V1.subApi("ec2")
   override val supportedKind = ResourceKind(
     group = apiVersion.group,
-    singular = "cluster",
-    plural = "clusters"
-  ) to ClusterSpec::class.java
+    singular = "server-group",
+    plural = "server-groups"
+  ) to ServerGroupSpec::class.java
 
-  override suspend fun desired(resource: Resource<ClusterSpec>): Cluster =
+  override suspend fun desired(resource: Resource<ServerGroupSpec>): ServerGroup =
     with(resource.spec) {
       val (imageId, appVersion) = imageResolver.resolveImageId(resource)
-      Cluster(
+      ServerGroup(
         moniker = moniker,
         location = location,
         launchConfiguration = launchConfiguration.generateLaunchConfiguration(imageId, appVersion),
@@ -81,12 +81,12 @@ class ClusterHandler(
       )
     }
 
-  override suspend fun current(resource: Resource<ClusterSpec>): Cluster? =
+  override suspend fun current(resource: Resource<ServerGroupSpec>): ServerGroup? =
     cloudDriverService.getCluster(resource)
 
   override suspend fun upsert(
-    resource: Resource<ClusterSpec>,
-    resourceDiff: ResourceDiff<Cluster>
+    resource: Resource<ServerGroupSpec>,
+    resourceDiff: ResourceDiff<ServerGroup>
   ): List<Task> {
     val spec = resourceDiff.desired
     val job = when {
@@ -120,10 +120,10 @@ class ClusterHandler(
   /**
    * @return `true` if the only changes in the diff are to capacity.
    */
-  private fun ResourceDiff<Cluster>.isCapacityOnly(): Boolean =
+  private fun ResourceDiff<ServerGroup>.isCapacityOnly(): Boolean =
     current != null && affectedRootPropertyTypes.all { it == Capacity::class.java }
 
-  private suspend fun Cluster.createServerGroupJob(serviceAccount: String): Map<String, Any?> =
+  private suspend fun ServerGroup.createServerGroupJob(serviceAccount: String): Map<String, Any?> =
     mutableMapOf(
       "application" to moniker.app,
       "credentials" to location.accountName,
@@ -200,7 +200,7 @@ class ClusterHandler(
         }
     }
 
-  private suspend fun Cluster.resizeServerGroupJob(serviceAccount: String): Map<String, Any?> =
+  private suspend fun ServerGroup.resizeServerGroupJob(serviceAccount: String): Map<String, Any?> =
     cloudDriverService.getAncestorServerGroup(this, serviceAccount)
       ?.let { currentServerGroup ->
         mapOf(
@@ -225,11 +225,11 @@ class ClusterHandler(
       }
       ?: throw ResourceConflict("Could not find current server group for cluster ${moniker.name} in ${location.accountName} / ${location.region}")
 
-  override suspend fun delete(resource: Resource<ClusterSpec>) {
+  override suspend fun delete(resource: Resource<ServerGroupSpec>) {
     TODO("not implemented")
   }
 
-  private suspend fun CloudDriverService.getAncestorServerGroup(spec: Cluster, serviceAccount: String): ClusterActiveServerGroup? =
+  private suspend fun CloudDriverService.getAncestorServerGroup(spec: ServerGroup, serviceAccount: String): ActiveServerGroup? =
     try {
       activeServerGroup(
         serviceAccount,
@@ -247,7 +247,7 @@ class ClusterHandler(
       }
     }
 
-  private suspend fun CloudDriverService.getCluster(resource: Resource<ClusterSpec>): Cluster? {
+  private suspend fun CloudDriverService.getCluster(resource: Resource<ServerGroupSpec>): ServerGroup? {
     try {
       return activeServerGroup(
         resource.serviceAccount,
@@ -263,7 +263,7 @@ class ClusterHandler(
             imageId = launchConfig.imageId
           ))
 
-          Cluster(
+          ServerGroup(
             moniker = Moniker(app = moniker.app, stack = moniker.stack, detail = moniker.detail),
             location = Location(
               accountName,
@@ -310,7 +310,7 @@ class ClusterHandler(
     }
   }
 
-  private val Cluster.securityGroupIds: Collection<String>
+  private val ServerGroup.securityGroupIds: Collection<String>
     get() = dependencies
       .securityGroupNames
       // no need to specify these as Orca will auto-assign them, also the application security group
@@ -320,14 +320,14 @@ class ClusterHandler(
         cloudDriverCache.securityGroupByName(location.accountName, location.region, it).id
       }
 
-  private val ClusterActiveServerGroup.subnet: String
+  private val ActiveServerGroup.subnet: String
     get() = asg.vpczoneIdentifier.substringBefore(",").let { subnetId ->
       cloudDriverCache
         .subnetBy(subnetId)
         .purpose ?: throw IllegalStateException("Subnet $subnetId has no purpose!")
     }
 
-  private val ClusterActiveServerGroup.securityGroupNames: Set<String>
+  private val ActiveServerGroup.securityGroupNames: Set<String>
     get() = securityGroups.map {
       cloudDriverCache.securityGroupById(accountName, region, it).name
     }

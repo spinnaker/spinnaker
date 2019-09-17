@@ -9,7 +9,7 @@ import com.netflix.spinnaker.keel.api.NoImageFound
 import com.netflix.spinnaker.keel.api.NoImageFoundForRegion
 import com.netflix.spinnaker.keel.api.NoImageSatisfiesConstraints
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
+import com.netflix.spinnaker.keel.api.ec2.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.cluster.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.ec2.cluster.Location
 import com.netflix.spinnaker.keel.api.ec2.image.ArtifactImageProvider
@@ -107,7 +107,7 @@ internal class ImageResolverTests : JUnit5Minutests {
     val resource = resource(
       apiVersion = SPINNAKER_API_V1.subApi("ec2"),
       kind = "cluster",
-      spec = ClusterSpec(
+      spec = ServerGroupSpec(
         moniker = Moniker("fnord"),
         location = Location(
           accountName = account,

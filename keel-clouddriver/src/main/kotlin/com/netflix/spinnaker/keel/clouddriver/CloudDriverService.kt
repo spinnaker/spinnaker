@@ -17,7 +17,7 @@ package com.netflix.spinnaker.keel.clouddriver
 
 import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel
 import com.netflix.spinnaker.keel.clouddriver.model.ClassicLoadBalancerModel
-import com.netflix.spinnaker.keel.clouddriver.model.ClusterActiveServerGroup
+import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.Credential
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.Network
@@ -107,7 +107,7 @@ interface CloudDriverService {
     @Path("cluster") cluster: String,
     @Path("region") region: String,
     @Path("cloudProvider") cloudProvider: String
-  ): ClusterActiveServerGroup
+  ): ActiveServerGroup
 
   @GET("/aws/images/find")
   suspend fun namedImages(

@@ -4,21 +4,21 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.retrofit.model.ModelParsingTestSupport
 
-object ClusterActiveServerGroupTest : ModelParsingTestSupport<CloudDriverService, ClusterActiveServerGroup>(CloudDriverService::class.java) {
+object ActiveServerGroupTest : ModelParsingTestSupport<CloudDriverService, ActiveServerGroup>(CloudDriverService::class.java) {
 
   override val json = javaClass.getResource("/cluster.json")
 
-  override suspend fun CloudDriverService.call(): ClusterActiveServerGroup? =
+  override suspend fun CloudDriverService.call(): ActiveServerGroup? =
     this.activeServerGroup("keel@spinnaker", "keel", "mgmttest", "keel-test", "eu-west-1", "aws")
 
-  override val expected = ClusterActiveServerGroup(
+  override val expected = ActiveServerGroup(
     name = "fletch_test-v000",
     cloudProvider = "aws",
     accountName = "test",
     targetGroups = emptySet(),
     region = "eu-west-1",
     zones = setOf("eu-west-1b", "eu-west-1c", "eu-west-1a"),
-    image = ClusterImage(
+    image = ActiveServerGroupImage(
       imageId = "ami-05a878bfa321e03b4",
       appVersion = "mimirdemo-3.16.0-h205.121d4ac"
     ),

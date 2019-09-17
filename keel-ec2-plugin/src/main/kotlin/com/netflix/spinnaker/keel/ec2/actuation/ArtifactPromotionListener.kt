@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.ec2.actuation
 
-import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
-import com.netflix.spinnaker.keel.api.ec2.cluster.Cluster
+import com.netflix.spinnaker.keel.api.ec2.ServerGroupSpec
+import com.netflix.spinnaker.keel.api.ec2.cluster.ServerGroup
 import com.netflix.spinnaker.keel.api.ec2.image.ArtifactImageProvider
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
@@ -23,10 +23,10 @@ class ArtifactPromotionListener(
   @EventListener(ResourceDeltaResolved::class)
   fun onDeltaResolved(event: ResourceDeltaResolved) {
     val desired = event.desired
-    if (desired is ClusterSpec && desired.launchConfiguration.imageProvider is ArtifactImageProvider) {
-      val current = event.current as? Cluster
+    if (desired is ServerGroupSpec && desired.launchConfiguration.imageProvider is ArtifactImageProvider) {
+      val current = event.current as? ServerGroup
       checkNotNull(current) {
-        "Current resource state is a ${event.current.javaClass.simpleName} when a ${Cluster::class.java.simpleName} was expected"
+        "Current resource state is a ${event.current.javaClass.simpleName} when a ${ServerGroup::class.java.simpleName} was expected"
       }
       val appVersion = current.launchConfiguration.appVersion
       val deliveryConfig = deliveryConfigRepository.deliveryConfigFor(event.resourceId)

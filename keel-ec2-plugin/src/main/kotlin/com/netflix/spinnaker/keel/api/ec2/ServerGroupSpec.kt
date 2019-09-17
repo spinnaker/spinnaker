@@ -27,7 +27,7 @@ import com.netflix.spinnaker.keel.api.ec2.cluster.Location
 import com.netflix.spinnaker.keel.api.ec2.cluster.Scaling
 import com.netflix.spinnaker.keel.model.Moniker
 
-data class ClusterSpec(
+data class ServerGroupSpec(
   override val moniker: Moniker,
   val location: Location,
   val launchConfiguration: LaunchConfigurationSpec,

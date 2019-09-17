@@ -2,7 +2,7 @@ package com.netflix.spinnaker.keel.api.ec2
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.netflix.spinnaker.keel.api.ec2.cluster.Cluster
+import com.netflix.spinnaker.keel.api.ec2.cluster.ServerGroup
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -10,7 +10,7 @@ import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import java.time.Duration
 
-internal object ClusterTests : JUnit5Minutests {
+internal object ServerGroupTests : JUnit5Minutests {
   data class Fixture(
     val mapper: ObjectMapper = configuredYamlMapper(),
     val yaml: String
@@ -58,7 +58,7 @@ internal object ClusterTests : JUnit5Minutests {
         )
       }
 
-      derivedContext<Cluster>("when deserialized") {
+      derivedContext<ServerGroup>("when deserialized") {
         deriveFixture {
           mapper.readValue(yaml)
         }

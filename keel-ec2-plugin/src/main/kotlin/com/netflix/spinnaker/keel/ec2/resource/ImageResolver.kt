@@ -6,7 +6,7 @@ import com.netflix.spinnaker.keel.api.NoImageFoundForRegion
 import com.netflix.spinnaker.keel.api.NoImageSatisfiesConstraints
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.UnsupportedStrategy
-import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
+import com.netflix.spinnaker.keel.api.ec2.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.image.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.image.IdImageProvider
 import com.netflix.spinnaker.keel.api.ec2.image.ImageProvider
@@ -32,7 +32,7 @@ class ImageResolver(
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   // TODO: we may (probably will) want to make the parameter type more generic
-  suspend fun resolveImageId(resource: Resource<ClusterSpec>): Pair<String, String> =
+  suspend fun resolveImageId(resource: Resource<ServerGroupSpec>): Pair<String, String> =
     when (val imageProvider = resource.spec.launchConfiguration.imageProvider) {
       is IdImageProvider -> {
         resolveFromImageId(resource, imageProvider)
@@ -48,7 +48,7 @@ class ImageResolver(
       }
     }
 
-  private suspend fun resolveFromImageId(resource: Resource<ClusterSpec>, imageProvider: IdImageProvider): Pair<String, String> {
+  private suspend fun resolveFromImageId(resource: Resource<ServerGroupSpec>, imageProvider: IdImageProvider): Pair<String, String> {
     val images = cloudDriverService.namedImages(DEFAULT_SERVICE_ACCOUNT, imageProvider.imageId, null, null)
     check(images.size == 1) {
       "Expected a single image for AMI id ${imageProvider.imageId} but found ${images.size}"
@@ -56,7 +56,7 @@ class ImageResolver(
     return imageProvider.imageId to images.first().appVersion
   }
 
-  private suspend fun resolveFromArtifact(resource: Resource<ClusterSpec>, imageProvider: ArtifactImageProvider): Pair<String, String> {
+  private suspend fun resolveFromArtifact(resource: Resource<ServerGroupSpec>, imageProvider: ArtifactImageProvider): Pair<String, String> {
     val region = resource.spec.location.region
     val deliveryConfig = deliveryConfigRepository.deliveryConfigFor(resource.id)
     val environment = deliveryConfigRepository.environmentFor(resource.id)
@@ -96,7 +96,7 @@ class ImageResolver(
     }
   }
 
-  private suspend fun resolveFromJenkinsJob(resource: Resource<ClusterSpec>, imageProvider: JenkinsImageProvider): Pair<String, String> {
+  private suspend fun resolveFromJenkinsJob(resource: Resource<ServerGroupSpec>, imageProvider: JenkinsImageProvider): Pair<String, String> {
     val region = resource.spec.location.region
     val namedImage = imageService.getNamedImageFromJenkinsInfo(
       imageProvider.packageName,

@@ -21,7 +21,7 @@ import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.model.Moniker
 
-data class Cluster(
+data class ServerGroup(
   override val moniker: Moniker,
   val location: Location,
   val launchConfiguration: LaunchConfiguration,

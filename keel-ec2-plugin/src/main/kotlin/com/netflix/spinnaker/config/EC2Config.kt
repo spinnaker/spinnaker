@@ -22,7 +22,7 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.ec2.resource.ApplicationLoadBalancerHandler
 import com.netflix.spinnaker.keel.ec2.resource.ClassicLoadBalancerHandler
-import com.netflix.spinnaker.keel.ec2.resource.ClusterHandler
+import com.netflix.spinnaker.keel.ec2.resource.ServerGroupHandler
 import com.netflix.spinnaker.keel.ec2.resource.ImageResolver
 import com.netflix.spinnaker.keel.ec2.resource.SecurityGroupHandler
 import com.netflix.spinnaker.keel.orca.OrcaService
@@ -66,8 +66,8 @@ class EC2Config {
     objectMapper: ObjectMapper,
     normalizers: List<ResourceNormalizer<*>>,
     publisher: ApplicationEventPublisher
-  ): ClusterHandler =
-    ClusterHandler(
+  ): ServerGroupHandler =
+    ServerGroupHandler(
       cloudDriverService,
       cloudDriverCache,
       orcaService,

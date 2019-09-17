@@ -6,8 +6,8 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
-import com.netflix.spinnaker.keel.api.ec2.cluster.Cluster
+import com.netflix.spinnaker.keel.api.ec2.ServerGroupSpec
+import com.netflix.spinnaker.keel.api.ec2.cluster.ServerGroup
 import com.netflix.spinnaker.keel.api.ec2.cluster.LaunchConfiguration
 import com.netflix.spinnaker.keel.api.ec2.cluster.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.ec2.cluster.Location
@@ -70,7 +70,7 @@ internal class ArtifactPromotionListenerTests : JUnit5Minutests {
     val nonArtifactCluster = resource(
       apiVersion = SPINNAKER_API_V1.subApi("ec2"),
       kind = "cluster",
-      spec = ClusterSpec(
+      spec = ServerGroupSpec(
         moniker = Moniker("fnord", "api"),
         location = Location("test", "ap-south-1", "internal (vpc0)", setOf("ap-south1-a", "ap-south1-b", "ap-south1-c")),
         launchConfiguration = LaunchConfigurationSpec(
@@ -88,7 +88,7 @@ internal class ArtifactPromotionListenerTests : JUnit5Minutests {
     val artifactCluster = resource(
       apiVersion = SPINNAKER_API_V1.subApi("ec2"),
       kind = "cluster",
-      spec = ClusterSpec(
+      spec = ServerGroupSpec(
         moniker = Moniker("fnord", "api"),
         location = Location("test", "ap-south-1", "internal (vpc0)", setOf("ap-south1-a", "ap-south1-b", "ap-south1-c")),
         launchConfiguration = LaunchConfigurationSpec(
@@ -103,7 +103,7 @@ internal class ArtifactPromotionListenerTests : JUnit5Minutests {
       )
     )
 
-    private fun ClusterSpec.toCurrent() = Cluster(
+    private fun ServerGroupSpec.toCurrent() = ServerGroup(
       moniker,
       location,
       LaunchConfiguration(
@@ -119,7 +119,7 @@ internal class ArtifactPromotionListenerTests : JUnit5Minutests {
     fun triggerEvent(resource: Resource<*>) {
       val current = when (val spec = resource.spec) {
         is SecurityGroup -> spec
-        is ClusterSpec -> spec.toCurrent()
+        is ServerGroupSpec -> spec.toCurrent()
         else -> error("Unsupported spec type ${spec.javaClass.simpleName}")
       }
       subject.onDeltaResolved(ResourceDeltaResolved(resource, current))
