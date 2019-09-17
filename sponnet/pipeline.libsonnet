@@ -242,6 +242,7 @@
         },
       },
       withPipeline(pipeline):: self + { pipeline: pipeline },
+      withExpectedArtifacts(expectedArtifacts):: self + if std.type(expectedArtifacts) == 'array' then { expectedArtifacts: expectedArtifacts } else { expectedArtifacts: [expectedArtifacts] },
     },
 
     manualJudgment(name):: stage(name, 'manualJudgment') {
