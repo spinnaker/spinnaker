@@ -92,11 +92,14 @@ class ExplicitRollback implements Rollback {
       ]
     }
 
-    def stages = [enableServerGroupStage]
+    // https://github.com/spinnaker/spinnaker/issues/4895 - capture the source capacity as early as possible
+    def stages = []
     if (!parentStage.getContext().containsKey("sourceServerGroupCapacitySnapshot")) {
       // capacity has been previously captured (likely as part of a failed deploy), no need to do again!
       stages << buildCaptureSourceServerGroupCapacityStage(parentStage, parentStage.mapTo(ResizeStrategy.Source))
     }
+
+    stages << enableServerGroupStage
 
     Map resizeServerGroupContext = new HashMap(parentStage.context) + [
       action                       : ResizeStrategy.ResizeAction.scale_to_server_group.toString(),

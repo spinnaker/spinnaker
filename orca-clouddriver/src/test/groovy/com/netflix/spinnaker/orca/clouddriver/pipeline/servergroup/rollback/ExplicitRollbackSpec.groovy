@@ -83,17 +83,13 @@ class ExplicitRollbackSpec extends Specification {
     then:
     beforeStages.isEmpty()
     afterStages*.type == [
+      "captureSourceServerGroupCapacity",  // spinnaker/issues/4895, capture capacity snapshot first
       "enableServerGroup",
-      "captureSourceServerGroupCapacity",
       "resizeServerGroup",
       "disableServerGroup",
       "applySourceServerGroupCapacity"
     ]
-    afterStages[0].context == stage.context + [
-      serverGroupName: "servergroup-v001",
-      targetHealthyDeployPercentage: 95
-    ]
-    afterStages[1].context == [
+    afterStages[0].context == [
       source           : [
         asgName        : "servergroup-v002",
         serverGroupName: "servergroup-v002",
@@ -102,6 +98,10 @@ class ExplicitRollbackSpec extends Specification {
         cloudProvider  : "aws"
       ],
       useSourceCapacity: true
+    ]
+    afterStages[1].context == stage.context + [
+      serverGroupName: "servergroup-v001",
+      targetHealthyDeployPercentage: 95
     ]
     afterStages[2].context == stage.context + [
       action            : "scale_to_server_group",
@@ -152,8 +152,8 @@ class ExplicitRollbackSpec extends Specification {
 
     where:
     delayBeforeDisableSeconds || expectedAfterStageTypes
-    null                      || ["enableServerGroup", "captureSourceServerGroupCapacity", "resizeServerGroup", "disableServerGroup", "applySourceServerGroupCapacity"]
-    0                         || ["enableServerGroup", "captureSourceServerGroupCapacity", "resizeServerGroup", "disableServerGroup", "applySourceServerGroupCapacity"]
-    1                         || ["enableServerGroup", "captureSourceServerGroupCapacity", "resizeServerGroup", "wait", "disableServerGroup", "applySourceServerGroupCapacity"]
+    null                      || ["captureSourceServerGroupCapacity", "enableServerGroup", "resizeServerGroup", "disableServerGroup", "applySourceServerGroupCapacity"]
+    0                         || ["captureSourceServerGroupCapacity", "enableServerGroup", "resizeServerGroup", "disableServerGroup", "applySourceServerGroupCapacity"]
+    1                         || ["captureSourceServerGroupCapacity", "enableServerGroup", "resizeServerGroup", "wait", "disableServerGroup", "applySourceServerGroupCapacity"]
   }
 }
