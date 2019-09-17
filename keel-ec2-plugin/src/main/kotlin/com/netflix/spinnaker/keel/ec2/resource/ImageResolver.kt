@@ -7,10 +7,10 @@ import com.netflix.spinnaker.keel.api.NoImageSatisfiesConstraints
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.UnsupportedStrategy
 import com.netflix.spinnaker.keel.api.ec2.ServerGroupSpec
-import com.netflix.spinnaker.keel.api.ec2.image.ArtifactImageProvider
-import com.netflix.spinnaker.keel.api.ec2.image.IdImageProvider
-import com.netflix.spinnaker.keel.api.ec2.image.ImageProvider
-import com.netflix.spinnaker.keel.api.ec2.image.JenkinsImageProvider
+import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
+import com.netflix.spinnaker.keel.api.ec2.IdImageProvider
+import com.netflix.spinnaker.keel.api.ec2.ImageProvider
+import com.netflix.spinnaker.keel.api.ec2.JenkinsImageProvider
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.DEFAULT_SERVICE_ACCOUNT

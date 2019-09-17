@@ -1,11 +1,6 @@
 package com.netflix.spinnaker.keel.api.ec2
 
-import com.netflix.spinnaker.keel.api.ec2.securityGroup.CidrRule
-import com.netflix.spinnaker.keel.api.ec2.securityGroup.PortRange
-import com.netflix.spinnaker.keel.api.ec2.securityGroup.ReferenceRule
-import com.netflix.spinnaker.keel.api.ec2.securityGroup.SecurityGroup
-import com.netflix.spinnaker.keel.api.ec2.securityGroup.SecurityGroupRule.Protocol.TCP
-import com.netflix.spinnaker.keel.api.ec2.securityGroup.SelfReferenceRule
+import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule.Protocol.TCP
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.model.Moniker
 import de.danielbechler.diff.node.DiffNode.State.CHANGED

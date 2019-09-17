@@ -23,12 +23,10 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.ServerGroupSpec
-import com.netflix.spinnaker.keel.api.ec2.cluster.LaunchConfigurationSpec
-import com.netflix.spinnaker.keel.api.ec2.cluster.Location
-import com.netflix.spinnaker.keel.api.ec2.image.ArtifactAlreadyDeployedEvent
-import com.netflix.spinnaker.keel.api.ec2.image.ArtifactImageProvider
-import com.netflix.spinnaker.keel.api.ec2.image.CurrentlyDeployedImageApprover
-import com.netflix.spinnaker.keel.api.ec2.image.IdImageProvider
+import com.netflix.spinnaker.keel.api.ec2.LaunchConfigurationSpec
+import com.netflix.spinnaker.keel.api.ec2.Location
+import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
+import com.netflix.spinnaker.keel.api.ec2.IdImageProvider
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage

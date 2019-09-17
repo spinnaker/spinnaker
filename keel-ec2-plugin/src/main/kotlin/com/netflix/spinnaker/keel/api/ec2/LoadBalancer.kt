@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.keel.api.ec2
 
 import com.netflix.spinnaker.keel.api.Monikered
-import com.netflix.spinnaker.keel.api.ec2.cluster.Location
 
 interface LoadBalancer : Monikered {
   val location: Location

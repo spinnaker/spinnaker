@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.keel.api.ec2.securityGroup
+package com.netflix.spinnaker.keel.api.ec2
 
 import com.fasterxml.jackson.databind.JsonDeserializer.None
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import com.netflix.spinnaker.keel.api.ec2.jackson.SecurityGroupRuleDeserializer
+import com.netflix.spinnaker.keel.ec2.jackson.SecurityGroupRuleDeserializer
 
 @JsonDeserialize(using = SecurityGroupRuleDeserializer::class)
 sealed class SecurityGroupRule {

@@ -2,7 +2,6 @@ package com.netflix.spinnaker.keel.api.ec2
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.netflix.spinnaker.keel.api.ec2.cluster.ServerGroup
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext

@@ -1,10 +1,10 @@
-package com.netflix.spinnaker.keel.api.ec2.jackson
+package com.netflix.spinnaker.keel.ec2.jackson
 
-import com.netflix.spinnaker.keel.api.ec2.securityGroup.CidrRule
-import com.netflix.spinnaker.keel.api.ec2.securityGroup.CrossAccountReferenceRule
-import com.netflix.spinnaker.keel.api.ec2.securityGroup.ReferenceRule
-import com.netflix.spinnaker.keel.api.ec2.securityGroup.SecurityGroupRule
-import com.netflix.spinnaker.keel.api.ec2.securityGroup.SelfReferenceRule
+import com.netflix.spinnaker.keel.api.ec2.CidrRule
+import com.netflix.spinnaker.keel.api.ec2.CrossAccountReferenceRule
+import com.netflix.spinnaker.keel.api.ec2.ReferenceRule
+import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule
+import com.netflix.spinnaker.keel.api.ec2.SelfReferenceRule
 import com.netflix.spinnaker.keel.serialization.PropertyNamePolymorphicDeserializer
 
 internal class SecurityGroupRuleDeserializer :

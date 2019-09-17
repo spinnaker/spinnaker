@@ -15,14 +15,10 @@
  * limitations under the License.
  *
  */
-package com.netflix.spinnaker.keel.api.ec2.image
+package com.netflix.spinnaker.keel.api.ec2
 
-/**
- * An event fired while we check a server group that lets us know
- * what version of software is running in that server group
- */
-data class ArtifactAlreadyDeployedEvent(
-  val resourceId: String,
-  val imageId: String,
-  val provider: String = "aws"
+data class Dependencies(
+  val loadBalancerNames: Set<String> = emptySet(),
+  val securityGroupNames: Set<String> = emptySet(),
+  val targetGroups: Set<String> = emptySet()
 )

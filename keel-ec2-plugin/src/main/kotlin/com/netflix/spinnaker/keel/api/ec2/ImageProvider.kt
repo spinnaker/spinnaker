@@ -15,13 +15,13 @@
  * limitations under the License.
  *
  */
-package com.netflix.spinnaker.keel.api.ec2.image
+package com.netflix.spinnaker.keel.api.ec2
 
 import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.netflix.spinnaker.keel.api.ArtifactStatus
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.ec2.jackson.ImageProviderDeserializer
+import com.netflix.spinnaker.keel.ec2.jackson.ImageProviderDeserializer
 
 /**
  * Base interface for providing an image

@@ -15,17 +15,11 @@
  * limitations under the License.
  *
  */
-package com.netflix.spinnaker.keel.api.ec2.cluster
+package com.netflix.spinnaker.keel.api.ec2
 
-import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
-import com.netflix.spinnaker.keel.api.ec2.Metric
-import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
-import java.time.Duration
-
-data class Health(
-  val cooldown: Duration = Duration.ofSeconds(10),
-  val warmup: Duration = Duration.ofSeconds(600),
-  val healthCheckType: HealthCheckType = HealthCheckType.EC2,
-  val enabledMetrics: Set<Metric> = emptySet(),
-  val terminationPolicies: Set<TerminationPolicy> = setOf(TerminationPolicy.OldestInstance)
+data class Location(
+  val accountName: String,
+  val region: String,
+  val subnet: String?, // TODO: is this actually optional?
+  val availabilityZones: Set<String>
 )

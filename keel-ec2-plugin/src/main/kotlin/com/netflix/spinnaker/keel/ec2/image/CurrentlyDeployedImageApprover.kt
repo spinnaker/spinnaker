@@ -15,10 +15,11 @@
  * limitations under the License.
  *
  */
-package com.netflix.spinnaker.keel.api.ec2.image
+package com.netflix.spinnaker.keel.ec2.image
 
 import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.ec2.ServerGroupSpec
+import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.appVersion

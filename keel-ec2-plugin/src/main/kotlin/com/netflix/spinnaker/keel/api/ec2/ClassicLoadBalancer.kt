@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.keel.api.ec2
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.netflix.spinnaker.keel.api.ec2.cluster.Location
 import com.netflix.spinnaker.keel.model.Moniker
 
 data class ClassicLoadBalancer(

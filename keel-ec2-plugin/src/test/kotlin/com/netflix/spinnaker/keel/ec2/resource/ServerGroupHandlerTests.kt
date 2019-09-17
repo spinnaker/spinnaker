@@ -9,11 +9,11 @@ import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
 import com.netflix.spinnaker.keel.api.ec2.Metric
 import com.netflix.spinnaker.keel.api.ec2.ScalingProcess
 import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
-import com.netflix.spinnaker.keel.api.ec2.cluster.ServerGroup
-import com.netflix.spinnaker.keel.api.ec2.cluster.Dependencies
-import com.netflix.spinnaker.keel.api.ec2.cluster.LaunchConfigurationSpec
-import com.netflix.spinnaker.keel.api.ec2.cluster.Location
-import com.netflix.spinnaker.keel.api.ec2.image.IdImageProvider
+import com.netflix.spinnaker.keel.api.ec2.ServerGroup
+import com.netflix.spinnaker.keel.api.ec2.Dependencies
+import com.netflix.spinnaker.keel.api.ec2.LaunchConfigurationSpec
+import com.netflix.spinnaker.keel.api.ec2.Location
+import com.netflix.spinnaker.keel.api.ec2.IdImageProvider
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.AutoScalingGroup

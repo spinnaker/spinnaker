@@ -15,15 +15,26 @@
  * limitations under the License.
  *
  */
-package com.netflix.spinnaker.keel.api.ec2.cluster
+package com.netflix.spinnaker.keel.api.ec2
 
-data class LaunchConfiguration(
-  val imageId: String,
-  val appVersion: String,
+data class LaunchConfigurationSpec(
+  val imageProvider: ImageProvider,
   val instanceType: String,
   val ebsOptimized: Boolean,
   val iamRole: String,
   val keyPair: String,
   val instanceMonitoring: Boolean = false,
   val ramdiskId: String? = null
-)
+) {
+  fun generateLaunchConfiguration(imageId: String, appVersion: String) =
+    LaunchConfiguration(
+      imageId = imageId,
+      appVersion = appVersion,
+      instanceType = instanceType,
+      ebsOptimized = ebsOptimized,
+      iamRole = iamRole,
+      keyPair = keyPair,
+      instanceMonitoring = instanceMonitoring,
+      ramdiskId = ramdiskId
+    )
+}

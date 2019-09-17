@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.keel.api.ec2
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.netflix.spinnaker.keel.api.ec2.cluster.Location
 import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel.Action
 import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel.Rule
 import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel.TargetGroupAttributes

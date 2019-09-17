@@ -15,13 +15,13 @@
  * limitations under the License.
  *
  */
-package com.netflix.spinnaker.keel.api.ec2.jackson
+package com.netflix.spinnaker.keel.ec2.jackson
 
 import com.netflix.spinnaker.keel.api.InvalidPayload
-import com.netflix.spinnaker.keel.api.ec2.image.ArtifactImageProvider
-import com.netflix.spinnaker.keel.api.ec2.image.IdImageProvider
-import com.netflix.spinnaker.keel.api.ec2.image.ImageProvider
-import com.netflix.spinnaker.keel.api.ec2.image.JenkinsImageProvider
+import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
+import com.netflix.spinnaker.keel.api.ec2.IdImageProvider
+import com.netflix.spinnaker.keel.api.ec2.ImageProvider
+import com.netflix.spinnaker.keel.api.ec2.JenkinsImageProvider
 import com.netflix.spinnaker.keel.serialization.PropertyNamePolymorphicDeserializer
 
 internal class ImageProviderDeserializer :

@@ -12,11 +12,11 @@ import com.netflix.spinnaker.keel.api.NoImageFoundForRegion
 import com.netflix.spinnaker.keel.api.NoImageSatisfiesConstraints
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.ServerGroupSpec
-import com.netflix.spinnaker.keel.api.ec2.cluster.LaunchConfigurationSpec
-import com.netflix.spinnaker.keel.api.ec2.cluster.Location
-import com.netflix.spinnaker.keel.api.ec2.image.ArtifactImageProvider
-import com.netflix.spinnaker.keel.api.ec2.image.IdImageProvider
-import com.netflix.spinnaker.keel.api.ec2.image.ImageProvider
+import com.netflix.spinnaker.keel.api.ec2.LaunchConfigurationSpec
+import com.netflix.spinnaker.keel.api.ec2.Location
+import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
+import com.netflix.spinnaker.keel.api.ec2.IdImageProvider
+import com.netflix.spinnaker.keel.api.ec2.ImageProvider
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage

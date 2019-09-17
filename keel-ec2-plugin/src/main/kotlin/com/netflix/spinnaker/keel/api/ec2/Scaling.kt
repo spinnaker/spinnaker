@@ -15,9 +15,7 @@
  * limitations under the License.
  *
  */
-package com.netflix.spinnaker.keel.api.ec2.cluster
-
-import com.netflix.spinnaker.keel.api.ec2.ScalingProcess
+package com.netflix.spinnaker.keel.api.ec2
 
 data class Scaling(
   val suspendedProcesses: Set<ScalingProcess> = emptySet()

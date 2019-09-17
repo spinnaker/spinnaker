@@ -15,10 +15,9 @@
  * limitations under the License.
  *
  */
-package com.netflix.spinnaker.keel.api.ec2.cluster
+package com.netflix.spinnaker.keel.api.ec2
 
 import com.netflix.spinnaker.keel.api.Monikered
-import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.model.Moniker
 
 data class ServerGroup(

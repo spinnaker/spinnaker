@@ -1,8 +1,8 @@
 package com.netflix.spinnaker.keel.ec2.actuation
 
 import com.netflix.spinnaker.keel.api.ec2.ServerGroupSpec
-import com.netflix.spinnaker.keel.api.ec2.cluster.ServerGroup
-import com.netflix.spinnaker.keel.api.ec2.image.ArtifactImageProvider
+import com.netflix.spinnaker.keel.api.ec2.ServerGroup
+import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
