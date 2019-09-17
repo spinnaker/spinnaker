@@ -116,8 +116,8 @@ class SagaService(
             .counter(actionInvocationsId.withTags("result", "failure", "action", action.javaClass.simpleName))
             .increment()
 
-          throw SagaIntegrationException(
-            "Failed to apply action ${action.javaClass.simpleName} for ${saga.name}/${saga.id}", e)
+          log.error("Failed to apply action ${action.javaClass.simpleName} for ${saga.name}/${saga.id}")
+          throw e
         }
 
         saga.setSequence(stepCommand.getMetadata().sequence)
