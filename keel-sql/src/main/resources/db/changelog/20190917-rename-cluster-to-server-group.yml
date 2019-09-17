@@ -7,8 +7,12 @@ databaseChangeLog:
             sql: update resource set kind = 'server-group' where kind = 'cluster';
         - sql:
             sql: update resource set id = replace(id, 'ec2:cluster:', 'ec2:server-group:') where id like 'ec2:cluster:%';
+        - sql:
+            sql: update resource set spec = replace(spec, 'cluster', 'server-group') where spec like '%cluster%' and kind = 'keel-tag';
       rollback:
         - sql:
             sql: update resource set kind = 'cluster' where kind = 'server-group';
         - sql:
             sql: update resource set id = replace(id, 'ec2:server-group:', 'ec2:cluster:') where id like 'ec2:server-group:%';
+        - sql:
+            sql: update resource set spec = replace(spec, 'server-group', 'cluster') where spec like '%server-group%' and kind = 'keel-tag';
