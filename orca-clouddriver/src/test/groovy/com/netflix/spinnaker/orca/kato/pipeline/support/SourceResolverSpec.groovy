@@ -246,4 +246,64 @@ class SourceResolverSpec extends Specification {
     existing*.name == ['foo-test-v999', 'foo-test-v000', 'foo-test-v000', 'foo-test-v001']
   }
 
+  void 'should prefer the largest oldest enabled server group'() {
+    given:
+    OortService oort = Mock(OortService)
+    SourceResolver resolver = new SourceResolver(oortService: oort, mapper: new ObjectMapper(), resolver: Mock(TargetServerGroupResolver))
+
+    when:
+    def source = resolver.getSource(stage)
+
+    then:
+    1 * oort.getCluster('foo', 'test', 'foo-test', 'aws') >> new Response('http://oort.com', 200, 'Okay', [], new TypedString(serverGroups))
+    source != null
+
+    source.serverGroupName == "foo-test-v000"
+    source.account == 'test'
+    source.region == "us-west-1"
+
+    where:
+    stage = new Stage(
+      Execution.newPipeline("orca"),
+      "test",
+      [
+        application: "foo",
+        stack: "test",
+        credentials: "test",
+        region: "us-west-1",
+        useSourceCapacity: true
+      ]
+    )
+
+    serverGroups = '''\
+    {
+      "serverGroups": [{
+        "name": "foo-test-v001",
+        "region": "us-west-1",
+        "createdTime": 4,
+        "disabled": false,
+        "instances": [ 1, 2, 3 ]
+      },{
+        "name": "foo-test-v000",
+        "region": "us-west-1",
+        "disabled": false,
+        "instances": [ 1, 2, 3 ],
+        "createdTime": 3
+      },{
+        "name": "foo-test-v000",
+        "region": "us-east-1",
+        "disabled": false,
+        "instances": [ 1, 2, 3 ],
+        "createdTime": 2
+      },{
+        "name": "foo-test-v999",
+        "region": "us-east-1",
+        "disabled": false,
+        "instances": [ 1, 2, 3 ],
+        "createdTime": 1
+      }]
+    }'''.stripIndent()
+
+  }
+
 }

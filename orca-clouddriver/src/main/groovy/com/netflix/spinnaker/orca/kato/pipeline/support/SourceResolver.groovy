@@ -110,8 +110,13 @@ class SourceResolver {
       regionalAsgs = onlyEnabled
     }
 
+    def instanceSize = { Map asg -> (asg.instances as Collection)?.size() ?: 0 }
+    def created = { Map asg -> asg.createdTime as Long ?: 0 }
+    if (stageData.useSourceCapacity) {
+      regionalAsgs = regionalAsgs.sort { a1, a2 -> instanceSize(a1) <=> instanceSize(a2) ?: created(a2) <=> created(a1) }
+    }
     //with useSourceCapacity prefer the largest ASG over the newest ASG
-    def latestAsg = stageData.useSourceCapacity ? regionalAsgs.sort { (it.instances as Collection)?.size() ?: 0 }.last() : regionalAsgs.last()
+    def latestAsg = regionalAsgs.last()
     return new StageData.Source(
       account: stageData.account, region: latestAsg["region"] as String, asgName: latestAsg["name"] as String, serverGroupName: latestAsg["name"] as String
     )
