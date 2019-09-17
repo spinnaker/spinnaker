@@ -38,7 +38,7 @@ class CancelStageHandler(
   override val stageDefinitionBuilderFactory: StageDefinitionBuilderFactory,
   override val stageNavigator: StageNavigator,
 
-  @Qualifier("messageHandlerPool") private val executor: Executor,
+  @Qualifier("cancellableStageExecutor") private val executor: Executor,
   private val taskResolver: TaskResolver
 ) : OrcaMessageHandler<CancelStage>, StageBuilderAware, AuthenticationAware {
 

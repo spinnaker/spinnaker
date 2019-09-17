@@ -174,6 +174,16 @@ public class OrcaConfiguration {
   }
 
   @Bean
+  public ThreadPoolTaskExecutor cancellableStageExecutor() {
+    ThreadPoolTaskExecutor threadPool = new ThreadPoolTaskExecutor();
+    threadPool.setThreadNamePrefix("cancel-");
+    threadPool.setCorePoolSize(5);
+    threadPool.setMaxPoolSize(10);
+    threadPool.setQueueCapacity(20);
+    return threadPool;
+  }
+
+  @Bean
   public TaskScheduler taskScheduler() {
     ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
     scheduler.setThreadNamePrefix("scheduler-");
