@@ -14,12 +14,17 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.v2.description
+package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest
 
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKindProperties
+import io.kubernetes.client.models.V1beta1CustomResourceDefinition
+import io.kubernetes.client.models.V1beta1CustomResourceDefinitionBuilder
+import io.kubernetes.client.models.V1beta1CustomResourceDefinitionNamesBuilder
+import io.kubernetes.client.models.V1beta1CustomResourceDefinitionSpecBuilder
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class KubernetesKindPropertiesSpec extends Specification {
   def "creates and returns the supplied properties"() {
@@ -67,5 +72,38 @@ class KubernetesKindPropertiesSpec extends Specification {
     namespaceProperties.isPresent()
     !namespaceProperties.get().isNamespaced()
     !namespaceProperties.get().hasClusterRelationship()
+  }
+
+  @Unroll
+  void "creates properties from a custom resource definition spec"() {
+    when:
+    def kind = "TestKind"
+    def group = "stable.example.com"
+    V1beta1CustomResourceDefinition crd =
+      new V1beta1CustomResourceDefinitionBuilder()
+        .withSpec(
+          new V1beta1CustomResourceDefinitionSpecBuilder()
+            .withNames(
+              new V1beta1CustomResourceDefinitionNamesBuilder().withKind(kind).build())
+            .withGroup(group)
+            .withScope(scope)
+            .build())
+        .build()
+    def kindProperties = KubernetesKindProperties.fromCustomResourceDefinition(crd)
+
+    then:
+    kindProperties.getKubernetesKind().equals(KubernetesKind.from(kind, KubernetesApiGroup.fromString(group)))
+    kindProperties.isNamespaced() == expectedNamespaced
+
+    where:
+    scope        | expectedNamespaced
+    "namespaced" | true
+    "Namespaced" | true
+    "NAMESPACED" | true
+    "nAmESpaceD" | true
+    ""           | false
+    "cluster"    | false
+    "Cluster"    | false
+    "hello"      | false
   }
 }

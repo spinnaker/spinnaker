@@ -14,11 +14,17 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.v2.description
+package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiGroup
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind
+import io.kubernetes.client.models.V1beta1CustomResourceDefinition
+import io.kubernetes.client.models.V1beta1CustomResourceDefinitionBuilder
+import io.kubernetes.client.models.V1beta1CustomResourceDefinitionNames
+import io.kubernetes.client.models.V1beta1CustomResourceDefinitionNamesBuilder
+import io.kubernetes.client.models.V1beta1CustomResourceDefinitionSpec
+import io.kubernetes.client.models.V1beta1CustomResourceDefinitionSpecBuilder
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -186,5 +192,25 @@ class KubernetesKindSpec extends Specification {
     KubernetesKind.REPLICA_SET | "replicaSet"
     KubernetesKind.SERVICE     | "service"
     CUSTOM_RESOURCE_KIND       | "deployment.stable.example.com"
+  }
+
+  void "creates a kind from a custom resource definition spec"() {
+    when:
+    def kind = "TestKind"
+    def group = "stable.example.com"
+    V1beta1CustomResourceDefinition crd =
+      new V1beta1CustomResourceDefinitionBuilder()
+        .withSpec(
+          new V1beta1CustomResourceDefinitionSpecBuilder()
+            .withNames(
+              new V1beta1CustomResourceDefinitionNamesBuilder().withKind(kind).build())
+            .withGroup(group)
+            .build())
+        .build()
+    def kubernetesKind = KubernetesKind.fromCustomResourceDefinition(crd)
+
+    then:
+    kubernetesKind.getName() == kind
+    kubernetesKind.getApiGroup().toString() == group
   }
 }

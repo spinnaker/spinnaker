@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 
 import com.google.common.collect.ImmutableList;
+import io.kubernetes.client.models.V1beta1CustomResourceDefinition;
 import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -76,6 +77,7 @@ public class KubernetesKindProperties {
     this.hasClusterRelationship = hasClusterRelationship;
   }
 
+  @Nonnull
   public static KubernetesKindProperties withDefaultProperties(KubernetesKind kubernetesKind) {
     return new KubernetesKindProperties(kubernetesKind, true, false);
   }
@@ -84,6 +86,14 @@ public class KubernetesKindProperties {
   public static KubernetesKindProperties create(
       KubernetesKind kubernetesKind, boolean isNamespaced) {
     return new KubernetesKindProperties(kubernetesKind, isNamespaced, false);
+  }
+
+  @Nonnull
+  public static KubernetesKindProperties fromCustomResourceDefinition(
+      V1beta1CustomResourceDefinition crd) {
+    return create(
+        KubernetesKind.fromCustomResourceDefinition(crd),
+        crd.getSpec().getScope().equalsIgnoreCase("namespaced"));
   }
 
   public boolean hasClusterRelationship() {

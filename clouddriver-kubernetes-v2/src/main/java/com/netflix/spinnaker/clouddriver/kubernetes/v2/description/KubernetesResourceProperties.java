@@ -24,8 +24,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.KubernetesUnversionedArtifactConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.KubernetesVersionedArtifactConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKindProperties;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKindRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.CustomKubernetesHandlerFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler;
 import lombok.Getter;
@@ -48,7 +46,7 @@ public class KubernetesResourceProperties {
   }
 
   public static KubernetesResourceProperties fromCustomResource(
-      CustomKubernetesResource customResource, KubernetesKindRegistry kindRegistry) {
+      CustomKubernetesResource customResource) {
     String deployPriority = customResource.getDeployPriority();
     int deployPriorityValue;
     if (StringUtils.isEmpty(deployPriority)) {
@@ -62,20 +60,9 @@ public class KubernetesResourceProperties {
       }
     }
 
-    KubernetesKind kubernetesKind = KubernetesKind.fromString(customResource.getKubernetesKind());
-    kindRegistry.getOrRegisterKind(
-        kubernetesKind,
-        () -> {
-          log.info(
-              "Dynamically registering {}, (namespaced: {})",
-              kubernetesKind.toString(),
-              customResource.isNamespaced());
-          return KubernetesKindProperties.create(kubernetesKind, customResource.isNamespaced());
-        });
-
     KubernetesHandler handler =
         CustomKubernetesHandlerFactory.create(
-            kubernetesKind,
+            KubernetesKind.fromString(customResource.getKubernetesKind()),
             SpinnakerKind.fromString(customResource.getSpinnakerKind()),
             customResource.isVersioned(),
             deployPriorityValue);

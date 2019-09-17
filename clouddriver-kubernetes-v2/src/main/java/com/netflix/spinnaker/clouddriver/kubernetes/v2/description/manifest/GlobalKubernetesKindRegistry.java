@@ -48,7 +48,7 @@ public class GlobalKubernetesKindRegistry {
    * that were registered for the kind; otherwise, returns an empty {@link Optional}.
    */
   @Nonnull
-  public Optional<KubernetesKindProperties> getRegisteredKind(@Nonnull KubernetesKind kind) {
+  public Optional<KubernetesKindProperties> getKindProperties(@Nonnull KubernetesKind kind) {
     return Optional.ofNullable(nameMap.get(kind));
   }
 

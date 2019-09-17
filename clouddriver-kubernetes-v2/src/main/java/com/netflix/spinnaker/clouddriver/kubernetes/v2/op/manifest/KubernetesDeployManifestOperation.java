@@ -100,7 +100,7 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
     validateManifestsForRolloutStrategies(inputManifests);
 
     for (KubernetesManifest manifest : inputManifests) {
-      if (credentials.getKindRegistry().getRegisteredKind(manifest.getKind()).isNamespaced()) {
+      if (credentials.getKindRegistry().getKindProperties(manifest.getKind()).isNamespaced()) {
         if (!StringUtils.isEmpty(description.getNamespaceOverride())) {
           manifest.setNamespace(description.getNamespaceOverride());
         } else if (StringUtils.isEmpty(manifest.getNamespace())) {

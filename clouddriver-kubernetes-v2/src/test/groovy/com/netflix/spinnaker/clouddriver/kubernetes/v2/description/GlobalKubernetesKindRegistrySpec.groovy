@@ -60,7 +60,7 @@ class GlobalKubernetesKindRegistrySpec extends Specification {
     ])
 
     when:
-    def properties = kindRegistry.getRegisteredKind(KubernetesKind.from("customKind", CUSTOM_API_GROUP))
+    def properties = kindRegistry.getKindProperties(KubernetesKind.from("customKind", CUSTOM_API_GROUP))
 
     then:
     properties.get() == CUSTOM_KIND
@@ -74,7 +74,7 @@ class GlobalKubernetesKindRegistrySpec extends Specification {
     ])
 
     when:
-    def properties = kindRegistry.getRegisteredKind(KubernetesKind.from("otherKind", CUSTOM_API_GROUP))
+    def properties = kindRegistry.getKindProperties(KubernetesKind.from("otherKind", CUSTOM_API_GROUP))
 
     then:
     !properties.isPresent()

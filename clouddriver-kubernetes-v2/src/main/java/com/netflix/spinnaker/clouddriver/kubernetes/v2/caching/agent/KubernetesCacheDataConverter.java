@@ -208,7 +208,7 @@ public class KubernetesCacheDataConverter {
               + ":"
               + manifest.getFullResourceName());
     } else {
-      if (kindRegistry.getRegisteredKind(kind).hasClusterRelationship()) {
+      if (kindRegistry.getKindProperties(kind).hasClusterRelationship()) {
         addLogicalRelationships(kubernetesCacheData, key, account, moniker);
       }
     }
@@ -324,7 +324,7 @@ public class KubernetesCacheDataConverter {
     }
 
     if (StringUtils.isEmpty(manifest.getNamespace())
-        && kindRegistry.getRegisteredKind(manifest.getKind()).isNamespaced()) {
+        && kindRegistry.getKindProperties(manifest.getKind()).isNamespaced()) {
       log.warn("{}: manifest namespace may not be null, {}", contextMessage.get(), manifest);
     }
   }

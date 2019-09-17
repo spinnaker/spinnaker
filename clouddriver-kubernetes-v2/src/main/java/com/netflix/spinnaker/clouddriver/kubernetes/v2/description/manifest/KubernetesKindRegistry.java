@@ -17,55 +17,73 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 
 import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
+import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Supplier;
+import java.util.function.Function;
 import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+@ParametersAreNonnullByDefault
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+@Slf4j
 public class KubernetesKindRegistry {
   private final Map<KubernetesKind, KubernetesKindProperties> kindMap = new ConcurrentHashMap<>();
   private final GlobalKubernetesKindRegistry globalKindRegistry;
+  private final Function<KubernetesKind, Optional<KubernetesKindProperties>> crdLookup;
 
-  private KubernetesKindRegistry(GlobalKubernetesKindRegistry globalKindRegistry) {
+  private KubernetesKindRegistry(
+      GlobalKubernetesKindRegistry globalKindRegistry,
+      Function<KubernetesKind, Optional<KubernetesKindProperties>> crdLookup,
+      Collection<KubernetesKindProperties> customProperties) {
     this.globalKindRegistry = globalKindRegistry;
+    this.crdLookup = crdLookup;
+    customProperties.forEach(this::registerKind);
   }
 
   /** Registers a given {@link KubernetesKindProperties} into the registry */
-  public void registerKind(@Nonnull KubernetesKindProperties kind) {
-    kindMap.put(kind.getKubernetesKind(), kind);
+  private KubernetesKindProperties registerKind(KubernetesKindProperties kindProperties) {
+    return kindMap.computeIfAbsent(
+        kindProperties.getKubernetesKind(),
+        k -> {
+          log.info(
+              "Dynamically registering {}, (namespaced: {})",
+              kindProperties.getKubernetesKind().toString(),
+              kindProperties.isNamespaced());
+          return kindProperties;
+        });
   }
 
   /**
    * Searches the registry for a {@link KubernetesKindProperties} with the supplied {@link
    * KubernetesKind}. If the kind has been registered, returns the {@link KubernetesKindProperties}
-   * that were registered for the kind; otherwise, calls the provided {@link Supplier} and registers
-   * the resulting {@link KubernetesKindProperties}.
+   * that were registered for the kind. If the kind is not registered, tries to look up the
+   * properties using the registry's CRD lookup function. If the lookup returns properties,
+   * registers them for this kind and returns them; otherwise returns a {@link
+   * KubernetesKindProperties} with default properties.
    */
   @Nonnull
-  public KubernetesKindProperties getOrRegisterKind(
-      @Nonnull KubernetesKind kind, @Nonnull Supplier<KubernetesKindProperties> supplier) {
-    return kindMap.computeIfAbsent(kind, k -> supplier.get());
-  }
+  public KubernetesKindProperties getKindProperties(KubernetesKind kind) {
+    Optional<KubernetesKindProperties> globalResult = globalKindRegistry.getKindProperties(kind);
+    if (globalResult.isPresent()) {
+      return globalResult.get();
+    }
 
-  /**
-   * Searches the registry for a {@link KubernetesKindProperties} with the supplied {@link
-   * KubernetesKind}. If the kind has been registered, returns the {@link KubernetesKindProperties}
-   * that were registered for the kind; otherwise, looks for the kind in the {@link
-   * GlobalKubernetesKindRegistry} and returns the properties found there. If the kind is not
-   * registered either globally or in the account, returns a {@link KubernetesKindProperties} with
-   * default properties.
-   */
-  @Nonnull
-  public KubernetesKindProperties getRegisteredKind(@Nonnull KubernetesKind kind) {
     KubernetesKindProperties result = kindMap.get(kind);
     if (result != null) {
       return result;
     }
 
-    return globalKindRegistry
-        .getRegisteredKind(kind)
-        .orElse(KubernetesKindProperties.withDefaultProperties(kind));
+    return crdLookup
+        .apply(kind)
+        .map(this::registerKind)
+        .orElseGet(() -> KubernetesKindProperties.withDefaultProperties(kind));
   }
 
   /** Returns a list of all global kinds */
@@ -83,8 +101,16 @@ public class KubernetesKindRegistry {
     }
 
     @Nonnull
+    public KubernetesKindRegistry create(
+        Function<KubernetesKind, Optional<KubernetesKindProperties>> crdLookup,
+        Collection<KubernetesKindProperties> customProperties) {
+      return new KubernetesKindRegistry(globalKindRegistry, crdLookup, customProperties);
+    }
+
+    @Nonnull
     public KubernetesKindRegistry create() {
-      return new KubernetesKindRegistry(globalKindRegistry);
+      return new KubernetesKindRegistry(
+          globalKindRegistry, k -> Optional.empty(), ImmutableList.of());
     }
   }
 }

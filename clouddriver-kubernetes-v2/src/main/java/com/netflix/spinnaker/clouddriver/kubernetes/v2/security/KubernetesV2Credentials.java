@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.security;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static lombok.EqualsAndHashCode.Include;
 
@@ -24,7 +26,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.base.Suppliers;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.netflix.spectator.api.Clock;
 import com.netflix.spectator.api.Registry;
@@ -35,6 +37,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurati
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubeconfigFileHasher;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentialFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.AccountResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.JsonPatch;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPatchOptions;
@@ -42,7 +45,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPod
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourceProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.ResourcePropertyRegistry;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiGroup;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKindProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKindRegistry;
@@ -52,6 +54,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.kork.configserver.ConfigFileService;
 import io.kubernetes.client.models.V1DeleteOptions;
+import io.kubernetes.client.models.V1beta1CustomResourceDefinition;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -60,6 +63,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
@@ -125,24 +129,33 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
 
   private String cachedDefaultNamespace;
   private final Supplier<List<String>> liveNamespaceSupplier;
-  private final Supplier<List<KubernetesKind>> liveCrdSupplier;
   @Getter private final ResourcePropertyRegistry resourcePropertyRegistry;
   @Getter private final KubernetesKindRegistry kindRegistry;
   private final KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap;
   private final PermissionValidator permissionValidator;
+  private final Supplier<ImmutableMap<KubernetesKind, KubernetesKindProperties>> crdSupplier =
+      Suppliers.memoizeWithExpiration(this::crdSupplier, CRD_EXPIRY_SECONDS, TimeUnit.SECONDS);
 
   private KubernetesV2Credentials(
       Registry registry,
       KubectlJobExecutor jobExecutor,
       KubernetesConfigurationProperties.ManagedAccount managedAccount,
       AccountResourcePropertyRegistry.Factory resourcePropertyRegistryFactory,
-      KubernetesKindRegistry kindRegistry,
+      KubernetesKindRegistry.Factory kindRegistryFactory,
       KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap,
       String kubeconfigFile) {
     this.registry = registry;
     this.clock = registry.clock();
     this.jobExecutor = jobExecutor;
-    this.kindRegistry = kindRegistry;
+    this.kindRegistry =
+        kindRegistryFactory.create(
+            this::getCrdProperties,
+            managedAccount.getCustomResources().stream()
+                .map(
+                    cr ->
+                        KubernetesKindProperties.create(
+                            KubernetesKind.fromString(cr.getKubernetesKind()), cr.isNamespaced()))
+                .collect(toImmutableList()));
 
     this.accountName = managedAccount.getName();
     this.namespaces = managedAccount.getNamespaces();
@@ -150,19 +163,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     this.kinds =
         managedAccount.getKinds().stream()
             .map(KubernetesKind::fromString)
-            .map(
-                k ->
-                    kindRegistry.getOrRegisterKind(
-                        k,
-                        () -> {
-                          log.info(
-                              "Dynamically registering {}, (namespaced: {})", k.toString(), true);
-                          return KubernetesKindProperties.create(k, true);
-                        }))
-            .map(KubernetesKindProperties::getKubernetesKind)
             .collect(toImmutableSet());
-    // omitKinds is a simple placeholder that we can use to compare one instance to another
-    // when refreshing credentials.
     this.omitKinds =
         managedAccount.getOmitKinds().stream()
             .map(KubernetesKind::fromString)
@@ -173,8 +174,8 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     this.resourcePropertyRegistry =
         resourcePropertyRegistryFactory.create(
             managedAccount.getCustomResources().stream()
-                .map(cr -> KubernetesResourceProperties.fromCustomResource(cr, kindRegistry))
-                .collect(ImmutableList.toImmutableList()));
+                .map(KubernetesResourceProperties::fromCustomResource)
+                .collect(toImmutableList()));
     this.kubernetesSpinnakerKindMap = kubernetesSpinnakerKindMap;
 
     this.kubectlExecutable = managedAccount.getKubectlExecutable();
@@ -216,47 +217,6 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
               }
             },
             NAMESPACE_EXPIRY_SECONDS,
-            TimeUnit.SECONDS);
-
-    this.liveCrdSupplier =
-        Memoizer.memoizeWithExpiration(
-            () -> {
-              try {
-                return this.list(KubernetesKind.CUSTOM_RESOURCE_DEFINITION, "").stream()
-                    .map(
-                        c -> {
-                          Map<String, Object> spec =
-                              (Map<String, Object>) c.getOrDefault("spec", new HashMap<>());
-                          String scope = (String) spec.getOrDefault("scope", "");
-                          Map<String, String> names =
-                              (Map<String, String>) spec.getOrDefault("names", new HashMap<>());
-                          String name = names.get("kind");
-
-                          String group = (String) spec.getOrDefault("group", "");
-                          KubernetesApiGroup kubernetesApiGroup =
-                              KubernetesApiGroup.fromString(group);
-                          boolean isNamespaced = scope.equalsIgnoreCase("namespaced");
-
-                          KubernetesKind kind = KubernetesKind.from(name, kubernetesApiGroup);
-                          return kindRegistry.getOrRegisterKind(
-                              kind,
-                              () -> {
-                                log.info(
-                                    "Dynamically registering {}, (namespaced: {})",
-                                    kind.toString(),
-                                    isNamespaced);
-                                return KubernetesKindProperties.create(kind, isNamespaced);
-                              });
-                        })
-                    .map(KubernetesKindProperties::getKubernetesKind)
-                    .collect(Collectors.toList());
-              } catch (KubectlException e) {
-                // not logging here -- it will generate a lot of noise in cases where crds aren't
-                // available/registered in the first place
-                return new ArrayList<>();
-              }
-            },
-            CRD_EXPIRY_SECONDS,
             TimeUnit.SECONDS);
   }
 
@@ -334,6 +294,11 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
         : KubernetesKindStatus.READ_ERROR;
   }
 
+  private Optional<KubernetesKindProperties> getCrdProperties(
+      @Nonnull KubernetesKind kubernetesKind) {
+    return Optional.ofNullable(getCrds().get(kubernetesKind));
+  }
+
   public String getDefaultNamespace() {
     if (StringUtils.isEmpty(cachedDefaultNamespace)) {
       cachedDefaultNamespace = lookupDefaultNamespace();
@@ -377,8 +342,31 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     }
   }
 
-  public List<KubernetesKind> getCrds() {
-    return liveCrdSupplier.get();
+  @Nonnull
+  public ImmutableMap<KubernetesKind, KubernetesKindProperties> getCrds() {
+    return crdSupplier.get();
+  }
+
+  @Nonnull
+  private ImmutableMap<KubernetesKind, KubernetesKindProperties> crdSupplier() {
+    // Short-circuit if the account is not configured (or does not have permission) to read CRDs
+    if (!isValidKind(KubernetesKind.CUSTOM_RESOURCE_DEFINITION)) {
+      return ImmutableMap.of();
+    }
+    try {
+      return list(KubernetesKind.CUSTOM_RESOURCE_DEFINITION, "").stream()
+          .map(
+              manifest ->
+                  KubernetesCacheDataConverter.getResource(
+                      manifest, V1beta1CustomResourceDefinition.class))
+          .map(KubernetesKindProperties::fromCustomResourceDefinition)
+          .collect(
+              toImmutableMap(KubernetesKindProperties::getKubernetesKind, Function.identity()));
+    } catch (KubectlException e) {
+      // not logging here -- it will generate a lot of noise in cases where crds aren't
+      // available/registered in the first place
+      return ImmutableMap.of();
+    }
   }
 
   @Override
@@ -668,7 +656,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
       }
       log.info("Checking if {} is readable in account '{}'...", kind, accountName);
       try {
-        if (kindRegistry.getRegisteredKind(kind).isNamespaced()) {
+        if (kindRegistry.getKindProperties(kind).isNamespaced()) {
           list(kind, checkNamespace.get());
         } else {
           list(kind, null);
@@ -744,7 +732,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
           jobExecutor,
           managedAccount,
           resourcePropertyRegistryFactory,
-          kindRegistryFactory.create(),
+          kindRegistryFactory,
           kubernetesSpinnakerKindMap,
           getKubeconfigFile(configFileService, managedAccount));
     }

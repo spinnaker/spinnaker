@@ -19,15 +19,18 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import io.kubernetes.client.models.V1beta1CustomResourceDefinition;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ParametersAreNonnullByDefault
 public class KubernetesKind {
   private static final Map<KubernetesKind, KubernetesKind> aliasMap = new ConcurrentHashMap<>();
 
@@ -103,7 +106,7 @@ public class KubernetesKind {
   @Getter @Nonnull private final KubernetesApiGroup apiGroup;
   @EqualsAndHashCode.Include @Nullable private final KubernetesApiGroup customApiGroup;
 
-  private KubernetesKind(@Nonnull String name, @Nullable KubernetesApiGroup apiGroup) {
+  private KubernetesKind(String name, @Nullable KubernetesApiGroup apiGroup) {
     this.name = name;
     this.lcName = name.toLowerCase();
     this.apiGroup = apiGroup == null ? KubernetesApiGroup.NONE : apiGroup;
@@ -115,7 +118,7 @@ public class KubernetesKind {
   }
 
   private static KubernetesKind createWithAlias(
-      @Nonnull String name, @Nullable String alias, @Nullable KubernetesApiGroup apiGroup) {
+      String name, @Nullable String alias, @Nullable KubernetesApiGroup apiGroup) {
     KubernetesKind kind = new KubernetesKind(name, apiGroup);
     aliasMap.put(kind, kind);
     if (alias != null) {
@@ -124,6 +127,7 @@ public class KubernetesKind {
     return kind;
   }
 
+  @Nonnull
   public static KubernetesKind from(@Nullable String name, @Nullable KubernetesApiGroup apiGroup) {
     if (name == null || name.isEmpty()) {
       return KubernetesKind.NONE;
@@ -133,8 +137,15 @@ public class KubernetesKind {
   }
 
   @Nonnull
+  public static KubernetesKind fromCustomResourceDefinition(V1beta1CustomResourceDefinition crd) {
+    return from(
+        crd.getSpec().getNames().getKind(),
+        KubernetesApiGroup.fromString(crd.getSpec().getGroup()));
+  }
+
+  @Nonnull
   @JsonCreator
-  public static KubernetesKind fromString(@Nonnull String qualifiedKind) {
+  public static KubernetesKind fromString(String qualifiedKind) {
     KubernetesApiGroup apiGroup;
     String kindName;
     String[] parts = StringUtils.split(qualifiedKind, ".", 2);

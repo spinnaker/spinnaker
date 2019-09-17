@@ -128,7 +128,7 @@ class KubernetesAccountResolverSpec extends Specification {
         getKindRegistry() >> v2KindRegistry
       }
     }
-    0 * kindRegistryFactory.create()
+    0 * kindRegistryFactory.create(*_)
     registry == v2KindRegistry
 
     when:
@@ -138,7 +138,7 @@ class KubernetesAccountResolverSpec extends Specification {
     1 * credentialsRepository.getOne(ACCOUNT_NAME) >> Mock(KubernetesNamedAccountCredentials) {
       getCredentials() >> Mock(KubernetesCredentials)
     }
-    1 * kindRegistryFactory.create() >> v2KindRegistry
+    1 * kindRegistryFactory.create(*_) >> v2KindRegistry
     registry == v2KindRegistry
 
     when:
@@ -148,7 +148,7 @@ class KubernetesAccountResolverSpec extends Specification {
     1 * credentialsRepository.getOne(ACCOUNT_NAME) >> Mock(AccountCredentials) {
       getCredentials() >> Mock(KubernetesCredentials)
     }
-    1 * kindRegistryFactory.create() >> v2KindRegistry
+    1 * kindRegistryFactory.create(*_) >> v2KindRegistry
     registry == v2KindRegistry
 
 
@@ -157,7 +157,7 @@ class KubernetesAccountResolverSpec extends Specification {
 
     then:
     1 * credentialsRepository.getOne(ACCOUNT_NAME) >> null
-    1 * kindRegistryFactory.create() >> v2KindRegistry
+    1 * kindRegistryFactory.create(*_) >> v2KindRegistry
     registry == v2KindRegistry
   }
 }

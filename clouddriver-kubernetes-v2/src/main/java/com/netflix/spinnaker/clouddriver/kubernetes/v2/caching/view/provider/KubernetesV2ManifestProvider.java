@@ -72,7 +72,7 @@ public class KubernetesV2ManifestProvider extends KubernetesV2AbstractManifestPr
     }
 
     KubernetesKind kind = parsedName.getLeft();
-    if (!getKindRegistry(account).getRegisteredKind(kind).isNamespaced()
+    if (!getKindRegistry(account).getKindProperties(kind).isNamespaced()
         && StringUtils.isNotEmpty(location)) {
       log.warn(
           "Kind {} is not namespaced, but namespace {} was provided (ignoring)", kind, location);
