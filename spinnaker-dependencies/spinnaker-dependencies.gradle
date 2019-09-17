@@ -116,6 +116,7 @@ dependencies {
     api("de.danielbechler:java-object-diff:0.95")
     api("de.huxhorn.sulky:de.huxhorn.sulky.ulid:8.2.0")
     api("dev.minutest:minutest:1.7.0")
+    api("io.github.resilience4j:resilience4j-annotations:${versions.resilience4j}")
     api("io.github.resilience4j:resilience4j-circuitbreaker:${versions.resilience4j}")
     api("io.github.resilience4j:resilience4j-kotlin:${versions.resilience4j}")
     api("io.github.resilience4j:resilience4j-retry:${versions.resilience4j}")

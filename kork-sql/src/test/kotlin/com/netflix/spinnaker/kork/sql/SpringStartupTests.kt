@@ -36,7 +36,6 @@ import strikt.assertions.isEqualTo
 @RunWith(SpringRunner::class)
 @SpringBootTest(
   classes = [StartupTestApp::class],
-  webEnvironment = SpringBootTest.WebEnvironment.NONE,
   properties = [
     "sql.enabled=true",
     "sql.migration.jdbcUrl=jdbc:h2:mem:test",

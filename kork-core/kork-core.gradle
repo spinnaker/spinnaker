@@ -8,12 +8,15 @@ dependencies {
 
   api project(":kork-exceptions")
   api "org.springframework.boot:spring-boot-autoconfigure"
+  api "org.springframework.boot:spring-boot-starter-aop"
   api "org.springframework.boot:spring-boot-starter-actuator"
   api "com.netflix.eureka:eureka-client"
   api "com.netflix.spectator:spectator-api"
   api "com.google.code.findbugs:jsr305"
-  api "javax.inject:javax.inject:1"
+  api "io.github.resilience4j:resilience4j-annotations"
   api "io.github.resilience4j:resilience4j-retry"
+  api "io.github.resilience4j:resilience4j-spring-boot2"
+  api "javax.inject:javax.inject:1"
 
   implementation "com.netflix.netflix-commons:netflix-eventbus"
   implementation "com.netflix.archaius:archaius-core"
