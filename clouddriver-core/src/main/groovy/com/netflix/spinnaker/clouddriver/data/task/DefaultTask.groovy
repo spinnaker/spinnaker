@@ -112,6 +112,11 @@ public class DefaultTask implements Task {
   boolean hasSagaIds() {
     return !sagaIdentifiers.isEmpty()
   }
+
+  @Override
+  void retry() {
+    statusHistory.addLast(currentStatus().update(TaskState.STARTED))
+  }
 }
 
 @Immutable(knownImmutableClasses = [Status])
@@ -190,5 +195,4 @@ class DefaultTaskStatus implements Status {
       throw new IllegalStateException("Task is already completed! No further updates allowed!")
     }
   }
-
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.clouddriver.titus.deploy.actions;
+package com.netflix.spinnaker.clouddriver.orchestration.sagas;
 
 import static java.lang.String.format;
 
@@ -135,7 +135,7 @@ public class LoadFront50App implements SagaAction<LoadFront50App.LoadFront50AppC
   }
 
   /** Marks a SagaCommand as being aware of the result of the LoadFront50App SagaAction. */
-  interface Front50AppAware {
+  public interface Front50AppAware {
     void setFront50App(Front50App app);
   }
 

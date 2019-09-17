@@ -15,15 +15,11 @@
  */
 package com.netflix.spinnaker.clouddriver.saga.exceptions
 
-import com.netflix.spinnaker.kork.exceptions.SystemException
+import com.netflix.spinnaker.clouddriver.saga.flow.SagaAction
 
 /**
- * Root exception for internal Saga framework exceptions.
+ * Thrown when a [SagaAction] cannot be found during a [SagaFlow.inject] operation.
  */
-open class SagaSystemException(message: String, cause: Throwable?) : SystemException(message, cause), SagaException {
-  constructor(message: String) : this(message, null)
-
-  init {
-    retryable = true
-  }
-}
+class SagaFlowActionNotFoundException(sagaAction: Class<out SagaAction<*>>) : SagaIntegrationException(
+  "Could not find a SagaAction in flow for ${sagaAction.simpleName}"
+)

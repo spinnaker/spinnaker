@@ -19,16 +19,18 @@ package com.netflix.spinnaker.clouddriver.deploy
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import com.netflix.spinnaker.clouddriver.orchestration.SagaContextAware
 import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEvent
 import org.springframework.beans.factory.annotation.Autowired
 
-class DeployAtomicOperation implements AtomicOperation<DeploymentResult> {
+class DeployAtomicOperation implements AtomicOperation<DeploymentResult>, SagaContextAware {
   private static final String TASK_PHASE = "DEPLOY"
 
   @Autowired
   DeployHandlerRegistry deploymentHandlerRegistry
 
   private final DeployDescription description
+  SagaContext sagaContext
 
   DeployAtomicOperation(DeployDescription description) {
     this.description = description
@@ -50,6 +52,10 @@ class DeployAtomicOperation implements AtomicOperation<DeploymentResult> {
     DeployHandler deployHandler = deploymentHandlerRegistry.findHandler(description)
     if (!deployHandler) {
       throw new DeployHandlerNotFoundException("Could not find handler for ${description.getClass().simpleName}!")
+    }
+
+    if (deployHandler instanceof SagaContextAware) {
+      deployHandler.sagaContext = sagaContext
     }
 
     task.updateStatus TASK_PHASE, "Found handler: ${deployHandler.getClass().simpleName}"

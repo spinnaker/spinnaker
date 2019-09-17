@@ -112,6 +112,10 @@ class SqlTask(
     return sagaIds.isNotEmpty()
   }
 
+  override fun retry() {
+    repository.updateState(this, TaskState.STARTED)
+  }
+
   internal fun hydrateResultObjects(resultObjects: MutableList<Any>) {
     this.dirty.set(false)
     this.resultObjects = resultObjects

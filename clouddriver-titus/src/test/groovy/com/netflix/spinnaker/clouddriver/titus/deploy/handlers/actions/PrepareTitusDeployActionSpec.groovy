@@ -26,7 +26,7 @@ import com.netflix.spinnaker.clouddriver.titus.client.TitusRegion
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job
 import com.netflix.spinnaker.clouddriver.titus.client.model.MigrationPolicy
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
-import com.netflix.spinnaker.clouddriver.titus.deploy.actions.LoadFront50App
+import com.netflix.spinnaker.clouddriver.orchestration.sagas.LoadFront50App
 import com.netflix.spinnaker.clouddriver.titus.deploy.actions.PrepareTitusDeploy
 import com.netflix.spinnaker.clouddriver.titus.deploy.actions.PrepareTitusDeploy.PrepareTitusDeployCommand
 import com.netflix.spinnaker.clouddriver.titus.deploy.actions.SubmitTitusJob

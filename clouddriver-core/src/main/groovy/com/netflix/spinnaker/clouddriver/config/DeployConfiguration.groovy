@@ -33,14 +33,17 @@ import com.netflix.spinnaker.clouddriver.orchestration.ExceptionClassifier
 import com.netflix.spinnaker.clouddriver.orchestration.OperationsService
 import com.netflix.spinnaker.clouddriver.orchestration.OrchestrationProcessor
 import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEventHandler
+import com.netflix.spinnaker.clouddriver.saga.persistence.SagaRepository
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.AllowedAccountsValidator
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 
 @Configuration
+@ComponentScan("com.netflix.spinnaker.clouddriver.orchestration.sagas")
 class DeployConfiguration {
   @Bean
   @ConditionalOnMissingBean(TaskRepository)
@@ -92,6 +95,7 @@ class DeployConfiguration {
     Optional<Collection<AllowedAccountsValidator>> allowedAccountsValidators,
     Optional<List<AtomicOperationDescriptionPreProcessor>> atomicOperationDescriptionPreProcessors,
     AccountCredentialsRepository accountCredentialsRepository,
+    Optional<SagaRepository> sagaRepository,
     Registry registry,
     ObjectMapper objectMapper
   ) {
@@ -101,6 +105,7 @@ class DeployConfiguration {
       allowedAccountsValidators,
       atomicOperationDescriptionPreProcessors,
       accountCredentialsRepository,
+      sagaRepository,
       registry,
       objectMapper
     )

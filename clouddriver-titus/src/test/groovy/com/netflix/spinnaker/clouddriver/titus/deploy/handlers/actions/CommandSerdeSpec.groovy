@@ -32,8 +32,8 @@ import java.time.Instant
 import static com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.TargetGroupLookupHelper.TargetGroupLookupResult
 import static com.netflix.spinnaker.clouddriver.titus.deploy.actions.AttachTitusServiceLoadBalancers.AttachTitusServiceLoadBalancersCommand
 import static com.netflix.spinnaker.clouddriver.titus.deploy.actions.CopyTitusServiceScalingPolicies.CopyTitusServiceScalingPoliciesCommand
-import static com.netflix.spinnaker.clouddriver.titus.deploy.actions.LoadFront50App.Front50App
-import static com.netflix.spinnaker.clouddriver.titus.deploy.actions.LoadFront50App.LoadFront50AppCommand
+import static com.netflix.spinnaker.clouddriver.orchestration.sagas.LoadFront50App.Front50App
+import static com.netflix.spinnaker.clouddriver.orchestration.sagas.LoadFront50App.LoadFront50AppCommand
 import static com.netflix.spinnaker.clouddriver.titus.deploy.actions.PrepareTitusDeploy.PrepareTitusDeployCommand
 
 class CommandSerdeSpec extends Specification {

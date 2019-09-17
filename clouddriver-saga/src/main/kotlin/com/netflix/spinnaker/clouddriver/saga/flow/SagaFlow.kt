@@ -16,6 +16,9 @@
 package com.netflix.spinnaker.clouddriver.saga.flow
 
 import com.google.common.annotations.Beta
+import com.netflix.spinnaker.clouddriver.saga.exceptions.SagaFlowActionNotFoundException
+import com.netflix.spinnaker.clouddriver.saga.flow.SagaFlow.InjectLocation.AFTER
+import com.netflix.spinnaker.clouddriver.saga.flow.SagaFlow.InjectLocation.BEFORE
 import com.netflix.spinnaker.clouddriver.saga.models.Saga
 import java.util.function.Consumer
 import java.util.function.Predicate
@@ -36,6 +39,40 @@ class SagaFlow {
    */
   fun then(action: Class<out SagaAction<*>>): SagaFlow {
     steps.add(ActionStep(action))
+    return this
+  }
+
+  /**
+   * Add a new [SagaAction] into the flow at an arbitrary position in relation to another [SagaAction].
+   */
+  fun inject(
+    location: InjectLocation,
+    targetAction: Class<out SagaAction<*>>,
+    action: Class<out SagaAction<*>>
+  ): SagaFlow {
+    val index = steps.filterIsInstance<ActionStep>().indexOfFirst { it.action == targetAction }
+    if (index == -1) {
+      throw SagaFlowActionNotFoundException(targetAction)
+    }
+    when (location) {
+      BEFORE -> steps.add(index, ActionStep(action))
+      AFTER -> {
+        val afterIndex = index + 1
+        if (afterIndex > steps.size - 1) {
+          steps.add(ActionStep(action))
+        } else {
+          steps.add(index + 1, ActionStep(action))
+        }
+      }
+    }
+    return this
+  }
+
+  /**
+   * Inject the provided [SagaAction] as the first step.
+   */
+  fun injectFirst(action: Class<out SagaAction<*>>): SagaFlow {
+    steps.add(0, ActionStep(action))
     return this
   }
 
@@ -73,4 +110,9 @@ class SagaFlow {
   interface Step
   inner class ActionStep(val action: Class<out SagaAction<*>>) : Step
   inner class ConditionStep(val predicate: Class<out Predicate<Saga>>, val nestedBuilder: SagaFlow) : Step
+
+  enum class InjectLocation {
+    BEFORE,
+    AFTER
+  }
 }

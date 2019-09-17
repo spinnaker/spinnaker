@@ -221,6 +221,7 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
         return new GetTaskResult(existingTask, false)
       }
       existingTask.updateStatus(TASK_PHASE, "Re-initializing Orchestration Task")
+      existingTask.retry()
       return new GetTaskResult(existingTask, true)
     }
     return new GetTaskResult(

@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.OperationsService
 import com.netflix.spinnaker.clouddriver.orchestration.OrchestrationProcessor
+import com.netflix.spinnaker.kork.exceptions.ConstraintViolationException
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Value
@@ -122,16 +123,21 @@ class OperationsController {
    * @param id
    */
   @PostMapping("/task/{id}:resume")
-  void resumeTask(@PathVariable("id") String id) {
+  StartOperationResult resumeTask(@PathVariable("id") String id) {
     Task t = taskRepository.get(id);
     if (t == null) {
       throw new NotFoundException("Task not found (id: $id)")
     }
 
-    // TODO(rz): Check if task is failed: Only allow resuming failed tasks
-    // TODO(rz): Lookup saga
+    if (!t.status.retryable) {
+      throw new ConstraintViolationException("Task is not retryable").with {
+        setRetryable(false)
+        it
+      }
+    }
 
-    throw new UnsupportedOperationException("omg, pickles")
+    List<AtomicOperation> atomicOperations = operationsService.collectAtomicOperationsFromSagas(t.getSagaIds());
+    return start(atomicOperations, t.requestId)
   }
 
   /**

@@ -79,6 +79,7 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationDescriptio
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationsRegistry
 import com.netflix.spinnaker.clouddriver.orchestration.ExceptionClassifier
 import com.netflix.spinnaker.clouddriver.orchestration.OperationsService
+import com.netflix.spinnaker.clouddriver.saga.SagaEvent
 import com.netflix.spinnaker.clouddriver.search.ApplicationSearchProvider
 import com.netflix.spinnaker.clouddriver.search.NoopSearchProvider
 import com.netflix.spinnaker.clouddriver.search.ProjectSearchProvider
@@ -91,6 +92,7 @@ import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvi
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
@@ -136,6 +138,13 @@ class CloudDriverConfig {
         jacksonObjectMapperBuilder.modules(new Jdk8Module(), new JavaTimeModule(), new KotlinModule())
       }
     }
+  }
+
+  @Bean
+  ObjectMapperSubtypeConfigurer.SubtypeLocator clouddriverSubtypeLocator() {
+    return new ObjectMapperSubtypeConfigurer.ClassSubtypeLocator(SagaEvent, [
+      "com.netflix.spinnaker.clouddriver.orchestration.sagas"
+    ])
   }
 
   @Bean

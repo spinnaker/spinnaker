@@ -19,10 +19,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Splitter;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.clouddriver.data.task.SagaId;
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionAuthorizer;
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidationErrors;
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidationException;
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator;
+import com.netflix.spinnaker.clouddriver.orchestration.sagas.SnapshotAtomicOperationInput.SnapshotAtomicOperationInputCommand;
+import com.netflix.spinnaker.clouddriver.saga.persistence.SagaRepository;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.security.AllowedAccountsValidator;
@@ -35,6 +38,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
@@ -56,6 +60,7 @@ public class OperationsService {
   private final List<AtomicOperationDescriptionPreProcessor>
       atomicOperationDescriptionPreProcessors;
   private final AccountCredentialsRepository accountCredentialsRepository;
+  private final Optional<SagaRepository> sagaRepository;
   private final Registry registry;
   private final ObjectMapper objectMapper;
 
@@ -68,6 +73,7 @@ public class OperationsService {
       Optional<List<AtomicOperationDescriptionPreProcessor>>
           atomicOperationDescriptionPreProcessors,
       AccountCredentialsRepository accountCredentialsRepository,
+      Optional<SagaRepository> sagaRepository,
       Registry registry,
       ObjectMapper objectMapper) {
     this.atomicOperationsRegistry = atomicOperationsRegistry;
@@ -76,6 +82,7 @@ public class OperationsService {
     this.atomicOperationDescriptionPreProcessors =
         atomicOperationDescriptionPreProcessors.orElse(Collections.emptyList());
     this.accountCredentialsRepository = accountCredentialsRepository;
+    this.sagaRepository = sagaRepository;
     this.registry = registry;
     this.objectMapper = objectMapper;
 
@@ -131,6 +138,8 @@ public class OperationsService {
                               atomicOperationsRegistry.getAtomicOperationConverter(
                                   descriptionName, provider, providerVersion);
 
+                          // TODO(rz): What if a preprocessor fails due to a downstream error? How
+                          // does this affect retrying?
                           Map processedInput =
                               processDescriptionInput(
                                   atomicOperationDescriptionPreProcessors,
@@ -178,6 +187,13 @@ public class OperationsService {
                             throw new AtomicOperationNotFoundException(descriptionName);
                           }
 
+                          if (atomicOperation instanceof SagaContextAware) {
+                            ((SagaContextAware) atomicOperation)
+                                .setSagaContext(
+                                    new SagaContextAware.SagaContext(
+                                        cloudProvider, descriptionName, descriptionInput));
+                          }
+
                           if (errors.hasErrors()) {
                             registry
                                 .counter(
@@ -189,6 +205,38 @@ public class OperationsService {
                           return new AtomicOperationBindingResult(atomicOperation, errors);
                         }))
         .collect(Collectors.toList());
+  }
+
+  public List<AtomicOperation> collectAtomicOperationsFromSagas(List<SagaId> sagaIds) {
+    if (!sagaRepository.isPresent()) {
+      return Collections.emptyList();
+    }
+    // Resuming a saga-backed AtomicOperation is kind of a pain. This is because AtomicOperations
+    // and their descriptions are totally decoupled from their input & description name, so we
+    // have to store additional state in the Saga and then use that to reconstruct
+    // AtomicOperations. It'd make sense to refactor all of this someday.
+    return sagaIds.stream()
+        .map(id -> sagaRepository.get().get(id.getName(), id.getId()))
+        .filter(Objects::nonNull)
+        .filter(it -> !it.isComplete())
+        .map(saga -> saga.getEvent(SnapshotAtomicOperationInputCommand.class))
+        .map(
+            it ->
+                convert(
+                    it.getCloudProvider(),
+                    Collections.singletonList(
+                        Collections.singletonMap(
+                            it.getDescriptionName(), it.getDescriptionInput()))))
+        .flatMap(Collection::stream)
+        .map(this::atomicOperationOrError)
+        .collect(Collectors.toList());
+  }
+
+  private AtomicOperation atomicOperationOrError(AtomicOperationBindingResult bindingResult) {
+    if (bindingResult.errors.hasErrors()) {
+      throw new DescriptionValidationException(bindingResult.errors);
+    }
+    return bindingResult.atomicOperation;
   }
 
   private ProviderVersion getOperationVersion(OperationInput operation) {

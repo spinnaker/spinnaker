@@ -116,7 +116,10 @@ class SagaFlowIterator(
       .mapNotNull { it.invoke(index, steps, saga)?.coerceAtLeast(0) }
       .max()
       ?: index
-    log.info("Seeking to step index $index")
+
+    if (index != 0) {
+      log.info("Seeking to step index $index")
+    }
   }
 
   override fun next(): IteratorState {

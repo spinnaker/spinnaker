@@ -28,6 +28,8 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory;
 import com.netflix.spinnaker.clouddriver.event.EventMetadata;
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
+import com.netflix.spinnaker.clouddriver.orchestration.sagas.LoadFront50App;
+import com.netflix.spinnaker.clouddriver.orchestration.sagas.LoadFront50App.Front50AppAware;
 import com.netflix.spinnaker.clouddriver.saga.SagaCommand;
 import com.netflix.spinnaker.clouddriver.saga.flow.SagaAction;
 import com.netflix.spinnaker.clouddriver.saga.models.Saga;
@@ -45,7 +47,6 @@ import com.netflix.spinnaker.clouddriver.titus.client.model.disruption.Container
 import com.netflix.spinnaker.clouddriver.titus.client.model.disruption.HourlyTimeWindow;
 import com.netflix.spinnaker.clouddriver.titus.client.model.disruption.RatePercentagePerInterval;
 import com.netflix.spinnaker.clouddriver.titus.client.model.disruption.TimeWindow;
-import com.netflix.spinnaker.clouddriver.titus.deploy.actions.LoadFront50App.Front50AppAware;
 import com.netflix.spinnaker.clouddriver.titus.deploy.actions.SubmitTitusJob.SubmitTitusJobCommand;
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.TitusDeployDescription;
 import com.netflix.spinnaker.clouddriver.titus.exceptions.JobNotFoundException;

@@ -92,4 +92,7 @@ public interface Task {
     }
     return getStatus().isFailed() && getStatus().isRetryable();
   }
+
+  /** Updates the status of a failed Task to running in response to a retry operation. */
+  void retry();
 }

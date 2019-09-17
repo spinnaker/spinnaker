@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionAuthorizer
+import com.netflix.spinnaker.clouddriver.saga.persistence.SagaRepository
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.Bean
@@ -42,6 +43,7 @@ class OperationsServiceSpec extends Specification {
     Optional.empty(),
     Optional.empty(),
     Mock(AccountCredentialsRepository),
+    Optional.of(Mock(SagaRepository)),
     new NoopRegistry(),
     new ObjectMapper()
   )

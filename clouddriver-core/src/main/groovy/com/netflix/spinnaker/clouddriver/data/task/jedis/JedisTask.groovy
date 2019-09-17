@@ -127,6 +127,16 @@ class JedisTask implements Task {
     return !sagaIds.isEmpty()
   }
 
+  @Override
+  void retry() {
+    checkMutable()
+    repository.addToHistory(
+      repository.currentState(this).update(TaskState.STARTED),
+      this
+    )
+
+  }
+
   private void checkMutable() {
     if (previousRedis) {
       throw new IllegalStateException("Read-only task")

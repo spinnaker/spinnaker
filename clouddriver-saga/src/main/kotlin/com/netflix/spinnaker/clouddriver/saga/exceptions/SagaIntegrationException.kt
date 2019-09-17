@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.clouddriver.saga.exceptions
 
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
+import com.netflix.spinnaker.kork.exceptions.SpinnakerException
 
 /**
  * Thrown when code using the Saga framework has generated an uncaught exception, it will be wrapped by this
@@ -25,4 +26,13 @@ open class SagaIntegrationException(message: String, cause: Throwable?) :
   IntegrationException(message, cause), SagaException {
 
   constructor(message: String) : this(message, null)
+
+  init {
+    // Defer to the cause for retryable; but default to retryable if the retryable flag is unavailable.
+    retryable = if (cause is SpinnakerException) {
+      cause.retryable ?: true
+    } else {
+      true
+    }
+  }
 }
