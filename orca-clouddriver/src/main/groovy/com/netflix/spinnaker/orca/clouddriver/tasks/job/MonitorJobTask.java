@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.job;
 
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.orca.TaskResult;
+import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import javax.annotation.Nonnull;
@@ -31,13 +32,13 @@ public class MonitorJobTask extends MonitorKatoTask {
   private final JobUtils jobUtils;
 
   @Autowired
-  public MonitorJobTask(Registry registry, JobUtils jobUtils) {
-    super(registry);
+  public MonitorJobTask(KatoService katoService, Registry registry, JobUtils jobUtils) {
+    super(katoService, registry);
     this.jobUtils = jobUtils;
   }
 
-  public MonitorJobTask(Registry registry) {
-    super(registry);
+  public MonitorJobTask(KatoService katoService, Registry registry) {
+    super(katoService, registry);
     this.jobUtils = null;
   }
 

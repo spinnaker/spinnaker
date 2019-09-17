@@ -53,7 +53,7 @@ class CloudFoundryMonitorKatoServicesTaskTest {
                 new Task[] {
                   new Task(
                       taskIdString,
-                      new Task.Status(completed, failed),
+                      new Task.Status(completed, failed, false),
                       resultObjects,
                       Collections.emptyList())
                 }));
@@ -63,7 +63,7 @@ class CloudFoundryMonitorKatoServicesTaskTest {
     ImmutableMap.Builder<String, Object> katoTaskMapBuilder =
         new ImmutableMap.Builder<String, Object>()
             .put("id", taskIdString)
-            .put("status", new Task.Status(completed, failed))
+            .put("status", new Task.Status(completed, failed, false))
             .put("history", Collections.emptyList())
             .put(
                 "resultObjects",

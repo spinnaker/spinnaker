@@ -20,8 +20,8 @@ package com.netflix.spinnaker.orca.pipeline.model
  *
  * Each [SystemNotification] is treated as immutable and stored in an
  * append-only log. In order to finalize/cancel/dismiss a previous
- * notification, the [group] propertyshould be used in combination with
- * [closed], so that setting [closed] to true willhide other messages using
+ * notification, the [group] property should be used in combination with
+ * [closed], so that setting [closed] to true will hide other messages using
  * the same [group] value. In the case of a close record, the message should
  * include a reason why it is being closed.
  */

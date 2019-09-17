@@ -25,6 +25,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import rx.Observable
 
+import javax.annotation.Nonnull
+
 @Component
 class KatoService {
 
@@ -51,6 +53,11 @@ class KatoService {
     }
 
     return Observable.from(cloudDriverTaskStatusService.lookupTask(id))
+  }
+
+  @Nonnull
+  TaskId resumeTask(@Nonnull String id) {
+    katoRestService.resumeTask(id)
   }
 
   private static String requestId(Object payload) {

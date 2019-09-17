@@ -51,6 +51,18 @@ tasks:
 logging:
   config: classpath:logback-defaults.xml
 
+resilience4j.retry:
+  instances:
+    # TODO(rz): These defaults were just copied from the resilience4j website. They still need to be tuned.
+    default:
+      maxRetryAttempts: 2
+      waitDuration: 10s
+      enableExponentialBackoff: false
+    # katoRetrofitServiceWriter is any write operation to Clouddriver using Retrofit.
+    katoRetrofitServiceWriter:
+      retryExceptions:
+        - retrofit.RetrofitError
+
 integrations:
   gremlin:
     enabled: false

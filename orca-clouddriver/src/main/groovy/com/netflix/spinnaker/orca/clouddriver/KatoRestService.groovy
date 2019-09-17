@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.clouddriver
 
 import com.netflix.spinnaker.orca.clouddriver.model.Task
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
+import io.github.resilience4j.retry.annotation.Retry
 import retrofit.client.Response
 import retrofit.http.Body
 import retrofit.http.DELETE
@@ -69,4 +70,8 @@ interface KatoRestService {
    */
   @GET("/task/{id}")
   Task lookupTask(@Path("id") String id);
+
+  @POST("/task/{id}:resume")
+  @Retry(name = "katoRetrofitServiceWriter")
+  TaskId resumeTask(@Path("id") String id);
 }

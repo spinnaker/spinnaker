@@ -24,16 +24,18 @@ import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.Task
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.SystemNotification
 import groovy.transform.CompileStatic
 import groovy.transform.TypeCheckingMode
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 
 import java.time.Clock
-import java.util.concurrent.TimeUnit
 
+@Slf4j
 @Component
 @CompileStatic
 class MonitorKatoTask implements RetryableTask {
@@ -48,23 +50,22 @@ class MonitorKatoTask implements RetryableTask {
 
   private final Clock clock
   private final Registry registry
+  private final KatoService kato
 
   @Autowired
-  public MonitorKatoTask(Registry registry) {
-    this(registry, Clock.systemUTC())
+  MonitorKatoTask(KatoService katoService, Registry registry) {
+    this(katoService, registry, Clock.systemUTC())
   }
 
-  MonitorKatoTask(Registry registry, Clock clock) {
+  MonitorKatoTask(KatoService katoService, Registry registry, Clock clock) {
     this.registry = registry
     this.clock = clock
+    this.kato = katoService
   }
 
   long getBackoffPeriod() { 5000L }
 
   long getTimeout() { 3600000L }
-
-  @Autowired
-  KatoService kato
 
   @Override
   TaskResult execute(Stage stage) {
@@ -107,7 +108,6 @@ class MonitorKatoTask implements RetryableTask {
       }
     }
 
-
     def katoResultExpected = (stage.context["kato.result.expected"] as Boolean) ?: false
     ExecutionStatus status = katoStatusToTaskStatus(katoTask, katoResultExpected)
 
@@ -130,6 +130,15 @@ class MonitorKatoTask implements RetryableTask {
       if (!stage.context.containsKey("deploy.jobs") && deployed) {
         outputs["deploy.jobs"] = deployed
       }
+
+      if (stage.context."kato.taask.retriedOperation" == true) {
+        stage.execution.systemNotifications.add(new SystemNotification(
+          clock.millis(),
+          "katoRetryTask",
+          "Completed cloud provider retry",
+          true
+        ))
+      }
     }
     if (status == ExecutionStatus.SUCCEEDED || status == ExecutionStatus.TERMINAL || status == ExecutionStatus.RUNNING) {
       List<Map<String, Object>> katoTasks = []
@@ -149,7 +158,23 @@ class MonitorKatoTask implements RetryableTask {
       }
       katoTasks << m
       outputs["kato.tasks"] = katoTasks
+    }
 
+    if (status == ExecutionStatus.TERMINAL && katoTask.status.retryable) {
+      stage.execution.systemNotifications.add(new SystemNotification(
+        clock.millis(),
+        "katoRetryTask",
+        "Retrying failed downstream cloud provider operation",
+        false
+      ))
+      try {
+        kato.resumeTask(katoTask.id)
+      } catch (Exception e) {
+        // Swallow the exception; we'll let Orca retry the next time around.
+        log.error("Request failed attempting to resume task", e)
+      }
+      status = ExecutionStatus.RUNNING
+      stage.context."kato.task.retriedOperation" = true
     }
 
     TaskResult.builder(status).context(outputs).build()

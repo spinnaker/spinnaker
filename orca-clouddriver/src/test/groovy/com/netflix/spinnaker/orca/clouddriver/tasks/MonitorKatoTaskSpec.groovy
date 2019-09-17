@@ -41,16 +41,16 @@ class MonitorKatoTaskSpec extends Specification {
 
   def now = Instant.now()
 
-  @Subject task = new MonitorKatoTask(new NoopRegistry(), Clock.fixed(now, ZoneId.of("UTC"))) {{
+  KatoService kato = Mock(KatoService)
+
+  @Subject task = new MonitorKatoTask(kato, new NoopRegistry(), Clock.fixed(now, ZoneId.of("UTC"))) {{
     taskNotFoundTimeoutMs = TASK_NOT_FOUND_TIMEOUT
   }}
 
   @Unroll("result is #expectedResult if kato task is #katoStatus")
   def "result depends on Kato task status"() {
     given:
-    task.kato = Stub(KatoService) {
-      lookupTask(taskId, false) >> Observable.from(new Task(taskId, new Task.Status(completed: completed, failed: failed), [], []))
-    }
+    kato.lookupTask(taskId, false) >> Observable.from(new Task(taskId, new Task.Status(completed: completed, failed: failed), [], []))
 
     and:
     def stage = new Stage(Execution.newPipeline("orca"), "whatever", [
@@ -73,9 +73,7 @@ class MonitorKatoTaskSpec extends Specification {
   @Unroll("result is #expectedResult if katoResultExpected is #katoResultExpected and resultObject is #resultObjects")
   def "result depends on Kato task status and result object size for create/upsert operations"() {
     given:
-    task.kato = Stub(KatoService) {
-      lookupTask(taskId, false) >> Observable.from(new Task(taskId, new Task.Status(completed: true), resultObjects, []))
-    }
+    kato.lookupTask(taskId, false) >> Observable.from(new Task(taskId, new Task.Status(completed: true), resultObjects, []))
 
     and:
     def stage = new Stage(Execution.newPipeline("orca"), "whatever", [
@@ -132,9 +130,7 @@ class MonitorKatoTaskSpec extends Specification {
       }
     }
     def stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
-    task.kato = Stub(KatoService) {
-      lookupTask(taskId, false) >> { retrofit404() }
-    }
+    kato.lookupTask(taskId, false) >> { retrofit404() }
 
     when:
     def result = task.execute(stage)
@@ -156,7 +152,6 @@ class MonitorKatoTaskSpec extends Specification {
     given:
     def taskId = "katoTaskId"
     def elapsed = task.TASK_NOT_FOUND_TIMEOUT + 1
-    task.kato = Mock(KatoService)
 
     def stage = stage {
       type = "type"
@@ -172,9 +167,31 @@ class MonitorKatoTaskSpec extends Specification {
     then:
     result.context['kato.task.skipReplica'] == true
     notThrown(RetrofitError)
-    with(task.kato) {
+    with(kato) {
       1 * lookupTask(taskId, false) >> { retrofit404() }
       0 * lookupTask(taskId, true)
+    }
+  }
+
+  def "should retry clouddriver task if classified as retryable"() {
+    given:
+    def katoTask = new Task("katoTaskId", new Task.Status(true, true, true), [], [])
+
+    def stage = stage {
+      type = "type"
+      context = [
+        "kato.last.task.id": new TaskId(katoTask.id)
+      ]
+    }
+
+    when:
+    task.execute(stage)
+
+    then:
+    notThrown(RetrofitError)
+    with(kato) {
+      1 * lookupTask(katoTask.id, false) >> { Observable.just(katoTask) }
+      1 * resumeTask(katoTask.id) >> { new TaskId(katoTask.id) }
     }
   }
 
@@ -182,7 +199,6 @@ class MonitorKatoTaskSpec extends Specification {
     given:
     def taskId = "katoTaskId"
     def elapsed = TASK_NOT_FOUND_TIMEOUT + 1
-    task.kato = Mock(KatoService)
     def stage = stage {
       context = [
         "kato.last.task.id": new TaskId(taskId),
@@ -196,7 +212,7 @@ class MonitorKatoTaskSpec extends Specification {
 
     then:
     notThrown(RetrofitError)
-    with(task.kato) {
+    with(kato) {
       1 * lookupTask(taskId, true) >> Observable.from(new Task(taskId, new Task.Status(completed: true, failed: false), [], []))
       0 * lookupTask(taskId, false)
     }
@@ -213,9 +229,7 @@ class MonitorKatoTaskSpec extends Specification {
       ]
     }
 
-    task.kato = Stub(KatoService) {
-      lookupTask(taskId, true) >> { retrofit404() }
-    }
+    kato.lookupTask(taskId, true) >> { retrofit404() }
 
     when:
     task.execute(stage)

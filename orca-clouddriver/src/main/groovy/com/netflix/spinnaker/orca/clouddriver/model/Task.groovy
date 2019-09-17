@@ -32,6 +32,7 @@ class Task {
   static class Status implements Serializable {
     boolean completed
     boolean failed
+    boolean retryable
   }
 
   @Immutable
