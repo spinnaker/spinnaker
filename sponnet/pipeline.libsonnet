@@ -170,6 +170,9 @@
       payloadConstraints: {},
       addPayloadConstraints(key, value):: self + { payloadConstraints+: { [key]: value } },
     },
+    cron(name, cronExpression):: trigger(name, 'cron') {
+      cronExpression: cronExpression,
+    },
   },
 
   // stages
