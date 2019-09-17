@@ -349,6 +349,7 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
       return Collections.emptyList();
     }
 
+    List<KubernetesKind> primaryKinds = primaryKinds();
     List<String> matchingKeys =
         providerCache.getIdentifiers(ON_DEMAND_TYPE).stream()
             .map(Keys::parseKey)
@@ -359,7 +360,7 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
             .filter(
                 i ->
                     i.getAccount().equals(getAccountName())
-                        && primaryKinds().contains(i.getKubernetesKind()))
+                        && primaryKinds.contains(i.getKubernetesKind()))
             .map(Keys.InfrastructureCacheKey::toString)
             .collect(Collectors.toList());
 

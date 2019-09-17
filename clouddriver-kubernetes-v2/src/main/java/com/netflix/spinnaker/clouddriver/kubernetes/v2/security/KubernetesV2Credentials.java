@@ -26,6 +26,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.base.Suppliers;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.netflix.spectator.api.Clock;
@@ -128,13 +129,15 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   @Include @Getter private final boolean debug;
 
   private String cachedDefaultNamespace;
-  private final Supplier<List<String>> liveNamespaceSupplier;
   @Getter private final ResourcePropertyRegistry resourcePropertyRegistry;
   @Getter private final KubernetesKindRegistry kindRegistry;
   private final KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap;
   private final PermissionValidator permissionValidator;
   private final Supplier<ImmutableMap<KubernetesKind, KubernetesKindProperties>> crdSupplier =
       Suppliers.memoizeWithExpiration(this::crdSupplier, CRD_EXPIRY_SECONDS, TimeUnit.SECONDS);
+  private final Supplier<ImmutableList<String>> liveNamespaceSupplier =
+      Memoizer.memoizeWithExpiration(
+          this::namespaceSupplier, NAMESPACE_EXPIRY_SECONDS, TimeUnit.SECONDS);
 
   private KubernetesV2Credentials(
       Registry registry,
@@ -196,28 +199,6 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     this.metrics = managedAccount.isMetrics();
 
     this.debug = managedAccount.isDebug();
-
-    this.liveNamespaceSupplier =
-        Memoizer.memoizeWithExpiration(
-            () -> {
-              try {
-                return jobExecutor
-                    .list(
-                        this,
-                        Collections.singletonList(KubernetesKind.NAMESPACE),
-                        "",
-                        new KubernetesSelectorList())
-                    .stream()
-                    .map(KubernetesManifest::getName)
-                    .collect(Collectors.toList());
-              } catch (KubectlException e) {
-                log.error(
-                    "Could not list namespaces for account {}: {}", accountName, e.getMessage());
-                return new ArrayList<>();
-              }
-            },
-            NAMESPACE_EXPIRY_SECONDS,
-            TimeUnit.SECONDS);
   }
 
   /**
@@ -366,6 +347,24 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
       // not logging here -- it will generate a lot of noise in cases where crds aren't
       // available/registered in the first place
       return ImmutableMap.of();
+    }
+  }
+
+  @Nonnull
+  private ImmutableList<String> namespaceSupplier() {
+    try {
+      return jobExecutor
+          .list(
+              this,
+              Collections.singletonList(KubernetesKind.NAMESPACE),
+              "",
+              new KubernetesSelectorList())
+          .stream()
+          .map(KubernetesManifest::getName)
+          .collect(toImmutableList());
+    } catch (KubectlException e) {
+      log.error("Could not list namespaces for account {}: {}", accountName, e.getMessage());
+      return ImmutableList.of();
     }
   }
 

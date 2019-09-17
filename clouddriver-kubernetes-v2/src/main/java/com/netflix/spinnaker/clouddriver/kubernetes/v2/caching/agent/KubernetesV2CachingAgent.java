@@ -75,18 +75,19 @@ public abstract class KubernetesV2CachingAgent
   protected abstract List<KubernetesKind> primaryKinds();
 
   protected Map<KubernetesKind, List<KubernetesManifest>> loadPrimaryResourceList() {
+    List<KubernetesKind> primaryKinds = primaryKinds();
     Map<KubernetesKind, List<KubernetesManifest>> result =
         getNamespaces()
             .parallelStream()
             .map(
                 n -> {
                   try {
-                    return credentials.list(primaryKinds(), n);
+                    return credentials.list(primaryKinds, n);
                   } catch (KubectlException e) {
                     log.warn(
                         "{}: Failed to read kind {} from namespace {}: {}",
                         getAgentType(),
-                        primaryKinds(),
+                        primaryKinds,
                         n,
                         e.getMessage());
                     throw e;
