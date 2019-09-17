@@ -84,7 +84,7 @@ internal class ServerGroupHandlerTests : JUnit5Minutests {
     )
   )
 
-  val cluster = ServerGroup(
+  val serverGroup = ServerGroup(
     moniker = spec.moniker,
     location = spec.location,
     launchConfiguration = spec.launchConfiguration.generateLaunchConfiguration("i-123543254134", "keel-0.252.0-h168.35fe253/SPINNAKER-rocket-package-keel/168"),
@@ -94,7 +94,7 @@ internal class ServerGroupHandlerTests : JUnit5Minutests {
 
   val resource = resource(
     apiVersion = SPINNAKER_API_V1,
-    kind = "cluster",
+    kind = "server-group",
     spec = spec
   )
   val activeServerGroupResponse = ActiveServerGroup(
@@ -190,7 +190,7 @@ internal class ServerGroupHandlerTests : JUnit5Minutests {
 
       test("annealing a diff creates a new server group") {
         runBlocking {
-          upsert(resource, ResourceDiff(cluster, null))
+          upsert(resource, ResourceDiff(serverGroup, null))
         }
 
         val slot = slot<OrchestrationRequest>()
@@ -207,26 +207,26 @@ internal class ServerGroupHandlerTests : JUnit5Minutests {
         coEvery { cloudDriverService.activeServerGroup() } returns activeServerGroupResponse
       }
 
-      derivedContext<ServerGroup?>("fetching the current cluster state") {
+      derivedContext<ServerGroup?>("fetching the current server group state") {
         deriveFixture {
           runBlocking {
             current(resource)
           }
         }
 
-        test("the current model is converted to a cluster") {
+        test("the current model is converted to a server group") {
           expectThat(this).isNotNull()
         }
 
-        test("the cluster name is derived correctly") {
+        test("the server group name is derived correctly") {
           expectThat(this).isNotNull().get { moniker }.isEqualTo(spec.moniker)
         }
       }
 
       context("the diff is only in capacity") {
 
-        val modified = cluster.withDoubleCapacity()
-        val diff = ResourceDiff(cluster, modified)
+        val modified = serverGroup.withDoubleCapacity()
+        val diff = ResourceDiff(serverGroup, modified)
 
         test("annealing resizes the current server group") {
           runBlocking {
@@ -252,8 +252,8 @@ internal class ServerGroupHandlerTests : JUnit5Minutests {
 
       context("the diff is something other than just capacity") {
 
-        val modified = cluster.withDoubleCapacity().withDifferentInstanceType()
-        val diff = ResourceDiff(cluster, modified)
+        val modified = serverGroup.withDoubleCapacity().withDifferentInstanceType()
+        val diff = ResourceDiff(serverGroup, modified)
 
         test("annealing clones the current server group") {
           runBlocking {

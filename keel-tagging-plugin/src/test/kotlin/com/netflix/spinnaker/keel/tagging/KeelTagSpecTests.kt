@@ -18,8 +18,8 @@ internal class KeelTagSpecTests : JUnit5Minutests {
     context("difference exists in whether tag is desired") {
       fixture {
         val resource = KeelTagSpec(
-          ResourceId("ec2:cluster:mgmt:us-west-2:keel-prestaging"),
-          EntityRef("cluster", "keel-prestaging", "keel", "us-west-2", "mgmt", "12345", "aws"),
+          ResourceId("ec2:server-group:mgmt:us-west-2:keel-prestaging"),
+          EntityRef("server-group", "keel-prestaging", "keel", "us-west-2", "mgmt", "12345", "aws"),
           TagDesired(
             EntityTag(
               value = TagValue(

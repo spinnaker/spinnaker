@@ -67,9 +67,9 @@ internal class ArtifactPromotionListenerTests : JUnit5Minutests {
       )
     )
 
-    val nonArtifactCluster = resource(
+    val nonArtifactServerGroup = resource(
       apiVersion = SPINNAKER_API_V1.subApi("ec2"),
-      kind = "cluster",
+      kind = "server-group",
       spec = ServerGroupSpec(
         moniker = Moniker("fnord", "api"),
         location = Location("test", "ap-south-1", "internal (vpc0)", setOf("ap-south1-a", "ap-south1-b", "ap-south1-c")),
@@ -85,9 +85,9 @@ internal class ArtifactPromotionListenerTests : JUnit5Minutests {
       )
     )
 
-    val artifactCluster = resource(
+    val artifactServerGroup = resource(
       apiVersion = SPINNAKER_API_V1.subApi("ec2"),
-      kind = "cluster",
+      kind = "server-group",
       spec = ServerGroupSpec(
         moniker = Moniker("fnord", "api"),
         location = Location("test", "ap-south-1", "internal (vpc0)", setOf("ap-south1-a", "ap-south1-b", "ap-south1-c")),
@@ -132,7 +132,7 @@ internal class ArtifactPromotionListenerTests : JUnit5Minutests {
       environments = setOf(
         Environment(
           name = "test",
-          resources = setOf(securityGroup, nonArtifactCluster, artifactCluster)
+          resources = setOf(securityGroup, nonArtifactServerGroup, artifactServerGroup)
         )
       )
     ).also {
@@ -142,7 +142,7 @@ internal class ArtifactPromotionListenerTests : JUnit5Minutests {
 
   fun tests() = rootContext<Fixture> {
     fixture { Fixture }
-    context("delta is resolved on a non-cluster resource") {
+    context("delta is resolved on a non-server group resource") {
       before {
         triggerEvent(securityGroup)
       }
@@ -152,9 +152,9 @@ internal class ArtifactPromotionListenerTests : JUnit5Minutests {
       }
     }
 
-    context("delta is resolved on a cluster that does not use an artifact") {
+    context("delta is resolved on a server group that does not use an artifact") {
       before {
-        triggerEvent(nonArtifactCluster)
+        triggerEvent(nonArtifactServerGroup)
       }
 
       test("nothing is done with artifact promotion") {
@@ -162,9 +162,9 @@ internal class ArtifactPromotionListenerTests : JUnit5Minutests {
       }
     }
 
-    context("delta is resolved on a cluster that uses an artifact") {
+    context("delta is resolved on a server group that uses an artifact") {
       before {
-        triggerEvent(artifactCluster)
+        triggerEvent(artifactServerGroup)
       }
 
       test("the artifact version is marked as deployed") {

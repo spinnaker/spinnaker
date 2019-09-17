@@ -75,7 +75,7 @@ class ResourceTagger(
   )
 
   private val taggableResources = listOf(
-    "cluster",
+    "server-group",
     "security-group",
     "classic-load-balancer",
     "application-load-balancer"

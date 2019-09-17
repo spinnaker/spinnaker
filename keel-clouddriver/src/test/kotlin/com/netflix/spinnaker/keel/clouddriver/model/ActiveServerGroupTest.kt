@@ -6,7 +6,7 @@ import com.netflix.spinnaker.keel.retrofit.model.ModelParsingTestSupport
 
 object ActiveServerGroupTest : ModelParsingTestSupport<CloudDriverService, ActiveServerGroup>(CloudDriverService::class.java) {
 
-  override val json = javaClass.getResource("/cluster.json")
+  override val json = javaClass.getResource("/server-group.json")
 
   override suspend fun CloudDriverService.call(): ActiveServerGroup? =
     this.activeServerGroup("keel@spinnaker", "keel", "mgmttest", "keel-test", "eu-west-1", "aws")

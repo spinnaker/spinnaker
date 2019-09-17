@@ -72,9 +72,9 @@ internal class CurrentlyDeployedImageApproverTests : JUnit5Minutests {
       type = ArtifactType.DEB
     )
 
-    val nonArtifactCluster = resource(
+    val nonArtifactServerGroup = resource(
       apiVersion = SPINNAKER_API_V1.subApi("ec2"),
-      kind = "cluster",
+      kind = "server-group",
       spec = ServerGroupSpec(
         moniker = Moniker("fnord", "api"),
         location = Location("test", "ap-south-1", "internal (vpc0)", setOf("ap-south1-a", "ap-south1-b", "ap-south1-c")),
@@ -88,9 +88,9 @@ internal class CurrentlyDeployedImageApproverTests : JUnit5Minutests {
       )
     )
 
-    val artifactCluster = resource(
+    val artifactServerGroup = resource(
       apiVersion = SPINNAKER_API_V1.subApi("ec2"),
-      kind = "cluster",
+      kind = "server-group",
       spec = ServerGroupSpec(
         moniker = Moniker("fnord", "api"),
         location = Location("test", "ap-south-1", "internal (vpc0)", setOf("ap-south1-a", "ap-south1-b", "ap-south1-c")),
@@ -104,7 +104,7 @@ internal class CurrentlyDeployedImageApproverTests : JUnit5Minutests {
       )
     )
 
-    val testEnv = Environment(name = "test", resources = setOf(artifactCluster))
+    val testEnv = Environment(name = "test", resources = setOf(artifactServerGroup))
 
     val deliveryConfig = DeliveryConfig(
       name = "manifest",
@@ -137,11 +137,11 @@ internal class CurrentlyDeployedImageApproverTests : JUnit5Minutests {
       clearAllMocks()
     }
 
-    context("cluster does not have an artifact image provider") {
+    context("server group does not have an artifact image provider") {
       before {
         deliveryConfigRepository.store(deliveryConfig)
-        resourceRepository.store(nonArtifactCluster)
-        val event = ArtifactAlreadyDeployedEvent(nonArtifactCluster.id.toString(), imageId)
+        resourceRepository.store(nonArtifactServerGroup)
+        val event = ArtifactAlreadyDeployedEvent(nonArtifactServerGroup.id.toString(), imageId)
         subject.artifactAlreadyDeployedEventHandler(event)
       }
 
@@ -150,17 +150,17 @@ internal class CurrentlyDeployedImageApproverTests : JUnit5Minutests {
       }
     }
 
-    context("cluster has artifact image provider and didn't deploy the version") {
+    context("server group has artifact image provider and didn't deploy the version") {
 
       before {
         deliveryConfigRepository.store(deliveryConfig)
-        resourceRepository.store(artifactCluster)
+        resourceRepository.store(artifactServerGroup)
 
         every { artifactRepository.isApprovedFor(deliveryConfig, artifact, appVersion, testEnv.name) } returns true
         every { artifactRepository.wasSuccessfullyDeployedTo(deliveryConfig, artifact, appVersion, testEnv.name) } returns false
         coEvery { cloudDriverService.namedImages(any(), imageId, null) } returns listOf(ami)
 
-        val event = ArtifactAlreadyDeployedEvent(artifactCluster.id.toString(), imageId)
+        val event = ArtifactAlreadyDeployedEvent(artifactServerGroup.id.toString(), imageId)
         subject.artifactAlreadyDeployedEventHandler(event)
       }
 
@@ -169,16 +169,16 @@ internal class CurrentlyDeployedImageApproverTests : JUnit5Minutests {
       }
     }
 
-    context("cluster has artifact image provider and did deploy the version") {
+    context("server group has artifact image provider and did deploy the version") {
       before {
         deliveryConfigRepository.store(deliveryConfig)
-        resourceRepository.store(artifactCluster)
+        resourceRepository.store(artifactServerGroup)
 
         every { artifactRepository.isApprovedFor(deliveryConfig, artifact, appVersion, testEnv.name) } returns true
         every { artifactRepository.wasSuccessfullyDeployedTo(deliveryConfig, artifact, appVersion, testEnv.name) } returns true
         coEvery { cloudDriverService.namedImages(any(), imageId, null) } returns listOf(ami)
 
-        val event = ArtifactAlreadyDeployedEvent(artifactCluster.id.toString(), imageId)
+        val event = ArtifactAlreadyDeployedEvent(artifactServerGroup.id.toString(), imageId)
         subject.artifactAlreadyDeployedEventHandler(event)
       }
 
@@ -187,16 +187,16 @@ internal class CurrentlyDeployedImageApproverTests : JUnit5Minutests {
       }
     }
 
-    context("cluster has artifact image provider but version wasn't approved") {
+    context("server group has artifact image provider but version wasn't approved") {
       before {
         deliveryConfigRepository.store(deliveryConfig)
-        resourceRepository.store(artifactCluster)
+        resourceRepository.store(artifactServerGroup)
 
         every { artifactRepository.isApprovedFor(deliveryConfig, artifact, appVersion, testEnv.name) } returns false
         every { artifactRepository.wasSuccessfullyDeployedTo(deliveryConfig, artifact, appVersion, testEnv.name) } returns false
         coEvery { cloudDriverService.namedImages(any(), imageId, null) } returns listOf(ami)
 
-        val event = ArtifactAlreadyDeployedEvent(artifactCluster.id.toString(), imageId)
+        val event = ArtifactAlreadyDeployedEvent(artifactServerGroup.id.toString(), imageId)
         subject.artifactAlreadyDeployedEventHandler(event)
       }
 

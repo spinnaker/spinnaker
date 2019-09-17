@@ -82,7 +82,7 @@ class ServerGroupHandler(
     }
 
   override suspend fun current(resource: Resource<ServerGroupSpec>): ServerGroup? =
-    cloudDriverService.getCluster(resource)
+    cloudDriverService.getServerGroup(resource)
 
   override suspend fun upsert(
     resource: Resource<ServerGroupSpec>,
@@ -94,8 +94,8 @@ class ServerGroupHandler(
       else -> spec.createServerGroupJob(resource.serviceAccount)
     }
 
-    log.info("Upserting cluster using task: {}", job)
-    val description = "Upsert cluster ${spec.moniker.name} in ${spec.location.accountName}/${spec.location.region}"
+    log.info("Upserting server group using task: {}", job)
+    val description = "Upsert server group ${spec.moniker.name} in ${spec.location.accountName}/${spec.location.region}"
 
     return orcaService
       .orchestrate(
@@ -107,7 +107,7 @@ class ServerGroupHandler(
           listOf(Job(job["type"].toString(), job)),
           OrchestrationTrigger(resource.id.toString())
         ))
-      .also { log.info("Started task {} to upsert cluster", it.ref) }
+      .also { log.info("Started task {} to upsert server group", it.ref) }
       // TODO: ugleee
       .let { listOf(Task(id = it.taskId, name = description)) }
   }
@@ -247,7 +247,7 @@ class ServerGroupHandler(
       }
     }
 
-  private suspend fun CloudDriverService.getCluster(resource: Resource<ServerGroupSpec>): ServerGroup? {
+  private suspend fun CloudDriverService.getServerGroup(resource: Resource<ServerGroupSpec>): ServerGroup? {
     try {
       return activeServerGroup(
         resource.serviceAccount,

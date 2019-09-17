@@ -57,7 +57,7 @@ class EC2Config {
     )
 
   @Bean
-  fun clusterHandler(
+  fun serverGroupHandler(
     cloudDriverService: CloudDriverService,
     cloudDriverCache: CloudDriverCache,
     orcaService: OrcaService,

@@ -18,8 +18,8 @@
 package com.netflix.spinnaker.keel.api.ec2.image
 
 /**
- * An event fired while we check a cluster that lets us know
- * what version of software is running in that cluster
+ * An event fired while we check a server group that lets us know
+ * what version of software is running in that server group
  */
 data class ArtifactAlreadyDeployedEvent(
   val resourceId: String,

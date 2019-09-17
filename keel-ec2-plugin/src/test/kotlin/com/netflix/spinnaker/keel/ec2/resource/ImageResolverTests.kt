@@ -106,7 +106,7 @@ internal class ImageResolverTests : JUnit5Minutests {
 
     val resource = resource(
       apiVersion = SPINNAKER_API_V1.subApi("ec2"),
-      kind = "cluster",
+      kind = "server-group",
       spec = ServerGroupSpec(
         moniker = Moniker("fnord"),
         location = Location(
