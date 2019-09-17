@@ -33,6 +33,8 @@ public class SamlConfig {
   boolean enabled;
 
   String issuerId;
+
+  @SecretFile(prefix = "file:")
   String metadataUrl;
 
   @LocalFile
@@ -57,7 +59,7 @@ public class SamlConfig {
 
     this.enabled = saml.isEnabled();
     this.issuerId = saml.getIssuerId();
-    this.metadataUrl = "file:" + saml.getMetadataLocal();
+    this.metadataUrl = saml.getMetadataLocal();
     if (StringUtils.isNotEmpty(saml.getMetadataRemote())) {
       this.metadataUrl = saml.getMetadataRemote();
     }

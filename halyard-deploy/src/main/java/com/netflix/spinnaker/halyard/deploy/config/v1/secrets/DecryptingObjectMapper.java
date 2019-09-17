@@ -33,6 +33,7 @@ import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -119,9 +120,11 @@ public class DecryptingObjectMapper extends ObjectMapper {
           throws IOException {
         if (value != null) {
           String sValue = value.toString();
-          if (!EncryptedSecret.isEncryptedSecret(sValue)) {
+          if (!EncryptedSecret.isEncryptedSecret(sValue) && !isURL(sValue)) {
+            // metadataUrl is either a URL or a filepath, so only add prefix if it's a path
             sValue = annotation.prefix() + sValue;
-          } else if (shouldDecrypt) {
+          }
+          if (EncryptedSecret.isEncryptedSecret(sValue) && shouldDecrypt) {
             // Decrypt the content of the file and store on the profile under a random
             // generated file name
             String name = newRandomFilePath(beanPropertyWriter.getName());
@@ -147,5 +150,15 @@ public class DecryptingObjectMapper extends ObjectMapper {
 
   protected String getCompleteFilePath(String filename) {
     return Paths.get(decryptedOutputDirectory.toString(), filename).toString();
+  }
+
+  private boolean isURL(String property) {
+    try {
+      URL url = new URL(property);
+      url.toURI();
+      return true;
+    } catch (Exception exception) {
+      return false;
+    }
   }
 }
