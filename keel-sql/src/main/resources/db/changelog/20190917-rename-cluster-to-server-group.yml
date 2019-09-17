@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: rename-cluster-to-server-group
+      author: fletch
+      changes:
+        - sql:
+            sql: update resource set kind = 'server-group' where kind = 'cluster';
+        - sql:
+            sql: update resource set id = replace(id, 'ec2:cluster:', 'ec2:server-group:') where id like 'ec2:cluster:%';
+      rollback:
+        - sql:
+            sql: update resource set kind = 'cluster' where kind = 'server-group';
+        - sql:
+            sql: update resource set id = replace(id, 'ec2:server-group:', 'ec2:cluster:') where id like 'ec2:server-group:%';

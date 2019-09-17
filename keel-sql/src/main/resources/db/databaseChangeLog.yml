@@ -32,3 +32,6 @@ databaseChangeLog:
   - include:
       file: changelog/20190904-rename-name-to-id.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20190917-rename-cluster-to-server-group.yml
+      relativeToChangelogFile: true
