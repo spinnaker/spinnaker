@@ -101,7 +101,6 @@ class SqlTask(
   override fun addSagaId(sagaId: SagaId) {
     this.dirty.set(true)
     sagaIds.add(sagaId)
-    throw UnsupportedOperationException("not implemented")
   }
 
   override fun getSagaIds(): MutableList<SagaId> {
