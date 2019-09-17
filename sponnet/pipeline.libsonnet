@@ -234,7 +234,9 @@
 
     findArtifactFromExecution(name):: stage(name, 'findArtifactFromExecution') {
       withApplication(application):: self + { application: application },
-      withExecutionOptions(executionOptions):: self + if std.type(executionOptions) == 'array' then { executionOptions: executionOptions } else { executionOptions: [executionOptions] },
+      withExecutionOptions(executionOptions)::
+        assert std.type(executionOptions) == 'object': 'Execution options must now be an object';
+        self + { executionOptions: executionOptions },
       withExpectedArtifact(expectedArtifact):: self + {
         expectedArtifact: {
           id: expectedArtifact.id,
