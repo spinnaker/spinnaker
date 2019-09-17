@@ -16,6 +16,9 @@
     withStages(stages):: self + if std.type(stages) == 'array' then { stages: stages } else { stages: [stages] },
     withTriggers(triggers):: self + if std.type(triggers) == 'array' then { triggers: triggers } else { triggers: [triggers] },
     withParameters(parameters):: self + if std.type(parameters) == 'array' then { parameterConfig: parameters } else { parameterConfig: [parameters] },
+    withLock(description='', allowUnlockUi=true):: self + {
+      locked: { allowUnlockUi: allowUnlockUi, description: description, ui: true }
+    },
 
     // v2 MPT fields
     withTemplate(templateArtifact):: self + { template: templateArtifact },
