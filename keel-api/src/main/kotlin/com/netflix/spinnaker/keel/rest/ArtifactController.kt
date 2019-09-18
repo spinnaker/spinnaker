@@ -7,6 +7,7 @@ import com.netflix.spinnaker.keel.persistence.ArtifactAlreadyRegistered
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.HttpStatus.ACCEPTED
@@ -36,7 +37,13 @@ class ArtifactController(
   )
   @ResponseStatus(ACCEPTED)
   fun submitArtifact(@RequestBody echoArtifactEvent: EchoArtifactEvent) {
-    publisher.publishEvent(echoArtifactEvent.payload)
+    echoArtifactEvent.payload.artifacts.forEach { artifact ->
+      if (artifact.type.equals(ArtifactType.DEB.toString(), true) && artifact.isFromArtifactEvent()) {
+        publisher.publishEvent(ArtifactEvent(listOf(artifact), emptyMap()))
+      } else {
+        log.debug("Ignoring artifact event with type {}: {}", artifact.type, artifact)
+      }
+    }
   }
 
   @GetMapping(
@@ -60,6 +67,10 @@ class ArtifactController(
   fun onAlreadyRegistered(e: ArtifactAlreadyRegistered) {
     log.error(e.message)
   }
+
+  // Artifacts should contain a releaseStatus in the metadata
+  private fun Artifact.isFromArtifactEvent() =
+    this.metadata.containsKey("releaseStatus") && this.metadata["releaseStatus"] != null
 }
 
 data class EchoArtifactEvent(

@@ -29,9 +29,9 @@ class ArtifactListener(
       .filter { it.type.toUpperCase() in artifactTypeNames }
       .forEach { korkArtifact ->
         val artifact = korkArtifact.toDeliveryArtifact()
-        val version = "${korkArtifact.name}-${korkArtifact.version}"
-        val status = artifactStatus(korkArtifact)
         if (artifactRepository.isRegistered(artifact.name, artifact.type)) {
+          val version = "${korkArtifact.name}-${korkArtifact.version}"
+          val status = artifactStatus(korkArtifact)
           log.info("Registering version {} ({}) of {} {}", version, status, artifact.name, artifact.type)
           artifactRepository.store(artifact, version, status)
             .also { wasAdded ->
