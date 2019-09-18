@@ -16,10 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.titus.client;
 
+import com.google.common.base.Splitter;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import io.grpc.Metadata;
 import io.grpc.stub.AbstractStub;
 import io.grpc.stub.MetadataUtils;
+import java.util.List;
+import javax.annotation.Nonnull;
+import org.slf4j.MDC;
 
 public class TitusClientAuthenticationUtil {
 
@@ -33,7 +37,21 @@ public class TitusClientAuthenticationUtil {
   public static <STUB extends AbstractStub<STUB>> STUB attachCaller(STUB serviceStub) {
     Metadata metadata = new Metadata();
     metadata.put(CALLER_ID_KEY, AuthenticatedRequest.getSpinnakerUser().orElse("spinnaker"));
-    metadata.put(CALL_REASON_KEY, AuthenticatedRequest.getSpinnakerExecutionId().orElse("unknown"));
+    metadata.put(
+        CALL_REASON_KEY,
+        String.format(
+            "Invoked by Spinnaker execution %s, Application name %s",
+            getSpinnakerExecutionId(
+                AuthenticatedRequest.getSpinnakerExecutionId().orElse("unknown")),
+            MDC.get(AuthenticatedRequest.Header.APPLICATION.getHeader())));
     return serviceStub.withInterceptors(MetadataUtils.newAttachHeadersInterceptor(metadata));
+  }
+
+  public static @Nonnull String getSpinnakerExecutionId(@Nonnull String executionIdHeader) {
+    if (!"unknown".equalsIgnoreCase(executionIdHeader) && !executionIdHeader.isEmpty()) {
+      List<String> ids = Splitter.on(':').splitToList(executionIdHeader);
+      return ids.get(0);
+    }
+    return "unknown";
   }
 }
