@@ -131,7 +131,7 @@ class MonitorKatoTask implements RetryableTask {
         outputs["deploy.jobs"] = deployed
       }
 
-      if (stage.context."kato.taask.retriedOperation" == true) {
+      if (stage.context."kato.task.retriedOperation" == true) {
         stage.execution.systemNotifications.add(new SystemNotification(
           clock.millis(),
           "katoRetryTask",
