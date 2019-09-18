@@ -25,6 +25,7 @@ var iapRefresherEnabled = process.env.IAP_REFRESHER_ENABLED === 'true' ? true : 
 var infrastructureEnabled = process.env.INFRA_ENABLED === 'true' ? true : false;
 var managedPipelineTemplatesV2UIEnabled = process.env.MANAGED_PIPELINE_TEMPLATES_V2_UI_ENABLED === 'true';
 var managedServiceAccountsEnabled = process.env.MANAGED_SERVICE_ACCOUNTS_ENABLED === 'true';
+var managedResourcesEnabled = process.env.MANAGED_RESOURCES_ENABLED === 'true';
 var onDemandClusterThreshold = process.env.ON_DEMAND_CLUSTER_THRESHOLD || '350';
 var reduxLoggerEnabled = process.env.REDUX_LOGGER === 'true';
 var templatesEnabled = process.env.TEMPLATES_ENABLED === 'true';
@@ -73,6 +74,7 @@ window.spinnakerSettings = {
     jobs: false,
     managedPipelineTemplatesV2UI: managedPipelineTemplatesV2UIEnabled,
     managedServiceAccounts: managedServiceAccountsEnabled,
+    managedResources: managedResourcesEnabled,
     notifications: false,
     pagerDuty: false,
     pipelineTemplates: false,

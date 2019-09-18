@@ -3,6 +3,13 @@
     <page-section key="location" label="Application Attributes">
       <application-attributes application="config.application"></application-attributes>
     </page-section>
+    <page-section
+      key="managed-resources"
+      label="Managed Resources"
+      visible="(config.feature.managedResources && config.hasManagedResources) || false"
+    >
+      <managed-resource-config application="config.application"> </managed-resource-config>
+    </page-section>
     <page-section key="notifications" label="Notifications">
       <application-notifications
         application="config.application"

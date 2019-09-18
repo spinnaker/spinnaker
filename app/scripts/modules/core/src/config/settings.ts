@@ -50,6 +50,7 @@ export interface IFeatures {
   jobs?: boolean;
   managedPipelineTemplatesV2UI?: boolean;
   managedServiceAccounts?: boolean;
+  managedResources?: boolean;
   notifications?: boolean;
   pagerDuty?: boolean;
   pipelines?: boolean;
