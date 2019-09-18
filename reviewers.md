@@ -2,10 +2,12 @@
 * andrewbackes
 * clareliguori
 * dotdotdotpaul
+* german-muzquiz
 * imosquera
 * jammy-louie
 * jmelchio
 * kathrynlewis
+* link108
 * michaeljqzq
 * mybayern1974
 * ncknt
