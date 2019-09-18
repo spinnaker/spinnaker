@@ -21,6 +21,7 @@ import com.netflix.spinnaker.kork.manageddelivery.model.DeliveryConfig;
 import com.netflix.spinnaker.kork.manageddelivery.model.Resource;
 import java.util.List;
 import java.util.Map;
+import retrofit.client.Response;
 import retrofit.http.Body;
 import retrofit.http.DELETE;
 import retrofit.http.GET;
@@ -55,4 +56,10 @@ public interface KeelService {
   @GET("/application/{application}")
   Map getApplicationDetails(
       @Path("application") String application, @Query("includeDetails") Boolean includeDetails);
+
+  @POST("/vetos/{name}")
+  Response passVetoMessage(@Path("name") String name, @Body Map<String, Object> message);
+
+  @GET("/vetos/{name}/rejections")
+  List<String> getVetoRejections(@Path("name") String name);
 }

@@ -10,6 +10,7 @@ import com.netflix.spinnaker.kork.manageddelivery.model.Resource;
 import groovy.util.logging.Slf4j;
 import io.swagger.annotations.ApiOperation;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,5 +83,18 @@ public class ManagedController {
       @RequestParam(value = "includeDetails", required = false, defaultValue = "false")
           Boolean includeDetails) {
     return keelService.getApplicationDetails(application, includeDetails);
+  }
+
+  @ApiOperation(value = "Pass a message to a veto plugin", response = Map.class)
+  @RequestMapping(value = "/vetos/{name}", method = POST)
+  void passVetoMessage(
+      @PathVariable("name") String name, @RequestBody Map<String, Object> message) {
+    keelService.passVetoMessage(name, message);
+  }
+
+  @ApiOperation(value = "Get everything a specific veto plugin will reject", response = List.class)
+  @RequestMapping(value = "/vetos/{name}/rejections", method = GET)
+  List<String> getVetoRejections(@PathVariable("name") String name) {
+    return keelService.getVetoRejections(name);
   }
 }
