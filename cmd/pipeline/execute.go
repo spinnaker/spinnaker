@@ -18,7 +18,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/spinnaker/spin/cmd/gateclient"
@@ -108,33 +107,7 @@ func executePipeline(cmd *cobra.Command, options ExecuteOptions) error {
 		return fmt.Errorf("Encountered an error executing pipeline, status code: %d\n", resp.StatusCode)
 	}
 
-	executions := make([]interface{}, 0)
-	attempts := 0
-	for len(executions) == 0 && attempts < 5 {
-		executions, resp, err = gateClient.ExecutionsControllerApi.SearchForPipelineExecutionsByTriggerUsingGET(
-			gateClient.Context,
-			options.application,
-			map[string]interface{}{
-				"pipelineName": options.name,
-				"statuses":     "RUNNING",
-			})
-		attempts += 1
-		time.Sleep(time.Duration(attempts*attempts) * time.Second)
-	}
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode < 200 || resp.StatusCode > 299 {
-		return fmt.Errorf("Encountered an error querying pipeline execution, status code: %d\n", resp.StatusCode)
-	}
-	if len(executions) == 0 {
-		return fmt.Errorf("Unable to start any executions, server response was: %v", resp)
-	}
+	util.UI.Info(util.Colorize().Color(fmt.Sprintf("[reset][bold][green]Pipeline execution started")))
 
-	if len(executions) > 1 {
-		return fmt.Errorf("Started more than one execution: %v", executions)
-	}
-
-	util.UI.JsonOutput(executions[0], util.UI.OutputFormat)
 	return nil
 }
