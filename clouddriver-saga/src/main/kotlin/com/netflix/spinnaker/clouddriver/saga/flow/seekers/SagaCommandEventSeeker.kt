@@ -46,7 +46,7 @@ internal class SagaCommandEventSeeker : Seeker {
       return null
     }
 
-    return (steps.indexOf(step) + 1).also {
+    return (steps.indexOf(step)).also {
       log.debug("Suggesting to seek index to $it")
     }
   }
