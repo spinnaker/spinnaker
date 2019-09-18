@@ -96,6 +96,36 @@ class GceDeployStagePreProcessorTest {
   }
 
   @Test
+  void redBlackStrategyNoExistingServerGroupTest() {
+    when(targetServerGroupResolver.resolve(any()))
+        .thenThrow(TargetServerGroup.NotFoundException.class);
+    Stage stage = new Stage();
+    Map<String, Object> context = createDefaultContext();
+    context.put("strategy", "redblack");
+    stage.setContext(context);
+
+    // Before Stages
+    List<StageDefinition> beforeStages = preProcessor.beforeStageDefinitions(stage);
+    assertThat(beforeStages).isEmpty();
+
+    // Additional Steps
+    List<StepDefinition> additionalSteps = preProcessor.additionalSteps(stage);
+    assertThat(additionalSteps)
+        .extracting(StepDefinition::getTaskClass)
+        .containsExactly(CaptureSourceServerGroupCapacityTask.class);
+
+    // After Stages
+    List<StageDefinition> afterStages = preProcessor.afterStageDefinitions(stage);
+    assertThat(afterStages)
+        .extracting(stageDefinition -> stageDefinition.stageDefinitionBuilder)
+        .containsExactly(applySourceServerGroupCapacityStage);
+
+    // On Failure Stages
+    List<StageDefinition> failureStages = preProcessor.onFailureStageDefinitions(stage);
+    assertThat(failureStages).isEmpty();
+  }
+
+  @Test
   void noneStrategyTest() {
     Stage stage = new Stage();
     Map<String, Object> context = createDefaultContext();

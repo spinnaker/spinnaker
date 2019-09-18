@@ -200,5 +200,16 @@ abstract class AbstractDeployStrategyStage extends AbstractCloudProviderAwareSta
         location: loc
       )
     }
+
+    static Map<String, Object> toContext(StageData stageData) {
+      CleanupConfig cleanupConfig = fromStage(stageData)
+      Map<String, Object> context = new HashMap<>()
+      context.put(cleanupConfig.getLocation().singularType(), cleanupConfig.getLocation().getValue())
+      context.put("cloudProvider", cleanupConfig.getCloudProvider())
+      context.put("cluster", cleanupConfig.getCluster())
+      context.put("credentials", cleanupConfig.getAccount())
+      context.put("moniker", cleanupConfig.getMoniker())
+      return context
+    }
   }
 }

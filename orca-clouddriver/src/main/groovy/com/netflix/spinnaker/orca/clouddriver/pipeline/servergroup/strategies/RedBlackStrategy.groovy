@@ -16,9 +16,12 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies
 
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.DisableClusterStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ScaleDownClusterStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ShrinkClusterStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CloneServerGroupStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CreateServerGroupStage
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
 import com.netflix.spinnaker.orca.pipeline.WaitStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -50,17 +53,29 @@ class RedBlackStrategy implements Strategy, ApplicationContextAware {
 
   @Override
   List<Stage> composeFlow(Stage stage) {
-    def stages = []
-    def stageData = stage.mapTo(StageData)
-    def cleanupConfig = AbstractDeployStrategyStage.CleanupConfig.fromStage(stage)
+    List<Stage> stages = []
+    StageData stageData = stage.mapTo(StageData)
+    Map<String, Object> baseContext = AbstractDeployStrategyStage.CleanupConfig.toContext(stageData)
 
-    Map baseContext = [
-      (cleanupConfig.location.singularType()): cleanupConfig.location.value,
-      cluster                                : cleanupConfig.cluster,
-      credentials                            : cleanupConfig.account,
-      moniker                                : cleanupConfig.moniker,
-      cloudProvider                          : cleanupConfig.cloudProvider,
-    ]
+    Stage parentCreateServerGroupStage = stage.directAncestors().find() { it.type == CreateServerGroupStage.PIPELINE_CONFIG_TYPE || it.type == CloneServerGroupStage.PIPELINE_CONFIG_TYPE }
+    if (parentCreateServerGroupStage == null) {
+      throw new IllegalStateException("Failed to determine source server group from parent stage while planning red/black flow")
+    }
+    if (parentCreateServerGroupStage.status == ExecutionStatus.NOT_STARTED) {
+      // No point in composing the flow if we are called to plan "beforeStages" since we don't have any STAGE_BEFOREs.
+      // Also, we rely on the the source server group task to have run already.
+      // In the near future we will move composeFlow into beforeStages and afterStages instead of the
+      // deprecated aroundStages
+      return []
+    }
+
+    StageData parentStageData = parentCreateServerGroupStage.mapTo(StageData)
+    StageData.Source sourceServerGroup = parentStageData.source
+
+    // Short-circuit if there is no source server group
+    if (sourceServerGroup == null || sourceServerGroup.serverGroupName == null) {
+      return []
+    }
 
     // We don't want the key propagated if interestingHealthProviderNames isn't defined, since this prevents
     // health providers from the stage's 'determineHealthProviders' task to be added to the context.

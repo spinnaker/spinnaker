@@ -24,14 +24,15 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.CaptureSour
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerGroupStage;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.AbstractDeployStrategyStage;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.DeployStagePreProcessor;
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupResolver;
 import com.netflix.spinnaker.orca.kato.pipeline.strategy.Strategy;
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy;
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -66,7 +67,13 @@ public class GceDeployStagePreProcessor implements DeployStagePreProcessor {
       return ImmutableList.of();
     }
 
-    Map<String, Object> resizeContext = getResizeContext(stageData);
+    Optional<Map<String, Object>> optionalResizeContext = getResizeContext(stageData);
+    if (!optionalResizeContext.isPresent()) {
+      // no source server group, no need to resize
+      return ImmutableList.of();
+    }
+
+    Map<String, Object> resizeContext = optionalResizeContext.get();
     resizeContext.put("pinMinimumCapacity", true);
 
     return ImmutableList.of(
@@ -107,26 +114,25 @@ public class GceDeployStagePreProcessor implements DeployStagePreProcessor {
     return Strategy.fromStrategyKey(strategy) == Strategy.RED_BLACK;
   }
 
-  private Map<String, Object> getResizeContext(StageData stageData) {
-    AbstractDeployStrategyStage.CleanupConfig cleanupConfig =
-        AbstractDeployStrategyStage.CleanupConfig.fromStage(stageData);
-    Map<String, Object> resizeContext = new HashMap<>();
+  private Optional<Map<String, Object>> getResizeContext(StageData stageData) {
+    Map<String, Object> resizeContext =
+        AbstractDeployStrategyStage.CleanupConfig.toContext(stageData);
 
-    resizeContext.put(
-        cleanupConfig.getLocation().singularType(), cleanupConfig.getLocation().getValue());
-    resizeContext.put("cluster", cleanupConfig.getCluster());
-    resizeContext.put("moniker", cleanupConfig.getMoniker());
-    resizeContext.put("credentials", cleanupConfig.getAccount());
-    resizeContext.put("cloudProvider", cleanupConfig.getCloudProvider());
+    try {
+      ResizeStrategy.Source source = getSource(targetServerGroupResolver, stageData, resizeContext);
+      if (source == null) {
+        return Optional.empty();
+      }
 
-    ResizeStrategy.Source source = getSource(targetServerGroupResolver, stageData, resizeContext);
-    resizeContext.put("serverGroupName", source.getServerGroupName());
-    resizeContext.put("action", ResizeStrategy.ResizeAction.scale_to_server_group);
-    resizeContext.put("source", source);
-    resizeContext.put(
-        "useNameAsLabel", true); // hint to deck that it should _not_ override the name
-
-    return resizeContext;
+      resizeContext.put("serverGroupName", source.getServerGroupName());
+      resizeContext.put("action", ResizeStrategy.ResizeAction.scale_to_server_group);
+      resizeContext.put("source", source);
+      resizeContext.put(
+          "useNameAsLabel", true); // hint to deck that it should _not_ override the name
+      return Optional.of(resizeContext);
+    } catch (TargetServerGroup.NotFoundException e) {
+      return Optional.empty();
+    }
   }
 
   @Nullable
@@ -140,7 +146,13 @@ public class GceDeployStagePreProcessor implements DeployStagePreProcessor {
       return null;
     }
 
-    Map<String, Object> resizeContext = getResizeContext(stageData);
+    Optional<Map<String, Object>> optionalResizeContext = getResizeContext(stageData);
+    if (!optionalResizeContext.isPresent()) {
+      // no source server group, no need to unpin
+      return null;
+    }
+
+    Map<String, Object> resizeContext = optionalResizeContext.get();
     resizeContext.put("unpinMinimumCapacity", true);
 
     return new StageDefinition(
