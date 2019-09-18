@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.validator
 
+import com.google.common.collect.ImmutableList
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials
@@ -26,14 +27,16 @@ import org.springframework.validation.Errors
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import javax.annotation.Nullable
+
 class KubernetesValidationUtilSpec extends Specification {
   @Unroll
   void "wiring of kind/namespace validation"() {
     given:
     Errors errors = Mock(Errors)
     String kubernetesAccount = "testAccount"
-    def namespaces = ["test-namespace"]
-    def omitNamespaces = ["omit-namespace"]
+    def namespaces = ImmutableList.of("test-namespace")
+    def omitNamespaces = ImmutableList.of("omit-namespace")
     def kind = KubernetesKind.DEPLOYMENT
     AccountCredentials accountCredentials = Mock(AccountCredentials)
     KubernetesV2Credentials credentials = Mock(KubernetesV2Credentials)
@@ -74,8 +77,8 @@ class KubernetesValidationUtilSpec extends Specification {
     def judgement = kubernetesValidationUtil.validateNamespace(testNamespace, credentials)
 
     then:
-    credentials.getOmitNamespaces() >> omitNamespaces
-    credentials.namespaces >> namespaces
+    credentials.getOmitNamespaces() >> toImmutableList(omitNamespaces)
+    credentials.namespaces >> toImmutableList(namespaces)
     judgement == allowedNamespace
 
     where:
@@ -92,5 +95,13 @@ class KubernetesValidationUtilSpec extends Specification {
     // on looking in the namespace cache for the unknown namespace.
     []                 | []                 | "unknown-namespace" || true
     []                 | ["omit-namespace"] | "unknown-namespace" || true
+  }
+
+  @Nullable
+  private static <T> ImmutableList<T> toImmutableList(@Nullable Iterable<T> list) {
+    if (list == null) {
+      return null;
+    }
+    return ImmutableList.copyOf(list);
   }
 }
