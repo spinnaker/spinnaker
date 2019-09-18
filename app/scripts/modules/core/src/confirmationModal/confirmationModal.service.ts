@@ -1,4 +1,5 @@
 import { module } from 'angular';
+import * as DOMPurify from 'dompurify';
 import { IModalService, IModalSettings } from 'angular-ui-bootstrap';
 
 export interface IConfirmationModalParams {
@@ -38,7 +39,7 @@ export class ConfirmationModalService {
     const extendedParams: IConfirmationModalParams = { ...this.defaults, ...params };
 
     if (extendedParams.body) {
-      extendedParams.body = this.$sce.trustAsHtml(extendedParams.body);
+      extendedParams.body = this.$sce.trustAsHtml(DOMPurify.sanitize(extendedParams.body));
     }
 
     const modalArgs: IModalSettings = {
