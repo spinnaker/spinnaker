@@ -44,9 +44,9 @@ class ScaleDownClusterTask extends AbstractClusterWideClouddriverTask {
     ClusterSelection clusterSelection = stage.mapTo(ClusterSelection)
     Map resizeOp = [capacity: [min: 0, max: 0, desired: 0]]
     if (clusterSelection.cloudProvider == 'gce' && serverGroup.getAutoscalingPolicy()) {
-      resizeOp.autoscalingMode = 'OFF'
+      resizeOp.autoscalingMode = 'ON'
 
-      // Avoid overriding persisted autoscaling policy metadata to 0/0/0 and mode = OFF.
+      // Avoid overriding persisted autoscaling policy metadata to 0/0/0 and mode = ON.
       // This ensures the server group will be scaled properly with the previously persisted
       // autoscaling policy if re-enabled.
       resizeOp.writeMetadata = false
