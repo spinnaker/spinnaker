@@ -42,11 +42,11 @@ class AuthorizationSupport {
 
     return runAsUsers.findAll { runAsUser ->
       if (!userCanAccessServiceAccount(auth, runAsUser)) {
-        log.info("User ${auth?.principal} does not have access to service account $runAsUser")
+        log.error("User ${auth?.principal} does not have access to service account $runAsUser")
         return true
       }
       if (!serviceAccountCanAccessApplication(runAsUser, pipeline.application as String)) {
-        log.info("Service account ${runAsUser} does not have access to application ${pipeline.application}")
+        log.error("Service account ${runAsUser} does not have access to application ${pipeline.application}")
         return true
       }
       return false
