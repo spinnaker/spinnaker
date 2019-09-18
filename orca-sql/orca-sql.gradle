@@ -16,6 +16,7 @@
 
 apply from: "$rootDir/gradle/kotlin.gradle"
 apply from: "$rootDir/gradle/spock.gradle"
+apply plugin: "java"
 
 dependencies {
   implementation(project(":orca-core"))
