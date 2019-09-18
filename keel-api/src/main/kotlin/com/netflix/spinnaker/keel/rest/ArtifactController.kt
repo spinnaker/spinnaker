@@ -3,7 +3,6 @@ package com.netflix.spinnaker.keel.rest
 import com.netflix.spinnaker.keel.api.ArtifactType
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.events.ArtifactEvent
-import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.persistence.ArtifactAlreadyRegistered
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
@@ -12,7 +11,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.HttpStatus.ACCEPTED
 import org.springframework.http.HttpStatus.CONFLICT
-import org.springframework.http.HttpStatus.CREATED
 import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.web.bind.annotation.ExceptionHandler
@@ -38,22 +36,7 @@ class ArtifactController(
   )
   @ResponseStatus(ACCEPTED)
   fun submitArtifact(@RequestBody echoArtifactEvent: EchoArtifactEvent) {
-    log.debug(
-      "Received artifact events {} for {}",
-      echoArtifactEvent.eventName,
-      echoArtifactEvent.payload.artifacts.map { it.name }
-    )
     publisher.publishEvent(echoArtifactEvent.payload)
-  }
-
-  @PostMapping(
-    consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE],
-    produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
-  )
-  @ResponseStatus(CREATED)
-  fun register(@RequestBody artifact: DeliveryArtifact) {
-    log.debug("Registering {} artifact {}", artifact.type, artifact.name)
-    publisher.publishEvent(ArtifactRegisteredEvent(artifact))
   }
 
   @GetMapping(

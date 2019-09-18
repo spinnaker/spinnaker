@@ -1,8 +1,10 @@
 package com.netflix.spinnaker.igor
 
+import com.netflix.spinnaker.keel.api.ArtifactStatus
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import retrofit2.http.GET
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface ArtifactService {
 
@@ -14,6 +16,7 @@ interface ArtifactService {
 
   @GET("/artifacts/rocket/{packageName}")
   suspend fun getVersions(
-    @Path("packageName") packageName: String
+    @Path("packageName") packageName: String,
+    @Query("releaseStatus") releaseStatus: List<ArtifactStatus> = enumValues<ArtifactStatus>().toList()
   ): List<String> // sorted in descending order
 }

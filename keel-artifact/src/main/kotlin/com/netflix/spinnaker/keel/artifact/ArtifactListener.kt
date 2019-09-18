@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.artifact
 
 import com.netflix.spinnaker.igor.ArtifactService
+import com.netflix.spinnaker.keel.api.ArtifactStatus
 import com.netflix.spinnaker.keel.api.ArtifactType
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.events.ArtifactEvent
@@ -26,14 +27,13 @@ class ArtifactListener(
     event
       .artifacts
       .filter { it.type.toUpperCase() in artifactTypeNames }
-      .forEach {
-        val artifact = it.toDeliveryArtifact()
-        // TODO: should be able to construct this with Frigga or something, apparently, also it might
-        //  make sense to have a method that does this on the Kork class rather than here
-        val version = "${it.name}-${it.version}"
+      .forEach { korkArtifact ->
+        val artifact = korkArtifact.toDeliveryArtifact()
+        val version = "${korkArtifact.name}-${korkArtifact.version}"
+        val status = artifactStatus(korkArtifact)
         if (artifactRepository.isRegistered(artifact.name, artifact.type)) {
-          log.info("Registering version {} of {} {}", version, artifact.name, artifact.type)
-          artifactRepository.store(artifact, version)
+          log.info("Registering version {} ({}) of {} {}", version, status, artifact.name, artifact.type)
+          artifactRepository.store(artifact, version, status)
             .also { wasAdded ->
               if (wasAdded) {
                 publisher.publishEvent(ArtifactVersionUpdated(artifact.name, artifact.type))
@@ -54,21 +54,35 @@ class ArtifactListener(
     }
 
     if (artifactRepository.versions(artifact).isEmpty()) {
-      storeLatestVersion(artifact)
+      storeLatestVersion(artifact, event.statuses)
     }
   }
 
-  protected fun storeLatestVersion(artifact: DeliveryArtifact) =
+  /**
+   * Grab the latest version which matches the statuses we care about, so the artifact is relevant.
+   */
+  protected fun storeLatestVersion(artifact: DeliveryArtifact, statuses: List<ArtifactStatus>) =
     runBlocking {
       artifactService
-        .getVersions(artifact.name)
+        .getVersions(artifact.name, statuses)
         .firstOrNull()
         ?.let { firstVersion ->
           val version = "${artifact.name}-$firstVersion"
-          log.debug("Storing latest version {} for registered artifact {}", version, artifact)
-          artifactRepository.store(artifact, version)
+          val status = artifactStatus(artifactService.getArtifact(artifact.name, firstVersion))
+          log.debug("Storing latest version {} ({}) for registered artifact {}", version, status, artifact)
+          artifactRepository.store(artifact, version, status)
         }
     }
+
+  /**
+   * Parses the status from a kork artifact, and throws an error if [releaseStatus] isn't
+   * present in [metadata]
+   */
+  private fun artifactStatus(artifact: Artifact): ArtifactStatus {
+    val status = artifact.metadata["releaseStatus"]?.toString()
+      ?: throw IllegalStateException("Artifact event received without 'releaseStatus' field")
+    return ArtifactStatus.valueOf(status)
+  }
 
   private val artifactTypeNames by lazy { ArtifactType.values().map(ArtifactType::name) }
 

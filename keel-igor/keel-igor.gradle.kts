@@ -5,6 +5,7 @@ plugins {
 
 dependencies {
   implementation(project(":keel-retrofit"))
+  implementation(project(":keel-core"))
   implementation("com.netflix.spinnaker.kork:kork-artifacts")
   implementation("org.springframework.boot:spring-boot-autoconfigure")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")

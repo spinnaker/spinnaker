@@ -1,5 +1,7 @@
 package com.netflix.spinnaker.keel.persistence
 
+import com.netflix.spinnaker.keel.api.ArtifactStatus.FINAL
+import com.netflix.spinnaker.keel.api.ArtifactStatus.SNAPSHOT
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
@@ -42,6 +44,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
     val version1 = "keeldemo-0.0.1~dev.8-h8.41595c4"
     val version2 = "keeldemo-0.0.1~dev.9-h9.3d2c8ff"
     val version3 = "keeldemo-0.0.1~dev.10-h10.1d2d542"
+    val version4 = "keeldemo-1.0.0-h11.518aea2"
   }
 
   fun tests() = rootContext<Fixture<T>> {
@@ -58,7 +61,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
 
       test("registering a new version throws an exception") {
         expectThrows<NoSuchArtifactException> {
-          subject.store(artifact1, version1)
+          subject.store(artifact1, version1, SNAPSHOT)
         }
       }
 
@@ -88,32 +91,53 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
 
       context("an artifact version already exists") {
         before {
-          subject.store(artifact1, version1)
+          subject.store(artifact1, version1, SNAPSHOT)
         }
 
         test("registering the same version is a no-op") {
-          val result = subject.store(artifact1, version1)
+          val result = subject.store(artifact1, version1, SNAPSHOT)
           expectThat(result).isFalse()
           expectThat(subject.versions(artifact1)).hasSize(1)
         }
 
         test("registering a new version adds it to the list") {
-          val result = subject.store(artifact1, version2)
+          val result = subject.store(artifact1, version2, SNAPSHOT)
 
           expectThat(result).isTrue()
           expectThat(subject.versions(artifact1)).containsExactly(version2, version1)
+        }
+
+        test("querying the list for SNAPSHOT returns both artifacts") {
+          subject.store(artifact1, version2, SNAPSHOT)
+          expectThat(subject.versions(artifact1, listOf(SNAPSHOT))).containsExactly(version2, version1)
         }
       }
 
       context("sorting is consistent") {
         before {
           listOf(version1, version2, version3).forEach {
-            subject.store(artifact1, it)
+            subject.store(artifact1, it, SNAPSHOT)
           }
         }
 
         test("versions are returned newest first") {
           expectThat(subject.versions(artifact1)).containsExactly(version3, version2, version1)
+        }
+      }
+
+      context("filtering based on status works") {
+        before {
+          subject.store(artifact1, version1, SNAPSHOT)
+          subject.store(artifact1, version2, SNAPSHOT)
+          subject.store(artifact1, version4, FINAL)
+        }
+
+        test("querying for all returns 3") {
+          expectThat(subject.versions(artifact1)).containsExactly(version4, version2, version1)
+        }
+
+        test("querying for FINAL returns version4") {
+          expectThat(subject.versions(artifact1, listOf(FINAL))).containsExactly(version4)
         }
       }
     }
@@ -258,6 +282,22 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
           that(subject.isApprovedFor(manifest, artifact2, version1, environment1.name)).isTrue()
           that(subject.isApprovedFor(manifest, artifact2, version2, environment1.name)).isTrue()
           that(subject.isApprovedFor(manifest, artifact2, version3, environment1.name)).isTrue()
+        }
+      }
+    }
+
+    context("getting latest artifact approved in env respects status") {
+      before {
+        persist()
+        subject.store(artifact1, version4, FINAL)
+        subject.approveVersionFor(manifest, artifact1, version1, environment1.name)
+        subject.approveVersionFor(manifest, artifact1, version4, environment1.name)
+      }
+
+      test("querying for different statuses works") {
+        expect {
+          that(subject.latestVersionApprovedIn(manifest, artifact1, environment1.name, listOf(SNAPSHOT))).isEqualTo(version1)
+          that(subject.latestVersionApprovedIn(manifest, artifact1, environment1.name)).isEqualTo(version4)
         }
       }
     }

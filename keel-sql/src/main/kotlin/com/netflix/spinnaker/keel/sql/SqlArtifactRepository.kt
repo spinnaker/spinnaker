@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.sql
 
+import com.netflix.spinnaker.keel.api.ArtifactStatus
 import com.netflix.spinnaker.keel.api.ArtifactType
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
@@ -37,7 +38,7 @@ class SqlArtifactRepository(
       }
   }
 
-  override fun store(artifact: DeliveryArtifact, version: String): Boolean {
+  override fun store(artifact: DeliveryArtifact, version: String, status: ArtifactStatus): Boolean {
     val uid = jooq.select(DELIVERY_ARTIFACT.UID)
       .from(DELIVERY_ARTIFACT)
       .where(DELIVERY_ARTIFACT.NAME.eq(artifact.name))
@@ -48,6 +49,7 @@ class SqlArtifactRepository(
     return jooq.insertInto(DELIVERY_ARTIFACT_VERSION)
       .set(DELIVERY_ARTIFACT_VERSION.DELIVERY_ARTIFACT_UID, uid.value1())
       .set(DELIVERY_ARTIFACT_VERSION.VERSION, version)
+      .set(DELIVERY_ARTIFACT_VERSION.STATUS, status.toString())
       .onDuplicateKeyIgnore()
       .execute() == 1
   }
@@ -60,32 +62,43 @@ class SqlArtifactRepository(
       .and(DELIVERY_ARTIFACT.TYPE.eq(type.name))
       .fetchOne() != null
 
-  override fun versions(artifact: DeliveryArtifact): List<String> =
-    if (isRegistered(artifact.name, artifact.type)) {
+  override fun versions(artifact: DeliveryArtifact, statuses: List<ArtifactStatus>): List<String> {
+    val status = statuses.map { it.toString() }
+    return if (isRegistered(artifact.name, artifact.type)) {
       jooq
         .select(DELIVERY_ARTIFACT_VERSION.VERSION)
         .from(DELIVERY_ARTIFACT, DELIVERY_ARTIFACT_VERSION)
         .where(DELIVERY_ARTIFACT.UID.eq(DELIVERY_ARTIFACT_VERSION.DELIVERY_ARTIFACT_UID))
         .and(DELIVERY_ARTIFACT.NAME.eq(artifact.name))
         .and(DELIVERY_ARTIFACT.TYPE.eq(artifact.type.name))
+        .and(DELIVERY_ARTIFACT_VERSION.STATUS.`in`(*status.toTypedArray()))
         .fetch()
         .getValues(DELIVERY_ARTIFACT_VERSION.VERSION)
         .sortAppVersion()
     } else {
       throw NoSuchArtifactException(artifact)
     }
+  }
 
   override fun latestVersionApprovedIn(
     deliveryConfig: DeliveryConfig,
     artifact: DeliveryArtifact,
-    targetEnvironment: String
+    targetEnvironment: String,
+    statuses: List<ArtifactStatus>
   ): String? {
+    val status = statuses.map { it.toString() }
     val environment = deliveryConfig.environmentNamed(targetEnvironment)
+    val envUid = deliveryConfig.getUidFor(environment)
+    val artifactId = artifact.uid
     return jooq
-      .select(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION)
-      .from(ENVIRONMENT_ARTIFACT_VERSIONS)
-      .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(deliveryConfig.getUidFor(environment)))
-      .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
+      .select(DELIVERY_ARTIFACT_VERSION.VERSION)
+      .from(ENVIRONMENT_ARTIFACT_VERSIONS
+        .innerJoin(DELIVERY_ARTIFACT_VERSION)
+        .on(DELIVERY_ARTIFACT_VERSION.DELIVERY_ARTIFACT_UID.eq(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID)))
+      .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(envUid))
+      .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(DELIVERY_ARTIFACT_VERSION.VERSION))
+      .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifactId))
+      .and(DELIVERY_ARTIFACT_VERSION.STATUS.`in`(*status.toTypedArray()))
       .orderBy(ENVIRONMENT_ARTIFACT_VERSIONS.APPROVED_AT.desc())
       .limit(1)
       .fetchOne(0, String::class.java)

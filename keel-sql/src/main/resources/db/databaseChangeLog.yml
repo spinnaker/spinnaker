@@ -35,3 +35,6 @@ databaseChangeLog:
   - include:
       file: changelog/20190917-rename-cluster-to-server-group.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20190913-add-status-to-artifact-version.yml
+      relativeToChangelogFile: true

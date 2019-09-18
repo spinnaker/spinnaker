@@ -1,6 +1,8 @@
 package com.netflix.spinnaker.keel.bakery.resource
 
 import com.netflix.spinnaker.igor.ArtifactService
+import com.netflix.spinnaker.keel.api.ArtifactStatus.FINAL
+import com.netflix.spinnaker.keel.api.ArtifactStatus.SNAPSHOT
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.NoKnownArtifactVersions
@@ -68,6 +70,8 @@ internal class ImageHandlerTests : JUnit5Minutests {
         application = "keel"
       )
     )
+    val resourceOnlySnapshot = resource.copy(spec = resource.spec.copy(artifactStatuses = listOf(SNAPSHOT)))
+
     val image = Image(
       baseAmiVersion = "nflx-base-5.378.0-h1230.8808866",
       appVersion = "keel-0.161.0-h63.24d0843",
@@ -85,7 +89,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
         before {
           val artifact = DeliveryArtifact("keel", DEB)
           artifactRepository.register(artifact)
-          artifactRepository.store(artifact, image.appVersion)
+          artifactRepository.store(artifact, image.appVersion, FINAL)
 
           every {
             baseImageCache.getBaseImage(resource.spec.baseOs, resource.spec.baseLabel)
@@ -161,11 +165,23 @@ internal class ImageHandlerTests : JUnit5Minutests {
         }
       }
 
+      context("there is only a version with the wrong status") {
+        before {
+          val artifact = DeliveryArtifact("keel", DEB)
+          artifactRepository.register(artifact)
+          artifactRepository.store(artifact, image.appVersion, FINAL)
+        }
+
+        test("an exception is thrown") {
+          expectThrows<NoKnownArtifactVersions> { handler.desired(resourceOnlySnapshot) }
+        }
+      }
+
       context("there is no cached base image") {
         before {
           val artifact = DeliveryArtifact("keel", DEB)
           artifactRepository.register(artifact)
-          artifactRepository.store(artifact, image.appVersion)
+          artifactRepository.store(artifact, image.appVersion, FINAL)
 
           every {
             baseImageCache.getBaseImage(resource.spec.baseOs, resource.spec.baseLabel)
@@ -181,7 +197,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
         before {
           val artifact = DeliveryArtifact("keel", DEB)
           artifactRepository.register(artifact)
-          artifactRepository.store(artifact, image.appVersion)
+          artifactRepository.store(artifact, image.appVersion, FINAL)
 
           every {
             baseImageCache.getBaseImage(resource.spec.baseOs, resource.spec.baseLabel)
@@ -230,9 +246,6 @@ internal class ImageHandlerTests : JUnit5Minutests {
             "https://spinnaker.builds.test.netflix.net/job/SPINNAKER-rocket-package-keel/62",
             null
           )
-      }
-
-      test("bake configuration is based on resource spec") {
       }
 
       test("artifact is attached to the trigger") {

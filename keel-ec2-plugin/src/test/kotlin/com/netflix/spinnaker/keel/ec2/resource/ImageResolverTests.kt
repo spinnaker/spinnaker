@@ -1,6 +1,8 @@
 package com.netflix.spinnaker.keel.ec2.resource
 
 import com.netflix.frigga.ami.AppVersion
+import com.netflix.spinnaker.keel.api.ArtifactStatus.FINAL
+import com.netflix.spinnaker.keel.api.ArtifactStatus.SNAPSHOT
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
@@ -44,6 +46,9 @@ internal class ImageResolverTests : JUnit5Minutests {
     val resourceRegion: String = imageRegion
   ) {
     private val account = "test"
+    val version1 = "1.0.0-123456"
+    val version2 = "1.1.0-123456"
+    val version3 = "1.2.0-123456"
     private val dynamicConfigService = mockk<DynamicConfigService>() {
       every {
         getConfig(String::class.java, "images.default-account", any())
@@ -62,12 +67,12 @@ internal class ImageResolverTests : JUnit5Minutests {
     )
     val images = listOf(
       NamedImage(
-        imageName = "fnord-1.0.0-123456",
+        imageName = "fnord-$version1",
         attributes = mapOf(
           "creationDate" to "2019-07-28T13:01:00.000Z"
         ),
         tagsByImageId = mapOf(
-          "ami-1" to mapOf("appversion" to "fnord-1.0.0-123456")
+          "ami-1" to mapOf("appversion" to "fnord-$version1")
         ),
         accounts = setOf(account),
         amis = mapOf(
@@ -75,12 +80,12 @@ internal class ImageResolverTests : JUnit5Minutests {
         )
       ),
       NamedImage(
-        imageName = "fnord-1.1.0-123456",
+        imageName = "fnord-$version2",
         attributes = mapOf(
           "creationDate" to "2019-07-29T13:01:00.000Z"
         ),
         tagsByImageId = mapOf(
-          "ami-2" to mapOf("appversion" to "fnord-1.1.0-123456")
+          "ami-2" to mapOf("appversion" to "fnord-$version2")
         ),
         accounts = setOf(account),
         amis = mapOf(
@@ -88,12 +93,12 @@ internal class ImageResolverTests : JUnit5Minutests {
         )
       ),
       NamedImage(
-        imageName = "fnord-1.2.0-123456",
+        imageName = "fnord-$version3",
         attributes = mapOf(
           "creationDate" to "2019-07-30T13:01:00.000Z"
         ),
         tagsByImageId = mapOf(
-          "ami-3" to mapOf("appversion" to "fnord-1.2.0-123456")
+          "ami-3" to mapOf("appversion" to "fnord-$version3")
         ),
         accounts = setOf(account),
         amis = mapOf(
@@ -158,14 +163,14 @@ internal class ImageResolverTests : JUnit5Minutests {
 
       test("just returns the image id") {
         expectThat(resolve())
-          .isEqualTo(imageProvider.imageId to "fnord-1.1.0-123456")
+          .isEqualTo(imageProvider.imageId to "fnord-$version2")
       }
     }
 
     derivedContext<Fixture<ArtifactImageProvider>>("an image derived from an artifact") {
       fixture {
         Fixture(
-          ArtifactImageProvider(DeliveryArtifact("fnord", DEB))
+          ArtifactImageProvider(DeliveryArtifact("fnord", DEB), listOf(FINAL))
         )
       }
 
@@ -180,7 +185,7 @@ internal class ImageResolverTests : JUnit5Minutests {
 
         test("returns the most recent version of the artifact") {
           expectThat(resolve())
-            .isEqualTo("ami-3" to "fnord-1.2.0-123456")
+            .isEqualTo("ami-3" to "fnord-$version3")
         }
       }
 
@@ -195,9 +200,11 @@ internal class ImageResolverTests : JUnit5Minutests {
 
         context("a version of the artifact has been approved for the environment") {
           before {
-            artifactRepository.approveVersionFor(deliveryConfig, artifact, "${artifact.name}-1.1.0-123456", "test")
+            artifactRepository.register(artifact)
+            artifactRepository.store(artifact, "${artifact.name}-$version2", FINAL)
+            artifactRepository.approveVersionFor(deliveryConfig, artifact, "${artifact.name}-$version2", "test")
             coEvery {
-              imageService.getLatestNamedImage(AppVersion.parseName("${artifact.name}-1.1.0-123456"), any(), resourceRegion)
+              imageService.getLatestNamedImage(AppVersion.parseName("${artifact.name}-$version2"), any(), resourceRegion)
             } answers {
               images.lastOrNull { AppVersion.parseName(it.appVersion).version == firstArg<AppVersion>().version }
             }
@@ -209,11 +216,28 @@ internal class ImageResolverTests : JUnit5Minutests {
 
           test("returns the image id of the approved version") {
             expectThat(resolve())
-              .isEqualTo("ami-2" to "fnord-1.1.0-123456") // TODO: false moniker
+              .isEqualTo("ami-2" to "fnord-$version2") // TODO: false moniker
           }
         }
 
         context("no artifact version has been approved for the environment") {
+          before {
+            artifactRepository.register(artifact)
+            artifactRepository.store(artifact, "${artifact.name}-$version2", FINAL)
+          }
+          test("throws an exception") {
+            expectCatching { resolve() }
+              .failed()
+              .isA<NoImageSatisfiesConstraints>()
+          }
+        }
+
+        context("only an artifact with the wrong status has been approved for the environment") {
+          before {
+            artifactRepository.register(artifact)
+            artifactRepository.store(artifact, "${artifact.name}-$version2", SNAPSHOT)
+            artifactRepository.approveVersionFor(deliveryConfig, artifact, "${artifact.name}-$version2", "test")
+          }
           test("throws an exception") {
             expectCatching { resolve() }
               .failed()
@@ -223,9 +247,11 @@ internal class ImageResolverTests : JUnit5Minutests {
 
         context("no image is found for the artifact version") {
           before {
-            artifactRepository.approveVersionFor(deliveryConfig, artifact, "${artifact.name}-1.1.0-123456", "test")
+            artifactRepository.register(artifact)
+            artifactRepository.store(artifact, "${artifact.name}-$version2", FINAL)
+            artifactRepository.approveVersionFor(deliveryConfig, artifact, "${artifact.name}-$version2", "test")
             coEvery {
-              imageService.getLatestNamedImage(AppVersion.parseName("${artifact.name}-1.1.0-123456"), any(), resourceRegion)
+              imageService.getLatestNamedImage(AppVersion.parseName("${artifact.name}-$version2"), any(), resourceRegion)
             } returns null
           }
 
@@ -255,9 +281,11 @@ internal class ImageResolverTests : JUnit5Minutests {
           }
 
           before {
-            artifactRepository.approveVersionFor(deliveryConfig, artifact, "${artifact.name}-1.1.0-123456", "test")
+            artifactRepository.register(artifact)
+            artifactRepository.store(artifact, "${artifact.name}-$version2", FINAL)
+            artifactRepository.approveVersionFor(deliveryConfig, artifact, "${artifact.name}-$version2", "test")
             coEvery {
-              imageService.getLatestNamedImage(AppVersion.parseName("${artifact.name}-1.1.0-123456"), any(), resourceRegion)
+              imageService.getLatestNamedImage(AppVersion.parseName("${artifact.name}-$version2"), any(), resourceRegion)
             } answers {
               images.lastOrNull { AppVersion.parseName(it.appVersion).version == firstArg<AppVersion>().version }
             }

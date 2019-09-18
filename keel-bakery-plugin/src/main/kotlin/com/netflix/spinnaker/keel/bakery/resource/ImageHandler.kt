@@ -3,12 +3,13 @@ package com.netflix.spinnaker.keel.bakery.resource
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.igor.ArtifactService
+import com.netflix.spinnaker.keel.api.ArtifactStatus
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.NoKnownArtifactVersions
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceId
+import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.id
@@ -57,10 +58,10 @@ class ImageHandler(
 
       if (!artifactRepository.isRegistered(artifact.name, artifact.type)) {
         // we clearly care about this artifact, let's register it.
-        publisher.publishEvent(ArtifactRegisteredEvent(artifact))
+        publisher.publishEvent(ArtifactRegisteredEvent(artifact, resource.spec.artifactStatuses))
       }
 
-      val latestVersion = artifact.findLatestVersion()
+      val latestVersion = artifact.findLatestVersion(resource.spec.artifactStatuses)
       val baseImage = baseImageCache.getBaseImage(spec.baseOs, spec.baseLabel)
       val baseAmi = findBaseAmi(baseImage, resource.serviceAccount)
       Image(
@@ -77,9 +78,9 @@ class ImageHandler(
       }
     }
 
-  private fun DeliveryArtifact.findLatestVersion(): String =
+  private fun DeliveryArtifact.findLatestVersion(statuses: List<ArtifactStatus>): String =
     artifactRepository
-      .versions(this)
+      .versions(this, statuses)
       .firstOrNull() ?: throw NoKnownArtifactVersions(this)
 
   override suspend fun upsert(

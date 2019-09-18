@@ -8,3 +8,7 @@ data class DeliveryArtifact(
 enum class ArtifactType {
   DEB
 }
+
+enum class ArtifactStatus {
+  FINAL, CANDIDATE, SNAPSHOT
+}

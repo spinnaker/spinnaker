@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.artifact
 
 import com.netflix.spinnaker.igor.ArtifactService
+import com.netflix.spinnaker.keel.api.ArtifactStatus.FINAL
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.events.ArtifactEvent
@@ -18,6 +19,19 @@ import io.mockk.verify
 import org.springframework.context.ApplicationEventPublisher
 
 internal class ArtifactListenerTests : JUnit5Minutests {
+  val korkArtifact = Artifact(
+    "DEB",
+    false,
+    "fnord",
+    "0.156.0-h58.f67fe09",
+    null,
+    "debian-local:pool/f/fnord/fnord_0.156.0-h58.f67fe09_all.deb",
+    mapOf("releaseStatus" to FINAL),
+    null,
+    "https://my.jenkins.master/jobs/fnord-release/58",
+    null
+  )
+
   data class ArtifactFixture(
     val event: ArtifactEvent,
     val artifact: DeliveryArtifact,
@@ -32,20 +46,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
     fixture {
       ArtifactFixture(
         event = ArtifactEvent(
-          artifacts = listOf(
-            Artifact(
-              "DEB",
-              false,
-              "fnord",
-              "0.156.0-h58.f67fe09",
-              null,
-              "debian-local:pool/f/fnord/fnord_0.156.0-h58.f67fe09_all.deb",
-              mapOf(),
-              null,
-              "https://my.jenkins.master/jobs/fnord-release/58",
-              null
-            )
-          ),
+          artifacts = listOf(korkArtifact),
           details = emptyMap()
         ),
         artifact = DeliveryArtifact(
@@ -64,7 +65,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
       }
 
       test("the event is ignored") {
-        verify(exactly = 0) { repository.store(any(), any()) }
+        verify(exactly = 0) { repository.store(any(), any(), any()) }
       }
 
       test("no telemetry is recorded") {
@@ -80,7 +81,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
 
       context("the version was already known") {
         before {
-          every { repository.store(any(), any()) } returns false
+          every { repository.store(any(), any(), any()) } returns false
 
           listener.onArtifactEvent(event)
         }
@@ -92,14 +93,14 @@ internal class ArtifactListenerTests : JUnit5Minutests {
 
       context("the version is new") {
         before {
-          every { repository.store(any(), any()) } returns true
+          every { repository.store(any(), any(), any()) } returns true
 
           listener.onArtifactEvent(event)
         }
 
         test("a new artifact version is stored") {
           verify {
-            repository.store(artifact, "fnord-0.156.0-h58.f67fe09")
+            repository.store(artifact, "fnord-0.156.0-h58.f67fe09", FINAL)
           }
         }
 
@@ -144,7 +145,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
       }
 
       test("nothing is done") {
-        verify(exactly = 0) { repository.store(any(), any()) }
+        verify(exactly = 0) { repository.store(any(), any(), any()) }
       }
     }
 
@@ -155,7 +156,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
 
       context("there are versions of the artifact") {
         before {
-          every { repository.store(any(), any()) } returns false
+          every { repository.store(any(), any(), any()) } returns false
           every { repository.versions(any()) } returns emptyList()
           coEvery { artifactService.getVersions("fnord") } returns
             listOf(
@@ -164,13 +165,14 @@ internal class ArtifactListenerTests : JUnit5Minutests {
               "0.225.0-h139.f5c2ec7",
               "0.224.0-h138.0320b6c"
             )
+          coEvery { artifactService.getArtifact("fnord", "0.227.0-h141.bd97556") } returns korkArtifact
 
           listener.onArtifactRegisteredEvent(event)
         }
 
         test("the newest version is saved") {
           verify(exactly = 1) {
-            repository.store(DeliveryArtifact("fnord", DEB), "fnord-0.227.0-h141.bd97556")
+            repository.store(DeliveryArtifact("fnord", DEB), "fnord-0.227.0-h141.bd97556", FINAL)
           }
         }
       }
@@ -185,7 +187,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
 
         test("no versions are persisted") {
           verify(exactly = 0) {
-            repository.store(any(), any())
+            repository.store(any(), any(), any())
           }
         }
       }

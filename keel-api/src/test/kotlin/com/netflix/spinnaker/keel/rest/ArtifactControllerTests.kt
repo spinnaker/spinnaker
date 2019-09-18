@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.KeelApplication
+import com.netflix.spinnaker.keel.api.ArtifactStatus.FINAL
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
@@ -16,7 +17,6 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.MOCK
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
@@ -39,29 +39,13 @@ internal class ArtifactControllerTests {
   }
 
   @Test
-  fun `can register a new artifact`() {
-    val request = post("/artifacts")
-      .accept(APPLICATION_YAML)
-      .contentType(APPLICATION_YAML)
-      .content(
-        """---
-          |name: fnord
-          |type: DEB
-        """.trimMargin()
-      )
-    mvc
-      .perform(request)
-      .andExpect(status().isCreated)
-  }
-
-  @Test
   fun `can get the versions of an artifact`() {
     val artifact = DeliveryArtifact("fnord", DEB)
     with(artifactRepository) {
       register(artifact)
-      store(artifact, "fnord-1.0.0-41595c4")
-      store(artifact, "fnord-2.0.0-608bd90")
-      store(artifact, "fnord-2.1.0-18ed1dc")
+      store(artifact, "fnord-1.0.0-41595c4", FINAL)
+      store(artifact, "fnord-2.0.0-608bd90", FINAL)
+      store(artifact, "fnord-2.1.0-18ed1dc", FINAL)
     }
 
     val request = get("/artifacts/${artifact.name}/${artifact.type}")

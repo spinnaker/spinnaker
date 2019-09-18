@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.persistence
 
 import com.netflix.frigga.ami.AppVersion
 import com.netflix.rocket.semver.shaded.DebianVersionComparator
+import com.netflix.spinnaker.keel.api.ArtifactStatus
 import com.netflix.spinnaker.keel.api.ArtifactType
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
@@ -18,17 +19,25 @@ interface ArtifactRepository {
    * @return `true` if a new version is persisted, `false` if the specified version was already
    * known (in which case this method is a no-op).
    */
-  fun store(artifact: DeliveryArtifact, version: String): Boolean
-
-  fun versions(artifact: DeliveryArtifact): List<String>
+  fun store(artifact: DeliveryArtifact, version: String, status: ArtifactStatus): Boolean
 
   /**
-   * @return the latest version of [artifact] approved for use in [targetEnvironment].
+   * @returns the versions we have for an artifact, optionally filtering by status if provided
+   */
+  fun versions(
+    artifact: DeliveryArtifact,
+    statuses: List<ArtifactStatus> = enumValues<ArtifactStatus>().toList()
+  ): List<String>
+
+  /**
+   * @return the latest version of [artifact] approved for use in [targetEnvironment],
+   * optionally filtering by status if provided.
    */
   fun latestVersionApprovedIn(
     deliveryConfig: DeliveryConfig,
     artifact: DeliveryArtifact,
-    targetEnvironment: String
+    targetEnvironment: String,
+    statuses: List<ArtifactStatus> = enumValues<ArtifactStatus>().toList()
   ): String?
 
   /**

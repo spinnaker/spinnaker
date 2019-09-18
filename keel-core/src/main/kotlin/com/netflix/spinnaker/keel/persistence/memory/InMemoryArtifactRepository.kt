@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.persistence.memory
 
+import com.netflix.spinnaker.keel.api.ArtifactStatus
 import com.netflix.spinnaker.keel.api.ArtifactType
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
@@ -10,7 +11,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 class InMemoryArtifactRepository : ArtifactRepository {
-  private val artifacts = mutableMapOf<DeliveryArtifact, MutableList<String>>()
+  private val artifacts = mutableMapOf<DeliveryArtifact, MutableList<ArtifactVersionAndStatus>>()
   private val approvedVersions = mutableMapOf<Triple<DeliveryArtifact, DeliveryConfig, String>, MutableList<String>>()
   private val deployedVersions = mutableMapOf<Triple<DeliveryArtifact, DeliveryConfig, String>, MutableList<String>>()
   private val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
@@ -23,13 +24,13 @@ class InMemoryArtifactRepository : ArtifactRepository {
     artifacts[artifact] = mutableListOf()
   }
 
-  override fun store(artifact: DeliveryArtifact, version: String): Boolean {
+  override fun store(artifact: DeliveryArtifact, version: String, status: ArtifactStatus): Boolean {
     if (!artifacts.containsKey(artifact)) {
       throw NoSuchArtifactException(artifact)
     }
     val versions = artifacts[artifact] ?: throw IllegalArgumentException()
-    return if (versions.none { it == version }) {
-      versions.add(0, version)
+    return if (versions.none { it.version == version }) {
+      versions.add(ArtifactVersionAndStatus(version, status))
       true
     } else {
       false
@@ -41,8 +42,10 @@ class InMemoryArtifactRepository : ArtifactRepository {
       it.name == name && it.type == type
     }
 
-  override fun versions(artifact: DeliveryArtifact): List<String> =
-    artifacts[artifact]?.sortAppVersion() ?: throw NoSuchArtifactException(artifact)
+  override fun versions(artifact: DeliveryArtifact, statuses: List<ArtifactStatus>): List<String> {
+    val versions = artifacts[artifact] ?: throw NoSuchArtifactException(artifact)
+    return versions.filter { it.status in statuses }.map { it.version }.sortAppVersion()
+  }
 
   override fun approveVersionFor(
     deliveryConfig: DeliveryConfig,
@@ -72,10 +75,15 @@ class InMemoryArtifactRepository : ArtifactRepository {
   override fun latestVersionApprovedIn(
     deliveryConfig: DeliveryConfig,
     artifact: DeliveryArtifact,
-    targetEnvironment: String
+    targetEnvironment: String,
+    statuses: List<ArtifactStatus>
   ): String? {
     val key = Triple(artifact, deliveryConfig, targetEnvironment)
-    return approvedVersions.getOrDefault(key, mutableListOf()).sortAppVersion().firstOrNull()
+    val approved = approvedVersions.getOrDefault(key, mutableListOf()).sortAppVersion()
+    val versionsWithCorrectStatus = versions(artifact, statuses)
+
+    // return the latest version that has been approved with the correct status
+    return approved.intersect(versionsWithCorrectStatus).firstOrNull()
   }
 
   override fun wasSuccessfullyDeployedTo(
@@ -108,4 +116,9 @@ class InMemoryArtifactRepository : ArtifactRepository {
     approvedVersions.clear()
     deployedVersions.clear()
   }
+
+  private data class ArtifactVersionAndStatus(
+    val version: String,
+    val status: ArtifactStatus
+  )
 }

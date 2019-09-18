@@ -35,7 +35,7 @@ class ImageResolver(
   suspend fun resolveImageId(resource: Resource<ServerGroupSpec>): Pair<String, String> =
     when (val imageProvider = resource.spec.launchConfiguration.imageProvider) {
       is IdImageProvider -> {
-        resolveFromImageId(resource, imageProvider)
+        resolveFromImageId(imageProvider)
       }
       is ArtifactImageProvider -> {
         resolveFromArtifact(resource, imageProvider)
@@ -48,7 +48,7 @@ class ImageResolver(
       }
     }
 
-  private suspend fun resolveFromImageId(resource: Resource<ServerGroupSpec>, imageProvider: IdImageProvider): Pair<String, String> {
+  private suspend fun resolveFromImageId(imageProvider: IdImageProvider): Pair<String, String> {
     val images = cloudDriverService.namedImages(DEFAULT_SERVICE_ACCOUNT, imageProvider.imageId, null, null)
     check(images.size == 1) {
       "Expected a single image for AMI id ${imageProvider.imageId} but found ${images.size}"
@@ -67,7 +67,8 @@ class ImageResolver(
       val artifactVersion = artifactRepository.latestVersionApprovedIn(
         deliveryConfig,
         artifact,
-        environment.name
+        environment.name,
+        imageProvider.artifactStatuses
       ) ?: throw NoImageSatisfiesConstraints(artifact.name, environment.name)
       val image = imageService.getLatestNamedImage(
         appVersion = AppVersion.parseName(artifactVersion),

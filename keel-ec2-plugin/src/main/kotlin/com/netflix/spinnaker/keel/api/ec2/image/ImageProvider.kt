@@ -19,6 +19,7 @@ package com.netflix.spinnaker.keel.api.ec2.image
 
 import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.netflix.spinnaker.keel.api.ArtifactStatus
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.ec2.jackson.ImageProviderDeserializer
 
@@ -41,7 +42,8 @@ data class IdImageProvider(
  */
 @JsonDeserialize(using = JsonDeserializer.None::class)
 data class ArtifactImageProvider(
-  val deliveryArtifact: DeliveryArtifact
+  val deliveryArtifact: DeliveryArtifact,
+  val artifactStatuses: List<ArtifactStatus> = enumValues<ArtifactStatus>().toList()
 ) : ImageProvider()
 
 /**
