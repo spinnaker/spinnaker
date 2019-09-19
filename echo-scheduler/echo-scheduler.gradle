@@ -30,7 +30,10 @@ dependencies {
   implementation "com.netflix.spinnaker.kork:kork-artifacts"
   implementation "com.netflix.spinnaker.kork:kork-sql"
 
-  implementation "mysql:mysql-connector-java"
+  if (!rootProject.hasProperty("excludeSqlDrivers")) {
+    runtimeOnly "mysql:mysql-connector-java"
+  }
+
   implementation "org.springframework:spring-context-support"
   implementation ("org.quartz-scheduler:quartz") {
     exclude group: 'com.zaxxer', module: 'HikariCP-java7'
