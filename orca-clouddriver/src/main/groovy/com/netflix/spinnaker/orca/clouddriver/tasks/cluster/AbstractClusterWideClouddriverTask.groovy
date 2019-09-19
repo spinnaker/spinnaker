@@ -30,7 +30,6 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTa
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
 import com.netflix.spinnaker.orca.kato.pipeline.CopyLastAsgStage
-import com.netflix.spinnaker.orca.kato.pipeline.DeployStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -212,7 +211,6 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
                                                             List<TargetServerGroup> clusterServerGroups) {
     //if we are a synthetic stage child of a deploy, don't operate on what we just deployed
     final Set<String> deployStageTypes = [
-      DeployStage.PIPELINE_CONFIG_TYPE,
       CopyLastAsgStage.PIPELINE_CONFIG_TYPE,
       CloneServerGroupStage.PIPELINE_CONFIG_TYPE,
       CreateServerGroupStage.PIPELINE_CONFIG_TYPE,

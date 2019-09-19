@@ -60,6 +60,17 @@ class RollingRedBlackStrategy implements Strategy, ApplicationContextAware {
   ScaleDownClusterStage scaleDownClusterStage
 
   @Override
+  List<Stage> composeBeforeStages(Stage parent) {
+    return composeFlow(parent)
+      .findAll({ it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE })
+  }
+
+  @Override
+  List<Stage> composeAfterStages(Stage parent) {
+    return composeFlow(parent)
+      .findAll({ it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER })
+  }
+
   List<Stage> composeFlow(Stage stage) {
     if (!pipelineStage) {
       throw new IllegalStateException("Rolling red/black cannot be run without front50 enabled. Please set 'front50.enabled: true' in your orca config.")

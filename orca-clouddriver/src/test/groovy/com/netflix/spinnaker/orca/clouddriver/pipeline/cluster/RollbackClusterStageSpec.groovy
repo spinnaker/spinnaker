@@ -36,11 +36,6 @@ class RollbackClusterStageSpec extends Specification {
   @Subject
   def stageBuilder = new RollbackClusterStage()
 
-  def "should not build any aroundStages()"() {
-    expect:
-    stageBuilder.aroundStages(stage {}).isEmpty()
-  }
-
   def "should build rollback stages corresponding to each region with a rollback target"() {
     given:
     trafficGuard.hasDisableLock(MonikerHelper.friggaToMoniker('foo-main'), 'test', _) >> false

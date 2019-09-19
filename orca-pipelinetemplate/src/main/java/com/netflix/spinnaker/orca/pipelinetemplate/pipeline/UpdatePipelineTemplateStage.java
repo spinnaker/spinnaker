@@ -21,13 +21,13 @@ import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.front50.pipeline.UpdatePipelineStage;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode.Builder;
+import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner;
 import com.netflix.spinnaker.orca.pipelinetemplate.tasks.PlanTemplateDependentsTask;
 import com.netflix.spinnaker.orca.pipelinetemplate.tasks.UpdatePipelineTemplateTask;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
 import java.util.*;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -53,11 +53,10 @@ public class UpdatePipelineTemplateStage implements StageDefinitionBuilder {
     builder.withTask("updatePipelineTemplate", UpdatePipelineTemplateTask.class);
   }
 
-  @Nonnull
   @Override
-  public List<Stage> aroundStages(@Nonnull Stage stage) {
+  public void afterStages(@Nonnull Stage stage, @Nonnull StageGraphBuilder graph) {
     if (front50Service == null) {
-      return Collections.emptyList();
+      return;
     }
 
     if (!stage.getContext().containsKey("pipelineTemplate")) {
@@ -76,9 +75,9 @@ public class UpdatePipelineTemplateStage implements StageDefinitionBuilder {
     List<Map<String, Object>> dependentPipelines =
         front50Service.getPipelineTemplateDependents(pipelineTemplate.getId(), true);
 
-    return dependentPipelines.stream()
+    dependentPipelines.stream()
         .map(pipeline -> configureSavePipelineStage(stage, pipeline))
-        .collect(Collectors.toList());
+        .forEach(graph::append);
   }
 
   private Stage configureSavePipelineStage(Stage stage, Map<String, Object> pipeline) {

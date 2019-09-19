@@ -39,6 +39,7 @@ import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
 import groovy.util.logging.Slf4j;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -77,7 +78,19 @@ public class CFRollingRedBlackStrategy implements Strategy, ApplicationContextAw
       ThreadLocal.withInitial(() -> new Yaml(new SafeConstructor()));
 
   @Override
-  public List<Stage> composeFlow(Stage stage) {
+  public List<Stage> composeAfterStages(Stage parent) {
+    return composeFlow(parent).stream()
+        .filter(s -> s.getSyntheticStageOwner() == SyntheticStageOwner.STAGE_AFTER)
+        .collect(Collectors.toList());
+  }
+
+  public List<Stage> composeBeforeStages(Stage parent) {
+    return composeFlow(parent).stream()
+        .filter(s -> s.getSyntheticStageOwner() == SyntheticStageOwner.STAGE_BEFORE)
+        .collect(Collectors.toList());
+  }
+
+  List<Stage> composeFlow(Stage stage) {
     if (!pipelineStage.isPresent()) {
       throw new IllegalStateException(
           "Rolling red/black cannot be run without front50 enabled. Please set 'front50.enabled: true' in your orca config.");

@@ -25,7 +25,12 @@ class NoStrategy implements Strategy {
   final String name = "none"
 
   @Override
-  List<Stage> composeFlow(Stage stage) {
+  List<Stage> composeBeforeStages(Stage parent) {
+    return []
+  }
+
+  @Override
+  List<Stage> composeAfterStages(Stage parent) {
     return []
   }
 }

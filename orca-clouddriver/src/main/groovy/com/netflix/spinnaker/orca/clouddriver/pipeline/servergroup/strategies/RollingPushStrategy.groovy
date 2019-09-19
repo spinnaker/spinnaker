@@ -42,6 +42,17 @@ class RollingPushStrategy implements Strategy {
   SourceResolver sourceResolver
 
   @Override
+  List<Stage> composeBeforeStages(Stage parent) {
+    return composeFlow(parent)
+      .findAll({ it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE })
+  }
+
+  @Override
+  List<Stage> composeAfterStages(Stage parent) {
+    return composeFlow(parent)
+      .findAll({ it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER })
+  }
+
   List<Stage> composeFlow(Stage stage) {
     def stages = []
     def source = sourceResolver.getSource(stage)

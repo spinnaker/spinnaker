@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.bakery.pipeline
 
+import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
+
 import java.time.Clock
 import javax.annotation.Nonnull
 import com.netflix.spinnaker.orca.ExecutionStatus
@@ -66,16 +68,13 @@ class BakeStage implements StageDefinitionBuilder {
   }
 
   @Override
-  @Nonnull
-  List<Stage> parallelStages(
-    @Nonnull Stage stage
-  ) {
-    if (isTopLevelStage(stage)) {
-      return parallelContexts(stage).collect { context ->
-        newStage(stage.execution, type, "Bake in ${context.region}", context, stage, STAGE_BEFORE)
-      }
-    } else {
-      return Collections.emptyList()
+  void beforeStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
+    if (isTopLevelStage(parent)) {
+      parallelContexts(parent)
+        .collect({ context ->
+          newStage(parent.execution, type, "Bake in ${context.region}", context, parent, STAGE_BEFORE)
+        })
+        .forEach({Stage s -> graph.add(s) })
     }
   }
 

@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
+import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
+
+import javax.annotation.Nonnull
 import java.util.concurrent.ConcurrentHashMap
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
@@ -53,16 +56,21 @@ class QuickPatchStage implements StageDefinitionBuilder {
 
   public static final String PIPELINE_CONFIG_TYPE = "quickPatch"
 
-  private static INSTANCE_VERSION_SLEEP = 10000
-
   @Override
-  def void taskGraph(Stage stage, TaskNode.Builder builder) {
+  void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder.withTask("resolveQuipVersion", ResolveQuipVersionTask)
   }
 
   @Override
-  def List<Stage> aroundStages(Stage stage) {
-    def stages = []
+  void beforeStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
+    // mark as SUCCEEDED otherwise a stage w/o child tasks will remain in NOT_STARTED
+    parent.status = ExecutionStatus.SUCCEEDED
+  }
+
+  @Override
+  void afterStages(@Nonnull Stage stage, @Nonnull StageGraphBuilder graph) {
+    List<Stage> stages = new ArrayList<>()
+    Map<String, Object> nextStageContext = new HashMap<>()
 
     def instances = getInstancesForCluster(stage)
     if (instances.size() == 0) {
@@ -72,9 +80,8 @@ class QuickPatchStage implements StageDefinitionBuilder {
       instances.each { key, value ->
         def instance = [:]
         instance.put(key, value)
-        def nextStageContext = [:]
         nextStageContext.putAll(stage.context)
-        nextStageContext << [instances: instance]
+        nextStageContext.put("instances", instance)
         nextStageContext.put("instanceIds", [key]) // for WaitForDown/UpInstancesTask
 
         stages << newStage(
@@ -87,9 +94,8 @@ class QuickPatchStage implements StageDefinitionBuilder {
         )
       }
     } else { // quickpatch all instances in the asg at once
-      def nextStageContext = [:]
       nextStageContext.putAll(stage.context)
-      nextStageContext << [instances: instances]
+      nextStageContext.put("instances", instances)
       nextStageContext.put("instanceIds", instances.collect { key, value -> key })
       // for WaitForDown/UpInstancesTask
 
@@ -103,10 +109,7 @@ class QuickPatchStage implements StageDefinitionBuilder {
       )
     }
 
-    // mark as SUCCEEDED otherwise a stage w/o child tasks will remain in NOT_STARTED
-    stage.status = ExecutionStatus.SUCCEEDED
-
-    return stages
+    stages.forEach({ graph.append(it) })
   }
 
   Map getInstancesForCluster(Stage stage) {

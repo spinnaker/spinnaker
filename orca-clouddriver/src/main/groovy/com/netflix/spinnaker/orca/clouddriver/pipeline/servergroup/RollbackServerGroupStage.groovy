@@ -22,10 +22,13 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.rollback.Prev
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.rollback.Rollback
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.rollback.TestRollback
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory
 import org.springframework.stereotype.Component
+
+import javax.annotation.Nonnull
 
 @Component
 class RollbackServerGroupStage implements StageDefinitionBuilder {
@@ -35,7 +38,7 @@ class RollbackServerGroupStage implements StageDefinitionBuilder {
   AutowireCapableBeanFactory autowireCapableBeanFactory
 
   @Override
-  List<Stage> aroundStages(Stage stage) {
+  void afterStages(@Nonnull Stage stage, @Nonnull StageGraphBuilder graph) {
     def stageData = stage.mapTo(StageData)
 
     if (!stageData.rollbackType) {
@@ -44,7 +47,10 @@ class RollbackServerGroupStage implements StageDefinitionBuilder {
 
     def explicitRollback = stage.mapTo("/rollbackContext", stageData.rollbackType.implementationClass) as Rollback
     autowireCapableBeanFactory.autowireBean(explicitRollback)
-    return explicitRollback.buildStages(stage)
+
+    explicitRollback
+      .buildStages(stage)
+      .forEach({ graph.append(it) })
   }
 
   static enum RollbackType {

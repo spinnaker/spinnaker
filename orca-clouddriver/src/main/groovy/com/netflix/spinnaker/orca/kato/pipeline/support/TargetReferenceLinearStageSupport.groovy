@@ -19,9 +19,13 @@ package com.netflix.spinnaker.orca.kato.pipeline.support
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.kato.pipeline.DetermineTargetReferenceStage
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import org.springframework.beans.factory.annotation.Autowired
+
+import javax.annotation.Nonnull
+
 import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.newStage
 
 @Deprecated
@@ -36,8 +40,21 @@ abstract class TargetReferenceLinearStageSupport implements StageDefinitionBuild
   DetermineTargetReferenceStage determineTargetReferenceStage
 
   @Override
-  def List<Stage> aroundStages(Stage parentStage) {
-    return composeTargets(parentStage)
+  void beforeStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
+    List<Stage> stages = composeTargets(parent)
+
+    stages
+      .findAll({ it.getSyntheticStageOwner() == SyntheticStageOwner.STAGE_BEFORE })
+      .forEach({ graph.append(it) })
+  }
+
+  @Override
+  void afterStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
+    List<Stage> stages = composeTargets(parent)
+
+    stages
+      .findAll({ it.getSyntheticStageOwner() == SyntheticStageOwner.STAGE_AFTER })
+      .forEach({ graph.append(it) })
   }
 
   List<Stage> composeTargets(Stage stage) {

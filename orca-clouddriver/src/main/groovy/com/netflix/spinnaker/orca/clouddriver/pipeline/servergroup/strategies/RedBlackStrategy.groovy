@@ -52,6 +52,17 @@ class RedBlackStrategy implements Strategy, ApplicationContextAware {
   ApplicationContext applicationContext
 
   @Override
+  List<Stage> composeBeforeStages(Stage parent) {
+    return composeFlow(parent)
+      .findAll({ it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE })
+  }
+
+  @Override
+  List<Stage> composeAfterStages(Stage parent) {
+    return composeFlow(parent)
+      .findAll({ it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER })
+  }
+
   List<Stage> composeFlow(Stage stage) {
     List<Stage> stages = []
     StageData stageData = stage.mapTo(StageData)

@@ -19,10 +19,10 @@ package com.netflix.spinnaker.orca.pipeline;
 import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.newStage;
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE;
 import static java.lang.String.format;
-import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 
 import com.netflix.spinnaker.orca.Task;
+import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.tasks.PreconditionTask;
 import java.util.Collection;
@@ -66,22 +66,19 @@ public class CheckPreconditionsStage implements StageDefinitionBuilder {
   }
 
   @Override
-  @Nonnull
-  public List<Stage> parallelStages(@Nonnull Stage stage) {
-    if (isTopLevelStage(stage)) {
-      return parallelContexts(stage).stream()
+  public void beforeStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
+    if (isTopLevelStage(parent)) {
+      parallelContexts(parent).stream()
           .map(
               context ->
                   newStage(
-                      stage.getExecution(),
+                      parent.getExecution(),
                       getType(),
                       format("Check precondition (%s)", context.get("preconditionType")),
                       context,
-                      stage,
+                      parent,
                       STAGE_BEFORE))
-          .collect(toList());
-    } else {
-      return emptyList();
+          .forEach(graph::add);
     }
   }
 

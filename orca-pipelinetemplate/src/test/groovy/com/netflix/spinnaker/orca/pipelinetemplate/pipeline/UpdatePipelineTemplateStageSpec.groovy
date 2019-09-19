@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.pipelinetemplate.pipeline
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.pipeline.UpdatePipelineStage
+import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
@@ -83,11 +84,15 @@ class UpdatePipelineTemplateStageSpec extends Specification {
     and:
     def config = [pipelineTemplate: Base64.encoder.encodeToString(new ObjectMapper().writeValueAsString(pipelineTemplate).bytes)]
     def stage = new Stage(Execution.newPipeline("orca"), "updatePipelineTemplate", config)
+    def graphBefore = StageGraphBuilder.beforeStages(stage)
+    def graphAfter = StageGraphBuilder.afterStages(stage)
 
     when:
-    def syntheticStages = stageBuilder.aroundStages(stage)
-    def beforeStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE }
-    def afterStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
+    stageBuilder.beforeStages(stage, graphBefore)
+    stageBuilder.afterStages(stage, graphAfter)
+
+    def beforeStages = graphBefore.build()
+    def afterStages = graphAfter.build()
 
     then:
     1 * front50Service.getPipelineTemplateDependents("myTemplate", true) >> {

@@ -26,12 +26,16 @@ import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
 import com.netflix.spinnaker.orca.kato.tasks.ResizeAsgTask
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
+import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+
+import javax.annotation.Nonnull
+
 import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.newStage
 
 @Component
@@ -71,12 +75,38 @@ class ResizeAsgStage implements StageDefinitionBuilder {
   }
 
   @Override
-  List<Stage> aroundStages(Stage parentStage) {
+  void beforeStages(@Nonnull Stage parentStage, @Nonnull StageGraphBuilder graph) {
     if (!parentStage.parentStageId || parentStage.execution.stages.find {
       it.id == parentStage.parentStageId
     }.type != parentStage.type) {
       // configure iff this stage has no parent or has a parent that is not a ResizeAsg stage
-      def stages = configureTargets(parentStage)
+
+      List<Stage> stages = new ArrayList<>()
+      def targetReferences = targetReferenceSupport.getTargetAsgReferences(parentStage)
+
+      targetReferences.each { targetReference ->
+        def context = [
+          credentials: parentStage.context.credentials,
+          regions    : [targetReference.region]
+        ]
+
+        if (targetReferenceSupport.isDynamicallyBound(parentStage)) {
+          context.remove("asgName")
+          context.target = parentStage.context.target
+        } else {
+          context.asgName = targetReference.asg.name
+        }
+
+        stages << newStage(
+          parentStage.execution,
+          modifyScalingProcessStage.getType(),
+          "resumeScalingProcesses",
+          context + [action: "resume", processes: ["Launch", "Terminate"]],
+          parentStage,
+          SyntheticStageOwner.STAGE_BEFORE
+        )
+      }
+
       if (targetReferenceSupport.isDynamicallyBound(parentStage)) {
         stages << newStage(
           parentStage.execution,
@@ -87,74 +117,71 @@ class ResizeAsgStage implements StageDefinitionBuilder {
           SyntheticStageOwner.STAGE_BEFORE
         )
       }
-      return stages
-    }
 
-    return []
+      stages.forEach({graph.append(it)})
+    }
   }
 
-  @CompileDynamic
-  private List<Stage> configureTargets(Stage stage) {
-    def stages = []
+  @Override
+  void afterStages(@Nonnull Stage parentStage, @Nonnull StageGraphBuilder graph) {
+    if (!parentStage.parentStageId || parentStage.execution.stages.find {
+      it.id == parentStage.parentStageId
+    }.type != parentStage.type) {
+      // configure iff this stage has no parent or has a parent that is not a ResizeAsg stage
+      List<Stage> stages = new ArrayList<>()
 
-    def targetReferences = targetReferenceSupport.getTargetAsgReferences(stage)
-    def descriptions = resizeSupport.createResizeStageDescriptors(stage, targetReferences)
+      def targetReferences = targetReferenceSupport.getTargetAsgReferences(parentStage)
+      def descriptions = resizeSupport.createResizeStageDescriptors(parentStage, targetReferences)
 
-    if (descriptions.size()) {
-      for (description in descriptions) {
+      if (descriptions.size()) {
+        for (description in descriptions) {
+          stages << newStage(
+            parentStage.execution,
+            this.getType(),
+            "resizeAsg",
+            description,
+            parentStage,
+            SyntheticStageOwner.STAGE_AFTER
+          )
+        }
+      }
+
+      targetReferences.each { targetReference ->
+        def context = [
+          credentials: parentStage.context.credentials,
+          regions    : [targetReference.region]
+        ]
+
+        if (targetReferenceSupport.isDynamicallyBound(parentStage)) {
+          def resizeContext = new HashMap(parentStage.context)
+          resizeContext.regions = [targetReference.region]
+          context.remove("asgName")
+          context.target = parentStage.context.target
+          stages << newStage(
+            parentStage.execution,
+            this.getType(),
+            "resizeAsg",
+            resizeContext,
+            parentStage,
+            SyntheticStageOwner.STAGE_AFTER
+          )
+        } else {
+          context.asgName = targetReference.asg.name
+        }
+
+        context.put("action", "suspend")
+
         stages << newStage(
-          stage.execution,
-          this.getType(),
-          "resizeAsg",
-          description,
-          stage,
+          parentStage.execution,
+          modifyScalingProcessStage.getType(),
+          "suspendScalingProcesses",
+          context,
+          parentStage,
           SyntheticStageOwner.STAGE_AFTER
         )
       }
+
+      stages.forEach({graph.append(it)})
     }
-
-    targetReferences.each { targetReference ->
-      def context = [
-        credentials: stage.context.credentials,
-        regions    : [targetReference.region]
-      ]
-
-      if (targetReferenceSupport.isDynamicallyBound(stage)) {
-        def resizeContext = new HashMap(stage.context)
-        resizeContext.regions = [targetReference.region]
-        context.remove("asgName")
-        context.target = stage.context.target
-        stages << newStage(
-          stage.execution,
-          this.getType(),
-          "resizeAsg",
-          resizeContext,
-          stage,
-          SyntheticStageOwner.STAGE_AFTER
-        )
-      } else {
-        context.asgName = targetReference.asg.name
-      }
-
-      stages << newStage(
-        stage.execution,
-        modifyScalingProcessStage.getType(),
-        "resumeScalingProcesses",
-        context + [action: "resume", processes: ["Launch", "Terminate"]],
-        stage,
-        SyntheticStageOwner.STAGE_BEFORE
-      )
-
-      stages << newStage(
-        stage.execution,
-        modifyScalingProcessStage.getType(),
-        "suspendScalingProcesses",
-        context + [action: "suspend"],
-        stage,
-        SyntheticStageOwner.STAGE_AFTER
-      )
-    }
-
-    return stages
   }
 }

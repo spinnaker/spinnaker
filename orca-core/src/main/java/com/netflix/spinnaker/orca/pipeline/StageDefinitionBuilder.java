@@ -18,10 +18,6 @@ package com.netflix.spinnaker.orca.pipeline;
 
 import static com.netflix.spinnaker.orca.pipeline.TaskNode.Builder;
 import static com.netflix.spinnaker.orca.pipeline.TaskNode.GraphType.FULL;
-import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER;
-import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE;
-import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.toList;
 
 import com.google.common.base.CaseFormat;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
@@ -37,7 +33,6 @@ import java.lang.annotation.Target;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -53,68 +48,16 @@ public interface StageDefinitionBuilder {
   default void taskGraph(@Nonnull Stage stage, @Nonnull Builder builder) {}
 
   /**
-   * @deprecated implement {@link #beforeStages}, {@link #afterStages}, and {@link #onFailureStages}
-   *     instead.
-   */
-  @Deprecated
-  default @Nonnull List<Stage> aroundStages(@Nonnull Stage stage) {
-    return emptyList();
-  }
-
-  /**
-   * @deprecated implement {@link #beforeStages}, {@link #afterStages}, and {@link #onFailureStages}
-   *     instead.
-   */
-  @Deprecated
-  default @Nonnull List<Stage> parallelStages(@Nonnull Stage stage) {
-    return emptyList();
-  }
-
-  /**
    * Implement this method to define any stages that should run before any tasks in this stage as
    * part of a composed workflow.
-   *
-   * <p>This default implementation is for backward compatibility with the legacy {@link
-   * #aroundStages} and {@link #parallelStages} methods.
    */
-  default void beforeStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
-    List<Stage> stages =
-        aroundStages(parent).stream()
-            .filter((it) -> it.getSyntheticStageOwner() == STAGE_BEFORE)
-            .collect(toList());
-    if (!stages.isEmpty()) {
-      graph.add(stages.get(0));
-    }
-    for (int i = 1; i < stages.size(); i++) {
-      graph.connect(stages.get(i - 1), stages.get(i));
-    }
-    parallelStages(parent).stream()
-        .filter((it) -> it.getSyntheticStageOwner() == STAGE_BEFORE)
-        .forEach(graph::add);
-  }
+  default void beforeStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {}
 
   /**
    * Implement this method to define any stages that should run after any tasks in this stage as
    * part of a composed workflow.
-   *
-   * <p>This default implementation is for backward compatibility with the legacy {@link
-   * #aroundStages} and {@link #parallelStages} methods.
    */
-  default void afterStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
-    List<Stage> stages =
-        aroundStages(parent).stream()
-            .filter((it) -> it.getSyntheticStageOwner() == STAGE_AFTER)
-            .collect(toList());
-    if (!stages.isEmpty()) {
-      graph.add(stages.get(0));
-    }
-    for (int i = 1; i < stages.size(); i++) {
-      graph.connect(stages.get(i - 1), stages.get(i));
-    }
-    parallelStages(parent).stream()
-        .filter((it) -> it.getSyntheticStageOwner() == STAGE_AFTER)
-        .forEach(graph::add);
-  }
+  default void afterStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {}
 
   /**
    * Implement this method to define any stages that should run in response to a failure in tasks,

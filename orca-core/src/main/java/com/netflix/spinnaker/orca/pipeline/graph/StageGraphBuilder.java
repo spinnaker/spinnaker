@@ -143,6 +143,14 @@ public class StageGraphBuilder {
     }
   }
 
+  public void append(@Nonnull Stage stage) {
+    if (lastAdded == null) {
+      add(stage);
+    } else {
+      connect(lastAdded, stage);
+    }
+  }
+
   /**
    * Builds and returns the stages represented in the graph. This method is not typically useful to
    * implementors of {@link StageDefinitionBuilder}, it's used internally and by tests.

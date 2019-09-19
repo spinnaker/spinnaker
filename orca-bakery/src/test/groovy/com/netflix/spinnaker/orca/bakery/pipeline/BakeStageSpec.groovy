@@ -16,18 +16,17 @@
 
 package com.netflix.spinnaker.orca.bakery.pipeline
 
+
 import java.time.Clock
-import java.time.Instant
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.util.RegionCollector
 import spock.lang.Specification
 import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
-import static java.time.Clock.systemUTC
 import static java.time.Instant.EPOCH
-import static java.time.Instant.now
 import static java.time.ZoneOffset.UTC
 import static java.time.temporal.ChronoUnit.*
 
@@ -99,7 +98,9 @@ class BakeStageSpec extends Specification {
     }
 
     def bakeStage = pipeline.stageById("1")
-    def parallelStages = new BakeStage(regionCollector: new RegionCollector()).parallelStages(bakeStage)
+    def graph = StageGraphBuilder.beforeStages(bakeStage)
+    new BakeStage(regionCollector: new RegionCollector()).beforeStages(bakeStage, graph)
+    def parallelStages = graph.build()
 
     parallelStages.eachWithIndex { it, idx -> it.context.ami = idx + 1 }
     pipeline.stages.addAll(parallelStages)

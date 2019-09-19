@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeSupport
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReference
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
+import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
@@ -50,6 +51,8 @@ class ResizeAsgStageSpec extends Specification {
     def config = [asgName    : "testapp-asg-v000", regions: ["us-west-1", "us-east-1"], capacity: [min: 0, max: 0, desired: 0],
                   credentials: "test"]
     def stage = new Stage(Execution.newPipeline("orca"), "resizeAsg", config)
+    def graphBefore = StageGraphBuilder.beforeStages(stage)
+    def graphAfter = StageGraphBuilder.afterStages(stage)
 
     when:
     stageBuilder.buildTaskGraph(stage)
@@ -58,12 +61,13 @@ class ResizeAsgStageSpec extends Specification {
     stage.status == ExecutionStatus.SUCCEEDED
 
     when:
-    def syntheticStages = stageBuilder.aroundStages(stage)
-    def beforeStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE }
-    def afterStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
+    stageBuilder.beforeStages(stage, graphBefore)
+    stageBuilder.afterStages(stage, graphAfter)
+    def beforeStages = graphBefore.build()
+    def afterStages = graphAfter.build()
 
     then:
-    1 * targetReferenceSupport.getTargetAsgReferences(stage) >> asgs.collect {
+    2 * targetReferenceSupport.getTargetAsgReferences(stage) >> asgs.collect {
       new TargetReference(region: it.region, asg: it)
     }
 
@@ -110,13 +114,18 @@ class ResizeAsgStageSpec extends Specification {
                   capacity: [min: 0, max: 0, desired: 0], credentials: "test"]
     def stage = new Stage(Execution.newPipeline("orca"), "resizeAsg", config)
 
+    def graphBefore = StageGraphBuilder.beforeStages(stage)
+    def graphAfter = StageGraphBuilder.afterStages(stage)
+
     when:
-    def syntheticStages = stageBuilder.aroundStages(stage)
-    def beforeStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE }
-    def afterStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
+    stageBuilder.beforeStages(stage, graphBefore)
+    stageBuilder.afterStages(stage, graphAfter)
+
+    def beforeStages = graphBefore.build()
+    def afterStages = graphAfter.build()
 
     then:
-    1 * targetReferenceSupport.getTargetAsgReferences(stage) >> [targetRef]
+    2 * targetReferenceSupport.getTargetAsgReferences(stage) >> [targetRef]
 
     afterStages.size() == 2
     afterStages[0].context.asgName == asgName
@@ -151,15 +160,19 @@ class ResizeAsgStageSpec extends Specification {
     def config = [cluster : "testapp-asg", target: target, regions: ["us-east-1"],
                   capacity: [min: 0, max: 0, desired: 0], credentials: "test"]
     def stage = new Stage(Execution.newPipeline("orca"), "resizeAsg", config)
+    def graphBefore = StageGraphBuilder.beforeStages(stage)
+    def graphAfter = StageGraphBuilder.afterStages(stage)
 
     when:
-    def syntheticStages = stageBuilder.aroundStages(stage)
-    def beforeStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE }
-    def afterStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
+    stageBuilder.beforeStages(stage, graphBefore)
+    stageBuilder.afterStages(stage, graphAfter)
+
+    def beforeStages = graphBefore.build()
+    def afterStages = graphAfter.build()
 
     then:
     _ * targetReferenceSupport.isDynamicallyBound(_) >> true
-    1 * targetReferenceSupport.getTargetAsgReferences(stage) >> [new TargetReference(region: "us-east-1",
+    2 * targetReferenceSupport.getTargetAsgReferences(stage) >> [new TargetReference(region: "us-east-1",
       cluster: "testapp-asg")]
 
     afterStages.size() == 2

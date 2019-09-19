@@ -32,6 +32,8 @@ import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
+import javax.annotation.Nonnull
+
 import static com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.DeployStagePreProcessor.StageDefinition
 import static com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup.Support.locationFromStageData
 import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.newStage
@@ -104,46 +106,67 @@ abstract class AbstractDeployStrategyStage extends AbstractCloudProviderAwareSta
   }
 
   @Override
-  List<Stage> aroundStages(Stage stage) {
-    correctContext(stage)
-    Strategy strategy = getStrategy(stage)
-    def preProcessors = deployStagePreProcessors.findAll { it.supports(stage) }
-    def stageData = stage.mapTo(StageData)
+  void beforeStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
+    correctContext(parent)
+    Strategy strategy = getStrategy(parent)
+    def preProcessors = deployStagePreProcessors.findAll { it.supports(parent) }
+    def stageData = parent.mapTo(StageData)
     def stages = []
-    stages.addAll(strategy.composeFlow(stage))
+    stages.addAll(strategy.composeBeforeStages(parent))
 
     preProcessors.each {
       def defaultContext = [
         credentials  : stageData.account,
         cloudProvider: stageData.cloudProvider
       ]
-      it.beforeStageDefinitions(stage).each {
+      it.beforeStageDefinitions(parent).each {
         stages << newStage(
-          stage.execution,
+          parent.execution,
           it.stageDefinitionBuilder.type,
           it.name,
           defaultContext + it.context,
-          stage,
+          parent,
           SyntheticStageOwner.STAGE_BEFORE
         )
       }
-      it.afterStageDefinitions(stage).each {
+    }
+
+    stages.forEach({ graph.append(it) })
+  }
+
+  @Override
+  void afterStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
+    Strategy strategy = getStrategy(parent)
+    def preProcessors = deployStagePreProcessors.findAll { it.supports(parent) }
+    def stageData = parent.mapTo(StageData)
+    List<Stage> stages = new ArrayList<>()
+
+    stages.addAll(strategy.composeAfterStages(parent))
+
+    preProcessors.each {
+      def defaultContext = [
+        credentials  : stageData.account,
+        cloudProvider: stageData.cloudProvider
+      ]
+      it.afterStageDefinitions(parent).each {
         stages << newStage(
-          stage.execution,
+          parent.execution,
           it.stageDefinitionBuilder.type,
           it.name,
           defaultContext + it.context,
-          stage,
+          parent,
           SyntheticStageOwner.STAGE_AFTER
         )
       }
     }
 
-    return stages
+    stages.forEach({ graph.append(it) })
   }
 
   @Override
   void onFailureStages(Stage stage, StageGraphBuilder graph) {
+    // TODO(mvulfson): Strategy on failure
+
     deployStagePreProcessors
       .findAll { it.supports(stage) }
       .collect { it.onFailureStageDefinitions(stage) }

@@ -882,10 +882,13 @@ class TestConfig {
 
   @Bean
   fun parallelStage() = object : StageDefinitionBuilder {
-    override fun parallelStages(stage: Stage) =
-      listOf("us-east-1", "us-west-2", "eu-west-1").map { region ->
-        newStage(stage.execution, "dummy", "dummy $region", stage.context + mapOf("region" to region), stage, STAGE_BEFORE)
-      }
+    override fun beforeStages(parent: Stage, graph: StageGraphBuilder) {
+      listOf("us-east-1", "us-west-2", "eu-west-1")
+        .map { region ->
+          newStage(parent.execution, "dummy", "dummy $region", parent.context + mapOf("region" to region), parent, STAGE_BEFORE)
+        }
+        .forEach { graph.add(it) }
+    }
 
     override fun getType() = "parallel"
   }

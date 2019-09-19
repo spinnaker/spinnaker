@@ -28,12 +28,6 @@ class DryRunStage(private val delegate: StageDefinitionBuilder) : StageDefinitio
     builder.withTask<DryRunTask>("dry run")
   }
 
-  override fun aroundStages(stage: Stage): List<Stage> =
-    delegate.aroundStages(stage)
-
-  override fun parallelStages(stage: Stage): List<Stage> =
-    delegate.parallelStages(stage)
-
   override fun beforeStages(parent: Stage, graph: StageGraphBuilder) =
     delegate.beforeStages(parent, graph)
 

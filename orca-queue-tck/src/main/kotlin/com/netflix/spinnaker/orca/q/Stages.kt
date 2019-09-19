@@ -53,10 +53,10 @@ val stageWithSyntheticBefore = object : StageDefinitionBuilder {
     builder.withTask<DummyTask>("dummy")
   }
 
-  override fun aroundStages(stage: Stage) = listOf(
-    newStage(stage.execution, singleTaskStage.type, "pre1", stage.context, stage, STAGE_BEFORE),
-    newStage(stage.execution, singleTaskStage.type, "pre2", stage.context, stage, STAGE_BEFORE)
-  )
+  override fun beforeStages(parent: Stage, graph: StageGraphBuilder) {
+    graph.append(newStage(parent.execution, singleTaskStage.type, "pre1", parent.context, parent, STAGE_BEFORE))
+    graph.append(newStage(parent.execution, singleTaskStage.type, "pre2", parent.context, parent, STAGE_BEFORE))
+  }
 }
 
 val stageWithSyntheticOnFailure = object : StageDefinitionBuilder {
@@ -82,18 +82,21 @@ val stageWithSyntheticOnFailure = object : StageDefinitionBuilder {
 val stageWithSyntheticBeforeAndNoTasks = object : StageDefinitionBuilder {
   override fun getType() = "stageWithSyntheticBeforeAndNoTasks"
 
-  override fun aroundStages(stage: Stage) = listOf(
-    newStage(stage.execution, singleTaskStage.type, "pre", stage.context, stage, STAGE_BEFORE)
-  )
+  override fun beforeStages(parent: Stage, graph: StageGraphBuilder) {
+    graph.append(newStage(parent.execution, singleTaskStage.type, "pre", parent.context, parent, STAGE_BEFORE))
+  }
 }
 
 val stageWithSyntheticBeforeAndAfterAndNoTasks = object : StageDefinitionBuilder {
   override fun getType() = "stageWithSyntheticBeforeAndAfterAndNoTasks"
 
-  override fun aroundStages(stage: Stage) = listOf(
-    newStage(stage.execution, singleTaskStage.type, "pre", stage.context, stage, STAGE_BEFORE),
-    newStage(stage.execution, singleTaskStage.type, "post", stage.context, stage, STAGE_AFTER)
-  )
+  override fun beforeStages(parent: Stage, graph: StageGraphBuilder) {
+    graph.append(newStage(parent.execution, singleTaskStage.type, "pre", parent.context, parent, STAGE_BEFORE))
+  }
+
+  override fun afterStages(parent: Stage, graph: StageGraphBuilder) {
+    graph.append(newStage(parent.execution, singleTaskStage.type, "post", parent.context, parent, STAGE_AFTER))
+  }
 }
 
 val stageWithSyntheticAfter = object : StageDefinitionBuilder {
@@ -139,25 +142,28 @@ val stageWithParallelAfter = object : StageDefinitionBuilder {
 val stageWithSyntheticAfterAndNoTasks = object : StageDefinitionBuilder {
   override fun getType() = "stageWithSyntheticAfterAndNoTasks"
 
-  override fun aroundStages(stage: Stage) = listOf(
-    newStage(stage.execution, singleTaskStage.type, "post", stage.context, stage, STAGE_AFTER)
-  )
+  override fun afterStages(parent: Stage, graph: StageGraphBuilder) {
+    graph.append(newStage(parent.execution, singleTaskStage.type, "post", parent.context, parent, STAGE_AFTER))
+  }
 }
 
 val stageWithNestedSynthetics = object : StageDefinitionBuilder {
   override fun getType() = "stageWithNestedSynthetics"
 
-  override fun aroundStages(stage: Stage) = listOf(
-    newStage(stage.execution, stageWithSyntheticBefore.type, "post", stage.context, stage, STAGE_AFTER)
-  )
+  override fun afterStages(parent: Stage, graph: StageGraphBuilder) {
+    graph.append(newStage(parent.execution, stageWithSyntheticBefore.type, "post", parent.context, parent, STAGE_AFTER))
+  }
 }
 
 val stageWithParallelBranches = object : StageDefinitionBuilder {
-  override fun parallelStages(stage: Stage) =
+  override fun beforeStages(parent: Stage, graph: StageGraphBuilder) {
     listOf("us-east-1", "us-west-2", "eu-west-1")
       .map { region ->
-        newStage(stage.execution, singleTaskStage.type, "run in $region", stage.context + mapOf("region" to region), stage, STAGE_BEFORE)
+        newStage(parent.execution, singleTaskStage.type, "run in $region", parent.context + mapOf("region" to region), parent, STAGE_BEFORE)
       }
+      .forEach { stage ->
+        graph.add(stage) }
+  }
 
   override fun taskGraph(stage: Stage, builder: Builder) {
     builder.withTask<DummyTask>("post-branch")
