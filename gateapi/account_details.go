@@ -13,25 +13,25 @@ type AccountDetails struct {
 
 	Type_ string `json:"type,omitempty"`
 
-	AccountId string `json:"accountId,omitempty"`
-
-	ChallengeDestructiveActions bool `json:"challengeDestructiveActions,omitempty"`
-
-	ProviderVersion string `json:"providerVersion,omitempty"`
-
-	RequiredGroupMembership []string `json:"requiredGroupMembership,omitempty"`
-
-	Environment string `json:"environment,omitempty"`
-
-	PrimaryAccount bool `json:"primaryAccount,omitempty"`
-
-	Skin string `json:"skin,omitempty"`
-
-	Name string `json:"name,omitempty"`
-
 	Permissions map[string][]string `json:"permissions,omitempty"`
 
 	CloudProvider string `json:"cloudProvider,omitempty"`
 
+	Environment string `json:"environment,omitempty"`
+
+	Name string `json:"name,omitempty"`
+
+	ProviderVersion string `json:"providerVersion,omitempty"`
+
+	AccountId string `json:"accountId,omitempty"`
+
+	ChallengeDestructiveActions bool `json:"challengeDestructiveActions,omitempty"`
+
+	RequiredGroupMembership []string `json:"requiredGroupMembership,omitempty"`
+
 	AccountType string `json:"accountType,omitempty"`
+
+	Skin string `json:"skin,omitempty"`
+
+	PrimaryAccount bool `json:"primaryAccount,omitempty"`
 }

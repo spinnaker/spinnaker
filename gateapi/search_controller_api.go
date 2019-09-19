@@ -30,12 +30,12 @@ type SearchControllerApiService service
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @param type_ type
  @param optional (nil or map[string]interface{}) with one or more of:
-     @param "q" (string) q
-     @param "platform" (string) platform
-     @param "pageSize" (int32) pageSize
-     @param "page" (int32) page
-     @param "allowShortQuery" (bool) allowShortQuery
      @param "xRateLimitApp" (string) X-RateLimit-App
+     @param "allowShortQuery" (bool) allowShortQuery
+     @param "page" (int32) page
+     @param "pageSize" (int32) pageSize
+     @param "platform" (string) platform
+     @param "q" (string) q
  @return []interface{}*/
 func (a *SearchControllerApiService) SearchUsingGET(ctx context.Context, type_ string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
 	var (
@@ -53,43 +53,43 @@ func (a *SearchControllerApiService) SearchUsingGET(ctx context.Context, type_ s
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-	if err := typeCheckParameter(localVarOptionals["q"], "string", "q"); err != nil {
-		return successPayload, nil, err
-	}
-	if err := typeCheckParameter(localVarOptionals["platform"], "string", "platform"); err != nil {
-		return successPayload, nil, err
-	}
-	if err := typeCheckParameter(localVarOptionals["pageSize"], "int32", "pageSize"); err != nil {
-		return successPayload, nil, err
-	}
-	if err := typeCheckParameter(localVarOptionals["page"], "int32", "page"); err != nil {
+	if err := typeCheckParameter(localVarOptionals["xRateLimitApp"], "string", "xRateLimitApp"); err != nil {
 		return successPayload, nil, err
 	}
 	if err := typeCheckParameter(localVarOptionals["allowShortQuery"], "bool", "allowShortQuery"); err != nil {
 		return successPayload, nil, err
 	}
-	if err := typeCheckParameter(localVarOptionals["xRateLimitApp"], "string", "xRateLimitApp"); err != nil {
+	if err := typeCheckParameter(localVarOptionals["page"], "int32", "page"); err != nil {
+		return successPayload, nil, err
+	}
+	if err := typeCheckParameter(localVarOptionals["pageSize"], "int32", "pageSize"); err != nil {
+		return successPayload, nil, err
+	}
+	if err := typeCheckParameter(localVarOptionals["platform"], "string", "platform"); err != nil {
+		return successPayload, nil, err
+	}
+	if err := typeCheckParameter(localVarOptionals["q"], "string", "q"); err != nil {
 		return successPayload, nil, err
 	}
 
-	if localVarTempParam, localVarOk := localVarOptionals["q"].(string); localVarOk {
-		localVarQueryParams.Add("q", parameterToString(localVarTempParam, ""))
-	}
-	localVarQueryParams.Add("type", parameterToString(type_, ""))
-	if localVarTempParam, localVarOk := localVarOptionals["platform"].(string); localVarOk {
-		localVarQueryParams.Add("platform", parameterToString(localVarTempParam, ""))
-	}
-	if localVarTempParam, localVarOk := localVarOptionals["pageSize"].(int32); localVarOk {
-		localVarQueryParams.Add("pageSize", parameterToString(localVarTempParam, ""))
+	if localVarTempParam, localVarOk := localVarOptionals["allowShortQuery"].(bool); localVarOk {
+		localVarQueryParams.Add("allowShortQuery", parameterToString(localVarTempParam, ""))
 	}
 	if localVarTempParam, localVarOk := localVarOptionals["page"].(int32); localVarOk {
 		localVarQueryParams.Add("page", parameterToString(localVarTempParam, ""))
 	}
-	if localVarTempParam, localVarOk := localVarOptionals["allowShortQuery"].(bool); localVarOk {
-		localVarQueryParams.Add("allowShortQuery", parameterToString(localVarTempParam, ""))
+	if localVarTempParam, localVarOk := localVarOptionals["pageSize"].(int32); localVarOk {
+		localVarQueryParams.Add("pageSize", parameterToString(localVarTempParam, ""))
 	}
+	if localVarTempParam, localVarOk := localVarOptionals["platform"].(string); localVarOk {
+		localVarQueryParams.Add("platform", parameterToString(localVarTempParam, ""))
+	}
+	if localVarTempParam, localVarOk := localVarOptionals["q"].(string); localVarOk {
+		localVarQueryParams.Add("q", parameterToString(localVarTempParam, ""))
+	}
+	localVarQueryParams.Add("type", parameterToString(type_, ""))
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)

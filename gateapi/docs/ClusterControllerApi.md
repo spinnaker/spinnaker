@@ -15,7 +15,7 @@ Method | HTTP request | Description
 
 
 # **GetClusterLoadBalancersUsingGET**
-> []interface{} GetClusterLoadBalancersUsingGET(ctx, applicationName, account, clusterName, type_, optional)
+> []interface{} GetClusterLoadBalancersUsingGET(ctx, account, applicationName, clusterName, type_, optional)
 Retrieve a cluster's loadbalancers
 
 ### Required Parameters
@@ -23,8 +23,8 @@ Retrieve a cluster's loadbalancers
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
-  **applicationName** | **string**| applicationName | 
   **account** | **string**| account | 
+  **applicationName** | **string**| applicationName | 
   **clusterName** | **string**| clusterName | 
   **type_** | **string**| type | 
  **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
@@ -34,8 +34,8 @@ Optional parameters are passed through a map[string]interface{}.
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **applicationName** | **string**| applicationName | 
  **account** | **string**| account | 
+ **applicationName** | **string**| applicationName | 
  **clusterName** | **string**| clusterName | 
  **type_** | **string**| type | 
  **xRateLimitApp** | **string**| X-RateLimit-App | 
@@ -50,13 +50,13 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: */*
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **GetClustersUsingGET**
-> map[string]interface{} GetClustersUsingGET(ctx, application, account, clusterName, optional)
+> map[string]interface{} GetClustersUsingGET(ctx, account, application, clusterName, optional)
 Retrieve a cluster's details
 
 ### Required Parameters
@@ -64,8 +64,8 @@ Retrieve a cluster's details
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
-  **application** | **string**| application | 
   **account** | **string**| account | 
+  **application** | **string**| application | 
   **clusterName** | **string**| clusterName | 
  **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
 
@@ -74,8 +74,8 @@ Optional parameters are passed through a map[string]interface{}.
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **application** | **string**| application | 
  **account** | **string**| account | 
+ **application** | **string**| application | 
  **clusterName** | **string**| clusterName | 
  **xRateLimitApp** | **string**| X-RateLimit-App | 
 
@@ -89,13 +89,13 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: */*
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **GetClustersUsingGET1**
-> []interface{} GetClustersUsingGET1(ctx, application, account, optional)
+> []interface{} GetClustersUsingGET1(ctx, account, application, optional)
 Retrieve a list of clusters for an account
 
 ### Required Parameters
@@ -103,8 +103,8 @@ Retrieve a list of clusters for an account
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
-  **application** | **string**| application | 
   **account** | **string**| account | 
+  **application** | **string**| application | 
  **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
 
 ### Optional Parameters
@@ -112,8 +112,8 @@ Optional parameters are passed through a map[string]interface{}.
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **application** | **string**| application | 
  **account** | **string**| account | 
+ **application** | **string**| application | 
  **xRateLimitApp** | **string**| X-RateLimit-App | 
 
 ### Return type
@@ -126,7 +126,7 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: */*
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -161,13 +161,13 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: */*
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **GetScalingActivitiesUsingGET**
-> []interface{} GetScalingActivitiesUsingGET(ctx, application, account, clusterName, serverGroupName, optional)
+> []interface{} GetScalingActivitiesUsingGET(ctx, account, application, clusterName, serverGroupName, optional)
 Retrieve a list of scaling activities for a server group
 
 ### Required Parameters
@@ -175,8 +175,8 @@ Retrieve a list of scaling activities for a server group
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
-  **application** | **string**| application | 
   **account** | **string**| account | 
+  **application** | **string**| application | 
   **clusterName** | **string**| clusterName | 
   **serverGroupName** | **string**| serverGroupName | 
  **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
@@ -186,13 +186,13 @@ Optional parameters are passed through a map[string]interface{}.
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **application** | **string**| application | 
  **account** | **string**| account | 
+ **application** | **string**| application | 
  **clusterName** | **string**| clusterName | 
  **serverGroupName** | **string**| serverGroupName | 
+ **xRateLimitApp** | **string**| X-RateLimit-App | 
  **provider** | **string**| provider | [default to aws]
  **region** | **string**| region | 
- **xRateLimitApp** | **string**| X-RateLimit-App | 
 
 ### Return type
 
@@ -204,13 +204,13 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: */*
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **GetServerGroupsUsingGET**
-> []interface{} GetServerGroupsUsingGET(ctx, application, account, clusterName, serverGroupName, optional)
+> []interface{} GetServerGroupsUsingGET(ctx, account, application, clusterName, serverGroupName, optional)
 Retrieve a server group's details
 
 ### Required Parameters
@@ -218,8 +218,8 @@ Retrieve a server group's details
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
-  **application** | **string**| application | 
   **account** | **string**| account | 
+  **application** | **string**| application | 
   **clusterName** | **string**| clusterName | 
   **serverGroupName** | **string**| serverGroupName | 
  **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
@@ -229,8 +229,8 @@ Optional parameters are passed through a map[string]interface{}.
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **application** | **string**| application | 
  **account** | **string**| account | 
+ **application** | **string**| application | 
  **clusterName** | **string**| clusterName | 
  **serverGroupName** | **string**| serverGroupName | 
  **xRateLimitApp** | **string**| X-RateLimit-App | 
@@ -245,13 +245,13 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: */*
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **GetServerGroupsUsingGET1**
-> []interface{} GetServerGroupsUsingGET1(ctx, application, account, clusterName, optional)
+> []interface{} GetServerGroupsUsingGET1(ctx, account, application, clusterName, optional)
 Retrieve a list of server groups for a cluster
 
 ### Required Parameters
@@ -259,8 +259,8 @@ Retrieve a list of server groups for a cluster
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
-  **application** | **string**| application | 
   **account** | **string**| account | 
+  **application** | **string**| application | 
   **clusterName** | **string**| clusterName | 
  **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
 
@@ -269,8 +269,8 @@ Optional parameters are passed through a map[string]interface{}.
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **application** | **string**| application | 
  **account** | **string**| account | 
+ **application** | **string**| application | 
  **clusterName** | **string**| clusterName | 
  **xRateLimitApp** | **string**| X-RateLimit-App | 
 
@@ -284,13 +284,13 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: */*
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **GetTargetServerGroupUsingGET**
-> map[string]interface{} GetTargetServerGroupUsingGET(ctx, application, account, clusterName, cloudProvider, scope, target, optional)
+> map[string]interface{} GetTargetServerGroupUsingGET(ctx, account, application, cloudProvider, clusterName, scope, target, optional)
 Retrieve a server group that matches a target coordinate (e.g., newest, ancestor) relative to a cluster
 
 `scope` is either a zone or a region
@@ -300,10 +300,10 @@ Retrieve a server group that matches a target coordinate (e.g., newest, ancestor
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
-  **application** | **string**| application | 
   **account** | **string**| account | 
-  **clusterName** | **string**| clusterName | 
+  **application** | **string**| application | 
   **cloudProvider** | **string**| cloudProvider | 
+  **clusterName** | **string**| clusterName | 
   **scope** | **string**| scope | 
   **target** | **string**| target | 
  **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
@@ -313,15 +313,15 @@ Optional parameters are passed through a map[string]interface{}.
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **application** | **string**| application | 
  **account** | **string**| account | 
- **clusterName** | **string**| clusterName | 
+ **application** | **string**| application | 
  **cloudProvider** | **string**| cloudProvider | 
+ **clusterName** | **string**| clusterName | 
  **scope** | **string**| scope | 
  **target** | **string**| target | 
+ **xRateLimitApp** | **string**| X-RateLimit-App | 
  **onlyEnabled** | **bool**| onlyEnabled | 
  **validateOldest** | **bool**| validateOldest | 
- **xRateLimitApp** | **string**| X-RateLimit-App | 
 
 ### Return type
 
@@ -333,7 +333,7 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: */*
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

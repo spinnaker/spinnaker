@@ -98,9 +98,9 @@ func (a *V2PipelineTemplatesControllerApiService) CreateUsingPOST1(ctx context.C
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @param id id
  @param optional (nil or map[string]interface{}) with one or more of:
-     @param "tag" (string) tag
-     @param "digest" (string) digest
      @param "application" (string) application
+     @param "digest" (string) digest
+     @param "tag" (string) tag
  @return map[string]interface{}*/
 func (a *V2PipelineTemplatesControllerApiService) DeleteUsingDELETE1(ctx context.Context, id string, localVarOptionals map[string]interface{}) (map[string]interface{},  *http.Response, error) {
 	var (
@@ -119,27 +119,27 @@ func (a *V2PipelineTemplatesControllerApiService) DeleteUsingDELETE1(ctx context
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-	if err := typeCheckParameter(localVarOptionals["tag"], "string", "tag"); err != nil {
+	if err := typeCheckParameter(localVarOptionals["application"], "string", "application"); err != nil {
 		return successPayload, nil, err
 	}
 	if err := typeCheckParameter(localVarOptionals["digest"], "string", "digest"); err != nil {
 		return successPayload, nil, err
 	}
-	if err := typeCheckParameter(localVarOptionals["application"], "string", "application"); err != nil {
+	if err := typeCheckParameter(localVarOptionals["tag"], "string", "tag"); err != nil {
 		return successPayload, nil, err
 	}
 
-	if localVarTempParam, localVarOk := localVarOptionals["tag"].(string); localVarOk {
-		localVarQueryParams.Add("tag", parameterToString(localVarTempParam, ""))
+	if localVarTempParam, localVarOk := localVarOptionals["application"].(string); localVarOk {
+		localVarQueryParams.Add("application", parameterToString(localVarTempParam, ""))
 	}
 	if localVarTempParam, localVarOk := localVarOptionals["digest"].(string); localVarOk {
 		localVarQueryParams.Add("digest", parameterToString(localVarTempParam, ""))
 	}
-	if localVarTempParam, localVarOk := localVarOptionals["application"].(string); localVarOk {
-		localVarQueryParams.Add("application", parameterToString(localVarTempParam, ""))
+	if localVarTempParam, localVarOk := localVarOptionals["tag"].(string); localVarOk {
+		localVarQueryParams.Add("tag", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -184,8 +184,8 @@ func (a *V2PipelineTemplatesControllerApiService) DeleteUsingDELETE1(ctx context
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @param id id
  @param optional (nil or map[string]interface{}) with one or more of:
-     @param "tag" (string) tag
      @param "digest" (string) digest
+     @param "tag" (string) tag
  @return map[string]interface{}*/
 func (a *V2PipelineTemplatesControllerApiService) GetUsingGET2(ctx context.Context, id string, localVarOptionals map[string]interface{}) (map[string]interface{},  *http.Response, error) {
 	var (
@@ -204,21 +204,21 @@ func (a *V2PipelineTemplatesControllerApiService) GetUsingGET2(ctx context.Conte
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-	if err := typeCheckParameter(localVarOptionals["tag"], "string", "tag"); err != nil {
-		return successPayload, nil, err
-	}
 	if err := typeCheckParameter(localVarOptionals["digest"], "string", "digest"); err != nil {
 		return successPayload, nil, err
 	}
-
-	if localVarTempParam, localVarOk := localVarOptionals["tag"].(string); localVarOk {
-		localVarQueryParams.Add("tag", parameterToString(localVarTempParam, ""))
+	if err := typeCheckParameter(localVarOptionals["tag"], "string", "tag"); err != nil {
+		return successPayload, nil, err
 	}
+
 	if localVarTempParam, localVarOk := localVarOptionals["digest"].(string); localVarOk {
 		localVarQueryParams.Add("digest", parameterToString(localVarTempParam, ""))
 	}
+	if localVarTempParam, localVarOk := localVarOptionals["tag"].(string); localVarOk {
+		localVarQueryParams.Add("tag", parameterToString(localVarTempParam, ""))
+	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -282,7 +282,7 @@ func (a *V2PipelineTemplatesControllerApiService) ListPipelineTemplateDependents
 
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -349,7 +349,7 @@ func (a *V2PipelineTemplatesControllerApiService) ListUsingGET1(ctx context.Cont
 		localVarQueryParams.Add("scopes", parameterToString(localVarTempParam, "multi"))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -460,8 +460,8 @@ func (a *V2PipelineTemplatesControllerApiService) PlanUsingPOST(ctx context.Cont
  @param id id
  @param pipelineTemplate pipelineTemplate
  @param optional (nil or map[string]interface{}) with one or more of:
-     @param "tag" (string) tag
      @param "skipPlanDependents" (bool) skipPlanDependents
+     @param "tag" (string) tag
  @return */
 func (a *V2PipelineTemplatesControllerApiService) UpdateUsingPOST1(ctx context.Context, id string, pipelineTemplate interface{}, localVarOptionals map[string]interface{}) ( *http.Response, error) {
 	var (
@@ -479,18 +479,18 @@ func (a *V2PipelineTemplatesControllerApiService) UpdateUsingPOST1(ctx context.C
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-	if err := typeCheckParameter(localVarOptionals["tag"], "string", "tag"); err != nil {
-		return nil, err
-	}
 	if err := typeCheckParameter(localVarOptionals["skipPlanDependents"], "bool", "skipPlanDependents"); err != nil {
 		return nil, err
 	}
-
-	if localVarTempParam, localVarOk := localVarOptionals["tag"].(string); localVarOk {
-		localVarQueryParams.Add("tag", parameterToString(localVarTempParam, ""))
+	if err := typeCheckParameter(localVarOptionals["tag"], "string", "tag"); err != nil {
+		return nil, err
 	}
+
 	if localVarTempParam, localVarOk := localVarOptionals["skipPlanDependents"].(bool); localVarOk {
 		localVarQueryParams.Add("skipPlanDependents", parameterToString(localVarTempParam, ""))
+	}
+	if localVarTempParam, localVarOk := localVarOptionals["tag"].(string); localVarOk {
+		localVarQueryParams.Add("tag", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{ "application/json",  }

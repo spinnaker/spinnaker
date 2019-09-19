@@ -47,7 +47,7 @@ func (a *AuthControllerApiService) GetServiceAccountsUsingGET(ctx context.Contex
 
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -109,7 +109,7 @@ func (a *AuthControllerApiService) LoggedOutUsingGET(ctx context.Context) (strin
 
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -172,7 +172,7 @@ func (a *AuthControllerApiService) RedirectUsingGET(ctx context.Context, to stri
 
 	localVarQueryParams.Add("to", parameterToString(to, ""))
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -285,7 +285,7 @@ func (a *AuthControllerApiService) UserUsingGET(ctx context.Context) (User,  *ht
 
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)

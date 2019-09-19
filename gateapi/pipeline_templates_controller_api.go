@@ -117,7 +117,7 @@ func (a *PipelineTemplatesControllerApiService) DeleteUsingDELETE(ctx context.Co
 		localVarQueryParams.Add("application", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -181,7 +181,7 @@ func (a *PipelineTemplatesControllerApiService) GetUsingGET(ctx context.Context,
 
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -253,7 +253,7 @@ func (a *PipelineTemplatesControllerApiService) ListPipelineTemplateDependentsUs
 		localVarQueryParams.Add("recursive", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -320,7 +320,7 @@ func (a *PipelineTemplatesControllerApiService) ListUsingGET(ctx context.Context
 		localVarQueryParams.Add("scopes", parameterToString(localVarTempParam, "multi"))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -391,15 +391,15 @@ func (a *PipelineTemplatesControllerApiService) ResolveTemplatesUsingGET(ctx con
 		return successPayload, nil, err
 	}
 
-	localVarQueryParams.Add("source", parameterToString(source, ""))
 	if localVarTempParam, localVarOk := localVarOptionals["executionId"].(string); localVarOk {
 		localVarQueryParams.Add("executionId", parameterToString(localVarTempParam, ""))
 	}
 	if localVarTempParam, localVarOk := localVarOptionals["pipelineConfigId"].(string); localVarOk {
 		localVarQueryParams.Add("pipelineConfigId", parameterToString(localVarTempParam, ""))
 	}
+	localVarQueryParams.Add("source", parameterToString(source, ""))
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)

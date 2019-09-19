@@ -31,13 +31,19 @@ type CredentialsControllerApiService service
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @param account account
  @param optional (nil or map[string]interface{}) with one or more of:
-     @param "roles" ([]string) 
+     @param "xRateLimitApp" (string) X-RateLimit-App
+     @param "accountNonExpired" (bool) 
+     @param "accountNonLocked" (bool) 
      @param "allowedAccounts" ([]string) 
+     @param "authorities0Authority" (string) 
+     @param "credentialsNonExpired" (bool) 
      @param "email" (string) 
-     @param "username" (string) 
+     @param "enabled" (bool) 
      @param "firstName" (string) 
      @param "lastName" (string) 
-     @param "xRateLimitApp" (string) X-RateLimit-App
+     @param "password" (string) 
+     @param "roles" ([]string) 
+     @param "username" (string) 
  @return AccountDetails*/
 func (a *CredentialsControllerApiService) GetAccountUsingGET(ctx context.Context, account string, localVarOptionals map[string]interface{}) (AccountDetails,  *http.Response, error) {
 	var (
@@ -56,10 +62,25 @@ func (a *CredentialsControllerApiService) GetAccountUsingGET(ctx context.Context
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if err := typeCheckParameter(localVarOptionals["xRateLimitApp"], "string", "xRateLimitApp"); err != nil {
+		return successPayload, nil, err
+	}
+	if err := typeCheckParameter(localVarOptionals["accountNonExpired"], "bool", "accountNonExpired"); err != nil {
+		return successPayload, nil, err
+	}
+	if err := typeCheckParameter(localVarOptionals["accountNonLocked"], "bool", "accountNonLocked"); err != nil {
+		return successPayload, nil, err
+	}
+	if err := typeCheckParameter(localVarOptionals["authorities0Authority"], "string", "authorities0Authority"); err != nil {
+		return successPayload, nil, err
+	}
+	if err := typeCheckParameter(localVarOptionals["credentialsNonExpired"], "bool", "credentialsNonExpired"); err != nil {
+		return successPayload, nil, err
+	}
 	if err := typeCheckParameter(localVarOptionals["email"], "string", "email"); err != nil {
 		return successPayload, nil, err
 	}
-	if err := typeCheckParameter(localVarOptionals["username"], "string", "username"); err != nil {
+	if err := typeCheckParameter(localVarOptionals["enabled"], "bool", "enabled"); err != nil {
 		return successPayload, nil, err
 	}
 	if err := typeCheckParameter(localVarOptionals["firstName"], "string", "firstName"); err != nil {
@@ -68,21 +89,33 @@ func (a *CredentialsControllerApiService) GetAccountUsingGET(ctx context.Context
 	if err := typeCheckParameter(localVarOptionals["lastName"], "string", "lastName"); err != nil {
 		return successPayload, nil, err
 	}
-	if err := typeCheckParameter(localVarOptionals["xRateLimitApp"], "string", "xRateLimitApp"); err != nil {
+	if err := typeCheckParameter(localVarOptionals["password"], "string", "password"); err != nil {
+		return successPayload, nil, err
+	}
+	if err := typeCheckParameter(localVarOptionals["username"], "string", "username"); err != nil {
 		return successPayload, nil, err
 	}
 
-	if localVarTempParam, localVarOk := localVarOptionals["roles"].([]string); localVarOk {
-		localVarQueryParams.Add("roles", parameterToString(localVarTempParam, "multi"))
+	if localVarTempParam, localVarOk := localVarOptionals["accountNonExpired"].(bool); localVarOk {
+		localVarQueryParams.Add("accountNonExpired", parameterToString(localVarTempParam, ""))
+	}
+	if localVarTempParam, localVarOk := localVarOptionals["accountNonLocked"].(bool); localVarOk {
+		localVarQueryParams.Add("accountNonLocked", parameterToString(localVarTempParam, ""))
 	}
 	if localVarTempParam, localVarOk := localVarOptionals["allowedAccounts"].([]string); localVarOk {
 		localVarQueryParams.Add("allowedAccounts", parameterToString(localVarTempParam, "multi"))
 	}
+	if localVarTempParam, localVarOk := localVarOptionals["authorities0Authority"].(string); localVarOk {
+		localVarQueryParams.Add("authorities[0].authority", parameterToString(localVarTempParam, ""))
+	}
+	if localVarTempParam, localVarOk := localVarOptionals["credentialsNonExpired"].(bool); localVarOk {
+		localVarQueryParams.Add("credentialsNonExpired", parameterToString(localVarTempParam, ""))
+	}
 	if localVarTempParam, localVarOk := localVarOptionals["email"].(string); localVarOk {
 		localVarQueryParams.Add("email", parameterToString(localVarTempParam, ""))
 	}
-	if localVarTempParam, localVarOk := localVarOptionals["username"].(string); localVarOk {
-		localVarQueryParams.Add("username", parameterToString(localVarTempParam, ""))
+	if localVarTempParam, localVarOk := localVarOptionals["enabled"].(bool); localVarOk {
+		localVarQueryParams.Add("enabled", parameterToString(localVarTempParam, ""))
 	}
 	if localVarTempParam, localVarOk := localVarOptionals["firstName"].(string); localVarOk {
 		localVarQueryParams.Add("firstName", parameterToString(localVarTempParam, ""))
@@ -90,8 +123,17 @@ func (a *CredentialsControllerApiService) GetAccountUsingGET(ctx context.Context
 	if localVarTempParam, localVarOk := localVarOptionals["lastName"].(string); localVarOk {
 		localVarQueryParams.Add("lastName", parameterToString(localVarTempParam, ""))
 	}
+	if localVarTempParam, localVarOk := localVarOptionals["password"].(string); localVarOk {
+		localVarQueryParams.Add("password", parameterToString(localVarTempParam, ""))
+	}
+	if localVarTempParam, localVarOk := localVarOptionals["roles"].([]string); localVarOk {
+		localVarQueryParams.Add("roles", parameterToString(localVarTempParam, "multi"))
+	}
+	if localVarTempParam, localVarOk := localVarOptionals["username"].(string); localVarOk {
+		localVarQueryParams.Add("username", parameterToString(localVarTempParam, ""))
+	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -138,13 +180,19 @@ func (a *CredentialsControllerApiService) GetAccountUsingGET(ctx context.Context
 /* CredentialsControllerApiService Retrieve a list of accounts
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @param optional (nil or map[string]interface{}) with one or more of:
-     @param "roles" ([]string) 
+     @param "accountNonExpired" (bool) 
+     @param "accountNonLocked" (bool) 
      @param "allowedAccounts" ([]string) 
+     @param "authorities0Authority" (string) 
+     @param "credentialsNonExpired" (bool) 
      @param "email" (string) 
-     @param "username" (string) 
+     @param "enabled" (bool) 
+     @param "expand" (bool) expand
      @param "firstName" (string) 
      @param "lastName" (string) 
-     @param "expand" (bool) expand
+     @param "password" (string) 
+     @param "roles" ([]string) 
+     @param "username" (string) 
  @return []Account*/
 func (a *CredentialsControllerApiService) GetAccountsUsingGET(ctx context.Context, localVarOptionals map[string]interface{}) ([]Account,  *http.Response, error) {
 	var (
@@ -162,10 +210,25 @@ func (a *CredentialsControllerApiService) GetAccountsUsingGET(ctx context.Contex
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if err := typeCheckParameter(localVarOptionals["accountNonExpired"], "bool", "accountNonExpired"); err != nil {
+		return successPayload, nil, err
+	}
+	if err := typeCheckParameter(localVarOptionals["accountNonLocked"], "bool", "accountNonLocked"); err != nil {
+		return successPayload, nil, err
+	}
+	if err := typeCheckParameter(localVarOptionals["authorities0Authority"], "string", "authorities0Authority"); err != nil {
+		return successPayload, nil, err
+	}
+	if err := typeCheckParameter(localVarOptionals["credentialsNonExpired"], "bool", "credentialsNonExpired"); err != nil {
+		return successPayload, nil, err
+	}
 	if err := typeCheckParameter(localVarOptionals["email"], "string", "email"); err != nil {
 		return successPayload, nil, err
 	}
-	if err := typeCheckParameter(localVarOptionals["username"], "string", "username"); err != nil {
+	if err := typeCheckParameter(localVarOptionals["enabled"], "bool", "enabled"); err != nil {
+		return successPayload, nil, err
+	}
+	if err := typeCheckParameter(localVarOptionals["expand"], "bool", "expand"); err != nil {
 		return successPayload, nil, err
 	}
 	if err := typeCheckParameter(localVarOptionals["firstName"], "string", "firstName"); err != nil {
@@ -174,21 +237,36 @@ func (a *CredentialsControllerApiService) GetAccountsUsingGET(ctx context.Contex
 	if err := typeCheckParameter(localVarOptionals["lastName"], "string", "lastName"); err != nil {
 		return successPayload, nil, err
 	}
-	if err := typeCheckParameter(localVarOptionals["expand"], "bool", "expand"); err != nil {
+	if err := typeCheckParameter(localVarOptionals["password"], "string", "password"); err != nil {
+		return successPayload, nil, err
+	}
+	if err := typeCheckParameter(localVarOptionals["username"], "string", "username"); err != nil {
 		return successPayload, nil, err
 	}
 
-	if localVarTempParam, localVarOk := localVarOptionals["roles"].([]string); localVarOk {
-		localVarQueryParams.Add("roles", parameterToString(localVarTempParam, "multi"))
+	if localVarTempParam, localVarOk := localVarOptionals["accountNonExpired"].(bool); localVarOk {
+		localVarQueryParams.Add("accountNonExpired", parameterToString(localVarTempParam, ""))
+	}
+	if localVarTempParam, localVarOk := localVarOptionals["accountNonLocked"].(bool); localVarOk {
+		localVarQueryParams.Add("accountNonLocked", parameterToString(localVarTempParam, ""))
 	}
 	if localVarTempParam, localVarOk := localVarOptionals["allowedAccounts"].([]string); localVarOk {
 		localVarQueryParams.Add("allowedAccounts", parameterToString(localVarTempParam, "multi"))
 	}
+	if localVarTempParam, localVarOk := localVarOptionals["authorities0Authority"].(string); localVarOk {
+		localVarQueryParams.Add("authorities[0].authority", parameterToString(localVarTempParam, ""))
+	}
+	if localVarTempParam, localVarOk := localVarOptionals["credentialsNonExpired"].(bool); localVarOk {
+		localVarQueryParams.Add("credentialsNonExpired", parameterToString(localVarTempParam, ""))
+	}
 	if localVarTempParam, localVarOk := localVarOptionals["email"].(string); localVarOk {
 		localVarQueryParams.Add("email", parameterToString(localVarTempParam, ""))
 	}
-	if localVarTempParam, localVarOk := localVarOptionals["username"].(string); localVarOk {
-		localVarQueryParams.Add("username", parameterToString(localVarTempParam, ""))
+	if localVarTempParam, localVarOk := localVarOptionals["enabled"].(bool); localVarOk {
+		localVarQueryParams.Add("enabled", parameterToString(localVarTempParam, ""))
+	}
+	if localVarTempParam, localVarOk := localVarOptionals["expand"].(bool); localVarOk {
+		localVarQueryParams.Add("expand", parameterToString(localVarTempParam, ""))
 	}
 	if localVarTempParam, localVarOk := localVarOptionals["firstName"].(string); localVarOk {
 		localVarQueryParams.Add("firstName", parameterToString(localVarTempParam, ""))
@@ -196,11 +274,17 @@ func (a *CredentialsControllerApiService) GetAccountsUsingGET(ctx context.Contex
 	if localVarTempParam, localVarOk := localVarOptionals["lastName"].(string); localVarOk {
 		localVarQueryParams.Add("lastName", parameterToString(localVarTempParam, ""))
 	}
-	if localVarTempParam, localVarOk := localVarOptionals["expand"].(bool); localVarOk {
-		localVarQueryParams.Add("expand", parameterToString(localVarTempParam, ""))
+	if localVarTempParam, localVarOk := localVarOptionals["password"].(string); localVarOk {
+		localVarQueryParams.Add("password", parameterToString(localVarTempParam, ""))
+	}
+	if localVarTempParam, localVarOk := localVarOptionals["roles"].([]string); localVarOk {
+		localVarQueryParams.Add("roles", parameterToString(localVarTempParam, "multi"))
+	}
+	if localVarTempParam, localVarOk := localVarOptionals["username"].(string); localVarOk {
+		localVarQueryParams.Add("username", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)

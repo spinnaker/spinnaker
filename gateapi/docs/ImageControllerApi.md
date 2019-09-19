@@ -27,11 +27,11 @@ Optional parameters are passed through a map[string]interface{}.
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
+ **account** | **string**| account | 
+ **count** | **int32**| count | 
  **provider** | **string**| provider | [default to aws]
  **q** | **string**| q | 
  **region** | **string**| region | 
- **account** | **string**| account | 
- **count** | **int32**| count | 
 
 ### Return type
 
@@ -43,7 +43,7 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: */*
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -68,8 +68,8 @@ Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **account** | **string**| account | 
  **repository** | **string**| repository | 
- **provider** | **string**| provider | [default to aws]
  **xRateLimitApp** | **string**| X-RateLimit-App | 
+ **provider** | **string**| provider | [default to aws]
 
 ### Return type
 
@@ -81,13 +81,13 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: */*
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **GetImageDetailsUsingGET**
-> []interface{} GetImageDetailsUsingGET(ctx, account, region, imageId, optional)
+> []interface{} GetImageDetailsUsingGET(ctx, account, imageId, region, optional)
 Get image details
 
 ### Required Parameters
@@ -96,8 +96,8 @@ Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
   **account** | **string**| account | 
-  **region** | **string**| region | 
   **imageId** | **string**| imageId | 
+  **region** | **string**| region | 
  **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
 
 ### Optional Parameters
@@ -106,10 +106,10 @@ Optional parameters are passed through a map[string]interface{}.
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **account** | **string**| account | 
- **region** | **string**| region | 
  **imageId** | **string**| imageId | 
- **provider** | **string**| provider | [default to aws]
+ **region** | **string**| region | 
  **xRateLimitApp** | **string**| X-RateLimit-App | 
+ **provider** | **string**| provider | [default to aws]
 
 ### Return type
 
@@ -121,7 +121,7 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: */*
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

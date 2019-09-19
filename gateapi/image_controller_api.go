@@ -31,11 +31,11 @@ type ImageControllerApiService service
  The query parameter &#x60;q&#x60; filters the list of images by image name
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @param optional (nil or map[string]interface{}) with one or more of:
+     @param "account" (string) account
+     @param "count" (int32) count
      @param "provider" (string) provider
      @param "q" (string) q
      @param "region" (string) region
-     @param "account" (string) account
-     @param "count" (int32) count
  @return []interface{}*/
 func (a *ImageControllerApiService) FindImagesUsingGET(ctx context.Context, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
 	var (
@@ -53,6 +53,12 @@ func (a *ImageControllerApiService) FindImagesUsingGET(ctx context.Context, loca
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if err := typeCheckParameter(localVarOptionals["account"], "string", "account"); err != nil {
+		return successPayload, nil, err
+	}
+	if err := typeCheckParameter(localVarOptionals["count"], "int32", "count"); err != nil {
+		return successPayload, nil, err
+	}
 	if err := typeCheckParameter(localVarOptionals["provider"], "string", "provider"); err != nil {
 		return successPayload, nil, err
 	}
@@ -62,13 +68,13 @@ func (a *ImageControllerApiService) FindImagesUsingGET(ctx context.Context, loca
 	if err := typeCheckParameter(localVarOptionals["region"], "string", "region"); err != nil {
 		return successPayload, nil, err
 	}
-	if err := typeCheckParameter(localVarOptionals["account"], "string", "account"); err != nil {
-		return successPayload, nil, err
-	}
-	if err := typeCheckParameter(localVarOptionals["count"], "int32", "count"); err != nil {
-		return successPayload, nil, err
-	}
 
+	if localVarTempParam, localVarOk := localVarOptionals["account"].(string); localVarOk {
+		localVarQueryParams.Add("account", parameterToString(localVarTempParam, ""))
+	}
+	if localVarTempParam, localVarOk := localVarOptionals["count"].(int32); localVarOk {
+		localVarQueryParams.Add("count", parameterToString(localVarTempParam, ""))
+	}
 	if localVarTempParam, localVarOk := localVarOptionals["provider"].(string); localVarOk {
 		localVarQueryParams.Add("provider", parameterToString(localVarTempParam, ""))
 	}
@@ -78,14 +84,8 @@ func (a *ImageControllerApiService) FindImagesUsingGET(ctx context.Context, loca
 	if localVarTempParam, localVarOk := localVarOptionals["region"].(string); localVarOk {
 		localVarQueryParams.Add("region", parameterToString(localVarTempParam, ""))
 	}
-	if localVarTempParam, localVarOk := localVarOptionals["account"].(string); localVarOk {
-		localVarQueryParams.Add("account", parameterToString(localVarTempParam, ""))
-	}
-	if localVarTempParam, localVarOk := localVarOptionals["count"].(int32); localVarOk {
-		localVarQueryParams.Add("count", parameterToString(localVarTempParam, ""))
-	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -131,8 +131,8 @@ func (a *ImageControllerApiService) FindImagesUsingGET(ctx context.Context, loca
  @param account account
  @param repository repository
  @param optional (nil or map[string]interface{}) with one or more of:
-     @param "provider" (string) provider
      @param "xRateLimitApp" (string) X-RateLimit-App
+     @param "provider" (string) provider
  @return []interface{}*/
 func (a *ImageControllerApiService) FindTagsUsingGET(ctx context.Context, account string, repository string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
 	var (
@@ -150,20 +150,20 @@ func (a *ImageControllerApiService) FindTagsUsingGET(ctx context.Context, accoun
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-	if err := typeCheckParameter(localVarOptionals["provider"], "string", "provider"); err != nil {
-		return successPayload, nil, err
-	}
 	if err := typeCheckParameter(localVarOptionals["xRateLimitApp"], "string", "xRateLimitApp"); err != nil {
 		return successPayload, nil, err
 	}
+	if err := typeCheckParameter(localVarOptionals["provider"], "string", "provider"); err != nil {
+		return successPayload, nil, err
+	}
 
+	localVarQueryParams.Add("account", parameterToString(account, ""))
 	if localVarTempParam, localVarOk := localVarOptionals["provider"].(string); localVarOk {
 		localVarQueryParams.Add("provider", parameterToString(localVarTempParam, ""))
 	}
-	localVarQueryParams.Add("account", parameterToString(account, ""))
 	localVarQueryParams.Add("repository", parameterToString(repository, ""))
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -210,13 +210,13 @@ func (a *ImageControllerApiService) FindTagsUsingGET(ctx context.Context, accoun
 /* ImageControllerApiService Get image details
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @param account account
- @param region region
  @param imageId imageId
+ @param region region
  @param optional (nil or map[string]interface{}) with one or more of:
-     @param "provider" (string) provider
      @param "xRateLimitApp" (string) X-RateLimit-App
+     @param "provider" (string) provider
  @return []interface{}*/
-func (a *ImageControllerApiService) GetImageDetailsUsingGET(ctx context.Context, account string, region string, imageId string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
+func (a *ImageControllerApiService) GetImageDetailsUsingGET(ctx context.Context, account string, imageId string, region string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
@@ -228,17 +228,17 @@ func (a *ImageControllerApiService) GetImageDetailsUsingGET(ctx context.Context,
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/images/{account}/{region}/{imageId}"
 	localVarPath = strings.Replace(localVarPath, "{"+"account"+"}", fmt.Sprintf("%v", account), -1)
-	localVarPath = strings.Replace(localVarPath, "{"+"region"+"}", fmt.Sprintf("%v", region), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"imageId"+"}", fmt.Sprintf("%v", imageId), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"region"+"}", fmt.Sprintf("%v", region), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-	if err := typeCheckParameter(localVarOptionals["provider"], "string", "provider"); err != nil {
+	if err := typeCheckParameter(localVarOptionals["xRateLimitApp"], "string", "xRateLimitApp"); err != nil {
 		return successPayload, nil, err
 	}
-	if err := typeCheckParameter(localVarOptionals["xRateLimitApp"], "string", "xRateLimitApp"); err != nil {
+	if err := typeCheckParameter(localVarOptionals["provider"], "string", "provider"); err != nil {
 		return successPayload, nil, err
 	}
 
@@ -246,7 +246,7 @@ func (a *ImageControllerApiService) GetImageDetailsUsingGET(ctx context.Context,
 		localVarQueryParams.Add("provider", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)

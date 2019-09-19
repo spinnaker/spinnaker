@@ -78,7 +78,7 @@ func saveCanaryConfig(cmd *cobra.Command, options SaveOptions) error {
 	var saveErr error
 	if resp.StatusCode == http.StatusOK {
 		_, saveResp, saveErr = gateClient.V2CanaryConfigControllerApi.UpdateCanaryConfigUsingPUT(
-			gateClient.Context, templateId, templateJson, map[string]interface{}{})
+			gateClient.Context, templateJson, templateId, map[string]interface{}{})
 	} else if resp.StatusCode == http.StatusNotFound {
 		_, saveResp, saveErr = gateClient.V2CanaryConfigControllerApi.CreateCanaryConfigUsingPOST(
 			gateClient.Context, templateJson, map[string]interface{}{})

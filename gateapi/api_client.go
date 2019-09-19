@@ -46,7 +46,6 @@ type APIClient struct {
 	AmazonInfrastructureControllerApi	*AmazonInfrastructureControllerApiService
 	ApplicationControllerApi	*ApplicationControllerApiService
 	ArtifactControllerApi	*ArtifactControllerApiService
-	AuditEventsMvcEndpointApi	*AuditEventsMvcEndpointApiService
 	AuthControllerApi	*AuthControllerApiService
 	BakeControllerApi	*BakeControllerApiService
 	BuildControllerApi	*BuildControllerApiService
@@ -100,7 +99,6 @@ func NewAPIClient(cfg *Configuration) *APIClient {
 	c.AmazonInfrastructureControllerApi = (*AmazonInfrastructureControllerApiService)(&c.common)
 	c.ApplicationControllerApi = (*ApplicationControllerApiService)(&c.common)
 	c.ArtifactControllerApi = (*ArtifactControllerApiService)(&c.common)
-	c.AuditEventsMvcEndpointApi = (*AuditEventsMvcEndpointApiService)(&c.common)
 	c.AuthControllerApi = (*AuthControllerApiService)(&c.common)
 	c.BakeControllerApi = (*BakeControllerApiService)(&c.common)
 	c.BuildControllerApi = (*BuildControllerApiService)(&c.common)

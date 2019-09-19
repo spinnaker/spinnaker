@@ -48,7 +48,7 @@ func (a *WebhookControllerApiService) PreconfiguredWebhooksUsingGET(ctx context.
 
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -91,14 +91,14 @@ func (a *WebhookControllerApiService) PreconfiguredWebhooksUsingGET(ctx context.
 
 /* WebhookControllerApiService Endpoint for posting webhooks to Spinnaker&#39;s webhook service
  * @param ctx context.Context for authentication, logging, tracing, etc.
- @param type_ type
  @param source source
+ @param type_ type
  @param optional (nil or map[string]interface{}) with one or more of:
-     @param "event" (interface{}) event
-     @param "xHubSignature" (string) X-Hub-Signature
      @param "xEventKey" (string) X-Event-Key
+     @param "xHubSignature" (string) X-Hub-Signature
+     @param "event" (interface{}) event
  @return interface{}*/
-func (a *WebhookControllerApiService) WebhooksUsingPOST(ctx context.Context, type_ string, source string, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
+func (a *WebhookControllerApiService) WebhooksUsingPOST(ctx context.Context, source string, type_ string, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Post")
 		localVarPostBody interface{}
@@ -109,17 +109,17 @@ func (a *WebhookControllerApiService) WebhooksUsingPOST(ctx context.Context, typ
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/webhooks/{type}/{source}"
-	localVarPath = strings.Replace(localVarPath, "{"+"type"+"}", fmt.Sprintf("%v", type_), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"source"+"}", fmt.Sprintf("%v", source), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"type"+"}", fmt.Sprintf("%v", type_), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-	if err := typeCheckParameter(localVarOptionals["xHubSignature"], "string", "xHubSignature"); err != nil {
+	if err := typeCheckParameter(localVarOptionals["xEventKey"], "string", "xEventKey"); err != nil {
 		return successPayload, nil, err
 	}
-	if err := typeCheckParameter(localVarOptionals["xEventKey"], "string", "xEventKey"); err != nil {
+	if err := typeCheckParameter(localVarOptionals["xHubSignature"], "string", "xHubSignature"); err != nil {
 		return successPayload, nil, err
 	}
 
@@ -142,11 +142,11 @@ func (a *WebhookControllerApiService) WebhooksUsingPOST(ctx context.Context, typ
 	if localVarHttpHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
 	}
-	if localVarTempParam, localVarOk := localVarOptionals["xHubSignature"].(string); localVarOk {
-		localVarHeaderParams["X-Hub-Signature"] = parameterToString(localVarTempParam, "")
-	}
 	if localVarTempParam, localVarOk := localVarOptionals["xEventKey"].(string); localVarOk {
 		localVarHeaderParams["X-Event-Key"] = parameterToString(localVarTempParam, "")
+	}
+	if localVarTempParam, localVarOk := localVarOptionals["xHubSignature"].(string); localVarOk {
+		localVarHeaderParams["X-Hub-Signature"] = parameterToString(localVarTempParam, "")
 	}
 	// body params
 	if localVarTempParam, localVarOk := localVarOptionals["event"].(interface{}); localVarOk {

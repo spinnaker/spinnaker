@@ -25,12 +25,12 @@ Optional parameters are passed through a map[string]interface{}.
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **type_** | **string**| type | 
- **q** | **string**| q | 
- **platform** | **string**| platform | 
- **pageSize** | **int32**| pageSize | [default to 10000]
- **page** | **int32**| page | [default to 1]
- **allowShortQuery** | **bool**| allowShortQuery | [default to false]
  **xRateLimitApp** | **string**| X-RateLimit-App | 
+ **allowShortQuery** | **bool**| allowShortQuery | [default to false]
+ **page** | **int32**| page | [default to 1]
+ **pageSize** | **int32**| pageSize | [default to 10000]
+ **platform** | **string**| platform | 
+ **q** | **string**| q | 
 
 ### Return type
 
@@ -42,7 +42,7 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: */*
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

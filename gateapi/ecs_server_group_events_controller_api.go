@@ -29,13 +29,13 @@ type EcsServerGroupEventsControllerApiService service
 
 /* EcsServerGroupEventsControllerApiService Retrieves a list of events for a server group
  * @param ctx context.Context for authentication, logging, tracing, etc.
- @param application application
  @param account account
- @param serverGroupName serverGroupName
- @param region region
+ @param application application
  @param provider provider
+ @param region region
+ @param serverGroupName serverGroupName
  @return []interface{}*/
-func (a *EcsServerGroupEventsControllerApiService) GetEventsUsingGET(ctx context.Context, application string, account string, serverGroupName string, region string, provider string) ([]interface{},  *http.Response, error) {
+func (a *EcsServerGroupEventsControllerApiService) GetEventsUsingGET(ctx context.Context, account string, application string, provider string, region string, serverGroupName string) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
@@ -46,8 +46,8 @@ func (a *EcsServerGroupEventsControllerApiService) GetEventsUsingGET(ctx context
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/applications/{application}/serverGroups/{account}/{serverGroupName}/events"
-	localVarPath = strings.Replace(localVarPath, "{"+"application"+"}", fmt.Sprintf("%v", application), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"account"+"}", fmt.Sprintf("%v", account), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"application"+"}", fmt.Sprintf("%v", application), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"serverGroupName"+"}", fmt.Sprintf("%v", serverGroupName), -1)
 
 	localVarHeaderParams := make(map[string]string)
@@ -55,10 +55,10 @@ func (a *EcsServerGroupEventsControllerApiService) GetEventsUsingGET(ctx context
 	localVarFormParams := url.Values{}
 
 
-	localVarQueryParams.Add("region", parameterToString(region, ""))
 	localVarQueryParams.Add("provider", parameterToString(provider, ""))
+	localVarQueryParams.Add("region", parameterToString(region, ""))
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)

@@ -26,8 +26,8 @@ Optional parameters are passed through a map[string]interface{}.
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **provider** | **string**| provider | [default to aws]
  **xRateLimitApp** | **string**| X-RateLimit-App | 
+ **provider** | **string**| provider | [default to aws]
 
 ### Return type
 
@@ -39,7 +39,7 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: */*
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -74,13 +74,13 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: */*
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **GetLoadBalancerDetailsUsingGET**
-> []interface{} GetLoadBalancerDetailsUsingGET(ctx, account, region, name, optional)
+> []interface{} GetLoadBalancerDetailsUsingGET(ctx, account, name, region, optional)
 Retrieve a load balancer's details as a single element list for a given account, region, cloud provider and load balancer name
 
 ### Required Parameters
@@ -89,8 +89,8 @@ Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
   **account** | **string**| account | 
-  **region** | **string**| region | 
   **name** | **string**| name | 
+  **region** | **string**| region | 
  **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
 
 ### Optional Parameters
@@ -99,10 +99,10 @@ Optional parameters are passed through a map[string]interface{}.
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **account** | **string**| account | 
- **region** | **string**| region | 
  **name** | **string**| name | 
- **provider** | **string**| provider | [default to aws]
+ **region** | **string**| region | 
  **xRateLimitApp** | **string**| X-RateLimit-App | 
+ **provider** | **string**| provider | [default to aws]
 
 ### Return type
 
@@ -114,7 +114,7 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: */*
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -137,8 +137,8 @@ Optional parameters are passed through a map[string]interface{}.
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **name** | **string**| name | 
- **provider** | **string**| provider | [default to aws]
  **xRateLimitApp** | **string**| X-RateLimit-App | 
+ **provider** | **string**| provider | [default to aws]
 
 ### Return type
 
@@ -150,7 +150,7 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: */*
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

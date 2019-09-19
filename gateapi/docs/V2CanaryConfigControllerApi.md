@@ -76,7 +76,7 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: */*
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -111,7 +111,7 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: */*
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -145,13 +145,13 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: */*
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **UpdateCanaryConfigUsingPUT**
-> interface{} UpdateCanaryConfigUsingPUT(ctx, id, config, optional)
+> interface{} UpdateCanaryConfigUsingPUT(ctx, config, id, optional)
 Update a canary configuration
 
 ### Required Parameters
@@ -159,8 +159,8 @@ Update a canary configuration
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
-  **id** | **string**| id | 
   **config** | [**interface{}**](interface{}.md)| config | 
+  **id** | **string**| id | 
  **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
 
 ### Optional Parameters
@@ -168,8 +168,8 @@ Optional parameters are passed through a map[string]interface{}.
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **id** | **string**| id | 
  **config** | [**interface{}**](interface{}.md)| config | 
+ **id** | **string**| id | 
  **configurationAccountName** | **string**| configurationAccountName | 
 
 ### Return type

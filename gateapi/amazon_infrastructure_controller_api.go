@@ -47,7 +47,7 @@ func (a *AmazonInfrastructureControllerApiService) InstanceTypesUsingGET(ctx con
 
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -109,7 +109,7 @@ func (a *AmazonInfrastructureControllerApiService) SubnetsUsingGET(ctx context.C
 
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -171,7 +171,7 @@ func (a *AmazonInfrastructureControllerApiService) VpcsUsingGET(ctx context.Cont
 
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)

@@ -50,7 +50,7 @@ func (a *PipelineConfigControllerApiService) ConvertPipelineConfigToPipelineTemp
 
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -112,7 +112,7 @@ func (a *PipelineConfigControllerApiService) GetAllPipelineConfigsUsingGET(ctx c
 
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -184,7 +184,7 @@ func (a *PipelineConfigControllerApiService) GetPipelineConfigHistoryUsingGET(ct
 		localVarQueryParams.Add("limit", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)

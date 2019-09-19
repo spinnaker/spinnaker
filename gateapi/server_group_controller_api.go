@@ -29,15 +29,15 @@ type ServerGroupControllerApiService service
 
 /* ServerGroupControllerApiService Retrieve a server group&#39;s details
  * @param ctx context.Context for authentication, logging, tracing, etc.
- @param applicationName applicationName
  @param account account
+ @param applicationName applicationName
  @param region region
  @param serverGroupName serverGroupName
  @param optional (nil or map[string]interface{}) with one or more of:
      @param "xRateLimitApp" (string) X-RateLimit-App
      @param "includeDetails" (string) includeDetails
  @return interface{}*/
-func (a *ServerGroupControllerApiService) GetServerGroupDetailsUsingGET(ctx context.Context, applicationName string, account string, region string, serverGroupName string, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
+func (a *ServerGroupControllerApiService) GetServerGroupDetailsUsingGET(ctx context.Context, account string, applicationName string, region string, serverGroupName string, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
@@ -48,8 +48,8 @@ func (a *ServerGroupControllerApiService) GetServerGroupDetailsUsingGET(ctx cont
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/applications/{applicationName}/serverGroups/{account}/{region}/{serverGroupName}"
-	localVarPath = strings.Replace(localVarPath, "{"+"applicationName"+"}", fmt.Sprintf("%v", applicationName), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"account"+"}", fmt.Sprintf("%v", account), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"applicationName"+"}", fmt.Sprintf("%v", applicationName), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"region"+"}", fmt.Sprintf("%v", region), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"serverGroupName"+"}", fmt.Sprintf("%v", serverGroupName), -1)
 
@@ -68,7 +68,7 @@ func (a *ServerGroupControllerApiService) GetServerGroupDetailsUsingGET(ctx cont
 		localVarQueryParams.Add("includeDetails", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -116,10 +116,10 @@ func (a *ServerGroupControllerApiService) GetServerGroupDetailsUsingGET(ctx cont
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @param applicationName applicationName
  @param optional (nil or map[string]interface{}) with one or more of:
-     @param "expand" (string) expand
+     @param "xRateLimitApp" (string) X-RateLimit-App
      @param "cloudProvider" (string) cloudProvider
      @param "clusters" (string) clusters
-     @param "xRateLimitApp" (string) X-RateLimit-App
+     @param "expand" (string) expand
  @return []interface{}*/
 func (a *ServerGroupControllerApiService) GetServerGroupsForApplicationUsingGET(ctx context.Context, applicationName string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
 	var (
@@ -138,7 +138,7 @@ func (a *ServerGroupControllerApiService) GetServerGroupsForApplicationUsingGET(
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-	if err := typeCheckParameter(localVarOptionals["expand"], "string", "expand"); err != nil {
+	if err := typeCheckParameter(localVarOptionals["xRateLimitApp"], "string", "xRateLimitApp"); err != nil {
 		return successPayload, nil, err
 	}
 	if err := typeCheckParameter(localVarOptionals["cloudProvider"], "string", "cloudProvider"); err != nil {
@@ -147,21 +147,21 @@ func (a *ServerGroupControllerApiService) GetServerGroupsForApplicationUsingGET(
 	if err := typeCheckParameter(localVarOptionals["clusters"], "string", "clusters"); err != nil {
 		return successPayload, nil, err
 	}
-	if err := typeCheckParameter(localVarOptionals["xRateLimitApp"], "string", "xRateLimitApp"); err != nil {
+	if err := typeCheckParameter(localVarOptionals["expand"], "string", "expand"); err != nil {
 		return successPayload, nil, err
 	}
 
-	if localVarTempParam, localVarOk := localVarOptionals["expand"].(string); localVarOk {
-		localVarQueryParams.Add("expand", parameterToString(localVarTempParam, ""))
-	}
 	if localVarTempParam, localVarOk := localVarOptionals["cloudProvider"].(string); localVarOk {
 		localVarQueryParams.Add("cloudProvider", parameterToString(localVarTempParam, ""))
 	}
 	if localVarTempParam, localVarOk := localVarOptionals["clusters"].(string); localVarOk {
 		localVarQueryParams.Add("clusters", parameterToString(localVarTempParam, ""))
 	}
+	if localVarTempParam, localVarOk := localVarOptionals["expand"].(string); localVarOk {
+		localVarQueryParams.Add("expand", parameterToString(localVarTempParam, ""))
+	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)

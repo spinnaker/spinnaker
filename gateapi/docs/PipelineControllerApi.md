@@ -7,6 +7,13 @@ Method | HTTP request | Description
 [**CancelPipelineUsingPUT1**](PipelineControllerApi.md#CancelPipelineUsingPUT1) | **Put** /pipelines/{id}/cancel | Cancel a pipeline execution
 [**DeletePipelineUsingDELETE**](PipelineControllerApi.md#DeletePipelineUsingDELETE) | **Delete** /pipelines/{application}/{pipelineName} | Delete a pipeline definition
 [**DeletePipelineUsingDELETE1**](PipelineControllerApi.md#DeletePipelineUsingDELETE1) | **Delete** /pipelines/{id} | Delete a pipeline execution
+[**EvaluateExpressionForExecutionAtStageUsingDELETE**](PipelineControllerApi.md#EvaluateExpressionForExecutionAtStageUsingDELETE) | **Delete** /pipelines/{id}/{stageId}/evaluateExpression | Evaluate a pipeline expression at a specific stage using the provided execution as context
+[**EvaluateExpressionForExecutionAtStageUsingGET**](PipelineControllerApi.md#EvaluateExpressionForExecutionAtStageUsingGET) | **Get** /pipelines/{id}/{stageId}/evaluateExpression | Evaluate a pipeline expression at a specific stage using the provided execution as context
+[**EvaluateExpressionForExecutionAtStageUsingHEAD**](PipelineControllerApi.md#EvaluateExpressionForExecutionAtStageUsingHEAD) | **Head** /pipelines/{id}/{stageId}/evaluateExpression | Evaluate a pipeline expression at a specific stage using the provided execution as context
+[**EvaluateExpressionForExecutionAtStageUsingOPTIONS**](PipelineControllerApi.md#EvaluateExpressionForExecutionAtStageUsingOPTIONS) | **Options** /pipelines/{id}/{stageId}/evaluateExpression | Evaluate a pipeline expression at a specific stage using the provided execution as context
+[**EvaluateExpressionForExecutionAtStageUsingPATCH**](PipelineControllerApi.md#EvaluateExpressionForExecutionAtStageUsingPATCH) | **Patch** /pipelines/{id}/{stageId}/evaluateExpression | Evaluate a pipeline expression at a specific stage using the provided execution as context
+[**EvaluateExpressionForExecutionAtStageUsingPOST**](PipelineControllerApi.md#EvaluateExpressionForExecutionAtStageUsingPOST) | **Post** /pipelines/{id}/{stageId}/evaluateExpression | Evaluate a pipeline expression at a specific stage using the provided execution as context
+[**EvaluateExpressionForExecutionAtStageUsingPUT**](PipelineControllerApi.md#EvaluateExpressionForExecutionAtStageUsingPUT) | **Put** /pipelines/{id}/{stageId}/evaluateExpression | Evaluate a pipeline expression at a specific stage using the provided execution as context
 [**EvaluateExpressionForExecutionUsingDELETE**](PipelineControllerApi.md#EvaluateExpressionForExecutionUsingDELETE) | **Delete** /pipelines/{id}/evaluateExpression | Evaluate a pipeline expression using the provided execution as context
 [**EvaluateExpressionForExecutionUsingGET**](PipelineControllerApi.md#EvaluateExpressionForExecutionUsingGET) | **Get** /pipelines/{id}/evaluateExpression | Evaluate a pipeline expression using the provided execution as context
 [**EvaluateExpressionForExecutionUsingHEAD**](PipelineControllerApi.md#EvaluateExpressionForExecutionUsingHEAD) | **Head** /pipelines/{id}/evaluateExpression | Evaluate a pipeline expression using the provided execution as context
@@ -46,8 +53,8 @@ Optional parameters are passed through a map[string]interface{}.
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **id** | **string**| id | 
- **reason** | **string**| reason | 
  **force** | **bool**| force | [default to false]
+ **reason** | **string**| reason | 
 
 ### Return type
 
@@ -86,7 +93,7 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: */*
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -112,13 +119,209 @@ No authorization required
 
 ### HTTP request headers
 
+ - **Content-Type**: Not defined
+ - **Accept**: */*
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **EvaluateExpressionForExecutionAtStageUsingDELETE**
+> map[string]interface{} EvaluateExpressionForExecutionAtStageUsingDELETE(ctx, expression, id, stageId)
+Evaluate a pipeline expression at a specific stage using the provided execution as context
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+  **expression** | **string**| expression | 
+  **id** | **string**| id | 
+  **stageId** | **string**| stageId | 
+
+### Return type
+
+[**map[string]interface{}**](interface{}.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: */*
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **EvaluateExpressionForExecutionAtStageUsingGET**
+> map[string]interface{} EvaluateExpressionForExecutionAtStageUsingGET(ctx, expression, id, stageId)
+Evaluate a pipeline expression at a specific stage using the provided execution as context
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+  **expression** | **string**| expression | 
+  **id** | **string**| id | 
+  **stageId** | **string**| stageId | 
+
+### Return type
+
+[**map[string]interface{}**](interface{}.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: */*
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **EvaluateExpressionForExecutionAtStageUsingHEAD**
+> map[string]interface{} EvaluateExpressionForExecutionAtStageUsingHEAD(ctx, expression, id, stageId)
+Evaluate a pipeline expression at a specific stage using the provided execution as context
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+  **expression** | **string**| expression | 
+  **id** | **string**| id | 
+  **stageId** | **string**| stageId | 
+
+### Return type
+
+[**map[string]interface{}**](interface{}.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: */*
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **EvaluateExpressionForExecutionAtStageUsingOPTIONS**
+> map[string]interface{} EvaluateExpressionForExecutionAtStageUsingOPTIONS(ctx, expression, id, stageId)
+Evaluate a pipeline expression at a specific stage using the provided execution as context
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+  **expression** | **string**| expression | 
+  **id** | **string**| id | 
+  **stageId** | **string**| stageId | 
+
+### Return type
+
+[**map[string]interface{}**](interface{}.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: */*
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **EvaluateExpressionForExecutionAtStageUsingPATCH**
+> map[string]interface{} EvaluateExpressionForExecutionAtStageUsingPATCH(ctx, expression, id, stageId)
+Evaluate a pipeline expression at a specific stage using the provided execution as context
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+  **expression** | **string**| expression | 
+  **id** | **string**| id | 
+  **stageId** | **string**| stageId | 
+
+### Return type
+
+[**map[string]interface{}**](interface{}.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: */*
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **EvaluateExpressionForExecutionAtStageUsingPOST**
+> map[string]interface{} EvaluateExpressionForExecutionAtStageUsingPOST(ctx, expression, id, stageId)
+Evaluate a pipeline expression at a specific stage using the provided execution as context
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+  **expression** | **string**| expression | 
+  **id** | **string**| id | 
+  **stageId** | **string**| stageId | 
+
+### Return type
+
+[**map[string]interface{}**](interface{}.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: */*
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **EvaluateExpressionForExecutionAtStageUsingPUT**
+> map[string]interface{} EvaluateExpressionForExecutionAtStageUsingPUT(ctx, expression, id, stageId)
+Evaluate a pipeline expression at a specific stage using the provided execution as context
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+  **expression** | **string**| expression | 
+  **id** | **string**| id | 
+  **stageId** | **string**| stageId | 
+
+### Return type
+
+[**map[string]interface{}**](interface{}.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
  - **Content-Type**: application/json
  - **Accept**: */*
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **EvaluateExpressionForExecutionUsingDELETE**
-> map[string]interface{} EvaluateExpressionForExecutionUsingDELETE(ctx, id, expression)
+> map[string]interface{} EvaluateExpressionForExecutionUsingDELETE(ctx, expression, id)
 Evaluate a pipeline expression using the provided execution as context
 
 ### Required Parameters
@@ -126,8 +329,8 @@ Evaluate a pipeline expression using the provided execution as context
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
-  **id** | **string**| id | 
   **expression** | **string**| expression | 
+  **id** | **string**| id | 
 
 ### Return type
 
@@ -139,13 +342,13 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: */*
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **EvaluateExpressionForExecutionUsingGET**
-> map[string]interface{} EvaluateExpressionForExecutionUsingGET(ctx, id, expression)
+> map[string]interface{} EvaluateExpressionForExecutionUsingGET(ctx, expression, id)
 Evaluate a pipeline expression using the provided execution as context
 
 ### Required Parameters
@@ -153,8 +356,8 @@ Evaluate a pipeline expression using the provided execution as context
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
-  **id** | **string**| id | 
   **expression** | **string**| expression | 
+  **id** | **string**| id | 
 
 ### Return type
 
@@ -166,13 +369,13 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: */*
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **EvaluateExpressionForExecutionUsingHEAD**
-> map[string]interface{} EvaluateExpressionForExecutionUsingHEAD(ctx, id, expression)
+> map[string]interface{} EvaluateExpressionForExecutionUsingHEAD(ctx, expression, id)
 Evaluate a pipeline expression using the provided execution as context
 
 ### Required Parameters
@@ -180,8 +383,8 @@ Evaluate a pipeline expression using the provided execution as context
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
-  **id** | **string**| id | 
   **expression** | **string**| expression | 
+  **id** | **string**| id | 
 
 ### Return type
 
@@ -199,7 +402,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **EvaluateExpressionForExecutionUsingOPTIONS**
-> map[string]interface{} EvaluateExpressionForExecutionUsingOPTIONS(ctx, id, expression)
+> map[string]interface{} EvaluateExpressionForExecutionUsingOPTIONS(ctx, expression, id)
 Evaluate a pipeline expression using the provided execution as context
 
 ### Required Parameters
@@ -207,8 +410,8 @@ Evaluate a pipeline expression using the provided execution as context
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
-  **id** | **string**| id | 
   **expression** | **string**| expression | 
+  **id** | **string**| id | 
 
 ### Return type
 
@@ -226,7 +429,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **EvaluateExpressionForExecutionUsingPATCH**
-> map[string]interface{} EvaluateExpressionForExecutionUsingPATCH(ctx, id, expression)
+> map[string]interface{} EvaluateExpressionForExecutionUsingPATCH(ctx, expression, id)
 Evaluate a pipeline expression using the provided execution as context
 
 ### Required Parameters
@@ -234,8 +437,8 @@ Evaluate a pipeline expression using the provided execution as context
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
-  **id** | **string**| id | 
   **expression** | **string**| expression | 
+  **id** | **string**| id | 
 
 ### Return type
 
@@ -253,7 +456,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **EvaluateExpressionForExecutionUsingPUT**
-> map[string]interface{} EvaluateExpressionForExecutionUsingPUT(ctx, id, expression)
+> map[string]interface{} EvaluateExpressionForExecutionUsingPUT(ctx, expression, id)
 Evaluate a pipeline expression using the provided execution as context
 
 ### Required Parameters
@@ -261,8 +464,8 @@ Evaluate a pipeline expression using the provided execution as context
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
-  **id** | **string**| id | 
   **expression** | **string**| expression | 
+  **id** | **string**| id | 
 
 ### Return type
 
@@ -289,7 +492,7 @@ Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
   **id** | **string**| id | 
-  **pipelineExpression** | [**interface{}**](interface{}.md)| pipelineExpression | 
+  **pipelineExpression** | **string**| pipelineExpression | 
 
 ### Return type
 
@@ -301,7 +504,7 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: text/plain
  - **Accept**: */*
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -327,7 +530,7 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: */*
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -353,7 +556,7 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: */*
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -485,7 +688,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **RestartStageUsingPUT**
-> map[string]interface{} RestartStageUsingPUT(ctx, id, stageId, context)
+> map[string]interface{} RestartStageUsingPUT(ctx, context, id, stageId)
 Restart a stage execution
 
 ### Required Parameters
@@ -493,9 +696,9 @@ Restart a stage execution
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+  **context** | [**interface{}**](interface{}.md)| context | 
   **id** | **string**| id | 
   **stageId** | **string**| stageId | 
-  **context** | [**interface{}**](interface{}.md)| context | 
 
 ### Return type
 
@@ -618,7 +821,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **UpdateStageUsingPATCH**
-> map[string]interface{} UpdateStageUsingPATCH(ctx, id, stageId, context)
+> map[string]interface{} UpdateStageUsingPATCH(ctx, context, id, stageId)
 Update a stage execution
 
 ### Required Parameters
@@ -626,9 +829,9 @@ Update a stage execution
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+  **context** | [**interface{}**](interface{}.md)| context | 
   **id** | **string**| id | 
   **stageId** | **string**| stageId | 
-  **context** | [**interface{}**](interface{}.md)| context | 
 
 ### Return type
 

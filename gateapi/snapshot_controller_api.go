@@ -29,10 +29,10 @@ type SnapshotControllerApiService service
 
 /* SnapshotControllerApiService Get current snapshot
  * @param ctx context.Context for authentication, logging, tracing, etc.
- @param application application
  @param account account
+ @param application application
  @return map[string]interface{}*/
-func (a *SnapshotControllerApiService) GetCurrentSnapshotUsingGET(ctx context.Context, application string, account string) (map[string]interface{},  *http.Response, error) {
+func (a *SnapshotControllerApiService) GetCurrentSnapshotUsingGET(ctx context.Context, account string, application string) (map[string]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
@@ -43,8 +43,8 @@ func (a *SnapshotControllerApiService) GetCurrentSnapshotUsingGET(ctx context.Co
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/applications/{application}/snapshots/{account}"
-	localVarPath = strings.Replace(localVarPath, "{"+"application"+"}", fmt.Sprintf("%v", application), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"account"+"}", fmt.Sprintf("%v", account), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"application"+"}", fmt.Sprintf("%v", application), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
@@ -52,7 +52,7 @@ func (a *SnapshotControllerApiService) GetCurrentSnapshotUsingGET(ctx context.Co
 
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -95,12 +95,12 @@ func (a *SnapshotControllerApiService) GetCurrentSnapshotUsingGET(ctx context.Co
 
 /* SnapshotControllerApiService Get snapshot history
  * @param ctx context.Context for authentication, logging, tracing, etc.
- @param application application
  @param account account
+ @param application application
  @param optional (nil or map[string]interface{}) with one or more of:
      @param "limit" (int32) limit
  @return []interface{}*/
-func (a *SnapshotControllerApiService) GetSnapshotHistoryUsingGET(ctx context.Context, application string, account string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
+func (a *SnapshotControllerApiService) GetSnapshotHistoryUsingGET(ctx context.Context, account string, application string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
@@ -111,8 +111,8 @@ func (a *SnapshotControllerApiService) GetSnapshotHistoryUsingGET(ctx context.Co
 
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/applications/{application}/snapshots/{account}/history"
-	localVarPath = strings.Replace(localVarPath, "{"+"application"+"}", fmt.Sprintf("%v", application), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"account"+"}", fmt.Sprintf("%v", account), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"application"+"}", fmt.Sprintf("%v", application), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
@@ -126,7 +126,7 @@ func (a *SnapshotControllerApiService) GetSnapshotHistoryUsingGET(ctx context.Co
 		localVarQueryParams.Add("limit", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)

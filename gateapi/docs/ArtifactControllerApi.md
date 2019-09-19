@@ -36,13 +36,13 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: */*
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **ArtifactVersionsUsingGET**
-> []string ArtifactVersionsUsingGET(ctx, accountName, type_, artifactName, optional)
+> []string ArtifactVersionsUsingGET(ctx, accountName, artifactName, type_, optional)
 Retrieve the list of artifact versions by account and artifact names
 
 ### Required Parameters
@@ -51,8 +51,8 @@ Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
   **accountName** | **string**| accountName | 
-  **type_** | **string**| type | 
   **artifactName** | **string**| artifactName | 
+  **type_** | **string**| type | 
  **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
 
 ### Optional Parameters
@@ -61,8 +61,8 @@ Optional parameters are passed through a map[string]interface{}.
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **accountName** | **string**| accountName | 
- **type_** | **string**| type | 
  **artifactName** | **string**| artifactName | 
+ **type_** | **string**| type | 
  **xRateLimitApp** | **string**| X-RateLimit-App | 
 
 ### Return type
@@ -75,7 +75,7 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: */*
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

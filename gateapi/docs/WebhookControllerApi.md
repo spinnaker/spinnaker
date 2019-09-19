@@ -25,13 +25,13 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: */*
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **WebhooksUsingPOST**
-> interface{} WebhooksUsingPOST(ctx, type_, source, optional)
+> interface{} WebhooksUsingPOST(ctx, source, type_, optional)
 Endpoint for posting webhooks to Spinnaker's webhook service
 
 ### Required Parameters
@@ -39,8 +39,8 @@ Endpoint for posting webhooks to Spinnaker's webhook service
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
-  **type_** | **string**| type | 
   **source** | **string**| source | 
+  **type_** | **string**| type | 
  **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
 
 ### Optional Parameters
@@ -48,11 +48,11 @@ Optional parameters are passed through a map[string]interface{}.
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **type_** | **string**| type | 
  **source** | **string**| source | 
- **event** | [**interface{}**](interface{}.md)| event | 
- **xHubSignature** | **string**| X-Hub-Signature | 
+ **type_** | **string**| type | 
  **xEventKey** | **string**| X-Event-Key | 
+ **xHubSignature** | **string**| X-Hub-Signature | 
+ **event** | [**interface{}**](interface{}.md)| event | 
 
 ### Return type
 

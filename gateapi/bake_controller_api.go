@@ -50,7 +50,7 @@ func (a *BakeControllerApiService) BakeOptionsUsingGET(ctx context.Context, clou
 
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -112,7 +112,7 @@ func (a *BakeControllerApiService) BakeOptionsUsingGET1(ctx context.Context) (in
 
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -178,7 +178,7 @@ func (a *BakeControllerApiService) LookupLogsUsingGET(ctx context.Context, regio
 
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)

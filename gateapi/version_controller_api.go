@@ -47,7 +47,7 @@ func (a *VersionControllerApiService) GetVersionUsingGET(ctx context.Context) (V
 
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)

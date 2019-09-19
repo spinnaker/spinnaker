@@ -30,13 +30,13 @@ type InstanceControllerApiService service
 /* InstanceControllerApiService Retrieve an instance&#39;s console output
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @param account account
- @param region region
  @param instanceId instanceId
+ @param region region
  @param optional (nil or map[string]interface{}) with one or more of:
-     @param "provider" (string) provider
      @param "xRateLimitApp" (string) X-RateLimit-App
+     @param "provider" (string) provider
  @return interface{}*/
-func (a *InstanceControllerApiService) GetConsoleOutputUsingGET(ctx context.Context, account string, region string, instanceId string, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
+func (a *InstanceControllerApiService) GetConsoleOutputUsingGET(ctx context.Context, account string, instanceId string, region string, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
@@ -48,17 +48,17 @@ func (a *InstanceControllerApiService) GetConsoleOutputUsingGET(ctx context.Cont
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/instances/{account}/{region}/{instanceId}/console"
 	localVarPath = strings.Replace(localVarPath, "{"+"account"+"}", fmt.Sprintf("%v", account), -1)
-	localVarPath = strings.Replace(localVarPath, "{"+"region"+"}", fmt.Sprintf("%v", region), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"instanceId"+"}", fmt.Sprintf("%v", instanceId), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"region"+"}", fmt.Sprintf("%v", region), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-	if err := typeCheckParameter(localVarOptionals["provider"], "string", "provider"); err != nil {
+	if err := typeCheckParameter(localVarOptionals["xRateLimitApp"], "string", "xRateLimitApp"); err != nil {
 		return successPayload, nil, err
 	}
-	if err := typeCheckParameter(localVarOptionals["xRateLimitApp"], "string", "xRateLimitApp"); err != nil {
+	if err := typeCheckParameter(localVarOptionals["provider"], "string", "provider"); err != nil {
 		return successPayload, nil, err
 	}
 
@@ -66,7 +66,7 @@ func (a *InstanceControllerApiService) GetConsoleOutputUsingGET(ctx context.Cont
 		localVarQueryParams.Add("provider", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -113,12 +113,12 @@ func (a *InstanceControllerApiService) GetConsoleOutputUsingGET(ctx context.Cont
 /* InstanceControllerApiService Retrieve an instance&#39;s details
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @param account account
- @param region region
  @param instanceId instanceId
+ @param region region
  @param optional (nil or map[string]interface{}) with one or more of:
      @param "xRateLimitApp" (string) X-RateLimit-App
  @return interface{}*/
-func (a *InstanceControllerApiService) GetInstanceDetailsUsingGET(ctx context.Context, account string, region string, instanceId string, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
+func (a *InstanceControllerApiService) GetInstanceDetailsUsingGET(ctx context.Context, account string, instanceId string, region string, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
@@ -130,8 +130,8 @@ func (a *InstanceControllerApiService) GetInstanceDetailsUsingGET(ctx context.Co
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/instances/{account}/{region}/{instanceId}"
 	localVarPath = strings.Replace(localVarPath, "{"+"account"+"}", fmt.Sprintf("%v", account), -1)
-	localVarPath = strings.Replace(localVarPath, "{"+"region"+"}", fmt.Sprintf("%v", region), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"instanceId"+"}", fmt.Sprintf("%v", instanceId), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"region"+"}", fmt.Sprintf("%v", region), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
@@ -142,7 +142,7 @@ func (a *InstanceControllerApiService) GetInstanceDetailsUsingGET(ctx context.Co
 	}
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)

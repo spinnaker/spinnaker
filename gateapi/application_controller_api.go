@@ -199,7 +199,7 @@ func (a *ApplicationControllerApiService) GetAllApplicationsUsingGET(ctx context
 		localVarQueryParams.Add("owner", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -271,7 +271,7 @@ func (a *ApplicationControllerApiService) GetApplicationHistoryUsingGET(ctx cont
 		localVarQueryParams.Add("limit", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -343,7 +343,7 @@ func (a *ApplicationControllerApiService) GetApplicationUsingGET(ctx context.Con
 		localVarQueryParams.Add("expand", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -409,7 +409,7 @@ func (a *ApplicationControllerApiService) GetPipelineConfigUsingGET(ctx context.
 
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -473,7 +473,7 @@ func (a *ApplicationControllerApiService) GetPipelineConfigsForApplicationUsingG
 
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -518,9 +518,9 @@ func (a *ApplicationControllerApiService) GetPipelineConfigsForApplicationUsingG
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @param application application
  @param optional (nil or map[string]interface{}) with one or more of:
+     @param "expand" (bool) expand
      @param "limit" (int32) limit
      @param "statuses" (string) statuses
-     @param "expand" (bool) expand
  @return []interface{}*/
 func (a *ApplicationControllerApiService) GetPipelinesUsingGET(ctx context.Context, application string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
 	var (
@@ -539,27 +539,27 @@ func (a *ApplicationControllerApiService) GetPipelinesUsingGET(ctx context.Conte
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if err := typeCheckParameter(localVarOptionals["expand"], "bool", "expand"); err != nil {
+		return successPayload, nil, err
+	}
 	if err := typeCheckParameter(localVarOptionals["limit"], "int32", "limit"); err != nil {
 		return successPayload, nil, err
 	}
 	if err := typeCheckParameter(localVarOptionals["statuses"], "string", "statuses"); err != nil {
 		return successPayload, nil, err
 	}
-	if err := typeCheckParameter(localVarOptionals["expand"], "bool", "expand"); err != nil {
-		return successPayload, nil, err
-	}
 
+	if localVarTempParam, localVarOk := localVarOptionals["expand"].(bool); localVarOk {
+		localVarQueryParams.Add("expand", parameterToString(localVarTempParam, ""))
+	}
 	if localVarTempParam, localVarOk := localVarOptionals["limit"].(int32); localVarOk {
 		localVarQueryParams.Add("limit", parameterToString(localVarTempParam, ""))
 	}
 	if localVarTempParam, localVarOk := localVarOptionals["statuses"].(string); localVarOk {
 		localVarQueryParams.Add("statuses", parameterToString(localVarTempParam, ""))
 	}
-	if localVarTempParam, localVarOk := localVarOptionals["expand"].(bool); localVarOk {
-		localVarQueryParams.Add("expand", parameterToString(localVarTempParam, ""))
-	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -625,7 +625,7 @@ func (a *ApplicationControllerApiService) GetStrategyConfigUsingGET(ctx context.
 
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -689,7 +689,7 @@ func (a *ApplicationControllerApiService) GetStrategyConfigsForApplicationUsingG
 
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -760,7 +760,7 @@ func (a *ApplicationControllerApiService) GetTaskDetailsUsingGET(ctx context.Con
 	}
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -827,7 +827,7 @@ func (a *ApplicationControllerApiService) GetTaskUsingGET(ctx context.Context, i
 
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -872,8 +872,8 @@ func (a *ApplicationControllerApiService) GetTaskUsingGET(ctx context.Context, i
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @param application application
  @param optional (nil or map[string]interface{}) with one or more of:
-     @param "page" (int32) page
      @param "limit" (int32) limit
+     @param "page" (int32) page
      @param "statuses" (string) statuses
  @return []interface{}*/
 func (a *ApplicationControllerApiService) GetTasksUsingGET(ctx context.Context, application string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
@@ -893,27 +893,27 @@ func (a *ApplicationControllerApiService) GetTasksUsingGET(ctx context.Context, 
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-	if err := typeCheckParameter(localVarOptionals["page"], "int32", "page"); err != nil {
+	if err := typeCheckParameter(localVarOptionals["limit"], "int32", "limit"); err != nil {
 		return successPayload, nil, err
 	}
-	if err := typeCheckParameter(localVarOptionals["limit"], "int32", "limit"); err != nil {
+	if err := typeCheckParameter(localVarOptionals["page"], "int32", "page"); err != nil {
 		return successPayload, nil, err
 	}
 	if err := typeCheckParameter(localVarOptionals["statuses"], "string", "statuses"); err != nil {
 		return successPayload, nil, err
 	}
 
-	if localVarTempParam, localVarOk := localVarOptionals["page"].(int32); localVarOk {
-		localVarQueryParams.Add("page", parameterToString(localVarTempParam, ""))
-	}
 	if localVarTempParam, localVarOk := localVarOptionals["limit"].(int32); localVarOk {
 		localVarQueryParams.Add("limit", parameterToString(localVarTempParam, ""))
+	}
+	if localVarTempParam, localVarOk := localVarOptionals["page"].(int32); localVarOk {
+		localVarQueryParams.Add("page", parameterToString(localVarTempParam, ""))
 	}
 	if localVarTempParam, localVarOk := localVarOptionals["statuses"].(string); localVarOk {
 		localVarQueryParams.Add("statuses", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)

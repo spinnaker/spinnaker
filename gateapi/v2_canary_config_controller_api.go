@@ -130,7 +130,7 @@ func (a *V2CanaryConfigControllerApiService) DeleteCanaryConfigUsingDELETE(ctx c
 		localVarQueryParams.Add("configurationAccountName", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -197,7 +197,7 @@ func (a *V2CanaryConfigControllerApiService) GetCanaryConfigUsingGET(ctx context
 		localVarQueryParams.Add("configurationAccountName", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -274,7 +274,7 @@ func (a *V2CanaryConfigControllerApiService) GetCanaryConfigsUsingGET(ctx contex
 		localVarQueryParams.Add("configurationAccountName", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -317,12 +317,12 @@ func (a *V2CanaryConfigControllerApiService) GetCanaryConfigsUsingGET(ctx contex
 
 /* V2CanaryConfigControllerApiService Update a canary configuration
  * @param ctx context.Context for authentication, logging, tracing, etc.
- @param id id
  @param config config
+ @param id id
  @param optional (nil or map[string]interface{}) with one or more of:
      @param "configurationAccountName" (string) configurationAccountName
  @return interface{}*/
-func (a *V2CanaryConfigControllerApiService) UpdateCanaryConfigUsingPUT(ctx context.Context, id string, config interface{}, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
+func (a *V2CanaryConfigControllerApiService) UpdateCanaryConfigUsingPUT(ctx context.Context, config interface{}, id string, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Put")
 		localVarPostBody interface{}

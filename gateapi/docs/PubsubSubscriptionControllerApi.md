@@ -16,7 +16,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-[**[]Mapstringstring**](Map«string,string».md)
+[**[]Mapstringstring**](MapÂ«string,stringÂ».md)
 
 ### Authorization
 
@@ -24,7 +24,7 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: */*
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

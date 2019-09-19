@@ -9,7 +9,7 @@ Method | HTTP request | Description
 
 
 # **GetServerGroupDetailsUsingGET**
-> interface{} GetServerGroupDetailsUsingGET(ctx, applicationName, account, region, serverGroupName, optional)
+> interface{} GetServerGroupDetailsUsingGET(ctx, account, applicationName, region, serverGroupName, optional)
 Retrieve a server group's details
 
 ### Required Parameters
@@ -17,8 +17,8 @@ Retrieve a server group's details
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
-  **applicationName** | **string**| applicationName | 
   **account** | **string**| account | 
+  **applicationName** | **string**| applicationName | 
   **region** | **string**| region | 
   **serverGroupName** | **string**| serverGroupName | 
  **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
@@ -28,8 +28,8 @@ Optional parameters are passed through a map[string]interface{}.
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **applicationName** | **string**| applicationName | 
  **account** | **string**| account | 
+ **applicationName** | **string**| applicationName | 
  **region** | **string**| region | 
  **serverGroupName** | **string**| serverGroupName | 
  **xRateLimitApp** | **string**| X-RateLimit-App | 
@@ -45,7 +45,7 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: */*
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -68,10 +68,10 @@ Optional parameters are passed through a map[string]interface{}.
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **applicationName** | **string**| applicationName | 
- **expand** | **string**| expand | [default to false]
+ **xRateLimitApp** | **string**| X-RateLimit-App | 
  **cloudProvider** | **string**| cloudProvider | 
  **clusters** | **string**| clusters | 
- **xRateLimitApp** | **string**| X-RateLimit-App | 
+ **expand** | **string**| expand | [default to false]
 
 ### Return type
 
@@ -83,7 +83,7 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: */*
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

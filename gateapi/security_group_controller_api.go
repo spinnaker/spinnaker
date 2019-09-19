@@ -31,9 +31,8 @@ type SecurityGroupControllerApiService service
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @param account account
  @param optional (nil or map[string]interface{}) with one or more of:
-     @param "provider" (string) provider
-     @param "region" (string) region
      @param "xRateLimitApp" (string) X-RateLimit-App
+     @param "provider" (string) provider
  @return interface{}*/
 func (a *SecurityGroupControllerApiService) AllByAccountUsingGET1(ctx context.Context, account string, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
 	var (
@@ -52,24 +51,18 @@ func (a *SecurityGroupControllerApiService) AllByAccountUsingGET1(ctx context.Co
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-	if err := typeCheckParameter(localVarOptionals["provider"], "string", "provider"); err != nil {
-		return successPayload, nil, err
-	}
-	if err := typeCheckParameter(localVarOptionals["region"], "string", "region"); err != nil {
-		return successPayload, nil, err
-	}
 	if err := typeCheckParameter(localVarOptionals["xRateLimitApp"], "string", "xRateLimitApp"); err != nil {
+		return successPayload, nil, err
+	}
+	if err := typeCheckParameter(localVarOptionals["provider"], "string", "provider"); err != nil {
 		return successPayload, nil, err
 	}
 
 	if localVarTempParam, localVarOk := localVarOptionals["provider"].(string); localVarOk {
 		localVarQueryParams.Add("provider", parameterToString(localVarTempParam, ""))
 	}
-	if localVarTempParam, localVarOk := localVarOptionals["region"].(string); localVarOk {
-		localVarQueryParams.Add("region", parameterToString(localVarTempParam, ""))
-	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -116,8 +109,8 @@ func (a *SecurityGroupControllerApiService) AllByAccountUsingGET1(ctx context.Co
 /* SecurityGroupControllerApiService Retrieve a list of security groups, grouped by account, cloud provider, and region
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @param optional (nil or map[string]interface{}) with one or more of:
-     @param "id" (string) id
      @param "xRateLimitApp" (string) X-RateLimit-App
+     @param "id" (string) id
  @return interface{}*/
 func (a *SecurityGroupControllerApiService) AllUsingGET5(ctx context.Context, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
 	var (
@@ -135,10 +128,10 @@ func (a *SecurityGroupControllerApiService) AllUsingGET5(ctx context.Context, lo
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-	if err := typeCheckParameter(localVarOptionals["id"], "string", "id"); err != nil {
+	if err := typeCheckParameter(localVarOptionals["xRateLimitApp"], "string", "xRateLimitApp"); err != nil {
 		return successPayload, nil, err
 	}
-	if err := typeCheckParameter(localVarOptionals["xRateLimitApp"], "string", "xRateLimitApp"); err != nil {
+	if err := typeCheckParameter(localVarOptionals["id"], "string", "id"); err != nil {
 		return successPayload, nil, err
 	}
 
@@ -146,7 +139,7 @@ func (a *SecurityGroupControllerApiService) AllUsingGET5(ctx context.Context, lo
 		localVarQueryParams.Add("id", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -193,14 +186,14 @@ func (a *SecurityGroupControllerApiService) AllUsingGET5(ctx context.Context, lo
 /* SecurityGroupControllerApiService Retrieve a security group&#39;s details
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @param account account
- @param region region
  @param name name
+ @param region region
  @param optional (nil or map[string]interface{}) with one or more of:
+     @param "xRateLimitApp" (string) X-RateLimit-App
      @param "provider" (string) provider
      @param "vpcId" (string) vpcId
-     @param "xRateLimitApp" (string) X-RateLimit-App
  @return interface{}*/
-func (a *SecurityGroupControllerApiService) GetSecurityGroupUsingGET1(ctx context.Context, account string, region string, name string, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
+func (a *SecurityGroupControllerApiService) GetSecurityGroupUsingGET1(ctx context.Context, account string, name string, region string, localVarOptionals map[string]interface{}) (interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
@@ -212,20 +205,20 @@ func (a *SecurityGroupControllerApiService) GetSecurityGroupUsingGET1(ctx contex
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/securityGroups/{account}/{region}/{name}"
 	localVarPath = strings.Replace(localVarPath, "{"+"account"+"}", fmt.Sprintf("%v", account), -1)
-	localVarPath = strings.Replace(localVarPath, "{"+"region"+"}", fmt.Sprintf("%v", region), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"name"+"}", fmt.Sprintf("%v", name), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"region"+"}", fmt.Sprintf("%v", region), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if err := typeCheckParameter(localVarOptionals["xRateLimitApp"], "string", "xRateLimitApp"); err != nil {
+		return successPayload, nil, err
+	}
 	if err := typeCheckParameter(localVarOptionals["provider"], "string", "provider"); err != nil {
 		return successPayload, nil, err
 	}
 	if err := typeCheckParameter(localVarOptionals["vpcId"], "string", "vpcId"); err != nil {
-		return successPayload, nil, err
-	}
-	if err := typeCheckParameter(localVarOptionals["xRateLimitApp"], "string", "xRateLimitApp"); err != nil {
 		return successPayload, nil, err
 	}
 
@@ -236,7 +229,7 @@ func (a *SecurityGroupControllerApiService) GetSecurityGroupUsingGET1(ctx contex
 		localVarQueryParams.Add("vpcId", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)

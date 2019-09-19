@@ -4,10 +4,49 @@ All URIs are relative to *https://localhost*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
+[**AllByAccountAndRegionUsingGET**](FirewallControllerApi.md#AllByAccountAndRegionUsingGET) | **Get** /firewalls/{account}/{region} | Retrieve a list of firewalls for a given account and region
 [**AllByAccountUsingGET**](FirewallControllerApi.md#AllByAccountUsingGET) | **Get** /firewalls/{account} | Retrieve a list of firewalls for a given account, grouped by region
 [**AllUsingGET1**](FirewallControllerApi.md#AllUsingGET1) | **Get** /firewalls | Retrieve a list of firewalls, grouped by account, cloud provider, and region
 [**GetSecurityGroupUsingGET**](FirewallControllerApi.md#GetSecurityGroupUsingGET) | **Get** /firewalls/{account}/{region}/{name} | Retrieve a firewall&#39;s details
 
+
+# **AllByAccountAndRegionUsingGET**
+> []interface{} AllByAccountAndRegionUsingGET(ctx, account, region, optional)
+Retrieve a list of firewalls for a given account and region
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+  **account** | **string**| account | 
+  **region** | **string**| region | 
+ **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+
+### Optional Parameters
+Optional parameters are passed through a map[string]interface{}.
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **account** | **string**| account | 
+ **region** | **string**| region | 
+ **xRateLimitApp** | **string**| X-RateLimit-App | 
+ **provider** | **string**| provider | [default to aws]
+
+### Return type
+
+[**[]interface{}**](interface{}.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: */*
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **AllByAccountUsingGET**
 > interface{} AllByAccountUsingGET(ctx, account, optional)
@@ -27,9 +66,8 @@ Optional parameters are passed through a map[string]interface{}.
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **account** | **string**| account | 
- **provider** | **string**| provider | [default to aws]
- **region** | **string**| region | 
  **xRateLimitApp** | **string**| X-RateLimit-App | 
+ **provider** | **string**| provider | [default to aws]
 
 ### Return type
 
@@ -41,7 +79,7 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: */*
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -62,8 +100,8 @@ Optional parameters are passed through a map[string]interface{}.
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **id** | **string**| id | 
  **xRateLimitApp** | **string**| X-RateLimit-App | 
+ **id** | **string**| id | 
 
 ### Return type
 
@@ -75,13 +113,13 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: */*
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **GetSecurityGroupUsingGET**
-> interface{} GetSecurityGroupUsingGET(ctx, account, region, name, optional)
+> interface{} GetSecurityGroupUsingGET(ctx, account, name, region, optional)
 Retrieve a firewall's details
 
 ### Required Parameters
@@ -90,8 +128,8 @@ Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
   **account** | **string**| account | 
-  **region** | **string**| region | 
   **name** | **string**| name | 
+  **region** | **string**| region | 
  **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
 
 ### Optional Parameters
@@ -100,11 +138,11 @@ Optional parameters are passed through a map[string]interface{}.
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **account** | **string**| account | 
- **region** | **string**| region | 
  **name** | **string**| name | 
+ **region** | **string**| region | 
+ **xRateLimitApp** | **string**| X-RateLimit-App | 
  **provider** | **string**| provider | [default to aws]
  **vpcId** | **string**| vpcId | 
- **xRateLimitApp** | **string**| X-RateLimit-App | 
 
 ### Return type
 
@@ -116,7 +154,7 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: */*
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

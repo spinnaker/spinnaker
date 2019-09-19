@@ -55,7 +55,7 @@ func (a *NetworkControllerApiService) AllByCloudProviderUsingGET(ctx context.Con
 	}
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -125,7 +125,7 @@ func (a *NetworkControllerApiService) AllUsingGET2(ctx context.Context, localVar
 	}
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)

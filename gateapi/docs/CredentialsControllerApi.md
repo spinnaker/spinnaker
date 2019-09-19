@@ -26,13 +26,19 @@ Optional parameters are passed through a map[string]interface{}.
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **account** | **string**| account | 
- **roles** | [**[]string**](string.md)|  | 
+ **xRateLimitApp** | **string**| X-RateLimit-App | 
+ **accountNonExpired** | **bool**|  | 
+ **accountNonLocked** | **bool**|  | 
  **allowedAccounts** | [**[]string**](string.md)|  | 
+ **authorities0Authority** | **string**|  | 
+ **credentialsNonExpired** | **bool**|  | 
  **email** | **string**|  | 
- **username** | **string**|  | 
+ **enabled** | **bool**|  | 
  **firstName** | **string**|  | 
  **lastName** | **string**|  | 
- **xRateLimitApp** | **string**| X-RateLimit-App | 
+ **password** | **string**|  | 
+ **roles** | [**[]string**](string.md)|  | 
+ **username** | **string**|  | 
 
 ### Return type
 
@@ -44,7 +50,7 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: */*
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -65,13 +71,19 @@ Optional parameters are passed through a map[string]interface{}.
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **roles** | [**[]string**](string.md)|  | 
+ **accountNonExpired** | **bool**|  | 
+ **accountNonLocked** | **bool**|  | 
  **allowedAccounts** | [**[]string**](string.md)|  | 
+ **authorities0Authority** | **string**|  | 
+ **credentialsNonExpired** | **bool**|  | 
  **email** | **string**|  | 
- **username** | **string**|  | 
+ **enabled** | **bool**|  | 
+ **expand** | **bool**| expand | 
  **firstName** | **string**|  | 
  **lastName** | **string**|  | 
- **expand** | **bool**| expand | 
+ **password** | **string**|  | 
+ **roles** | [**[]string**](string.md)|  | 
+ **username** | **string**|  | 
 
 ### Return type
 
@@ -83,7 +95,7 @@ No authorization required
 
 ### HTTP request headers
 
- - **Content-Type**: application/json
+ - **Content-Type**: Not defined
  - **Accept**: */*
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

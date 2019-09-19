@@ -30,8 +30,8 @@ type LoadBalancerControllerApiService service
 /* LoadBalancerControllerApiService Retrieve a list of load balancers for a given cloud provider
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @param optional (nil or map[string]interface{}) with one or more of:
-     @param "provider" (string) provider
      @param "xRateLimitApp" (string) X-RateLimit-App
+     @param "provider" (string) provider
  @return []interface{}*/
 func (a *LoadBalancerControllerApiService) GetAllUsingGET(ctx context.Context, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
 	var (
@@ -49,10 +49,10 @@ func (a *LoadBalancerControllerApiService) GetAllUsingGET(ctx context.Context, l
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-	if err := typeCheckParameter(localVarOptionals["provider"], "string", "provider"); err != nil {
+	if err := typeCheckParameter(localVarOptionals["xRateLimitApp"], "string", "xRateLimitApp"); err != nil {
 		return successPayload, nil, err
 	}
-	if err := typeCheckParameter(localVarOptionals["xRateLimitApp"], "string", "xRateLimitApp"); err != nil {
+	if err := typeCheckParameter(localVarOptionals["provider"], "string", "provider"); err != nil {
 		return successPayload, nil, err
 	}
 
@@ -60,7 +60,7 @@ func (a *LoadBalancerControllerApiService) GetAllUsingGET(ctx context.Context, l
 		localVarQueryParams.Add("provider", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -132,7 +132,7 @@ func (a *LoadBalancerControllerApiService) GetApplicationLoadBalancersUsingGET(c
 	}
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -179,13 +179,13 @@ func (a *LoadBalancerControllerApiService) GetApplicationLoadBalancersUsingGET(c
 /* LoadBalancerControllerApiService Retrieve a load balancer&#39;s details as a single element list for a given account, region, cloud provider and load balancer name
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @param account account
- @param region region
  @param name name
+ @param region region
  @param optional (nil or map[string]interface{}) with one or more of:
-     @param "provider" (string) provider
      @param "xRateLimitApp" (string) X-RateLimit-App
+     @param "provider" (string) provider
  @return []interface{}*/
-func (a *LoadBalancerControllerApiService) GetLoadBalancerDetailsUsingGET(ctx context.Context, account string, region string, name string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
+func (a *LoadBalancerControllerApiService) GetLoadBalancerDetailsUsingGET(ctx context.Context, account string, name string, region string, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
@@ -197,17 +197,17 @@ func (a *LoadBalancerControllerApiService) GetLoadBalancerDetailsUsingGET(ctx co
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/loadBalancers/{account}/{region}/{name}"
 	localVarPath = strings.Replace(localVarPath, "{"+"account"+"}", fmt.Sprintf("%v", account), -1)
-	localVarPath = strings.Replace(localVarPath, "{"+"region"+"}", fmt.Sprintf("%v", region), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"name"+"}", fmt.Sprintf("%v", name), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"region"+"}", fmt.Sprintf("%v", region), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-	if err := typeCheckParameter(localVarOptionals["provider"], "string", "provider"); err != nil {
+	if err := typeCheckParameter(localVarOptionals["xRateLimitApp"], "string", "xRateLimitApp"); err != nil {
 		return successPayload, nil, err
 	}
-	if err := typeCheckParameter(localVarOptionals["xRateLimitApp"], "string", "xRateLimitApp"); err != nil {
+	if err := typeCheckParameter(localVarOptionals["provider"], "string", "provider"); err != nil {
 		return successPayload, nil, err
 	}
 
@@ -215,7 +215,7 @@ func (a *LoadBalancerControllerApiService) GetLoadBalancerDetailsUsingGET(ctx co
 		localVarQueryParams.Add("provider", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -263,8 +263,8 @@ func (a *LoadBalancerControllerApiService) GetLoadBalancerDetailsUsingGET(ctx co
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @param name name
  @param optional (nil or map[string]interface{}) with one or more of:
-     @param "provider" (string) provider
      @param "xRateLimitApp" (string) X-RateLimit-App
+     @param "provider" (string) provider
  @return map[string]interface{}*/
 func (a *LoadBalancerControllerApiService) GetLoadBalancerUsingGET(ctx context.Context, name string, localVarOptionals map[string]interface{}) (map[string]interface{},  *http.Response, error) {
 	var (
@@ -283,10 +283,10 @@ func (a *LoadBalancerControllerApiService) GetLoadBalancerUsingGET(ctx context.C
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-	if err := typeCheckParameter(localVarOptionals["provider"], "string", "provider"); err != nil {
+	if err := typeCheckParameter(localVarOptionals["xRateLimitApp"], "string", "xRateLimitApp"); err != nil {
 		return successPayload, nil, err
 	}
-	if err := typeCheckParameter(localVarOptionals["xRateLimitApp"], "string", "xRateLimitApp"); err != nil {
+	if err := typeCheckParameter(localVarOptionals["provider"], "string", "provider"); err != nil {
 		return successPayload, nil, err
 	}
 
@@ -294,7 +294,7 @@ func (a *LoadBalancerControllerApiService) GetLoadBalancerUsingGET(ctx context.C
 		localVarQueryParams.Add("provider", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)

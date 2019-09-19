@@ -30,9 +30,10 @@ type BuildControllerApiService service
 /* BuildControllerApiService Get build masters
  Deprecated, use the v3 endpoint instead
  * @param ctx context.Context for authentication, logging, tracing, etc.
- @param type_ type
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "type_" (string) type
  @return []interface{}*/
-func (a *BuildControllerApiService) GetBuildMastersUsingGET(ctx context.Context, type_ string) ([]interface{},  *http.Response, error) {
+func (a *BuildControllerApiService) GetBuildMastersUsingGET(ctx context.Context, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
@@ -48,10 +49,15 @@ func (a *BuildControllerApiService) GetBuildMastersUsingGET(ctx context.Context,
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if err := typeCheckParameter(localVarOptionals["type_"], "string", "type_"); err != nil {
+		return successPayload, nil, err
+	}
 
-	localVarQueryParams.Add("type", parameterToString(type_, ""))
+	if localVarTempParam, localVarOk := localVarOptionals["type_"].(string); localVarOk {
+		localVarQueryParams.Add("type", parameterToString(localVarTempParam, ""))
+	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -118,7 +124,7 @@ func (a *BuildControllerApiService) GetBuildUsingGET(ctx context.Context, buildM
 
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -183,7 +189,7 @@ func (a *BuildControllerApiService) GetBuildsUsingGET(ctx context.Context, build
 
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -248,7 +254,7 @@ func (a *BuildControllerApiService) GetJobConfigUsingGET(ctx context.Context, bu
 
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -313,7 +319,7 @@ func (a *BuildControllerApiService) GetJobsForBuildMasterUsingGET(ctx context.Co
 
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -356,9 +362,10 @@ func (a *BuildControllerApiService) GetJobsForBuildMasterUsingGET(ctx context.Co
 
 /* BuildControllerApiService Get build masters
  * @param ctx context.Context for authentication, logging, tracing, etc.
- @param type_ type
+ @param optional (nil or map[string]interface{}) with one or more of:
+     @param "type_" (string) type
  @return []interface{}*/
-func (a *BuildControllerApiService) V3GetBuildMastersUsingGET(ctx context.Context, type_ string) ([]interface{},  *http.Response, error) {
+func (a *BuildControllerApiService) V3GetBuildMastersUsingGET(ctx context.Context, localVarOptionals map[string]interface{}) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
@@ -374,10 +381,15 @@ func (a *BuildControllerApiService) V3GetBuildMastersUsingGET(ctx context.Contex
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
+	if err := typeCheckParameter(localVarOptionals["type_"], "string", "type_"); err != nil {
+		return successPayload, nil, err
+	}
 
-	localVarQueryParams.Add("type", parameterToString(type_, ""))
+	if localVarTempParam, localVarOk := localVarOptionals["type_"].(string); localVarOk {
+		localVarQueryParams.Add("type", parameterToString(localVarTempParam, ""))
+	}
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -421,10 +433,10 @@ func (a *BuildControllerApiService) V3GetBuildMastersUsingGET(ctx context.Contex
 /* BuildControllerApiService Get build for build master
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @param buildMaster buildMaster
- @param number number
  @param job job
+ @param number number
  @return map[string]interface{}*/
-func (a *BuildControllerApiService) V3GetBuildUsingGET(ctx context.Context, buildMaster string, number string, job string) (map[string]interface{},  *http.Response, error) {
+func (a *BuildControllerApiService) V3GetBuildUsingGET(ctx context.Context, buildMaster string, job string, number string) (map[string]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
@@ -445,7 +457,7 @@ func (a *BuildControllerApiService) V3GetBuildUsingGET(ctx context.Context, buil
 
 	localVarQueryParams.Add("job", parameterToString(job, ""))
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -511,7 +523,7 @@ func (a *BuildControllerApiService) V3GetBuildsUsingGET(ctx context.Context, bui
 
 	localVarQueryParams.Add("job", parameterToString(job, ""))
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -577,7 +589,7 @@ func (a *BuildControllerApiService) V3GetJobConfigUsingGET(ctx context.Context, 
 
 	localVarQueryParams.Add("job", parameterToString(job, ""))
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -641,7 +653,7 @@ func (a *BuildControllerApiService) V3GetJobsForBuildMasterUsingGET(ctx context.
 
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)

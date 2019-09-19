@@ -30,10 +30,10 @@ type ConcourseControllerApiService service
 /* ConcourseControllerApiService Retrieve the list of job names for a given pipeline available to triggers
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @param buildMaster buildMaster
- @param team team
  @param pipeline pipeline
+ @param team team
  @return []interface{}*/
-func (a *ConcourseControllerApiService) JobsUsingGET(ctx context.Context, buildMaster string, team string, pipeline string) ([]interface{},  *http.Response, error) {
+func (a *ConcourseControllerApiService) JobsUsingGET(ctx context.Context, buildMaster string, pipeline string, team string) ([]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
@@ -45,8 +45,8 @@ func (a *ConcourseControllerApiService) JobsUsingGET(ctx context.Context, buildM
 	// create path and map variables
 	localVarPath := a.client.cfg.BasePath + "/concourse/{buildMaster}/teams/{team}/pipelines/{pipeline}/jobs"
 	localVarPath = strings.Replace(localVarPath, "{"+"buildMaster"+"}", fmt.Sprintf("%v", buildMaster), -1)
-	localVarPath = strings.Replace(localVarPath, "{"+"team"+"}", fmt.Sprintf("%v", team), -1)
 	localVarPath = strings.Replace(localVarPath, "{"+"pipeline"+"}", fmt.Sprintf("%v", pipeline), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"team"+"}", fmt.Sprintf("%v", team), -1)
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
@@ -54,7 +54,7 @@ func (a *ConcourseControllerApiService) JobsUsingGET(ctx context.Context, buildM
 
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -120,7 +120,75 @@ func (a *ConcourseControllerApiService) PipelinesUsingGET(ctx context.Context, b
 
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
+
+	// set Content-Type header
+	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
+	if localVarHttpContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHttpContentType
+	}
+
+	// to determine the Accept header
+	localVarHttpHeaderAccepts := []string{
+		"*/*",
+		}
+
+	// set Accept header
+	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
+	if localVarHttpHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
+	}
+	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
+	if err != nil {
+		return successPayload, nil, err
+	}
+
+	localVarHttpResponse, err := a.client.callAPI(r)
+	if err != nil || localVarHttpResponse == nil {
+		return successPayload, localVarHttpResponse, err
+	}
+	defer localVarHttpResponse.Body.Close()
+	if localVarHttpResponse.StatusCode >= 300 {
+		bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
+		return successPayload, localVarHttpResponse, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
+	}
+
+	if err = json.NewDecoder(localVarHttpResponse.Body).Decode(&successPayload); err != nil {
+		return successPayload, localVarHttpResponse, err
+	}
+
+
+	return successPayload, localVarHttpResponse, err
+}
+
+/* ConcourseControllerApiService Retrieve the list of resource names for a given pipeline available to the Concourse stage
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param buildMaster buildMaster
+ @param pipeline pipeline
+ @param team team
+ @return []interface{}*/
+func (a *ConcourseControllerApiService) ResourcesUsingGET(ctx context.Context, buildMaster string, pipeline string, team string) ([]interface{},  *http.Response, error) {
+	var (
+		localVarHttpMethod = strings.ToUpper("Get")
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  []interface{}
+	)
+
+	// create path and map variables
+	localVarPath := a.client.cfg.BasePath + "/concourse/{buildMaster}/teams/{team}/pipelines/{pipeline}/resources"
+	localVarPath = strings.Replace(localVarPath, "{"+"buildMaster"+"}", fmt.Sprintf("%v", buildMaster), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"pipeline"+"}", fmt.Sprintf("%v", pipeline), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"team"+"}", fmt.Sprintf("%v", team), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+
+	// to determine the Content-Type header
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)

@@ -31,8 +31,8 @@ type PipelineControllerApiService service
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @param id id
  @param optional (nil or map[string]interface{}) with one or more of:
-     @param "reason" (string) reason
      @param "force" (bool) force
+     @param "reason" (string) reason
  @return */
 func (a *PipelineControllerApiService) CancelPipelineUsingPUT1(ctx context.Context, id string, localVarOptionals map[string]interface{}) ( *http.Response, error) {
 	var (
@@ -50,18 +50,18 @@ func (a *PipelineControllerApiService) CancelPipelineUsingPUT1(ctx context.Conte
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-	if err := typeCheckParameter(localVarOptionals["reason"], "string", "reason"); err != nil {
-		return nil, err
-	}
 	if err := typeCheckParameter(localVarOptionals["force"], "bool", "force"); err != nil {
 		return nil, err
 	}
-
-	if localVarTempParam, localVarOk := localVarOptionals["reason"].(string); localVarOk {
-		localVarQueryParams.Add("reason", parameterToString(localVarTempParam, ""))
+	if err := typeCheckParameter(localVarOptionals["reason"], "string", "reason"); err != nil {
+		return nil, err
 	}
+
 	if localVarTempParam, localVarOk := localVarOptionals["force"].(bool); localVarOk {
 		localVarQueryParams.Add("force", parameterToString(localVarTempParam, ""))
+	}
+	if localVarTempParam, localVarOk := localVarOptionals["reason"].(string); localVarOk {
+		localVarQueryParams.Add("reason", parameterToString(localVarTempParam, ""))
 	}
 	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{ "application/json",  }
@@ -124,7 +124,7 @@ func (a *PipelineControllerApiService) DeletePipelineUsingDELETE(ctx context.Con
 
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -183,6 +183,482 @@ func (a *PipelineControllerApiService) DeletePipelineUsingDELETE1(ctx context.Co
 
 
 	// to determine the Content-Type header
+	localVarHttpContentTypes := []string{  }
+
+	// set Content-Type header
+	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
+	if localVarHttpContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHttpContentType
+	}
+
+	// to determine the Accept header
+	localVarHttpHeaderAccepts := []string{
+		"*/*",
+		}
+
+	// set Accept header
+	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
+	if localVarHttpHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
+	}
+	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
+	if err != nil {
+		return successPayload, nil, err
+	}
+
+	localVarHttpResponse, err := a.client.callAPI(r)
+	if err != nil || localVarHttpResponse == nil {
+		return successPayload, localVarHttpResponse, err
+	}
+	defer localVarHttpResponse.Body.Close()
+	if localVarHttpResponse.StatusCode >= 300 {
+		bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
+		return successPayload, localVarHttpResponse, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
+	}
+
+	if err = json.NewDecoder(localVarHttpResponse.Body).Decode(&successPayload); err != nil {
+		return successPayload, localVarHttpResponse, err
+	}
+
+
+	return successPayload, localVarHttpResponse, err
+}
+
+/* PipelineControllerApiService Evaluate a pipeline expression at a specific stage using the provided execution as context
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param expression expression
+ @param id id
+ @param stageId stageId
+ @return map[string]interface{}*/
+func (a *PipelineControllerApiService) EvaluateExpressionForExecutionAtStageUsingDELETE(ctx context.Context, expression string, id string, stageId string) (map[string]interface{},  *http.Response, error) {
+	var (
+		localVarHttpMethod = strings.ToUpper("Delete")
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  map[string]interface{}
+	)
+
+	// create path and map variables
+	localVarPath := a.client.cfg.BasePath + "/pipelines/{id}/{stageId}/evaluateExpression"
+	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", fmt.Sprintf("%v", id), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"stageId"+"}", fmt.Sprintf("%v", stageId), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+
+	localVarQueryParams.Add("expression", parameterToString(expression, ""))
+	// to determine the Content-Type header
+	localVarHttpContentTypes := []string{  }
+
+	// set Content-Type header
+	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
+	if localVarHttpContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHttpContentType
+	}
+
+	// to determine the Accept header
+	localVarHttpHeaderAccepts := []string{
+		"*/*",
+		}
+
+	// set Accept header
+	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
+	if localVarHttpHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
+	}
+	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
+	if err != nil {
+		return successPayload, nil, err
+	}
+
+	localVarHttpResponse, err := a.client.callAPI(r)
+	if err != nil || localVarHttpResponse == nil {
+		return successPayload, localVarHttpResponse, err
+	}
+	defer localVarHttpResponse.Body.Close()
+	if localVarHttpResponse.StatusCode >= 300 {
+		bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
+		return successPayload, localVarHttpResponse, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
+	}
+
+	if err = json.NewDecoder(localVarHttpResponse.Body).Decode(&successPayload); err != nil {
+		return successPayload, localVarHttpResponse, err
+	}
+
+
+	return successPayload, localVarHttpResponse, err
+}
+
+/* PipelineControllerApiService Evaluate a pipeline expression at a specific stage using the provided execution as context
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param expression expression
+ @param id id
+ @param stageId stageId
+ @return map[string]interface{}*/
+func (a *PipelineControllerApiService) EvaluateExpressionForExecutionAtStageUsingGET(ctx context.Context, expression string, id string, stageId string) (map[string]interface{},  *http.Response, error) {
+	var (
+		localVarHttpMethod = strings.ToUpper("Get")
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  map[string]interface{}
+	)
+
+	// create path and map variables
+	localVarPath := a.client.cfg.BasePath + "/pipelines/{id}/{stageId}/evaluateExpression"
+	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", fmt.Sprintf("%v", id), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"stageId"+"}", fmt.Sprintf("%v", stageId), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+
+	localVarQueryParams.Add("expression", parameterToString(expression, ""))
+	// to determine the Content-Type header
+	localVarHttpContentTypes := []string{  }
+
+	// set Content-Type header
+	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
+	if localVarHttpContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHttpContentType
+	}
+
+	// to determine the Accept header
+	localVarHttpHeaderAccepts := []string{
+		"*/*",
+		}
+
+	// set Accept header
+	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
+	if localVarHttpHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
+	}
+	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
+	if err != nil {
+		return successPayload, nil, err
+	}
+
+	localVarHttpResponse, err := a.client.callAPI(r)
+	if err != nil || localVarHttpResponse == nil {
+		return successPayload, localVarHttpResponse, err
+	}
+	defer localVarHttpResponse.Body.Close()
+	if localVarHttpResponse.StatusCode >= 300 {
+		bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
+		return successPayload, localVarHttpResponse, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
+	}
+
+	if err = json.NewDecoder(localVarHttpResponse.Body).Decode(&successPayload); err != nil {
+		return successPayload, localVarHttpResponse, err
+	}
+
+
+	return successPayload, localVarHttpResponse, err
+}
+
+/* PipelineControllerApiService Evaluate a pipeline expression at a specific stage using the provided execution as context
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param expression expression
+ @param id id
+ @param stageId stageId
+ @return map[string]interface{}*/
+func (a *PipelineControllerApiService) EvaluateExpressionForExecutionAtStageUsingHEAD(ctx context.Context, expression string, id string, stageId string) (map[string]interface{},  *http.Response, error) {
+	var (
+		localVarHttpMethod = strings.ToUpper("Head")
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  map[string]interface{}
+	)
+
+	// create path and map variables
+	localVarPath := a.client.cfg.BasePath + "/pipelines/{id}/{stageId}/evaluateExpression"
+	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", fmt.Sprintf("%v", id), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"stageId"+"}", fmt.Sprintf("%v", stageId), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+
+	localVarQueryParams.Add("expression", parameterToString(expression, ""))
+	// to determine the Content-Type header
+	localVarHttpContentTypes := []string{ "application/json",  }
+
+	// set Content-Type header
+	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
+	if localVarHttpContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHttpContentType
+	}
+
+	// to determine the Accept header
+	localVarHttpHeaderAccepts := []string{
+		"*/*",
+		}
+
+	// set Accept header
+	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
+	if localVarHttpHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
+	}
+	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
+	if err != nil {
+		return successPayload, nil, err
+	}
+
+	localVarHttpResponse, err := a.client.callAPI(r)
+	if err != nil || localVarHttpResponse == nil {
+		return successPayload, localVarHttpResponse, err
+	}
+	defer localVarHttpResponse.Body.Close()
+	if localVarHttpResponse.StatusCode >= 300 {
+		bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
+		return successPayload, localVarHttpResponse, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
+	}
+
+	if err = json.NewDecoder(localVarHttpResponse.Body).Decode(&successPayload); err != nil {
+		return successPayload, localVarHttpResponse, err
+	}
+
+
+	return successPayload, localVarHttpResponse, err
+}
+
+/* PipelineControllerApiService Evaluate a pipeline expression at a specific stage using the provided execution as context
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param expression expression
+ @param id id
+ @param stageId stageId
+ @return map[string]interface{}*/
+func (a *PipelineControllerApiService) EvaluateExpressionForExecutionAtStageUsingOPTIONS(ctx context.Context, expression string, id string, stageId string) (map[string]interface{},  *http.Response, error) {
+	var (
+		localVarHttpMethod = strings.ToUpper("Options")
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  map[string]interface{}
+	)
+
+	// create path and map variables
+	localVarPath := a.client.cfg.BasePath + "/pipelines/{id}/{stageId}/evaluateExpression"
+	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", fmt.Sprintf("%v", id), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"stageId"+"}", fmt.Sprintf("%v", stageId), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+
+	localVarQueryParams.Add("expression", parameterToString(expression, ""))
+	// to determine the Content-Type header
+	localVarHttpContentTypes := []string{ "application/json",  }
+
+	// set Content-Type header
+	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
+	if localVarHttpContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHttpContentType
+	}
+
+	// to determine the Accept header
+	localVarHttpHeaderAccepts := []string{
+		"*/*",
+		}
+
+	// set Accept header
+	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
+	if localVarHttpHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
+	}
+	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
+	if err != nil {
+		return successPayload, nil, err
+	}
+
+	localVarHttpResponse, err := a.client.callAPI(r)
+	if err != nil || localVarHttpResponse == nil {
+		return successPayload, localVarHttpResponse, err
+	}
+	defer localVarHttpResponse.Body.Close()
+	if localVarHttpResponse.StatusCode >= 300 {
+		bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
+		return successPayload, localVarHttpResponse, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
+	}
+
+	if err = json.NewDecoder(localVarHttpResponse.Body).Decode(&successPayload); err != nil {
+		return successPayload, localVarHttpResponse, err
+	}
+
+
+	return successPayload, localVarHttpResponse, err
+}
+
+/* PipelineControllerApiService Evaluate a pipeline expression at a specific stage using the provided execution as context
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param expression expression
+ @param id id
+ @param stageId stageId
+ @return map[string]interface{}*/
+func (a *PipelineControllerApiService) EvaluateExpressionForExecutionAtStageUsingPATCH(ctx context.Context, expression string, id string, stageId string) (map[string]interface{},  *http.Response, error) {
+	var (
+		localVarHttpMethod = strings.ToUpper("Patch")
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  map[string]interface{}
+	)
+
+	// create path and map variables
+	localVarPath := a.client.cfg.BasePath + "/pipelines/{id}/{stageId}/evaluateExpression"
+	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", fmt.Sprintf("%v", id), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"stageId"+"}", fmt.Sprintf("%v", stageId), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+
+	localVarQueryParams.Add("expression", parameterToString(expression, ""))
+	// to determine the Content-Type header
+	localVarHttpContentTypes := []string{ "application/json",  }
+
+	// set Content-Type header
+	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
+	if localVarHttpContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHttpContentType
+	}
+
+	// to determine the Accept header
+	localVarHttpHeaderAccepts := []string{
+		"*/*",
+		}
+
+	// set Accept header
+	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
+	if localVarHttpHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
+	}
+	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
+	if err != nil {
+		return successPayload, nil, err
+	}
+
+	localVarHttpResponse, err := a.client.callAPI(r)
+	if err != nil || localVarHttpResponse == nil {
+		return successPayload, localVarHttpResponse, err
+	}
+	defer localVarHttpResponse.Body.Close()
+	if localVarHttpResponse.StatusCode >= 300 {
+		bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
+		return successPayload, localVarHttpResponse, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
+	}
+
+	if err = json.NewDecoder(localVarHttpResponse.Body).Decode(&successPayload); err != nil {
+		return successPayload, localVarHttpResponse, err
+	}
+
+
+	return successPayload, localVarHttpResponse, err
+}
+
+/* PipelineControllerApiService Evaluate a pipeline expression at a specific stage using the provided execution as context
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param expression expression
+ @param id id
+ @param stageId stageId
+ @return map[string]interface{}*/
+func (a *PipelineControllerApiService) EvaluateExpressionForExecutionAtStageUsingPOST(ctx context.Context, expression string, id string, stageId string) (map[string]interface{},  *http.Response, error) {
+	var (
+		localVarHttpMethod = strings.ToUpper("Post")
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  map[string]interface{}
+	)
+
+	// create path and map variables
+	localVarPath := a.client.cfg.BasePath + "/pipelines/{id}/{stageId}/evaluateExpression"
+	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", fmt.Sprintf("%v", id), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"stageId"+"}", fmt.Sprintf("%v", stageId), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+
+	localVarQueryParams.Add("expression", parameterToString(expression, ""))
+	// to determine the Content-Type header
+	localVarHttpContentTypes := []string{ "application/json",  }
+
+	// set Content-Type header
+	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
+	if localVarHttpContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHttpContentType
+	}
+
+	// to determine the Accept header
+	localVarHttpHeaderAccepts := []string{
+		"*/*",
+		}
+
+	// set Accept header
+	localVarHttpHeaderAccept := selectHeaderAccept(localVarHttpHeaderAccepts)
+	if localVarHttpHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHttpHeaderAccept
+	}
+	r, err := a.client.prepareRequest(ctx, localVarPath, localVarHttpMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFileName, localVarFileBytes)
+	if err != nil {
+		return successPayload, nil, err
+	}
+
+	localVarHttpResponse, err := a.client.callAPI(r)
+	if err != nil || localVarHttpResponse == nil {
+		return successPayload, localVarHttpResponse, err
+	}
+	defer localVarHttpResponse.Body.Close()
+	if localVarHttpResponse.StatusCode >= 300 {
+		bodyBytes, _ := ioutil.ReadAll(localVarHttpResponse.Body)
+		return successPayload, localVarHttpResponse, reportError("Status: %v, Body: %s", localVarHttpResponse.Status, bodyBytes)
+	}
+
+	if err = json.NewDecoder(localVarHttpResponse.Body).Decode(&successPayload); err != nil {
+		return successPayload, localVarHttpResponse, err
+	}
+
+
+	return successPayload, localVarHttpResponse, err
+}
+
+/* PipelineControllerApiService Evaluate a pipeline expression at a specific stage using the provided execution as context
+ * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param expression expression
+ @param id id
+ @param stageId stageId
+ @return map[string]interface{}*/
+func (a *PipelineControllerApiService) EvaluateExpressionForExecutionAtStageUsingPUT(ctx context.Context, expression string, id string, stageId string) (map[string]interface{},  *http.Response, error) {
+	var (
+		localVarHttpMethod = strings.ToUpper("Put")
+		localVarPostBody interface{}
+		localVarFileName string
+		localVarFileBytes []byte
+	 	successPayload  map[string]interface{}
+	)
+
+	// create path and map variables
+	localVarPath := a.client.cfg.BasePath + "/pipelines/{id}/{stageId}/evaluateExpression"
+	localVarPath = strings.Replace(localVarPath, "{"+"id"+"}", fmt.Sprintf("%v", id), -1)
+	localVarPath = strings.Replace(localVarPath, "{"+"stageId"+"}", fmt.Sprintf("%v", stageId), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+
+	localVarQueryParams.Add("expression", parameterToString(expression, ""))
+	// to determine the Content-Type header
 	localVarHttpContentTypes := []string{ "application/json",  }
 
 	// set Content-Type header
@@ -226,10 +702,10 @@ func (a *PipelineControllerApiService) DeletePipelineUsingDELETE1(ctx context.Co
 
 /* PipelineControllerApiService Evaluate a pipeline expression using the provided execution as context
  * @param ctx context.Context for authentication, logging, tracing, etc.
- @param id id
  @param expression expression
+ @param id id
  @return map[string]interface{}*/
-func (a *PipelineControllerApiService) EvaluateExpressionForExecutionUsingDELETE(ctx context.Context, id string, expression string) (map[string]interface{},  *http.Response, error) {
+func (a *PipelineControllerApiService) EvaluateExpressionForExecutionUsingDELETE(ctx context.Context, expression string, id string) (map[string]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Delete")
 		localVarPostBody interface{}
@@ -249,7 +725,7 @@ func (a *PipelineControllerApiService) EvaluateExpressionForExecutionUsingDELETE
 
 	localVarQueryParams.Add("expression", parameterToString(expression, ""))
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -292,10 +768,10 @@ func (a *PipelineControllerApiService) EvaluateExpressionForExecutionUsingDELETE
 
 /* PipelineControllerApiService Evaluate a pipeline expression using the provided execution as context
  * @param ctx context.Context for authentication, logging, tracing, etc.
- @param id id
  @param expression expression
+ @param id id
  @return map[string]interface{}*/
-func (a *PipelineControllerApiService) EvaluateExpressionForExecutionUsingGET(ctx context.Context, id string, expression string) (map[string]interface{},  *http.Response, error) {
+func (a *PipelineControllerApiService) EvaluateExpressionForExecutionUsingGET(ctx context.Context, expression string, id string) (map[string]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
@@ -315,7 +791,7 @@ func (a *PipelineControllerApiService) EvaluateExpressionForExecutionUsingGET(ct
 
 	localVarQueryParams.Add("expression", parameterToString(expression, ""))
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -358,10 +834,10 @@ func (a *PipelineControllerApiService) EvaluateExpressionForExecutionUsingGET(ct
 
 /* PipelineControllerApiService Evaluate a pipeline expression using the provided execution as context
  * @param ctx context.Context for authentication, logging, tracing, etc.
- @param id id
  @param expression expression
+ @param id id
  @return map[string]interface{}*/
-func (a *PipelineControllerApiService) EvaluateExpressionForExecutionUsingHEAD(ctx context.Context, id string, expression string) (map[string]interface{},  *http.Response, error) {
+func (a *PipelineControllerApiService) EvaluateExpressionForExecutionUsingHEAD(ctx context.Context, expression string, id string) (map[string]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Head")
 		localVarPostBody interface{}
@@ -424,10 +900,10 @@ func (a *PipelineControllerApiService) EvaluateExpressionForExecutionUsingHEAD(c
 
 /* PipelineControllerApiService Evaluate a pipeline expression using the provided execution as context
  * @param ctx context.Context for authentication, logging, tracing, etc.
- @param id id
  @param expression expression
+ @param id id
  @return map[string]interface{}*/
-func (a *PipelineControllerApiService) EvaluateExpressionForExecutionUsingOPTIONS(ctx context.Context, id string, expression string) (map[string]interface{},  *http.Response, error) {
+func (a *PipelineControllerApiService) EvaluateExpressionForExecutionUsingOPTIONS(ctx context.Context, expression string, id string) (map[string]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Options")
 		localVarPostBody interface{}
@@ -490,10 +966,10 @@ func (a *PipelineControllerApiService) EvaluateExpressionForExecutionUsingOPTION
 
 /* PipelineControllerApiService Evaluate a pipeline expression using the provided execution as context
  * @param ctx context.Context for authentication, logging, tracing, etc.
- @param id id
  @param expression expression
+ @param id id
  @return map[string]interface{}*/
-func (a *PipelineControllerApiService) EvaluateExpressionForExecutionUsingPATCH(ctx context.Context, id string, expression string) (map[string]interface{},  *http.Response, error) {
+func (a *PipelineControllerApiService) EvaluateExpressionForExecutionUsingPATCH(ctx context.Context, expression string, id string) (map[string]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Patch")
 		localVarPostBody interface{}
@@ -556,10 +1032,10 @@ func (a *PipelineControllerApiService) EvaluateExpressionForExecutionUsingPATCH(
 
 /* PipelineControllerApiService Evaluate a pipeline expression using the provided execution as context
  * @param ctx context.Context for authentication, logging, tracing, etc.
- @param id id
  @param expression expression
+ @param id id
  @return map[string]interface{}*/
-func (a *PipelineControllerApiService) EvaluateExpressionForExecutionUsingPUT(ctx context.Context, id string, expression string) (map[string]interface{},  *http.Response, error) {
+func (a *PipelineControllerApiService) EvaluateExpressionForExecutionUsingPUT(ctx context.Context, expression string, id string) (map[string]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Put")
 		localVarPostBody interface{}
@@ -625,7 +1101,7 @@ func (a *PipelineControllerApiService) EvaluateExpressionForExecutionUsingPUT(ct
  @param id id
  @param pipelineExpression pipelineExpression
  @return map[string]interface{}*/
-func (a *PipelineControllerApiService) EvaluateExpressionForExecutionViaPOSTUsingPOST1(ctx context.Context, id string, pipelineExpression interface{}) (map[string]interface{},  *http.Response, error) {
+func (a *PipelineControllerApiService) EvaluateExpressionForExecutionViaPOSTUsingPOST1(ctx context.Context, id string, pipelineExpression string) (map[string]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Post")
 		localVarPostBody interface{}
@@ -644,7 +1120,7 @@ func (a *PipelineControllerApiService) EvaluateExpressionForExecutionViaPOSTUsin
 
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{ "text/plain",  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -710,7 +1186,7 @@ func (a *PipelineControllerApiService) GetPipelineLogsUsingGET(ctx context.Conte
 
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -774,7 +1250,7 @@ func (a *PipelineControllerApiService) GetPipelineUsingGET(ctx context.Context, 
 
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -1078,11 +1554,11 @@ func (a *PipelineControllerApiService) RenamePipelineUsingPOST(ctx context.Conte
 
 /* PipelineControllerApiService Restart a stage execution
  * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param context context
  @param id id
  @param stageId stageId
- @param context context
  @return map[string]interface{}*/
-func (a *PipelineControllerApiService) RestartStageUsingPUT(ctx context.Context, id string, stageId string, context interface{}) (map[string]interface{},  *http.Response, error) {
+func (a *PipelineControllerApiService) RestartStageUsingPUT(ctx context.Context, context interface{}, id string, stageId string) (map[string]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Put")
 		localVarPostBody interface{}
@@ -1402,11 +1878,11 @@ func (a *PipelineControllerApiService) UpdatePipelineUsingPUT(ctx context.Contex
 
 /* PipelineControllerApiService Update a stage execution
  * @param ctx context.Context for authentication, logging, tracing, etc.
+ @param context context
  @param id id
  @param stageId stageId
- @param context context
  @return map[string]interface{}*/
-func (a *PipelineControllerApiService) UpdateStageUsingPATCH(ctx context.Context, id string, stageId string, context interface{}) (map[string]interface{},  *http.Response, error) {
+func (a *PipelineControllerApiService) UpdateStageUsingPATCH(ctx context.Context, context interface{}, id string, stageId string) (map[string]interface{},  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Patch")
 		localVarPostBody interface{}

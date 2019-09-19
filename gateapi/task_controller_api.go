@@ -178,7 +178,7 @@ func (a *TaskControllerApiService) DeleteTaskUsingDELETE(ctx context.Context, id
 
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -249,7 +249,7 @@ func (a *TaskControllerApiService) GetTaskDetailsUsingGET1(ctx context.Context, 
 	}
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -316,7 +316,7 @@ func (a *TaskControllerApiService) GetTaskUsingGET1(ctx context.Context, id stri
 
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)

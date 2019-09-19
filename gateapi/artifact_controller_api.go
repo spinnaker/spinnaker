@@ -53,7 +53,7 @@ func (a *ArtifactControllerApiService) AllUsingGET(ctx context.Context, localVar
 	}
 
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
@@ -100,12 +100,12 @@ func (a *ArtifactControllerApiService) AllUsingGET(ctx context.Context, localVar
 /* ArtifactControllerApiService Retrieve the list of artifact versions by account and artifact names
  * @param ctx context.Context for authentication, logging, tracing, etc.
  @param accountName accountName
- @param type_ type
  @param artifactName artifactName
+ @param type_ type
  @param optional (nil or map[string]interface{}) with one or more of:
      @param "xRateLimitApp" (string) X-RateLimit-App
  @return []string*/
-func (a *ArtifactControllerApiService) ArtifactVersionsUsingGET(ctx context.Context, accountName string, type_ string, artifactName string, localVarOptionals map[string]interface{}) ([]string,  *http.Response, error) {
+func (a *ArtifactControllerApiService) ArtifactVersionsUsingGET(ctx context.Context, accountName string, artifactName string, type_ string, localVarOptionals map[string]interface{}) ([]string,  *http.Response, error) {
 	var (
 		localVarHttpMethod = strings.ToUpper("Get")
 		localVarPostBody interface{}
@@ -126,10 +126,10 @@ func (a *ArtifactControllerApiService) ArtifactVersionsUsingGET(ctx context.Cont
 		return successPayload, nil, err
 	}
 
-	localVarQueryParams.Add("type", parameterToString(type_, ""))
 	localVarQueryParams.Add("artifactName", parameterToString(artifactName, ""))
+	localVarQueryParams.Add("type", parameterToString(type_, ""))
 	// to determine the Content-Type header
-	localVarHttpContentTypes := []string{ "application/json",  }
+	localVarHttpContentTypes := []string{  }
 
 	// set Content-Type header
 	localVarHttpContentType := selectHeaderContentType(localVarHttpContentTypes)
