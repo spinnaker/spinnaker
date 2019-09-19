@@ -18,17 +18,11 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.gce;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.ApplySourceServerGroupCapacityStage;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.CaptureSourceServerGroupCapacityTask;
-import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerGroupStage;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.DeployStagePreProcessor.StageDefinition;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.DeployStagePreProcessor.StepDefinition;
-import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupResolver;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.util.Collections;
@@ -38,33 +32,24 @@ import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class GceDeployStagePreProcessorTest {
   private GceDeployStagePreProcessor preProcessor;
   private ApplySourceServerGroupCapacityStage applySourceServerGroupCapacityStage;
-  private ResizeServerGroupStage resizeServerGroupStage;
-
-  @Mock private TargetServerGroupResolver targetServerGroupResolver;
 
   @BeforeEach
   void setUp() {
     applySourceServerGroupCapacityStage = new ApplySourceServerGroupCapacityStage();
-    resizeServerGroupStage = new ResizeServerGroupStage();
+    TargetServerGroupResolver targetServerGroupResolver = new TargetServerGroupResolver();
     preProcessor =
         new GceDeployStagePreProcessor(
-            applySourceServerGroupCapacityStage, resizeServerGroupStage, targetServerGroupResolver);
+            applySourceServerGroupCapacityStage, targetServerGroupResolver);
   }
 
   @Test
   void redBlackStrategyTest() {
-    when(targetServerGroupResolver.resolve(any()))
-        .thenReturn(
-            ImmutableList.of(
-                new TargetServerGroup(
-                    ImmutableMap.of("name", "testapp-v000", "zone", "us-central1-f"))));
     Stage stage = new Stage();
     Map<String, Object> context = createDefaultContext();
     context.put("strategy", "redblack");
@@ -72,9 +57,7 @@ class GceDeployStagePreProcessorTest {
 
     // Before Stages
     List<StageDefinition> beforeStages = preProcessor.beforeStageDefinitions(stage);
-    assertThat(beforeStages)
-        .extracting(stageDefinition -> stageDefinition.stageDefinitionBuilder)
-        .containsExactly(resizeServerGroupStage);
+    assertThat(beforeStages).isEmpty();
 
     // Additional Steps
     List<StepDefinition> additionalSteps = preProcessor.additionalSteps(stage);
@@ -90,15 +73,11 @@ class GceDeployStagePreProcessorTest {
 
     // On Failure Stages
     List<StageDefinition> failureStages = preProcessor.onFailureStageDefinitions(stage);
-    assertThat(failureStages)
-        .extracting(stageDefinition -> stageDefinition.stageDefinitionBuilder)
-        .containsExactly(resizeServerGroupStage);
+    assertThat(failureStages).isEmpty();
   }
 
   @Test
   void redBlackStrategyNoExistingServerGroupTest() {
-    when(targetServerGroupResolver.resolve(any()))
-        .thenThrow(TargetServerGroup.NotFoundException.class);
     Stage stage = new Stage();
     Map<String, Object> context = createDefaultContext();
     context.put("strategy", "redblack");
