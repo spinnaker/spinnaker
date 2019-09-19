@@ -23,8 +23,11 @@ dependencies {
   implementation project(":clouddriver-artifacts")
   implementation project(":clouddriver-core")
   implementation project(":clouddriver-security")
-  implementation project(":clouddriver-sql-mysql")
+  implementation project(":clouddriver-sql")
 
+  if (!rootProject.hasProperty("excludeSqlDrivers")) {
+    runtimeOnly(project(":clouddriver-sql-mysql"))
+  }
 
   compileOnly "org.projectlombok:lombok"
   annotationProcessor "org.projectlombok:lombok"
