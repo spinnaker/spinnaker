@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.api.ec2
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.ec2.HealthCheckType.ELB
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
@@ -12,8 +13,10 @@ import dev.minutest.rootContext
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.all
+import strikt.assertions.contains
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
+import java.time.Duration
 
 internal class ClusterSpecTests : JUnit5Minutests {
 
@@ -48,7 +51,14 @@ internal class ClusterSpecTests : JUnit5Minutests {
               iamRole = "fnordInstanceProfile",
               instanceMonitoring = false
             ),
-            capacity = Capacity(2, 2, 2)
+            capacity = Capacity(2, 2, 2),
+            dependencies = Dependencies(
+              loadBalancerNames = setOf("fnord-internal"),
+              securityGroupNames = setOf("fnord", "fnord-elb")
+            ),
+            health = ClusterHealthSpec(
+              warmup = Duration.ofSeconds(120)
+            )
           ),
           overrides = mapOf(
             "us-east-1" to ClusterServerGroupSpec(
@@ -56,7 +66,14 @@ internal class ClusterSpecTests : JUnit5Minutests {
                 iamRole = "fnordEastInstanceProfile",
                 keyPair = "fnord-keypair-325719997469-us-east-1"
               ),
-              capacity = Capacity(5, 5, 5)
+              capacity = Capacity(5, 5, 5),
+              dependencies = Dependencies(
+                loadBalancerNames = setOf("fnord-external"),
+                securityGroupNames = setOf("fnord-ext")
+              ),
+              health = ClusterHealthSpec(
+                healthCheckType = ELB
+              )
             ),
             "us-west-2" to ClusterServerGroupSpec(
               launchConfiguration = ClusterLaunchConfigurationSpec(
@@ -98,7 +115,7 @@ internal class ClusterSpecTests : JUnit5Minutests {
           expectThat(result)
             .all {
               get { launchConfiguration.instanceType }
-                .isEqualTo(spec.defaults.launchConfiguration.instanceType)
+                .isEqualTo(spec.defaults.launchConfiguration?.instanceType)
             }
         }
 
@@ -113,7 +130,27 @@ internal class ClusterSpecTests : JUnit5Minutests {
             that(usEastServerGroup.launchConfiguration.iamRole)
               .isEqualTo(spec.overrides["us-east-1"]?.launchConfiguration?.iamRole)
             that(usWestServerGroup.launchConfiguration.iamRole)
-              .isEqualTo(spec.defaults.launchConfiguration.iamRole)
+              .isEqualTo(spec.defaults.launchConfiguration?.iamRole)
+          }
+        }
+
+        test("override dependencies are merged with cluster-wide defaults") {
+          expect {
+            that(usEastServerGroup.dependencies.loadBalancerNames)
+              .contains(spec.defaults.dependencies?.loadBalancerNames!!)
+              .contains(spec.overrides["us-east-1"]?.dependencies?.loadBalancerNames!!)
+            that(usEastServerGroup.dependencies.securityGroupNames)
+              .contains(spec.defaults.dependencies?.securityGroupNames!!)
+              .contains(spec.overrides["us-east-1"]?.dependencies?.securityGroupNames!!)
+          }
+        }
+
+        test("override health settings are merged with cluster-wide defaults") {
+          expect {
+            that(usEastServerGroup.health.warmup)
+              .isEqualTo(spec.defaults.health?.warmup)
+            that(usEastServerGroup.health.healthCheckType)
+              .isEqualTo(spec.overrides["us-east-1"]?.health?.healthCheckType)
           }
         }
       }
