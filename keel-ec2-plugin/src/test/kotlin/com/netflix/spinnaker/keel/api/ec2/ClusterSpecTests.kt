@@ -1,8 +1,10 @@
 package com.netflix.spinnaker.keel.api.ec2
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.model.Moniker
+import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import dev.minutest.TestContextBuilder
 import dev.minutest.junit.JUnit5Minutests
@@ -65,6 +67,20 @@ internal class ClusterSpecTests : JUnit5Minutests {
         )
       }
 
+      mapOf(
+        "YAML" to configuredYamlMapper(),
+        "JSON" to configuredObjectMapper()
+      ).forEach { (format, mapper) ->
+        test("can serialize and deserialize as $format") {
+          val text = mapper.writeValueAsString(this)
+
+          println(text)
+
+          val tree = mapper.readValue<ClusterSpec>(text)
+          expectThat(tree).isEqualTo(this)
+        }
+      }
+
       resolvedContext {
         test("there is one server group per region specified in the cluster") {
           expectThat(result).hasSize(spec.locations.regions.size)
@@ -120,7 +136,6 @@ private fun TestContextBuilder<*, ClusterSpec>.resolvedContext(
 ) =
   derivedContext<ResolvedSpecFixture>("when resolved") {
     deriveFixture {
-      println(configuredYamlMapper().writeValueAsString(this))
       ResolvedSpecFixture(this, resolve())
     }
 
