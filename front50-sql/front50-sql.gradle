@@ -2,7 +2,9 @@ apply from: "$rootDir/gradle/kotlin.gradle"
 
 dependencies {
   implementation project(":front50-core")
-  implementation project(":front50-sql-mysql")
+  if (!rootProject.hasProperty("excludeSqlDrivers")) {
+    runtimeOnly project(":front50-sql-mysql")
+  }
 
   implementation "com.netflix.spinnaker.kork:kork-sql"
   implementation "com.netflix.spinnaker.kork:kork-exceptions"
