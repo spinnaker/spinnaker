@@ -23,11 +23,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.deploymentmonitor.models.EvaluateHealthRequest;
 import com.netflix.spinnaker.orca.deploymentmonitor.models.EvaluateHealthResponse;
-import com.netflix.spinnaker.orca.deploymentmonitor.models.StatusReason;
 import java.time.Instant;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,10 +73,7 @@ public class EvaluateDeploymentHealthTask extends MonitoredDeployBaseTask {
       registry.timer(timerId).record(duration, TimeUnit.MILLISECONDS);
     }
 
-    List<StatusReason> statusReasons =
-        Optional.ofNullable(response.getStatusReasons()).orElse(Collections.emptyList());
-
-    return processDirective(directive).context("deploymentMonitorReasons", statusReasons).build();
+    return buildTaskResult(processDirective(directive), response);
   }
 
   private TaskResult.TaskResultBuilder processDirective(

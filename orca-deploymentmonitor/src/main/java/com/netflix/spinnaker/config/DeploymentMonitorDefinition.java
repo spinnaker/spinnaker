@@ -30,6 +30,9 @@ public class DeploymentMonitorDefinition {
   /** Base URL for this deployment monitor */
   private String baseUrl;
 
+  /** Contact/support information link */
+  private String supportContact;
+
   /**
    * Maximum number of minutes this deployment monitor is allowed to respond to the /evaluateHealth
    * request. Failure to respond in this time frame will result in deployment failure.

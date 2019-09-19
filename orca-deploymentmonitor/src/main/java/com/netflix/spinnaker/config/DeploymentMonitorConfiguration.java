@@ -21,6 +21,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import retrofit.RequestInterceptor;
+import retrofit.RestAdapter;
 import retrofit.client.Client;
 
 @Configuration
@@ -31,8 +32,12 @@ public class DeploymentMonitorConfiguration {
   DeploymentMonitorServiceProvider deploymentMonitorServiceProvider(
       MonitoredDeployConfigurationProperties config,
       Client retrofitClient,
+      RestAdapter.LogLevel retrofitLogLevel,
       RequestInterceptor spinnakerRequestInterceptor) {
     return new DeploymentMonitorServiceProvider(
-        retrofitClient, spinnakerRequestInterceptor, config.getDeploymentMonitors());
+        retrofitClient,
+        retrofitLogLevel,
+        spinnakerRequestInterceptor,
+        config.getDeploymentMonitors());
   }
 }

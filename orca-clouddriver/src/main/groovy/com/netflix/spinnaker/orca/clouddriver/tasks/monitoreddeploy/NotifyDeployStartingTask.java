@@ -22,10 +22,6 @@ import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.deploymentmonitor.models.EvaluateHealthResponse;
 import com.netflix.spinnaker.orca.deploymentmonitor.models.RequestBase;
-import com.netflix.spinnaker.orca.deploymentmonitor.models.StatusReason;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
 import javax.annotation.Nonnull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -47,12 +43,7 @@ public class NotifyDeployStartingTask extends MonitoredDeployBaseTask {
 
     sanitizeAndLogResponse(response);
 
-    List<StatusReason> statusReasons =
-        Optional.ofNullable(response.getStatusReasons()).orElse(Collections.emptyList());
-
-    return processDirective(response.getNextStep().getDirective())
-        .context("deploymentMonitorReasons", statusReasons)
-        .build();
+    return buildTaskResult(processDirective(response.getNextStep().getDirective()), response);
   }
 
   private TaskResult.TaskResultBuilder processDirective(

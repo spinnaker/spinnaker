@@ -33,15 +33,18 @@ public class DeploymentMonitorServiceProvider {
   private static final Logger log = LoggerFactory.getLogger(DeploymentMonitorServiceProvider.class);
 
   private Client retrofitClient;
+  private RestAdapter.LogLevel retrofitLogLevel;
   private RequestInterceptor spinnakerRequestInterceptor;
   private List<DeploymentMonitorDefinition> deploymentMonitors;
   private HashMap<String, DeploymentMonitorService> serviceCache;
 
   public DeploymentMonitorServiceProvider(
       Client retrofitClient,
+      RestAdapter.LogLevel retrofitLogLevel,
       RequestInterceptor spinnakerRequestInterceptor,
       List<DeploymentMonitorDefinition> deploymentMonitors) {
     this.retrofitClient = retrofitClient;
+    this.retrofitLogLevel = retrofitLogLevel;
     this.spinnakerRequestInterceptor = spinnakerRequestInterceptor;
     this.deploymentMonitors = deploymentMonitors;
     this.serviceCache = new HashMap<>();
@@ -75,8 +78,7 @@ public class DeploymentMonitorServiceProvider {
               .setRequestInterceptor(spinnakerRequestInterceptor)
               .setEndpoint(definition.getBaseUrl())
               .setClient(retrofitClient)
-              // TODO(mvulfson): Change logging level
-              .setLogLevel(RestAdapter.LogLevel.HEADERS_AND_ARGS)
+              .setLogLevel(retrofitLogLevel)
               .setLog(new RetrofitSlf4jLog(DeploymentMonitorService.class))
               .setConverter(new JacksonConverter())
               .build()

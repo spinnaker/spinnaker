@@ -14,22 +14,23 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.model;
+package com.netflix.spinnaker.orca.deploymentmonitor.models;
 
+import java.util.Collections;
+import java.util.List;
 import lombok.Data;
 
 @Data
-public class DeploymentMonitorDefinition {
-  private String id;
-  private String name;
-  private String supportContact;
+public class StatusExplanation {
+  private String summary;
+  private List<StatusReason> reasons;
 
-  public DeploymentMonitorDefinition() {}
+  public StatusExplanation(String summary) {
+    this(summary, Collections.emptyList());
+  }
 
-  public DeploymentMonitorDefinition(
-      com.netflix.spinnaker.config.DeploymentMonitorDefinition definition) {
-    id = definition.getId();
-    name = definition.getName();
-    supportContact = definition.getSupportContact();
+  public StatusExplanation(String summary, List<StatusReason> reasons) {
+    this.summary = summary;
+    this.reasons = reasons;
   }
 }
