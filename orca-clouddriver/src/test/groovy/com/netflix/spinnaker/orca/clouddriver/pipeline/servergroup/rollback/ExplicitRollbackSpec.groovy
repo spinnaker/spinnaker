@@ -21,10 +21,11 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.CaptureSour
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.DisableServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.EnableServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerGroupStage
-import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
+import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.WaitStage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
-import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -32,23 +33,24 @@ import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage;
 
 class ExplicitRollbackSpec extends Specification {
-  @Shared
+  public static final String rollbackServerGroupName = "servergroup-v002"
+  public static final String restoreServerGroupName = "servergroup-v001"
   def enableServerGroupStage = new EnableServerGroupStage()
-
-  @Shared
   def disableServerGroupStage = new DisableServerGroupStage()
-
-  @Shared
   def resizeServerGroupStage = new ResizeServerGroupStage()
-
-  @Shared
   def captureSourceServerGroupCapacityStage = new CaptureSourceServerGroupCapacityStage()
-
-  @Shared
   def applySourceServerGroupCapacityStage = new ApplySourceServerGroupCapacityStage()
-
-  @Shared
   def waitStage = new WaitStage()
+  def oortHelper = Mock(OortHelper)
+
+  def stage = stage {
+    type = "rollbackServerGroup"
+    context = [
+      credentials                  : "test",
+      cloudProvider                : "aws",
+      "region"                     : "us-west-1"
+    ]
+  }
 
   @Subject
   def rollback = new ExplicitRollback(
@@ -57,30 +59,80 @@ class ExplicitRollbackSpec extends Specification {
     resizeServerGroupStage: resizeServerGroupStage,
     captureSourceServerGroupCapacityStage: captureSourceServerGroupCapacityStage,
     applySourceServerGroupCapacityStage: applySourceServerGroupCapacityStage,
-    waitStage: waitStage
+    waitStage: waitStage,
+    oortHelper: oortHelper
   )
 
-  def "should inject enable, resize and disable stages corresponding to the server group being restored and rollbacked"() {
-    given:
-    rollback.rollbackServerGroupName = "servergroup-v002"
-    rollback.restoreServerGroupName = "servergroup-v001"
+  def setup() {
+    rollback.rollbackServerGroupName = rollbackServerGroupName
+    rollback.restoreServerGroupName = restoreServerGroupName
     rollback.targetHealthyRollbackPercentage = 95
+  }
 
-    def stage = stage {
-      type = "rollbackServerGroup"
-      context = [
-        credentials                  : "test",
-        cloudProvider                : "aws",
-        "region"                     : "us-west-1"
-      ]
-    }
+  def serverGroup(String name, int desired, Integer min = null, Integer max = null) {
+    return new TargetServerGroup([
+      serverGroupName: name,
+      capacity: [
+          min: min == null ? desired : min,
+          max: max == null ? desired : max,
+          desired: desired
+      ],
+      region: "us-west-1",
+      credentials: "test",
+      cloudProvider: "aws",
+    ])
+  }
 
+  @Unroll
+  def "should not have a resize stage if it would result in restoreServerGroup being scaled down"() {
+    when:
+    def allStages = rollback.buildStages(stage)
+    def afterStages = allStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
+
+    then:
+    1 * oortHelper.getTargetServerGroup(_, rollbackServerGroupName, _) >> Optional.of(serverGroup(rollbackServerGroupName, 2))
+    1 * oortHelper.getTargetServerGroup(_, restoreServerGroupName, _) >> Optional.of(serverGroup(restoreServerGroupName, restoreServerGroupCapacity))
+
+    afterStages*.type == expectedAfterStageTypes
+
+    where:
+    restoreServerGroupCapacity || expectedAfterStageTypes
+    1                          || ["captureSourceServerGroupCapacity", "enableServerGroup", "resizeServerGroup", "disableServerGroup", "applySourceServerGroupCapacity"]
+    2                          || ["enableServerGroup", "disableServerGroup"]
+    3                          || ["enableServerGroup", "disableServerGroup"]
+  }
+
+  @Unroll
+  def "generated resize context for restoreServerGroup should #description"() {
+    when:
+    def allStages = rollback.buildStages(stage)
+    def afterStages = allStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
+
+    then:
+    1 * oortHelper.getTargetServerGroup(_, rollbackServerGroupName, _) >> Optional.of(serverGroup(rollbackServerGroupName, 2, 0, 4))
+    1 * oortHelper.getTargetServerGroup(_, restoreServerGroupName, _) >> Optional.of(serverGroup(restoreServerGroupName, restoreDesired, restoreMin, restoreMax))
+
+    afterStages[2].context.capacity == expectedCapacity
+
+    where:
+    restoreDesired | restoreMin | restoreMax || expectedCapacity             || description
+    2              | 0          | 4          || [desired: 2, min: 2, max: 4] || 'pin the min'
+    1              | 0          | 4          || [desired: 2, min: 2, max: 4] || 'scale up to rollbackServerGroup.desired'
+    3              | 0          | 4          || [desired: 3, min: 3, max: 4] || 'not scale down to 2, just pin the min'
+    2              | 0          | 3          || [desired: 2, min: 2, max: 4] || 'inherit max from rollbackServerGroup'
+    2              | 0          | 5          || [desired: 2, min: 2, max: 5] || 'preserve its own max'
+  }
+
+  def "should inject enable, resize and disable stages corresponding to the server group being restored and rollbacked"() {
     when:
     def allStages = rollback.buildStages(stage)
     def beforeStages = allStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE }
     def afterStages = allStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
 
     then:
+    1 * oortHelper.getTargetServerGroup(_, rollbackServerGroupName, _) >> Optional.of(serverGroup(rollbackServerGroupName, 2))
+    1 * oortHelper.getTargetServerGroup(_, restoreServerGroupName, _) >> Optional.of(serverGroup(restoreServerGroupName, 1))
+
     beforeStages.isEmpty()
     afterStages*.type == [
       "captureSourceServerGroupCapacity",  // spinnaker/issues/4895, capture capacity snapshot first
@@ -91,8 +143,8 @@ class ExplicitRollbackSpec extends Specification {
     ]
     afterStages[0].context == [
       source           : [
-        asgName        : "servergroup-v002",
-        serverGroupName: "servergroup-v002",
+        asgName        : rollbackServerGroupName,
+        serverGroupName: rollbackServerGroupName,
         region         : "us-west-1",
         account        : "test",
         cloudProvider  : "aws"
@@ -100,24 +152,26 @@ class ExplicitRollbackSpec extends Specification {
       useSourceCapacity: true
     ]
     afterStages[1].context == stage.context + [
-      serverGroupName: "servergroup-v001",
+      serverGroupName: restoreServerGroupName,
       targetHealthyDeployPercentage: 95
     ]
     afterStages[2].context == stage.context + [
-      action            : "scale_to_server_group",
-      source            : new ResizeStrategy.Source(null, null, "us-west-1", null, "servergroup-v002", "test", "aws"),
-      asgName           : "servergroup-v001",
+      action            : "scale_exact",
+      asgName           : restoreServerGroupName,
       pinMinimumCapacity: true,
-      targetHealthyDeployPercentage: 95
+      targetHealthyDeployPercentage: 95,
+      targetLocation: Location.region("us-west-1"),
+      capacity: [max:2, desired:2, min:2],
+      account: "test"
     ]
     afterStages[3].context == stage.context + [
-      serverGroupName: "servergroup-v002"
+      serverGroupName: rollbackServerGroupName
     ]
     afterStages[4].context == [
       cloudProvider: "aws",
       target       : [
-        asgName        : "servergroup-v001",
-        serverGroupName: "servergroup-v001",
+        asgName        : restoreServerGroupName,
+        serverGroupName: restoreServerGroupName,
         region         : "us-west-1",
         account        : "test",
         cloudProvider  : "aws"
@@ -127,33 +181,22 @@ class ExplicitRollbackSpec extends Specification {
   }
 
   @Unroll
-  def "should inject wait stage before disable stage when 'delayBeforeDisableSeconds' > 0"() {
+  def "waitStageExpected=#waitStageExpected before disable stage when delayBeforeDisableSeconds=#delayBeforeDisableSeconds"() {
     given:
-    rollback.rollbackServerGroupName = "servergroup-v002"
-    rollback.restoreServerGroupName = "servergroup-v001"
-    rollback.targetHealthyRollbackPercentage = 95
     rollback.delayBeforeDisableSeconds = delayBeforeDisableSeconds
-
-    def stage = stage {
-      type = "rollbackServerGroup"
-      context = [
-        credentials                  : "test",
-        cloudProvider                : "aws",
-        "region"                     : "us-west-1"
-      ]
-    }
 
     when:
     def allStages = rollback.buildStages(stage)
     def afterStages = allStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
 
     then:
-    afterStages*.type == expectedAfterStageTypes
+    afterStages*.type.contains("wait") == waitStageExpected
+    afterStages*.type.indexOf("wait") < afterStages*.type.indexOf("disableServerGroup")
 
     where:
-    delayBeforeDisableSeconds || expectedAfterStageTypes
-    null                      || ["captureSourceServerGroupCapacity", "enableServerGroup", "resizeServerGroup", "disableServerGroup", "applySourceServerGroupCapacity"]
-    0                         || ["captureSourceServerGroupCapacity", "enableServerGroup", "resizeServerGroup", "disableServerGroup", "applySourceServerGroupCapacity"]
-    1                         || ["captureSourceServerGroupCapacity", "enableServerGroup", "resizeServerGroup", "wait", "disableServerGroup", "applySourceServerGroupCapacity"]
+    delayBeforeDisableSeconds || waitStageExpected
+    null                      || false
+    0                         || false
+    1                         || true
   }
 }

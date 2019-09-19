@@ -56,6 +56,13 @@ interface ResizeStrategy {
     Integer max
     Integer desired
     Integer min
+
+    // from https://codereview.stackexchange.com/questions/8801/returning-groovy-class-fields-as-a-map
+    public Map asMap() {
+      this.class.declaredFields.findAll { !it.synthetic }.collectEntries {
+        [ (it.name): this."$it.name" ]
+      }
+    }
   }
 
   @Canonical
