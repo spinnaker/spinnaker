@@ -56,7 +56,6 @@ dependencies {
   implementation(project(":orca-queue-redis"))
   implementation(project(":orca-queue-sql"))
   implementation(project(":orca-redis"))
-  implementation(project(":orca-sql-mysql"))
   implementation(project(":orca-sql"))
   implementation(project(":orca-webhook"))
   implementation("com.netflix.spinnaker.kork:kork-exceptions")
@@ -66,6 +65,10 @@ dependencies {
   implementation("net.logstash.logback:logstash-logback-encoder")
   implementation("com.netflix.spinnaker.fiat:fiat-api:$fiatVersion")
   implementation("com.netflix.spinnaker.fiat:fiat-core:$fiatVersion")
+
+  if (!rootProject.hasProperty("excludeSqlDrivers")) {
+    runtimeOnly(project(":orca-sql-mysql"))
+  }
 
   compileOnly("org.projectlombok:lombok")
   annotationProcessor("org.projectlombok:lombok")
