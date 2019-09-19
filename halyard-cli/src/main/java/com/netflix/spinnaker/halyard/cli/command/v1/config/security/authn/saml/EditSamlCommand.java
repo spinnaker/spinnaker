@@ -106,6 +106,11 @@ public class EditSamlCommand extends AbstractEditAuthnMethodCommand<Saml> {
       description = "The roles delimiter field returned from your SAML provider.")
   private String userAttributeMappingRolesDelimiter;
 
+  @Parameter(
+      names = "--user-attribute-mapping-email",
+      description = "The email field returned from your SAML provider.")
+  private String userAttributeMappingEmail;
+
   @Override
   protected AuthnMethod editAuthnMethod(Saml s) {
     s.setIssuerId(isSet(issuerId) ? issuerId : s.getIssuerId());
@@ -145,6 +150,10 @@ public class EditSamlCommand extends AbstractEditAuthnMethodCommand<Saml> {
         isSet(userAttributeMappingUsername)
             ? userAttributeMappingUsername
             : userAttributeMapping.getUsername());
+    userAttributeMapping.setEmail(
+        isSet(userAttributeMappingEmail)
+            ? userAttributeMappingEmail
+            : userAttributeMapping.getEmail());
 
     return s;
   }

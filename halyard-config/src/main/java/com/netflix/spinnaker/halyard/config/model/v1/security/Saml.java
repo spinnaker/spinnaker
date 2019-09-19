@@ -49,5 +49,6 @@ public class Saml extends AuthnMethod {
     private String roles;
     private String rolesDelimiter;
     private String username;
+    private String email;
   }
 }
