@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.aws.AwsCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.datadog.DatadogCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.google.GoogleCanaryServiceIntegration;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.newrelic.NewRelicCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.prometheus.PrometheusCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.signalfx.SignalfxCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
@@ -48,7 +49,10 @@ import lombok.EqualsAndHashCode;
       name = SignalfxCanaryServiceIntegration.NAME),
   @JsonSubTypes.Type(
       value = AwsCanaryServiceIntegration.class,
-      name = AwsCanaryServiceIntegration.NAME)
+      name = AwsCanaryServiceIntegration.NAME),
+  @JsonSubTypes.Type(
+      value = NewRelicCanaryServiceIntegration.class,
+      name = NewRelicCanaryServiceIntegration.NAME)
 })
 @Data
 @EqualsAndHashCode(callSuper = false)

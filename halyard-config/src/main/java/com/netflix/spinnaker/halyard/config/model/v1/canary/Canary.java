@@ -23,6 +23,8 @@ import com.netflix.spinnaker.halyard.config.model.v1.canary.datadog.DatadogCanar
 import com.netflix.spinnaker.halyard.config.model.v1.canary.datadog.DatadogCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.google.GoogleCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.google.GoogleCanaryServiceIntegration;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.newrelic.NewRelicCanaryAccount;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.newrelic.NewRelicCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.prometheus.PrometheusCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.prometheus.PrometheusCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.signalfx.SignalfxCanaryAccount;
@@ -45,7 +47,9 @@ public class Canary extends Node implements Cloneable {
           new PrometheusCanaryServiceIntegration(),
           new DatadogCanaryServiceIntegration(),
           new SignalfxCanaryServiceIntegration(),
-          new AwsCanaryServiceIntegration());
+          new AwsCanaryServiceIntegration(),
+          new NewRelicCanaryServiceIntegration());
+
   boolean reduxLoggerEnabled = true;
   String defaultMetricsAccount;
   String defaultStorageAccount;
@@ -80,6 +84,8 @@ public class Canary extends Node implements Cloneable {
         return SignalfxCanaryAccount.class;
       case AwsCanaryServiceIntegration.NAME:
         return AwsCanaryAccount.class;
+      case NewRelicCanaryServiceIntegration.NAME:
+        return NewRelicCanaryAccount.class;
       default:
         throw new IllegalArgumentException(
             "No account type for canary service integration " + serviceIntegrationName + ".");

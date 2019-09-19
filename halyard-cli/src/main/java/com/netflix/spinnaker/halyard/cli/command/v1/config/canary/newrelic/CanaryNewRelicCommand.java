@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Google, Inc.
+ * Copyright 2019 New Relic Corporation. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -14,42 +14,42 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.canary;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.canary.newrelic;
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.aws.CanaryAwsCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.datadog.CanaryDatadogCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.google.CanaryGoogleCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.newrelic.CanaryNewRelicCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.prometheus.CanaryPrometheusCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.signalfx.CanarySignalfxCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.EnableDisableCanaryServiceIntegrationCommandBuilder;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.canary.newrelic.account.NewRelicCanaryAccountCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.newrelic.NewRelicCanaryServiceIntegration;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Parameters(separators = "=")
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class CanaryCommand extends AbstractConfigCommand {
+public class CanaryNewRelicCommand extends AbstractConfigCommand {
 
-  String commandName = "canary";
+  String commandName = NewRelicCanaryServiceIntegration.NAME;
 
-  String shortDescription = "Configure your canary analysis settings for Spinnaker.";
+  String shortDescription =
+      "Configure your canary analysis New Relic service integration settings for Spinnaker.";
 
-  public CanaryCommand() {
-    registerSubcommand(new EnableDisableCanaryCommandBuilder().setEnable(true).build());
-    registerSubcommand(new EnableDisableCanaryCommandBuilder().setEnable(false).build());
-    registerSubcommand(new EditCanaryCommand());
-    registerSubcommand(new CanaryGoogleCommand());
-    registerSubcommand(new CanaryPrometheusCommand());
-    registerSubcommand(new CanaryDatadogCommand());
-    registerSubcommand(new CanarySignalfxCommand());
-    registerSubcommand(new CanaryAwsCommand());
-    registerSubcommand(new CanaryNewRelicCommand());
+  public CanaryNewRelicCommand() {
+    registerSubcommand(
+        new EnableDisableCanaryServiceIntegrationCommandBuilder()
+            .setName("newrelic")
+            .setEnable(true)
+            .build());
+    registerSubcommand(
+        new EnableDisableCanaryServiceIntegrationCommandBuilder()
+            .setName("newrelic")
+            .setEnable(false)
+            .build());
+    registerSubcommand(new NewRelicCanaryAccountCommand());
   }
 
   @Override

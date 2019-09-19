@@ -138,6 +138,15 @@
  * [**hal config canary google disable**](#hal-config-canary-google-disable)
  * [**hal config canary google edit**](#hal-config-canary-google-edit)
  * [**hal config canary google enable**](#hal-config-canary-google-enable)
+ * [**hal config canary newrelic**](#hal-config-canary-newrelic)
+ * [**hal config canary newrelic account**](#hal-config-canary-newrelic-account)
+ * [**hal config canary newrelic account add**](#hal-config-canary-newrelic-account-add)
+ * [**hal config canary newrelic account delete**](#hal-config-canary-newrelic-account-delete)
+ * [**hal config canary newrelic account edit**](#hal-config-canary-newrelic-account-edit)
+ * [**hal config canary newrelic account get**](#hal-config-canary-newrelic-account-get)
+ * [**hal config canary newrelic account list**](#hal-config-canary-newrelic-account-list)
+ * [**hal config canary newrelic disable**](#hal-config-canary-newrelic-disable)
+ * [**hal config canary newrelic enable**](#hal-config-canary-newrelic-enable)
  * [**hal config canary prometheus**](#hal-config-canary-prometheus)
  * [**hal config canary prometheus account**](#hal-config-canary-prometheus-account)
  * [**hal config canary prometheus account add**](#hal-config-canary-prometheus-account-add)
@@ -2363,6 +2372,7 @@ hal config canary [parameters] [subcommands]
  * `edit`: Edit Spinnaker's canary analysis settings.
  * `enable`: Set Spinnaker's canary analysis to enabled.
  * `google`: Configure your canary analysis Google service integration settings for Spinnaker.
+ * `newrelic`: Configure your canary analysis New Relic service integration settings for Spinnaker.
  * `prometheus`: Configure your canary analysis Prometheus service integration settings for Spinnaker.
  * `signalfx`: Configure your canary analysis SignalFx service integration settings for Spinnaker.
 
@@ -2929,6 +2939,162 @@ Set Spinnaker's canary analysis Google service integration to enabled.
 #### Usage
 ```
 hal config canary google enable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config canary newrelic
+
+Configure your canary analysis New Relic service integration settings for Spinnaker.
+
+#### Usage
+```
+hal config canary newrelic [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `account`: Manage and view Spinnaker configuration for the newrelic service integration's canary accounts.
+ * `disable`: Set Spinnaker's canary analysis newrelic service integration to disabled.
+ * `enable`: Set Spinnaker's canary analysis newrelic service integration to enabled.
+
+---
+## hal config canary newrelic account
+
+Manage and view Spinnaker configuration for the newrelic service integration's canary accounts.
+
+#### Usage
+```
+hal config canary newrelic account ACCOUNT [parameters] [subcommands]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the canary account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `add`: Add a canary account to the NewRelic service integration.
+ * `delete`: Delete a specific newrelic canary account by name.
+ * `edit`: Edit a canary account in the newrelic service integration.
+ * `get`: Get the specified canary account details for the newrelic service integration.
+ * `list`: List the canary account names for the newrelic service integration.
+
+---
+## hal config canary newrelic account add
+
+Add a canary account to the NewRelic service integration.
+
+#### Usage
+```
+hal config canary newrelic account add ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the canary account to operate on.
+ * `--api-key`: (*Required*) (*Sensitive data* - user will be prompted on standard input) Your account's unique New Relic Insights API key. See [https://docs.newrelic.com/docs/insights/insights-api/get-data/query-insights-event-data-api](https://docs.newrelic.com/docs/insights/insights-api/get-data/query-insights-event-data-api).
+ * `--application-key`: (*Required*) Your New Relic account id. See [https://docs.newrelic.com/docs/accounts/install-new-relic/account-setup/account-id](https://docs.newrelic.com/docs/accounts/install-new-relic/account-setup/account-id).
+ * `--base-url`: (*Required*) The base URL to the New Relic Insights server.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config canary newrelic account delete
+
+Delete a specific newrelic canary account by name.
+
+#### Usage
+```
+hal config canary newrelic account delete ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the canary account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config canary newrelic account edit
+
+Edit a canary account in the newrelic service integration.
+
+#### Usage
+```
+hal config canary newrelic account edit ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the canary account to operate on.
+ * `--api-key`: (*Sensitive data* - user will be prompted on standard input) Your account's unique New Relic Insights API key. See [https://docs.newrelic.com/docs/insights/insights-api/get-data/query-insights-event-data-api](https://docs.newrelic.com/docs/insights/insights-api/get-data/query-insights-event-data-api).
+ * `--application-key`: Your New Relic account id. See [https://docs.newrelic.com/docs/accounts/install-new-relic/account-setup/account-id](https://docs.newrelic.com/docs/accounts/install-new-relic/account-setup/account-id).
+ * `--base-url`: The base URL to the New Relic Insights server.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config canary newrelic account get
+
+Get the specified canary account details for the newrelic service integration.
+
+#### Usage
+```
+hal config canary newrelic account get ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the canary account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config canary newrelic account list
+
+List the canary account names for the newrelic service integration.
+
+#### Usage
+```
+hal config canary newrelic account list [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config canary newrelic disable
+
+Set Spinnaker's canary analysis newrelic service integration to disabled.
+
+#### Usage
+```
+hal config canary newrelic disable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config canary newrelic enable
+
+Set Spinnaker's canary analysis newrelic service integration to enabled.
+
+#### Usage
+```
+hal config canary newrelic enable [parameters]
 ```
 
 #### Parameters

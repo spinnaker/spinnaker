@@ -24,6 +24,8 @@ import com.netflix.spinnaker.halyard.config.model.v1.canary.datadog.DatadogCanar
 import com.netflix.spinnaker.halyard.config.model.v1.canary.datadog.DatadogCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.google.GoogleCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.google.GoogleCanaryServiceIntegration;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.newrelic.NewRelicCanaryAccount;
+import com.netflix.spinnaker.halyard.config.model.v1.canary.newrelic.NewRelicCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.prometheus.PrometheusCanaryAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.prometheus.PrometheusCanaryServiceIntegration;
 import com.netflix.spinnaker.halyard.config.model.v1.canary.signalfx.SignalfxCanaryAccount;
@@ -93,6 +95,7 @@ public class KayentaProfileFactory extends SpringProfileFactory {
       AwsConfig aws;
       S3Config s3;
       SignalFxConfig signalfx;
+      NewRelicConfig newrelic;
 
       KayentaConfig(Canary canary) {
         for (AbstractCanaryServiceIntegration svc : canary.getServiceIntegrations()) {
@@ -115,6 +118,9 @@ public class KayentaProfileFactory extends SpringProfileFactory {
           } else if (svc instanceof SignalfxCanaryServiceIntegration) {
             SignalfxCanaryServiceIntegration signalfxSvc = (SignalfxCanaryServiceIntegration) svc;
             signalfx = new SignalFxConfig(signalfxSvc);
+          } else if (svc instanceof NewRelicCanaryServiceIntegration) {
+            NewRelicCanaryServiceIntegration newRelicSvc = (NewRelicCanaryServiceIntegration) svc;
+            newrelic = new NewRelicConfig(newRelicSvc);
           }
         }
       }
@@ -202,6 +208,17 @@ public class KayentaProfileFactory extends SpringProfileFactory {
         SignalFxConfig(SignalfxCanaryServiceIntegration signalfxSvc) {
           enabled = signalfxSvc.isEnabled();
           accounts = signalfxSvc.getAccounts();
+        }
+      }
+
+      @Data
+      static class NewRelicConfig {
+        private boolean enabled;
+        List<NewRelicCanaryAccount> accounts;
+
+        NewRelicConfig(NewRelicCanaryServiceIntegration newRelicSvc) {
+          enabled = newRelicSvc.isEnabled();
+          accounts = newRelicSvc.getAccounts();
         }
       }
     }
