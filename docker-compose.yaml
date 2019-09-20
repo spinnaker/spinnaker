@@ -2,10 +2,15 @@ version: "3.7"
 services:
   redis:
     image: redis:latest
+    ports:
+      - 6379:6379
   kayenta:
     build: .
     ports:
       - 8090:8090
+    environment:
+      - services.redis.baseUrl=redis://redis:6379
+      - redis.connection=redis://redis:6379
     volumes:
       - "~/.spinnaker/kayenta.yml:/opt/kayenta/config/kayenta.yml"
     depends_on:
