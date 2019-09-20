@@ -3,6 +3,7 @@ import { cloneDeep, head } from 'lodash';
 import { IArtifactAccount } from 'core/account';
 import { ArtifactAccountSelector } from 'core/artifact';
 import { IArtifact, IPipeline } from 'core/domain';
+import { TYPE as CUSTOM_TYPE, CUSTOM_ARTIFACT_ACCOUNT } from 'core/pipeline/config/triggers/artifacts/custom';
 import { StageConfigField } from 'core/pipeline/config/stages/common';
 import { Registry } from 'core/registry';
 import { UUIDGenerator } from 'core/utils';
@@ -23,12 +24,18 @@ export class ArtifactEditor extends React.Component<IArtifactEditorProps> {
   private onArtifactAccountChanged = (artifactAccount: IArtifactAccount) => {
     // reset artifact fields if the account type has changed, so we don't leave dangling properties
     // that are not modifiable using the new artifact account type's form.
+
     const artifact: IArtifact =
-      this.props.artifact && (!this.props.artifact.type || artifactAccount.types.includes(this.props.artifact.type))
+      this.props.artifact &&
+      (!this.props.artifact.type ||
+        artifactAccount.types.includes(this.props.artifact.type) ||
+        artifactAccount.name === CUSTOM_ARTIFACT_ACCOUNT)
         ? cloneDeep(this.props.artifact)
         : { id: UUIDGenerator.generateUuid() };
     artifact.artifactAccount = artifactAccount.name;
-    artifact.type = artifactAccount.types && artifactAccount.types.length > 0 ? artifactAccount.types[0] : '';
+    if (!artifact.type || artifactAccount.name !== CUSTOM_ARTIFACT_ACCOUNT) {
+      artifact.type = artifactAccount.types && artifactAccount.types.length > 0 ? artifactAccount.types[0] : '';
+    }
     this.props.onArtifactEdit(artifact);
   };
 
@@ -36,7 +43,9 @@ export class ArtifactEditor extends React.Component<IArtifactEditorProps> {
     const { artifact, artifactAccounts } = this.props;
     if (!artifact.artifactAccount && artifactAccounts.length > 0) {
       this.onArtifactAccountChanged(
-        head(artifactAccounts.filter(a => a.types.includes(artifact.type))) || head(artifactAccounts),
+        head(artifactAccounts.filter(a => a.types.includes(artifact.type))) ||
+          head(artifactAccounts.filter(a => a.types.includes(CUSTOM_TYPE))) ||
+          head(artifactAccounts),
       );
     }
   }
