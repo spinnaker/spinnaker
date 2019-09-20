@@ -46,9 +46,9 @@ public class GitlabArtifactCredentials extends SimpleHttpArtifactCredentials<Git
     Optional<String> token = account.getTokenAsString();
     if (token.isPresent()) {
       headers.set("Private-Token", token.get());
-      log.info("Loaded credentials for GitHub Artifact Account {}", account.getName());
+      log.info("Loaded credentials for GitLab Artifact Account {}", account.getName());
     } else {
-      log.info("No credentials included with GitHub Artifact Account {}", account.getName());
+      log.info("No credentials included with GitLab Artifact Account {}", account.getName());
     }
     return headers.build();
   }
