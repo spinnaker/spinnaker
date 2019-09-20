@@ -40,7 +40,7 @@ class NexusEventPosterTest {
     nexusRepo.setRepo("maven-snapshots");
     nexusRepo.setBaseUrl("http://localhost:8082/repository/");
     nexusRepo.setNodeId("123");
-    nexusProperties.setRepos(Collections.singletonList(nexusRepo));
+    nexusProperties.setSearches(Collections.singletonList(nexusRepo));
   }
 
   private NexusEventPoster nexusEventPoster = new NexusEventPoster(nexusProperties, echoService);

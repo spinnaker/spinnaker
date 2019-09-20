@@ -97,14 +97,14 @@ public class NexusEventPoster {
 
   private Optional<NexusRepo> findNexusRepo(NexusAssetWebhookPayload payload) {
     if (payload.getNodeId() != null) {
-      return nexusProperties.getRepos().stream()
+      return nexusProperties.getSearches().stream()
           .filter(
               repo -> {
                 return payload.getNodeId().equals(repo.getNodeId());
               })
           .findFirst();
     } else {
-      return nexusProperties.getRepos().stream()
+      return nexusProperties.getSearches().stream()
           .filter(
               repo -> {
                 return payload.getRepositoryName().equals(repo.getRepo());

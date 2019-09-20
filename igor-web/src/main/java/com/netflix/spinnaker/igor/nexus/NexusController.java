@@ -55,7 +55,9 @@ public class NexusController {
 
   @GetMapping("/names")
   List<String> getNexusNames() {
-    return nexusProperties.getRepos().stream().map(NexusRepo::getName).collect(Collectors.toList());
+    return nexusProperties.getSearches().stream()
+        .map(NexusRepo::getName)
+        .collect(Collectors.toList());
   }
 
   @PostMapping(path = "/webhook", consumes = "application/json")

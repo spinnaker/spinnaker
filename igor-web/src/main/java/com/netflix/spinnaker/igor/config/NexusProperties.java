@@ -24,5 +24,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Data
 @ConfigurationProperties(prefix = "nexus")
 public class NexusProperties {
-  private List<NexusRepo> repos;
+  private List<NexusRepo> searches;
 }
