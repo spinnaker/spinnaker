@@ -16,6 +16,7 @@ import strikt.assertions.all
 import strikt.assertions.contains
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
+import strikt.assertions.propertiesAreEqualTo
 import java.time.Duration
 
 internal class ClusterSpecTests : JUnit5Minutests {
@@ -44,7 +45,7 @@ internal class ClusterSpecTests : JUnit5Minutests {
               )
             )
           ),
-          defaults = ClusterServerGroupSpec(
+          _defaults = ClusterServerGroupSpec(
             launchConfiguration = ClusterLaunchConfigurationSpec(
               instanceType = "m5.large",
               ebsOptimized = true,
@@ -94,7 +95,7 @@ internal class ClusterSpecTests : JUnit5Minutests {
           println(text)
 
           val tree = mapper.readValue<ClusterSpec>(text)
-          expectThat(tree).isEqualTo(this)
+          expectThat(tree).propertiesAreEqualTo(this)
         }
       }
 

@@ -1,6 +1,8 @@
 package com.netflix.spinnaker.keel.api.ec2
 
+import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonUnwrapped
 import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.model.Moniker
@@ -73,11 +75,48 @@ data class ClusterSpec(
   override val moniker: Moniker,
   val imageProvider: ImageProvider,
   val locations: ClusterLocations,
-  val defaults: ClusterServerGroupSpec,
+  private val _defaults: ClusterServerGroupSpec,
   val overrides: Map<String, ClusterServerGroupSpec> = emptyMap()
 ) : Monikered, ResourceSpec {
   @JsonIgnore
   override val id = "${locations.accountName}:${moniker.name}"
+
+  /*
+   * I have no idea why, but if I annotate the constructor property with @get:JsonUnwrapped, the
+   * @JsonCreator constructor below nulls out everything in the ClusterServerGroupSpec some time
+   * very late in parsing. Using a debugger I can see it assigning the object correctly but then it
+   * seems to overwrite it. This is a bit nasty but I think having the cluster-wide defaults at the
+   * top level in the cluster spec YAML / JSON is nicer for the user.
+   */
+  val defaults: ClusterServerGroupSpec
+    @JsonUnwrapped get() = _defaults
+
+  @JsonCreator
+  constructor(
+    moniker: Moniker,
+    imageProvider: ImageProvider,
+    locations: ClusterLocations,
+    launchConfiguration: ClusterLaunchConfigurationSpec?,
+    capacity: Capacity?,
+    dependencies: Dependencies?,
+    health: ClusterHealthSpec?,
+    scaling: Scaling?,
+    tags: Map<String, String>?,
+    overrides: Map<String, ClusterServerGroupSpec>
+  ) : this(
+    moniker,
+    imageProvider,
+    locations,
+    ClusterServerGroupSpec(
+      launchConfiguration,
+      capacity,
+      dependencies,
+      health,
+      scaling,
+      tags
+    ),
+    overrides
+  )
 }
 
 data class ClusterLocations(
@@ -92,7 +131,7 @@ data class ClusterRegion(
 )
 
 data class ClusterServerGroupSpec(
-  val launchConfiguration: ClusterLaunchConfigurationSpec?,
+  val launchConfiguration: ClusterLaunchConfigurationSpec? = null,
   val capacity: Capacity? = null,
   val dependencies: Dependencies? = null,
   val health: ClusterHealthSpec? = null,
