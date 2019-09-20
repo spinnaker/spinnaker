@@ -18,11 +18,14 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.monitoreddeploy;
 
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.config.DeploymentMonitorDefinition;
 import com.netflix.spinnaker.config.DeploymentMonitorServiceProvider;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.TaskResult;
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.MonitoredDeployStageData;
 import com.netflix.spinnaker.orca.deploymentmonitor.models.EvaluateHealthRequest;
 import com.netflix.spinnaker.orca.deploymentmonitor.models.EvaluateHealthResponse;
+import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
@@ -40,7 +43,10 @@ public class EvaluateDeploymentHealthTask extends MonitoredDeployBaseTask {
   }
 
   @Override
-  public @Nonnull TaskResult executeInternal() {
+  public @Nonnull TaskResult executeInternal(
+      Stage stage,
+      MonitoredDeployStageData context,
+      DeploymentMonitorDefinition monitorDefinition) {
     EvaluateHealthRequest request = new EvaluateHealthRequest(stage);
 
     log.info(
@@ -48,7 +54,7 @@ public class EvaluateDeploymentHealthTask extends MonitoredDeployBaseTask {
         request.getNewServerGroup(), request.getCurrentProgress(), monitorDefinition);
 
     EvaluateHealthResponse response = monitorDefinition.getService().evaluateHealth(request);
-    sanitizeAndLogResponse(response);
+    sanitizeAndLogResponse(response, monitorDefinition, stage.getExecution().getId());
 
     EvaluateHealthResponse.NextStepDirective directive = response.getNextStep().getDirective();
 
@@ -73,11 +79,12 @@ public class EvaluateDeploymentHealthTask extends MonitoredDeployBaseTask {
       registry.timer(timerId).record(duration, TimeUnit.MILLISECONDS);
     }
 
-    return buildTaskResult(processDirective(directive), response);
+    return buildTaskResult(processDirective(directive, monitorDefinition), response);
   }
 
   private TaskResult.TaskResultBuilder processDirective(
-      EvaluateHealthResponse.NextStepDirective directive) {
+      EvaluateHealthResponse.NextStepDirective directive,
+      DeploymentMonitorDefinition monitorDefinition) {
     switch (directive) {
       case COMPLETE:
         // TODO(mvulfson): Actually implement this case in the stages

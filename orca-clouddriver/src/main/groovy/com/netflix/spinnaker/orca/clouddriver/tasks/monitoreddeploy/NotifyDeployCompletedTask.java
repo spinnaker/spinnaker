@@ -17,10 +17,13 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.monitoreddeploy;
 
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.config.DeploymentMonitorDefinition;
 import com.netflix.spinnaker.config.DeploymentMonitorServiceProvider;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.TaskResult;
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.MonitoredDeployStageData;
 import com.netflix.spinnaker.orca.deploymentmonitor.models.DeploymentCompletedRequest;
+import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import javax.annotation.Nonnull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -36,7 +39,10 @@ public class NotifyDeployCompletedTask extends MonitoredDeployBaseTask {
   }
 
   @Override
-  public @Nonnull TaskResult executeInternal() {
+  public @Nonnull TaskResult executeInternal(
+      Stage stage,
+      MonitoredDeployStageData context,
+      DeploymentMonitorDefinition monitorDefinition) {
     // TODO(mvulfson): actually populate the request data
     DeploymentCompletedRequest request = new DeploymentCompletedRequest(stage);
     monitorDefinition.getService().notifyCompleted(request);

@@ -48,10 +48,7 @@ import retrofit.client.Response;
 public class MonitoredDeployBaseTask implements RetryableTask {
   private static final int MAX_RETRY_COUNT = 3;
   protected final Logger log = LoggerFactory.getLogger(getClass());
-  protected DeploymentMonitorDefinition monitorDefinition;
-  protected Stage stage;
   protected Registry registry;
-
   private DeploymentMonitorServiceProvider deploymentMonitorServiceProvider;
 
   MonitoredDeployBaseTask(
@@ -73,7 +70,7 @@ public class MonitoredDeployBaseTask implements RetryableTask {
 
   @Override
   public long getDynamicTimeout(Stage stage) {
-    ensureMonitorDefinition(stage);
+    DeploymentMonitorDefinition monitorDefinition = getDeploymentMonitorDefinition(stage);
 
     final Duration defaultTimeout = Duration.ofMinutes(60);
     long timeout;
@@ -95,10 +92,9 @@ public class MonitoredDeployBaseTask implements RetryableTask {
 
   @Override
   public @Nullable TaskResult onTimeout(@Nonnull Stage stage) {
-    ensureMonitorDefinition(stage);
-
     ExecutionStatus taskStatus;
     String message;
+    DeploymentMonitorDefinition monitorDefinition = getDeploymentMonitorDefinition(stage);
 
     if (monitorDefinition.isFailOnError()) {
       message =
@@ -115,11 +111,11 @@ public class MonitoredDeployBaseTask implements RetryableTask {
 
   @Override
   public @Nonnull TaskResult execute(@Nonnull Stage stage) {
-    MonitoredDeployStageData context = stage.mapTo(MonitoredDeployStageData.class);
+    MonitoredDeployStageData context = getStageContext(stage);
+    DeploymentMonitorDefinition monitorDefinition = getDeploymentMonitorDefinition(stage);
 
     try {
-      ensureMonitorDefinition(stage);
-      return executeInternal();
+      return executeInternal(stage, context, monitorDefinition);
     } catch (RetrofitError e) {
       log.warn(
           "HTTP Error encountered while talking to {}->{}, {}}",
@@ -128,10 +124,10 @@ public class MonitoredDeployBaseTask implements RetryableTask {
           getRetrofitLogMessage(e.getResponse()),
           e);
 
-      return handleError(context, e, true);
+      return handleError(context, e, true, monitorDefinition);
     } catch (DeploymentMonitorInvalidDataException e) {
 
-      return handleError(context, e, false);
+      return handleError(context, e, false, monitorDefinition);
     } catch (Exception e) {
       log.error("Exception while executing {}, aborting deployment", getClass().getSimpleName(), e);
 
@@ -140,12 +136,18 @@ public class MonitoredDeployBaseTask implements RetryableTask {
     }
   }
 
-  public @Nonnull TaskResult executeInternal() {
+  public @Nonnull TaskResult executeInternal(
+      Stage stage,
+      MonitoredDeployStageData context,
+      DeploymentMonitorDefinition monitorDefinition) {
     throw new UnsupportedOperationException("Must implement executeInternal method");
   }
 
   private TaskResult handleError(
-      MonitoredDeployStageData context, Exception e, boolean retryAllowed) {
+      MonitoredDeployStageData context,
+      Exception e,
+      boolean retryAllowed,
+      DeploymentMonitorDefinition monitorDefinition) {
     registry
         .counter("deploymentMonitor.errors", "monitorId", monitorDefinition.getId())
         .increment();
@@ -199,16 +201,6 @@ public class MonitoredDeployBaseTask implements RetryableTask {
     return buildTaskResult(TaskResult.builder(ExecutionStatus.SUCCEEDED), userMessage);
   }
 
-  private void ensureMonitorDefinition(Stage stage) {
-    if (this.stage == null) {
-      MonitoredDeployStageData context = stage.mapTo(MonitoredDeployStageData.class);
-      this.stage = stage;
-      this.monitorDefinition =
-          deploymentMonitorServiceProvider.getDefinitionById(
-              context.getDeploymentMonitor().getId());
-    }
-  }
-
   TaskResult buildTaskResult(
       TaskResult.TaskResultBuilder taskResultBuilder, EvaluateHealthResponse response) {
     List<StatusReason> statusReasons =
@@ -224,6 +216,17 @@ public class MonitoredDeployBaseTask implements RetryableTask {
     StatusExplanation explanation = new StatusExplanation(summary);
 
     return taskResultBuilder.context("deploymentMonitorReasons", explanation).build();
+  }
+
+  private DeploymentMonitorDefinition getDeploymentMonitorDefinition(Stage stage) {
+    MonitoredDeployStageData context = getStageContext(stage);
+
+    return deploymentMonitorServiceProvider.getDefinitionById(
+        context.getDeploymentMonitor().getId());
+  }
+
+  private MonitoredDeployStageData getStageContext(Stage stage) {
+    return stage.mapTo(MonitoredDeployStageData.class);
   }
 
   private String getRetrofitLogMessage(Response response) {
@@ -250,7 +253,10 @@ public class MonitoredDeployBaseTask implements RetryableTask {
     return String.format("status: %s\nheaders: %s\nresponse body: %s", status, headers, body);
   }
 
-  void sanitizeAndLogResponse(EvaluateHealthResponse response) {
+  void sanitizeAndLogResponse(
+      EvaluateHealthResponse response,
+      DeploymentMonitorDefinition monitorDefinition,
+      String executionId) {
     if (response.getNextStep() == null) {
       log.error("Deployment monitor {}: returned null nextStep", monitorDefinition);
 
@@ -278,7 +284,7 @@ public class MonitoredDeployBaseTask implements RetryableTask {
             monitorDefinition,
             nextStepDirective,
             this.getClass().getSimpleName(),
-            stage.getExecution().getId());
+            executionId);
         break;
 
       case CONTINUE:
@@ -287,7 +293,7 @@ public class MonitoredDeployBaseTask implements RetryableTask {
             monitorDefinition,
             nextStepDirective,
             this.getClass().getSimpleName(),
-            stage.getExecution().getId());
+            executionId);
         break;
 
       default:
