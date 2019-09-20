@@ -1,28 +1,22 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies
 
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
-import com.netflix.spinnaker.kork.dynamicconfig.SpringDynamicConfigService
 import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ScaleDownClusterStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.DisableServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.DetermineTargetServerGroupStage
-import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
 import com.netflix.spinnaker.orca.front50.pipeline.PipelineStage
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy
 import com.netflix.spinnaker.orca.pipeline.WaitStage
-import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
-import org.springframework.mock.env.MockEnvironment
 import spock.lang.Specification
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 
 class RollingRedBlackStrategySpec extends Specification {
-  def env = new MockEnvironment()
   def dynamicConfigService = Mock(DynamicConfigService)
-  def trafficGuard = Mock(TrafficGuard)
   def disableServerGroupStage = new DisableServerGroupStage(dynamicConfigService)
   def scaleDownClusterStage = new ScaleDownClusterStage(dynamicConfigService)
   def resizeServerGroupStage = new ResizeServerGroupStage()
@@ -109,18 +103,11 @@ class RollingRedBlackStrategySpec extends Specification {
       determineTargetServerGroupStage: determineTargetServerGroupStage,
     )
 
-    when: 'planning without having run createServerGroup'
-    def stage = pipeline.stageByRef("2-deploy1")
-    def syntheticStages = strat.composeFlow(stage)
-
-    then:
-    syntheticStages.size() == 0
-
     when: 'planning with no targetPercentages'
-    pipeline.stageByRef("1-create").status = ExecutionStatus.RUNNING
-    syntheticStages = strat.composeFlow(stage)
-    def beforeStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE }
-    def afterStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
+    def stage = pipeline.stageByRef("2-deploy1")
+    stage.status = ExecutionStatus.RUNNING
+    def beforeStages = strat.composeBeforeStages(stage)
+    def afterStages = strat.composeAfterStages(stage)
 
     then: 'default to rolling out at 100%'
     // we expect the output context to have a capacity of 0 so that the new asg gets created at with 0 instances
@@ -139,9 +126,8 @@ class RollingRedBlackStrategySpec extends Specification {
 
     when: 'planning with [targetPercentages: [50]'
     stage = pipeline.stageByRef("2-deploy2")
-    syntheticStages = strat.composeFlow(stage)
-    beforeStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE }
-    afterStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
+    beforeStages = strat.composeBeforeStages(stage)
+    afterStages = strat.composeAfterStages(stage)
 
     then: 'we roll out at 50% and then 100%'
     beforeStages.isEmpty()
@@ -164,8 +150,7 @@ class RollingRedBlackStrategySpec extends Specification {
 
     when: 'planning with cleanup pipeline'
     stage = pipeline.stageByRef("2-deploy3")
-    syntheticStages = strat.composeFlow(stage)
-    afterStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
+    afterStages = strat.composeAfterStages(stage)
 
     then:
     noExceptionThrown()

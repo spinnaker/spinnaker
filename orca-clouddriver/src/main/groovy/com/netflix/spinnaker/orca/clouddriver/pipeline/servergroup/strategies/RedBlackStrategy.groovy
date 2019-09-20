@@ -53,18 +53,12 @@ class RedBlackStrategy implements Strategy, ApplicationContextAware {
 
   @Override
   List<Stage> composeBeforeStages(Stage parent) {
-    return composeFlow(parent)
-      .findAll({ it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE })
+    return Collections.emptyList()
   }
 
   @Override
-  List<Stage> composeAfterStages(Stage parent) {
-    return composeFlow(parent)
-      .findAll({ it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER })
-  }
-
-  List<Stage> composeFlow(Stage stage) {
-    List<Stage> stages = []
+  List<Stage> composeAfterStages(Stage stage) {
+    List<Stage> stages = new ArrayList<>()
     StageData stageData = stage.mapTo(StageData)
     Map<String, Object> baseContext = AbstractDeployStrategyStage.CleanupConfig.toContext(stageData)
 
@@ -72,19 +66,12 @@ class RedBlackStrategy implements Strategy, ApplicationContextAware {
     if (parentCreateServerGroupStage == null) {
       throw new IllegalStateException("Failed to determine source server group from parent stage while planning red/black flow")
     }
-    if (parentCreateServerGroupStage.status == ExecutionStatus.NOT_STARTED) {
-      // No point in composing the flow if we are called to plan "beforeStages" since we don't have any STAGE_BEFOREs.
-      // Also, we rely on the the source server group task to have run already.
-      // In the near future we will move composeFlow into beforeStages and afterStages instead of the
-      // deprecated aroundStages
-      return []
-    }
 
     StageData parentStageData = parentCreateServerGroupStage.mapTo(StageData)
     StageData.Source sourceServerGroup = parentStageData.source
 
     // Short-circuit if there is no source server group
-    if (sourceServerGroup == null || sourceServerGroup.serverGroupName == null) {
+    if (sourceServerGroup == null || (sourceServerGroup.serverGroupName == null && sourceServerGroup.asgName == null)) {
       return []
     }
 

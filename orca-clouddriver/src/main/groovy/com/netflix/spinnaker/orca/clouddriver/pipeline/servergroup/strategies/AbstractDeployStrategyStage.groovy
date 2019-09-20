@@ -111,7 +111,7 @@ abstract class AbstractDeployStrategyStage extends AbstractCloudProviderAwareSta
     Strategy strategy = getStrategy(parent)
     def preProcessors = deployStagePreProcessors.findAll { it.supports(parent) }
     def stageData = parent.mapTo(StageData)
-    def stages = []
+    List<Stage> stages = new ArrayList<>()
     stages.addAll(strategy.composeBeforeStages(parent))
 
     preProcessors.each {

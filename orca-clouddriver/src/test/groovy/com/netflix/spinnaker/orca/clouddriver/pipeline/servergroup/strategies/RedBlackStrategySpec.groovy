@@ -17,25 +17,18 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies
 
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
-import com.netflix.spinnaker.kork.dynamicconfig.SpringDynamicConfigService
 import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.DisableClusterStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ScaleDownClusterStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ShrinkClusterStage
-import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
 import com.netflix.spinnaker.orca.pipeline.WaitStage
-import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
-import org.springframework.mock.env.MockEnvironment
 import spock.lang.Specification
 
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class RedBlackStrategySpec extends Specification {
-
-  def trafficGuard = Stub(TrafficGuard)
-  def env = new MockEnvironment()
 
   def dynamicConfigService = Mock(DynamicConfigService)
 
@@ -85,27 +78,23 @@ class RedBlackStrategySpec extends Specification {
       def stage = pipeline.stageByRef("2-deploy1")
 
     when: 'planning without having run createServerGroup'
-      def syntheticStages = strat.composeFlow(stage)
+      def beforeStages = strat.composeBeforeStages(stage)
+      def afterStages = strat.composeAfterStages(stage)
 
     then:
-      syntheticStages.size() == 0
+      beforeStages.size() == 0
+      afterStages.size() == 0
 
     when: 'deploying into a new cluster (no source server group)'
       pipeline.stageByRef("1-create").status = ExecutionStatus.RUNNING
-
-    then:
-      syntheticStages.size() == 0
-
-    when: 'deploying into an existing cluster'
       pipeline.stageByRef("1-create").context.source = [
         account: "testAccount",
         region: "north",
         serverGroupName: "unit-tests-v000",
         asgName: "unit-tests-v000"
       ]
-      syntheticStages = strat.composeFlow(stage)
-      def beforeStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE }
-      def afterStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
+      beforeStages = strat.composeBeforeStages(stage)
+      afterStages = strat.composeAfterStages(stage)
 
     then:
       beforeStages.isEmpty()
@@ -123,9 +112,8 @@ class RedBlackStrategySpec extends Specification {
 
     when: 'maxRemainingAsgs is specified'
       pipeline.stageByRef("2-deploy1").context.maxRemainingAsgs = 10
-      syntheticStages = strat.composeFlow(stage)
-      beforeStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE }
-      afterStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
+      beforeStages = strat.composeBeforeStages(stage)
+      afterStages = strat.composeAfterStages(stage)
 
     then:
       beforeStages.isEmpty()
@@ -136,9 +124,8 @@ class RedBlackStrategySpec extends Specification {
 
     when: 'scaleDown is true'
       pipeline.stageByRef("2-deploy1").context.scaleDown = true
-      syntheticStages = strat.composeFlow(stage)
-      beforeStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE }
-      afterStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
+      beforeStages = strat.composeBeforeStages(stage)
+      afterStages = strat.composeAfterStages(stage)
 
     then:
       beforeStages.isEmpty()
@@ -150,9 +137,8 @@ class RedBlackStrategySpec extends Specification {
 
     when: 'interestingHealthProviderNames is specified'
       pipeline.stageByRef("2-deploy1").context.interestingHealthProviderNames = ["Google"]
-      syntheticStages = strat.composeFlow(stage)
-      beforeStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE }
-      afterStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
+      beforeStages = strat.composeBeforeStages(stage)
+      afterStages = strat.composeAfterStages(stage)
 
     then:
       beforeStages.isEmpty()
@@ -163,9 +149,8 @@ class RedBlackStrategySpec extends Specification {
     when: 'delayBeforeDisableSec and delayBeforeScaleDownSec are specified'
       pipeline.stageByRef("2-deploy1").context.delayBeforeDisableSec = 5
       pipeline.stageByRef("2-deploy1").context.delayBeforeScaleDownSec = 10
-      syntheticStages = strat.composeFlow(stage)
-      beforeStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE }
-      afterStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
+      beforeStages = strat.composeBeforeStages(stage)
+      afterStages = strat.composeAfterStages(stage)
 
     then:
       beforeStages.isEmpty()

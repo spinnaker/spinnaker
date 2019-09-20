@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ScaleDownClusterS
 import com.netflix.spinnaker.orca.clouddriver.pipeline.monitoreddeploy.NotifyDeployCompletedStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.monitoreddeploy.NotifyDeployStartingStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.monitoreddeploy.EvaluateDeploymentHealthStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CloneServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CreateServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.DisableServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerGroupStage
@@ -74,30 +75,7 @@ class MonitoredDeployStrategy implements Strategy {
   DeploymentMonitorServiceProvider deploymentMonitorServiceProvider
 
   @Override
-  List<Stage> composeBeforeStages(Stage parent) {
-    return composeFlow(parent)
-      .findAll({ it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE })
-  }
-
-  @Override
-  List<Stage> composeAfterStages(Stage parent) {
-    return composeFlow(parent)
-      .findAll({ it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER })
-  }
-
-  List<Stage> composeFlow(Stage stage) {
-    def stages = []
-    def stageData = stage.mapTo(MonitoredDeployStageData)
-    def cleanupConfig = AbstractDeployStrategyStage.CleanupConfig.fromStage(stage)
-
-    Map baseContext = [
-      (cleanupConfig.location.singularType()): cleanupConfig.location.value,
-      cluster                                : cleanupConfig.cluster,
-      moniker                                : cleanupConfig.moniker,
-      credentials                            : cleanupConfig.account,
-      cloudProvider                          : cleanupConfig.cloudProvider,
-    ]
-
+  List<Stage> composeBeforeStages(Stage stage) {
     if (stage.context.useSourceCapacity) {
       stage.context.useSourceCapacity = false
     }
@@ -113,6 +91,27 @@ class MonitoredDeployStrategy implements Strategy {
       max    : 0,
       desired: 0
     ]
+
+    return Collections.emptyList()
+  }
+
+  @Override
+  List<Stage> composeAfterStages(Stage stage) {
+    def stages = []
+    def stageData = stage.mapTo(MonitoredDeployStageData)
+    def cleanupConfig = AbstractDeployStrategyStage.CleanupConfig.fromStage(stage)
+
+    Map baseContext = [
+      (cleanupConfig.location.singularType()): cleanupConfig.location.value,
+      cluster                                : cleanupConfig.cluster,
+      moniker                                : cleanupConfig.moniker,
+      credentials                            : cleanupConfig.account,
+      cloudProvider                          : cleanupConfig.cloudProvider,
+    ]
+
+    // we expect a capacity object if a fixed capacity has been requested or as a fallback value when we are copying
+    // the capacity from the current server group
+    def savedCapacity = stage.context.savedCapacity
 
     def deploySteps = stageData.getDeploySteps()
     if (deploySteps.isEmpty() || deploySteps[-1] != 100) {
@@ -132,23 +131,16 @@ class MonitoredDeployStrategy implements Strategy {
     try {
       StageData.Source sourceServerGroup
 
-      Stage parentCreateServerGroupStage = stage.directAncestors().find() { it.type == CreateServerGroupStage.PIPELINE_CONFIG_TYPE }
-
-      if (parentCreateServerGroupStage.status == ExecutionStatus.NOT_STARTED) {
-        // No point in composing the flow if we are called to plan "beforeStages" since we don't have any STAGE_BEFOREs.
-        // Also, we rely on the the source server group task to have run already.
-        // In the near future we will move composeFlow into beforeStages and afterStages instead of the
-        // deprecated aroundStages
-        return []
-      }
+      Stage parentCreateServerGroupStage = stage.directAncestors()
+        .find() { it.type == CreateServerGroupStage.PIPELINE_CONFIG_TYPE || it.type == CloneServerGroupStage.PIPELINE_CONFIG_TYPE }
 
       StageData parentStageData = parentCreateServerGroupStage.mapTo(StageData)
       sourceServerGroup = parentStageData.source
 
-      if (sourceServerGroup != null && sourceServerGroup.serverGroupName != null) {
+      if (sourceServerGroup != null && (sourceServerGroup.serverGroupName != null || sourceServerGroup.asgName != null)) {
         source = new ResizeStrategy.Source(
           region: sourceServerGroup.region,
-          serverGroupName: sourceServerGroup.serverGroupName,
+          serverGroupName: sourceServerGroup.serverGroupName ?: sourceServerGroup.asgName,
           credentials: stageData.credentials ?: stageData.account,
           cloudProvider: stageData.cloudProvider
         )
