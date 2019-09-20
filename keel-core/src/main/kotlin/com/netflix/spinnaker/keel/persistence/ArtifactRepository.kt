@@ -56,7 +56,7 @@ interface ArtifactRepository {
   ): Boolean
 
   /**
-   * @return [true] if version is approved for the [targetEnvironment], false otherwise
+   * @return `true` if version is approved for the [targetEnvironment], `false` otherwise
    */
   fun isApprovedFor(
     deliveryConfig: DeliveryConfig,
@@ -94,14 +94,15 @@ private val VERSION_COMPARATOR: Comparator<String> = object : Comparator<String>
 
   private val debComparator = NullSafeComparator(DebianVersionComparator(), true)
 
-  private fun String.toVersion() = AppVersion
-    .parseName(this)
-    ?.version
-    .also {
-      if (it == null) {
-        log.warn("Unparseable artifact version \"{}\" encountered", it)
-      }
+  private fun String.toVersion(): String? = run {
+    val appVersion = AppVersion.parseName(this)
+    if (appVersion == null) {
+      log.warn("Unparseable artifact version \"{}\" encountered", this)
+      null
+    } else {
+      removePrefix(appVersion.packageName).removePrefix("-")
     }
+  }
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }

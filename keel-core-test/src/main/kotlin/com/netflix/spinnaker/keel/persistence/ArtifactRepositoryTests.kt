@@ -45,6 +45,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
     val version2 = "keeldemo-0.0.1~dev.9-h9.3d2c8ff"
     val version3 = "keeldemo-0.0.1~dev.10-h10.1d2d542"
     val version4 = "keeldemo-1.0.0-h11.518aea2"
+    val version5 = "keeldemo-1.0.0-h12.4ea8a9d"
   }
 
   fun tests() = rootContext<Fixture<T>> {
@@ -115,13 +116,16 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
 
       context("sorting is consistent") {
         before {
-          listOf(version1, version2, version3).forEach {
-            subject.store(artifact1, it, SNAPSHOT)
-          }
+          listOf(version1, version2, version3, version4, version5)
+            .shuffled()
+            .forEach {
+              subject.store(artifact1, it, SNAPSHOT)
+            }
         }
 
         test("versions are returned newest first") {
-          expectThat(subject.versions(artifact1)).containsExactly(version3, version2, version1)
+          expectThat(subject.versions(artifact1))
+            .isEqualTo(listOf(version5, version4, version3, version2, version1))
         }
       }
 
