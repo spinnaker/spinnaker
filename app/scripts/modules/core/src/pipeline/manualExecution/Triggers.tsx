@@ -63,29 +63,27 @@ export class Triggers extends React.Component<ITriggersProps> {
     const { formik, triggerComponent, triggers } = this.props;
     return (
       <div className="form-group row">
-        <div className={'form-group'}>
-          <label className={'col-md-4 sm-label-right'}>Trigger</label>
-          <div className="col-md-6">
-            {triggers.length > 1 && (
-              <FormField
-                onChange={this.triggerSelected}
-                value={formik.values.trigger ? formik.values.trigger.description : ''}
-                input={props => (
-                  <Select
-                    {...props}
-                    className={'trigger-select'}
-                    clearable={false}
-                    options={triggers.map(t => ({
-                      label: t.description,
-                      value: t.description,
-                    }))}
-                  />
-                )}
-              />
-            )}
-            {triggers.length === 1 && <p className="form-control-static">{head(triggers).description}</p>}
-          </div>
-        </div>
+        <FormField
+          label="Trigger"
+          onChange={this.triggerSelected}
+          value={formik.values.trigger ? formik.values.trigger.description : ''}
+          input={props => (
+            <>
+              {triggers.length > 1 && (
+                <Select
+                  {...props}
+                  className="trigger-select"
+                  clearable={false}
+                  options={triggers.map(t => ({
+                    label: t.description,
+                    value: t.description,
+                  }))}
+                />
+              )}
+              {triggers.length === 1 && <p className="form-control-static">{head(triggers).description}</p>}
+            </>
+          )}
+        />
 
         {triggerComponent && (
           <div className={'trigger-template'}>

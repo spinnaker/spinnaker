@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { Observable, Subject } from 'rxjs';
-import Select, { Option } from 'react-select';
+import { Option } from 'react-select';
 import { FormikProps } from 'formik';
 import { head } from 'lodash';
 
 import { IParameter, IPipeline, IPipelineCommand, ITrigger } from 'core/domain';
 import { IPipelineTemplateConfig, PipelineTemplateReader, PipelineTemplateV2Service } from 'core/pipeline';
-import { FormField } from 'core/presentation';
+import { FormField, TetheredSelect } from 'core/presentation';
 
 export interface IPipelineOptionsProps {
   formatParameterConfig: (p: IParameter[]) => { [key: string]: any };
@@ -106,14 +106,14 @@ export class PipelineOptions extends React.Component<IPipelineOptionsProps, IPip
       return (
         <div className="form-group row">
           <FormField
-            label={'Pipeline'}
+            label="Pipeline"
             onChange={this.pipelineSelected}
             value={formik.values.pipeline ? formik.values.pipeline.id : ''}
             input={props => (
-              <Select
+              <TetheredSelect
                 {...props}
                 clearable={false}
-                className={'pipeline-select'}
+                className="pipeline-select"
                 options={pipelineOptions.map(p => ({
                   label: p.name,
                   value: p.id,

@@ -3,11 +3,9 @@ import { FormikProps } from 'formik';
 import { Option } from 'react-select';
 
 import { INotification, INotificationTypeConfig, IPipelineCommand } from 'core/domain';
-import { CheckboxInput, FormikFormField, HoverablePopover, LayoutProvider } from 'core/presentation';
+import { CheckboxInput, FormikFormField, HoverablePopover } from 'core/presentation';
 import { Registry } from 'core/registry';
 import { NotificationSelector, NotificationTransformer } from 'core/notification';
-
-import { ManualExecutionFieldLayout } from './layout/ManualExecutionFieldLayout';
 
 export interface INotificationDetailsProps {
   formik: FormikProps<IPipelineCommand>;
@@ -65,16 +63,12 @@ export class NotificationDetails extends React.Component<INotificationDetailsPro
     const { values } = formik;
     return (
       <>
-        <div className={'form-group'}>
-          <label className={'col-md-4 sm-label-right'}>Notifications</label>
-          <div className="col-md-6">
-            <FormikFormField
-              name="notificationEnabled"
-              fastField={false}
-              input={props => <CheckboxInput {...props} text={'Notify me when the pipeline completes'} />}
-            />
-          </div>
-        </div>
+        <FormikFormField
+          name="notificationEnabled"
+          label="Notifications"
+          fastField={false}
+          input={props => <CheckboxInput {...props} text={'Notify me when the pipeline completes'} />}
+        />
         <div className="form-group">
           {notifications.length === 1 && (
             <div className="col-md-offset-4 col-md-6">
@@ -96,13 +90,11 @@ export class NotificationDetails extends React.Component<INotificationDetailsPro
           )}
         </div>
         {values.notificationEnabled && (
-          <LayoutProvider value={ManualExecutionFieldLayout}>
-            <NotificationSelector
-              onNotificationTypeChange={onNotificationTypeChange}
-              fieldName={'notification'}
-              type={values.notification.type}
-            />
-          </LayoutProvider>
+          <NotificationSelector
+            onNotificationTypeChange={onNotificationTypeChange}
+            fieldName={'notification'}
+            type={values.notification.type}
+          />
         )}
       </>
     );
