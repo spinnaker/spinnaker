@@ -4,21 +4,25 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.Capacity
-import com.netflix.spinnaker.keel.api.ec2.ServerGroupSpec
+import com.netflix.spinnaker.keel.api.ec2.ClusterLaunchConfigurationSpec
+import com.netflix.spinnaker.keel.api.ec2.ClusterLocations
+import com.netflix.spinnaker.keel.api.ec2.ClusterRegion
+import com.netflix.spinnaker.keel.api.ec2.ClusterServerGroupSpec
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
+import com.netflix.spinnaker.keel.api.ec2.Dependencies
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
+import com.netflix.spinnaker.keel.api.ec2.IdImageProvider
 import com.netflix.spinnaker.keel.api.ec2.Metric
 import com.netflix.spinnaker.keel.api.ec2.ScalingProcess
-import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup
-import com.netflix.spinnaker.keel.api.ec2.Dependencies
-import com.netflix.spinnaker.keel.api.ec2.LaunchConfigurationSpec
-import com.netflix.spinnaker.keel.api.ec2.Location
-import com.netflix.spinnaker.keel.api.ec2.IdImageProvider
+import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
+import com.netflix.spinnaker.keel.api.ec2.resolve
+import com.netflix.spinnaker.keel.api.ec2.resolveCapacity
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
-import com.netflix.spinnaker.keel.clouddriver.model.AutoScalingGroup
 import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroupImage
+import com.netflix.spinnaker.keel.clouddriver.model.AutoScalingGroup
 import com.netflix.spinnaker.keel.clouddriver.model.InstanceMonitoring
 import com.netflix.spinnaker.keel.clouddriver.model.LaunchConfig
 import com.netflix.spinnaker.keel.clouddriver.model.Network
@@ -37,6 +41,7 @@ import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.confirmVerified
@@ -44,96 +49,130 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.runBlocking
+import org.apache.commons.lang3.RandomStringUtils.randomNumeric
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectThat
+import strikt.assertions.contains
+import strikt.assertions.containsExactlyInAnyOrder
+import strikt.assertions.first
 import strikt.assertions.get
+import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
-import strikt.assertions.isNotNull
-import strikt.assertions.isNull
+import strikt.assertions.isNotEmpty
+import strikt.assertions.map
+import strikt.assertions.none
 import java.time.Clock
-import java.util.UUID
+import java.util.UUID.randomUUID
 
 internal class ServerGroupHandlerTests : JUnit5Minutests {
 
-  val vpc = Network(CLOUD_PROVIDER, "vpc-1452353", "vpc0", "test", "us-west-2")
-  val sg1 = SecurityGroupSummary("keel", "sg-325234532")
-  val sg2 = SecurityGroupSummary("keel-elb", "sg-235425234")
-  val subnet1 = Subnet("subnet-1", vpc.id, vpc.account, vpc.region, "${vpc.region}a", "internal (vpc0)")
-  val subnet2 = Subnet("subnet-2", vpc.id, vpc.account, vpc.region, "${vpc.region}b", "internal (vpc0)")
-  val subnet3 = Subnet("subnet-3", vpc.id, vpc.account, vpc.region, "${vpc.region}c", "internal (vpc0)")
-  val spec = ServerGroupSpec(
+  val vpcWest = Network(CLOUD_PROVIDER, "vpc-1452353", "vpc0", "test", "us-west-2")
+  val vpcEast = Network(CLOUD_PROVIDER, "vpc-4342589", "vpc0", "test", "us-east-1")
+  val sg1West = SecurityGroupSummary("keel", "sg-325234532")
+  val sg2West = SecurityGroupSummary("keel-elb", "sg-235425234")
+  val sg1East = SecurityGroupSummary("keel", "sg-279585936")
+  val sg2East = SecurityGroupSummary("keel-elb", "sg-610264122")
+  val subnet1West = Subnet("subnet-1", vpcWest.id, vpcWest.account, vpcWest.region, "${vpcWest.region}a", "internal (vpc0)")
+  val subnet2West = Subnet("subnet-2", vpcWest.id, vpcWest.account, vpcWest.region, "${vpcWest.region}b", "internal (vpc0)")
+  val subnet3West = Subnet("subnet-3", vpcWest.id, vpcWest.account, vpcWest.region, "${vpcWest.region}c", "internal (vpc0)")
+  val subnet1East = Subnet("subnet-1", vpcEast.id, vpcEast.account, vpcEast.region, "${vpcEast.region}a", "internal (vpc0)")
+  val subnet2East = Subnet("subnet-2", vpcEast.id, vpcEast.account, vpcEast.region, "${vpcEast.region}b", "internal (vpc0)")
+  val subnet3East = Subnet("subnet-3", vpcEast.id, vpcEast.account, vpcEast.region, "${vpcEast.region}c", "internal (vpc0)")
+
+  val spec = ClusterSpec(
     moniker = Moniker(app = "keel", stack = "test"),
-    location = Location(
-      accountName = vpc.account,
-      region = vpc.region,
-      availabilityZones = setOf("us-west-2a", "us-west-2b", "us-west-2c"),
-      subnet = vpc.name
+    imageProvider = IdImageProvider(imageId = "i-123543254134"),
+    locations = ClusterLocations(
+      accountName = vpcWest.account,
+      regions = listOf(vpcWest, vpcEast).map { subnet ->
+        ClusterRegion(
+          region = subnet.region,
+          subnet = subnet.name!!,
+          availabilityZones = listOf("a", "b", "c").map { "${subnet.region}$it" }.toSet()
+        )
+      }.toSet()
     ),
-    launchConfiguration = LaunchConfigurationSpec(
-      imageProvider = IdImageProvider(imageId = "i-123543254134"),
-      instanceType = "r4.8xlarge",
-      ebsOptimized = false,
-      iamRole = "keelRole",
-      keyPair = "keel-key-pair",
-      instanceMonitoring = false
-    ),
-    capacity = Capacity(1, 6, 4),
-    dependencies = Dependencies(
-      loadBalancerNames = setOf("keel-test-frontend"),
-      securityGroupNames = setOf(sg1.name, sg2.name)
+    _defaults = ClusterServerGroupSpec(
+      launchConfiguration = ClusterLaunchConfigurationSpec(
+        instanceType = "r4.8xlarge",
+        ebsOptimized = false,
+        iamRole = "keelRole",
+        keyPair = "keel-key-pair",
+        instanceMonitoring = false
+      ),
+      capacity = Capacity(1, 6, 4),
+      dependencies = Dependencies(
+        loadBalancerNames = setOf("keel-test-frontend"),
+        securityGroupNames = setOf(sg1West.name, sg2West.name)
+      )
     )
   )
 
-  val serverGroup = ServerGroup(
-    moniker = spec.moniker,
-    location = spec.location,
-    launchConfiguration = spec.launchConfiguration.generateLaunchConfiguration("i-123543254134", "keel-0.252.0-h168.35fe253/SPINNAKER-rocket-package-keel/168"),
-    capacity = spec.capacity,
-    dependencies = spec.dependencies
+  val serverGroups = spec.resolve(
+    // TODO: make this rely on the imageResolver mock?
+    ResolvedImages(
+      "keel-0.252.0-h168.35fe253",
+      listOf(vpcWest, vpcEast).associate { subnet ->
+        subnet.region to "i-123543254134"
+      }
+    )
   )
+  val serverGroupEast = serverGroups.first { it.location.region == "us-east-1" }
+  val serverGroupWest = serverGroups.first { it.location.region == "us-west-2" }
 
   val resource = resource(
     apiVersion = SPINNAKER_API_V1,
-    kind = "server-group",
+    kind = "cluster",
     spec = spec
   )
-  val activeServerGroupResponse = ActiveServerGroup(
-    "keel-test-v069",
-    spec.location.region,
-    spec.location.availabilityZones,
-    ActiveServerGroupImage(
-      (spec.launchConfiguration.imageProvider as IdImageProvider).imageId,
-      "keel-0.252.0-h168.35fe253"
-    ),
-    LaunchConfig(
-      spec.launchConfiguration.ramdiskId,
-      spec.launchConfiguration.ebsOptimized,
-      (spec.launchConfiguration.imageProvider as IdImageProvider).imageId,
-      spec.launchConfiguration.instanceType,
-      spec.launchConfiguration.keyPair,
-      spec.launchConfiguration.iamRole,
-      InstanceMonitoring(spec.launchConfiguration.instanceMonitoring)
-    ),
-    AutoScalingGroup(
-      "keel-test-v069",
-      spec.health.cooldown.seconds,
-      spec.health.healthCheckType.let(HealthCheckType::toString),
-      spec.health.warmup.seconds,
-      spec.scaling.suspendedProcesses.map(ScalingProcess::toString).toSet(),
-      spec.health.enabledMetrics.map(Metric::toString).toSet(),
-      spec.tags.map { Tag(it.key, it.value) }.toSet(),
-      spec.health.terminationPolicies.map(TerminationPolicy::toString).toSet(),
-      listOf(subnet1, subnet2, subnet3).map(Subnet::id).joinToString(",")
-    ),
-    vpc.id,
-    spec.dependencies.targetGroups,
-    spec.dependencies.loadBalancerNames,
-    spec.capacity.let { ServerGroupCapacity(it.min, it.max, it.desired) },
-    CLOUD_PROVIDER,
-    setOf(sg1.id, sg2.id),
-    spec.location.accountName,
-    spec.moniker.run { Moniker(app = app, cluster = cluster, detail = detail, stack = stack, sequence = "69") }
-  )
+
+  val activeServerGroupResponseEast = serverGroupEast.toCloudDriverResponse(vpcEast, listOf(subnet1East, subnet2East, subnet3East), listOf(sg1East, sg2East))
+  val activeServerGroupResponseWest = serverGroupWest.toCloudDriverResponse(vpcWest, listOf(subnet1West, subnet2West, subnet3West), listOf(sg1West, sg2West))
+
+  private fun ServerGroup.toCloudDriverResponse(
+    vpc: Network,
+    subnets: List<Subnet>,
+    securityGroups: List<SecurityGroupSummary>
+  ): ActiveServerGroup =
+    randomNumeric(3).let { sequence ->
+      ActiveServerGroup(
+        "keel-test-v$sequence",
+        location.region,
+        location.availabilityZones,
+        ActiveServerGroupImage(
+          launchConfiguration.imageId,
+          launchConfiguration.appVersion
+        ),
+        LaunchConfig(
+          launchConfiguration.ramdiskId,
+          launchConfiguration.ebsOptimized,
+          launchConfiguration.imageId,
+          launchConfiguration.instanceType,
+          launchConfiguration.keyPair,
+          launchConfiguration.iamRole,
+          InstanceMonitoring(launchConfiguration.instanceMonitoring)
+        ),
+        AutoScalingGroup(
+          "keel-test-v$sequence",
+          health.cooldown.seconds,
+          health.healthCheckType.let(HealthCheckType::toString),
+          health.warmup.seconds,
+          scaling.suspendedProcesses.map(ScalingProcess::toString).toSet(),
+          health.enabledMetrics.map(Metric::toString).toSet(),
+          tags.map { Tag(it.key, it.value) }.toSet(),
+          health.terminationPolicies.map(TerminationPolicy::toString).toSet(),
+          subnets.map(Subnet::id).joinToString(",")
+        ),
+        vpc.id,
+        dependencies.targetGroups,
+        dependencies.loadBalancerNames,
+        capacity.let { ServerGroupCapacity(it.min, it.max, it.desired) },
+        CLOUD_PROVIDER,
+        securityGroups.map(SecurityGroupSummary::id).toSet(),
+        location.accountName,
+        moniker.run { Moniker(app = app, cluster = cluster, detail = detail, stack = stack, sequence = sequence) }
+      )
+    }
 
   val cloudDriverService = mockk<CloudDriverService>()
   val cloudDriverCache = mockk<CloudDriverCache>()
@@ -159,38 +198,53 @@ internal class ServerGroupHandlerTests : JUnit5Minutests {
 
     before {
       with(cloudDriverCache) {
-        every { networkBy(vpc.id) } returns vpc
-        every { subnetBy(subnet1.id) } returns subnet1
-        every { subnetBy(subnet2.id) } returns subnet2
-        every { subnetBy(subnet3.id) } returns subnet3
-        every { securityGroupById(spec.location.accountName, spec.location.region, sg1.id) } returns sg1
-        every { securityGroupById(spec.location.accountName, spec.location.region, sg2.id) } returns sg2
-        every { securityGroupByName(spec.location.accountName, spec.location.region, sg1.name) } returns sg1
-        every { securityGroupByName(spec.location.accountName, spec.location.region, sg2.name) } returns sg2
+        every { networkBy(vpcWest.id) } returns vpcWest
+        every { subnetBy(subnet1West.id) } returns subnet1West
+        every { subnetBy(subnet2West.id) } returns subnet2West
+        every { subnetBy(subnet3West.id) } returns subnet3West
+        every { securityGroupById(vpcWest.account, vpcWest.region, sg1West.id) } returns sg1West
+        every { securityGroupById(vpcWest.account, vpcWest.region, sg2West.id) } returns sg2West
+        every { securityGroupByName(vpcWest.account, vpcWest.region, sg1West.name) } returns sg1West
+        every { securityGroupByName(vpcWest.account, vpcWest.region, sg2West.name) } returns sg2West
+
+        every { networkBy(vpcEast.id) } returns vpcEast
+        every { subnetBy(subnet1East.id) } returns subnet1East
+        every { subnetBy(subnet2East.id) } returns subnet2East
+        every { subnetBy(subnet3East.id) } returns subnet3East
+        every { securityGroupById(vpcEast.account, vpcEast.region, sg1East.id) } returns sg1East
+        every { securityGroupById(vpcEast.account, vpcEast.region, sg2East.id) } returns sg2East
+        every { securityGroupByName(vpcEast.account, vpcEast.region, sg1East.name) } returns sg1East
+        every { securityGroupByName(vpcEast.account, vpcEast.region, sg2East.name) } returns sg2East
       }
 
-      coEvery { orcaService.orchestrate("keel@spinnaker", any()) } returns TaskRefResponse("/tasks/${UUID.randomUUID()}")
+      coEvery { orcaService.orchestrate("keel@spinnaker", any()) } returns TaskRefResponse("/tasks/${randomUUID()}")
     }
 
     after {
       confirmVerified(orcaService)
+      clearAllMocks()
     }
 
     context("the cluster does not exist or has no active server groups") {
       before {
-        coEvery { cloudDriverService.activeServerGroup() } throws RETROFIT_NOT_FOUND
+        coEvery { cloudDriverService.activeServerGroup("us-east-1") } returns activeServerGroupResponseEast
+        coEvery { cloudDriverService.activeServerGroup("us-west-2") } throws RETROFIT_NOT_FOUND
       }
 
       test("the current model is null") {
         val current = runBlocking {
           current(resource)
         }
-        expectThat(current).isNull()
+        expectThat(current)
+          .hasSize(1)
+          .none {
+            get { location.region }.isEqualTo("us-west-2")
+          }
       }
 
       test("annealing a diff creates a new server group") {
         runBlocking {
-          upsert(resource, ResourceDiff(serverGroup, null))
+          upsert(resource, ResourceDiff(serverGroups, emptySet()))
         }
 
         val slot = slot<OrchestrationRequest>()
@@ -204,29 +258,31 @@ internal class ServerGroupHandlerTests : JUnit5Minutests {
 
     context("the cluster has active server groups") {
       before {
-        coEvery { cloudDriverService.activeServerGroup() } returns activeServerGroupResponse
+        coEvery { cloudDriverService.activeServerGroup("us-east-1") } returns activeServerGroupResponseEast
+        coEvery { cloudDriverService.activeServerGroup("us-west-2") } returns activeServerGroupResponseWest
       }
 
-      derivedContext<ServerGroup?>("fetching the current server group state") {
+      // TODO: test for multiple server group response
+      derivedContext<Set<ServerGroup>>("fetching the current server group state") {
         deriveFixture {
           runBlocking {
             current(resource)
           }
         }
 
-        test("the current model is converted to a server group") {
-          expectThat(this).isNotNull()
+        test("the current model is converted to a set of server group") {
+          expectThat(this).isNotEmpty()
         }
 
         test("the server group name is derived correctly") {
-          expectThat(this).isNotNull().get { moniker }.isEqualTo(spec.moniker)
+          expectThat(this).first().get { moniker }.isEqualTo(spec.moniker)
         }
       }
 
       context("the diff is only in capacity") {
 
-        val modified = serverGroup.withDoubleCapacity()
-        val diff = ResourceDiff(serverGroup, modified)
+        val modified = setOf(serverGroupEast, serverGroupWest.withDoubleCapacity())
+        val diff = ResourceDiff(serverGroups, modified)
 
         test("annealing resizes the current server group") {
           runBlocking {
@@ -239,21 +295,23 @@ internal class ServerGroupHandlerTests : JUnit5Minutests {
           expectThat(slot.captured.job.first()) {
             get("type").isEqualTo("resizeServerGroup")
             get("capacity").isEqualTo(
-              mapOf(
-                "min" to spec.capacity.min,
-                "max" to spec.capacity.max,
-                "desired" to spec.capacity.desired
-              )
+              spec.resolveCapacity("us-west-2").let {
+                mapOf(
+                  "min" to it.min,
+                  "max" to it.max,
+                  "desired" to it.desired
+                )
+              }
             )
-            get("serverGroupName").isEqualTo(activeServerGroupResponse.asg.autoScalingGroupName)
+            get("serverGroupName").isEqualTo(activeServerGroupResponseWest.asg.autoScalingGroupName)
           }
         }
       }
 
       context("the diff is something other than just capacity") {
 
-        val modified = serverGroup.withDoubleCapacity().withDifferentInstanceType()
-        val diff = ResourceDiff(serverGroup, modified)
+        val modified = setOf(serverGroupEast, serverGroupWest.withDoubleCapacity().withDifferentInstanceType())
+        val diff = ResourceDiff(serverGroups, modified)
 
         test("annealing clones the current server group") {
           runBlocking {
@@ -267,24 +325,47 @@ internal class ServerGroupHandlerTests : JUnit5Minutests {
             get("type").isEqualTo("createServerGroup")
             get("source").isEqualTo(
               mapOf(
-                "account" to activeServerGroupResponse.accountName,
-                "region" to activeServerGroupResponse.region,
-                "asgName" to activeServerGroupResponse.asg.autoScalingGroupName
+                "account" to activeServerGroupResponseWest.accountName,
+                "region" to activeServerGroupResponseWest.region,
+                "asgName" to activeServerGroupResponseWest.asg.autoScalingGroupName
               )
             )
           }
         }
       }
+
+      context("multiple server groups have a diff") {
+
+        val modified = setOf(
+          serverGroupEast.withDifferentInstanceType(),
+          serverGroupWest.withDoubleCapacity()
+        )
+        val diff = ResourceDiff(serverGroups, modified)
+
+        test("annealing launches one task per server group") {
+          runBlocking {
+            upsert(resource, diff)
+          }
+
+          val tasks = mutableListOf<OrchestrationRequest>()
+          coVerify { orcaService.orchestrate("keel@spinnaker", capture(tasks)) }
+
+          expectThat(tasks)
+            .hasSize(2)
+            .map { it.job.first()["type"] }
+            .containsExactlyInAnyOrder("createServerGroup", "resizeServerGroup")
+        }
+      }
     }
   }
 
-  private suspend fun CloudDriverService.activeServerGroup() = activeServerGroup(
-    "keel@spinnaker",
-    spec.moniker.app,
-    spec.location.accountName,
-    spec.moniker.name,
-    spec.location.region,
-    CLOUD_PROVIDER
+  private suspend fun CloudDriverService.activeServerGroup(region: String) = activeServerGroup(
+    serviceAccount = "keel@spinnaker",
+    app = spec.moniker.app,
+    account = spec.locations.accountName,
+    cluster = spec.moniker.name,
+    region = region,
+    cloudProvider = CLOUD_PROVIDER
   )
 }
 

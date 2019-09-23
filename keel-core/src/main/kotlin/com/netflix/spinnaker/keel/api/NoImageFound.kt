@@ -23,5 +23,8 @@ class NoImageFound(artifactName: String) :
 class NoImageFoundForRegion(artifactName: String, region: String) :
   RuntimeException("No image found for artifact $artifactName in region $region")
 
+class NoImageFoundForRegions(artifactName: String, regions: Collection<String>) :
+  RuntimeException("No image found for artifact $artifactName in regions ${regions.joinToString()}")
+
 class NoImageSatisfiesConstraints(artifactName: String, environment: String) :
   RuntimeException("No image found for artifact $artifactName in $environment")

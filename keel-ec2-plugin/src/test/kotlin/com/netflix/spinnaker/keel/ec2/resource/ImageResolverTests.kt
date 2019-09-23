@@ -8,13 +8,15 @@ import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.NoImageFound
-import com.netflix.spinnaker.keel.api.NoImageFoundForRegion
+import com.netflix.spinnaker.keel.api.NoImageFoundForRegions
 import com.netflix.spinnaker.keel.api.NoImageSatisfiesConstraints
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.api.ec2.ServerGroupSpec
-import com.netflix.spinnaker.keel.api.ec2.LaunchConfigurationSpec
-import com.netflix.spinnaker.keel.api.ec2.Location
 import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
+import com.netflix.spinnaker.keel.api.ec2.ClusterLaunchConfigurationSpec
+import com.netflix.spinnaker.keel.api.ec2.ClusterLocations
+import com.netflix.spinnaker.keel.api.ec2.ClusterRegion
+import com.netflix.spinnaker.keel.api.ec2.ClusterServerGroupSpec
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.IdImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ImageProvider
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
@@ -32,8 +34,8 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import strikt.api.expect
 import strikt.api.expectCatching
-import strikt.api.expectThat
 import strikt.assertions.failed
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
@@ -111,21 +113,27 @@ internal class ImageResolverTests : JUnit5Minutests {
 
     val resource = resource(
       apiVersion = SPINNAKER_API_V1.subApi("ec2"),
-      kind = "server-group",
-      spec = ServerGroupSpec(
+      kind = "cluster",
+      spec = ClusterSpec(
         moniker = Moniker("fnord"),
-        location = Location(
+        imageProvider = imageProvider,
+        locations = ClusterLocations(
           accountName = account,
-          region = resourceRegion,
-          subnet = "internal (vpc0)",
-          availabilityZones = setOf()
+          regions = setOf(
+            ClusterRegion(
+              region = resourceRegion,
+              subnet = "internal (vpc0)",
+              availabilityZones = setOf()
+            )
+          )
         ),
-        launchConfiguration = LaunchConfigurationSpec(
-          imageProvider = imageProvider,
-          instanceType = "m5.large",
-          ebsOptimized = true,
-          iamRole = "fnordIamRole",
-          keyPair = "fnordKeyPair"
+        _defaults = ClusterServerGroupSpec(
+          launchConfiguration = ClusterLaunchConfigurationSpec(
+            instanceType = "m5.large",
+            ebsOptimized = true,
+            iamRole = "fnordIamRole",
+            keyPair = "fnordKeyPair"
+          )
         )
       )
     )
@@ -139,7 +147,7 @@ internal class ImageResolverTests : JUnit5Minutests {
       )
     )
 
-    fun resolve(): Pair<String, String> = runBlocking {
+    fun resolve(): ResolvedImages = runBlocking {
       subject.resolveImageId(resource)
     }
   }
@@ -161,9 +169,12 @@ internal class ImageResolverTests : JUnit5Minutests {
         }
       }
 
-      test("just returns the image id") {
-        expectThat(resolve())
-          .isEqualTo(imageProvider.imageId to "fnord-$version2")
+      test("resolves to the image id") {
+        val resolved = resolve()
+        expect {
+          that(resolved.appVersion).isEqualTo("fnord-$version2")
+          that(resolved.imagesByRegion).isEqualTo(mapOf(imageRegion to imageProvider.imageId))
+        }
       }
     }
 
@@ -177,15 +188,18 @@ internal class ImageResolverTests : JUnit5Minutests {
       context("the resource is not in an environment") {
         before {
           coEvery {
-            imageService.getLatestNamedImage(artifact.name, any(), resourceRegion)
+            imageService.getLatestNamedImage(artifact.name, any(), null)
           } answers {
             images.lastOrNull { it.appVersion.startsWith(firstArg<String>()) }
           }
         }
 
         test("returns the most recent version of the artifact") {
-          expectThat(resolve())
-            .isEqualTo("ami-3" to "fnord-$version3")
+          val resolved = resolve()
+          expect {
+            that(resolved.appVersion).isEqualTo("fnord-$version3")
+            that(resolved.imagesByRegion).isEqualTo(mapOf(imageRegion to "ami-3"))
+          }
         }
       }
 
@@ -204,7 +218,7 @@ internal class ImageResolverTests : JUnit5Minutests {
             artifactRepository.store(artifact, "${artifact.name}-$version2", FINAL)
             artifactRepository.approveVersionFor(deliveryConfig, artifact, "${artifact.name}-$version2", "test")
             coEvery {
-              imageService.getLatestNamedImage(AppVersion.parseName("${artifact.name}-$version2"), any(), resourceRegion)
+              imageService.getLatestNamedImage(AppVersion.parseName("${artifact.name}-$version2"), any(), null)
             } answers {
               images.lastOrNull { AppVersion.parseName(it.appVersion).version == firstArg<AppVersion>().version }
             }
@@ -215,8 +229,11 @@ internal class ImageResolverTests : JUnit5Minutests {
           }
 
           test("returns the image id of the approved version") {
-            expectThat(resolve())
-              .isEqualTo("ami-2" to "fnord-$version2") // TODO: false moniker
+            val resolved = resolve()
+            expect {
+              that(resolved.appVersion).isEqualTo("fnord-$version2")
+              that(resolved.imagesByRegion).isEqualTo(mapOf(imageRegion to "ami-2")) // TODO: false moniker
+            }
           }
         }
 
@@ -251,7 +268,7 @@ internal class ImageResolverTests : JUnit5Minutests {
             artifactRepository.store(artifact, "${artifact.name}-$version2", FINAL)
             artifactRepository.approveVersionFor(deliveryConfig, artifact, "${artifact.name}-$version2", "test")
             coEvery {
-              imageService.getLatestNamedImage(AppVersion.parseName("${artifact.name}-$version2"), any(), resourceRegion)
+              imageService.getLatestNamedImage(AppVersion.parseName("${artifact.name}-$version2"), any(), null)
             } returns null
           }
 
@@ -266,7 +283,7 @@ internal class ImageResolverTests : JUnit5Minutests {
           }
         }
 
-        context("no image is found for the artifact in the desired region") {
+        context("no image is found for the artifact in one of the desired region") {
           deriveFixture {
             copy(resourceRegion = "cn-north-1")
           }
@@ -285,7 +302,7 @@ internal class ImageResolverTests : JUnit5Minutests {
             artifactRepository.store(artifact, "${artifact.name}-$version2", FINAL)
             artifactRepository.approveVersionFor(deliveryConfig, artifact, "${artifact.name}-$version2", "test")
             coEvery {
-              imageService.getLatestNamedImage(AppVersion.parseName("${artifact.name}-$version2"), any(), resourceRegion)
+              imageService.getLatestNamedImage(AppVersion.parseName("${artifact.name}-$version2"), any(), null)
             } answers {
               images.lastOrNull { AppVersion.parseName(it.appVersion).version == firstArg<AppVersion>().version }
             }
@@ -298,7 +315,7 @@ internal class ImageResolverTests : JUnit5Minutests {
           test("throws an exception") {
             expectCatching { resolve() }
               .failed()
-              .isA<NoImageFoundForRegion>()
+              .isA<NoImageFoundForRegions>()
           }
         }
       }

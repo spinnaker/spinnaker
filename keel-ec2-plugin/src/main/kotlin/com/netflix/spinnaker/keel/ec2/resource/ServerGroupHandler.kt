@@ -6,18 +6,18 @@ import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.Capacity
-import com.netflix.spinnaker.keel.api.ec2.ServerGroupSpec
-import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
-import com.netflix.spinnaker.keel.api.ec2.Metric
-import com.netflix.spinnaker.keel.api.ec2.ScalingProcess
-import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
-import com.netflix.spinnaker.keel.api.ec2.ServerGroup
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.Dependencies
 import com.netflix.spinnaker.keel.api.ec2.Health
+import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
 import com.netflix.spinnaker.keel.api.ec2.LaunchConfiguration
 import com.netflix.spinnaker.keel.api.ec2.Location
+import com.netflix.spinnaker.keel.api.ec2.Metric
 import com.netflix.spinnaker.keel.api.ec2.Scaling
-import com.netflix.spinnaker.keel.ec2.image.ArtifactAlreadyDeployedEvent
+import com.netflix.spinnaker.keel.api.ec2.ScalingProcess
+import com.netflix.spinnaker.keel.api.ec2.ServerGroup
+import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
+import com.netflix.spinnaker.keel.api.ec2.resolve
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
@@ -26,6 +26,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.Tag
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
+import com.netflix.spinnaker.keel.ec2.image.ArtifactAlreadyDeployedEvent
 import com.netflix.spinnaker.keel.events.Task
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.Moniker
@@ -36,6 +37,8 @@ import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
 import com.netflix.spinnaker.keel.plugin.ResourceConflict
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.keel.retrofit.isNotFound
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
@@ -55,62 +58,65 @@ class ServerGroupHandler(
   private val publisher: ApplicationEventPublisher,
   override val objectMapper: ObjectMapper,
   override val normalizers: List<ResourceNormalizer<*>>
-) : ResolvableResourceHandler<ServerGroupSpec, ServerGroup> {
+) : ResolvableResourceHandler<ClusterSpec, Set<ServerGroup>> {
 
   override val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
 
   override val apiVersion = SPINNAKER_API_V1.subApi("ec2")
   override val supportedKind = ResourceKind(
     group = apiVersion.group,
-    singular = "server-group",
-    plural = "server-groups"
-  ) to ServerGroupSpec::class.java
+    singular = "cluster",
+    plural = "clusters"
+  ) to ClusterSpec::class.java
 
-  override suspend fun desired(resource: Resource<ServerGroupSpec>): ServerGroup =
+  override suspend fun desired(resource: Resource<ClusterSpec>): Set<ServerGroup> =
     with(resource.spec) {
-      val (imageId, appVersion) = imageResolver.resolveImageId(resource)
-      ServerGroup(
-        moniker = moniker,
-        location = location,
-        launchConfiguration = launchConfiguration.generateLaunchConfiguration(imageId, appVersion),
-        capacity = capacity,
-        dependencies = dependencies,
-        health = health,
-        scaling = scaling,
-        tags = tags
-      )
+      val resolvedImages = imageResolver.resolveImageId(resource)
+      resolve(resolvedImages)
     }
 
-  override suspend fun current(resource: Resource<ServerGroupSpec>): ServerGroup? =
-    cloudDriverService.getServerGroup(resource)
+  override suspend fun current(resource: Resource<ClusterSpec>): Set<ServerGroup> =
+    cloudDriverService.getServerGroups(resource)
 
   override suspend fun upsert(
-    resource: Resource<ServerGroupSpec>,
-    resourceDiff: ResourceDiff<ServerGroup>
-  ): List<Task> {
-    val spec = resourceDiff.desired
-    val job = when {
-      resourceDiff.isCapacityOnly() -> spec.resizeServerGroupJob(resource.serviceAccount)
-      else -> spec.createServerGroupJob(resource.serviceAccount)
-    }
+    resource: Resource<ClusterSpec>,
+    resourceDiff: ResourceDiff<Set<ServerGroup>>
+  ): List<Task> =
+    resourceDiff
+      .toIndividualDiffs()
+      .filter { diff -> diff.hasChanges() }
+      .map { diff ->
+        val spec = diff.desired
+        val job = when {
+          diff.isCapacityOnly() -> spec.resizeServerGroupJob(resource.serviceAccount)
+          else -> spec.createServerGroupJob(resource.serviceAccount)
+        }
 
-    log.info("Upserting server group using task: {}", job)
-    val description = "Upsert server group ${spec.moniker.name} in ${spec.location.accountName}/${spec.location.region}"
+        log.info("Upserting server group using task: {}", job)
+        val description = "Upsert server group ${spec.moniker.name} in ${spec.location.accountName}/${spec.location.region}"
 
-    return orcaService
-      .orchestrate(
-        resource.serviceAccount,
-        OrchestrationRequest(
-          description,
-          spec.moniker.app,
-          description,
-          listOf(Job(job["type"].toString(), job)),
-          OrchestrationTrigger(resource.id.toString())
-        ))
-      .also { log.info("Started task {} to upsert server group", it.ref) }
-      // TODO: ugleee
-      .let { listOf(Task(id = it.taskId, name = description)) }
-  }
+        // TODO: this needs to be done async
+        orcaService
+          .orchestrate(
+            resource.serviceAccount,
+            OrchestrationRequest(
+              description,
+              spec.moniker.app,
+              description,
+              listOf(Job(job["type"].toString(), job)),
+              OrchestrationTrigger(resource.id.toString())
+            ))
+          .let {
+            log.info("Started task {} to upsert server group", it.ref)
+            Task(id = it.taskId, name = description)
+          }
+      }
+
+  private fun ResourceDiff<Set<ServerGroup>>.toIndividualDiffs() =
+    desired
+      .map { desired ->
+        ResourceDiff(desired, current?.find { it.location.region == desired.location.region })
+      }
 
   override suspend fun actuationInProgress(id: ResourceId) =
     orcaService
@@ -225,7 +231,7 @@ class ServerGroupHandler(
       }
       ?: throw ResourceConflict("Could not find current server group for cluster ${moniker.name} in ${location.accountName} / ${location.region}")
 
-  override suspend fun delete(resource: Resource<ServerGroupSpec>) {
+  override suspend fun delete(resource: Resource<ClusterSpec>) {
     TODO("not implemented")
   }
 
@@ -247,68 +253,80 @@ class ServerGroupHandler(
       }
     }
 
-  private suspend fun CloudDriverService.getServerGroup(resource: Resource<ServerGroupSpec>): ServerGroup? {
-    try {
-      return activeServerGroup(
-        resource.serviceAccount,
-        resource.spec.moniker.app,
-        resource.spec.location.accountName,
-        resource.spec.moniker.name,
-        resource.spec.location.region,
-        CLOUD_PROVIDER
-      )
-        .run {
-          publisher.publishEvent(ArtifactAlreadyDeployedEvent(
-            resourceId = resource.id.value,
-            imageId = launchConfig.imageId
-          ))
-
-          ServerGroup(
-            moniker = Moniker(app = moniker.app, stack = moniker.stack, detail = moniker.detail),
-            location = Location(
-              accountName,
-              region,
-              subnet,
-              zones
-            ),
-            launchConfiguration = launchConfig.run {
-              LaunchConfiguration(
-                imageId = imageId,
-                appVersion = image.appVersion,
-                instanceType = instanceType,
-                ebsOptimized = ebsOptimized,
-                iamRole = iamInstanceProfile,
-                keyPair = keyName,
-                instanceMonitoring = instanceMonitoring.enabled,
-                ramdiskId = ramdiskId.orNull()
-              )
-            },
-            capacity = capacity.let { Capacity(it.min, it.max, it.desired) },
-            dependencies = Dependencies(
-              loadBalancerNames = loadBalancers,
-              securityGroupNames = securityGroupNames,
-              targetGroups = targetGroups
-            ),
-            health = Health(
-              enabledMetrics = asg.enabledMetrics.map { Metric.valueOf(it) }.toSet(),
-              cooldown = asg.defaultCooldown.let(Duration::ofSeconds),
-              warmup = asg.healthCheckGracePeriod.let(Duration::ofSeconds),
-              healthCheckType = asg.healthCheckType.let { HealthCheckType.valueOf(it) },
-              terminationPolicies = asg.terminationPolicies.map { TerminationPolicy.valueOf(it) }.toSet()
-            ),
-            scaling = Scaling(
-              suspendedProcesses = asg.suspendedProcesses.map { ScalingProcess.valueOf(it) }.toSet()
-            ),
-            tags = asg.tags.associateBy(Tag::key, Tag::value).filterNot { it.key in DEFAULT_TAGS }
-          )
+  private suspend fun CloudDriverService.getServerGroups(resource: Resource<ClusterSpec>): Set<ServerGroup> =
+    coroutineScope {
+      resource.spec.locations.regions.map {
+        async {
+          try {
+            activeServerGroup(
+              resource.serviceAccount,
+              resource.spec.moniker.app,
+              resource.spec.locations.accountName,
+              resource.spec.moniker.name,
+              it.region,
+              CLOUD_PROVIDER
+            )
+              .toServerGroup()
+              .also {
+                publisher.publishEvent(ArtifactAlreadyDeployedEvent(
+                  resourceId = resource.id.value,
+                  imageId = it.launchConfiguration.imageId
+                ))
+              }
+          } catch (e: HttpException) {
+            if (!e.isNotFound) {
+              throw e
+            }
+            null
+          }
         }
-    } catch (e: HttpException) {
-      if (e.isNotFound) {
-        return null
       }
-      throw e
+        .mapNotNull { it.await() }
+        .toSet()
     }
-  }
+
+  /**
+   * Transforms CloudDriver response to our server group model.
+   */
+  private fun ActiveServerGroup.toServerGroup() =
+    ServerGroup(
+      moniker = Moniker(app = moniker.app, stack = moniker.stack, detail = moniker.detail),
+      location = Location(
+        accountName,
+        region,
+        subnet,
+        zones
+      ),
+      launchConfiguration = launchConfig.run {
+        LaunchConfiguration(
+          imageId = imageId,
+          appVersion = image.appVersion,
+          instanceType = instanceType,
+          ebsOptimized = ebsOptimized,
+          iamRole = iamInstanceProfile,
+          keyPair = keyName,
+          instanceMonitoring = instanceMonitoring.enabled,
+          ramdiskId = ramdiskId.orNull()
+        )
+      },
+      capacity = capacity.let { Capacity(it.min, it.max, it.desired) },
+      dependencies = Dependencies(
+        loadBalancerNames = loadBalancers,
+        securityGroupNames = securityGroupNames,
+        targetGroups = targetGroups
+      ),
+      health = Health(
+        enabledMetrics = asg.enabledMetrics.map { Metric.valueOf(it) }.toSet(),
+        cooldown = asg.defaultCooldown.let(Duration::ofSeconds),
+        warmup = asg.healthCheckGracePeriod.let(Duration::ofSeconds),
+        healthCheckType = asg.healthCheckType.let { HealthCheckType.valueOf(it) },
+        terminationPolicies = asg.terminationPolicies.map { TerminationPolicy.valueOf(it) }.toSet()
+      ),
+      scaling = Scaling(
+        suspendedProcesses = asg.suspendedProcesses.map { ScalingProcess.valueOf(it) }.toSet()
+      ),
+      tags = asg.tags.associateBy(Tag::key, Tag::value).filterNot { it.key in DEFAULT_TAGS }
+    )
 
   private val ServerGroup.securityGroupIds: Collection<String>
     get() = dependencies

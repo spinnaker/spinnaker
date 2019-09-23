@@ -5,12 +5,16 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonUnwrapped
 import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.ResourceSpec
+import com.netflix.spinnaker.keel.ec2.resource.ResolvedImages
 import com.netflix.spinnaker.keel.model.Moniker
 import java.time.Duration
 
-fun ClusterSpec.resolve(): Set<ServerGroupSpec> =
-  locations.regions.map {
-    ServerGroupSpec(
+/**
+ * Transforms a [ClusterSpec] into a concrete model of server group desired states.
+ */
+fun ClusterSpec.resolve(resolvedImages: ResolvedImages): Set<ServerGroup> {
+  return locations.regions.map {
+    ServerGroup(
       moniker = moniker,
       location = Location(
         locations.accountName,
@@ -18,8 +22,12 @@ fun ClusterSpec.resolve(): Set<ServerGroupSpec> =
         it.subnet,
         it.availabilityZones
       ),
-      launchConfiguration = resolveLaunchConfiguration(it.region),
-      capacity = overrides[it.region]?.capacity ?: defaults.capacity ?: Capacity(1, 1, 1),
+      launchConfiguration = resolveLaunchConfiguration(
+        it.region,
+        resolvedImages.appVersion,
+        checkNotNull(resolvedImages.imagesByRegion[it.region]) { "No image resolved for ${it.region}" }
+      ),
+      capacity = resolveCapacity(it.region),
       dependencies = resolveDependencies(it.region),
       health = resolveHealth(it.region),
       scaling = resolveScaling(it.region),
@@ -27,10 +35,12 @@ fun ClusterSpec.resolve(): Set<ServerGroupSpec> =
     )
   }
     .toSet()
+}
 
-private fun ClusterSpec.resolveLaunchConfiguration(region: String): LaunchConfigurationSpec =
-  LaunchConfigurationSpec(
-    imageProvider = imageProvider,
+private fun ClusterSpec.resolveLaunchConfiguration(region: String, appVersion: String, imageId: String): LaunchConfiguration =
+  LaunchConfiguration(
+    appVersion = appVersion,
+    imageId = imageId,
     instanceType = checkNotNull(overrides[region]?.launchConfiguration?.instanceType
       ?: defaults.launchConfiguration?.instanceType),
     ebsOptimized = checkNotNull(overrides[region]?.launchConfiguration?.ebsOptimized
@@ -44,6 +54,9 @@ private fun ClusterSpec.resolveLaunchConfiguration(region: String): LaunchConfig
     ramdiskId = overrides[region]?.launchConfiguration?.ramdiskId
       ?: defaults.launchConfiguration?.ramdiskId
   )
+
+internal fun ClusterSpec.resolveCapacity(region: String) =
+  overrides[region]?.capacity ?: defaults.capacity ?: Capacity(1, 1, 1)
 
 private fun ClusterSpec.resolveScaling(region: String): Scaling =
   Scaling(
@@ -71,6 +84,7 @@ private fun ClusterSpec.resolveHealth(region: String): Health {
   )
 }
 
+// TODO: make the class names, etc. nicer
 data class ClusterSpec(
   override val moniker: Moniker,
   val imageProvider: ImageProvider,

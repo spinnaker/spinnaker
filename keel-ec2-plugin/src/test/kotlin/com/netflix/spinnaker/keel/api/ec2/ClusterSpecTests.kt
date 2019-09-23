@@ -4,6 +4,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType.ELB
+import com.netflix.spinnaker.keel.ec2.resource.ResolvedImages
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
@@ -104,12 +105,15 @@ internal class ClusterSpecTests : JUnit5Minutests {
           expectThat(result).hasSize(spec.locations.regions.size)
         }
 
-        test("non-overrideable cluster-wide configuration is applied to all server groups") {
-          expectThat(result)
-            .all {
-              get { launchConfiguration.imageProvider }
-                .isEqualTo(spec.imageProvider)
+        test("image resolution is applied to all server groups") {
+          expect {
+            that(result).all {
+              get { launchConfiguration.appVersion }
+                .isEqualTo(appVersion)
             }
+            that(usEastServerGroup.launchConfiguration.imageId).isEqualTo(usEastImageId)
+            that(usWestServerGroup.launchConfiguration.imageId).isEqualTo(usWestImageId)
+          }
         }
 
         test("configuration is applied from the cluster-wide defaults when not overridden in region") {
@@ -160,13 +164,28 @@ internal class ClusterSpecTests : JUnit5Minutests {
 }
 
 private data class ResolvedSpecFixture(
-  val spec: ClusterSpec,
-  val result: Set<ServerGroupSpec>
+  val spec: ClusterSpec
 ) {
   val usEastServerGroup
     get() = result.first { it.location.region == "us-east-1" }
   val usWestServerGroup
     get() = result.first { it.location.region == "us-west-2" }
+
+  val appVersion = "fnord-1.0.0"
+  val usEastImageId = "ami-6874986"
+  val usWestImageId = "ami-6271051"
+
+  fun resolve(): Set<ServerGroup> = spec.resolve(
+    ResolvedImages(
+      appVersion,
+      mapOf(
+        "us-east-1" to usEastImageId,
+        "us-west-2" to usWestImageId
+      )
+    )
+  )
+
+  val result: Set<ServerGroup> by lazy { resolve() }
 }
 
 private fun TestContextBuilder<*, ClusterSpec>.resolvedContext(
@@ -174,7 +193,7 @@ private fun TestContextBuilder<*, ClusterSpec>.resolvedContext(
 ) =
   derivedContext<ResolvedSpecFixture>("when resolved") {
     deriveFixture {
-      ResolvedSpecFixture(this, resolve())
+      ResolvedSpecFixture(this)
     }
 
     builder()
