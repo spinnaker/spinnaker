@@ -340,7 +340,7 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
               {executionMarkers}
               {!execution.stageSummaries.length && (
                 <div className="text-center">
-                  No stages found.
+                  No stages found.{' '}
                   <a onClick={this.handleSourceNoStagesClick} target="_blank" href={pipelinesUrl + execution.id}>
                     Source
                   </a>
