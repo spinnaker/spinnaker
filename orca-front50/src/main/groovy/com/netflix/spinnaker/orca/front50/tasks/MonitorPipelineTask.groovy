@@ -88,7 +88,8 @@ class MonitorPipelineTask implements OverridableTimeoutRetryableTask {
       return TaskResult.builder(ExecutionStatus.TERMINAL).context([
         status   : childPipeline.status,
         exception: exceptionDetails
-      ]).build()
+      ]).outputs(childPipeline.getContext())
+        .build()
     }
 
     return TaskResult.builder(ExecutionStatus.RUNNING).context([status: childPipeline.status]).build()

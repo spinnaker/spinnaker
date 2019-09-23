@@ -78,12 +78,12 @@ class MonitorPipelineTaskSpec extends Specification {
         type = PipelineStage.PIPELINE_CONFIG_TYPE
         name = "pipeline"
         outputs = [
-                artifacts: [
-                  [type: "docker/image",
-                   reference: "gcr.io/project/my-image@sha256:28f82eba",
-                   name: "gcr.io/project/my-image",
-                   version: "sha256:28f82eba"],
-                ]
+          artifacts: [
+            [type     : "docker/image",
+             reference: "gcr.io/project/my-image@sha256:28f82eba",
+             name     : "gcr.io/project/my-image",
+             version  : "sha256:28f82eba"],
+          ]
         ]
       }
       status = ExecutionStatus.SUCCEEDED
@@ -150,12 +150,69 @@ class MonitorPipelineTaskSpec extends Specification {
         ]
       ],
       // source should reference the _first_ halted stage in the child pipeline
-      source: [
+      source : [
         executionId: pipeline.id,
-        stageId: pipeline.stages[1].id,
-        stageName: "a pipeline",
-        stageIndex: 1
+        stageId    : pipeline.stages[1].id,
+        stageName  : "a pipeline",
+        stageIndex : 1
       ]
+    ]
+  }
+
+  def "propagates child pipeline outputs"() {
+    def pipeline = pipeline {
+      application = "orca"
+      name = "a pipeline"
+      stage {
+        type = PipelineStage.PIPELINE_CONFIG_TYPE
+        name = "stage with outputs"
+        outputs = [
+          "myVar1": "myValue1",
+          "myVar2": "myValue2"
+        ]
+      }
+      status = ExecutionStatus.SUCCEEDED
+    }
+
+    repo.retrieve(*_) >> pipeline
+
+    when:
+    def result = task.execute(stage)
+    def outputs = result.outputs
+
+    then:
+    outputs == [
+      "myVar1": "myValue1",
+      "myVar2": "myValue2"
+    ]
+  }
+
+  def "propagates failed child pipeline outputs"() {
+    def pipeline = pipeline {
+      application = "orca"
+      name = "a pipeline"
+      stage {
+        type = PipelineStage.PIPELINE_CONFIG_TYPE
+        name = "failed stage with outputs"
+        outputs = [
+          "myVar1": "myValue1",
+          "myVar2": "myValue2"
+        ]
+        status = ExecutionStatus.TERMINAL
+      }
+      status = ExecutionStatus.TERMINAL
+    }
+
+    repo.retrieve(*_) >> pipeline
+
+    when:
+    def result = task.execute(stage)
+    def outputs = result.outputs
+
+    then:
+    outputs == [
+      "myVar1": "myValue1",
+      "myVar2": "myValue2"
     ]
   }
 }
