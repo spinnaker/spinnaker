@@ -1,17 +1,18 @@
 import * as React from 'react';
-import { isNil, isFunction, isString } from 'lodash';
+import { defaults, isNil, isFunction, isString } from 'lodash';
 
 import { IPipeline } from 'core/domain';
-import { createFakeReactSyntheticEvent, IFormInputProps, IValidator } from '../../presentation/forms';
+import { createFakeReactSyntheticEvent, IFormInputProps, IValidator, IValidatorResult } from 'core/presentation';
+
 import { IMapPair, MapPair } from './MapPair';
 
 export interface IMapEditorInputProps extends IFormInputProps {
   addButtonLabel?: string;
+  allowEmptyValues?: boolean;
   hiddenKeys?: string[];
   keyLabel?: string;
   label?: string;
   labelsLeft?: boolean;
-  errors: IMapEditorModel;
   valueLabel?: string;
   valueCanContainSpel?: boolean;
   pipeline?: IPipeline;
@@ -46,15 +47,27 @@ function tuplesToObject(pairs: IMapPair[]): IMapEditorModel {
   );
 }
 
-function validator(values: IMapEditorModel): IMapEditorModel {
-  return Object.keys(values || {}).reduce((acc, key) => {
-    return duplicateKeyPattern.exec(key) ? { ...acc, [key]: 'Duplicate key' } : acc;
-  }, {});
+function mapEditorValidator(options?: { allowEmptyValues: boolean }): IValidator {
+  const opts = defaults({}, options, { allowEmptyValues: false });
+  return function(values: IMapEditorModel): IValidatorResult {
+    const errors = Object.keys(values || {}).reduce((acc, key) => {
+      if (!key) {
+        return { ...acc, [key]: 'Empty key' };
+      } else if (duplicateKeyPattern.exec(key)) {
+        return { ...acc, [key]: 'Duplicate key' };
+      } else if (!opts.allowEmptyValues && !values[key]) {
+        return { ...acc, [key]: 'Empty value' };
+      }
+      return acc;
+    }, {}) as any;
+
+    return Object.keys(errors).length ? errors : null;
+  };
 }
 
 export function MapEditorInput({
   addButtonLabel = 'Add Field',
-  errors = {},
+  allowEmptyValues = false,
   hiddenKeys = [],
   keyLabel = 'Key',
   label,
@@ -68,21 +81,24 @@ export function MapEditorInput({
   pipeline,
 }: IMapEditorInputProps) {
   const rowProps = { keyLabel, valueLabel, labelsLeft };
+  const validator = React.useRef(mapEditorValidator({ allowEmptyValues }));
 
   const columnCount = labelsLeft ? 5 : 3;
   const tableClass = label ? '' : 'no-border-top';
   const isParameterized = isString(value);
-  const backingModel = !isString(value) ? objectToTuples(value, errors) : null;
+  const backingModel = !isString(value)
+    ? objectToTuples(value, (validation && validation.validationMessage) || {})
+    : null;
 
   // Register/unregister validator, if a validation prop was supplied
   React.useEffect(() => {
     if (validation && isFunction(validation.addValidator)) {
-      validation.addValidator((validator as any) as IValidator);
+      validation.addValidator((validator.current as any) as IValidator);
     }
 
     return () => {
       if (validation && isFunction(validation.removeValidator)) {
-        validation.removeValidator((validator as any) as IValidator);
+        validation.removeValidator((validator.current as any) as IValidator);
       }
     };
   }, []);

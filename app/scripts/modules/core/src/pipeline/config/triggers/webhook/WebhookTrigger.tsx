@@ -34,13 +34,7 @@ export function WebhookTrigger(webhookTriggerProps: IWebhookTriggerProps) {
         name="payloadConstraints"
         label="Payload Constraints"
         help={<HelpField id="pipeline.config.trigger.webhook.payloadConstraints" />}
-        input={props => (
-          <MapEditorInput
-            {...props}
-            errors={formik.errors.payloadConstraints}
-            addButtonLabel="Add payload constraint"
-          />
-        )}
+        input={props => <MapEditorInput {...props} addButtonLabel="Add payload constraint" />}
       />
     </>
   );

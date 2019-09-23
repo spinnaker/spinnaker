@@ -57,26 +57,14 @@ export function PubsubTrigger(pubsubTriggerProps: IPubsubTriggerProps) {
           name="payloadConstraints"
           label="Payload Constraints"
           help={<HelpField id="pipeline.config.trigger.pubsub.payloadConstraints" />}
-          input={props => (
-            <MapEditorInput
-              {...props}
-              errors={formik.errors.payloadConstraints}
-              addButtonLabel="Add payload constraint"
-            />
-          )}
+          input={props => <MapEditorInput {...props} addButtonLabel="Add payload constraint" />}
         />
 
         <FormikFormField
           name="attributeConstraints"
           label="Attribute Constraints "
           help={<HelpField id="pipeline.config.trigger.pubsub.attributeConstraints" />}
-          input={props => (
-            <MapEditorInput
-              {...props}
-              errors={formik.errors.attributeConstraints}
-              addButtonLabel="Add attribute constraint"
-            />
-          )}
+          input={props => <MapEditorInput {...props} addButtonLabel="Add attribute constraint" />}
         />
       </>
     );
