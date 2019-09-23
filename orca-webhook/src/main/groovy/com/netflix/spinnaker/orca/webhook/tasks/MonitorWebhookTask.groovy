@@ -160,7 +160,6 @@ class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
       return TaskResult.builder(statusMap[result.toString().toUpperCase()]).context(responsePayload).build()
     }
 
-    stage.context
     return TaskResult.builder(ExecutionStatus.RUNNING).context(response ? responsePayload : originalResponse).build()
   }
 

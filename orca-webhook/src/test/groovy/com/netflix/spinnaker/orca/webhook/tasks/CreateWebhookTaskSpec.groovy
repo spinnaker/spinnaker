@@ -20,6 +20,7 @@ package com.netflix.spinnaker.orca.webhook.tasks
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.webhook.config.WebhookProperties
 import com.netflix.spinnaker.orca.webhook.service.WebhookService
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
@@ -28,6 +29,8 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.client.HttpServerErrorException
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
+
 import java.nio.charset.Charset
 
 class CreateWebhookTaskSpec extends Specification {
@@ -454,8 +457,7 @@ class CreateWebhookTaskSpec extends Specification {
         statusCode: HttpStatus.CREATED,
         statusCodeValue: HttpStatus.CREATED.value(),
         body: body,
-        error: "The status URL couldn't be resolved, but 'Wait for completion' was checked",
-        statusEndpoint: ["this", "is", "a", "list"]
+        error: "Exception while resolving status check URL: Illegal character in path at index 0: [this, is, a, list]"
       ]
     ]
     stage.context.statusEndpoint == null
@@ -556,6 +558,50 @@ class CreateWebhookTaskSpec extends Specification {
       ],
       artifacts: [[ name: "overrides", type: "github/file", artifactAccount: "github", reference: "https://api.github.com/file", version: "master" ]]
     ]
+  }
+
+  @Unroll
+  def 'should honor the web hook #webHookUrl protocol/scheme for status check URL #responseStatusCheckUrl'() {
+    setup:
+    Map<String, Object> stageContext = [method: HttpMethod.POST,
+                                        payload: ['test': 'test'],
+                                        waitForCompletion: true,
+                                        statusUrlJsonPath:  '$.statusCheckUrl']
+    def stage = new Stage(pipeline, "webhook", "Protocol scheme webhook", stageContext)
+
+    when:
+    stage.context.statusUrlResolution = statusUrlResolution
+    stage.context.url = webHookUrl
+
+    def headers = new HttpHeaders()
+    if (statusUrlResolution == WebhookProperties.StatusUrlResolution.locationHeader) {
+      headers.add(HttpHeaders.LOCATION, responseStatusCheckUrl)
+    }
+
+    createWebhookTask.webhookService = Stub(WebhookService) {
+      exchange(
+        stage.context.method as HttpMethod,
+        stage.context.url as String,
+        stage.context.payload,
+        null
+      ) >> new ResponseEntity<Map>(['statusCheckUrl': responseStatusCheckUrl] as Map, headers, HttpStatus.OK)
+
+    }
+
+    def result = createWebhookTask.execute(stage)
+
+    then:
+    result.status == ExecutionStatus.SUCCEEDED
+    stage.context.statusEndpoint == resultstatusCheckUrl
+
+    where:
+    webHookUrl                   | statusUrlResolution                                    | responseStatusCheckUrl             || resultstatusCheckUrl
+    'proto-abc://test.com'       | WebhookProperties.StatusUrlResolution.getMethod        | 'https://test.com'                 || 'proto-abc://test.com'
+    'proto-abc://test.com'       | WebhookProperties.StatusUrlResolution.webhookResponse  | 'https://test.com'                 || 'proto-abc://test.com'
+    'proto-abc://test.com'       | WebhookProperties.StatusUrlResolution.locationHeader   | 'https://test.com/api/status/123'  || 'proto-abc://test.com/api/status/123'
+    'proto-abc://test.com'       | WebhookProperties.StatusUrlResolution.getMethod        | 'https://blah.com'                 || 'proto-abc://test.com'
+    'proto-abc://test.com'       | WebhookProperties.StatusUrlResolution.webhookResponse  | 'https://blah.com'                 || 'https://blah.com'
+    'proto-abc://test.com'       | WebhookProperties.StatusUrlResolution.locationHeader   | 'https://blah.com/api/status/123'  || 'https://blah.com/api/status/123'
   }
 
   private HttpServerErrorException throwHttpException(HttpStatus statusCode, String body) {

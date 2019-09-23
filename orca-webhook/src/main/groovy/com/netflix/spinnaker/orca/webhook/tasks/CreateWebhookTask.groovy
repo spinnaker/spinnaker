@@ -21,7 +21,6 @@ import com.fasterxml.jackson.core.JsonParseException
 import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.jayway.jsonpath.JsonPath
-import com.jayway.jsonpath.PathNotFoundException
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
@@ -32,12 +31,18 @@ import com.netflix.spinnaker.orca.webhook.service.WebhookService
 import groovy.util.logging.Slf4j
 import org.apache.http.HttpHeaders
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
 import org.springframework.web.client.HttpStatusCodeException
+
+import java.util.regex.Matcher
+import java.util.regex.Pattern
 
 @Slf4j
 @Component
 class CreateWebhookTask implements RetryableTask {
+
+  private static final Pattern URL_SCHEME = Pattern.compile("(.*)://(.*)")
 
   long backoffPeriod = 10000
   long timeout = 300000
@@ -119,24 +124,16 @@ class CreateWebhookTask implements RetryableTask {
 
     if (statusCode.is2xxSuccessful() || statusCode.is3xxRedirection()) {
       if (stageData.waitForCompletion) {
-        def statusUrl = null
-        def statusUrlResolution = stageData.statusUrlResolution
-        switch (statusUrlResolution) {
-          case WebhookProperties.StatusUrlResolution.getMethod:
-            statusUrl = stageData.url
-            break
-          case WebhookProperties.StatusUrlResolution.locationHeader:
-            statusUrl = response.headers.getFirst(HttpHeaders.LOCATION)
-            break
-          case WebhookProperties.StatusUrlResolution.webhookResponse:
-            try {
-              statusUrl = JsonPath.compile(stageData.statusUrlJsonPath as String).read(response.body)
-            } catch (PathNotFoundException e) {
-              outputs.webhook << [error: e.message]
-              return TaskResult.builder(ExecutionStatus.TERMINAL).context(outputs).build()
-            }
+        String statusUrl
+        try {
+          statusUrl = determineWebHookStatusCheckUrl(response, stageData)
+        } catch (Exception e) {
+          outputs.webhook << [error: 'Exception while resolving status check URL: ' + e.message]
+          log.error('Exception received while determining status check url', e)
+          return TaskResult.builder(ExecutionStatus.TERMINAL).context(outputs).build()
         }
-        if (!statusUrl || !(statusUrl instanceof String)) {
+
+        if (!statusUrl) {
           outputs.webhook << [
             error         : "The status URL couldn't be resolved, but 'Wait for completion' was checked",
             statusEndpoint: statusUrl
@@ -162,4 +159,41 @@ class CreateWebhookTask implements RetryableTask {
       return TaskResult.builder(ExecutionStatus.TERMINAL).context(outputs).build()
     }
   }
+
+  private String determineWebHookStatusCheckUrl(ResponseEntity response, WebhookStage.StageData stageData) {
+
+    String statusCheckUrl
+
+    switch (stageData.statusUrlResolution) {
+      case WebhookProperties.StatusUrlResolution.getMethod:
+        statusCheckUrl = stageData.url
+        break
+      case WebhookProperties.StatusUrlResolution.locationHeader:
+        statusCheckUrl = response.headers.getFirst(HttpHeaders.LOCATION)
+        break
+      case WebhookProperties.StatusUrlResolution.webhookResponse:
+        statusCheckUrl = JsonPath.compile(stageData.statusUrlJsonPath as String).read(response.body)
+        break
+    }
+    log.info('Web hook status check url as resolved: {}', statusCheckUrl)
+
+    // Preserve the protocol scheme of original webhook that was called, when calling for status check of a webhook.
+    if (statusCheckUrl != stageData.url) {
+      Matcher statusUrlMatcher = URL_SCHEME.matcher(statusCheckUrl)
+      URI statusCheckUri = URI.create(statusCheckUrl).normalize()
+      String statusCheckHost = statusCheckUri.getHost()
+
+      URI webHookUri = URI.create(stageData.url).normalize()
+      String webHookHost = webHookUri.getHost()
+      if (webHookHost == statusCheckHost &&
+          webHookUri.getScheme() != statusCheckUri.getScheme() && statusUrlMatcher.find()) {
+        // Same hosts keep the original protocol scheme of the webhook that was originally set.
+        statusCheckUrl = webHookUri.getScheme() + '://' + statusUrlMatcher.group(2)
+        log.info('Adjusted Web hook status check url: {}', statusCheckUrl)
+      }
+    }
+
+    return statusCheckUrl
+  }
+
 }
