@@ -37,12 +37,12 @@ export class ExecutionStatus extends React.Component<IExecutionStatusProps, IExe
 
     this.state = {
       sortFilter: ExecutionState.filterModel.asFilterModel.sortFilter,
-      timestamp: relativeTime(execution.startTime),
+      timestamp: relativeTime(execution.startTime || execution.buildTime),
     };
   }
 
   private validateTimestamp(): void {
-    const newTimestamp = relativeTime(this.props.execution.startTime);
+    const newTimestamp = relativeTime(this.props.execution.startTime || this.props.execution.buildTime);
     if (newTimestamp !== this.state.timestamp) {
       this.setState({ timestamp: newTimestamp });
     }
@@ -100,7 +100,11 @@ export class ExecutionStatus extends React.Component<IExecutionStatusProps, IExe
           {has(trigger, 'buildInfo.url') && <li>{buildDisplayName(trigger.buildInfo)}</li>}
           {TriggerExecutionStatus && <TriggerExecutionStatus trigger={trigger} authentication={authentication} />}
           <li>
-            <HoverablePopover delayShow={100} delayHide={0} template={<span>{timestamp(execution.startTime)}</span>}>
+            <HoverablePopover
+              delayShow={100}
+              delayHide={0}
+              template={<span>{timestamp(execution.startTime || execution.buildTime)}</span>}
+            >
               {this.state.timestamp}
             </HoverablePopover>
           </li>
