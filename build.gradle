@@ -40,9 +40,6 @@ allprojects {
   apply plugin: 'java-library'
   apply plugin: 'groovy'
 
-  sourceSets.main.java.srcDirs = []
-  sourceSets.main.groovy.srcDirs += ["src/main/java"]
-
   test {
     testLogging {
       showStandardStreams = false
