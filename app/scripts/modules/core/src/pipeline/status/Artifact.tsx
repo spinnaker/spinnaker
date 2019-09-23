@@ -44,7 +44,7 @@ export class Artifact extends React.Component<IArtifactProps> {
               {ArtifactIconService.getPath(type) ? (
                 <img className="artifact-icon" src={ArtifactIconService.getPath(type)} width="18" height="18" />
               ) : (
-                <span>{type}</span>
+                <span>[{type}] </span>
               )}
             </dt>
             <dd>
