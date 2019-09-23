@@ -158,6 +158,7 @@ class ExplicitRollbackSpec extends Specification {
     afterStages[2].context == stage.context + [
       action            : "scale_exact",
       asgName           : restoreServerGroupName,
+      serverGroupName   : restoreServerGroupName,
       pinMinimumCapacity: true,
       targetHealthyDeployPercentage: 95,
       targetLocation: Location.region("us-west-1"),

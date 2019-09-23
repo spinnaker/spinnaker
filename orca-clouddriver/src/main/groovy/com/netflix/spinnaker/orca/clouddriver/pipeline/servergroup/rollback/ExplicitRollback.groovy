@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.rollback
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.ApplySourceServerGroupCapacityStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.CaptureSourceServerGroupCapacityStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.DisableServerGroupStage
@@ -28,10 +29,15 @@ import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy
 import com.netflix.spinnaker.orca.pipeline.WaitStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
+import groovy.transform.TimedInterrupt
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
 import javax.annotation.Nullable
+import java.util.concurrent.Callable
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.newStage
 
@@ -43,6 +49,9 @@ class ExplicitRollback implements Rollback {
   Integer delayBeforeDisableSeconds
   Boolean disableOnly
   Boolean enableAndDisableOnly
+
+  @JsonIgnore
+  private final ExecutorService executor = java.util.concurrent.Executors.newSingleThreadExecutor()
 
   @Autowired
   @JsonIgnore
@@ -71,6 +80,10 @@ class ExplicitRollback implements Rollback {
   @Autowired
   @JsonIgnore
   OortHelper oortHelper
+
+  @Autowired
+  @JsonIgnore
+  RetrySupport retrySupport
 
   @JsonIgnore
   @Override
@@ -139,12 +152,17 @@ class ExplicitRollback implements Rollback {
     def fromContext = parentStage.mapTo(ResizeStrategy.Source)
 
     try {
-      // TODO: throw some retries in there?
-      return oortHelper.getTargetServerGroup(
-        fromContext.credentials,
-        serverGroupName,
-        fromContext.location
-      ).orElse(null)
+      // we use an executor+future to timebox how long we can spend in this remote call
+      // because we are in a StartStage message and need to response quickly
+      // this is a bit of a hack, the proper long term fix would be to encapsulate this remote call in a task
+      executor.submit((Callable) {
+        return oortHelper.getTargetServerGroup(
+          fromContext.credentials,
+          serverGroupName,
+          fromContext.location
+        )
+      }).get(5, TimeUnit.SECONDS)
+        .get()  // not sure what would cause the Optional to not be present but we would catch and log it
     } catch(Exception e) {
       log.error('Skipping resize stage because there was an error looking up {}', serverGroupName, e)
       return null
@@ -182,6 +200,7 @@ class ExplicitRollback implements Rollback {
       action                       : ResizeStrategy.ResizeAction.scale_exact.toString(),
       capacity                     : newRestoreCapacity.asMap(),
       asgName                      : restoreServerGroupName,
+      serverGroupName              : restoreServerGroupName,
       targetLocation               : restoreServerGroup.getLocation(),
       account                      : restoreServerGroup.credentials,
       cloudProvider                : restoreServerGroup.cloudProvider,
@@ -190,7 +209,7 @@ class ExplicitRollback implements Rollback {
     ]
 
     return newStage(parentStage.execution, resizeServerGroupStage.type,
-      "Resize Restore Server Group to (min: ${newRestoreCapacity.min}, max: ${newRestoreCapacity.max}, desired: ${newRestoreCapacity.desired})",
+      "Resize Server Group: ${restoreServerGroupName} to (min: ${newRestoreCapacity.min}, max: ${newRestoreCapacity.max}, desired: ${newRestoreCapacity.desired})",
       resizeServerGroupContext, parentStage, SyntheticStageOwner.STAGE_AFTER)
   }
 
