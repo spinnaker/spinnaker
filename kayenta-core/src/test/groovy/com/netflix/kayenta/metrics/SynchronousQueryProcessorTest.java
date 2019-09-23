@@ -40,6 +40,7 @@ import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
 import com.netflix.spectator.api.Registry;
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -213,6 +214,34 @@ public class SynchronousQueryProcessorTest {
                     1,
                     mock(CanaryScope.class)))
         .isInstanceOf(IOException.class);
+
+    verify(metricsService, times(ATTEMPTS))
+        .queryMetrics(
+            anyString(),
+            any(CanaryConfig.class),
+            any(CanaryMetricConfig.class),
+            any(CanaryScope.class));
+    verifyZeroInteractions(storageService);
+  }
+
+  @Test
+  public void retriesNetworkErrorTillMaxAttemptsAndThrowsException() throws IOException {
+    when(metricsService.queryMetrics(
+            anyString(),
+            any(CanaryConfig.class),
+            any(CanaryMetricConfig.class),
+            any(CanaryScope.class)))
+        .thenThrow(RetrofitError.networkError("url", new SocketTimeoutException()));
+
+    assertThatThrownBy(
+            () ->
+                processor.executeQuery(
+                    METRICS,
+                    STORAGE,
+                    mock(CanaryConfig.class, RETURNS_DEEP_STUBS),
+                    1,
+                    mock(CanaryScope.class)))
+        .isInstanceOf(RetrofitError.class);
 
     verify(metricsService, times(ATTEMPTS))
         .queryMetrics(

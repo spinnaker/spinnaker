@@ -108,9 +108,11 @@ public class SynchronousQueryProcessor {
           if (retries >= retryConfiguration.getAttempts()) {
             throw e;
           }
+          Object error = e.getResponse() != null ? e.getResponse().getStatus() : e.getCause();
           log.warn(
-              "Got {} http status when querying for metrics. Retrying request (current attempt: {}, max attempts: {})",
-              e.getResponse().getStatus(),
+              "Got {} result when querying for metrics. Retrying request (current attempt: "
+                  + "{}, max attempts: {})",
+              error,
               retries,
               retryConfiguration.getAttempts());
         } else {
@@ -122,7 +124,8 @@ public class SynchronousQueryProcessor {
           throw e;
         }
         log.warn(
-            "Got error when querying for metrics. Retrying request (current attempt: {}, max attempts: {})",
+            "Got error when querying for metrics. Retrying request (current attempt: {}, max "
+                + "attempts: {})",
             retries,
             retryConfiguration.getAttempts(),
             e);
@@ -137,12 +140,20 @@ public class SynchronousQueryProcessor {
   }
 
   private boolean isRetryable(RetrofitError e) {
+    if (isNetworkError(e)) {
+      // retry in case of network errors
+      return true;
+    }
     HttpStatus responseStatus = HttpStatus.resolve(e.getResponse().getStatus());
     if (responseStatus == null) {
       return false;
     }
     return retryConfiguration.getStatuses().contains(responseStatus)
         || retryConfiguration.getSeries().contains(responseStatus.series());
+  }
+
+  private boolean isNetworkError(RetrofitError e) {
+    return e.getResponse() == null && e.getCause() instanceof IOException;
   }
 
   public Map<String, ?> processQueryAndReturnMap(
