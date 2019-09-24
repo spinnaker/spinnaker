@@ -58,6 +58,16 @@ public abstract class AbstractClusterWideClouddriverOperationStage
     return taskClassSimpleName;
   }
 
+  @Override
+  public final void beforeStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
+    addAdditionalBeforeStages(parent, graph);
+  }
+
+  @Override
+  public final void afterStages(@Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {
+    addAdditionalAfterStages(parent, graph);
+  }
+
   protected void addAdditionalBeforeStages(
       @Nonnull Stage parent, @Nonnull StageGraphBuilder graph) {}
 
