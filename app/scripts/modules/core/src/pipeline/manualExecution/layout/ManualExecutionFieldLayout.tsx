@@ -6,7 +6,7 @@ import { IFieldLayoutProps } from 'core/presentation';
 
 export class ManualExecutionFieldLayout extends React.Component<IFieldLayoutProps> {
   public render() {
-    const { label, help, input, actions, touched, validationMessage, validationStatus } = this.props;
+    const { label, help, input, actions, touched, required, validationMessage, validationStatus } = this.props;
 
     const showLabel = !isEmpty(label) || !isEmpty(help);
 
@@ -18,10 +18,11 @@ export class ManualExecutionFieldLayout extends React.Component<IFieldLayoutProp
 
     return (
       <div className="sp-margin-m-bottom">
-        <div className={'form-group'}>
+        <div className="form-group">
           {showLabel && (
-            <label className={'col-md-4 sm-label-right'}>
-              {label} {help}
+            <label className="col-md-4 sm-label-right break-word">
+              {label}
+              {required && <span>*</span>} {help}
             </label>
           )}
           <div className="col-md-6">

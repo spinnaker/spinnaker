@@ -47,51 +47,39 @@ export class Parameters extends React.Component<IParametersProps> {
         </p>
         {visibleParameters &&
           visibleParameters.map((parameter, i) => {
+            const fieldProps = {
+              name: formikFieldNameForParam(parameter),
+              label: parameter.name,
+              help: parameter.description && <HelpField content={parameter.description} />,
+              fastField: false,
+              required: parameter.required,
+            };
+
             return (
-              <div className="form-group" key={i}>
-                <div className="col-md-4 sm-label-right break-word">
-                  {parameter.name}
-                  {parameter.required && <span>*</span>}
-                  {parameter.description && <HelpField content={parameter.description} />}
-                </div>
+              <React.Fragment key={i}>
                 {!parameter.hasOptions && parameter.constraint === 'date' && (
-                  <div className="col-md-6">
-                    <FormikFormField
-                      name={formikFieldNameForParam(parameter)}
-                      fastField={false}
-                      input={props => <DayPickerInput {...props} format={'yyyy-MM-dd'} />}
-                      required={parameter.required}
-                    />
-                  </div>
+                  <FormikFormField {...fieldProps} input={props => <DayPickerInput {...props} format="yyyy-MM-dd" />} />
                 )}
                 {!parameter.hasOptions && !parameter.constraint && (
-                  <div className="col-md-6">
-                    <FormikFormField
-                      name={formikFieldNameForParam(parameter)}
-                      fastField={false}
-                      input={props => <TextInput {...props} inputClassName={'form-control input-sm'} />}
-                      required={parameter.required}
-                    />
-                  </div>
+                  <FormikFormField
+                    {...fieldProps}
+                    input={props => <TextInput {...props} inputClassName="form-control input-sm" />}
+                  />
                 )}
                 {parameter.hasOptions && (
-                  <div className="col-md-6">
-                    <FormikFormField
-                      name={formikFieldNameForParam(parameter)}
-                      fastField={false}
-                      input={props => (
-                        <ReactSelectInput
-                          {...props}
-                          clearable={false}
-                          inputClassName={'parameter-option-select'}
-                          options={parameter.options.map(o => ({ label: `${o.value}`, value: o.value }))}
-                        />
-                      )}
-                      required={parameter.required}
-                    />
-                  </div>
+                  <FormikFormField
+                    {...fieldProps}
+                    input={props => (
+                      <ReactSelectInput
+                        {...props}
+                        clearable={false}
+                        inputClassName="parameter-option-select"
+                        options={parameter.options.map(o => ({ label: `${o.value}`, value: o.value }))}
+                      />
+                    )}
+                  />
                 )}
-              </div>
+              </React.Fragment>
             );
           })}
         {hasRequiredParameters && (

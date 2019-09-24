@@ -387,7 +387,7 @@ export class ManualExecutionModal extends React.Component<IManualExecutionModalP
                   )}
                   {formik.values.pipeline && (
                     <div className="form-group">
-                      <div className="col-md-6 col-md-offset-4">
+                      <div className={pipelineOptions.length > 0 ? 'col-md-6 col-md-offset-4' : 'col-md-10'}>
                         <p>
                           This will start a new run of <strong>{formik.values.pipeline.name}</strong>.
                         </p>
