@@ -159,12 +159,12 @@ public class KubernetesV2ClouddriverProfileFactory extends ClouddriverProfileFac
         return secretSessionManager.decrypt(kubeconfigFile);
       }
 
+      String localPath = kubeconfigFile;
       if (CloudConfigResourceService.isCloudConfigResource(kubeconfigFile)) {
-        String localPath = cloudConfigResourceService.getLocalPath(kubeconfigFile);
-        return configFileService.getContents(localPath);
+        localPath = cloudConfigResourceService.getLocalPath(kubeconfigFile);
       }
 
-      return kubeconfigFile;
+      return configFileService.getContents(localPath);
     } catch (Exception e) {
       throw new IllegalStateException(
           "Failed to read kubeconfig file '"
