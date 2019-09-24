@@ -12,11 +12,11 @@ import com.netflix.spinnaker.keel.api.NoImageFoundForRegions
 import com.netflix.spinnaker.keel.api.NoImageSatisfiesConstraints
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
-import com.netflix.spinnaker.keel.api.ec2.ClusterLaunchConfigurationSpec
-import com.netflix.spinnaker.keel.api.ec2.ClusterLocations
-import com.netflix.spinnaker.keel.api.ec2.ClusterRegion
-import com.netflix.spinnaker.keel.api.ec2.ClusterServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ClusterRegion
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.Locations
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.IdImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ImageProvider
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
@@ -117,7 +117,7 @@ internal class ImageResolverTests : JUnit5Minutests {
       spec = ClusterSpec(
         moniker = Moniker("fnord"),
         imageProvider = imageProvider,
-        locations = ClusterLocations(
+        locations = Locations(
           accountName = account,
           regions = setOf(
             ClusterRegion(
@@ -127,8 +127,8 @@ internal class ImageResolverTests : JUnit5Minutests {
             )
           )
         ),
-        _defaults = ClusterServerGroupSpec(
-          launchConfiguration = ClusterLaunchConfigurationSpec(
+        _defaults = ServerGroupSpec(
+          launchConfiguration = LaunchConfigurationSpec(
             instanceType = "m5.large",
             ebsOptimized = true,
             iamRole = "fnordIamRole",

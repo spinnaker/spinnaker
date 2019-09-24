@@ -84,13 +84,12 @@ private fun ClusterSpec.resolveHealth(region: String): Health {
   )
 }
 
-// TODO: make the class names, etc. nicer
 data class ClusterSpec(
   override val moniker: Moniker,
   val imageProvider: ImageProvider,
-  val locations: ClusterLocations,
-  private val _defaults: ClusterServerGroupSpec,
-  val overrides: Map<String, ClusterServerGroupSpec> = emptyMap()
+  val locations: Locations,
+  private val _defaults: ServerGroupSpec,
+  val overrides: Map<String, ServerGroupSpec> = emptyMap()
 ) : Monikered, ResourceSpec {
   @JsonIgnore
   override val id = "${locations.accountName}:${moniker.name}"
@@ -102,26 +101,26 @@ data class ClusterSpec(
    * seems to overwrite it. This is a bit nasty but I think having the cluster-wide defaults at the
    * top level in the cluster spec YAML / JSON is nicer for the user.
    */
-  val defaults: ClusterServerGroupSpec
+  val defaults: ServerGroupSpec
     @JsonUnwrapped get() = _defaults
 
   @JsonCreator
   constructor(
     moniker: Moniker,
     imageProvider: ImageProvider,
-    locations: ClusterLocations,
-    launchConfiguration: ClusterLaunchConfigurationSpec?,
+    locations: Locations,
+    launchConfiguration: LaunchConfigurationSpec?,
     capacity: Capacity?,
     dependencies: Dependencies?,
-    health: ClusterHealthSpec?,
+    health: HealthSpec?,
     scaling: Scaling?,
     tags: Map<String, String>?,
-    overrides: Map<String, ClusterServerGroupSpec>
+    overrides: Map<String, ServerGroupSpec>
   ) : this(
     moniker,
     imageProvider,
     locations,
-    ClusterServerGroupSpec(
+    ServerGroupSpec(
       launchConfiguration,
       capacity,
       dependencies,
@@ -131,44 +130,44 @@ data class ClusterSpec(
     ),
     overrides
   )
+
+  data class Locations(
+    val accountName: String,
+    val regions: Set<ClusterRegion>
+  )
+
+  data class ClusterRegion(
+    val region: String,
+    val subnet: String,
+    val availabilityZones: Set<String>
+  )
+
+  data class ServerGroupSpec(
+    val launchConfiguration: LaunchConfigurationSpec? = null,
+    val capacity: Capacity? = null,
+    val dependencies: Dependencies? = null,
+    val health: HealthSpec? = null,
+    val scaling: Scaling? = null,
+    val tags: Map<String, String>? = null
+  )
+
+  data class LaunchConfigurationSpec(
+    val instanceType: String? = null,
+    val ebsOptimized: Boolean? = null,
+    val iamRole: String? = null,
+    val keyPair: String? = null,
+    val instanceMonitoring: Boolean? = null,
+    val ramdiskId: String? = null
+  )
+
+  data class HealthSpec(
+    val cooldown: Duration? = null,
+    val warmup: Duration? = null,
+    val healthCheckType: HealthCheckType? = null,
+    val enabledMetrics: Set<Metric>? = null,
+    val terminationPolicies: Set<TerminationPolicy>? = null
+  )
 }
-
-data class ClusterLocations(
-  val accountName: String,
-  val regions: Set<ClusterRegion>
-)
-
-data class ClusterRegion(
-  val region: String,
-  val subnet: String,
-  val availabilityZones: Set<String>
-)
-
-data class ClusterServerGroupSpec(
-  val launchConfiguration: ClusterLaunchConfigurationSpec? = null,
-  val capacity: Capacity? = null,
-  val dependencies: Dependencies? = null,
-  val health: ClusterHealthSpec? = null,
-  val scaling: Scaling? = null,
-  val tags: Map<String, String>? = null
-)
-
-data class ClusterLaunchConfigurationSpec(
-  val instanceType: String? = null,
-  val ebsOptimized: Boolean? = null,
-  val iamRole: String? = null,
-  val keyPair: String? = null,
-  val instanceMonitoring: Boolean? = null,
-  val ramdiskId: String? = null
-)
-
-data class ClusterHealthSpec(
-  val cooldown: Duration? = null,
-  val warmup: Duration? = null,
-  val healthCheckType: HealthCheckType? = null,
-  val enabledMetrics: Set<Metric>? = null,
-  val terminationPolicies: Set<TerminationPolicy>? = null
-)
 
 private operator fun <E> Set<E>?.plus(elements: Set<E>?): Set<E> =
   when {

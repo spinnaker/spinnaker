@@ -7,11 +7,11 @@ import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
-import com.netflix.spinnaker.keel.api.ec2.ClusterLaunchConfigurationSpec
-import com.netflix.spinnaker.keel.api.ec2.ClusterLocations
-import com.netflix.spinnaker.keel.api.ec2.ClusterRegion
-import com.netflix.spinnaker.keel.api.ec2.ClusterServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ClusterRegion
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.Locations
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.IdImageProvider
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroup
 import com.netflix.spinnaker.keel.api.ec2.resolve
@@ -78,7 +78,7 @@ internal class ArtifactPromotionListenerTests : JUnit5Minutests {
         imageProvider = IdImageProvider(
           imageId = imageId
         ),
-        locations = ClusterLocations(
+        locations = Locations(
           accountName = "test",
           regions = setOf(
             ClusterRegion(
@@ -88,8 +88,8 @@ internal class ArtifactPromotionListenerTests : JUnit5Minutests {
             )
           )
         ),
-        _defaults = ClusterServerGroupSpec(
-          launchConfiguration = ClusterLaunchConfigurationSpec(
+        _defaults = ServerGroupSpec(
+          launchConfiguration = LaunchConfigurationSpec(
             instanceType = "m4.2xlarge",
             ebsOptimized = true,
             iamRole = "fnordInstanceProfile",
@@ -107,7 +107,7 @@ internal class ArtifactPromotionListenerTests : JUnit5Minutests {
         imageProvider = ArtifactImageProvider(
           deliveryArtifact = artifact
         ),
-        locations = ClusterLocations(
+        locations = Locations(
           accountName = "test",
           regions = setOf(
             ClusterRegion(
@@ -117,8 +117,8 @@ internal class ArtifactPromotionListenerTests : JUnit5Minutests {
             )
           )
         ),
-        _defaults = ClusterServerGroupSpec(
-          launchConfiguration = ClusterLaunchConfigurationSpec(
+        _defaults = ServerGroupSpec(
+          launchConfiguration = LaunchConfigurationSpec(
             instanceType = "m4.2xlarge",
             ebsOptimized = true,
             iamRole = "fnordInstanceProfile",
@@ -129,6 +129,7 @@ internal class ArtifactPromotionListenerTests : JUnit5Minutests {
     )
 
     fun triggerEvent(resource: Resource<*>) {
+      @Suppress("IMPLICIT_CAST_TO_ANY")
       val current = when (val spec = resource.spec) {
         is SecurityGroup -> spec
         is ClusterSpec -> spec.resolve(ami.toResolvedImages())
@@ -137,10 +138,13 @@ internal class ArtifactPromotionListenerTests : JUnit5Minutests {
       subject.onDeltaResolved(ResourceDeltaResolved(resource, current))
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun NamedImage.toResolvedImages() =
       ResolvedImages(
         appVersion,
-        amis.mapValues { (_, v) -> v?.first() }.filterValues { it != null } as Map<String, String>
+        amis
+          .mapValues { (_, v) -> v?.first() }
+          .filterValues { it != null } as Map<String, String>
       )
 
     val deliveryConfig = DeliveryConfig(

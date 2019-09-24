@@ -3,6 +3,11 @@ package com.netflix.spinnaker.keel.api.ec2
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ClusterRegion
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.HealthSpec
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.Locations
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType.ELB
 import com.netflix.spinnaker.keel.ec2.resource.ResolvedImages
 import com.netflix.spinnaker.keel.model.Moniker
@@ -31,7 +36,7 @@ internal class ClusterSpecTests : JUnit5Minutests {
             stack = "test"
           ),
           imageProvider = ArtifactImageProvider(DeliveryArtifact("fnord", DEB)),
-          locations = ClusterLocations(
+          locations = Locations(
             accountName = "test",
             regions = setOf(
               ClusterRegion(
@@ -46,8 +51,8 @@ internal class ClusterSpecTests : JUnit5Minutests {
               )
             )
           ),
-          _defaults = ClusterServerGroupSpec(
-            launchConfiguration = ClusterLaunchConfigurationSpec(
+          _defaults = ServerGroupSpec(
+            launchConfiguration = LaunchConfigurationSpec(
               instanceType = "m5.large",
               ebsOptimized = true,
               iamRole = "fnordInstanceProfile",
@@ -58,13 +63,13 @@ internal class ClusterSpecTests : JUnit5Minutests {
               loadBalancerNames = setOf("fnord-internal"),
               securityGroupNames = setOf("fnord", "fnord-elb")
             ),
-            health = ClusterHealthSpec(
+            health = HealthSpec(
               warmup = Duration.ofSeconds(120)
             )
           ),
           overrides = mapOf(
-            "us-east-1" to ClusterServerGroupSpec(
-              launchConfiguration = ClusterLaunchConfigurationSpec(
+            "us-east-1" to ServerGroupSpec(
+              launchConfiguration = LaunchConfigurationSpec(
                 iamRole = "fnordEastInstanceProfile",
                 keyPair = "fnord-keypair-325719997469-us-east-1"
               ),
@@ -73,12 +78,12 @@ internal class ClusterSpecTests : JUnit5Minutests {
                 loadBalancerNames = setOf("fnord-external"),
                 securityGroupNames = setOf("fnord-ext")
               ),
-              health = ClusterHealthSpec(
+              health = HealthSpec(
                 healthCheckType = ELB
               )
             ),
-            "us-west-2" to ClusterServerGroupSpec(
-              launchConfiguration = ClusterLaunchConfigurationSpec(
+            "us-west-2" to ServerGroupSpec(
+              launchConfiguration = LaunchConfigurationSpec(
                 keyPair = "fnord-keypair-325719997469-us-west-2"
               )
             )

@@ -4,11 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.Capacity
-import com.netflix.spinnaker.keel.api.ec2.ClusterLaunchConfigurationSpec
-import com.netflix.spinnaker.keel.api.ec2.ClusterLocations
-import com.netflix.spinnaker.keel.api.ec2.ClusterRegion
-import com.netflix.spinnaker.keel.api.ec2.ClusterServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ClusterRegion
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.Locations
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.Dependencies
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
 import com.netflix.spinnaker.keel.api.ec2.IdImageProvider
@@ -81,7 +81,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
   val spec = ClusterSpec(
     moniker = Moniker(app = "keel", stack = "test"),
     imageProvider = IdImageProvider(imageId = "i-123543254134"),
-    locations = ClusterLocations(
+    locations = Locations(
       accountName = vpcWest.account,
       regions = listOf(vpcWest, vpcEast).map { subnet ->
         ClusterRegion(
@@ -91,8 +91,8 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         )
       }.toSet()
     ),
-    _defaults = ClusterServerGroupSpec(
-      launchConfiguration = ClusterLaunchConfigurationSpec(
+    _defaults = ServerGroupSpec(
+      launchConfiguration = LaunchConfigurationSpec(
         instanceType = "r4.8xlarge",
         ebsOptimized = false,
         iamRole = "keelRole",

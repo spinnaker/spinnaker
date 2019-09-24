@@ -7,8 +7,8 @@ import com.netflix.spinnaker.keel.api.NoImageSatisfiesConstraints
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.UnsupportedStrategy
 import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
-import com.netflix.spinnaker.keel.api.ec2.ClusterRegion
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ClusterRegion
 import com.netflix.spinnaker.keel.api.ec2.IdImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ImageProvider
 import com.netflix.spinnaker.keel.api.ec2.JenkinsImageProvider
