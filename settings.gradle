@@ -33,6 +33,7 @@ include(
   "kork-proto",
   "kork-secrets",
   "kork-secrets-aws",
+  "kork-secrets-gcp",
   "kork-security",
   "kork-sql",
   "kork-sql-test",
