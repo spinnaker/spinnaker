@@ -16,19 +16,19 @@
             <a href>All</a>
           </label>
           <label class="btn btn-sm btn-default" ng-model="viewState.taskStateFilter" uib-btn-radio="'NOT_STARTED'">
-            <a href><status-glyph item="{hasNotStarted: true}"></status-glyph> Not Started</a>
+            <a href> <status-glyph item="{hasNotStarted: true}"></status-glyph> Not Started </a>
           </label>
           <label class="btn btn-sm btn-default" ng-model="viewState.taskStateFilter" uib-btn-radio="'RUNNING'">
-            <a href><status-glyph item="{isRunning: true}"></status-glyph> Running</a>
+            <a href> <status-glyph item="{isRunning: true}"></status-glyph> Running </a>
           </label>
           <label class="btn btn-sm btn-default" ng-model="viewState.taskStateFilter" uib-btn-radio="'SUCCEEDED'">
-            <a href><status-glyph item="{isCompleted: true}"></status-glyph> Succeeded</a>
+            <a href> <status-glyph item="{isCompleted: true}"></status-glyph> Succeeded </a>
           </label>
           <label class="btn btn-sm btn-default" ng-model="viewState.taskStateFilter" uib-btn-radio="'TERMINAL'">
-            <a href><status-glyph item="{isFailed: true}"></status-glyph> Terminal</a>
+            <a href> <status-glyph item="{isFailed: true}"></status-glyph> Terminal </a>
           </label>
           <label class="btn btn-sm btn-default" ng-model="viewState.taskStateFilter" uib-btn-radio="'CANCELED'">
-            <a href><status-glyph item="{isCanceled: true}"></status-glyph> Canceled</a>
+            <a href> <status-glyph item="{isCanceled: true}"></status-glyph> Canceled </a>
           </label>
         </div>
       </div>
@@ -139,10 +139,10 @@
                 {{ task.endTime | timestamp }}
               </td>
               <td>
-                <span ng-if="!task.isCanceled">
+                <span ng-if="task.runningTimeInMs">
                   {{ task.runningTimeInMs | duration }}
                 </span>
-                <span ng-if="task.isCanceled">
+                <span ng-if="!task.runningTimeInMs">
                   -
                 </span>
               </td>
