@@ -18,6 +18,7 @@ package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.kork.jedis.JedisDriverProperties
 import com.netflix.spinnaker.orca.q.QueueShovel
 import com.netflix.spinnaker.q.Activator
 import com.netflix.spinnaker.q.metrics.EventPublisher
@@ -26,17 +27,18 @@ import com.netflix.spinnaker.q.redis.AbstractRedisQueue
 import com.netflix.spinnaker.q.redis.RedisClusterQueue
 import com.netflix.spinnaker.q.redis.RedisQueue
 import com.netflix.spinnaker.q.sql.SqlQueue
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import org.jooq.DSLContext
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisCluster
-import redis.clients.util.Pool
 import java.time.Clock
 import java.util.Optional
+import com.netflix.spinnaker.kork.jedis.JedisPoolFactory
 
 @Configuration
 @EnableConfigurationProperties(RedisQueueProperties::class, SqlQueueProperties::class)
@@ -47,8 +49,10 @@ class SqlRedisQueueShovelConfiguration {
   @ConditionalOnBean(SqlQueue::class)
   @ConditionalOnProperty(value = ["redis.cluster-enabled"], havingValue = "false", matchIfMissing = true)
   fun redisToSqlQueueShovel(
+    @Value("\${redis.connection:redis://localhost:6379}") mainConnection: String,
+    @Value("\${redis.timeout:2000}") timeout: Int,
+    redisPoolConfig: GenericObjectPoolConfig<*>,
     queue: SqlQueue,
-    jedisPool: Pool<Jedis>,
     clock: Clock,
     publisher: EventPublisher,
     mapper: ObjectMapper,
@@ -57,6 +61,15 @@ class SqlRedisQueueShovelConfiguration {
     registry: Registry,
     discoveryActivator: Activator
   ): QueueShovel {
+    val jedisPool = JedisPoolFactory(registry).build(
+      "previousQueue",
+      JedisDriverProperties().apply {
+        connection = mainConnection
+        timeoutMs = timeout
+        poolConfig = redisPoolConfig
+      },
+      redisPoolConfig)
+
     val previousQueue = RedisQueue(
       queueName = redisQueueProperties.queueName,
       pool = jedisPool,

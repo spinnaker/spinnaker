@@ -7,6 +7,7 @@ dependencies {
   implementation(project(":orca-core"))
   implementation(project(":orca-queue"))
   api("com.netflix.spinnaker.kork:kork-sql")
+  api("com.netflix.spinnaker.kork:kork-jedis")
   api("com.netflix.spinnaker.keiko:keiko-sql:$keikoVersion")
   implementation(project(":orca-sql"))
   implementation("com.netflix.spinnaker.keiko:keiko-redis-spring:$keikoVersion")
