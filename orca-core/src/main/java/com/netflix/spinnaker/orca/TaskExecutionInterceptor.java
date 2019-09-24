@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca;
 
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import java.util.concurrent.TimeUnit;
 
 /**
  * TaskExecutionInterceptor is a hook point to customize the specific execution of a task.
@@ -37,7 +38,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage;
 public interface TaskExecutionInterceptor {
 
   default long maxTaskBackoff() {
-    return Long.MAX_VALUE;
+    return TimeUnit.MINUTES.toMillis(2);
   }
 
   default Stage beforeTaskExecution(Task task, Stage stage) {
