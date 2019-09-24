@@ -55,8 +55,8 @@ internal class ResourceTaggerTests : JUnit5Minutests {
   private val cloudDriverService = mockk<CloudDriverService>()
   private val clock = MutableClock()
 
-  private val clusterId = ResourceId("ec2:cluster:test:ap-south-1:keel")
-  private val clusterTagId = ResourceId("$KEEL_TAG_ID_PREFIX:ec2:cluster:test:ap-south-1:keel")
+  private val clusterId = ResourceId("ec2:cluster:test:keel")
+  private val clusterTagId = ResourceId("$KEEL_TAG_ID_PREFIX:ec2:cluster:test:keel")
 
   private val accounts: Set<Credential> = setOf(
     Credential(
@@ -72,7 +72,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
   private val rCluster = resource(
     apiVersion = SPINNAKER_API_V1.subApi("ec2"),
     kind = "cluster",
-    id = "test:ap-south-1:keel"
+    id = "test:keel"
   )
 
   private val rClusterTag = resource(
@@ -80,7 +80,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
     kind = "keel-tag",
     spec = KeelTagSpec(
       keelId = clusterId,
-      entityRef = EntityRef("cluster", "keel", "keel", "ap-south-1", "test", "1234", "aws"),
+      entityRef = EntityRef("cluster", "keel", "keel", "*", "test", "1234", "aws"),
       tagState = TagDesired(tag = EntityTag(
         value = TagValue(
           message = KEEL_TAG_MESSAGE,
@@ -99,7 +99,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
     kind = "keel-tag",
     spec = KeelTagSpec(
       clusterId,
-      EntityRef("cluster", "keel", "keel", "ap-south-1", "test", "1234", "aws"),
+      EntityRef("cluster", "keel", "keel", "*", "test", "1234", "aws"),
       TagNotDesired(clock.millis())
     )
   )
@@ -249,7 +249,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
         onCreateEvent(ResourceCreated(
           apiVersion = SPINNAKER_API_V1.subApi("ec2"),
           kind = "cluster",
-          id = "ec2:cluster:test:us-west-2:keeldemo-test",
+          id = "ec2:cluster:test:keeldemo-test",
           application = "keel",
           timestamp = clock.instant()
         ))

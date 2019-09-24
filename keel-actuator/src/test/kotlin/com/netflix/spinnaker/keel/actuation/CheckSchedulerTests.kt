@@ -29,7 +29,7 @@ internal object CheckSchedulerTests : JUnit5Minutests {
       kind = "security-group"
     ),
     ResourceHeader(
-      id = ResourceId("ec2:cluster:prod:ap-south-1:keel"),
+      id = ResourceId("ec2:cluster:prod:keel"),
       apiVersion = SPINNAKER_API_V1.subApi("ec2"),
       kind = "cluster"
     )

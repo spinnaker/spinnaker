@@ -186,7 +186,7 @@ class ResourceTagger(
   }
 
   private fun ResourceId.toEntityRef(): EntityRef {
-    val (pluginGroup, resourceType, account, region, resourceId) = toString().toLowerCase().split(":")
+    val (plugin, kind, account, suffix) = toString().toLowerCase().split(":")
     val accountId = try {
       val fullAccount = accounts.first { a -> a.name == account }
       fullAccount.attributes.getOrDefault("accountId", account).toString()
@@ -195,14 +195,20 @@ class ResourceTagger(
       account
     }
 
+    val (region, resourceId) = if (suffix.contains(":")) {
+      suffix.split(":", limit = 2).toList()
+    } else {
+      listOf("*", suffix)
+    }
+
     return EntityRef(
-      entityType = entityTypeTransforms.getOrDefault(resourceType, resourceType),
+      entityType = entityTypeTransforms.getOrDefault(kind, kind),
       entityId = resourceId,
       application = resourceId.substringBefore("-"),
       region = region,
       account = account,
       accountId = accountId,
-      cloudProvider = transforms.getOrDefault(pluginGroup, pluginGroup)
+      cloudProvider = transforms.getOrDefault(plugin, plugin)
     )
   }
 }

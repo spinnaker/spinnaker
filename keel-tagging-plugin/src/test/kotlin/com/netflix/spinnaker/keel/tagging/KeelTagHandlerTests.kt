@@ -62,7 +62,7 @@ internal class KeelTagHandlerTests : JUnit5Minutests {
 
   val clock = MutableClock()
 
-  val keelId = ResourceId("ec2:cluster:test:us-west-1:emburnstest-managed-reference")
+  val keelId = ResourceId("ec2:cluster:test:emburnstest-managed-reference")
   val entityRef = EntityRef(
     entityType = "servergroup",
     entityId = "emburnstest-managed-reference-v005",

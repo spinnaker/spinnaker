@@ -28,7 +28,7 @@ internal class TelemetryListenerTests : JUnit5Minutests {
   private val event = ResourceValid(
     apiVersion = SPINNAKER_API_V1.subApi("ec2"),
     kind = "cluster",
-    id = "ec2:cluster:prod:ap-south-1:keel-main",
+    id = "ec2:cluster:prod:keel-main",
     application = "fnord",
     timestamp = Instant.now()
   )
