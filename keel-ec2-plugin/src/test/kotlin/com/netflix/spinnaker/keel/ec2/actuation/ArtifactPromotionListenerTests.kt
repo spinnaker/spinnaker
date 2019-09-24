@@ -6,15 +6,18 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.api.ec2.ServerGroupSpec
-import com.netflix.spinnaker.keel.api.ec2.ServerGroup
-import com.netflix.spinnaker.keel.api.ec2.LaunchConfiguration
-import com.netflix.spinnaker.keel.api.ec2.LaunchConfigurationSpec
-import com.netflix.spinnaker.keel.api.ec2.Location
 import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
+import com.netflix.spinnaker.keel.api.ec2.ClusterLaunchConfigurationSpec
+import com.netflix.spinnaker.keel.api.ec2.ClusterLocations
+import com.netflix.spinnaker.keel.api.ec2.ClusterRegion
+import com.netflix.spinnaker.keel.api.ec2.ClusterServerGroupSpec
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.IdImageProvider
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroup
+import com.netflix.spinnaker.keel.api.ec2.resolve
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
+import com.netflix.spinnaker.keel.clouddriver.model.appVersion
+import com.netflix.spinnaker.keel.ec2.resource.ResolvedImages
 import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
@@ -70,17 +73,28 @@ internal class ArtifactPromotionListenerTests : JUnit5Minutests {
     val nonArtifactCluster = resource(
       apiVersion = SPINNAKER_API_V1.subApi("ec2"),
       kind = "cluster",
-      spec = ServerGroupSpec(
+      spec = ClusterSpec(
         moniker = Moniker("fnord", "api"),
-        location = Location("test", "ap-south-1", "internal (vpc0)", setOf("ap-south1-a", "ap-south1-b", "ap-south1-c")),
-        launchConfiguration = LaunchConfigurationSpec(
-          imageProvider = IdImageProvider(
-            imageId = imageId
-          ),
-          instanceType = "m4.2xlarge",
-          ebsOptimized = true,
-          iamRole = "fnordInstanceProfile",
-          keyPair = "fnordKeyPair"
+        imageProvider = IdImageProvider(
+          imageId = imageId
+        ),
+        locations = ClusterLocations(
+          accountName = "test",
+          regions = setOf(
+            ClusterRegion(
+              region = "ap-south-1",
+              subnet = "internal (vpc0)",
+              availabilityZones = setOf("ap-south1-a", "ap-south1-b", "ap-south1-c")
+            )
+          )
+        ),
+        _defaults = ClusterServerGroupSpec(
+          launchConfiguration = ClusterLaunchConfigurationSpec(
+            instanceType = "m4.2xlarge",
+            ebsOptimized = true,
+            iamRole = "fnordInstanceProfile",
+            keyPair = "fnordKeyPair"
+          )
         )
       )
     )
@@ -88,42 +102,46 @@ internal class ArtifactPromotionListenerTests : JUnit5Minutests {
     val artifactCluster = resource(
       apiVersion = SPINNAKER_API_V1.subApi("ec2"),
       kind = "cluster",
-      spec = ServerGroupSpec(
+      spec = ClusterSpec(
         moniker = Moniker("fnord", "api"),
-        location = Location("test", "ap-south-1", "internal (vpc0)", setOf("ap-south1-a", "ap-south1-b", "ap-south1-c")),
-        launchConfiguration = LaunchConfigurationSpec(
-          imageProvider = ArtifactImageProvider(
-            deliveryArtifact = artifact
-          ),
-          instanceType = "m4.2xlarge",
-          ebsOptimized = true,
-          iamRole = "fnordInstanceProfile",
-          keyPair = "fnordKeyPair"
+        imageProvider = ArtifactImageProvider(
+          deliveryArtifact = artifact
+        ),
+        locations = ClusterLocations(
+          accountName = "test",
+          regions = setOf(
+            ClusterRegion(
+              region = "ap-south-1",
+              subnet = "internal (vpc0)",
+              availabilityZones = setOf("ap-south1-a", "ap-south1-b", "ap-south1-c")
+            )
+          )
+        ),
+        _defaults = ClusterServerGroupSpec(
+          launchConfiguration = ClusterLaunchConfigurationSpec(
+            instanceType = "m4.2xlarge",
+            ebsOptimized = true,
+            iamRole = "fnordInstanceProfile",
+            keyPair = "fnordKeyPair"
+          )
         )
-      )
-    )
-
-    private fun ServerGroupSpec.toCurrent() = ServerGroup(
-      moniker,
-      location,
-      LaunchConfiguration(
-        imageId,
-        appVersion,
-        launchConfiguration.instanceType,
-        launchConfiguration.ebsOptimized,
-        launchConfiguration.iamRole,
-        launchConfiguration.keyPair
       )
     )
 
     fun triggerEvent(resource: Resource<*>) {
       val current = when (val spec = resource.spec) {
         is SecurityGroup -> spec
-        is ServerGroupSpec -> spec.toCurrent()
+        is ClusterSpec -> spec.resolve(ami.toResolvedImages())
         else -> error("Unsupported spec type ${spec.javaClass.simpleName}")
       }
       subject.onDeltaResolved(ResourceDeltaResolved(resource, current))
     }
+
+    private fun NamedImage.toResolvedImages() =
+      ResolvedImages(
+        appVersion,
+        amis.mapValues { (_, v) -> v?.first() }.filterValues { it != null } as Map<String, String>
+      )
 
     val deliveryConfig = DeliveryConfig(
       name = "manifest",

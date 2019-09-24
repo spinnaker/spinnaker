@@ -18,8 +18,8 @@
 package com.netflix.spinnaker.keel.ec2.image
 
 import com.netflix.spinnaker.keel.api.ResourceId
-import com.netflix.spinnaker.keel.api.ec2.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.appVersion
@@ -48,10 +48,10 @@ class CurrentlyDeployedImageApprover(
       val deliveryConfig = deliveryConfigRepository.deliveryConfigFor(resourceId)
       val env = deliveryConfigRepository.environmentFor(resourceId)
 
-      if (resource.spec is ServerGroupSpec && deliveryConfig != null && env != null) {
-        val spec = resource.spec as ServerGroupSpec // needed because kotlin can't cast it automatically
-        if (spec.launchConfiguration.imageProvider is ArtifactImageProvider) {
-          val artifact = spec.launchConfiguration.imageProvider.deliveryArtifact
+      if (resource.spec is ClusterSpec && deliveryConfig != null && env != null) {
+        val spec = resource.spec as ClusterSpec // needed because kotlin can't cast it automatically
+        if (spec.imageProvider is ArtifactImageProvider) {
+          val artifact = spec.imageProvider.deliveryArtifact
           val image = cloudDriverService.namedImages(resource.serviceAccount, event.imageId, null).first()
           val appversion = image.appVersion
 

@@ -22,10 +22,12 @@ import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.api.ec2.ServerGroupSpec
-import com.netflix.spinnaker.keel.api.ec2.LaunchConfigurationSpec
-import com.netflix.spinnaker.keel.api.ec2.Location
 import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
+import com.netflix.spinnaker.keel.api.ec2.ClusterLaunchConfigurationSpec
+import com.netflix.spinnaker.keel.api.ec2.ClusterLocations
+import com.netflix.spinnaker.keel.api.ec2.ClusterRegion
+import com.netflix.spinnaker.keel.api.ec2.ClusterServerGroupSpec
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.IdImageProvider
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
@@ -73,15 +75,26 @@ internal class CurrentlyDeployedImageApproverTests : JUnit5Minutests {
     val nonArtifactCluster = resource(
       apiVersion = SPINNAKER_API_V1.subApi("ec2"),
       kind = "cluster",
-      spec = ServerGroupSpec(
+      spec = ClusterSpec(
         moniker = Moniker("fnord", "api"),
-        location = Location("test", "ap-south-1", "internal (vpc0)", setOf("ap-south1-a", "ap-south1-b", "ap-south1-c")),
-        launchConfiguration = LaunchConfigurationSpec(
-          imageProvider = IdImageProvider(imageId = imageId),
-          instanceType = "m4.2xlarge",
-          ebsOptimized = true,
-          iamRole = "fnordInstanceProfile",
-          keyPair = "fnordKeyPair"
+        imageProvider = IdImageProvider(imageId = imageId),
+        locations = ClusterLocations(
+          accountName = "test",
+          regions = setOf(
+            ClusterRegion(
+              region = "ap-south-1",
+              subnet = "internal (vpc0)",
+              availabilityZones = setOf("ap-south1-a", "ap-south1-b", "ap-south1-c")
+            )
+          )
+        ),
+        _defaults = ClusterServerGroupSpec(
+          launchConfiguration = ClusterLaunchConfigurationSpec(
+            instanceType = "m4.2xlarge",
+            ebsOptimized = true,
+            iamRole = "fnordInstanceProfile",
+            keyPair = "fnordKeyPair"
+          )
         )
       )
     )
@@ -89,15 +102,26 @@ internal class CurrentlyDeployedImageApproverTests : JUnit5Minutests {
     val artifactCluster = resource(
       apiVersion = SPINNAKER_API_V1.subApi("ec2"),
       kind = "cluster",
-      spec = ServerGroupSpec(
+      spec = ClusterSpec(
         moniker = Moniker("fnord", "api"),
-        location = Location("test", "ap-south-1", "internal (vpc0)", setOf("ap-south1-a", "ap-south1-b", "ap-south1-c")),
-        launchConfiguration = LaunchConfigurationSpec(
-          imageProvider = ArtifactImageProvider(deliveryArtifact = artifact),
-          instanceType = "m4.2xlarge",
-          ebsOptimized = true,
-          iamRole = "fnordInstanceProfile",
-          keyPair = "fnordKeyPair"
+        imageProvider = ArtifactImageProvider(deliveryArtifact = artifact),
+        locations = ClusterLocations(
+          accountName = "test",
+          regions = setOf(
+            ClusterRegion(
+              region = "ap-south-1",
+              subnet = "internal (vpc0)",
+              availabilityZones = setOf("ap-south1-a", "ap-south1-b", "ap-south1-c")
+            )
+          )
+        ),
+        _defaults = ClusterServerGroupSpec(
+          launchConfiguration = ClusterLaunchConfigurationSpec(
+            instanceType = "m4.2xlarge",
+            ebsOptimized = true,
+            iamRole = "fnordInstanceProfile",
+            keyPair = "fnordKeyPair"
+          )
         )
       )
     )
