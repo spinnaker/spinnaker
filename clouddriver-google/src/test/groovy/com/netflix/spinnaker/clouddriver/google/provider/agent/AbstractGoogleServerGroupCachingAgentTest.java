@@ -320,6 +320,50 @@ class AbstractGoogleServerGroupCachingAgentTest {
   }
 
   @Test
+  void minimalBuildInfo() {
+    InstanceGroupManager instanceGroupManager =
+        new InstanceGroupManager()
+            .setInstanceTemplate("http://compute/global/instanceTemplates/myInstanceTemplate")
+            .setZone(ZONE_URL);
+    InstanceTemplate instanceTemplate =
+        new InstanceTemplate()
+            .setName("myInstanceTemplate")
+            .setProperties(
+                new InstanceProperties()
+                    .setDisks(
+                        ImmutableList.of(
+                            new AttachedDisk()
+                                .setBoot(true)
+                                .setInitializeParams(
+                                    new AttachedDiskInitializeParams()
+                                        .setSourceImage("http://compute/global/images/myImage")))));
+
+    DefaultProviderCache providerCache = inMemoryProviderCache();
+    providerCache.putCacheData(
+        IMAGES.getNs(),
+        new DefaultCacheData(
+            Keys.getImageKey(ACCOUNT_NAME, "myImage"),
+            ImmutableMap.of(
+                "image", ImmutableMap.of("description", "appversion: myapp-1.0.0-h123")),
+            ImmutableMap.of()));
+
+    Compute compute =
+        new StubComputeFactory()
+            .setInstanceGroupManagers(instanceGroupManager)
+            .setInstanceTemplates(instanceTemplate)
+            .create();
+    AbstractGoogleServerGroupCachingAgent cachingAgent =
+        createCachingAgent(compute, ImmutableList.of(instanceGroupManager));
+
+    CacheResult cacheResult = cachingAgent.loadData(providerCache);
+
+    GoogleServerGroup serverGroup = getOnlyServerGroup(cacheResult);
+
+    assertThat(serverGroup.getBuildInfo())
+        .containsOnly(entry("package_name", "myapp"), entry("version", "1.0.0"));
+  }
+
+  @Test
   void serverGroupPropertiesFromInstances() {
     InstanceGroupManager instanceGroupManager =
         new InstanceGroupManager().setBaseInstanceName("myServerGroup-").setZone(ZONE_URL);
