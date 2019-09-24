@@ -3,7 +3,7 @@ import * as React from 'react';
 import { Formik, Form } from 'formik';
 import { Modal } from 'react-bootstrap';
 import { Observable, Subject } from 'rxjs';
-import { assign, clone, compact, extend, get, head, uniq, isArray, pickBy } from 'lodash';
+import { assign, clone, compact, extend, get, head, uniq, isArray, isEmpty, pickBy } from 'lodash';
 
 import { SubmitButton, ModalClose } from 'core/modal';
 import { Application } from 'core/application';
@@ -23,6 +23,7 @@ import {
   IParameter,
   IPipeline,
   IPipelineCommand,
+  IPipelineTrigger,
   IStage,
   ITrigger,
 } from 'core/domain';
@@ -92,17 +93,39 @@ export class ManualExecutionModal extends React.Component<IManualExecutionModalP
     };
   }
 
+  private static getPipelineTriggers(pipeline: IPipeline, trigger: IExecutionTrigger): ITrigger[] {
+    if (!isEmpty(pipeline.triggers)) {
+      return pipeline.triggers;
+    }
+
+    /**
+     * If Pipeline B runs as a stage of Pipeline A, we want manual
+     * re-runs to behave as though Pipeline B were triggered by Pipeline A,
+     * so that artifacts from the prior execution are passed to the re-run
+     * as expected, so we shim the trigger.
+     */
+    if (trigger && trigger.type === 'pipeline' && trigger.parentPipelineStageId) {
+      return [
+        {
+          enabled: true,
+          parentExecution: trigger.parentExecution,
+          type: trigger.type,
+        } as IPipelineTrigger,
+      ];
+    }
+
+    return [];
+  }
+
   public componentDidMount() {
     const { application, pipeline, trigger } = this.props;
     let pipelineOptions = [];
     let pipelineNotifications: INotification[] = [];
-    let triggers: ITrigger[] = [];
     if (pipeline) {
       pipelineNotifications = pipeline.notifications || [];
-      if (pipeline.triggers) {
-        triggers = this.formatTriggers(pipeline.triggers);
-        this.updateTriggerOptions(triggers);
-      }
+      const pipelineTriggers = ManualExecutionModal.getPipelineTriggers(pipeline, trigger);
+      const triggers = this.formatTriggers(pipelineTriggers);
+      this.updateTriggerOptions(triggers);
     } else {
       pipelineOptions = application.pipelineConfigs.data.filter(
         (c: any) => !c.disabled && PipelineTemplateV2Service.isConfigurable(c),
@@ -406,7 +429,7 @@ export class ManualExecutionModal extends React.Component<IManualExecutionModalP
                       }}
                     />
                   )}
-                  {formik.values.trigger && formik.values.trigger.artifacts && (
+                  {!isEmpty(get(formik.values, 'trigger.artifacts')) && (
                     <div className="form-group">
                       <label className="col-md-4 sm-label-right">Artifacts</label>
                       <div className="col-md-8">

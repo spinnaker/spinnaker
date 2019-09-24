@@ -10,6 +10,7 @@ export interface IExecutionTrigger extends ITrigger {
   parentExecution?: IExecution;
   parentPipelineApplication?: string;
   parentPipelineId?: string;
+  parentPipelineStageId?: string;
   parentPipelineName?: string;
   type: string;
   user: string;
