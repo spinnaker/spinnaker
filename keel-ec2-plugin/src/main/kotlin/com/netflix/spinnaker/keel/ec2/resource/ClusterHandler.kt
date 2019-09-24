@@ -82,35 +82,39 @@ class ClusterHandler(
     resource: Resource<ClusterSpec>,
     resourceDiff: ResourceDiff<Set<ServerGroup>>
   ): List<Task> =
-    resourceDiff
-      .toIndividualDiffs()
-      .filter { diff -> diff.hasChanges() }
-      .map { diff ->
-        val spec = diff.desired
-        val job = when {
-          diff.isCapacityOnly() -> spec.resizeServerGroupJob(resource.serviceAccount)
-          else -> spec.createServerGroupJob(resource.serviceAccount)
-        }
-
-        log.info("Upserting server group using task: {}", job)
-        val description = "Upsert server group ${spec.moniker.name} in ${spec.location.accountName}/${spec.location.region}"
-
-        // TODO: this needs to be done async
-        orcaService
-          .orchestrate(
-            resource.serviceAccount,
-            OrchestrationRequest(
-              description,
-              spec.moniker.app,
-              description,
-              listOf(Job(job["type"].toString(), job)),
-              OrchestrationTrigger(resource.id.toString())
-            ))
-          .let {
-            log.info("Started task {} to upsert server group", it.ref)
-            Task(id = it.taskId, name = description)
+    coroutineScope {
+      resourceDiff
+        .toIndividualDiffs()
+        .filter { diff -> diff.hasChanges() }
+        .map { diff ->
+          val spec = diff.desired
+          val job = when {
+            diff.isCapacityOnly() -> spec.resizeServerGroupJob(resource.serviceAccount)
+            else -> spec.createServerGroupJob(resource.serviceAccount)
           }
-      }
+
+          log.info("Upserting server group using task: {}", job)
+          val description = "Upsert server group ${spec.moniker.name} in ${spec.location.accountName}/${spec.location.region}"
+
+          async {
+            orcaService
+              .orchestrate(
+                resource.serviceAccount,
+                OrchestrationRequest(
+                  description,
+                  spec.moniker.app,
+                  description,
+                  listOf(Job(job["type"].toString(), job)),
+                  OrchestrationTrigger(resource.id.toString())
+                ))
+              .let {
+                log.info("Started task {} to upsert server group", it.ref)
+                Task(id = it.taskId, name = description)
+              }
+          }
+        }
+        .map { it.await() }
+    }
 
   private fun ResourceDiff<Set<ServerGroup>>.toIndividualDiffs() =
     desired
