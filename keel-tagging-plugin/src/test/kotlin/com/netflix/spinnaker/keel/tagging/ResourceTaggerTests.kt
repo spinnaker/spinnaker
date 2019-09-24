@@ -55,8 +55,8 @@ internal class ResourceTaggerTests : JUnit5Minutests {
   private val cloudDriverService = mockk<CloudDriverService>()
   private val clock = MutableClock()
 
-  private val serverGroupId = ResourceId("ec2:server-group:test:ap-south-1:keel")
-  private val serverGroupTagId = ResourceId("$KEEL_TAG_ID_PREFIX:ec2:server-group:test:ap-south-1:keel")
+  private val clusterId = ResourceId("ec2:cluster:test:ap-south-1:keel")
+  private val clusterTagId = ResourceId("$KEEL_TAG_ID_PREFIX:ec2:cluster:test:ap-south-1:keel")
 
   private val accounts: Set<Credential> = setOf(
     Credential(
@@ -69,22 +69,22 @@ internal class ResourceTaggerTests : JUnit5Minutests {
     )
   )
 
-  private val rServerGroup = resource(
+  private val rCluster = resource(
     apiVersion = SPINNAKER_API_V1.subApi("ec2"),
-    kind = "server-group",
+    kind = "cluster",
     id = "test:ap-south-1:keel"
   )
 
-  private val rServerGroupTag = resource(
+  private val rClusterTag = resource(
     apiVersion = SPINNAKER_API_V1.subApi("tag"),
     kind = "keel-tag",
     spec = KeelTagSpec(
-      keelId = serverGroupId,
-      entityRef = EntityRef("server-group", "keel", "keel", "ap-south-1", "test", "1234", "aws"),
+      keelId = clusterId,
+      entityRef = EntityRef("cluster", "keel", "keel", "ap-south-1", "test", "1234", "aws"),
       tagState = TagDesired(tag = EntityTag(
         value = TagValue(
           message = KEEL_TAG_MESSAGE,
-          keelResourceId = serverGroupId.toString(),
+          keelResourceId = clusterId.toString(),
           type = "notice"
         ),
         namespace = KEEL_TAG_NAMESPACE,
@@ -94,12 +94,12 @@ internal class ResourceTaggerTests : JUnit5Minutests {
     )
   )
 
-  private val rServerGroupTagNotDesired = resource(
+  private val rClusterTagNotDesired = resource(
     apiVersion = SPINNAKER_API_V1.subApi("tag"),
     kind = "keel-tag",
     spec = KeelTagSpec(
-      serverGroupId,
-      EntityRef("server-group", "keel", "keel", "ap-south-1", "test", "1234", "aws"),
+      clusterId,
+      EntityRef("cluster", "keel", "keel", "ap-south-1", "test", "1234", "aws"),
       TagNotDesired(clock.millis())
     )
   )
@@ -119,34 +119,34 @@ internal class ResourceTaggerTests : JUnit5Minutests {
       cloudDriverService.listCredentials()
     } returns accounts
 
-    context("server group created") {
+    context("cluster created") {
       before {
-        resourceRepository.store(rServerGroup)
+        resourceRepository.store(rCluster)
       }
 
       after {
         resourceRepository.dropAll()
       }
 
-      test("server group is tagged") {
-        onCreateEvent(ResourceCreated(rServerGroup))
+      test("cluster is tagged") {
+        onCreateEvent(ResourceCreated(rCluster))
         verify { resourcePersister.create<DummyResourceSpec>(any()) }
       }
     }
 
-    context("server group deleted") {
+    context("cluster deleted") {
       before {
-        resourceRepository.store(rServerGroup)
-        resourceRepository.store(rServerGroupTag)
+        resourceRepository.store(rCluster)
+        resourceRepository.store(rClusterTag)
       }
 
       every {
-        resourcePersister.update<DummyResourceSpec>(serverGroupTagId, any())
+        resourcePersister.update<DummyResourceSpec>(clusterTagId, any())
       } answers {
         Resource(
           secondArg(),
           mapOf(
-            "id" to serverGroupTagId.value,
+            "id" to clusterTagId.value,
             "uid" to randomUID(),
             "serviceAccount" to "keel@spinnaker",
             "application" to "keel"
@@ -158,21 +158,21 @@ internal class ResourceTaggerTests : JUnit5Minutests {
         resourceRepository.dropAll()
       }
 
-      test("removes server group tag on delete") {
-        onDeleteEvent(ResourceDeleted(rServerGroup, clock))
+      test("removes cluster tag on delete") {
+        onDeleteEvent(ResourceDeleted(rCluster, clock))
 
-        verify { resourcePersister.update<DummyResourceSpec>(serverGroupTagId, any()) }
+        verify { resourcePersister.update<DummyResourceSpec>(clusterTagId, any()) }
       }
     }
 
     context("tags exist") {
       before {
-        resourceRepository.store(rServerGroupTagNotDesired)
+        resourceRepository.store(rClusterTagNotDesired)
       }
 
       every {
-        resourcePersister.delete(rServerGroupTagNotDesired.id)
-      } returns rServerGroupTagNotDesired
+        resourcePersister.delete(rClusterTagNotDesired.id)
+      } returns rClusterTagNotDesired
 
       after {
         resourceRepository.dropAll()
@@ -181,14 +181,14 @@ internal class ResourceTaggerTests : JUnit5Minutests {
       test("they're not removed if they're new") {
         removeTags()
 
-        verify { resourcePersister.delete(rServerGroupTagNotDesired.id) wasNot Called }
+        verify { resourcePersister.delete(rClusterTagNotDesired.id) wasNot Called }
       }
 
       test("they're removed if they're old") {
         clock.incrementBy(Duration.ofMinutes(61))
         removeTags()
 
-        verify { resourcePersister.delete(rServerGroupTagNotDesired.id) }
+        verify { resourcePersister.delete(rClusterTagNotDesired.id) }
       }
     }
 
@@ -208,7 +208,7 @@ internal class ResourceTaggerTests : JUnit5Minutests {
         verify { resourcePersister.create<DummyResourceSpec>(any()) wasNot Called }
       }
       test("we don't tag tags") {
-        onCreateEvent(ResourceCreated(rServerGroupTag))
+        onCreateEvent(ResourceCreated(rClusterTag))
         verify { resourcePersister.create<DummyResourceSpec>(any()) wasNot Called }
       }
 
@@ -245,11 +245,11 @@ internal class ResourceTaggerTests : JUnit5Minutests {
         verify { resourcePersister.create<DummyResourceSpec>(any()) }
       }
 
-      test("we tag server groups") {
+      test("we tag clusters") {
         onCreateEvent(ResourceCreated(
           apiVersion = SPINNAKER_API_V1.subApi("ec2"),
-          kind = "server-group",
-          id = "ec2:server-group:test:us-west-2:keeldemo-test",
+          kind = "cluster",
+          id = "ec2:cluster:test:us-west-2:keeldemo-test",
           application = "keel",
           timestamp = clock.instant()
         ))

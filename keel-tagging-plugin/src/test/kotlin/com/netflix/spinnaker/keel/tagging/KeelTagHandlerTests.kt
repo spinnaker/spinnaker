@@ -62,7 +62,7 @@ internal class KeelTagHandlerTests : JUnit5Minutests {
 
   val clock = MutableClock()
 
-  val keelId = ResourceId("ec2:server-group:test:us-west-1:emburnstest-managed-reference")
+  val keelId = ResourceId("ec2:cluster:test:us-west-1:emburnstest-managed-reference")
   val entityRef = EntityRef(
     entityType = "servergroup",
     entityId = "emburnstest-managed-reference-v005",
@@ -148,7 +148,7 @@ internal class KeelTagHandlerTests : JUnit5Minutests {
       confirmVerified(orcaService)
     }
 
-    context("server group doesn't have tags") {
+    context("cluster doesn't have tags") {
       before {
         coEvery { cloudDriverService.getTagsForEntity(entityRef.generateId()) } throws RETROFIT_NOT_FOUND
       }
@@ -189,7 +189,7 @@ internal class KeelTagHandlerTests : JUnit5Minutests {
       }
     }
 
-    context("server group has an entity tag") {
+    context("cluster has an entity tag") {
       before {
         coEvery { cloudDriverService.getTagsForEntity(entityRef.generateId()) } returns entityTags
       }

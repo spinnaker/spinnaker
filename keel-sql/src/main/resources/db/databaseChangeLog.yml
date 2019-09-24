@@ -38,3 +38,6 @@ databaseChangeLog:
   - include:
       file: changelog/20190913-add-status-to-artifact-version.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20190924-rename-server-group-back-to-cluster-sigh.yml
+      relativeToChangelogFile: true

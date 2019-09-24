@@ -71,16 +71,11 @@ class ResourceTagger(
 
   private val entityTypeTransforms = mapOf(
     "classic-load-balancer" to "loadbalancer",
-    "application-load-balancer" to "loadbalancer",
-    "server-group" to "cluster" // this is a hack
+    "application-load-balancer" to "loadbalancer"
   )
-  // we need tags to show up on a server group when we're managing a server group, but our definition of the
-  // resource doesn't have the version number because it's auto generated
-  // mapping server-group -> cluster is a hack to get the UI bits showing up, but this needs to be
-  // re though because it falls apart when one region is managed by keel and one region is not.
 
   private val taggableResources = listOf(
-    "server-group",
+    "cluster",
     "security-group",
     "classic-load-balancer",
     "application-load-balancer"

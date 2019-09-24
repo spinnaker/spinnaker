@@ -52,7 +52,6 @@ import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomStringUtils.randomNumeric
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectThat
-import strikt.assertions.contains
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.first
 import strikt.assertions.get
@@ -64,7 +63,7 @@ import strikt.assertions.none
 import java.time.Clock
 import java.util.UUID.randomUUID
 
-internal class ServerGroupHandlerTests : JUnit5Minutests {
+internal class ClusterHandlerTests : JUnit5Minutests {
 
   val vpcWest = Network(CLOUD_PROVIDER, "vpc-1452353", "vpc0", "test", "us-west-2")
   val vpcEast = Network(CLOUD_PROVIDER, "vpc-4342589", "vpc0", "test", "us-east-1")
@@ -182,9 +181,9 @@ internal class ServerGroupHandlerTests : JUnit5Minutests {
   val normalizers = emptyList<ResourceNormalizer<ServerGroup>>()
   val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
 
-  fun tests() = rootContext<ServerGroupHandler> {
+  fun tests() = rootContext<ClusterHandler> {
     fixture {
-      ServerGroupHandler(
+      ClusterHandler(
         cloudDriverService,
         cloudDriverCache,
         orcaService,

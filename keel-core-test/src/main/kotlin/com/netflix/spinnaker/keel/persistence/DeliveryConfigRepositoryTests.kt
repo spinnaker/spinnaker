@@ -43,7 +43,7 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
         override fun identify(apiVersion: ApiVersion, kind: String): Class<out ResourceSpec> {
           return when (kind) {
             "security-group" -> DummyResourceSpec::class.java
-            "server-group" -> DummyResourceSpec::class.java
+            "cluster" -> DummyResourceSpec::class.java
             else -> error("unsupported kind $kind")
           }
         }
@@ -129,7 +129,7 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
               Environment(
                 name = "test",
                 resources = setOf(
-                  resource(kind = "server-group"),
+                  resource(kind = "cluster"),
                   resource(kind = "security-group")
                 )
               ),
@@ -141,7 +141,7 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
                   )
                 ),
                 resources = setOf(
-                  resource(kind = "server-group"),
+                  resource(kind = "cluster"),
                   resource(kind = "security-group")
                 )
               )

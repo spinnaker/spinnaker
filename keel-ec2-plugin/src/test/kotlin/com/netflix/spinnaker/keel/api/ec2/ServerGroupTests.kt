@@ -16,7 +16,7 @@ internal object ServerGroupTests : JUnit5Minutests {
   )
 
   fun tests() = rootContext<Fixture> {
-    context("a server group definition in yaml") {
+    context("a cluster definition in yaml") {
       fixture {
         Fixture(
           yaml = """
@@ -62,7 +62,7 @@ internal object ServerGroupTests : JUnit5Minutests {
           mapper.readValue(yaml)
         }
 
-        test("can be deserialized to a server group object") {
+        test("can be deserialized to a cluster object") {
           expectThat(this)
             .get { moniker.app }.isEqualTo("fletch_test")
         }
