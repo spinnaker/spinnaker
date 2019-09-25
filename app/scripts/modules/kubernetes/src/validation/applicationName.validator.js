@@ -23,31 +23,16 @@ module.exports = angular
     }
 
     function validateLength(name, warnings, errors) {
-      // Kubernetes resource names must match [a-z]([-a-z0-9]*[a-z0-9])?
-      let maxResourceNameLength = 63;
+      // general k8s resource restriction: 253 characters - https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+      // safe bet is 63 characters - (see also RFC 1035 or RFC 1123 - both setting DNS label maximum to 63 chars)
+      // for service names: - https://github.com/kubernetes/kubernetes/pull/29523 (until K8s 1.4.0 it was 24 characters https://github.com/kubernetes/kubernetes/issues/12463)
+      // or annotations:    - https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set
 
-      let maxServiceNameLength = 24;
+      const maxResourceNameLength = 63;
 
       if (name.length > maxResourceNameLength) {
-        errors.push('The maximum length for an application in Kubernetes is 63 characters.');
+        errors.push('The maximum length for an application in Kubernetes is ${maxResourceNameLength} characters.');
         return;
-      }
-
-      if (name.length > maxServiceNameLength) {
-        if (name.length > maxServiceNameLength) {
-          warnings.push(`You will not be able to create a Kubernetes load balancer for this application if the
-            application's name is longer than ${maxServiceNameLength} characters (currently: ${name.length}
-          characters).`);
-        } else if (name.length >= maxServiceNameLength - 2) {
-          warnings.push(
-            'With separators ("-"), you will not be able to include a stack and detail field for ' +
-              'Kubernetes load balancers.',
-          );
-        } else {
-          let remaining = maxServiceNameLength - 2 - name.length;
-          warnings.push(`If you plan to include a stack or detail field for Kubernetes load balancers, you will only
-            have ~${remaining} characters to do so.`);
-        }
       }
     }
 
