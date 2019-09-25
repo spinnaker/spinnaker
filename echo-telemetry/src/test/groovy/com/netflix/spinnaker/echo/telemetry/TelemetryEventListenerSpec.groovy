@@ -1,10 +1,12 @@
 package com.netflix.spinnaker.echo.telemetry
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.protobuf.util.JsonFormat
 import com.netflix.spinnaker.echo.config.TelemetryConfig
 import com.netflix.spinnaker.echo.model.Event
 import com.netflix.spinnaker.kork.proto.stats.*
 import com.netflix.spinnaker.kork.proto.stats.Event as EventProto
+import groovy.json.JsonOutput
 import groovy.util.logging.Slf4j
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry
 import retrofit.client.Response
@@ -27,7 +29,7 @@ class TelemetryEventListenerSpec extends Specification {
   def executionId = "execution_id"
   def executionHash = "6d6de5b8d67c11fff6d817ea3e1190bc63857de0329d253b21aef6e5c6bbebf9"
 
-  Event validEvent = new Event(
+  Event validEvent = mapToEventViaJson(
     details: [
       type       : "orca:pipeline:complete",
       application: applicationName,
@@ -43,7 +45,7 @@ class TelemetryEventListenerSpec extends Specification {
         stages : [
           [
             type               : "deploy",
-            status             : "SUCCEEDED",
+            status             : "succeeded", // lowercase testing
             syntheticStageOwner: null,
             context            : [
               "cloudProvider": "nine"
@@ -79,17 +81,19 @@ class TelemetryEventListenerSpec extends Specification {
 
     then:
     0 * service.log(_)
+    noExceptionThrown()
 
     when: "null content"
-    listener.processEvent(new Event(
+    listener.processEvent(mapToEventViaJson(
       details: [:]
     ))
 
     then:
     0 * service.log(_)
+    noExceptionThrown()
 
     when: "irrelevant details type are ignored"
-    listener.processEvent(new Event(
+    listener.processEvent(mapToEventViaJson(
       details: [
         type: "foobar1",
       ],
@@ -98,9 +102,10 @@ class TelemetryEventListenerSpec extends Specification {
 
     then:
     0 * service.log(_)
+    noExceptionThrown()
 
     when: "missing application ID"
-    listener.processEvent(new Event(
+    listener.processEvent(mapToEventViaJson(
       details: [
         type: "orca:orchestration:complete",
       ],
@@ -109,20 +114,7 @@ class TelemetryEventListenerSpec extends Specification {
 
     then:
     0 * service.log(_)
-
-    when: "no execution in content"
-    listener.processEvent(new Event(
-      details: [
-        type       : "orca:orchestration:complete",
-        application: "foobar",
-      ],
-      content: [
-        execution: [:],
-      ],
-    ))
-
-    then:
-    0 * service.log(_)
+    noExceptionThrown()
   }
 
   def "send a telemetry event"() {
@@ -202,5 +194,68 @@ class TelemetryEventListenerSpec extends Specification {
 
     then:
     eventSendAttempted
+  }
+
+  def "test bogus enums"() {
+    given:
+    def configProps = new TelemetryConfig.TelemetryConfigProps()
+      .setInstanceId(instanceId)
+      .setSpinnakerVersion(spinnakerVersion)
+
+    @Subject
+    def listener = new TelemetryEventListener(service, configProps, registry)
+
+    when: "bogus enums"
+    listener.processEvent(mapToEventViaJson(
+      details: [
+        type       : "orca:orchestration:complete",
+        application: "foobar",
+      ],
+      content: [
+        execution: [
+          status : "bogusExecStatus",
+          type   : "bogusType",
+          trigger: [:], // missing type
+          stages : [
+            [
+              type  : "myType",
+              status: "bogusStageStatus"
+            ]
+          ]
+        ],
+      ],
+    ))
+
+    then:
+    1 * service.log(_) >> { List args ->
+      String body = args[0]?.toString()
+      assert body != null
+
+      // Note the handy Groovy feature of import aliasing Event->EventProto
+      EventProto.Builder eventBuilder = EventProto.newBuilder()
+      JsonFormat.parser().merge(body, eventBuilder)
+      EventProto e = eventBuilder.build()
+      assert e != null
+
+      Execution ex = e.getExecution()
+      assert ex.status == Status.UNKNOWN
+      assert ex.type == Execution.Type.UNKNOWN
+
+      Execution.Trigger t = ex.getTrigger()
+      assert t != null
+      assert t.type == Execution.Trigger.Type.UNKNOWN
+
+      Stage s = ex.getStages(0)
+      assert s.type == "myType"
+      assert s.status == Status.UNKNOWN
+
+    }
+  }
+
+  // This function more closely mimics Jackson's deserialization of JSON from an
+  // incoming HTTP request.
+  private static Event mapToEventViaJson(Object o) {
+    def json = JsonOutput.toJson(o)
+    return new ObjectMapper().readValue(json, Event)
   }
 }

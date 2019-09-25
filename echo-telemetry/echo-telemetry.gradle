@@ -21,4 +21,5 @@ dependencies {
   implementation 'com.netflix.spinnaker.kork:kork-web'
   implementation 'com.squareup.retrofit:retrofit'
   implementation 'com.squareup.retrofit:converter-jackson'
+  implementation 'de.huxhorn.sulky:de.huxhorn.sulky.ulid'
 }
