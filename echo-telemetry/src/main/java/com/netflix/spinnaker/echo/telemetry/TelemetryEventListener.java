@@ -105,7 +105,6 @@ public class TelemetryEventListener implements EchoEventListener {
       log.debug("Application ID must be non-null and not empty");
       return;
     }
-    String hashedApplicationId = hash(applicationId);
 
     Holder.Content content = objectMapper.convertValue(event.getContent(), Holder.Content.class);
     Holder.Execution execution = content.getExecution();
@@ -143,11 +142,17 @@ public class TelemetryEventListener implements EchoEventListener {
     }
     Execution executionProto = executionBuilder.build();
 
+    // We want to ensure it's really hard to guess the application name. Using the instance ID (a
+    // ULID) provides a good level of randomness as a salt, and is not easily guessable.
+    String instanceId = telemetryConfigProps.getInstanceId();
+    String hashedInstanceId = hash(instanceId);
+    String hashedApplicationId = hash(applicationId, instanceId);
+
     Application application = Application.newBuilder().setId(hashedApplicationId).build();
 
     SpinnakerInstance spinnakerInstance =
         SpinnakerInstance.newBuilder()
-            .setId(telemetryConfigProps.getInstanceId())
+            .setId(hashedInstanceId)
             .setVersion(telemetryConfigProps.getSpinnakerVersion())
             .build();
 
@@ -197,7 +202,11 @@ public class TelemetryEventListener implements EchoEventListener {
   }
 
   private String hash(String clearText) {
-    return Hashing.sha256().hashString(clearText, StandardCharsets.UTF_8).toString();
+    return hash(clearText, "");
+  }
+
+  private String hash(String clearText, String salt) {
+    return Hashing.sha256().hashString(clearText + salt, StandardCharsets.UTF_8).toString();
   }
 
   private static EnumValueDescriptor parseEnum(EnumDescriptor ed, String value) {

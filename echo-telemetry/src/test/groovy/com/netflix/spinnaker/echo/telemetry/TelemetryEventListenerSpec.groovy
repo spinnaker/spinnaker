@@ -21,10 +21,11 @@ class TelemetryEventListenerSpec extends Specification {
   def circuitBreaker = registry.circuitBreaker(TelemetryEventListener.TELEMETRY_REGISTRY_NAME)
 
   def instanceId = "test-instance"
+  def instanceHash = "b6a8ed497aba799fb0033fcb3588de65e198a0d9b731c5481499251177074a8f"
   def spinnakerVersion = "1.2.3"
 
   def applicationName = "someApp"
-  def applicationHash = "e40464bf6d04933c6011c29974eb328777669813a76583e5d547941427df686f"
+  def applicationHash = "f0291bf122b40a43cb2129378272f205200dff0445af506346b1dc47127e258d"
 
   def executionId = "execution_id"
   def executionHash = "6d6de5b8d67c11fff6d817ea3e1190bc63857de0329d253b21aef6e5c6bbebf9"
@@ -143,7 +144,7 @@ class TelemetryEventListenerSpec extends Specification {
 
       SpinnakerInstance s = e.spinnakerInstance
       assert s != null
-      assert s.id == instanceId
+      assert s.id == instanceHash
       assert s.version == spinnakerVersion
 
       Application a = e.getApplication()
