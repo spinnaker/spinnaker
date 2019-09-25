@@ -9,7 +9,7 @@ import { SubmitButton, ModalClose } from 'core/modal';
 import { Application } from 'core/application';
 import { AuthenticationService } from 'core/authentication';
 import {
-  buildValidators,
+  FormValidator,
   IModalComponentProps,
   ReactModal,
   SpinFormik,
@@ -339,8 +339,8 @@ export class ManualExecutionModal extends React.Component<IManualExecutionModalP
   };
 
   private validate = (values: IPipelineCommand): any => {
-    const validation = buildValidators(values);
-    return validation.result();
+    const formValidator = new FormValidator(values);
+    return formValidator.validateForm();
   };
 
   public render(): React.ReactElement<ManualExecutionModal> {

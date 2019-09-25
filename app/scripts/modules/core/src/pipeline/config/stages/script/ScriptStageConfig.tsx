@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import { IStageConfigProps, FormikStageConfig, IContextualValidator } from 'core/pipeline';
-import { FormikFormField, TextInput, TextAreaInput, CheckboxInput, buildValidators } from 'core/presentation';
+import { FormikFormField, TextInput, TextAreaInput, CheckboxInput, FormValidator } from 'core/presentation';
 import { HelpField } from 'core/help';
 
 export const ScriptStageConfig: React.SFC<IStageConfigProps> = stageConfigProps => (
@@ -82,8 +82,8 @@ export const ScriptStageConfig: React.SFC<IStageConfigProps> = stageConfigProps 
 );
 
 export const validate: IContextualValidator = stage => {
-  const validation = buildValidators(stage);
-  validation.field('command', 'Command').required();
-  validation.field('scriptPath', 'Script Path').required();
-  return validation.result();
+  const formValidator = new FormValidator(stage);
+  formValidator.field('command', 'Command').required();
+  formValidator.field('scriptPath', 'Script Path').required();
+  return formValidator.validateForm();
 };

@@ -61,15 +61,18 @@ In addition to the `validate` prop, the field can also be validated at the form 
 This example shows validation of a formik field using the `Formik` component's `validate` prop.
 
 ```js
-import { buildValidators } from 'core/presentation';
+import { FormValidator } from 'core/presentation';
 
 <Formik
   initialValues={{ email: '' }}
   validate={values => {
     const emailRegexp = /[^@]+@[^@]+/;
-    const validator = buildValidators(values);
-    validator.field('email').required([value => (emailRegexp.exec(value) ? null : 'Please enter a valid email')]);
-    return validator.result();
+    const formValidator = new FormValidator(values);
+    formValidator
+      .field('email')
+      .required()
+      .withValidators(value => (emailRegexp.exec(value) ? null : 'Please enter a valid email'));
+    return formValidator.result();
   }}
   render={formik => {
     return (

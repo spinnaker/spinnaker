@@ -2,7 +2,7 @@ import * as React from 'react';
 
 import { Formik, Form } from 'formik';
 import { Modal } from 'react-bootstrap';
-import { buildValidators, IModalComponentProps, ReactModal, SpinFormik } from 'core/presentation';
+import { FormValidator, IModalComponentProps, ReactModal, SpinFormik } from 'core/presentation';
 import { INotification } from 'core/domain';
 import { SubmitButton, ModalClose } from 'core/modal';
 
@@ -27,11 +27,12 @@ export class EditNotificationModal extends React.Component<IEditNotificationModa
   }
 
   private validate = (values: INotification): any => {
-    const validation = buildValidators(values);
-    validation
+    const formValidator = new FormValidator(values);
+    formValidator
       .field('when', 'Notify when')
-      .required([(value: any[]) => !value.length && 'Please select when the notification should execute']);
-    return validation.result();
+      .required()
+      .withValidators((value: any[]) => !value.length && 'Please select when the notification should execute');
+    return formValidator.validateForm();
   };
 
   public render(): React.ReactElement<EditNotificationModal> {
