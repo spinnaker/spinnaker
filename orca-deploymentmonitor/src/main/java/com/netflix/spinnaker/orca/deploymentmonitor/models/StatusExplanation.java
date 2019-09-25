@@ -16,21 +16,19 @@
 
 package com.netflix.spinnaker.orca.deploymentmonitor.models;
 
-import java.util.Collections;
-import java.util.List;
 import lombok.Data;
 
 @Data
 public class StatusExplanation {
   private String summary;
-  private List<StatusReason> reasons;
+  private StatusReason reason;
 
   public StatusExplanation(String summary) {
-    this(summary, Collections.emptyList());
+    this(summary, null);
   }
 
-  public StatusExplanation(String summary, List<StatusReason> reasons) {
+  public StatusExplanation(String summary, StatusReason reason) {
     this.summary = summary;
-    this.reasons = reasons;
+    this.reason = reason;
   }
 }

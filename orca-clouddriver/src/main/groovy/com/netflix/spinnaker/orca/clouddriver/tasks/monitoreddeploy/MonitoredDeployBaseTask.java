@@ -27,7 +27,6 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.Mo
 import com.netflix.spinnaker.orca.deploymentmonitor.models.DeploymentStep;
 import com.netflix.spinnaker.orca.deploymentmonitor.models.EvaluateHealthResponse;
 import com.netflix.spinnaker.orca.deploymentmonitor.models.StatusExplanation;
-import com.netflix.spinnaker.orca.deploymentmonitor.models.StatusReason;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -218,13 +217,11 @@ public class MonitoredDeployBaseTask implements RetryableTask {
 
   TaskResult buildTaskResult(
       TaskResult.TaskResultBuilder taskResultBuilder, EvaluateHealthResponse response) {
-    List<StatusReason> statusReasons =
-        Optional.ofNullable(response.getStatusReasons()).orElse(Collections.emptyList());
 
     String summary =
         summaryMapping.getOrDefault(
             response.getNextStep().getDirective(), "Health evaluation results are unknown");
-    StatusExplanation explanation = new StatusExplanation(summary, statusReasons);
+    StatusExplanation explanation = new StatusExplanation(summary, response.getStatusReason());
 
     return taskResultBuilder.context("deploymentMonitorReasons", explanation).build();
   }

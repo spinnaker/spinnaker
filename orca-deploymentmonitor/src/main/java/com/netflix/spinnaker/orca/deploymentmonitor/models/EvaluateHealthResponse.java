@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.deploymentmonitor.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.List;
 import lombok.Data;
 
 @Data
@@ -58,5 +57,5 @@ public class EvaluateHealthResponse {
   }
 
   private DeploymentStep nextStep;
-  private List<StatusReason> statusReasons;
+  private StatusReason statusReason;
 }
