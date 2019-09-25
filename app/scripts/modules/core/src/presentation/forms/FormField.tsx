@@ -1,15 +1,12 @@
 import * as React from 'react';
 import { isNil } from 'lodash';
-import { IPromise } from 'angular';
-import { $q } from 'ngimport';
 
 import { noop } from 'core/utils';
 
 import { LayoutContext } from './layouts';
-import { useLatestPromise } from '../hooks';
 import { createFieldValidator } from './FormikFormField';
 import { renderContent } from './fields/renderContent';
-import { IValidator, IValidatorResultRaw } from './validation';
+import { IValidator } from './validation';
 import {
   ICommonFormFieldProps,
   IControlledInputProps,
@@ -49,17 +46,15 @@ export function FormField(props: IFormFieldProps) {
   const addValidator = useCallback((v: IValidator) => setInternalValidators(list => list.concat(v)), []);
   const removeValidator = useCallback((v: IValidator) => setInternalValidators(list => list.filter(x => x !== v)), []);
 
+  // Capture props.validate when the component initializes (to allow for inline arrow functions)
   const validate = useMemo(() => props.validate, []);
+
   const fieldValidator = useMemo(
     () => createFieldValidator(label, required, [].concat(validate || noop).concat(internalValidators)),
     [label, required, validate],
   );
 
-  const { result: errorMessage } = useLatestPromise(
-    // TODO: remove the following cast when we remove async validation from our API
-    () => $q.resolve((fieldValidator(value) as any) as IPromise<IValidatorResultRaw>),
-    [fieldValidator, value],
-  );
+  const errorMessage = useMemo(() => fieldValidator(value), [fieldValidator, value]);
 
   const validationMessage = firstDefined(messageProp, errorMessage ? errorMessage : undefined);
   const validationStatus = firstDefined(statusProp, errorMessage ? 'error' : undefined);
