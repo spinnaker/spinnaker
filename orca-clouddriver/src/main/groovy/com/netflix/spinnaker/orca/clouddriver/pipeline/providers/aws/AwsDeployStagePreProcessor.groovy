@@ -36,6 +36,8 @@ import static com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategySup
 
 @Component
 class AwsDeployStagePreProcessor implements DeployStagePreProcessor {
+  private static final List<Strategy> rollingStrategies = [Strategy.ROLLING_RED_BLACK, Strategy.MONITORED]
+
   @Autowired
   ApplySourceServerGroupCapacityStage applySourceServerGroupSnapshotStage
 
@@ -51,7 +53,9 @@ class AwsDeployStagePreProcessor implements DeployStagePreProcessor {
   @Override
   List<StepDefinition> additionalSteps(Stage stage) {
     def stageData = stage.mapTo(StageData)
-    if (Strategy.fromStrategyKey(stageData.strategy) == Strategy.ROLLING_RED_BLACK) {
+    Strategy strategy = Strategy.fromStrategyKey(stageData.strategy)
+
+    if (rollingStrategies.contains(strategy)) {
       // rolling red/black has no need to snapshot capacities
       return []
     }
@@ -114,8 +118,10 @@ class AwsDeployStagePreProcessor implements DeployStagePreProcessor {
   List<StageDefinition> afterStageDefinitions(Stage stage) {
     def stageData = stage.mapTo(StageData)
     def stageDefinitions = []
-    if (Strategy.fromStrategyKey(stageData.strategy) != Strategy.ROLLING_RED_BLACK) {
-      // rolling red/black has no need to apply a snapshotted capacity (on the newly created server group)
+    Strategy strategy = Strategy.fromStrategyKey(stageData.strategy)
+
+    if (!rollingStrategies.contains(strategy)) {
+      // rolling strategies have no need to apply a snapshotted capacity (on the newly created server group)
       stageDefinitions << new StageDefinition(
         name: "restoreMinCapacityFromSnapshot",
         stageDefinitionBuilder: applySourceServerGroupSnapshotStage,
@@ -152,12 +158,14 @@ class AwsDeployStagePreProcessor implements DeployStagePreProcessor {
 
   private static boolean shouldPinSourceServerGroup(String strategy) {
     // TODO-AJ consciously only enabling for rolling red/black -- will add support for other strategies after it's working
-    return (Strategy.fromStrategyKey(strategy) == Strategy.ROLLING_RED_BLACK)
+    return (rollingStrategies.contains(Strategy.fromStrategyKey(strategy)))
   }
 
   private static boolean shouldCheckServerGroupsPreconditions(StageData stageData) {
-    // TODO(dreynaud): enabling cautiously for RRB only for testing, but we would ideally roll this out to other strategies
-    return (Strategy.fromStrategyKey(stageData.strategy) == Strategy.ROLLING_RED_BLACK) && (stageData.maxInitialAsgs != -1)
+    // TODO(dreynaud): enabling cautiously for RRB/MD only for testing, but we would ideally roll this out to other strategies
+    Strategy strategy = Strategy.fromStrategyKey(stageData.strategy)
+
+    return (rollingStrategies.contains(strategy) && (stageData.maxInitialAsgs != -1))
   }
 
   private Optional<Map<String, Object>> getResizeContext(StageData stageData) {
