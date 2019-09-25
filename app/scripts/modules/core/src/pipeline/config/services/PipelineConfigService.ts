@@ -139,6 +139,7 @@ export class PipelineConfigService {
         stage !== stageToTest &&
         stageToTest.requisiteStageRefIds &&
         !downstreamIds.includes(stageToTest.refId) &&
+        stage.requisiteStageRefIds &&
         !stage.requisiteStageRefIds.includes(stageToTest.refId)
       );
     });
