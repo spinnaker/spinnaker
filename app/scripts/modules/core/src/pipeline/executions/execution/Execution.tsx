@@ -264,9 +264,9 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
     ReactGA.event({ category: 'Pipeline', action: 'Execution source clicked' });
   };
 
-  private handleToggleDetails = (): void => {
+  private handleToggleDetails = (showingDetails: boolean): void => {
     ReactGA.event({ category: 'Pipeline', action: 'Execution details toggled (Details link)' });
-    this.toggleDetails();
+    showingDetails ? this.toggleDetails() : this.toggleDetails(0, 0);
   };
 
   private scrollIntoView = (forceScroll = false) => {
@@ -435,7 +435,7 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
 
           {!standalone && (
             <div className="execution-details-button">
-              <a className="clickable" onClick={this.handleToggleDetails}>
+              <a className="clickable" onClick={() => this.handleToggleDetails(showingDetails)}>
                 <span
                   className={`small glyphicon ${showingDetails ? 'glyphicon-chevron-down' : 'glyphicon-chevron-right'}`}
                 />
