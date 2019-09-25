@@ -1,4 +1,5 @@
 import { IValidator } from './validation';
+import { isNumber } from 'lodash';
 
 const THIS_FIELD = 'This field';
 
@@ -18,16 +19,25 @@ const isRequired = (message?: string): IValidator => {
 
 const minValue = (min: number, message?: string): IValidator => {
   return (val: number, label = THIS_FIELD) => {
-    const text = min === 0 ? 'cannot be negative' : `cannot be less than ${min}`;
-    message = message || `${label} ${text}`;
-    return val < min && message;
+    if (!isNumber(val)) {
+      return message || `${label} must be a number`;
+    } else if (val < min) {
+      const minText = min === 0 ? 'cannot be negative' : `cannot be less than ${min}`;
+      return message || `${label} ${minText}`;
+    }
+    return null;
   };
 };
 
 const maxValue = (max: number, message?: string): IValidator => {
   return (val: number, label = THIS_FIELD) => {
-    message = message || `${label} cannot be greater than ${max}`;
-    return val > max && message;
+    if (!isNumber(val)) {
+      return message || `${label} must be a number`;
+    } else if (val > max) {
+      const maxText = `cannot be greater than ${max}`;
+      return message || `${label} ${maxText}`;
+    }
+    return null;
   };
 };
 
