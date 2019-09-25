@@ -536,6 +536,9 @@ module.exports = angular
         $scope.$applyAsync(() => {
           $scope.pipeline = _.cloneDeep($scope.pipeline);
           _.extend($scope.pipeline, changes);
+          if (!$scope.isTemplatedPipeline) {
+            $scope.renderablePipeline = $scope.pipeline;
+          }
           markDirty();
         });
       };
