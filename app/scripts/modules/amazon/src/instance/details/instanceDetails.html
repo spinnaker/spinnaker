@@ -25,6 +25,12 @@
       <h3 class="horizontal middle space-between flex-1" select-on-dbl-click>
         {{instance ? instance.instanceId : instanceIdNotFound }}
       </h3>
+      <copy-to-clipboard
+        class="copy-to-clipboard copy-to-clipboard-sm"
+        text="instance.instanceId"
+        tool-tip="'Copy to clipboard'"
+      >
+      </copy-to-clipboard>
     </div>
     <div>
       <div class="actions" ng-class="{ insights: instance.insightActions.length > 0 }" ng-if="instance.placement">
