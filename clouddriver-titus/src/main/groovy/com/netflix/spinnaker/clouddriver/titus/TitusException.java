@@ -26,12 +26,12 @@ public class TitusException extends IntegrationException {
 
   public TitusException(String message, Throwable cause) {
     super(message, cause);
-    setRetryable(true);
+    setRetryable(isExceptionRetryable(cause));
   }
 
   public TitusException(Throwable cause) {
     super(cause);
-    setRetryable(true);
+    setRetryable(isExceptionRetryable(cause));
   }
 
   public TitusException(String message, String userMessage) {
@@ -41,6 +41,16 @@ public class TitusException extends IntegrationException {
 
   public TitusException(String message, Throwable cause, String userMessage) {
     super(message, cause, userMessage);
-    setRetryable(true);
+    setRetryable(isExceptionRetryable(cause));
+  }
+
+  private static boolean isExceptionRetryable(Throwable cause) {
+    final String message = cause.getMessage();
+    if (message == null) {
+      return true;
+    }
+
+    // If the request sent to Titus is invalid, there's no sense is retrying.
+    return !message.startsWith("INVALID_ARGUMENT");
   }
 }
