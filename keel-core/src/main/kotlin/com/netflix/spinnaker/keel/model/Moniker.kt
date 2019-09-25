@@ -18,14 +18,14 @@ package com.netflix.spinnaker.keel.model
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
+import com.netflix.frigga.Names
 
 @JsonInclude(NON_NULL)
 data class Moniker(
   val app: String,
   val stack: String? = null,
   val detail: String? = null,
-  val sequence: String? = null,
-  val cluster: String? = null
+  val sequence: String? = null
 ) {
   @get:JsonIgnore
   val name: String
@@ -43,3 +43,13 @@ data class Moniker(
       else -> "$app-${stack.orEmpty()}-$detail-v$sequence"
     }
 }
+
+fun parseMoniker(name: String): Moniker =
+  Names.parseName(name).let {
+    Moniker(
+      it.app,
+      it.stack,
+      it.detail,
+      it.sequence?.toString()
+    )
+  }

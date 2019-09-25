@@ -15,7 +15,7 @@ import java.time.Duration
 fun ClusterSpec.resolve(resolvedImages: ResolvedImages): Set<ServerGroup> {
   return locations.regions.map {
     ServerGroup(
-      moniker = moniker,
+      name = moniker.name,
       location = Location(
         locations.accountName,
         it.region,

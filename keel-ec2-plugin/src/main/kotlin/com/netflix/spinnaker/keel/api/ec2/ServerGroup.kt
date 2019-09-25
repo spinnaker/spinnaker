@@ -17,11 +17,22 @@
  */
 package com.netflix.spinnaker.keel.api.ec2
 
-import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.model.Moniker
+import com.netflix.spinnaker.keel.model.parseMoniker
+import de.danielbechler.diff.inclusion.Inclusion.EXCLUDED
+import de.danielbechler.diff.introspection.ObjectDiffProperty
 
 data class ServerGroup(
-  override val moniker: Moniker,
+  /**
+   * This field is immutable, so we would never be reacting to a diff on it. If the name differs,
+   * it's a different resource. Also, a server group name retrieved from CloudDriver will include
+   * the sequence number. However, when we resolve desired state from a [ClusterSpec] this field
+   * will _not_ include the sequence number. Having it on the model returned from CloudDriver is
+   * useful for some things (e.g. specifying ancestor server group when red-blacking a new version)
+   * but is meaningless for a diff.
+   */
+  @get:ObjectDiffProperty(inclusion = EXCLUDED)
+  val name: String,
   val location: Location,
   val launchConfiguration: LaunchConfiguration,
   val capacity: Capacity = Capacity(1, 1, 1),
@@ -29,6 +40,7 @@ data class ServerGroup(
   val health: Health = Health(),
   val scaling: Scaling = Scaling(),
   val tags: Map<String, String> = emptyMap()
-) : Monikered {
-  override val id = "${location.accountName}:${location.region}:${moniker.name}"
-}
+)
+
+val ServerGroup.moniker: Moniker
+  get() = parseMoniker(name)

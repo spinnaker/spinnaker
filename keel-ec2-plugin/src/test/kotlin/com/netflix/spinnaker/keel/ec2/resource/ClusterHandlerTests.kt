@@ -33,8 +33,10 @@ import com.netflix.spinnaker.keel.clouddriver.model.Tag
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.ec2.RETROFIT_NOT_FOUND
+import com.netflix.spinnaker.keel.ec2.image.ArtifactVersionDeployed
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
+import com.netflix.spinnaker.keel.model.parseMoniker
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
@@ -48,12 +50,12 @@ import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
+import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomStringUtils.randomNumeric
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectThat
 import strikt.assertions.containsExactlyInAnyOrder
-import strikt.assertions.first
 import strikt.assertions.get
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
@@ -135,7 +137,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
   ): ActiveServerGroup =
     randomNumeric(3).let { sequence ->
       ActiveServerGroup(
-        "keel-test-v$sequence",
+        "$name-v$sequence",
         location.region,
         location.availabilityZones,
         ActiveServerGroupImage(
@@ -152,7 +154,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
           InstanceMonitoring(launchConfiguration.instanceMonitoring)
         ),
         AutoScalingGroup(
-          "keel-test-v$sequence",
+          "$name-v$sequence",
           health.cooldown.seconds,
           health.healthCheckType.let(HealthCheckType::toString),
           health.warmup.seconds,
@@ -169,7 +171,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         CLOUD_PROVIDER,
         securityGroups.map(SecurityGroupSummary::id).toSet(),
         location.accountName,
-        moniker.run { Moniker(app = app, cluster = cluster, detail = detail, stack = stack, sequence = sequence) }
+        parseMoniker("$name-v$sequence")
       )
     }
 
@@ -178,7 +180,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
   val orcaService = mockk<OrcaService>()
   val imageResolver = mockk<ImageResolver>()
   val objectMapper = ObjectMapper().registerKotlinModule()
-  val normalizers = emptyList<ResourceNormalizer<ServerGroup>>()
+  val normalizers = emptyList<ResourceNormalizer<ClusterSpec>>()
   val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
 
   fun tests() = rootContext<ClusterHandler> {
@@ -274,13 +276,27 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         }
 
         test("the server group name is derived correctly") {
-          expectThat(this).first().get { moniker }.isEqualTo(spec.moniker)
+          expectThat(this)
+            .map { it.name }
+            .containsExactlyInAnyOrder(
+              activeServerGroupResponseEast.name,
+              activeServerGroupResponseWest.name
+            )
+        }
+
+        test("an event is fired if all server groups have the same artifact version") {
+          verify { publisher.publishEvent(ofType<ArtifactVersionDeployed>()) }
         }
       }
+    }
 
+    context("a diff has been detected") {
       context("the diff is only in capacity") {
 
-        val modified = setOf(serverGroupEast, serverGroupWest.withDoubleCapacity())
+        val modified = setOf(
+          serverGroupEast.copy(name = activeServerGroupResponseEast.name),
+          serverGroupWest.copy(name = activeServerGroupResponseWest.name).withDoubleCapacity()
+        )
         val diff = ResourceDiff(serverGroups, modified)
 
         test("annealing resizes the current server group") {
@@ -309,7 +325,10 @@ internal class ClusterHandlerTests : JUnit5Minutests {
 
       context("the diff is something other than just capacity") {
 
-        val modified = setOf(serverGroupEast, serverGroupWest.withDoubleCapacity().withDifferentInstanceType())
+        val modified = setOf(
+          serverGroupEast.copy(name = activeServerGroupResponseEast.name),
+          serverGroupWest.copy(name = activeServerGroupResponseWest.name).withDoubleCapacity().withDifferentInstanceType()
+        )
         val diff = ResourceDiff(serverGroups, modified)
 
         test("annealing clones the current server group") {
@@ -336,8 +355,8 @@ internal class ClusterHandlerTests : JUnit5Minutests {
       context("multiple server groups have a diff") {
 
         val modified = setOf(
-          serverGroupEast.withDifferentInstanceType(),
-          serverGroupWest.withDoubleCapacity()
+          serverGroupEast.copy(name = activeServerGroupResponseEast.name).withDifferentInstanceType(),
+          serverGroupWest.copy(name = activeServerGroupResponseWest.name).withDoubleCapacity()
         )
         val diff = ResourceDiff(serverGroups, modified)
 

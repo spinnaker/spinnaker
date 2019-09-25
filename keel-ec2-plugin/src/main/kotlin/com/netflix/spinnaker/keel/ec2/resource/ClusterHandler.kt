@@ -17,6 +17,7 @@ import com.netflix.spinnaker.keel.api.ec2.Scaling
 import com.netflix.spinnaker.keel.api.ec2.ScalingProcess
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup
 import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
+import com.netflix.spinnaker.keel.api.ec2.moniker
 import com.netflix.spinnaker.keel.api.ec2.resolve
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.serviceAccount
@@ -26,15 +27,13 @@ import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.Tag
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
-import com.netflix.spinnaker.keel.ec2.image.ArtifactAlreadyDeployedEvent
+import com.netflix.spinnaker.keel.ec2.image.ArtifactVersionDeployed
 import com.netflix.spinnaker.keel.events.Task
 import com.netflix.spinnaker.keel.model.Job
-import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
-import com.netflix.spinnaker.keel.plugin.ResourceConflict
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import kotlinx.coroutines.async
@@ -89,8 +88,8 @@ class ClusterHandler(
         .map { diff ->
           val spec = diff.desired
           val job = when {
-            diff.isCapacityOnly() -> spec.resizeServerGroupJob(resource.serviceAccount)
-            else -> spec.createServerGroupJob(resource.serviceAccount)
+            diff.isCapacityOnly() -> spec.resizeServerGroupJob(diff.current)
+            else -> spec.createServerGroupJob(diff.current)
           }
 
           log.info("Upserting server group using task: {}", job)
@@ -133,7 +132,7 @@ class ClusterHandler(
   private fun ResourceDiff<ServerGroup>.isCapacityOnly(): Boolean =
     current != null && affectedRootPropertyTypes.all { it == Capacity::class.java }
 
-  private suspend fun ServerGroup.createServerGroupJob(serviceAccount: String): Map<String, Any?> =
+  private fun ServerGroup.createServerGroupJob(current: ServerGroup?): Map<String, Any?> =
     mutableMapOf(
       "application" to moniker.app,
       "credentials" to location.accountName,
@@ -199,63 +198,44 @@ class ClusterHandler(
       "targetGroups" to dependencies.targetGroups,
       "account" to location.accountName
     ).also { job ->
-      cloudDriverService.getAncestorServerGroup(this, serviceAccount)
-        ?.let { ancestorServerGroup ->
-          job["source"] = mapOf(
-            "account" to location.accountName,
-            "region" to location.region,
-            "asgName" to ancestorServerGroup.asg.autoScalingGroupName
-          )
-          job["copySourceCustomBlockDeviceMappings"] = true
-        }
+      current?.let { ancestor ->
+        job["source"] = mapOf(
+          "account" to location.accountName,
+          "region" to location.region,
+          "asgName" to ancestor.moniker.serverGroup
+        )
+        job["copySourceCustomBlockDeviceMappings"] = true
+      }
     }
 
-  private suspend fun ServerGroup.resizeServerGroupJob(serviceAccount: String): Map<String, Any?> =
-    cloudDriverService.getAncestorServerGroup(this, serviceAccount)
-      ?.let { currentServerGroup ->
-        mapOf(
-          "type" to "resizeServerGroup",
-          "capacity" to mapOf(
-            "min" to capacity.min,
-            "max" to capacity.max,
-            "desired" to capacity.desired
-          ),
-          "cloudProvider" to currentServerGroup.cloudProvider,
-          "credentials" to location.accountName,
-          "moniker" to mapOf(
-            "app" to currentServerGroup.moniker.app,
-            "stack" to currentServerGroup.moniker.stack,
-            "detail" to currentServerGroup.moniker.detail,
-            "cluster" to currentServerGroup.moniker.cluster,
-            "sequence" to currentServerGroup.moniker.sequence
-          ),
-          "region" to currentServerGroup.region,
-          "serverGroupName" to currentServerGroup.asg.autoScalingGroupName
-        )
-      }
-      ?: throw ResourceConflict("Could not find current server group for cluster ${moniker.name} in ${location.accountName} / ${location.region}")
+  private fun ServerGroup.resizeServerGroupJob(current: ServerGroup?): Map<String, Any?> {
+    requireNotNull(current) {
+      "Current server group must not be null when generating a resize job"
+    }
+    return mapOf(
+      "type" to "resizeServerGroup",
+      "capacity" to mapOf(
+        "min" to capacity.min,
+        "max" to capacity.max,
+        "desired" to capacity.desired
+      ),
+      "cloudProvider" to CLOUD_PROVIDER,
+      "credentials" to location.accountName,
+      "moniker" to mapOf(
+        "app" to current.moniker.app,
+        "stack" to current.moniker.stack,
+        "detail" to current.moniker.detail,
+        "cluster" to current.moniker.name,
+        "sequence" to current.moniker.sequence
+      ),
+      "region" to current.location.region,
+      "serverGroupName" to current.name
+    )
+  }
 
   override suspend fun delete(resource: Resource<ClusterSpec>) {
     TODO("not implemented")
   }
-
-  private suspend fun CloudDriverService.getAncestorServerGroup(spec: ServerGroup, serviceAccount: String): ActiveServerGroup? =
-    try {
-      activeServerGroup(
-        serviceAccount,
-        spec.moniker.app,
-        spec.location.accountName,
-        spec.moniker.name,
-        spec.location.region,
-        CLOUD_PROVIDER
-      )
-    } catch (e: HttpException) {
-      if (e.isNotFound) {
-        null
-      } else {
-        throw e
-      }
-    }
 
   private suspend fun CloudDriverService.getServerGroups(resource: Resource<ClusterSpec>): Set<ServerGroup> =
     coroutineScope {
@@ -272,8 +252,8 @@ class ClusterHandler(
             )
               .toServerGroup()
               .also {
-                publisher.publishEvent(ArtifactAlreadyDeployedEvent(
-                  resourceId = resource.id.value,
+                publisher.publishEvent(ArtifactVersionDeployed(
+                  resourceId = resource.id,
                   imageId = it.launchConfiguration.imageId
                 ))
               }
@@ -287,6 +267,14 @@ class ClusterHandler(
       }
         .mapNotNull { it.await() }
         .toSet()
+//        .also { them ->
+//          if (them.map { it.launchConfiguration.appVersion }.size == 1) {
+//            publisher.publishEvent(ArtifactVersionDeployed(
+//              resourceId = resource.id,
+//              imageId = it.launchConfiguration.imageId
+//            ))
+//          }
+//        }
     }
 
   /**
@@ -294,7 +282,7 @@ class ClusterHandler(
    */
   private fun ActiveServerGroup.toServerGroup() =
     ServerGroup(
-      moniker = Moniker(app = moniker.app, stack = moniker.stack, detail = moniker.detail),
+      name = name,
       location = Location(
         accountName,
         region,

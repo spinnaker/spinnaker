@@ -163,7 +163,7 @@ internal class CurrentlyDeployedImageApproverTests : JUnit5Minutests {
       before {
         deliveryConfigRepository.store(deliveryConfig)
         resourceRepository.store(nonArtifactCluster)
-        val event = ArtifactAlreadyDeployedEvent(nonArtifactCluster.id.toString(), imageId)
+        val event = ArtifactVersionDeployed(nonArtifactCluster.id, imageId)
         subject.artifactAlreadyDeployedEventHandler(event)
       }
 
@@ -182,7 +182,7 @@ internal class CurrentlyDeployedImageApproverTests : JUnit5Minutests {
         every { artifactRepository.wasSuccessfullyDeployedTo(deliveryConfig, artifact, appVersion, testEnv.name) } returns false
         coEvery { cloudDriverService.namedImages(any(), imageId, null) } returns listOf(ami)
 
-        val event = ArtifactAlreadyDeployedEvent(artifactCluster.id.toString(), imageId)
+        val event = ArtifactVersionDeployed(artifactCluster.id, imageId)
         subject.artifactAlreadyDeployedEventHandler(event)
       }
 
@@ -200,7 +200,7 @@ internal class CurrentlyDeployedImageApproverTests : JUnit5Minutests {
         every { artifactRepository.wasSuccessfullyDeployedTo(deliveryConfig, artifact, appVersion, testEnv.name) } returns true
         coEvery { cloudDriverService.namedImages(any(), imageId, null) } returns listOf(ami)
 
-        val event = ArtifactAlreadyDeployedEvent(artifactCluster.id.toString(), imageId)
+        val event = ArtifactVersionDeployed(artifactCluster.id, imageId)
         subject.artifactAlreadyDeployedEventHandler(event)
       }
 
@@ -218,7 +218,7 @@ internal class CurrentlyDeployedImageApproverTests : JUnit5Minutests {
         every { artifactRepository.wasSuccessfullyDeployedTo(deliveryConfig, artifact, appVersion, testEnv.name) } returns false
         coEvery { cloudDriverService.namedImages(any(), imageId, null) } returns listOf(ami)
 
-        val event = ArtifactAlreadyDeployedEvent(artifactCluster.id.toString(), imageId)
+        val event = ArtifactVersionDeployed(artifactCluster.id, imageId)
         subject.artifactAlreadyDeployedEventHandler(event)
       }
 

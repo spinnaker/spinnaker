@@ -17,7 +17,6 @@
  */
 package com.netflix.spinnaker.keel.ec2.image
 
-import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.serviceAccount
@@ -40,10 +39,10 @@ class CurrentlyDeployedImageApprover(
 ) {
   private val log = LoggerFactory.getLogger(javaClass)
 
-  @EventListener(ArtifactAlreadyDeployedEvent::class)
-  fun artifactAlreadyDeployedEventHandler(event: ArtifactAlreadyDeployedEvent) =
+  @EventListener(ArtifactVersionDeployed::class)
+  fun artifactAlreadyDeployedEventHandler(event: ArtifactVersionDeployed) =
     runBlocking {
-      val resourceId = ResourceId(event.resourceId)
+      val resourceId = event.resourceId
       val resource = resourceRepository.get(resourceId)
       val deliveryConfig = deliveryConfigRepository.deliveryConfigFor(resourceId)
       val env = deliveryConfigRepository.environmentFor(resourceId)
