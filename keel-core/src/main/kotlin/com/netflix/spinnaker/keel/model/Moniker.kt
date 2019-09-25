@@ -38,8 +38,8 @@ data class Moniker(
   @get:JsonIgnore
   val serverGroup: String
     get() = when {
-      stack == null && detail == null -> "$app-$sequence"
-      detail == null && sequence != null -> "$app-$stack-$sequence"
-      else -> "$app-${stack.orEmpty()}-$detail-$sequence"
+      stack == null && detail == null -> "$app-v$sequence"
+      detail == null && sequence != null -> "$app-$stack-v$sequence"
+      else -> "$app-${stack.orEmpty()}-$detail-v$sequence"
     }
 }
