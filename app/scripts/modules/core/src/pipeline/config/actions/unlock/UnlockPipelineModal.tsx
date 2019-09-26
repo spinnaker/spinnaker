@@ -18,7 +18,7 @@ export function UnlockPipelineModal(props: IUnlockPipelineModalProps) {
 
   function unlockPipeline() {
     const newPipeline = { ...pipeline };
-    unset(newPipeline, 'lock');
+    unset(newPipeline, 'locked');
     PipelineConfigService.savePipeline(newPipeline).then(
       () => closeModal(),
       response => {
