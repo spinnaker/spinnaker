@@ -100,7 +100,6 @@ export const updatePrometheusMetricQueryField = createAction<{
 export const updateStackdriverGroupBy = createAction<IUpdateListPayload>(Actions.UPDATE_STACKDRIVER_GROUP_BY_FIELDS);
 export const deleteTemplate = createAction<{ name: string }>(Actions.DELETE_TEMPLATE);
 export const selectTemplate = createAction<{ name: string }>(Actions.SELECT_TEMPLATE);
-export const updateMetricScopeName = createAction<{ scopeName: string }>(Actions.UPDATE_METRIC_SCOPE_NAME);
 export const changeMetricGroup = createAction<{ id: string }>(Actions.CHANGE_METRIC_GROUP);
 export const loadMetricsServiceMetadataRequest = createAction<{ filter: string; metricsAccountName: string }>(
   Actions.LOAD_METRICS_SERVICE_METADATA_REQUEST,

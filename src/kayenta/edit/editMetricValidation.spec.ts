@@ -1,9 +1,4 @@
-import {
-  ICanaryMetricValidationErrors,
-  validateMetric,
-  validateMetricName,
-  validateMetricScopeName,
-} from './editMetricValidation';
+import { ICanaryMetricValidationErrors, validateMetric, validateMetricName } from './editMetricValidation';
 import { ICanaryMetricConfig } from '../domain';
 
 describe('Canary metric validation', () => {
@@ -36,28 +31,14 @@ describe('Canary metric validation', () => {
     });
   });
 
-  describe('validateMetricScopeName', () => {
-    it('Does not update errors when metric scope name is valid', () => {
-      expect(validateMetricScopeName(errors, editingMetric).scopeName).toBeNull();
-    });
-    it('Updates errors appropriately when metric scope name is empty', () => {
-      editingMetric.scopeName = '';
-      expect(validateMetricScopeName(errors, editingMetric).scopeName).toEqual({
-        message: 'Scope name is required',
-      });
-    });
-  });
-
   describe('validateMetric', () => {
     it('Does not update errors when all fields are valid', () => {
       expect(validateMetric(editingMetric, metricList)).toEqual(errors);
     });
     it('Reduces validation of all fields into one object', () => {
       editingMetric.name = '';
-      editingMetric.scopeName = '';
       expect(validateMetric(editingMetric, metricList)).toEqual({
         name: { message: 'Name is required' },
-        scopeName: { message: 'Scope name is required' },
       });
     });
   });
@@ -66,7 +47,6 @@ describe('Canary metric validation', () => {
 function createErrors(): ICanaryMetricValidationErrors {
   return {
     name: null,
-    scopeName: null,
   };
 }
 

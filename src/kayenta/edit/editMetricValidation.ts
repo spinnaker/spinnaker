@@ -35,31 +35,15 @@ export function validateMetricName(
   return nextErrors;
 }
 
-export function validateMetricScopeName(
-  errors: ICanaryMetricValidationErrors,
-  editingMetric: ICanaryMetricConfig,
-): ICanaryMetricValidationErrors {
-  const nextErrors = { ...errors };
-
-  const editingMetricScopeName = get(editingMetric, 'scopeName', '');
-
-  if (!editingMetricScopeName) {
-    nextErrors.scopeName = { message: 'Scope name is required' };
-  }
-
-  return nextErrors;
-}
-
 export function validateMetric(
   editingMetric: ICanaryMetricConfig,
   metricList: ICanaryMetricConfig[],
 ): ICanaryMetricValidationErrors {
   const errors: ICanaryMetricValidationErrors = {
     name: null,
-    scopeName: null,
   };
 
-  return [validateMetricName, validateMetricScopeName].reduce(
+  return [validateMetricName].reduce(
     (reducedErrors, validator) => validator(reducedErrors, editingMetric, metricList),
     errors,
   );

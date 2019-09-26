@@ -31,7 +31,6 @@ interface IEditMetricModalDispatchProps {
   updateCriticality: (event: any) => void;
   confirm: () => void;
   cancel: () => void;
-  updateScopeName: (event: any) => void;
 }
 
 interface IEditMetricModalStateProps {
@@ -95,7 +94,6 @@ function EditMetricModal({
   updateDirection,
   updateNanStrategy,
   updateCriticality,
-  updateScopeName,
   useInlineTemplateEditor,
   disableEdit,
   validationErrors,
@@ -211,14 +209,6 @@ function EditMetricModal({
               action={updateNanStrategy}
             />
           </FormRow>
-          <FormRow label="Scope Name" error={get(validationErrors, 'scopeName.message', null)}>
-            <DisableableInput
-              type="text"
-              value={metric.scopeName}
-              onChange={updateScopeName}
-              disabledStateKeys={[DISABLE_EDIT_CONFIG]}
-            />
-          </FormRow>
           <EffectSizeSummary effectSizes={effectSize} />
           <MetricConfigurerDelegator />
           {templatesEnabled && !useInlineTemplateEditor && <FilterTemplateSelector />}
@@ -268,7 +258,6 @@ function mapDispatchToProps(dispatch: any): IEditMetricModalDispatchProps {
     updateCriticality: ({ target }: React.ChangeEvent<HTMLInputElement>) => {
       dispatch(Creators.updateMetricCriticality({ id: target.dataset.id, critical: Boolean(target.checked) }));
     },
-    updateScopeName: (event: any) => dispatch(Creators.updateMetricScopeName({ scopeName: event.target.value })),
   };
 }
 

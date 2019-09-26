@@ -135,7 +135,7 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IMetricLi
               serviceType: event.target.dataset.metricStore,
             },
             groups: group ? [group] : [],
-            scopeName: 'default',
+            scopeName: 'default', // scopeName always defaults to `default` and is not configurable from the UI
             isNew: true,
           },
         }),
