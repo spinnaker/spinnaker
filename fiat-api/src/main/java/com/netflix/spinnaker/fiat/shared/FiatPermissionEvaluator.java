@@ -38,6 +38,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
@@ -422,10 +423,16 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
       return authorization;
     }
 
+    public boolean hasAuthorization() {
+      return authorization != null;
+    }
+
+    @Nonnull
     public ResourceType getResourceType() {
       return resourceType;
     }
 
+    @Nonnull
     public String getResourceName() {
       return resourceName;
     }

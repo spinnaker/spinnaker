@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.fiat.shared
 
-import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.fiat.model.Authorization
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Application
@@ -29,28 +27,22 @@ import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.slf4j.MDC
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken
 import spock.lang.Shared
-import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-class FiatPermissionEvaluatorSpec extends Specification {
-  FiatService fiatService = Mock(FiatService)
-  Registry registry = new NoopRegistry()
-  FiatStatus fiatStatus = Mock(FiatStatus) {
-    _ * isEnabled() >> { return true }
-  }
-
-  @Shared
-  def authentication = new PreAuthenticatedAuthenticationToken("testUser", null, [])
+class FiatPermissionEvaluatorSpec extends FiatSharedSpecification {
 
   @Subject
   FiatPermissionEvaluator evaluator = new FiatPermissionEvaluator(
-      registry,
-      fiatService,
-      buildConfigurationProperties(),
-      fiatStatus,
-      FiatPermissionEvaluator.RetryHandler.NOOP
+          registry,
+          fiatService,
+          buildConfigurationProperties(),
+          fiatStatus,
+          FiatPermissionEvaluator.RetryHandler.NOOP
   )
+
+  @Shared
+  def authentication = new PreAuthenticatedAuthenticationToken("testUser", null, [])
 
   def cleanup() {
     MDC.clear()
