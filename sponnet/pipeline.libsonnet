@@ -345,7 +345,14 @@
       withRevisionsBack(revisionsBack):: self + { numRevisionsBack: revisionsBack },
       withManifestName(kind, name):: self + { manifestName: kind + ' ' + name },
     },
-
+    runJobManifest(name): stage(name, 'runJobManifest'){
+      cloudProvider: 'kubernetes',
+      alias: 'runJob',
+      withAccount(account):: self + { account: account },
+      withApplication(application):: self + { application: application },
+      withManifestArtifactAccount(account):: self + { manifestArtifactAccount: account },
+      withManifestArtifact(artifact):: self + { manifestArtifactId: artifact.id, source: 'artifact' },
+    },
     // pipeline stages
 
     pipeline(name):: stage(name, 'pipeline') {
