@@ -29,7 +29,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.exception.Kubernet
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import io.fabric8.kubernetes.api.model.DoneableHorizontalPodAutoscaler
 import io.fabric8.kubernetes.api.model.HorizontalPodAutoscalerBuilder
-import io.fabric8.kubernetes.api.model.MetricSpecBuilder
 
 class UpsertKubernetesAutoscalerAtomicOperation implements AtomicOperation<Void> {
   KubernetesAutoscalerDescription description
@@ -81,8 +80,7 @@ class UpsertKubernetesAutoscalerAtomicOperation implements AtomicOperation<Void>
       description.scalingPolicy = description.scalingPolicy ?: new KubernetesScalingPolicy()
       description.scalingPolicy.cpuUtilization = description.scalingPolicy.cpuUtilization ?: new KubernetesCpuUtilization()
       description.scalingPolicy.cpuUtilization.target = description.scalingPolicy.cpuUtilization.target != null ?
-        description.scalingPolicy.cpuUtilization.target :
-        autoscaler.spec.metrics?.find { metric -> metric.resource.name == "cpu" }?.resource?.targetAverageUtilization
+        description.scalingPolicy.cpuUtilization.target : autoscaler.spec.targetCPUUtilizationPercentage
 
       ((DoneableHorizontalPodAutoscaler) KubernetesApiConverter.toAutoscaler(
         credentials.apiAdaptor.editAutoscaler(namespace, name), description, name, kind, version
