@@ -64,7 +64,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
+public class TitusStreamingUpdateAgent implements CustomScheduledAgent, CachingAgent {
 
   private static final TypeReference<Map<String, Object>> ANY_MAP =
       new TypeReference<Map<String, Object>>() {};
@@ -157,6 +157,17 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent {
   @Override
   public String getProviderName() {
     return TitusCachingProvider.PROVIDER_NAME;
+  }
+
+  @Override
+  public Collection<AgentDataType> getProvidedDataTypes() {
+    return TYPES;
+  }
+
+  @Override
+  public CacheResult loadData(ProviderCache providerCache) {
+
+    throw new RuntimeException("Not supported for " + this.getClass().getSimpleName());
   }
 
   @Override
