@@ -46,10 +46,14 @@ public class FiatAccessDeniedExceptionHandler {
 
   private String authorizationFailureMessage(
       FiatPermissionEvaluator.AuthorizationFailure authorizationFailure) {
+    // Make the resource type readable (ie, "service account" instead of "serviceaccount")
+    String resourceType =
+        authorizationFailure.getResourceType().toString().replace("_", " ").toLowerCase();
+
     StringJoiner sj =
         new StringJoiner(" ")
             .add("Access denied to")
-            .add(authorizationFailure.getResourceType().modelClass.getSimpleName().toLowerCase())
+            .add(resourceType)
             .add(authorizationFailure.getResourceName());
 
     if (authorizationFailure.hasAuthorization()) {
