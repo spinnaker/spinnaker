@@ -108,7 +108,7 @@ class ImageHandler(
               "baseOs" to resource.spec.baseOs,
               "baseLabel" to resource.spec.baseLabel.name.toLowerCase(),
               "cloudProviderType" to "aws",
-              "package" to resource.spec.artifactName,
+              "package" to artifact.reference.substringAfterLast("/"),
               "regions" to resource.spec.regions,
               "storeType" to resource.spec.storeType.name.toLowerCase(),
               "user" to "keel",

@@ -33,6 +33,7 @@ import kotlinx.coroutines.runBlocking
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectThat
 import strikt.api.expectThrows
+import strikt.assertions.hasEntry
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
 import java.util.UUID.randomUUID
@@ -258,6 +259,18 @@ internal class ImageHandlerTests : JUnit5Minutests {
 
         expectThat(request.captured.trigger.artifacts)
           .hasSize(1)
+      }
+
+      test("the full debian name is specified when we create a bake task") {
+        val request = slot<OrchestrationRequest>()
+        coEvery { orcaService.orchestrate("keel@spinnaker", capture(request)) } returns randomTaskRef()
+
+        runBlocking {
+          handler.upsert(resource, ResourceDiff(image, null))
+        }
+
+        expectThat(request.captured.job.first())
+          .hasEntry("package", "keel_0.160.0-h62.02c0fbf_all.deb")
       }
     }
   }
