@@ -18,16 +18,19 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.EXTENSIONS_V1BETA1;
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.NETWORKING_K8S_IO_V1BETA1;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind.INGRESS;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind.SERVICE;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.NETWORK_RESOURCE_PRIORITY;
 
+import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCoreCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgentFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.KubernetesCacheUtils;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
@@ -47,6 +50,9 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class KubernetesIngressHandler extends KubernetesHandler {
+  private static final ImmutableSet<KubernetesApiVersion> SUPPORTED_API_VERSIONS =
+      ImmutableSet.of(EXTENSIONS_V1BETA1, NETWORKING_K8S_IO_V1BETA1);
+
   @Override
   public int deployPriority() {
     return NETWORK_RESOURCE_PRIORITY.getValue();
@@ -110,13 +116,12 @@ public class KubernetesIngressHandler extends KubernetesHandler {
   }
 
   private static List<String> attachedServices(KubernetesManifest manifest) {
-    if (manifest.getApiVersion().equals(EXTENSIONS_V1BETA1)) {
-      V1beta1Ingress v1beta1Ingress =
-          KubernetesCacheDataConverter.getResource(manifest, V1beta1Ingress.class);
-      return attachedServices(v1beta1Ingress);
-    } else {
+    if (!SUPPORTED_API_VERSIONS.contains(manifest.getApiVersion())) {
       throw new UnsupportedVersionException(manifest);
     }
+    V1beta1Ingress v1beta1Ingress =
+        KubernetesCacheDataConverter.getResource(manifest, V1beta1Ingress.class);
+    return attachedServices(v1beta1Ingress);
   }
 
   private static List<String> attachedServices(V1beta1Ingress ingress) {

@@ -24,11 +24,13 @@ import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manife
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.WORKLOAD_CONTROLLER_PRIORITY;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.Replacer;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCoreCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgentFactory;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.Manifest.Status;
@@ -46,6 +48,9 @@ public class KubernetesDeploymentHandler extends KubernetesHandler
         CanResumeRollout,
         CanUndoRollout,
         ServerGroupManagerHandler {
+
+  private static final ImmutableSet<KubernetesApiVersion> SUPPORTED_API_VERSIONS =
+      ImmutableSet.of(EXTENSIONS_V1BETA1, APPS_V1BETA1, APPS_V1BETA2, APPS_V1);
 
   @Nonnull
   @Override
@@ -84,19 +89,15 @@ public class KubernetesDeploymentHandler extends KubernetesHandler
 
   @Override
   public Status status(KubernetesManifest manifest) {
-    if (manifest.getApiVersion().equals(EXTENSIONS_V1BETA1)
-        || manifest.getApiVersion().equals(APPS_V1BETA1)
-        || manifest.getApiVersion().equals(APPS_V1BETA2)
-        || manifest.getApiVersion().equals(APPS_V1)) {
-      if (manifest.isNewerThanObservedGeneration()) {
-        return (new Status()).unknown();
-      }
-      V1Deployment appsV1Deployment =
-          KubernetesCacheDataConverter.getResource(manifest, V1Deployment.class);
-      return status(appsV1Deployment);
-    } else {
+    if (!SUPPORTED_API_VERSIONS.contains(manifest.getApiVersion())) {
       throw new UnsupportedVersionException(manifest);
     }
+    if (manifest.isNewerThanObservedGeneration()) {
+      return (new Status()).unknown();
+    }
+    V1Deployment appsV1Deployment =
+        KubernetesCacheDataConverter.getResource(manifest, V1Deployment.class);
+    return status(appsV1Deployment);
   }
 
   @Override

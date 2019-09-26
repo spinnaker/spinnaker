@@ -20,9 +20,11 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.NETWORKING_K8S_IO_V1;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.NETWORKING_K8S_IO_V1BETA1;
 
+import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.model.SecurityGroup;
@@ -47,6 +49,9 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 @Slf4j
 public class KubernetesV2SecurityGroup extends ManifestBasedModel implements SecurityGroup {
+  private static final ImmutableSet<KubernetesApiVersion> SUPPORTED_API_VERSIONS =
+      ImmutableSet.of(NETWORKING_K8S_IO_V1BETA1, NETWORKING_K8S_IO_V1);
+
   private KubernetesManifest manifest;
   private Keys.InfrastructureCacheKey key;
   private String id;
@@ -91,8 +96,7 @@ public class KubernetesV2SecurityGroup extends ManifestBasedModel implements Sec
     if (!manifest.getKind().equals(KubernetesKind.NETWORK_POLICY)) {
       log.warn("Unknown security group kind " + manifest.getKind());
     } else {
-      if (manifest.getApiVersion().equals(NETWORKING_K8S_IO_V1)
-          || (manifest.getApiVersion().equals(NETWORKING_K8S_IO_V1BETA1))) {
+      if (SUPPORTED_API_VERSIONS.contains(manifest.getApiVersion())) {
         V1NetworkPolicy v1beta1NetworkPolicy =
             KubernetesCacheDataConverter.getResource(manifest, V1NetworkPolicy.class);
         inboundRules = inboundRules(v1beta1NetworkPolicy);

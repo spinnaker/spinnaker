@@ -23,6 +23,7 @@ import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manife
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.WORKLOAD_CONTROLLER_PRIORITY;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.Replacer;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
@@ -30,6 +31,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesC
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCoreCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgentFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.KubernetesCacheUtils;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestSelector;
@@ -49,6 +51,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class KubernetesReplicaSetHandler extends KubernetesHandler
     implements CanResize, CanScale, HasPods, ServerGroupHandler {
+  private static final ImmutableSet<KubernetesApiVersion> SUPPORTED_API_VERSIONS =
+      ImmutableSet.of(EXTENSIONS_V1BETA1, APPS_V1BETA2, APPS_V1);
+
   @Nonnull
   @Override
   protected ImmutableList<Replacer> artifactReplacers() {
@@ -91,15 +96,12 @@ public class KubernetesReplicaSetHandler extends KubernetesHandler
 
   @Override
   public Status status(KubernetesManifest manifest) {
-    if (manifest.getApiVersion().equals(EXTENSIONS_V1BETA1)
-        || manifest.getApiVersion().equals(APPS_V1BETA2)
-        || manifest.getApiVersion().equals(APPS_V1)) {
-      V1ReplicaSet v1ReplicaSet =
-          KubernetesCacheDataConverter.getResource(manifest, V1ReplicaSet.class);
-      return status(v1ReplicaSet);
-    } else {
+    if (!SUPPORTED_API_VERSIONS.contains(manifest.getApiVersion())) {
       throw new UnsupportedVersionException(manifest);
     }
+    V1ReplicaSet v1ReplicaSet =
+        KubernetesCacheDataConverter.getResource(manifest, V1ReplicaSet.class);
+    return status(v1ReplicaSet);
   }
 
   private Status status(V1ReplicaSet replicaSet) {
