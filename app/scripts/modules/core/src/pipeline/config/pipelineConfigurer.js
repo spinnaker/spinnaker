@@ -430,7 +430,10 @@ module.exports = angular
       this.revertPipelineChanges = () => {
         $scope.$applyAsync(() => {
           const original = getOriginal();
-          $scope.pipeline = _.clone(original);
+          Object.keys($scope.pipeline).forEach(key => {
+            delete $scope.pipeline[key];
+          });
+          Object.assign($scope.pipeline, original);
 
           if ($scope.isTemplatedPipeline) {
             const originalRenderablePipeline = getOriginalRenderablePipeline();
