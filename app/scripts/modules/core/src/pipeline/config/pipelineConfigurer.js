@@ -440,6 +440,8 @@ module.exports = angular
                 delete $scope.renderablePipeline[key];
               }
             });
+          } else {
+            $scope.renderablePipeline = $scope.pipeline;
           }
 
           // if we were looking at a stage that no longer exists, move to the last stage
