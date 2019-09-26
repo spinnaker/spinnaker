@@ -210,7 +210,6 @@ class KubernetesKindSpec extends Specification {
     def kubernetesKind = KubernetesKind.fromCustomResourceDefinition(crd)
 
     then:
-    kubernetesKind.getName() == kind
-    kubernetesKind.getApiGroup().toString() == group
+    kubernetesKind == kubernetesKind.fromString("TestKind.stable.example.com")
   }
 }

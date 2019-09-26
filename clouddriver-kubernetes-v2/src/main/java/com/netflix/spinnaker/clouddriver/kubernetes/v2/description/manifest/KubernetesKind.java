@@ -26,7 +26,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
@@ -57,7 +56,7 @@ public class KubernetesKind {
   public static final KubernetesKind HORIZONTAL_POD_AUTOSCALER =
       createWithAlias("horizontalpodautoscaler", "hpa", KubernetesApiGroup.AUTOSCALING);
   public static final KubernetesKind INGRESS =
-      createWithAlias("ingress", null, KubernetesApiGroup.EXTENSIONS);
+      createWithAlias("ingress", null, KubernetesApiGroup.NETWORKING_K8S_IO);
   public static final KubernetesKind JOB = createWithAlias("job", null, KubernetesApiGroup.BATCH);
   public static final KubernetesKind MUTATING_WEBHOOK_CONFIGURATION =
       createWithAlias(
@@ -65,7 +64,7 @@ public class KubernetesKind {
   public static final KubernetesKind NAMESPACE =
       createWithAlias("namespace", "ns", KubernetesApiGroup.CORE);
   public static final KubernetesKind NETWORK_POLICY =
-      createWithAlias("networkPolicy", "netpol", KubernetesApiGroup.EXTENSIONS);
+      createWithAlias("networkPolicy", "netpol", KubernetesApiGroup.NETWORKING_K8S_IO);
   public static final KubernetesKind PERSISTENT_VOLUME =
       createWithAlias("persistentVolume", "pv", KubernetesApiGroup.CORE);
   public static final KubernetesKind PERSISTENT_VOLUME_CLAIM =
@@ -74,7 +73,7 @@ public class KubernetesKind {
   public static final KubernetesKind POD_PRESET =
       createWithAlias("podPreset", null, KubernetesApiGroup.SETTINGS_K8S_IO);
   public static final KubernetesKind POD_SECURITY_POLICY =
-      createWithAlias("podSecurityPolicy", null, KubernetesApiGroup.EXTENSIONS);
+      createWithAlias("podSecurityPolicy", null, KubernetesApiGroup.POLICY);
   public static final KubernetesKind POD_DISRUPTION_BUDGET =
       createWithAlias("podDisruptionBudget", null, KubernetesApiGroup.POLICY);
   public static final KubernetesKind REPLICA_SET =
@@ -101,9 +100,9 @@ public class KubernetesKind {
   // kind is not in spinnaker's registry
   public static final KubernetesKind NONE = createWithAlias("none", null, KubernetesApiGroup.NONE);
 
-  @Getter @Nonnull private final String name;
+  @Nonnull private final String name;
   @EqualsAndHashCode.Include @Nonnull private final String lcName;
-  @Getter @Nonnull private final KubernetesApiGroup apiGroup;
+  @Nonnull private final KubernetesApiGroup apiGroup;
   @EqualsAndHashCode.Include @Nullable private final KubernetesApiGroup customApiGroup;
 
   private KubernetesKind(String name, @Nullable KubernetesApiGroup apiGroup) {
