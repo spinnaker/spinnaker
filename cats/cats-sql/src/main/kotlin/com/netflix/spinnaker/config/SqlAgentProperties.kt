@@ -18,15 +18,15 @@ package com.netflix.spinnaker.config
 import org.springframework.boot.context.properties.ConfigurationProperties
 
 @ConfigurationProperties("sql.agent")
-data class SqlAgentProperties(
-  var enabledPattern: String = ".*",
-  var maxConcurrentAgents: Int = 100,
-  var agentLockAcquisitionIntervalSeconds: Long = 1,
+class SqlAgentProperties {
+  var enabledPattern: String = ".*"
+  var maxConcurrentAgents: Int = 100
+  var agentLockAcquisitionIntervalSeconds: Long = 1
   var poll: SqlPollProperties = SqlPollProperties()
-)
+}
 
-data class SqlPollProperties(
-  var intervalSeconds: Long = 30,
-  var errorIntervalSeconds: Long = 30,
+class SqlPollProperties {
+  var intervalSeconds: Long = 30
+  var errorIntervalSeconds: Long = 30
   var timeoutSeconds: Long = 300
-)
+}

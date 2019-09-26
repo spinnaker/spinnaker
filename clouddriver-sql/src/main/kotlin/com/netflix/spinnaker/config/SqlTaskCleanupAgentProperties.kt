@@ -19,7 +19,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 import java.util.concurrent.TimeUnit
 
 @ConfigurationProperties("sql.agent.task-cleanup")
-class SqlTaskCleanupAgentProperties(
-  var completedTtlMs: Long = TimeUnit.MINUTES.toMillis(60),
+class SqlTaskCleanupAgentProperties {
+  var completedTtlMs: Long = TimeUnit.MINUTES.toMillis(60)
   var batchSize: Int = 100
-)
+}
