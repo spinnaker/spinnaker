@@ -2,12 +2,14 @@ import { module } from 'angular';
 import IInjectorService = angular.auto.IInjectorService;
 
 import { Application } from 'core/application';
+import { API } from '../api';
 
 const injectables: string[] = [];
 
 export class ConsoleDebugWindow {
   public application: Application;
   public $injector: IInjectorService;
+  public api = API;
   [key: string]: any;
 
   public addInjectable(key: string): void {
