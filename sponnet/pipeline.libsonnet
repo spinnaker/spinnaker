@@ -310,7 +310,7 @@
         local selectorsArray = if std.type(selectors) == 'array' then selectors else [selectors];
         self + { mode: 'label', labelSelectors: { selectors: selectors } },
       withGracePeriodSeconds(seconds):: self.options { gracePeriodSeconds: seconds },
-      withManifestName(kind, name):: self.options { manifestName: kind + ' ' + name },
+      withManifestName(kind, name):: self + { manifestName: kind + ' ' + name },
     },
     findArtifactsFromResource(name):: stage(name, 'findArtifactsFromResource') {
       cloudProvider: 'kubernetes',
