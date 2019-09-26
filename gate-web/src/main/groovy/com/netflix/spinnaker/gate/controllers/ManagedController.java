@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.gate.controllers;
 
+import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -12,15 +13,20 @@ import io.swagger.annotations.ApiOperation;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import retrofit.RetrofitError;
+import retrofit.client.Header;
 
 @RequestMapping("/managed")
 @RestController
@@ -96,5 +102,24 @@ public class ManagedController {
   @RequestMapping(value = "/vetos/{name}/rejections", method = GET)
   List<String> getVetoRejections(@PathVariable("name") String name) {
     return keelService.getVetoRejections(name);
+  }
+
+  @ExceptionHandler
+  void passthroughRetrofitErrors(RetrofitError e, HttpServletResponse response) {
+    try {
+      response.setStatus(e.getResponse().getStatus());
+      response.setHeader(
+          CONTENT_TYPE,
+          e.getResponse().getHeaders().stream()
+              .filter(it -> it.getName().equals(CONTENT_TYPE))
+              .map(Header::getValue)
+              .findFirst()
+              .orElse("text/plain"));
+      IOUtils.copy(e.getResponse().getBody().in(), response.getOutputStream());
+    } catch (Exception ex) {
+      log.error(
+          "Error reading response body when translating exception from downstream keelService: ",
+          ex);
+    }
   }
 }
