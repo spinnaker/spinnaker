@@ -270,14 +270,6 @@ class ClusterHandler(
       }
         .mapNotNull { it.await() }
         .toSet()
-//        .also { them ->
-//          if (them.map { it.launchConfiguration.appVersion }.size == 1) {
-//            publisher.publishEvent(ArtifactVersionDeployed(
-//              resourceId = resource.id,
-//              imageId = it.launchConfiguration.imageId
-//            ))
-//          }
-//        }
     }
 
   /**
