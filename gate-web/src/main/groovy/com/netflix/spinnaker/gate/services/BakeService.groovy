@@ -72,6 +72,7 @@ class BakeService {
     String id
     String shortDescription
     String detailedDescription
+    String displayName
     String packageType
     List<String> vmTypes
   }
