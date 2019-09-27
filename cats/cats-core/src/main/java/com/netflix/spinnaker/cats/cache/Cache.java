@@ -23,11 +23,6 @@ import java.util.Map;
 
 /** Cache provides view access to data keyed by type and identifier. */
 public interface Cache {
-  enum StoreType {
-    REDIS,
-    IN_MEMORY,
-    SQL
-  }
 
   /**
    * Gets a single item from the cache by type and id
@@ -122,9 +117,17 @@ public interface Cache {
    */
   Collection<CacheData> getAll(String type, String... identifiers);
 
+  /** Returns whether or not the three {@code getAllByApplication} methods are supported */
+  default boolean supportsGetAllByApplication() {
+    return false;
+  }
+
   /**
    * Retrieves all items for the specified type associated with the provided application. Requires a
    * storeType with secondary indexes and support in the type's caching agent.
+   *
+   * <p>Clients should check {@link #supportsGetAllByApplication()} to check if this method is
+   * supported before calling it.
    *
    * @param type the type for which to retrieve items
    * @param application the application name
@@ -137,6 +140,9 @@ public interface Cache {
   /**
    * Retrieves all items for the specified type associated with the provided application. Requires a
    * storeType with secondary indexes and support in the type's caching agent.
+   *
+   * <p>Clients should check {@link #supportsGetAllByApplication()} to check if this method is
+   * supported before calling it.
    *
    * @param type the type for which to retrieve items
    * @param application the application name
@@ -152,6 +158,9 @@ public interface Cache {
    * Retrieves all items for the specified type associated with the provided application. Requires a
    * storeType with secondary indexes and support in the type's caching agent.
    *
+   * <p>Clients should check {@link #supportsGetAllByApplication()} to check if this method is
+   * supported before calling it.
+   *
    * @param types collection of types for which to retrieve items
    * @param application the application name
    * @param cacheFilters cacheFilters to govern which relationships to fetch, as type to filter
@@ -160,14 +169,5 @@ public interface Cache {
   default Map<String, Collection<CacheData>> getAllByApplication(
       Collection<String> types, String application, Map<String, CacheFilter> cacheFilters) {
     throw new UnsupportedCacheMethodException("Method only implemented for StoreType.SQL");
-  }
-
-  /**
-   * Get backing store type for Cache implementation
-   *
-   * @return the backing StoreType
-   */
-  default StoreType storeType() {
-    return StoreType.REDIS;
   }
 }

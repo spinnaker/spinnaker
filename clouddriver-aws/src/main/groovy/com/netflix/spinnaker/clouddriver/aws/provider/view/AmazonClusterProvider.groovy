@@ -21,7 +21,6 @@ import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.CacheFilter
-import com.netflix.spinnaker.cats.cache.CompositeCache
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
@@ -34,7 +33,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
-import static com.netflix.spinnaker.cats.cache.Cache.StoreType.SQL
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.*
 
 @Component
@@ -259,12 +257,7 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster>, ServerGro
 
     Collection<AmazonCluster> clusters
 
-    // TODO: remove special casing for sql vs. redis; possibly via dropping redis support in the future
-    if ((includeDetails && sqlEnabled) &&
-      ((cacheView instanceof CompositeCache &&
-        (cacheView as CompositeCache).getStoreTypes().every { (it == SQL) }) ||
-        (cacheView.storeType() == SQL))
-    ) {
+    if (includeDetails && cacheView.supportsGetAllByApplication()) {
       clusters = allClustersByApplication(applicationName)
     } else {
       clusters = translateClusters(resolveRelationshipData(application, CLUSTERS.ns), includeDetails)

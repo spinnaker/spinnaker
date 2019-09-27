@@ -1,8 +1,6 @@
 package com.netflix.spinnaker.cats.sql
 
 import com.netflix.spinnaker.cats.agent.CacheResult
-import com.netflix.spinnaker.cats.cache.Cache.StoreType
-import com.netflix.spinnaker.cats.cache.Cache.StoreType.SQL
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
@@ -29,8 +27,6 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
       throw IllegalStateException("SqlProviderCache must be wired with a SqlCache backingStore")
     }
   }
-
-  override fun storeType(): StoreType = SQL
 
   /**
    * Filters the supplied list of identifiers to only those that exist in the cache.
@@ -80,6 +76,10 @@ class SqlProviderCache(private val backingStore: WriteableCache) : ProviderCache
   ): MutableCollection<CacheData> {
     validateTypes(type)
     return backingStore.getAll(type, identifiers, cacheFilter)
+  }
+
+  override fun supportsGetAllByApplication(): Boolean {
+    return true
   }
 
   override fun getAllByApplication(type: String, application: String): Map<String, MutableCollection<CacheData>> {

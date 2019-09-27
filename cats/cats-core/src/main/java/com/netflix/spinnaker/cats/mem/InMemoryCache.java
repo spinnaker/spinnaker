@@ -40,11 +40,6 @@ public class InMemoryCache implements WriteableCache {
       new ConcurrentHashMap<>();
 
   @Override
-  public StoreType storeType() {
-    return StoreType.IN_MEMORY;
-  }
-
-  @Override
   public void merge(String type, CacheData cacheData) {
     merge(getOrCreate(type, cacheData.getId()), cacheData);
   }

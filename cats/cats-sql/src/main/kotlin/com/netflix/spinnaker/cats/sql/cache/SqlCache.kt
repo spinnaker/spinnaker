@@ -1,8 +1,6 @@
 package com.netflix.spinnaker.cats.sql.cache
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.cats.cache.Cache.StoreType
-import com.netflix.spinnaker.cats.cache.Cache.StoreType.SQL
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
@@ -75,8 +73,6 @@ class SqlCache(
   init {
     log.info("Configured for $name")
   }
-
-  override fun storeType(): StoreType = SQL
 
   /**
    * Only evicts cache records but not relationship rows
@@ -265,6 +261,10 @@ class SqlCache(
     val ids = mutableListOf<String>()
     identifiers.forEach { ids.add(it!!) }
     return getAll(type, ids)
+  }
+
+  override fun supportsGetAllByApplication(): Boolean {
+    return true
   }
 
   override fun getAllByApplication(

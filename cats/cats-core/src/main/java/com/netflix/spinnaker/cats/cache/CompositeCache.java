@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.cats.cache;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /** A cache that provides a unified view of multiples, merging items from each cache together. */
 public class CompositeCache implements Cache {
@@ -28,8 +27,9 @@ public class CompositeCache implements Cache {
     this.caches = caches;
   }
 
-  public Set<StoreType> getStoreTypes() {
-    return caches.stream().map(c -> ((Cache) c).storeType()).collect(Collectors.toSet());
+  @Override
+  public boolean supportsGetAllByApplication() {
+    return caches.stream().allMatch(Cache::supportsGetAllByApplication);
   }
 
   @Override
