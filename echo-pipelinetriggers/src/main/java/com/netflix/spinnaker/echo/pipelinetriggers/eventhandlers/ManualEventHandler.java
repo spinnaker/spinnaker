@@ -197,9 +197,6 @@ public class ManualEventHandler implements TriggerEventHandler<ManualEvent> {
       if (Strings.isNullOrEmpty(artifact.getName())
           || Strings.isNullOrEmpty(artifact.getVersion())
           || Strings.isNullOrEmpty(artifact.getLocation())) {
-        log.error(
-            "Artifact does not have enough information to fetch. "
-                + "Artifact must contain name, version, and location.");
         resolvedArtifacts.add(artifact);
       } else {
         try {
