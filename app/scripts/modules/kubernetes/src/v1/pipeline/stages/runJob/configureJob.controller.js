@@ -4,18 +4,18 @@ const angular = require('angular');
 
 import { AccountService, PipelineConfigService } from '@spinnaker/core';
 
-import { KUBERNETES_LIFECYCLE_HOOK_CONFIGURER } from 'kubernetes/container/lifecycleHook.component';
-import { KUBERNETES_CONTAINER_ENVIRONMENT_FROM } from 'kubernetes/container/environmentFrom.component';
+import { KUBERNETES_LIFECYCLE_HOOK_CONFIGURER } from 'kubernetes/v1/container/lifecycleHook.component';
+import { KUBERNETES_CONTAINER_ENVIRONMENT_FROM } from 'kubernetes/v1/container/environmentFrom.component';
 
 module.exports = angular
   .module('spinnaker.kubernetes.pipeline.stage.runJobStage.configure', [
-    require('kubernetes/container/commands.component').name,
-    require('kubernetes/container/arguments.component').name,
-    require('kubernetes/container/environmentVariables.component').name,
-    require('kubernetes/container/volumes.component').name,
-    require('kubernetes/container/ports.component').name,
-    require('kubernetes/container/resources.component').name,
-    require('kubernetes/container/probe.directive').name,
+    require('kubernetes/v1/container/commands.component').name,
+    require('kubernetes/v1/container/arguments.component').name,
+    require('kubernetes/v1/container/environmentVariables.component').name,
+    require('kubernetes/v1/container/volumes.component').name,
+    require('kubernetes/v1/container/ports.component').name,
+    require('kubernetes/v1/container/resources.component').name,
+    require('kubernetes/v1/container/probe.directive').name,
     KUBERNETES_LIFECYCLE_HOOK_CONFIGURER,
     KUBERNETES_CONTAINER_ENVIRONMENT_FROM,
   ])

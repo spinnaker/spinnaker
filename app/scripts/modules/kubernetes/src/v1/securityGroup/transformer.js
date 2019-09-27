@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { KubernetesProviderSettings } from '../kubernetes.settings';
+import { KubernetesProviderSettings } from '../../kubernetes.settings';
 
 module.exports = angular
   .module('spinnaker.kubernetes.securityGroup.transformer', [])

@@ -2,7 +2,7 @@ import { module } from 'angular';
 
 import { CloudProviderRegistry, STAGE_ARTIFACT_SELECTOR_COMPONENT_REACT, YAML_EDITOR_COMPONENT } from '@spinnaker/core';
 
-import '../logo/kubernetes.logo.less';
+import '../shared/logo/kubernetes.logo.less';
 
 import { KUBERNETES_MANIFEST_DELETE_CTRL } from './manifest/delete/delete.controller';
 import { KUBERNETES_MANIFEST_SCALE_CTRL } from './manifest/scale/scale.controller';
@@ -39,6 +39,7 @@ import { ManifestWizard } from 'kubernetes/v2/manifest/wizard/ManifestWizard';
 import { KUBERNETES_ENABLE_MANIFEST_STAGE } from 'kubernetes/v2/pipelines/stages/traffic/enableManifest.stage';
 import { KUBERNETES_DISABLE_MANIFEST_STAGE } from 'kubernetes/v2/pipelines/stages/traffic/disableManifest.stage';
 import { KUBERNETES_V2_RUN_JOB_STAGE } from 'kubernetes/v2/pipelines/stages/runJob/runJobStage';
+import { KubernetesSecurityGroupReader } from 'kubernetes/shared/securityGroup/securityGroup.reader';
 
 // React stages
 import './pipelines/stages/deployManifest/deployManifestStage';
@@ -74,7 +75,6 @@ module(KUBERNETES_V2_MODULE, [
   KUBERNETES_MANIFEST_ARTIFACT,
   KUBERNETES_V2_LOAD_BALANCER_TRANSFORMER,
   KUBERNETES_V2_SECURITY_GROUP_TRANSFORMER,
-  require('../securityGroup/reader').name,
   KUBERNETES_DELETE_MANIFEST_STAGE,
   KUBERNETES_SCALE_MANIFEST_STAGE,
   KUBERNETES_UNDO_ROLLOUT_MANIFEST_STAGE,
@@ -98,7 +98,7 @@ module(KUBERNETES_V2_MODULE, [
     name: 'Kubernetes',
     skin: 'v2',
     logo: {
-      path: require('../logo/kubernetes.icon.svg'),
+      path: require('../shared/logo/kubernetes.icon.svg'),
     },
     serverGroup: {
       CloneServerGroupModal: ManifestWizard,
@@ -118,7 +118,7 @@ module(KUBERNETES_V2_MODULE, [
       transformer: 'kubernetesV2LoadBalancerTransformer',
     },
     securityGroup: {
-      reader: 'kubernetesSecurityGroupReader',
+      reader: KubernetesSecurityGroupReader,
       CreateSecurityGroupModal: ManifestWizard,
       detailsController: 'kubernetesV2SecurityGroupDetailsCtrl',
       detailsTemplateUrl: require('./securityGroup/details/details.html'),

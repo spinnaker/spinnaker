@@ -5,7 +5,7 @@ import _ from 'lodash';
 
 import { AccountService, ExpectedArtifactService } from '@spinnaker/core';
 
-import { KubernetesProviderSettings } from '../../kubernetes.settings';
+import { KubernetesProviderSettings } from '../../../kubernetes.settings';
 
 module.exports = angular
   .module('spinnaker.kubernetes.clusterCommandBuilder.service', [])

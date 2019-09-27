@@ -4,17 +4,17 @@ import _ from 'lodash';
 
 import { Registry } from '@spinnaker/core';
 
-import { KUBERNETES_IMAGE_ID_FILTER } from 'kubernetes/presentation/imageId.filter';
+import { KUBERNETES_IMAGE_ID_FILTER } from 'kubernetes/v1/presentation/imageId.filter';
 
 const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.kubernetes.pipeline.stage.runJobStage', [
-    require('kubernetes/container/commands.component').name,
-    require('kubernetes/container/arguments.component').name,
-    require('kubernetes/container/environmentVariables.component').name,
-    require('kubernetes/container/volumes.component').name,
-    require('kubernetes/image/image.reader').name,
+    require('kubernetes/v1/container/commands.component').name,
+    require('kubernetes/v1/container/arguments.component').name,
+    require('kubernetes/v1/container/environmentVariables.component').name,
+    require('kubernetes/v1/container/volumes.component').name,
+    require('kubernetes/v1/image/image.reader').name,
     require('./runJobExecutionDetails.controller').name,
     require('./configureJob.controller').name,
     KUBERNETES_IMAGE_ID_FILTER,

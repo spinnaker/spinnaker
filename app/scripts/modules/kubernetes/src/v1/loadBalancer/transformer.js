@@ -2,7 +2,7 @@
 
 import _ from 'lodash';
 
-import { KubernetesProviderSettings } from '../kubernetes.settings';
+import { KubernetesProviderSettings } from '../../kubernetes.settings';
 
 const angular = require('angular');
 
