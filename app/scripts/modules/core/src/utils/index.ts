@@ -3,6 +3,7 @@
 export * from './clipboard/CopyToClipboard';
 export * from './debug';
 export * from './json/JsonUtils';
+export * from './json/traverseObject';
 export * from './noop';
 export * from './q';
 export * from './renderIfFeature.component';
