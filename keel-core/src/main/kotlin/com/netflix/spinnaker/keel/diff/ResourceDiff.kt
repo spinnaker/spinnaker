@@ -89,7 +89,7 @@ private class PolymorphismAwareDifferFactory(
 
     override fun accepts(type: Class<*>): Boolean =
       // we don't want to handle collections as the existing differ works
-      delegate.accepts(type) && !Collection::class.java.isAssignableFrom(type)
+      delegate.accepts(type) && !Collection::class.java.isAssignableFrom(type) && !Map::class.java.isAssignableFrom(type)
 
     override fun compare(parentNode: DiffNode?, instances: Instances): DiffNode =
       if (instances.areDifferentSubTypes()) {

@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.keel.diff
 
 import de.danielbechler.diff.node.DiffNode.State.CHANGED
+import de.danielbechler.diff.node.DiffNode.State.UNTOUCHED
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectThat
@@ -53,6 +54,13 @@ internal class ResourceDiffTests : JUnit5Minutests {
         val resourceDiff = ResourceDiff(obj1, obj2)
         expectThat(resourceDiff.diff.state).isEqualTo(CHANGED)
       }
+    }
+
+    context("two different types of empty map") {
+      val obj1 = emptyMap<Any, Any>()
+      val obj2 = LinkedHashMap<Any, Any>()
+      val resourceDiff = ResourceDiff(obj1, obj2)
+      expectThat(resourceDiff.diff.state).isEqualTo(UNTOUCHED)
     }
   }
 }
