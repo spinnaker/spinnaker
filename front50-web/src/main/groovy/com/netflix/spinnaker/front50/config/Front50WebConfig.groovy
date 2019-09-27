@@ -19,8 +19,8 @@ package com.netflix.spinnaker.front50.config
 import com.netflix.hystrix.exception.HystrixRuntimeException
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.fiat.shared.EnableFiatAutoConfig
+import com.netflix.spinnaker.fiat.shared.FiatAccessDeniedExceptionHandler
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
-import com.netflix.spinnaker.front50.exceptions.AccessDeniedExceptionHandler
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO
 import com.netflix.spinnaker.front50.model.application.ApplicationPermissionDAO
 import com.netflix.spinnaker.front50.model.delivery.DeliveryRepository
@@ -135,8 +135,8 @@ public class Front50WebConfig extends WebMvcConfigurerAdapter {
   }
 
   @Bean
-  AccessDeniedExceptionHandler accessDeniedExceptionHandler() {
-    return new AccessDeniedExceptionHandler()
+  FiatAccessDeniedExceptionHandler fiatAccessDeniedExceptionHandler() {
+    return new FiatAccessDeniedExceptionHandler()
   }
 
   @ControllerAdvice
