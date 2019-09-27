@@ -25,6 +25,7 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.monitoreddeploy.EvaluateD
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CloneServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CreateServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.DisableServerGroupStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.PinServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.DetermineTargetServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
@@ -38,6 +39,9 @@ import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
+
+import java.util.concurrent.TimeUnit
+
 import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.newStage
 import static com.netflix.spinnaker.orca.kato.pipeline.strategy.Strategy.MONITORED
 
@@ -129,22 +133,7 @@ class MonitoredDeployStrategy implements Strategy {
     def source = null
 
     try {
-      StageData.Source sourceServerGroup
-
-      Stage parentCreateServerGroupStage = stage.directAncestors()
-        .find() { it.type == CreateServerGroupStage.PIPELINE_CONFIG_TYPE || it.type == CloneServerGroupStage.PIPELINE_CONFIG_TYPE }
-
-      StageData parentStageData = parentCreateServerGroupStage.mapTo(StageData)
-      sourceServerGroup = parentStageData.source
-
-      if (sourceServerGroup != null && (sourceServerGroup.serverGroupName != null || sourceServerGroup.asgName != null)) {
-        source = new ResizeStrategy.Source(
-          region: sourceServerGroup.region,
-          serverGroupName: sourceServerGroup.serverGroupName ?: sourceServerGroup.asgName,
-          credentials: stageData.credentials ?: stageData.account,
-          cloudProvider: stageData.cloudProvider
-        )
-      }
+      source = lookupSourceServerGroup(stage)
     } catch (Exception e) {
       // This probably means there was no parent CreateServerGroup stage - which should never happen
       throw new IllegalStateException("Failed to determine source server group from parent stage while planning Monitored Deploy flow", e)
@@ -180,7 +169,23 @@ class MonitoredDeployStrategy implements Strategy {
     if (source == null) {
       log.info("no source server group -- will perform Monitored Deploy to exact fallback capacity $savedCapacity with no disableCluster or scaleDownCluster stages")
     } else {
-      // TODO(mvulfson): Pin Source
+      def resizeContext = baseContext
+      resizeContext.putAll([
+        serverGroupName   : source.serverGroupName,
+        action            : ResizeStrategy.ResizeAction.scale_to_server_group,
+        source            : source,
+        useNameAsLabel    : true,     // hint to deck that it should _not_ override the name
+        pinMinimumCapacity: true
+      ])
+
+      stages << newStage(
+        stage.execution,
+        PinServerGroupStage.TYPE,
+        "Pin ${resizeContext.serverGroupName}",
+        resizeContext,
+        stage,
+        SyntheticStageOwner.STAGE_AFTER
+      )
     }
 
     if (mdsd.deploymentMonitor.id) {
@@ -296,9 +301,25 @@ class MonitoredDeployStrategy implements Strategy {
       )
     }
 
-    // TODO(mvulfson): Unpin
-    if (source) {
+    // Only unpin if we have a source ASG and we didn't scale it down
+    if (source && !stageData.scaleDown) {
+      def resizeContext = baseContext
+      resizeContext.putAll([
+        serverGroupName     : source.serverGroupName,
+        action              : ResizeStrategy.ResizeAction.scale_to_server_group,
+        source              : source,
+        useNameAsLabel      : true,     // hint to deck that it should _not_ override the name
+        unpinMinimumCapacity: true
+      ])
 
+      stages << newStage(
+        stage.execution,
+        PinServerGroupStage.TYPE,
+        "Unpin ${resizeContext.serverGroupName}",
+        resizeContext,
+        stage,
+        SyntheticStageOwner.STAGE_AFTER
+      )
     }
 
     // TODO(mvulfson): Shrink cluster
@@ -316,6 +337,78 @@ class MonitoredDeployStrategy implements Strategy {
     }
 
     return stages
+  }
+
+  @Override
+  List<Stage> composeOnFailureStages(Stage parent) {
+    def source = null
+    def stages = []
+
+    try {
+      source = lookupSourceServerGroup(parent)
+    } catch (Exception e) {
+      log.warn("Failed to lookup source server group during composeOnFailureStages", e)
+    }
+
+    // No source, nothing to unpin
+    if (source == null) {
+      return stages
+    }
+
+    def cleanupConfig = AbstractDeployStrategyStage.CleanupConfig.fromStage(parent)
+
+    Map baseContext = [
+      (cleanupConfig.location.singularType()): cleanupConfig.location.value,
+      cluster                                : cleanupConfig.cluster,
+      moniker                                : cleanupConfig.moniker,
+      credentials                            : cleanupConfig.account,
+      cloudProvider                          : cleanupConfig.cloudProvider,
+    ]
+
+    def resizeContext = baseContext
+    resizeContext.putAll([
+      serverGroupName     : source.serverGroupName,
+      action              : ResizeStrategy.ResizeAction.scale_to_server_group,
+      source              : source,
+      useNameAsLabel      : true,     // hint to deck that it should _not_ override the name
+      unpinMinimumCapacity: true,
+      // we want to specify a new timeout explicitly here, in case the deploy itself failed because of a timeout
+      stageTimeoutMs      : TimeUnit.MINUTES.toMillis(20)
+    ])
+
+    stages << newStage(
+      parent.execution,
+      PinServerGroupStage.TYPE,
+      "Unpin ${resizeContext.serverGroupName}",
+      resizeContext,
+      parent,
+      SyntheticStageOwner.STAGE_AFTER
+    )
+
+    return stages
+  }
+
+  ResizeStrategy.Source lookupSourceServerGroup(Stage stage) {
+    ResizeStrategy.Source source = null
+    StageData.Source sourceServerGroup
+
+    Stage parentCreateServerGroupStage = stage.directAncestors()
+      .find() { it.type == CreateServerGroupStage.PIPELINE_CONFIG_TYPE || it.type == CloneServerGroupStage.PIPELINE_CONFIG_TYPE }
+
+    StageData parentStageData = parentCreateServerGroupStage.mapTo(StageData)
+    sourceServerGroup = parentStageData.source
+    MonitoredDeployStageData stageData = stage.mapTo(MonitoredDeployStageData)
+
+    if (sourceServerGroup != null && (sourceServerGroup.serverGroupName != null || sourceServerGroup.asgName != null)) {
+      source = new ResizeStrategy.Source(
+        region: sourceServerGroup.region,
+        serverGroupName: sourceServerGroup.serverGroupName ?: sourceServerGroup.asgName,
+        credentials: stageData.credentials ?: stageData.account,
+        cloudProvider: stageData.cloudProvider
+      )
+    }
+
+    return source
   }
 }
 

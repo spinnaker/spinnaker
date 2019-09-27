@@ -5,6 +5,7 @@ import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ScaleDownClusterStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.DisableServerGroupStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.PinServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.DetermineTargetServerGroupStage
 import com.netflix.spinnaker.orca.front50.pipeline.PipelineStage
@@ -105,7 +106,6 @@ class RollingRedBlackStrategySpec extends Specification {
 
     when: 'planning with no targetPercentages'
     def stage = pipeline.stageByRef("2-deploy1")
-    stage.status = ExecutionStatus.RUNNING
     def beforeStages = strat.composeBeforeStages(stage)
     def afterStages = strat.composeAfterStages(stage)
 
@@ -158,5 +158,137 @@ class RollingRedBlackStrategySpec extends Specification {
     afterStages.first().type == determineTargetServerGroupStage.type
     afterStages[2].type == pipelineStage.type
     afterStages[4].type == pipelineStage.type
+  }
+
+  def "should correctly determine source during pin/unpin"() {
+    given:
+    Moniker moniker = new Moniker(app: "unit", stack: "tests")
+    def fallbackCapacity = [min: 1, desired: 2, max: 3]
+
+    def pipeline = pipeline {
+      application = "orca"
+      stage {
+        refId = "1-create"
+        type = "createServerGroup"
+        context = [
+          refId: "stage_createASG",
+          source: [
+            serverGroupName: "test-dev-v005",
+            asgName: "test-dev-v005",
+            region: "us-east-1",
+            useSourceCapacity: false,
+            account: "test"
+          ]
+        ]
+
+        stage {
+          refId = "2-deploy1"
+          parent
+          context = [
+            refId                        : "stage",
+            account                      : "testAccount",
+            application                  : "unit",
+            stack                        : "tests",
+            moniker                      : moniker,
+            cloudProvider                : "aws",
+            region                       : "north",
+            capacity                     : fallbackCapacity,
+            targetHealthyDeployPercentage: 90,
+            scaleDown                    : true,
+          ]
+        }
+      }
+    }
+
+    def strat = new RollingRedBlackStrategy(
+      scaleDownClusterStage: scaleDownClusterStage,
+      disableServerGroupStage: disableServerGroupStage,
+      resizeServerGroupStage: resizeServerGroupStage,
+      waitStage: waitStage,
+      pipelineStage: pipelineStage,
+      determineTargetServerGroupStage: determineTargetServerGroupStage,
+    )
+
+    when: 'using scale down old ASG'
+    def stage = pipeline.stageByRef("2-deploy1")
+    def beforeStages = strat.composeBeforeStages(stage)
+    def afterStages = strat.composeAfterStages(stage)
+
+    then: 'should plan pin but not unpin'
+    beforeStages.isEmpty()
+    afterStages.size() == 5
+    afterStages[1].type == PinServerGroupStage.TYPE
+    afterStages[1].context.serverGroupName == "test-dev-v005"
+    afterStages[4].type == scaleDownClusterStage.type
+
+    when: 'without scaling down old ASG'
+    stage.context.scaleDown = false
+    beforeStages = strat.composeBeforeStages(stage)
+    afterStages = strat.composeAfterStages(stage)
+
+    then: 'should plan pin and unpin'
+    beforeStages.isEmpty()
+    afterStages.size() == 5
+    afterStages[1].type == PinServerGroupStage.TYPE
+    afterStages[1].context.serverGroupName == "test-dev-v005"
+    afterStages[4].type == PinServerGroupStage.TYPE
+    afterStages[4].context.serverGroupName == "test-dev-v005"
+  }
+
+  def "should compose unpin onFailure"() {
+    given:
+    Moniker moniker = new Moniker(app: "unit", stack: "tests")
+    def fallbackCapacity = [min: 1, desired: 2, max: 3]
+
+    def pipeline = pipeline {
+      application = "orca"
+      stage {
+        refId = "1-create"
+        type = "createServerGroup"
+        context = [
+          refId: "stage_createASG",
+          source: [
+            serverGroupName: "test-dev-v005",
+            asgName: "test-dev-v005",
+            region: "us-east-1",
+            useSourceCapacity: false,
+            account: "test"
+          ]
+        ]
+
+        stage {
+          refId = "2-deploy1"
+          parent
+          context = [
+            refId                        : "stage",
+            account                      : "testAccount",
+            application                  : "unit",
+            stack                        : "tests",
+            moniker                      : moniker,
+            cloudProvider                : "aws",
+            region                       : "north",
+            capacity                     : fallbackCapacity,
+            targetHealthyDeployPercentage: 90,
+          ]
+        }
+      }
+    }
+
+    def strat = new RollingRedBlackStrategy(
+      scaleDownClusterStage: scaleDownClusterStage,
+      disableServerGroupStage: disableServerGroupStage,
+      resizeServerGroupStage: resizeServerGroupStage,
+      waitStage: waitStage,
+      pipelineStage: pipelineStage,
+      determineTargetServerGroupStage: determineTargetServerGroupStage,
+    )
+
+    when:
+    def stage = pipeline.stageByRef("2-deploy1")
+    def failureStages = strat.composeOnFailureStages(stage)
+
+    then: 'should plan pin but not unpin'
+    failureStages.size() == 1
+    failureStages[0].type == PinServerGroupStage.TYPE
   }
 }

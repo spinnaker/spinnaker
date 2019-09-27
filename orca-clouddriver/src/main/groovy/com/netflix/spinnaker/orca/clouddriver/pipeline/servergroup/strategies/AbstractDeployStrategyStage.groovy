@@ -165,19 +165,24 @@ abstract class AbstractDeployStrategyStage extends AbstractCloudProviderAwareSta
 
   @Override
   void onFailureStages(Stage stage, StageGraphBuilder graph) {
-    // TODO(mvulfson): Strategy on failure
+    Strategy strategy = getStrategy(stage)
+    // Strategy shouldn't ever be null during regular execution, but that's not the case for unit tests
+    // Either way, defensive programming
+    if (strategy != null) {
+      strategy.composeOnFailureStages(stage).forEach({ graph.append(it) })
+    }
 
     deployStagePreProcessors
       .findAll { it.supports(stage) }
       .collect { it.onFailureStageDefinitions(stage) }
       .flatten()
       .forEach { StageDefinition stageDefinition ->
-      graph.add {
-        it.type = stageDefinition.stageDefinitionBuilder.type
-        it.name = stageDefinition.name
-        it.context = stageDefinition.context
+        graph.add {
+          it.type = stageDefinition.stageDefinitionBuilder.type
+          it.name = stageDefinition.name
+          it.context = stageDefinition.context
+        }
       }
-    }
   }
 
   /**
