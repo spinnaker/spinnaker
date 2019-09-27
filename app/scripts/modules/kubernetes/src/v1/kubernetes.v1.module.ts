@@ -6,11 +6,12 @@ import { KUBERNETES_KEY_VALUE_DETAILS } from './common/keyValueDetails.component
 import { KUBERNETES_TOLERATIONS } from './common/tolerations/tolerations.component';
 import { KUBERNETES_SECURITY_CONTEXT_SELECTOR } from './container/securityContext/securityContextSelector.component';
 import { KUBERNETES_SERVERGROUP_ARTIFACTEXTRACTOR } from './serverGroup/artifactExtractor';
-import '../shared/help/kubernetes.help';
 import { KubernetesProviderSettings } from '../kubernetes.settings';
 import { KubernetesSecurityGroupReader } from 'kubernetes/shared/securityGroup/securityGroup.reader';
 
-import '../shared/logo/kubernetes.logo.less';
+import 'kubernetes/shared/validation/applicationName.validator';
+import 'kubernetes/shared/help/kubernetes.help';
+import 'kubernetes/shared/logo/kubernetes.logo.less';
 
 // load all templates into the $templateCache
 const templates = require.context('kubernetes', true, /\.html$/);
@@ -53,7 +54,6 @@ module(KUBERNETES_V1_MODULE, [
   KUBERNETES_SERVERGROUP_ARTIFACTEXTRACTOR,
   require('./serverGroup/paramsMixin').name,
   require('./serverGroup/transformer').name,
-  require('../shared/validation/applicationName.validator').name,
   KUBERNETES_TOLERATIONS,
 ]).config(() => {
   CloudProviderRegistry.registerProvider('kubernetes', {
