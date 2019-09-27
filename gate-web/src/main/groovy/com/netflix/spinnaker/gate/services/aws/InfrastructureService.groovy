@@ -63,4 +63,16 @@ class InfrastructureService {
       clouddriverServiceSelector.select(selectorKey).getNetworks('aws')
     } execute()
   }
+
+  List<Map> getFunctions(String selectorKey = null, String functionName, String region, String account) {
+    command("functions") {
+      clouddriverServiceSelector.select(selectorKey).getFunctions(functionName,region, account)
+    } execute()
+  }
+
+  List<Map> getApplicationFunctions(String selectorKey = null, String application) {
+    command("functions") {
+      clouddriverServiceSelector.select(selectorKey).getApplicationFunctions(application)
+    } execute()
+  }
 }

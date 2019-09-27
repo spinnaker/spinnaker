@@ -91,6 +91,7 @@ swagger:
     - .*version.*
     - .*pubsub.*
     - .*projects.*
+    - .*functions.*
 
 integrations:
   gremlin:
