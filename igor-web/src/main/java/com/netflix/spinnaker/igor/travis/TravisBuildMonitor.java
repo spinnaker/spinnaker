@@ -43,7 +43,6 @@ import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -84,11 +83,6 @@ public class TravisBuildMonitor
     this.buildServices = buildServices;
     this.travisProperties = travisProperties;
     this.echoService = echoService;
-  }
-
-  @Override
-  public void initialize() {
-    migrateToNewBuildCache();
   }
 
   @Override
@@ -278,40 +272,6 @@ public class TravisBuildMonitor
             .increment();
       }
     }
-  }
-
-  private void migrateToNewBuildCache() {
-    buildServices
-        .getServiceNames(BuildServiceProvider.TRAVIS)
-        .forEach(
-            master ->
-                buildCache
-                    .getDeprecatedJobNames(master)
-                    .forEach(
-                        job -> {
-                          Map<String, Object> oldBuild =
-                              buildCache.getDeprecatedLastBuild(master, job);
-                          if (!oldBuild.isEmpty()) {
-                            int oldBuildNumber = (int) oldBuild.get("lastBuildLabel");
-                            boolean oldBuildBuilding = (boolean) oldBuild.get("lastBuildBuilding");
-                            int currentBuild =
-                                buildCache.getLastBuild(master, job, oldBuildBuilding);
-                            if (currentBuild < oldBuildNumber) {
-                              log.info(
-                                  "BuildCache migration {}:{}:{}:{}",
-                                  kv("master", master),
-                                  kv("job", job),
-                                  kv("building", oldBuildBuilding),
-                                  kv("buildNumber", oldBuildNumber));
-                              buildCache.setLastBuild(
-                                  master,
-                                  job,
-                                  oldBuildNumber,
-                                  oldBuildBuilding,
-                                  buildCacheJobTTLSeconds());
-                            }
-                          }
-                        }));
   }
 
   private int buildCacheJobTTLSeconds() {

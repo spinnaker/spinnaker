@@ -80,9 +80,6 @@ public class GitlabCiBuildMonitor
   }
 
   @Override
-  protected void initialize() {}
-
-  @Override
   public void poll(boolean sendEvents) {
     buildServices.getServiceNames(BuildServiceProvider.GITLAB_CI).stream()
         .map(it -> new PollContext(it, !sendEvents))

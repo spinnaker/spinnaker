@@ -76,9 +76,6 @@ public class ArtifactoryBuildMonitor
   }
 
   @Override
-  protected void initialize() {}
-
-  @Override
   public void poll(boolean sendEvents) {
     for (ArtifactorySearch search : artifactoryProperties.getSearches()) {
       pollSingle(new PollContext(search.getPartitionName(), !sendEvents));

@@ -120,7 +120,7 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
     }
   }
 
-  protected abstract void initialize();
+  protected void initialize() {}
 
   /**
    * Returns a delta of stored state versus newly polled data. A polling monitor must not perform

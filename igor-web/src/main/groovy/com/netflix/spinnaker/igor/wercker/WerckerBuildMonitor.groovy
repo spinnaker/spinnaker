@@ -89,10 +89,6 @@ class WerckerBuildMonitor extends CommonPollingMonitor<PipelineDelta, PipelinePo
     }
 
     @Override
-    void initialize() {
-    }
-
-    @Override
     void poll(boolean sendEvents) {
         long startTime = System.currentTimeMillis()
         log.info "WerckerBuildMonitor Polling cycle started: ${new Date()}, echoService:${echoService.isPresent()} "

@@ -87,10 +87,6 @@ class JenkinsBuildMonitor extends CommonPollingMonitor<JobDelta, JobPollingDelta
     }
 
     @Override
-    void initialize() {
-    }
-
-    @Override
     void poll(boolean sendEvents) {
         buildServices.getServiceNames(BuildServiceProvider.JENKINS).stream().forEach(
             { master -> pollSingle(new PollContext(master, !sendEvents)) }

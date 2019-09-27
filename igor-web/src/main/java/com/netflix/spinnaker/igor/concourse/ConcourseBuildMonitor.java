@@ -71,9 +71,6 @@ public class ConcourseBuildMonitor
   }
 
   @Override
-  protected void initialize() {}
-
-  @Override
   protected JobPollingDelta generateDelta(PollContext ctx) {
     ConcourseProperties.Host host =
         concourseProperties.getMasters().stream()
