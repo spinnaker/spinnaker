@@ -26,5 +26,9 @@ public class GitRepoArtifactAccount implements ArtifactAccount {
 
   private String username;
   private String password;
-  // TODO(ethanfrogers): add support for SSH keys
+  private String token;
+  private String sshPrivateKeyFilePath;
+  private String sshPrivateKeyPassphrase;
+  private String sshKnownHostsFilePath;
+  private boolean sshTrustUnknownHosts;
 }
