@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
+import com.netflix.spinnaker.clouddriver.security.config.SecurityConfig
+
 class UpsertAmiTagsDescription extends AbstractAmazonCredentialsDescription {
   String amiName
   Collection<String> regions
@@ -25,5 +27,10 @@ class UpsertAmiTagsDescription extends AbstractAmazonCredentialsDescription {
   @Override
   boolean requiresApplicationRestriction() {
     return false
+  }
+
+  @Override
+  boolean requiresAuthentication(SecurityConfig.OperationsSecurityConfigurationProperties opsSecurityConfigProps) {
+    return !opsSecurityConfigProps.allowUnauthenticatedImageTaggingInAccounts.contains(account)
   }
 }

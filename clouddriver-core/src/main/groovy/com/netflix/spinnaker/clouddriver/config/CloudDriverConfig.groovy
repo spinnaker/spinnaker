@@ -90,6 +90,7 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.AllowedAccountsValidator
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
+import com.netflix.spinnaker.clouddriver.security.config.SecurityConfig
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer
@@ -352,11 +353,13 @@ class CloudDriverConfig {
   @Bean
   DescriptionAuthorizer descriptionAuthorizer(Registry registry,
                                               ObjectMapper objectMapper,
-                                              Optional<FiatPermissionEvaluator> fiatPermissionEvaluator) {
+                                              Optional<FiatPermissionEvaluator> fiatPermissionEvaluator,
+                                              SecurityConfig.OperationsSecurityConfigurationProperties opsSecurityConfigProps) {
     return new DescriptionAuthorizer(
       registry,
       objectMapper,
-      fiatPermissionEvaluator
+      fiatPermissionEvaluator,
+      opsSecurityConfigProps
     )
   }
 

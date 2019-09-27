@@ -16,8 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.description
 
+import com.netflix.spinnaker.clouddriver.security.config.SecurityConfig
+
 class UpsertGoogleImageTagsDescription extends AbstractGoogleCredentialsDescription {
   String imageName
   Map<String, String> tags
   String accountName
+
+  @Override
+  boolean requiresAuthentication(SecurityConfig.OperationsSecurityConfigurationProperties opsSecurityConfigProps) {
+    return !opsSecurityConfigProps.allowUnauthenticatedImageTaggingInAccounts.contains(account)
+  }
 }

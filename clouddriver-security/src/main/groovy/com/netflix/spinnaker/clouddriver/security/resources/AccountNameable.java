@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.security.resources;
 
+import com.netflix.spinnaker.clouddriver.security.config.SecurityConfig;
+
 /** Denotes an operation description operates on a specific account. */
 public interface AccountNameable {
   String getAccount();
@@ -25,6 +27,11 @@ public interface AccountNameable {
    *     more applications
    */
   default boolean requiresApplicationRestriction() {
+    return true;
+  }
+
+  default boolean requiresAuthentication(
+      SecurityConfig.OperationsSecurityConfigurationProperties opsSecurityConfigProps) {
     return true;
   }
 }

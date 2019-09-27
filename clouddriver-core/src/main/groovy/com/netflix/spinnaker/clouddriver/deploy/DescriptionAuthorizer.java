@@ -22,6 +22,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.clouddriver.security.config.SecurityConfig;
 import com.netflix.spinnaker.clouddriver.security.resources.AccountNameable;
 import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable;
 import com.netflix.spinnaker.clouddriver.security.resources.ResourcesNameable;
@@ -44,6 +45,7 @@ public class DescriptionAuthorizer<T> {
   private final Registry registry;
   private final ObjectMapper objectMapper;
   private final FiatPermissionEvaluator fiatPermissionEvaluator;
+  private final SecurityConfig.OperationsSecurityConfigurationProperties opsSecurityConfigProps;
 
   private final Id missingApplicationId;
   private final Id authorizationId;
@@ -51,10 +53,12 @@ public class DescriptionAuthorizer<T> {
   public DescriptionAuthorizer(
       Registry registry,
       ObjectMapper objectMapper,
-      Optional<FiatPermissionEvaluator> fiatPermissionEvaluator) {
+      Optional<FiatPermissionEvaluator> fiatPermissionEvaluator,
+      SecurityConfig.OperationsSecurityConfigurationProperties opsSecurityConfigProps) {
     this.registry = registry;
     this.objectMapper = objectMapper;
     this.fiatPermissionEvaluator = fiatPermissionEvaluator.orElse(null);
+    this.opsSecurityConfigProps = opsSecurityConfigProps;
 
     this.missingApplicationId = registry.createId("authorization.missingApplication");
     this.authorizationId = registry.createId("authorization");
@@ -70,12 +74,20 @@ public class DescriptionAuthorizer<T> {
     String account = null;
     List<String> applications = new ArrayList<>();
     boolean requiresApplicationRestriction = true;
+    boolean requiresAuthentication = true;
 
     if (description instanceof AccountNameable) {
       AccountNameable accountNameable = (AccountNameable) description;
       account = accountNameable.getAccount();
 
       requiresApplicationRestriction = accountNameable.requiresApplicationRestriction();
+      requiresAuthentication = accountNameable.requiresAuthentication(opsSecurityConfigProps);
+      if (!requiresAuthentication) {
+        log.info(
+            "Skipping authentication for operation `{}` in account `{}`.",
+            description.getClass().getSimpleName(),
+            accountNameable.getAccount());
+      }
     }
 
     if (description instanceof ApplicationNameable) {
@@ -97,7 +109,8 @@ public class DescriptionAuthorizer<T> {
     }
 
     boolean hasPermission = true;
-    if (account != null
+    if (requiresAuthentication
+        && account != null
         && !fiatPermissionEvaluator.hasPermission(auth, account, "ACCOUNT", "WRITE")) {
       hasPermission = false;
       errors.reject("authorization", format("Access denied to account %s", account));
