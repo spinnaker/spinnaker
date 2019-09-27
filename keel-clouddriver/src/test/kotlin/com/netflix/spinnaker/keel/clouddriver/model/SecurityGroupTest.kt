@@ -21,7 +21,6 @@ object SecurityGroupTest : ModelParsingTestSupport<CloudDriverService, SecurityG
     inboundRules = emptySet(),
     moniker = Moniker(
       app = "covfefe",
-      cluster = "covfefe",
       detail = null,
       stack = null,
       sequence = null
