@@ -25,6 +25,6 @@ import com.netflix.spinnaker.keel.api.ResourceId
  */
 data class ArtifactVersionDeployed(
   val resourceId: ResourceId,
-  val imageId: String,
+  val artifactVersion: String,
   val provider: String = "aws"
 )

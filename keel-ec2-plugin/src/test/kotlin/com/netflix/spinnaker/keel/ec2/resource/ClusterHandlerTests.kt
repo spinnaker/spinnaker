@@ -82,7 +82,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
 
   val spec = ClusterSpec(
     moniker = Moniker(app = "keel", stack = "test"),
-    imageProvider = IdImageProvider(imageId = "i-123543254134"),
+    imageProvider = IdImageProvider(imageId = "ami-123543254134"),
     locations = Locations(
       accountName = vpcWest.account,
       regions = listOf(vpcWest, vpcEast).map { subnet ->
@@ -290,6 +290,21 @@ internal class ClusterHandlerTests : JUnit5Minutests {
       }
     }
 
+    context("the cluster has active server groups with different app versions") {
+      before {
+        coEvery { cloudDriverService.activeServerGroup("us-east-1") } returns activeServerGroupResponseEast
+        coEvery { cloudDriverService.activeServerGroup("us-west-2") } returns activeServerGroupResponseWest.withOlderAppVersion()
+
+        runBlocking {
+          current(resource)
+        }
+      }
+
+      test("no event is fired indicating an app version is deployed") {
+        verify(exactly = 0) { publisher.publishEvent(ofType<ArtifactVersionDeployed>()) }
+      }
+    }
+
     context("a diff has been detected") {
       context("the diff is only in capacity") {
 
@@ -400,5 +415,16 @@ private fun ServerGroup.withDifferentInstanceType(): ServerGroup =
   copy(
     launchConfiguration = launchConfiguration.copy(
       instanceType = "r4.16xlarge"
+    )
+  )
+
+private fun ActiveServerGroup.withOlderAppVersion(): ActiveServerGroup =
+  copy(
+    image = image.copy(
+      imageId = "ami-573e1b2650a5",
+      appVersion = "keel-0.251.0-h167.9ea0465"
+    ),
+    launchConfig = launchConfig.copy(
+      imageId = "ami-573e1b2650a5"
     )
   )

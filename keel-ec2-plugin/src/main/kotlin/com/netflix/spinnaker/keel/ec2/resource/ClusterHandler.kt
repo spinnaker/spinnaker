@@ -254,12 +254,6 @@ class ClusterHandler(
               CLOUD_PROVIDER
             )
               .toServerGroup()
-              .also {
-                publisher.publishEvent(ArtifactVersionDeployed(
-                  resourceId = resource.id,
-                  imageId = it.launchConfiguration.imageId
-                ))
-              }
           } catch (e: HttpException) {
             if (!e.isNotFound) {
               throw e
@@ -270,6 +264,14 @@ class ClusterHandler(
       }
         .mapNotNull { it.await() }
         .toSet()
+        .also { them ->
+          if (them.distinctBy { it.launchConfiguration.appVersion }.size == 1) {
+            publisher.publishEvent(ArtifactVersionDeployed(
+              resourceId = resource.id,
+              artifactVersion = them.first().launchConfiguration.appVersion
+            ))
+          }
+        }
     }
 
   /**

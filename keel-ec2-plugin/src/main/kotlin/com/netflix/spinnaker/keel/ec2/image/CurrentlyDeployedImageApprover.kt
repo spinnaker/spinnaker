@@ -19,9 +19,6 @@ package com.netflix.spinnaker.keel.ec2.image
 
 import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
-import com.netflix.spinnaker.keel.api.serviceAccount
-import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
-import com.netflix.spinnaker.keel.clouddriver.model.appVersion
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
@@ -32,7 +29,6 @@ import org.springframework.stereotype.Component
 
 @Component
 class CurrentlyDeployedImageApprover(
-  private val cloudDriverService: CloudDriverService,
   private val artifactRepository: ArtifactRepository,
   private val resourceRepository: ResourceRepository,
   private val deliveryConfigRepository: DeliveryConfigRepository
@@ -40,7 +36,7 @@ class CurrentlyDeployedImageApprover(
   private val log = LoggerFactory.getLogger(javaClass)
 
   @EventListener(ArtifactVersionDeployed::class)
-  fun artifactAlreadyDeployedEventHandler(event: ArtifactVersionDeployed) =
+  fun onArtifactVersionDeployed(event: ArtifactVersionDeployed) =
     runBlocking {
       val resourceId = event.resourceId
       val resource = resourceRepository.get(resourceId)
@@ -51,13 +47,11 @@ class CurrentlyDeployedImageApprover(
         val spec = resource.spec as ClusterSpec // needed because kotlin can't cast it automatically
         if (spec.imageProvider is ArtifactImageProvider) {
           val artifact = spec.imageProvider.deliveryArtifact
-          val image = cloudDriverService.namedImages(resource.serviceAccount, event.imageId, null).first()
-          val appversion = image.appVersion
 
           val approvedForEnv = artifactRepository.isApprovedFor(
             deliveryConfig = deliveryConfig,
             artifact = artifact,
-            version = appversion,
+            version = event.artifactVersion,
             targetEnvironment = env.name
           )
           // should only mark as successfully deployed if it's already approved for the environment
@@ -65,15 +59,15 @@ class CurrentlyDeployedImageApprover(
             val wasSuccessfullyDeployed = artifactRepository.wasSuccessfullyDeployedTo(
               deliveryConfig = deliveryConfig,
               artifact = artifact,
-              version = appversion,
+              version = event.artifactVersion,
               targetEnvironment = env.name
             )
             if (!wasSuccessfullyDeployed) {
-              log.info("Marking {} as deployed in {} for config {} because it is already deployed", appversion, env.name, deliveryConfig.name)
+              log.info("Marking {} as deployed in {} for config {} because it is already deployed", event.artifactVersion, env.name, deliveryConfig.name)
               artifactRepository.markAsSuccessfullyDeployedTo(
                 deliveryConfig = deliveryConfig,
                 artifact = artifact,
-                version = appversion,
+                version = event.artifactVersion,
                 targetEnvironment = env.name
               )
             }

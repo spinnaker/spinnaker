@@ -30,9 +30,7 @@ import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.Locations
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.IdImageProvider
 import com.netflix.spinnaker.keel.api.id
-import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
-import com.netflix.spinnaker.keel.ec2.actuation.ArtifactPromotionListenerTests
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
@@ -42,7 +40,6 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.Called
 import io.mockk.clearAllMocks
-import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -138,12 +135,8 @@ internal class CurrentlyDeployedImageApproverTests : JUnit5Minutests {
     val deliveryConfigRepository = InMemoryDeliveryConfigRepository()
     val resourceRepository = InMemoryResourceRepository()
     val artifactRepository = mockk<ArtifactRepository>(relaxUnitFun = true)
-    val cloudDriverService = mockk<CloudDriverService> {
-      coEvery { namedImages(ArtifactPromotionListenerTests.Fixture.imageId, "test", "ap-south-1") } returns listOf(ArtifactPromotionListenerTests.Fixture.ami)
-    }
 
     val subject = CurrentlyDeployedImageApprover(
-      cloudDriverService = cloudDriverService,
       artifactRepository = artifactRepository,
       resourceRepository = resourceRepository,
       deliveryConfigRepository = deliveryConfigRepository
@@ -163,8 +156,8 @@ internal class CurrentlyDeployedImageApproverTests : JUnit5Minutests {
       before {
         deliveryConfigRepository.store(deliveryConfig)
         resourceRepository.store(nonArtifactCluster)
-        val event = ArtifactVersionDeployed(nonArtifactCluster.id, imageId)
-        subject.artifactAlreadyDeployedEventHandler(event)
+        val event = ArtifactVersionDeployed(nonArtifactCluster.id, appVersion)
+        subject.onArtifactVersionDeployed(event)
       }
 
       test("nothing happens") {
@@ -180,10 +173,9 @@ internal class CurrentlyDeployedImageApproverTests : JUnit5Minutests {
 
         every { artifactRepository.isApprovedFor(deliveryConfig, artifact, appVersion, testEnv.name) } returns true
         every { artifactRepository.wasSuccessfullyDeployedTo(deliveryConfig, artifact, appVersion, testEnv.name) } returns false
-        coEvery { cloudDriverService.namedImages(any(), imageId, null) } returns listOf(ami)
 
-        val event = ArtifactVersionDeployed(artifactCluster.id, imageId)
-        subject.artifactAlreadyDeployedEventHandler(event)
+        val event = ArtifactVersionDeployed(artifactCluster.id, appVersion)
+        subject.onArtifactVersionDeployed(event)
       }
 
       test("running version is the latest version") {
@@ -198,10 +190,9 @@ internal class CurrentlyDeployedImageApproverTests : JUnit5Minutests {
 
         every { artifactRepository.isApprovedFor(deliveryConfig, artifact, appVersion, testEnv.name) } returns true
         every { artifactRepository.wasSuccessfullyDeployedTo(deliveryConfig, artifact, appVersion, testEnv.name) } returns true
-        coEvery { cloudDriverService.namedImages(any(), imageId, null) } returns listOf(ami)
 
-        val event = ArtifactVersionDeployed(artifactCluster.id, imageId)
-        subject.artifactAlreadyDeployedEventHandler(event)
+        val event = ArtifactVersionDeployed(artifactCluster.id, appVersion)
+        subject.onArtifactVersionDeployed(event)
       }
 
       test("version was already marked as deployed") {
@@ -216,10 +207,9 @@ internal class CurrentlyDeployedImageApproverTests : JUnit5Minutests {
 
         every { artifactRepository.isApprovedFor(deliveryConfig, artifact, appVersion, testEnv.name) } returns false
         every { artifactRepository.wasSuccessfullyDeployedTo(deliveryConfig, artifact, appVersion, testEnv.name) } returns false
-        coEvery { cloudDriverService.namedImages(any(), imageId, null) } returns listOf(ami)
 
-        val event = ArtifactVersionDeployed(artifactCluster.id, imageId)
-        subject.artifactAlreadyDeployedEventHandler(event)
+        val event = ArtifactVersionDeployed(artifactCluster.id, appVersion)
+        subject.onArtifactVersionDeployed(event)
       }
 
       test("does nothing because version wasn't approved for that env yet") {
