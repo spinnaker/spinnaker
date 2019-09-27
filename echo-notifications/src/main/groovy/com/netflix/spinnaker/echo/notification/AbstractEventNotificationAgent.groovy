@@ -78,7 +78,13 @@ abstract class AbstractEventNotificationAgent implements EchoEventListener {
       return
     }
 
-    if (config.type == 'pipeline' && event.content.execution?.status == 'CANCELED') {
+    if (config.type == 'stage' && event.content.canceled == true) {
+      return
+    }
+
+    // TODO (lpollo): why do we have a 'CANCELED' status and a canceled property, which are prime for inconsistency?
+    if (config.type == 'pipeline' &&
+      (event.content.execution?.status == 'CANCELED' || event.content.execution?.canceled == true)) {
       return
     }
 
