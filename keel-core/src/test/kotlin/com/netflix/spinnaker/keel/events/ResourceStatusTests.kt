@@ -40,7 +40,7 @@ internal class ResourceStatusTests : JUnit5Minutests {
     val missingEvent = ResourceMissing(resource)
     val deltaDetectedEvent = ResourceDeltaDetected(resource, mapOf("hi" to "wow"))
     val actuationLaunchedEvent = ResourceActuationLaunched(resource, "resourceHandlerPlugin", listOf(Task("1", "task name")))
-    val deltaResolvedEvent = ResourceDeltaResolved(resource, "current")
+    val deltaResolvedEvent = ResourceDeltaResolved(resource)
     val errorEvent = ResourceCheckError(resource, InvalidResourceFormatException("bad resource", "who knows"))
   }
 

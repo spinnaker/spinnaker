@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.config
 
-import com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.orca.OrcaService
 import okhttp3.HttpUrl
@@ -46,7 +45,7 @@ class OrcaConfiguration {
     Retrofit.Builder()
       .baseUrl(orcaEndpoint)
       .client(retrofitClient)
-      .addConverterFactory(JacksonConverterFactory.create(objectMapper.disable(FAIL_ON_UNKNOWN_PROPERTIES)))
+      .addConverterFactory(JacksonConverterFactory.create(objectMapper))
       .build()
       .create(OrcaService::class.java)
 }

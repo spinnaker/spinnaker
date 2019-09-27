@@ -267,7 +267,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
             subject.appendHistory(ResourceUpdated(resource, emptyMap(), clock))
             subject.appendHistory(ResourceDeltaDetected(resource, emptyMap(), clock))
             subject.appendHistory(ResourceActuationLaunched(resource, "whatever", emptyList(), clock))
-            subject.appendHistory(ResourceDeltaResolved(resource, resource.spec, clock))
+            subject.appendHistory(ResourceDeltaResolved(resource, clock))
           }
           clock.incrementBy(TEN_MINUTES)
         }

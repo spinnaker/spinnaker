@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.serialization
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
+import com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS
 import com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_WITH_ZONE_ID
@@ -32,6 +33,7 @@ private fun <T : ObjectMapper> T.configureMe(): T =
       .registerULIDModule()
       .registerModule(JavaTimeModule())
       .configureSaneDateTimeRepresentation()
+      .disable(FAIL_ON_UNKNOWN_PROPERTIES)
   }
 
 private fun ObjectMapper.registerULIDModule(): ObjectMapper =

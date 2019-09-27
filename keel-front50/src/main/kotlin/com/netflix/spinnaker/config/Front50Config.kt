@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.config
 
-import com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.front50.Front50Service
 import okhttp3.HttpUrl
@@ -28,7 +27,7 @@ class Front50Config {
     retrofitClient: OkHttpClient
   ): Front50Service =
     Retrofit.Builder()
-      .addConverterFactory(JacksonConverterFactory.create(objectMapper.disable(FAIL_ON_UNKNOWN_PROPERTIES)))
+      .addConverterFactory(JacksonConverterFactory.create(objectMapper))
       .baseUrl(front50Endpoint)
       .client(retrofitClient)
       .build()

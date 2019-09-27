@@ -234,21 +234,17 @@ data class ResourceDeltaResolved(
   override val kind: String,
   override val id: String,
   override val application: String,
-  override val timestamp: Instant,
-  val desired: Any,
-  val current: Any
+  override val timestamp: Instant
 ) : ResourceCheckResult() {
   @JsonIgnore
   override val state = Ok
 
-  constructor(resource: Resource<*>, current: Any, clock: Clock = Companion.clock) : this(
+  constructor(resource: Resource<*>, clock: Clock = Companion.clock) : this(
     resource.apiVersion,
     resource.kind,
     resource.id.value,
     resource.application,
-    clock.instant(),
-    resource.spec,
-    current
+    clock.instant()
   )
 }
 

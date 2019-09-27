@@ -86,7 +86,7 @@ class ResourceActuator(
           // TODO: not sure this logic belongs here
           val lastEvent = resourceRepository.eventHistory(resource.id, limit = 1).first()
           if (lastEvent is ResourceDeltaDetected || lastEvent is ResourceActuationLaunched) {
-            publisher.publishEvent(ResourceDeltaResolved(resource, current, clock))
+            publisher.publishEvent(ResourceDeltaResolved(resource, clock))
           } else {
             publisher.publishEvent(ResourceValid(resource, clock))
           }
