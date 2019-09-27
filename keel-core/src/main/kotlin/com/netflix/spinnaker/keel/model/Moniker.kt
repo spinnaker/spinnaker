@@ -40,7 +40,7 @@ data class Moniker(
     get() = when {
       stack == null && detail == null -> "$app-v$sequence"
       detail == null && sequence != null -> "$app-$stack-v$sequence"
-      else -> "$app-${stack.orEmpty()}-$detail-v$sequence"
+      else -> "$app-${stack.orEmpty()}-$detail-v${sequence?.padStart(3, '0')}"
     }
 }
 
