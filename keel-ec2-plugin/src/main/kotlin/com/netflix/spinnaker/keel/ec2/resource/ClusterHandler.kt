@@ -88,8 +88,8 @@ class ClusterHandler(
         .map { diff ->
           val spec = diff.desired
           val job = when {
-            diff.isCapacityOnly() -> spec.resizeServerGroupJob(diff.current)
-            else -> spec.createServerGroupJob(diff.current)
+            diff.isCapacityOnly() -> diff.resizeServerGroupJob()
+            else -> diff.createServerGroupJob()
           }
 
           log.info("Upserting server group using task: {}", job)
@@ -132,95 +132,98 @@ class ClusterHandler(
   private fun ResourceDiff<ServerGroup>.isCapacityOnly(): Boolean =
     current != null && affectedRootPropertyTypes.all { it == Capacity::class.java }
 
-  private fun ServerGroup.createServerGroupJob(current: ServerGroup?): Map<String, Any?> =
-    mutableMapOf(
-      "application" to moniker.app,
-      "credentials" to location.accountName,
-      // <things to do with the strategy>
-      // TODO: this will be parameterizable ultimately
-      "strategy" to "redblack",
-      "delayBeforeDisableSec" to 0,
-      "delayBeforeScaleDownSec" to 0,
-      "maxRemainingAsgs" to 2,
-      // the 2hr default timeout sort-of? makes sense in an imperative
-      // pipeline world where maybe within 2 hours the environment around
-      // the instances will fix itself and the stage will succeed. Since
-      // we are telling the red/black strategy to roll back on failure,
-      // this will leave us in a position where we will instead keep
-      // reattempting to clone the server group because the rollback
-      // on failure of instances to come up will leave us in a non
-      // converged state...
-      "stageTimeoutMs" to Duration.ofMinutes(30).toMillis(),
-      "rollback" to mapOf(
-        "onFailure" to true
-      ),
-      "scaleDown" to false,
-      // </things to do with the strategy>
-      "capacity" to mapOf(
-        "min" to capacity.min,
-        "max" to capacity.max,
-        "desired" to capacity.desired
-      ),
-      "targetHealthyDeployPercentage" to 100, // TODO: any reason to do otherwise?
-      "cooldown" to health.cooldown.seconds,
-      "enabledMetrics" to health.enabledMetrics,
-      "healthCheckType" to health.healthCheckType.name,
-      "healthCheckGracePeriod" to health.warmup.seconds,
-      "instanceMonitoring" to launchConfiguration.instanceMonitoring,
-      "ebsOptimized" to launchConfiguration.ebsOptimized,
-      "iamRole" to launchConfiguration.iamRole,
-      "terminationPolicies" to health.terminationPolicies.map(TerminationPolicy::name),
-      "subnetType" to location.subnet,
-      "availabilityZones" to mapOf(
-        location.region to location.availabilityZones
-      ),
-      "keyPair" to launchConfiguration.keyPair,
-      "suspendedProcesses" to scaling.suspendedProcesses,
-      "securityGroups" to securityGroupIds,
-      "stack" to moniker.stack,
-      "freeFormDetails" to moniker.detail,
-      "tags" to tags,
-      "useAmiBlockDeviceMappings" to false, // TODO: any reason to do otherwise?
-      "copySourceCustomBlockDeviceMappings" to false, // TODO: any reason to do otherwise?
-      "virtualizationType" to "hvm", // TODO: any reason to do otherwise?
-      "moniker" to mapOf(
-        "app" to moniker.app,
+  private fun ResourceDiff<ServerGroup>.createServerGroupJob(): Map<String, Any?> =
+    with(desired) {
+      mutableMapOf(
+        "application" to moniker.app,
+        "credentials" to location.accountName,
+        // <things to do with the strategy>
+        // TODO: this will be parameterizable ultimately
+        "strategy" to "redblack",
+        "delayBeforeDisableSec" to 0,
+        "delayBeforeScaleDownSec" to 0,
+        "maxRemainingAsgs" to 2,
+        // the 2hr default timeout sort-of? makes sense in an imperative
+        // pipeline world where maybe within 2 hours the environment around
+        // the instances will fix itself and the stage will succeed. Since
+        // we are telling the red/black strategy to roll back on failure,
+        // this will leave us in a position where we will instead keep
+        // reattempting to clone the server group because the rollback
+        // on failure of instances to come up will leave us in a non
+        // converged state...
+        "stageTimeoutMs" to Duration.ofMinutes(30).toMillis(),
+        "rollback" to mapOf(
+          "onFailure" to true
+        ),
+        "scaleDown" to false,
+        // </things to do with the strategy>
+        "capacity" to mapOf(
+          "min" to capacity.min,
+          "max" to capacity.max,
+          "desired" to capacity.desired
+        ),
+        "targetHealthyDeployPercentage" to 100, // TODO: any reason to do otherwise?
+        "cooldown" to health.cooldown.seconds,
+        "enabledMetrics" to health.enabledMetrics,
+        "healthCheckType" to health.healthCheckType.name,
+        "healthCheckGracePeriod" to health.warmup.seconds,
+        "instanceMonitoring" to launchConfiguration.instanceMonitoring,
+        "ebsOptimized" to launchConfiguration.ebsOptimized,
+        "iamRole" to launchConfiguration.iamRole,
+        "terminationPolicies" to health.terminationPolicies.map(TerminationPolicy::name),
+        "subnetType" to location.subnet,
+        "availabilityZones" to mapOf(
+          location.region to location.availabilityZones
+        ),
+        "keyPair" to launchConfiguration.keyPair,
+        "suspendedProcesses" to scaling.suspendedProcesses,
+        "securityGroups" to securityGroupIds,
         "stack" to moniker.stack,
-        "detail" to moniker.detail,
-        "cluster" to moniker.name
-      ),
-      "amiName" to launchConfiguration.imageId,
-      "reason" to "Diff detected at ${clock.instant().iso()}",
-      "instanceType" to launchConfiguration.instanceType,
-      "type" to "createServerGroup",
-      "cloudProvider" to CLOUD_PROVIDER,
-      "loadBalancers" to dependencies.loadBalancerNames,
-      "targetGroups" to dependencies.targetGroups,
-      "account" to location.accountName
-    ).also { job ->
-      current?.let { ancestor ->
-        job["source"] = mapOf(
-          "account" to location.accountName,
-          "region" to location.region,
-          "asgName" to ancestor.moniker.serverGroup
-        )
-        job["copySourceCustomBlockDeviceMappings"] = true
-      }
+        "freeFormDetails" to moniker.detail,
+        "tags" to tags,
+        "useAmiBlockDeviceMappings" to false, // TODO: any reason to do otherwise?
+        "copySourceCustomBlockDeviceMappings" to false, // TODO: any reason to do otherwise?
+        "virtualizationType" to "hvm", // TODO: any reason to do otherwise?
+        "moniker" to mapOf(
+          "app" to moniker.app,
+          "stack" to moniker.stack,
+          "detail" to moniker.detail,
+          "cluster" to moniker.name
+        ),
+        "amiName" to launchConfiguration.imageId,
+        "reason" to "Diff detected at ${clock.instant().iso()}",
+        "instanceType" to launchConfiguration.instanceType,
+        "type" to "createServerGroup",
+        "cloudProvider" to CLOUD_PROVIDER,
+        "loadBalancers" to dependencies.loadBalancerNames,
+        "targetGroups" to dependencies.targetGroups,
+        "account" to location.accountName
+      )
     }
+      .also { job ->
+        current?.also { ancestor ->
+          job["source"] = mapOf(
+            "account" to ancestor.location.accountName,
+            "region" to ancestor.location.region,
+            "asgName" to ancestor.moniker.serverGroup
+          )
+          job["copySourceCustomBlockDeviceMappings"] = true
+        }
+      }
 
-  private fun ServerGroup.resizeServerGroupJob(current: ServerGroup?): Map<String, Any?> {
-    requireNotNull(current) {
+  private fun ResourceDiff<ServerGroup>.resizeServerGroupJob(): Map<String, Any?> {
+    val current = requireNotNull(current) {
       "Current server group must not be null when generating a resize job"
     }
     return mapOf(
       "type" to "resizeServerGroup",
       "capacity" to mapOf(
-        "min" to capacity.min,
-        "max" to capacity.max,
-        "desired" to capacity.desired
+        "min" to desired.capacity.min,
+        "max" to desired.capacity.max,
+        "desired" to desired.capacity.desired
       ),
       "cloudProvider" to CLOUD_PROVIDER,
-      "credentials" to location.accountName,
+      "credentials" to desired.location.accountName,
       "moniker" to mapOf(
         "app" to current.moniker.app,
         "stack" to current.moniker.stack,
