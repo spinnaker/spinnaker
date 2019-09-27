@@ -115,7 +115,7 @@ data class ClusterSpec(
     health: HealthSpec?,
     scaling: Scaling?,
     tags: Map<String, String>?,
-    overrides: Map<String, ServerGroupSpec>
+    overrides: Map<String, ServerGroupSpec> = emptyMap()
   ) : this(
     moniker,
     imageProvider,
