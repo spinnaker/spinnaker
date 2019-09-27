@@ -9,6 +9,7 @@ import { ReactModal } from 'core/presentation';
 const angular = require('angular');
 
 import { OVERRIDE_REGISTRY } from 'core/overrideRegistry/override.registry';
+import { PIPELINE_CONFIG_ACTIONS } from 'core/pipeline/config/actions/pipelineConfigActions.module';
 import { PipelineConfigValidator } from './validation/PipelineConfigValidator';
 import { EXECUTION_BUILD_TITLE } from '../executionBuild/ExecutionBuildTitle';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
@@ -26,7 +27,11 @@ import { PipelineTemplateV2Service } from 'core/pipeline';
 import { PipelineTemplateWriter } from 'core/pipeline/config/templates/PipelineTemplateWriter';
 
 module.exports = angular
-  .module('spinnaker.core.pipeline.config.pipelineConfigurer', [OVERRIDE_REGISTRY, EXECUTION_BUILD_TITLE])
+  .module('spinnaker.core.pipeline.config.pipelineConfigurer', [
+    OVERRIDE_REGISTRY,
+    PIPELINE_CONFIG_ACTIONS,
+    EXECUTION_BUILD_TITLE,
+  ])
   .directive('pipelineConfigurer', function() {
     return {
       restrict: 'E',
@@ -58,10 +63,6 @@ module.exports = angular
       $scope.renderablePipeline = $scope.plan || $scope.pipeline;
       // Watch for non-reference changes to renderablePipline and make them reference changes to make React happy
       $scope.$watch('renderablePipeline', (newValue, oldValue) => newValue !== oldValue && this.updatePipeline(), true);
-      this.actionsTemplateUrl = overrideRegistry.getTemplate(
-        'pipelineConfigActions',
-        require('./actions/pipelineConfigActions.html'),
-      );
 
       this.warningsPopover = require('./warnings.popover.html');
 

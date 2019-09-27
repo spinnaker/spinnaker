@@ -34,7 +34,20 @@
           <create-pipeline application="application"></create-pipeline>
         </div>
         <div class="pipeline-actions text-right">
-          <div ng-include="pipelineConfigurerCtrl.actionsTemplateUrl"></div>
+          <Pipeline-Config-Actions
+            has-history="viewState.hasHistory"
+            loading-history="viewState.loadingHistory"
+            pipeline="pipeline"
+            rename-pipeline="pipelineConfigurerCtrl.renamePipeline"
+            delete-pipeline="pipelineConfigurerCtrl.deletePipeline"
+            enable-pipeline="pipelineConfigurerCtrl.enablePipeline"
+            disable-pipeline="pipelineConfigurerCtrl.disablePipeline"
+            lock-pipeline="pipelineConfigurerCtrl.lockPipeline"
+            unlock-pipeline="pipelineConfigurerCtrl.unlockPipeline"
+            edit-pipeline-json="pipelineConfigurerCtrl.editPipelineJson"
+            show-history="pipelineConfigurerCtrl.showHistory"
+            export-pipeline-template="pipelineConfigurerCtrl.exportPipelineTemplate"
+          ></Pipeline-Config-Actions>
         </div>
       </div>
     </div>
