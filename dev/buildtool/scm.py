@@ -151,7 +151,7 @@ class SpinnakerSourceCodeManager(object):
     if os.path.exists(git_dir):
       logging.info('Confirming existing %s matches expectations', git_dir)
       existing = self.__git.determine_git_repository_spec(git_dir)
-      if existing.origin != origin:
+      if existing.origin not in [origin, self.__git.determine_pull_url(origin)]:
         raise_and_log_error(
             UnexpectedError(
                 'Repository "{dir}" origin="{have}" expected="{want}"'.format(
