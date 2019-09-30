@@ -11,6 +11,7 @@ export interface IBaseImage {
   shortDescription: string;
   detailedDescription: string;
   packageType: string;
+  displayName: string;
 }
 
 export interface IBaseOsOptions {
