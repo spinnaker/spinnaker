@@ -30,7 +30,7 @@ export class ClusterFilterModel {
 
   constructor() {
     this.asFilterModel = FilterModelService.configureFilterModel(this as any, filterModelConfig);
-    FilterModelService.registerRouterHooks(this.asFilterModel, '**.application.insight.clusters');
+    FilterModelService.registerRouterHooks(this.asFilterModel, '**.application.insight.clusters.**');
     this.asFilterModel.activate();
   }
 }

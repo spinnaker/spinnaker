@@ -20,7 +20,7 @@ export class SecurityGroupFilterModel {
 
   constructor() {
     this.asFilterModel = FilterModelService.configureFilterModel(this as any, filterModelConfig);
-    FilterModelService.registerRouterHooks(this.asFilterModel, '**.application.insight.firewalls');
+    FilterModelService.registerRouterHooks(this.asFilterModel, '**.application.insight.firewalls.**');
     this.asFilterModel.activate();
   }
 }
