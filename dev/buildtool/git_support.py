@@ -1078,21 +1078,21 @@ class GitRunner(object):
     self.check_run(git_dir, 'tag -d ' + ' '.join(tags_to_remove))
     logging.debug('%d of %d tags removed', len(tags_to_remove), len(all_tags))
 
-  def determine_pull_url(self, repository):
+  def determine_pull_url(self, origin):
     """Return the pull URL for a given repository from its origin."""
-    parts = self.normalize_repo_url(repository.origin)
+    parts = self.normalize_repo_url(origin)
     if len(parts) == 3:
       return (self.make_ssh_url(*parts) if self.__options.github_pull_ssh
               else self.make_https_url(*parts))
-    return repository.origin
+    return origin
 
-  def determine_push_url(self, repository):
+  def determine_push_url(self, origin):
     """Return the push URL for a given repository from its origin."""
-    parts = self.normalize_repo_url(repository.origin)
+    parts = self.normalize_repo_url(origin)
     if len(parts) == 3:
       return (self.make_ssh_url(*parts) if self.__options.github_push_ssh
               else self.make_https_url(*parts))
-    return repository.origin
+    return origin
 
   def clone_repository_to_path(
       self, repository, commit=None, branch=None, default_branch=None):
@@ -1107,7 +1107,7 @@ class GitRunner(object):
       raise_and_log_error(
           ConfigError('At most one of commit or branch can be specified.'))
 
-    pull_url = self.determine_pull_url(repository)
+    pull_url = self.determine_pull_url(repository.origin)
     git_dir = repository.git_dir
     logging.debug('Begin cloning %s', pull_url)
     parent_dir = os.path.dirname(git_dir)
@@ -1143,7 +1143,7 @@ class GitRunner(object):
       if len(parts) == 3:
         # Origin is not a local path
         logging.debug('Fixing origin push url')
-        push_url = self.determine_push_url(repository)
+        push_url = self.determine_push_url(repository.origin)
         self.check_run(git_dir, 'remote set-url --push origin ' + push_url)
 
     logging.debug('Finished cloning %s', pull_url)
