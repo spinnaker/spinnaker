@@ -23,7 +23,13 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 @RestController
@@ -81,5 +87,15 @@ public class ArtifactController {
       @PathVariable String packageName,
       @RequestParam(required = false) String releaseStatus) {
     return artifactService.getVersionsOfArtifactForProvider(provider, packageName, releaseStatus);
+  }
+
+  @ApiOperation(
+      value = "Retrieve the specified artifact version for an artifact provider and package name")
+  @RequestMapping(value = "/{provider}/{packageName}/{version:.+}", method = RequestMethod.GET)
+  Map<String, Object> getArtifact(
+      @PathVariable String provider,
+      @PathVariable String packageName,
+      @PathVariable String version) {
+    return artifactService.getArtifactByVersion(provider, packageName, version);
   }
 }

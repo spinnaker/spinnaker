@@ -59,6 +59,11 @@ public class ArtifactService {
     return HystrixFactory.newVoidCommand(GROUP, type, work);
   }
 
+  private static HystrixCommand<Map<String, Object>> mapCommand(
+      String type, Callable<Map<String, Object>> work) {
+    return HystrixFactory.newMapCommand(GROUP, type, work);
+  }
+
   public List<Map> getArtifactCredentials(String selectorKey) {
     return mapListCommand(
             "artifactCredentials",
@@ -108,6 +113,19 @@ public class ArtifactService {
     return stringListCommand(
             "artifactVersionsByProvider",
             () -> igorService.get().getArtifactVersions(provider, packageName, releaseStatus))
+        .execute();
+  }
+
+  public Map<String, Object> getArtifactByVersion(
+      String provider, String packageName, String version) {
+    if (!igorService.isPresent()) {
+      throw new IllegalStateException(
+          "Cannot fetch artifact versions because Igor is not enabled.");
+    }
+
+    return mapCommand(
+            "artifactFromVersion",
+            () -> igorService.get().getArtifactByVersion(provider, packageName, version))
         .execute();
   }
 }
