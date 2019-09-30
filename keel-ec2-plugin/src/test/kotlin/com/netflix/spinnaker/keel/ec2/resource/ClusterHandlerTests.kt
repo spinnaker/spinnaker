@@ -16,6 +16,7 @@ import com.netflix.spinnaker.keel.api.ec2.Metric
 import com.netflix.spinnaker.keel.api.ec2.ScalingProcess
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup
 import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
+import com.netflix.spinnaker.keel.api.ec2.byRegion
 import com.netflix.spinnaker.keel.api.ec2.resolve
 import com.netflix.spinnaker.keel.api.ec2.resolveCapacity
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
@@ -56,12 +57,12 @@ import org.apache.commons.lang3.RandomStringUtils.randomNumeric
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectThat
 import strikt.assertions.containsExactlyInAnyOrder
+import strikt.assertions.containsKey
 import strikt.assertions.get
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEmpty
 import strikt.assertions.map
-import strikt.assertions.none
 import java.time.Clock
 import java.util.UUID.randomUUID
 
@@ -135,7 +136,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
     subnets: List<Subnet>,
     securityGroups: List<SecurityGroupSummary>
   ): ActiveServerGroup =
-    randomNumeric(3).let { sequence ->
+    randomNumeric(3).padStart(3, '0').let { sequence ->
       ActiveServerGroup(
         "$name-v$sequence",
         location.region,
@@ -238,14 +239,13 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         }
         expectThat(current)
           .hasSize(1)
-          .none {
-            get { location.region }.isEqualTo("us-west-2")
-          }
+          .not()
+          .containsKey("us-west-2")
       }
 
       test("annealing a diff creates a new server group") {
         runBlocking {
-          upsert(resource, ResourceDiff(serverGroups, emptySet()))
+          upsert(resource, ResourceDiff(serverGroups.byRegion(), emptyMap()))
         }
 
         val slot = slot<OrchestrationRequest>()
@@ -264,7 +264,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
       }
 
       // TODO: test for multiple server group response
-      derivedContext<Set<ServerGroup>>("fetching the current server group state") {
+      derivedContext<Map<String, ServerGroup>>("fetching the current server group state") {
         deriveFixture {
           runBlocking {
             current(resource)
@@ -276,7 +276,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         }
 
         test("the server group name is derived correctly") {
-          expectThat(this)
+          expectThat(values)
             .map { it.name }
             .containsExactlyInAnyOrder(
               activeServerGroupResponseEast.name,
@@ -312,7 +312,10 @@ internal class ClusterHandlerTests : JUnit5Minutests {
           serverGroupEast.copy(name = activeServerGroupResponseEast.name),
           serverGroupWest.copy(name = activeServerGroupResponseWest.name).withDoubleCapacity()
         )
-        val diff = ResourceDiff(serverGroups, modified)
+        val diff = ResourceDiff(
+          serverGroups.byRegion(),
+          modified.byRegion()
+        )
 
         test("annealing resizes the current server group") {
           runBlocking {
@@ -344,7 +347,10 @@ internal class ClusterHandlerTests : JUnit5Minutests {
           serverGroupEast.copy(name = activeServerGroupResponseEast.name),
           serverGroupWest.copy(name = activeServerGroupResponseWest.name).withDoubleCapacity().withDifferentInstanceType()
         )
-        val diff = ResourceDiff(serverGroups, modified)
+        val diff = ResourceDiff(
+          serverGroups.byRegion(),
+          modified.byRegion()
+        )
 
         test("annealing clones the current server group") {
           runBlocking {
@@ -373,7 +379,10 @@ internal class ClusterHandlerTests : JUnit5Minutests {
           serverGroupEast.copy(name = activeServerGroupResponseEast.name).withDifferentInstanceType(),
           serverGroupWest.copy(name = activeServerGroupResponseWest.name).withDoubleCapacity()
         )
-        val diff = ResourceDiff(serverGroups, modified)
+        val diff = ResourceDiff(
+          serverGroups.byRegion(),
+          modified.byRegion()
+        )
 
         test("annealing launches one task per server group") {
           runBlocking {

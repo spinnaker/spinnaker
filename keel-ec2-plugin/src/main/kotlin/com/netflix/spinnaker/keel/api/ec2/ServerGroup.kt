@@ -44,3 +44,6 @@ data class ServerGroup(
 
 val ServerGroup.moniker: Moniker
   get() = parseMoniker(name)
+
+fun Iterable<ServerGroup>.byRegion(): Map<String, ServerGroup> =
+  associateBy { it.location.region }

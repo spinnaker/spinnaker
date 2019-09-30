@@ -12,8 +12,8 @@ import java.time.Duration
 /**
  * Transforms a [ClusterSpec] into a concrete model of server group desired states.
  */
-fun ClusterSpec.resolve(resolvedImages: ResolvedImages): Set<ServerGroup> {
-  return locations.regions.map {
+fun ClusterSpec.resolve(resolvedImages: ResolvedImages): Set<ServerGroup> =
+  locations.regions.map {
     ServerGroup(
       name = moniker.name,
       location = Location(
@@ -35,7 +35,6 @@ fun ClusterSpec.resolve(resolvedImages: ResolvedImages): Set<ServerGroup> {
     )
   }
     .toSet()
-}
 
 private fun ClusterSpec.resolveLaunchConfiguration(region: String, appVersion: String, imageId: String): LaunchConfiguration =
   LaunchConfiguration(

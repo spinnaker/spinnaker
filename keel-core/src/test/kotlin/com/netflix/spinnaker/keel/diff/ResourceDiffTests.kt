@@ -24,11 +24,6 @@ import dev.minutest.rootContext
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
-/**
- * Diffing should work between objects of the same parent, but different sub classes.
- *
- * https://github.com/spinnaker/keel/issues/317
- */
 internal class ResourceDiffTests : JUnit5Minutests {
   private data class Container(val prop: Parent)
 
@@ -46,21 +41,34 @@ internal class ResourceDiffTests : JUnit5Minutests {
     val anotherProp: String
   ) : Parent
 
-  fun tests() = rootContext {
-    context("delta is the type of a polymorphic property") {
-      test("the delta is detected") {
+  fun tests() = rootContext<ResourceDiff<Any>> {
+    /**
+     * Diffing should work between objects of the same parent, but different sub classes.
+     *
+     * https://github.com/spinnaker/keel/issues/317
+     */
+    context("delta in the type of a polymorphic property") {
+      fixture {
         val obj1 = Container(Child1("common", "myprop"))
         val obj2 = Container(Child2("common", "anotherProp"))
-        val resourceDiff = ResourceDiff(obj1, obj2)
-        expectThat(resourceDiff.diff.state).isEqualTo(CHANGED)
+        ResourceDiff(obj1, obj2)
+      }
+
+      test("the delta is detected") {
+        expectThat(diff.state).isEqualTo(CHANGED)
       }
     }
 
     context("two different types of empty map") {
-      val obj1 = emptyMap<Any, Any>()
-      val obj2 = LinkedHashMap<Any, Any>()
-      val resourceDiff = ResourceDiff(obj1, obj2)
-      expectThat(resourceDiff.diff.state).isEqualTo(UNTOUCHED)
+      fixture {
+        val obj1 = emptyMap<Any, Any>()
+        val obj2 = LinkedHashMap<Any, Any>()
+        ResourceDiff(obj1, obj2)
+      }
+
+      test("no delta is detected") {
+        expectThat(diff.state).isEqualTo(UNTOUCHED)
+      }
     }
   }
 }

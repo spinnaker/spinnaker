@@ -17,6 +17,7 @@ import com.netflix.spinnaker.keel.api.ec2.Scaling
 import com.netflix.spinnaker.keel.api.ec2.ScalingProcess
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup
 import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
+import com.netflix.spinnaker.keel.api.ec2.byRegion
 import com.netflix.spinnaker.keel.api.ec2.moniker
 import com.netflix.spinnaker.keel.api.ec2.resolve
 import com.netflix.spinnaker.keel.api.id
@@ -57,7 +58,7 @@ class ClusterHandler(
   private val publisher: ApplicationEventPublisher,
   override val objectMapper: ObjectMapper,
   override val normalizers: List<ResourceNormalizer<*>>
-) : ResolvableResourceHandler<ClusterSpec, Set<ServerGroup>> {
+) : ResolvableResourceHandler<ClusterSpec, Map<String, ServerGroup>> {
 
   override val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -68,18 +69,20 @@ class ClusterHandler(
     plural = "clusters"
   ) to ClusterSpec::class.java
 
-  override suspend fun desired(resource: Resource<ClusterSpec>): Set<ServerGroup> =
+  override suspend fun desired(resource: Resource<ClusterSpec>): Map<String, ServerGroup> =
     with(resource.spec) {
       val resolvedImages = imageResolver.resolveImageId(resource)
-      resolve(resolvedImages)
+      resolve(resolvedImages).byRegion()
     }
 
-  override suspend fun current(resource: Resource<ClusterSpec>): Set<ServerGroup> =
-    cloudDriverService.getServerGroups(resource)
+  override suspend fun current(resource: Resource<ClusterSpec>): Map<String, ServerGroup> =
+    cloudDriverService
+      .getServerGroups(resource)
+      .byRegion()
 
   override suspend fun upsert(
     resource: Resource<ClusterSpec>,
-    resourceDiff: ResourceDiff<Set<ServerGroup>>
+    resourceDiff: ResourceDiff<Map<String, ServerGroup>>
   ): List<Task> =
     coroutineScope {
       resourceDiff
@@ -115,10 +118,10 @@ class ClusterHandler(
         .map { it.await() }
     }
 
-  private fun ResourceDiff<Set<ServerGroup>>.toIndividualDiffs() =
+  private fun ResourceDiff<Map<String, ServerGroup>>.toIndividualDiffs() =
     desired
-      .map { desired ->
-        ResourceDiff(desired, current?.find { it.location.region == desired.location.region })
+      .map { (region, desired) ->
+        ResourceDiff(desired, current?.get(region))
       }
 
   override suspend fun actuationInProgress(id: ResourceId) =
@@ -134,7 +137,7 @@ class ClusterHandler(
 
   private fun ResourceDiff<ServerGroup>.createServerGroupJob(): Map<String, Any?> =
     with(desired) {
-      mutableMapOf(
+      mapOf(
         "application" to moniker.app,
         "credentials" to location.accountName,
         // <things to do with the strategy>
@@ -200,15 +203,17 @@ class ClusterHandler(
         "account" to location.accountName
       )
     }
-      .also { job ->
-        current?.also { ancestor ->
-          job["source"] = mapOf(
-            "account" to ancestor.location.accountName,
-            "region" to ancestor.location.region,
-            "asgName" to ancestor.moniker.serverGroup
+      .let { job ->
+        current?.run {
+          job + mapOf(
+            "source" to mapOf(
+              "account" to location.accountName,
+              "region" to location.region,
+              "asgName" to moniker.serverGroup
+            ),
+            "copySourceCustomBlockDeviceMappings" to true
           )
-          job["copySourceCustomBlockDeviceMappings"] = true
-        }
+        } ?: job
       }
 
   private fun ResourceDiff<ServerGroup>.resizeServerGroupJob(): Map<String, Any?> {
@@ -240,7 +245,7 @@ class ClusterHandler(
     TODO("not implemented")
   }
 
-  private suspend fun CloudDriverService.getServerGroups(resource: Resource<ClusterSpec>): Set<ServerGroup> =
+  private suspend fun CloudDriverService.getServerGroups(resource: Resource<ClusterSpec>): Iterable<ServerGroup> =
     coroutineScope {
       resource.spec.locations.regions.map {
         async {
@@ -263,7 +268,6 @@ class ClusterHandler(
         }
       }
         .mapNotNull { it.await() }
-        .toSet()
         .also { them ->
           if (them.distinctBy { it.launchConfiguration.appVersion }.size == 1) {
             publisher.publishEvent(ArtifactVersionDeployed(
