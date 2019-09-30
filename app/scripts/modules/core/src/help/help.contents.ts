@@ -423,11 +423,11 @@ const helpContents: { [key: string]: string } = {
   'pipeline.config.webhook.progressJsonPath':
     "JSON path to a descriptive message about the progress in the webhook's response JSON. (e.g. <samp>$.buildInfo.progress</samp>)",
   'pipeline.config.webhook.successStatuses':
-    'Comma-separated list of strings that will be considered as SUCCESS status.',
+    'Comma-separated list of strings (that will be returned in the response body in the previously defined `statusJsonPath` field) that will be considered as SUCCESS status.',
   'pipeline.config.webhook.canceledStatuses':
-    'Comma-separated list of strings that will be considered as CANCELED status.',
+    'Comma-separated list of strings (that will be returned in the response body in the previously defined `statusJsonPath` field) that will be considered as CANCELED status.',
   'pipeline.config.webhook.terminalStatuses':
-    'Comma-separated list of strings that will be considered as TERMINAL status.',
+    'Comma-separated list of strings (that will be returned in the response body in the previously defined `statusJsonPath` field) that will be considered as TERMINAL status.',
   'pipeline.config.webhook.customHeaders': 'Key-value pairs to be sent as additional headers to the service.',
   'pipeline.config.webhook.failFastCodes':
     'Comma-separated HTTP status codes (4xx or 5xx) that will cause this webhook stage to fail without retrying.',
