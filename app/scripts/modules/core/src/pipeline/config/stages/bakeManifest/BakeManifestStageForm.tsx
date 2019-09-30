@@ -27,7 +27,7 @@ export class BakeManifestStageForm extends React.Component<
 
   private shouldRenderHelm(): boolean {
     const stage = this.props.formik.values;
-    return stage.templateRenderer === this.HELM_RENDERER || !SETTINGS.feature.kustomizeEnabled;
+    return stage.templateRenderer === this.HELM_RENDERER;
   }
 
   public render() {
