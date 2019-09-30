@@ -17,8 +17,8 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.config.DeploymentMonitorServiceProvider
-import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ScaleDownClusterStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ShrinkClusterStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.monitoreddeploy.NotifyDeployCompletedStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.monitoreddeploy.NotifyDeployStartingStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.monitoreddeploy.EvaluateDeploymentHealthStage
@@ -122,11 +122,9 @@ class MonitoredDeployStrategy implements Strategy {
       deploySteps.add(100)
     }
 
-    MonitoredDeployStageData mdsd = stage.mapTo(MonitoredDeployStageData.class)
-
-    if (mdsd.deploymentMonitor.id) {
+    if (stageData.deploymentMonitor.id) {
       // Before we begin deploy, just validate that the given deploy monitor is registered
-      deploymentMonitorServiceProvider.getDefinitionById(mdsd.deploymentMonitor.id)
+      deploymentMonitorServiceProvider.getDefinitionById(stageData.deploymentMonitor.id)
     }
 
     // Get source ASG from prior determineSourceServerGroupTask
@@ -140,21 +138,21 @@ class MonitoredDeployStrategy implements Strategy {
     }
 
     // TODO(mvulfson): I don't love this
-    def evalContext = mdsd.getChildStageContext()
+    def evalContext = stageData.getChildStageContext()
     MonitoredDeployInternalStageData internalStageData = new MonitoredDeployInternalStageData()
     internalStageData.account = baseContext.credentials
     internalStageData.cloudProvider = baseContext.cloudProvider
     internalStageData.region = baseContext.region
     internalStageData.oldServerGroup = source?.serverGroupName
-    internalStageData.newServerGroup = mdsd.deployServerGroups[baseContext.region].first()
-    internalStageData.parameters = mdsd.deploymentMonitor.parameters
+    internalStageData.newServerGroup = stageData.deployServerGroups[baseContext.region].first()
+    internalStageData.parameters = stageData.deploymentMonitor.parameters
 
     evalContext += internalStageData.toContextMap()
 
     def findContext = baseContext + [
       //target        : TargetServerGroup.Params.Target.current_asg_dynamic,
       serverGroupName: internalStageData.newServerGroup,
-      targetLocation: cleanupConfig.location,
+      targetLocation : cleanupConfig.location,
     ]
 
     stages << newStage(
@@ -188,7 +186,7 @@ class MonitoredDeployStrategy implements Strategy {
       )
     }
 
-    if (mdsd.deploymentMonitor.id) {
+    if (stageData.deploymentMonitor.id) {
       def notifyDeployStartingStage = newStage(
         stage.execution,
         this.notifyDeployStartingStage.type,
@@ -205,12 +203,12 @@ class MonitoredDeployStrategy implements Strategy {
     // java .forEach rather than groovy .each, since the nested .each closure sometimes omits parent context
     deploySteps.forEach({ p ->
       def resizeContext = baseContext + [
-        target              : TargetServerGroup.Params.Target.current_asg_dynamic,
-        targetLocation      : cleanupConfig.location,
-        scalePct            : p,
-        pinCapacity         : p < 100,  // if p < 100, capacity should be pinned (min == max == desired)
-        unpinMinimumCapacity: p == 100, // if p == 100, min capacity should be restored to the original unpinned value from source
-        useNameAsLabel      : true,     // hint to deck that it should _not_ override the name
+        target                       : TargetServerGroup.Params.Target.current_asg_dynamic,
+        targetLocation               : cleanupConfig.location,
+        scalePct                     : p,
+        pinCapacity                  : p < 100,  // if p < 100, capacity should be pinned (min == max == desired)
+        unpinMinimumCapacity         : p == 100, // if p == 100, min capacity should be restored to the original unpinned value from source
+        useNameAsLabel               : true,     // hint to deck that it should _not_ override the name
         targetHealthyDeployPercentage: stage.context.targetHealthyDeployPercentage
       ]
 
@@ -241,8 +239,8 @@ class MonitoredDeployStrategy implements Strategy {
       // only generate the "disable p% of traffic" stages if we have something to disable
       if (source) {
         def disableContext = baseContext + [
-          desiredPercentage : p,
-          serverGroupName   : source.serverGroupName
+          desiredPercentage: p,
+          serverGroupName  : source.serverGroupName
         ]
 
         log.info("Adding `Disable $p% of Desired Size` stage with context $disableContext [executionId=${stage.execution.id}]")
@@ -258,7 +256,7 @@ class MonitoredDeployStrategy implements Strategy {
         stages << disablePortionStage
       }
 
-      if (mdsd.deploymentMonitor.id) {
+      if (stageData.deploymentMonitor.id) {
         evalContext.currentProgress = p
 
         stages << newStage(
@@ -322,10 +320,23 @@ class MonitoredDeployStrategy implements Strategy {
       )
     }
 
-    // TODO(mvulfson): Shrink cluster
+    if (stageData?.maxRemainingAsgs && (stageData?.maxRemainingAsgs > 0)) {
+      Map shrinkContext = baseContext + [
+        shrinkToSize         : stageData.maxRemainingAsgs,
+        allowDeleteActive    : false,
+        retainLargerOverNewer: false
+      ]
+      stages << newStage(
+        stage.execution,
+        ShrinkClusterStage.STAGE_TYPE,
+        "shrinkCluster",
+        shrinkContext,
+        stage,
+        SyntheticStageOwner.STAGE_AFTER
+      )
+    }
 
-
-    if (mdsd.deploymentMonitor.id) {
+    if (stageData.deploymentMonitor.id) {
       stages << newStage(
         stage.execution,
         notifyDeployCompletedStage.type,
@@ -384,6 +395,28 @@ class MonitoredDeployStrategy implements Strategy {
       parent,
       SyntheticStageOwner.STAGE_AFTER
     )
+
+    MonitoredDeployStageData stageData = parent.mapTo(MonitoredDeployStageData.class)
+    if (stageData.deploymentMonitor.id) {
+      def evalContext = stageData.getChildStageContext()
+      MonitoredDeployInternalStageData internalStageData = new MonitoredDeployInternalStageData()
+      internalStageData.account = baseContext.credentials
+      internalStageData.cloudProvider = baseContext.cloudProvider
+      internalStageData.region = baseContext.region
+      internalStageData.oldServerGroup = source?.serverGroupName
+      internalStageData.newServerGroup = stageData.deployServerGroups[baseContext.region].first()
+      internalStageData.parameters = stageData.deploymentMonitor.parameters
+
+      evalContext += internalStageData.toContextMap()
+      stages << newStage(
+        parent.execution,
+        notifyDeployCompletedStage.type,
+        "Notify monitored deploy complete",
+        evalContext,
+        parent,
+        SyntheticStageOwner.STAGE_AFTER
+      )
+    }
 
     return stages
   }
