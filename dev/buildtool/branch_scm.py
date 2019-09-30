@@ -108,6 +108,9 @@ class BranchSourceCodeManager(SpinnakerSourceCodeManager):
                     build_number, repository.name)
     return build_number
 
+  def ensure_repository(self, repository):
+    return
+
   def check_repository_is_current(self, repository):
     git_dir = repository.git_dir
     commit = repository.commit_or_none()
