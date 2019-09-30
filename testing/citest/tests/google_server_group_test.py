@@ -502,11 +502,7 @@ class GoogleServerGroupTest(st.AgentTestCase):
 
   def test_e_clone_server_group(self):
     self.run_test_case(self.scenario.clone_server_group(),
-                       poll_every_secs=3,
-                       # TODO(ewiseblatt): 20160314
-                       # There is a lock contention race condition
-                       # in clouddriver that causes intermittent failure.
-                       max_retries=5)
+                       poll_every_secs=3)
 
   def test_f_disable_server_group(self):
     self.run_test_case(self.scenario.disable_server_group())
