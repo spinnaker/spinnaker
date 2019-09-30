@@ -7,7 +7,7 @@
 ### Environment:
 
 
-### Feature Area (if this issue is UI/UX related, please tag `@spinnaker/ui-ux-team`):
+### Feature Area:
 
 
 ### Description:
