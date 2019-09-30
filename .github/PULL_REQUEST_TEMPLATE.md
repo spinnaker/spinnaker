@@ -15,6 +15,5 @@
     * Add inline code comments to changes that might not be obvious.
     * Squash your commits as you keep adding changes.
     * Add a comment to @spinnaker/reviewers for review if your issue has been outstanding for more than 3 days.
-    * If this issue is UI/UX related, please tag @spinnaker/ui-ux-team.
 
 4. We are unlikely to accept pull requests that add features without prior discussion. The best way to propose a feature is to open an issue first and discuss your ideas there before implementing them.
