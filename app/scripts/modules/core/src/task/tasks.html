@@ -139,10 +139,10 @@
                 {{ task.endTime | timestamp }}
               </td>
               <td>
-                <span ng-if="task.runningTimeInMs">
+                <span ng-if="task.runningTimeInMs && !viewState.cancelling">
                   {{ task.runningTimeInMs | duration }}
                 </span>
-                <span ng-if="!task.runningTimeInMs">
+                <span ng-if="viewState.cancelling || !task.runningTimeInMs">
                   -
                 </span>
               </td>

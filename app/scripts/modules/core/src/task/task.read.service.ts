@@ -26,17 +26,13 @@ export class TaskReader {
     return API.one('tasks', taskId)
       .get()
       .then((task: ITask) => {
-        OrchestratedItemTransformer.defineProperties(task);
-        if (task.steps && task.steps.length) {
-          task.steps.forEach(step => OrchestratedItemTransformer.defineProperties(step));
-        }
+        this.setTaskProperties(task);
         if (task.execution) {
           OrchestratedItemTransformer.defineProperties(task.execution);
           if (task.execution.stages) {
             task.execution.stages.forEach((stage: any) => OrchestratedItemTransformer.defineProperties(stage));
           }
         }
-        this.setTaskProperties(task);
         return task;
       })
       .catch((error: any) => $log.warn('There was an issue retrieving taskId: ', taskId, error));

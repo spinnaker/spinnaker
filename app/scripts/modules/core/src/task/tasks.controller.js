@@ -57,6 +57,7 @@ module.exports = angular
         };
         viewState.nameFilter = $stateParams.q || '';
         viewState.loading = true;
+        viewState.cancelling = false;
         viewState.itemsPerPage = tasksViewStateCache.get('#common')
           ? tasksViewStateCache.get('#common').itemsPerPage
           : 20;
@@ -147,7 +148,17 @@ module.exports = angular
           return task.id === taskId;
         })[0];
         var submitMethod = function() {
-          return TaskWriter.cancelTask(taskId).then(() => application.tasks.refresh());
+          // cancelTask() polls aggressively waiting for a sucessful cancellation,
+          // which triggers equally aggressive updates to the runningTimeInMs field
+          // on the hydrated task object. Because we render that field in templates,
+          // updating so quickly can make Angular think we're doing Bad Things(tm)
+          // and abort its change detection. Instead, we stop rendering that field
+          // while the polling is active.
+          $scope.viewState.cancelling = true;
+          return TaskWriter.cancelTask(taskId).then(() => {
+            $scope.viewState.cancelling = false;
+            application.tasks.refresh();
+          });
         };
 
         confirmationModalService.confirm({

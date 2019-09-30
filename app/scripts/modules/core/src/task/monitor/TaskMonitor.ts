@@ -42,8 +42,14 @@ export class TaskMonitor {
     return {
       deferred,
       result: deferred.promise,
-      close: onClose,
-      dismiss: onDismiss || onClose,
+      close: (result: T) => {
+        deferred.resolve(result);
+        return onClose(result);
+      },
+      dismiss: (result: T) => {
+        deferred.reject(result);
+        return (onDismiss || onClose)(result);
+      },
     } as IModalServiceInstanceEmulation;
   }
 
