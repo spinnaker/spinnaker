@@ -13,6 +13,17 @@ describe('traverseObject', () => {
     keyValuePairsWalked = [];
   });
 
+  it('does not throw on null or undefined', () => {
+    const spyCallback = jasmine.createSpy();
+
+    expect(() => {
+      traverseObject(null, spyCallback);
+      traverseObject(undefined, spyCallback);
+    }).not.toThrow();
+
+    expect(spyCallback).not.toHaveBeenCalled();
+  });
+
   it('walks simple properties of an object', () => {
     const object = { foo: 1, bar: 2 };
     traverseObject(object, defaultCallback);
@@ -78,5 +89,13 @@ describe('traverseObject', () => {
     expect(keyValuePairsWalked[i++]).toEqual(['foo', 1]);
     expect(keyValuePairsWalked[i++]).toEqual(['bar[0].name', 'abc']);
     expect(keyValuePairsWalked[i++]).toEqual(['bar[1].name', 'def']);
+  });
+
+  it('uses array syntax when a key contains a dot', () => {
+    const object = { root: { 'foo.bar.baz': 1 } };
+    traverseObject(object, defaultCallback);
+    expect(keyValuePairsWalked.length).toEqual(2);
+    expect(keyValuePairsWalked[0][0]).toBe('root');
+    expect(keyValuePairsWalked[1][0]).toBe('root["foo.bar.baz"]');
   });
 });
