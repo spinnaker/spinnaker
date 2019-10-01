@@ -172,6 +172,14 @@ class BomSourceCodeManager(SpinnakerSourceCodeManager):
     version = service['version'][:service['version'].find('-')]
     return version
 
+  def ensure_repository(self, repository):
+    git_dir = repository.git_dir
+    service_name = self.repository_name_to_service_name(repository.name)
+    self.git.refresh_local_repository(git_dir, 'origin')
+    bom_commit = check_bom_service(self.__bom, service_name)['commit']
+    self.git.checkout(repository, bom_commit)
+    return
+
   def check_repository_is_current(self, repository):
     git_dir = repository.git_dir
     service_name = self.repository_name_to_service_name(repository.name)
