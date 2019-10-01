@@ -440,7 +440,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
     payload = self.agent.make_json_payload_from_kwargs(**pipeline_spec)
 
     builder = st.HttpContractBuilder(self.agent)
-    (builder.new_clause_builder('Has Pipeline')
+    (builder.new_clause_builder('Has Pipeline', retryable_for_secs=5)
        .get_url_path(
            'applications/{app}/pipelineConfigs'.format(app=self.TEST_APP))
        .contains_path_value(None, pipeline_spec))
@@ -472,7 +472,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
     payload = self.agent.make_json_payload_from_kwargs(**pipeline_spec)
 
     builder = st.HttpContractBuilder(self.agent)
-    (builder.new_clause_builder('Has Pipeline')
+    (builder.new_clause_builder('Has Pipeline', retryable_for_secs=5)
        .get_url_path(
            'applications/{app}/pipelineConfigs'.format(app=self.TEST_APP))
        .contains_path_value(None, pipeline_spec))
@@ -539,7 +539,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
     payload = self.agent.make_json_payload_from_kwargs(**pipeline_spec)
 
     builder = st.HttpContractBuilder(self.agent)
-    (builder.new_clause_builder('Has Pipeline')
+    (builder.new_clause_builder('Has Pipeline', retryable_for_secs=5)
        .get_url_path(
            'applications/{app}/pipelineConfigs'.format(app=self.TEST_APP))
        .contains_path_value(None, pipeline_spec))
@@ -570,7 +570,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
     payload = self.agent.make_json_payload_from_kwargs(**pipeline_spec)
 
     builder = st.HttpContractBuilder(self.agent)
-    (builder.new_clause_builder('Has Pipeline')
+    (builder.new_clause_builder('Has Pipeline', retryable_for_secs=5)
        .get_url_path(
            'applications/{app}/pipelineConfigs'.format(app=self.TEST_APP))
        .contains_path_value(None, pipeline_spec))
