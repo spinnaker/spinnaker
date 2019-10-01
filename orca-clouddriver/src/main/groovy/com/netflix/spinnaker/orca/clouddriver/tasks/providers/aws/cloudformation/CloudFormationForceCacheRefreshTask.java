@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.cloudformation;
 
-import com.netflix.spinnaker.orca.Task;
+import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
@@ -24,16 +24,20 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class CloudFormationForceCacheRefreshTask extends AbstractCloudProviderAwareTask
-    implements Task {
+    implements OverridableTimeoutRetryableTask {
   static final String REFRESH_TYPE = "CloudFormation";
 
   @Autowired CloudDriverCacheService cacheService;
+
+  private final long backoffPeriod = TimeUnit.SECONDS.toMillis(10);
+  private final long timeout = TimeUnit.MINUTES.toMillis(5);
 
   @Override
   public TaskResult execute(@Nonnull Stage stage) {
@@ -59,5 +63,15 @@ public class CloudFormationForceCacheRefreshTask extends AbstractCloudProviderAw
     cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, data);
 
     return TaskResult.SUCCEEDED;
+  }
+
+  @Override
+  public long getBackoffPeriod() {
+    return backoffPeriod;
+  }
+
+  @Override
+  public long getTimeout() {
+    return timeout;
   }
 }
