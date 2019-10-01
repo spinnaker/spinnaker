@@ -988,7 +988,7 @@ class GitRunner(object):
     raw_tags = self.check_run(git_dir, 'tag')
     return [s.strip() for s in raw_tags.split('\n')]
 
-  def refresh_local_repository(self, git_dir, remote_name, branch):
+  def refresh_local_repository(self, git_dir, remote_name):
     """Refreshes the given local repository from the remote one.
 
     Args:
@@ -999,39 +999,18 @@ class GitRunner(object):
     repository = self.determine_git_repository_spec(git_dir)
     if remote_name == 'upstream' and not repository.upstream:
       logging.warning(
-          'Skipping pull {remote_name} {branch} in {repository} because'
+          'Skipping pull {remote_name} in {repository} because'
           ' it does not have a remote "{remote_name}"'
           .format(remote_name=remote_name,
-                  branch=branch,
                   repository=repository.name))
       return
 
-    local_branch = self.query_local_repository_branch(git_dir)
-    if local_branch != branch:
-      logging.warning(
-          'Skipping pull {remote_name} {branch} in {repository} because'
-          ' its in branch={local_branch}'
-          .format(remote_name=remote_name,
-                  branch=branch,
-                  repository=repository.name,
-                  local_branch=local_branch))
-      return
-
-    try:
-      logging.debug('Refreshing %s from %s branch %s',
-                    git_dir, remote_name, branch)
-      command = 'pull {remote_name} {branch} --tags'.format(
-          remote_name=remote_name, branch=branch)
-      result = self.check_run(git_dir, command)
-      logging.info('%s:\n%s', repository.name, result)
-    except ExecutionError:
-      result = self.check_run(git_dir, 'branch -r')
-      if result.find(
-          '{which}/{branch}\n'.format(which=remote_name, branch=branch)) >= 0:
-        raise
-      logging.warning(
-          'WARNING {name} branch={branch} is not known to {which}.\n'
-          .format(name=repository.name, branch=branch, which=remote_name))
+    logging.debug('Refreshing %s from %s',
+                  git_dir, remote_name)
+    command = 'fetch {remote_name} --tags'.format(
+        remote_name=remote_name)
+    result = self.check_run(git_dir, command)
+    logging.info('%s:\n%s', repository.name, result)
 
   def __check_clone_branch(self, remote_url, base_dir, clone_command, branches):
     remaining_branches = list(branches)
@@ -1124,7 +1103,7 @@ class GitRunner(object):
     logging.info('Cloned %s into %s', pull_url, parent_dir)
 
     if commit:
-      self.check_run(git_dir, 'checkout -q ' + commit, echo=True)
+      self.checkout(repository, commit)
 
     upstream = repository.upstream_or_none()
     origin = repository.origin
@@ -1147,6 +1126,9 @@ class GitRunner(object):
         self.check_run(git_dir, 'remote set-url --push origin ' + push_url)
 
     logging.debug('Finished cloning %s', pull_url)
+
+  def checkout(self, repository, commit):
+    self.check_run(repository.git_dir, 'checkout -q ' + commit, echo=True)
 
   def tag_head(self, git_dir, tag):
     """Add tag to the local repository HEAD."""
