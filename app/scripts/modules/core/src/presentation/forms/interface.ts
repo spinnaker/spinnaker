@@ -1,8 +1,7 @@
-import * as React from 'react';
 import { FieldProps } from 'formik';
+import * as React from 'react';
 
-import { IValidator } from './validation';
-export type IFieldValidationStatus = 'success' | 'none' | 'error' | 'warning' | 'message';
+import { IValidationCategory, IValidator } from './validation';
 
 /** These props are used by FormField and FormikFormField components */
 export interface IFieldLayoutPropsWithoutInput extends IValidationProps {
@@ -35,7 +34,7 @@ export type OmitControlledInputPropsFrom<T> = Omit<T, keyof IControlledInputProp
 export interface IValidationProps {
   touched?: boolean;
   validationMessage?: React.ReactNode;
-  validationStatus?: IFieldValidationStatus;
+  validationStatus?: IValidationCategory;
   addValidator?: (validator: IValidator) => void;
   removeValidator?: (validator: IValidator) => void;
 }
@@ -58,5 +57,5 @@ export interface IFormFieldApi {
   value(): any;
   touched(): boolean;
   validationMessage(): React.ReactNode;
-  validationStatus(): IFieldValidationStatus;
+  validationStatus(): IValidationCategory;
 }

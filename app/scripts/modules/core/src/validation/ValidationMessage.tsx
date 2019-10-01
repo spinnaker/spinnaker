@@ -1,8 +1,9 @@
 import * as React from 'react';
+import { IValidationCategory } from '../presentation/forms/validation';
 
 export interface IValidationMessageProps {
   message: React.ReactNode;
-  type: 'success' | 'error' | 'warning' | 'message' | 'none';
+  type: IValidationCategory | undefined;
   // default: true
   showIcon?: boolean;
 }
@@ -12,6 +13,7 @@ const iconClassName = {
   error: 'fa fa-exclamation-circle',
   warning: 'fa fa-exclamation-circle',
   message: 'icon-view-1',
+  async: 'fa fa-spinner fa-spin',
   none: '',
 };
 

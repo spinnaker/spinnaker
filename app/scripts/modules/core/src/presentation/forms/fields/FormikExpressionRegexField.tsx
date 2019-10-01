@@ -7,7 +7,7 @@ import {
   FormikForm,
   FormikFormField,
   IFieldLayoutProps,
-  IFieldValidationStatus,
+  IValidationCategory,
   TextInput,
 } from 'core/presentation';
 import { ValidationMessage } from 'core/validation';
@@ -108,7 +108,7 @@ export class FormikExpressionRegexField extends React.Component<
     }
   }
 
-  private renderFormField(validationMessage: React.ReactNode, validationStatus: IFieldValidationStatus, regex: string) {
+  private renderFormField(validationMessage: React.ReactNode, validationStatus: IValidationCategory, regex: string) {
     const { context, placeholder, help, label, actions } = this.props;
 
     return (
