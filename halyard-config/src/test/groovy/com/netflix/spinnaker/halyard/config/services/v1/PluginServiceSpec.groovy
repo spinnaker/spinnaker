@@ -49,6 +49,10 @@ deploymentConfigurations:
     plugins:
     - name: test-plugin
       manifestLocation: /home/user/test-plugin.yaml
+      options:
+        foo: bar
+        nested:
+          key: value
 """
     def pluginService = makePluginService(config)
 
@@ -60,6 +64,8 @@ deploymentConfigurations:
     result.size() == 1
     result[0].getName() == "test-plugin"
     result[0].getManifestLocation() == "/home/user/test-plugin.yaml"
+    result[0].getOptions().get("foo") == "bar"
+    result[0].getOptions().get("nested").get("key") == "value"
 
     when:
     result = pluginService.getPlugin(DEPLOYMENT, "test-plugin")

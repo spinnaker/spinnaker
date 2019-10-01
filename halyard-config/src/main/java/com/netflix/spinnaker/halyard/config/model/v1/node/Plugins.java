@@ -18,7 +18,9 @@ package com.netflix.spinnaker.halyard.config.model.v1.node;
 
 import com.netflix.spinnaker.halyard.config.model.v1.plugins.Plugin;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -26,6 +28,9 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class Plugins extends Node {
+  private List<Plugin> plugins = new ArrayList<>();
+  private boolean enabled;
+  private boolean downloadingEnabled;
 
   @Override
   public String getNodeName() {
@@ -38,7 +43,15 @@ public class Plugins extends Node {
         plugins.stream().map(a -> (Node) a).collect(Collectors.toList()));
   }
 
-  private List<Plugin> plugins = new ArrayList<>();
-  private boolean enabled;
-  private boolean downloadingEnabled;
+  public Map<String, Object> getPluginConfigurations() {
+    Map<String, Object> fullyRenderedYaml = new LinkedHashMap<>();
+    Map<String, Object> pluginMetadata =
+        plugins.stream()
+            .filter(p -> p.getEnabled())
+            .filter(p -> !p.getManifestLocation().isEmpty())
+            .collect(Collectors.toMap(p -> p.getName(), p -> p.getCombinedOptions()));
+
+    fullyRenderedYaml.put("plugins", pluginMetadata);
+    return fullyRenderedYaml;
+  }
 }

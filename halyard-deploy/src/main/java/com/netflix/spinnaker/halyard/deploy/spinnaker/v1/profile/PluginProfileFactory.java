@@ -60,7 +60,6 @@ public class PluginProfileFactory extends StringBackedProfileFactory {
     metadata.put("enabled", plugin.getEnabled());
     metadata.put("name", manifest.getName());
     metadata.put("jars", manifest.getJars());
-    metadata.put("manifestVersion", manifest.getManifestVersion());
     return metadata;
   }
 
