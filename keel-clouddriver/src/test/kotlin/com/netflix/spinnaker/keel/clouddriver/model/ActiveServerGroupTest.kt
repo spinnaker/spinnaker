@@ -48,7 +48,7 @@ object ActiveServerGroupTest : ModelParsingTestSupport<CloudDriverService, Activ
     securityGroups = setOf("sg-01be6e67944355aef", "sg-3a0c495f", "sg-3b0c495e"),
     moniker = Moniker(
       app = "fletch_test",
-      sequence = "0"
+      sequence = 0
     )
   )
 }

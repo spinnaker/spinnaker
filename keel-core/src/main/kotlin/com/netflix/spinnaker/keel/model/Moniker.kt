@@ -25,7 +25,7 @@ data class Moniker(
   val app: String,
   val stack: String? = null,
   val detail: String? = null,
-  val sequence: String? = null
+  val sequence: Int? = null
 ) {
   @get:JsonIgnore
   val name: String
@@ -38,10 +38,14 @@ data class Moniker(
   @get:JsonIgnore
   val serverGroup: String
     get() = when {
-      stack == null && detail == null -> "$app-v$sequence"
-      detail == null && sequence != null -> "$app-$stack-v$sequence"
-      else -> "$app-${stack.orEmpty()}-$detail-v${sequence?.padStart(3, '0')}"
+      sequence == null -> name
+      stack == null && detail == null -> "$app-v$sequenceString"
+      detail == null -> "$app-$stack-v$sequenceString"
+      else -> "$app-${stack.orEmpty()}-$detail-v$sequenceString"
     }
+
+  private val sequenceString =
+    sequence?.rem(1000)?.toString()?.padStart(3, '0')
 }
 
 fun parseMoniker(name: String): Moniker =
@@ -50,6 +54,6 @@ fun parseMoniker(name: String): Moniker =
       it.app,
       it.stack,
       it.detail,
-      it.sequence?.toString()
+      it.sequence
     )
   }

@@ -11,15 +11,15 @@ internal class MonikerTests : JUnit5Minutests {
       fixture { Moniker(app = "fnord") }
 
       test("has a cluster name that is just the application") {
-        expectThat(name).isEqualTo(app)
+        expectThat(name).isEqualTo("fnord")
       }
     }
 
     context("a server group with no stack or detail") {
-      fixture { Moniker(app = "fnord", sequence = "069") }
+      fixture { Moniker(app = "fnord", sequence = 5) }
 
       test("has a server group name that is just the application and sequence") {
-        expectThat(serverGroup).isEqualTo("$app-v$sequence")
+        expectThat(serverGroup).isEqualTo("fnord-v005")
       }
     }
 
@@ -27,15 +27,15 @@ internal class MonikerTests : JUnit5Minutests {
       fixture { Moniker(app = "fnord", stack = "test") }
 
       test("has a cluster name that is the application and stack") {
-        expectThat(name).isEqualTo("$app-$stack")
+        expectThat(name).isEqualTo("fnord-test")
       }
     }
 
     context("a server group with a stack but no detail") {
-      fixture { Moniker(app = "fnord", stack = "test", sequence = "069") }
+      fixture { Moniker(app = "fnord", stack = "test", sequence = 5) }
 
       test("has a server group name that is the application, stack, and sequence") {
-        expectThat(serverGroup).isEqualTo("$app-$stack-v$sequence")
+        expectThat(serverGroup).isEqualTo("fnord-test-v005")
       }
     }
 
@@ -43,15 +43,15 @@ internal class MonikerTests : JUnit5Minutests {
       fixture { Moniker(app = "fnord", stack = "test", detail = "foo") }
 
       test("has a cluster name that is the application, stack, and detail") {
-        expectThat(name).isEqualTo("$app-$stack-$detail")
+        expectThat(name).isEqualTo("fnord-test-foo")
       }
     }
 
     context("a server group with both stack and detail") {
-      fixture { Moniker(app = "fnord", stack = "test", detail = "foo", sequence = "069") }
+      fixture { Moniker(app = "fnord", stack = "test", detail = "foo", sequence = 5) }
 
       test("has a server group name that is the application, stack, detail, and version") {
-        expectThat(serverGroup).isEqualTo("$app-$stack-$detail-v$sequence")
+        expectThat(serverGroup).isEqualTo("fnord-test-foo-v005")
       }
     }
 
@@ -59,15 +59,15 @@ internal class MonikerTests : JUnit5Minutests {
       fixture { Moniker(app = "fnord", detail = "foo") }
 
       test("has a cluster name that is the application and detail") {
-        expectThat(name).isEqualTo("$app--$detail")
+        expectThat(name).isEqualTo("fnord--foo")
       }
     }
 
     context("a server group with no stack and a detail") {
-      fixture { Moniker(app = "fnord", detail = "foo", sequence = "069") }
+      fixture { Moniker(app = "fnord", detail = "foo", sequence = 5) }
 
       test("has a server group name that is the application, detail, and sequence") {
-        expectThat(serverGroup).isEqualTo("$app--$detail-v$sequence")
+        expectThat(serverGroup).isEqualTo("fnord--foo-v005")
       }
     }
   }
