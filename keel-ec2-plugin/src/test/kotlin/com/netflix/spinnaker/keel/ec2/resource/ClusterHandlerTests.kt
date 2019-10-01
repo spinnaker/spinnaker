@@ -55,6 +55,7 @@ import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomStringUtils.randomNumeric
 import org.springframework.context.ApplicationEventPublisher
+import strikt.api.Assertion
 import strikt.api.expectThat
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.containsKey
@@ -384,18 +385,30 @@ internal class ClusterHandlerTests : JUnit5Minutests {
           modified.byRegion()
         )
 
-        test("annealing launches one task per server group") {
+        before {
           runBlocking {
             upsert(resource, diff)
           }
+        }
 
+        test("annealing launches one task per server group") {
           val tasks = mutableListOf<OrchestrationRequest>()
-          coVerify { orcaService.orchestrate("keel@spinnaker", capture(tasks)) }
+          coVerify { orcaService.orchestrate(any(), capture(tasks)) }
 
           expectThat(tasks)
             .hasSize(2)
             .map { it.job.first()["type"] }
             .containsExactlyInAnyOrder("createServerGroup", "resizeServerGroup")
+        }
+
+        test("each task has a distinct correlation id") {
+          val tasks = mutableListOf<OrchestrationRequest>()
+          coVerify { orcaService.orchestrate(any(), capture(tasks)) }
+
+          expectThat(tasks)
+            .hasSize(2)
+            .map { it.trigger.correlationId }
+            .containsDistinctElements()
         }
       }
     }
@@ -410,6 +423,19 @@ internal class ClusterHandlerTests : JUnit5Minutests {
     cloudProvider = CLOUD_PROVIDER
   )
 }
+
+private fun <E, T : Iterable<E>> Assertion.Builder<T>.containsDistinctElements() =
+  assert("contains distinct elements") { subject ->
+    val duplicates = subject
+      .associateWith { elem -> subject.count { it == elem } }
+      .filterValues { it > 1 }
+      .keys
+    when (duplicates.size) {
+      0 -> pass()
+      1 -> fail(duplicates.first(), "The element %s occurs more than once")
+      else -> fail(duplicates, "The elements %s occur more than once")
+    }
+  }
 
 private fun ServerGroup.withDoubleCapacity(): ServerGroup =
   copy(

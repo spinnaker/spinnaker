@@ -107,7 +107,7 @@ class ClusterHandler(
                   spec.moniker.app,
                   description,
                   listOf(Job(job["type"].toString(), job)),
-                  OrchestrationTrigger(resource.id.toString())
+                  OrchestrationTrigger("${resource.id}{${spec.location.region}}")
                 ))
               .let {
                 log.info("Started task {} to upsert server group", it.ref)
