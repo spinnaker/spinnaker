@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Nike, inc.
+ * Copyright (c) 2019 Nike, inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -55,6 +55,16 @@ import retrofit.RetrofitError;
 @Builder
 @Slf4j
 public class SignalFxMetricsService implements MetricsService {
+
+  private static final String SIGNAL_FLOW_ERROR_TEMPLATE =
+      "An error occurred whole executing the Signal Flow program. "
+          + "account: %s "
+          + "startEpochMilli: %s "
+          + "endEpochMilli: %s "
+          + "stepMilli: %s "
+          + "maxDelay: %s "
+          + "immediate: %s "
+          + "program: %s";
 
   @NotNull @Singular @Getter private List<String> accountNames;
 
@@ -129,6 +139,8 @@ public class SignalFxMetricsService implements MetricsService {
     String accessToken = accountCredentials.getCredentials().getAccessToken();
     SignalFxSignalFlowRemoteService signalFlowService = accountCredentials.getSignalFlowService();
 
+    final long maxDelay = 0;
+    final boolean immediate = true;
     long startEpochMilli = signalFxCanaryScope.getStart().toEpochMilli();
     long endEpochMilli = signalFxCanaryScope.getEnd().toEpochMilli();
     long canaryStepLengthInSeconds = signalFxCanaryScope.getStep();
@@ -138,18 +150,38 @@ public class SignalFxMetricsService implements MetricsService {
     String program = buildQuery(metricsAccountName, canaryConfig, canaryMetricConfig, canaryScope);
 
     SignalFlowExecutionResult signalFlowExecutionResult;
+
     try {
       signalFlowExecutionResult =
           signalFlowService.executeSignalFlowProgram(
-              accessToken, startEpochMilli, endEpochMilli, stepMilli, 0, true, program);
+              accessToken, startEpochMilli, endEpochMilli, stepMilli, maxDelay, immediate, program);
     } catch (RetrofitError e) {
       ErrorResponse errorResponse = (ErrorResponse) e.getBodyAs(ErrorResponse.class);
       throw new SignalFxRequestError(
           errorResponse, program, startEpochMilli, endEpochMilli, stepMilli, metricsAccountName);
     }
 
+    validateResults(
+        signalFlowExecutionResult.getChannelMessages(),
+        metricsAccountName,
+        startEpochMilli,
+        endEpochMilli,
+        stepMilli,
+        maxDelay,
+        immediate,
+        program);
+
+    LinkedList<ChannelMessage.DataMessage> dataMessages =
+        extractDataMessages(signalFlowExecutionResult);
+
+    ChannelMessage.DataMessage firstDataPoint =
+        dataMessages.size() > 0 ? dataMessages.getFirst() : null;
+
+    ChannelMessage.DataMessage lastDataPoint =
+        dataMessages.size() > 0 ? dataMessages.getLast() : null;
+
     // Return a Metric set of the reduced and aggregated data
-    MetricSet metricSet =
+    MetricSet.MetricSetBuilder metricSetBuilder =
         MetricSet.builder()
             .name(canaryMetricConfig.getName())
             .startTimeMillis(startEpochMilli)
@@ -157,54 +189,98 @@ public class SignalFxMetricsService implements MetricsService {
             .endTimeMillis(endEpochMilli)
             .endTimeIso(Instant.ofEpochMilli(endEpochMilli).toString())
             .stepMillis(stepMilli)
-            .values(
-                getTimeSeriesDataFromChannelMessages(
-                    signalFlowExecutionResult.getChannelMessages()))
+            .values(getTimeSeriesDataFromDataMessages(dataMessages))
             .tags(
                 queryPairs.stream()
                     .collect(Collectors.toMap(QueryPair::getKey, QueryPair::getValue)))
             .attribute("signal-flow-program", program)
-            .build();
+            .attribute("actual-data-point-count", String.valueOf(dataMessages.size()))
+            .attribute("requested-start", String.valueOf(startEpochMilli))
+            .attribute("requested-end", String.valueOf(endEpochMilli))
+            .attribute("requested-step-milli", String.valueOf(stepMilli))
+            .attribute("requested-max-delay", String.valueOf(maxDelay))
+            .attribute("requested-immediate", String.valueOf(immediate))
+            .attribute("requested-account", metricsAccountName);
 
-    return Collections.singletonList(metricSet);
+    Optional.ofNullable(firstDataPoint)
+        .ifPresent(
+            dp ->
+                metricSetBuilder.attribute(
+                    "actual-start-ts", String.valueOf(dp.getLogicalTimestampMs())));
+    Optional.ofNullable(lastDataPoint)
+        .ifPresent(
+            dp ->
+                metricSetBuilder.attribute(
+                    "actual-end-ts", String.valueOf(dp.getLogicalTimestampMs())));
+
+    return Collections.singletonList(metricSetBuilder.build());
+  }
+
+  /**
+   * Extracts the messages with data points from the Signal Fx response.
+   *
+   * @param signalFlowExecutionResult The SignalFlow program results.
+   * @return An linked list of the data points from the result.
+   */
+  private LinkedList<ChannelMessage.DataMessage> extractDataMessages(
+      SignalFlowExecutionResult signalFlowExecutionResult) {
+    return signalFlowExecutionResult
+        .getChannelMessages()
+        .parallelStream()
+        .filter(channelMessage -> channelMessage.getType().equals(DATA_MESSAGE))
+        .map((message) -> (ChannelMessage.DataMessage) message)
+        .collect(Collectors.toCollection(LinkedList::new));
+  }
+
+  /** Parses the channel messages and the first error if present. */
+  private void validateResults(
+      List<ChannelMessage> channelMessages,
+      String account,
+      long startEpochMilli,
+      long endEpochMilli,
+      long stepMilli,
+      long maxDelay,
+      boolean immediate,
+      String program) {
+    channelMessages.stream()
+        .filter(channelMessage -> channelMessage.getType().equals(ERROR_MESSAGE))
+        .findAny()
+        .ifPresent(
+            error -> {
+              // This error message is terrible, and I am not sure how to add more context to it.
+              // error.getErrors() returns a List<Object>, and it is unclear what to do with those.
+              throw new RuntimeException(
+                  String.format(
+                      SIGNAL_FLOW_ERROR_TEMPLATE,
+                      account,
+                      String.valueOf(startEpochMilli),
+                      String.valueOf(endEpochMilli),
+                      String.valueOf(stepMilli),
+                      String.valueOf(maxDelay),
+                      String.valueOf(immediate),
+                      program));
+            });
   }
 
   /**
    * Parses the data out of the SignalFx Signal Flow messages to build the data Kayenta needs to
    * make judgements.
    *
-   * @param channelMessages The list of messages from the signal flow execution.
+   * @param dataMessages The list of data messages from the signal flow execution.
    * @return The list of values with missing data filled with NaNs
    */
-  protected List<Double> getTimeSeriesDataFromChannelMessages(
-      List<ChannelMessage> channelMessages) {
-    channelMessages
-        .parallelStream()
-        .filter(channelMessage -> channelMessage.getType().equals(ERROR_MESSAGE))
-        .findAny()
-        .ifPresent(
-            error -> {
-
-              // This error message is terrible, and I am not sure how to add more context to it.
-              // error.getErrors() returns a List<Object>, and it is unclear what to do with those.
-              throw new RuntimeException(
-                  "Some sort of error occurred, when executing the signal flow program");
-            });
-
-    return channelMessages
-        .parallelStream()
-        .filter(channelMessage -> channelMessage.getType().equals(DATA_MESSAGE))
+  protected List<Double> getTimeSeriesDataFromDataMessages(
+      List<ChannelMessage.DataMessage> dataMessages) {
+    return dataMessages.stream()
         .map(
             message -> {
-              ChannelMessage.DataMessage dataMessage = (ChannelMessage.DataMessage) message;
-              Map<String, Number> data = dataMessage.getData();
+              Map<String, Number> data = message.getData();
               if (data.size() > 1) {
                 throw new IllegalStateException(
                     "There was more than one value for a given timestamp, a "
                         + "SignalFlow stream method that can aggregate should have been applied to the data in "
                         + "the SignalFlow program");
               }
-              //noinspection OptionalGetWithoutIsPresent
               return data.size() == 1
                   ? data.values().stream().findFirst().get().doubleValue()
                   : Double.NaN;
