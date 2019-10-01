@@ -5,7 +5,27 @@ import com.netflix.spinnaker.keel.retrofit.model.ModelParsingTestSupport
 
 object DeliveryTest : ModelParsingTestSupport<Front50Service, Delivery>(Front50Service::class.java) {
 
-  override val json = javaClass.getResource("/delivery.json")
+  override val json = """
+    |{
+    |  "id": "foo",
+    |  "application": "bar",
+    |  "updateTs": 12345,
+    |  "createTs": 12345,
+    |  "lastModifiedBy": "anonymous",
+    |  "deliveryArtifacts": [
+    |    {
+    |      "id": "artifact1"
+    |    }
+    |  ],
+    |  "deliveryEnvironments": [
+    |    {
+    |      "id": "environment1"
+    |    }
+    |  ],
+    |  "otherAttribute1": "bloop",
+    |  "otherAttribute2": "blerp"
+    |}
+  """.trimMargin()
 
   override suspend fun Front50Service.call(): Delivery? =
     deliveryById("foo")

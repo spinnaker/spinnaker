@@ -15,12 +15,10 @@ import org.junit.jupiter.api.Test
 import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
 import strikt.api.expectThat
-import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
-import java.net.URL
-import java.nio.charset.Charset
+import strikt.assertions.propertiesAreEqualTo
 
-abstract class ModelParsingTestSupport<in S, out E>(serviceType: Class<S>) {
+abstract class ModelParsingTestSupport<in S : Any, out E : Any>(serviceType: Class<S>) {
 
   private val mapper = ObjectMapper()
     .registerModule(KotlinModule())
@@ -36,7 +34,7 @@ abstract class ModelParsingTestSupport<in S, out E>(serviceType: Class<S>) {
     .build()
     .create(serviceType)
 
-  abstract val json: URL
+  abstract val json: String
   abstract suspend fun S.call(): E?
   abstract val expected: E
 
@@ -48,7 +46,7 @@ abstract class ModelParsingTestSupport<in S, out E>(serviceType: Class<S>) {
 
   @Test
   fun `can parse a response into the expected model`() {
-    server.enqueue(MockResponse().setResponseCode(200).setBody(json.readText(Charset.forName("UTF-8"))))
+    server.enqueue(MockResponse().setResponseCode(200).setBody(json))
 
     val response = runBlocking {
       service.call()
@@ -56,6 +54,6 @@ abstract class ModelParsingTestSupport<in S, out E>(serviceType: Class<S>) {
 
     expectThat(response)
       .isNotNull()
-      .isEqualTo(expected)
+      .propertiesAreEqualTo(expected)
   }
 }
