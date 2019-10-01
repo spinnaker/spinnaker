@@ -1,6 +1,8 @@
 import { module } from 'angular';
 
 import { APPLY_SOURCE_SERVER_GROUP_CAPACITY_STAGE } from './config/stages/applySourceServerGroupCapacity/applySourceServerGroupCapacityStage.module';
+import { EVALUATE_HEALTH_STAGE } from './config/stages/monitoreddeploy/evaluateHealthStage';
+import { NOTIFY_DEPLOY_STARTING_STAGE } from './config/stages/monitoreddeploy/notifyDeployStartingStage';
 import './config/stages/bakeManifest/bakeManifestStage';
 import { CHECK_PRECONDITIONS_STAGE_MODULE } from './config/stages/checkPreconditions/checkPreconditionsStage.module';
 import { CLONE_SERVER_GROUP_STAGE } from './config/stages/cloneServerGroup/cloneServerGroupStage.module';
@@ -103,6 +105,8 @@ module(PIPELINE_MODULE, [
   require('./config/stages/waitForParentTasks/waitForParentTasks').name,
   CREATE_LOAD_BALANCER_STAGE,
   APPLY_SOURCE_SERVER_GROUP_CAPACITY_STAGE,
+  EVALUATE_HEALTH_STAGE,
+  NOTIFY_DEPLOY_STARTING_STAGE,
   require('./config/preconditions/preconditions.module').name,
   require('./config/preconditions/types/clusterSize/clusterSize.precondition.type.module').name,
   require('./config/preconditions/types/expression/expression.precondition.type.module').name,

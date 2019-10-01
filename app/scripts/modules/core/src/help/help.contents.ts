@@ -359,6 +359,10 @@ const helpContents: { [key: string]: string } = {
     '<p>Rolling red black will slowly scale up the new server group. It will resize the new server group by each percentage defined.</p>',
   'strategy.rollingRedBlack.rollback':
     '<p>Disable the new server group and ensure that the previous server group is restored to its original capacity.</p>',
+  'strategy.monitored.deploySteps':
+    '<p>Monitored Deploy will scale up the new server group as specified by these per cent steps. After each step, the health of the new server group will be evaluated by the specified deployment monitor.</p>',
+  'strategy.monitored.rollback':
+    '<p>If deploy fails, disable the new server group and ensure that the previous server group is active and restored to its original capacity.</p>',
   'loadBalancers.filter.serverGroups': `
       <p>Displays all server groups configured to use the load balancer.</p>
       <p>If the server group is configured to <em>not</em> add new instances to the load balancer, it will be grayed out.</p>`,

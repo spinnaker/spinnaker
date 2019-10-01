@@ -147,4 +147,10 @@ module(AMAZON_MODULE, [
   });
 });
 
-DeploymentStrategyRegistry.registerProvider('aws', ['custom', 'redblack', 'rollingpush', 'rollingredblack']);
+DeploymentStrategyRegistry.registerProvider('aws', [
+  'custom',
+  'redblack',
+  'rollingpush',
+  'rollingredblack',
+  'monitored',
+]);
