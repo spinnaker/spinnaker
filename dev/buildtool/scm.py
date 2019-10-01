@@ -122,6 +122,9 @@ class SpinnakerSourceCodeManager(object):
       return 'monitoring-daemon'
     return repository_name
 
+  def ensure_repository(self, repository):
+    raise NotImplementedError(self.__class__.__name__)
+
   def check_repository_is_current(self, repository):
     raise NotImplementedError(self.__class__.__name__)
 
@@ -188,6 +191,7 @@ class SpinnakerSourceCodeManager(object):
     have_git_dir = os.path.exists(git_dir)
 
     if have_git_dir:
+      self.ensure_repository(repository)
       self.check_repository_is_current(repository)
     else:
       self.ensure_git_path(repository)
