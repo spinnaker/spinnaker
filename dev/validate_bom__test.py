@@ -1061,7 +1061,7 @@ def init_argument_parser(parser, defaults):
       help='Limits how many tests to run at a time. Default is unbounded')
 
   add_parser_argument(
-      parser, 'test_service_startup_timeout', defaults, 300, type=int,
+      parser, 'test_service_startup_timeout', defaults, 600, type=int,
       help='Number of seconds to permit services to startup before giving up.')
 
   add_parser_argument(
