@@ -62,6 +62,7 @@ dependencies {
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.spockframework:spock-spring"
   testImplementation "org.springframework:spring-test"
+  testImplementation "com.netflix.spinnaker.kork:kork-test"
 }
 
 sourceSets {

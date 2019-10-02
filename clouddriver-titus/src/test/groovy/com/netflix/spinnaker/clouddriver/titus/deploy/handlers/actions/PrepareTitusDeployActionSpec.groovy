@@ -32,18 +32,55 @@ import com.netflix.spinnaker.clouddriver.titus.deploy.actions.PrepareTitusDeploy
 import com.netflix.spinnaker.clouddriver.titus.deploy.actions.SubmitTitusJob
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.TitusDeployDescription
 import com.netflix.spinnaker.config.AwsConfiguration
+import com.netflix.spinnaker.kork.test.mimicker.DataContainer
+import com.netflix.spinnaker.kork.test.mimicker.Mimicker
+import com.netflix.spinnaker.moniker.Moniker
+import com.netflix.spinnaker.moniker.frigga.FriggaReflectiveNamer
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
 class PrepareTitusDeployActionSpec extends Specification {
 
+  @Shared
+  Mimicker mimicker = new Mimicker(new DataContainer(["mimicker-titus.yml"]).withDefaultResources())
+
+  Fixture fixture = new Fixture(mimicker)
+
   NetflixTitusCredentials netflixTitusCredentials = new NetflixTitusCredentials(
-    'test', 'test', 'test', [new TitusRegion('us-east-1', 'test', 'http://foo', false, false, "blah", "blah", 7104, [])], 'test', 'test', 'test', 'test', false, '', 'mainvpc', [], "", false, false, false
+    fixture.accountName,
+    mimicker.text().word(),
+    mimicker.text().word(),
+    [
+      new TitusRegion(
+        mimicker.aws().getAvailabilityZone(fixture.region),
+        fixture.accountName,
+        'http://region', // TODO(rz): mimicker.network().url
+        mimicker.random().trueOrFalse(),
+        mimicker.random().trueOrFalse(),
+        fixture.moniker.app,
+        mimicker.text().word(),
+        mimicker.network().port,
+        []
+      )
+    ],
+    'http://bastion', // TODO(rz): mimicker.network().url
+    mimicker.text().word(),
+    mimicker.text().word(),
+    mimicker.text().word(),
+    mimicker.random().trueOrFalse(),
+    mimicker.text().word(),
+    mimicker.text().word(),
+    [],
+    mimicker.text().word(),
+    mimicker.random().trueOrFalse(),
+    mimicker.random().trueOrFalse(),
+    mimicker.random().trueOrFalse()
   )
 
   AccountCredentialsRepository accountCredentialsRepository = Mock() {
-    getOne("test") >> {
+    getOne(fixture.accountName) >> {
       return netflixTitusCredentials
     }
   }
@@ -56,7 +93,7 @@ class PrepareTitusDeployActionSpec extends Specification {
   AccountCredentialsProvider accountCredentialsProvider = Mock()
   AwsConfiguration.DeployDefaults deployDefaults = Mock()
 
-  Saga saga = new Saga("titusDeploy", "id")
+  Saga saga = new Saga(mimicker.random().uuid(), mimicker.random().uuid())
 
   @Subject
   PrepareTitusDeploy subject = new PrepareTitusDeploy(
@@ -71,12 +108,12 @@ class PrepareTitusDeployActionSpec extends Specification {
 
   def "merges source details when no asg name is provided"() {
     given:
-    TitusDeployDescription description = createTitusDeployDescription()
+    TitusDeployDescription description = createTitusDeployDescription(mimicker.aws().securityGroupId)
     description.source = new TitusDeployDescription.Source(
-      account: "test",
-      region: "us-east-1",
-      asgName: "spindemo-staging-highlander-v000",
-      useSourceCapacity: true
+      account: fixture.accountName,
+      region: fixture.region,
+      asgName: fixture.monikerName,
+      useSourceCapacity: mimicker.random().trueOrFalse()
     )
 
     and:
@@ -88,15 +125,15 @@ class PrepareTitusDeployActionSpec extends Specification {
     then:
     titusClient.findJobByName(_) >> {
       new Job(
-        applicationName: "spindemo",
-        digest: "abcd",
-        securityGroups: ["hello"],
-        instancesMin: 10,
-        instancesMax: 10,
-        instancesDesired: 10,
-        labels: [sourceLabel: "sourceVal"],
-        environment: ["HI": "hello"],
-        containerAttributes: [sourceAttr: "sourceVal"],
+        applicationName: fixture.moniker.app,
+        digest: mimicker.text().word(),
+        securityGroups: [mimicker.text().word()],
+        instancesMin: instancesMin,
+        instancesMax: instancesMax,
+        instancesDesired: instancesDesired,
+        labels: [passThru: "label value"],
+        environment: [passThru: "environment value"],
+        containerAttributes: [passThru: "containerAttributes value"],
         softConstraints: [],
         hardConstraints: [],
         serviceJobProcesses: [
@@ -111,39 +148,49 @@ class PrepareTitusDeployActionSpec extends Specification {
     result.nextCommand instanceof SubmitTitusJob.SubmitTitusJobCommand
     result.nextCommand.description.with {
       securityGroups == ["hello"]
-      capacity.min == 10
-      capacity.max == 10
-      capacity.desired == 10
-      labels == [sourceLabel: "sourceVal"]
-      containerAttributes == [sourceAttr: "sourceVal"]
-      env == ["HI": "hello"]
+      capacity.min == instancesMin
+      capacity.max == instancesMax
+      capacity.desired == instancesDesired
+      labels == [passThru: "label value"]
+      env == [passThru: "environment value"]
+      containerAttributes == [passThru: "containerAttributes value"]
       serviceJobProcesses == [
         disableIncreaseDesired: true,
         disableDecreaseDesired: true
       ]
     }
+
+    where:
+    instancesMin = mimicker.random().intValue(0, 100_000)
+    instancesMax = mimicker.random().intValue(0, 100_000)
+    instancesDesired = mimicker.random().intValue(0, 100_000)
   }
 
   def "security groups are resolved"() {
     given:
-    TitusDeployDescription description = createTitusDeployDescription()
-    description.securityGroups = ["sg-1", "fancyname"]
+    TitusDeployDescription description = createTitusDeployDescription(sg1Id)
+    description.securityGroups = [sg1Id, sg2Name]
 
     when:
     subject.resolveSecurityGroups(saga, description)
 
     then:
-    awsLookupUtil.securityGroupIdExists(_, _, "sg-1") >> true
-    awsLookupUtil.securityGroupIdExists(_, _, "fancyname") >> false
-    awsLookupUtil.convertSecurityGroupNameToId(_, _, "fancyname") >> "sg-2"
+    awsLookupUtil.securityGroupIdExists(_, _, sg1Id) >> true
+    awsLookupUtil.securityGroupIdExists(_, _, sg2Name) >> false
+    awsLookupUtil.convertSecurityGroupNameToId(_, _, sg2Name) >> sg2Id
 
-    description.securityGroups == ["sg-2", "sg-1"]
+    description.securityGroups.sort() == [sg2Id, sg1Id].sort()
+
+    where:
+    sg1Id = mimicker.aws().securityGroupId
+    sg2Name = mimicker.text().word()
+    sg2Id = mimicker.aws().securityGroupId
   }
 
   @Unroll
   def "security groups include app security group (label=#labelValue, desc=#descriptionValue, includesAppGroup=#includesAppGroup)"() {
     given:
-    TitusDeployDescription description = createTitusDeployDescription()
+    TitusDeployDescription description = createTitusDeployDescription(sg1Id)
 
     and:
     if (labelValue != null) {
@@ -157,13 +204,13 @@ class PrepareTitusDeployActionSpec extends Specification {
     subject.resolveSecurityGroups(saga, description)
 
     then:
-    awsLookupUtil.securityGroupIdExists(_, _, "sg-abcd1234") >> true
-    awsLookupUtil.convertSecurityGroupNameToId(_, _, "spindemo") >> "sg-spindemo"
+    awsLookupUtil.securityGroupIdExists(_, _, sg1Id) >> true
+    awsLookupUtil.convertSecurityGroupNameToId(_, _, sg2Name) >> sg2Id
 
     if (includesAppGroup) {
-      description.securityGroups == ["sg-abcd1234", "sg-spindemo"]
+      description.securityGroups == [sg1Id, sg2Id]
     } else {
-      description.securityGroups == ["sg-abcd1234"]
+      description.securityGroups == [sg1Id]
     }
 
     where:
@@ -175,11 +222,15 @@ class PrepareTitusDeployActionSpec extends Specification {
     true       | false            || true
     null       | true             || true
     null       | false            || false
+
+    sg1Id = mimicker.aws().securityGroupId
+    sg2Name = mimicker.text().word()
+    sg2Id = mimicker.aws().securityGroupId
   }
 
-  private TitusDeployDescription createTitusDeployDescription() {
+  private TitusDeployDescription createTitusDeployDescription(String securityGroupId) {
     return new TitusDeployDescription(
-      application: "spindemo",
+      application: fixture.moniker.app,
       capacity: new TitusDeployDescription.Capacity(
         desired: 1,
         max: 1,
@@ -199,7 +250,7 @@ class PrepareTitusDeployActionSpec extends Specification {
       inService: true,
       labels: [:] as Map<String, String>,
       migrationPolicy: new MigrationPolicy(type: "systemDefault"),
-      region: "us-east-1",
+      region: fixture.region,
       resources: new TitusDeployDescription.Resources(
         allocateIpAddress: true,
         cpu: 1,
@@ -209,11 +260,30 @@ class PrepareTitusDeployActionSpec extends Specification {
         networkMbps: 128
       ),
       securityGroups: [
-        "sg-abcd1234"
+        securityGroupId
       ],
       softConstraints: [],
       stack: "staging",
     )
+  }
+
+  private static class Fixture {
+    Moniker moniker = mimicker.moniker().get()
+    // TODO(rz): barf
+    String monikerName
+    String region
+    String accountName
+
+    Fixture(Mimicker mimicker) {
+      moniker = mimicker.moniker().get()
+      region = mimicker.aws().region
+      accountName = mimicker.text().word()
+      new FriggaReflectiveNamer().applyMoniker(this, moniker)
+    }
+
+    String setName(String name) {
+      monikerName = name
+    }
   }
 
   private static PrepareTitusDeployCommand createCommand(TitusDeployDescription description) {
