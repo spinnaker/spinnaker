@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.rollback
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.kork.exceptions.SpinnakerException
 import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.ApplySourceServerGroupCapacityStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.CaptureSourceServerGroupCapacityStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.DisableServerGroupStage
@@ -29,14 +30,13 @@ import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy
 import com.netflix.spinnaker.orca.pipeline.WaitStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
-import groovy.transform.TimedInterrupt
+import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
 import javax.annotation.Nullable
 import java.util.concurrent.Callable
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.newStage
@@ -155,17 +155,20 @@ class ExplicitRollback implements Rollback {
       // we use an executor+future to timebox how long we can spend in this remote call
       // because we are in a StartStage message and need to response quickly
       // this is a bit of a hack, the proper long term fix would be to encapsulate this remote call in a task
-      executor.submit((Callable) {
+      Callable authenticatedRequest = AuthenticatedRequest.propagate({
         return oortHelper.getTargetServerGroup(
           fromContext.credentials,
           serverGroupName,
           fromContext.location
         )
-      }).get(5, TimeUnit.SECONDS)
+      })
+
+      executor.submit(authenticatedRequest)
+        .get(5, TimeUnit.SECONDS)
         .get()  // not sure what would cause the Optional to not be present but we would catch and log it
     } catch(Exception e) {
-      log.error('Skipping resize stage because there was an error looking up {}', serverGroupName, e)
-      return null
+      log.error('Could not generate resize stage because there was an error looking up {}', serverGroupName, e)
+      throw new SpinnakerException("failed to look up ${serverGroupName}", e)
     }
   }
 

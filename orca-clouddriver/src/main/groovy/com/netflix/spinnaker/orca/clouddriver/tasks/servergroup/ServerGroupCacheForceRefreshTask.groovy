@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
-import com.netflix.discovery.converters.Auto
 import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.rollback
 
+import com.netflix.spinnaker.kork.exceptions.SpinnakerException
 import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.ApplySourceServerGroupCapacityStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.CaptureSourceServerGroupCapacityStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.DisableServerGroupStage
@@ -191,6 +192,9 @@ class ExplicitRollbackSpec extends Specification {
     def afterStages = allStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
 
     then:
+    1 * oortHelper.getTargetServerGroup(_, rollbackServerGroupName, _) >> Optional.of(serverGroup(rollbackServerGroupName, 2))
+    1 * oortHelper.getTargetServerGroup(_, restoreServerGroupName, _) >> Optional.of(serverGroup(restoreServerGroupName, 1))
+
     afterStages*.type.contains("wait") == waitStageExpected
     afterStages*.type.indexOf("wait") < afterStages*.type.indexOf("disableServerGroup")
 
@@ -199,5 +203,14 @@ class ExplicitRollbackSpec extends Specification {
     null                      || false
     0                         || false
     1                         || true
+  }
+
+  def "server group lookups failures are fatal"() {
+    when:
+    rollback.buildStages(stage)
+
+    then:
+    1 * oortHelper.getTargetServerGroup(_, rollbackServerGroupName, _) >> { throw new Exception(":(") }
+    thrown(SpinnakerException)
   }
 }
