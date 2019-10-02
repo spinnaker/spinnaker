@@ -328,7 +328,7 @@
       withAccount(account):: self + { account: account },
       withExpectedArtifacts(expectedArtifacts):: self + if std.type(expectedArtifacts) == 'array' then { expectedArtifacts: expectedArtifacts } else { expectedArtifacts: [expectedArtifacts] },
       withLocation(location):: self + { location: location },
-      withManifestName(manifestName):: self + { manifestName: manifestName },
+      withManifestName(kind, name):: self + { manifestName: kind + ' ' + name },
     },
     patchManifest(name):: stage(name, 'patchManifest') {
       cloudProvider: 'kubernetes',
