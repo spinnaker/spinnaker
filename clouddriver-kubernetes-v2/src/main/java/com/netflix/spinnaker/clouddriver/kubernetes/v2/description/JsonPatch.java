@@ -36,4 +36,17 @@ public class JsonPatch {
     add,
     remove
   }
+
+  /**
+   * Returns an escaped JSON path node for use in a JSON pointer as defined in RFC6901
+   *
+   * <p>~ is replaced by ~0 / is replaced by ~1
+   *
+   * @param node a node to be used as part of a JSON pointer
+   * @return the node with escaped characters
+   * @see <a href="https://tools.ietf.org/html/rfc6901#section-3">RFC6901, section 3</a>
+   */
+  public static String escapeNode(String node) {
+    return node.replace("~", "~0").replace("/", "~1");
+  }
 }
