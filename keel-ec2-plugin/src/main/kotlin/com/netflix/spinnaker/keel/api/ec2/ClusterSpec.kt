@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonUnwrapped
 import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.ResourceSpec
+import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.ec2.resource.ResolvedImages
 import com.netflix.spinnaker.keel.model.Moniker
 import java.time.Duration
@@ -12,7 +13,7 @@ import java.time.Duration
 /**
  * Transforms a [ClusterSpec] into a concrete model of server group desired states.
  */
-fun ClusterSpec.resolve(resolvedImages: ResolvedImages): Set<ServerGroup> =
+fun ClusterSpec.resolve(resolvedImages: ResolvedImages, cloudDriverCache: CloudDriverCache): Set<ServerGroup> =
   locations.regions.map {
     ServerGroup(
       name = moniker.name,
@@ -20,7 +21,7 @@ fun ClusterSpec.resolve(resolvedImages: ResolvedImages): Set<ServerGroup> =
         locations.accountName,
         it.region,
         it.subnet,
-        it.availabilityZones
+        it.availabilityZones ?: cloudDriverCache.resolveAvailabilityZones(it, locations.accountName)
       ),
       launchConfiguration = resolveLaunchConfiguration(
         it.region,
@@ -35,6 +36,9 @@ fun ClusterSpec.resolve(resolvedImages: ResolvedImages): Set<ServerGroup> =
     )
   }
     .toSet()
+
+private fun CloudDriverCache.resolveAvailabilityZones(it: ClusterSpec.ClusterRegion, accountName: String) =
+  availabilityZonesBy(accountName, subnetBy(accountName, it.region, it.subnet).vpcId, it.region).toSet()
 
 private fun ClusterSpec.resolveLaunchConfiguration(region: String, appVersion: String, imageId: String): LaunchConfiguration =
   LaunchConfiguration(
@@ -138,7 +142,10 @@ data class ClusterSpec(
   data class ClusterRegion(
     val region: String,
     val subnet: String,
-    val availabilityZones: Set<String>
+    /**
+     * If `null` this implies the cluster should use all availability zones.
+     */
+    val availabilityZones: Set<String>?
   )
 
   data class ServerGroupSpec(

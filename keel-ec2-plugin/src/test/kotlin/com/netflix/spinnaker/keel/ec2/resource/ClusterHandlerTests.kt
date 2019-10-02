@@ -69,6 +69,14 @@ import java.util.UUID.randomUUID
 
 internal class ClusterHandlerTests : JUnit5Minutests {
 
+  val cloudDriverService = mockk<CloudDriverService>()
+  val cloudDriverCache = mockk<CloudDriverCache>()
+  val orcaService = mockk<OrcaService>()
+  val imageResolver = mockk<ImageResolver>()
+  val objectMapper = ObjectMapper().registerKotlinModule()
+  val normalizers = emptyList<ResourceNormalizer<ClusterSpec>>()
+  val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
+
   val vpcWest = Network(CLOUD_PROVIDER, "vpc-1452353", "vpc0", "test", "us-west-2")
   val vpcEast = Network(CLOUD_PROVIDER, "vpc-4342589", "vpc0", "test", "us-east-1")
   val sg1West = SecurityGroupSummary("keel", "sg-325234532")
@@ -78,9 +86,9 @@ internal class ClusterHandlerTests : JUnit5Minutests {
   val subnet1West = Subnet("subnet-1", vpcWest.id, vpcWest.account, vpcWest.region, "${vpcWest.region}a", "internal (vpc0)")
   val subnet2West = Subnet("subnet-2", vpcWest.id, vpcWest.account, vpcWest.region, "${vpcWest.region}b", "internal (vpc0)")
   val subnet3West = Subnet("subnet-3", vpcWest.id, vpcWest.account, vpcWest.region, "${vpcWest.region}c", "internal (vpc0)")
-  val subnet1East = Subnet("subnet-1", vpcEast.id, vpcEast.account, vpcEast.region, "${vpcEast.region}a", "internal (vpc0)")
-  val subnet2East = Subnet("subnet-2", vpcEast.id, vpcEast.account, vpcEast.region, "${vpcEast.region}b", "internal (vpc0)")
-  val subnet3East = Subnet("subnet-3", vpcEast.id, vpcEast.account, vpcEast.region, "${vpcEast.region}c", "internal (vpc0)")
+  val subnet1East = Subnet("subnet-1", vpcEast.id, vpcEast.account, vpcEast.region, "${vpcEast.region}c", "internal (vpc0)")
+  val subnet2East = Subnet("subnet-2", vpcEast.id, vpcEast.account, vpcEast.region, "${vpcEast.region}d", "internal (vpc0)")
+  val subnet3East = Subnet("subnet-3", vpcEast.id, vpcEast.account, vpcEast.region, "${vpcEast.region}e", "internal (vpc0)")
 
   val spec = ClusterSpec(
     moniker = Moniker(app = "keel", stack = "test"),
@@ -118,7 +126,8 @@ internal class ClusterHandlerTests : JUnit5Minutests {
       listOf(vpcWest, vpcEast).associate { subnet ->
         subnet.region to "i-123543254134"
       }
-    )
+    ),
+    cloudDriverCache
   )
   val serverGroupEast = serverGroups.first { it.location.region == "us-east-1" }
   val serverGroupWest = serverGroups.first { it.location.region == "us-west-2" }
@@ -176,14 +185,6 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         parseMoniker("$name-v$sequence")
       )
     }
-
-  val cloudDriverService = mockk<CloudDriverService>()
-  val cloudDriverCache = mockk<CloudDriverCache>()
-  val orcaService = mockk<OrcaService>()
-  val imageResolver = mockk<ImageResolver>()
-  val objectMapper = ObjectMapper().registerKotlinModule()
-  val normalizers = emptyList<ResourceNormalizer<ClusterSpec>>()
-  val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
 
   fun tests() = rootContext<ClusterHandler> {
     fixture {

@@ -26,6 +26,7 @@ interface CloudDriverCache {
   fun networkBy(name: String?, account: String, region: String): Network
   fun availabilityZonesBy(account: String, vpcId: String, region: String): Collection<String>
   fun subnetBy(subnetId: String): Subnet
+  fun subnetBy(account: String, region: String, purpose: String): Subnet
 }
 
 class ResourceNotFound(message: String) : RuntimeException(message)

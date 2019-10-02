@@ -24,7 +24,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.runBlocking
 import java.util.concurrent.TimeUnit.HOURS
-import java.util.concurrent.TimeUnit.SECONDS
+import java.util.concurrent.TimeUnit.MINUTES
 
 class MemoryCloudDriverCache(
   private val cloudDriver: CloudDriverService
@@ -32,17 +32,17 @@ class MemoryCloudDriverCache(
 
   private val securityGroupSummariesById = Caffeine.newBuilder()
     .maximumSize(1000)
-    .expireAfterWrite(30, SECONDS)
+    .expireAfterWrite(1, MINUTES)
     .build<String, SecurityGroupSummary>()
 
   private val networks = Caffeine.newBuilder()
     .maximumSize(1000)
-    .expireAfterWrite(30, SECONDS)
+    .expireAfterWrite(1, HOURS)
     .build<String, Network>()
 
   private val availabilityZones = Caffeine.newBuilder()
     .maximumSize(1000)
-    .expireAfterWrite(30, SECONDS)
+    .expireAfterWrite(1, HOURS)
     .build<String, Set<String>>()
 
   private val credentials = Caffeine.newBuilder()
@@ -50,9 +50,14 @@ class MemoryCloudDriverCache(
     .expireAfterWrite(1, HOURS)
     .build<String, Credential>()
 
-  private val subnets = Caffeine.newBuilder()
+  private val subnetsById = Caffeine.newBuilder()
     .maximumSize(1000)
-    .expireAfterWrite(30, SECONDS)
+    .expireAfterWrite(1, HOURS)
+    .build<String, Subnet>()
+
+  private val subnetsByPurpose = Caffeine.newBuilder()
+    .maximumSize(1000)
+    .expireAfterWrite(1, HOURS)
     .build<String, Subnet>()
 
   private fun credentialBy(name: String): Credential =
@@ -115,10 +120,17 @@ class MemoryCloudDriverCache(
     }!!
 
   override fun subnetBy(subnetId: String): Subnet =
-    subnets.getOrNotFound(subnetId, "Subnet with id $subnetId not found") {
+    subnetsById.getOrNotFound(subnetId, "Subnet with id $subnetId not found") {
       cloudDriver
         .listSubnets("aws")
         .find { it.id == subnetId }
+    }
+
+  override fun subnetBy(account: String, region: String, purpose: String): Subnet =
+    subnetsByPurpose.getOrNotFound("$account:$region:$purpose", "Subnet with purpose \"$purpose\" not found in $account:$region") {
+      cloudDriver
+        .listSubnets("aws")
+        .find { it.account == account && it.region == region && it.purpose == purpose }
     }
 
   private fun <T> Cache<String, T>.getOrNotFound(
