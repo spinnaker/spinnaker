@@ -241,7 +241,11 @@ public class ExecutionLauncher {
     }
 
     if (config.get("trigger") != null) {
-      orchestration.setTrigger(objectMapper.convertValue(config.get("trigger"), Trigger.class));
+      Trigger trigger = objectMapper.convertValue(config.get("trigger"), Trigger.class);
+      orchestration.setTrigger(trigger);
+      if (!trigger.getNotifications().isEmpty()) {
+        orchestration.setNotifications(trigger.getNotifications());
+      }
     }
 
     orchestration.setBuildTime(clock.millis());

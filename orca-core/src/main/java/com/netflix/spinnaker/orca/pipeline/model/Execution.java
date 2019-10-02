@@ -286,10 +286,14 @@ public class Execution implements Serializable {
     this.source = source;
   }
 
-  private final List<Map<String, Object>> notifications = new ArrayList<>();
+  private List<Map<String, Object>> notifications = new ArrayList<>();
 
   public @Nonnull List<Map<String, Object>> getNotifications() {
     return notifications;
+  }
+
+  public void setNotifications(List<Map<String, Object>> notifications) {
+    this.notifications = notifications;
   }
 
   private final Map<String, Object> initialConfig = new HashMap<>();
