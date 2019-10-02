@@ -20,7 +20,10 @@ import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.
 import static java.lang.String.format;
 import static java.lang.String.join;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Collections.*;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -42,7 +45,17 @@ import com.netflix.spinnaker.orca.pipeline.model.support.RequisiteStageRefIdDese
 import de.huxhorn.sulky.ulid.ULID;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
@@ -529,23 +542,25 @@ public class Stage implements Serializable {
       if (parentPipelineStage.isPresent()) {
         matchingStage = findAncestor(parentPipelineStage.get(), parentPipelineExecution, predicate);
       } else {
-        List<Stage> parentPipelineStages = new ArrayList<>(parentPipelineExecution.getStages());
-        parentPipelineStages.sort(
-            (s1, s2) -> {
-              if ((s1.endTime == null) && (s2.endTime == null)) {
-                return 0;
-              }
+        List<Stage> parentPipelineStages =
+            parentPipelineExecution.getStages().stream()
+                .sorted(
+                    (s1, s2) -> {
+                      if ((s1.endTime == null) && (s2.endTime == null)) {
+                        return 0;
+                      }
 
-              if (s1.endTime == null) {
-                return 1;
-              }
+                      if (s1.endTime == null) {
+                        return -1;
+                      }
 
-              if (s2.endTime == null) {
-                return -1;
-              }
+                      if (s2.endTime == null) {
+                        return 1;
+                      }
 
-              return s1.endTime.compareTo(s2.endTime);
-            });
+                      return s2.endTime.compareTo(s1.endTime);
+                    })
+                .collect(toList());
 
         if (parentPipelineStages.size() > 0) {
           // The list is sorted in reverse order by endTime.
