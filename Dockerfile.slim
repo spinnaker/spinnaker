@@ -1,9 +1,0 @@
-FROM openjdk:8-jre-alpine
-
-MAINTAINER delivery-engineering@netflix.com
-
-COPY ./halyard-web/build/install/halyard /opt/halyard
-
-RUN apk add --update bash && rm -rf /var/cache/apk/*
-
-CMD ["/opt/halyard/bin/halyard"]

@@ -19,14 +19,21 @@ fi
 
 ./release/$PLATFORM.sh
 
+function tag_and_push() {
+  local SOURCE_IMAGE=$1
+  local TARGET_IMAGE=$2
+  echo "Pushing docker image $TARGET_IMAGE"
+  docker tag $SOURCE_IMAGE $TARGET_IMAGE
+  gcloud docker -- push $TARGET_IMAGE
+}
+
 if [ "$PLATFORM" = "docker" ]; then
   PUBLISH_HALYARD_DOCKER_IMAGE_BASE=${PUBLISH_HALYARD_DOCKER_IMAGE_BASE:-gcr.io/spinnaker-marketplace/halyard}
   IMAGE=$PUBLISH_HALYARD_DOCKER_IMAGE_BASE:$VERSION
 
-  echo "Pushing docker image $IMAGE"
-  docker tag halyard $IMAGE
-  gcloud docker -- push $IMAGE
-else 
+  tag_and_push halyard.local $IMAGE
+  tag_and_push halyard.ubuntu ${IMAGE}-ubuntu
+else
   PUBLISH_HALYARD_BUCKET_BASE_URL=${PUBLISH_HALYARD_BUCKET_BASE_URL:-gs://spinnaker-artifacts/halyard}
   BUCKET_URL=$PUBLISH_HALYARD_BUCKET_BASE_URL/$VERSION/$PLATFORM/halyard.tar.gz
 

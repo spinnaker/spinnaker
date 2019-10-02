@@ -57,3 +57,7 @@ halyard. To change these, check out the relevant bits in halyard-web/halyard-web
 __hal__ is a CLI for making changes to your __halconfig__ via the __daemon__.
 
 Read the command reference [here](docs/commands.md).
+
+# Container Images
+## Building locally
+Execute `./release/docker.sh` to build both the default `openjdk8` and `ubuntu` based images.

@@ -1,0 +1,5 @@
+FROM gcr.io/spinnaker-marketplace/gradle_cache
+ENV GRADLE_USER_HOME /gradle_cache/.gradle
+COPY . compiled_sources
+WORKDIR compiled_sources
+RUN ./gradlew installDist -x test -Prelease.useLastTag=true
