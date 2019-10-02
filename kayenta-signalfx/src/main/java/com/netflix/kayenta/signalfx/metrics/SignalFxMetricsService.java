@@ -57,7 +57,7 @@ import retrofit.RetrofitError;
 public class SignalFxMetricsService implements MetricsService {
 
   private static final String SIGNAL_FLOW_ERROR_TEMPLATE =
-      "An error occurred whole executing the Signal Flow program. "
+      "An error occurred while executing the Signal Flow program. "
           + "account: %s "
           + "startEpochMilli: %s "
           + "endEpochMilli: %s "
