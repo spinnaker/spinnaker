@@ -104,20 +104,26 @@ class WebhookStage implements StageDefinitionBuilder {
   }
 
   static class WebhookResponseStageData {
-    String statusEndpoint
-    Integer statusCodeValue
     String statusCode
-    Map body
     WebhookMonitorResponseStageData monitor
     String error
+
+    // NOTE: The fields below exist in the context because they are inserted by the CreateWebhookTask but they aren't
+    //       consumed by Spinnaker so they are commented out below - they are here for informational purposes only
+    //String statusEndpoint
+    //Integer statusCodeValue
+    //Map body
   }
 
   static class WebhookMonitorResponseStageData {
-    Integer statusCodeValue
-    String statusCode
-    Map body
     String error
-    String progressMessage
-    Number percentComplete
+
+    // NOTE: The fields below exist in the context because they are inserted by the MonitorWebhookTask but they aren't
+    //       consumed by Spinnaker so they are commented out below - they are here for informational purposes only
+    //Integer statusCodeValue
+    //String statusCode
+    //Map body
+    //String progressMessage
+    //Number percentComplete
   }
 }

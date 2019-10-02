@@ -75,6 +75,7 @@ class CreateWebhookTask implements RetryableTask {
           }
         } catch (JsonParseException | JsonMappingException ex) {
           // Just leave body as string, probs not JSON
+          log.warn("Failed to parse webhook payload as JSON", ex)
         }
 
         outputs.webhook << [body: body]
