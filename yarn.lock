@@ -92,10 +92,10 @@
     ui-router-visualizer "^4.0.0"
     ui-select "^0.19.6"
 
-"@spinnaker/styleguide@^1.0.12":
-  version "1.0.12"
-  resolved "https://registry.yarnpkg.com/@spinnaker/styleguide/-/styleguide-1.0.12.tgz#033d9901a2803fe78c6f6cafdb5de0bc696421f7"
-  integrity sha512-0/vRLuelUlweJo4PuzQGAnZKM/v6LgFcWEwXitpPCabITZ0qjm5nDMZs5JlCoXfTUvFm2TB/KhpfJmBoLr9vRg==
+"@spinnaker/styleguide@^1.0.14":
+  version "1.0.14"
+  resolved "https://registry.yarnpkg.com/@spinnaker/styleguide/-/styleguide-1.0.14.tgz#255384d6278880287537609c36bf2c0ee4d6839b"
+  integrity sha512-bih5JpWyz0Fblf5wSmGC5tNj1ZRrVqykQMYyEj+nsR5hlIeVVNmMRD7eczxUUifIE2zR3gR2ZC7YpMtHlTJwog==
 
 "@types/angular-mocks@1.5.10", "@types/angular-mocks@^1.5.9":
   version "1.5.10"
