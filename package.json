@@ -31,7 +31,7 @@
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.4.1",
     "@spinnaker/kayenta": "0.0.86",
-    "@spinnaker/styleguide": "^1.0.13",
+    "@spinnaker/styleguide": "^1.0.12",
     "@types/date-fns": "^2.6.0",
     "@types/memoize-one": "^3.1.1",
     "@types/react-tether": "^0.5.3",
