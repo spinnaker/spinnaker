@@ -28,12 +28,12 @@ export class StandardFieldLayout extends React.Component<IFieldLayoutProps> {
         )}
 
         <div className="flex-grow">
-          <div className="flex-container-v">
+          <div className="flex-container-v margin-between-md">
             <div className="flex-container-h baseline margin-between-lg StandardFieldLayout_Contents">
               {input} {actions}
             </div>
 
-            <div className="StandardFieldLayout_Validation">{validation}</div>
+            {validation && <div className="StandardFieldLayout_Validation">{validation}</div>}
           </div>
         </div>
       </div>

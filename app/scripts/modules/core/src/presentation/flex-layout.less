@@ -81,6 +81,24 @@
   &.space-between {
     justify-content: space-between;
   }
+
+  &.margin-between-sm {
+    > * + * {
+      margin-top: 4px;
+    }
+  }
+
+  &.margin-between-md {
+    > * + * {
+      margin-top: 8px;
+    }
+  }
+
+  &.margin-between-lg {
+    > * + * {
+      margin-top: 12px;
+    }
+  }
 }
 
 // TODO(archana): Fix !important by removing the nowrap from the flex-container-h and v and testing to
