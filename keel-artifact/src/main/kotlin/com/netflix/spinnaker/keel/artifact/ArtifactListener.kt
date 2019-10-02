@@ -64,7 +64,7 @@ class ArtifactListener(
   protected fun storeLatestVersion(artifact: DeliveryArtifact, statuses: List<ArtifactStatus>) =
     runBlocking {
       artifactService
-        .getVersions(artifact.name, statuses)
+        .getVersions(artifact.name, statuses.map { it.toString() })
         .firstOrNull()
         ?.let { firstVersion ->
           val version = "${artifact.name}-$firstVersion"

@@ -17,6 +17,6 @@ interface ArtifactService {
   @GET("/artifacts/rocket/{packageName}")
   suspend fun getVersions(
     @Path("packageName") packageName: String,
-    @Query("releaseStatus") releaseStatus: List<ArtifactStatus> = enumValues<ArtifactStatus>().toList()
+    @Query("releaseStatus") releaseStatus: List<String> = enumValues<ArtifactStatus>().toList().map { it.toString() }
   ): List<String> // sorted in descending order
 }

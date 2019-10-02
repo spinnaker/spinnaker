@@ -9,6 +9,7 @@ enum class ArtifactType {
   DEB
 }
 
+// todo eb: add RELEASE
 enum class ArtifactStatus {
-  RELEASE, FINAL, CANDIDATE, SNAPSHOT
+  FINAL, CANDIDATE, SNAPSHOT
 }
