@@ -101,6 +101,7 @@ class SqlTask(
   override fun addSagaId(sagaId: SagaId) {
     this.dirty.set(true)
     sagaIds.add(sagaId)
+    repository.updateSagaIds(this)
   }
 
   override fun getSagaIds(): MutableList<SagaId> {

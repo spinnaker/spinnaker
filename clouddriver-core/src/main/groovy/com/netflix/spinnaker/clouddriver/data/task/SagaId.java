@@ -15,11 +15,19 @@
  */
 package com.netflix.spinnaker.clouddriver.data.task;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import javax.annotation.Nonnull;
+import lombok.Builder;
 import lombok.Value;
 
 @Value
+@Builder(builderClassName = "SagaIdBuilder")
+@JsonDeserialize(builder = SagaId.SagaIdBuilder.class)
 public class SagaId {
   @Nonnull String name;
   @Nonnull String id;
+
+  @JsonPOJOBuilder(withPrefix = "")
+  public static class SagaIdBuilder {}
 }

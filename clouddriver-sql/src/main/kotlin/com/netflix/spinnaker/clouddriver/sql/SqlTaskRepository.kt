@@ -84,6 +84,17 @@ class SqlTaskRepository(
     return task
   }
 
+  fun updateSagaIds(task: Task) {
+    return withPool(POOL_NAME) {
+      jooq.transactional(sqlRetryProperties.transactions) { ctx ->
+        ctx.update(tasksTable)
+          .set(field("saga_ids"), mapper.writeValueAsString(task.sagaIds))
+          .where(field("id").eq(task.id))
+          .execute()
+      }
+    }
+  }
+
   override fun get(id: String): Task? {
     return retrieveInternal(id)
   }
