@@ -15,8 +15,11 @@ interface IAdditionalData {
 }
 
 function getDeploymentMonitorSummary(stage: IExecutionStage) {
-  const { context } = stage;
+  if (stage.hasNotStarted) {
+    return "Not available because the stage hasn't run yet";
+  }
 
+  const { context } = stage;
   return get(context, 'deploymentMonitorReasons.summary', '<NOT PROVIDED>');
 }
 
@@ -108,17 +111,21 @@ export class DeploymentMonitorExecutionDetails extends React.Component<
             <dl className="dl-narrow dl-horizontal">
               <dt>Summary</dt>
               <dd>{getDeploymentMonitorSummary(stage)}</dd>
-              <dt className="sp-margin-l-bottom">Deploy %</dt>
-              <dd className="sp-margin-l-bottom">
-                <span>{stage.context.currentProgress}%</span>
-              </dd>
-              <dt>Details</dt>
-              <dd>{details || notProvidedFragment}</dd>
-              <dt className="sp-margin-l-bottom">Log</dt>
-              <dd className="sp-margin-l-bottom">{log ? <pre>{log}</pre> : notProvidedFragment}</dd>
-              <dt>More info</dt>
-              <dd>{additionalDetails ? '' : notProvidedFragment}</dd>
-              {additionalDetails}
+              {stage.hasNotStarted ? null : (
+                <>
+                  <dt className="sp-margin-l-bottom">Deploy %</dt>
+                  <dd className="sp-margin-l-bottom">
+                    <span>{stage.context.currentProgress}%</span>
+                  </dd>
+                  <dt>Details</dt>
+                  <dd>{details || notProvidedFragment}</dd>
+                  <dt className="sp-margin-l-bottom">Log</dt>
+                  <dd className="sp-margin-l-bottom">{log ? <pre>{log}</pre> : notProvidedFragment}</dd>
+                  <dt>More info</dt>
+                  <dd>{additionalDetails ? null : notProvidedFragment}</dd>
+                  {additionalDetails}
+                </>
+              )}
             </dl>
             {deploymentMonitors && (
               <div className="alert alert-info">

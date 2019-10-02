@@ -1,3 +1,4 @@
+import { isEmpty, defaultsDeep } from 'lodash';
 import { DeploymentStrategyRegistry } from 'core/deploymentStrategy/deploymentStrategy.registry';
 
 import { AdditionalFields } from './AdditionalFields';
@@ -10,11 +11,15 @@ DeploymentStrategyRegistry.registerStrategy({
   additionalFields: ['deploySteps', 'scaleDown'],
   AdditionalFieldsComponent: AdditionalFields,
   initializationMethod: command => {
-    if (!command.deploySteps) {
+    defaultsDeep(command, {
+      rollback: { onFailure: true },
+      deploymentMonitor: { id: '' },
+      maxRemainingAsgs: 2,
+    });
+
+    // defaultsDeep will merge the arrays, which we don't want hence check deploySteps separately
+    if (isEmpty(command.deploySteps)) {
       command.deploySteps = [10, 40, 100];
-      command.rollback.onFailure = true;
-      command.deploymentMonitor = { id: '' };
-      command.maxRemainingAsgs = 2;
     }
   },
 });
