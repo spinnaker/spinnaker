@@ -67,7 +67,7 @@ module.exports = angular
           baseLabelOptions: BakeryReader.getBaseLabelOptions(),
           storeTypes: ['ebs', 'docker'],
         }).then(function(results) {
-          $scope.regions = results.regions;
+          $scope.regions = [...results.regions].sort();
           $scope.storeTypes = results.storeTypes;
           if (!$scope.stage.storeType && $scope.storeTypes && $scope.storeTypes.length) {
             $scope.stage.storeType = $scope.storeTypes[0];
@@ -78,10 +78,7 @@ module.exports = angular
             delete $scope.stage.region;
           }
           if (!$scope.stage.regions.length && $scope.application.defaultRegions.aws) {
-            $scope.stage.regions.push($scope.application.defaultRegions.aws);
-          }
-          if (!$scope.stage.regions.length && $scope.application.defaultRegions.aws) {
-            $scope.stage.regions.push($scope.application.defaultRegions.aws);
+            $scope.stage.regions.push(...Object.keys($scope.application.defaultRegions.aws).sort());
           }
           $scope.baseOsOptions = results.baseOsOptions.baseImages;
           $scope.baseLabelOptions = results.baseLabelOptions;
