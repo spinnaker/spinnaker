@@ -208,6 +208,17 @@
       withWaitTime(waitTime):: self + { waitTime: waitTime },
       withSkipWaitText(skipWaitText):: self + { skipWaitText: skipWaitText },
     },
+    
+    evaluateVariables(name):: stage(name, 'evaluateVariables') {
+      failOnFailedExpressions: true,
+      variables: [],
+      withVariable(key, value):: self + {
+        variables+: [{          
+          key: key,
+          value: value,
+        }],
+      },
+    },
 
     // agnostic stages
 
@@ -345,7 +356,7 @@
       withRevisionsBack(revisionsBack):: self + { numRevisionsBack: revisionsBack },
       withManifestName(kind, name):: self + { manifestName: kind + ' ' + name },
     },
-    runJobManifest(name): stage(name, 'runJobManifest'){
+    runJobManifest(name): stage(name, 'runJobManifest') {
       cloudProvider: 'kubernetes',
       alias: 'runJob',
       withAccount(account):: self + { account: account },
