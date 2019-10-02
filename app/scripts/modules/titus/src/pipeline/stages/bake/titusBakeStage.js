@@ -67,7 +67,7 @@ module.exports = angular
             url += '/' + stage.repository.directory;
           }
           if (stage.repository.hash) {
-            url += stage.repository.hash;
+            url += `?${stage.repository.hash}`;
           }
           if (stage.repository.branch) {
             url += '@' + stage.repository.branch;
