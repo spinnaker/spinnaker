@@ -37,6 +37,10 @@ abstract class AbstractEventNotificationAgent implements EchoEventListener {
   String spinnakerUrl
 
   static Map CONFIG = [
+    'orchestration': [
+      type: 'orchestration',
+      link: 'tasks'
+    ],
     'pipeline': [
       type: 'pipeline',
       link: 'executions/details'
@@ -83,7 +87,7 @@ abstract class AbstractEventNotificationAgent implements EchoEventListener {
     }
 
     // TODO (lpollo): why do we have a 'CANCELED' status and a canceled property, which are prime for inconsistency?
-    if (config.type == 'pipeline' &&
+    if (isExecution(config.type) &&
       (event.content.execution?.status == 'CANCELED' || event.content.execution?.canceled == true)) {
       return
     }
@@ -95,10 +99,10 @@ abstract class AbstractEventNotificationAgent implements EchoEventListener {
     def sendRequests = []
 
     // pipeline level
-    if (config.type == 'pipeline') {
-      event.content?.execution.notifications?.each { notification ->
+    if (isExecution(config.type)) {
+      event.content?.execution?.notifications?.each { notification ->
         String key = getNotificationType()
-        if (notification.type == key && notification?.when?.contains("$config.type.$status".toString())) {
+        if (notification.type == key && notification?.when?.contains("${config.type}.$status".toString())) {
           sendRequests << notification
         }
       }
@@ -110,7 +114,7 @@ abstract class AbstractEventNotificationAgent implements EchoEventListener {
       if (event.content?.context?.sendNotifications && ( !isSynthetic ) ) {
         event.content?.context?.notifications?.each { notification ->
           String key = getNotificationType()
-          if (notification.type == key && notification?.when?.contains("$config.type.$status".toString())) {
+          if (notification.type == key && notification?.when?.contains("${config.type}.$status".toString())) {
             sendRequests << notification
           }
         }
@@ -118,8 +122,16 @@ abstract class AbstractEventNotificationAgent implements EchoEventListener {
     }
 
     sendRequests.each { notification ->
-      sendNotifications(notification, application, event, config, status)
+      try {
+        sendNotifications(notification, application, event, config, status)
+      } catch (Exception e) {
+        log.error('failed to send {} message ', notificationType ,e)
+      }
     }
+  }
+
+  private boolean isExecution(String type) {
+    return type == "pipeline" || type == "orchestration"
   }
 
   abstract String getNotificationType()

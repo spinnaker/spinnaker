@@ -71,6 +71,9 @@ class AbstractEventNotificationAgentSpec extends Specification {
     // notifications ON, another check for cancelled pipeline (should skip notifications)
     fakePipelineEvent("orca:pipeline:failed", "WHATEVER", "pipeline.failed", [canceled: true]) || 0
 
+    fakeOrchestrationEvent("orca:orchestration:complete", "SUCCEEDED", "orchestration.complete")|| 1
+    fakeOrchestrationEvent("orca:orchestration:failed", "TERMINAL", "orchestration.failed")     || 1
+
     // notifications OFF, stage complete
     fakeStageEvent("orca:stage:complete", null)                                               || 0
     // notifications OFF, stage failed
@@ -96,6 +99,27 @@ class AbstractEventNotificationAgentSpec extends Specification {
         execution: [
           id: "1",
           name: "foo-pipeline",
+          status: status
+        ]
+      ]
+    ]
+
+    if (notifyWhen) {
+      eventProps.content.execution << [notifications: [[type: "fake", when: "${notifyWhen}"]]]
+    }
+
+    eventProps.content.execution << extraExecutionProps
+
+    return new Event(eventProps)
+  }
+
+  private def fakeOrchestrationEvent(String type, String status, String notifyWhen, Map extraExecutionProps = [:]) {
+    def eventProps = [
+      details: [type: type],
+      content: [
+        execution: [
+          id: "1",
+          name: "foo-orchestration",
           status: status
         ]
       ]

@@ -46,75 +46,70 @@ class SlackNotificationAgent extends AbstractEventNotificationAgent {
 
   @Override
   void sendNotifications(Map preference, String application, Event event, Map config, String status) {
-    try {
-      String buildInfo = ' '
+    String buildInfo = ' '
 
-      String color = '#CCCCCC'
+    String color = '#CCCCCC'
 
-      if (status == 'failed') {
-        color = '#B82525'
-      }
-
-      if (status == 'starting') {
-        color = '#2275B8'
-      }
-
-      if (status == 'complete') {
-        color = '#769D3E'
-      }
-
-      if (config.type == 'pipeline' || config.type == 'stage') {
-        if (event.content?.execution?.trigger?.buildInfo?.url) {
-          buildInfo = """ build <${event.content.execution.trigger.buildInfo.url}|${
-            event.content.execution.trigger.buildInfo.number as Integer
-          }> """
-        }
-      }
-
-      log.info('Sending Slack message {} for {} {} {} {}', kv('address', preference.address), kv('application', application), kv('type', config.type), kv('status', status), kv('executionId', event.content?.execution?.id))
-
-      String body = ''
-
-      if (config.type == 'stage') {
-        String stageName = event.content.name ?: event.content?.context?.stageDetails?.name
-        body = """Stage $stageName for """
-      }
-
-      String link = "${spinnakerUrl}/#/applications/${application}/${config.type == 'stage' ? 'executions/details' : config.link }/${event.content?.execution?.id}"
-
-      body +=
-        """${capitalize(application)}'s <${link}|${
-          event.content?.execution?.name ?: event.content?.execution?.description
-        }>${buildInfo}${config.type == 'task' ? 'task' : 'pipeline'} ${status == 'starting' ? 'is' : 'has'} ${
-          status == 'complete' ? 'completed successfully' : status
-        }"""
-
-      if (preference.message?."$config.type.$status"?.text) {
-        body += "\n\n" + preference.message."$config.type.$status".text
-      }
-
-      String customMessage = preference.customMessage ?: event.content?.context?.customMessage
-      if (customMessage) {
-        body = customMessage
-          .replace("{{executionId}}", (String) event.content.execution?.id ?: "")
-          .replace("{{link}}", link ?: "")
-      }
-
-      String address = preference.address.startsWith('#') ? preference.address : "#${preference.address}"
-
-      Response response
-      if (sendCompactMessages) {
-        response = slackService.sendCompactMessage(token, new CompactSlackMessage(body, color), address, true)
-      } else {
-        String title = getNotificationTitle(config.type, application, status)
-        response = slackService.sendMessage(token, new SlackAttachment(title, body, color), address, true)
-      }
-      log.info("Received response from Slack: {} {} for execution id {}. {}",
-        response?.status, response?.reason, event.content?.execution?.id, response?.body)
-
-    } catch (Exception e) {
-      log.error('failed to send slack message ', e)
+    if (status == 'failed') {
+      color = '#B82525'
     }
+
+    if (status == 'starting') {
+      color = '#2275B8'
+    }
+
+    if (status == 'complete') {
+      color = '#769D3E'
+    }
+
+    if (config.type == 'pipeline' || config.type == 'stage') {
+      if (event.content?.execution?.trigger?.buildInfo?.url) {
+        buildInfo = """ build <${event.content.execution.trigger.buildInfo.url}|${
+          event.content.execution.trigger.buildInfo.number as Integer
+        }> """
+      }
+    }
+
+    log.info('Sending Slack message {} for {} {} {} {}', kv('address', preference.address), kv('application', application), kv('type', config.type), kv('status', status), kv('executionId', event.content?.execution?.id))
+
+    String body = ''
+
+    if (config.type == 'stage') {
+      String stageName = event.content.name ?: event.content?.context?.stageDetails?.name
+      body = """Stage $stageName for """
+    }
+
+    String link = "${spinnakerUrl}/#/applications/${application}/${config.type == 'stage' ? 'executions/details' : config.link }/${event.content?.execution?.id}"
+
+    body +=
+      """${capitalize(application)}'s <${link}|${
+        event.content?.execution?.name ?: event.content?.execution?.description
+      }>${buildInfo}${config.type == 'task' ? 'task' : 'pipeline'} ${status == 'starting' ? 'is' : 'has'} ${
+        status == 'complete' ? 'completed successfully' : status
+      }"""
+
+    if (preference.message?."$config.type.$status"?.text) {
+      body += "\n\n" + preference.message."$config.type.$status".text
+    }
+
+    String customMessage = preference.customMessage ?: event.content?.context?.customMessage
+    if (customMessage) {
+      body = customMessage
+        .replace("{{executionId}}", (String) event.content.execution?.id ?: "")
+        .replace("{{link}}", link ?: "")
+    }
+
+    String address = preference.address.startsWith('#') ? preference.address : "#${preference.address}"
+
+    Response response
+    if (sendCompactMessages) {
+      response = slackService.sendCompactMessage(token, new CompactSlackMessage(body, color), address, true)
+    } else {
+      String title = getNotificationTitle(config.type, application, status)
+      response = slackService.sendMessage(token, new SlackAttachment(title, body, color), address, true)
+    }
+    log.info("Received response from Slack: {} {} for execution id {}. {}",
+      response?.status, response?.reason, event.content?.execution?.id, response?.body)
   }
 
   /**

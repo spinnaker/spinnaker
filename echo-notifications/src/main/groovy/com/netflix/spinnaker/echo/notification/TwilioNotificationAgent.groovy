@@ -41,46 +41,41 @@ class TwilioNotificationAgent extends AbstractEventNotificationAgent {
 
   @Override
   void sendNotifications(Map preference, String application, Event event, Map config, String status) {
-    try {
-      String name = event.content?.execution?.name ?: event.content?.execution?.description
-      String link = "${spinnakerUrl}/#/applications/${application}/${config.type == 'stage' ? 'executions/details' : config.link}/${event.content?.execution?.id}"
+    String name = event.content?.execution?.name ?: event.content?.execution?.description
+    String link = "${spinnakerUrl}/#/applications/${application}/${config.type == 'stage' ? 'executions/details' : config.link}/${event.content?.execution?.id}"
 
-      String buildInfo = ''
+    String buildInfo = ''
 
-      if (config.type == 'pipeline') {
-        if (event.content?.execution?.trigger?.buildInfo?.url) {
-          buildInfo = """build #${event.content.execution.trigger.buildInfo.number as Integer} """
-        }
+    if (config.type == 'pipeline') {
+      if (event.content?.execution?.trigger?.buildInfo?.url) {
+        buildInfo = """build #${event.content.execution.trigger.buildInfo.number as Integer} """
       }
-
-      log.info("Twilio: sms for ${preference.address} - ${link}")
-
-      String message = ''
-
-      if (config.type == 'stage') {
-        String stageName = event.content.name ?: event.content?.context?.stageDetails?.name
-        message = """Stage $stageName for """
-      }
-
-      message +=
-        """${WordUtils.capitalize(application)}'s ${
-          event.content?.execution?.name ?: event.content?.execution?.description
-        } ${buildInfo} ${config.type == 'task' ? 'task' : 'pipeline'} ${buildInfo} ${
-          status == 'starting' ? 'is' : 'has'
-        } ${
-          status == 'complete' ? 'completed successfully' : status
-        } ${link}"""
-
-      twilioService.sendMessage(
-        account,
-        from,
-        preference.address,
-        message
-      )
-
-    } catch (Exception e) {
-      log.error('failed to send sms message ', e)
     }
+
+    log.info("Twilio: sms for ${preference.address} - ${link}")
+
+    String message = ''
+
+    if (config.type == 'stage') {
+      String stageName = event.content.name ?: event.content?.context?.stageDetails?.name
+      message = """Stage $stageName for """
+    }
+
+    message +=
+      """${WordUtils.capitalize(application)}'s ${
+        event.content?.execution?.name ?: event.content?.execution?.description
+      } ${buildInfo} ${config.type == 'task' ? 'task' : 'pipeline'} ${buildInfo} ${
+        status == 'starting' ? 'is' : 'has'
+      } ${
+        status == 'complete' ? 'completed successfully' : status
+      } ${link}"""
+
+    twilioService.sendMessage(
+      account,
+      from,
+      preference.address,
+      message
+    )
   }
 
   @Override

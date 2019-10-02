@@ -49,52 +49,47 @@ class BearychatNotificationAgent extends AbstractEventNotificationAgent {
 
   @Override
   void sendNotifications(Map preference, String application, Event event, Map config, String status) {
-    try {
-      String buildInfo = ''
+    String buildInfo = ''
 
-      if (config.type == 'pipeline' || config.type == 'stage') {
-        if (event.content?.execution?.trigger?.buildInfo?.url) {
-          buildInfo = """build #<a href="${event.content.execution.trigger.buildInfo.url}">${
-            event.content.execution.trigger.buildInfo.number as Integer
-          }</a> """
-        }
+    if (config.type == 'pipeline' || config.type == 'stage') {
+      if (event.content?.execution?.trigger?.buildInfo?.url) {
+        buildInfo = """build #<a href="${event.content.execution.trigger.buildInfo.url}">${
+          event.content.execution.trigger.buildInfo.number as Integer
+        }</a> """
       }
-      log.info('Sending bearychat message {} for {} {} {} {}', kv('address', preference.address), kv('application', application), kv('type', config.type), kv('status', status), kv('executionId', event.content?.execution?.id))
-
-
-      String message = ''
-
-      if (config.type == 'stage') {
-        String stageName = event.content.name ?: event.content?.context?.stageDetails?.name
-        message = """Stage $stageName for """
-      }
-
-      String link = "${spinnakerUrl}/#/applications/${application}/${config.type == 'stage' ? 'executions/details' : config.link }/${event.content?.execution?.id}"
-
-      message +=
-        """${WordUtils.capitalize(application)}'s ${
-          event.content?.execution?.name ?: event.content?.execution?.description
-        } ${buildInfo} ${config.type == 'task' ? 'task' : 'pipeline'} ${status == 'starting' ? 'is' : 'has'} ${
-          status == 'complete' ? 'completed successfully' : status
-        }.  To see more details, please visit: ${link}"""
-
-      String customMessage = event.content?.context?.customMessage
-      if (customMessage) {
-        message = customMessage
-          .replace("{{executionId}}", (String) event.content.execution?.id ?: "")
-          .replace("{{link}}", link ?: "")
-      }
-
-      List<BearychatUserInfo> userList = bearychatService.getUserList(token)
-      String userid = userList.find {it.email == preference.address}.id
-      CreateP2PChannelResponse channelInfo = bearychatService.createp2pchannel(token,new CreateP2PChannelPara(user_id: userid))
-      String channelId = channelInfo.vchannel_id
-      bearychatService.sendMessage(token,new SendMessagePara(vchannel_id: channelId,
-        text: message,
-        attachments: "" ))
-
-    } catch (Exception e) {
-      log.error('failed to send bearychat message ', e)
     }
+    log.info('Sending bearychat message {} for {} {} {} {}', kv('address', preference.address), kv('application', application), kv('type', config.type), kv('status', status), kv('executionId', event.content?.execution?.id))
+
+
+    String message = ''
+
+    if (config.type == 'stage') {
+      String stageName = event.content.name ?: event.content?.context?.stageDetails?.name
+      message = """Stage $stageName for """
+    }
+
+    String link = "${spinnakerUrl}/#/applications/${application}/${config.type == 'stage' ? 'executions/details' : config.link }/${event.content?.execution?.id}"
+
+    message +=
+      """${WordUtils.capitalize(application)}'s ${
+        event.content?.execution?.name ?: event.content?.execution?.description
+      } ${buildInfo} ${config.type == 'task' ? 'task' : 'pipeline'} ${status == 'starting' ? 'is' : 'has'} ${
+        status == 'complete' ? 'completed successfully' : status
+      }.  To see more details, please visit: ${link}"""
+
+    String customMessage = event.content?.context?.customMessage
+    if (customMessage) {
+      message = customMessage
+        .replace("{{executionId}}", (String) event.content.execution?.id ?: "")
+        .replace("{{link}}", link ?: "")
+    }
+
+    List<BearychatUserInfo> userList = bearychatService.getUserList(token)
+    String userid = userList.find {it.email == preference.address}.id
+    CreateP2PChannelResponse channelInfo = bearychatService.createp2pchannel(token,new CreateP2PChannelPara(user_id: userid))
+    String channelId = channelInfo.vchannel_id
+    bearychatService.sendMessage(token,new SendMessagePara(vchannel_id: channelId,
+      text: message,
+      attachments: "" ))
   }
 }
