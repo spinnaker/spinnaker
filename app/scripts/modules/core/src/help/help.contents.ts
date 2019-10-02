@@ -79,6 +79,8 @@ const helpContents: { [key: string]: string } = {
   'pipeline.config.checkPreconditions.failPipeline': `
       <p><strong>Checked</strong> - the overall pipeline will fail whenever this precondition is false.</p>
       <p><strong>Unchecked</strong> - the overall pipeline will continue executing but this particular branch will stop.</p>`,
+  'pipeline.config.checkPreconditions.failureMessage': `
+      <p> This failure message will be shown to the user if the precondition evaluates to false. </p>`,
   'pipeline.config.checkPreconditions.expectedSize': 'Number of server groups in the selected cluster',
   'pipeline.config.checkPreconditions.expression': `
       <p>Value must evaluate to "true".</p>

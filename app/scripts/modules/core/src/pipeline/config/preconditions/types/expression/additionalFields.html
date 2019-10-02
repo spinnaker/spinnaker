@@ -16,4 +16,13 @@
       <input type="checkbox" ng-model="precondition.failPipeline" />
     </div>
   </div>
+
+  <div class="form-group row">
+    <div class="col-sm-3 sm-label-right">
+      Failure Message <help-field key="pipeline.config.checkPreconditions.failureMessage"></help-field>
+    </div>
+    <div class="col-sm-9">
+      <textarea ng-model="precondition.context.failureMessage" rows="4" class="form-control input-sm"> </textarea>
+    </div>
+  </div>
 </ng-form>
