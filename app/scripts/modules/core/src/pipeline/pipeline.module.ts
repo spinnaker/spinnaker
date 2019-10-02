@@ -6,7 +6,6 @@ import { NOTIFY_DEPLOY_STARTING_STAGE } from './config/stages/monitoreddeploy/no
 import './config/stages/bakeManifest/bakeManifestStage';
 import { CHECK_PRECONDITIONS_STAGE_MODULE } from './config/stages/checkPreconditions/checkPreconditionsStage.module';
 import { CLONE_SERVER_GROUP_STAGE } from './config/stages/cloneServerGroup/cloneServerGroupStage.module';
-import { COPY_STAGE_MODAL_CONTROLLER } from './config/copyStage/copyStage.modal.controller';
 import './config/stages/deployService/deployServiceStage';
 import './config/stages/destroyService/destroyServiceStage';
 import { CREATE_LOAD_BALANCER_STAGE } from './config/stages/createLoadBalancer/createLoadBalancerStage.module';
@@ -71,7 +70,6 @@ module(PIPELINE_MODULE, [
   ARTIFACT_LIST,
   PIPELINE_STATES,
   require('./config/pipelineConfig.module').name,
-  COPY_STAGE_MODAL_CONTROLLER,
   GROUP_STAGE_MODULE,
   TRAVIS_STAGE_MODULE,
   WERCKER_STAGE_MODULE,

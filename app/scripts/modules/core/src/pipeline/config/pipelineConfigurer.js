@@ -13,6 +13,7 @@ import { PIPELINE_CONFIG_ACTIONS } from 'core/pipeline/config/actions/pipelineCo
 import { PipelineConfigValidator } from './validation/PipelineConfigValidator';
 import { EXECUTION_BUILD_TITLE } from '../executionBuild/ExecutionBuildTitle';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
+import { CopyStageModal } from 'core/pipeline/config/copyStage/CopyStageModal';
 import { ExecutionsTransformer } from 'core/pipeline/service/ExecutionsTransformer';
 import { EditPipelineJsonModal } from 'core/pipeline/config/actions/pipelineJson/EditPipelineJsonModal';
 import { DeletePipelineModal } from 'core/pipeline/config/actions/delete/DeletePipelineModal';
@@ -127,17 +128,11 @@ module.exports = angular
       };
 
       this.copyExistingStage = () => {
-        $uibModal
-          .open({
-            templateUrl: require('./copyStage/copyStage.modal.html'),
-            controller: 'CopyStageModalCtrl',
-            controllerAs: 'copyStageModalCtrl',
-            resolve: {
-              application: () => $scope.application,
-              forStrategyConfig: () => $scope.pipeline.strategy,
-            },
-          })
-          .result.then(stageTemplate => ctrl.addStage(stageTemplate))
+        ReactModal.show(CopyStageModal, {
+          application: $scope.application,
+          forStrategyConfig: $scope.pipeline.strategy,
+        })
+          .then(stageTemplate => ctrl.addStage(stageTemplate))
           .catch(() => {});
       };
 
