@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import retrofit.RetrofitError;
 
 @Component
 public class CloudFormationForceCacheRefreshTask extends AbstractCloudProviderAwareTask
@@ -60,8 +61,11 @@ public class CloudFormationForceCacheRefreshTask extends AbstractCloudProviderAw
       data.put("stackName", stackName);
     }
 
-    cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, data);
-
+    try {
+      cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, data);
+    } catch (RetrofitError e) {
+      return TaskResult.RUNNING;
+    }
     return TaskResult.SUCCEEDED;
   }
 
