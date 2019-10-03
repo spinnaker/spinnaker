@@ -81,7 +81,7 @@ class CFRollingRedBlackStrategyTest {
   }
 
   @Test
-  void composeFlowWithDelayBeforeScaleDown() {
+  void composeFlowWithDelayBeforeScaleDown() throws IOException {
     List<Object> targetPercentageList = Stream.of(50, 100).collect(Collectors.toList());
     Map<String, Object> direct = new HashMap<>();
     direct.put("instances", 4);
@@ -100,6 +100,8 @@ class CFRollingRedBlackStrategyTest {
             new Execution(PIPELINE, "unit"), CreateServerGroupStage.PIPELINE_CONFIG_TYPE, context);
     when(targetServerGroupResolver.resolve(any()))
         .thenReturn(singletonList(new TargetServerGroup(Collections.emptyMap())));
+    when(resizeStrategySupport.getCapacity(any(), any(), any(), any()))
+        .thenReturn(new ResizeStrategy.Capacity(1, 1, 1));
 
     List<Stage> stages = strategy.composeFlow(deployServerGroupStage);
 
@@ -142,6 +144,8 @@ class CFRollingRedBlackStrategyTest {
 
     when(targetServerGroupResolver.resolve(any()))
         .thenReturn(singletonList(new TargetServerGroup(Collections.emptyMap())));
+    when(resizeStrategySupport.getCapacity(any(), any(), any(), any()))
+        .thenReturn(new ResizeStrategy.Capacity(1, 1, 1));
 
     List<Stage> stages = strategy.composeFlow(deployServerGroupStage);
 
@@ -222,6 +226,8 @@ class CFRollingRedBlackStrategyTest {
         new Stage(
             new Execution(PIPELINE, "unit"), CreateServerGroupStage.PIPELINE_CONFIG_TYPE, context);
     ResizeStrategy.Capacity initialSourceCapacity = new ResizeStrategy.Capacity(8, 8, 8);
+    ResizeStrategy.Capacity resetOriginalCapacity =
+        new ResizeStrategy.Capacity(initialSourceCapacity.getMax(), 0, 0);
 
     when(targetServerGroupResolver.resolve(any()))
         .thenReturn(singletonList(new TargetServerGroup(Collections.emptyMap())));
@@ -261,7 +267,7 @@ class CFRollingRedBlackStrategyTest {
             initialSourceCapacity,
             null,
             null,
-            initialSourceCapacity);
+            resetOriginalCapacity);
     assertThat(deployServerGroupStage.getContext().get("targetSize")).isNull();
     assertThat(deployServerGroupStage.getContext().get("useSourceCapacity")).isNull();
     assertThat(deployServerGroupStage.getContext().get("capacity")).isEqualTo(zeroCapacity);
@@ -342,6 +348,8 @@ class CFRollingRedBlackStrategyTest {
     context.put("source", createSource());
     ResizeStrategy.Capacity resizeTo4Capacity = new ResizeStrategy.Capacity(4, 4, 4);
     ResizeStrategy.Capacity initialSourceCapacity = new ResizeStrategy.Capacity(8, 8, 8);
+    ResizeStrategy.Capacity resetOriginalCapacity =
+        new ResizeStrategy.Capacity(initialSourceCapacity.getMax(), 0, 0);
 
     Stage deployServerGroupStage = new Stage(new Execution(PIPELINE, "unit"), "type", context);
     Artifact boundArtifactForStage = new Artifact();
@@ -386,7 +394,7 @@ class CFRollingRedBlackStrategyTest {
             initialSourceCapacity,
             null,
             null,
-            initialSourceCapacity);
+            resetOriginalCapacity);
     assertThat(stages.stream().map(stage -> stage.getContext().get("scalePct")))
         .containsExactly(null, 50, 50, 75, 25, 100, 0, null, null, 100);
     assertThat(deployServerGroupStage.getContext().get("targetSize")).isNull();

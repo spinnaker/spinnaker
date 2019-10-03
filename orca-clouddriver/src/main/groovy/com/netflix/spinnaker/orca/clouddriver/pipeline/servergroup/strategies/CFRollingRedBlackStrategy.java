@@ -291,9 +291,13 @@ public class CFRollingRedBlackStrategy implements Strategy, ApplicationContextAw
       stages.add(disableStage);
 
       // scale old back to original
+      ResizeStrategy.Capacity resetCapacity = new ResizeStrategy.Capacity();
+      resetCapacity.setMax(sourceCapacity.getMax());
+      resetCapacity.setMin(0);
+      resetCapacity.setDesired(0);
       Map<String, Object> scaleSourceContext =
           getScalingContext(
-              stage, cleanupConfig, baseContext, sourceCapacity, 100, source.getServerGroupName());
+              stage, cleanupConfig, baseContext, resetCapacity, 100, source.getServerGroupName());
       scaleSourceContext.put("scaleStoppedServerGroup", true);
       log.info(
           "Adding `Grow source to 100% of original size` stage with context {} [executionId={}]",
