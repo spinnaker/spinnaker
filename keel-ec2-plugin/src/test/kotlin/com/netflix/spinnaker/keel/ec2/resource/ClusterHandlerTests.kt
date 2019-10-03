@@ -129,8 +129,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
       listOf(vpcWest, vpcEast).associate { subnet ->
         subnet.region to "i-123543254134"
       }
-    ),
-    cloudDriverCache
+    )
   )
   val serverGroupEast = serverGroups.first { it.location.region == "us-east-1" }
   val serverGroupWest = serverGroups.first { it.location.region == "us-west-2" }

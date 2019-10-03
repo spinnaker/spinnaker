@@ -3,7 +3,6 @@ package com.netflix.spinnaker.keel.api.ec2
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonUnwrapped
-import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.api.MultiRegion
 import com.netflix.spinnaker.keel.ec2.resource.ResolvedImages
 import com.netflix.spinnaker.keel.model.Moniker
@@ -12,7 +11,7 @@ import java.time.Duration
 /**
  * Transforms a [ClusterSpec] into a concrete model of server group desired states.
  */
-fun ClusterSpec.resolve(resolvedImages: ResolvedImages, cloudDriverCache: CloudDriverCache): Set<ServerGroup> =
+fun ClusterSpec.resolve(resolvedImages: ResolvedImages): Set<ServerGroup> =
   locations.regions.map {
     ServerGroup(
       name = moniker.name,
@@ -20,7 +19,7 @@ fun ClusterSpec.resolve(resolvedImages: ResolvedImages, cloudDriverCache: CloudD
         locations.accountName,
         it.region,
         it.subnet,
-        it.availabilityZones ?: cloudDriverCache.resolveAvailabilityZones(it, locations.accountName)
+        it.availabilityZones
       ),
       launchConfiguration = resolveLaunchConfiguration(
         it.region,
@@ -35,9 +34,6 @@ fun ClusterSpec.resolve(resolvedImages: ResolvedImages, cloudDriverCache: CloudD
     )
   }
     .toSet()
-
-private fun CloudDriverCache.resolveAvailabilityZones(it: ClusterSpec.ClusterRegion, accountName: String) =
-  availabilityZonesBy(accountName, subnetBy(accountName, it.region, it.subnet).vpcId, it.region).toSet()
 
 private fun ClusterSpec.resolveLaunchConfiguration(region: String, appVersion: String, imageId: String): LaunchConfiguration =
   LaunchConfiguration(
@@ -146,9 +142,9 @@ data class ClusterSpec(
     val region: String,
     val subnet: String,
     /**
-     * If `null` this implies the cluster should use all availability zones.
+     * If empty this implies the cluster should use all availability zones.
      */
-    val availabilityZones: Set<String>?
+    val availabilityZones: Set<String> = emptySet()
   )
 
   data class ServerGroupSpec(
@@ -177,6 +173,9 @@ data class ClusterSpec(
     val terminationPolicies: Set<TerminationPolicy>? = null
   )
 }
+
+operator fun ClusterSpec.Locations.get(region: String) =
+  regions.first { it.region == region }
 
 private operator fun <E> Set<E>?.plus(elements: Set<E>?): Set<E> =
   when {

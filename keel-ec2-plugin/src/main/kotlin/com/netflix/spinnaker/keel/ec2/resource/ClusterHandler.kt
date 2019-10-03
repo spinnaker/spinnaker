@@ -73,7 +73,7 @@ class ClusterHandler(
   override suspend fun desired(resource: Resource<ClusterSpec>): Map<String, ServerGroup> =
     with(resource.spec) {
       val resolvedImages = imageResolver.resolveImageId(resource)
-      resolve(resolvedImages, cloudDriverCache).byRegion()
+      resolve(resolvedImages).byRegion()
     }
 
   override suspend fun current(resource: Resource<ClusterSpec>): Map<String, ServerGroup> =
