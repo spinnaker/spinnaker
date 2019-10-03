@@ -83,24 +83,53 @@ class ResourceTagger(
 
   @EventListener(ResourceCreated::class)
   fun onCreateEvent(event: ResourceCreated) {
-    if (event.resourceId.shouldTag()) {
+    if (!event.resourceId.shouldTag()) {
+      return
+    }
+    /**
+     * If a MultiRegion resource provides a set of regional resourceIds, entity tags will be created
+     * for those ids referencing the keelResourceId. A global tag will not be created for the
+     * actual keelResourceId.
+     */
+    if (event.resourceIds.isEmpty()) {
       log.debug("Persisting tag desired for resource {} because it exists now", event.resourceId)
       val spec = event.resourceId.generateKeelTagSpec()
       persistTagState(spec)
+    } else {
+      event.resourceIds.forEach { id ->
+        log.debug("Persisting tag desired for $id (regional sub-resource of ${event.resourceId}) " +
+          "because it exists now")
+        persistTagState(id.generateKeelTagSpec(event.resourceId))
+      }
     }
   }
 
   @EventListener(ResourceDeleted::class)
   fun onDeleteEvent(event: ResourceDeleted) {
-    if (event.resourceId.shouldTag()) {
+    if (!event.resourceId.shouldTag()) {
+      return
+    }
+
+    val now = clock.millis()
+
+    if (event.resourceIds.isEmpty()) {
       log.debug("Persisting no tag desired for resource {} because it is no longer managed", event.resourceId)
       val entityRef = event.resourceId.toEntityRef()
       val spec = KeelTagSpec(
         keelId = event.resourceId,
         entityRef = entityRef,
-        tagState = TagNotDesired(startTime = clock.millis())
+        tagState = TagNotDesired(startTime = now)
       )
       persistTagState(spec)
+    } else {
+      event.resourceIds.map { id ->
+        KeelTagSpec(
+          keelId = id,
+          entityRef = id.toEntityRef(),
+          tagState = TagNotDesired(startTime = now)
+        )
+      }
+        .forEach { persistTagState(it) }
     }
   }
 
@@ -167,18 +196,26 @@ class ResourceTagger(
       generateTagDesired()
     )
 
-  private fun ResourceId.generateTagDesired() =
+  private fun ResourceId.generateKeelTagSpec(parentId: ResourceId) =
+    KeelTagSpec(
+      this,
+      toEntityRef(),
+      generateTagDesired(parentId)
+    )
+
+  private fun ResourceId.generateTagDesired() = this.generateTagDesired(this)
+
+  private fun ResourceId.generateTagDesired(parentId: ResourceId) =
     TagDesired(tag = EntityTag(
       value = TagValue(
         message = KEEL_TAG_MESSAGE,
-        keelResourceId = toString(),
+        keelResourceId = parentId.toString(),
         type = "notice"
       ),
       namespace = KEEL_TAG_NAMESPACE,
       valueType = "object",
       name = KEEL_TAG_NAME
-    )
-    )
+    ))
 
   private fun ResourceId.shouldTag(): Boolean {
     val (_, resourceType, _, _, _) = toString().split(":")
@@ -195,8 +232,8 @@ class ResourceTagger(
       account
     }
 
-    val (region, resourceId) = if (suffix.contains(":")) {
-      suffix.split(":", limit = 2).toList()
+    val (region, resourceId) = if (toString().count { it == ':' } == 4) {
+      toString().toLowerCase().split(":").subList(3, 5)
     } else {
       listOf("*", suffix)
     }

@@ -256,5 +256,24 @@ internal class ResourceTaggerTests : JUnit5Minutests {
         verify { resourcePersister.create<DummyResourceSpec>(any()) }
       }
     }
+
+    context("MultiRegion resource tagging") {
+      test("we tag the regional resources, not the parent") {
+        onCreateEvent(ResourceCreated(
+          apiVersion = SPINNAKER_API_V1.subApi("ec2"),
+          kind = "cluster",
+          id = "ec2:cluster:test:keeldemo-test",
+          ids = listOf(
+            "ec2:cluster:test:us-west-1:keeldemo-test",
+            "ec2:cluster:test:us-west-2:keeldemo-test",
+            "ec2:cluster:test:us-east-1:keeldemo-test",
+            "ec2:cluster:test:eu-west-1:keeldemo-test"
+          ),
+          application = "keel",
+          timestamp = clock.instant()
+        ))
+        verify(exactly = 4) { resourcePersister.create<DummyResourceSpec>(any()) }
+      }
+    }
   }
 }

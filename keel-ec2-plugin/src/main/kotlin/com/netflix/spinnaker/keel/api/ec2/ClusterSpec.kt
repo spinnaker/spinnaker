@@ -3,9 +3,8 @@ package com.netflix.spinnaker.keel.api.ec2
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonUnwrapped
-import com.netflix.spinnaker.keel.api.Monikered
-import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
+import com.netflix.spinnaker.keel.api.MultiRegion
 import com.netflix.spinnaker.keel.ec2.resource.ResolvedImages
 import com.netflix.spinnaker.keel.model.Moniker
 import java.time.Duration
@@ -93,11 +92,15 @@ data class ClusterSpec(
   val locations: Locations,
   private val _defaults: ServerGroupSpec,
   val overrides: Map<String, ServerGroupSpec> = emptyMap()
-) : Monikered, ResourceSpec {
+) : MultiRegion {
   @JsonIgnore
   override val id = "${locations.accountName}:${moniker.name}"
 
-  /*
+  override val regionalIds = locations.regions.map { clusterRegion ->
+    "${locations.accountName}:${clusterRegion.region}:${moniker.name}"
+  }.sorted()
+
+  /**
    * I have no idea why, but if I annotate the constructor property with @get:JsonUnwrapped, the
    * @JsonCreator constructor below nulls out everything in the ClusterServerGroupSpec some time
    * very late in parsing. Using a debugger I can see it assigning the object correctly but then it
