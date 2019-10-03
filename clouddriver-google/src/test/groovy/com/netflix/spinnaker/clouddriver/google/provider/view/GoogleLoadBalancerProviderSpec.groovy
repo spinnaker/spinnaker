@@ -61,10 +61,10 @@ class GoogleLoadBalancerProviderSpec extends Specification {
       def details = provider.byAccountAndRegionAndName(ACCOUNT_NAME, REGION_EUROPE, LOAD_BALANCER_NAME)
     then:
       _ * cacheView.filterIdentifiers(LOAD_BALANCERS.ns, _) >> ["lb_identifier"]
-      2 * cacheView.getAll(LOAD_BALANCERS.ns, _, _) >> [googleLoadBalancerView]
-      2 * cacheView.filterIdentifiers(SERVER_GROUPS.ns, _) >> SERVER_GROUP_IDS
-      2 * cacheView.getAll(SERVER_GROUPS.ns, SERVER_GROUP_IDS) >> [serverGroup]
-      2 * serverGroup.getRelationships() >> serverGroupRelationships
+      1 * cacheView.getAll(LOAD_BALANCERS.ns, _, _) >> [googleLoadBalancerView]
+      1 * cacheView.filterIdentifiers(SERVER_GROUPS.ns, _) >> SERVER_GROUP_IDS
+      1 * cacheView.getAll(SERVER_GROUPS.ns, SERVER_GROUP_IDS) >> [serverGroup]
+      1 * serverGroup.getRelationships() >> serverGroupRelationships
       details.size() == 1
       details[0].sessionAffinity == "CLIENT_IP_PORT_PROTO"
   }
