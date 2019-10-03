@@ -135,6 +135,8 @@ public class Trigger {
 
   // Configuration for docker triggers
   String account;
+  String organization;
+  String registry;
   String repository;
   String tag;
 
