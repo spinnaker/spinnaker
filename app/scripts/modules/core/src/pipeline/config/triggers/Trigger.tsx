@@ -158,7 +158,7 @@ function TriggerForm(triggerFormProps: ITriggerProps & { formik: FormikProps<ITr
           <FormikFormField
             name="expectedArtifactIds"
             label="Artifact Constraints"
-            help={<HelpField id="pipeline.config.expectedArtifacts" />}
+            help={<HelpField id="pipeline.config.expectedArtifact" />}
             input={props => <ReactSelectInput {...props} multi={true} options={expectedArtifactOptions} />}
           />
         )}

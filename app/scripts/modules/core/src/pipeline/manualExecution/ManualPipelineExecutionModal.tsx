@@ -3,7 +3,7 @@ import * as React from 'react';
 import { Formik, Form } from 'formik';
 import { Modal } from 'react-bootstrap';
 import { Observable, Subject } from 'rxjs';
-import { assign, clone, compact, extend, get, head, uniq, isArray, isEmpty, pickBy } from 'lodash';
+import { assign, clone, compact, extend, get, head, uniq, isArray, isEmpty, isEqual, pickBy } from 'lodash';
 
 import { SubmitButton, ModalClose } from 'core/modal';
 import { Application } from 'core/application';
@@ -289,7 +289,7 @@ export class ManualExecutionModal extends React.Component<IManualExecutionModalP
     const triggers = this.formatTriggers(pipeline && pipeline.triggers ? pipeline.triggers : []);
     let trigger: ITrigger;
     if (this.props.trigger) {
-      // Certain fields like correlationId will cause unexepcted behavior if used to trigger
+      // Certain fields like correlationId will cause unexepected behavior if used to trigger
       // a different execution, others are just left unused. Let's exclude them.
       trigger = pickBy(this.props.trigger, (_, key) => !TRIGGER_FIELDS_TO_EXCLUDE.includes(key));
 
@@ -300,10 +300,10 @@ export class ManualExecutionModal extends React.Component<IManualExecutionModalP
       const matchingTrigger = (pipeline.triggers || []).find(t =>
         Object.keys(t)
           .filter(k => k !== 'description')
-          .every(k => get(t, k) === get(this.props.trigger, k)),
+          .every(k => isEqual(get(t, k), get(trigger, k))),
       );
       // If we found a match, rehydrate it with everything from trigger, otherwise just default back to setting it to trigger
-      trigger = matchingTrigger ? assign(trigger, matchingTrigger) : trigger;
+      trigger = matchingTrigger ? assign(matchingTrigger, trigger) : trigger;
 
       if (Registry.pipeline.hasManualExecutionComponentForTriggerType(trigger.type)) {
         // If the trigger has a manual component, we don't want to also explicitly
