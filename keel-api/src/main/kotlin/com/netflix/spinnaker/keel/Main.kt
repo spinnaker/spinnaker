@@ -23,7 +23,7 @@ import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceVersionTracker
 import com.netflix.spinnaker.keel.plugin.KeelPlugin
-import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
+import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.kork.PlatformComponents
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -84,7 +84,7 @@ class KeelApplication {
   @PostConstruct
   fun registerResourceSpecSubtypes() {
     plugins
-      .filterIsInstance<ResolvableResourceHandler<*, *>>()
+      .filterIsInstance<ResourceHandler<*, *>>()
       .map { it.supportedKind }
       .forEach { (kind, type) ->
         objectMappers.forEach { objectMapper ->

@@ -21,7 +21,7 @@ import com.netflix.spinnaker.keel.persistence.get
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
-import com.netflix.spinnaker.keel.plugin.ResourceHandler
+import com.netflix.spinnaker.keel.plugin.SimpleResourceHandler
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
@@ -324,7 +324,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
   }
 }
 
-internal object DummyResourceHandler : ResourceHandler<DummyResourceSpec> {
+internal object DummyResourceHandler : SimpleResourceHandler<DummyResourceSpec> {
   override val apiVersion: ApiVersion = SPINNAKER_API_V1.subApi("test")
 
   override val supportedKind: Pair<ResourceKind, Class<DummyResourceSpec>> =

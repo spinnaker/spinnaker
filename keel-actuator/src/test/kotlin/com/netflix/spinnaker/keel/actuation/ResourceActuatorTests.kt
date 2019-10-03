@@ -16,7 +16,7 @@ import com.netflix.spinnaker.keel.events.Task
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.plugin.CannotResolveCurrentState
 import com.netflix.spinnaker.keel.plugin.CannotResolveDesiredState
-import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
+import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.telemetry.ResourceCheckSkipped
 import com.netflix.spinnaker.keel.test.DummyResource
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
@@ -44,8 +44,8 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
   class Fixture {
     val resourceRepository = InMemoryResourceRepository()
-    val plugin1 = mockk<ResolvableResourceHandler<DummyResourceSpec, DummyResource>>(relaxUnitFun = true)
-    val plugin2 = mockk<ResolvableResourceHandler<DummyResourceSpec, DummyResource>>(relaxUnitFun = true)
+    val plugin1 = mockk<ResourceHandler<DummyResourceSpec, DummyResource>>(relaxUnitFun = true)
+    val plugin2 = mockk<ResourceHandler<DummyResourceSpec, DummyResource>>(relaxUnitFun = true)
     val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
     val veto = mockk<Veto>()
     val vetoEnforcer = VetoEnforcer(listOf(veto))

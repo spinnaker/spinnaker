@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.rest
 
-import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
+import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.web.bind.annotation.GetMapping
@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping(path = ["/kinds"])
 class KindController(
-  val plugins: List<ResolvableResourceHandler<*, *>>
+  val plugins: List<ResourceHandler<*, *>>
 ) {
   @GetMapping(produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE])
   fun get(): List<Map<String, Any>> =

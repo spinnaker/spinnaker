@@ -6,7 +6,8 @@ import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancer
-import com.netflix.spinnaker.keel.api.ec2.LoadBalancerType
+import com.netflix.spinnaker.keel.api.ec2.LoadBalancerType.APPLICATION
+import com.netflix.spinnaker.keel.api.ec2.LoadBalancerType.valueOf
 import com.netflix.spinnaker.keel.api.ec2.Location
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.serviceAccount
@@ -20,8 +21,8 @@ import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.orca.OrcaService
-import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
+import com.netflix.spinnaker.keel.plugin.SimpleResourceHandler
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -34,7 +35,7 @@ class ApplicationLoadBalancerHandler(
   private val environmentResolver: EnvironmentResolver,
   override val objectMapper: ObjectMapper,
   override val normalizers: List<ResourceNormalizer<*>>
-) : ResourceHandler<ApplicationLoadBalancer> {
+) : SimpleResourceHandler<ApplicationLoadBalancer> {
   override val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
 
   override val apiVersion = SPINNAKER_API_V1.subApi("ec2")
@@ -137,7 +138,7 @@ class ApplicationLoadBalancerHandler(
               availabilityZones = lb.availabilityZones,
               subnet = null
             ),
-            loadBalancerType = LoadBalancerType.valueOf(lb.loadBalancerType.toUpperCase()),
+            loadBalancerType = valueOf(lb.loadBalancerType.toUpperCase()),
             internal = lb.scheme != null && lb.scheme!!.contains("internal", ignoreCase = true),
             vpcName = lb.vpcId.let { cloudDriverCache.networkBy(it).name },
             subnetType = cloudDriverCache.subnetBy(lb.subnets.first()).purpose,
@@ -190,7 +191,7 @@ class ApplicationLoadBalancerHandler(
         "name" to moniker.name,
         "region" to location.region,
         "availabilityZones" to mapOf(location.region to location.availabilityZones),
-        "loadBalancerType" to LoadBalancerType.APPLICATION.toString().toLowerCase(),
+        "loadBalancerType" to APPLICATION.toString().toLowerCase(),
         "vpcId" to cloudDriverCache.networkBy(vpcName, location.accountName, location.region).id,
         "subnetType" to subnetType,
         "isInternal" to internal,

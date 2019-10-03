@@ -16,7 +16,7 @@ import com.netflix.spinnaker.keel.events.Task
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.plugin.CannotResolveCurrentState
 import com.netflix.spinnaker.keel.plugin.CannotResolveDesiredState
-import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
+import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.supporting
 import com.netflix.spinnaker.keel.telemetry.ResourceCheckSkipped
 import com.netflix.spinnaker.keel.veto.VetoEnforcer
@@ -30,7 +30,7 @@ import java.time.Clock
 @Component
 class ResourceActuator(
   private val resourceRepository: ResourceRepository,
-  private val handlers: List<ResolvableResourceHandler<*, *>>,
+  private val handlers: List<ResourceHandler<*, *>>,
   private val vetoEnforcer: VetoEnforcer,
   private val publisher: ApplicationEventPublisher,
   private val clock: Clock
@@ -98,7 +98,7 @@ class ResourceActuator(
     }
   }
 
-  private suspend fun ResolvableResourceHandler<*, *>.resolve(resource: Resource<out ResourceSpec>): Pair<Any, Any?> =
+  private suspend fun ResourceHandler<*, *>.resolve(resource: Resource<out ResourceSpec>): Pair<Any, Any?> =
     coroutineScope {
       val desired = async {
         try {
@@ -120,26 +120,26 @@ class ResourceActuator(
   // These extensions get round the fact tht we don't know the spec type of the resource from
   // the repository. I don't want the `ResourceHandler` interface to be untyped though.
   @Suppress("UNCHECKED_CAST")
-  private suspend fun <S : ResourceSpec, R : Any> ResolvableResourceHandler<S, R>.desired(
+  private suspend fun <S : ResourceSpec, R : Any> ResourceHandler<S, R>.desired(
     resource: Resource<*>
   ): R =
     desired(resource as Resource<S>)
 
   @Suppress("UNCHECKED_CAST")
-  private suspend fun <S : ResourceSpec, R : Any> ResolvableResourceHandler<S, R>.current(
+  private suspend fun <S : ResourceSpec, R : Any> ResourceHandler<S, R>.current(
     resource: Resource<*>
   ): R? =
     current(resource as Resource<S>)
 
   @Suppress("UNCHECKED_CAST")
-  private suspend fun <S : ResourceSpec, R : Any> ResolvableResourceHandler<S, R>.create(
+  private suspend fun <S : ResourceSpec, R : Any> ResourceHandler<S, R>.create(
     resource: Resource<*>,
     resourceDiff: ResourceDiff<*>
   ): List<Task> =
     create(resource as Resource<S>, resourceDiff as ResourceDiff<R>)
 
   @Suppress("UNCHECKED_CAST")
-  private suspend fun <S : ResourceSpec, R : Any> ResolvableResourceHandler<S, R>.update(
+  private suspend fun <S : ResourceSpec, R : Any> ResourceHandler<S, R>.update(
     resource: Resource<*>,
     resourceDiff: ResourceDiff<*>
   ): List<Task> =

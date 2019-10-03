@@ -16,7 +16,7 @@ import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceVersionTracker
-import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
+import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.supporting
 import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
@@ -71,8 +71,8 @@ class DefaultConfiguration {
   fun resourceVersionTracker(): ResourceVersionTracker = InMemoryResourceVersionTracker()
 
   @Bean
-  @ConditionalOnMissingBean(ResolvableResourceHandler::class)
-  fun noResourcePlugins(): List<ResolvableResourceHandler<*, *>> = emptyList()
+  @ConditionalOnMissingBean(ResourceHandler::class)
+  fun noResourcePlugins(): List<ResourceHandler<*, *>> = emptyList()
 
   @Bean
   fun resourceTypeIdentifier(
@@ -81,7 +81,7 @@ class DefaultConfiguration {
     object : ResourceTypeIdentifier {
       // because otherwise we get a circular dependency
       private val handlers by lazy {
-        applicationContext.getBeansOfType<ResolvableResourceHandler<*, *>>().values
+        applicationContext.getBeansOfType<ResourceHandler<*, *>>().values
       }
 
       override fun identify(apiVersion: ApiVersion, kind: String): Class<out ResourceSpec> {

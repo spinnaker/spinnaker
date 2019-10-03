@@ -30,7 +30,7 @@ import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.orca.OrcaService
-import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
+import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import com.netflix.spinnaker.keel.tags.EntityTag
@@ -49,7 +49,7 @@ class KeelTagHandler(
   private val orcaService: OrcaService,
   override val objectMapper: ObjectMapper,
   override val normalizers: List<ResourceNormalizer<*>>
-) : ResolvableResourceHandler<KeelTagSpec, TaggedResource> {
+) : ResourceHandler<KeelTagSpec, TaggedResource> {
 
   override val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
 

@@ -20,7 +20,7 @@ import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.get
-import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
+import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.supporting
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
@@ -34,7 +34,7 @@ class ResourcePersister(
   private val deliveryConfigRepository: DeliveryConfigRepository,
   private val artifactRepository: ArtifactRepository,
   private val resourceRepository: ResourceRepository,
-  private val handlers: List<ResolvableResourceHandler<*, *>>,
+  private val handlers: List<ResourceHandler<*, *>>,
   private val clock: Clock,
   private val publisher: ApplicationEventPublisher,
   private val objectMapper: ObjectMapper
@@ -86,7 +86,7 @@ class ResourcePersister(
     handlers.supporting(
       resource.apiVersion,
       resource.kind
-    ) as ResolvableResourceHandler<T, *>
+    ) as ResourceHandler<T, *>
 
   fun <T : ResourceSpec> update(id: ResourceId, updated: SubmittedResource<T>): Resource<T> {
     log.debug("Updating $id")

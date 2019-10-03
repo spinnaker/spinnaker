@@ -27,7 +27,7 @@ import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
-import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
+import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -43,7 +43,7 @@ class ImageHandler(
   private val imageService: ImageService,
   private val publisher: ApplicationEventPublisher,
   override val normalizers: List<ResourceNormalizer<*>>
-) : ResolvableResourceHandler<ImageSpec, Image> {
+) : ResourceHandler<ImageSpec, Image> {
 
   override val apiVersion = SPINNAKER_API_V1.subApi("bakery")
   override val supportedKind = ResourceKind(
