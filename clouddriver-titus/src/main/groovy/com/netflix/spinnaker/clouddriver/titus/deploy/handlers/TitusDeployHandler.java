@@ -4,7 +4,6 @@ import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription;
 import com.netflix.spinnaker.clouddriver.deploy.DeployHandler;
-import com.netflix.spinnaker.clouddriver.orchestration.SagaContextAware;
 import com.netflix.spinnaker.clouddriver.orchestration.events.CreateServerGroupEvent;
 import com.netflix.spinnaker.clouddriver.orchestration.sagas.LoadFront50App;
 import com.netflix.spinnaker.clouddriver.orchestration.sagas.LoadFront50App.LoadFront50AppCommand;
@@ -24,15 +23,13 @@ import com.netflix.spinnaker.clouddriver.titus.deploy.description.TitusDeployDes
 import groovy.util.logging.Slf4j;
 import java.util.List;
 import java.util.Objects;
-import javax.annotation.Nonnull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class TitusDeployHandler implements DeployHandler<TitusDeployDescription>, SagaContextAware {
+public class TitusDeployHandler implements DeployHandler<TitusDeployDescription> {
   private final SagaService sagaService;
-  private SagaContext sagaContext;
 
   @Autowired
   public TitusDeployHandler(SagaService sagaService) {
@@ -46,7 +43,7 @@ public class TitusDeployHandler implements DeployHandler<TitusDeployDescription>
   @Override
   public TitusDeploymentResult handle(
       final TitusDeployDescription inputDescription, List priorOutputs) {
-    Objects.requireNonNull(sagaContext);
+    Objects.requireNonNull(inputDescription.getSagaContext(), "A saga context must be provided");
 
     SagaFlow flow =
         new SagaFlow()
@@ -69,7 +66,7 @@ public class TitusDeployHandler implements DeployHandler<TitusDeployDescription>
                     .sagaName(TitusDeployHandler.class.getSimpleName())
                     .inputDescription(inputDescription)
                     .priorOutputs(priorOutputs)
-                    .sagaContext(sagaContext)
+                    .sagaContext(inputDescription.getSagaContext())
                     .task(getTask())
                     .sagaFlow(flow)
                     .initialCommand(
@@ -108,10 +105,5 @@ public class TitusDeployHandler implements DeployHandler<TitusDeployDescription>
   @Override
   public boolean handles(DeployDescription description) {
     return description instanceof TitusDeployDescription;
-  }
-
-  @Override
-  public void setSagaContext(@Nonnull SagaContext sagaContext) {
-    this.sagaContext = sagaContext;
   }
 }

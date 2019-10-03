@@ -23,6 +23,8 @@ import com.netflix.spinnaker.clouddriver.orchestration.SagaContextAware
 import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEvent
 import org.springframework.beans.factory.annotation.Autowired
 
+import javax.annotation.Nonnull
+
 class DeployAtomicOperation implements AtomicOperation<DeploymentResult>, SagaContextAware {
   private static final String TASK_PHASE = "DEPLOY"
 
@@ -30,7 +32,6 @@ class DeployAtomicOperation implements AtomicOperation<DeploymentResult>, SagaCo
   DeployHandlerRegistry deploymentHandlerRegistry
 
   private final DeployDescription description
-  SagaContext sagaContext
 
   DeployAtomicOperation(DeployDescription description) {
     this.description = description
@@ -54,10 +55,6 @@ class DeployAtomicOperation implements AtomicOperation<DeploymentResult>, SagaCo
       throw new DeployHandlerNotFoundException("Could not find handler for ${description.getClass().simpleName}!")
     }
 
-    if (deployHandler instanceof SagaContextAware) {
-      deployHandler.sagaContext = sagaContext
-    }
-
     task.updateStatus TASK_PHASE, "Found handler: ${deployHandler.getClass().simpleName}"
 
     task.updateStatus TASK_PHASE, "Invoking Handler."
@@ -66,5 +63,16 @@ class DeployAtomicOperation implements AtomicOperation<DeploymentResult>, SagaCo
     task.updateStatus TASK_PHASE, "Server Groups: ${deploymentResult.getDeployments()} created."
 
     return deploymentResult
+  }
+
+  @Override
+  void setSagaContext(@Nonnull SagaContext sagaContext) {
+    // DeployHandlers are singleton objects autowired differently than their one-off AtomicOperations, so we can't
+    // set a SagaContext onto them. Instead, we need to set it onto the description. To pile on, AtomicOperationConverters
+    // throw away the initial converted AtomicOperationDescription, so we can't apply the SagaContext to the description
+    // on behalf of cloud provider integrators... so we have to wire that up for them manually in any AtomicOperation.
+    if (description instanceof SagaContextAware) {
+      ((SagaContextAware) description).sagaContext = sagaContext
+    }
   }
 }

@@ -16,9 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.orchestration
 
-
 import javax.annotation.Nullable
-
 /**
  * Implementations of this trait will provide an object capable of converting a Map of input parameters to an
  * operation's description object and an {@link AtomicOperation} instance.

@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.clouddriver.titus.deploy.description;
 
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription;
+import com.netflix.spinnaker.clouddriver.orchestration.SagaContextAware;
 import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEvent;
 import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable;
 import com.netflix.spinnaker.clouddriver.titus.client.model.DisruptionBudget;
@@ -24,7 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class TitusDeployDescription extends AbstractTitusCredentialsDescription
-    implements DeployDescription, ApplicationNameable {
+    implements DeployDescription, ApplicationNameable, SagaContextAware {
   private String region;
   private String subnet;
   private List<String> zones = new ArrayList<>();
@@ -56,6 +57,7 @@ public class TitusDeployDescription extends AbstractTitusCredentialsDescription
   private DisruptionBudget disruptionBudget;
   private SubmitJobRequest.Constraints constraints = new SubmitJobRequest.Constraints();
   private ServiceJobProcesses serviceJobProcesses;
+  private SagaContext sagaContext;
 
   /**
    * Will be overridden by any the label {@code PrepareTitusDeploy.USE_APPLICATION_DEFAULT_SG_LABEL}
@@ -77,6 +79,11 @@ public class TitusDeployDescription extends AbstractTitusCredentialsDescription
   @Override
   public Collection<String> getApplications() {
     return Arrays.asList(application);
+  }
+
+  @Override
+  public void setSagaContext(SagaContext sagaContext) {
+    this.sagaContext = sagaContext;
   }
 
   /** For Jackson deserialization. */

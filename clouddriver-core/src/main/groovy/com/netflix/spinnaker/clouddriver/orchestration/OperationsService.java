@@ -174,15 +174,16 @@ public class OperationsService {
                           }
 
                           allowedAccountValidators.forEach(
-                              it -> {
-                                it.validate(username, allowedAccounts, description, errors);
-                              });
+                              it -> it.validate(username, allowedAccounts, description, errors));
 
                           // TODO(rz): Assert `description` is T
                           descriptionAuthorizer.authorize(description, errors);
 
+                          // TODO(rz): This is so bad. We convert the description input twice (once
+                          // above) and then once inside of this convertOperation procedure. This
+                          // means that we do a bunch of serde work twice without needing to.
                           AtomicOperation atomicOperation =
-                              converter.convertOperation(descriptionInput);
+                              converter.convertOperation(processedInput);
                           if (atomicOperation == null) {
                             throw new AtomicOperationNotFoundException(descriptionName);
                           }
