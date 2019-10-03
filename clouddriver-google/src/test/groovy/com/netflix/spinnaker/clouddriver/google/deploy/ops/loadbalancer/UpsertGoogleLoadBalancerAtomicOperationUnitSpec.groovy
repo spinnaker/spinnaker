@@ -560,7 +560,6 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
 
   void "should throw an exception if changing session affinity for already existing target pool with instances"() {
     setup:
-      def task = Mock(Task)
       def computeMock = Mock(Compute)
       def regions = Mock(Compute.Regions)
       def regionsList = Mock(Compute.Regions.List)
@@ -618,9 +617,6 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
       1 * computeMock.targetPools() >> targetPools
       1 * targetPools.list(PROJECT_NAME, REGION_US) >> targetPoolsList
       1 * targetPoolsList.execute() >> targetPoolsListReal
-
-      //1 * task.fail()
-
   }
 
   void "should neither create anything new, nor edit anything existing, if a forwarding rule with the same name already exists in the same region"() {
