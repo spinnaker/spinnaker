@@ -19,7 +19,9 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.atIndex;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
@@ -58,6 +60,25 @@ class ScaleCloudFoundryServerGroupAtomicOperationTest
     assertThat(runOperation(op).getHistory())
         .has(status("Resizing 'myapp'"), atIndex(1))
         .has(status("Resized 'myapp'"), atIndex(2));
+  }
+
+  @Test
+  void scaleForStoppedServerGroup() {
+    desc.setScaleStoppedServerGroup(true);
+    desc.setCapacity(ServerGroup.Capacity.builder().desired(2).min(2).max(3).build());
+    OperationPoller poller = mock(OperationPoller.class);
+
+    //noinspection unchecked
+    when(poller.waitForOperation(any(Supplier.class), any(), any(), any(), any(), any()))
+        .thenReturn(ProcessStats.State.RUNNING);
+
+    ScaleCloudFoundryServerGroupAtomicOperation op =
+        new ScaleCloudFoundryServerGroupAtomicOperation(poller, desc);
+
+    assertThat(runOperation(op).getHistory())
+        .has(status("Resizing 'myapp'"), atIndex(1))
+        .has(status("Resized 'myapp'"), atIndex(2));
+    verify(client.getApplications()).scaleApplication(any(), eq(3), any(), any());
   }
 
   @Test

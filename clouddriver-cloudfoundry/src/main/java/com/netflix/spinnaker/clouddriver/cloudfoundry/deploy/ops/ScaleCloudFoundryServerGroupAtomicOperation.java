@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.helpers.OperationPoller;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -48,11 +49,18 @@ public class ScaleCloudFoundryServerGroupAtomicOperation implements AtomicOperat
     final CloudFoundryClient client = description.getClient();
 
     ServerGroup.Capacity capacity = description.getCapacity();
+    boolean scaleStoppedInstance =
+        Optional.ofNullable(description.getScaleStoppedServerGroup()).orElse(false);
+    Integer numInstances =
+        Optional.ofNullable(capacity)
+            .map(c -> scaleStoppedInstance ? capacity.getMax() : capacity.getDesired())
+            .orElse(null);
+
     client
         .getApplications()
         .scaleApplication(
             description.getServerGroupId(),
-            capacity == null ? null : capacity.getDesired(),
+            numInstances,
             description.getMemory(),
             description.getDiskQuota());
 
