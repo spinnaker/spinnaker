@@ -59,6 +59,7 @@ class KeelTagHandler(
     "keel-tag",
     "keel-tags"
   ) to KeelTagSpec::class.java
+
   override suspend fun desired(resource: Resource<KeelTagSpec>): TaggedResource {
     when (resource.spec.tagState) {
       is TagDesired -> {
@@ -119,7 +120,7 @@ class KeelTagHandler(
         desired.entityRef.application,
         description,
         listOf(Job(job["type"].toString(), job)),
-        OrchestrationTrigger(resource.id.toString())
+        OrchestrationTrigger(correlationId = resource.id.toString(), notifications = emptyList())
       ))
     log.info("Started task {} to upsert entity tags", taskResponse.ref)
     return listOf(Task(id = taskResponse.taskId, name = description))

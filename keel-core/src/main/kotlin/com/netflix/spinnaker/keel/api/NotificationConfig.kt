@@ -1,0 +1,39 @@
+/*
+ *
+ * Copyright 2019 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License")
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+package com.netflix.spinnaker.keel.api
+
+// todo eb: this does not allow you to customize the notification message, but we can add that later.
+data class NotificationConfig(
+  val type: NotificationType,
+  val address: String, // either slack channel or email address
+  val frequency: NotificationFrequency
+)
+
+enum class NotificationFrequency {
+  VERBOSE, // notification on task starting, completing, failing
+  NORMAL, // notification on task completing or failing
+  QUIET // notification only for failure
+}
+
+enum class NotificationType {
+  SLACK, EMAIL;
+
+  override fun toString(): String {
+    return name.toLowerCase()
+  }
+}

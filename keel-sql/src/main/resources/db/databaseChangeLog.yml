@@ -35,3 +35,6 @@ databaseChangeLog:
   - include:
       file: changelog/20190913-add-status-to-artifact-version.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20191002-add-env-notifications.yml
+      relativeToChangelogFile: true

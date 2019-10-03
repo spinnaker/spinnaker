@@ -16,6 +16,7 @@ import com.netflix.spinnaker.keel.ec2.normalizers.ApplicationLoadBalancerNormali
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
+import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import com.netflix.spinnaker.keel.test.resource
@@ -32,6 +33,7 @@ import kotlinx.coroutines.runBlocking
 import strikt.api.expectThat
 import strikt.assertions.get
 import strikt.assertions.isEqualTo
+import java.time.Clock
 import java.util.UUID
 
 @Suppress("UNCHECKED_CAST")
@@ -39,6 +41,8 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
   private val cloudDriverService = mockk<CloudDriverService>()
   private val cloudDriverCache = mockk<CloudDriverCache>()
   private val orcaService = mockk<OrcaService>()
+  private val clock = Clock.systemDefaultZone()
+  private val environmentResolver: EnvironmentResolver = EnvironmentResolver(InMemoryDeliveryConfigRepository(clock))
   private val mapper = ObjectMapper().registerKotlinModule()
   private val yamlMapper = configuredYamlMapper()
 
@@ -137,6 +141,7 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
         cloudDriverService,
         cloudDriverCache,
         orcaService,
+        environmentResolver,
         mapper,
         normalizers
       )

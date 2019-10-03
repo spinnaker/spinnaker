@@ -26,6 +26,7 @@ dependencies {
   api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 
   implementation(project(":keel-clouddriver"))
+  implementation(project(":keel-core"))
   implementation("com.fasterxml.jackson.core:jackson-databind")
   implementation("com.fasterxml.jackson.core:jackson-annotations")
   implementation("org.jetbrains.kotlin:kotlin-reflect")

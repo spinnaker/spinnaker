@@ -17,7 +17,8 @@ data class SubmittedDeliveryConfig(
 data class SubmittedEnvironment(
   val name: String,
   val resources: Set<SubmittedResource<*>>,
-  val constraints: Set<Constraint> = emptySet()
+  val constraints: Set<Constraint> = emptySet(),
+  val notifications: Set<NotificationConfig> = emptySet()
 )
 
 val DeliveryConfig.resources: Set<Resource<*>>

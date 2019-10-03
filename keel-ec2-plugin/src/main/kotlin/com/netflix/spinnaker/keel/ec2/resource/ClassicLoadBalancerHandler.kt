@@ -2,8 +2,8 @@ package com.netflix.spinnaker.keel.ec2.resource
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceId
+import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancer
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerListener
@@ -33,6 +33,7 @@ class ClassicLoadBalancerHandler(
   private val cloudDriverService: CloudDriverService,
   private val cloudDriverCache: CloudDriverCache,
   private val orcaService: OrcaService,
+  private val environmentResolver: EnvironmentResolver,
   override val objectMapper: ObjectMapper,
   override val normalizers: List<ResourceNormalizer<*>>
 ) : ResourceHandler<ClassicLoadBalancer> {
@@ -60,6 +61,8 @@ class ClassicLoadBalancerHandler(
     val description = "$action ${resource.kind} load balancer ${resource.spec.moniker.name} in " +
       "${resource.spec.location.accountName}/${resource.spec.location.region}"
 
+    val notifications = environmentResolver.getNotificationsFor(resource.id)
+
     val taskRef =
       resource.spec.let { spec ->
         orcaService
@@ -70,7 +73,7 @@ class ClassicLoadBalancerHandler(
               spec.moniker.app,
               description,
               listOf(spec.toUpsertJob()),
-              OrchestrationTrigger(resource.id.toString())
+              OrchestrationTrigger(correlationId = resource.id.toString(), notifications = notifications)
             )
           )
       }
@@ -83,6 +86,8 @@ class ClassicLoadBalancerHandler(
     val description = "Delete load balancer ${resource.spec.moniker.name} in " +
       "${resource.spec.location.accountName}/${resource.spec.location.region}"
 
+    val notifications = environmentResolver.getNotificationsFor(resource.id)
+
     val taskRef =
       resource.spec.let { spec ->
         orcaService
@@ -93,7 +98,7 @@ class ClassicLoadBalancerHandler(
               spec.moniker.app,
               description,
               listOf(spec.toDeleteJob()),
-              OrchestrationTrigger(resource.id.toString())
+              OrchestrationTrigger(correlationId = resource.id.toString(), notifications = notifications)
             )
           )
       }

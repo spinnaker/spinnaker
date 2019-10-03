@@ -118,6 +118,7 @@ class ImageHandler(
         ),
         trigger = OrchestrationTrigger(
           correlationId = resource.id.toString(),
+          notifications = emptyList(),
           artifacts = listOf(artifact)
         )
       )

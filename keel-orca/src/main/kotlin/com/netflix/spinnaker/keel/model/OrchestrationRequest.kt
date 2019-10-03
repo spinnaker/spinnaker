@@ -29,6 +29,7 @@ class Job(type: String, m: Map<String, Any?>) : HashMap<String, Any?>(m + mapOf(
 
 data class OrchestrationTrigger(
   val correlationId: String,
+  val notifications: List<EchoNotification>,
   val type: String = "keel",
   val user: String = "keel",
   val artifacts: List<Artifact> = emptyList()

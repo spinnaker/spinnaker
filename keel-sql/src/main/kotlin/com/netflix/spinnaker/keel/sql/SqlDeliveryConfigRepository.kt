@@ -70,8 +70,10 @@ class SqlDeliveryConfigRepository(
               .set(ENVIRONMENT.DELIVERY_CONFIG_UID, uid)
               .set(ENVIRONMENT.NAME, environment.name)
               .set(ENVIRONMENT.CONSTRAINTS, mapper.writeValueAsString(environment.constraints))
+              .set(ENVIRONMENT.NOTIFICATIONS, mapper.writeValueAsString(environment.notifications))
               .onDuplicateKeyUpdate()
               .set(ENVIRONMENT.CONSTRAINTS, mapper.writeValueAsString(environment.constraints))
+              .set(ENVIRONMENT.NOTIFICATIONS, mapper.writeValueAsString(environment.notifications))
               .execute()
           }
         environment.resources.forEach { resource ->
@@ -115,14 +117,15 @@ class SqlDeliveryConfigRepository(
           .toSet()
           .let { artifacts ->
             jooq
-              .select(ENVIRONMENT.UID, ENVIRONMENT.NAME, ENVIRONMENT.CONSTRAINTS)
+              .select(ENVIRONMENT.UID, ENVIRONMENT.NAME, ENVIRONMENT.CONSTRAINTS, ENVIRONMENT.NOTIFICATIONS)
               .from(ENVIRONMENT)
               .where(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(uid))
-              .fetch { (environmentUid, name, constraintsJson) ->
+              .fetch { (environmentUid, name, constraintsJson, notificationsJson) ->
                 Environment(
                   name = name,
                   resources = resourcesForEnvironment(environmentUid),
-                  constraints = mapper.readValue(constraintsJson)
+                  constraints = mapper.readValue(constraintsJson),
+                  notifications = mapper.readValue(notificationsJson ?: "[]")
                 )
               }
               .let { environments ->
@@ -137,21 +140,22 @@ class SqlDeliveryConfigRepository(
 
   override fun environmentFor(resourceId: ResourceId): Environment? =
     jooq
-      .select(ENVIRONMENT.UID, ENVIRONMENT.NAME, ENVIRONMENT.CONSTRAINTS)
+      .select(ENVIRONMENT.UID, ENVIRONMENT.NAME, ENVIRONMENT.CONSTRAINTS, ENVIRONMENT.NOTIFICATIONS)
       .from(ENVIRONMENT, ENVIRONMENT_RESOURCE, RESOURCE)
       .where(RESOURCE.ID.eq(resourceId.value))
       .and(ENVIRONMENT_RESOURCE.RESOURCE_UID.eq(RESOURCE.UID))
       .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(ENVIRONMENT.UID))
-      .fetchOne { (uid, name, constraintsJson) ->
+      .fetchOne { (uid, name, constraintsJson, notificationsJson) ->
         Environment(
           name = name,
           resources = resourcesForEnvironment(uid),
-          constraints = mapper.readValue(constraintsJson)
+          constraints = mapper.readValue(constraintsJson),
+          notifications = mapper.readValue(notificationsJson ?: "[]")
         )
       }
 
   override fun deliveryConfigFor(resourceId: ResourceId): DeliveryConfig? =
-    // TODO: this implementation could be more efficient by sharing code with get(name)
+  // TODO: this implementation could be more efficient by sharing code with get(name)
     jooq
       .select(DELIVERY_CONFIG.NAME)
       .from(ENVIRONMENT, ENVIRONMENT_RESOURCE, RESOURCE, DELIVERY_CONFIG)

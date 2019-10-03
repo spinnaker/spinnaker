@@ -39,6 +39,7 @@ import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
+import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.test.resource
@@ -60,6 +61,7 @@ import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
+import java.time.Clock
 import java.util.UUID.randomUUID
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup as ClouddriverSecurityGroup
 
@@ -67,6 +69,8 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
   private val cloudDriverService: CloudDriverService = mockk()
   private val cloudDriverCache: CloudDriverCache = mockk()
   private val orcaService: OrcaService = mockk()
+  private val clock = Clock.systemDefaultZone()
+  private val environmentResolver: EnvironmentResolver = EnvironmentResolver(InMemoryDeliveryConfigRepository(clock))
   private val objectMapper = configuredObjectMapper()
   private val normalizers = emptyList<ResourceNormalizer<SecurityGroup>>()
 
@@ -74,6 +78,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
     val cloudDriverService: CloudDriverService
     val cloudDriverCache: CloudDriverCache
     val orcaService: OrcaService
+    val environmentResolver: EnvironmentResolver
     val objectMapper: ObjectMapper
     val normalizers: List<ResourceNormalizer<SecurityGroup>>
     val vpc: Network
@@ -85,12 +90,13 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
     override val cloudDriverService: CloudDriverService,
     override val cloudDriverCache: CloudDriverCache,
     override val orcaService: OrcaService,
+    override val environmentResolver: EnvironmentResolver,
     override val objectMapper: ObjectMapper,
     override val normalizers: List<ResourceNormalizer<SecurityGroup>>,
     override val vpc: Network =
       Network(CLOUD_PROVIDER, randomUUID().toString(), "vpc1", "prod", "us-west-3"),
     override val handler: SecurityGroupHandler =
-      SecurityGroupHandler(cloudDriverService, cloudDriverCache, orcaService, objectMapper, normalizers),
+      SecurityGroupHandler(cloudDriverService, cloudDriverCache, orcaService, environmentResolver, objectMapper, normalizers),
     override val securityGroup: SecurityGroup =
       SecurityGroup(
         moniker = Moniker(
@@ -121,12 +127,13 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
     override val cloudDriverService: CloudDriverService,
     override val cloudDriverCache: CloudDriverCache,
     override val orcaService: OrcaService,
+    override val environmentResolver: EnvironmentResolver,
     override val objectMapper: ObjectMapper,
     override val normalizers: List<ResourceNormalizer<SecurityGroup>>,
     override val vpc: Network =
       Network(CLOUD_PROVIDER, randomUUID().toString(), "vpc1", "prod", "us-west-3"),
     override val handler: SecurityGroupHandler =
-      SecurityGroupHandler(cloudDriverService, cloudDriverCache, orcaService, objectMapper, normalizers),
+      SecurityGroupHandler(cloudDriverService, cloudDriverCache, orcaService, environmentResolver, objectMapper, normalizers),
     override val securityGroup: SecurityGroup =
       SecurityGroup(
         moniker = Moniker(
@@ -142,7 +149,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
 
   fun currentTests() = rootContext<CurrentFixture> {
     fixture {
-      CurrentFixture(cloudDriverService, cloudDriverCache, orcaService, objectMapper, normalizers)
+      CurrentFixture(cloudDriverService, cloudDriverCache, orcaService, environmentResolver, objectMapper, normalizers)
     }
 
     before {
@@ -212,7 +219,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
   }
 
   fun upsertTests() = rootContext<UpsertFixture> {
-    fixture { UpsertFixture(cloudDriverService, cloudDriverCache, orcaService, objectMapper, normalizers) }
+    fixture { UpsertFixture(cloudDriverService, cloudDriverCache, orcaService, environmentResolver, objectMapper, normalizers) }
 
     before {
       setupVpc()
@@ -442,7 +449,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
   }
 
   fun deleteTests() = rootContext<UpsertFixture> {
-    fixture { UpsertFixture(cloudDriverService, cloudDriverCache, orcaService, objectMapper, normalizers) }
+    fixture { UpsertFixture(cloudDriverService, cloudDriverCache, orcaService, environmentResolver, objectMapper, normalizers) }
 
     context("deleting a security group") {
       before {

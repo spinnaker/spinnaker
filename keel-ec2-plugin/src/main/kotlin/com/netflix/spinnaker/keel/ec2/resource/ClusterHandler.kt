@@ -54,6 +54,7 @@ class ClusterHandler(
   private val cloudDriverCache: CloudDriverCache,
   private val orcaService: OrcaService,
   private val imageResolver: ImageResolver,
+  private val environmentResolver: EnvironmentResolver,
   private val clock: Clock,
   private val publisher: ApplicationEventPublisher,
   override val objectMapper: ObjectMapper,
@@ -98,6 +99,8 @@ class ClusterHandler(
           log.info("Upserting server group using task: {}", job)
           val description = "Upsert server group ${spec.moniker.name} in ${spec.location.accountName}/${spec.location.region}"
 
+          val notifications = environmentResolver.getNotificationsFor(resource.id)
+
           async {
             orcaService
               .orchestrate(
@@ -107,7 +110,7 @@ class ClusterHandler(
                   spec.moniker.app,
                   description,
                   listOf(Job(job["type"].toString(), job)),
-                  OrchestrationTrigger("${resource.id}{${spec.location.region}}")
+                  OrchestrationTrigger(correlationId = "${resource.id}{${spec.location.region}}", notifications = notifications)
                 ))
               .let {
                 log.info("Started task {} to upsert server group", it.ref)

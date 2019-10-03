@@ -23,6 +23,7 @@ import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.ec2.resource.ApplicationLoadBalancerHandler
 import com.netflix.spinnaker.keel.ec2.resource.ClassicLoadBalancerHandler
 import com.netflix.spinnaker.keel.ec2.resource.ClusterHandler
+import com.netflix.spinnaker.keel.ec2.resource.EnvironmentResolver
 import com.netflix.spinnaker.keel.ec2.resource.ImageResolver
 import com.netflix.spinnaker.keel.ec2.resource.SecurityGroupHandler
 import com.netflix.spinnaker.keel.orca.OrcaService
@@ -57,11 +58,20 @@ class EC2Config {
     )
 
   @Bean
+  fun environmentResolver(
+    deliveryConfigRepository: DeliveryConfigRepository
+  ): EnvironmentResolver =
+    EnvironmentResolver(
+      deliveryConfigRepository
+    )
+
+  @Bean
   fun clusterHandler(
     cloudDriverService: CloudDriverService,
     cloudDriverCache: CloudDriverCache,
     orcaService: OrcaService,
     imageResolver: ImageResolver,
+    environmentResolver: EnvironmentResolver,
     clock: Clock,
     objectMapper: ObjectMapper,
     normalizers: List<ResourceNormalizer<*>>,
@@ -72,6 +82,7 @@ class EC2Config {
       cloudDriverCache,
       orcaService,
       imageResolver,
+      environmentResolver,
       clock,
       publisher,
       objectMapper,
@@ -83,6 +94,7 @@ class EC2Config {
     cloudDriverService: CloudDriverService,
     cloudDriverCache: CloudDriverCache,
     orcaService: OrcaService,
+    environmentResolver: EnvironmentResolver,
     objectMapper: ObjectMapper,
     normalizers: List<ResourceNormalizer<*>>
   ): SecurityGroupHandler =
@@ -90,6 +102,7 @@ class EC2Config {
       cloudDriverService,
       cloudDriverCache,
       orcaService,
+      environmentResolver,
       objectMapper,
       normalizers
     )
@@ -99,6 +112,7 @@ class EC2Config {
     cloudDriverService: CloudDriverService,
     cloudDriverCache: CloudDriverCache,
     orcaService: OrcaService,
+    environmentResolver: EnvironmentResolver,
     objectMapper: ObjectMapper,
     normalizers: List<ResourceNormalizer<*>>
   ): ClassicLoadBalancerHandler =
@@ -106,6 +120,7 @@ class EC2Config {
       cloudDriverService,
       cloudDriverCache,
       orcaService,
+      environmentResolver,
       objectMapper,
       normalizers
     )
@@ -115,6 +130,7 @@ class EC2Config {
     cloudDriverService: CloudDriverService,
     cloudDriverCache: CloudDriverCache,
     orcaService: OrcaService,
+    environmentResolver: EnvironmentResolver,
     objectMapper: ObjectMapper,
     normalizers: List<ResourceNormalizer<*>>
   ): ApplicationLoadBalancerHandler =
@@ -122,6 +138,7 @@ class EC2Config {
       cloudDriverService,
       cloudDriverCache,
       orcaService,
+      environmentResolver,
       objectMapper,
       normalizers
     )
