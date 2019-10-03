@@ -29,7 +29,7 @@ auth:
     tokenUrl: https://accounts.google.com/o/oauth2/token
 
     # See https://www.spinnaker.io/setup/security/authentication/oauth/providers/
-    # to see examples for acquiring clientId/clientSecret.
+    # for examples acquiring clientId/clientSecret.
     clientId:
     clientSecret:
     scopes:
@@ -38,8 +38,22 @@ auth:
 
   iap:
     # check detailed config in https://cloud.google.com/iap/docs/authentication-howto#authenticating_from_a_desktop_app
+    # The following three entries are mandatory.
     oauthClientId: "xxxx-xxxx.apps.googleusercontent.com"
     oauthClientSecret: "oauth client secret"
     iapClientId: "yyyy-yyyy.apps.googleusercontent.com"
+    # Optional field containing an offline refresh token.
+    # Filling this enables spin to refresh the access token
+    # for a user.
+    # This would be the token received from the `Signing in to the application` step
+    # of https://cloud.google.com/iap/docs/authentication-howto#authenticating_from_a_desktop_app
+    iapClientRefresh: "1/blah-blah-blah"
+    # Optional field containing an offline access token.
+    # If it's filled in spin will not try to refresh/interactively
+    # fetch a token for the user.
+    # This would be the `id_token` received from the `Accessing the application` stage of
+    # https://cloud.google.com/iap/docs/authentication-howto#authenticating_from_a_desktop_app
     iapIdToken: "example-token-blah-blah"
+    # Optional field containing a serviceAccount json key.
+    # If filled in the serviceAccount id will be used to authenticate spin.
     serviceAccountKeyPath: "$HOME/.spin/key.json"

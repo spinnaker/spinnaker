@@ -25,7 +25,7 @@ func TestGetCorrectOauthUrlSuccessful(t *testing.T) {
 	clientId := "testClientId"
 	clientState := "testClientState"
 	port := 80
-	oauthUrl := getOauthUrl(clientId, clientState, port)
+	oauthUrl := oauthURL(clientId, clientState, port)
 	if oauthUrl != expectedOauthUrl {
 		t.Errorf("Invalid oauth url, \n Expected:\t%s \n Got:\t%s", expectedOauthUrl, oauthUrl)
 	}

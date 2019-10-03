@@ -44,55 +44,67 @@ func GetIapToken(iapConfig IapConfig) (string, error) {
 		return GetIDTokenWithServiceAccount(iapConfig)
 	}
 
-	listener, err := net.Listen("tcp", "127.0.0.1:0")
-	done := make(chan error)
-
-	if err != nil {
-		fmt.Errorf("Failed to listen on open port")
+	if iapConfig.IapClientRefresh == "" {
+		return userInteract(iapConfig)
 	}
+
+	return RequestIapIDToken(iapConfig.IapClientRefresh,
+		iapConfig.OAuthClientId,
+		iapConfig.OAuthClientSecret,
+		iapConfig.IapClientId)
+}
+
+// userInteract lets the spin user fetch a token.
+func userInteract(cfg IapConfig) (string, error) {
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		return "", err
+	}
+
 	port := listener.Addr().(*net.TCPAddr).Port
 	clientStateToken := make([]byte, serverStateTokenLen)
 	if _, err = rand.Read(clientStateToken); err != nil {
-		fmt.Errorf("Failed to create state token")
+		return "", err
 	}
+
 	clientState := base64.URLEncoding.EncodeToString(clientStateToken)
-
-	clientId := iapConfig.OAuthClientId
-	clientSecret := iapConfig.OAuthClientSecret
-	iapClientId := iapConfig.IapClientId
-
-	url := getOauthUrl(clientId, clientState, port)
-
-	if err = execcmd.OpenUrl(url); err != nil {
-		err = nil
-		fmt.Printf("Go to the following link in your browser:\n%s\n\n", url)
-	} else {
-		fmt.Printf("Your browser has been opened to visit:\n%s\n\n", url)
-	}
-
 	accessToken := make(chan string)
 
 	rcv := &oauthReceiver{
 		port:        port,
 		clientState: clientState,
-		doneChan:    done,
-		callback: func(token *oauth2.Token, config *oauth2.Config, s2 string) (s string, e error) {
-			iapToken, _ := RequestIapIDToken(token.AccessToken, clientId, clientSecret, iapClientId)
+		doneChan:    make(chan error),
+		callback: func(token *oauth2.Token, config *oauth2.Config, s2 string) (string, error) {
+			iapToken, err := RequestIapIDToken(token.AccessToken,
+				cfg.OAuthClientId,
+				cfg.OAuthClientSecret,
+				cfg.IapClientId)
+			if err != nil {
+				close(accessToken)
+				return "", err
+			}
 			accessToken <- iapToken
 			return "", nil
 		},
-		clientId:     clientId,
-		clientSecret: clientSecret,
+		clientId:     cfg.OAuthClientId,
+		clientSecret: cfg.OAuthClientSecret,
 	}
 
 	srv := http.Server{Addr: listener.Addr().String(), Handler: rcv, ConnState: rcv.killWhenReady}
 	go srv.Serve(listener)
 
-	token := <-accessToken
-	return token, err
+	url := oauthURL(cfg.OAuthClientId, clientState, port)
+
+	resStr := fmt.Sprintf("Your browser has been opened to visit:\n%s\n\n", url)
+	if err = execcmd.OpenUrl(url); err != nil {
+		resStr = fmt.Sprintf("Follow this link in your browser:\n%s\n\n", url)
+	}
+	fmt.Println(resStr)
+
+	return <-accessToken, nil
 }
 
-func getOauthUrl(clientId string, clientState string, port int) string {
+func oauthURL(clientId string, clientState string, port int) string {
 	oauthUrl := url.URL{
 		Scheme: googleOauthSchema,
 		Host:   googleOauthHost,
