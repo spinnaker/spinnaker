@@ -1,7 +1,7 @@
 import * as React from 'react';
-import * as classNames from 'classnames';
 
 import { HelpContextProvider } from 'core/help';
+import { ValidationMessage } from 'core/validation';
 
 import { IFieldLayoutProps } from '../interface';
 
@@ -31,18 +31,7 @@ export class ResponsiveFieldLayout extends React.Component<IFieldLayoutProps> {
               </span>
             </div>
             {helpUnder && help && <div className="description">{help}</div>}
-            {validationMessage && (
-              <div
-                className={classNames('messageContainer', {
-                  errorMessage: validationStatus === 'error',
-                  warningMessage: validationStatus === 'warning',
-                  previewMessage: validationStatus === 'message',
-                })}
-              >
-                <i />
-                <div className="message">{validationMessage}</div>
-              </div>
-            )}
+            {validationMessage && <ValidationMessage type={validationStatus} message={validationMessage} />}
           </div>
         </div>
       </HelpContextProvider>

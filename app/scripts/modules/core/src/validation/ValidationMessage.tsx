@@ -1,30 +1,50 @@
 import * as React from 'react';
-import { IValidationCategory } from '../presentation/forms/validation';
+import { ICategorizedErrors, IValidationCategory } from '../presentation/forms/validation';
+
+import './ValidationMessage.less';
+
+const containerClassNames: ICategorizedErrors = {
+  async: 'infoMessage',
+  error: 'errorMessage',
+  info: 'infoMessage',
+  message: 'infoMessage',
+  success: 'successMessage',
+  warning: 'warningMessage',
+};
+
+const iconClassNames: ICategorizedErrors = {
+  async: 'fa fa-spinner fa-spin',
+  error: 'fa fa-exclamation-circle',
+  info: 'fa fa-info-circle',
+  message: 'icon-view-1',
+  success: 'far fa-check-circle',
+  warning: 'fa icon-alert-triangle',
+};
 
 export interface IValidationMessageProps {
   message: React.ReactNode;
   type: IValidationCategory | undefined;
-  // default: true
-  showIcon?: boolean;
+  /**
+   * The (optional) class name to apply to the icon.
+   * If none is provided, the icon is determined by the value of category.
+   * If false to provided, no icon will be rendered
+   */
+  iconClassName?: string | false;
+  /**
+   * The (optional) class name to apply to the ValidationMessage.
+   * If none is provided, the class is determined by the value of category.
+   */
+  containerClassName?: string;
 }
 
-const iconClassName = {
-  success: 'far fa-check-circle',
-  error: 'fa fa-exclamation-circle',
-  warning: 'fa fa-exclamation-circle',
-  message: 'icon-view-1',
-  async: 'fa fa-spinner fa-spin',
-  none: '',
-};
-
 export const ValidationMessage = (props: IValidationMessageProps) => {
-  const divClassName = `${props.type}-message`;
-  const showIcon = props.showIcon === undefined ? true : props.showIcon;
-  const spanClassName = (showIcon && iconClassName[props.type]) || '';
+  const { type, message, iconClassName, containerClassName } = props;
+  const showIcon = iconClassName !== false;
 
   return (
-    <div className={divClassName}>
-      <span className={spanClassName} /> {props.message}
+    <div className={`ValidationMessage ${containerClassName || containerClassNames[type] || ''}`}>
+      {showIcon && <i className={iconClassName || iconClassNames[type] || ''} />}
+      <div className="message">{message}</div>
     </div>
   );
 };

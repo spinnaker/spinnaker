@@ -2,7 +2,7 @@ import * as React from 'react';
 import Select, { Option } from 'react-select';
 import { groupBy, reduce, trim, uniq } from 'lodash';
 
-import { AccountService, HelpField, IAccount, IFindImageParams, Tooltip } from '@spinnaker/core';
+import { AccountService, HelpField, IAccount, IFindImageParams, Tooltip, ValidationMessage } from '@spinnaker/core';
 
 import { DockerImageReader, IDockerImage } from './DockerImageReader';
 import { DockerImageUtils, IDockerImageParts } from './DockerImageUtils';
@@ -468,17 +468,19 @@ export class DockerImageAndTagSelector extends React.Component<
       <div className="sp-formItem">
         <div className="sp-formItem__left" />
         <div className="sp-formItem__right">
-          <div className="messageContainer warningMessage">
-            <i className="fa icon-alert-triangle" />
-            <div className="message">
-              {switchedManualWarning}
-              {(missingFields || []).map(f => (
-                <div>
-                  <HelpField expand={true} key={f} id={`pipeline.config.docker.trigger.missing.${f}`} />
-                </div>
-              ))}
-            </div>
-          </div>
+          <ValidationMessage
+            type="warning"
+            message={
+              <>
+                {switchedManualWarning}
+                {(missingFields || []).map(f => (
+                  <div key={f}>
+                    <HelpField expand={true} id={`pipeline.config.docker.trigger.missing.${f}`} />
+                  </div>
+                ))}
+              </>
+            }
+          />
         </div>
       </div>
     ) : null;

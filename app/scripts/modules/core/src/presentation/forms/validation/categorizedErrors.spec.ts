@@ -31,6 +31,7 @@ describe('categorizedErrors', () => {
   const emptyErrors = Object.freeze({
     async: {},
     error: {},
+    info: {},
     message: {},
     success: {},
     warning: {},
@@ -38,7 +39,7 @@ describe('categorizedErrors', () => {
 
   it('returns an object with all error categories as keys', () => {
     const categories = categorizeErrors({});
-    expect(Object.keys(categories).sort()).toEqual(['async', 'error', 'message', 'success', 'warning']);
+    expect(Object.keys(categories).sort()).toEqual(['async', 'error', 'info', 'message', 'success', 'warning']);
   });
 
   it('categorizes an unlabeled error message into "error"', () => {

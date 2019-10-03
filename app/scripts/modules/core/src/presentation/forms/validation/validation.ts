@@ -5,6 +5,7 @@ export type IValidator = (value: any, label?: string) => IValidatorResult;
 export const categoryLabels = {
   async: 'Async',
   error: 'Error',
+  info: 'Info',
   message: 'Message',
   success: 'Success',
   warning: 'Warning',
