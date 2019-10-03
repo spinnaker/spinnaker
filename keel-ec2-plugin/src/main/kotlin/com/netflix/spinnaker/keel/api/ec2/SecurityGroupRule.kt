@@ -41,7 +41,7 @@ data class ReferenceRule(
   val name: String,
   override val portRange: PortRange
 ) : SecurityGroupRule() {
-  constructor(protocol: Protocol, reference: SecurityGroup, portRange: PortRange) : this(
+  constructor(protocol: Protocol, reference: SecurityGroupSpec, portRange: PortRange) : this(
     protocol = protocol,
     name = reference.moniker.name,
     portRange = portRange
@@ -56,10 +56,10 @@ data class CrossAccountReferenceRule(
   val vpcName: String,
   override val portRange: PortRange
 ) : SecurityGroupRule() {
-  constructor(protocol: Protocol, reference: SecurityGroup, portRange: PortRange) : this(
+  constructor(protocol: Protocol, reference: SecurityGroupSpec, portRange: PortRange) : this(
     protocol = protocol,
     name = reference.moniker.name,
-    account = reference.accountName,
+    account = reference.locations.accountName,
     vpcName = reference.vpcName!!,
     portRange = portRange
   )

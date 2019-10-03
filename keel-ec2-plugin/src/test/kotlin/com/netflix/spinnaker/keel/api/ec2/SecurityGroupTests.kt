@@ -21,8 +21,10 @@ internal object SecurityGroupTests : JUnit5Minutests {
           app = "fnord",
           stack = "ext"
         ),
-        accountName = "prod",
-        region = "us-north-2",
+        location = SecurityGroup.Location(
+          accountName = "prod",
+          region = "us-north-2"
+        ),
         vpcName = "vpc0",
         description = "I can see the fnords",
         inboundRules = setOf(
@@ -46,7 +48,10 @@ internal object SecurityGroupTests : JUnit5Minutests {
 
     derivedContext<ResourceDiff<SecurityGroup>>("security groups that differ in basic fields") {
       deriveFixture {
-        ResourceDiff(this, copy(region = "ap-south-1"))
+        ResourceDiff(this,
+          copy(location = SecurityGroup.Location(
+            accountName = location.accountName,
+            region = "ap-south-1")))
       }
 
       test("diff contains changes") {
@@ -55,7 +60,7 @@ internal object SecurityGroupTests : JUnit5Minutests {
 
       test("diff is detected on the changed property") {
         expectThat(this)
-          .get { diff.getChild("region").state }
+          .get { diff.getChild("location").state }
           .isEqualTo(CHANGED)
       }
     }
@@ -73,7 +78,10 @@ internal object SecurityGroupTests : JUnit5Minutests {
     derivedContext<ResourceDiff<SecurityGroup>>("security groups that differ in ignored and non-ignored fields") {
       deriveFixture {
         ResourceDiff(this, copy(
-          region = "ap-south-1",
+          location = SecurityGroup.Location(
+            accountName = location.accountName,
+            region = "ap-south-1"
+          ),
           description = "We can't actually make changes to this so it should be ignored by the diff"
         ))
       }
@@ -84,7 +92,7 @@ internal object SecurityGroupTests : JUnit5Minutests {
 
       test("diff is detected on the changed property") {
         expectThat(this)
-          .get { diff.getChild("region").state }
+          .get { diff.getChild("location").state }
           .isEqualTo(CHANGED)
       }
 
@@ -172,7 +180,7 @@ internal object SecurityGroupTests : JUnit5Minutests {
           this,
           copy(
             inboundRules = inboundRules
-              .plus(ReferenceRule(TCP, this, PortRange(80, 80)))
+              .plus(ReferenceRule(TCP, moniker.name, PortRange(80, 80)))
               .toSet()
           )
         )

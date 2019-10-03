@@ -21,7 +21,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.Credential
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.Network
-import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup
+import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import com.netflix.spinnaker.keel.tags.EntityTags
@@ -43,7 +43,7 @@ interface CloudDriverService {
     @Path("securityGroupName") securityGroupName: String,
     @Path("region") region: String,
     @Query("vpcId") vpcId: String? = null
-  ): SecurityGroup
+  ): SecurityGroupModel
 
   @GET("/securityGroups/{account}/{provider}")
   suspend fun getSecurityGroupSummaries(

@@ -22,15 +22,17 @@ import com.netflix.spinnaker.keel.api.ec2.CidrRule
 import com.netflix.spinnaker.keel.api.ec2.CrossAccountReferenceRule
 import com.netflix.spinnaker.keel.api.ec2.PortRange
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroup
+import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
+import com.netflix.spinnaker.keel.api.ec2.SecurityGroupOverride
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule.Protocol.TCP
 import com.netflix.spinnaker.keel.api.ec2.SelfReferenceRule
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.Network
-import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup.SecurityGroupRule
-import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup.SecurityGroupRuleCidr
-import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup.SecurityGroupRulePortRange
-import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup.SecurityGroupRuleReference
+import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel.SecurityGroupRule
+import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel.SecurityGroupRuleCidr
+import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel.SecurityGroupRulePortRange
+import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel.SecurityGroupRuleReference
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.ec2.RETROFIT_NOT_FOUND
@@ -45,25 +47,27 @@ import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.slot
 import kotlinx.coroutines.runBlocking
 import strikt.api.Assertion
 import strikt.api.expectThat
+import strikt.assertions.containsExactly
 import strikt.assertions.first
 import strikt.assertions.get
 import strikt.assertions.hasSize
 import strikt.assertions.isA
+import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
+import strikt.assertions.isNotEmpty
 import strikt.assertions.isNotNull
-import strikt.assertions.isNull
 import java.time.Clock
 import java.util.UUID.randomUUID
-import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroup as ClouddriverSecurityGroup
+import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel as ClouddriverSecurityGroup
 
 internal class SecurityGroupHandlerTests : JUnit5Minutests {
   private val cloudDriverService: CloudDriverService = mockk()
@@ -72,7 +76,8 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
   private val clock = Clock.systemDefaultZone()
   private val environmentResolver: EnvironmentResolver = EnvironmentResolver(InMemoryDeliveryConfigRepository(clock))
   private val objectMapper = configuredObjectMapper()
-  private val normalizers = emptyList<ResourceNormalizer<SecurityGroup>>()
+  private val normalizers = emptyList<ResourceNormalizer<SecurityGroupSpec>>()
+  private val regions = listOf("us-west-3", "us-east-17")
 
   interface Fixture {
     val cloudDriverService: CloudDriverService
@@ -80,10 +85,13 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
     val orcaService: OrcaService
     val environmentResolver: EnvironmentResolver
     val objectMapper: ObjectMapper
-    val normalizers: List<ResourceNormalizer<SecurityGroup>>
-    val vpc: Network
+    val normalizers: List<ResourceNormalizer<SecurityGroupSpec>>
+    val vpcRegion1: Network
+    val vpcRegion2: Network
     val handler: SecurityGroupHandler
-    val securityGroup: SecurityGroup
+    val securityGroupSpec: SecurityGroupSpec
+    val securityGroupBase: SecurityGroup
+    val regionalSecurityGroups: Map<String, SecurityGroup>
   }
 
   data class CurrentFixture(
@@ -92,35 +100,76 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
     override val orcaService: OrcaService,
     override val environmentResolver: EnvironmentResolver,
     override val objectMapper: ObjectMapper,
-    override val normalizers: List<ResourceNormalizer<SecurityGroup>>,
-    override val vpc: Network =
+    override val normalizers: List<ResourceNormalizer<SecurityGroupSpec>>,
+    override val vpcRegion1: Network =
       Network(CLOUD_PROVIDER, randomUUID().toString(), "vpc1", "prod", "us-west-3"),
+    override val vpcRegion2: Network =
+      Network(CLOUD_PROVIDER, randomUUID().toString(), "vpc1", "prod", "us-east-17"),
     override val handler: SecurityGroupHandler =
       SecurityGroupHandler(cloudDriverService, cloudDriverCache, orcaService, environmentResolver, objectMapper, normalizers),
-    override val securityGroup: SecurityGroup =
+
+    override val securityGroupSpec: SecurityGroupSpec =
+      SecurityGroupSpec(
+        moniker = Moniker(
+          app = "keel",
+          stack = "fnord"
+        ),
+        locations = SecurityGroupSpec.Locations(
+          accountName = vpcRegion1.account,
+          regions = setOf(vpcRegion1.region, vpcRegion2.region)
+        ),
+        vpcName = vpcRegion1.name,
+        description = "dummy security group"
+      ),
+    override val securityGroupBase: SecurityGroup =
       SecurityGroup(
         moniker = Moniker(
           app = "keel",
           stack = "fnord"
         ),
-        accountName = vpc.account,
-        region = vpc.region,
-        vpcName = vpc.name,
+        location = SecurityGroup.Location(
+          accountName = vpcRegion1.account,
+          region = "placeholder"
+        ),
+        vpcName = vpcRegion1.name,
         description = "dummy security group"
       ),
-    val cloudDriverResponse: ClouddriverSecurityGroup =
+    override val regionalSecurityGroups: Map<String, SecurityGroup> =
+      mapOf(
+        "us-west-3" to securityGroupBase.copy(
+          location = SecurityGroup.Location(
+            accountName = securityGroupBase.location.accountName,
+            region = "us-west-3")),
+        "us-east-17" to securityGroupBase.copy(
+          location = SecurityGroup.Location(
+            accountName = securityGroupBase.location.accountName,
+            region = "us-east-17"))
+      ),
+    val cloudDriverResponse1: ClouddriverSecurityGroup =
       ClouddriverSecurityGroup(
         CLOUD_PROVIDER,
         "sg-3a0c495f",
         "keel-fnord",
         "dummy security group",
-        vpc.account,
-        vpc.region,
-        vpc.id,
+        vpcRegion1.account,
+        vpcRegion1.region,
+        vpcRegion1.id,
         emptySet(),
         Moniker(app = "keel", stack = "fnord")
       ),
-    val vpc2: Network = Network(CLOUD_PROVIDER, randomUUID().toString(), "vpc0", "mgmt", vpc.region)
+    val cloudDriverResponse2: ClouddriverSecurityGroup =
+      ClouddriverSecurityGroup(
+        CLOUD_PROVIDER,
+        "sg-5a2a497d",
+        "keel-fnord",
+        "dummy security group",
+        vpcRegion2.account,
+        vpcRegion2.region,
+        vpcRegion2.id,
+        emptySet(),
+        Moniker(app = "keel", stack = "fnord")
+      ),
+    val vpcOtherAccount: Network = Network(CLOUD_PROVIDER, randomUUID().toString(), "vpc0", "mgmt", vpcRegion1.region)
   ) : Fixture
 
   data class UpsertFixture(
@@ -129,21 +178,49 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
     override val orcaService: OrcaService,
     override val environmentResolver: EnvironmentResolver,
     override val objectMapper: ObjectMapper,
-    override val normalizers: List<ResourceNormalizer<SecurityGroup>>,
-    override val vpc: Network =
+    override val normalizers: List<ResourceNormalizer<SecurityGroupSpec>>,
+    override val vpcRegion1: Network =
       Network(CLOUD_PROVIDER, randomUUID().toString(), "vpc1", "prod", "us-west-3"),
+    override val vpcRegion2: Network =
+      Network(CLOUD_PROVIDER, randomUUID().toString(), "vpc1", "prod", "us-east-17"),
     override val handler: SecurityGroupHandler =
       SecurityGroupHandler(cloudDriverService, cloudDriverCache, orcaService, environmentResolver, objectMapper, normalizers),
-    override val securityGroup: SecurityGroup =
+    override val securityGroupSpec: SecurityGroupSpec =
+      SecurityGroupSpec(
+        moniker = Moniker(
+          app = "keel",
+          stack = "fnord"
+        ),
+        locations = SecurityGroupSpec.Locations(
+          accountName = vpcRegion1.account,
+          regions = setOf(vpcRegion1.region, vpcRegion2.region)
+        ),
+        vpcName = vpcRegion1.name,
+        description = "dummy security group"
+      ),
+    override val securityGroupBase: SecurityGroup =
       SecurityGroup(
         moniker = Moniker(
           app = "keel",
           stack = "fnord"
         ),
-        accountName = vpc.account,
-        region = vpc.region,
-        vpcName = vpc.name,
+        location = SecurityGroup.Location(
+          accountName = vpcRegion1.account,
+          region = "placeholder"
+        ),
+        vpcName = vpcRegion1.name,
         description = "dummy security group"
+      ),
+    override val regionalSecurityGroups: Map<String, SecurityGroup> =
+      mapOf(
+        "us-west-3" to securityGroupBase.copy(
+          location = SecurityGroup.Location(
+            accountName = securityGroupBase.location.accountName,
+            region = "us-west-3")),
+        "us-east-17" to securityGroupBase.copy(
+          location = SecurityGroup.Location(
+            accountName = securityGroupBase.location.accountName,
+            region = "us-east-17"))
       )
   ) : Fixture
 
@@ -164,7 +241,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
           handler.current(resource)
         }
 
-        expectThat(response).isNull()
+        expectThat(response).isEmpty()
       }
     }
 
@@ -176,29 +253,52 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
           handler.current(resource)
         }
         expectThat(response)
+          .hasSize(2)
+        expectThat(response["us-west-3"])
           .isNotNull()
-          .isEqualTo(securityGroup)
+          .isEqualTo(regionalSecurityGroups["us-west-3"])
+        expectThat(response["us-east-17"])
+          .isNotNull()
+          .isEqualTo(regionalSecurityGroups["us-east-17"])
       }
     }
 
     context("a matching security group with ingress rules exists") {
       deriveFixture {
         copy(
-          cloudDriverResponse = cloudDriverResponse.copy(
+          cloudDriverResponse1 = cloudDriverResponse1.copy(
             inboundRules = setOf(
               // cross account ingress rule from another app
-              SecurityGroupRule("tcp", listOf(SecurityGroupRulePortRange(443, 443)), SecurityGroupRuleReference("otherapp", vpc2.account, vpc2.region, vpc2.id), null),
+              SecurityGroupRule(
+                "tcp",
+                listOf(SecurityGroupRulePortRange(443, 443)),
+                SecurityGroupRuleReference("otherapp", vpcOtherAccount.account, vpcOtherAccount.region, vpcOtherAccount.id),
+                null),
               // multi-port range self-referencing ingress
-              SecurityGroupRule("tcp", listOf(SecurityGroupRulePortRange(7001, 7001), SecurityGroupRulePortRange(7102, 7102)), SecurityGroupRuleReference(cloudDriverResponse.name, cloudDriverResponse.accountName, cloudDriverResponse.region, vpc.id), null),
+              SecurityGroupRule(
+                "tcp",
+                listOf(
+                  SecurityGroupRulePortRange(7001, 7001),
+                  SecurityGroupRulePortRange(7102, 7102)),
+                SecurityGroupRuleReference(
+                  cloudDriverResponse1.name,
+                  cloudDriverResponse1.accountName,
+                  cloudDriverResponse1.region,
+                  vpcRegion1.id),
+                null),
               // CIDR ingress
-              SecurityGroupRule("tcp", listOf(SecurityGroupRulePortRange(443, 443)), null, SecurityGroupRuleCidr("10.0.0.0", "/16"))
+              SecurityGroupRule("tcp",
+                listOf(
+                  SecurityGroupRulePortRange(443, 443)),
+                null,
+                SecurityGroupRuleCidr("10.0.0.0", "/16"))
             )
           )
         )
       }
 
       before {
-        with(vpc2) {
+        with(vpcOtherAccount) {
           every { cloudDriverCache.networkBy(name, account, region) } returns this
           every { cloudDriverCache.networkBy(id) } returns this
         }
@@ -211,9 +311,9 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
           handler.current(resource)
         }
         expectThat(response)
-          .isNotNull()
-          .get { inboundRules }
-          .hasSize(cloudDriverResponse.inboundRules.size + 1)
+          .isNotEmpty()
+          .get { get(vpcRegion1.region)!!.inboundRules }
+          .hasSize(cloudDriverResponse1.inboundRules.size + 1)
       }
     }
   }
@@ -232,12 +332,16 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
       .forEach { (methodName, handlerMethod) ->
         context("$methodName a security group with no ingress rules") {
           before {
+            clearMocks(orcaService)
             coEvery { orcaService.orchestrate("keel@spinnaker", any()) } answers {
               TaskRefResponse("/tasks/${randomUUID()}")
             }
 
             runBlocking {
-              handlerMethod.invoke(handler, resource, ResourceDiff(resource.spec, null))
+              handlerMethod.invoke(
+                handler,
+                resource,
+                ResourceDiff(handler.desired(resource), null))
             }
           }
 
@@ -246,23 +350,35 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
           }
 
           test("it upserts the security group via Orca") {
-            val slot = slot<OrchestrationRequest>()
-            coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
-            expectThat(slot.captured) {
-              application.isEqualTo(securityGroup.moniker.app)
-              job
-                .hasSize(1)
-                .first()
-                .type
-                .isEqualTo("upsertSecurityGroup")
-            }
+            val tasks = mutableListOf<OrchestrationRequest>()
+            coVerify { orcaService.orchestrate("keel@spinnaker", capture(tasks)) }
+
+            // Expect 2 tasks covering both regions in SecurityGroupSpec
+            expectThat(tasks).hasSize(2)
+            expectThat(tasks.flatMap { it.job.first()["regions"] as List<String> })
+              .hasSize(2)
+              .containsExactly(regions)
+
+            tasks
+              .forEach {
+                expectThat(it) {
+                  application.isEqualTo(securityGroupSpec.moniker.app)
+                  job
+                    .hasSize(1)
+                    .first()
+                    .type
+                    .isEqualTo("upsertSecurityGroup")
+                }
+              }
+
+            expectThat(tasks.map { it.trigger.correlationId }.toSet()).hasSize(2)
           }
         }
 
         context("$methodName a security group with a reference ingress rule") {
           deriveFixture {
             copy(
-              securityGroup = securityGroup.copy(
+              securityGroupSpec = securityGroupSpec.copy(
                 inboundRules = setOf(
                   CrossAccountReferenceRule(
                     protocol = TCP,
@@ -277,17 +393,24 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
           }
 
           before {
-            Network(CLOUD_PROVIDER, randomUUID().toString(), "vpc1", "test", securityGroup.region).also {
-              every { cloudDriverCache.networkBy(it.id) } returns it
-              every { cloudDriverCache.networkBy(it.name, it.account, it.region) } returns it
+            securityGroupSpec.locations.regions.forEach { region ->
+              Network(CLOUD_PROVIDER, randomUUID().toString(), "vpc1", "test", region)
+                .also {
+                  every { cloudDriverCache.networkBy(it.id) } returns it
+                  every { cloudDriverCache.networkBy(it.name, it.account, it.region) } returns it
+                }
             }
 
+            clearMocks(orcaService)
             coEvery { orcaService.orchestrate("keel@spinnaker", any()) } answers {
               TaskRefResponse("/tasks/${randomUUID()}")
             }
 
             runBlocking {
-              handlerMethod.invoke(handler, resource, ResourceDiff(resource.spec, null))
+              handlerMethod.invoke(
+                handler,
+                resource,
+                ResourceDiff(handler.desired(resource), null))
             }
           }
 
@@ -296,22 +419,32 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
           }
 
           test("it upserts the security group via Orca") {
-            val slot = slot<OrchestrationRequest>()
-            coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
-            expectThat(slot.captured) {
-              application.isEqualTo(securityGroup.moniker.app)
-              job.hasSize(1)
-              job[0].securityGroupIngress
-                .hasSize(1)
-                .first()
-                .and {
-                  securityGroup.inboundRules.first().also { rule ->
-                    get("type").isEqualTo(rule.protocol.name.toLowerCase())
-                    get("startPort").isEqualTo(rule.portRange.startPort)
-                    get("endPort").isEqualTo(rule.portRange.endPort)
-                    get("name").isEqualTo((rule as CrossAccountReferenceRule).name)
+            val tasks = mutableListOf<OrchestrationRequest>()
+            coVerify { orcaService.orchestrate("keel@spinnaker", capture(tasks)) }
+
+            // task per region
+            expectThat(tasks)
+              .hasSize(2)
+            expectThat(tasks.flatMap { it.job.first()["regions"] as List<String> })
+              .hasSize(2)
+              .containsExactly(regions)
+
+            tasks.forEach { task ->
+              expectThat(task) {
+                application.isEqualTo(securityGroupSpec.moniker.app)
+                job.hasSize(1)
+                job[0].securityGroupIngress
+                  .hasSize(1)
+                  .first()
+                  .and {
+                    securityGroupSpec.inboundRules.first().also { rule ->
+                      get("type").isEqualTo(rule.protocol.name.toLowerCase())
+                      get("startPort").isEqualTo(rule.portRange.startPort)
+                      get("endPort").isEqualTo(rule.portRange.endPort)
+                      get("name").isEqualTo((rule as CrossAccountReferenceRule).name)
+                    }
                   }
-                }
+              }
             }
           }
         }
@@ -319,7 +452,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
         context("$methodName a security group with an IP block range ingress rule") {
           deriveFixture {
             copy(
-              securityGroup = securityGroup.copy(
+              securityGroupSpec = securityGroupSpec.copy(
                 inboundRules = setOf(
                   CidrRule(
                     protocol = TCP,
@@ -332,12 +465,16 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
           }
 
           before {
+            clearMocks(orcaService)
             coEvery { orcaService.orchestrate("keel@spinnaker", any()) } answers {
               TaskRefResponse("/tasks/${randomUUID()}")
             }
 
             runBlocking {
-              handlerMethod.invoke(handler, resource, ResourceDiff(resource.spec, null))
+              handlerMethod.invoke(
+                handler,
+                resource,
+                ResourceDiff(handler.desired(resource), null))
             }
           }
 
@@ -346,22 +483,31 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
           }
 
           test("it upserts the security group via Orca") {
-            val slot = slot<OrchestrationRequest>()
-            coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
-            expectThat(slot.captured) {
-              application.isEqualTo(securityGroup.moniker.app)
-              job.hasSize(1)
-              job[0].ipIngress
-                .hasSize(1)
-                .first()
-                .and {
-                  securityGroup.inboundRules.first().also { rule ->
-                    get("type").isEqualTo(rule.protocol.name)
-                    get("cidr").isEqualTo((rule as CidrRule).blockRange)
-                    get("startPort").isEqualTo(rule.portRange.startPort)
-                    get("endPort").isEqualTo(rule.portRange.endPort)
+            val tasks = mutableListOf<OrchestrationRequest>()
+            coVerify { orcaService.orchestrate("keel@spinnaker", capture(tasks)) }
+
+            expectThat(tasks)
+              .hasSize(2)
+            expectThat(tasks.flatMap { it.job.first()["regions"] as List<String> })
+              .hasSize(2)
+              .containsExactly(regions)
+
+            tasks.forEach { task ->
+              expectThat(task) {
+                application.isEqualTo(securityGroupSpec.moniker.app)
+                job.hasSize(1)
+                job[0].ipIngress
+                  .hasSize(1)
+                  .first()
+                  .and {
+                    securityGroupSpec.inboundRules.first().also { rule ->
+                      get("type").isEqualTo(rule.protocol.name)
+                      get("cidr").isEqualTo((rule as CidrRule).blockRange)
+                      get("startPort").isEqualTo(rule.portRange.startPort)
+                      get("endPort").isEqualTo(rule.portRange.endPort)
+                    }
                   }
-                }
+              }
             }
           }
         }
@@ -370,7 +516,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
     context("create a security group with a self-referential ingress rule") {
       deriveFixture {
         copy(
-          securityGroup = securityGroup.copy(
+          securityGroupSpec = securityGroupSpec.copy(
             inboundRules = setOf(
               SelfReferenceRule(
                 protocol = TCP,
@@ -382,12 +528,13 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
       }
 
       before {
+        clearMocks(orcaService)
         coEvery { orcaService.orchestrate("keel@spinnaker", any()) } answers {
           TaskRefResponse("/tasks/${randomUUID()}")
         }
 
         runBlocking {
-          handler.create(resource, ResourceDiff(resource.spec, null))
+          handler.create(resource, ResourceDiff(handler.desired(resource), null))
         }
       }
 
@@ -396,13 +543,21 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
       }
 
       test("it does not try to create the self-referencing rule") {
-        val slot = slot<OrchestrationRequest>()
-        coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
-        expectThat(slot.captured) {
-          application.isEqualTo(securityGroup.moniker.app)
-          job.hasSize(1)
-          job.first().type.isEqualTo("upsertSecurityGroup")
-          job.first().securityGroupIngress.hasSize(0)
+        val tasks = mutableListOf<OrchestrationRequest>()
+        coVerify { orcaService.orchestrate("keel@spinnaker", capture(tasks)) }
+        expectThat(tasks)
+          .hasSize(2)
+        expectThat(tasks.flatMap { it.job.first()["regions"] as List<String> })
+          .hasSize(2)
+          .containsExactly(regions)
+
+        tasks.forEach { task ->
+          expectThat(task) {
+            application.isEqualTo(securityGroupSpec.moniker.app)
+            job.hasSize(1)
+            job.first().type.isEqualTo("upsertSecurityGroup")
+            job.first().securityGroupIngress.hasSize(0)
+          }
         }
       }
     }
@@ -410,7 +565,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
     context("update a security group with a self-referential ingress rule") {
       deriveFixture {
         copy(
-          securityGroup = securityGroup.copy(
+          securityGroupSpec = securityGroupSpec.copy(
             inboundRules = setOf(
               SelfReferenceRule(
                 protocol = TCP,
@@ -422,12 +577,19 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
       }
 
       before {
+        clearMocks(orcaService)
         coEvery { orcaService.orchestrate("keel@spinnaker", any()) } answers {
           TaskRefResponse("/tasks/${randomUUID()}")
         }
 
         runBlocking {
-          handler.update(resource, ResourceDiff(resource.spec, null))
+          val withoutIngress = resource
+            .copy(
+              spec = resource.spec.copy(
+                inboundRules = emptySet()))
+
+          handler.update(resource,
+            ResourceDiff(handler.desired(resource), handler.desired(withoutIngress)))
         }
       }
 
@@ -436,29 +598,59 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
       }
 
       test("it includes self-referencing rule in the Orca task") {
-        val slot = slot<OrchestrationRequest>()
-        coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
-        expectThat(slot.captured) {
-          application.isEqualTo(securityGroup.moniker.app)
-          job.hasSize(1)
-          job.first().type.isEqualTo("upsertSecurityGroup")
-          job.first().securityGroupIngress.hasSize(1)
+        val tasks = mutableListOf<OrchestrationRequest>()
+        coVerify { orcaService.orchestrate("keel@spinnaker", capture(tasks)) }
+        expectThat(tasks)
+          .hasSize(2)
+        expectThat(tasks.flatMap { it.job.first()["regions"] as List<String> })
+          .hasSize(2)
+          .containsExactly(regions)
+
+        tasks.forEach { task ->
+          expectThat(task) {
+            application.isEqualTo(securityGroupSpec.moniker.app)
+            job.hasSize(1)
+            job.first().type.isEqualTo("upsertSecurityGroup")
+            job.first().securityGroupIngress.hasSize(1)
+          }
         }
       }
     }
-  }
 
-  fun deleteTests() = rootContext<UpsertFixture> {
-    fixture { UpsertFixture(cloudDriverService, cloudDriverCache, orcaService, environmentResolver, objectMapper, normalizers) }
+    context("adding a region to an existing security group") {
+      deriveFixture {
+        copy(
+          securityGroupSpec = securityGroupSpec.copy(
+            inboundRules = setOf(
+              CrossAccountReferenceRule(
+                protocol = TCP,
+                account = "test",
+                name = "otherapp",
+                vpcName = "vpc1",
+                portRange = PortRange(startPort = 443, endPort = 443)
+              )
+            )
+          )
+        )
+      }
 
-    context("deleting a security group") {
       before {
+        clearMocks(orcaService)
         coEvery { orcaService.orchestrate("keel@spinnaker", any()) } answers {
           TaskRefResponse("/tasks/${randomUUID()}")
         }
 
         runBlocking {
-          handler.delete(resource)
+          val onlyInEast = resource
+            .copy(
+              spec = resource.spec.copy(
+                locations = SecurityGroupSpec.Locations(
+                  accountName = securityGroupSpec.locations.accountName,
+                  regions = setOf("us-east-17"))))
+
+          handler.update(
+            resource,
+            ResourceDiff(handler.desired(resource), handler.desired(onlyInEast)))
         }
       }
 
@@ -466,49 +658,127 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
         confirmVerified(orcaService)
       }
 
-      test("it deletes the security group via Orca") {
-        val slot = slot<OrchestrationRequest>()
-        coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
-        expectThat(slot.captured) {
-          application.isEqualTo(securityGroup.moniker.app)
-          job
-            .hasSize(1)
-            .first()
-            .type
-            .isEqualTo("deleteSecurityGroup")
+      test("it only creates a task for the missing region, us-west-3") {
+        val tasks = mutableListOf<OrchestrationRequest>()
+        coVerify { orcaService.orchestrate("keel@spinnaker", capture(tasks)) }
+        expectThat(tasks)
+          .hasSize(1)
+        expectThat(tasks[0].job)
+          .hasSize(1)
+        expectThat(tasks[0].job[0]["regions"] as List<String>)
+          .hasSize(1)
+          .containsExactly(listOf("us-west-3"))
+
+        tasks.forEach { task ->
+          expectThat(task) {
+            application.isEqualTo(securityGroupSpec.moniker.app)
+            job.hasSize(1)
+            job.first().type.isEqualTo("upsertSecurityGroup")
+            job.first().securityGroupIngress.hasSize(1)
+          }
+        }
+      }
+    }
+
+    context("one region has an ingress override") {
+      deriveFixture {
+        copy(
+          securityGroupSpec = securityGroupSpec.copy(
+            overrides = mapOf(
+              "us-east-17" to SecurityGroupOverride(
+                inboundRules = setOf(
+                  CidrRule(
+                    protocol = TCP,
+                    blockRange = "10.0.0.0/16",
+                    portRange = PortRange(startPort = 443, endPort = 443)
+                  )
+                )
+              )
+            )
+          )
+        )
+      }
+
+      before {
+        clearMocks(orcaService)
+        coEvery { orcaService.orchestrate("keel@spinnaker", any()) } answers {
+          TaskRefResponse("/tasks/${randomUUID()}")
+        }
+
+        runBlocking {
+          val withoutOverride = resource
+            .copy(
+              spec = resource.spec.copy(
+                overrides = emptyMap()))
+
+          handler.upsert(
+            resource,
+            ResourceDiff(handler.desired(resource), handler.desired(withoutOverride)))
+        }
+      }
+
+      after {
+        confirmVerified(orcaService)
+      }
+
+      test("it only creates a task for the newly overridden region") {
+        val tasks = mutableListOf<OrchestrationRequest>()
+        coVerify { orcaService.orchestrate("keel@spinnaker", capture(tasks)) }
+        expectThat(tasks)
+          .hasSize(1)
+        expectThat(tasks[0].job)
+          .hasSize(1)
+        expectThat(tasks[0].job[0]["regions"] as List<String>)
+          .hasSize(1)
+          .containsExactly(listOf("us-east-17"))
+        expectThat(tasks[0].job[0]) {
+          type.isEqualTo("upsertSecurityGroup")
+          ipIngress.hasSize(1)
+          ipIngress[0]["cidr"]
+            .isEqualTo(
+              (securityGroupSpec.overrides
+                .getValue("us-east-17")
+                .inboundRules!!.first() as CidrRule)
+                .blockRange)
         }
       }
     }
   }
 
   private fun CurrentFixture.cloudDriverSecurityGroupReturns() {
-    with(cloudDriverResponse) {
-      coEvery {
-        cloudDriverService.getSecurityGroup(any(), accountName, CLOUD_PROVIDER, name, region, vpcId)
-      } returns this
+    for (response in listOf(cloudDriverResponse1, cloudDriverResponse2)) {
+      with(response) {
+        coEvery {
+          cloudDriverService.getSecurityGroup(any(), accountName, CLOUD_PROVIDER, name, region, vpcId)
+        } returns this
+      }
     }
   }
 
   private fun CurrentFixture.cloudDriverSecurityGroupNotFound() {
-    with(cloudDriverResponse) {
-      coEvery {
-        cloudDriverService.getSecurityGroup(any(), accountName, CLOUD_PROVIDER, name, region, vpcId)
-      } throws RETROFIT_NOT_FOUND
+    for (response in listOf(cloudDriverResponse1, cloudDriverResponse2)) {
+      with(response) {
+        coEvery {
+          cloudDriverService.getSecurityGroup(any(), accountName, CLOUD_PROVIDER, name, region, vpcId)
+        } throws RETROFIT_NOT_FOUND
+      }
     }
   }
 
   private fun <F : Fixture> F.setupVpc() {
-    with(vpc) {
-      every { cloudDriverCache.networkBy(name, account, region) } returns this
-      every { cloudDriverCache.networkBy(id) } returns this
+    for (vpc in listOf(vpcRegion1, vpcRegion2)) {
+      with(vpc) {
+        every { cloudDriverCache.networkBy(name, account, region) } returns this
+        every { cloudDriverCache.networkBy(id) } returns this
+      }
     }
   }
 
-  val Fixture.resource: Resource<SecurityGroup>
+  val Fixture.resource: Resource<SecurityGroupSpec>
     get() = resource(
       apiVersion = SPINNAKER_API_V1,
       kind = "ec2.SecurityGroup",
-      spec = securityGroup
+      spec = securityGroupSpec
     )
 }
 

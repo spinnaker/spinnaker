@@ -4,7 +4,7 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.retrofit.model.ModelParsingTestSupport
 
-object SecurityGroupTest : ModelParsingTestSupport<CloudDriverService, SecurityGroup>(CloudDriverService::class.java) {
+object SecurityGroupTest : ModelParsingTestSupport<CloudDriverService, SecurityGroupModel>(CloudDriverService::class.java) {
   override val json = """
     |{
     |  "class": "com.netflix.spinnaker.clouddriver.aws.model.AmazonSecurityGroup",
@@ -38,10 +38,10 @@ object SecurityGroupTest : ModelParsingTestSupport<CloudDriverService, SecurityG
     |}
   """.trimMargin()
 
-  override suspend fun CloudDriverService.call(): SecurityGroup? =
+  override suspend fun CloudDriverService.call(): SecurityGroupModel? =
     getSecurityGroup("keel@spinnaker", "account", "type", "name", "region")
 
-  override val expected = SecurityGroup(
+  override val expected = SecurityGroupModel(
     type = "aws",
     id = "sg-bpkkjzva",
     name = "covfefe",

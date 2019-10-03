@@ -17,7 +17,7 @@ package com.netflix.spinnaker.keel.clouddriver.model
 
 import com.netflix.spinnaker.keel.model.Moniker
 
-data class SecurityGroup(
+data class SecurityGroupModel(
   val type: String,
   val id: String?,
   val name: String,

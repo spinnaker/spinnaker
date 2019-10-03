@@ -25,6 +25,7 @@ import com.netflix.spinnaker.keel.api.ec2.CrossAccountReferenceRule
 import com.netflix.spinnaker.keel.api.ec2.PortRange
 import com.netflix.spinnaker.keel.api.ec2.ReferenceRule
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroup
+import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule.Protocol
 import com.netflix.spinnaker.keel.api.ec2.SelfReferenceRule
@@ -32,6 +33,7 @@ import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
+import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.events.Task
@@ -40,9 +42,11 @@ import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.orca.OrcaService
-import com.netflix.spinnaker.keel.plugin.ResourceHandler
+import com.netflix.spinnaker.keel.plugin.ResolvableResourceHandler
 import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
 import com.netflix.spinnaker.keel.retrofit.isNotFound
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import retrofit2.HttpException
@@ -54,7 +58,7 @@ class SecurityGroupHandler(
   private val environmentResolver: EnvironmentResolver,
   override val objectMapper: ObjectMapper,
   override val normalizers: List<ResourceNormalizer<*>>
-) : ResourceHandler<SecurityGroup> {
+) : ResolvableResourceHandler<SecurityGroupSpec, Map<String, SecurityGroup>> {
   override val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
 
   override val apiVersion = SPINNAKER_API_V1.subApi("ec2")
@@ -62,157 +66,183 @@ class SecurityGroupHandler(
     apiVersion.group,
     "security-group",
     "security-groups"
-  ) to SecurityGroup::class.java
+  ) to SecurityGroupSpec::class.java
 
-  override suspend fun current(resource: Resource<SecurityGroup>): SecurityGroup? =
+  override suspend fun desired(resource: Resource<SecurityGroupSpec>): Map<String, SecurityGroup> =
+    with(resource.spec) {
+      locations.regions.associateWith { region ->
+        SecurityGroup(
+          moniker = Moniker(app = moniker.app, stack = moniker.stack, detail = moniker.detail),
+          location = SecurityGroup.Location(accountName = locations.accountName, region = region),
+          vpcName = overrides[region]?.vpcName ?: vpcName,
+          description = overrides[region]?.description ?: description,
+          inboundRules = overrides[region]?.inboundRules ?: inboundRules
+        )
+      }
+    }
+
+  override suspend fun current(resource: Resource<SecurityGroupSpec>): Map<String, SecurityGroup> =
     cloudDriverService.getSecurityGroup(resource.spec, resource.serviceAccount)
 
-  override suspend fun create(
-    resource: Resource<SecurityGroup>,
-    resourceDiff: ResourceDiff<SecurityGroup>
-  ): List<Task> {
+  override suspend fun upsert(
+    resource: Resource<SecurityGroupSpec>,
+    resourceDiff: ResourceDiff<Map<String, SecurityGroup>>
+  ): List<Task> =
+    coroutineScope {
+      resourceDiff
+        .toIndividualDiffs()
+        .filter { diff -> diff.hasChanges() }
+        .map { diff ->
+          val spec = diff.desired
+          val job: Job
+          val verb: Pair<String, String>
 
-    val notifications = environmentResolver.getNotificationsFor(resource.id)
+          when (diff.current) {
+            null -> {
+              job = spec.toCreateJob()
+              verb = Pair("Creating", "create")
+            }
+            else -> {
+              job = spec.toUpdateJob()
+              verb = Pair("Updating", "update")
+            }
+          }
 
-    val description: String
-    val taskRef = resource.spec.let { spec ->
-      description = "Create security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}"
-      orcaService
-        .orchestrate(
-          resource.serviceAccount,
-          OrchestrationRequest(
-            description,
-            spec.moniker.app,
-            description,
-            listOf(spec.toCreateJob()),
-            OrchestrationTrigger(correlationId = resource.id.toString(), notifications = notifications)
-          ))
+          log.info("${verb.first} security group using task: $job")
+
+          val description = "${verb.first} security group ${spec.moniker.name} in " +
+            "${spec.location.accountName}/${spec.location.region}"
+          val notifications = environmentResolver.getNotificationsFor(resource.id)
+
+          async {
+            orcaService
+              .orchestrate(
+                resource.serviceAccount,
+                OrchestrationRequest(
+                  description,
+                  spec.moniker.app,
+                  description,
+                  listOf(job),
+                  OrchestrationTrigger("${resource.id}:${spec.location.region}", notifications = notifications)
+                ))
+              .let {
+                log.info("Started task {} to ${verb.second} security group", it.ref)
+                Task(id = it.taskId, name = description)
+              }
+          }
+        }
+        .map { it.await() }
     }
-    log.info("Started task {} to create security group", taskRef.ref)
-    return listOf(Task(id = taskRef.taskId, name = description))
+
+  override suspend fun delete(resource: Resource<SecurityGroupSpec>) {
+    TODO("not implemented")
   }
 
-  override suspend fun update(
-    resource: Resource<SecurityGroup>,
-    resourceDiff: ResourceDiff<SecurityGroup>
-  ): List<Task> {
-    val description: String
-    val taskRef = resource.spec.let { spec ->
-      description = "Update security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}"
-      val notifications = environmentResolver.getNotificationsFor(resource.id)
-      orcaService
-        .orchestrate(
-          resource.serviceAccount,
-          OrchestrationRequest(
-            description,
-            spec.moniker.app,
-            description,
-            listOf(spec.toUpdateJob()),
-            OrchestrationTrigger(correlationId = resource.id.toString(), notifications = notifications)
-          ))
+  private fun ResourceDiff<Map<String, SecurityGroup>>.toIndividualDiffs() =
+    desired.map { (region, desire) ->
+      ResourceDiff(desire, current?.getOrDefault(region, null))
     }
-    log.info("Started task {} to update security group", taskRef.ref)
-    return listOf(Task(id = taskRef.taskId, name = description))
-  }
-
-  override suspend fun delete(resource: Resource<SecurityGroup>) {
-    val notifications = environmentResolver.getNotificationsFor(resource.id)
-    val taskRef = resource.spec.let { spec ->
-      orcaService
-        .orchestrate(
-          resource.serviceAccount,
-          OrchestrationRequest(
-            "Delete security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
-            spec.moniker.app,
-            "Delete security group ${spec.moniker.name} in ${spec.accountName}/${spec.region}",
-            listOf(spec.toDeleteJob()),
-            OrchestrationTrigger(correlationId = resource.id.toString(), notifications = notifications)
-          ))
-    }
-    log.info("Started task {} to upsert security group", taskRef.ref)
-  }
 
   override suspend fun actuationInProgress(id: ResourceId) =
     orcaService
       .getCorrelatedExecutions(id.value)
       .isNotEmpty()
 
-  private suspend fun CloudDriverService.getSecurityGroup(spec: SecurityGroup, serviceAccount: String): SecurityGroup? =
-    try {
-      getSecurityGroup(
-        serviceAccount,
-        spec.accountName,
-        CLOUD_PROVIDER,
-        spec.moniker.name,
-        spec.region,
-        spec.vpcName?.let { cloudDriverCache.networkBy(it, spec.accountName, spec.region).id }
-      )
-        .let { response ->
-          SecurityGroup(
-            Moniker(app = response.moniker.app, stack = response.moniker.stack, detail = response.moniker.detail),
-            response.accountName,
-            response.region,
-            response.vpcId?.let { cloudDriverCache.networkBy(it).name },
-            response.description,
-            response.inboundRules.flatMap { rule ->
-              val ingressGroup = rule.securityGroup
-              val ingressRange = rule.range
-              val protocol = Protocol.valueOf(rule.protocol!!.toUpperCase())
-              when {
-                ingressGroup != null -> rule.portRanges
-                  ?.map { PortRange(it.startPort!!, it.endPort!!) }
-                  ?.map { portRange ->
-                    when {
-                      ingressGroup.accountName != response.accountName || ingressGroup.vpcId != response.vpcId -> CrossAccountReferenceRule(
-                        protocol,
-                        ingressGroup.name,
-                        ingressGroup.accountName!!,
-                        cloudDriverCache.networkBy(ingressGroup.vpcId!!).name!!,
-                        portRange
-                      )
-                      ingressGroup.name != response.name -> ReferenceRule(
-                        protocol,
-                        ingressGroup.name,
-                        portRange
-                      )
-                      else -> SelfReferenceRule(
-                        protocol,
-                        portRange
-                      )
-                    }
-                  } ?: emptyList()
-                ingressRange != null -> rule.portRanges
-                  ?.map { PortRange(it.startPort!!, it.endPort!!) }
-                  ?.map { portRange ->
-                    CidrRule(
-                      protocol,
-                      portRange,
-                      ingressRange.ip + ingressRange.cidr
-                    )
-                  } ?: emptyList()
-                else -> emptyList()
-              }
-            }.toSet()
-          )
+  private suspend fun CloudDriverService.getSecurityGroup(
+    spec: SecurityGroupSpec,
+    serviceAccount: String
+  ): Map<String, SecurityGroup> =
+    coroutineScope {
+      spec.locations.regions.map { region ->
+        async {
+          try {
+            getSecurityGroup(
+              serviceAccount,
+              spec.locations.accountName,
+              CLOUD_PROVIDER,
+              spec.moniker.name,
+              region,
+              spec.vpcName?.let { cloudDriverCache.networkBy(it, spec.locations.accountName, region).id }
+            )
+              .toSecurityGroup()
+          } catch (e: HttpException) {
+            if (e.isNotFound) {
+              null
+            } else {
+              throw e
+            }
+          }
         }
-    } catch (e: HttpException) {
-      if (e.isNotFound) {
-        null
-      } else {
-        throw e
       }
+        .mapNotNull { it.await() }
+        .associateBy { it.location.region }
     }
+
+  private fun SecurityGroupModel.toSecurityGroup() =
+    SecurityGroup(
+      moniker = Moniker(app = moniker.app, stack = moniker.stack, detail = moniker.detail),
+      location = SecurityGroup.Location(
+        accountName,
+        region = region
+      ),
+      vpcName = if (vpcId != null) {
+        cloudDriverCache.networkBy(vpcId!!).name
+      } else {
+        null
+      },
+      description = description,
+      inboundRules = inboundRules.flatMap { rule ->
+        val ingressGroup = rule.securityGroup
+        val ingressRange = rule.range
+        val protocol = Protocol.valueOf(rule.protocol!!.toUpperCase())
+        when {
+          ingressGroup != null -> rule.portRanges
+            ?.map { PortRange(it.startPort!!, it.endPort!!) }
+            ?.map { portRange ->
+              when {
+                ingressGroup.accountName != accountName || ingressGroup.vpcId != vpcId -> CrossAccountReferenceRule(
+                  protocol,
+                  ingressGroup.name,
+                  ingressGroup.accountName!!,
+                  cloudDriverCache.networkBy(ingressGroup.vpcId!!).name!!,
+                  portRange
+                )
+                ingressGroup.name != name -> ReferenceRule(
+                  protocol,
+                  ingressGroup.name,
+                  portRange
+                )
+                else -> SelfReferenceRule(
+                  protocol,
+                  portRange
+                )
+              }
+            } ?: emptyList()
+          ingressRange != null -> rule.portRanges
+            ?.map { PortRange(it.startPort!!, it.endPort!!) }
+            ?.map { portRange ->
+              CidrRule(
+                protocol,
+                portRange,
+                ingressRange.ip + ingressRange.cidr
+              )
+            } ?: emptyList()
+          else -> emptyList()
+        }
+      }
+        .toSet()
+    )
 
   private fun SecurityGroup.toCreateJob(): Job =
     Job(
       "upsertSecurityGroup",
       mapOf(
         "application" to moniker.app,
-        "credentials" to accountName,
+        "credentials" to location.accountName,
         "cloudProvider" to CLOUD_PROVIDER,
         "name" to moniker.name,
-        "regions" to listOf(region),
-        "vpcId" to cloudDriverCache.networkBy(vpcName, accountName, region).id,
+        "regions" to listOf(location.region),
+        "vpcId" to cloudDriverCache.networkBy(vpcName, location.accountName, location.region).id,
         "description" to description,
         "securityGroupIngress" to inboundRules
           // we have to do a 2-phase create for self-referencing ingress rules as the referenced
@@ -225,7 +255,7 @@ class SecurityGroupHandler(
         "ipIngress" to inboundRules.mapNotNull {
           it.cidrRuleToJob()
         },
-        "accountName" to accountName
+        "accountName" to location.accountName
       )
     )
 
@@ -234,11 +264,11 @@ class SecurityGroupHandler(
       "upsertSecurityGroup",
       mapOf(
         "application" to moniker.app,
-        "credentials" to accountName,
+        "credentials" to location.accountName,
         "cloudProvider" to CLOUD_PROVIDER,
         "name" to moniker.name,
-        "regions" to listOf(region),
-        "vpcId" to cloudDriverCache.networkBy(vpcName, accountName, region).id,
+        "regions" to listOf(location.region),
+        "vpcId" to cloudDriverCache.networkBy(vpcName, location.accountName, location.region).id,
         "description" to description,
         "securityGroupIngress" to inboundRules.mapNotNull {
           it.referenceRuleToJob(this)
@@ -246,26 +276,11 @@ class SecurityGroupHandler(
         "ipIngress" to inboundRules.mapNotNull {
           it.cidrRuleToJob()
         },
-        "accountName" to accountName
+        "accountName" to location.accountName
       )
     )
 
-  private fun SecurityGroup.toDeleteJob(): Job {
-    return Job(
-      "deleteSecurityGroup",
-      mapOf(
-        "application" to moniker.app,
-        "credentials" to accountName,
-        "cloudProvider" to CLOUD_PROVIDER,
-        "securityGroupName" to moniker.name,
-        "regions" to listOf(region),
-        "vpcId" to vpcName,
-        "accountName" to accountName
-      )
-    )
-  }
-
-  private fun SecurityGroupRule.referenceRuleToJob(spec: SecurityGroup): Map<String, Any?>? =
+  private fun SecurityGroupRule.referenceRuleToJob(securityGroup: SecurityGroup): Map<String, Any?>? =
     when (this) {
       is ReferenceRule -> mapOf(
         "type" to protocol.name.toLowerCase(),
@@ -277,7 +292,7 @@ class SecurityGroupHandler(
         "type" to protocol.name.toLowerCase(),
         "startPort" to portRange.startPort,
         "endPort" to portRange.endPort,
-        "name" to spec.moniker.name
+        "name" to securityGroup.moniker.name
       )
       is CrossAccountReferenceRule -> mapOf(
         "type" to protocol.name.toLowerCase(),
@@ -289,7 +304,7 @@ class SecurityGroupHandler(
         "vpcId" to cloudDriverCache.networkBy(
           vpcName,
           account,
-          spec.region
+          securityGroup.location.region
         ).id
       )
       else -> null
