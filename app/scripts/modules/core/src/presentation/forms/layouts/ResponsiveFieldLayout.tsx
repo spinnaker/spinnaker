@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { HelpContextProvider } from 'core/help';
+import { HelpTextExpandedContext } from 'core/help';
 import { ValidationMessage } from 'core/validation';
 
 import { IFieldLayoutProps } from '../interface';
@@ -15,7 +15,7 @@ export class ResponsiveFieldLayout extends React.Component<IFieldLayoutProps> {
     const helpUnder = false;
 
     return (
-      <HelpContextProvider value={helpUnder}>
+      <HelpTextExpandedContext.Provider value={helpUnder}>
         <div className="sp-formItem">
           <div className="sp-formItem__left">
             {showLabel && (
@@ -34,7 +34,7 @@ export class ResponsiveFieldLayout extends React.Component<IFieldLayoutProps> {
             {validationMessage && <ValidationMessage type={validationStatus} message={validationMessage} />}
           </div>
         </div>
-      </HelpContextProvider>
+      </HelpTextExpandedContext.Provider>
     );
   }
 }

@@ -1,10 +1,10 @@
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
 import * as DOMPurify from 'dompurify';
+import { isUndefined } from 'lodash';
 
-import { HelpContentsRegistry } from 'core/help';
+import { HelpContentsRegistry, HelpTextExpandedContext } from 'core/help';
 import { HoverablePopover, Placement } from 'core/presentation';
-import { HelpContextConsumer } from './HelpContext';
 
 export interface IHelpFieldProps {
   id?: string;
@@ -15,73 +15,50 @@ export interface IHelpFieldProps {
   label?: string;
 }
 
-export class HelpField extends React.PureComponent<IHelpFieldProps> {
-  public static defaultProps: IHelpFieldProps = {
-    placement: 'top',
-  };
+function HelpFieldContents(props: Pick<IHelpFieldProps, 'id' | 'fallback' | 'content'>): JSX.Element {
+  const { id, fallback, content } = props;
 
-  private popoverShownStart: number;
-
-  private renderContents(id: string, fallback: string, content: string): JSX.Element {
-    let contentString = content;
-    if (id && !contentString) {
-      contentString = HelpContentsRegistry.getHelpField(id) || fallback;
-    }
-
-    const config = { ADD_ATTR: ['target'] }; // allow: target="_blank"
-    return <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(contentString, config) }} />;
+  let contentString = content;
+  if (id && !contentString) {
+    contentString = HelpContentsRegistry.getHelpField(id) || fallback;
   }
 
-  private onShow = (): void => {
-    this.popoverShownStart = Date.now();
-  };
+  const config = { ADD_ATTR: ['target'] }; // allow: target="_blank"
+  return <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(contentString, config) }} />;
+}
 
-  private onHide = (): void => {
-    if (Date.now() - this.popoverShownStart > 500) {
-      ReactGA.event({ action: 'Help contents viewed', category: 'Help', label: this.props.id || this.props.content });
+export function HelpField(props: IHelpFieldProps) {
+  const { content, expand, fallback, id, label, placement } = props;
+
+  const [popoverShownStart, setPopoverShownStart] = React.useState();
+  const onShow = (): void => setPopoverShownStart(Date.now());
+  const onHide = (): void => {
+    if (Date.now() - popoverShownStart > 500) {
+      ReactGA.event({ action: 'Help contents viewed', category: 'Help', label: props.id || props.content });
     }
   };
 
-  private shouldExpandHelpText(expandFromContext: any, expandFromProps: any) {
-    if (expandFromProps !== undefined) {
-      return expandFromProps;
-    }
-    return expandFromContext;
-  }
+  const icon = <i className="small glyphicon glyphicon-question-sign" />;
+  const shouldExpandFromContext = React.useContext(HelpTextExpandedContext);
+  const expandHelpText = isUndefined(expand) ? shouldExpandFromContext : expand;
 
-  public render() {
-    const { placement, label, expand, id, fallback, content } = this.props;
-    const contents = this.renderContents(id, fallback, content);
+  const contents = <HelpFieldContents content={content} fallback={fallback} id={id} />;
+  const popover = (
+    <HoverablePopover placement={placement || 'top'} template={contents} onShow={onShow} onHide={onHide}>
+      <a className="clickable help-field"> {label || icon} </a>
+    </HoverablePopover>
+  );
 
-    const icon = <i className="small glyphicon glyphicon-question-sign" />;
+  if (label) {
+    return <div className="text-only">{!expandHelpText && contents && popover}</div>;
+  } else {
+    const expanded = <div className="help-contents small"> {contents} </div>;
 
-    const popover = (
-      <HoverablePopover placement={placement} template={contents} onShow={this.onShow} onHide={this.onHide}>
-        <a className="clickable help-field"> {label || icon} </a>
-      </HoverablePopover>
+    return (
+      <div style={{ display: 'inline-block' }}>
+        {!expandHelpText && contents && popover}
+        {expandHelpText && contents && expanded}
+      </div>
     );
-
-    if (label) {
-      return (
-        <HelpContextConsumer>
-          {context => (
-            <div className="text-only">{!this.shouldExpandHelpText(context, expand) && contents && popover}</div>
-          )}
-        </HelpContextConsumer>
-      );
-    } else {
-      const expanded = <div className="help-contents small"> {contents} </div>;
-
-      return (
-        <HelpContextConsumer>
-          {context => (
-            <div style={{ display: 'inline-block' }}>
-              {!this.shouldExpandHelpText(context, expand) && contents && popover}
-              {this.shouldExpandHelpText(context, expand) && contents && expanded}
-            </div>
-          )}
-        </HelpContextConsumer>
-      );
-    }
   }
 }
