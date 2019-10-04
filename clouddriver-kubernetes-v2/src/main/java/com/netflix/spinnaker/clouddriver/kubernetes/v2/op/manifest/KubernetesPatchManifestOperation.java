@@ -34,7 +34,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Cred
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
@@ -119,9 +118,10 @@ public class KubernetesPatchManifestOperation implements AtomicOperation<Operati
             manifest, allArtifacts, objToPatch.getNamespace(), description.getAccount());
 
     if (description.getRequiredArtifacts() != null) {
-      Set<Artifact> unboundArtifacts =
+      Set<ArtifactKey> unboundArtifacts =
           Sets.difference(
-              new HashSet<>(description.getRequiredArtifacts()), replaceResult.getBoundArtifacts());
+              ArtifactKey.fromArtifacts(description.getRequiredArtifacts()),
+              ArtifactKey.fromArtifacts(replaceResult.getBoundArtifacts()));
       if (!unboundArtifacts.isEmpty()) {
         throw new IllegalArgumentException(
             String.format(

@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.manifest;
 
+import com.google.common.collect.Sets;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
@@ -130,8 +131,10 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
       boundArtifacts.addAll(replaceResult.getBoundArtifacts());
     }
 
-    Set<Artifact> unboundArtifacts = new HashSet<>(requiredArtifacts);
-    unboundArtifacts.removeAll(boundArtifacts);
+    Set<ArtifactKey> unboundArtifacts =
+        Sets.difference(
+            ArtifactKey.fromArtifacts(description.getRequiredArtifacts()),
+            ArtifactKey.fromArtifacts(boundArtifacts));
 
     getTask().updateStatus(OP_NAME, "Checking if all requested artifacts were bound...");
     if (!unboundArtifacts.isEmpty()) {
