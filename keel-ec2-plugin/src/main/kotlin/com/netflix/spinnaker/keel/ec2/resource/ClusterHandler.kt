@@ -35,7 +35,7 @@ import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
-import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
+import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -58,7 +58,7 @@ class ClusterHandler(
   private val clock: Clock,
   private val publisher: ApplicationEventPublisher,
   override val objectMapper: ObjectMapper,
-  override val normalizers: List<ResourceNormalizer<*>>
+  override val resolvers: List<Resolver<*>>
 ) : ResourceHandler<ClusterSpec, Map<String, ServerGroup>> {
 
   override val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }

@@ -15,12 +15,12 @@ import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
-import com.netflix.spinnaker.keel.ec2.normalizers.ClassicLoadBalancerNormalizer
+import com.netflix.spinnaker.keel.ec2.normalizers.ClassicLoadBalancerSecurityGroupsResolver
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
-import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
+import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import com.netflix.spinnaker.keel.test.resource
 import de.danielbechler.diff.node.DiffNode
@@ -51,7 +51,7 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
   private val mapper = ObjectMapper().registerKotlinModule()
   private val yamlMapper = configuredYamlMapper()
 
-  private val normalizers: List<ResourceNormalizer<*>> = listOf(ClassicLoadBalancerNormalizer())
+  private val normalizers: List<Resolver<*>> = listOf(ClassicLoadBalancerSecurityGroupsResolver())
 
   private val yaml = """
     |---
@@ -160,16 +160,16 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
 
       test("the current model is null") {
         val current = runBlocking {
-          current(normalize(resource))
+          current(applyResolvers(resource))
         }
         expectThat(current).isNull()
       }
 
       test("the CLB is created with a default security group as none are specified in spec") {
         runBlocking {
-          val current = current(normalize(resource))
-          val desired = desired(normalize(resource))
-          upsert(normalize(resource), ResourceDiff(desired = desired, current = current))
+          val current = current(applyResolvers(resource))
+          val desired = desired(applyResolvers(resource))
+          upsert(applyResolvers(resource), ResourceDiff(desired = desired, current = current))
         }
 
         val slot = slot<OrchestrationRequest>()
@@ -188,7 +188,7 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
         val modResource = resource.copy(spec = modSpec)
 
         runBlocking {
-          upsert(normalize(modResource), ResourceDiff(spec, modSpec))
+          upsert(applyResolvers(modResource), ResourceDiff(spec, modSpec))
         }
 
         val slot = slot<OrchestrationRequest>()
@@ -220,7 +220,7 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
         expectThat(diff.diff.getChild("securityGroupNames").state).isEqualTo(DiffNode.State.CHANGED)
 
         runBlocking {
-          upsert(normalize(newResource), diff)
+          upsert(applyResolvers(newResource), diff)
         }
 
         val slot = slot<OrchestrationRequest>()

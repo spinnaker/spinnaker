@@ -26,7 +26,7 @@ import com.netflix.spinnaker.keel.api.Resource
  * A resource normalizer throws a [com.netflix.spinnaker.keel.exceptions.InvalidResourceException]
  * when a resource is invalid
  */
-interface ResourceNormalizer<T : ResourceSpec> {
+interface Resolver<T : ResourceSpec> {
 
   val apiVersion: ApiVersion
   val supportedKind: String
@@ -37,7 +37,7 @@ interface ResourceNormalizer<T : ResourceSpec> {
   fun normalize(resource: Resource<T>): Resource<T>
 }
 
-internal fun ResourceNormalizer<*>.handles(
+internal fun Resolver<*>.handles(
   apiVersion: ApiVersion,
   kind: String
 ): Boolean = this.apiVersion == apiVersion && this.supportedKind == kind

@@ -12,12 +12,12 @@ import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
-import com.netflix.spinnaker.keel.ec2.normalizers.ApplicationLoadBalancerNormalizer
+import com.netflix.spinnaker.keel.ec2.normalizers.ApplicationLoadBalancerDefaultsResolver
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
-import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
+import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import com.netflix.spinnaker.keel.test.resource
 import de.danielbechler.diff.node.DiffNode
@@ -46,7 +46,7 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
   private val mapper = ObjectMapper().registerKotlinModule()
   private val yamlMapper = configuredYamlMapper()
 
-  private val normalizers: List<ResourceNormalizer<*>> = listOf(ApplicationLoadBalancerNormalizer())
+  private val normalizers: List<Resolver<*>> = listOf(ApplicationLoadBalancerDefaultsResolver())
 
   private val yaml = """
     |---
@@ -172,8 +172,8 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
       test("the ALB is created with a generated defaultAction as none are in the spec") {
         runBlocking {
           val current = current(resource)
-          val desired = desired(normalize(resource))
-          upsert(normalize(resource), ResourceDiff(desired = desired, current = current))
+          val desired = desired(applyResolvers(resource))
+          upsert(applyResolvers(resource), ResourceDiff(desired = desired, current = current))
         }
 
         val slot = slot<OrchestrationRequest>()
@@ -199,7 +199,7 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
       test("the diff is clean") {
         val diff = runBlocking {
           val current = current(resource)
-          val desired = desired(normalize(resource))
+          val desired = desired(applyResolvers(resource))
           ResourceDiff(desired, current)
         }
 
@@ -218,12 +218,12 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
 
         val diff = runBlocking {
           val current = current(newResource)
-          val desired = desired(normalize(newResource))
+          val desired = desired(applyResolvers(newResource))
           ResourceDiff(desired, current)
         }
 
         runBlocking {
-          upsert(normalize(newResource), diff)
+          upsert(applyResolvers(newResource), diff)
         }
 
         val slot = slot<OrchestrationRequest>()

@@ -5,11 +5,14 @@ import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ClusterRegion
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
-import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
+import com.netflix.spinnaker.keel.plugin.Resolver
 import org.springframework.stereotype.Component
 
 @Component
-class ClusterAvailabilityZonesNormalizer(private val cloudDriverCache: CloudDriverCache) : ResourceNormalizer<ClusterSpec> {
+class ClusterAvailabilityZonesResolver(
+  private val cloudDriverCache: CloudDriverCache
+) : Resolver<ClusterSpec> {
+
   override val apiVersion = SPINNAKER_API_V1.subApi("ec2")
   override val supportedKind = "cluster"
 

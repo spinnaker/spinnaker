@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.keel.actuation
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
@@ -36,8 +35,7 @@ class ResourcePersister(
   private val resourceRepository: ResourceRepository,
   private val handlers: List<ResourceHandler<*, *>>,
   private val clock: Clock,
-  private val publisher: ApplicationEventPublisher,
-  private val objectMapper: ObjectMapper
+  private val publisher: ApplicationEventPublisher
 ) {
   @Transactional(propagation = REQUIRED)
   fun upsert(deliveryConfig: SubmittedDeliveryConfig): DeliveryConfig =
@@ -94,7 +92,7 @@ class ResourcePersister(
     @Suppress("UNCHECKED_CAST")
     val existing = resourceRepository.get(id) as Resource<T>
     val resource = existing.withSpec(updated.spec, handler.supportedKind.second)
-    val normalized = handler.normalize(resource)
+    val normalized = handler.applyResolvers(resource)
 
     val diff = ResourceDiff(normalized.spec, existing.spec)
 

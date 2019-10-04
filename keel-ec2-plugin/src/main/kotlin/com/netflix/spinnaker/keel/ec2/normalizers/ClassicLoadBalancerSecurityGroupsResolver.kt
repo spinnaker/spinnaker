@@ -3,12 +3,12 @@ package com.netflix.spinnaker.keel.ec2.normalizers
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancer
-import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
+import com.netflix.spinnaker.keel.plugin.Resolver
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
-class ClassicLoadBalancerNormalizer : ResourceNormalizer<ClassicLoadBalancer> {
+class ClassicLoadBalancerSecurityGroupsResolver : Resolver<ClassicLoadBalancer> {
   override val apiVersion = SPINNAKER_API_V1.subApi("ec2")
   override val supportedKind = "classic-load-balancer"
 

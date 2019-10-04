@@ -25,7 +25,7 @@ import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
-import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
+import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.tags.EntityRef
 import com.netflix.spinnaker.keel.tags.EntityTag
 import com.netflix.spinnaker.keel.tags.EntityTags
@@ -128,7 +128,7 @@ internal class KeelTagHandlerTests : JUnit5Minutests {
   val cloudDriverService = mockk<CloudDriverService>()
   val orcaService = mockk<OrcaService>()
   val objectMapper = ObjectMapper().registerKotlinModule()
-  val normalizers = emptyList<ResourceNormalizer<KeelTagSpec>>()
+  val normalizers = emptyList<Resolver<KeelTagSpec>>()
 
   fun tests() = rootContext<KeelTagHandler> {
     fixture {

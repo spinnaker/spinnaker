@@ -42,7 +42,7 @@ import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
-import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
+import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
@@ -76,7 +76,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
   private val clock = Clock.systemDefaultZone()
   private val environmentResolver: EnvironmentResolver = EnvironmentResolver(InMemoryDeliveryConfigRepository(clock))
   private val objectMapper = configuredObjectMapper()
-  private val normalizers = emptyList<ResourceNormalizer<SecurityGroupSpec>>()
+  private val normalizers = emptyList<Resolver<SecurityGroupSpec>>()
   private val regions = listOf("us-west-3", "us-east-17")
 
   interface Fixture {
@@ -85,7 +85,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
     val orcaService: OrcaService
     val environmentResolver: EnvironmentResolver
     val objectMapper: ObjectMapper
-    val normalizers: List<ResourceNormalizer<SecurityGroupSpec>>
+    val normalizers: List<Resolver<SecurityGroupSpec>>
     val vpcRegion1: Network
     val vpcRegion2: Network
     val handler: SecurityGroupHandler
@@ -100,7 +100,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
     override val orcaService: OrcaService,
     override val environmentResolver: EnvironmentResolver,
     override val objectMapper: ObjectMapper,
-    override val normalizers: List<ResourceNormalizer<SecurityGroupSpec>>,
+    override val normalizers: List<Resolver<SecurityGroupSpec>>,
     override val vpcRegion1: Network =
       Network(CLOUD_PROVIDER, randomUUID().toString(), "vpc1", "prod", "us-west-3"),
     override val vpcRegion2: Network =
@@ -178,7 +178,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
     override val orcaService: OrcaService,
     override val environmentResolver: EnvironmentResolver,
     override val objectMapper: ObjectMapper,
-    override val normalizers: List<ResourceNormalizer<SecurityGroupSpec>>,
+    override val normalizers: List<Resolver<SecurityGroupSpec>>,
     override val vpcRegion1: Network =
       Network(CLOUD_PROVIDER, randomUUID().toString(), "vpc1", "prod", "us-west-3"),
     override val vpcRegion2: Network =

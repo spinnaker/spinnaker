@@ -4,11 +4,11 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancer
 import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel
-import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
+import com.netflix.spinnaker.keel.plugin.Resolver
 import org.springframework.stereotype.Component
 
 @Component
-class ApplicationLoadBalancerNormalizer : ResourceNormalizer<ApplicationLoadBalancer> {
+class ApplicationLoadBalancerDefaultsResolver : Resolver<ApplicationLoadBalancer> {
   override val apiVersion = SPINNAKER_API_V1.subApi("ec2")
   override val supportedKind = "application-load-balancer"
 

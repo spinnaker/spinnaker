@@ -43,7 +43,7 @@ import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
-import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
+import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -57,7 +57,7 @@ class SecurityGroupHandler(
   private val orcaService: OrcaService,
   private val environmentResolver: EnvironmentResolver,
   override val objectMapper: ObjectMapper,
-  override val normalizers: List<ResourceNormalizer<*>>
+  override val resolvers: List<Resolver<*>>
 ) : ResourceHandler<SecurityGroupSpec, Map<String, SecurityGroup>> {
   override val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
 

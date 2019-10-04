@@ -29,7 +29,7 @@ import com.netflix.spinnaker.keel.ec2.resource.SecurityGroupHandler
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
-import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
+import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.ApplicationEventPublisher
@@ -74,7 +74,7 @@ class EC2Config {
     environmentResolver: EnvironmentResolver,
     clock: Clock,
     objectMapper: ObjectMapper,
-    normalizers: List<ResourceNormalizer<*>>,
+    normalizers: List<Resolver<*>>,
     publisher: ApplicationEventPublisher
   ): ClusterHandler =
     ClusterHandler(
@@ -96,7 +96,7 @@ class EC2Config {
     orcaService: OrcaService,
     environmentResolver: EnvironmentResolver,
     objectMapper: ObjectMapper,
-    normalizers: List<ResourceNormalizer<*>>
+    normalizers: List<Resolver<*>>
   ): SecurityGroupHandler =
     SecurityGroupHandler(
       cloudDriverService,
@@ -114,7 +114,7 @@ class EC2Config {
     orcaService: OrcaService,
     environmentResolver: EnvironmentResolver,
     objectMapper: ObjectMapper,
-    normalizers: List<ResourceNormalizer<*>>
+    normalizers: List<Resolver<*>>
   ): ClassicLoadBalancerHandler =
     ClassicLoadBalancerHandler(
       cloudDriverService,
@@ -132,7 +132,7 @@ class EC2Config {
     orcaService: OrcaService,
     environmentResolver: EnvironmentResolver,
     objectMapper: ObjectMapper,
-    normalizers: List<ResourceNormalizer<*>>
+    normalizers: List<Resolver<*>>
   ): ApplicationLoadBalancerHandler =
     ApplicationLoadBalancerHandler(
       cloudDriverService,

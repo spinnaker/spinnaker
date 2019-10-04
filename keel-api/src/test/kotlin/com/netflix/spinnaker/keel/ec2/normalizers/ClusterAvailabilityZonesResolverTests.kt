@@ -32,7 +32,7 @@ import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import java.time.Duration
 
-internal class ClusterAvailabilityZonesNormalizerTests : JUnit5Minutests {
+internal class ClusterAvailabilityZonesResolverTests : JUnit5Minutests {
 
   data class Fixture(
     val eastAvailabilityZones: Set<String>?,
@@ -40,7 +40,7 @@ internal class ClusterAvailabilityZonesNormalizerTests : JUnit5Minutests {
   ) {
     val cloudDriverService = mockk<CloudDriverService>()
 
-    val subject = ClusterAvailabilityZonesNormalizer(
+    val subject = ClusterAvailabilityZonesResolver(
       MemoryCloudDriverCache(cloudDriverService)
     )
 

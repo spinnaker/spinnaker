@@ -21,7 +21,7 @@ import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.orca.OrcaService
-import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
+import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.plugin.SimpleResourceHandler
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import org.slf4j.Logger
@@ -34,7 +34,7 @@ class ApplicationLoadBalancerHandler(
   private val orcaService: OrcaService,
   private val environmentResolver: EnvironmentResolver,
   override val objectMapper: ObjectMapper,
-  override val normalizers: List<ResourceNormalizer<*>>
+  override val resolvers: List<Resolver<*>>
 ) : SimpleResourceHandler<ApplicationLoadBalancer> {
   override val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
 

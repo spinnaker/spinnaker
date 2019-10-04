@@ -22,7 +22,7 @@ import com.netflix.spinnaker.keel.actuation.ResourcePersister
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
-import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
+import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.tagging.KeelTagHandler
 import com.netflix.spinnaker.keel.tagging.ResourceTagger
 import org.springframework.beans.factory.annotation.Value
@@ -59,7 +59,7 @@ class TaggingConfig {
     cloudDriverService: CloudDriverService,
     orcaService: OrcaService,
     objectMapper: ObjectMapper,
-    normalizers: List<ResourceNormalizer<*>>
+    normalizers: List<Resolver<*>>
   ) = KeelTagHandler(
     cloudDriverService,
     orcaService,

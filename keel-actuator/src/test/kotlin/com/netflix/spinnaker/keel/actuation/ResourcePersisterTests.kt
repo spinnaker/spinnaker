@@ -22,7 +22,7 @@ import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.plugin.SimpleResourceHandler
-import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
+import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import dev.minutest.junit.JUnit5Minutests
@@ -62,8 +62,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
       resourceRepository,
       listOf(DummyResourceHandler),
       clock,
-      publisher,
-      configuredObjectMapper()
+      publisher
     )
 
     lateinit var resource: Resource<DummyResourceSpec>
@@ -332,7 +331,7 @@ internal object DummyResourceHandler : SimpleResourceHandler<DummyResourceSpec> 
 
   override val objectMapper: ObjectMapper = configuredObjectMapper()
 
-  override val normalizers: List<ResourceNormalizer<*>> = emptyList()
+  override val resolvers: List<Resolver<*>> = emptyList()
 
   override suspend fun current(resource: Resource<DummyResourceSpec>): DummyResourceSpec? {
     TODO("not implemented")

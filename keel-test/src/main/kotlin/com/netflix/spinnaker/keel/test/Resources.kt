@@ -8,7 +8,7 @@ import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.plugin.SimpleResourceHandler
-import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
+import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -91,7 +91,7 @@ object DummyResourceHandler : SimpleResourceHandler<DummyResourceSpec> {
 
   override val objectMapper: ObjectMapper = configuredObjectMapper()
 
-  override val normalizers: List<ResourceNormalizer<*>> = emptyList()
+  override val resolvers: List<Resolver<*>> = emptyList()
 
   override suspend fun current(resource: Resource<DummyResourceSpec>): DummyResourceSpec? {
     TODO("not implemented")

@@ -9,7 +9,7 @@ import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.mahe.DynamicPropertyService
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
-import com.netflix.spinnaker.keel.plugin.ResourceNormalizer
+import com.netflix.spinnaker.keel.plugin.Resolver
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.annotation.Bean
@@ -34,7 +34,7 @@ class BakeryConfiguration {
     igorService: ArtifactService,
     imageService: ImageService,
     publisher: ApplicationEventPublisher,
-    normalizers: List<ResourceNormalizer<*>>
+    normalizers: List<Resolver<*>>
   ) = ImageHandler(
     objectMapper,
     artifactRepository,
