@@ -1,6 +1,7 @@
 export const NAMESPACES = [
   'AWS/ApplicationELB',
   'AWS/AutoScaling',
+  'AWS/AmazonMQ',
   'AWS/Billing',
   'AWS/CloudFront',
   'AWS/CloudSearch',
