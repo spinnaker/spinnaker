@@ -24,7 +24,8 @@ internal data class RunCanaryContext(
   val metricsAccountName: String?,
   val configurationAccountName: String?,
   val storageAccountName: String?,
-  val canaryConfigId: String,
+  val canaryConfigId: String?,
+  val canaryConfigName: String?,
   val scopes: Map<String, CanaryScopes> = emptyMap(),
   val scoreThresholds: Thresholds,
   val siteLocal: Map<String, Any> = emptyMap()

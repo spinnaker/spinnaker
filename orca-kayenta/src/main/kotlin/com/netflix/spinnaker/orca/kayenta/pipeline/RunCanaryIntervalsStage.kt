@@ -102,6 +102,7 @@ class RunCanaryIntervalsStage(private val clock: Clock) : StageDefinitionBuilder
         canaryConfig.configurationAccountName,
         canaryConfig.storageAccountName,
         canaryConfig.canaryConfigId,
+        canaryConfig.canaryConfigName,
         buildRequestScopes(canaryConfig, getDeployDetails(parent), i, canaryAnalysisInterval),
         canaryConfig.scoreThresholds,
         canaryConfig.siteLocal

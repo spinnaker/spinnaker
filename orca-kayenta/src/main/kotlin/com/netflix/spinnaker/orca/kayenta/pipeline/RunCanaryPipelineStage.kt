@@ -17,10 +17,13 @@
 package com.netflix.spinnaker.orca.kayenta.pipeline
 
 import com.netflix.spinnaker.orca.CancellableStage
+import com.netflix.spinnaker.orca.ext.mapTo
 import com.netflix.spinnaker.orca.ext.withTask
 import com.netflix.spinnaker.orca.kayenta.KayentaService
+import com.netflix.spinnaker.orca.kayenta.model.RunCanaryContext
 import com.netflix.spinnaker.orca.kayenta.tasks.MonitorKayentaCanaryTask
 import com.netflix.spinnaker.orca.kayenta.tasks.RunKayentaCanaryTask
+import com.netflix.spinnaker.orca.kayenta.tasks.ResolveKayentaConfigIdTask
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -37,6 +40,13 @@ class RunCanaryPipelineStage(
   private val log = LoggerFactory.getLogger(javaClass)
 
   override fun taskGraph(stage: Stage, builder: TaskNode.Builder) {
+      val context = stage.mapTo<RunCanaryContext>()
+      if (context.canaryConfigId.isNullOrEmpty()) {
+        if (context.canaryConfigName.isNullOrEmpty()) {
+          throw IllegalArgumentException("Canary config must be specified as either UUID or name string")
+        }
+        builder.withTask<ResolveKayentaConfigIdTask>("resolveKayentaConfigId")
+      }
     builder
       .withTask<RunKayentaCanaryTask>("runCanary")
       .withTask<MonitorKayentaCanaryTask>("monitorCanary")

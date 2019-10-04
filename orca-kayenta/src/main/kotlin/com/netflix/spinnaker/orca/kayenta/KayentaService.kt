@@ -54,6 +54,9 @@ interface KayentaService {
 
   @GET("/credentials")
   fun getCredentials(): List<KayentaCredential>
+
+  @GET("/canaryConfig")
+  fun getAllCanaryConfigs(): List<KayentaCanaryConfig>
 }
 
 data class CanaryExecutionRequest(
@@ -129,4 +132,12 @@ data class ControlMetadataStats(
 data class KayentaCredential(
   val name: String,
   val type: String
+)
+
+data class KayentaCanaryConfig(
+  val id: String,
+  val name: String,
+  val updatedTimestamp: Long?,
+  val updateTimestampIso: String?,
+  val applications: List<String>
 )

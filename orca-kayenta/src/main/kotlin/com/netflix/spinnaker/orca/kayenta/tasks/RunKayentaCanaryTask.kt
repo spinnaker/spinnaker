@@ -37,6 +37,10 @@ class RunKayentaCanaryTask(
   override fun execute(stage: Stage): TaskResult {
     val context = stage.mapTo<RunCanaryContext>()
 
+    if (context.canaryConfigId.isNullOrEmpty()) {
+      throw IllegalArgumentException("Invalid canaryConfigId. Was the correct configName or configId used?")
+    }
+
     val canaryPipelineExecutionId = kayentaService.create(
       context.canaryConfigId,
       stage.execution.application,
