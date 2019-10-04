@@ -16,7 +16,7 @@ class ClusterAvailabilityZonesResolver(
   override val apiVersion = SPINNAKER_API_V1.subApi("ec2")
   override val supportedKind = "cluster"
 
-  override fun normalize(resource: Resource<ClusterSpec>): Resource<ClusterSpec> {
+  override fun invoke(resource: Resource<ClusterSpec>): Resource<ClusterSpec> {
     val regions = resource.spec.locations.regions.map { region ->
       if (region.availabilityZones.isEmpty()) {
         region.copy(availabilityZones = cloudDriverCache.resolveAvailabilityZones(resource.spec.locations.accountName, region))

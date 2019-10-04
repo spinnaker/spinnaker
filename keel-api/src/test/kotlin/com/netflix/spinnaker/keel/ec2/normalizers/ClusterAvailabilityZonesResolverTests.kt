@@ -152,7 +152,7 @@ internal class ClusterAvailabilityZonesResolverTests : JUnit5Minutests {
       }
 
       test("availability zones in all regions are assigned") {
-        val normalized = subject.normalize(resource)
+        val normalized = subject(resource)
 
         expect {
           that(normalized.spec)
@@ -179,7 +179,7 @@ internal class ClusterAvailabilityZonesResolverTests : JUnit5Minutests {
       }
 
       test("specified availability zones are left alone") {
-        val normalized = subject.normalize(resource)
+        val normalized = subject(resource)
 
         expectThat(normalized.spec)
           .get { locations["us-east-1"].availabilityZones }
@@ -187,7 +187,7 @@ internal class ClusterAvailabilityZonesResolverTests : JUnit5Minutests {
       }
 
       test("unspecified availability zones are assigned") {
-        val normalized = subject.normalize(resource)
+        val normalized = subject(resource)
 
         expectThat(normalized.spec)
           .get { locations["us-west-2"].availabilityZones }
@@ -208,7 +208,7 @@ internal class ClusterAvailabilityZonesResolverTests : JUnit5Minutests {
       }
 
       test("no changes are made") {
-        val normalized = subject.normalize(resource)
+        val normalized = subject(resource)
 
         expectThat(normalized.spec)
           .isEqualTo(resource.spec)

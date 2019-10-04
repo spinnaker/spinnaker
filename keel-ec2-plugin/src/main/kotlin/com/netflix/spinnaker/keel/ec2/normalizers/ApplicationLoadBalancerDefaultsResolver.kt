@@ -12,7 +12,7 @@ class ApplicationLoadBalancerDefaultsResolver : Resolver<ApplicationLoadBalancer
   override val apiVersion = SPINNAKER_API_V1.subApi("ec2")
   override val supportedKind = "application-load-balancer"
 
-  override fun normalize(resource: Resource<ApplicationLoadBalancer>): Resource<ApplicationLoadBalancer> {
+  override fun invoke(resource: Resource<ApplicationLoadBalancer>): Resource<ApplicationLoadBalancer> {
     if (resource.spec.listeners.any { it.defaultActions.isEmpty() } || resource.spec.securityGroupNames.isEmpty()) {
       val listeners = resource.spec.listeners.map {
         if (it.defaultActions.isEmpty()) {

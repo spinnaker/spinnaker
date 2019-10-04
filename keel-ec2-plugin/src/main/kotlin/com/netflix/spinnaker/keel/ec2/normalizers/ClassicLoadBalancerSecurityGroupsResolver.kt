@@ -14,7 +14,7 @@ class ClassicLoadBalancerSecurityGroupsResolver : Resolver<ClassicLoadBalancer> 
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  override fun normalize(resource: Resource<ClassicLoadBalancer>): Resource<ClassicLoadBalancer> {
+  override fun invoke(resource: Resource<ClassicLoadBalancer>): Resource<ClassicLoadBalancer> {
     if (resource.spec.securityGroupNames.isEmpty()) {
       val securityGroupNames = setOf("${resource.spec.moniker.app}-elb")
 

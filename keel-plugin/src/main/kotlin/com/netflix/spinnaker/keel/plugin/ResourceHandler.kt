@@ -67,7 +67,7 @@ abstract class ResourceHandler<S : ResourceSpec, R : Any>(
       .filterIsInstance<Resolver<S>>()
       .fold(resource) { r, resolver ->
         log.debug("Applying ${resolver.javaClass} to ${r.id}")
-        resolver.normalize(r)
+        resolver(r)
       }
 
   /**

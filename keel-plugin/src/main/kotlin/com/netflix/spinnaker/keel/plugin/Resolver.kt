@@ -23,18 +23,12 @@ import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.Resource
 
 /**
- * A resource normalizer throws a [com.netflix.spinnaker.keel.exceptions.InvalidResourceException]
- * when a resource is invalid
+ * Implementations apply changes to a [ResourceSpec] such as adding default values, applying
+ * opinions, or resolving references.
  */
-interface Resolver<T : ResourceSpec> {
-
+interface Resolver<T : ResourceSpec> : (Resource<T>) -> Resource<T> {
   val apiVersion: ApiVersion
   val supportedKind: String
-
-  /**
-   * @throws com.netflix.spinnaker.keel.exceptions.InvalidResourceException
-   */
-  fun normalize(resource: Resource<T>): Resource<T>
 }
 
 internal fun Resolver<*>.handles(
