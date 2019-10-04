@@ -1,7 +1,7 @@
 #!/bin/bash
 # This script will build the project.
 
-GRADLE_1="./gradlew -PenablePublishing=true --no-daemon --max-workers=1"
+GRADLE="./gradlew -PenablePublishing=true --no-daemon --max-workers=1"
 GRADLE_3="./gradlew -PenablePublishing=true --no-daemon --max-workers=3"
 export GRADLE_OPTS="-Xmx1g -Xms1g"
 
