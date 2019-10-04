@@ -1,29 +1,64 @@
-import { categorizeErrorMessage, categorizeErrors } from './categorizedErrors';
+import {
+  asyncMessage,
+  categorizeValidationMessage,
+  categorizeValidationMessages,
+  errorMessage,
+  infoMessage,
+  messageMessage,
+  successMessage,
+  warningMessage,
+} from './categories';
 
 describe('categorizeErrorMessage', () => {
   it('returns an array of length 2', () => {
-    const result = categorizeErrorMessage('');
+    const result = categorizeValidationMessage('');
     expect(Array.isArray(result)).toBeTruthy();
     expect(result.length).toBe(2);
   });
 
   it('returns the matching category key if the input starts with a category label and ": "', () => {
-    expect(categorizeErrorMessage('Error: ')[0]).toEqual('error');
-    expect(categorizeErrorMessage('Warning: ')[0]).toEqual('warning');
-    expect(categorizeErrorMessage('Async: ')[0]).toEqual('async');
-    expect(categorizeErrorMessage('Message: ')[0]).toEqual('message');
+    expect(categorizeValidationMessage('Error: ')[0]).toEqual('error');
+    expect(categorizeValidationMessage('Warning: ')[0]).toEqual('warning');
+    expect(categorizeValidationMessage('Async: ')[0]).toEqual('async');
+    expect(categorizeValidationMessage('Message: ')[0]).toEqual('message');
   });
 
   it('returns "error" category key by default if no category label is present', () => {
-    expect(categorizeErrorMessage('there was an error')[0]).toEqual('error');
+    expect(categorizeValidationMessage('there was an error')[0]).toEqual('error');
   });
 
   it('returns the entire error message if no category label is present', () => {
-    expect(categorizeErrorMessage('there was an error')[1]).toEqual('there was an error');
+    expect(categorizeValidationMessage('there was an error')[1]).toEqual('there was an error');
   });
 
   it('returns the error message without the label prefix', () => {
-    expect(categorizeErrorMessage('Warning: something sorta bad')[1]).toEqual('something sorta bad');
+    expect(categorizeValidationMessage('Warning: something sorta bad')[1]).toEqual('something sorta bad');
+  });
+});
+
+describe('category message builder', () => {
+  it('asyncMessage should prefix a message with Async:', () => {
+    expect(asyncMessage('the quick brown fox')).toBe('Async: the quick brown fox');
+  });
+
+  it('errorMessage should prefix a message with Error:', () => {
+    expect(errorMessage('the quick brown fox')).toBe('Error: the quick brown fox');
+  });
+
+  it('infoMessage should prefix a message with Info:', () => {
+    expect(infoMessage('the quick brown fox')).toBe('Info: the quick brown fox');
+  });
+
+  it('messageMessage should prefix a message with Message:', () => {
+    expect(messageMessage('the quick brown fox')).toBe('Message: the quick brown fox');
+  });
+
+  it('successMessage should prefix a message with Success:', () => {
+    expect(successMessage('the quick brown fox')).toBe('Success: the quick brown fox');
+  });
+
+  it('warningMessage should prefix a message with Warning:', () => {
+    expect(warningMessage('the quick brown fox')).toBe('Warning: the quick brown fox');
   });
 });
 
@@ -38,13 +73,13 @@ describe('categorizedErrors', () => {
   });
 
   it('returns an object with all error categories as keys', () => {
-    const categories = categorizeErrors({});
+    const categories = categorizeValidationMessages({});
     expect(Object.keys(categories).sort()).toEqual(['async', 'error', 'info', 'message', 'success', 'warning']);
   });
 
   it('categorizes an unlabeled error message into "error"', () => {
     const rawErrors = { foo: 'An error with foo' };
-    const categorized = categorizeErrors(rawErrors);
+    const categorized = categorizeValidationMessages(rawErrors);
 
     const error = { foo: 'An error with foo' };
     expect(categorized).toEqual({ ...emptyErrors, error });
@@ -52,7 +87,7 @@ describe('categorizedErrors', () => {
 
   it('categorizes a labeled warning message into "warning"', () => {
     const rawErrors = { foo: 'Warning: A warning about foo' };
-    const categorized = categorizeErrors(rawErrors);
+    const categorized = categorizeValidationMessages(rawErrors);
 
     const warning = { foo: 'A warning about foo' };
     expect(categorized).toEqual({ ...emptyErrors, warning });
@@ -64,7 +99,7 @@ describe('categorizedErrors', () => {
       bar: 'Async: Loading some data',
       baz: 'Message: The sky is blue',
     };
-    const categorized = categorizeErrors(rawErrors);
+    const categorized = categorizeValidationMessages(rawErrors);
 
     const warning = { foo: 'A warning about foo' };
     const async = { bar: 'Loading some data' };
@@ -78,7 +113,7 @@ describe('categorizedErrors', () => {
       bar: 'Message: Fear leads to anger',
       baz: 'Message: The sky is blue',
     };
-    const categorized = categorizeErrors(rawErrors);
+    const categorized = categorizeValidationMessages(rawErrors);
 
     const message = {
       foo: 'Two plus two is four',
@@ -107,7 +142,7 @@ describe('categorizedErrors', () => {
         },
       },
     };
-    const categorized = categorizeErrors(rawErrors);
+    const categorized = categorizeValidationMessages(rawErrors);
 
     const warning = {
       people: [

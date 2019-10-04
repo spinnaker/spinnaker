@@ -2,21 +2,6 @@
 export type IValidatorResult = undefined | string;
 export type IValidator = (value: any, label?: string) => IValidatorResult;
 
-export const categoryLabels = {
-  async: 'Async',
-  error: 'Error',
-  info: 'Info',
-  message: 'Message',
-  success: 'Success',
-  warning: 'Warning',
-};
-
-type ICategoryLabels = typeof categoryLabels;
-export type IValidationCategory = keyof typeof categoryLabels;
-export type ICategorizedErrors = {
-  [P in keyof ICategoryLabels]: any;
-};
-
 export interface IFormValidator {
   /**
    * Defines a new form field to validate
