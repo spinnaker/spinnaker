@@ -56,7 +56,7 @@ class KeelTagHandler(
     "keel-tags"
   ) to KeelTagSpec::class.java
 
-  override suspend fun desired(resource: Resource<KeelTagSpec>): TaggedResource =
+  override suspend fun toResolvedType(resource: Resource<KeelTagSpec>): TaggedResource =
     when (resource.spec.tagState) {
       is TagDesired -> {
         val desiredTag = (resource.spec.tagState as TagDesired).tag

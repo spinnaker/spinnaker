@@ -92,13 +92,12 @@ class ResourcePersister(
     @Suppress("UNCHECKED_CAST")
     val existing = resourceRepository.get(id) as Resource<T>
     val resource = existing.withSpec(updated.spec, handler.supportedKind.second)
-    val normalized = handler.applyResolvers(resource)
 
-    val diff = ResourceDiff(normalized.spec, existing.spec)
+    val diff = ResourceDiff(resource.spec, existing.spec)
 
     return if (diff.hasChanges()) {
-      log.debug("Resource {} updated: {}", normalized.id, diff.toDebug())
-      normalized
+      log.debug("Resource {} updated: {}", resource.id, diff.toDebug())
+      resource
         .also {
           resourceRepository.store(it)
           publisher.publishEvent(ResourceUpdated(it, diff.toUpdateJson(), clock))

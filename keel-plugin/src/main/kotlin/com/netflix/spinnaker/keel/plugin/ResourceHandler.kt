@@ -61,7 +61,7 @@ abstract class ResourceHandler<S : ResourceSpec, R : Any>(
    * @return [resource] or a copy of [resource] that may have been changed in order to set default
    * values or apply opinions.
    */
-  fun applyResolvers(resource: Resource<S>): Resource<S> =
+  private fun applyResolvers(resource: Resource<S>): Resource<S> =
     resolvers
       .filter { it.handles(resource.apiVersion, resource.kind) }
       .filterIsInstance<Resolver<S>>()
@@ -71,15 +71,27 @@ abstract class ResourceHandler<S : ResourceSpec, R : Any>(
       }
 
   /**
-   * Resolve the resource spec into the desired state. This may involve looking up referenced
-   * resources, etc.
+   * Resolve and convert the resource spec into the type that represents the diff-able desired
+   * state.
    *
    * The value returned by this method is used as the basis of the diff (with the result of
    * [current] in order to decide whether to call [create]/[update]/[upsert].
    *
-   * Implementations of this method should not actuate any changes.
+   * @param resource the resource as persisted in the Keel database.
    */
-  abstract suspend fun desired(resource: Resource<S>): R
+  suspend fun desired(resource: Resource<S>): R = toResolvedType(applyResolvers(resource))
+
+  /**
+   * Convert the resource spec into the type that represents the diff-able desired state. This may
+   * involve looking up referenced resources, splitting a multi-region resource into discrete
+   * objects for each region, etc.
+   *
+   * Implementations of this method should not actuate any changes.
+   *
+   * @param resource a fully-resolved version of the persisted resource spec. You can assume that
+   * [applyResolvers] has already been called on this object.
+   */
+  protected abstract suspend fun toResolvedType(resource: Resource<S>): R
 
   /**
    * Return the current _actual_ representation of what [resource] looks like in the cloud.

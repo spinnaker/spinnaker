@@ -50,7 +50,7 @@ class ImageHandler(
     "images"
   ) to ImageSpec::class.java
 
-  override suspend fun desired(resource: Resource<ImageSpec>): Image =
+  override suspend fun toResolvedType(resource: Resource<ImageSpec>): Image =
     with(resource) {
       val artifact = DeliveryArtifact(spec.artifactName, DEB)
 

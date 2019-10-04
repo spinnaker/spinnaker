@@ -65,7 +65,7 @@ class SecurityGroupHandler(
     "security-groups"
   ) to SecurityGroupSpec::class.java
 
-  override suspend fun desired(resource: Resource<SecurityGroupSpec>): Map<String, SecurityGroup> =
+  override suspend fun toResolvedType(resource: Resource<SecurityGroupSpec>): Map<String, SecurityGroup> =
     with(resource.spec) {
       locations.regions.associateWith { region ->
         SecurityGroup(

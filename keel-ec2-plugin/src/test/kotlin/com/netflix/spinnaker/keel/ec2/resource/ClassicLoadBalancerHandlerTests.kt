@@ -160,16 +160,17 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
 
       test("the current model is null") {
         val current = runBlocking {
-          current(applyResolvers(resource))
+          current(resource)
         }
         expectThat(current).isNull()
       }
 
+      // TODO: this test should really be pulled into a test for ClassicLoadBalancerSecurityGroupsResolver
       test("the CLB is created with a default security group as none are specified in spec") {
         runBlocking {
-          val current = current(applyResolvers(resource))
-          val desired = desired(applyResolvers(resource))
-          upsert(applyResolvers(resource), ResourceDiff(desired = desired, current = current))
+          val current = current(resource)
+          val desired = desired(resource)
+          upsert(resource.copy(spec = desired), ResourceDiff(desired = desired, current = current))
         }
 
         val slot = slot<OrchestrationRequest>()
@@ -183,12 +184,13 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
         }
       }
 
+      // TODO: this test should really be pulled into a test for ClassicLoadBalancerSecurityGroupsResolver
       test("no default security group is applied if any are included in the spec") {
         val modSpec = spec.copy(securityGroupNames = setOf("nondefault-elb"))
         val modResource = resource.copy(spec = modSpec)
 
         runBlocking {
-          upsert(applyResolvers(modResource), ResourceDiff(spec, modSpec))
+          upsert(modResource, ResourceDiff(spec, modSpec))
         }
 
         val slot = slot<OrchestrationRequest>()
@@ -220,7 +222,7 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
         expectThat(diff.diff.getChild("securityGroupNames").state).isEqualTo(DiffNode.State.CHANGED)
 
         runBlocking {
-          upsert(applyResolvers(newResource), diff)
+          upsert(newResource, diff)
         }
 
         val slot = slot<OrchestrationRequest>()

@@ -172,8 +172,8 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
       test("the ALB is created with a generated defaultAction as none are in the spec") {
         runBlocking {
           val current = current(resource)
-          val desired = desired(applyResolvers(resource))
-          upsert(applyResolvers(resource), ResourceDiff(desired = desired, current = current))
+          val desired = desired(resource)
+          upsert(resource.copy(spec = desired), ResourceDiff(desired = desired, current = current))
         }
 
         val slot = slot<OrchestrationRequest>()
@@ -199,7 +199,7 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
       test("the diff is clean") {
         val diff = runBlocking {
           val current = current(resource)
-          val desired = desired(applyResolvers(resource))
+          val desired = desired(resource)
           ResourceDiff(desired, current)
         }
 
@@ -216,14 +216,17 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
         val tgroup = resource.spec.targetGroups.first().copy(port = 7505)
         val newResource = resource.copy(spec = resource.spec.copy(targetGroups = setOf(tgroup)))
 
-        val diff = runBlocking {
-          val current = current(newResource)
-          val desired = desired(applyResolvers(newResource))
-          ResourceDiff(desired, current)
-        }
-
         runBlocking {
-          upsert(applyResolvers(newResource), diff)
+          val current = current(newResource)
+          val desired = desired(newResource)
+          val diff = ResourceDiff(desired, current)
+
+          expectThat(diff.diff) {
+            get { childCount() }.isEqualTo(1)
+            get { getChild("targetGroups").state }.isEqualTo(DiffNode.State.CHANGED)
+          }
+
+          upsert(newResource.copy(spec = desired), diff)
         }
 
         val slot = slot<OrchestrationRequest>()
@@ -231,11 +234,6 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
 
         expectThat(slot.captured.job.first()) {
           get("type").isEqualTo("upsertLoadBalancer")
-        }
-
-        expectThat(diff.diff) {
-          get { childCount() }.isEqualTo(1)
-          get { getChild("targetGroups").state }.isEqualTo(DiffNode.State.CHANGED)
         }
       }
     }

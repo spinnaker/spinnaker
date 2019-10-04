@@ -66,7 +66,7 @@ class ClusterHandler(
     plural = "clusters"
   ) to ClusterSpec::class.java
 
-  override suspend fun desired(resource: Resource<ClusterSpec>): Map<String, ServerGroup> =
+  override suspend fun toResolvedType(resource: Resource<ClusterSpec>): Map<String, ServerGroup> =
     with(resource.spec) {
       val resolvedImages = imageResolver.resolveImageId(resource)
       resolve(resolvedImages).byRegion()
