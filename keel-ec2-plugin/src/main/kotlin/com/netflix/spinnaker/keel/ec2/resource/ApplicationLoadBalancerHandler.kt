@@ -24,8 +24,6 @@ import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.plugin.SimpleResourceHandler
 import com.netflix.spinnaker.keel.retrofit.isNotFound
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import retrofit2.HttpException
 
 class ApplicationLoadBalancerHandler(
@@ -33,10 +31,9 @@ class ApplicationLoadBalancerHandler(
   private val cloudDriverCache: CloudDriverCache,
   private val orcaService: OrcaService,
   private val environmentResolver: EnvironmentResolver,
-  override val objectMapper: ObjectMapper,
-  override val resolvers: List<Resolver<*>>
-) : SimpleResourceHandler<ApplicationLoadBalancer> {
-  override val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
+  objectMapper: ObjectMapper,
+  resolvers: List<Resolver<*>>
+) : SimpleResourceHandler<ApplicationLoadBalancer>(objectMapper, resolvers) {
 
   override val apiVersion = SPINNAKER_API_V1.subApi("ec2")
   override val supportedKind = ResourceKind(
@@ -80,30 +77,6 @@ class ApplicationLoadBalancerHandler(
 
     log.info("Started task ${taskRef.ref} to $description")
     return listOf(Task(id = taskRef.taskId, name = description))
-  }
-
-  override suspend fun delete(resource: Resource<ApplicationLoadBalancer>) {
-    val description = "Delete load balancer ${resource.spec.moniker.name} in " +
-      "${resource.spec.location.accountName}/${resource.spec.location.region}"
-
-    val notifications = environmentResolver.getNotificationsFor(resource.id)
-
-    val taskRef =
-      resource.spec.let { spec ->
-        orcaService
-          .orchestrate(
-            resource.serviceAccount,
-            OrchestrationRequest(
-              description,
-              spec.moniker.app,
-              description,
-              listOf(spec.toDeleteJob()),
-              OrchestrationTrigger(correlationId = resource.id.toString(), notifications = emptyList())
-            )
-          )
-      }
-
-    log.info("Started task ${taskRef.ref} to $description")
   }
 
   override suspend fun actuationInProgress(id: ResourceId) =

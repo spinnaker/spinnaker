@@ -49,7 +49,6 @@ internal class ImageHandlerTests : JUnit5Minutests {
     val imageService = mockk<ImageService>()
     val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
     val handler = ImageHandler(
-      configuredObjectMapper(),
       artifactRepository,
       baseImageCache,
       theCloudDriver,
@@ -57,6 +56,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
       igorService,
       imageService,
       publisher,
+      configuredObjectMapper(),
       emptyList()
     )
     val resource = resource(

@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.keel.test
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.Resource
@@ -8,10 +7,7 @@ import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.plugin.SimpleResourceHandler
-import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import java.util.UUID
 
 val TEST_API = SPINNAKER_API_V1.subApi("test")
@@ -83,23 +79,15 @@ fun randomString(length: Int = 8) =
     .joinToString("")
     .substring(0 until length)
 
-object DummyResourceHandler : SimpleResourceHandler<DummyResourceSpec> {
+object DummyResourceHandler : SimpleResourceHandler<DummyResourceSpec>(
+  configuredObjectMapper(), emptyList()
+) {
   override val apiVersion: ApiVersion = SPINNAKER_API_V1.subApi("test")
 
   override val supportedKind: Pair<ResourceKind, Class<DummyResourceSpec>> =
     ResourceKind("test", "whatever", "whatevers") to DummyResourceSpec::class.java
 
-  override val objectMapper: ObjectMapper = configuredObjectMapper()
-
-  override val resolvers: List<Resolver<*>> = emptyList()
-
   override suspend fun current(resource: Resource<DummyResourceSpec>): DummyResourceSpec? {
     TODO("not implemented")
   }
-
-  override suspend fun delete(resource: Resource<DummyResourceSpec>) {
-    TODO("not implemented")
-  }
-
-  override val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
 }

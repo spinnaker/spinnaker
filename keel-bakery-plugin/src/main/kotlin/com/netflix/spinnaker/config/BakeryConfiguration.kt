@@ -36,7 +36,6 @@ class BakeryConfiguration {
     publisher: ApplicationEventPublisher,
     normalizers: List<Resolver<*>>
   ) = ImageHandler(
-    objectMapper,
     artifactRepository,
     baseImageCache,
     clouddriverService,
@@ -44,6 +43,7 @@ class BakeryConfiguration {
     igorService,
     imageService,
     publisher,
+    objectMapper,
     normalizers
   )
 }

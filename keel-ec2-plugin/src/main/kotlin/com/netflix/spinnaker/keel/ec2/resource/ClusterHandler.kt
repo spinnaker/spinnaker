@@ -39,8 +39,6 @@ import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import retrofit2.HttpException
 import java.time.Clock
@@ -57,11 +55,9 @@ class ClusterHandler(
   private val environmentResolver: EnvironmentResolver,
   private val clock: Clock,
   private val publisher: ApplicationEventPublisher,
-  override val objectMapper: ObjectMapper,
-  override val resolvers: List<Resolver<*>>
-) : ResourceHandler<ClusterSpec, Map<String, ServerGroup>> {
-
-  override val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
+  objectMapper: ObjectMapper,
+  resolvers: List<Resolver<*>>
+) : ResourceHandler<ClusterSpec, Map<String, ServerGroup>>(objectMapper, resolvers) {
 
   override val apiVersion = SPINNAKER_API_V1.subApi("ec2")
   override val supportedKind = ResourceKind(
@@ -242,10 +238,6 @@ class ClusterHandler(
       "region" to current.location.region,
       "serverGroupName" to current.name
     )
-  }
-
-  override suspend fun delete(resource: Resource<ClusterSpec>) {
-    TODO("not implemented")
   }
 
   private suspend fun CloudDriverService.getServerGroups(resource: Resource<ClusterSpec>): Iterable<ServerGroup> =

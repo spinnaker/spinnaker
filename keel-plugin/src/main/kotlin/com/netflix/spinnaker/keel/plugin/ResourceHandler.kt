@@ -12,6 +12,7 @@ import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.events.Task
 import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 /**
  * @param S the spec type.
@@ -19,20 +20,19 @@ import org.slf4j.Logger
  *
  * If those two are the same, use [SimpleResourceHandler] instead.
  */
-interface ResourceHandler<S : ResourceSpec, R : Any> : KeelPlugin {
+abstract class ResourceHandler<S : ResourceSpec, R : Any>(
+  private val objectMapper: ObjectMapper,
+  private val resolvers: List<Resolver<*>>
+) : KeelPlugin {
 
-  val log: Logger
+  protected val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
 
-  val objectMapper: ObjectMapper
-
-  val resolvers: List<Resolver<*>>
-
-  val apiVersion: ApiVersion
+  abstract val apiVersion: ApiVersion
 
   /**
    * Maps the kind to the implementation type.
    */
-  val supportedKind: Pair<ResourceKind, Class<S>>
+  abstract val supportedKind: Pair<ResourceKind, Class<S>>
 
   /**
    * Validates the resource spec and generates a metadata header.
@@ -79,7 +79,7 @@ interface ResourceHandler<S : ResourceSpec, R : Any> : KeelPlugin {
    *
    * Implementations of this method should not actuate any changes.
    */
-  suspend fun desired(resource: Resource<S>): R
+  abstract suspend fun desired(resource: Resource<S>): R
 
   /**
    * Return the current _actual_ representation of what [resource] looks like in the cloud.
@@ -91,7 +91,7 @@ interface ResourceHandler<S : ResourceSpec, R : Any> : KeelPlugin {
    *
    * Implementations of this method should not actuate any changes.
    */
-  suspend fun current(resource: Resource<S>): R?
+  abstract suspend fun current(resource: Resource<S>): R?
 
   /**
    * Create a resource so that it matches the desired state represented by [resource].
@@ -103,7 +103,7 @@ interface ResourceHandler<S : ResourceSpec, R : Any> : KeelPlugin {
    *
    * @return a list of tasks launched to actuate the resource.
    */
-  suspend fun create(
+  open suspend fun create(
     resource: Resource<S>,
     resourceDiff: ResourceDiff<R>
   ): List<Task> =
@@ -119,7 +119,7 @@ interface ResourceHandler<S : ResourceSpec, R : Any> : KeelPlugin {
    *
    * @return a list of tasks launched to actuate the resource.
    */
-  suspend fun update(
+  open suspend fun update(
     resource: Resource<S>,
     resourceDiff: ResourceDiff<R>
   ): List<Task> =
@@ -133,7 +133,7 @@ interface ResourceHandler<S : ResourceSpec, R : Any> : KeelPlugin {
    *
    * @return a list of tasks launched to actuate the resource.
    */
-  suspend fun upsert(
+  open suspend fun upsert(
     resource: Resource<S>,
     resourceDiff: ResourceDiff<R>
   ): List<Task> {
@@ -143,12 +143,13 @@ interface ResourceHandler<S : ResourceSpec, R : Any> : KeelPlugin {
   /**
    * Delete a resource as the desired state is that it should no longer exist.
    */
-  suspend fun delete(resource: Resource<S>)
+  open suspend fun delete(resource: Resource<S>): List<Task> = TODO("Not implemented")
 
   /**
-   * @return `true` if this plugin is still busy running a previous actuation, `false` otherwise.
+   * @return `true` if this plugin is still busy running a previous actuation for the resource
+   * associated with [id], `false` otherwise.
    */
-  suspend fun actuationInProgress(id: ResourceId): Boolean = false
+  open suspend fun actuationInProgress(id: ResourceId): Boolean = false
 }
 
 /**

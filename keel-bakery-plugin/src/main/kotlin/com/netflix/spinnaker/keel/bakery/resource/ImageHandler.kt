@@ -29,12 +29,9 @@ import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.Resolver
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 
 class ImageHandler(
-  override val objectMapper: ObjectMapper,
   private val artifactRepository: ArtifactRepository,
   private val baseImageCache: BaseImageCache,
   private val cloudDriver: CloudDriverService,
@@ -42,8 +39,9 @@ class ImageHandler(
   private val igorService: ArtifactService,
   private val imageService: ImageService,
   private val publisher: ApplicationEventPublisher,
-  override val resolvers: List<Resolver<*>>
-) : ResourceHandler<ImageSpec, Image> {
+  objectMapper: ObjectMapper,
+  resolvers: List<Resolver<*>>
+) : ResourceHandler<ImageSpec, Image>(objectMapper, resolvers) {
 
   override val apiVersion = SPINNAKER_API_V1.subApi("bakery")
   override val supportedKind = ResourceKind(
@@ -126,10 +124,6 @@ class ImageHandler(
     return listOf(Task(id = taskRef.taskId, name = description)) // TODO: wow, this is ugly
   }
 
-  override suspend fun delete(resource: Resource<ImageSpec>) {
-    TODO("not implemented")
-  }
-
   override suspend fun actuationInProgress(id: ResourceId) =
     orcaService
       .getCorrelatedExecutions(id.value)
@@ -150,8 +144,6 @@ class ImageHandler(
         }
       } ?: throw BaseAmiNotFound(baseImage)
   }
-
-  override val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
 }
 
 class BaseAmiNotFound(baseImage: String) : RuntimeException("Could not find a base AMI for base image $baseImage")

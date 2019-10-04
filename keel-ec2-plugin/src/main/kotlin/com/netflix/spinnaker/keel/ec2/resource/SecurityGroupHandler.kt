@@ -47,8 +47,6 @@ import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import retrofit2.HttpException
 
 class SecurityGroupHandler(
@@ -56,10 +54,9 @@ class SecurityGroupHandler(
   private val cloudDriverCache: CloudDriverCache,
   private val orcaService: OrcaService,
   private val environmentResolver: EnvironmentResolver,
-  override val objectMapper: ObjectMapper,
-  override val resolvers: List<Resolver<*>>
-) : ResourceHandler<SecurityGroupSpec, Map<String, SecurityGroup>> {
-  override val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
+  objectMapper: ObjectMapper,
+  resolvers: List<Resolver<*>>
+) : ResourceHandler<SecurityGroupSpec, Map<String, SecurityGroup>>(objectMapper, resolvers) {
 
   override val apiVersion = SPINNAKER_API_V1.subApi("ec2")
   override val supportedKind = ResourceKind(
@@ -133,10 +130,6 @@ class SecurityGroupHandler(
         }
         .map { it.await() }
     }
-
-  override suspend fun delete(resource: Resource<SecurityGroupSpec>) {
-    TODO("not implemented")
-  }
 
   private fun ResourceDiff<Map<String, SecurityGroup>>.toIndividualDiffs() =
     desired.map { (region, desire) ->

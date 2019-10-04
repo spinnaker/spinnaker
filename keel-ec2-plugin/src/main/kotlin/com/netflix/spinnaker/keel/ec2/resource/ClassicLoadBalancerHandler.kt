@@ -25,8 +25,6 @@ import com.netflix.spinnaker.keel.plugin.SimpleResourceHandler
 import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import kotlinx.coroutines.runBlocking
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import retrofit2.HttpException
 
 class ClassicLoadBalancerHandler(
@@ -34,10 +32,9 @@ class ClassicLoadBalancerHandler(
   private val cloudDriverCache: CloudDriverCache,
   private val orcaService: OrcaService,
   private val environmentResolver: EnvironmentResolver,
-  override val objectMapper: ObjectMapper,
-  override val resolvers: List<Resolver<*>>
-) : SimpleResourceHandler<ClassicLoadBalancer> {
-  override val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
+  objectMapper: ObjectMapper,
+  resolvers: List<Resolver<*>>
+) : SimpleResourceHandler<ClassicLoadBalancer>(objectMapper, resolvers) {
 
   override val apiVersion = SPINNAKER_API_V1.subApi("ec2")
   override val supportedKind = ResourceKind(
@@ -80,30 +77,6 @@ class ClassicLoadBalancerHandler(
 
     log.info("Started task ${taskRef.ref} to $description")
     return listOf(Task(id = taskRef.taskId, name = description))
-  }
-
-  override suspend fun delete(resource: Resource<ClassicLoadBalancer>) {
-    val description = "Delete load balancer ${resource.spec.moniker.name} in " +
-      "${resource.spec.location.accountName}/${resource.spec.location.region}"
-
-    val notifications = environmentResolver.getNotificationsFor(resource.id)
-
-    val taskRef =
-      resource.spec.let { spec ->
-        orcaService
-          .orchestrate(
-            resource.serviceAccount,
-            OrchestrationRequest(
-              description,
-              spec.moniker.app,
-              description,
-              listOf(spec.toDeleteJob()),
-              OrchestrationTrigger(correlationId = resource.id.toString(), notifications = notifications)
-            )
-          )
-      }
-
-    log.info("Started task ${taskRef.ref} to $description")
   }
 
   override suspend fun actuationInProgress(id: ResourceId) =

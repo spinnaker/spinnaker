@@ -36,8 +36,6 @@ import com.netflix.spinnaker.keel.retrofit.isNotFound
 import com.netflix.spinnaker.keel.tags.EntityTag
 import com.netflix.spinnaker.keel.tags.EntityTags
 import com.netflix.spinnaker.keel.tags.KEEL_TAG_NAME
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import retrofit2.HttpException
 
 /**
@@ -47,11 +45,9 @@ import retrofit2.HttpException
 class KeelTagHandler(
   private val cloudDriverService: CloudDriverService,
   private val orcaService: OrcaService,
-  override val objectMapper: ObjectMapper,
-  override val resolvers: List<Resolver<*>>
-) : ResourceHandler<KeelTagSpec, TaggedResource> {
-
-  override val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
+  objectMapper: ObjectMapper,
+  resolvers: List<Resolver<*>>
+) : ResourceHandler<KeelTagSpec, TaggedResource>(objectMapper, resolvers) {
 
   override val apiVersion = SPINNAKER_API_V1.subApi("tag")
   override val supportedKind = ResourceKind(
@@ -60,17 +56,16 @@ class KeelTagHandler(
     "keel-tags"
   ) to KeelTagSpec::class.java
 
-  override suspend fun desired(resource: Resource<KeelTagSpec>): TaggedResource {
+  override suspend fun desired(resource: Resource<KeelTagSpec>): TaggedResource =
     when (resource.spec.tagState) {
       is TagDesired -> {
         val desiredTag = (resource.spec.tagState as TagDesired).tag
-        return TaggedResource(resource.spec.keelId, resource.spec.entityRef, desiredTag)
+        TaggedResource(resource.spec.keelId, resource.spec.entityRef, desiredTag)
       }
       is TagNotDesired -> {
-        return TaggedResource(resource.spec.keelId, resource.spec.entityRef, null)
+        TaggedResource(resource.spec.keelId, resource.spec.entityRef, null)
       }
     }
-  }
 
   override suspend fun current(resource: Resource<KeelTagSpec>): TaggedResource? {
     val entityTags = getEntityTags(resource)
@@ -148,10 +143,6 @@ class KeelTagHandler(
         throw e
       }
     }
-  }
-
-  override suspend fun delete(resource: Resource<KeelTagSpec>) {
-    TODO("not implemented")
   }
 
   private fun EntityTags.containsTag(requestedTag: EntityTag): Boolean = tags

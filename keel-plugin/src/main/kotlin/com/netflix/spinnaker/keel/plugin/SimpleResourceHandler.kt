@@ -15,10 +15,14 @@
  */
 package com.netflix.spinnaker.keel.plugin
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.Resource
 
-interface SimpleResourceHandler<T : ResourceSpec> : ResourceHandler<T, T> {
+abstract class SimpleResourceHandler<T : ResourceSpec>(
+  objectMapper: ObjectMapper,
+  resolvers: List<Resolver<*>>
+) : ResourceHandler<T, T>(objectMapper, resolvers) {
 
   /**
    * Don't override this method, just implement [current]. If you need to do any resolution of the
