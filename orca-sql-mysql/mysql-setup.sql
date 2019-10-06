@@ -1,3 +1,4 @@
+DROP DATABASE IF EXISTS orca;
 SET tx_isolation = 'READ-COMMITTED';
 
 CREATE DATABASE orca;
