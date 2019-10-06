@@ -57,11 +57,16 @@ data class AutoScalingGroup(
   val defaultCooldown: Long,
   val healthCheckType: String,
   val healthCheckGracePeriod: Long,
-  val suspendedProcesses: Set<String>,
+  val suspendedProcesses: Set<SuspendedProcess>,
   val enabledMetrics: Set<String>,
   val tags: Set<Tag>,
   val terminationPolicies: Set<String>,
   val vpczoneIdentifier: String
+)
+
+data class SuspendedProcess(
+  val processName: String,
+  val suspensionReason: String? = null
 )
 
 data class Tag(

@@ -311,7 +311,7 @@ class ClusterHandler(
         terminationPolicies = asg.terminationPolicies.map { TerminationPolicy.valueOf(it) }.toSet()
       ),
       scaling = Scaling(
-        suspendedProcesses = asg.suspendedProcesses.map { ScalingProcess.valueOf(it) }.toSet()
+        suspendedProcesses = asg.suspendedProcesses.map { ScalingProcess.valueOf(it.processName) }.toSet()
       ),
       tags = asg.tags.associateBy(Tag::key, Tag::value).filterNot { it.key in DEFAULT_TAGS }
     )

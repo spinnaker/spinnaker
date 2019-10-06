@@ -13,7 +13,6 @@ import com.netflix.spinnaker.keel.api.ec2.Dependencies
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
 import com.netflix.spinnaker.keel.api.ec2.IdImageProvider
 import com.netflix.spinnaker.keel.api.ec2.Metric
-import com.netflix.spinnaker.keel.api.ec2.ScalingProcess
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup
 import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
 import com.netflix.spinnaker.keel.api.ec2.byRegion
@@ -30,6 +29,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.ServerGroupCapacity
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
+import com.netflix.spinnaker.keel.clouddriver.model.SuspendedProcess
 import com.netflix.spinnaker.keel.clouddriver.model.Tag
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
@@ -171,7 +171,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
           health.cooldown.seconds,
           health.healthCheckType.let(HealthCheckType::toString),
           health.warmup.seconds,
-          scaling.suspendedProcesses.map(ScalingProcess::toString).toSet(),
+          scaling.suspendedProcesses.map { SuspendedProcess(it.name) }.toSet(),
           health.enabledMetrics.map(Metric::toString).toSet(),
           tags.map { Tag(it.key, it.value) }.toSet(),
           health.terminationPolicies.map(TerminationPolicy::toString).toSet(),
