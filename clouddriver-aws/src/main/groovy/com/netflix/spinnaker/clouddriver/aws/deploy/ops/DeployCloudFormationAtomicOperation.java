@@ -57,6 +57,7 @@ public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map>
         amazonClientProvider.getAmazonCloudFormation(
             description.getCredentials(), description.getRegion());
     String template = description.getTemplateBody();
+    String roleARN = description.getRoleARN();
     List<Parameter> parameters =
         description.getParameters().entrySet().stream()
             .map(
@@ -80,6 +81,7 @@ public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map>
           createChangeSet(
               amazonCloudFormation,
               template,
+              roleARN,
               parameters,
               tags,
               description.getCapabilities(),
@@ -89,12 +91,22 @@ public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map>
         log.info("Updating existing stack {}", description);
         stackId =
             updateStack(
-                amazonCloudFormation, template, parameters, tags, description.getCapabilities());
+                amazonCloudFormation,
+                template,
+                roleARN,
+                parameters,
+                tags,
+                description.getCapabilities());
       } else {
         log.info("Creating new stack: {}", description);
         stackId =
             createStack(
-                amazonCloudFormation, template, parameters, tags, description.getCapabilities());
+                amazonCloudFormation,
+                template,
+                roleARN,
+                parameters,
+                tags,
+                description.getCapabilities());
       }
     }
     return Collections.singletonMap("stackId", stackId);
@@ -103,6 +115,7 @@ public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map>
   private String createStack(
       AmazonCloudFormation amazonCloudFormation,
       String template,
+      String roleARN,
       List<Parameter> parameters,
       List<Tag> tags,
       List<String> capabilities) {
@@ -112,6 +125,7 @@ public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map>
         new CreateStackRequest()
             .withStackName(description.getStackName())
             .withParameters(parameters)
+            .withRoleARN(roleARN)
             .withTags(tags)
             .withTemplateBody(template)
             .withCapabilities(capabilities);
@@ -123,6 +137,7 @@ public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map>
   private String updateStack(
       AmazonCloudFormation amazonCloudFormation,
       String template,
+      String roleARN,
       List<Parameter> parameters,
       List<Tag> tags,
       List<String> capabilities) {
@@ -132,6 +147,7 @@ public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map>
         new UpdateStackRequest()
             .withStackName(description.getStackName())
             .withParameters(parameters)
+            .withRoleARN(roleARN)
             .withTags(tags)
             .withTemplateBody(template)
             .withCapabilities(capabilities);
@@ -148,6 +164,7 @@ public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map>
   private String createChangeSet(
       AmazonCloudFormation amazonCloudFormation,
       String template,
+      String roleARN,
       List<Parameter> parameters,
       List<Tag> tags,
       List<String> capabilities,
@@ -159,6 +176,7 @@ public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map>
             .withStackName(description.getStackName())
             .withChangeSetName(description.getChangeSetName())
             .withParameters(parameters)
+            .withRoleARN(roleARN)
             .withTags(tags)
             .withTemplateBody(template)
             .withCapabilities(capabilities)

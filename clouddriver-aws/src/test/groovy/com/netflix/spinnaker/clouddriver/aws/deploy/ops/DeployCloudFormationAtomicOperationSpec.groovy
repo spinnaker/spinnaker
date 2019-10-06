@@ -54,6 +54,7 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
           stackName: "stackTest",
           region: "eu-west-1",
           templateBody: '{"key":"value"}',
+          roleARN: "arn:aws:iam::123456789012:role/test",
           parameters: [ key: "value"],
           tags: [ key: "value" ],
           capabilities: ["cap1", "cap2"],
@@ -73,6 +74,7 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
     1 * amazonCloudFormation.createStack(_) >> { CreateStackRequest request ->
       assert request.getStackName() == "stackTest"
       assert request.getTemplateBody() == '{"key":"value"}'
+      assert request.getRoleARN() == "arn:aws:iam::123456789012:role/test"
       assert request.getParameters() == [ new Parameter().withParameterKey("key").withParameterValue("value") ]
       assert request.getTags() == [ new Tag().withKey("key").withValue("value") ]
       assert request.getCapabilities() == ["cap1", "cap2"]
@@ -93,6 +95,7 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
           stackName: "stackTest",
           region: "eu-west-1",
           templateBody: '{"key":"value"}',
+          roleARN: "arn:aws:iam::123456789012:role/test",
           parameters: [ key: "value" ],
           tags: [ key: "value" ],
           capabilities: ["cap1", "cap2"],
@@ -114,6 +117,7 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
     1 * amazonCloudFormation.updateStack(_) >> { UpdateStackRequest request ->
       assert request.getStackName() == "stackTest"
       assert request.getTemplateBody() == '{"key":"value"}'
+      assert request.getRoleARN() == "arn:aws:iam::123456789012:role/test"
       assert request.getParameters() == [ new Parameter().withParameterKey("key").withParameterValue("value") ]
       assert request.getTags() == [ new Tag().withKey("key").withValue("value") ]
       assert request.getCapabilities() == ["cap1", "cap2"]
@@ -135,6 +139,7 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
           stackName: "stackTest",
           region: "eu-west-1",
           templateBody: 'key: "value"',
+          roleARN: "arn:aws:iam::123456789012:role/test",
           parameters: [ key: "value" ],
           tags: [ key: "value" ],
           capabilities: ["cap1", "cap2"],
@@ -162,6 +167,7 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
     1* amazonCloudFormation.createChangeSet(_) >> { CreateChangeSetRequest request ->
       assert request.getStackName() == "stackTest"
       assert request.getTemplateBody() == 'key: "value"'
+      assert request.getRoleARN() == "arn:aws:iam::123456789012:role/test"
       assert request.getParameters() == [ new Parameter().withParameterKey("key").withParameterValue("value") ]
       assert request.getTags() == [ new Tag().withKey("key").withValue("value") ]
       assert request.getCapabilities() == ["cap1", "cap2"]
