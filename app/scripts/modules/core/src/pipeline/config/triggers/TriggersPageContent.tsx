@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { extend, findIndex } from 'lodash';
+import { findIndex } from 'lodash';
 
 import { Application } from 'core/application';
 import { ArtifactReferenceService } from 'core/artifact/ArtifactReferenceService';
@@ -51,9 +51,9 @@ export function TriggersPageContent(props: ITriggersPageContentProps) {
     updatePipelineConfig({ triggers: newTriggers });
   }
 
-  function updateTrigger(index: number, changes: Partial<ITrigger>) {
+  function updateTrigger(index: number, updatedTrigger: ITrigger) {
     const updatedTriggers = triggers.slice(0);
-    extend(updatedTriggers[index], changes);
+    updatedTriggers[index] = updatedTrigger;
     PipelineConfigValidator.validatePipeline(pipeline);
     updatePipelineConfig({ triggers: updatedTriggers });
     if (SETTINGS.feature['artifactsRewrite']) {
