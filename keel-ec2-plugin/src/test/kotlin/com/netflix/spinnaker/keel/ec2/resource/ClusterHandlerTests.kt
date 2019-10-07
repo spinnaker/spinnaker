@@ -73,7 +73,6 @@ internal class ClusterHandlerTests : JUnit5Minutests {
   val cloudDriverService = mockk<CloudDriverService>()
   val cloudDriverCache = mockk<CloudDriverCache>()
   val orcaService = mockk<OrcaService>()
-  val imageResolver = mockk<ImageResolver>()
   val objectMapper = ObjectMapper().registerKotlinModule()
   val normalizers = emptyList<Resolver<ClusterSpec>>()
   val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)

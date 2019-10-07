@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.keel.ec2.resource
+package com.netflix.spinnaker.keel.ec2.normalizers
 
 import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.keel.api.ApiVersion
@@ -13,12 +13,9 @@ import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.VirtualMachineImage
-import com.netflix.spinnaker.keel.api.ec2.IdImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ImageProvider
 import com.netflix.spinnaker.keel.api.ec2.JenkinsImageProvider
 import com.netflix.spinnaker.keel.api.id
-import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
-import com.netflix.spinnaker.keel.clouddriver.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.appVersion
@@ -28,10 +25,11 @@ import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Component
 
+@Component
 class ImageResolver(
   private val dynamicConfigService: DynamicConfigService,
-  private val cloudDriverService: CloudDriverService,
   private val deliveryConfigRepository: DeliveryConfigRepository,
   private val artifactRepository: ArtifactRepository,
   private val imageService: ImageService
@@ -46,7 +44,6 @@ class ImageResolver(
     runBlocking {
       when (val imageProvider = resource.spec.imageProvider) {
         null -> resource
-        is IdImageProvider -> resolveFromImageId(resource, imageProvider)
         is ArtifactImageProvider -> resolveFromArtifact(resource, imageProvider)
         is JenkinsImageProvider -> resolveFromJenkinsJob(resource, imageProvider)
         else -> throw UnsupportedStrategy(
@@ -55,24 +52,6 @@ class ImageResolver(
         )
       }
     }
-
-  private suspend fun resolveFromImageId(
-    resource: Resource<ClusterSpec>,
-    imageProvider: IdImageProvider
-  ): Resource<ClusterSpec> {
-    val images = cloudDriverService.namedImages(
-      serviceAccount = DEFAULT_SERVICE_ACCOUNT,
-      imageName = imageProvider.imageId,
-      account = null,
-      region = null
-    )
-    check(images.size == 1) {
-      "Expected a single image for AMI id ${imageProvider.imageId} but found ${images.size}"
-    }
-
-    // TODO: this is not going to work for multiple regions
-    return resource.withVirtualMachineImages(images.first())
-  }
 
   private suspend fun resolveFromArtifact(
     resource: Resource<ClusterSpec>,

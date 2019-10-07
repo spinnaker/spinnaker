@@ -19,18 +19,14 @@ package com.netflix.spinnaker.config
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
-import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.ec2.resource.ApplicationLoadBalancerHandler
 import com.netflix.spinnaker.keel.ec2.resource.ClassicLoadBalancerHandler
 import com.netflix.spinnaker.keel.ec2.resource.ClusterHandler
 import com.netflix.spinnaker.keel.ec2.resource.EnvironmentResolver
-import com.netflix.spinnaker.keel.ec2.resource.ImageResolver
 import com.netflix.spinnaker.keel.ec2.resource.SecurityGroupHandler
 import com.netflix.spinnaker.keel.orca.OrcaService
-import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.plugin.Resolver
-import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.annotation.Bean
@@ -40,22 +36,6 @@ import java.time.Clock
 @Configuration
 @ConditionalOnProperty("keel.plugins.ec2.enabled")
 class EC2Config {
-
-  @Bean
-  fun imageResolver(
-    dynamicConfigService: DynamicConfigService,
-    cloudDriverService: CloudDriverService,
-    deliveryConfigRepository: DeliveryConfigRepository,
-    artifactRepository: ArtifactRepository,
-    imageService: ImageService
-  ): ImageResolver =
-    ImageResolver(
-      dynamicConfigService,
-      cloudDriverService,
-      deliveryConfigRepository,
-      artifactRepository,
-      imageService
-    )
 
   @Bean
   fun environmentResolver(
@@ -70,7 +50,6 @@ class EC2Config {
     cloudDriverService: CloudDriverService,
     cloudDriverCache: CloudDriverCache,
     orcaService: OrcaService,
-    imageResolver: ImageResolver,
     environmentResolver: EnvironmentResolver,
     clock: Clock,
     objectMapper: ObjectMapper,

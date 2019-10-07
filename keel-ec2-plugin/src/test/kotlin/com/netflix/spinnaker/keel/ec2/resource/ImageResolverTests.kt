@@ -17,13 +17,13 @@ import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
-import com.netflix.spinnaker.keel.api.ec2.IdImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ImageProvider
 import com.netflix.spinnaker.keel.api.ec2.get
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.appVersion
+import com.netflix.spinnaker.keel.ec2.normalizers.ImageResolver
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.model.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
@@ -66,7 +66,6 @@ internal class ImageResolverTests : JUnit5Minutests {
     val imageService = mockk<ImageService>()
     private val subject = ImageResolver(
       dynamicConfigService,
-      cloudDriverService,
       deliveryConfigRepository,
       artifactRepository,
       imageService
@@ -163,33 +162,6 @@ internal class ImageResolverTests : JUnit5Minutests {
       test("returns the original spec unchanged") {
         expectThat(resolve())
           .propertiesAreEqualTo(resource)
-      }
-    }
-
-    derivedContext<Fixture<IdImageProvider>>("a simple image id") {
-      fixture {
-        Fixture(
-          IdImageProvider("ami-2")
-        )
-      }
-
-      before {
-        coEvery {
-          cloudDriverService.namedImages(any(), any(), any(), any())
-        } answers {
-          val amiId = secondArg<String>()
-          images.filter { it.tagsByImageId.containsKey(amiId) }
-        }
-      }
-
-      test("resolves to the image id") {
-        val resolved = resolve()
-        expectThat(resolved.spec.overrides[imageRegion]?.launchConfiguration?.image)
-          .isNotNull()
-          .and {
-            get { appVersion }.isEqualTo("fnord-$version2")
-            get { id }.isEqualTo(imageProvider!!.imageId)
-          }
       }
     }
 

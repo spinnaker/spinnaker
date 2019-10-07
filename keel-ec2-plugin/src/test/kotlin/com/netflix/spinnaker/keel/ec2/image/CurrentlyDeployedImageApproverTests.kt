@@ -27,7 +27,6 @@ import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
-import com.netflix.spinnaker.keel.api.ec2.IdImageProvider
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.model.Moniker
@@ -74,14 +73,17 @@ internal class CurrentlyDeployedImageApproverTests : JUnit5Minutests {
       kind = "cluster",
       spec = ClusterSpec(
         moniker = Moniker("fnord", "api"),
-        imageProvider = IdImageProvider(imageId = imageId),
         locations = Locations(
           accountName = "test",
           regions = setOf(
             SubnetAwareRegionSpec(
               region = "ap-south-1",
               subnet = "internal (vpc0)",
-              availabilityZones = setOf("ap-south1-a", "ap-south1-b", "ap-south1-c")
+              availabilityZones = setOf("ap-south1-a", "ap-south1-b", "ap-south1-c"),
+              image = ClusterSpec.VirtualMachineImage(
+                id = imageId,
+                appVersion = "fnord-0.477.0-h623.787afd7"
+              )
             )
           )
         ),

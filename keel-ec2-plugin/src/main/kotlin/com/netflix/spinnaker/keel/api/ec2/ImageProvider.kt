@@ -30,15 +30,6 @@ import com.netflix.spinnaker.keel.ec2.jackson.ImageProviderDeserializer
 sealed class ImageProvider
 
 /**
- * Provides the ami id for the image
- */
-@JsonDeserialize(using = JsonDeserializer.None::class)
-@Deprecated("Remove before commit")
-data class IdImageProvider(
-  val imageId: String
-) : ImageProvider()
-
-/**
  * Provides image id by reference to a package
  */
 @JsonDeserialize(using = JsonDeserializer.None::class)
