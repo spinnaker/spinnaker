@@ -60,9 +60,8 @@ class HighlanderStrategySpec extends Specification {
       def strat = new HighlanderStrategy(shrinkClusterStage: shrinkClusterStage)
 
     when:
-      def syntheticStages = strat.composeFlow(stage)
-      def beforeStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE }
-      def afterStages = syntheticStages.findAll { it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER }
+      def beforeStages = strat.composeBeforeStages(stage)
+      def afterStages = strat.composeAfterStages(stage)
 
     then:
       beforeStages.isEmpty()

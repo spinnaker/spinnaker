@@ -33,17 +33,11 @@ class CustomStrategy implements Strategy {
 
   @Override
   List<Stage> composeBeforeStages(Stage parent) {
-    return composeFlow(parent)
-      .findAll({ it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE })
+    return Collections.emptyList()
   }
 
   @Override
-  List<Stage> composeAfterStages(Stage parent) {
-    return composeFlow(parent)
-      .findAll({ it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER })
-  }
-
-  List<Stage> composeFlow(Stage stage) {
+  List<Stage> composeAfterStages(Stage stage) {
     def cleanupConfig = AbstractDeployStrategyStage.CleanupConfig.fromStage(stage)
 
     Map parameters = [

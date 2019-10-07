@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies
 
+import com.netflix.spinnaker.kork.exceptions.UserException
 import com.netflix.spinnaker.orca.kato.pipeline.ModifyAsgLaunchConfigurationStage
 import com.netflix.spinnaker.orca.kato.pipeline.RollingPushStage
 import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver
@@ -43,22 +44,22 @@ class RollingPushStrategy implements Strategy {
 
   @Override
   List<Stage> composeBeforeStages(Stage parent) {
-    return composeFlow(parent)
-      .findAll({ it.syntheticStageOwner == SyntheticStageOwner.STAGE_BEFORE })
+    def source = sourceResolver.getSource(parent)
+
+    if (!source) {
+      throw new UserException("Could not find source server group for rolling push. Does the specified cluster exist?")
+    }
+
+    return Collections.emptyList()
   }
 
   @Override
-  List<Stage> composeAfterStages(Stage parent) {
-    return composeFlow(parent)
-      .findAll({ it.syntheticStageOwner == SyntheticStageOwner.STAGE_AFTER })
-  }
-
-  List<Stage> composeFlow(Stage stage) {
+  List<Stage> composeAfterStages(Stage stage) {
     def stages = []
     def source = sourceResolver.getSource(stage)
 
     if (!source) {
-      throw new IllegalArgumentException("Could not find source server group for rolling push. Does the specified cluster exist?")
+      throw new UserException("Could not find source server group for rolling push. Does the specified cluster exist?")
     }
 
     def modifyCtx = stage.context + [
