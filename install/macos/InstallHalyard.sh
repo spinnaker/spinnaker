@@ -154,6 +154,7 @@ function install_java() {
      [[ "$java_version" == *"10.0"* ]] || \
      [[ "$java_version" == *"11"* ]] || \
      [[ "$java_version" == *"12"* ]] || \
+     [[ "$java_version" == *"13"* ]] || \
      [[ "$java_version" == "java version \"10\""* ]]; then
     echo "Java is already installed & at the right version"
     return 0;
