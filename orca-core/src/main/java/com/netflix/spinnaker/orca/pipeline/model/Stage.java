@@ -799,5 +799,10 @@ public class Stage implements Serializable {
         .collect(toList());
   }
 
+  @Override
+  public String toString() {
+    return "Stage {id='" + id + "', executionId='" + execution.getId() + "'}";
+  }
+
   public static final String STAGE_TIMEOUT_OVERRIDE_KEY = "stageTimeoutMs";
 }
