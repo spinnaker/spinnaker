@@ -71,7 +71,7 @@ public class HelmTemplateUtils extends TemplateUtils {
       for (Map.Entry<String, Object> entry : overrides.entrySet()) {
         overrideList.add(entry.getKey() + "=" + entry.getValue().toString());
       }
-      command.add("--set");
+      command.add("--set-string");
       command.add(overrideList.stream().collect(Collectors.joining(",")));
     }
 
