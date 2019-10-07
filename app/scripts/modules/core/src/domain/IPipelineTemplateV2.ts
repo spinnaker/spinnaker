@@ -27,3 +27,8 @@ interface IVariableMetadataV2 {
   name: string;
   type: VariableType;
 }
+
+export interface IPipelineTemplatePlanV2 extends IPipeline {
+  appConfig: { [key: string]: any };
+  templateVariables: { [key: string]: any };
+}

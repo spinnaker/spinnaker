@@ -9,7 +9,7 @@ export interface IPipeline {
   description?: string;
   entityTags?: IEntityTags;
   id: string;
-  index: number;
+  index?: number;
   isNew?: boolean;
   keepWaitingPipelines: boolean;
   lastModifiedBy?: string;
@@ -21,7 +21,7 @@ export interface IPipeline {
   respectQuietPeriod?: boolean;
   schema?: string;
   stages: IStage[];
-  strategy: boolean;
+  strategy?: boolean;
   triggers: ITrigger[];
   parameterConfig: IParameter[];
   disabled?: boolean;

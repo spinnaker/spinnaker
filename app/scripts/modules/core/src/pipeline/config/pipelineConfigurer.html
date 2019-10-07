@@ -11,7 +11,7 @@
           ng-click="navMenuState.showMenu = !navMenuState.showMenu"
           ng-blur="pipelineConfigurerCtrl.hideNavigationMenu()"
         >
-          {{pipeline.name}}
+          {{ pipeline.name }}
           <span ng-if="pipeline.disabled">(disabled)</span>
         </a>
       </h3>
@@ -22,7 +22,7 @@
             analytics-on="click"
             analytics-category="Pipeline Config"
             analytics-event="Permalink clicked"
-            ng-href="{{pipelineConfigurerCtrl.getUrl()}}"
+            ng-href="{{ pipelineConfigurerCtrl.getUrl() }}"
             >Permalink</a
           >
           <copy-to-clipboard
@@ -52,8 +52,8 @@
       </div>
     </div>
     <div class="band band-info" ng-if="pipeline.locked">
-      <span class="glyphicon glyphicon small glyphicon-lock"></span> {{ pipeline.locked.description || "This pipeline is
-      locked and does not allow modification" }}
+      <span class="glyphicon glyphicon small glyphicon-lock"></span>
+      {{ pipeline.locked.description || 'This pipeline is locked and does not allow modification' }}
     </div>
     <div class="band band-info" ng-if="isTemplatedPipeline && !pipeline.locked">
       <span class="glyphicon glyphicon small glyphicon-lock"></span> Manual edits are not allowed on templated pipelines
@@ -68,9 +68,9 @@
         </button>
         <ul class="dropdown-menu" role="menu" uib-dropdown-menu>
           <li ng-repeat="p in pipelineExecutions" ng-class="{disabled: p.id == currentExecution.id}">
-            <a title="{{p.startTime | timestamp}}" ui-sref="{ executionId: p.id }"
+            <a title="{{ p.startTime | timestamp }}" ui-sref="{ executionId: p.id }"
               ><execution-build-title execution="p" default-to-timestamp="true"></execution-build-title>
-              <span class="text-muted small">({{p.startTime | relativeTime}})</span>
+              <span class="text-muted small">({{ p.startTime | relativeTime }})</span>
               <span class="glyphicon small glyphicon-ok" ng-if="p.id == currentExecution.id"></span>
             </a>
           </li>
@@ -94,7 +94,7 @@
           view-state="viewState"
           pipeline="renderablePipeline"
           should-validate="true"
-          on-node-click="pipelineConfigurerCtrl.graphNodeClicked"
+          on-node-click="(pipelineConfigurerCtrl.graphNodeClicked)"
         ></pipeline-graph>
       </div>
       <div class="row">
@@ -126,6 +126,7 @@
   <div class="pipeline-contents">
     <pipeline-config-view
       application="application"
+      is-v2-templated-pipeline="isV2TemplatedPipeline"
       pipeline="renderablePipeline"
       pipeline-config="pipeline"
       stage-field-updated="pipelineConfigurerCtrl.stageFieldUpdated"
@@ -157,7 +158,7 @@
           <i class="fa fa-exclamation-triangle" style="font-size: 125%;"></i>
         </button>
         <span ng-if="viewState.saveError" class="alert alert-danger">
-          {{viewState.saveErrorMessage}}
+          {{ viewState.saveErrorMessage }}
           <a
             class="alert-dismiss"
             href
@@ -194,7 +195,7 @@
         <span
           ng-if="pipeline.locked"
           class="btn btn-link disabled"
-          uib-tooltip="{{ pipeline.locked.description || 'This pipeline is locked and does not allow modification'}}"
+          uib-tooltip="{{ pipeline.locked.description || 'This pipeline is locked and does not allow modification' }}"
         >
           <span class="glyphicon glyphicon-lock"></span> Pipeline is locked
         </span>

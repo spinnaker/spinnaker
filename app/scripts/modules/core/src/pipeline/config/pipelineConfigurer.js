@@ -41,6 +41,7 @@ module.exports = angular
         application: '=',
         plan: '<',
         isTemplatedPipeline: '<',
+        isV2TemplatedPipeline: '<',
         hasDynamicSource: '<',
         templateError: '<',
       },
@@ -60,7 +61,7 @@ module.exports = angular
     '$location',
     function($scope, $uibModal, $timeout, $window, $q, $state, executionService, overrideRegistry, $location) {
       // For standard pipelines, a 'renderablePipeline' is just the pipeline config.
-      // For templated pipelines, a 'renderablePipeline' is the pipeline template plan, and '$scope.pipeline' is the template config.
+      // For both v1 and v2 templated pipelines, a 'renderablePipeline' is the pipeline template plan, and '$scope.pipeline' is the template config.
       $scope.renderablePipeline = $scope.plan || $scope.pipeline;
       // Watch for non-reference changes to renderablePipline and make them reference changes to make React happy
       $scope.$watch('renderablePipeline', (newValue, oldValue) => newValue !== oldValue && this.updatePipeline(), true);
@@ -535,11 +536,20 @@ module.exports = angular
       //update pipeline through a callback for React
       this.updatePipelineConfig = changes => {
         $scope.$applyAsync(() => {
-          $scope.pipeline = _.cloneDeep($scope.pipeline);
-          _.extend($scope.pipeline, changes);
-          if (!$scope.isTemplatedPipeline) {
+          $scope.pipeline = Object.assign(
+            {},
+            $scope.pipeline,
+            $scope.isV2TemplatedPipeline
+              ? PipelineTemplateV2Service.filterInheritedConfig(Object.assign({}, changes))
+              : changes,
+          );
+
+          if ($scope.isV2TemplatedPipeline) {
+            $scope.renderablePipeline = Object.assign({}, $scope.renderablePipeline, changes);
+          } else if (!$scope.isTemplatedPipeline) {
             $scope.renderablePipeline = $scope.pipeline;
           }
+
           markDirty();
         });
       };

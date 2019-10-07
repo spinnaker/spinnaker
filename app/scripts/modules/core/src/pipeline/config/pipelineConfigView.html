@@ -4,7 +4,7 @@
       ng-if="viewState.section === 'triggers'"
       application="application"
       field-updated="stageFieldUpdated"
-      pipeline="pipelineConfig"
+      pipeline="isV2TemplatedPipeline ? pipeline : pipelineConfig"
       update-pipeline-config="updatePipelineConfig"
     >
     </triggers>

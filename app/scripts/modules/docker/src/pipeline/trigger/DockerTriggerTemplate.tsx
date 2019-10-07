@@ -5,10 +5,16 @@ import { IPromise } from 'angular';
 import { $q } from 'ngimport';
 import { Observable, Subject, Subscription } from 'rxjs';
 
-import { ITriggerTemplateComponentProps, Spinner, TetheredSelect, IPipelineCommand, HelpField } from '@spinnaker/core';
+import {
+  IDockerTrigger,
+  ITriggerTemplateComponentProps,
+  Spinner,
+  TetheredSelect,
+  IPipelineCommand,
+  HelpField,
+} from '@spinnaker/core';
 
 import { DockerImageReader, IDockerLookupType } from '../../image';
-import { IDockerTrigger } from './IDockerTrigger';
 
 const lookupTypeOptions = [{ value: 'digest', label: 'Digest' }, { value: 'tag', label: 'Tag' }];
 

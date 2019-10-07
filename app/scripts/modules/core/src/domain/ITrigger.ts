@@ -24,6 +24,14 @@ export interface INexusTrigger extends ITrigger {
   type: 'nexus';
 }
 
+export interface IDockerTrigger extends ITrigger {
+  account?: string;
+  tag?: string;
+  registry?: string;
+  repository: string;
+  organization?: string;
+}
+
 export interface IGitTrigger extends ITrigger {
   source: 'stash' | 'github' | 'bitbucket' | 'gitlab';
   secret?: string;

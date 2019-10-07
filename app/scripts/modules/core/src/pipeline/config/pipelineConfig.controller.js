@@ -48,6 +48,7 @@ module.exports = angular
 
         if (this.pipelineConfig && this.pipelineConfig.type === 'templatedPipeline') {
           this.isTemplatedPipeline = true;
+          this.isV2TemplatedPipeline = isV2PipelineConfig;
           this.hasDynamicSource =
             !isV2PipelineConfig && this.containsJinja(this.pipelineConfig.config.pipeline.template.source);
 
@@ -57,12 +58,7 @@ module.exports = angular
 
           if (!this.pipelineConfig.isNew || isV2PipelineConfig) {
             return PipelineTemplateReader.getPipelinePlan(this.pipelineConfig, $stateParams.executionId)
-              .then(plan => {
-                if (isV2PipelineConfig) {
-                  PipelineTemplateV2Service.inheritedKeys.forEach(key => (this.pipelineConfig[key] = plan[key] || []));
-                }
-                this.pipelinePlan = plan;
-              })
+              .then(plan => (this.pipelinePlan = plan))
               .catch(error => {
                 this.templateError = error;
                 this.pipelineConfig.isNew = true;
