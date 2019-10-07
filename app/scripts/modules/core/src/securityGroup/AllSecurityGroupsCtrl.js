@@ -67,8 +67,13 @@ module.exports = angular
         updateSecurityGroups();
       };
 
+      function createSecurityGroupProviderFilterFn(application, account, provider) {
+        const sgConfig = provider.securityGroup;
+        return sgConfig && (sgConfig.CreateSecurityGroupModal || (sgConfig.createSecurityGroupTemplateUrl && sgConfig.createSecurityGroupController));
+      }
+
       this.createSecurityGroup = function createSecurityGroup() {
-        ProviderSelectionService.selectProvider(app, 'securityGroup')
+        ProviderSelectionService.selectProvider(app, 'securityGroup', createSecurityGroupProviderFilterFn)
           .then(selectedProvider => {
             skinSelectionService.selectSkin(selectedProvider).then(selectedVersion => {
               let provider = CloudProviderRegistry.getValue(selectedProvider, 'securityGroup', selectedVersion);
