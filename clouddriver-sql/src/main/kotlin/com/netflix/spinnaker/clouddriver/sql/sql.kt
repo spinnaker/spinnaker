@@ -15,15 +15,11 @@
  */
 package com.netflix.spinnaker.clouddriver.sql
 
-import com.netflix.spinnaker.kork.core.RetrySupport
-import com.netflix.spinnaker.kork.sql.config.RetryProperties
-import io.github.resilience4j.retry.Retry
+import io.github.resilience4j.retry.annotation.Retry
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.table
-
-internal val retrySupport = RetrySupport()
 
 internal val tasksTable = table("tasks")
 internal val taskStatesTable = table("task_states")
@@ -34,36 +30,20 @@ internal val taskStatesFields = listOf("id", "task_id", "created_at", "state", "
 internal val taskResultsFields = listOf("id", "task_id", "body").map { field(it) }
 
 /**
- * Run the provided [fn] in a transaction, retrying on failures using [retryProperties].
+ * Run the provided [fn] in a transaction, retrying on failures using resilience4j.retry.instances.sqlTransaction
+ * configuration.
  */
-@Deprecated("use transactional(retry, fn) instead")
-internal fun DSLContext.transactional(retryProperties: RetryProperties, fn: (DSLContext) -> Unit) {
-  retrySupport.retry({
-    transaction { ctx ->
-      fn(DSL.using(ctx))
-    }
-  }, retryProperties.maxRetries, retryProperties.backoffMs, false)
-}
-
-/**
- * Run the provided [fn] in a transaction, retrying on failures using [retry].
- */
-internal fun DSLContext.transactional(
-  retry: Retry,
-  fn: (DSLContext) -> Unit
-) {
-  retry.executeRunnable {
-    transaction { ctx ->
-      fn(DSL.using(ctx))
-    }
+@Retry(name = "sqlTransaction")
+internal fun DSLContext.transactional(fn: (DSLContext) -> Unit) {
+  transaction { ctx ->
+    fn(DSL.using(ctx))
   }
 }
 
 /**
- * Run the provided [fn] with retry support.
+ * Run the provided [fn], retrying on failures using resilience4j.retry.instances.sqlRead configuration.
  */
-internal fun <T> DSLContext.withRetry(retryProperties: RetryProperties, fn: (DSLContext) -> T): T {
-  return retrySupport.retry({
-    fn(this)
-  }, retryProperties.maxRetries, retryProperties.backoffMs, false)
+@Retry(name = "sqlRead")
+internal fun <T> DSLContext.read(fn: (DSLContext) -> T): T {
+  return fn(this)
 }

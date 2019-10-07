@@ -281,6 +281,19 @@ operations.security:
 # Turn on when confirming Fiat authorization checks
 # logging.level.com.netflix.spinnaker.clouddriver.listeners: DEBUG
 
+resilience4j.retry:
+  instances:
+    sqlTransaction:
+      maxRetryAttempts: 5
+      waitDuration: 100ms
+      enableExponentialBackoff: false
+      ignoreExceptions:
+      - com.netflix.spinnaker.clouddriver.event.exceptions.AggregateChangeRejectedException
+    sqlRead:
+      maxRetryAttempts: 5
+      waitDuration: 100ms
+      enableExponentialBackoff: false
+
 ---
 
 spring:

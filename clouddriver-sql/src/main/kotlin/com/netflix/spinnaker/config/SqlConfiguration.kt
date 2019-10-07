@@ -30,7 +30,6 @@ import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import com.netflix.spinnaker.kork.sql.config.SqlProperties
 import com.netflix.spinnaker.kork.telemetry.InstrumentedProxy
 import com.netflix.spinnaker.kork.version.ServiceVersion
-import io.github.resilience4j.retry.RetryRegistry
 import org.jooq.DSLContext
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -39,7 +38,6 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
-import org.springframework.validation.Validator
 import java.time.Clock
 
 @Configuration
@@ -52,10 +50,9 @@ class SqlConfiguration {
   @ConditionalOnProperty("sql.task-repository.enabled")
   fun sqlTaskRepository(
     jooq: DSLContext,
-    clock: Clock,
-    sqlProperties: SqlProperties
+    clock: Clock
   ): TaskRepository =
-    SqlTaskRepository(jooq, ObjectMapper(), clock, sqlProperties.retries)
+    SqlTaskRepository(jooq, ObjectMapper(), clock)
 
   @Bean
   @ConditionalOnProperty("sql.task-repository.enabled")
@@ -64,10 +61,9 @@ class SqlConfiguration {
     jooq: DSLContext,
     clock: Clock,
     registry: Registry,
-    properties: SqlTaskCleanupAgentProperties,
-    sqlProperties: SqlProperties
+    properties: SqlTaskCleanupAgentProperties
   ): SqlTaskCleanupAgent =
-    SqlTaskCleanupAgent(jooq, clock, registry, properties, sqlProperties.retries)
+    SqlTaskCleanupAgent(jooq, clock, registry, properties)
 
   @Bean
   @ConditionalOnProperty("sql.task-repository.enabled")
@@ -83,21 +79,16 @@ class SqlConfiguration {
     objectMapper: ObjectMapper,
     applicationEventPublisher: ApplicationEventPublisher,
     registry: Registry,
-    defaultValidator: Validator,
-    retryRegistry: RetryRegistry,
     subtypeLocators: List<SubtypeLocator>
   ): EventRepository {
     // TODO(rz): ObjectMapperSubtypeConfigurer should become a standard kork feature. This is pretty gross.
     ObjectMapperSubtypeConfigurer(true).registerSubtypes(objectMapper, subtypeLocators)
     return SqlEventRepository(
       jooq,
-      sqlProperties,
       serviceVersion,
       objectMapper,
       applicationEventPublisher,
-      registry,
-      defaultValidator,
-      retryRegistry
+      registry
     ).let {
       InstrumentedProxy.proxy(registry, it, "eventRepository", mapOf("backend" to "sql"))
     }

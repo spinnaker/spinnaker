@@ -23,7 +23,6 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskState.COMPLETED
 import com.netflix.spinnaker.clouddriver.data.task.TaskState.FAILED
 import com.netflix.spinnaker.config.ConnectionPools
 import com.netflix.spinnaker.config.SqlTaskCleanupAgentProperties
-import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.routing.withPool
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.field
@@ -39,8 +38,7 @@ class SqlTaskCleanupAgent(
   private val jooq: DSLContext,
   private val clock: Clock,
   private val registry: Registry,
-  private val properties: SqlTaskCleanupAgentProperties,
-  private val sqlRetryProperties: SqlRetryProperties
+  private val properties: SqlTaskCleanupAgentProperties
 ) : RunnableAgent, CustomScheduledAgent {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -50,7 +48,7 @@ class SqlTaskCleanupAgent(
 
   override fun run() {
     withPool(ConnectionPools.TASKS.value) {
-      val candidates = jooq.withRetry(sqlRetryProperties.reads) { j ->
+      val candidates = jooq.read { j ->
         val candidates = j.select(field("id"), field("task_id"))
           .from(taskStatesTable)
           .where(
@@ -105,7 +103,7 @@ class SqlTaskCleanupAgent(
 
         registry.timer(timingId).record {
           candidates.resultIds.chunked(properties.batchSize) { chunk ->
-            jooq.withRetry(sqlRetryProperties.transactions) { ctx ->
+            jooq.transactional { ctx ->
               ctx.deleteFrom(taskResultsTable)
                 .where("id IN (${chunk.joinToString(",") { "'$it'" }})")
                 .execute()
@@ -113,7 +111,7 @@ class SqlTaskCleanupAgent(
           }
 
           candidates.stateIds.chunked(properties.batchSize) { chunk ->
-            jooq.withRetry(sqlRetryProperties.transactions) { ctx ->
+            jooq.transactional { ctx ->
               ctx.deleteFrom(taskStatesTable)
                 .where("id IN (${chunk.joinToString(",") { "'$it'" }})")
                 .execute()
@@ -121,7 +119,7 @@ class SqlTaskCleanupAgent(
           }
 
           candidates.taskIds.chunked(properties.batchSize) { chunk ->
-            jooq.withRetry(sqlRetryProperties.transactions) { ctx ->
+            jooq.transactional { ctx ->
               ctx.deleteFrom(tasksTable)
                 .where("id IN (${chunk.joinToString(",") { "'$it'" }})")
                 .execute()

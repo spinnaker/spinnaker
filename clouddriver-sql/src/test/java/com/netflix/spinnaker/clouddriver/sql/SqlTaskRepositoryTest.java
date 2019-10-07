@@ -38,8 +38,7 @@ public class SqlTaskRepositoryTest extends TaskRepositoryTck {
     properties.setReads(retry);
     properties.setTransactions(retry);
 
-    return new SqlTaskRepository(
-        database.context, new ObjectMapper(), Clock.systemDefaultZone(), properties);
+    return new SqlTaskRepository(database.context, new ObjectMapper(), Clock.systemDefaultZone());
   }
 
   @After

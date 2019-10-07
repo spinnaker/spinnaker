@@ -21,16 +21,13 @@ import com.netflix.spinnaker.clouddriver.event.AbstractSpinnakerEvent
 import com.netflix.spinnaker.clouddriver.event.exceptions.AggregateChangeRejectedException
 import com.netflix.spinnaker.clouddriver.event.persistence.EventRepository.ListAggregatesCriteria
 import com.netflix.spinnaker.clouddriver.event.persistence.EventRepository.ListAggregatesResult
-import com.netflix.spinnaker.kork.sql.config.SqlProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import com.netflix.spinnaker.kork.version.ServiceVersion
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import io.github.resilience4j.retry.RetryRegistry
 import io.mockk.every
 import io.mockk.mockk
 import org.springframework.context.ApplicationEventPublisher
-import org.springframework.validation.Validator
 import org.testcontainers.shaded.com.fasterxml.jackson.annotation.JsonTypeName
 import strikt.api.expect
 import strikt.api.expectThat
@@ -196,21 +193,16 @@ class SqlEventRepositoryTest : JUnit5Minutests {
 
     val serviceVersion: ServiceVersion = mockk(relaxed = true)
     val applicationEventPublisher: ApplicationEventPublisher = mockk(relaxed = true)
-    val validator: Validator = mockk(relaxed = true)
-    val retryRegistry: RetryRegistry = RetryRegistry.ofDefaults()
 
     val subject = SqlEventRepository(
       jooq = database.context,
-      sqlProperties = SqlProperties(),
       serviceVersion = serviceVersion,
       objectMapper = ObjectMapper().apply {
         findAndRegisterModules()
         registerSubtypes(MyEvent::class.java)
       },
       applicationEventPublisher = applicationEventPublisher,
-      registry = NoopRegistry(),
-      validator = validator,
-      retryRegistry = retryRegistry
+      registry = NoopRegistry()
     )
 
     init {

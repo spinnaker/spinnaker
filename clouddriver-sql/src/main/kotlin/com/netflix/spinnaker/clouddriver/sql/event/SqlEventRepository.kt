@@ -26,14 +26,9 @@ import com.netflix.spinnaker.clouddriver.event.persistence.EventRepository
 import com.netflix.spinnaker.clouddriver.event.persistence.EventRepository.ListAggregatesCriteria
 import com.netflix.spinnaker.clouddriver.sql.transactional
 import com.netflix.spinnaker.config.ConnectionPools
-import com.netflix.spinnaker.kork.sql.config.SqlProperties
-import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.routing.withPool
 import com.netflix.spinnaker.kork.version.ServiceVersion
 import de.huxhorn.sulky.ulid.ULID
-import io.github.resilience4j.retry.Retry
-import io.github.resilience4j.retry.RetryConfig
-import io.github.resilience4j.retry.RetryRegistry
 import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.currentTimestamp
@@ -42,23 +37,17 @@ import org.jooq.impl.DSL.max
 import org.jooq.impl.DSL.table
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
-import org.springframework.validation.Validator
-import java.time.Duration
 import java.util.UUID
 
 class SqlEventRepository(
   private val jooq: DSLContext,
-  sqlProperties: SqlProperties,
   private val serviceVersion: ServiceVersion,
   private val objectMapper: ObjectMapper,
   private val applicationEventPublisher: ApplicationEventPublisher,
-  private val registry: Registry,
-  private val validator: Validator,
-  private val retryRegistry: RetryRegistry
+  private val registry: Registry
 ) : EventRepository {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
-  private val retryProperties: SqlRetryProperties = sqlProperties.retries
 
   private val eventCountId = registry.createId("eventing.events")
 
@@ -74,16 +63,9 @@ class SqlEventRepository(
     val aggregateCondition = field("aggregate_type").eq(aggregateType)
       .and(field("aggregate_id").eq(aggregateId))
 
-    // TODO(rz): Get this from Spring?
-    val retry = RetryConfig.custom<Retry>()
-      .maxAttempts(retryProperties.transactions.maxRetries)
-      .waitDuration(Duration.ofMillis(retryProperties.transactions.backoffMs))
-      .ignoreExceptions(AggregateChangeRejectedException::class.java)
-      .build()
-
     try {
       withPool(POOL_NAME) {
-        jooq.transactional(retryRegistry.retry("eventSave", retry)) { ctx ->
+        jooq.transactional { ctx ->
           // Get or create the aggregate and immediately assert that this save operation is being committed against the
           // most recent aggregate state.
           val aggregate = ctx.maybeGetAggregate(aggregateCondition) ?: {

@@ -24,7 +24,6 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskState
 import com.netflix.spinnaker.clouddriver.data.task.TaskState.FAILED
 import com.netflix.spinnaker.clouddriver.data.task.TaskState.STARTED
 import com.netflix.spinnaker.config.ConnectionPools
-import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.routing.withPool
 import de.huxhorn.sulky.ulid.ULID
 import org.jooq.Condition
@@ -40,8 +39,7 @@ import java.time.Clock
 class SqlTaskRepository(
   private val jooq: DSLContext,
   private val mapper: ObjectMapper,
-  private val clock: Clock,
-  private val sqlRetryProperties: SqlRetryProperties
+  private val clock: Clock
 ) : TaskRepository {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -59,7 +57,7 @@ class SqlTaskRepository(
     val historyId = ulid.nextULID()
 
     withPool(POOL_NAME) {
-      jooq.transactional(sqlRetryProperties.transactions) { ctx ->
+      jooq.transactional { ctx ->
         val existingTask = getByClientRequestId(clientRequestId)
         if (existingTask != null) {
           task = existingTask as SqlTask
@@ -86,7 +84,7 @@ class SqlTaskRepository(
 
   fun updateSagaIds(task: Task) {
     return withPool(POOL_NAME) {
-      jooq.transactional(sqlRetryProperties.transactions) { ctx ->
+      jooq.transactional { ctx ->
         ctx.update(tasksTable)
           .set(field("saga_ids"), mapper.writeValueAsString(task.sagaIds))
           .where(field("id").eq(task.id))
@@ -101,7 +99,7 @@ class SqlTaskRepository(
 
   override fun getByClientRequestId(clientRequestId: String): Task? {
     return withPool(POOL_NAME) {
-      jooq.withRetry(sqlRetryProperties.reads) {
+      jooq.read {
         it.select(field("id"))
           .from(tasksTable)
           .where(field("request_id").eq(clientRequestId))
@@ -115,7 +113,7 @@ class SqlTaskRepository(
 
   override fun list(): MutableList<Task> {
     return withPool(POOL_NAME) {
-      jooq.withRetry(sqlRetryProperties.reads) {
+      jooq.read {
         runningTaskIds(it, false).let { taskIds ->
           retrieveInternal(field("id").`in`(*taskIds), field("task_id").`in`(*taskIds)).toMutableList()
         }
@@ -125,7 +123,7 @@ class SqlTaskRepository(
 
   override fun listByThisInstance(): MutableList<Task> {
     return withPool(POOL_NAME) {
-      jooq.withRetry(sqlRetryProperties.reads) {
+      jooq.read {
         runningTaskIds(it, true).let { taskIds ->
           retrieveInternal(field("id").`in`(*taskIds), field("task_id").`in`(*taskIds)).toMutableList()
         }
@@ -137,7 +135,7 @@ class SqlTaskRepository(
     val resultIdPairs = results.map { ulid.nextULID() to it }.toMap()
 
     withPool(POOL_NAME) {
-      jooq.transactional(sqlRetryProperties.transactions) { ctx ->
+      jooq.transactional { ctx ->
         ctx.select(taskStatesFields)
           .from(taskStatesTable)
           .where(field("task_id").eq(task.id))
@@ -164,7 +162,7 @@ class SqlTaskRepository(
   internal fun updateCurrentStatus(task: Task, phase: String, status: String) {
     val historyId = ulid.nextULID()
     withPool(POOL_NAME) {
-      jooq.transactional(sqlRetryProperties.transactions) { ctx ->
+      jooq.transactional { ctx ->
         val state = selectLatestState(ctx, task.id)
         addToHistory(ctx, historyId, task.id, state?.state ?: STARTED, phase, status)
       }
@@ -184,7 +182,7 @@ class SqlTaskRepository(
   internal fun updateState(task: Task, state: TaskState) {
     val historyId = ulid.nextULID()
     withPool(POOL_NAME) {
-      jooq.transactional(sqlRetryProperties.transactions) { ctx ->
+      jooq.transactional { ctx ->
         selectLatestState(ctx, task.id)?.let {
           addToHistory(ctx, historyId, task.id, state, it.phase, it.status)
         }
@@ -203,7 +201,7 @@ class SqlTaskRepository(
     //  on every connection acquire - need to change this so running on !aurora will behave consistently.
     //  REPEATABLE_READ is correct here.
     withPool(POOL_NAME) {
-      jooq.transactional(sqlRetryProperties.transactions) { ctx ->
+      jooq.transactional { ctx ->
         /**
          *  (select id as task_id, owner_id, request_id, created_at, saga_ids, null as body, null as state, null as phase, null as status from tasks_copy where id = '01D2H4H50VTF7CGBMP0D6HTGTF')
          *  UNION ALL
