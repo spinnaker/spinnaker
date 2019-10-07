@@ -11,6 +11,7 @@ import com.netflix.spinnaker.keel.api.Locations
 import com.netflix.spinnaker.keel.api.NoImageFound
 import com.netflix.spinnaker.keel.api.NoImageFoundForRegions
 import com.netflix.spinnaker.keel.api.NoImageSatisfiesConstraints
+import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
@@ -18,6 +19,7 @@ import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.IdImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ImageProvider
+import com.netflix.spinnaker.keel.api.ec2.get
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
@@ -34,16 +36,18 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
-import strikt.api.expect
 import strikt.api.expectCatching
+import strikt.api.expectThat
 import strikt.assertions.failed
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import strikt.assertions.isNotNull
+import strikt.assertions.propertiesAreEqualTo
 
 internal class ImageResolverTests : JUnit5Minutests {
 
   data class Fixture<T : ImageProvider>(
-    val imageProvider: T,
+    val imageProvider: T?,
     val imageRegion: String = "ap-south-1",
     val resourceRegion: String = imageRegion
   ) {
@@ -147,12 +151,21 @@ internal class ImageResolverTests : JUnit5Minutests {
       )
     )
 
-    fun resolve(): ResolvedImages = runBlocking {
-      subject.resolveImageId(resource)
+    fun resolve(): Resource<ClusterSpec> = runBlocking {
+      subject.invoke(resource)
     }
   }
 
   fun tests() = rootContext<Fixture<*>> {
+    context("no image provider") {
+        fixture { Fixture(null) }
+
+      test("returns the original spec unchanged") {
+        expectThat(resolve())
+          .propertiesAreEqualTo(resource)
+      }
+    }
+
     derivedContext<Fixture<IdImageProvider>>("a simple image id") {
       fixture {
         Fixture(
@@ -171,10 +184,12 @@ internal class ImageResolverTests : JUnit5Minutests {
 
       test("resolves to the image id") {
         val resolved = resolve()
-        expect {
-          that(resolved.appVersion).isEqualTo("fnord-$version2")
-          that(resolved.imagesByRegion).isEqualTo(mapOf(imageRegion to imageProvider.imageId))
-        }
+        expectThat(resolved.spec.overrides[imageRegion]?.launchConfiguration?.image)
+          .isNotNull()
+          .and {
+            get { appVersion }.isEqualTo("fnord-$version2")
+            get { id }.isEqualTo(imageProvider!!.imageId)
+          }
       }
     }
 
@@ -196,10 +211,12 @@ internal class ImageResolverTests : JUnit5Minutests {
 
         test("returns the most recent version of the artifact") {
           val resolved = resolve()
-          expect {
-            that(resolved.appVersion).isEqualTo("fnord-$version3")
-            that(resolved.imagesByRegion).isEqualTo(mapOf(imageRegion to "ami-3"))
-          }
+          expectThat(resolved.spec.overrides[imageRegion]?.launchConfiguration?.image)
+            .isNotNull()
+            .and {
+              get { appVersion }.isEqualTo("fnord-$version3")
+              get { id }.isEqualTo("ami-3")
+            }
         }
       }
 
@@ -230,10 +247,12 @@ internal class ImageResolverTests : JUnit5Minutests {
 
           test("returns the image id of the approved version") {
             val resolved = resolve()
-            expect {
-              that(resolved.appVersion).isEqualTo("fnord-$version2")
-              that(resolved.imagesByRegion).isEqualTo(mapOf(imageRegion to "ami-2")) // TODO: false moniker
-            }
+            expectThat(resolved.spec.overrides[imageRegion]?.launchConfiguration?.image)
+              .isNotNull()
+              .and {
+                get { appVersion }.isEqualTo("fnord-$version2")
+                get { id }.isEqualTo("ami-2") // TODO: false moniker
+              }
           }
         }
 

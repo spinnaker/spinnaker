@@ -8,9 +8,9 @@ import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.VirtualMachineImage
 import com.netflix.spinnaker.keel.api.ec2.Dependencies
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
-import com.netflix.spinnaker.keel.api.ec2.IdImageProvider
 import com.netflix.spinnaker.keel.api.ec2.Metric
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup
 import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
@@ -95,7 +95,6 @@ internal class ClusterHandlerTests : JUnit5Minutests {
 
   val spec = ClusterSpec(
     moniker = Moniker(app = "keel", stack = "test"),
-    imageProvider = IdImageProvider(imageId = "ami-123543254134"),
     locations = Locations(
       accountName = vpcWest.account,
       regions = listOf(vpcWest, vpcEast).map { subnet ->
@@ -108,6 +107,10 @@ internal class ClusterHandlerTests : JUnit5Minutests {
     ),
     _defaults = ServerGroupSpec(
       launchConfiguration = LaunchConfigurationSpec(
+        image = VirtualMachineImage(
+          id = "ami-123543254134",
+          appVersion = "keel-0.287.0-h208.fe2e8a1"
+        ),
         instanceType = "r4.8xlarge",
         ebsOptimized = false,
         iamRole = "keelRole",
@@ -122,15 +125,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
     )
   )
 
-  val serverGroups = spec.resolve(
-    // TODO: make this rely on the imageResolver mock?
-    ResolvedImages(
-      "keel-0.252.0-h168.35fe253",
-      listOf(vpcWest, vpcEast).associate { subnet ->
-        subnet.region to "i-123543254134"
-      }
-    )
-  )
+  val serverGroups = spec.resolve()
   val serverGroupEast = serverGroups.first { it.location.region == "us-east-1" }
   val serverGroupWest = serverGroups.first { it.location.region == "us-west-2" }
 
@@ -194,7 +189,6 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         cloudDriverService,
         cloudDriverCache,
         orcaService,
-        imageResolver,
         environmentResolver,
         clock,
         publisher,

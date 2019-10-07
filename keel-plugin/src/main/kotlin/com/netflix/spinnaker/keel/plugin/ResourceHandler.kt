@@ -63,8 +63,7 @@ abstract class ResourceHandler<S : ResourceSpec, R : Any>(
    */
   private fun applyResolvers(resource: Resource<S>): Resource<S> =
     resolvers
-      .filter { it.handles(resource.apiVersion, resource.kind) }
-      .filterIsInstance<Resolver<S>>()
+      .supporting(resource)
       .fold(resource) { r, resolver ->
         log.debug("Applying ${resolver.javaClass} to ${r.id}")
         resolver(r)

@@ -31,7 +31,8 @@ interface Resolver<T : ResourceSpec> : (Resource<T>) -> Resource<T> {
   val supportedKind: String
 }
 
-internal fun Resolver<*>.handles(
-  apiVersion: ApiVersion,
-  kind: String
-): Boolean = this.apiVersion == apiVersion && this.supportedKind == kind
+fun <T : ResourceSpec> Iterable<Resolver<*>>.supporting(
+  resource: Resource<T>
+): Iterable<Resolver<T>> =
+  filter { it.apiVersion == resource.apiVersion && it.supportedKind == resource.kind }
+    .filterIsInstance<Resolver<T>>()

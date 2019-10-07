@@ -51,7 +51,6 @@ class ClusterHandler(
   private val cloudDriverService: CloudDriverService,
   private val cloudDriverCache: CloudDriverCache,
   private val orcaService: OrcaService,
-  private val imageResolver: ImageResolver,
   private val environmentResolver: EnvironmentResolver,
   private val clock: Clock,
   private val publisher: ApplicationEventPublisher,
@@ -68,8 +67,7 @@ class ClusterHandler(
 
   override suspend fun toResolvedType(resource: Resource<ClusterSpec>): Map<String, ServerGroup> =
     with(resource.spec) {
-      val resolvedImages = imageResolver.resolveImageId(resource)
-      resolve(resolvedImages).byRegion()
+      resolve().byRegion()
     }
 
   override suspend fun current(resource: Resource<ClusterSpec>): Map<String, ServerGroup> =

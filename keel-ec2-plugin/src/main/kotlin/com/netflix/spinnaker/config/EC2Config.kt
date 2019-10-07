@@ -81,7 +81,6 @@ class EC2Config {
       cloudDriverService,
       cloudDriverCache,
       orcaService,
-      imageResolver,
       environmentResolver,
       clock,
       publisher,

@@ -1,13 +1,18 @@
 package com.netflix.spinnaker.keel.ec2.resource
 
 import com.netflix.frigga.ami.AppVersion
+import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.NoImageFound
 import com.netflix.spinnaker.keel.api.NoImageFoundForRegions
 import com.netflix.spinnaker.keel.api.NoImageSatisfiesConstraints
 import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.UnsupportedStrategy
 import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.VirtualMachineImage
 import com.netflix.spinnaker.keel.api.ec2.IdImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ImageProvider
 import com.netflix.spinnaker.keel.api.ec2.JenkinsImageProvider
@@ -17,10 +22,11 @@ import com.netflix.spinnaker.keel.clouddriver.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.appVersion
-import com.netflix.spinnaker.keel.model.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
+import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 
 class ImageResolver(
@@ -29,26 +35,31 @@ class ImageResolver(
   private val deliveryConfigRepository: DeliveryConfigRepository,
   private val artifactRepository: ArtifactRepository,
   private val imageService: ImageService
-) {
+) : Resolver<ClusterSpec> {
+
+  override val apiVersion: ApiVersion = SPINNAKER_API_V1.subApi("ec2")
+  override val supportedKind: String = "cluster"
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  // TODO: we may (probably will) want to make the parameter type more generic
-  suspend fun resolveImageId(resource: Resource<ClusterSpec>): ResolvedImages =
-    when (val imageProvider = resource.spec.imageProvider) {
-      is IdImageProvider -> resolveFromImageId(resource, imageProvider)
-      is ArtifactImageProvider -> resolveFromArtifact(resource, imageProvider)
-      is JenkinsImageProvider -> resolveFromJenkinsJob(resource, imageProvider)
-      else -> throw UnsupportedStrategy(
-        imageProvider::class.simpleName.orEmpty(),
-        ImageProvider::class.simpleName.orEmpty()
-      )
+  override fun invoke(resource: Resource<ClusterSpec>): Resource<ClusterSpec> =
+    runBlocking {
+      when (val imageProvider = resource.spec.imageProvider) {
+        null -> resource
+        is IdImageProvider -> resolveFromImageId(resource, imageProvider)
+        is ArtifactImageProvider -> resolveFromArtifact(resource, imageProvider)
+        is JenkinsImageProvider -> resolveFromJenkinsJob(resource, imageProvider)
+        else -> throw UnsupportedStrategy(
+          imageProvider::class.simpleName.orEmpty(),
+          ImageProvider::class.simpleName.orEmpty()
+        )
+      }
     }
 
   private suspend fun resolveFromImageId(
     resource: Resource<ClusterSpec>,
     imageProvider: IdImageProvider
-  ): ResolvedImages {
+  ): Resource<ClusterSpec> {
     val images = cloudDriverService.namedImages(
       serviceAccount = DEFAULT_SERVICE_ACCOUNT,
       imageName = imageProvider.imageId,
@@ -60,16 +71,13 @@ class ImageResolver(
     }
 
     // TODO: this is not going to work for multiple regions
-    return ResolvedImages(
-      images.first().appVersion,
-      resource.spec.locations.regions.associate { it.region to imageProvider.imageId }
-    )
+    return resource.withVirtualMachineImages(images.first())
   }
 
   private suspend fun resolveFromArtifact(
     resource: Resource<ClusterSpec>,
     imageProvider: ArtifactImageProvider
-  ): ResolvedImages {
+  ): Resource<ClusterSpec> {
     val deliveryConfig = deliveryConfigRepository.deliveryConfigFor(resource.id)
     val environment = deliveryConfigRepository.environmentFor(resource.id)
     val artifact = imageProvider.deliveryArtifact
@@ -87,27 +95,21 @@ class ImageResolver(
         account = account
       ) ?: throw NoImageFound(artifactVersion)
 
-      ResolvedImages(
-        artifactVersion,
-        image.toResolvedImage(resource.spec.locations.regions.map(SubnetAwareRegionSpec::region))
-      )
+      resource.withVirtualMachineImages(image)
     } else {
       val image = imageService.getLatestNamedImage(
         packageName = artifact.name,
         account = account
       ) ?: throw NoImageFound(artifact.name)
 
-      ResolvedImages(
-        image.appVersion,
-        image.toResolvedImage(resource.spec.locations.regions.map(SubnetAwareRegionSpec::region))
-      )
+      resource.withVirtualMachineImages(image)
     }
   }
 
   private suspend fun resolveFromJenkinsJob(
     resource: Resource<ClusterSpec>,
     imageProvider: JenkinsImageProvider
-  ): ResolvedImages {
+  ): Resource<ClusterSpec> {
     val image = imageService.getNamedImageFromJenkinsInfo(
       imageProvider.packageName,
       dynamicConfigService.getConfig("images.default-account", "test"),
@@ -117,22 +119,35 @@ class ImageResolver(
     ) ?: throw NoImageFound(imageProvider.packageName)
 
     log.info("Image found for {}: {}", imageProvider.packageName, image)
-    return ResolvedImages(
-      image.appVersion,
-      image.toResolvedImage(resource.spec.locations.regions.map(SubnetAwareRegionSpec::region))
-    )
+    return resource.withVirtualMachineImages(image)
   }
 
-  private fun NamedImage.toResolvedImage(regions: Collection<String>) =
-    amis
-      .filterKeys { it in regions }
-      .mapValues { (_, amis) -> amis?.first() }
+  private fun Resource<ClusterSpec>.withVirtualMachineImages(image: NamedImage): Resource<ClusterSpec> {
+    val amis = image
+      .amis
       .filterNotNullValues()
-      .also {
-        if (it.size < regions.size) {
-          throw NoImageFoundForRegions(imageName, regions - it.keys)
-        }
-      }
+      .filterValues { it.isNotEmpty() }
+      .mapValues { it.value.first() }
+    val missingRegions = spec.locations.regions.map { it.region } - amis.keys
+    if (missingRegions.isNotEmpty()) {
+      throw NoImageFoundForRegions(image.imageName, missingRegions)
+    }
+
+    val overrides = mutableMapOf<String, ServerGroupSpec>()
+    overrides.putAll(spec.overrides)
+    spec.locations.regions.map { it.region }.forEach { region ->
+      overrides[region] = overrides[region].withVirtualMachineImage(VirtualMachineImage(amis.getValue(region), image.appVersion))
+    }
+
+    return copy(spec = spec.copy(overrides = overrides))
+  }
+
+  private fun ServerGroupSpec?.withVirtualMachineImage(image: VirtualMachineImage) =
+    (this ?: ServerGroupSpec()).run {
+      copy(launchConfiguration = launchConfiguration.run {
+        (this ?: LaunchConfigurationSpec()).copy(image = image)
+      })
+    }
 
   @Suppress("UNCHECKED_CAST")
   private fun <K, V> Map<out K, V?>.filterNotNullValues(): Map<K, V> =
@@ -141,8 +156,3 @@ class ImageResolver(
   private inline fun <reified T> DynamicConfigService.getConfig(configName: String, defaultValue: T) =
     getConfig(T::class.java, configName, defaultValue)
 }
-
-data class ResolvedImages(
-  val appVersion: String,
-  val imagesByRegion: Map<String, String>
-)

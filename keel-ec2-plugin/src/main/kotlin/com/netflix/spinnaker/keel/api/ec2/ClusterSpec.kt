@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.Locations
 import com.netflix.spinnaker.keel.api.MultiRegion
-import com.netflix.spinnaker.keel.ec2.resource.ResolvedImages
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.model.SubnetAwareRegionSpec
 import java.time.Duration
@@ -14,7 +13,7 @@ import java.time.Duration
 /**
  * Transforms a [ClusterSpec] into a concrete model of server group desired states.
  */
-fun ClusterSpec.resolve(resolvedImages: ResolvedImages): Set<ServerGroup> =
+fun ClusterSpec.resolve(): Set<ServerGroup> =
   locations.regions.map {
     ServerGroup(
       name = moniker.name,
@@ -24,11 +23,7 @@ fun ClusterSpec.resolve(resolvedImages: ResolvedImages): Set<ServerGroup> =
         it.subnet,
         it.availabilityZones
       ),
-      launchConfiguration = resolveLaunchConfiguration(
-        it.region,
-        resolvedImages.appVersion,
-        checkNotNull(resolvedImages.imagesByRegion[it.region]) { "No image resolved for ${it.region}" }
-      ),
+      launchConfiguration = resolveLaunchConfiguration(it),
       capacity = resolveCapacity(it.region),
       dependencies = resolveDependencies(it.region),
       health = resolveHealth(it.region),
@@ -38,23 +33,26 @@ fun ClusterSpec.resolve(resolvedImages: ResolvedImages): Set<ServerGroup> =
   }
     .toSet()
 
-private fun ClusterSpec.resolveLaunchConfiguration(region: String, appVersion: String, imageId: String): LaunchConfiguration =
-  LaunchConfiguration(
-    appVersion = appVersion,
-    imageId = imageId,
-    instanceType = checkNotNull(overrides[region]?.launchConfiguration?.instanceType
+private fun ClusterSpec.resolveLaunchConfiguration(region: SubnetAwareRegionSpec): LaunchConfiguration {
+  val image = checkNotNull(overrides[region.region]?.launchConfiguration?.image
+    ?: defaults.launchConfiguration?.image) { "No image resolved / specified for ${region.region}" }
+  return LaunchConfiguration(
+    appVersion = image.appVersion,
+    imageId = image.id,
+    instanceType = checkNotNull(overrides[region.region]?.launchConfiguration?.instanceType
       ?: defaults.launchConfiguration?.instanceType),
-    ebsOptimized = checkNotNull(overrides[region]?.launchConfiguration?.ebsOptimized
+    ebsOptimized = checkNotNull(overrides[region.region]?.launchConfiguration?.ebsOptimized
       ?: defaults.launchConfiguration?.ebsOptimized),
-    iamRole = checkNotNull(overrides[region]?.launchConfiguration?.iamRole
+    iamRole = checkNotNull(overrides[region.region]?.launchConfiguration?.iamRole
       ?: defaults.launchConfiguration?.iamRole),
-    keyPair = checkNotNull(overrides[region]?.launchConfiguration?.keyPair
+    keyPair = checkNotNull(overrides[region.region]?.launchConfiguration?.keyPair
       ?: defaults.launchConfiguration?.keyPair),
-    instanceMonitoring = overrides[region]?.launchConfiguration?.instanceMonitoring
+    instanceMonitoring = overrides[region.region]?.launchConfiguration?.instanceMonitoring
       ?: defaults.launchConfiguration?.instanceMonitoring ?: false,
-    ramdiskId = overrides[region]?.launchConfiguration?.ramdiskId
+    ramdiskId = overrides[region.region]?.launchConfiguration?.ramdiskId
       ?: defaults.launchConfiguration?.ramdiskId
   )
+}
 
 internal fun ClusterSpec.resolveCapacity(region: String) =
   overrides[region]?.capacity ?: defaults.capacity ?: Capacity(1, 1, 1)
@@ -87,7 +85,7 @@ private fun ClusterSpec.resolveHealth(region: String): Health {
 
 data class ClusterSpec(
   override val moniker: Moniker,
-  val imageProvider: ImageProvider,
+  val imageProvider: ImageProvider? = null,
   override val locations: Locations<SubnetAwareRegionSpec>,
   private val _defaults: ServerGroupSpec,
   val overrides: Map<String, ServerGroupSpec> = emptyMap()
@@ -146,12 +144,18 @@ data class ClusterSpec(
   )
 
   data class LaunchConfigurationSpec(
+    val image: VirtualMachineImage? = null,
     val instanceType: String? = null,
     val ebsOptimized: Boolean? = null,
     val iamRole: String? = null,
     val keyPair: String? = null,
     val instanceMonitoring: Boolean? = null,
     val ramdiskId: String? = null
+  )
+
+  data class VirtualMachineImage(
+    val id: String,
+    val appVersion: String
   )
 
   data class HealthSpec(
