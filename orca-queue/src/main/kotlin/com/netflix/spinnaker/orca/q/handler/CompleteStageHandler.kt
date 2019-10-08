@@ -179,9 +179,17 @@ class CompleteStageHandler(
         } ?: id
       }
 
+    // If startTime was not set, then assume this was instantaneous.
+    // In practice 0 startTimes can happen if there is
+    // an exception in StartStageHandler or guard causing skipping.
+    // Without a startTime, we cannot record a meaningful time,
+    // and assuming a start of 0 makes the values ridiculously large.
+    val endTime = stage.endTime ?: clock.millis()
+    val startTime = stage.startTime ?: endTime
+
     PercentileTimer
       .get(registry, id)
-      .record((stage.endTime ?: clock.millis()) - (stage.startTime ?: 0), TimeUnit.MILLISECONDS)
+      .record(endTime - startTime, TimeUnit.MILLISECONDS)
   }
 
   override val messageType = CompleteStage::class.java

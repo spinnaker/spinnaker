@@ -88,12 +88,14 @@ class StartStageHandler(
           queue.push(SkipStage(stage))
         } else {
           try {
+            // Set the startTime in case we throw an exception.
+            stage.startTime = clock.millis()
+            repository.storeStage(stage)
+
             stage.withAuth {
               stage.plan()
             }
-
             stage.status = RUNNING
-            stage.startTime = clock.millis()
             repository.storeStage(stage)
 
             stage.start()
