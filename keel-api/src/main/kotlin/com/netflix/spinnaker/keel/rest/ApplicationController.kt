@@ -42,8 +42,9 @@ class ApplicationController(
     @RequestParam("includeDetails", required = false, defaultValue = "false") includeDetails: Boolean
   ): Map<String, Any> {
     if (includeDetails) {
-      val resources = resourceRepository.getByApplication(application)
-        .filter { !it.startsWith("tag:keel-tag") }
+      val resources = resourceRepository.getSummaryByApplication(application)
+        .filter { it.kind != "keel-tag" }
+
       return mapOf(
         "hasManagedResources" to resources.isNotEmpty(),
         "resources" to resources

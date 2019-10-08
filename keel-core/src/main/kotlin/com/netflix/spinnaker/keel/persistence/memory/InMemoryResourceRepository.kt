@@ -18,6 +18,7 @@ package com.netflix.spinnaker.keel.persistence.memory
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.ResourceSpec
+import com.netflix.spinnaker.keel.api.ResourceSummary
 import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.events.ResourceEvent
@@ -53,6 +54,13 @@ class InMemoryResourceRepository(
     resources
       .filterValues { it.application == application }
       .map { it.value.id.toString() }
+
+  override fun getSummaryByApplication(application: String): List<ResourceSummary> =
+    resources
+      .filterValues { it.application == application }
+      .map { (_, resource) ->
+        resource.toResourceSummary()
+      }
 
   override fun store(resource: Resource<*>) {
     resources[resource.id] = resource

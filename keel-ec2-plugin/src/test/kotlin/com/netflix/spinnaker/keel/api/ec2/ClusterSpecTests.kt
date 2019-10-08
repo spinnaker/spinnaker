@@ -3,16 +3,16 @@ package com.netflix.spinnaker.keel.api.ec2
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ClusterRegion
+import com.netflix.spinnaker.keel.api.Locations
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.HealthSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
-import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.Locations
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType.ELB
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.MemoryCloudDriverCache
 import com.netflix.spinnaker.keel.ec2.resource.ResolvedImages
 import com.netflix.spinnaker.keel.model.Moniker
+import com.netflix.spinnaker.keel.model.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import dev.minutest.TestContextBuilder
@@ -42,12 +42,12 @@ internal class ClusterSpecTests : JUnit5Minutests {
           locations = Locations(
             accountName = "test",
             regions = setOf(
-              ClusterRegion(
+              SubnetAwareRegionSpec(
                 region = "us-east-1",
                 subnet = "internal (vpc0)",
                 availabilityZones = setOf("us-east-1c", "us-east-1d", "us-east-1e")
               ),
-              ClusterRegion(
+              SubnetAwareRegionSpec(
                 region = "us-west-2",
                 subnet = "internal (vpc0)",
                 availabilityZones = setOf("us-west-2a", "us-west-2b", "us-west-2c")

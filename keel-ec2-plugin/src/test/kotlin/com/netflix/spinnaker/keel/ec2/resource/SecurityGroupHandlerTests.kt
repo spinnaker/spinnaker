@@ -16,15 +16,16 @@
 package com.netflix.spinnaker.keel.ec2.resource
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.keel.api.Locations
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.CidrRule
 import com.netflix.spinnaker.keel.api.ec2.CrossAccountReferenceRule
 import com.netflix.spinnaker.keel.api.ec2.PortRange
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroup
-import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupOverride
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule.Protocol.TCP
+import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.SelfReferenceRule
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
@@ -39,6 +40,7 @@ import com.netflix.spinnaker.keel.ec2.RETROFIT_NOT_FOUND
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
+import com.netflix.spinnaker.keel.model.SimpleRegionSpec
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
@@ -114,9 +116,9 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
           app = "keel",
           stack = "fnord"
         ),
-        locations = SecurityGroupSpec.Locations(
+        locations = Locations(
           accountName = vpcRegion1.account,
-          regions = setOf(vpcRegion1.region, vpcRegion2.region)
+          regions = setOf(SimpleRegionSpec(vpcRegion1.region), SimpleRegionSpec(vpcRegion2.region))
         ),
         vpcName = vpcRegion1.name,
         description = "dummy security group"
@@ -191,9 +193,9 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
           app = "keel",
           stack = "fnord"
         ),
-        locations = SecurityGroupSpec.Locations(
+        locations = Locations(
           accountName = vpcRegion1.account,
-          regions = setOf(vpcRegion1.region, vpcRegion2.region)
+          regions = setOf(SimpleRegionSpec(vpcRegion1.region), SimpleRegionSpec(vpcRegion2.region))
         ),
         vpcName = vpcRegion1.name,
         description = "dummy security group"
@@ -394,7 +396,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
 
           before {
             securityGroupSpec.locations.regions.forEach { region ->
-              Network(CLOUD_PROVIDER, randomUUID().toString(), "vpc1", "test", region)
+              Network(CLOUD_PROVIDER, randomUUID().toString(), "vpc1", "test", region.region)
                 .also {
                   every { cloudDriverCache.networkBy(it.id) } returns it
                   every { cloudDriverCache.networkBy(it.name, it.account, it.region) } returns it
@@ -644,9 +646,9 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
           val onlyInEast = resource
             .copy(
               spec = resource.spec.copy(
-                locations = SecurityGroupSpec.Locations(
+                locations = Locations(
                   accountName = securityGroupSpec.locations.accountName,
-                  regions = setOf("us-east-17"))))
+                  regions = setOf(SimpleRegionSpec("us-east-17")))))
 
           handler.update(
             resource,

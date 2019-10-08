@@ -7,15 +7,14 @@ import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.Locations
 import com.netflix.spinnaker.keel.api.NoImageFound
 import com.netflix.spinnaker.keel.api.NoImageFoundForRegions
 import com.netflix.spinnaker.keel.api.NoImageSatisfiesConstraints
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
-import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ClusterRegion
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
-import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.Locations
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.IdImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ImageProvider
@@ -24,6 +23,7 @@ import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.appVersion
 import com.netflix.spinnaker.keel.model.Moniker
+import com.netflix.spinnaker.keel.model.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
 import com.netflix.spinnaker.keel.test.resource
@@ -120,7 +120,7 @@ internal class ImageResolverTests : JUnit5Minutests {
         locations = Locations(
           accountName = account,
           regions = setOf(
-            ClusterRegion(
+            SubnetAwareRegionSpec(
               region = resourceRegion,
               subnet = "internal (vpc0)",
               availabilityZones = setOf()

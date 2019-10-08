@@ -3,9 +3,12 @@ package com.netflix.spinnaker.keel.api.ec2
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonUnwrapped
+import com.netflix.spinnaker.keel.api.Locatable
+import com.netflix.spinnaker.keel.api.Locations
 import com.netflix.spinnaker.keel.api.MultiRegion
 import com.netflix.spinnaker.keel.ec2.resource.ResolvedImages
 import com.netflix.spinnaker.keel.model.Moniker
+import com.netflix.spinnaker.keel.model.SubnetAwareRegionSpec
 import java.time.Duration
 
 /**
@@ -85,10 +88,10 @@ private fun ClusterSpec.resolveHealth(region: String): Health {
 data class ClusterSpec(
   override val moniker: Moniker,
   val imageProvider: ImageProvider,
-  val locations: Locations,
+  override val locations: Locations<SubnetAwareRegionSpec>,
   private val _defaults: ServerGroupSpec,
   val overrides: Map<String, ServerGroupSpec> = emptyMap()
-) : MultiRegion {
+) : MultiRegion, Locatable {
   @JsonIgnore
   override val id = "${locations.accountName}:${moniker.name}"
 
@@ -110,7 +113,7 @@ data class ClusterSpec(
   constructor(
     moniker: Moniker,
     imageProvider: ImageProvider,
-    locations: Locations,
+    locations: Locations<SubnetAwareRegionSpec>,
     launchConfiguration: LaunchConfigurationSpec?,
     capacity: Capacity?,
     dependencies: Dependencies?,
@@ -131,20 +134,6 @@ data class ClusterSpec(
       tags
     ),
     overrides
-  )
-
-  data class Locations(
-    val accountName: String,
-    val regions: Set<ClusterRegion>
-  )
-
-  data class ClusterRegion(
-    val region: String,
-    val subnet: String,
-    /**
-     * If empty this implies the cluster should use all availability zones.
-     */
-    val availabilityZones: Set<String> = emptySet()
   )
 
   data class ServerGroupSpec(
@@ -174,7 +163,7 @@ data class ClusterSpec(
   )
 }
 
-operator fun ClusterSpec.Locations.get(region: String) =
+operator fun Locations<SubnetAwareRegionSpec>.get(region: String) =
   regions.first { it.region == region }
 
 private operator fun <E> Set<E>?.plus(elements: Set<E>?): Set<E> =

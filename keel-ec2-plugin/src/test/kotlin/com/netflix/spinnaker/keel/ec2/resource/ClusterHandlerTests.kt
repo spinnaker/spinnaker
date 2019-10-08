@@ -2,12 +2,11 @@ package com.netflix.spinnaker.keel.ec2.resource
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import com.netflix.spinnaker.keel.api.Locations
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
-import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ClusterRegion
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
-import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.Locations
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.Dependencies
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
@@ -37,6 +36,7 @@ import com.netflix.spinnaker.keel.ec2.RETROFIT_NOT_FOUND
 import com.netflix.spinnaker.keel.ec2.image.ArtifactVersionDeployed
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
+import com.netflix.spinnaker.keel.model.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.model.parseMoniker
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
@@ -99,7 +99,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
     locations = Locations(
       accountName = vpcWest.account,
       regions = listOf(vpcWest, vpcEast).map { subnet ->
-        ClusterRegion(
+        SubnetAwareRegionSpec(
           region = subnet.region,
           subnet = subnet.name!!,
           availabilityZones = listOf("a", "b", "c").map { "${subnet.region}$it" }.toSet()

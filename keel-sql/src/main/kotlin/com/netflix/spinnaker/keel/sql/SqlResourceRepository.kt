@@ -6,6 +6,7 @@ import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.ResourceSpec
+import com.netflix.spinnaker.keel.api.ResourceSummary
 import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.randomUID
@@ -74,6 +75,24 @@ open class SqlResourceRepository(
       .from(RESOURCE)
       .where(RESOURCE.APPLICATION.eq(application))
       .fetch(RESOURCE.ID)
+  }
+
+  override fun getSummaryByApplication(application: String): List<ResourceSummary> {
+    val resources: List<Resource<*>> = jooq
+      .select(RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.METADATA, RESOURCE.SPEC)
+      .from(RESOURCE)
+      .where(RESOURCE.APPLICATION.eq(application))
+      .fetch()
+      .map { (apiVersion, kind, metadata, spec) ->
+        Resource(
+          ApiVersion(apiVersion),
+          kind,
+          objectMapper.readValue<Map<String, Any?>>(metadata).asResourceMetadata(),
+          objectMapper.readValue(spec, resourceTypeIdentifier.identify(apiVersion.let(::ApiVersion), kind))
+        )
+      }
+
+    return resources.map { it.toResourceSummary() }
   }
 
   override fun store(resource: Resource<*>) {

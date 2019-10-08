@@ -2,14 +2,13 @@ package com.netflix.spinnaker.keel.ec2.normalizers
 
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.Locations
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
-import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ClusterRegion
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.HealthSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
-import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.Locations
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.Dependencies
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType.ELB
@@ -20,6 +19,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.model.Moniker
+import com.netflix.spinnaker.keel.model.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -56,12 +56,12 @@ internal class ClusterAvailabilityZonesResolverTests : JUnit5Minutests {
         locations = Locations(
           accountName = "test",
           regions = setOf(
-            ClusterRegion(
+            SubnetAwareRegionSpec(
               region = "us-east-1",
               subnet = "internal (vpc0)",
               availabilityZones = eastAvailabilityZones ?: emptySet()
             ),
-            ClusterRegion(
+            SubnetAwareRegionSpec(
               region = "us-west-2",
               subnet = "internal (vpc0)",
               availabilityZones = westAvailabilityZones ?: emptySet()

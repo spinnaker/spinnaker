@@ -8,7 +8,6 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.UnsupportedStrategy
 import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
-import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ClusterRegion
 import com.netflix.spinnaker.keel.api.ec2.IdImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ImageProvider
 import com.netflix.spinnaker.keel.api.ec2.JenkinsImageProvider
@@ -18,6 +17,7 @@ import com.netflix.spinnaker.keel.clouddriver.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.appVersion
+import com.netflix.spinnaker.keel.model.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
@@ -89,7 +89,7 @@ class ImageResolver(
 
       ResolvedImages(
         artifactVersion,
-        image.toResolvedImage(resource.spec.locations.regions.map(ClusterRegion::region))
+        image.toResolvedImage(resource.spec.locations.regions.map(SubnetAwareRegionSpec::region))
       )
     } else {
       val image = imageService.getLatestNamedImage(
@@ -99,7 +99,7 @@ class ImageResolver(
 
       ResolvedImages(
         image.appVersion,
-        image.toResolvedImage(resource.spec.locations.regions.map(ClusterRegion::region))
+        image.toResolvedImage(resource.spec.locations.regions.map(SubnetAwareRegionSpec::region))
       )
     }
   }
@@ -119,7 +119,7 @@ class ImageResolver(
     log.info("Image found for {}: {}", imageProvider.packageName, image)
     return ResolvedImages(
       image.appVersion,
-      image.toResolvedImage(resource.spec.locations.regions.map(ClusterRegion::region))
+      image.toResolvedImage(resource.spec.locations.regions.map(SubnetAwareRegionSpec::region))
     )
   }
 

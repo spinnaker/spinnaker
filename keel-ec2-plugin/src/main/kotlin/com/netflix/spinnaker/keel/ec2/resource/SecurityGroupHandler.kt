@@ -25,9 +25,9 @@ import com.netflix.spinnaker.keel.api.ec2.CrossAccountReferenceRule
 import com.netflix.spinnaker.keel.api.ec2.PortRange
 import com.netflix.spinnaker.keel.api.ec2.ReferenceRule
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroup
-import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule.Protocol
+import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.SelfReferenceRule
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.serviceAccount
@@ -67,15 +67,16 @@ class SecurityGroupHandler(
 
   override suspend fun toResolvedType(resource: Resource<SecurityGroupSpec>): Map<String, SecurityGroup> =
     with(resource.spec) {
-      locations.regions.associateWith { region ->
-        SecurityGroup(
+      locations.regions.map { simpleRegionSpec ->
+        simpleRegionSpec.region to SecurityGroup(
           moniker = Moniker(app = moniker.app, stack = moniker.stack, detail = moniker.detail),
-          location = SecurityGroup.Location(accountName = locations.accountName, region = region),
-          vpcName = overrides[region]?.vpcName ?: vpcName,
-          description = overrides[region]?.description ?: description,
-          inboundRules = overrides[region]?.inboundRules ?: inboundRules
+          location = SecurityGroup.Location(accountName = locations.accountName, region = simpleRegionSpec.region
+          ),
+          vpcName = overrides[simpleRegionSpec.region]?.vpcName ?: vpcName,
+          description = overrides[simpleRegionSpec.region]?.description ?: description,
+          inboundRules = overrides[simpleRegionSpec.region]?.inboundRules ?: inboundRules
         )
-      }
+      }.toMap()
     }
 
   override suspend fun current(resource: Resource<SecurityGroupSpec>): Map<String, SecurityGroup> =
@@ -154,8 +155,8 @@ class SecurityGroupHandler(
               spec.locations.accountName,
               CLOUD_PROVIDER,
               spec.moniker.name,
-              region,
-              spec.vpcName?.let { cloudDriverCache.networkBy(it, spec.locations.accountName, region).id }
+              region.region,
+              spec.vpcName?.let { cloudDriverCache.networkBy(it, spec.locations.accountName, region.region).id }
             )
               .toSecurityGroup()
           } catch (e: HttpException) {

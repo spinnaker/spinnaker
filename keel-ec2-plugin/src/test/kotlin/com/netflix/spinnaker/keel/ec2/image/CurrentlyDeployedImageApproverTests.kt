@@ -21,17 +21,17 @@ import com.netflix.spinnaker.keel.api.ArtifactType
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.Locations
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
-import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ClusterRegion
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
-import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.Locations
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.IdImageProvider
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.model.Moniker
+import com.netflix.spinnaker.keel.model.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
@@ -78,7 +78,7 @@ internal class CurrentlyDeployedImageApproverTests : JUnit5Minutests {
         locations = Locations(
           accountName = "test",
           regions = setOf(
-            ClusterRegion(
+            SubnetAwareRegionSpec(
               region = "ap-south-1",
               subnet = "internal (vpc0)",
               availabilityZones = setOf("ap-south1-a", "ap-south1-b", "ap-south1-c")
@@ -105,7 +105,7 @@ internal class CurrentlyDeployedImageApproverTests : JUnit5Minutests {
         locations = Locations(
           accountName = "test",
           regions = setOf(
-            ClusterRegion(
+            SubnetAwareRegionSpec(
               region = "ap-south-1",
               subnet = "internal (vpc0)",
               availabilityZones = setOf("ap-south1-a", "ap-south1-b", "ap-south1-c")

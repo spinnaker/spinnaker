@@ -1,11 +1,14 @@
 package com.netflix.spinnaker.keel.test
 
 import com.netflix.spinnaker.keel.api.ApiVersion
+import com.netflix.spinnaker.keel.api.Locatable
+import com.netflix.spinnaker.keel.api.Locations
 import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
+import com.netflix.spinnaker.keel.model.SimpleRegionSpec
 import com.netflix.spinnaker.keel.plugin.SimpleResourceHandler
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import java.util.UUID
@@ -19,6 +22,24 @@ fun resource(
   application: String = "fnord"
 ): Resource<DummyResourceSpec> =
   DummyResourceSpec(id = id, application = application)
+    .let { spec ->
+      resource(
+        apiVersion = apiVersion,
+        kind = kind,
+        spec = spec,
+        id = spec.id,
+        application = application
+      )
+    }
+
+fun locatableResource(
+  apiVersion: ApiVersion = TEST_API,
+  kind: String = "locatable",
+  id: String = randomString(),
+  application: String = "fnord",
+  locations: Locations<SimpleRegionSpec> = Locations("test", setOf(SimpleRegionSpec("us-west-1")))
+): Resource<DummyLocatableResourceSpec> =
+  DummyLocatableResourceSpec(id = id, application = application, locations = locations)
     .let { spec ->
       resource(
         apiVersion = apiVersion,
@@ -64,6 +85,13 @@ data class DummyResourceSpec(
   val data: String = randomString(),
   override val application: String = "fnord"
 ) : ResourceSpec
+
+data class DummyLocatableResourceSpec(
+  override val id: String = randomString(),
+  val data: String = randomString(),
+  override val application: String = "fnord",
+  override val locations: Locations<SimpleRegionSpec> = Locations("test", setOf(SimpleRegionSpec("us-west-1")))
+) : ResourceSpec, Locatable
 
 data class DummyResource(
   val id: String = randomString(),

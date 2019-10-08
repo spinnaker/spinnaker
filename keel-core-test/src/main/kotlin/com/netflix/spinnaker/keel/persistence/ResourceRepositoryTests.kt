@@ -26,6 +26,7 @@ import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.events.ResourceUpdated
 import com.netflix.spinnaker.keel.events.ResourceValid
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
+import com.netflix.spinnaker.keel.test.locatableResource
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.RootContextBuilder
@@ -37,6 +38,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifyAll
 import strikt.api.Assertion
+import strikt.api.expect
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.api.expectThrows
@@ -48,6 +50,7 @@ import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isGreaterThanOrEqualTo
 import strikt.assertions.isNotEmpty
+import strikt.assertions.isNotNull
 import strikt.assertions.map
 import strikt.assertions.none
 import java.time.Clock
@@ -126,7 +129,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
       context("storing another resource with a different name") {
         before {
           subject.store(anotherResource)
-          subject.appendHistory(ResourceCreated(resource, clock))
+          subject.appendHistory(ResourceCreated(anotherResource, clock))
         }
 
         test("it does not overwrite the first resource") {
@@ -137,10 +140,27 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
             callback(match { it.id == anotherResource.id })
           }
         }
+      }
 
-        test("one resource is returned for each application") {
-          expectThat(subject.getByApplication("fnord")).hasSize(1)
-          expectThat(subject.getByApplication("wow")).hasSize(1)
+      context("retrieving resources by application") {
+        val lr = locatableResource(application = "toast")
+        before {
+          subject.store(lr)
+          subject.appendHistory(ResourceCreated(lr, clock))
+        }
+
+        test("one resource is returned for the application") {
+          expectThat(subject.getByApplication("toast")).hasSize(1)
+        }
+
+        test("resource summary is formatted correctly") {
+          val summary = subject.getSummaryByApplication("toast")
+
+          expect {
+            that(summary).hasSize(1)
+            that(summary.first().id).isEqualTo(lr.id)
+            that(summary.first().locations).isNotNull()
+          }
         }
       }
 

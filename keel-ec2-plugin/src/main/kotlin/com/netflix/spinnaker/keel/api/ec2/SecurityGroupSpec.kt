@@ -15,29 +15,27 @@
  */
 package com.netflix.spinnaker.keel.api.ec2
 
+import com.netflix.spinnaker.keel.api.Locatable
+import com.netflix.spinnaker.keel.api.Locations
 import com.netflix.spinnaker.keel.api.MultiRegion
 import com.netflix.spinnaker.keel.model.Moniker
+import com.netflix.spinnaker.keel.model.SimpleRegionSpec
 import de.danielbechler.diff.inclusion.Inclusion.EXCLUDED
 import de.danielbechler.diff.introspection.ObjectDiffProperty
 
 data class SecurityGroupSpec(
   override val moniker: Moniker,
-  val locations: Locations,
+  override val locations: Locations<SimpleRegionSpec>,
   val vpcName: String?,
   val description: String?,
   val inboundRules: Set<SecurityGroupRule> = emptySet(),
   val overrides: Map<String, SecurityGroupOverride> = emptyMap()
-) : MultiRegion {
+) : MultiRegion, Locatable {
   override val id = "${locations.accountName}:${moniker.name}"
 
   override val regionalIds = locations.regions.map { region ->
     "${locations.accountName}:$region:${moniker.name}"
   }.sorted()
-
-  data class Locations(
-    val accountName: String,
-    val regions: Set<String>
-  )
 }
 
 data class SecurityGroupOverride(

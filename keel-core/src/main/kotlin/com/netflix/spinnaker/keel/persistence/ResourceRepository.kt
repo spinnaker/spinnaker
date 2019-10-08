@@ -16,9 +16,13 @@
 package com.netflix.spinnaker.keel.persistence
 
 import com.netflix.spinnaker.keel.api.ApiVersion
+import com.netflix.spinnaker.keel.api.Locatable
+import com.netflix.spinnaker.keel.api.Locations
+import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.ResourceSpec
+import com.netflix.spinnaker.keel.api.ResourceSummary
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceCheckError
@@ -28,6 +32,7 @@ import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
 import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.events.ResourceMissing
 import com.netflix.spinnaker.keel.events.ResourceValid
+import com.netflix.spinnaker.keel.model.SimpleRegionSpec
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.ACTUATING
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.CREATED
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.DIFF
@@ -69,6 +74,11 @@ interface ResourceRepository : PeriodicallyCheckedRepository<ResourceHeader> {
    * Fetches resources for a given application.
    */
   fun getByApplication(application: String): List<String>
+
+  /**
+   * Fetches resource summary, including the status
+   */
+  fun getSummaryByApplication(application: String): List<ResourceSummary>
 
   /**
    * Persists a resource.
@@ -149,6 +159,26 @@ interface ResourceRepository : PeriodicallyCheckedRepository<ResourceHeader> {
     }
     return true
   }
+
+  fun Resource<*>.toResourceSummary() =
+    ResourceSummary(
+      id = id,
+      kind = kind,
+      status = getStatus(id), // todo eb: this will become expensive
+      moniker = if (spec is Monikered) {
+        spec.moniker
+      } else {
+        null
+      },
+      locations = if (spec is Locatable) {
+        Locations(
+          accountName = spec.locations.accountName,
+          regions = spec.locations.regions.map { SimpleRegionSpec(it.region) }.toSet()
+        )
+      } else {
+        null
+      }
+    )
 
   companion object {
     const val DEFAULT_MAX_EVENTS: Int = 10
