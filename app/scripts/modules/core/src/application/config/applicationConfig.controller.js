@@ -6,6 +6,7 @@ import { TRAFFIC_GUARD_CONFIG_COMPONENT } from './trafficGuard/trafficGuardConfi
 import { SETTINGS } from 'core/config/settings';
 import { ApplicationWriter } from 'core/application/service/ApplicationWriter';
 import { ManagedReader } from 'core/managed';
+import { DELETE_APPLICATION_SECTION } from './deleteApplicationSection.module';
 
 const angular = require('angular');
 
@@ -14,8 +15,8 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     require('./applicationAttributes.directive').name,
     require('./applicationNotifications.directive').name,
-    require('./deleteApplicationSection.directive').name,
     require('./applicationSnapshotSection.component').name,
+    DELETE_APPLICATION_SECTION,
     APPLICATION_DATA_SOURCE_EDITOR,
     CHAOS_MONKEY_CONFIG_COMPONENT,
     TRAFFIC_GUARD_CONFIG_COMPONENT,
