@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.keel.ec2.normalizers
+package com.netflix.spinnaker.keel.ec2.resolvers
 
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
@@ -138,7 +138,7 @@ internal class ClusterAvailabilityZonesResolverTests : JUnit5Minutests {
     private fun randomHex(): String = RandomStringUtils.random(8, "0123456789abcdef")
   }
 
-  fun tests() = rootContext<Fixture>() {
+  fun tests() = rootContext<Fixture> {
     context("no availability zones are specified explicitly") {
       fixture {
         Fixture(

@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.keel.ec2.normalizers
+package com.netflix.spinnaker.keel.ec2.resolvers
 
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1

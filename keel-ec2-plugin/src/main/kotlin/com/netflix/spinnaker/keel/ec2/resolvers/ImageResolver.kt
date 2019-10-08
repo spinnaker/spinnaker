@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.keel.ec2.normalizers
+package com.netflix.spinnaker.keel.ec2.resolvers
 
 import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.keel.api.ApiVersion
