@@ -2,18 +2,18 @@
   application():: {
     // set default values
     dataSources: {
-      disabled: [ ],
-      enabled: [ ]
+      disabled: [],
+      enabled: [],
     },
     platformHealthOnly: false,
     platformHealthOnlyShowOverride: false,
     providerSettings: {
       aws: {
-        useAmiBlockDeviceMappings: false
+        useAmiBlockDeviceMappings: false,
       },
       gce: {
-        associatePublicIpAddress: false
-      }
+        associatePublicIpAddress: false,
+      },
     },
     trafficGuards: [],
     // set overrides
