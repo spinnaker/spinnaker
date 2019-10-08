@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.clouddriver.titus.deploy.description;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription;
 import com.netflix.spinnaker.clouddriver.orchestration.SagaContextAware;
 import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEvent;
@@ -17,6 +18,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
@@ -81,9 +83,16 @@ public class TitusDeployDescription extends AbstractTitusCredentialsDescription
     return Arrays.asList(application);
   }
 
+  @JsonIgnore
   @Override
   public void setSagaContext(SagaContext sagaContext) {
     this.sagaContext = sagaContext;
+  }
+
+  @JsonIgnore
+  @Nullable
+  public SagaContext getSagaContext() {
+    return sagaContext;
   }
 
   /** For Jackson deserialization. */

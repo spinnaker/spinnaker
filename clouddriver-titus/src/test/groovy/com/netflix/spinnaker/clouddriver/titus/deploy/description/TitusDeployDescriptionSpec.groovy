@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.clouddriver.titus.deploy.descriptions
+package com.netflix.spinnaker.clouddriver.titus.deploy.description
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.clouddriver.orchestration.SagaContextAware
 import com.netflix.spinnaker.clouddriver.titus.client.model.MigrationPolicy
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
-import com.netflix.spinnaker.clouddriver.titus.deploy.description.TitusDeployDescription
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -59,7 +59,12 @@ class TitusDeployDescriptionSpec extends Specification {
         networkMbps: 128
       ),
       securityGroups: [],
-      softConstraints: []
+      softConstraints: [],
+      sagaContext: new SagaContextAware.SagaContext(
+        "titus",
+        "createServerGroup",
+        [:]
+      )
     )
 
     when:
