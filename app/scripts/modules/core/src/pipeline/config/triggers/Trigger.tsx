@@ -39,7 +39,6 @@ export const Trigger = (props: ITriggerProps) => (
   <SpinFormik
     onSubmit={() => null}
     initialValues={props.trigger}
-    enableReinitialize={true}
     render={formik => <TriggerForm {...props} formik={formik} />}
   />
 );

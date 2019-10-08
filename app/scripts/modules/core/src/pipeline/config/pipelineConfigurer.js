@@ -87,6 +87,7 @@ module.exports = angular
         section: 'triggers',
         stageIndex: 0,
         loading: false,
+        revertCount: 0,
       };
 
       $scope.viewState.loadingHistory = true;
@@ -454,6 +455,7 @@ module.exports = angular
               this.navigateTo({ section: 'triggers' });
             }
           }
+          $scope.viewState.revertCount++;
           $scope.$broadcast('pipeline-reverted');
         });
       };

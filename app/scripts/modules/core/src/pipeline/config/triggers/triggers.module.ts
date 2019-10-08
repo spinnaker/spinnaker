@@ -7,5 +7,5 @@ import { ARTIFACT_MODULE } from './artifacts/artifact.module';
 export const TRIGGERS = 'spinnaker.core.pipeline.config.trigger.triggersDirective';
 module(TRIGGERS, [ARTIFACT_MODULE]).component(
   'triggers',
-  react2angular(Triggers, ['application', 'pipeline', 'fieldUpdated', 'updatePipelineConfig']),
+  react2angular(Triggers, ['application', 'pipeline', 'fieldUpdated', 'updatePipelineConfig', 'viewState']),
 );
