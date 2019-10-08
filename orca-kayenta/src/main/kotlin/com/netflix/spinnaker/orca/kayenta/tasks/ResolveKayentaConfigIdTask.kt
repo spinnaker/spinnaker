@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.orca.kayenta.tasks
 
+import com.netflix.spinnaker.kork.exceptions.UserException
 import com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
@@ -25,9 +26,9 @@ class ResolveKayentaConfigIdTask(
       .toList()
 
     if (candidates.size == 0) {
-      throw NoSuchElementException("Couldn't find a configId for configName $configName and application $currentApplication")
+      throw UserException("Couldn't find a canary configId for configName $configName and application $currentApplication")
     } else if (candidates.size > 1) {
-      throw IllegalArgumentException("Found more than one configId for configName $configName and application $currentApplication")
+      throw UserException("Found more than one canary configId for configName $configName and application $currentApplication")
     }
     return TaskResult.builder(SUCCEEDED).context("canaryConfigId", candidates[0].id).build()
   }
