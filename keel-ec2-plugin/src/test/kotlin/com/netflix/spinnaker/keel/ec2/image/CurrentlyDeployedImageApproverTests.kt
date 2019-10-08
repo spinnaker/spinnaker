@@ -27,6 +27,7 @@ import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.VirtualMachineImage
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.model.Moniker
@@ -79,16 +80,16 @@ internal class CurrentlyDeployedImageApproverTests : JUnit5Minutests {
             SubnetAwareRegionSpec(
               region = "ap-south-1",
               subnet = "internal (vpc0)",
-              availabilityZones = setOf("ap-south1-a", "ap-south1-b", "ap-south1-c"),
-              image = ClusterSpec.VirtualMachineImage(
-                id = imageId,
-                appVersion = "fnord-0.477.0-h623.787afd7"
-              )
+              availabilityZones = setOf("ap-south1-a", "ap-south1-b", "ap-south1-c")
             )
           )
         ),
         _defaults = ServerGroupSpec(
           launchConfiguration = LaunchConfigurationSpec(
+            image = VirtualMachineImage(
+              id = imageId,
+              appVersion = "fnord-0.477.0-h623.787afd7"
+            ),
             instanceType = "m4.2xlarge",
             ebsOptimized = true,
             iamRole = "fnordInstanceProfile",
