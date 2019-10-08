@@ -27,6 +27,8 @@ export class InstanceLoadBalancerHealth extends React.Component<IInstanceLoadBal
       icon = <span className="glyphicon glyphicon-Up-triangle" />;
     } else if (health === 'OutOfService' || health === 'Down') {
       icon = <span className="glyphicon glyphicon-Down-triangle" />;
+    } else if (health === 'Starting') {
+      icon = <span className="glyphicon glyphicon-Starting-triangle" />;
     }
 
     // We need to continue injecting spaces so that angular and react components align
