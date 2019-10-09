@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Modal } from 'react-bootstrap';
 
-import { ValidationMessage } from 'core/validation';
+import { ValidationMessage } from '../../validation';
 
 import { ISpelError } from './evaluateExpression';
 

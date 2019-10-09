@@ -1,6 +1,5 @@
 import * as React from 'react';
-import { ICategorizedErrors, IValidationCategory } from '../presentation/forms/validation';
-
+import { ICategorizedErrors, IValidationCategory } from './categories';
 import './ValidationMessage.less';
 
 const containerClassNames: ICategorizedErrors = {

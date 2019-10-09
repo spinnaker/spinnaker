@@ -17,10 +17,10 @@ import {
   ReactSelectInput,
   SpinFormik,
   Tooltip,
+  ValidationMessage,
   WatchValue,
 } from 'core/presentation';
 import { Registry } from 'core/registry';
-import { ValidationMessage } from 'core/validation';
 
 import { RunAsUserInput } from './RunAsUser';
 import './Trigger.less';

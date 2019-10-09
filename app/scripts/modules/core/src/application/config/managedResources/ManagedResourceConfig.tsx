@@ -6,8 +6,7 @@ import * as classNames from 'classnames';
 
 import { NgReact } from 'core/reactShims';
 import { Application } from 'core/application';
-import { useData } from 'core/presentation';
-import { ValidationMessage } from 'core/validation';
+import { useData, ValidationMessage } from 'core/presentation';
 import { Spinner } from 'core/widgets';
 import { ManagedReader, ManagedWriter } from 'core/managed';
 
