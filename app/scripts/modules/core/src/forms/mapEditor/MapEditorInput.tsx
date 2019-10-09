@@ -86,9 +86,7 @@ export function MapEditorInput({
   const columnCount = labelsLeft ? 5 : 3;
   const tableClass = label ? '' : 'no-border-top';
   const isParameterized = isString(value);
-  const backingModel = !isString(value)
-    ? objectToTuples(value, (validation && validation.validationMessage) || {})
-    : null;
+  const backingModel = !isString(value) ? objectToTuples(value, (validation && validation.messageNode) || {}) : null;
 
   // Register/unregister validator, if a validation prop was supplied
   React.useEffect(() => {

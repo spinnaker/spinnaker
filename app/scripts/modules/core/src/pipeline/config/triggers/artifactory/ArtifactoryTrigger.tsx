@@ -1,17 +1,14 @@
 import * as React from 'react';
 
-import { FormikFormField, ReactSelectInput, useLatestPromise } from 'core/presentation';
+import { FormikFormField, ReactSelectInput, errorMessage, useLatestPromise } from 'core/presentation';
 
 import { ArtifactoryReaderService } from './artifactoryReader.service';
 
 export function ArtifactoryTrigger() {
   const fetchNames = useLatestPromise(() => ArtifactoryReaderService.getArtifactoryNames(), []);
 
-  const validationStatus = fetchNames.status === 'REJECTED' ? 'error' : null;
-  const validationMessage =
-    fetchNames.status === 'REJECTED'
-      ? `Error fetching artifactory names: ${fetchNames.error.data.status} ${fetchNames.error.data.error}`
-      : null;
+  const fetchError = `Error fetching artifactory names: ${fetchNames.error.data.status} ${fetchNames.error.data.error}`;
+  const validationMessage = fetchNames.status === 'REJECTED' ? errorMessage(fetchError) : null;
 
   return (
     <FormikFormField
@@ -20,7 +17,6 @@ export function ArtifactoryTrigger() {
       touched={true}
       fastField={false}
       validationMessage={validationMessage}
-      validationStatus={validationStatus}
       input={props => (
         <ReactSelectInput
           {...props}

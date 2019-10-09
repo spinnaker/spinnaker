@@ -1,38 +1,30 @@
 import * as React from 'react';
 import { isEmpty } from 'lodash';
 
-import { IValidationMessageProps, ValidationMessage } from 'core/validation';
-import { IFieldLayoutProps } from 'core/presentation';
+import { ILayoutProps } from 'core/presentation';
 
-export class ManualExecutionFieldLayout extends React.Component<IFieldLayoutProps> {
-  public render() {
-    const { label, help, input, actions, touched, required, validationMessage, validationStatus } = this.props;
+export function ManualExecutionFieldLayout(props: ILayoutProps) {
+  const { label, help, input, actions, validation, required } = props;
 
-    const showLabel = !isEmpty(label) || !isEmpty(help);
+  const showLabel = !isEmpty(label) || !isEmpty(help);
+  const { hidden, messageNode } = validation;
 
-    const renderMessage = (message: React.ReactNode, type: IValidationMessageProps['type']) =>
-      typeof message === 'string' ? <ValidationMessage type={type} message={message} /> : message;
-
-    const isErrorOrWarning = validationStatus === 'error' || validationStatus === 'warning';
-    const validation = isErrorOrWarning && !touched ? null : renderMessage(validationMessage, validationStatus);
-
-    return (
-      <div className="sp-margin-m-bottom">
-        <div className="form-group">
-          {showLabel && (
-            <label className="col-md-4 sm-label-right break-word">
-              {label}
-              {required && <span>*</span>} {help}
-            </label>
-          )}
-          <div className="col-md-6">
-            <div>
-              {input} {actions}
-            </div>
-            <div className="message">{validation}</div>
+  return (
+    <div className="sp-margin-m-bottom">
+      <div className="form-group">
+        {showLabel && (
+          <label className="col-md-4 sm-label-right break-word">
+            {label}
+            {required && <span>*</span>} {help}
+          </label>
+        )}
+        <div className="col-md-6">
+          <div>
+            {input} {actions}
           </div>
+          {!hidden && <div className="message">{messageNode}</div>}
         </div>
       </div>
-    );
-  }
+    </div>
+  );
 }
