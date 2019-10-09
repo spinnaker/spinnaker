@@ -99,7 +99,7 @@ public class OptionalStageSupport {
           contextParameterProcessor
               .process(
                   singletonMap("expression", format("${%s}", this.expression)),
-                  contextParameterProcessor.buildExecutionContext(stage, true),
+                  contextParameterProcessor.buildExecutionContext(stage),
                   true)
               .get("expression")
               .toString();

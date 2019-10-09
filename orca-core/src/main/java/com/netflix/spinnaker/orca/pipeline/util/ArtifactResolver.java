@@ -156,7 +156,7 @@ public class ArtifactResolver {
 
     Map<String, Object> evaluatedBoundArtifactMap =
         contextParameterProcessor.process(
-            boundArtifactMap, contextParameterProcessor.buildExecutionContext(stage, true), true);
+            boundArtifactMap, contextParameterProcessor.buildExecutionContext(stage), true);
 
     return objectMapper.convertValue(evaluatedBoundArtifactMap, Artifact.class);
   }

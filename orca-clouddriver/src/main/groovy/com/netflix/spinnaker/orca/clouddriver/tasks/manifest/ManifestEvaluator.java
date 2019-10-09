@@ -128,9 +128,7 @@ public class ManifestEvaluator implements CloudProviderAware {
         if (!context.isSkipExpressionEvaluation()) {
           manifestWrapper =
               contextParameterProcessor.process(
-                  manifestWrapper,
-                  contextParameterProcessor.buildExecutionContext(stage, true),
-                  true);
+                  manifestWrapper, contextParameterProcessor.buildExecutionContext(stage), true);
 
           if (manifestWrapper.containsKey("expressionEvaluationSummary")) {
             throw new IllegalStateException(

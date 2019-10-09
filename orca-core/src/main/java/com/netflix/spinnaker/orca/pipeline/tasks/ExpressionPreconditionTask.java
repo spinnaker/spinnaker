@@ -55,7 +55,7 @@ public class ExpressionPreconditionTask implements PreconditionTask {
     Map<String, Object> result =
         contextParameterProcessor.process(
             singletonMap("expression", "${" + stageData.expression + '}'),
-            contextParameterProcessor.buildExecutionContext(stage, true),
+            contextParameterProcessor.buildExecutionContext(stage),
             true);
 
     String expression = result.get("expression").toString();

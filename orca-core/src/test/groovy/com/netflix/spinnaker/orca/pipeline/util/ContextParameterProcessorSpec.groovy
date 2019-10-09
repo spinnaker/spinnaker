@@ -803,7 +803,7 @@ class ContextParameterProcessorSpec extends Specification {
     }
 
     def stage = pipe.stageByRef("2")
-    def ctx = contextParameterProcessor.buildExecutionContext(stage, true)
+    def ctx = contextParameterProcessor.buildExecutionContext(stage)
 
     when:
     def result = contextParameterProcessor.process(stage.context, ctx, true)
@@ -825,7 +825,7 @@ class ContextParameterProcessorSpec extends Specification {
     }
 
     def stage = pipe.stageByRef("1")
-    def ctx = contextParameterProcessor.buildExecutionContext(stage, true)
+    def ctx = contextParameterProcessor.buildExecutionContext(stage)
 
     when:
     def result = contextParameterProcessor.process(stage.context, ctx, true)
@@ -854,7 +854,7 @@ class ContextParameterProcessorSpec extends Specification {
     pipe.setAuthentication(new Execution.AuthenticationDetails('joeyjoejoejuniorshabadoo@host.net'))
 
     def stage = pipe.stages.find { it.name == "Wait1" }
-    def ctx = contextParameterProcessor.buildExecutionContext(stage, true)
+    def ctx = contextParameterProcessor.buildExecutionContext(stage)
 
     when:
     def result = contextParameterProcessor.process(stage.context, ctx, true)
@@ -881,7 +881,7 @@ class ContextParameterProcessorSpec extends Specification {
 
     and:
     def stage = pipe.stages.find { it.type == "bake" }
-    def ctx = contextParameterProcessor.buildExecutionContext(stage, true)
+    def ctx = contextParameterProcessor.buildExecutionContext(stage)
 
     when:
     def result = contextParameterProcessor.process(stage.context, ctx, true)
@@ -911,7 +911,7 @@ class ContextParameterProcessorSpec extends Specification {
 
     and:
     def stage = pipe.stageByRef("1")
-    def ctx = contextParameterProcessor.buildExecutionContext(stage, true)
+    def ctx = contextParameterProcessor.buildExecutionContext(stage)
 
     when:
     def result = contextParameterProcessor.process(stage.context, ctx, true)
@@ -939,6 +939,54 @@ class ContextParameterProcessorSpec extends Specification {
     [:]              || "noValue"
     [notFound:"xyz"] || "noValue"
     [branch:"hello"] || "hello"
+  }
+
+  @Unroll
+  def "Correctly evaluates expressions that refer to outputs of prior stages"() {
+    given:
+    def execution = pipeline {
+      stage {
+        type = "evaluateVariables"
+        name = "Evaluate namespace"
+        refId = "1"
+        status = SUCCEEDED
+        outputs.putAll(
+          keyA: "valueA",
+          keyB: "valueB"
+        )
+      }
+      stage {
+        type = "deployManifest"
+        name = "Deploy manifest"
+        refId = "2"
+        requisiteStageRefIds = ["1"]
+        context.putAll(
+          manifests: [
+            [
+              kind: 'ReplicaSet',
+              name: '${keyA}',
+              namespace: '${keyB}'
+            ]
+
+          ]
+        )
+      }
+    }
+
+    def stage = execution.stageByRef("2")
+    def ctx = contextParameterProcessor.buildExecutionContext(stage)
+
+    when:
+    def result = contextParameterProcessor.process(stage.context, ctx, true)
+
+    then:
+    result.manifests == [
+      [
+        kind: 'ReplicaSet',
+        name: 'valueA',
+        namespace: 'valueB'
+      ]
+    ]
   }
 
   static escapeExpression(String expression) {

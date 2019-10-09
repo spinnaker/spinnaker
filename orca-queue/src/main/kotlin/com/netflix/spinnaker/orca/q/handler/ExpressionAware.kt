@@ -17,12 +17,10 @@
 package com.netflix.spinnaker.orca.q.handler
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.kork.expressions.ExpressionEvaluationSummary
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.StageContext
@@ -48,6 +46,7 @@ interface ExpressionAware {
     val evalSummary = ExpressionEvaluationSummary()
     val processed = processEntries(this, evalSummary)
     val execution = execution
+    val stage = this
     this.context = object : MutableMap<String, Any?> by processed {
       override fun get(key: String): Any? {
         if (execution.type == PIPELINE) {
@@ -63,7 +62,7 @@ interface ExpressionAware {
         val result = processed[key]
 
         if (result is String && ContextParameterProcessor.containsExpression(result)) {
-          val augmentedContext = processed.augmentContext(execution)
+          val augmentedContext = contextParameterProcessor.buildExecutionContext(stage)
           return contextParameterProcessor.process(mapOf(key to result), augmentedContext, true)[key]
         }
 
@@ -130,22 +129,11 @@ interface ExpressionAware {
   private fun processEntries(stage: Stage, summary: ExpressionEvaluationSummary): StageContext =
     StageContext(stage, contextParameterProcessor.process(
       stage.context,
-      (stage.context as StageContext).augmentContext(stage.execution),
+      contextParameterProcessor.buildExecutionContext(stage),
       true,
       summary
     )
     )
-
-  // TODO (mvulfson): Ideally, we opt out of this method and use ContextParameterProcessor.buildExecutionContext
-  // but that doesn't generate StageContext preventing us from doing recursive lookups... An investigation for another day
-  private fun StageContext.augmentContext(execution: Execution): StageContext =
-    if (execution.type == PIPELINE) {
-      this + mapOf(
-        "trigger" to mapper.convertValue<Map<String, Any>>(execution.trigger),
-        "execution" to execution)
-    } else {
-      this
-    }
 
   private operator fun StageContext.plus(map: Map<String, Any?>): StageContext =
     StageContext(this).apply { putAll(map) }

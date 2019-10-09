@@ -99,11 +99,9 @@ public class ContextParameterProcessor {
     return result;
   }
 
-  public Map<String, Object> buildExecutionContext(Stage stage, boolean includeStageContext) {
+  public StageContext buildExecutionContext(Stage stage) {
     Map<String, Object> augmentedContext = new HashMap<>();
-    if (includeStageContext) {
-      augmentedContext.putAll(stage.getContext());
-    }
+    augmentedContext.putAll(stage.getContext());
     if (stage.getExecution().getType() == PIPELINE) {
       augmentedContext.put(
           "trigger",
@@ -112,7 +110,7 @@ public class ContextParameterProcessor {
       augmentedContext.put("execution", stage.getExecution());
     }
 
-    return augmentedContext;
+    return new StageContext(stage, augmentedContext);
   }
 
   public static boolean containsExpression(String value) {
