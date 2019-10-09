@@ -17,7 +17,7 @@
     withTriggers(triggers):: self + if std.type(triggers) == 'array' then { triggers: triggers } else { triggers: [triggers] },
     withParameters(parameters):: self + if std.type(parameters) == 'array' then { parameterConfig: parameters } else { parameterConfig: [parameters] },
     withLock(description='', allowUnlockUi=true):: self + {
-      locked: { allowUnlockUi: allowUnlockUi, description: description, ui: true }
+      locked: { allowUnlockUi: allowUnlockUi, description: description, ui: true },
     },
 
     // v2 MPT fields
@@ -29,7 +29,7 @@
 
   moniker(app, cluster=null):: {
     app: app,
-    [if cluster != null then "cluster"]: cluster,
+    [if cluster != null then 'cluster']: cluster,
     withStack(stack):: self + { stack: stack },
     withDetail(detail):: self + { detail: detail },
   },
@@ -96,7 +96,7 @@
   inputArtifact(id):: {
     id: id,
     fromAccount(account):: self + {
-      account: account
+      account: account,
     },
   },
 
@@ -125,10 +125,10 @@
     required: false,
     hasOptions: false,
     withLabel(label):: self + { label: label },
-    withDescription(description) :: self + { description: description },
-    withDefaultValue(default) :: self + { default: default },
+    withDescription(description):: self + { description: description },
+    withDefaultValue(default):: self + { default: default },
     isRequired(isRequired):: self + { required: isRequired },
-    withOptions(options) :: self + { hasOptions: true, options: [{ value: x } for x in options]},
+    withOptions(options):: self + { hasOptions: true, options: [{ value: x } for x in options] },
   },
 
   // triggers
@@ -163,7 +163,7 @@
     webhook(name):: trigger(name, 'webhook') {
       payloadConstraints: {},
       withSource(source):: self + { source: source },
-      addPayloadConstraint(key, value):: self + { payloadConstraints +: super.payloadConstraints + { [key]: value }},
+      addPayloadConstraint(key, value):: self + { payloadConstraints+: super.payloadConstraints + { [key]: value } },
     },
     pubsub(name, pubsubSystem, subscriptionName):: trigger(name, 'pubsub') {
       pubsubSystem: pubsubSystem,
@@ -208,12 +208,12 @@
       withWaitTime(waitTime):: self + { waitTime: waitTime },
       withSkipWaitText(skipWaitText):: self + { skipWaitText: skipWaitText },
     },
-    
+
     evaluateVariables(name):: stage(name, 'evaluateVariables') {
       failOnFailedExpressions: true,
       variables: [],
       withVariable(key, value):: self + {
-        variables+: [{          
+        variables+: [{
           key: key,
           value: value,
         }],
@@ -231,14 +231,15 @@
           type: 'expression',
         }],
       },
-      withClusterSize(cluster, comparison, credentials, expected, regions, failPipeline):: self + {
+      withClusterSize(cluster, comparison, credentials, expected, moniker, regions, failPipeline):: self + {
         preconditions+: [{
           context: {
             cluster: cluster,
             comparison: comparison,
             credentials: credentials,
             expected: expected,
-            regions: if std.type(regions) == 'array' then { regions: regions } else { regions: [regions] },
+            moniker: moniker,
+            regions: if std.type(regions) == 'array' then regions else [regions],
           },
           failPipeline: failPipeline,
           type: 'clusterSize',
@@ -249,7 +250,7 @@
     findArtifactFromExecution(name):: stage(name, 'findArtifactFromExecution') {
       withApplication(application):: self + { application: application },
       withExecutionOptions(executionOptions)::
-        assert std.type(executionOptions) == 'object': 'Execution options must now be an object';
+        assert std.type(executionOptions) == 'object' : 'Execution options must now be an object';
         self + { executionOptions: executionOptions },
       withExpectedArtifact(expectedArtifact):: self + {
         expectedArtifact: {
@@ -275,7 +276,7 @@
     jenkins(name):: stage(name, 'jenkins') {
       withJob(job):: self + { job: job },
       withMaster(master):: self + { master: master },
-      withParameters(parameters):: self + { parameters: parameters},
+      withParameters(parameters):: self + { parameters: parameters },
       withPropertyFile(propertyFile):: self + { propertyFile: propertyFile },
       withMarkUnstableAsSuccessful(markUnstableAsSuccessful):: self + { markUnstableAsSuccessful: markUnstableAsSuccessful },
       withWaitForCompletion(waitForCompletion):: self + { waitForCompletion: waitForCompletion },
@@ -284,7 +285,7 @@
     // kubernetes stages
 
     bakeManifest(name):: stage(name, 'bakeManifest') {
-      templateRenderer: "HELM2",
+      templateRenderer: 'HELM2',
       inputArtifacts: self.templateArtifact + self.valueArtifacts,
       overrides: {},
       templateArtifact:: [],
@@ -294,8 +295,8 @@
       withReleaseName(name):: self + { outputName: name },
       withTemplateArtifact(artifact):: self + { templateArtifact:: [artifact] },
       withValueArtifacts(artifacts):: self + if std.type(artifacts) == 'array' then { valueArtifacts:: artifacts } else { valueArtifacts:: [artifacts] },
-      withValueOverrides(overrides) :: self + { overrides: overrides },
-      addValueOverride(key, value):: self + { overrides: super.overrides + { [key]: value} },
+      withValueOverrides(overrides):: self + { overrides: overrides },
+      addValueOverride(key, value):: self + { overrides: super.overrides + { [key]: value } },
     },
     deployManifest(name):: stage(name, 'deployManifest') {
       cloudProvider: 'kubernetes',
