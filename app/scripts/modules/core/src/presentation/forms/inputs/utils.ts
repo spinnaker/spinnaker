@@ -3,16 +3,16 @@ import { isUndefined, isString } from 'lodash';
 
 import { noop } from 'core/utils';
 
-import { IValidationProps } from '../interface';
+import { IFormInputValidation } from './interface';
 
 export const orEmptyString = (val: any) => (isUndefined(val) ? '' : val);
 
-export const validationClassName = (validation: IValidationProps) => {
+export const validationClassName = (validation: IFormInputValidation) => {
   validation = validation || {};
   return classNames({
     'ng-dirty': !!validation.touched,
-    'ng-invalid': validation.validationStatus === 'error',
-    'ng-warning': validation.validationStatus === 'warning',
+    'ng-invalid': validation.category === 'error',
+    'ng-warning': validation.category === 'warning',
   });
 };
 

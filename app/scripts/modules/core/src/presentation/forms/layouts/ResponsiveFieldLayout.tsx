@@ -1,15 +1,16 @@
 import * as React from 'react';
 
 import { HelpTextExpandedContext } from 'core/help';
-import { ValidationMessage } from 'core/validation';
+import { ValidationMessage } from '../validation';
 
-import { IFieldLayoutProps } from '../interface';
+import { ILayoutProps } from './interface';
 
 import '../forms.less';
 
-export class ResponsiveFieldLayout extends React.Component<IFieldLayoutProps> {
+export class ResponsiveFieldLayout extends React.Component<ILayoutProps> {
   public render() {
-    const { label, help, input, actions, validationMessage, validationStatus } = this.props;
+    const { label, help, input, actions, validation } = this.props;
+    const { hidden, messageNode, category } = validation;
     const showLabel = !!label || !!help;
 
     const helpUnder = false;
@@ -31,7 +32,7 @@ export class ResponsiveFieldLayout extends React.Component<IFieldLayoutProps> {
               </span>
             </div>
             {helpUnder && help && <div className="description">{help}</div>}
-            {validationMessage && <ValidationMessage type={validationStatus} message={validationMessage} />}
+            {!hidden && <ValidationMessage message={messageNode} type={category} />}
           </div>
         </div>
       </HelpTextExpandedContext.Provider>

@@ -5,10 +5,11 @@ import { isNil } from 'lodash';
 
 import { noop } from 'core/utils';
 
-import { StringsAsOptions } from './StringsAsOptions';
-import { TetheredSelect } from '../../TetheredSelect';
+import { IFormInputProps, OmitControlledInputPropsFrom } from './interface';
 import { createFakeReactSyntheticEvent, isStringArray, orEmptyString } from './utils';
-import { IFormInputProps, OmitControlledInputPropsFrom } from '../interface';
+import { StringsAsOptions } from './StringsAsOptions';
+import { useValidationData } from '../validation';
+import { TetheredSelect } from '../../TetheredSelect';
 
 export interface IReactSelectInputProps<T = OptionValues>
   extends IFormInputProps,
@@ -57,54 +58,49 @@ export const reactSelectOnBlurAdapter = (name: string, value: any, onBlur: IReac
  *
  * This component does not attempt to support async loading
  */
-export class ReactSelectInput extends React.Component<IReactSelectInputProps> {
-  public static defaultProps: Partial<IReactSelectInputProps> = {
-    mode: 'TETHERED',
+export function ReactSelectInput(props: IReactSelectInputProps) {
+  const {
+    name,
+    onChange,
+    onBlur,
+    value,
+    validation,
+    stringOptions,
+    options: optionOptions,
+    ignoreAccents: accents,
+    inputClassName,
+    ...otherProps
+  } = props;
+
+  // Default to false because this feature is SLOW
+  const ignoreAccents = isNil(accents) ? false : accents;
+  const mode = props.mode || 'TETHERED';
+  const className = orEmptyString(inputClassName);
+  const { category } = useValidationData((validation || {}).messageNode, validation.touched);
+  const style = category === 'error' ? reactSelectValidationErrorStyle : {};
+  const fieldProps = {
+    name,
+    value: orEmptyString(value),
+    onBlur: reactSelectOnBlurAdapter(name, value, onBlur),
+    onChange: reactSelectOnChangeAdapter(name, onChange),
   };
 
-  public render() {
-    const {
-      name,
-      onChange,
-      onBlur,
-      value,
-      mode,
-      validation,
-      stringOptions,
-      options: optionOptions,
-      ignoreAccents: accents,
-      inputClassName,
-      ...otherProps
-    } = this.props;
+  const commonProps = { className, style, ignoreAccents, ...fieldProps, ...otherProps };
 
-    // Default to false because this feature is SLOW
-    const ignoreAccents = isNil(accents) ? false : accents;
-    const className = orEmptyString(inputClassName);
-    const style = (validation || {}).validationStatus === 'error' ? reactSelectValidationErrorStyle : {};
-    const fieldProps = {
-      name,
-      value: orEmptyString(value),
-      onBlur: reactSelectOnBlurAdapter(name, value, onBlur),
-      onChange: reactSelectOnChangeAdapter(name, onChange),
-    };
+  const SelectElement = ({ options }: { options: IReactSelectInputProps['options'] }) =>
+    mode === 'TETHERED' ? (
+      <TetheredSelect {...commonProps} options={options} />
+    ) : mode === 'VIRTUALIZED' ? (
+      <VirtualizedSelect {...commonProps} options={options} optionRenderer={null} />
+    ) : (
+      <Select {...commonProps} options={options} />
+    );
 
-    const commonProps = { className, style, ignoreAccents, ...fieldProps, ...otherProps };
-
-    const SelectElement = ({ options }: { options: IReactSelectInputProps['options'] }) =>
-      mode === 'TETHERED' ? (
-        <TetheredSelect {...commonProps} options={options} />
-      ) : mode === 'VIRTUALIZED' ? (
-        <VirtualizedSelect {...commonProps} options={options} optionRenderer={null} />
-      ) : (
-        <Select {...commonProps} options={options} />
-      );
-
-    if (isStringArray(stringOptions)) {
-      return (
-        <StringsAsOptions strings={stringOptions}>{options => <SelectElement options={options} />}</StringsAsOptions>
-      );
-    } else {
-      return <SelectElement options={optionOptions} />;
-    }
+  if (isStringArray(stringOptions)) {
+    return (
+      <StringsAsOptions strings={stringOptions}>{options => <SelectElement options={options} />}</StringsAsOptions>
+    );
+  } else {
+    return <SelectElement options={optionOptions} />;
   }
 }

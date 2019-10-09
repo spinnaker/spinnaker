@@ -1,10 +1,10 @@
+import { ICommonFormFieldProps } from 'core/presentation/forms/fields/interface';
+import { firstDefined } from 'core/utils';
 import * as React from 'react';
 
-import { ValidationMessage } from 'core/validation';
-
-import { FormikFormField, IFormikFieldProps } from '../FormikFormField';
-import { ExpressionError, ExpressionInput, ExpressionPreview, ISpelError } from '../inputs';
-import { ICommonFormFieldProps, IFieldLayoutPropsWithoutInput } from '../interface';
+import { FormikFormField, IFormikFormFieldProps } from './FormikFormField';
+import { ExpressionError, ExpressionInput, ExpressionPreview, IExpressionChange, ISpelError } from '../inputs';
+import { useValidationData } from '../validation';
 
 export interface IExpressionFieldProps {
   placeholder?: string;
@@ -13,41 +13,36 @@ export interface IExpressionFieldProps {
   layout?: ICommonFormFieldProps['layout'];
 }
 
-export type IFormikExpressionFieldProps = IExpressionFieldProps &
-  IFormikFieldProps<string> &
-  IFieldLayoutPropsWithoutInput;
+export type IFormikExpressionFieldProps = IExpressionFieldProps & IFormikFormFieldProps<string>;
 
 export interface IFormikExpressionFieldState {
   spelPreview: string;
   spelError: ISpelError;
 }
 
-export class FormikExpressionField extends React.Component<IFormikExpressionFieldProps, IFormikExpressionFieldState> {
-  public static defaultProps: Partial<IFormikExpressionFieldProps> = { markdown: false };
-  public state = { spelPreview: '', spelError: null as ISpelError };
+export function FormikExpressionField(props: IFormikExpressionFieldProps) {
+  const { context, name, label, help, actions, validationMessage: message } = props;
 
-  public render() {
-    const { spelError, spelPreview } = this.state;
-    const { markdown, context } = this.props;
-    const { name, label, help, actions, validationMessage: message, validationStatus } = this.props;
+  const [spelData, setSpelData] = React.useState<IExpressionChange>();
 
-    const validationMessage =
-      (message && status && <ValidationMessage type={validationStatus} message={message} />) ||
-      (spelError && context && <ExpressionError spelError={spelError} />) ||
-      (spelPreview && <ExpressionPreview spelPreview={spelPreview} markdown={markdown} />);
+  const markdown = firstDefined(props.markdown, false);
+  const validationNode = useValidationData(message, true);
 
-    return (
-      <FormikFormField
-        name={name}
-        input={props => (
-          <ExpressionInput onExpressionChange={changes => this.setState(changes)} context={context} {...props} />
-        )}
-        label={label}
-        help={help}
-        actions={actions}
-        validationMessage={validationMessage}
-        validationStatus={validationStatus || 'message'}
-      />
-    );
-  }
+  const validationMessage =
+    validationNode.messageNode ||
+    (spelData.spelError && context && <ExpressionError spelError={spelData.spelError} />) ||
+    (spelData.spelPreview && <ExpressionPreview spelPreview={spelData.spelPreview} markdown={markdown} />);
+
+  return (
+    <FormikFormField
+      name={name}
+      input={inputProps => (
+        <ExpressionInput onExpressionChange={changes => setSpelData(changes)} context={context} {...inputProps} />
+      )}
+      label={label}
+      help={help}
+      actions={actions}
+      validationMessage={validationMessage}
+    />
+  );
 }
