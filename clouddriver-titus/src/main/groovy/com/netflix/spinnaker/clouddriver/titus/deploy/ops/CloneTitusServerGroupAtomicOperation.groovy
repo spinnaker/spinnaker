@@ -20,11 +20,14 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import com.netflix.spinnaker.clouddriver.orchestration.SagaContextAware
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.TitusDeployDescription
 import com.netflix.spinnaker.clouddriver.titus.deploy.handlers.TitusDeployHandler
 
-class CloneTitusServerGroupAtomicOperation implements AtomicOperation<DeploymentResult> {
+import javax.annotation.Nonnull
+
+class CloneTitusServerGroupAtomicOperation implements AtomicOperation<DeploymentResult>, SagaContextAware {
 
   private static final String PHASE = "CLONE_TITUS_SERVER_GROUP"
 
@@ -49,5 +52,12 @@ class CloneTitusServerGroupAtomicOperation implements AtomicOperation<Deployment
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
+  }
+
+  @Override
+  void setSagaContext(@Nonnull SagaContext sagaContext) {
+    if (description instanceof SagaContextAware) {
+      ((SagaContextAware) description).sagaContext = sagaContext
+    }
   }
 }
