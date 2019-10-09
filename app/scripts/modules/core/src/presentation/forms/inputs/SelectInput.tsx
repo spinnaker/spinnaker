@@ -4,7 +4,7 @@ import { Option } from 'react-select';
 import { OmitControlledInputPropsFrom, StringsAsOptions } from 'core/presentation';
 
 import { isStringArray, orEmptyString, validationClassName } from './utils';
-import { IFormInputProps } from '../interface';
+import { IFormInputProps } from './interface';
 
 export interface ISelectInputProps
   extends IFormInputProps,

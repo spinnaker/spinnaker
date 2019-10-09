@@ -4,7 +4,7 @@ import { defaults } from 'lodash';
 import { DayPickerInputProps } from 'react-day-picker';
 import DayPicker from 'react-day-picker/DayPickerInput';
 
-import { IFormInputProps } from '../interface';
+import { IFormInputProps } from './interface';
 import { createFakeReactSyntheticEvent, orEmptyString, validationClassName } from './utils';
 
 import 'react-day-picker/lib/style.css';

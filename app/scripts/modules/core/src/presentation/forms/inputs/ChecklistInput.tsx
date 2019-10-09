@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { IFormInputProps, OmitControlledInputPropsFrom } from '../interface';
+import { IFormInputProps, OmitControlledInputPropsFrom } from './interface';
 
 import { createFakeReactSyntheticEvent, isStringArray, orEmptyString, validationClassName } from './utils';
 

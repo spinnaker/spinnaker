@@ -4,7 +4,7 @@ import { Option } from 'react-select';
 import { Markdown, OmitControlledInputPropsFrom } from 'core/presentation';
 
 import { isStringArray, orEmptyString, validationClassName } from './utils';
-import { IFormInputProps } from '../interface';
+import { IFormInputProps } from './interface';
 
 interface IRadioButtonInputProps
   extends IFormInputProps,

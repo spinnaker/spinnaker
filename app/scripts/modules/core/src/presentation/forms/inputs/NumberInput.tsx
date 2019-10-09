@@ -3,7 +3,7 @@ import memoizeOne from 'memoize-one';
 
 import { orEmptyString, validationClassName } from './utils';
 import { composeValidators, IValidator, Validators } from '../validation';
-import { IFormInputProps, OmitControlledInputPropsFrom } from '../interface';
+import { IFormInputProps, OmitControlledInputPropsFrom } from './interface';
 
 import './NumberInput.css';
 
