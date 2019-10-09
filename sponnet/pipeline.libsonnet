@@ -231,14 +231,15 @@
           type: 'expression',
         }],
       },
-      withClusterSize(cluster, comparison, credentials, expected, regions, failPipeline):: self + {
+      withClusterSize(cluster, comparison, credentials, expected, moniker, regions, failPipeline):: self + {
         preconditions+: [{
           context: {
             cluster: cluster,
             comparison: comparison,
             credentials: credentials,
             expected: expected,
-            regions: if std.type(regions) == 'array' then { regions: regions } else { regions: [regions] },
+            moniker: moniker,
+            regions: if std.type(regions) == 'array' then regions else [regions],
           },
           failPipeline: failPipeline,
           type: 'clusterSize',
