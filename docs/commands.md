@@ -3331,6 +3331,9 @@ hal config canary signalfx account add ACCOUNT [parameters]
 #### Parameters
 `ACCOUNT`: The name of the canary account to operate on.
  * `--access-token`: (*Required*) (*Sensitive data* - user will be prompted on standard input) The SignalFx access token.
+ * `--base-url`: The base URL to the SignalFx server. Defaults to [https://stream.signalfx.com](https://stream.signalfx.com)
+ * `--default-location-key`: Location key is used to filter by deployment region. If omitted requests must supply the _location_key if it is needed.
+ * `--default-scope-key`: Scope key is used to distinguish between base and canary deployments. If omitted every request must supply the _scope_key param in extended scope params
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
@@ -3364,6 +3367,9 @@ hal config canary signalfx account edit ACCOUNT [parameters]
 #### Parameters
 `ACCOUNT`: The name of the canary account to operate on.
  * `--access-token`: (*Sensitive data* - user will be prompted on standard input) The SignalFx access token.
+ * `--base-url`: The base URL to the SignalFx server. Defaults to [https://stream.signalfx.com](https://stream.signalfx.com)
+ * `--default-location-key`: Location key is used to filter by deployment region. If omitted requests must supply the _location_key if it is needed.
+ * `--default-scope-key`: Scope key is used to distinguish between base and canary deployments. If omitted every request must supply the _scope_key param in extended scope params
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 

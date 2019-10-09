@@ -32,6 +32,15 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SignalfxCanaryAccount extends AbstractCanaryAccount implements Cloneable {
   @Secret private String accessToken;
+  private Endpoint endpoint;
+  private String defaultScopeKey;
+  private String defaultLocationKey;
+
   private Set<AbstractCanaryServiceIntegration.SupportedTypes> supportedTypes =
       Collections.singleton(AbstractCanaryServiceIntegration.SupportedTypes.METRICS_STORE);
+
+  @Data
+  public static class Endpoint {
+    private String baseUrl;
+  }
 }

@@ -34,9 +34,41 @@ public class SignalfxEditCanaryAccountCommand
   @Parameter(names = "--access-token", password = true, description = "The SignalFx access token.")
   private String accessToken;
 
+  @Parameter(
+      names = "--base-url",
+      required = false,
+      description = "The base URL to the SignalFx server. Defaults to https://stream.signalfx.com")
+  private String baseUrl;
+
+  @Parameter(
+      names = "--default-scope-key",
+      required = false,
+      description =
+          "Scope key is used to distinguish between base and canary deployments. If omitted every request must supply the _scope_key param in extended scope params")
+  private String defaultScopeKey;
+
+  @Parameter(
+      names = "--default-location-key",
+      required = false,
+      description =
+          "Location key is used to filter by deployment region. If omitted requests must supply the _location_key if it is needed.")
+  private String defaultLocationKey;
+
   @Override
   protected AbstractCanaryAccount editAccount(SignalfxCanaryAccount account) {
     account.setAccessToken(isSet(accessToken) ? accessToken : account.getAccessToken());
+
+    if (isSet(defaultScopeKey)) {
+      account.setDefaultScopeKey(defaultScopeKey);
+    }
+
+    if (isSet(defaultLocationKey)) {
+      account.setDefaultLocationKey(defaultLocationKey);
+    }
+
+    if (isSet(baseUrl)) {
+      account.setEndpoint(new SignalfxCanaryAccount.Endpoint().setBaseUrl(baseUrl));
+    }
 
     return account;
   }
