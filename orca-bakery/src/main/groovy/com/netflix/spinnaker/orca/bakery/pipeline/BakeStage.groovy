@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.orca.bakery.pipeline
 
+import com.google.common.base.Joiner
+import com.netflix.spinnaker.kork.exceptions.ConstraintViolationException
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder
 
 import java.time.Clock
@@ -36,6 +39,9 @@ import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+
+import java.util.stream.Collectors
+
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
 import static java.time.Clock.systemUTC
 import static java.time.ZoneOffset.UTC
@@ -108,6 +114,28 @@ class BakeStage implements StageDefinitionBuilder {
   @Component
   @CompileStatic
   static class CompleteParallelBakeTask implements Task {
+    public static final List<String> DEPLOYMENT_DETAILS_CONTEXT_FIELDS = [
+      "ami",
+      "imageId",
+      "imageName",
+      "amiSuffix",
+      "baseLabel",
+      "baseOs",
+      "refId",
+      "storeType",
+      "vmType",
+      "region",
+      "package",
+      "cloudProviderType",
+      "cloudProvider"
+    ]
+    DynamicConfigService dynamicConfigService
+
+    @Autowired
+    CompleteParallelBakeTask(DynamicConfigService dynamicConfigService) {
+      this.dynamicConfigService = dynamicConfigService
+    }
+
     TaskResult execute(Stage stage) {
       def bakeInitializationStages = stage.execution.stages.findAll {
         it.parentStageId == stage.parentStageId && it.status == ExecutionStatus.RUNNING
@@ -120,7 +148,7 @@ class BakeStage implements StageDefinitionBuilder {
       def globalContext = [
         deploymentDetails: relatedBakeStages.findAll{it.context.ami || it.context.imageId}.collect { Stage bakeStage ->
           def deploymentDetails = [:]
-          ["ami", "imageId", "amiSuffix", "baseLabel", "baseOs", "refId", "storeType", "vmType", "region", "package", "cloudProviderType", "cloudProvider"].each {
+          DEPLOYMENT_DETAILS_CONTEXT_FIELDS.each {
             if (bakeStage.context.containsKey(it)) {
               deploymentDetails.put(it, bakeStage.context.get(it))
             }
@@ -129,7 +157,30 @@ class BakeStage implements StageDefinitionBuilder {
           return deploymentDetails
         }
       ]
+
+      if (failOnImageNameMismatchEnabled()) {
+         List<String> distinctImageNames = globalContext.deploymentDetails.stream()
+          .map({details -> details['imageName']})
+          .distinct()
+          .collect(Collectors.toList())
+
+        if (distinctImageNames.size() > 1) {
+          throw new ConstraintViolationException(
+            "Image names found in different regions do not match: ${Joiner.on(", ").join(distinctImageNames)}. "
+            + "Re-run the bake to protect against deployment failures.")
+        }
+      }
+
       TaskResult.builder(ExecutionStatus.SUCCEEDED).outputs(globalContext).build()
+    }
+
+    private boolean failOnImageNameMismatchEnabled() {
+      try {
+        return dynamicConfigService.isEnabled("stages.bake.failOnImageNameMismatch", false)
+      } catch (Exception e) {
+        log.error("Unable to retrieve config value for stages.bake.failOnImageNameMismatch. Assuming false.", e)
+        return false
+      }
     }
   }
 }
