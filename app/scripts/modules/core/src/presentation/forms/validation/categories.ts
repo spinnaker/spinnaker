@@ -24,7 +24,9 @@ const inverseLabels: { [label: string]: IValidationCategory } = Object.keys(cate
   {},
 );
 
-const buildCategoryMessage = (type: IValidationCategory) => (message: string) => `${categoryLabels[type]}: ${message}`;
+const buildCategoryMessage = (type: IValidationCategory) => (message: string) => {
+  return message ? `${categoryLabels[type]}: ${message}` : null;
+};
 
 export const asyncMessage = buildCategoryMessage('async');
 export const errorMessage = buildCategoryMessage('error');
@@ -42,6 +44,10 @@ const validationMessageRegexp = new RegExp(`^(${labels.join('|')}): (.*)$`);
 // Example:  "Error: there was an error" => ['error', 'there was an error']
 // Example:  "this message has no explicit category" => ['error', 'this message has no explicit category']
 export const categorizeValidationMessage = (validationMessage: string): [IValidationCategory, string] => {
+  if (!validationMessage) {
+    return [null, null];
+  }
+
   const result = validationMessageRegexp.exec(validationMessage);
   if (!result) {
     // If no known category label was found embedded in the error message, default the category to 'error'
