@@ -20,12 +20,9 @@ import java.util.Map;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Data
-@EqualsAndHashCode(callSuper = true)
 public class TitusDeployDescription extends AbstractTitusCredentialsDescription
     implements DeployDescription, ApplicationNameable, SagaContextAware {
   private String region;
@@ -59,7 +56,7 @@ public class TitusDeployDescription extends AbstractTitusCredentialsDescription
   private DisruptionBudget disruptionBudget;
   private SubmitJobRequest.Constraints constraints = new SubmitJobRequest.Constraints();
   private ServiceJobProcesses serviceJobProcesses;
-  private SagaContext sagaContext;
+  @JsonIgnore private SagaContext sagaContext;
 
   /**
    * Will be overridden by any the label {@code PrepareTitusDeploy.USE_APPLICATION_DEFAULT_SG_LABEL}
@@ -83,13 +80,11 @@ public class TitusDeployDescription extends AbstractTitusCredentialsDescription
     return Arrays.asList(application);
   }
 
-  @JsonIgnore
   @Override
   public void setSagaContext(SagaContext sagaContext) {
     this.sagaContext = sagaContext;
   }
 
-  @JsonIgnore
   @Nullable
   public SagaContext getSagaContext() {
     return sagaContext;
@@ -202,5 +197,294 @@ public class TitusDeployDescription extends AbstractTitusCredentialsDescription
     private String region;
     private String asgName;
     private boolean useSourceCapacity;
+  }
+
+  public String getRegion() {
+    return region;
+  }
+
+  public void setRegion(String region) {
+    this.region = region;
+  }
+
+  public String getSubnet() {
+    return subnet;
+  }
+
+  public void setSubnet(String subnet) {
+    this.subnet = subnet;
+  }
+
+  public List<String> getZones() {
+    return zones;
+  }
+
+  public void setZones(List<String> zones) {
+    this.zones = zones;
+  }
+
+  public List<String> getSecurityGroups() {
+    return securityGroups;
+  }
+
+  public void setSecurityGroups(List<String> securityGroups) {
+    this.securityGroups = securityGroups;
+  }
+
+  public List<String> getTargetGroups() {
+    return targetGroups;
+  }
+
+  public void setTargetGroups(List<String> targetGroups) {
+    this.targetGroups = targetGroups;
+  }
+
+  public List<String> getSoftConstraints() {
+    return softConstraints;
+  }
+
+  public void setSoftConstraints(List<String> softConstraints) {
+    this.softConstraints = softConstraints;
+  }
+
+  public List<String> getHardConstraints() {
+    return hardConstraints;
+  }
+
+  public void setHardConstraints(List<String> hardConstraints) {
+    this.hardConstraints = hardConstraints;
+  }
+
+  public String getApplication() {
+    return application;
+  }
+
+  public void setApplication(String application) {
+    this.application = application;
+  }
+
+  public String getStack() {
+    return stack;
+  }
+
+  public void setStack(String stack) {
+    this.stack = stack;
+  }
+
+  public String getFreeFormDetails() {
+    return freeFormDetails;
+  }
+
+  public void setFreeFormDetails(String freeFormDetails) {
+    this.freeFormDetails = freeFormDetails;
+  }
+
+  public String getImageId() {
+    return imageId;
+  }
+
+  public void setImageId(String imageId) {
+    this.imageId = imageId;
+  }
+
+  public Capacity getCapacity() {
+    return capacity;
+  }
+
+  public void setCapacity(Capacity capacity) {
+    this.capacity = capacity;
+  }
+
+  public Resources getResources() {
+    return resources;
+  }
+
+  public void setResources(Resources resources) {
+    this.resources = resources;
+  }
+
+  public Map<String, String> getEnv() {
+    return env;
+  }
+
+  public void setEnv(Map<String, String> env) {
+    this.env = env;
+  }
+
+  public Map<String, String> getLabels() {
+    return labels;
+  }
+
+  public void setLabels(Map<String, String> labels) {
+    this.labels = labels;
+  }
+
+  public Map<String, String> getContainerAttributes() {
+    return containerAttributes;
+  }
+
+  public void setContainerAttributes(Map<String, String> containerAttributes) {
+    this.containerAttributes = containerAttributes;
+  }
+
+  public String getEntryPoint() {
+    return entryPoint;
+  }
+
+  public void setEntryPoint(String entryPoint) {
+    this.entryPoint = entryPoint;
+  }
+
+  public String getIamProfile() {
+    return iamProfile;
+  }
+
+  public void setIamProfile(String iamProfile) {
+    this.iamProfile = iamProfile;
+  }
+
+  public String getCapacityGroup() {
+    return capacityGroup;
+  }
+
+  public void setCapacityGroup(String capacityGroup) {
+    this.capacityGroup = capacityGroup;
+  }
+
+  public String getUser() {
+    return user;
+  }
+
+  public void setUser(String user) {
+    this.user = user;
+  }
+
+  public Boolean getInService() {
+    return inService;
+  }
+
+  public void setInService(Boolean inService) {
+    this.inService = inService;
+  }
+
+  public String getJobType() {
+    return jobType;
+  }
+
+  public void setJobType(String jobType) {
+    this.jobType = jobType;
+  }
+
+  public int getRetries() {
+    return retries;
+  }
+
+  public void setRetries(int retries) {
+    this.retries = retries;
+  }
+
+  public int getRuntimeLimitSecs() {
+    return runtimeLimitSecs;
+  }
+
+  public void setRuntimeLimitSecs(int runtimeLimitSecs) {
+    this.runtimeLimitSecs = runtimeLimitSecs;
+  }
+
+  public List<String> getInterestingHealthProviderNames() {
+    return interestingHealthProviderNames;
+  }
+
+  public void setInterestingHealthProviderNames(List<String> interestingHealthProviderNames) {
+    this.interestingHealthProviderNames = interestingHealthProviderNames;
+  }
+
+  public MigrationPolicy getMigrationPolicy() {
+    return migrationPolicy;
+  }
+
+  public void setMigrationPolicy(MigrationPolicy migrationPolicy) {
+    this.migrationPolicy = migrationPolicy;
+  }
+
+  public Boolean getCopySourceScalingPoliciesAndActions() {
+    return copySourceScalingPoliciesAndActions;
+  }
+
+  public void setCopySourceScalingPoliciesAndActions(Boolean copySourceScalingPoliciesAndActions) {
+    this.copySourceScalingPoliciesAndActions = copySourceScalingPoliciesAndActions;
+  }
+
+  public Integer getSequence() {
+    return sequence;
+  }
+
+  public void setSequence(Integer sequence) {
+    this.sequence = sequence;
+  }
+
+  public DisruptionBudget getDisruptionBudget() {
+    return disruptionBudget;
+  }
+
+  public void setDisruptionBudget(DisruptionBudget disruptionBudget) {
+    this.disruptionBudget = disruptionBudget;
+  }
+
+  public SubmitJobRequest.Constraints getConstraints() {
+    return constraints;
+  }
+
+  public void setConstraints(SubmitJobRequest.Constraints constraints) {
+    this.constraints = constraints;
+  }
+
+  public ServiceJobProcesses getServiceJobProcesses() {
+    return serviceJobProcesses;
+  }
+
+  public void setServiceJobProcesses(ServiceJobProcesses serviceJobProcesses) {
+    this.serviceJobProcesses = serviceJobProcesses;
+  }
+
+  public boolean isUseApplicationDefaultSecurityGroup() {
+    return useApplicationDefaultSecurityGroup;
+  }
+
+  public void setUseApplicationDefaultSecurityGroup(boolean useApplicationDefaultSecurityGroup) {
+    this.useApplicationDefaultSecurityGroup = useApplicationDefaultSecurityGroup;
+  }
+
+  public boolean isCopySourceScalingPolicies() {
+    return copySourceScalingPolicies;
+  }
+
+  public void setCopySourceScalingPolicies(boolean copySourceScalingPolicies) {
+    this.copySourceScalingPolicies = copySourceScalingPolicies;
+  }
+
+  @Override
+  public List<OperationEvent> getEvents() {
+    return events;
+  }
+
+  public void setEvents(List<OperationEvent> events) {
+    this.events = events;
+  }
+
+  public Source getSource() {
+    return source;
+  }
+
+  public void setSource(Source source) {
+    this.source = source;
+  }
+
+  public Efs getEfs() {
+    return efs;
+  }
+
+  public void setEfs(Efs efs) {
+    this.efs = efs;
   }
 }
