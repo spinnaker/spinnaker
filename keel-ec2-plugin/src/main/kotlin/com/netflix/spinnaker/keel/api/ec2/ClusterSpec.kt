@@ -62,8 +62,8 @@ private fun ClusterSpec.resolveScaling(region: String): Scaling =
     suspendedProcesses = defaults.scaling?.suspendedProcesses + overrides[region]?.scaling?.suspendedProcesses
   )
 
-private fun ClusterSpec.resolveDependencies(region: String): Dependencies =
-  Dependencies(
+private fun ClusterSpec.resolveDependencies(region: String): ClusterDependencies =
+  ClusterDependencies(
     loadBalancerNames = defaults.dependencies?.loadBalancerNames + overrides[region]?.dependencies?.loadBalancerNames,
     securityGroupNames = defaults.dependencies?.securityGroupNames + overrides[region]?.dependencies?.securityGroupNames,
     targetGroups = defaults.dependencies?.targetGroups + overrides[region]?.dependencies?.targetGroups
@@ -114,7 +114,7 @@ data class ClusterSpec(
     locations: Locations<SubnetAwareRegionSpec>,
     launchConfiguration: LaunchConfigurationSpec?,
     capacity: Capacity?,
-    dependencies: Dependencies?,
+    dependencies: ClusterDependencies?,
     health: HealthSpec?,
     scaling: Scaling?,
     tags: Map<String, String>?,
@@ -137,7 +137,7 @@ data class ClusterSpec(
   data class ServerGroupSpec(
     val launchConfiguration: LaunchConfigurationSpec? = null,
     val capacity: Capacity? = null,
-    val dependencies: Dependencies? = null,
+    val dependencies: ClusterDependencies? = null,
     val health: HealthSpec? = null,
     val scaling: Scaling? = null,
     val tags: Map<String, String>? = null

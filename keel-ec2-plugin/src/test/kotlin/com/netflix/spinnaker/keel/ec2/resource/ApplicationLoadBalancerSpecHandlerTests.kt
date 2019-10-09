@@ -3,10 +3,15 @@ package com.netflix.spinnaker.keel.ec2.resource
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancer
+import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel
+import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel.Action
+import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel.ApplicationLoadBalancerListener
+import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel.TargetGroup
+import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel.TargetGroupAttributes
+import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel.TargetGroupMatcher
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
@@ -20,7 +25,8 @@ import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepos
 import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import com.netflix.spinnaker.keel.test.resource
-import de.danielbechler.diff.node.DiffNode
+import de.danielbechler.diff.node.DiffNode.State.CHANGED
+import de.danielbechler.diff.path.NodePath
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.coEvery
@@ -37,7 +43,7 @@ import java.time.Clock
 import java.util.UUID
 
 @Suppress("UNCHECKED_CAST")
-internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
+internal class ApplicationLoadBalancerSpecHandlerTests : JUnit5Minutests {
   private val cloudDriverService = mockk<CloudDriverService>()
   private val cloudDriverCache = mockk<CloudDriverCache>()
   private val orcaService = mockk<OrcaService>()
@@ -54,14 +60,15 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
     |  app: testapp
     |  stack: managedogge
     |  detail: wow
-    |location:
+    |locations:
     |  accountName: test
-    |  region: us-east-1
-    |  availabilityZones:
-    |  - us-east-1c
-    |  - us-east-1d
+    |  regions:
+    |  - region: us-east-1
+    |    subnet: internal (vpc0)
+    |    availabilityZones:
+    |    - us-east-1c
+    |    - us-east-1d
     |vpcName: vpc0
-    |subnetType: internal (vpc0)
     |listeners:
     | - port: 80
     |   protocol: HTTP
@@ -70,7 +77,7 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
     |   port: 7001
     """.trimMargin()
 
-  private val spec = yamlMapper.readValue(yaml, ApplicationLoadBalancer::class.java)
+  private val spec = yamlMapper.readValue(yaml, ApplicationLoadBalancerSpec::class.java)
   private val resource = resource(
     apiVersion = SPINNAKER_API_V1.subApi("ec2"),
     kind = "application-load-balancer",
@@ -93,13 +100,13 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
     idleTimeout = 60,
     ipAddressType = "ipv4",
     listeners = listOf(
-      ApplicationLoadBalancerModel.ApplicationLoadBalancerListener(
+      ApplicationLoadBalancerListener(
         port = 80,
         protocol = "HTTP",
         certificates = null,
         rules = emptyList(),
         defaultActions = listOf(
-          ApplicationLoadBalancerModel.Action(
+          Action(
             order = 1,
             targetGroupName = "managedogge-wow-tg",
             type = "forward",
@@ -108,11 +115,11 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
       )
     ),
     targetGroups = listOf(
-      ApplicationLoadBalancerModel.TargetGroup(
+      TargetGroup(
         targetGroupName = "managedogge-wow-tg",
         loadBalancerNames = listOf("testapp-managedogge-wow"),
         targetType = "instance",
-        matcher = ApplicationLoadBalancerModel.TargetGroupMatcher(httpCode = "200-299"),
+        matcher = TargetGroupMatcher(httpCode = "200-299"),
         port = 7001,
         protocol = "HTTP",
         healthCheckEnabled = true,
@@ -124,7 +131,7 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
         healthyThresholdCount = 10,
         unhealthyThresholdCount = 2,
         vpcId = vpc.id,
-        attributes = ApplicationLoadBalancerModel.TargetGroupAttributes(
+        attributes = TargetGroupAttributes(
           stickinessEnabled = false,
           deregistrationDelay = 300,
           stickinessType = "lb_cookie",
@@ -173,7 +180,7 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
         runBlocking {
           val current = current(resource)
           val desired = desired(resource)
-          upsert(resource.copy(spec = desired), ResourceDiff(desired = desired, current = current))
+          upsert(resource, ResourceDiff(desired = desired, current = current))
         }
 
         val slot = slot<OrchestrationRequest>()
@@ -183,7 +190,7 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
           get("type").isEqualTo("upsertLoadBalancer")
         }
 
-        val listeners = slot.captured.job.first()["listeners"] as Set<ApplicationLoadBalancer.Listener>
+        val listeners = slot.captured.job.first()["listeners"] as Set<ApplicationLoadBalancerSpec.Listener>
 
         expectThat(listeners.first()) {
           get { defaultActions.first() }.isEqualTo(model.listeners.first().defaultActions.first())
@@ -200,7 +207,7 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
         val diff = runBlocking {
           val current = current(resource)
           val desired = desired(resource)
-          ResourceDiff(desired, current)
+          ResourceDiff(desired = desired, current = current)
         }
 
         expectThat(diff.diff.childCount()).isEqualTo(0)
@@ -219,14 +226,16 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
         runBlocking {
           val current = current(newResource)
           val desired = desired(newResource)
-          val diff = ResourceDiff(desired, current)
+          val diff = ResourceDiff(desired = desired, current = current)
 
           expectThat(diff.diff) {
             get { childCount() }.isEqualTo(1)
-            get { getChild("targetGroups").state }.isEqualTo(DiffNode.State.CHANGED)
+            get {
+              getChild(NodePath.startBuilding().mapKey("us-east-1").propertyName("targetGroups").build()).state
+            }.isEqualTo(CHANGED)
           }
 
-          upsert(newResource.copy(spec = desired), diff)
+          upsert(newResource, diff)
         }
 
         val slot = slot<OrchestrationRequest>()

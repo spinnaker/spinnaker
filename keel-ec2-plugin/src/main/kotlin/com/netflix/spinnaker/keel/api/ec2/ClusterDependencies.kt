@@ -17,7 +17,7 @@
  */
 package com.netflix.spinnaker.keel.api.ec2
 
-data class Dependencies(
+data class ClusterDependencies(
   val loadBalancerNames: Set<String> = emptySet(),
   val securityGroupNames: Set<String> = emptySet(),
   val targetGroups: Set<String> = emptySet()

@@ -36,7 +36,7 @@ data class ServerGroup(
   val location: Location,
   val launchConfiguration: LaunchConfiguration,
   val capacity: Capacity = Capacity(1, 1, 1),
-  val dependencies: Dependencies = Dependencies(),
+  val dependencies: ClusterDependencies = ClusterDependencies(),
   val health: Health = Health(),
   val scaling: Scaling = Scaling(),
   val tags: Map<String, String> = emptyMap()

@@ -2,18 +2,18 @@ package com.netflix.spinnaker.keel.ec2.resolvers
 
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancer
+import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
 import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel
 import com.netflix.spinnaker.keel.plugin.Resolver
 import org.springframework.stereotype.Component
 
 @Component
-class ApplicationLoadBalancerDefaultsResolver : Resolver<ApplicationLoadBalancer> {
+class ApplicationLoadBalancerDefaultsResolver : Resolver<ApplicationLoadBalancerSpec> {
   override val apiVersion = SPINNAKER_API_V1.subApi("ec2")
   override val supportedKind = "application-load-balancer"
 
-  override fun invoke(resource: Resource<ApplicationLoadBalancer>): Resource<ApplicationLoadBalancer> {
-    if (resource.spec.listeners.any { it.defaultActions.isEmpty() } || resource.spec.securityGroupNames.isEmpty()) {
+  override fun invoke(resource: Resource<ApplicationLoadBalancerSpec>): Resource<ApplicationLoadBalancerSpec> {
+    if (resource.spec.listeners.any { it.defaultActions.isEmpty() } || resource.spec.dependencies.securityGroupNames.isEmpty()) {
       val listeners = resource.spec.listeners.map {
         if (it.defaultActions.isEmpty()) {
           val defaultActions = if (it.defaultActions.isEmpty()) {
@@ -29,7 +29,7 @@ class ApplicationLoadBalancerDefaultsResolver : Resolver<ApplicationLoadBalancer
             it.defaultActions
           }
 
-          ApplicationLoadBalancer.Listener(
+          ApplicationLoadBalancerSpec.Listener(
             port = it.port,
             protocol = it.protocol,
             certificateArn = it.certificateArn,
@@ -50,14 +50,19 @@ class ApplicationLoadBalancerDefaultsResolver : Resolver<ApplicationLoadBalancer
       }
         .toSet()
 
-      val securityGroupNames = if (resource.spec.securityGroupNames.isEmpty()) {
+      val securityGroupNames = if (resource.spec.dependencies.securityGroupNames.isEmpty()) {
         setOf("${resource.spec.moniker.app}-elb")
       } else {
-        resource.spec.securityGroupNames
+        resource.spec.dependencies.securityGroupNames
       }
 
-      val spec = resource.spec.copy(listeners = listeners, securityGroupNames = securityGroupNames)
-      return resource.copy(spec = spec)
+      return resource.run {
+        copy(spec = spec.run {
+          copy(listeners = listeners, dependencies = dependencies.run {
+            copy(securityGroupNames = securityGroupNames)
+          })
+        })
+      }
     }
 
     return resource

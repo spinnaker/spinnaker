@@ -10,7 +10,7 @@ import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.HealthSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
-import com.netflix.spinnaker.keel.api.ec2.Dependencies
+import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType.ELB
 import com.netflix.spinnaker.keel.api.ec2.get
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
@@ -76,7 +76,7 @@ internal class ClusterAvailabilityZonesResolverTests : JUnit5Minutests {
             instanceMonitoring = false
           ),
           capacity = Capacity(2, 2, 2),
-          dependencies = Dependencies(
+          dependencies = ClusterDependencies(
             loadBalancerNames = setOf("fnord-internal"),
             securityGroupNames = setOf("fnord", "fnord-elb")
           ),
@@ -91,7 +91,7 @@ internal class ClusterAvailabilityZonesResolverTests : JUnit5Minutests {
               keyPair = "fnord-keypair-325719997469-us-east-1"
             ),
             capacity = Capacity(5, 5, 5),
-            dependencies = Dependencies(
+            dependencies = ClusterDependencies(
               loadBalancerNames = setOf("fnord-external"),
               securityGroupNames = setOf("fnord-ext")
             ),

@@ -7,7 +7,7 @@ import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.Capacity
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
-import com.netflix.spinnaker.keel.api.ec2.Dependencies
+import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ec2.Health
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
 import com.netflix.spinnaker.keel.api.ec2.LaunchConfiguration
@@ -84,14 +84,14 @@ class ClusterHandler(
         .toIndividualDiffs()
         .filter { diff -> diff.hasChanges() }
         .map { diff ->
-          val spec = diff.desired
+          val desired = diff.desired
           val job = when {
             diff.isCapacityOnly() -> diff.resizeServerGroupJob()
             else -> diff.createServerGroupJob()
           }
 
           log.info("Upserting server group using task: {}", job)
-          val description = "Upsert server group ${spec.moniker.name} in ${spec.location.accountName}/${spec.location.region}"
+          val description = "Upsert server group ${desired.moniker.name} in ${desired.location.accountName}/${desired.location.region}"
 
           val notifications = environmentResolver.getNotificationsFor(resource.id)
 
@@ -101,10 +101,10 @@ class ClusterHandler(
                 resource.serviceAccount,
                 OrchestrationRequest(
                   description,
-                  spec.moniker.app,
+                  desired.moniker.app,
                   description,
                   listOf(Job(job["type"].toString(), job)),
-                  OrchestrationTrigger(correlationId = "${resource.id}{${spec.location.region}}", notifications = notifications)
+                  OrchestrationTrigger(correlationId = "${resource.id}{${desired.location.region}}", notifications = notifications)
                 ))
               .let {
                 log.info("Started task {} to upsert server group", it.ref)
@@ -296,7 +296,7 @@ class ClusterHandler(
         )
       },
       capacity = capacity.let { Capacity(it.min, it.max, it.desired) },
-      dependencies = Dependencies(
+      dependencies = ClusterDependencies(
         loadBalancerNames = loadBalancers,
         securityGroupNames = securityGroupNames,
         targetGroups = targetGroups

@@ -20,8 +20,8 @@ package com.netflix.spinnaker.keel.rest
 import com.fasterxml.jackson.databind.jsontype.NamedType
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.SubmittedResource
-import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancer
-import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancer
+import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
+import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
 import com.netflix.spinnaker.keel.bakery.api.ImageSpec
@@ -70,23 +70,23 @@ class ConvertExampleFilesTest : JUnit5Minutests {
     }
 
     context("clb") {
-      mapper.registerSubtypes(NamedType(ClassicLoadBalancer::class.java, "classic-load-balancer"))
+      mapper.registerSubtypes(NamedType(ClassicLoadBalancerSpec::class.java, "classic-load-balancer"))
       val file = this.javaClass.getResource("/examples/clb-example.yml").readText()
 
       test("yml can be parsed") {
         expectCatching {
-          mapper.readValue<SubmittedResource<ClassicLoadBalancer>>(file)
+          mapper.readValue<SubmittedResource<ClassicLoadBalancerSpec>>(file)
         }.succeeded()
       }
     }
 
     context("alb") {
-      mapper.registerSubtypes(NamedType(ApplicationLoadBalancer::class.java, "application-load-balancer"))
+      mapper.registerSubtypes(NamedType(ApplicationLoadBalancerSpec::class.java, "application-load-balancer"))
       val file = this.javaClass.getResource("/examples/alb-example.yml").readText()
 
       test("yml can be parsed") {
         expectCatching {
-          mapper.readValue<SubmittedResource<ApplicationLoadBalancer>>(file)
+          mapper.readValue<SubmittedResource<ApplicationLoadBalancerSpec>>(file)
         }.succeeded()
       }
     }

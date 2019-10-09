@@ -8,27 +8,34 @@ spec:
     app: keeldemo
     stack: example
     detail: clbec2v1
-  location:
+  locations:
     accountName: test
-    region: us-east-1
-    availabilityZones:
+    regions:
+    - region: us-east-1
+      subnet: internal (vpc0)
+      availabilityZones:
       - us-east-1c
       - us-east-1d
       - us-east-1e
-  loadBalancerType: CLASSIC
+    - region: us-west-2
+      subnet: internal (vpc0)
+      availabilityZones:
+      - us-west-2a
+      - us-west-2b
+      - us-west-2c
   internal: true
   vpcName: vpc0
-  subnetType: internal (vpc0)
   securityGroupNames: []
   idleTimeout: 60
   listeners:
-    - internalProtocol: HTTP
-      internalPort: 7001
-      externalProtocol: HTTP
-      externalPort: 80
-      sslCertificateId:
-  healthCheck: HTTP:7001/health
-  healthInterval: 10
-  healthyThreshold: 5
-  unhealthyThreshold: 2
-  healthTimeout: 5
+  - internalProtocol: HTTP
+    internalPort: 7001
+    externalProtocol: HTTP
+    externalPort: 80
+    sslCertificateId:
+  healthCheck:
+    target: HTTP:7001/health
+    interval: 10
+    healthyThreshold: 5
+    unhealthyThreshold: 2
+    timeout: 5

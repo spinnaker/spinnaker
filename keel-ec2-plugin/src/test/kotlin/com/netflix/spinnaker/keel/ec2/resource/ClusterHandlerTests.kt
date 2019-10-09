@@ -9,7 +9,7 @@ import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.VirtualMachineImage
-import com.netflix.spinnaker.keel.api.ec2.Dependencies
+import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
 import com.netflix.spinnaker.keel.api.ec2.Metric
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup
@@ -117,7 +117,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         instanceMonitoring = false
       ),
       capacity = Capacity(1, 6, 4),
-      dependencies = Dependencies(
+      dependencies = ClusterDependencies(
         loadBalancerNames = setOf("keel-test-frontend"),
         securityGroupNames = setOf(sg1West.name, sg2West.name)
       )

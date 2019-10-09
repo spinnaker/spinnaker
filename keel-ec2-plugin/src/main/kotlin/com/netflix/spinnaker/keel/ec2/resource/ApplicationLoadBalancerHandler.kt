@@ -6,8 +6,8 @@ import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancer
-import com.netflix.spinnaker.keel.api.ec2.LoadBalancerType.APPLICATION
-import com.netflix.spinnaker.keel.api.ec2.LoadBalancerType.valueOf
+import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
+import com.netflix.spinnaker.keel.api.ec2.LoadBalancerDependencies
 import com.netflix.spinnaker.keel.api.ec2.Location
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.serviceAccount
@@ -22,9 +22,12 @@ import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.plugin.Resolver
-import com.netflix.spinnaker.keel.plugin.SimpleResourceHandler
+import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.retrofit.isNotFound
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import retrofit2.HttpException
+import java.time.Duration
 
 class ApplicationLoadBalancerHandler(
   private val cloudDriverService: CloudDriverService,
@@ -33,158 +36,187 @@ class ApplicationLoadBalancerHandler(
   private val environmentResolver: EnvironmentResolver,
   objectMapper: ObjectMapper,
   resolvers: List<Resolver<*>>
-) : SimpleResourceHandler<ApplicationLoadBalancer>(objectMapper, resolvers) {
+) : ResourceHandler<ApplicationLoadBalancerSpec, Map<String, ApplicationLoadBalancer>>(objectMapper, resolvers) {
 
   override val apiVersion = SPINNAKER_API_V1.subApi("ec2")
   override val supportedKind = ResourceKind(
     apiVersion.group,
     "application-load-balancer",
     "application-load-balancers"
-  ) to ApplicationLoadBalancer::class.java
+  ) to ApplicationLoadBalancerSpec::class.java
 
-  override suspend fun current(resource: Resource<ApplicationLoadBalancer>): ApplicationLoadBalancer? =
+  override suspend fun toResolvedType(resource: Resource<ApplicationLoadBalancerSpec>): Map<String, ApplicationLoadBalancer> =
+    with(resource.spec) {
+      locations.regions.map {
+        ApplicationLoadBalancer(
+          moniker,
+          Location(locations.accountName, it.region, it.subnet, it.availabilityZones),
+          internal,
+          vpcName,
+          dependencies,
+          idleTimeout,
+          listeners,
+          targetGroups
+        )
+      }
+        .associateBy { it.location.region }
+    }
+
+  override suspend fun current(resource: Resource<ApplicationLoadBalancerSpec>): Map<String, ApplicationLoadBalancer> =
     cloudDriverService.getApplicationLoadBalancer(resource.spec, resource.serviceAccount)
 
   override suspend fun upsert(
-    resource: Resource<ApplicationLoadBalancer>,
-    resourceDiff: ResourceDiff<ApplicationLoadBalancer>
-  ): List<Task> {
-    val action = when {
-      resourceDiff.current == null -> "Creating"
-      else -> "Upserting"
+    resource: Resource<ApplicationLoadBalancerSpec>,
+    resourceDiff: ResourceDiff<Map<String, ApplicationLoadBalancer>>
+  ): List<Task> =
+    coroutineScope {
+      resourceDiff
+        .toIndividualDiffs()
+        .filter { diff -> diff.hasChanges() }
+        .map { diff ->
+          val desired = diff.desired
+
+          val action = when {
+            resourceDiff.current == null -> "Creating"
+            else -> "Upserting"
+          }
+
+          val description = "$action ${resource.kind} load balancer ${desired.moniker.name} in " +
+            "${desired.location.accountName}/${desired.location.region}"
+
+          val notifications = environmentResolver.getNotificationsFor(resource.id)
+
+          async {
+            orcaService
+              .orchestrate(
+                resource.serviceAccount,
+                OrchestrationRequest(
+                  description,
+                  desired.moniker.app,
+                  description,
+                  listOf(diff.toUpsertJob()),
+                  OrchestrationTrigger(correlationId = resource.id.toString(), notifications = notifications)
+                )
+              )
+              .let {
+                log.info("Started task ${it.ref} to $description")
+                Task(id = it.taskId, name = description)
+              }
+          }
+        }
+        .map { it.await() }
     }
-
-    val description = "$action ${resource.kind} load balancer ${resource.spec.moniker.name} in " +
-      "${resource.spec.location.accountName}/${resource.spec.location.region}"
-
-    val notifications = environmentResolver.getNotificationsFor(resource.id)
-
-    val taskRef =
-      resource.spec.let { spec ->
-
-        orcaService
-          .orchestrate(
-            resource.serviceAccount,
-            OrchestrationRequest(
-              description,
-              spec.moniker.app,
-              description,
-              listOf(spec.toUpsertJob()),
-              OrchestrationTrigger(correlationId = resource.id.toString(), notifications = notifications)
-            )
-          )
-      }
-
-    log.info("Started task ${taskRef.ref} to $description")
-    return listOf(Task(id = taskRef.taskId, name = description))
-  }
 
   override suspend fun actuationInProgress(id: ResourceId) =
     orcaService.getCorrelatedExecutions(id.value).isNotEmpty()
 
-  private suspend fun CloudDriverService.getApplicationLoadBalancer(spec: ApplicationLoadBalancer, serviceAccount: String):
-    ApplicationLoadBalancer? =
-    try {
-      getApplicationLoadBalancer(
-        serviceAccount,
-        CLOUD_PROVIDER,
-        spec.location.accountName,
-        spec.location.region,
-        spec.moniker.name
-      )
-        .firstOrNull()
-        ?.let { lb ->
-          val securityGroupNames = lb.securityGroups.map {
-            cloudDriverCache.securityGroupById(spec.location.accountName, spec.location.region, it).name
-          }.toMutableSet()
+  private suspend fun CloudDriverService.getApplicationLoadBalancer(spec: ApplicationLoadBalancerSpec, serviceAccount: String):
+    Map<String, ApplicationLoadBalancer> =
+    // TODO: filtering out default rules seems wrong, see TODO in ApplicationLoadBalancerNormalizer
+    spec.locations.regions.map { region ->
+      coroutineScope {
+        async {
+          try {
+            getApplicationLoadBalancer(
+              serviceAccount,
+              CLOUD_PROVIDER,
+              spec.locations.accountName,
+              region.region,
+              spec.moniker.name
+            )
+              .firstOrNull()
+              ?.let { lb ->
+                val securityGroupNames = lb.securityGroups.map {
+                  cloudDriverCache.securityGroupById(spec.locations.accountName, region.region, it).name
+                }.toMutableSet()
 
-          ApplicationLoadBalancer(
-            moniker = if (lb.moniker != null) {
-              Moniker(lb.moniker!!.app, lb.moniker!!.stack, lb.moniker!!.detail)
+                ApplicationLoadBalancer(
+                  moniker = if (lb.moniker != null) {
+                    Moniker(lb.moniker!!.app, lb.moniker!!.stack, lb.moniker!!.detail)
+                  } else {
+                    val parsedNamed = lb.loadBalancerName.split("-")
+                    Moniker(app = parsedNamed[0], stack = parsedNamed.getOrNull(1), detail = parsedNamed.getOrNull(2))
+                  },
+                  location = Location(
+                    accountName = spec.locations.accountName,
+                    region = region.region,
+                    availabilityZones = lb.availabilityZones,
+                    subnet = cloudDriverCache.subnetBy(lb.subnets.first()).purpose
+                  ),
+                  internal = lb.scheme != null && lb.scheme!!.contains("internal", ignoreCase = true),
+                  vpcName = lb.vpcId.let { cloudDriverCache.networkBy(it).name },
+                  listeners = lb.listeners.map { l ->
+                    ApplicationLoadBalancerSpec.Listener(
+                      port = l.port,
+                      protocol = l.protocol,
+                      certificateArn = l.certificates?.firstOrNull()?.certificateArn,
+                      // TODO: filtering out default rules seems wrong, see TODO in ApplicationLoadBalancerNormalizer
+                      rules = l.rules.filter { !it.default }.toSet(),
+                      defaultActions = l.defaultActions.toSet()
+                    )
+                  }.toSet(),
+                  dependencies = LoadBalancerDependencies(
+                    securityGroupNames = securityGroupNames
+                  ),
+                  targetGroups = lb.targetGroups.map { tg ->
+                    ApplicationLoadBalancerSpec.TargetGroup(
+                      name = tg.targetGroupName,
+                      targetType = tg.targetType,
+                      protocol = tg.protocol,
+                      port = tg.port,
+                      healthCheckEnabled = tg.healthCheckEnabled,
+                      healthCheckTimeoutSeconds = Duration.ofSeconds(tg.healthCheckTimeoutSeconds.toLong()),
+                      healthCheckPort = tg.healthCheckPort,
+                      healthCheckProtocol = tg.healthCheckProtocol,
+                      healthCheckHttpCode = tg.matcher.httpCode,
+                      healthCheckPath = tg.healthCheckPath,
+                      healthCheckIntervalSeconds = Duration.ofSeconds(tg.healthCheckIntervalSeconds.toLong()),
+                      healthyThresholdCount = tg.healthyThresholdCount,
+                      unhealthyThresholdCount = tg.unhealthyThresholdCount,
+                      attributes = tg.attributes
+                    )
+                  }.toSet()
+                )
+              }
+          } catch (e: HttpException) {
+            if (e.isNotFound) {
+              null
             } else {
-              val parsedNamed = lb.loadBalancerName.split("-")
-              Moniker(app = parsedNamed[0], stack = parsedNamed.getOrNull(1), detail = parsedNamed.getOrNull(2))
-            },
-            location = Location(
-              accountName = spec.location.accountName,
-              region = spec.location.region,
-              availabilityZones = lb.availabilityZones,
-              subnet = null
-            ),
-            loadBalancerType = valueOf(lb.loadBalancerType.toUpperCase()),
-            internal = lb.scheme != null && lb.scheme!!.contains("internal", ignoreCase = true),
-            vpcName = lb.vpcId.let { cloudDriverCache.networkBy(it).name },
-            subnetType = cloudDriverCache.subnetBy(lb.subnets.first()).purpose,
-            listeners = lb.listeners.map { l ->
-              ApplicationLoadBalancer.Listener(
-                port = l.port,
-                protocol = l.protocol,
-                certificateArn = l.certificates?.firstOrNull()?.certificateArn,
-                // TODO: filtering out default rules seems wrong, see TODO in ApplicationLoadBalancerNormalizer
-                rules = l.rules.filter { !it.default }.toSet(),
-                defaultActions = l.defaultActions.toSet()
-              )
-            }.toSet(),
-            securityGroupNames = securityGroupNames,
-            targetGroups = lb.targetGroups.map { tg ->
-              ApplicationLoadBalancer.TargetGroup(
-                name = tg.targetGroupName,
-                targetType = tg.targetType,
-                protocol = tg.protocol,
-                port = tg.port,
-                healthCheckEnabled = tg.healthCheckEnabled,
-                healthCheckTimeoutSeconds = tg.healthCheckTimeoutSeconds,
-                healthCheckPort = tg.healthCheckPort,
-                healthCheckProtocol = tg.healthCheckProtocol,
-                healthCheckHttpCode = tg.matcher.httpCode,
-                healthCheckPath = tg.healthCheckPath,
-                healthCheckIntervalSeconds = tg.healthCheckIntervalSeconds,
-                healthyThresholdCount = tg.healthyThresholdCount,
-                unhealthyThresholdCount = tg.unhealthyThresholdCount,
-                attributes = tg.attributes
-              )
-            }.toSet()
-          )
+              throw e
+            }
+          }
         }
-    } catch (e: HttpException) {
-      if (e.isNotFound) {
-        null
-      } else {
-        throw e
       }
     }
+      .mapNotNull { it.await() }
+      .associateBy { it.location.region }
 
-  private fun ApplicationLoadBalancer.toUpsertJob(): Job =
-    Job(
-      "upsertLoadBalancer",
-      mapOf(
-        "application" to moniker.app,
-        "credentials" to location.accountName,
-        "cloudProvider" to CLOUD_PROVIDER,
-        "name" to moniker.name,
-        "region" to location.region,
-        "availabilityZones" to mapOf(location.region to location.availabilityZones),
-        "loadBalancerType" to APPLICATION.toString().toLowerCase(),
-        "vpcId" to cloudDriverCache.networkBy(vpcName, location.accountName, location.region).id,
-        "subnetType" to subnetType,
-        "isInternal" to internal,
-        "idleTimeout" to idleTimeout,
-        "securityGroups" to securityGroupNames,
-        "listeners" to listeners,
-        "targetGroups" to targetGroups
-      )
-    )
+  private fun ResourceDiff<Map<String, ApplicationLoadBalancer>>.toIndividualDiffs() =
+    desired
+      .map { (region, desired) ->
+        ResourceDiff(desired, current?.get(region))
+      }
 
-  private fun ApplicationLoadBalancer.toDeleteJob(): Job =
-    Job(
-      "deleteLoadBalancer",
-      mapOf(
-        "application" to moniker.app,
-        "credentials" to location.accountName,
-        "cloudProvider" to CLOUD_PROVIDER,
-        "loadBalancerName" to moniker.name,
-        "loadBalancerType" to loadBalancerType,
-        "regions" to listOf(location.region)
+  private fun ResourceDiff<ApplicationLoadBalancer>.toUpsertJob(): Job =
+    with(desired) {
+      Job(
+        "upsertLoadBalancer",
+        mapOf(
+          "application" to moniker.app,
+          "credentials" to location.accountName,
+          "cloudProvider" to CLOUD_PROVIDER,
+          "name" to moniker.name,
+          "region" to location.region,
+          "availabilityZones" to mapOf(location.region to location.availabilityZones),
+          "loadBalancerType" to loadBalancerType.toString().toLowerCase(),
+          "vpcId" to cloudDriverCache.networkBy(vpcName, location.accountName, location.region).id,
+          "subnetType" to location.subnet,
+          "isInternal" to internal,
+          "idleTimeout" to idleTimeout,
+          "securityGroups" to dependencies.securityGroupNames,
+          "listeners" to listeners,
+          "targetGroups" to targetGroups
+        )
       )
-    )
+    }
 }

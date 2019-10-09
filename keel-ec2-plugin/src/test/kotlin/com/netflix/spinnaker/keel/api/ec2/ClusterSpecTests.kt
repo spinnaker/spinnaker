@@ -141,7 +141,7 @@ object Fixture {
         instanceMonitoring = false
       ),
       capacity = Capacity(2, 2, 2),
-      dependencies = Dependencies(
+      dependencies = ClusterDependencies(
         loadBalancerNames = setOf("fnord-internal"),
         securityGroupNames = setOf("fnord", "fnord-elb")
       ),
@@ -160,7 +160,7 @@ object Fixture {
           keyPair = "fnord-keypair-325719997469-us-east-1"
         ),
         capacity = Capacity(5, 5, 5),
-        dependencies = Dependencies(
+        dependencies = ClusterDependencies(
           loadBalancerNames = setOf("fnord-external"),
           securityGroupNames = setOf("fnord-ext")
         ),
