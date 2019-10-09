@@ -66,6 +66,24 @@ class V2CanaryService {
     }).execute() as List
   }
 
+  Map initiateCanaryWithConfig(Map adhocExecutionRequest,
+                               String application,
+                               String parentPipelineExecutionId,
+                               String metricsAccountName,
+                               String storageAccountName) {
+    return HystrixFactory.newMapCommand(HYSTRIX_GROUP, "initiateCanaryWithConfig", {
+      try {
+        return kayentaService.initiateCanaryWithConfig(adhocExecutionRequest,
+          application,
+          parentPipelineExecutionId,
+          metricsAccountName,
+          storageAccountName)
+      } catch (RetrofitError error) {
+        throw classifyError(error)
+      }
+    }).execute() as Map
+  }
+
   Map initiateCanary(String canaryConfigId,
                      Map executionRequest,
                      String application,

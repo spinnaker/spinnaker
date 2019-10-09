@@ -73,6 +73,20 @@ class V2CanaryController {
                                    configurationAccountName)
   }
 
+  @ApiOperation(value = 'Start a canary execution with the supplied canary config')
+  @RequestMapping(value = '/canary', method = RequestMethod.POST)
+  Map initiateCanaryWithConfig(@RequestBody Map adhocExecutionRequest,
+                               @RequestParam(value = 'application', required = false) String application,
+                               @RequestParam(value = 'parentPipelineExecutionId', required = false) String parentPipelineExecutionId,
+                               @RequestParam(value = 'metricsAccountName', required = false) String metricsAccountName,
+                               @RequestParam(value = 'storageAccountName', required = false) String storageAccountName) {
+    v2CanaryService.initiateCanaryWithConfig(adhocExecutionRequest,
+      application,
+      parentPipelineExecutionId,
+      metricsAccountName,
+      storageAccountName)
+  }
+
   @ApiOperation(value = 'Retrieve a canary result')
   @RequestMapping(value = '/canary/{canaryConfigId}/{canaryExecutionId}', method = RequestMethod.GET)
   Map getCanaryResult(@PathVariable String canaryConfigId,

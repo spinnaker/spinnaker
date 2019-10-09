@@ -7,4 +7,4 @@ you will need to undo that.
 
 ```bash
 $ git update-index --no-assume-unchanged $FILENAME
-``` 
+```
