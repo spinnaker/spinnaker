@@ -82,9 +82,9 @@ public class DetermineHealthProvidersTask implements RetryableTask, CloudProvide
       if (interestingHealthProviderNames != null) {
         // avoid a `null` value that may cause problems with ImmutableMap usage downstream
         results.put("interestingHealthProviderNames", interestingHealthProviderNames);
-      }
 
-      return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(results).build();
+        return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(results).build();
+      }
     }
 
     if (stage.getContext().containsKey("interestingHealthProviderNames")) {
