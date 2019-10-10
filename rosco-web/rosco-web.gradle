@@ -18,6 +18,7 @@ dependencies {
   compile project(":rosco-core")
   compile project(":rosco-manifests")
   implementation "com.netflix.spinnaker.kork:kork-secrets-aws"
+  implementation "com.netflix.spinnaker.kork:kork-secrets-gcp"
   implementation "com.netflix.spinnaker.kork:kork-swagger"
   implementation "com.netflix.spinnaker.kork:kork-web"
 
