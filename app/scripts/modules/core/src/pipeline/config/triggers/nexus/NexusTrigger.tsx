@@ -7,8 +7,9 @@ import { NexusReaderService } from './nexusReader.service';
 export function NexusTrigger() {
   const fetchNames = useLatestPromise(() => NexusReaderService.getNexusNames(), []);
 
-  const fetchError = `Error fetching nexus names: ${fetchNames.error.data.status} ${fetchNames.error.data.error}`;
-  const validationMessage = fetchNames.status === 'REJECTED' ? errorMessage(fetchError) : null;
+  const fetchError = () =>
+    errorMessage(`Error fetching nexus names: ${fetchNames.error.data.status} ${fetchNames.error.data.error}`);
+  const validationMessage = fetchNames.status === 'REJECTED' ? fetchError() : null;
 
   return (
     <FormikFormField

@@ -7,8 +7,9 @@ import { ArtifactoryReaderService } from './artifactoryReader.service';
 export function ArtifactoryTrigger() {
   const fetchNames = useLatestPromise(() => ArtifactoryReaderService.getArtifactoryNames(), []);
 
-  const fetchError = `Error fetching artifactory names: ${fetchNames.error.data.status} ${fetchNames.error.data.error}`;
-  const validationMessage = fetchNames.status === 'REJECTED' ? errorMessage(fetchError) : null;
+  const fetchError = () =>
+    errorMessage(`Error fetching artifactory names: ${fetchNames.error.data.status} ${fetchNames.error.data.error}`);
+  const validationMessage = fetchNames.status === 'REJECTED' ? fetchError() : null;
 
   return (
     <FormikFormField
