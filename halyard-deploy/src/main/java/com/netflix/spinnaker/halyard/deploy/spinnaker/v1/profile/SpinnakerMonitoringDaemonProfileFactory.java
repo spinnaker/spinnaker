@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.halyard.config.model.v1.metricStores.datadog.DatadogStore;
+import com.netflix.spinnaker.halyard.config.model.v1.metricStores.newrelic.NewrelicStore;
 import com.netflix.spinnaker.halyard.config.model.v1.metricStores.prometheus.PrometheusStore;
 import com.netflix.spinnaker.halyard.config.model.v1.metricStores.stackdriver.StackdriverStore;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
@@ -71,6 +72,11 @@ public class SpinnakerMonitoringDaemonProfileFactory extends RegistryBackedProfi
     if (stackdriverStore.isEnabled()) {
       enabledMetricStores.add("stackdriver");
       files.addAll(backupRequiredFiles(stackdriverStore, deploymentConfiguration.getName()));
+    }
+
+    NewrelicStore newrelicStore = metricStores.getNewrelic();
+    if (newrelicStore.isEnabled()) {
+      enabledMetricStores.add("newrelic");
     }
 
     profile.appendContents(yamlToString(deploymentConfiguration.getName(), profile, metricStores));

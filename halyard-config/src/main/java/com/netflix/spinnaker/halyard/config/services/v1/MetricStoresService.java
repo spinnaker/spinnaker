@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.halyard.config.services.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.metricStores.datadog.DatadogStore;
+import com.netflix.spinnaker.halyard.config.model.v1.metricStores.newrelic.NewrelicStore;
 import com.netflix.spinnaker.halyard.config.model.v1.metricStores.prometheus.PrometheusStore;
 import com.netflix.spinnaker.halyard.config.model.v1.metricStores.stackdriver.StackdriverStore;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
@@ -110,6 +111,9 @@ public class MetricStoresService {
     switch (metricStore.getMetricStoreType()) {
       case DATADOG:
         metricStores.setDatadog((DatadogStore) metricStore);
+        break;
+      case NEWRELIC:
+        metricStores.setNewrelic((NewrelicStore) metricStore);
         break;
       case PROMETHEUS:
         metricStores.setPrometheus((PrometheusStore) metricStore);

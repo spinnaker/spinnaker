@@ -40,7 +40,7 @@ public abstract class AbstractEditMetricStoreCommand<T extends MetricStore>
   protected abstract MetricStore editMetricStore(T metricStore);
 
   public String getShortDescription() {
-    return "Edit the " + getMetricStoreType().getId() + " authentication method.";
+    return "Edit the " + getMetricStoreType().getId() + " metric store.";
   }
 
   @Override

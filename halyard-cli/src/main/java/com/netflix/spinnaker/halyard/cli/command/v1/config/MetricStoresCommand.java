@@ -20,6 +20,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.metricStores.EditMetricStoresCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.metricStores.datadog.DatadogCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.metricStores.newrelic.NewrelicCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.metricStores.prometheus.PrometheusCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.metricStores.stackdriver.StackdriverCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
@@ -45,6 +46,7 @@ public class MetricStoresCommand extends AbstractConfigCommand {
   public MetricStoresCommand() {
     registerSubcommand(new EditMetricStoresCommand());
     registerSubcommand(new DatadogCommand());
+    registerSubcommand(new NewrelicCommand());
     registerSubcommand(new PrometheusCommand());
     registerSubcommand(new StackdriverCommand());
   }

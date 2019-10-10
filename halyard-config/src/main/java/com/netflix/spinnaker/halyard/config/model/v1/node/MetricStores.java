@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
 import com.netflix.spinnaker.halyard.config.model.v1.metricStores.datadog.DatadogStore;
+import com.netflix.spinnaker.halyard.config.model.v1.metricStores.newrelic.NewrelicStore;
 import com.netflix.spinnaker.halyard.config.model.v1.metricStores.prometheus.PrometheusStore;
 import com.netflix.spinnaker.halyard.config.model.v1.metricStores.stackdriver.StackdriverStore;
 import java.lang.reflect.Field;
@@ -33,10 +34,14 @@ public class MetricStores extends Node {
   private DatadogStore datadog = new DatadogStore();
   private PrometheusStore prometheus = new PrometheusStore();
   private StackdriverStore stackdriver = new StackdriverStore();
+  private NewrelicStore newrelic = new NewrelicStore();
   private int period = 30;
 
   public boolean isEnabled() {
-    return datadog.isEnabled() || prometheus.isEnabled() || stackdriver.isEnabled();
+    return datadog.isEnabled()
+        || prometheus.isEnabled()
+        || stackdriver.isEnabled()
+        || newrelic.isEnabled();
   }
 
   public void setEnabled(boolean ignored) {}
@@ -64,7 +69,8 @@ public class MetricStores extends Node {
   public enum MetricStoreType {
     DATADOG("datadog"),
     PROMETHEUS("prometheus"),
-    STACKDRIVER("stackdriver");
+    STACKDRIVER("stackdriver"),
+    NEWRELIC("newrelic");
 
     @Getter private final String id;
 
