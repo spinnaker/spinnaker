@@ -4,40 +4,11 @@ Interested in contributing to Spinnaker? Please review the [contribution documen
 
 ## Setup
 
-### GOPATH (< 1.12)
+### Go
 
-Fetch the code
+[Install Go 1.13.x](https://golang.org/doc/install). 
 
-```bash
-$ go get github.com/spinnaker/spin
-```
-
-**Note**: If you are using two-factor authentication with ssh keys to authenticate with GitHub,
-you may need to run the following git command:
-
-```bash
-$ git config --global --add url."git@github.com:".insteadOf "https://github.com/"
-```
-
-for the `go get` command to work properly.
-
-Enter the code's directory
-
-```bash
-$ cd $GOPATH/src/github.com/spinnaker/spin
-```
-
-Fetch dependencies and build with
-
-```bash
-$ go get -d -v -u
-$ go build -v
-```
-
-from the root `spin/` directory.
-
-
-### Go modules (>= 1.12)
+### Go modules
 
 Clone the repository to a directory outside of your GOPATH:
 
