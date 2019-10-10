@@ -43,6 +43,7 @@ dependencies {
     implementation "com.netflix.spinnaker.kork:kork-core"
     implementation "com.netflix.spinnaker.kork:kork-config"
     implementation "com.netflix.spinnaker.kork:kork-secrets-aws"
+    implementation "com.netflix.spinnaker.kork:kork-secrets-gcp"
     implementation "com.netflix.spinnaker.kork:kork-stackdriver"
     implementation "com.netflix.spinnaker.kork:kork-web"
     implementation "com.squareup.retrofit:retrofit"
