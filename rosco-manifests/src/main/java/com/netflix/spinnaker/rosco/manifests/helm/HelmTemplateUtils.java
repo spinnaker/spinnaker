@@ -14,8 +14,10 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import javax.xml.bind.DatatypeConverter;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.util.ArrayUtils;
@@ -115,13 +117,22 @@ public class HelmTemplateUtils extends TemplateUtils {
     }
   }
 
+  @Nonnull
+  private String uniqueKey(Artifact artifact) {
+    if (artifact.getReference() != null) {
+      return artifact.getReference();
+    }
+    if (artifact.getName() != null) {
+      return String.format(
+          "%s-%s", artifact.getName(), Optional.ofNullable(artifact.getVersion()).orElse(""));
+    }
+    throw new InvalidRequestException("Input artifact has empty 'name' and 'reference' fields.");
+  }
+
   protected Path downloadArtifactToTmpFile(BakeManifestEnvironment env, Artifact artifact)
       throws IOException {
-    if (artifact.getReference() == null) {
-      throw new InvalidRequestException("Input artifact has an empty 'reference' field.");
-    }
-    File targetFile =
-        env.getStagingPath().resolve(nameFromReference(artifact.getReference())).toFile();
+    String uniqueKey = uniqueKey(artifact);
+    File targetFile = env.getStagingPath().resolve(nameFromReference(uniqueKey)).toFile();
     downloadArtifact(artifact, targetFile);
     return targetFile.toPath();
   }
