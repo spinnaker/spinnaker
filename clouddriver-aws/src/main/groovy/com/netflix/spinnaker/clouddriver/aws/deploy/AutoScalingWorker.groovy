@@ -28,6 +28,7 @@ import com.amazonaws.services.autoscaling.model.Tag
 import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
 import com.amazonaws.services.ec2.model.DescribeSubnetsResult
 import com.amazonaws.services.ec2.model.Subnet
+import com.netflix.spinnaker.clouddriver.aws.model.AmazonAsgLifecycleHook
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.clouddriver.aws.model.AutoScalingProcessType
 import com.netflix.spinnaker.clouddriver.aws.model.SubnetData
@@ -95,6 +96,7 @@ class AutoScalingWorker {
   private List<String> availabilityZones
   private List<AmazonBlockDevice> blockDevices
   private Map<String, String> tags
+  private List<AmazonAsgLifecycleHook> lifecycleHooks
 
   private int minInstances
   private int maxInstances
@@ -267,11 +269,23 @@ class AutoScalingWorker {
       throw ex
     }
 
+    if (lifecycleHooks != null && !lifecycleHooks.isEmpty()) {
+      Exception e = retrySupport.retry({ ->
+        task.updateStatus AWS_PHASE, "Creating lifecycle hooks for: $asgName"
+        regionScopedProvider.asgLifecycleHookWorker.attach(task, lifecycleHooks, asgName)
+      }, 10, 1000, false)
+      
+      if (e != null) {
+        task.updateStatus AWS_PHASE, "Unable to attach lifecycle hooks to ASG ($asgName): ${e.message}"
+      }
+    }
+
     if (suspendedProcesses) {
       retrySupport.retry({ ->
         autoScaling.suspendProcesses(new SuspendProcessesRequest(autoScalingGroupName: asgName, scalingProcesses: suspendedProcesses))
       }, 10, 1000, false)
     }
+
     if (enabledMetrics && instanceMonitoring) {
       task.updateStatus AWS_PHASE, "Enabling metrics collection for: $asgName"
       retrySupport.retry({ ->

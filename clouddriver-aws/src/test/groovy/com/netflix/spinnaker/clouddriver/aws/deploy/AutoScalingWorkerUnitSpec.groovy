@@ -23,6 +23,7 @@ import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.Subnet
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
+import com.netflix.spinnaker.clouddriver.aws.model.AmazonAsgLifecycleHook
 import com.netflix.spinnaker.clouddriver.aws.services.AsgService
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTask
@@ -38,6 +39,9 @@ import spock.lang.Unroll
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
+import static com.netflix.spinnaker.clouddriver.aws.model.AmazonAsgLifecycleHook.DefaultResult.CONTINUE
+import static com.netflix.spinnaker.clouddriver.aws.model.AmazonAsgLifecycleHook.Transition.EC2InstanceLaunching
+
 class AutoScalingWorkerUnitSpec extends Specification {
 
   @Autowired
@@ -48,6 +52,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
   def autoScaling = Mock(AmazonAutoScaling)
   def clusterProvider = Mock(ClusterProvider)
   def amazonEC2 = Mock(AmazonEC2)
+  def asgLifecycleHookWorker = Mock(AsgLifecycleHookWorker)
   def awsServerGroupNameResolver = new AWSServerGroupNameResolver('test', 'us-east-1', asgService, [clusterProvider])
   def credential = TestCredential.named('foo')
   def regionScopedProvider = Stub(RegionScopedProviderFactory.RegionScopedProvider) {
@@ -56,6 +61,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
     getAsgService() >> asgService
     getAWSServerGroupNameResolver() >> awsServerGroupNameResolver
     getAmazonEC2() >> amazonEC2
+    getAsgLifecycleHookWorker() >> asgLifecycleHookWorker
   }
 
   def setup() {
@@ -139,6 +145,42 @@ class AutoScalingWorkerUnitSpec extends Specification {
 
     then:
     0 * autoScaling.enableMetricsCollection(_)
+  }
+
+  void "creates lifecycle hooks before scaling out asg"() {
+    setup:
+    def hooks = [getHook(), getHook()]
+    def autoScalingWorker = new AutoScalingWorker(
+      enabledMetrics: [],
+      instanceMonitoring: true,
+      regionScopedProvider: regionScopedProvider,
+      credentials: credential,
+      application: "myasg",
+      region: "us-east-1",
+      lifecycleHooks: hooks
+    )
+
+    when:
+    autoScalingWorker.deploy()
+
+    then:
+    1 * autoScaling.createAutoScalingGroup(_)
+    then:
+    1 * regionScopedProvider.getAsgLifecycleHookWorker().attach(_, hooks, "myasg-v000")
+    then: "validate that scale out happens after lifecycle hooks are attached"
+    1 * autoScaling.updateAutoScalingGroup(*_)
+  }
+
+  def getHook() {
+    new AmazonAsgLifecycleHook(
+      name: "hook-name-" + new Random().nextInt(),
+      roleARN: "role-rn",
+      notificationTargetARN: "target-arn",
+      notificationMetadata: null,
+      lifecycleTransition: EC2InstanceLaunching,
+      heartbeatTimeout: 300,
+      defaultResult: CONTINUE
+    )
   }
 
   void "does not enable metrics collection when instanceMonitoring is set to false"() {

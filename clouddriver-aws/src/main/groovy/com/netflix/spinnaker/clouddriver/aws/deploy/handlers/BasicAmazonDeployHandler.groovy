@@ -298,7 +298,8 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         regionScopedProvider: regionScopedProvider,
         base64UserData: description.base64UserData,
         legacyUdf: description.legacyUdf,
-        tags: applyAppStackDetailTags(deployDefaults, description).tags
+        tags: applyAppStackDetailTags(deployDefaults, description).tags,
+        lifecycleHooks: getLifecycleHooks(account, description)
       )
 
       def asgName = autoScalingWorker.deploy()
@@ -314,8 +315,6 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
           description.source.region, region
         )
       }
-
-      createLifecycleHooks(task, regionScopedProvider, account, description, asgName)
 
       description.events << new CreateServerGroupEvent(
         AmazonCloudProvider.ID, account.accountId, region, asgName
@@ -453,24 +452,6 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
     scalingPolicyCopier.copyScalingPolicies(task, sourceAsgName, targetAsgName,
       sourceCredentials, targetCredentials, sourceRegion, targetRegion)
     asgReferenceCopier.copyScheduledActionsForAsg(task, sourceAsgName, targetAsgName)
-  }
-
-  @VisibleForTesting
-  @PackageScope
-  void createLifecycleHooks(Task task,
-                            RegionScopedProviderFactory.RegionScopedProvider targetRegionScopedProvider,
-                            NetflixAmazonCredentials targetCredentials,
-                            BasicAmazonDeployDescription description,
-                            String targetAsgName) {
-
-    try {
-      List<AmazonAsgLifecycleHook> lifecycleHooks = getLifecycleHooks(targetCredentials, description)
-      if (lifecycleHooks.size() > 0) {
-        targetRegionScopedProvider.asgLifecycleHookWorker.attach(task, lifecycleHooks, targetAsgName)
-      }
-    } catch (Exception e) {
-      task.updateStatus(BASE_PHASE, "Unable to attach lifecycle hooks to ASG ($targetAsgName): ${e.message}")
-    }
   }
 
   @VisibleForTesting
