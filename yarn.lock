@@ -11451,10 +11451,15 @@ specificity@^0.3.0:
   resolved "https://registry.yarnpkg.com/specificity/-/specificity-0.3.2.tgz#99e6511eceef0f8d9b57924937aac2cb13d13c42"
   integrity sha512-Nc/QN/A425Qog7j9aHmwOrlwX2e7pNI47ciwxwy4jOlvbbMHkNNJchit+FX+UjF3IAdiaaV5BKeWuDUnws6G1A==
 
-spel2js@^0.2.1, spel2js@^0.2.3:
+spel2js@^0.2.3:
   version "0.2.5"
   resolved "https://registry.yarnpkg.com/spel2js/-/spel2js-0.2.5.tgz#da6a1dc6f38329c1453bd4b0686355dd646302c0"
   integrity sha512-6JYogBrjyU7E10pqIyxvE4fW8St9WJDNVGJhpOxG76xQqENx9p93XI1RRHPASql+hZify8KCnTyFc9LMFzedIQ==
+
+spel2js@^0.2.6:
+  version "0.2.6"
+  resolved "https://registry.yarnpkg.com/spel2js/-/spel2js-0.2.6.tgz#756a12910163640ac8805c1753ac9b4890982678"
+  integrity sha512-etwsE78jqMD3uDv5bvwBVvMznXYBYYfLOnVEDTTvWdwChjiApjSNw7UwBT8jYABGCgl0iLCBcv1HqTyWytBBpQ==
 
 spin.js@2.3.2:
   version "2.3.2"

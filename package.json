@@ -96,7 +96,7 @@
     "semiotic": "^1.19.7",
     "source-map": "^0.4.4",
     "source-sans-pro": "^2.0.10",
-    "spel2js": "^0.2.1",
+    "spel2js": "^0.2.6",
     "ui-select": "^0.19.6"
   },
   "devDependencies": {
