@@ -537,23 +537,20 @@ module.exports = angular
 
       //update pipeline through a callback for React
       this.updatePipelineConfig = changes => {
-        $scope.$applyAsync(() => {
-          $scope.pipeline = Object.assign(
-            {},
-            $scope.pipeline,
-            $scope.isV2TemplatedPipeline
-              ? PipelineTemplateV2Service.filterInheritedConfig(Object.assign({}, changes))
-              : changes,
-          );
+        $scope.pipeline = Object.assign(
+          $scope.pipeline,
+          $scope.isV2TemplatedPipeline
+            ? PipelineTemplateV2Service.filterInheritedConfig(Object.assign({}, changes))
+            : changes,
+        );
 
-          if ($scope.isV2TemplatedPipeline) {
-            $scope.renderablePipeline = Object.assign({}, $scope.renderablePipeline, changes);
-          } else if (!$scope.isTemplatedPipeline) {
-            $scope.renderablePipeline = $scope.pipeline;
-          }
+        if ($scope.isV2TemplatedPipeline) {
+          $scope.renderablePipeline = Object.assign($scope.renderablePipeline, changes);
+        } else if (!$scope.isTemplatedPipeline) {
+          $scope.renderablePipeline = $scope.pipeline;
+        }
 
-          markDirty();
-        });
+        markDirty();
       };
     },
   ]);

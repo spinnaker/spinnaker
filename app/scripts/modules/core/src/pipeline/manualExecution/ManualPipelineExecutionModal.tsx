@@ -289,7 +289,7 @@ export class ManualExecutionModal extends React.Component<IManualExecutionModalP
     const triggers = this.formatTriggers(pipeline && pipeline.triggers ? pipeline.triggers : []);
     let trigger: ITrigger;
     if (this.props.trigger) {
-      // Certain fields like correlationId will cause unexepected behavior if used to trigger
+      // Certain fields like correlationId will cause unexpected behavior if used to trigger
       // a different execution, others are just left unused. Let's exclude them.
       trigger = pickBy(this.props.trigger, (_, key) => !TRIGGER_FIELDS_TO_EXCLUDE.includes(key));
 
