@@ -34,6 +34,12 @@ describe('categorizeErrorMessage', () => {
   it('returns the error message without the label prefix', () => {
     expect(categorizeValidationMessage('Warning: something sorta bad')[1]).toEqual('something sorta bad');
   });
+
+  it('supports newlines embedded in the message', () => {
+    const [status, message] = categorizeValidationMessage('Warning: something sorta bad\n\nhappened');
+    expect(status).toBe('warning');
+    expect(message).toBe('something sorta bad\n\nhappened');
+  });
 });
 
 describe('category message builder', () => {

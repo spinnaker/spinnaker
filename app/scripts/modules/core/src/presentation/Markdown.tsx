@@ -1,40 +1,40 @@
 import * as React from 'react';
 import { HtmlRenderer, Parser } from 'commonmark';
 import * as DOMPurify from 'dompurify';
+import './Markdown.less';
 
 export interface IMarkdownProps {
   [key: string]: any;
 
   /** markdown */
   message: string;
+
   /** optional tag */
   tag?: string;
+
+  /** The className(s) to apply to the tag (.Markdown class is always applied) */
+  className?: string;
 }
 
 /**
  * Renders markdown into a div (or some other tag)
  * Extra props are passed through to the rendered tag
  */
-export class Markdown extends React.Component<IMarkdownProps> {
-  public static defaultProps: Partial<IMarkdownProps> = {
-    tag: 'div',
-  };
+export function Markdown(props: IMarkdownProps) {
+  const { message, tag: tagProp, className: classNameProp, tag = 'div', ...rest } = props;
 
-  private parser: Parser = new Parser();
-  private renderer: HtmlRenderer = new HtmlRenderer();
+  const parser = React.useMemo(() => new Parser(), []);
+  const renderer = React.useMemo(() => new HtmlRenderer(), []);
+  const className = `Markdown ${classNameProp || ''}`;
 
-  public render() {
-    const { message, tag, ...rest } = this.props;
-
-    if (message == null) {
-      return null;
-    }
-
-    const restProps = rest as React.DOMAttributes<any>;
-    const parsed = this.parser.parse(message.toString());
-    const rendered = this.renderer.render(parsed);
-    restProps.dangerouslySetInnerHTML = { __html: DOMPurify.sanitize(rendered) };
-
-    return React.createElement(tag, restProps);
+  if (message == null) {
+    return null;
   }
+
+  const restProps = rest as React.DOMAttributes<any>;
+  const parsed = parser.parse(message.toString());
+  const rendered = renderer.render(parsed);
+  restProps.dangerouslySetInnerHTML = { __html: DOMPurify.sanitize(rendered) };
+
+  return React.createElement(tag, { ...restProps, className });
 }

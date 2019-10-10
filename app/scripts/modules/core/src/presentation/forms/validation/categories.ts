@@ -38,7 +38,7 @@ export const warningMessage = buildCategoryMessage('warning');
 // A regular expression which captures the category label and validation message from a validation message
 // I.e., for the string: "Error: There was a fatal error"
 // this captures "Error" and "There was a fatal error"
-const validationMessageRegexp = new RegExp(`^(${labels.join('|')}): (.*)$`);
+const validationMessageRegexp = new RegExp(`^(${labels.join('|')}): (.*)$`, 'sm');
 
 // Takes an errorMessage with embedded category and extracts the category and message
 // Example:  "Error: there was an error" => ['error', 'there was an error']

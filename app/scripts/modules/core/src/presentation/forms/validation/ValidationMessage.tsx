@@ -1,4 +1,7 @@
 import * as React from 'react';
+import { isString } from 'lodash';
+
+import { Markdown } from '../../Markdown';
 import { ICategorizedErrors, IValidationCategory } from './categories';
 import './ValidationMessage.less';
 
@@ -43,7 +46,7 @@ export const ValidationMessage = (props: IValidationMessageProps) => {
   return (
     <div className={`ValidationMessage ${containerClassName || containerClassNames[type] || ''}`}>
       {showIcon && <i className={iconClassName || iconClassNames[type] || ''} />}
-      <div className="message">{message}</div>
+      <div className="message">{isString(message) ? <Markdown message={message} /> : message}</div>
     </div>
   );
 };
