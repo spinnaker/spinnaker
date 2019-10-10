@@ -44,6 +44,7 @@ dependencies {
   implementation "com.netflix.spinnaker.kork:kork-core"
   implementation "com.squareup.retrofit:converter-jackson"
   runtimeOnly "com.netflix.spinnaker.kork:kork-secrets-aws"
+  runtimeOnly "com.netflix.spinnaker.kork:kork-secrets-gcp"
 
   testImplementation project(":front50-test")
   testImplementation project(":front50-s3")
