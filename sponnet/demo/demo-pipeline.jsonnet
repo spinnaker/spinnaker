@@ -170,7 +170,7 @@ local findArtifactsFromResource = sponnet.stages
                                   .findArtifactsFromResource('Find nginx-deployment')
                                   .withAccount(account)
                                   .withLocation('default')
-                                  .withManifestName('Deployment nginx-deployment')
+                                  .withManifestName('Deployment', 'nginx-deployment')
                                   .withRequisiteStages([deployManifestTextBaseline, deployManifestTextCanary, deployManifestArtifact]);
 
 local bakeManifest = sponnet.stages
