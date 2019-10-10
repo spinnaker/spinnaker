@@ -13,16 +13,8 @@ spec:
     regions:
     - region: us-east-1
       subnet: internal (vpc0)
-      availabilityZones:
-      - us-east-1c
-      - us-east-1d
-      - us-east-1e
     - region: us-west-2
       subnet: internal (vpc0)
-      availabilityZones:
-      - us-west-2a
-      - us-west-2b
-      - us-west-2c
   internal: true
   vpcName: vpc0
   securityGroupNames: []

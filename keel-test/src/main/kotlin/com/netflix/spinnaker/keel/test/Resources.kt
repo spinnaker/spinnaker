@@ -91,7 +91,7 @@ data class DummyLocatableResourceSpec(
   val data: String = randomString(),
   override val application: String = "fnord",
   override val locations: Locations<SimpleRegionSpec> = Locations("test", setOf(SimpleRegionSpec("us-west-1")))
-) : ResourceSpec, Locatable
+) : ResourceSpec, Locatable<SimpleRegionSpec>
 
 data class DummyResource(
   val id: String = randomString(),

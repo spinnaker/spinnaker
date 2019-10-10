@@ -30,7 +30,7 @@ data class SecurityGroupSpec(
   val description: String?,
   val inboundRules: Set<SecurityGroupRule> = emptySet(),
   val overrides: Map<String, SecurityGroupOverride> = emptyMap()
-) : MultiRegion, Locatable {
+) : MultiRegion, Locatable<SimpleRegionSpec> {
   override val id = "${locations.accountName}:${moniker.name}"
 
   override val regionalIds = locations.regions.map { region ->

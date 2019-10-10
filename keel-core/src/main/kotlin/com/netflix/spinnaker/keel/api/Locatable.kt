@@ -20,8 +20,8 @@ package com.netflix.spinnaker.keel.api
 /**
  * An object which is located in an account and region
  */
-interface Locatable {
-  val locations: Locations<out RegionSpec>
+interface Locatable<T : RegionSpec> : ResourceSpec {
+  val locations: Locations<T>
 }
 
 data class Locations<T : RegionSpec>(

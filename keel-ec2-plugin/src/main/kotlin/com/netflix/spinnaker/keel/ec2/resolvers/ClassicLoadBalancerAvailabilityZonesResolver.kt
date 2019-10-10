@@ -2,18 +2,19 @@ package com.netflix.spinnaker.keel.ec2.resolvers
 
 import com.netflix.spinnaker.keel.api.Locations
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
+import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerSpec
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.model.SubnetAwareRegionSpec
 import org.springframework.stereotype.Component
 
 @Component
-class ClusterAvailabilityZonesResolver(
+class ClassicLoadBalancerAvailabilityZonesResolver(
   cloudDriverCache: CloudDriverCache
-) : AvailabilityZonesResolver<ClusterSpec>(cloudDriverCache) {
-  override val apiVersion = SPINNAKER_API_V1.subApi("ec2")
-  override val supportedKind = "cluster"
+) : AvailabilityZonesResolver<ClassicLoadBalancerSpec>(cloudDriverCache) {
 
-  override fun ClusterSpec.withLocations(locations: Locations<SubnetAwareRegionSpec>): ClusterSpec =
+  override val apiVersion = SPINNAKER_API_V1.subApi("ec2")
+  override val supportedKind = "classic-load-balancer"
+
+  override fun ClassicLoadBalancerSpec.withLocations(locations: Locations<SubnetAwareRegionSpec>): ClassicLoadBalancerSpec =
     copy(locations = locations)
 }

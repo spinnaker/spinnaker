@@ -89,7 +89,7 @@ data class ClusterSpec(
   override val locations: Locations<SubnetAwareRegionSpec>,
   private val _defaults: ServerGroupSpec,
   val overrides: Map<String, ServerGroupSpec> = emptyMap()
-) : MultiRegion, Locatable {
+) : MultiRegion, Locatable<SubnetAwareRegionSpec> {
   @JsonIgnore
   override val id = "${locations.accountName}:${moniker.name}"
 

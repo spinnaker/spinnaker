@@ -1,0 +1,47 @@
+package com.netflix.spinnaker.keel.ec2.resolvers
+
+import com.netflix.spinnaker.keel.api.Locations
+import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
+import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
+import com.netflix.spinnaker.keel.clouddriver.MemoryCloudDriverCache
+import com.netflix.spinnaker.keel.model.Moniker
+import com.netflix.spinnaker.keel.model.SubnetAwareRegionSpec
+import com.netflix.spinnaker.keel.test.resource
+
+internal class ApplicationLoadBalancerAvailabilityZonesResolverTests : AvailabilityZonesResolverTests<ApplicationLoadBalancerSpec>() {
+  override fun createFixture(eastAvailabilityZones: Set<String>?, westAvailabilityZones: Set<String>?): Fixture<ApplicationLoadBalancerSpec> =
+    object : Fixture<ApplicationLoadBalancerSpec>(
+      resource(
+        apiVersion = SPINNAKER_API_V1.subApi("ec2"),
+        kind = "application-load-balancer",
+        spec = ApplicationLoadBalancerSpec(
+          Moniker(
+            app = "fnord",
+            stack = "test"
+          ),
+          Locations(
+            accountName = "test",
+            regions = setOf(
+              SubnetAwareRegionSpec(
+                region = "us-east-1",
+                subnet = "internal (vpc0)",
+                availabilityZones = eastAvailabilityZones ?: emptySet()
+              ),
+              SubnetAwareRegionSpec(
+                region = "us-west-2",
+                subnet = "internal (vpc0)",
+                availabilityZones = westAvailabilityZones ?: emptySet()
+              )
+            )
+          ),
+          vpcName = "vpc0",
+          listeners = emptySet(),
+          targetGroups = emptySet()
+        )
+      )
+    ) {
+      override val subject: ApplicationLoadBalancerAvailabilityZonesResolver = ApplicationLoadBalancerAvailabilityZonesResolver(
+        MemoryCloudDriverCache(cloudDriverService)
+      )
+    }
+}
