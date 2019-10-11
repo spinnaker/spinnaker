@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.rosco.manifests.helm
 
-import com.netflix.spinnaker.rosco.services.ClouddriverService
+import com.netflix.spinnaker.rosco.manifests.ArtifactDownloader
 import spock.lang.Specification
 
 class HelmTemplateUtilsSpec extends Specification {
@@ -49,11 +49,11 @@ class HelmTemplateUtilsSpec extends Specification {
           run.sh: |-
         """
 
-        def cloudDriverService = Mock(ClouddriverService)
-        def helmTemplateUtils = new HelmTemplateUtils(cloudDriverService)
+        def artifactDownloader = Mock(ArtifactDownloader)
+        def helmTemplateUtils = new HelmTemplateUtils(artifactDownloader)
 
         when:
-        def output = new String(helmTemplateUtils.removeTestsDirectoryTemplates(inputManifests.getBytes()))
+        def output = helmTemplateUtils.removeTestsDirectoryTemplates(inputManifests)
 
         then:
         def expected = """
@@ -103,11 +103,11 @@ class HelmTemplateUtilsSpec extends Specification {
           run.sh: |-
         """
 
-        def cloudDriverService = Mock(ClouddriverService)
-        def helmTemplateUtils = new HelmTemplateUtils(cloudDriverService)
+        def artifactDownloader = Mock(ArtifactDownloader)
+        def helmTemplateUtils = new HelmTemplateUtils(artifactDownloader)
 
         when:
-        def output = new String(helmTemplateUtils.removeTestsDirectoryTemplates(inputManifests.getBytes()))
+        def output = helmTemplateUtils.removeTestsDirectoryTemplates(inputManifests)
 
         then:
         def expected = """

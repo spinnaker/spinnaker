@@ -33,13 +33,11 @@ public class HelmBakeManifestService extends BakeManifestService<HelmBakeManifes
     try (BakeManifestEnvironment env = BakeManifestEnvironment.create()) {
       BakeRecipe recipe = helmTemplateUtils.buildBakeRecipe(env, bakeManifestRequest);
 
-      byte[] bakeResult = doBake(recipe);
+      String bakeResult = helmTemplateUtils.removeTestsDirectoryTemplates(doBake(recipe));
       return Artifact.builder()
           .type("embedded/base64")
           .name(bakeManifestRequest.getOutputArtifactName())
-          .reference(
-              Base64.getEncoder()
-                  .encodeToString(helmTemplateUtils.removeTestsDirectoryTemplates(bakeResult)))
+          .reference(Base64.getEncoder().encodeToString(bakeResult.getBytes()))
           .build();
     }
   }

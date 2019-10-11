@@ -19,10 +19,9 @@ package com.netflix.spinnaker.rosco.manifests.kustomize;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
 import com.netflix.spinnaker.rosco.jobs.BakeRecipe;
+import com.netflix.spinnaker.rosco.manifests.ArtifactDownloader;
 import com.netflix.spinnaker.rosco.manifests.BakeManifestEnvironment;
-import com.netflix.spinnaker.rosco.manifests.TemplateUtils;
 import com.netflix.spinnaker.rosco.manifests.kustomize.mapping.Kustomization;
-import com.netflix.spinnaker.rosco.services.ClouddriverService;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -40,13 +39,14 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
-public class KustomizeTemplateUtils extends TemplateUtils {
+public class KustomizeTemplateUtils {
   private final KustomizationFileReader kustomizationFileReader;
+  private final ArtifactDownloader artifactDownloader;
 
   public KustomizeTemplateUtils(
-      KustomizationFileReader kustomizationFileReader, ClouddriverService clouddriverService) {
-    super(clouddriverService);
+      KustomizationFileReader kustomizationFileReader, ArtifactDownloader artifactDownloader) {
     this.kustomizationFileReader = kustomizationFileReader;
+    this.artifactDownloader = artifactDownloader;
   }
 
   public BakeRecipe buildBakeRecipe(
@@ -64,7 +64,7 @@ public class KustomizeTemplateUtils extends TemplateUtils {
       throw new IllegalArgumentException("The inputArtifact should be a valid kustomization file.");
     }
     String referenceBaseURL = extractReferenceBase(artifact);
-    Path templatePath = env.getStagingPath().resolve(artifact.getName());
+    Path templatePath = env.resolvePath(artifact.getName());
 
     try {
       List<Artifact> artifacts = getArtifacts(artifact);
@@ -90,19 +90,10 @@ public class KustomizeTemplateUtils extends TemplateUtils {
       throw new InvalidRequestException("Input artifact has an empty 'reference' field.");
     }
     Path artifactFileName = Paths.get(extractArtifactName(artifact, referenceBaseURL));
-    Path artifactFilePath = env.getStagingPath().resolve(artifactFileName);
-    // ensure file write doesn't break out of the staging directory ex. ../etc
+    Path artifactFilePath = env.resolvePath(artifactFileName);
     Path artifactParentDirectory = artifactFilePath.getParent();
-    if (!pathIsWithinBase(env.getStagingPath(), artifactParentDirectory)) {
-      throw new IllegalStateException("attempting to create a file outside of the staging path.");
-    }
     Files.createDirectories(artifactParentDirectory);
-    File newFile = artifactFilePath.toFile();
-    downloadArtifact(artifact, newFile);
-  }
-
-  private boolean pathIsWithinBase(Path base, Path check) {
-    return check.normalize().startsWith(base);
+    artifactDownloader.downloadArtifact(artifact, artifactFilePath);
   }
 
   private List<Artifact> getArtifacts(Artifact artifact) {

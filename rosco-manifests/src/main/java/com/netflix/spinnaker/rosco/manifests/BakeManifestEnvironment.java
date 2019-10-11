@@ -22,9 +22,10 @@ import com.google.common.io.MoreFiles;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import javax.annotation.ParametersAreNonnullByDefault;
 
+@ParametersAreNonnullByDefault
 public final class BakeManifestEnvironment implements AutoCloseable {
-
   private final Path stagingPath;
 
   private BakeManifestEnvironment(Path stagingPath) {
@@ -36,12 +37,23 @@ public final class BakeManifestEnvironment implements AutoCloseable {
     return new BakeManifestEnvironment(stagingPath);
   }
 
-  public Path getStagingPath() {
-    return stagingPath;
+  public Path resolvePath(String fileName) {
+    return checkPath(stagingPath.resolve(fileName));
+  }
+
+  public Path resolvePath(Path fileName) {
+    return checkPath(stagingPath.resolve(fileName));
   }
 
   @Override
   public void close() throws IOException {
     MoreFiles.deleteRecursively(stagingPath, ALLOW_INSECURE);
+  }
+
+  private Path checkPath(final Path path) {
+    if (!path.normalize().startsWith(stagingPath)) {
+      throw new IllegalStateException("Attempting to create a file outside of the staging path.");
+    }
+    return path;
   }
 }

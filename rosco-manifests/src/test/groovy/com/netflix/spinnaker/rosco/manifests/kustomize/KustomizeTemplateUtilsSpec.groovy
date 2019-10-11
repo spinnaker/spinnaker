@@ -1,22 +1,19 @@
 package com.netflix.spinnaker.rosco.manifests.kustomize
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
+import com.netflix.spinnaker.rosco.manifests.ArtifactDownloader
 import com.netflix.spinnaker.rosco.manifests.kustomize.mapping.ConfigMapGenerator
 import com.netflix.spinnaker.rosco.manifests.kustomize.mapping.Kustomization
-import com.netflix.spinnaker.rosco.services.ClouddriverService
 import spock.lang.Specification
-
-import java.nio.file.Paths
-
 
 class KustomizeTemplateUtilsSpec extends Specification {
 
     def "getFilesFromArtifact returns a list of files to download based on a kustomization"() {
         given:
         def referenceBase = "https://api.github.com/repos/org/repo/contents/base"
-        def clouddriverService = Mock(ClouddriverService)
+        def artifactDownloader = Mock(ArtifactDownloader)
         def kustomizationFileReader = Mock(KustomizationFileReader)
-        def kustomizationTemplateUtils = new KustomizeTemplateUtils(kustomizationFileReader, clouddriverService)
+        def kustomizationTemplateUtils = new KustomizeTemplateUtils(kustomizationFileReader, artifactDownloader)
         def baseArtifact = Artifact.builder()
                 .name("base/kustomization.yml")
                 .reference(referenceBase + "/kustomization.yml")
@@ -38,9 +35,9 @@ class KustomizeTemplateUtilsSpec extends Specification {
     def "getFilesFromSubFolder returns a list of files where one of the resources is referencing another kustomization"() {
         given:
         def referenceBase = "https://api.github.com/repos/org/repo/contents/base"
-        def clouddriverService = Mock(ClouddriverService)
+        def artifactDownloader = Mock(ArtifactDownloader)
         def kustomizationFileReader = Mock(KustomizationFileReader)
-        def kustomizationTemplateUtils = new KustomizeTemplateUtils(kustomizationFileReader, clouddriverService)
+        def kustomizationTemplateUtils = new KustomizeTemplateUtils(kustomizationFileReader, artifactDownloader)
         def baseArtifact = Artifact.builder()
                 .name("base/kustomization.yml")
                 .reference(referenceBase + "/kustomization.yml")
@@ -72,9 +69,9 @@ class KustomizeTemplateUtilsSpec extends Specification {
     def "getFilesFromParent returns a list of files where one of the resources is referencing another kustomization"() {
         given:
         def referenceBase = "https://api.github.com/repos/kubernetes-sigs/kustomize/contents"
-        def clouddriverService = Mock(ClouddriverService)
+        def artifactDownloader = Mock(ArtifactDownloader)
         def kustomizationFileReader = Mock(KustomizationFileReader)
-        def kustomizationTemplateUtils = new KustomizeTemplateUtils(kustomizationFileReader, clouddriverService)
+        def kustomizationTemplateUtils = new KustomizeTemplateUtils(kustomizationFileReader, artifactDownloader)
         def baseArtifact = Artifact.builder()
                 .name("examples/ldap/overlays/production/kustomization.yaml")
                 .reference(referenceBase + "/examples/ldap/overlays/production/kustomization.yaml")
@@ -116,9 +113,9 @@ class KustomizeTemplateUtilsSpec extends Specification {
     def "getFilesFromSameFolder returns a list of files where one of the resources is referencing to a kustomization"() {
         given:
         def referenceBase = "https://api.github.com/repos/kubernetes-sigs/kustomize/contents"
-        def clouddriverService = Mock(ClouddriverService)
+        def artifactDownloader = Mock(ArtifactDownloader)
         def kustomizationFileReader = Mock(KustomizationFileReader)
-        def kustomizationTemplateUtils = new KustomizeTemplateUtils(kustomizationFileReader, clouddriverService)
+        def kustomizationTemplateUtils = new KustomizeTemplateUtils(kustomizationFileReader, artifactDownloader)
         def baseArtifact = Artifact.builder()
                 .name("examples/helloWorld/kustomization.yaml")
                 .reference(referenceBase + "/examples/helloWorld/kustomization.yaml")
@@ -146,9 +143,9 @@ class KustomizeTemplateUtilsSpec extends Specification {
     def "getFilesFromMixedFolders returns a list of files where one of the resources is referencing another kustomization (5)"() {
         given:
         def referenceBase = "https://api.github.com/repos/kubernetes-sigs/kustomize/contents"
-        def clouddriverService = Mock(ClouddriverService)
+        def artifactDownloader = Mock(ArtifactDownloader)
         def kustomizationFileReader = Mock(KustomizationFileReader)
-        def kustomizationTemplateUtils = new KustomizeTemplateUtils(kustomizationFileReader, clouddriverService)
+        def kustomizationTemplateUtils = new KustomizeTemplateUtils(kustomizationFileReader, artifactDownloader)
         def baseArtifact = Artifact.builder()
                 .name("examples/multibases/kustomization.yaml")
                 .reference(referenceBase + "/examples/multibases/kustomization.yaml")
@@ -185,7 +182,7 @@ class KustomizeTemplateUtilsSpec extends Specification {
 
     def "isFolder checks if a string looks like a folder"() {
         given:
-        def kustomizationTemplateUtils = new KustomizeTemplateUtils(Mock(KustomizationFileReader), Mock(ClouddriverService))
+        def kustomizationTemplateUtils = new KustomizeTemplateUtils(Mock(KustomizationFileReader), Mock(ArtifactDownloader))
 
         when:
         def isFolder = kustomizationTemplateUtils.isFolder(path)
@@ -199,22 +196,5 @@ class KustomizeTemplateUtilsSpec extends Specification {
         "child"           | true
         "file.file"       | false
         "child/file.file" | false
-    }
-
-    def "pathIsWithinBase ensures we don't break out of the tmp directory"() {
-        given:
-        def kustomizationTemplateUtils = new KustomizeTemplateUtils(Mock(KustomizationFileReader), Mock(ClouddriverService))
-
-        when:
-        def isWithinBase = kustomizationTemplateUtils.pathIsWithinBase(Paths.get(base), Paths.get(check))
-
-        then:
-        isWithinBase == result
-
-        where:
-        base        | check             | result
-        "/tmp"      | "../"             | false
-        "/tmp/test" | "../"             | false
-        "/tmp/test" | "/tmp/test/chuck" | true
     }
 }

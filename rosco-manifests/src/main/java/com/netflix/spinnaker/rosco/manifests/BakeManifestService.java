@@ -39,8 +39,7 @@ public abstract class BakeManifestService<T extends BakeManifestRequest> {
 
   public abstract boolean handles(String type);
 
-  protected byte[] doBake(BakeRecipe recipe) {
-    BakeStatus bakeStatus = null;
+  protected String doBake(BakeRecipe recipe) {
     JobRequest jobRequest =
         new JobRequest(
             recipe.getCommand(),
@@ -50,7 +49,7 @@ public abstract class BakeManifestService<T extends BakeManifestRequest> {
             false);
 
     String jobId = jobExecutor.startJob(jobRequest);
-    bakeStatus = jobExecutor.updateJob(jobId);
+    BakeStatus bakeStatus = jobExecutor.updateJob(jobId);
     while (bakeStatus == null || bakeStatus.getState() == BakeStatus.State.RUNNING) {
       try {
         Thread.sleep(1000);
@@ -63,6 +62,6 @@ public abstract class BakeManifestService<T extends BakeManifestRequest> {
     if (bakeStatus.getResult() != BakeStatus.Result.SUCCESS) {
       throw new IllegalStateException("Bake failed: " + bakeStatus.getLogsContent());
     }
-    return bakeStatus.getOutputContent().getBytes();
+    return bakeStatus.getOutputContent();
   }
 }

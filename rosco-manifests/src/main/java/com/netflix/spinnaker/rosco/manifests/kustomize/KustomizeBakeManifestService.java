@@ -53,11 +53,11 @@ public class KustomizeBakeManifestService
     try (BakeManifestEnvironment env = BakeManifestEnvironment.create()) {
       BakeRecipe recipe = kustomizeTemplateUtils.buildBakeRecipe(env, kustomizeBakeManifestRequest);
 
-      byte[] bakeResult = doBake(recipe);
+      String bakeResult = doBake(recipe);
       return Artifact.builder()
           .type("embedded/base64")
           .name(kustomizeBakeManifestRequest.getOutputArtifactName())
-          .reference(Base64.getEncoder().encodeToString(bakeResult))
+          .reference(Base64.getEncoder().encodeToString(bakeResult.getBytes()))
           .build();
     }
   }
