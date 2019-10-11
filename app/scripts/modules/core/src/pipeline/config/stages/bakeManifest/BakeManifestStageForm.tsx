@@ -47,6 +47,7 @@ export class BakeManifestStageForm extends React.Component<
                 this.props.formik.setFieldValue('templateRenderer', o.target.value);
               }}
               value={stage.templateRenderer}
+              validation={{}}
               stringOptions={this.templateRenderers()}
             />
           </StageConfigField>

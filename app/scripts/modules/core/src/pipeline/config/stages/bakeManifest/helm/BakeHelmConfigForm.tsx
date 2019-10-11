@@ -195,6 +195,17 @@ export class BakeHelmConfigForm extends React.Component<IBakeHelmConfigFormProps
         </StageConfigField>
         <StageConfigField
           fieldColumns={6}
+          helpKey={'pipeline.config.bake.manifest.helm.rawOverrides'}
+          label="Raw Overrides"
+        >
+          <CheckboxInput
+            value={stage.rawOverrides}
+            text={''}
+            onChange={() => this.props.formik.setFieldValue('rawOverrides', !stage.rawOverrides)}
+          />
+        </StageConfigField>
+        <StageConfigField
+          fieldColumns={6}
           helpKey={'pipeline.config.bake.manifest.overrideExpressionEvaluation'}
           label="Expression Evaluation"
         >
