@@ -11,4 +11,5 @@ import lombok.EqualsAndHashCode;
 public class HelmBakeManifestRequest extends BakeManifestRequest {
   String namespace;
   List<Artifact> inputArtifacts;
+  boolean rawOverrides;
 }
