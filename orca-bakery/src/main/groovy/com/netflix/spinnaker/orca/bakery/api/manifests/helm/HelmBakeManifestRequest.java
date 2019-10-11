@@ -40,6 +40,9 @@ public class HelmBakeManifestRequest extends BakeManifestRequest {
 
   private List<Artifact> values;
 
+  @JsonProperty("rawOverrides")
+  private Boolean rawOverrides;
+
   public HelmBakeManifestRequest(
       BakeManifestContext bakeManifestContext,
       List<Artifact> inputArtifacts,
@@ -52,5 +55,6 @@ public class HelmBakeManifestRequest extends BakeManifestRequest {
     this.setOverrides(overrides);
     this.setNamespace(bakeManifestContext.getNamespace());
     this.setInputArtifacts(inputArtifacts);
+    this.setRawOverrides(bakeManifestContext.getRawOverrides());
   }
 }

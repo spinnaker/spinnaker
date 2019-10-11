@@ -33,7 +33,7 @@ public class BakeManifestContext {
   private final String templateRenderer;
   private final String outputName;
   private final String namespace;
-
+  private final Boolean rawOverrides;
   // There does not seem to be a way to auto-generate a constructor using our current version of
   // Lombok (1.16.20) that
   // Jackson can use to deserialize.
@@ -47,7 +47,8 @@ public class BakeManifestContext {
       @JsonProperty("outputName") String outputName,
       @JsonProperty("namespace") String namespace,
       @Nullable @JsonProperty("inputArtifact")
-          CreateBakeManifestTask.InputArtifactPair inputArtifact) {
+          CreateBakeManifestTask.InputArtifactPair inputArtifact,
+      @JsonProperty("rawOverrides") Boolean rawOverrides) {
     this.inputArtifacts = inputArtifacts;
     this.expectedArtifacts = expectedArtifacts;
     this.overrides = overrides;
@@ -56,5 +57,6 @@ public class BakeManifestContext {
     this.outputName = outputName;
     this.namespace = namespace;
     this.inputArtifact = inputArtifact;
+    this.rawOverrides = rawOverrides;
   }
 }
