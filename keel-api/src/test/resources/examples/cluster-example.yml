@@ -1,0 +1,38 @@
+---
+apiVersion: ec2.spinnaker.netflix.com/v1
+kind: cluster
+metadata:
+  serviceAccount: my-email@spinnaker.io
+spec:
+  moniker:
+    app: keeldemo
+    stack: examples
+    detail: ec2v1
+  imageProvider:
+    deliveryArtifact:
+      name: keeldemo
+      type: DEB
+  locations:
+    accountName: test
+    regions:
+      - region: us-west-2
+        subnet: internal (vpc0)
+      - region: us-east-1
+        subnet: internal (vpc0)
+  overrides: {}
+  launchConfiguration:
+    instanceType: m5.large
+    ebsOptimized: true
+    iamRole: keeldemoInstanceProfile
+    keyPair: nf-test-keypair-a
+  capacity:
+    min: 1
+    max: 1
+    desired: 1
+  dependencies:
+    loadBalancerNames: []
+    securityGroupNames:
+      - keeldemo
+      - nf-datacenter
+      - nf-infrastructure
+    targetGroups: []

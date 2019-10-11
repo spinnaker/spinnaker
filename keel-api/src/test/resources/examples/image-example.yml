@@ -1,0 +1,14 @@
+---
+apiVersion: bakery.spinnaker.netflix.com/v1
+kind: image
+metadata:
+  serviceAccount: my-email@spinnaker.io
+spec:
+  artifactName: keeldemo
+  baseLabel: RELEASE
+  baseOs: xenial
+  regions:
+    - us-east-1
+    - us-west-2
+  storeType: EBS
+  application: keeldemo

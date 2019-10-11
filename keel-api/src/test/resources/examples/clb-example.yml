@@ -1,0 +1,34 @@
+---
+apiVersion: ec2.spinnaker.netflix.com/v1
+kind: classic-load-balancer
+metadata:
+  serviceAccount: my-email@spinnaker.io
+spec:
+  moniker:
+    app: keeldemo
+    stack: example
+    detail: clbec2v1
+  location:
+    accountName: test
+    region: us-east-1
+    availabilityZones:
+      - us-east-1c
+      - us-east-1d
+      - us-east-1e
+  loadBalancerType: CLASSIC
+  internal: true
+  vpcName: vpc0
+  subnetType: internal (vpc0)
+  securityGroupNames: []
+  idleTimeout: 60
+  listeners:
+    - internalProtocol: HTTP
+      internalPort: 7001
+      externalProtocol: HTTP
+      externalPort: 80
+      sslCertificateId:
+  healthCheck: HTTP:7001/health
+  healthInterval: 10
+  healthyThreshold: 5
+  unhealthyThreshold: 2
+  healthTimeout: 5

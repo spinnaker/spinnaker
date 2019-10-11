@@ -1,0 +1,22 @@
+---
+apiVersion: ec2.spinnaker.netflix.com/v1
+kind: security-group
+metadata:
+  serviceAccount: my-email@spinnaker.io
+spec:
+  moniker:
+    app: keeldemo
+    stack: example
+    detail: ec2v1
+  locations:
+    accountName: test
+    regions:
+      - us-west-2
+      - us-east-1
+  vpcName: vpc0
+  description: Managed Security Group for keeldemo example
+  inboundRules:
+    - protocol: TCP
+      portRange:
+        startPort: 7001
+        endPort: 7001

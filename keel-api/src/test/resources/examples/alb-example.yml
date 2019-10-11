@@ -1,0 +1,27 @@
+---
+apiVersion: ec2.spinnaker.netflix.com/v1
+kind: application-load-balancer
+metadata:
+  serviceAccount: my-email@spinnaker.io
+spec:
+  vpcName: vpc0
+  subnetType: internal (vpc0)
+  moniker:
+    app: keeldemo
+    stack: example
+    detail: albec2v1
+  location:
+    accountName: test
+    region: us-east-1
+    availabilityZones:
+      - us-east-1c
+      - us-east-1d
+      - us-east-1e
+  listeners:
+    - port: 80
+      protocol: HTTP
+  targetGroups:
+    - name: keeldemo-example-tgec2v1
+      port: 7001
+      attributes:
+        stickinessEnabled: false
