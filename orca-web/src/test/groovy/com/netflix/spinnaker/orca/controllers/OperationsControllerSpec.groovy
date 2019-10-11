@@ -633,7 +633,7 @@ class OperationsControllerSpec extends Specification {
 
   def "should call webhookService and return correct information"() {
     given:
-    def preconfiguredProperties = ["url", "customHeaders", "method", "payload", "waitForCompletion", "statusUrlResolution",
+    def preconfiguredProperties = ["url", "customHeaders", "method", "payload", "failFastStatusCodes", "waitForCompletion", "statusUrlResolution",
                                    "statusUrlJsonPath", "statusJsonPath", "progressJsonPath", "successStatuses", "canceledStatuses", "terminalStatuses"]
 
     when:
@@ -652,7 +652,7 @@ class OperationsControllerSpec extends Specification {
 
   def "should not return protected preconfigured webhooks if user don't have the role"() {
     given:
-    def preconfiguredProperties = ["url", "customHeaders", "method", "payload", "waitForCompletion", "statusUrlResolution",
+    def preconfiguredProperties = ["url", "customHeaders", "method", "payload", "failFastStatusCodes", "waitForCompletion", "statusUrlResolution",
                                    "statusUrlJsonPath", "statusJsonPath", "progressJsonPath", "successStatuses", "canceledStatuses", "terminalStatuses"]
     executionLauncher.start(*_) >> { ExecutionType type, String json ->
       startedPipeline = mapper.readValue(json, Execution)
@@ -685,7 +685,7 @@ class OperationsControllerSpec extends Specification {
 
   def "should return protected preconfigured webhooks if user have the role"() {
     given:
-    def preconfiguredProperties = ["url", "customHeaders", "method", "payload", "waitForCompletion", "statusUrlResolution",
+    def preconfiguredProperties = ["url", "customHeaders", "method", "payload", "failFastStatusCodes", "waitForCompletion", "statusUrlResolution",
                                    "statusUrlJsonPath", "statusJsonPath", "progressJsonPath", "successStatuses", "canceledStatuses", "terminalStatuses"]
     executionLauncher.start(*_) >> { ExecutionType type, String json ->
       startedPipeline = mapper.readValue(json, Execution)
@@ -774,7 +774,7 @@ class OperationsControllerSpec extends Specification {
     return new WebhookProperties.PreconfiguredWebhook(
       label: label, description: description, type: type,
       url: "a", customHeaders: customHeaders, method: HttpMethod.POST, payload: "b",
-      waitForCompletion: true, statusUrlResolution: WebhookProperties.StatusUrlResolution.webhookResponse,
+      failFastStatusCodes: [500, 501], waitForCompletion: true, statusUrlResolution: WebhookProperties.StatusUrlResolution.webhookResponse,
       statusUrlJsonPath: "c", statusJsonPath: "d", progressJsonPath: "e", successStatuses: "f", canceledStatuses: "g", terminalStatuses: "h", parameters: null, parameterData: null,
       permissions: permissions
     )

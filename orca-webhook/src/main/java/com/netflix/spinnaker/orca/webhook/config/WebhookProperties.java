@@ -79,6 +79,7 @@ public class WebhookProperties {
     public Map<String, Map<String, String>> parameterData;
     public HttpMethod method;
     public String payload;
+    public List<Integer> failFastStatusCodes;
     public Boolean waitForCompletion;
     public StatusUrlResolution statusUrlResolution;
     public String statusUrlJsonPath; // if webhookResponse above

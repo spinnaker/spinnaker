@@ -89,6 +89,9 @@ integrations:
 #        {
 #          "text": "Version ${trigger.buildInfo.artifacts[0].version} deployed"
 #        }
+#      failFastStatusCodes:
+#        - 404
+#        - 501
 #      waitForCompletion: true
 #      # The rest of the properties are only used if waitForCompletion == true
 #      statusUrlResolution: webhookResponse # getMethod, locationHeader, webhookResponse

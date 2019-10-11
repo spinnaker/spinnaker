@@ -49,6 +49,7 @@ class PreconfiguredWebhookStageSpec extends Specification {
       customHeaders: ["header": ["value1"]],
       method: HttpMethod.POST,
       payload: "b",
+      failFastStatusCodes: [500, 501],
       waitForCompletion: true,
       statusUrlResolution: WebhookProperties.StatusUrlResolution.locationHeader,
       statusUrlJsonPath: "c",
@@ -70,6 +71,7 @@ class PreconfiguredWebhookStageSpec extends Specification {
       customHeaders: ["header": ["value1"]],
       method: HttpMethod.POST,
       payload: "b",
+      failFastStatusCodes: [500, 501],
       waitForCompletion: true,
       statusUrlResolution: WebhookProperties.StatusUrlResolution.webhookResponse,
       statusUrlJsonPath: "c",
@@ -92,6 +94,7 @@ class PreconfiguredWebhookStageSpec extends Specification {
       customHeaders: ["header": ["value1"]],
       method: HttpMethod.POST,
       payload: "b",
+      failFastStatusCodes: [500, 501],
       waitForCompletion: true,
       statusUrlResolution: WebhookProperties.StatusUrlResolution.webhookResponse,
       statusUrlJsonPath: "c",
@@ -111,7 +114,7 @@ class PreconfiguredWebhookStageSpec extends Specification {
     customHeaders.add("header", "value1")
     return new WebhookProperties.PreconfiguredWebhook(
       label: label, description: description, type: type, url: "a", customHeaders: customHeaders, method: HttpMethod.POST, payload: "b",
-      waitForCompletion: true, statusUrlResolution: WebhookProperties.StatusUrlResolution.locationHeader,
+      failFastStatusCodes: [500, 501], waitForCompletion: true, statusUrlResolution: WebhookProperties.StatusUrlResolution.locationHeader,
       statusUrlJsonPath: "c", statusJsonPath: "d", progressJsonPath: "e", successStatuses: "f", canceledStatuses: "g", terminalStatuses: "h"
     )
   }
