@@ -14,7 +14,11 @@
       </ui-select-choices>
     </ui-select>
   </stage-config-field>
-  <stage-config-field label="Fail Fast HTTP Statuses" help-key="pipeline.config.webhook.failFastCodes">
+  <stage-config-field
+    label="Fail Fast HTTP Statuses"
+    help-key="pipeline.config.webhook.failFastCodes"
+    ng-if="$ctrl.displayField('failFastStatusCodes')"
+  >
     <input
       type="text"
       class="form-control input-sm"
