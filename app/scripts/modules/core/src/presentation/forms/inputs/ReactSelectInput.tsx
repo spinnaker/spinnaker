@@ -64,7 +64,7 @@ export function ReactSelectInput(props: IReactSelectInputProps) {
     onChange,
     onBlur,
     value,
-    validation,
+    validation = {},
     stringOptions,
     options: optionOptions,
     ignoreAccents: accents,
@@ -76,7 +76,7 @@ export function ReactSelectInput(props: IReactSelectInputProps) {
   const ignoreAccents = isNil(accents) ? false : accents;
   const mode = props.mode || 'TETHERED';
   const className = orEmptyString(inputClassName);
-  const { category } = useValidationData((validation || {}).messageNode, validation.touched);
+  const { category } = useValidationData(validation.messageNode, validation.touched);
   const style = category === 'error' ? reactSelectValidationErrorStyle : {};
   const fieldProps = {
     name,
