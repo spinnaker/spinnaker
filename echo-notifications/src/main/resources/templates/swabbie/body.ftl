@@ -90,7 +90,7 @@
           </td>
           <td class="title" align="left" valign="middle" style="padding: 16px 0 16px 32px; height: 100%;">
             <h1 style="display: block; font-family: Helvetica, Arial, sans-serif; color: #ffffff; font-size: 28px;">Cleanup Notifications</h1>
-            <h2 style="display: block; font-family: Helvetica, Arial, sans-serif; color: #d8d8d8; font-size: 16px; font-weight: normal;">${notification.additionalContext.resources?size} resources(s) not in use scheduled for cleanup</h2>
+            <h2 style="display: block; font-family: Helvetica, Arial, sans-serif; color: #d8d8d8; font-size: 16px; font-weight: normal;">${notification.additionalContext.resources?size} resource(s) not in use scheduled for cleanup</h2>
           </td>
           <td align="center" valign="top" style="padding: 16px 32px 16px 16px; width: 140px;" class="logo">
             <img alt="Spinnaker" src="https://www.spinnaker.io/assets/emails/spinnaker-logo-400.png" width="140" height="140" border="0">
