@@ -9,16 +9,15 @@ export class PatchManifestStageConfig extends React.Component<IStageConfigProps>
 
   public constructor(props: IStageConfigProps) {
     super(props);
-    if (props.stage.isNew) {
-      defaults(props.stage, {
-        source: 'text',
-        options: {
-          record: true,
-          mergeStrategy: 'strategic',
-        },
-        cloudProvider: 'kubernetes',
-      });
-    }
+    defaults(props.stage, {
+      app: props.application.name,
+      source: 'text',
+      options: {
+        record: true,
+        mergeStrategy: 'strategic',
+      },
+      cloudProvider: 'kubernetes',
+    });
 
     // There was a bug introduced in Spinnaker 1.15 where we were incorrectly
     // storing the merge strategy on a field called 'strategy' instead of on
