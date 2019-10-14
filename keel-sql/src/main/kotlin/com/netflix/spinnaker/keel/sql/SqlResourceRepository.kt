@@ -146,8 +146,6 @@ open class SqlResourceRepository(
   }
 
   override fun appendHistory(event: ResourceEvent) {
-    if (event.ignoreInHistory) return
-
     if (event.ignoreRepeatedInHistory) {
       val previousEvent = jooq
         .select(RESOURCE_EVENT.JSON)

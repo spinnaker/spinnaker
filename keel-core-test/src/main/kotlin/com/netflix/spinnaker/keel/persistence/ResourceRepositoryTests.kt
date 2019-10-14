@@ -24,7 +24,6 @@ import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
 import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
 import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.events.ResourceUpdated
-import com.netflix.spinnaker.keel.events.ResourceValid
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.locatableResource
 import com.netflix.spinnaker.keel.test.resource
@@ -52,7 +51,6 @@ import strikt.assertions.isGreaterThanOrEqualTo
 import strikt.assertions.isNotEmpty
 import strikt.assertions.isNotNull
 import strikt.assertions.map
-import strikt.assertions.none
 import java.time.Clock
 import java.time.Duration
 import java.time.Period
@@ -182,18 +180,6 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
       }
 
       context("updating the state of the resource") {
-        context("an event that should be ignored in history") {
-          before {
-            tick()
-            subject.appendHistory(ResourceValid(resource, clock))
-          }
-
-          test("the event is not included in the history") {
-            expectThat(subject.eventHistory(resource.id))
-              .none { isA<ResourceValid>() }
-          }
-        }
-
         context("an event that should be persisted in history") {
           before {
             tick()

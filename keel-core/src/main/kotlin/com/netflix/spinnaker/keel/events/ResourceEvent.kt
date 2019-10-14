@@ -82,12 +82,6 @@ sealed class ResourceEvent {
     get() = ids?.map { ResourceId(it) }?.toSet() ?: emptySet()
 
   /**
-   * Should the event be recorded in a resource's history?
-   */
-  @JsonIgnore
-  open val ignoreInHistory: Boolean = false
-
-  /**
    * Should repeated events of the same type
    */
   @JsonIgnore
@@ -288,7 +282,7 @@ data class ResourceValid(
   override val state = Ok
 
   @JsonIgnore
-  override val ignoreInHistory = true
+  override val ignoreRepeatedInHistory = true
 
   constructor(resource: Resource<*>, clock: Clock = Companion.clock) :
     this(

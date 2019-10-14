@@ -86,8 +86,6 @@ class InMemoryResourceRepository(
   }
 
   override fun appendHistory(event: ResourceEvent) {
-    if (event.ignoreInHistory) return
-
     events.computeIfAbsent(event.resourceId) {
       mutableListOf()
     }
