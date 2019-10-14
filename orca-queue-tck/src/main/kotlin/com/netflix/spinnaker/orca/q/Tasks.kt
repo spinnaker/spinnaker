@@ -19,7 +19,9 @@ package com.netflix.spinnaker.orca.q
 import com.netflix.spinnaker.orca.OverridableTimeoutRetryableTask
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 
 interface DummyTask : RetryableTask
+interface DummyCloudProviderAwareTask : RetryableTask, CloudProviderAware
 interface InvalidTask : Task
 interface DummyTimeoutOverrideTask : OverridableTimeoutRetryableTask

@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.Task
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
+import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SystemNotification
 import groovy.transform.CompileStatic
@@ -38,7 +39,7 @@ import java.time.Clock
 @Slf4j
 @Component
 @CompileStatic
-class MonitorKatoTask implements RetryableTask {
+class MonitorKatoTask implements RetryableTask, CloudProviderAware {
 
   /**
    * How long to continue trying to look up a task that reports a 404 Not Found.

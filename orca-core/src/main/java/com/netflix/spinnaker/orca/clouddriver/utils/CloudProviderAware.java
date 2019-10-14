@@ -21,6 +21,8 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,18 +34,22 @@ public interface CloudProviderAware {
     return DEFAULT_CLOUD_PROVIDER;
   }
 
+  @Nullable
   default String getCloudProvider(Stage stage) {
     return getCloudProvider(stage.getContext());
   }
 
+  @Nullable
   default String getCloudProvider(Map<String, Object> context) {
     return (String) context.getOrDefault("cloudProvider", getDefaultCloudProvider());
   }
 
+  @Nullable
   default String getCredentials(Stage stage) {
     return getCredentials(stage.getContext());
   }
 
+  @Nullable
   default String getCredentials(Map<String, Object> context) {
     return (String)
         context.getOrDefault(
@@ -75,5 +81,13 @@ public interface CloudProviderAware {
 
   default List<String> getRegions(Stage stage) {
     return getRegions(stage.getContext());
+  }
+
+  default boolean hasCloudProvider(@Nonnull Stage stage) {
+    return getCloudProvider(stage) != null;
+  }
+
+  default boolean hasCredentials(@Nonnull Stage stage) {
+    return getCredentials(stage) != null;
   }
 }
