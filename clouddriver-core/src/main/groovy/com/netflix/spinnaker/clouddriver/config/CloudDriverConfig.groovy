@@ -93,6 +93,7 @@ import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRep
 import com.netflix.spinnaker.clouddriver.security.config.SecurityConfig
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
@@ -364,7 +365,8 @@ class CloudDriverConfig {
   }
 
   @Bean
-  ExceptionClassifier exceptionClassifier(ExceptionClassifierConfigurationProperties properties) {
-    return new ExceptionClassifier(properties)
+  ExceptionClassifier exceptionClassifier(ExceptionClassifierConfigurationProperties properties,
+                                          DynamicConfigService dynamicConfigService) {
+    return new ExceptionClassifier(properties, dynamicConfigService)
   }
 }

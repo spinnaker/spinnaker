@@ -15,10 +15,18 @@
  */
 package com.netflix.spinnaker.clouddriver.orchestration;
 
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import com.netflix.spinnaker.clouddriver.config.ExceptionClassifierConfigurationProperties;
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
@@ -26,12 +34,17 @@ import org.springframework.stereotype.Component;
  * pre-determined characteristics.
  */
 @Component
+@Slf4j
 public class ExceptionClassifier {
 
   private final ExceptionClassifierConfigurationProperties properties;
+  private final DynamicConfigService dynamicConfigService;
 
-  public ExceptionClassifier(ExceptionClassifierConfigurationProperties properties) {
+  public ExceptionClassifier(
+      ExceptionClassifierConfigurationProperties properties,
+      DynamicConfigService dynamicConfigService) {
     this.properties = properties;
+    this.dynamicConfigService = dynamicConfigService;
   }
 
   /** Returns whether or not a given Exception is retryable or not. */
@@ -39,6 +52,30 @@ public class ExceptionClassifier {
     if (e instanceof SpinnakerException) {
       return Optional.ofNullable(((SpinnakerException) e).getRetryable()).orElse(false);
     }
-    return !properties.getNonRetryableClasses().contains(e.getClass().getName());
+
+    try {
+      String dynamicNonRetryableClasses =
+          dynamicConfigService.getConfig(
+              String.class,
+              "clouddriver.exceptionClassifier.nonRetryableExceptions",
+              String.join(",", properties.getNonRetryableClasses()));
+
+      if (dynamicNonRetryableClasses != null) {
+        List<String> dynamicNonRetryableClassesList =
+            Lists.newArrayList(Splitter.on(",").split(dynamicNonRetryableClasses));
+
+        List<String> nonRetryableClasses =
+            Stream.of(dynamicNonRetryableClassesList, properties.getNonRetryableClasses())
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
+
+        return !nonRetryableClasses.contains(e.getClass().getName());
+      }
+      return !properties.getNonRetryableClasses().contains(e.getClass().getName());
+
+    } catch (Exception caughtException) {
+      log.error("Unexpected exception while processing retryable classes", caughtException);
+      return false;
+    }
   }
 }
