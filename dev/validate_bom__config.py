@@ -1561,7 +1561,7 @@ hystrix:
                         for _ in range(26))
     telemetry_config = '''\
 telemetry:
-  enabled: true
+  enabled: false
   endpoint: https://stats-staging.spinnaker.io
   instanceId: {}
   spinnakerVersion: {}
