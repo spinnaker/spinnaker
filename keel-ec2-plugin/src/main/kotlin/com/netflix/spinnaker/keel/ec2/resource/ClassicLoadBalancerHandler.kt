@@ -212,11 +212,11 @@ class ClassicLoadBalancerHandler(
           "subnetType" to location.subnet,
           "isInternal" to internal,
           "healthCheck" to healthCheck.target,
-          "healthInterval" to healthCheck.interval,
+          "healthInterval" to healthCheck.interval.seconds,
           "healthyThreshold" to healthCheck.healthyThreshold,
           "unhealthyThreshold" to healthCheck.unhealthyThreshold,
-          "healthTimeout" to healthCheck.timeout,
-          "idleTimeout" to idleTimeout,
+          "healthTimeout" to healthCheck.timeout.seconds,
+          "idleTimeout" to idleTimeout.seconds,
           "securityGroups" to dependencies.securityGroupNames,
           "listeners" to listeners
         )

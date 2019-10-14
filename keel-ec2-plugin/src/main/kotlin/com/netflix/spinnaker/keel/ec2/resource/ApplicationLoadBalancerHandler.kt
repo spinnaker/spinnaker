@@ -212,11 +212,28 @@ class ApplicationLoadBalancerHandler(
           "vpcId" to cloudDriverCache.networkBy(vpcName, location.accountName, location.region).id,
           "subnetType" to location.subnet,
           "isInternal" to internal,
-          "idleTimeout" to idleTimeout,
+          "idleTimeout" to idleTimeout.seconds,
           "securityGroups" to dependencies.securityGroupNames,
           "listeners" to listeners,
-          "targetGroups" to targetGroups
-        )
+          "targetGroups" to targetGroups.map {
+            mapOf(
+              "name" to it.name,
+              "targetType" to it.targetType,
+              "protocol" to it.protocol,
+              "port" to it.port,
+              "healthCheckEnabled" to it.healthCheckEnabled,
+              "healthCheckTimeoutSeconds" to it.healthCheckTimeoutSeconds.seconds,
+              "healthCheckPort" to it.healthCheckPort,
+              "healthCheckProtocol" to it.healthCheckProtocol,
+              "healthCheckHttpCode" to it.healthCheckHttpCode,
+              "healthCheckPath" to it.healthCheckPath,
+              "healthCheckIntervalSeconds" to it.healthCheckIntervalSeconds.seconds,
+              "healthyThresholdCount" to it.healthyThresholdCount,
+              "unhealthyThresholdCount" to it.unhealthyThresholdCount,
+              "attributes" to it.attributes
+            )
+          }
+      )
       )
     }
 }
