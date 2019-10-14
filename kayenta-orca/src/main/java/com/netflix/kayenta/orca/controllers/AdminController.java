@@ -21,9 +21,9 @@ import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UNKNOWN;
 import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UP;
 
 import com.netflix.appinfo.InstanceInfo;
-import com.netflix.config.validation.ValidationException;
 import com.netflix.discovery.StatusChangeEvent;
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent;
+import com.netflix.spinnaker.kork.web.exceptions.ValidationException;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;

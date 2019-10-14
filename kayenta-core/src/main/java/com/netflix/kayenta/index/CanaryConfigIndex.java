@@ -25,7 +25,7 @@ import com.netflix.kayenta.security.AccountCredentials;
 import java.io.IOException;
 import java.util.*;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
