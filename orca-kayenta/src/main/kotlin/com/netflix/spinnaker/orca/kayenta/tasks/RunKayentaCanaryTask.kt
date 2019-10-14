@@ -52,6 +52,11 @@ class RunKayentaCanaryTask(
       CanaryExecutionRequest(context.scopes, context.scoreThresholds, context.siteLocal)
     )["canaryExecutionId"] as String
 
-    return TaskResult.builder(SUCCEEDED).context("canaryPipelineExecutionId", canaryPipelineExecutionId).build()
+    val outputs = mapOf(
+      "canaryPipelineExecutionId" to canaryPipelineExecutionId,
+      "canaryConfigId" to context.canaryConfigId
+    )
+
+    return TaskResult.builder(SUCCEEDED).context("canaryPipelineExecutionId", canaryPipelineExecutionId).outputs(outputs).build()
   }
 }
