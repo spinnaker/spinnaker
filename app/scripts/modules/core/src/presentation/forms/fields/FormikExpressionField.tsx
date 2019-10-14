@@ -20,10 +20,16 @@ export interface IFormikExpressionFieldState {
   spelError: ISpelError;
 }
 
+const initialSpelData: IExpressionChange = {
+  value: null,
+  spelError: null,
+  spelPreview: null,
+};
+
 export function FormikExpressionField(props: IFormikExpressionFieldProps) {
   const { context, name, label, help, actions, validationMessage: message } = props;
 
-  const [spelData, setSpelData] = React.useState<IExpressionChange>();
+  const [spelData, setSpelData] = React.useState<IExpressionChange>(initialSpelData);
 
   const markdown = firstDefined(props.markdown, false);
   const validationNode = useValidationData(message, true);
