@@ -155,6 +155,31 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
   public String namingStrategy;
 
   @Parameter(
+      names = "--add-custom-resource",
+      arity = 1,
+      description = KubernetesCommandProperties.CUSTOM_RESOURCES)
+  public String addCustomResourceName;
+
+  @Parameter(
+      names = "--spinnaker-kind",
+      arity = 1,
+      description = "Set the Spinnaker kind for custom resource being added.")
+  public String addCustomResourceSpinnakerKind;
+
+  @Parameter(
+      names = "--versioned",
+      arity = 1,
+      description = "Configure whether the custom resource being added is versioned by Spinnaker.")
+  public Boolean addCustomResourceVersioned;
+
+  @Parameter(
+      names = "--remove-custom-resource",
+      arity = 1,
+      description =
+          "Remove this Kubernetes custom resource by name from the list of custom resources to manage.")
+  public String removeCustomResource;
+
+  @Parameter(
       names = "--service-account",
       arity = 1,
       description = KubernetesCommandProperties.SERVICE_ACCOUNT_DESCRIPTION)
@@ -242,6 +267,36 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
           updateStringList(account.getOmitKinds(), omitKinds, addOmitKind, removeOmitKind));
     } catch (IllegalArgumentException e) {
       throw new IllegalArgumentException("Set either --omit-kinds or --[add/remove]-omit-kind");
+    }
+
+    if (isSet(addCustomResourceName)) {
+      KubernetesAccount.CustomKubernetesResource customKubernetesResource =
+          new KubernetesAccount.CustomKubernetesResource();
+      customKubernetesResource.setKubernetesKind(addCustomResourceName);
+      customKubernetesResource.setSpinnakerKind(
+          isSet(addCustomResourceSpinnakerKind)
+              ? addCustomResourceSpinnakerKind
+              : customKubernetesResource.getSpinnakerKind());
+      customKubernetesResource.setVersioned(
+          isSet(addCustomResourceVersioned)
+              ? addCustomResourceVersioned
+              : customKubernetesResource.isVersioned());
+      account.getCustomResources().add(customKubernetesResource);
+    } else {
+      if (isSet(addCustomResourceSpinnakerKind) || isSet(addCustomResourceVersioned)) {
+        throw new IllegalArgumentException(
+            "\"--spinnaker-kind\" and \"--versioned\" can only be used with \"--add-custom-resource\" "
+                + "to set the name for the custom resource.");
+      }
+    }
+
+    if (isSet(removeCustomResource)) {
+      List<KubernetesAccount.CustomKubernetesResource> newCustomResources =
+          account.getCustomResources().stream()
+              .filter(entry -> !entry.getKubernetesKind().equals(removeCustomResource))
+              .collect(Collectors.toList());
+
+      account.setCustomResources(newCustomResources);
     }
 
     try {

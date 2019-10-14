@@ -8810,6 +8810,7 @@ hal config provider kubernetes account edit ACCOUNT [parameters]
 
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
+ * `--add-custom-resource`: (V2 Only) Add Kubernetes custom resource to the list of custom resources to managed by clouddriver and made available for use in patch and delete manifest stages. Fields besides the Kubernetes Kind (resource name) can be set using the flags "--spinnaker-kind" and "--versioned"
  * `--add-docker-registry`: Add this docker registry to the list of docker registries to use as a source of images.
  * `--add-kind`: Add this kind to the list of kinds to manage.
  * `--add-namespace`: Add this namespace to the list of namespaces to manage.
@@ -8846,6 +8847,7 @@ This can only be set when --namespaces is empty or not set.
 created by Spinnaker; as opposed to attempting to configure applications for resources already present in Kubernetes.
  * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
  * `--read-permissions`: A user must have at least one of these roles in order to view this account's cloud resources.
+ * `--remove-custom-resource`: Remove this Kubernetes custom resource by name from the list of custom resources to manage.
  * `--remove-docker-registry`: Remove this docker registry from the list of docker registries to use as a source of images.
  * `--remove-kind`: Remove this kind to the list of kinds to manage.
  * `--remove-namespace`: Remove this namespace to the list of namespaces to manage.
@@ -8856,6 +8858,8 @@ created by Spinnaker; as opposed to attempting to configure applications for res
  * `--remove-write-permission`: Remove this permission to from list of write permissions.
  * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--service-account`: When true, Spinnaker attempt to authenticate against Kubernetes using a Kubernetes service account. This only works when Halyard & Spinnaker are deployed in Kubernetes. Read more about service accounts here: [https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/).
+ * `--spinnaker-kind`: Set the Spinnaker kind for custom resource being added.
+ * `--versioned`: Configure whether the custom resource being added is versioned by Spinnaker.
  * `--write-permissions`: A user must have at least one of these roles in order to make changes to this account's cloud resources.
 
 

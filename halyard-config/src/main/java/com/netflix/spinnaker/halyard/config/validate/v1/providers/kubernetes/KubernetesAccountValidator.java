@@ -111,6 +111,17 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
       psBuilder.addProblem(ERROR, "At most one of \"kinds\" and \"omitKinds\" may be specified.");
     }
 
+    if (CollectionUtils.isNotEmpty(customResources)) {
+      List<String> kubernetesKindNotSet =
+          customResources.stream()
+              .map(KubernetesAccount.CustomKubernetesResource::getKubernetesKind)
+              .filter(cr -> (cr == null || cr.isEmpty()))
+              .collect(Collectors.toList());
+      if (CollectionUtils.isNotEmpty(kubernetesKindNotSet)) {
+        psBuilder.addProblem(ERROR, "Missing custom resource name (Kubernetes Kind).");
+      }
+    }
+
     if (CollectionUtils.isNotEmpty(kinds) && CollectionUtils.isNotEmpty(customResources)) {
       List<String> unmatchedKinds =
           customResources.stream()
