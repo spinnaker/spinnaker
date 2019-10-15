@@ -21,11 +21,14 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractClusterWideC
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractWaitForClusterWideClouddriverTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.ScaleDownClusterTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.WaitForScaleDownClusterTask;
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ScaleDownClusterStage extends AbstractClusterWideClouddriverOperationStage {
+  public static final String PIPELINE_CONFIG_TYPE =
+      StageDefinitionBuilder.getType(ScaleDownClusterStage.class);
 
   @Autowired
   public ScaleDownClusterStage(DynamicConfigService dynamicConfigService) {

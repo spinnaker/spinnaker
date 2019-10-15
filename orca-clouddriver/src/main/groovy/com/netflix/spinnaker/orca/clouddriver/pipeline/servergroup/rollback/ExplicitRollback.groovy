@@ -91,7 +91,7 @@ class ExplicitRollback implements Rollback {
     Map disableServerGroupContext = new HashMap(parentStage.context)
     disableServerGroupContext.serverGroupName = rollbackServerGroupName
     def disableServerGroupStage = newStage(
-      parentStage.execution, disableServerGroupStage.type, "disable", disableServerGroupContext, parentStage, SyntheticStageOwner.STAGE_AFTER
+      parentStage.execution, disableServerGroupStage.type, "Disable ${disableServerGroupContext.serverGroupName} due to rollback", disableServerGroupContext, parentStage, SyntheticStageOwner.STAGE_AFTER
     )
 
     if (disableOnly) {
@@ -105,7 +105,7 @@ class ExplicitRollback implements Rollback {
     enableServerGroupContext.targetHealthyDeployPercentage = targetHealthyRollbackPercentage
     enableServerGroupContext.serverGroupName = restoreServerGroupName
     def enableServerGroupStage = newStage(
-      parentStage.execution, enableServerGroupStage.type, "enable", enableServerGroupContext, parentStage, SyntheticStageOwner.STAGE_AFTER
+      parentStage.execution, enableServerGroupStage.type, "Enable ${enableServerGroupContext.serverGroupName} due to rollback", enableServerGroupContext, parentStage, SyntheticStageOwner.STAGE_AFTER
     )
 
     if (enableAndDisableOnly) {
@@ -254,7 +254,7 @@ class ExplicitRollback implements Rollback {
     return newStage(
       parentStage.execution,
       applySourceServerGroupCapacityStage.type,
-      "Restore Min Capacity From Snapshot",
+      "Restore Min Capacity From Snapshot due to rollback",
       applySourceServerGroupCapacityContext,
       parentStage,
       SyntheticStageOwner.STAGE_AFTER

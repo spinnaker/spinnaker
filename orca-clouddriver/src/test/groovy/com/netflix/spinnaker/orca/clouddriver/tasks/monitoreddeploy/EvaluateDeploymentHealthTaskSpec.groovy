@@ -59,7 +59,6 @@ class EvaluateDeploymentHealthTaskSpec extends Specification {
 
         return deploymentMonitor
       }
-
     }
 
     def task = new EvaluateDeploymentHealthTask(serviceProviderStub, new NoopRegistry())

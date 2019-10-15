@@ -39,6 +39,9 @@ import org.springframework.stereotype.Component;
 @Component
 @ConditionalOnProperty(value = "monitored-deploy.enabled")
 public class EvaluateDeploymentHealthStage implements StageDefinitionBuilder {
+  public static final String PIPELINE_CONFIG_TYPE =
+      StageDefinitionBuilder.getType(EvaluateDeploymentHealthStage.class);
+
   @Override
   public void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder.withTask("evaluateDeploymentHealth", EvaluateDeploymentHealthTask.class);
