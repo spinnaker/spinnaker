@@ -4,6 +4,7 @@ import com.netflix.spinnaker.keel.api.Locations
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
 import com.netflix.spinnaker.keel.clouddriver.MemoryCloudDriverCache
+import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.model.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.test.resource
@@ -12,7 +13,7 @@ internal class ApplicationLoadBalancerAvailabilityZonesResolverTests : Availabil
   override fun createFixture(eastAvailabilityZones: Set<String>?, westAvailabilityZones: Set<String>?): Fixture<ApplicationLoadBalancerSpec> =
     object : Fixture<ApplicationLoadBalancerSpec>(
       resource(
-        apiVersion = SPINNAKER_API_V1.subApi("ec2"),
+        apiVersion = SPINNAKER_EC2_API_V1,
         kind = "application-load-balancer",
         spec = ApplicationLoadBalancerSpec(
           Moniker(

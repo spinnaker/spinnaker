@@ -23,6 +23,7 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.appVersion
+import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.model.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
@@ -114,7 +115,7 @@ internal class ImageResolverTests : JUnit5Minutests {
     val artifact = DeliveryArtifact("fnord", DEB)
 
     val resource = resource(
-      apiVersion = SPINNAKER_API_V1.subApi("ec2"),
+      apiVersion = SPINNAKER_EC2_API_V1,
       kind = "cluster",
       spec = ClusterSpec(
         moniker = Moniker("fnord"),

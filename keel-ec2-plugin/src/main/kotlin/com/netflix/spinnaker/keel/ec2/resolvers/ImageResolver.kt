@@ -6,7 +6,6 @@ import com.netflix.spinnaker.keel.api.NoImageFound
 import com.netflix.spinnaker.keel.api.NoImageFoundForRegions
 import com.netflix.spinnaker.keel.api.NoImageSatisfiesConstraints
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
@@ -17,6 +16,7 @@ import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.appVersion
+import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.plugin.Resolver
@@ -33,7 +33,7 @@ class ImageResolver(
   private val imageService: ImageService
 ) : Resolver<ClusterSpec> {
 
-  override val apiVersion: ApiVersion = SPINNAKER_API_V1.subApi("ec2")
+  override val apiVersion: ApiVersion = SPINNAKER_EC2_API_V1
   override val supportedKind: String = "cluster"
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }

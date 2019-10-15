@@ -10,6 +10,7 @@ import com.netflix.spinnaker.keel.api.ec2.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
 import com.netflix.spinnaker.keel.clouddriver.MemoryCloudDriverCache
+import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.model.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.test.resource
@@ -23,7 +24,7 @@ internal class ClusterAvailabilityZonesResolverTests : AvailabilityZonesResolver
   ): Fixture<ClusterSpec> =
     object : Fixture<ClusterSpec>(
       resource(
-        apiVersion = SPINNAKER_API_V1.subApi("ec2"),
+        apiVersion = SPINNAKER_EC2_API_V1,
         kind = "cluster",
         spec = ClusterSpec(
           moniker = Moniker(

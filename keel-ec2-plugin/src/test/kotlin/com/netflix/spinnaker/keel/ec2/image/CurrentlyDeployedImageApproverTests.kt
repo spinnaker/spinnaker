@@ -22,7 +22,6 @@ import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Locations
-import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
@@ -30,6 +29,7 @@ import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.VirtualMachineImage
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
+import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.model.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
@@ -70,7 +70,7 @@ internal class CurrentlyDeployedImageApproverTests : JUnit5Minutests {
     )
 
     val nonArtifactCluster = resource(
-      apiVersion = SPINNAKER_API_V1.subApi("ec2"),
+      apiVersion = SPINNAKER_EC2_API_V1,
       kind = "cluster",
       spec = ClusterSpec(
         moniker = Moniker("fnord", "api"),
@@ -101,7 +101,7 @@ internal class CurrentlyDeployedImageApproverTests : JUnit5Minutests {
     )
 
     val artifactCluster = resource(
-      apiVersion = SPINNAKER_API_V1.subApi("ec2"),
+      apiVersion = SPINNAKER_EC2_API_V1,
       kind = "cluster",
       spec = ClusterSpec(
         moniker = Moniker("fnord", "api"),

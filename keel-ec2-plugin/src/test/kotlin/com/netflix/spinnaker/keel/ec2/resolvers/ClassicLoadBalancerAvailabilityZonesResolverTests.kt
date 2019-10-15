@@ -5,6 +5,7 @@ import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerHealthCheck
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerSpec
 import com.netflix.spinnaker.keel.clouddriver.MemoryCloudDriverCache
+import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.model.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.test.resource
@@ -13,7 +14,7 @@ internal class ClassicLoadBalancerAvailabilityZonesResolverTests : AvailabilityZ
   override fun createFixture(eastAvailabilityZones: Set<String>?, westAvailabilityZones: Set<String>?): Fixture<ClassicLoadBalancerSpec> =
     object : Fixture<ClassicLoadBalancerSpec>(
       resource(
-        apiVersion = SPINNAKER_API_V1.subApi("ec2"),
+        apiVersion = SPINNAKER_EC2_API_V1,
         kind = "classic-load-balancer",
         spec = ClassicLoadBalancerSpec(
           Moniker(
