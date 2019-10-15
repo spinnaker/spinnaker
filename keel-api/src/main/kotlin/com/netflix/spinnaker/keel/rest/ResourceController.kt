@@ -19,6 +19,8 @@ import com.netflix.spinnaker.keel.actuation.ResourcePersister
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.SubmittedResource
+import com.netflix.spinnaker.keel.diff.AdHocDiffer
+import com.netflix.spinnaker.keel.diff.DiffResult
 import com.netflix.spinnaker.keel.exceptions.FailedNormalizationException
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
@@ -46,7 +48,8 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping(path = ["/resources"])
 class ResourceController(
   private val resourceRepository: ResourceRepository,
-  private val resourcePersister: ResourcePersister
+  private val resourcePersister: ResourcePersister,
+  private val adHocDiffer: AdHocDiffer
 ) {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -76,6 +79,17 @@ class ResourceController(
   fun upsert(@RequestBody resource: SubmittedResource<*>): Resource<*> {
     log.debug("Upserting: $resource")
     return resourcePersister.upsert(resource)
+  }
+
+  @PostMapping(
+    path = ["/diff"],
+    consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE],
+    produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
+  )
+  @PreAuthorize("@authorizationSupport.userCanModifySpec(#resource.metadata[serviceAccount], #resource.spec)")
+  fun diff(@RequestBody resource: SubmittedResource<*>): DiffResult {
+    log.debug("Diffing: $resource")
+    return adHocDiffer.calculate(resource)
   }
 
   @DeleteMapping(

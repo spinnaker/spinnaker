@@ -8,6 +8,7 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
+import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.model.SimpleRegionSpec
 import com.netflix.spinnaker.keel.plugin.SimpleResourceHandler
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
@@ -29,6 +30,20 @@ fun resource(
         spec = spec,
         id = spec.id,
         application = application
+      )
+    }
+
+fun submittedResource(
+  apiVersion: ApiVersion = TEST_API,
+  kind: String = "whatever",
+  application: String = "fnord"
+): SubmittedResource<DummyResourceSpec> =
+  DummyResourceSpec(application = application)
+    .let { spec ->
+      submittedResource(
+        apiVersion = apiVersion,
+        kind = kind,
+        spec = spec
       )
     }
 
@@ -76,6 +91,20 @@ fun <T : ResourceSpec> resource(
     metadata = mapOf(
       "id" to "${apiVersion.prefix}:$kind:$id",
       "application" to application,
+      "serviceAccount" to "keel@spinnaker"
+    )
+  )
+
+fun <T : ResourceSpec> submittedResource(
+  apiVersion: ApiVersion = TEST_API,
+  kind: String = "whatever",
+  spec: T
+): SubmittedResource<T> =
+  SubmittedResource(
+    apiVersion = apiVersion,
+    kind = kind,
+    spec = spec,
+    metadata = mapOf(
       "serviceAccount" to "keel@spinnaker"
     )
   )
