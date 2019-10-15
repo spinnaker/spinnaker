@@ -20,6 +20,7 @@ package com.netflix.spinnaker.keel.diff
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.ResourceSpec
+import com.netflix.spinnaker.keel.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.diff.DiffStatus.DIFF
@@ -31,6 +32,7 @@ import com.netflix.spinnaker.keel.plugin.CannotResolveDesiredState
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.supporting
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Component
@@ -59,6 +61,21 @@ class AdHocDiffer(
         }
       } catch (e: Exception) {
         DiffResult(status = ERROR, errorMsg = e.message, resourceId = resourceId, resource = resource)
+      }
+    }
+
+  fun calculate(submittedDeliveryConfig: SubmittedDeliveryConfig): List<EnvironmentDiff> =
+    runBlocking {
+      submittedDeliveryConfig.environments.map { env ->
+        val resourceDiffs = env.resources.map { resource ->
+          async { calculate(resource) }
+        }.awaitAll()
+
+        EnvironmentDiff(
+          name = env.name,
+          manifestName = submittedDeliveryConfig.name,
+          resourceDiffs = resourceDiffs
+        )
       }
     }
 

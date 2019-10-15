@@ -36,3 +36,9 @@ data class DiffResult(
   val diff: Map<String, Any?>? = null,
   val errorMsg: String? = null
 )
+
+data class EnvironmentDiff(
+  val name: String,
+  val manifestName: String,
+  val resourceDiffs: List<DiffResult>
+)

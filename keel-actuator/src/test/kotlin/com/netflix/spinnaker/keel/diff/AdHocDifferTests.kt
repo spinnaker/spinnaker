@@ -17,8 +17,13 @@
  */
 package com.netflix.spinnaker.keel.diff
 
+import com.netflix.spinnaker.keel.api.ArtifactType
+import com.netflix.spinnaker.keel.api.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
+import com.netflix.spinnaker.keel.api.SubmittedDeliveryConfig
+import com.netflix.spinnaker.keel.api.SubmittedEnvironment
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.plugin.CannotResolveCurrentState
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
@@ -48,6 +53,25 @@ class AdHocDifferTests : JUnit5Minutests {
     val subResource = submittedResource(
       apiVersion = SPINNAKER_API_V1.subApi("plugin1"),
       kind = "foo"
+    )
+    val deliveryConfig = SubmittedDeliveryConfig(
+      name = "keel-manifest",
+      application = "keel",
+      artifacts = setOf(DeliveryArtifact(
+        name = "keel",
+        type = ArtifactType.DEB
+      )),
+      environments = setOf(
+        SubmittedEnvironment(
+          name = "test",
+          resources = setOf(subResource)
+        ),
+        SubmittedEnvironment(
+          name = "prod",
+          resources = setOf(subResource),
+          constraints = setOf(DependsOnConstraint("test"))
+        )
+      )
     )
   }
 
@@ -125,7 +149,7 @@ class AdHocDifferTests : JUnit5Minutests {
           plugin1.current(resource)
         } throws CannotResolveCurrentState(resource.id, RuntimeException("oopsie"))
       }
-      test("resource diff result") {
+      test("resource error result") {
         val diffResult = subject.calculate(subResource)
         expect {
           that(diffResult.status).isEqualTo(DiffStatus.ERROR)
@@ -133,6 +157,24 @@ class AdHocDifferTests : JUnit5Minutests {
           that(diffResult.errorMsg).isNotNull()
           that(diffResult.resourceId).isNotNull()
           that(diffResult.resource).isNotNull()
+        }
+      }
+    }
+
+    context("diffing a delivery config") {
+      before {
+        coEvery {
+          plugin1.current(resource)
+        } returns DummyResource(resource.spec)
+      }
+      test("valid diff") {
+        val diff = subject.calculate(deliveryConfig)
+        expect {
+          that(diff.size).isEqualTo(2)
+          that(diff.first().name).isEqualTo("test")
+          that(diff.first().resourceDiffs.size).isEqualTo(1)
+          that(diff.last().name).isEqualTo("prod")
+          that(diff.last().resourceDiffs.size).isEqualTo(1)
         }
       }
     }
