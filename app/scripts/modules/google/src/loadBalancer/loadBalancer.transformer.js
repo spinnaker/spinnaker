@@ -132,6 +132,8 @@ module.exports = angular.module('spinnaker.gce.loadBalancer.transformer', []).fa
           toEdit.healthyThreshold = 10;
           toEdit.unhealthyThreshold = 2;
         }
+
+        toEdit.sessionAffinity = loadBalancer.sessionAffinity || 'None';
       }
       return toEdit;
     }
@@ -150,6 +152,7 @@ module.exports = angular.module('spinnaker.gce.loadBalancer.transformer', []).fa
         healthInterval: 10,
         healthyThreshold: 10,
         unhealthyThreshold: 2,
+        sessionAffinity: 'NONE',
         regionZones: [],
         listeners: [
           {

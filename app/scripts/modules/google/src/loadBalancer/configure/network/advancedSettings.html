@@ -35,5 +35,20 @@
         <input class="form-control input-sm" type="number" min="0" ng-model="loadBalancer.unhealthyThreshold" />
       </div>
     </div>
+
+    <div class="form-group">
+      <div class="col-md-6 sm-label-right">
+        <b>Session Affinity</b><help-field key="gce.loadBalancer.advancedSettings.unhealthyThreshold"></help-field>
+      </div>
+      <div class="col-md-4">
+        <select
+          class="form-control input-sm"
+          ng-model="loadBalancer.sessionAffinity"
+          ng-options="option.value as option.name for option in sessionAffinityOptions"
+          ng-disabled="!isNew"
+          name="sessionAffinitySelect"
+        ></select>
+      </div>
+    </div>
   </div>
 </div>
