@@ -17,17 +17,17 @@ abstract class NetworkResolver<T : Locatable<*>> : Resolver<T> {
 
   protected fun SubnetAwareLocations.withResolvedNetwork(): SubnetAwareLocations {
     val resolvedVpcName: String =
-      vpcName
+      vpc
         ?: subnet?.let { Regex("""^.+\((.+)\)$""").find(it)?.groupValues?.get(1) }
         ?: DEFAULT_VPC_NAME
     return copy(
-      vpcName = resolvedVpcName,
+      vpc = resolvedVpcName,
       subnet = subnet ?: DEFAULT_SUBNET_PURPOSE.format(resolvedVpcName)
     )
   }
 
   protected fun SimpleLocations.withResolvedNetwork(): SimpleLocations {
-    return copy(vpcName = vpcName ?: DEFAULT_VPC_NAME)
+    return copy(vpc = vpc ?: DEFAULT_VPC_NAME)
   }
 
   companion object {

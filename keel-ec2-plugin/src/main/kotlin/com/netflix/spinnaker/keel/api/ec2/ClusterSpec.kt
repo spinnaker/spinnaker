@@ -19,9 +19,9 @@ fun ClusterSpec.resolve(): Set<ServerGroup> =
     ServerGroup(
       name = moniker.name,
       location = Location(
-        accountName = locations.accountName,
+        account = locations.account,
         region = it.name,
-        vpcName = locations.vpcName ?: error("No VPC name supplied or resolved"),
+        vpc = locations.vpc ?: error("No VPC name supplied or resolved"),
         subnet = locations.subnet ?: error("No subnet purpose supplied or resolved"),
         availabilityZones = it.availabilityZones
       ),
@@ -93,10 +93,10 @@ data class ClusterSpec(
   val overrides: Map<String, ServerGroupSpec> = emptyMap()
 ) : MultiRegion, Locatable<SubnetAwareLocations> {
   @JsonIgnore
-  override val id = "${locations.accountName}:${moniker.name}"
+  override val id = "${locations.account}:${moniker.name}"
 
   override val regionalIds = locations.regions.map { clusterRegion ->
-    "${locations.accountName}:${clusterRegion.name}:${moniker.name}"
+    "${locations.account}:${clusterRegion.name}:${moniker.name}"
   }.sorted()
 
   /**

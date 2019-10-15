@@ -22,8 +22,8 @@ internal object SecurityGroupTests : JUnit5Minutests {
           stack = "ext"
         ),
         location = SecurityGroup.Location(
-          accountName = "prod",
-          vpcName = "vpc0",
+          account = "prod",
+          vpc = "vpc0",
           region = "us-north-2"
         ),
         description = "I can see the fnords",
@@ -51,8 +51,8 @@ internal object SecurityGroupTests : JUnit5Minutests {
         ResourceDiff(this,
           copy(
             location = SecurityGroup.Location(
-              accountName = location.accountName,
-              vpcName = "vpc0",
+              account = location.account,
+              vpc = "vpc0",
               region = "ap-south-1"
             )
           )
@@ -84,8 +84,8 @@ internal object SecurityGroupTests : JUnit5Minutests {
       deriveFixture {
         ResourceDiff(this, copy(
           location = SecurityGroup.Location(
-            accountName = location.accountName,
-            vpcName = "vpc0",
+            account = location.account,
+            vpc = "vpc0",
             region = "ap-south-1"
           ),
           description = "We can't actually make changes to this so it should be ignored by the diff"

@@ -20,8 +20,8 @@ internal class ApplicationLoadBalancerAvailabilityZonesResolverTests : Availabil
             stack = "test"
           ),
           locations = SubnetAwareLocations(
-            accountName = "test",
-            vpcName = "vpc0",
+            account = "test",
+            vpc = "vpc0",
             subnet = "internal (vpc0)",
             regions = setOf(
               SubnetAwareRegionSpec(

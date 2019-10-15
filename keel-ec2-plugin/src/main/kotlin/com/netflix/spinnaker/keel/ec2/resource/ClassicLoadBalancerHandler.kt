@@ -53,9 +53,9 @@ class ClassicLoadBalancerHandler(
         ClassicLoadBalancer(
           moniker,
           Location(
-            locations.accountName,
+            locations.account,
             it.name,
-            locations.vpcName ?: error("No VPC name supplied or resolved"),
+            locations.vpc ?: error("No VPC name supplied or resolved"),
             locations.subnet ?: error("No subnet purpose supplied or resolved"),
             it.availabilityZones
           ),
@@ -88,7 +88,7 @@ class ClassicLoadBalancerHandler(
           }
 
           val description = "$action ${resource.kind} load balancer ${desired.moniker.name} in " +
-            "${desired.location.accountName}/${desired.location.region}"
+            "${desired.location.account}/${desired.location.region}"
 
           val notifications = environmentResolver.getNotificationsFor(resource.id)
 
@@ -124,14 +124,14 @@ class ClassicLoadBalancerHandler(
             getClassicLoadBalancer(
               serviceAccount,
               CLOUD_PROVIDER,
-              spec.locations.accountName,
+              spec.locations.account,
               region.name,
               spec.moniker.name
             )
               .firstOrNull()
               ?.let { lb ->
                 val securityGroupNames = lb.securityGroups.map {
-                  cloudDriverCache.securityGroupById(spec.locations.accountName, region.name, it).name
+                  cloudDriverCache.securityGroupById(spec.locations.account, region.name, it).name
                 }.toMutableSet()
 
                 /***
@@ -153,9 +153,9 @@ class ClassicLoadBalancerHandler(
                     Moniker(app = parsedNamed[0], stack = parsedNamed.getOrNull(1), detail = parsedNamed.getOrNull(2))
                   },
                   location = Location(
-                    accountName = spec.locations.accountName,
+                    account = spec.locations.account,
                     region = region.name,
-                    vpcName = lb.vpcId.let { cloudDriverCache.networkBy(it).name } ?: error("Keel does not support load balancers that are not in a VPC subnet"),
+                    vpc = lb.vpcId.let { cloudDriverCache.networkBy(it).name } ?: error("Keel does not support load balancers that are not in a VPC subnet"),
                     subnet = cloudDriverCache.subnetBy(lb.subnets.first()).purpose ?: error("Keel does not support load balancers that are not in a VPC subnet"),
                     availabilityZones = lb.availabilityZones
                   ),
@@ -207,13 +207,13 @@ class ClassicLoadBalancerHandler(
         "upsertLoadBalancer",
         mapOf(
           "application" to moniker.app,
-          "credentials" to location.accountName,
+          "credentials" to location.account,
           "cloudProvider" to CLOUD_PROVIDER,
           "name" to moniker.name,
           "region" to location.region,
           "availabilityZones" to mapOf(location.region to location.availabilityZones),
           "loadBalancerType" to loadBalancerType.toString().toLowerCase(),
-          "vpcId" to cloudDriverCache.networkBy(location.vpcName, location.accountName, location.region).id,
+          "vpcId" to cloudDriverCache.networkBy(location.vpc, location.account, location.region).id,
           "subnetType" to location.subnet,
           "isInternal" to internal,
           "healthCheck" to healthCheck.target,

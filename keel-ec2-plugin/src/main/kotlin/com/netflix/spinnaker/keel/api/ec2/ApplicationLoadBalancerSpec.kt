@@ -29,7 +29,7 @@ data class ApplicationLoadBalancerSpec(
   override val loadBalancerType: LoadBalancerType = APPLICATION
 
   @JsonIgnore
-  override val id: String = "${locations.accountName}:${moniker.name}"
+  override val id: String = "${locations.account}:${moniker.name}"
 
   data class Listener(
     val port: Int,

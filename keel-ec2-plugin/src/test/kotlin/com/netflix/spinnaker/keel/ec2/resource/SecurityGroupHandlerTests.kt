@@ -117,8 +117,8 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
           stack = "fnord"
         ),
         locations = SimpleLocations(
-          accountName = vpcRegion1.account,
-          vpcName = vpcRegion1.name!!,
+          account = vpcRegion1.account,
+          vpc = vpcRegion1.name!!,
           regions = setOf(SimpleRegionSpec(vpcRegion1.region), SimpleRegionSpec(vpcRegion2.region))
         ),
         description = "dummy security group"
@@ -130,8 +130,8 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
           stack = "fnord"
         ),
         location = SecurityGroup.Location(
-          accountName = vpcRegion1.account,
-          vpcName = vpcRegion1.name!!,
+          account = vpcRegion1.account,
+          vpc = vpcRegion1.name!!,
           region = "placeholder"
         ),
         description = "dummy security group"
@@ -140,15 +140,15 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
       mapOf(
         "us-west-3" to securityGroupBase.copy(
           location = SecurityGroup.Location(
-            accountName = securityGroupBase.location.accountName,
-            vpcName = securityGroupBase.location.vpcName,
+            account = securityGroupBase.location.account,
+            vpc = securityGroupBase.location.vpc,
             region = "us-west-3"
           )
         ),
         "us-east-17" to securityGroupBase.copy(
           location = SecurityGroup.Location(
-            accountName = securityGroupBase.location.accountName,
-            vpcName = securityGroupBase.location.vpcName,
+            account = securityGroupBase.location.account,
+            vpc = securityGroupBase.location.vpc,
             region = "us-east-17"
           )
         )
@@ -200,8 +200,8 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
           stack = "fnord"
         ),
         locations = SimpleLocations(
-          accountName = vpcRegion1.account,
-          vpcName = vpcRegion1.name!!,
+          account = vpcRegion1.account,
+          vpc = vpcRegion1.name!!,
           regions = setOf(SimpleRegionSpec(vpcRegion1.region), SimpleRegionSpec(vpcRegion2.region))
         ),
         description = "dummy security group"
@@ -213,8 +213,8 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
           stack = "fnord"
         ),
         location = SecurityGroup.Location(
-          accountName = vpcRegion1.account,
-          vpcName = vpcRegion1.name!!,
+          account = vpcRegion1.account,
+          vpc = vpcRegion1.name!!,
           region = "placeholder"
         ),
         description = "dummy security group"
@@ -223,15 +223,15 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
       mapOf(
         "us-west-3" to securityGroupBase.copy(
           location = SecurityGroup.Location(
-            accountName = securityGroupBase.location.accountName,
-            vpcName = securityGroupBase.location.vpcName,
+            account = securityGroupBase.location.account,
+            vpc = securityGroupBase.location.vpc,
             region = "us-west-3"
           )
         ),
         "us-east-17" to securityGroupBase.copy(
           location = SecurityGroup.Location(
-            accountName = securityGroupBase.location.accountName,
-            vpcName = securityGroupBase.location.vpcName,
+            account = securityGroupBase.location.account,
+            vpc = securityGroupBase.location.vpc,
             region = "us-east-17"
           )
         )
@@ -398,7 +398,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
                     protocol = TCP,
                     account = "test",
                     name = "otherapp",
-                    vpcName = "vpc1",
+                    vpc = "vpc1",
                     portRange = PortRange(startPort = 443, endPort = 443)
                   )
                 )
@@ -640,7 +640,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
                 protocol = TCP,
                 account = "test",
                 name = "otherapp",
-                vpcName = "vpc1",
+                vpc = "vpc1",
                 portRange = PortRange(startPort = 443, endPort = 443)
               )
             )
@@ -659,8 +659,8 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
             .copy(
               spec = resource.spec.copy(
                 locations = SimpleLocations(
-                  accountName = securityGroupSpec.locations.accountName,
-                  vpcName = securityGroupSpec.locations.vpcName,
+                  account = securityGroupSpec.locations.account,
+                  vpc = securityGroupSpec.locations.vpc,
                   regions = setOf(SimpleRegionSpec("us-east-17"))
                 )
               )

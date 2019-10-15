@@ -12,8 +12,8 @@ data class SecurityGroup(
   val inboundRules: Set<SecurityGroupRule> = emptySet()
 ) {
   data class Location(
-    val accountName: String,
-    val vpcName: String,
+    val account: String,
+    val vpc: String,
     val region: String
   )
 }

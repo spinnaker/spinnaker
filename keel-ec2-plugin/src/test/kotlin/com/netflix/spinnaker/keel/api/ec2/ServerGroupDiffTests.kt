@@ -60,8 +60,8 @@ internal class ServerGroupDiffTests : JUnit5Minutests {
             ServerGroup(
               name = "fnord-main",
               location = Location(
-                accountName = "prod",
-                vpcName = "vpc0",
+                account = "prod",
+                vpc = "vpc0",
                 region = region,
                 subnet = "internal",
                 availabilityZones = setOf("a", "b", "c").map { "$region$it" }.toSet()

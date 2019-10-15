@@ -71,8 +71,8 @@ class SecurityGroupHandler(
         region.name to SecurityGroup(
           moniker = Moniker(app = moniker.app, stack = moniker.stack, detail = moniker.detail),
           location = SecurityGroup.Location(
-            accountName = locations.accountName,
-            vpcName = locations.vpcName ?: error("No VPC name supplied or resolved"),
+            account = locations.account,
+            vpc = locations.vpc ?: error("No VPC name supplied or resolved"),
             region = region.name
           ),
           description = overrides[region.name]?.description ?: description,
@@ -111,7 +111,7 @@ class SecurityGroupHandler(
           log.info("${verb.first} security group using task: $job")
 
           val description = "${verb.first} security group ${spec.moniker.name} in " +
-            "${spec.location.accountName}/${spec.location.region}"
+            "${spec.location.account}/${spec.location.region}"
           val notifications = environmentResolver.getNotificationsFor(resource.id)
 
           async {
@@ -154,11 +154,11 @@ class SecurityGroupHandler(
           try {
             getSecurityGroup(
               serviceAccount,
-              spec.locations.accountName,
+              spec.locations.account,
               CLOUD_PROVIDER,
               spec.moniker.name,
               region.name,
-              cloudDriverCache.networkBy(spec.locations.vpcName, spec.locations.accountName, region.name).id
+              cloudDriverCache.networkBy(spec.locations.vpc, spec.locations.account, region.name).id
             )
               .toSecurityGroup()
           } catch (e: HttpException) {
@@ -178,8 +178,8 @@ class SecurityGroupHandler(
     SecurityGroup(
       moniker = Moniker(app = moniker.app, stack = moniker.stack, detail = moniker.detail),
       location = SecurityGroup.Location(
-        accountName = accountName,
-        vpcName = vpcId?.let { cloudDriverCache.networkBy(it).name } ?: error("Only security groups in a VPC are supported"),
+        account = accountName,
+        vpc = vpcId?.let { cloudDriverCache.networkBy(it).name } ?: error("Only security groups in a VPC are supported"),
         region = region
       ),
       description = description,
@@ -230,11 +230,11 @@ class SecurityGroupHandler(
       "upsertSecurityGroup",
       mapOf(
         "application" to moniker.app,
-        "credentials" to location.accountName,
+        "credentials" to location.account,
         "cloudProvider" to CLOUD_PROVIDER,
         "name" to moniker.name,
         "regions" to listOf(location.region),
-        "vpcId" to cloudDriverCache.networkBy(location.vpcName, location.accountName, location.region).id,
+        "vpcId" to cloudDriverCache.networkBy(location.vpc, location.account, location.region).id,
         "description" to description,
         "securityGroupIngress" to inboundRules
           // we have to do a 2-phase create for self-referencing ingress rules as the referenced
@@ -247,7 +247,7 @@ class SecurityGroupHandler(
         "ipIngress" to inboundRules.mapNotNull {
           it.cidrRuleToJob()
         },
-        "accountName" to location.accountName
+        "accountName" to location.account
       )
     )
 
@@ -256,11 +256,11 @@ class SecurityGroupHandler(
       "upsertSecurityGroup",
       mapOf(
         "application" to moniker.app,
-        "credentials" to location.accountName,
+        "credentials" to location.account,
         "cloudProvider" to CLOUD_PROVIDER,
         "name" to moniker.name,
         "regions" to listOf(location.region),
-        "vpcId" to cloudDriverCache.networkBy(location.vpcName, location.accountName, location.region).id,
+        "vpcId" to cloudDriverCache.networkBy(location.vpc, location.account, location.region).id,
         "description" to description,
         "securityGroupIngress" to inboundRules.mapNotNull {
           it.referenceRuleToJob(this)
@@ -268,7 +268,7 @@ class SecurityGroupHandler(
         "ipIngress" to inboundRules.mapNotNull {
           it.cidrRuleToJob()
         },
-        "accountName" to location.accountName
+        "accountName" to location.account
       )
     )
 
@@ -294,7 +294,7 @@ class SecurityGroupHandler(
         "accountName" to account,
         "crossAccountEnabled" to true,
         "vpcId" to cloudDriverCache.networkBy(
-          vpcName,
+          vpc,
           account,
           securityGroup.location.region
         ).id

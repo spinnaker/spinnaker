@@ -25,27 +25,27 @@ interface Locatable<T : Locations<*>> : ResourceSpec {
 }
 
 interface Locations<T : RegionSpec> {
-  val accountName: String
+  val account: String
   /**
    * If not specified here, this should be derived from the [SubnetAwareLocations.subnet] (if
    * present) or use a default VPC name.
    */
-  val vpcName: String?
+  val vpc: String?
   val regions: Set<T>
 }
 
 data class SubnetAwareLocations(
-  override val accountName: String,
-  override val vpcName: String?,
+  override val account: String,
+  override val vpc: String?,
   /**
-   * If not specified here, this should be derived from a default subnet purpose using [vpcName].
+   * If not specified here, this should be derived from a default subnet purpose using [vpc].
    */
   val subnet: String?,
   override val regions: Set<SubnetAwareRegionSpec>
 ) : Locations<SubnetAwareRegionSpec>
 
 data class SimpleLocations(
-  override val accountName: String,
-  override val vpcName: String?,
+  override val account: String,
+  override val vpc: String?,
   override val regions: Set<SimpleRegionSpec>
 ) : Locations<SimpleRegionSpec>

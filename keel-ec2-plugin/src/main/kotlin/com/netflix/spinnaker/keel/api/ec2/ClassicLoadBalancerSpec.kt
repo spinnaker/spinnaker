@@ -25,5 +25,5 @@ data class ClassicLoadBalancerSpec(
   override val loadBalancerType: LoadBalancerType = CLASSIC
 
   @JsonIgnore
-  override val id: String = "${locations.accountName}:${moniker.name}"
+  override val id: String = "${locations.account}:${moniker.name}"
 }

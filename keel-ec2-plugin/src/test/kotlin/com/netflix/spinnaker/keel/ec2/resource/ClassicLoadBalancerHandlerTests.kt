@@ -71,8 +71,8 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
     |  stack: managedogge
     |  detail: wow
     |locations:
-    |  accountName: test
-    |  vpcName: vpc0
+    |  account: test
+    |  vpc: vpc0
     |  subnet: internal (vpc0)
     |  regions:
     |  - name: us-east-1

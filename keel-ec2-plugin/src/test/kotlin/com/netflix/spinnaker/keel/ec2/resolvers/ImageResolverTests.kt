@@ -119,8 +119,8 @@ internal class ImageResolverTests : JUnit5Minutests {
         moniker = Moniker("fnord"),
         imageProvider = imageProvider,
         locations = SubnetAwareLocations(
-          accountName = account,
-          vpcName = "vpc0",
+          account = account,
+          vpc = "vpc0",
           subnet = "internal (vpc0)",
           regions = setOf(
             SubnetAwareRegionSpec(

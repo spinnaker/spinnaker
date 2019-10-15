@@ -31,13 +31,13 @@ internal abstract class AvailabilityZonesResolverTests<T : Locatable<SubnetAware
 
     abstract val subject: AvailabilityZonesResolver<T>
 
-    private val vpcEast = Network(CLOUD_PROVIDER, "vpc-${randomHex()}", "vpc0", resource.spec.locations.accountName, "us-east-1")
-    private val vpcWest = Network(CLOUD_PROVIDER, "vpc-${randomHex()}", "vpc0", resource.spec.locations.accountName, "us-west-2")
+    private val vpcEast = Network(CLOUD_PROVIDER, "vpc-${randomHex()}", "vpc0", resource.spec.locations.account, "us-east-1")
+    private val vpcWest = Network(CLOUD_PROVIDER, "vpc-${randomHex()}", "vpc0", resource.spec.locations.account, "us-west-2")
     private val usEastSubnets = setOf("c", "d", "e").map {
       Subnet(
         id = "subnet-${randomHex()}",
         vpcId = vpcEast.id,
-        account = resource.spec.locations.accountName,
+        account = resource.spec.locations.account,
         region = "us-east-1",
         availabilityZone = "us-east-1$it",
         purpose = "internal (vpc0)"
@@ -47,7 +47,7 @@ internal abstract class AvailabilityZonesResolverTests<T : Locatable<SubnetAware
       Subnet(
         id = "subnet-${randomHex()}",
         vpcId = vpcWest.id,
-        account = resource.spec.locations.accountName,
+        account = resource.spec.locations.account,
         region = "us-west-2",
         availabilityZone = "us-west-2$it",
         purpose = "internal (vpc0)"

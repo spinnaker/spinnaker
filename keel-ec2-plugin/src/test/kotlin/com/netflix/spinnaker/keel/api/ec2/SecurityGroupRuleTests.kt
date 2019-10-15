@@ -72,7 +72,7 @@ internal object SecurityGroupRuleTests : JUnit5Minutests {
             |protocol: "TCP"
             |name: "fnord"
             |account: "prod"
-            |vpcName: "vpc0"
+            |vpc: "vpc0"
             |portRange:
             |  startPort: 8080
             |  endPort: 8080
@@ -80,7 +80,7 @@ internal object SecurityGroupRuleTests : JUnit5Minutests {
           model = CrossAccountReferenceRule(
             protocol = TCP,
             account = "prod",
-            vpcName = "vpc0",
+            vpc = "vpc0",
             name = "fnord",
             portRange = PortRange(8080, 8080)
           )

@@ -91,7 +91,7 @@ class ClusterHandler(
           }
 
           log.info("Upserting server group using task: {}", job)
-          val description = "Upsert server group ${desired.moniker.name} in ${desired.location.accountName}/${desired.location.region}"
+          val description = "Upsert server group ${desired.moniker.name} in ${desired.location.account}/${desired.location.region}"
 
           val notifications = environmentResolver.getNotificationsFor(resource.id)
 
@@ -136,7 +136,7 @@ class ClusterHandler(
     with(desired) {
       mapOf(
         "application" to moniker.app,
-        "credentials" to location.accountName,
+        "credentials" to location.account,
         // <things to do with the strategy>
         // TODO: this will be parameterizable ultimately
         "strategy" to "redblack",
@@ -197,14 +197,14 @@ class ClusterHandler(
         "cloudProvider" to CLOUD_PROVIDER,
         "loadBalancers" to dependencies.loadBalancerNames,
         "targetGroups" to dependencies.targetGroups,
-        "account" to location.accountName
+        "account" to location.account
       )
     }
       .let { job ->
         current?.run {
           job + mapOf(
             "source" to mapOf(
-              "account" to location.accountName,
+              "account" to location.account,
               "region" to location.region,
               "asgName" to moniker.serverGroup
             ),
@@ -225,7 +225,7 @@ class ClusterHandler(
         "desired" to desired.capacity.desired
       ),
       "cloudProvider" to CLOUD_PROVIDER,
-      "credentials" to desired.location.accountName,
+      "credentials" to desired.location.account,
       "moniker" to mapOf(
         "app" to current.moniker.app,
         "stack" to current.moniker.stack,
@@ -246,7 +246,7 @@ class ClusterHandler(
             activeServerGroup(
               resource.serviceAccount,
               resource.spec.moniker.app,
-              resource.spec.locations.accountName,
+              resource.spec.locations.account,
               resource.spec.moniker.name,
               it.name,
               CLOUD_PROVIDER
@@ -278,9 +278,9 @@ class ClusterHandler(
     ServerGroup(
       name = name,
       location = Location(
-        accountName = accountName,
+        account = accountName,
         region = region,
-        vpcName = cloudDriverCache.networkBy(vpcId).name ?: error("VPC with id $vpcId has no name!"),
+        vpc = cloudDriverCache.networkBy(vpcId).name ?: error("VPC with id $vpcId has no name!"),
         subnet = subnet,
         availabilityZones = zones
       ),
@@ -322,7 +322,7 @@ class ClusterHandler(
       // gets auto-created so may not exist yet
       .filter { it !in setOf("nf-infrastructure", "nf-datacenter", moniker.app) }
       .map {
-        cloudDriverCache.securityGroupByName(location.accountName, location.region, it).id
+        cloudDriverCache.securityGroupByName(location.account, location.region, it).id
       }
 
   private val ActiveServerGroup.subnet: String

@@ -53,8 +53,8 @@ fun locatableResource(
   id: String = randomString(),
   application: String = "fnord",
   locations: SimpleLocations = SimpleLocations(
-    accountName = "test",
-    vpcName = "vpc0",
+    account = "test",
+    vpc = "vpc0",
     regions = setOf(SimpleRegionSpec("us-west-1"))
   )
 ): Resource<DummyLocatableResourceSpec> =
@@ -124,8 +124,8 @@ data class DummyLocatableResourceSpec(
   val data: String = randomString(),
   override val application: String = "fnord",
   override val locations: SimpleLocations = SimpleLocations(
-    accountName = "test",
-    vpcName = "vpc0",
+    account = "test",
+    vpc = "vpc0",
     regions = setOf(SimpleRegionSpec("us-west-1"))
   )
 ) : ResourceSpec, Locatable<SimpleLocations>

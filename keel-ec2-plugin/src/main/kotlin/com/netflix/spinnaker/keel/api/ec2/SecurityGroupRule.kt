@@ -47,7 +47,7 @@ data class CrossAccountReferenceRule(
   override val protocol: Protocol,
   val name: String,
   val account: String,
-  val vpcName: String,
+  val vpc: String,
   override val portRange: PortRange
 ) : SecurityGroupRule()
 

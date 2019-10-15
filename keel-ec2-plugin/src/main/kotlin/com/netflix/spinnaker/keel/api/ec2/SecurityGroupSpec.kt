@@ -29,10 +29,10 @@ data class SecurityGroupSpec(
   val inboundRules: Set<SecurityGroupRule> = emptySet(),
   val overrides: Map<String, SecurityGroupOverride> = emptyMap()
 ) : MultiRegion, Locatable<SimpleLocations> {
-  override val id = "${locations.accountName}:${moniker.name}"
+  override val id = "${locations.account}:${moniker.name}"
 
   override val regionalIds = locations.regions.map { region ->
-    "${locations.accountName}:$region:${moniker.name}"
+    "${locations.account}:$region:${moniker.name}"
   }.sorted()
 }
 

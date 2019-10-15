@@ -36,7 +36,7 @@ import java.time.Duration
 
 internal abstract class NetworkResolverTests<T : Locatable<*>> : JUnit5Minutests {
   protected abstract fun createSubject(): NetworkResolver<T>
-  protected abstract fun createResource(vpcName: String?, subnetPurpose: String?): Resource<T>
+  protected abstract fun createResource(vpc: String?, subnetPurpose: String?): Resource<T>
 
   data class Fixture<T : Locatable<*>>(
     val subject: NetworkResolver<T>,
@@ -60,7 +60,7 @@ internal abstract class NetworkResolverTests<T : Locatable<*>> : JUnit5Minutests
 
     context("VPC name is not specified") {
       test("VPC name is defaulted") {
-        expectThat(resolved.spec.locations.vpcName)
+        expectThat(resolved.spec.locations.vpc)
           .isEqualTo(DEFAULT_VPC_NAME)
       }
     }
@@ -73,7 +73,7 @@ internal abstract class NetworkResolverTests<T : Locatable<*>> : JUnit5Minutests
       }
 
       test("specified VPC name is used") {
-        expectThat(resolved.spec.locations.vpcName)
+        expectThat(resolved.spec.locations.vpc)
           .isEqualTo("vpc5")
       }
     }
@@ -97,7 +97,7 @@ internal abstract class SubnetAwareNetworkResolverTests<T : Locatable<SubnetAwar
       }
 
       test("VPC name is defaulted") {
-        expectThat(resolved.spec.locations.vpcName)
+        expectThat(resolved.spec.locations.vpc)
           .isEqualTo(DEFAULT_VPC_NAME)
       }
 
@@ -130,7 +130,7 @@ internal abstract class SubnetAwareNetworkResolverTests<T : Locatable<SubnetAwar
       }
 
       test("VPC name is derived from subnets") {
-        expectThat(resolved.spec.locations.vpcName)
+        expectThat(resolved.spec.locations.vpc)
           .isEqualTo("vpc5")
       }
     }
@@ -140,7 +140,7 @@ internal abstract class SubnetAwareNetworkResolverTests<T : Locatable<SubnetAwar
 internal class SecurityGroupNetworkResolverTests : NetworkResolverTests<SecurityGroupSpec>() {
   override fun createSubject() = SecurityGroupNetworkResolver()
 
-  override fun createResource(vpcName: String?, subnetPurpose: String?): Resource<SecurityGroupSpec> =
+  override fun createResource(vpc: String?, subnetPurpose: String?): Resource<SecurityGroupSpec> =
     resource(
       apiVersion = SPINNAKER_EC2_API_V1,
       kind = "security-group",
@@ -150,8 +150,8 @@ internal class SecurityGroupNetworkResolverTests : NetworkResolverTests<Security
           stack = "test"
         ),
         locations = SimpleLocations(
-          accountName = "test",
-          vpcName = vpcName,
+          account = "test",
+          vpc = vpc,
           regions = setOf(
             SimpleRegionSpec(
               name = "us-west-2"
@@ -166,7 +166,7 @@ internal class SecurityGroupNetworkResolverTests : NetworkResolverTests<Security
 internal class ClusterNetworkResolverTests : SubnetAwareNetworkResolverTests<ClusterSpec>() {
   override fun createSubject(): NetworkResolver<ClusterSpec> = ClusterNetworkResolver()
 
-  override fun createResource(vpcName: String?, subnetPurpose: String?): Resource<ClusterSpec> =
+  override fun createResource(vpc: String?, subnetPurpose: String?): Resource<ClusterSpec> =
     resource(
       apiVersion = SPINNAKER_EC2_API_V1,
       kind = "cluster",
@@ -177,8 +177,8 @@ internal class ClusterNetworkResolverTests : SubnetAwareNetworkResolverTests<Clu
         ),
         imageProvider = ArtifactImageProvider(DeliveryArtifact("fnord", DEB)),
         locations = SubnetAwareLocations(
-          accountName = "test",
-          vpcName = vpcName,
+          account = "test",
+          vpc = vpc,
           subnet = subnetPurpose,
           regions = setOf(
             SubnetAwareRegionSpec(
@@ -230,7 +230,7 @@ internal class ClusterNetworkResolverTests : SubnetAwareNetworkResolverTests<Clu
 internal class ClassicLoadBalancerNetworkResolverTests : SubnetAwareNetworkResolverTests<ClassicLoadBalancerSpec>() {
   override fun createSubject(): NetworkResolver<ClassicLoadBalancerSpec> = ClassicLoadBalancerNetworkResolver()
 
-  override fun createResource(vpcName: String?, subnetPurpose: String?): Resource<ClassicLoadBalancerSpec> = resource(
+  override fun createResource(vpc: String?, subnetPurpose: String?): Resource<ClassicLoadBalancerSpec> = resource(
     apiVersion = SPINNAKER_EC2_API_V1,
     kind = "classic-load-balancer",
     spec = ClassicLoadBalancerSpec(
@@ -239,8 +239,8 @@ internal class ClassicLoadBalancerNetworkResolverTests : SubnetAwareNetworkResol
         stack = "test"
       ),
       locations = SubnetAwareLocations(
-        accountName = "test",
-        vpcName = vpcName,
+        account = "test",
+        vpc = vpc,
         subnet = subnetPurpose,
         regions = setOf(
           SubnetAwareRegionSpec(
@@ -258,7 +258,7 @@ internal class ClassicLoadBalancerNetworkResolverTests : SubnetAwareNetworkResol
 internal class ApplicationLoadBalancerNetworkResolverTests : SubnetAwareNetworkResolverTests<ApplicationLoadBalancerSpec>() {
   override fun createSubject(): NetworkResolver<ApplicationLoadBalancerSpec> = ApplicationLoadBalancerNetworkResolver()
 
-  override fun createResource(vpcName: String?, subnetPurpose: String?): Resource<ApplicationLoadBalancerSpec> = resource(
+  override fun createResource(vpc: String?, subnetPurpose: String?): Resource<ApplicationLoadBalancerSpec> = resource(
     apiVersion = SPINNAKER_EC2_API_V1,
     kind = "application-load-balancer",
     spec = ApplicationLoadBalancerSpec(
@@ -267,8 +267,8 @@ internal class ApplicationLoadBalancerNetworkResolverTests : SubnetAwareNetworkR
         stack = "test"
       ),
       locations = SubnetAwareLocations(
-        accountName = "test",
-        vpcName = vpcName,
+        account = "test",
+        vpc = vpc,
         subnet = subnetPurpose,
         regions = setOf(
           SubnetAwareRegionSpec(

@@ -75,8 +75,8 @@ internal class CurrentlyDeployedImageApproverTests : JUnit5Minutests {
       spec = ClusterSpec(
         moniker = Moniker("fnord", "api"),
         locations = SubnetAwareLocations(
-          accountName = "test",
-          vpcName = "vpc0",
+          account = "test",
+          vpc = "vpc0",
           subnet = "internal (vpc0)",
           regions = setOf(
             SubnetAwareRegionSpec(
@@ -107,8 +107,8 @@ internal class CurrentlyDeployedImageApproverTests : JUnit5Minutests {
         moniker = Moniker("fnord", "api"),
         imageProvider = ArtifactImageProvider(deliveryArtifact = artifact),
         locations = SubnetAwareLocations(
-          accountName = "test",
-          vpcName = "vpc0",
+          account = "test",
+          vpc = "vpc0",
           subnet = "internal (vpc0)",
           regions = setOf(
             SubnetAwareRegionSpec(

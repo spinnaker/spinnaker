@@ -9,8 +9,8 @@ spec:
     stack: example
     detail: ec2v1
   locations:
-    accountName: test
-    vpcName: vpc0
+    account: test
+    vpc: vpc0
     regions:
     - name: us-west-2
     - name: us-east-1

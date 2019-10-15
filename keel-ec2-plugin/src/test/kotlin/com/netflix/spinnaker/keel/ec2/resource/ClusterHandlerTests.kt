@@ -95,8 +95,8 @@ internal class ClusterHandlerTests : JUnit5Minutests {
   val spec = ClusterSpec(
     moniker = Moniker(app = "keel", stack = "test"),
     locations = SubnetAwareLocations(
-      accountName = vpcWest.account,
-      vpcName = "vpc0",
+      account = vpcWest.account,
+      vpc = "vpc0",
       subnet = subnet1West.purpose!!,
       regions = listOf(vpcWest, vpcEast).map { subnet ->
         SubnetAwareRegionSpec(
@@ -178,7 +178,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         capacity.let { ServerGroupCapacity(it.min, it.max, it.desired) },
         CLOUD_PROVIDER,
         securityGroups.map(SecurityGroupSummary::id).toSet(),
-        location.accountName,
+        location.account,
         parseMoniker("$name-v$sequence")
       )
     }
@@ -415,7 +415,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
   private suspend fun CloudDriverService.activeServerGroup(region: String) = activeServerGroup(
     serviceAccount = "keel@spinnaker",
     app = spec.moniker.app,
-    account = spec.locations.accountName,
+    account = spec.locations.account,
     cluster = spec.moniker.name,
     region = region,
     cloudProvider = CLOUD_PROVIDER
