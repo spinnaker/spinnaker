@@ -2,7 +2,6 @@ package com.netflix.spinnaker.keel.ec2.resource
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
@@ -64,9 +63,9 @@ internal class ApplicationLoadBalancerSpecHandlerTests : JUnit5Minutests {
     |locations:
     |  accountName: test
     |  vpcName: vpc0
+    |  subnet: internal (vpc0)
     |  regions:
     |  - region: us-east-1
-    |    subnet: internal (vpc0)
     |    availabilityZones:
     |    - us-east-1c
     |    - us-east-1d

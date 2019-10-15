@@ -40,13 +40,7 @@ data class ReferenceRule(
   override val protocol: Protocol,
   val name: String,
   override val portRange: PortRange
-) : SecurityGroupRule() {
-  constructor(protocol: Protocol, reference: SecurityGroupSpec, portRange: PortRange) : this(
-    protocol = protocol,
-    name = reference.moniker.name,
-    portRange = portRange
-  )
-}
+) : SecurityGroupRule()
 
 @JsonDeserialize(using = None::class)
 data class CrossAccountReferenceRule(
@@ -55,15 +49,7 @@ data class CrossAccountReferenceRule(
   val account: String,
   val vpcName: String,
   override val portRange: PortRange
-) : SecurityGroupRule() {
-  constructor(protocol: Protocol, reference: SecurityGroupSpec, portRange: PortRange) : this(
-    protocol = protocol,
-    name = reference.moniker.name,
-    account = reference.locations.accountName,
-    vpcName = reference.locations.vpcName,
-    portRange = portRange
-  )
-}
+) : SecurityGroupRule()
 
 @JsonDeserialize(using = None::class)
 data class CidrRule(

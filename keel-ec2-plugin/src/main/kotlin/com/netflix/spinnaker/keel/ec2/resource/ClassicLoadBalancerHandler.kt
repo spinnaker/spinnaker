@@ -52,7 +52,13 @@ class ClassicLoadBalancerHandler(
       locations.regions.map {
         ClassicLoadBalancer(
           moniker,
-          Location(locations.accountName, it.region, locations.vpcName, it.subnet, it.availabilityZones),
+          Location(
+            locations.accountName,
+            it.region,
+            locations.vpcName ?: error("No VPC name supplied or resolved"),
+            locations.subnet ?: error("No subnet purpose supplied or resolved"),
+            it.availabilityZones
+          ),
           internal,
           dependencies,
           listeners,

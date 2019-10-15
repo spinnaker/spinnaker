@@ -14,7 +14,11 @@ abstract class AvailabilityZonesResolver<T : Locatable<SubnetAwareRegionSpec>>(
   override fun invoke(resource: Resource<T>): Resource<T> {
     val regions = resource.spec.locations.regions.map { region ->
       if (region.availabilityZones.isEmpty()) {
-        region.copy(availabilityZones = cloudDriverCache.resolveAvailabilityZones(resource.spec.locations.accountName, region))
+        region.copy(availabilityZones = cloudDriverCache.resolveAvailabilityZones(
+          accountName = resource.spec.locations.accountName,
+          subnetPurpose = resource.spec.locations.subnet ?: error("No subnet purpose specified or resolved"),
+          region = region
+        ))
       } else {
         region
       }
@@ -27,9 +31,13 @@ abstract class AvailabilityZonesResolver<T : Locatable<SubnetAwareRegionSpec>>(
   protected abstract fun T.withLocations(locations: Locations<SubnetAwareRegionSpec>): T
 }
 
-private fun CloudDriverCache.resolveAvailabilityZones(accountName: String, region: SubnetAwareRegionSpec) =
+private fun CloudDriverCache.resolveAvailabilityZones(accountName: String, subnetPurpose: String, region: SubnetAwareRegionSpec) =
   availabilityZonesBy(
     accountName,
-    subnetBy(accountName, region.region, region.subnet).vpcId,
+    subnetBy(
+      accountName,
+      region.region,
+      subnetPurpose
+    ).vpcId,
     region.region
   ).toSet()

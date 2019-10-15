@@ -12,7 +12,6 @@ import com.netflix.spinnaker.keel.api.NoImageFound
 import com.netflix.spinnaker.keel.api.NoImageFoundForRegions
 import com.netflix.spinnaker.keel.api.NoImageSatisfiesConstraints
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
@@ -123,10 +122,10 @@ internal class ImageResolverTests : JUnit5Minutests {
         locations = Locations(
           accountName = account,
           vpcName = "vpc0",
+          subnet = "internal (vpc0)",
           regions = setOf(
             SubnetAwareRegionSpec(
               region = resourceRegion,
-              subnet = "internal (vpc0)",
               availabilityZones = setOf()
             )
           )

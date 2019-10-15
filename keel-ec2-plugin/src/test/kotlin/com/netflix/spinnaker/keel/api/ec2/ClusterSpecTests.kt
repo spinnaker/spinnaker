@@ -121,15 +121,14 @@ object Fixture {
     locations = Locations(
       accountName = "test",
       vpcName = "vpc0",
+      subnet = "internal (vpc0)",
       regions = setOf(
         SubnetAwareRegionSpec(
           region = "us-east-1",
-          subnet = "internal (vpc0)",
           availabilityZones = setOf("us-east-1c", "us-east-1d", "us-east-1e")
         ),
         SubnetAwareRegionSpec(
           region = "us-west-2",
-          subnet = "internal (vpc0)",
           availabilityZones = setOf("us-west-2a", "us-west-2b", "us-west-2c")
         )
       )

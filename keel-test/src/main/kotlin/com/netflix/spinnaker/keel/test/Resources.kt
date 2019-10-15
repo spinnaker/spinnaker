@@ -55,6 +55,7 @@ fun locatableResource(
   locations: Locations<SimpleRegionSpec> = Locations(
     accountName = "test",
     vpcName = "vpc0",
+    subnet = "internal (vpc0)",
     regions = setOf(SimpleRegionSpec("us-west-1"))
   )
 ): Resource<DummyLocatableResourceSpec> =
@@ -126,6 +127,7 @@ data class DummyLocatableResourceSpec(
   override val locations: Locations<SimpleRegionSpec> = Locations(
     accountName = "test",
     vpcName = "vpc0",
+    subnet = "internal (vpc0)",
     regions = setOf(SimpleRegionSpec("us-west-1"))
   )
 ) : ResourceSpec, Locatable<SimpleRegionSpec>

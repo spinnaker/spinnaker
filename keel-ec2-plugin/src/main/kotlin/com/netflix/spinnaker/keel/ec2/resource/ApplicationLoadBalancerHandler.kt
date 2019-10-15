@@ -50,7 +50,13 @@ class ApplicationLoadBalancerHandler(
       locations.regions.map {
         ApplicationLoadBalancer(
           moniker,
-          Location(locations.accountName, it.region, locations.vpcName, it.subnet, it.availabilityZones),
+          Location(
+            locations.accountName,
+            it.region,
+            locations.vpcName ?: error("No VPC name supplied or resolved"),
+            locations.subnet ?: error("No subnet purpose supplied or resolved"),
+            it.availabilityZones
+          ),
           internal,
           dependencies,
           idleTimeout,
@@ -139,8 +145,10 @@ class ApplicationLoadBalancerHandler(
                   location = Location(
                     accountName = spec.locations.accountName,
                     region = region.region,
-                    vpcName = lb.vpcId.let { cloudDriverCache.networkBy(it).name } ?: error("Keel does not support load balancers that are not in a VPC subnet"),
-                    subnet = cloudDriverCache.subnetBy(lb.subnets.first()).purpose ?: error("Keel does not support load balancers that are not in a VPC subnet"),
+                    vpcName = lb.vpcId.let { cloudDriverCache.networkBy(it).name }
+                      ?: error("Keel does not support load balancers that are not in a VPC subnet"),
+                    subnet = cloudDriverCache.subnetBy(lb.subnets.first()).purpose
+                      ?: error("Keel does not support load balancers that are not in a VPC subnet"),
                     availabilityZones = lb.availabilityZones
                   ),
                   internal = lb.scheme != null && lb.scheme!!.contains("internal", ignoreCase = true),

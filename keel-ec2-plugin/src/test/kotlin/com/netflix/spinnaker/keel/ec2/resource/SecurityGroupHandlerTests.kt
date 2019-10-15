@@ -119,6 +119,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
         locations = Locations(
           accountName = vpcRegion1.account,
           vpcName = vpcRegion1.name!!,
+          subnet = null, // TODO: can we avoid requiring this for security groups?
           regions = setOf(SimpleRegionSpec(vpcRegion1.region), SimpleRegionSpec(vpcRegion2.region))
         ),
         description = "dummy security group"
@@ -202,6 +203,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
         locations = Locations(
           accountName = vpcRegion1.account,
           vpcName = vpcRegion1.name!!,
+          subnet = null,
           regions = setOf(SimpleRegionSpec(vpcRegion1.region), SimpleRegionSpec(vpcRegion2.region))
         ),
         description = "dummy security group"
@@ -661,8 +663,8 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
                 locations = Locations(
                   accountName = securityGroupSpec.locations.accountName,
                   vpcName = securityGroupSpec.locations.vpcName,
-                  regions = setOf(SimpleRegionSpec("us-east-17")
-                  )
+                  subnet = null,
+                  regions = setOf(SimpleRegionSpec("us-east-17"))
                 )
               )
             )

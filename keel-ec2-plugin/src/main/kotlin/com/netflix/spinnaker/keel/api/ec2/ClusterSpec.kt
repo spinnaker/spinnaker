@@ -20,8 +20,8 @@ fun ClusterSpec.resolve(): Set<ServerGroup> =
       location = Location(
         accountName = locations.accountName,
         region = it.region,
-        vpcName = locations.vpcName,
-        subnet = it.subnet,
+        vpcName = locations.vpcName ?: error("No VPC name supplied or resolved"),
+        subnet = locations.subnet ?: error("No subnet purpose supplied or resolved"),
         availabilityZones = it.availabilityZones
       ),
       launchConfiguration = resolveLaunchConfiguration(it),

@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.keel.ec2.resolvers
 
 import com.netflix.spinnaker.keel.api.Locations
-import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
 import com.netflix.spinnaker.keel.clouddriver.MemoryCloudDriverCache
 import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
@@ -23,15 +22,14 @@ internal class ApplicationLoadBalancerAvailabilityZonesResolverTests : Availabil
           Locations(
             accountName = "test",
             vpcName = "vpc0",
+            subnet = "internal (vpc0)",
             regions = setOf(
               SubnetAwareRegionSpec(
                 region = "us-east-1",
-                subnet = "internal (vpc0)",
                 availabilityZones = eastAvailabilityZones ?: emptySet()
               ),
               SubnetAwareRegionSpec(
                 region = "us-west-2",
-                subnet = "internal (vpc0)",
                 availabilityZones = westAvailabilityZones ?: emptySet()
               )
             )

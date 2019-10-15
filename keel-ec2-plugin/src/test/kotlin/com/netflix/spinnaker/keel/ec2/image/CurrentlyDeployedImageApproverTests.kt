@@ -77,10 +77,10 @@ internal class CurrentlyDeployedImageApproverTests : JUnit5Minutests {
         locations = Locations(
           accountName = "test",
           vpcName = "vpc0",
+          subnet = "internal (vpc0)",
           regions = setOf(
             SubnetAwareRegionSpec(
               region = "ap-south-1",
-              subnet = "internal (vpc0)",
               availabilityZones = setOf("ap-south1-a", "ap-south1-b", "ap-south1-c")
             )
           )
@@ -109,10 +109,10 @@ internal class CurrentlyDeployedImageApproverTests : JUnit5Minutests {
         locations = Locations(
           accountName = "test",
           vpcName = "vpc0",
+          subnet = "internal (vpc0)",
           regions = setOf(
             SubnetAwareRegionSpec(
               region = "ap-south-1",
-              subnet = "internal (vpc0)",
               availabilityZones = setOf("ap-south1-a", "ap-south1-b", "ap-south1-c")
             )
           )

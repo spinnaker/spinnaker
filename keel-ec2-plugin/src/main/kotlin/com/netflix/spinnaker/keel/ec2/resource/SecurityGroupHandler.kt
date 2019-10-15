@@ -72,7 +72,7 @@ class SecurityGroupHandler(
           moniker = Moniker(app = moniker.app, stack = moniker.stack, detail = moniker.detail),
           location = SecurityGroup.Location(
             accountName = locations.accountName,
-            vpcName = locations.vpcName,
+            vpcName = locations.vpcName ?: error("No VPC name supplied or resolved"),
             region = simpleRegionSpec.region
           ),
           description = overrides[simpleRegionSpec.region]?.description ?: description,

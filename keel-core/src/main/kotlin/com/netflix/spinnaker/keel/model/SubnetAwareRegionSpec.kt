@@ -21,7 +21,6 @@ import com.netflix.spinnaker.keel.api.RegionSpec
 
 data class SubnetAwareRegionSpec(
   override val region: String,
-  val subnet: String,
   /**
    * If empty this implies the resource should use all availability zones.
    */

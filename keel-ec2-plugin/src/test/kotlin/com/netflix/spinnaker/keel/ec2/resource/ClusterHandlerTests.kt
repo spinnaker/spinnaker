@@ -97,10 +97,10 @@ internal class ClusterHandlerTests : JUnit5Minutests {
     locations = Locations(
       accountName = vpcWest.account,
       vpcName = "vpc0",
+      subnet = subnet1West.purpose!!,
       regions = listOf(vpcWest, vpcEast).map { subnet ->
         SubnetAwareRegionSpec(
           region = subnet.region,
-          subnet = subnet.name!!,
           availabilityZones = listOf("a", "b", "c").map { "${subnet.region}$it" }.toSet()
         )
       }.toSet()

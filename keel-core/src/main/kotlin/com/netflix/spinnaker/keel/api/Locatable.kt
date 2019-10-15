@@ -26,6 +26,13 @@ interface Locatable<T : RegionSpec> : ResourceSpec {
 
 data class Locations<T : RegionSpec>(
   val accountName: String,
-  val vpcName: String,
+  /**
+   * If not specified here, this should be derived from [subnet] or use a default VPC name.
+   */
+  val vpcName: String?,
+  /**
+   * If not specified here, this should be derived from a default subnet purpose using [vpcName].
+   */
+  val subnet: String?,
   val regions: Set<T>
 )

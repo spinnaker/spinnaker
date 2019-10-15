@@ -174,6 +174,7 @@ interface ResourceRepository : PeriodicallyCheckedRepository<ResourceHeader> {
         Locations(
           accountName = spec.locations.accountName,
           vpcName = spec.locations.vpcName,
+          subnet = null, // TODO: can we avoid this for non-subnet resources?
           regions = spec.locations.regions.map { SimpleRegionSpec(it.region) }.toSet()
         )
       } else {
