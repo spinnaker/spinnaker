@@ -257,8 +257,6 @@ export class ServerGroupBasicSettings
             tag={values.tag}
             showRegistry={false}
             deferInitialization={values.deferredInitialization}
-            labelClass="col-md-3"
-            fieldClass="col-md-7"
             onChange={this.dockerValuesChanged}
           />
         )}

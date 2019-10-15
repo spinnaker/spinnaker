@@ -222,8 +222,6 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
           showRegistry={false}
           onChange={this.dockerChanged}
           deferInitialization={stage.deferredInitialization}
-          labelClass="col-md-2 col-md-offset-1 sm-label-right"
-          fieldClass="col-md-6"
         />
 
         <StageConfigField label="CPU(s)">
