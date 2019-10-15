@@ -18,6 +18,7 @@ import { getHealthCheckOptions } from 'google/healthCheck/healthCheckUtils';
 import { GCE_HTTP_LOAD_BALANCER_UTILS } from 'google/loadBalancer/httpLoadBalancerUtils.service';
 import { LOAD_BALANCER_SET_TRANSFORMER } from 'google/loadBalancer/loadBalancer.setTransformer';
 import { GceImageReader } from 'google/image';
+import { GceAcceleratorService } from 'google/serverGroup/configure/wizard/advancedSettings/gceAccelerator.service';
 
 module.exports = angular
   .module('spinnaker.serverGroup.configure.gce.configuration.service', [
@@ -256,17 +257,7 @@ module.exports = angular
 
       function configureAccelerators(command) {
         const result = { dirty: {} };
-        const { credentials, zone, backingData } = command;
-        const accountBackingData = _.get(backingData, ['credentialsKeyedByAccount', credentials], {});
-        const acceleratorMap = accountBackingData.zoneToAcceleratorTypesMap || {};
-        const acceleratorTypes = _.get(acceleratorMap, [zone, 'acceleratorTypes', 'acceleratorTypes'], []).map(a => {
-          const maxCards = _.isFinite(a.maximumCardsPerInstance) ? a.maximumCardsPerInstance : 4;
-          const availableCardCounts = [];
-          for (let i = 1; i <= maxCards; i *= 2) {
-            availableCardCounts.push(i);
-          }
-          return _.assign({}, a, { availableCardCounts });
-        });
+        const acceleratorTypes = GceAcceleratorService.getAvailableAccelerators(command);
         _.set(command, ['viewState', 'acceleratorTypes'], acceleratorTypes);
         result.dirty.acceleratorTypes = true;
         const chosenAccelerators = _.get(command, 'acceleratorConfigs', []);
@@ -709,6 +700,14 @@ module.exports = angular
           angular.extend(command.viewState.dirty, result.dirty);
           angular.extend(command.viewState.dirty, configureInstanceTypes(command).dirty);
           angular.extend(command.viewState.dirty, configureCpuPlatforms(command).dirty);
+          angular.extend(command.viewState.dirty, configureAccelerators(command).dirty);
+          return result;
+        };
+
+        cmd.selectZonesChanged = function selectZonesChanged(command) {
+          const result = { dirty: {} };
+          command.viewState.dirty = command.viewState.dirty || {};
+          angular.extend(command.viewState.dirty, result.dirty);
           angular.extend(command.viewState.dirty, configureAccelerators(command).dirty);
           return result;
         };

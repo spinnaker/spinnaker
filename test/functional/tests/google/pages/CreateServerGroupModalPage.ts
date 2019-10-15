@@ -5,8 +5,8 @@ export class CreateServerGroupModalPage extends Page {
     createServerGroupHeading: `//h3[contains(., 'Create New Server Group')]`,
     acceleratorSectionHeading: `//*[contains(@class, 'sm-label-left') and contains(., 'Accelerators')]`,
     addAcceleratorButton: `//button[contains(., 'Add Accelerator')]`,
-    acceleratorTypeSelect: `//gce-accelerator-configurer//a[contains(@class, 'ui-select-match')]`,
-    acceleratorDropdownListItems: `(//ul[contains(@class, 'ui-select-choices-content')]//li//span)`,
+    acceleratorTypeSelect: `//gce-accelerator-configurer//di[contains(@class, 'Select')]`,
+    acceleratorDropdownListItems: `(//div[contains(@class, 'Select-menu')]//div)`,
     regionSelect: `gce-region-select-field select`,
     zoneSelect: `gce-zone-selector select`,
   };

@@ -20,8 +20,9 @@ module.exports = angular
     };
   })
   .controller('gceServerGroupAdvancedSettingsSelectorCtrl', [
+    '$scope',
     'gceTagManager',
-    function(gceTagManager) {
+    function($scope, gceTagManager) {
       this.addTag = () => {
         this.command.tags.push({});
       };
@@ -54,6 +55,12 @@ module.exports = angular
           // Integrity monitoring requires vTPM to be enabled.
           this.command.enableIntegrityMonitoring = false;
         }
+      };
+
+      this.setAcceleratorConfigs = configs => {
+        $scope.$apply(() => {
+          this.command.acceleratorConfigs = configs;
+        });
       };
     },
   ]);

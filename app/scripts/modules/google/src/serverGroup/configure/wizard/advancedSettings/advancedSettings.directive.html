@@ -21,7 +21,13 @@
   update-disks="vm.setDisks(disks)"
 ></gce-disk-configurer>
 
-<gce-accelerator-configurer command="vm.command"></gce-accelerator-configurer>
+<gce-accelerator-configurer
+  accelerator-configs="vm.command.acceleratorConfigs"
+  regional="vm.command.regional"
+  set-accelerator-configs="vm.setAcceleratorConfigs"
+  zone="vm.command.zone"
+  available-accelerators="vm.command.viewState.acceleratorTypes"
+/>
 
 <div class="form-group">
   <div class="sm-label-left" style="margin-bottom: 5px;">
