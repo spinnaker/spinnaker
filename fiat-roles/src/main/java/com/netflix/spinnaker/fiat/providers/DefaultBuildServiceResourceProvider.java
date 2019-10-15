@@ -17,9 +17,10 @@
 
 package com.netflix.spinnaker.fiat.providers;
 
+import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.fiat.model.resources.BuildService;
 import com.netflix.spinnaker.fiat.providers.internal.IgorService;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -27,22 +28,29 @@ import org.springframework.stereotype.Component;
 
 @Component
 @ConditionalOnProperty("services.igor.enabled")
-public class DefaultBuildServiceProvider extends BaseProvider<BuildService>
+public class DefaultBuildServiceResourceProvider extends BaseResourceProvider<BuildService>
     implements ResourceProvider<BuildService> {
 
   private final IgorService igorService;
+  private final ResourcePermissionProvider<BuildService> permissionProvider;
 
   @Autowired
-  public DefaultBuildServiceProvider(IgorService igorService) {
+  public DefaultBuildServiceResourceProvider(
+      IgorService igorService, ResourcePermissionProvider<BuildService> permissionProvider) {
     super();
     this.igorService = igorService;
+    this.permissionProvider = permissionProvider;
   }
 
   @Override
   protected Set<BuildService> loadAll() throws ProviderException {
     try {
-      return new HashSet<>(igorService.getAllBuildServices());
-    } catch (Exception e) {
+      List<BuildService> buildServices = igorService.getAllBuildServices();
+      buildServices.forEach(
+          buildService ->
+              buildService.setPermissions(permissionProvider.getPermissions(buildService)));
+      return ImmutableSet.copyOf(buildServices);
+    } catch (RuntimeException e) {
       throw new ProviderException(this.getClass(), e.getCause());
     }
   }

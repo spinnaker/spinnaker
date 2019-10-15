@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.fiat.providers;
 
-public class ProviderException extends RuntimeException {
+import com.netflix.spinnaker.kork.exceptions.IntegrationException;
+
+public class ProviderException extends IntegrationException {
 
   private Class provider;
 

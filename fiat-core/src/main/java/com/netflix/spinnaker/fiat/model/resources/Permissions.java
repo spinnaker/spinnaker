@@ -27,19 +27,19 @@ import lombok.val;
 
 /**
  * Representation of authorization configuration for a resource. This object is immutable, which
- * makes it challenging when working with Jackson's {{ObjectMapper}} and Spring's
- * {{\@ConfigurationProperties}}. The {@link Builder} is a helper class for the latter use case.
+ * makes it challenging when working with Jackson's {@code ObjectMapper} and Spring's
+ * {@code @ConfigurationProperties}. The {@link Builder} is a helper class for the latter use case.
  */
 @ToString
 @EqualsAndHashCode
 public class Permissions {
 
-  public static Permissions EMPTY = new Permissions.Builder().build();
+  public static final Permissions EMPTY = Builder.fromMap(Collections.emptyMap());
 
   private final Map<Authorization, List<String>> permissions;
 
   private Permissions(Map<Authorization, List<String>> p) {
-    this.permissions = p;
+    this.permissions = Collections.unmodifiableMap(p);
   }
 
   /**
@@ -69,10 +69,6 @@ public class Permissions {
     return !getAuthorizations(userRoles).isEmpty();
   }
 
-  public boolean isEmpty() {
-    return permissions.isEmpty();
-  }
-
   public Set<Authorization> getAuthorizations(Set<Role> userRoles) {
     val r = userRoles.stream().map(Role::getName).collect(Collectors.toList());
     return getAuthorizations(r);
@@ -90,7 +86,7 @@ public class Permissions {
   }
 
   public List<String> get(Authorization a) {
-    return permissions.get(a);
+    return permissions.getOrDefault(a, Collections.emptyList());
   }
 
   /**
@@ -104,6 +100,25 @@ public class Permissions {
    * <p>Group/Role names are trimmed of whitespace and lowercased.
    */
   public static class Builder extends LinkedHashMap<Authorization, List<String>> {
+
+    private static Permissions fromMap(Map<Authorization, List<String>> authConfig) {
+      final Map<Authorization, List<String>> perms = new EnumMap<>(Authorization.class);
+      for (Authorization auth : Authorization.values()) {
+        perms.put(
+            auth,
+            Optional.ofNullable(authConfig.get(auth))
+                .map(
+                    groups ->
+                        groups.stream()
+                            .map(String::trim)
+                            .filter(s -> !s.isEmpty())
+                            .map(String::toLowerCase)
+                            .collect(Collectors.toList()))
+                .map(Collections::unmodifiableList)
+                .orElse(Collections.emptyList()));
+      }
+      return new Permissions(perms);
+    }
 
     @JsonCreator
     public static Builder factory(Map<Authorization, List<String>> data) {
@@ -127,19 +142,11 @@ public class Permissions {
     }
 
     public Permissions build() {
-      final Map<Authorization, List<String>> perms = new HashMap<>();
-      this.forEach(
-          (auth, groups) -> {
-            List<String> lowerGroups =
-                Collections.unmodifiableList(
-                    groups.stream()
-                        .map(String::trim)
-                        .filter(s -> !s.isEmpty())
-                        .map(String::toLowerCase)
-                        .collect(Collectors.toList()));
-            perms.put(auth, lowerGroups);
-          });
-      return new Permissions(Collections.unmodifiableMap(perms));
+      final Permissions result = fromMap(this);
+      if (!result.isRestricted()) {
+        return Permissions.EMPTY;
+      }
+      return result;
     }
   }
 }

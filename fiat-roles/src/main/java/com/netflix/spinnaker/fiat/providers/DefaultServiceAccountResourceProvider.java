@@ -33,7 +33,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
-public class DefaultServiceAccountProvider extends BaseProvider<ServiceAccount>
+public class DefaultServiceAccountResourceProvider extends BaseResourceProvider<ServiceAccount>
     implements ResourceProvider<ServiceAccount> {
 
   private final Front50Service front50Service;
@@ -41,7 +41,7 @@ public class DefaultServiceAccountProvider extends BaseProvider<ServiceAccount>
   private final FiatRoleConfig fiatRoleConfig;
 
   @Autowired
-  public DefaultServiceAccountProvider(
+  public DefaultServiceAccountResourceProvider(
       Front50Service front50Service, FiatRoleConfig fiatRoleConfig) {
     super();
     this.front50Service = front50Service;

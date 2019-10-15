@@ -16,44 +16,40 @@
 
 package com.netflix.spinnaker.fiat.providers;
 
-import com.netflix.spinnaker.fiat.model.Authorization;
+import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
+
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Streams;
 import com.netflix.spinnaker.fiat.model.resources.Application;
-import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService;
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
-import lombok.NonNull;
+import java.util.function.Predicate;
 
-public class DefaultApplicationProvider extends BaseProvider<Application>
+public class DefaultApplicationResourceProvider extends BaseResourceProvider<Application>
     implements ResourceProvider<Application> {
 
   private final Front50Service front50Service;
   private final ClouddriverService clouddriverService;
+  private final ResourcePermissionProvider<Application> permissionProvider;
 
   private final boolean allowAccessToUnknownApplications;
-  private final Authorization executeFallback;
 
-  public DefaultApplicationProvider(
+  public DefaultApplicationResourceProvider(
       Front50Service front50Service,
       ClouddriverService clouddriverService,
-      boolean allowAccessToUnknownApplications,
-      Authorization executeFallback) {
-    super();
-
+      ResourcePermissionProvider<Application> permissionProvider,
+      boolean allowAccessToUnknownApplications) {
     this.front50Service = front50Service;
     this.clouddriverService = clouddriverService;
+    this.permissionProvider = permissionProvider;
     this.allowAccessToUnknownApplications = allowAccessToUnknownApplications;
-    this.executeFallback = executeFallback;
   }
 
   @Override
@@ -70,34 +66,40 @@ public class DefaultApplicationProvider extends BaseProvider<Application>
   @Override
   protected Set<Application> loadAll() throws ProviderException {
     try {
-      Map<String, Application> appByName =
-          front50Service.getAllApplicationPermissions().stream()
-              .collect(Collectors.toMap(Application::getName, Function.identity()));
+      List<Application> front50Applications = front50Service.getAllApplicationPermissions();
+      List<Application> clouddriverApplications = clouddriverService.getApplications();
 
-      clouddriverService.getApplications().stream()
-          .filter(app -> !appByName.containsKey(app.getName()))
-          .forEach(app -> appByName.put(app.getName(), app));
+      // Stream front50 first so that if there's a name collision, we'll keep that one instead of
+      // the clouddriver application (since front50 might have permissions stored on it, but the
+      // clouddriver version definitely won't)
+      List<Application> applications =
+          Streams.concat(front50Applications.stream(), clouddriverApplications.stream())
+              .filter(distinctByKey(Application::getName))
+              // Collect to a list instead of set since we're about to modify the applications
+              .collect(toImmutableList());
 
-      Set<Application> applications;
+      applications.forEach(
+          application ->
+              application.setPermissions(permissionProvider.getPermissions(application)));
 
       if (allowAccessToUnknownApplications) {
         // no need to include applications w/o explicit permissions if we're allowing access to
         // unknown applications by default
-        applications =
-            appByName.values().stream()
-                .filter(a -> !a.getPermissions().isEmpty())
-                .collect(Collectors.toSet());
+        return applications.stream()
+            .filter(a -> a.getPermissions().isRestricted())
+            .collect(toImmutableSet());
       } else {
-        applications = new HashSet<>(appByName.values());
+        return ImmutableSet.copyOf(applications);
       }
-
-      // Fallback authorization for legacy applications that are missing EXECUTE permissions
-      applications.forEach(this::ensureExecutePermission);
-
-      return applications;
-    } catch (Exception e) {
+    } catch (RuntimeException e) {
       throw new ProviderException(this.getClass(), e);
     }
+  }
+
+  // Keeps only the first object with the key
+  private static Predicate<Application> distinctByKey(Function<Application, String> keyExtractor) {
+    Set<String> seenKeys = new HashSet<>();
+    return t -> seenKeys.add(keyExtractor.apply(t));
   }
 
   private Set<Application> getAllApplications(
@@ -117,31 +119,5 @@ public class DefaultApplicationProvider extends BaseProvider<Application>
     }
 
     return isRestricted ? super.getAllRestricted(roles, isAdmin) : super.getAllUnrestricted();
-  }
-
-  /**
-   * Set EXECUTE authorization(s) for the application. For applications that already have EXECUTE
-   * set, this will be a no-op. For the remaining applications, we'll add EXECUTE based on the value
-   * of the `executeFallback` flag.
-   */
-  private void ensureExecutePermission(@NonNull Application application) {
-    Permissions permissions = application.getPermissions();
-
-    if (permissions == null || !permissions.isRestricted()) {
-      return;
-    }
-
-    Map<Authorization, List<String>> authorizations =
-        Arrays.stream(Authorization.values())
-            .collect(
-                Collectors.toMap(
-                    Function.identity(),
-                    a -> Optional.ofNullable(permissions.get(a)).orElse(new ArrayList<>())));
-
-    if (authorizations.get(Authorization.EXECUTE).isEmpty()) {
-      authorizations.put(Authorization.EXECUTE, authorizations.get(this.executeFallback));
-    }
-
-    application.setPermissions(Permissions.Builder.factory(authorizations).build());
   }
 }

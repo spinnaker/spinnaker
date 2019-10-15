@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.fiat.permissions;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.fiat.config.FiatAdminConfig;
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig;
 import com.netflix.spinnaker.fiat.model.UserPermission;
@@ -36,31 +37,35 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Component
-@NoArgsConstructor
 @Slf4j
 public class DefaultPermissionsResolver implements PermissionsResolver {
 
-  @Autowired @Setter private UserRolesProvider userRolesProvider;
-
-  @Autowired @Setter private ResourceProvider<ServiceAccount> serviceAccountProvider;
-
-  @Autowired @Setter private List<ResourceProvider<? extends Resource>> resourceProviders;
-
-  @Autowired @Setter private FiatAdminConfig fiatAdminConfig;
+  private final UserRolesProvider userRolesProvider;
+  private final ResourceProvider<ServiceAccount> serviceAccountProvider;
+  private final ImmutableList<ResourceProvider<? extends Resource>> resourceProviders;
+  private final FiatAdminConfig fiatAdminConfig;
+  private final ObjectMapper mapper;
 
   @Autowired
-  @Qualifier("objectMapper")
-  @Setter
-  private ObjectMapper mapper;
+  public DefaultPermissionsResolver(
+      UserRolesProvider userRolesProvider,
+      ResourceProvider<ServiceAccount> serviceAccountProvider,
+      List<ResourceProvider<? extends Resource>> resourceProviders,
+      FiatAdminConfig fiatAdminConfig,
+      @Qualifier("objectMapper") ObjectMapper mapper) {
+    this.userRolesProvider = userRolesProvider;
+    this.serviceAccountProvider = serviceAccountProvider;
+    this.resourceProviders = ImmutableList.copyOf(resourceProviders);
+    this.fiatAdminConfig = fiatAdminConfig;
+    this.mapper = mapper;
+  }
 
   @Override
   public UserPermission resolveUnrestrictedUser() {
@@ -123,13 +128,12 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
   }
 
   @Override
-  @SuppressWarnings("unchecked")
   public Map<String, UserPermission> resolve(@NonNull Collection<ExternalUser> users) {
     Map<String, Collection<Role>> allServiceAccountRoles = getServiceAccountRoles();
 
     Collection<ExternalUser> serviceAccounts =
         users.stream()
-            .filter(user -> allServiceAccountRoles.keySet().contains(user.getId()))
+            .filter(user -> allServiceAccountRoles.containsKey(user.getId()))
             .collect(Collectors.toList());
 
     // Service accounts should already have external roles set. Remove them from the list so they
@@ -160,11 +164,10 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
     Map<String, Collection<Role>> userToRoles = userRolesProvider.multiLoadRoles(users);
 
     users.forEach(
-        user -> {
-          userToRoles
-              .computeIfAbsent(user.getId(), ignored -> new ArrayList<>())
-              .addAll(user.getExternalRoles());
-        });
+        user ->
+            userToRoles
+                .computeIfAbsent(user.getId(), ignored -> new ArrayList<>())
+                .addAll(user.getExternalRoles()));
 
     if (log.isDebugEnabled()) {
       try {

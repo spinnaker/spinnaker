@@ -16,30 +16,37 @@
 
 package com.netflix.spinnaker.fiat.providers;
 
+import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.fiat.model.resources.Account;
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class DefaultAccountProvider extends BaseProvider<Account>
+public class DefaultAccountResourceProvider extends BaseResourceProvider<Account>
     implements ResourceProvider<Account> {
 
   private final ClouddriverService clouddriverService;
+  private final ResourcePermissionProvider<Account> permissionProvider;
 
   @Autowired
-  public DefaultAccountProvider(ClouddriverService clouddriverService) {
-    super();
+  public DefaultAccountResourceProvider(
+      ClouddriverService clouddriverService,
+      ResourcePermissionProvider<Account> permissionProvider) {
     this.clouddriverService = clouddriverService;
+    this.permissionProvider = permissionProvider;
   }
 
   @Override
   protected Set<Account> loadAll() throws ProviderException {
     try {
-      return new HashSet<>(clouddriverService.getAccounts());
-    } catch (Exception e) {
+      List<Account> accounts = clouddriverService.getAccounts();
+      accounts.forEach(
+          account -> account.setPermissions(permissionProvider.getPermissions(account)));
+      return ImmutableSet.copyOf(accounts);
+    } catch (RuntimeException e) {
       throw new ProviderException(this.getClass(), e.getCause());
     }
   }

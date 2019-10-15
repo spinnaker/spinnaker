@@ -34,8 +34,9 @@ class DefaultApplicationProviderSpec extends Specification {
 
   ClouddriverService clouddriverService = Mock(ClouddriverService)
   Front50Service front50Service = Mock(Front50Service)
+  ResourcePermissionProvider<Application> defaultProvider = new AggregatingResourcePermissionProvider<>([new Front50ApplicationResourcePermissionSource(Authorization.READ)])
 
-  @Subject DefaultApplicationProvider provider
+  @Subject DefaultApplicationResourceProvider provider
 
   def makePerms(Map<Authorization, List<String>> auths) {
     return Permissions.Builder.factory(auths).build()
@@ -50,7 +51,6 @@ class DefaultApplicationProviderSpec extends Specification {
           new Application().setName("app1")
                            .setPermissions(new Permissions.Builder().add(Authorization.READ, "role").build()),
       ]
-
     }
     ClouddriverService clouddriverService = Mock(ClouddriverService) {
       getApplications() >> [
@@ -59,7 +59,7 @@ class DefaultApplicationProviderSpec extends Specification {
       ]
     }
 
-    provider = new DefaultApplicationProvider(front50Service, clouddriverService, allowAccessToUnknownApplications, Authorization.READ)
+    provider = new DefaultApplicationResourceProvider(front50Service, clouddriverService, defaultProvider, allowAccessToUnknownApplications)
 
     when:
     def restrictedResult = provider.getAllRestricted([new Role(role)] as Set<Role>, false)
@@ -91,9 +91,8 @@ class DefaultApplicationProviderSpec extends Specification {
 
     when:
     app.setPermissions(makePerms(givenPermissions))
-    provider = new DefaultApplicationProvider(
-        front50Service, clouddriverService, allowAccessToUnknownApplications, Authorization.READ
-    )
+    provider = new DefaultApplicationResourceProvider(
+        front50Service, clouddriverService, defaultProvider, allowAccessToUnknownApplications)
     def resultApps = provider.getAll()
 
     then:
@@ -106,19 +105,20 @@ class DefaultApplicationProviderSpec extends Specification {
     where:
     givenPermissions           | allowAccessToUnknownApplications || expectedPermissions
     [:]                        | false                            || [:]
-    [(R): ['r']]               | false                            || [(R): ['r'], (W): [], (E): ['r']]
-    [(R): ['r'], (E): ['foo']] | false                            || [(R): ['r'], (W): [], (E): ['foo']]
-    [(R): ['r']]               | true                             || [(R): ['r'], (W): [], (E): ['r']]
+    [(R): ['r']]               | false                            || [(R): ['r'], (E): ['r']]
+    [(R): ['r'], (E): ['foo']] | false                            || [(R): ['r'], (E): ['foo']]
+    [(R): ['r']]               | true                             || [(R): ['r'], (E): ['r']]
   }
 
   @Unroll
   def "should add fallback execute permissions based on executeFallback value" () {
     setup:
     def app = new Application().setName("app")
+    def provider = new AggregatingResourcePermissionProvider([new Front50ApplicationResourcePermissionSource(fallback)])
 
     when:
     app.setPermissions(makePerms(givenPermissions))
-    provider = new DefaultApplicationProvider(front50Service, clouddriverService, false, fallback)
+    provider = new DefaultApplicationResourceProvider(front50Service, clouddriverService, provider, false)
     def resultApps = provider.getAll()
 
     then:
@@ -129,8 +129,9 @@ class DefaultApplicationProviderSpec extends Specification {
     makePerms(expectedPermissions) == resultApps.permissions[0]
 
     where:
-    fallback    || givenPermissions         || expectedPermissions
-    R           || [(R): ['r']]             || [(R): ['r'], (W): [], (E): ['r']]
-    W           || [(R): ['r'], (W): ['w']] || [(R): ['r'], (W): ['w'], (E): ['w']]
+    fallback    | givenPermissions         || expectedPermissions
+    R           | [:]                      || [:]
+    R           | [(R): ['r']]             || [(R): ['r'], (E): ['r']]
+    W           | [(R): ['r'], (W): ['w']] || [(R): ['r'], (W): ['w'], (E): ['w']]
   }
 }

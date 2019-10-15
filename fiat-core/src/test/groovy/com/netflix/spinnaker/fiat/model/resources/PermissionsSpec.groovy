@@ -42,10 +42,18 @@ class PermissionsSpec extends Specification {
       .enable(SerializationFeature.INDENT_OUTPUT)
       .enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
 
-  String permissionJson = '''{
-  "READ" : [ "foo" ],
-  "WRITE" : [ "bar" ]
-}'''
+  String permissionJson = '''\
+    {
+      "READ" : [ "foo" ],
+      "WRITE" : [ "bar" ]
+    }'''.stripIndent()
+
+  String permissionSerialized = '''\
+    {
+      "READ" : [ "foo" ],
+      "WRITE" : [ "bar" ],
+      "EXECUTE" : [ ]
+    }'''.stripIndent()
 
   def "should deserialize"() {
     when:
@@ -54,6 +62,7 @@ class PermissionsSpec extends Specification {
     then:
     p.get(R) == ["foo"]
     p.get(W) == ["bar"]
+    p.get(E) == []
 
     when:
     Permissions.Builder b = mapper.readValue(permissionJson, Permissions.Builder)
@@ -62,6 +71,7 @@ class PermissionsSpec extends Specification {
     then:
     p.get(R) == ["foo"]
     p.get(W) == ["bar"]
+    p.get(E) == []
   }
 
   def "should serialize"() {
@@ -70,7 +80,7 @@ class PermissionsSpec extends Specification {
     b.set([(R): ["foo"], (W): ["bar"]])
 
     then:
-    permissionJson ==  mapper.writeValueAsString(b.build())
+    permissionSerialized ==  mapper.writeValueAsString(b.build())
   }
 
   def "can deserialize to builder from serialized Permissions"() {
@@ -85,7 +95,6 @@ class PermissionsSpec extends Specification {
 
     then:
     p1 == p2
-    b1 == b2
   }
 
   def "should trim and lower"() {

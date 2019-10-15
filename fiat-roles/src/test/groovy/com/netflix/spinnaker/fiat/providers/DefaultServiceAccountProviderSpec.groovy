@@ -23,7 +23,6 @@ import com.netflix.spinnaker.fiat.providers.internal.Front50Service
 import org.apache.commons.collections4.CollectionUtils
 import spock.lang.Shared
 import spock.lang.Specification
-import spock.lang.Subject
 import spock.lang.Unroll
 
 class DefaultServiceAccountProviderSpec extends Specification {
@@ -48,7 +47,7 @@ class DefaultServiceAccountProviderSpec extends Specification {
     FiatRoleConfig fiatRoleConfig = Mock(FiatRoleConfig) {
       isOrMode() >> false
     }
-    DefaultServiceAccountProvider provider = new DefaultServiceAccountProvider(front50Service, fiatRoleConfig)
+    DefaultServiceAccountResourceProvider provider = new DefaultServiceAccountResourceProvider(front50Service, fiatRoleConfig)
 
     when:
     def result = provider.getAllRestricted(input.collect { new Role(it) } as Set, isAdmin)
@@ -80,7 +79,7 @@ class DefaultServiceAccountProviderSpec extends Specification {
     FiatRoleConfig fiatRoleConfig = Mock(FiatRoleConfig) {
       isOrMode() >> true
     }
-    DefaultServiceAccountProvider provider = new DefaultServiceAccountProvider(front50Service, fiatRoleConfig)
+    DefaultServiceAccountResourceProvider provider = new DefaultServiceAccountResourceProvider(front50Service, fiatRoleConfig)
 
     when:
     def result = provider.getAllRestricted(input.collect { new Role(it) } as Set, isAdmin)

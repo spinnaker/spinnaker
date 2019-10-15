@@ -19,9 +19,11 @@ package com.netflix.spinnaker.fiat.permissions
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig
+import com.netflix.spinnaker.fiat.model.Authorization
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Account
 import com.netflix.spinnaker.fiat.model.resources.Application
+import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
@@ -34,6 +36,8 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 class RedisPermissionsRepositorySpec extends Specification {
+
+  private static final String EMPTY_PERM_JSON = "{${Authorization.values().collect {/"$it":[]/}.join(',')}}"
 
   private static final String UNRESTRICTED = UnrestrictedResourceConfig.UNRESTRICTED_USERNAME
 
@@ -91,9 +95,9 @@ class RedisPermissionsRepositorySpec extends Specification {
     jedis.smembers("unittests:roles:role1") == ["testUser"] as Set
 
     jedis.hgetAll("unittests:permissions:testUser:accounts") ==
-        ['account': '{"name":"account","permissions":{}}']
+        ['account': /{"name":"account","permissions":$EMPTY_PERM_JSON}/.toString()]
     jedis.hgetAll("unittests:permissions:testUser:applications") ==
-        ['app': '{"name":"app","permissions":{}}']
+        ['app': /{"name":"app","permissions":$EMPTY_PERM_JSON}/.toString()]
     jedis.hgetAll("unittests:permissions:testUser:service_accounts") ==
         ['serviceAccount': '{"name":"serviceAccount","memberOf":["role1"]}']
     jedis.hgetAll("unittests:permissions:testUser:roles") ==

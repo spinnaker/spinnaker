@@ -27,7 +27,7 @@ import groovy.transform.builder.SimpleStrategy
 import spock.lang.Specification
 import spock.lang.Subject
 
-class BaseProviderSpec extends Specification {
+class BaseResourceProviderSpec extends Specification {
 
   private static Authorization R = Authorization.READ
   private static Authorization W = Authorization.WRITE
@@ -51,7 +51,7 @@ class BaseProviderSpec extends Specification {
 
   def "should get all unrestricted"() {
     setup:
-    @Subject provider = new TestResourceProvider()
+    @Subject provider = new TestResourceResourceProvider()
 
     when:
     provider.all = [noReqGroups]
@@ -72,7 +72,7 @@ class BaseProviderSpec extends Specification {
 
   def "should get restricted"() {
     setup:
-    @Subject provider = new TestResourceProvider()
+    @Subject provider = new TestResourceResourceProvider()
 
     when:
     provider.all = [noReqGroups]
@@ -111,7 +111,7 @@ class BaseProviderSpec extends Specification {
     thrown IllegalArgumentException
   }
 
-  class TestResourceProvider extends BaseProvider<TestResource> {
+  class TestResourceResourceProvider extends BaseResourceProvider<TestResource> {
     Set<TestResource> all = new HashSet<>()
 
     @Override

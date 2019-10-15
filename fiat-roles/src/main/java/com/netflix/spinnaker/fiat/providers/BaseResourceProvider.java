@@ -32,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Slf4j
-public abstract class BaseProvider<R extends Resource> implements ResourceProvider<R> {
+public abstract class BaseResourceProvider<R extends Resource> implements ResourceProvider<R> {
 
   private static final Integer CACHE_KEY = 0;
 
