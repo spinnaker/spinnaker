@@ -28,11 +28,11 @@ open class SagaIntegrationException(message: String, cause: Throwable?) :
   constructor(message: String) : this(message, null)
 
   init {
-    // Defer to the cause for retryable; but default to retryable if the retryable flag is unavailable.
+    // Defer to the cause for retryable; default to not retryable if the retryable flag is unavailable.
     retryable = if (cause is SpinnakerException) {
-      cause.retryable ?: true
+      cause.retryable ?: false
     } else {
-      true
+      false
     }
   }
 }

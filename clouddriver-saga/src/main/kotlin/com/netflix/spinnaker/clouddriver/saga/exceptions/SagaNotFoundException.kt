@@ -19,4 +19,8 @@ package com.netflix.spinnaker.clouddriver.saga.exceptions
 /**
  * Thrown when a [Saga] cannot be found but it is expected to already exist.
  */
-class SagaNotFoundException(message: String) : SagaSystemException(message)
+class SagaNotFoundException(message: String) : SagaSystemException(message) {
+  init {
+    retryable = false
+  }
+}

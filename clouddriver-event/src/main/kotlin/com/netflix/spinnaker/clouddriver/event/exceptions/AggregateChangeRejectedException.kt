@@ -29,5 +29,7 @@ class AggregateChangeRejectedException(
   "Attempting to save new events against an old aggregate version " +
     "(version: $aggregateVersion, originatingVersion: $originatingVersion)"
 ) {
-  override fun getRetryable() = true
+  init {
+    retryable = false
+  }
 }

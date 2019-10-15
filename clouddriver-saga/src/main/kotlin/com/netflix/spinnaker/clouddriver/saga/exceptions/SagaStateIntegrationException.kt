@@ -25,11 +25,15 @@ class SagaStateIntegrationException(message: String) : SagaIntegrationException(
     fun typeNotFound(expectedType: Class<*>, saga: Saga) =
       SagaStateIntegrationException(
         "No SagaEvent present for requested type: ${expectedType.simpleName} (${saga.name}/${saga.id})"
-      )
+      ).also {
+        it.retryable = false
+      }
 
     fun tooManyResults(expectedType: Class<*>, saga: Saga) =
       SagaStateIntegrationException(
         "More than one SagaEvent present for requested type: ${expectedType.simpleName} (${saga.name}/${saga.id})"
-      )
+      ).also {
+        it.retryable = false
+      }
   }
 }

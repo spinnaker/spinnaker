@@ -22,4 +22,8 @@ import com.netflix.spinnaker.clouddriver.saga.flow.SagaAction
  */
 class SagaFlowActionNotFoundException(sagaAction: Class<out SagaAction<*>>) : SagaIntegrationException(
   "Could not find a SagaAction in flow for ${sagaAction.simpleName}"
-)
+) {
+  init {
+    retryable = false
+  }
+}

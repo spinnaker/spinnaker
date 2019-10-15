@@ -24,6 +24,6 @@ open class SagaSystemException(message: String, cause: Throwable?) : SystemExcep
   constructor(message: String) : this(message, null)
 
   init {
-    retryable = true
+    retryable = false
   }
 }

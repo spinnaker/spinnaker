@@ -20,4 +20,8 @@ import com.netflix.spinnaker.kork.exceptions.IntegrationException
 /**
  * Thrown when a [SpinnakerEvent] cannot be created.
  */
-class InvalidEventTypeException(cause: Throwable) : IntegrationException(cause), EventingException
+class InvalidEventTypeException(cause: Throwable) : IntegrationException(cause), EventingException {
+  init {
+    retryable = false
+  }
+}

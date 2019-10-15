@@ -19,4 +19,8 @@ package com.netflix.spinnaker.clouddriver.saga.exceptions
 /**
  * Thrown when a [Saga] requires a specific [SagaCommand] type, but one does not exist in the [Saga] event log.
  */
-class SagaMissingRequiredCommandException(message: String) : SagaIntegrationException(message)
+class SagaMissingRequiredCommandException(message: String) : SagaIntegrationException(message) {
+  init {
+    retryable = false
+  }
+}

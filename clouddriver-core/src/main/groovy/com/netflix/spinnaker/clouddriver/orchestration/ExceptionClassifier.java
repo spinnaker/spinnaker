@@ -53,6 +53,7 @@ public class ExceptionClassifier {
       return Optional.ofNullable(((SpinnakerException) e).getRetryable()).orElse(false);
     }
 
+    boolean retryable = false;
     try {
       String dynamicNonRetryableClasses =
           dynamicConfigService.getConfig(
@@ -69,13 +70,16 @@ public class ExceptionClassifier {
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
 
-        return !nonRetryableClasses.contains(e.getClass().getName());
+        retryable = !nonRetryableClasses.contains(e.getClass().getName());
+      } else {
+        retryable = !properties.getNonRetryableClasses().contains(e.getClass().getName());
       }
-      return !properties.getNonRetryableClasses().contains(e.getClass().getName());
-
     } catch (Exception caughtException) {
       log.error("Unexpected exception while processing retryable classes", caughtException);
-      return false;
     }
+
+    log.trace("Evaluated retryable status for {} to '{}'", e.getClass().getName(), retryable);
+
+    return retryable;
   }
 }
