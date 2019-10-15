@@ -2,6 +2,7 @@
 
 const angular = require('angular');
 import _ from 'lodash';
+import { getAllTargetGroups, applyHealthCheckInfoToTargetGroups } from './utils';
 
 import {
   CloudProviderRegistry,
@@ -70,6 +71,11 @@ module.exports = angular
         var displayableMetrics = instance.health.filter(function(metric) {
           return metric.type !== 'Amazon' || metric.state !== 'Unknown';
         });
+
+        // augment with target group healthcheck data
+        const targetGroups = getAllTargetGroups(app.loadBalancers.data);
+        applyHealthCheckInfoToTargetGroups(displayableMetrics, targetGroups);
+
         // backfill details where applicable
         if (latest.health) {
           displayableMetrics.forEach(function(metric) {

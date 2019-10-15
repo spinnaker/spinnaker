@@ -7,4 +7,4 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.instance.loadBalancer.health.directive', [])
-  .component('instanceLoadBalancerHealth', react2angular(InstanceLoadBalancerHealth, ['loadBalancer']));
+  .component('instanceLoadBalancerHealth', react2angular(InstanceLoadBalancerHealth, ['loadBalancer', 'ipAddress']));

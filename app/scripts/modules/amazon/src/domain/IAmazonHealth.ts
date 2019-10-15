@@ -4,4 +4,5 @@ import { ITargetGroup } from 'amazon/domain';
 
 export interface IAmazonHealth extends IHealth {
   targetGroups: ITargetGroup[];
+  type: string;
 }

@@ -2,6 +2,7 @@
 
 const angular = require('angular');
 import { defaults, filter } from 'lodash';
+import { getAllTargetGroups, applyHealthCheckInfoToTargetGroups } from '@spinnaker/amazon';
 
 import {
   AccountService,
@@ -71,6 +72,10 @@ module.exports = angular
         var displayableMetrics = instance.health.filter(function(metric) {
           return metric.state !== 'Unknown';
         });
+
+        // augment with target group healthcheck data
+        const targetGroups = getAllTargetGroups(app.loadBalancers.data);
+        applyHealthCheckInfoToTargetGroups(displayableMetrics, targetGroups);
 
         // backfill details where applicable
         if (latest.health) {

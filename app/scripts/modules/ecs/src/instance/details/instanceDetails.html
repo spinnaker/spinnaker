@@ -146,7 +146,10 @@
             ng-if="metric.type === 'TargetGroup' && metric.targetGroups.length"
             ng-repeat="targetGroup in metric.targetGroups"
           >
-            <instance-load-balancer-health load-balancer="targetGroup"></instance-load-balancer-health>
+            <instance-load-balancer-health
+              load-balancer="targetGroup"
+              ip-address="baseIpAddress"
+            ></instance-load-balancer-health>
           </div>
         </dd>
       </dl>
