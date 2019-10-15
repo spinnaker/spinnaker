@@ -12,19 +12,9 @@
   </div>
 </div>
 
-<div class="form-group" ng-if="vm.command.regional">
+<div class="form-group" ng-if="vm.command.regional && vm.command.selectZones">
   <div class="col-md-3 sm-label-right">Zones</div>
-  <div class="col-md-7" ng-if="!vm.command.selectZones">
-    <p>
-      Server group will be available in:
-    </p>
-    <ul>
-      <li ng-repeat="zone in vm.command.backingData.filtered.truncatedZones">
-        {{zone}}
-      </li>
-    </ul>
-  </div>
-  <div class="col-md-7" ng-if="vm.command.selectZones">
+  <div class="col-md-7">
     <ui-select multiple ng-model="vm.command.distributionPolicy.zones" class="form-control input-sm">
       <ui-select-match>{{ $item }}</ui-select-match>
       <ui-select-choices repeat="zone as zone in vm.command.backingData.filtered.zones">
