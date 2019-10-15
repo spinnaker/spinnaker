@@ -64,6 +64,7 @@ import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+import static com.google.common.base.Preconditions.checkArgument
 import static com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil.BACKEND_SERVICE_NAMES
 import static com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil.GLOBAL_LOAD_BALANCER_NAMES
 import static com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil.LOAD_BALANCING_POLICY
@@ -395,11 +396,14 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     namer.applyMoniker(new GoogleInstanceTemplate(labels: labels), moniker)
 
     // Accelerators are supported for zonal server groups only.
-    List<AcceleratorConfig> acceleratorConfigs = description.regional ? [] : description.acceleratorConfigs
+    if (description.acceleratorConfigs) {
+      checkArgument(!description.regional || description.selectZones,
+        "Accelerators are only supported with regional server groups if the zones are specified by the user.");
+    }
 
     def instanceProperties = new InstanceProperties(machineType: machineTypeName,
                                                     disks: attachedDisks,
-                                                    guestAccelerators: acceleratorConfigs ?: [],
+                                                    guestAccelerators: description.acceleratorConfigs ?: [],
                                                     networkInterfaces: [networkInterface],
                                                     canIpForward: canIpForward,
                                                     metadata: metadata,
