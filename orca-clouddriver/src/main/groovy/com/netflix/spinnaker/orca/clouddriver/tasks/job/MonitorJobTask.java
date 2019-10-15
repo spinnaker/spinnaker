@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.job;
 
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
@@ -32,13 +33,18 @@ public class MonitorJobTask extends MonitorKatoTask {
   private final JobUtils jobUtils;
 
   @Autowired
-  public MonitorJobTask(KatoService katoService, Registry registry, JobUtils jobUtils) {
-    super(katoService, registry);
+  public MonitorJobTask(
+      KatoService katoService,
+      Registry registry,
+      JobUtils jobUtils,
+      DynamicConfigService dynamicConfigService) {
+    super(katoService, registry, dynamicConfigService);
     this.jobUtils = jobUtils;
   }
 
-  public MonitorJobTask(KatoService katoService, Registry registry) {
-    super(katoService, registry);
+  public MonitorJobTask(
+      KatoService katoService, Registry registry, DynamicConfigService dynamicConfigService) {
+    super(katoService, registry, dynamicConfigService);
     this.jobUtils = null;
   }
 

@@ -16,10 +16,8 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks
 
-import java.time.Clock
-import java.time.Instant
-import java.time.ZoneId
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.Task
@@ -34,6 +32,10 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneId
+
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class MonitorKatoTaskSpec extends Specification {
@@ -42,8 +44,9 @@ class MonitorKatoTaskSpec extends Specification {
   def now = Instant.now()
 
   KatoService kato = Mock(KatoService)
+  DynamicConfigService dynamicConfigService = Mock()
 
-  @Subject task = new MonitorKatoTask(kato, new NoopRegistry(), Clock.fixed(now, ZoneId.of("UTC"))) {{
+  @Subject task = new MonitorKatoTask(kato, new NoopRegistry(), Clock.fixed(now, ZoneId.of("UTC")), dynamicConfigService) {{
     taskNotFoundTimeoutMs = TASK_NOT_FOUND_TIMEOUT
   }}
 
@@ -189,6 +192,7 @@ class MonitorKatoTaskSpec extends Specification {
 
     then:
     notThrown(RetrofitError)
+    dynamicConfigService.isEnabled("tasks.monitor-kato-task.saga-retries", _) >> true
     with(kato) {
       1 * lookupTask(katoTask.id, false) >> { Observable.just(katoTask) }
       1 * resumeTask(katoTask.id) >> { new TaskId(katoTask.id) }

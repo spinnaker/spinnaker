@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks
 
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
@@ -52,16 +53,18 @@ class MonitorKatoTask implements RetryableTask, CloudProviderAware {
   private final Clock clock
   private final Registry registry
   private final KatoService kato
+  private final DynamicConfigService dynamicConfigService
 
   @Autowired
-  MonitorKatoTask(KatoService katoService, Registry registry) {
-    this(katoService, registry, Clock.systemUTC())
+  MonitorKatoTask(KatoService katoService, Registry registry, DynamicConfigService dynamicConfigService) {
+    this(katoService, registry, Clock.systemUTC(), dynamicConfigService)
   }
 
-  MonitorKatoTask(KatoService katoService, Registry registry, Clock clock) {
+  MonitorKatoTask(KatoService katoService, Registry registry, Clock clock, DynamicConfigService dynamicConfigService) {
     this.registry = registry
     this.clock = clock
     this.kato = katoService
+    this.dynamicConfigService = dynamicConfigService
   }
 
   long getBackoffPeriod() { 5000L }
@@ -161,7 +164,7 @@ class MonitorKatoTask implements RetryableTask, CloudProviderAware {
       outputs["kato.tasks"] = katoTasks
     }
 
-    if (status == ExecutionStatus.TERMINAL && katoTask.status.retryable) {
+    if (status == ExecutionStatus.TERMINAL && katoTask.status.retryable && dynamicConfigService.isEnabled("tasks.monitor-kato-task.saga-retries", true)) {
       stage.execution.systemNotifications.add(new SystemNotification(
         clock.millis(),
         "katoRetryTask",
