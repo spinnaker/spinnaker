@@ -50,9 +50,8 @@ class ApplicationLoadBalancerHandler(
       locations.regions.map {
         ApplicationLoadBalancer(
           moniker,
-          Location(locations.accountName, it.region, it.subnet, it.availabilityZones),
+          Location(locations.accountName, it.region, locations.vpcName, it.subnet, it.availabilityZones),
           internal,
-          vpcName,
           dependencies,
           idleTimeout,
           listeners,
@@ -140,11 +139,11 @@ class ApplicationLoadBalancerHandler(
                   location = Location(
                     accountName = spec.locations.accountName,
                     region = region.region,
-                    availabilityZones = lb.availabilityZones,
-                    subnet = cloudDriverCache.subnetBy(lb.subnets.first()).purpose
+                    vpcName = lb.vpcId.let { cloudDriverCache.networkBy(it).name } ?: error("Keel does not support load balancers that are not in a VPC subnet"),
+                    subnet = cloudDriverCache.subnetBy(lb.subnets.first()).purpose ?: error("Keel does not support load balancers that are not in a VPC subnet"),
+                    availabilityZones = lb.availabilityZones
                   ),
                   internal = lb.scheme != null && lb.scheme!!.contains("internal", ignoreCase = true),
-                  vpcName = lb.vpcId.let { cloudDriverCache.networkBy(it).name },
                   listeners = lb.listeners.map { l ->
                     ApplicationLoadBalancerSpec.Listener(
                       port = l.port,
@@ -209,7 +208,7 @@ class ApplicationLoadBalancerHandler(
           "region" to location.region,
           "availabilityZones" to mapOf(location.region to location.availabilityZones),
           "loadBalancerType" to loadBalancerType.toString().toLowerCase(),
-          "vpcId" to cloudDriverCache.networkBy(vpcName, location.accountName, location.region).id,
+          "vpcId" to cloudDriverCache.networkBy(location.vpcName, location.accountName, location.region).id,
           "subnetType" to location.subnet,
           "isInternal" to internal,
           "idleTimeout" to idleTimeout.seconds,
@@ -233,7 +232,7 @@ class ApplicationLoadBalancerHandler(
               "attributes" to it.attributes
             )
           }
-      )
+        )
       )
     }
 }

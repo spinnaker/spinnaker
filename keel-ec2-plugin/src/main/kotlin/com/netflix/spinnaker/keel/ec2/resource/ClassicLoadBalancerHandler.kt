@@ -52,9 +52,8 @@ class ClassicLoadBalancerHandler(
       locations.regions.map {
         ClassicLoadBalancer(
           moniker,
-          Location(locations.accountName, it.region, it.subnet, it.availabilityZones),
+          Location(locations.accountName, it.region, locations.vpcName, it.subnet, it.availabilityZones),
           internal,
-          vpcName,
           dependencies,
           listeners,
           healthCheck,
@@ -150,8 +149,9 @@ class ClassicLoadBalancerHandler(
                   location = Location(
                     accountName = spec.locations.accountName,
                     region = region.region,
-                    availabilityZones = lb.availabilityZones,
-                    subnet = cloudDriverCache.subnetBy(lb.subnets.first()).purpose
+                    vpcName = lb.vpcId.let { cloudDriverCache.networkBy(it).name } ?: error("Keel does not support load balancers that are not in a VPC subnet"),
+                    subnet = cloudDriverCache.subnetBy(lb.subnets.first()).purpose ?: error("Keel does not support load balancers that are not in a VPC subnet"),
+                    availabilityZones = lb.availabilityZones
                   ),
                   internal = lb.scheme != null && lb.scheme!!.contains("internal", ignoreCase = true),
                   healthCheck = ClassicLoadBalancerHealthCheck(
@@ -162,7 +162,6 @@ class ClassicLoadBalancerHandler(
                     timeout = Duration.ofSeconds(lb.healthCheck.timeout.toLong())
                   ),
                   idleTimeout = Duration.ofSeconds(lb.idleTimeout.toLong()),
-                  vpcName = lb.vpcId.let { cloudDriverCache.networkBy(it).name },
                   listeners = lb.listenerDescriptions.map {
                     ClassicLoadBalancerListener(
                       externalProtocol = it.listener.protocol,
@@ -208,7 +207,7 @@ class ClassicLoadBalancerHandler(
           "region" to location.region,
           "availabilityZones" to mapOf(location.region to location.availabilityZones),
           "loadBalancerType" to loadBalancerType.toString().toLowerCase(),
-          "vpcId" to cloudDriverCache.networkBy(vpcName, location.accountName, location.region).id,
+          "vpcId" to cloudDriverCache.networkBy(location.vpcName, location.accountName, location.region).id,
           "subnetType" to location.subnet,
           "isInternal" to internal,
           "healthCheck" to healthCheck.target,

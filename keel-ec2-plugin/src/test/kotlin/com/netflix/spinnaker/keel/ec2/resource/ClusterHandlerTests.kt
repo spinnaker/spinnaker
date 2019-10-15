@@ -96,6 +96,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
     moniker = Moniker(app = "keel", stack = "test"),
     locations = Locations(
       accountName = vpcWest.account,
+      vpcName = "vpc0",
       regions = listOf(vpcWest, vpcEast).map { subnet ->
         SubnetAwareRegionSpec(
           region = subnet.region,

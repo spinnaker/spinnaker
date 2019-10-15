@@ -26,5 +26,6 @@ interface Locatable<T : RegionSpec> : ResourceSpec {
 
 data class Locations<T : RegionSpec>(
   val accountName: String,
+  val vpcName: String,
   val regions: Set<T>
 )

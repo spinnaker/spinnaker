@@ -62,13 +62,13 @@ internal class ApplicationLoadBalancerSpecHandlerTests : JUnit5Minutests {
     |  detail: wow
     |locations:
     |  accountName: test
+    |  vpcName: vpc0
     |  regions:
     |  - region: us-east-1
     |    subnet: internal (vpc0)
     |    availabilityZones:
     |    - us-east-1c
     |    - us-east-1d
-    |vpcName: vpc0
     |listeners:
     | - port: 80
     |   protocol: HTTP

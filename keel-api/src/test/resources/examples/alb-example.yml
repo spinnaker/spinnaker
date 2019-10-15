@@ -4,14 +4,13 @@ kind: application-load-balancer
 metadata:
   serviceAccount: my-email@spinnaker.io
 spec:
-  vpcName: vpc0
-  subnetType: internal (vpc0)
   moniker:
     app: keeldemo
     stack: example
     detail: albec2v1
   locations:
     accountName: test
+    vpcName: vpc0
     regions:
     - region: us-east-1
       subnet: internal (vpc0)

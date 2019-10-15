@@ -278,10 +278,11 @@ class ClusterHandler(
     ServerGroup(
       name = name,
       location = Location(
-        accountName,
-        region,
-        subnet,
-        zones
+        accountName = accountName,
+        region = region,
+        vpcName = cloudDriverCache.networkBy(vpcId).name ?: error("VPC with id $vpcId has no name!"),
+        subnet = subnet,
+        availabilityZones = zones
       ),
       launchConfiguration = launchConfig.run {
         LaunchConfiguration(

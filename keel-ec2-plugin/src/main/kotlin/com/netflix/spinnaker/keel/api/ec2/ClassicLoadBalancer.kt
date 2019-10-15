@@ -8,7 +8,6 @@ data class ClassicLoadBalancer(
   val moniker: Moniker,
   val location: Location,
   val internal: Boolean = true,
-  val vpcName: String?, // TODO: do we need this?
   val dependencies: LoadBalancerDependencies = LoadBalancerDependencies(),
   val listeners: Set<ClassicLoadBalancerListener> = emptySet(),
   val healthCheck: ClassicLoadBalancerHealthCheck,

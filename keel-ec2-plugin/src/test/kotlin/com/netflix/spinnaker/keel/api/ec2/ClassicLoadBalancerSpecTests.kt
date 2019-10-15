@@ -27,6 +27,7 @@ internal object ClassicLoadBalancerSpecTests : JUnit5Minutests {
             |  detail: wow
             |locations:
             |  accountName: test
+            |  vpcName: vpc0
             |  regions:
             |  - region: us-east-1
             |    subnet: internal (vpc0)
@@ -34,7 +35,6 @@ internal object ClassicLoadBalancerSpecTests : JUnit5Minutests {
             |    - us-east-1c
             |    - us-east-1d
             |    - us-east-1e
-            |vpcName: vpc0
             |healthCheck:
             |  target: HTTP:7001/health
             |listeners:

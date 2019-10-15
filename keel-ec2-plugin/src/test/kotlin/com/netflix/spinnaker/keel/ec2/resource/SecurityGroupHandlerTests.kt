@@ -118,9 +118,9 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
         ),
         locations = Locations(
           accountName = vpcRegion1.account,
+          vpcName = vpcRegion1.name!!,
           regions = setOf(SimpleRegionSpec(vpcRegion1.region), SimpleRegionSpec(vpcRegion2.region))
         ),
-        vpcName = vpcRegion1.name,
         description = "dummy security group"
       ),
     override val securityGroupBase: SecurityGroup =
@@ -131,9 +131,9 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
         ),
         location = SecurityGroup.Location(
           accountName = vpcRegion1.account,
+          vpcName = vpcRegion1.name!!,
           region = "placeholder"
         ),
-        vpcName = vpcRegion1.name,
         description = "dummy security group"
       ),
     override val regionalSecurityGroups: Map<String, SecurityGroup> =
@@ -141,11 +141,17 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
         "us-west-3" to securityGroupBase.copy(
           location = SecurityGroup.Location(
             accountName = securityGroupBase.location.accountName,
-            region = "us-west-3")),
+            vpcName = securityGroupBase.location.vpcName,
+            region = "us-west-3"
+          )
+        ),
         "us-east-17" to securityGroupBase.copy(
           location = SecurityGroup.Location(
             accountName = securityGroupBase.location.accountName,
-            region = "us-east-17"))
+            vpcName = securityGroupBase.location.vpcName,
+            region = "us-east-17"
+          )
+        )
       ),
     val cloudDriverResponse1: ClouddriverSecurityGroup =
       ClouddriverSecurityGroup(
@@ -195,9 +201,9 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
         ),
         locations = Locations(
           accountName = vpcRegion1.account,
+          vpcName = vpcRegion1.name!!,
           regions = setOf(SimpleRegionSpec(vpcRegion1.region), SimpleRegionSpec(vpcRegion2.region))
         ),
-        vpcName = vpcRegion1.name,
         description = "dummy security group"
       ),
     override val securityGroupBase: SecurityGroup =
@@ -208,9 +214,9 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
         ),
         location = SecurityGroup.Location(
           accountName = vpcRegion1.account,
+          vpcName = vpcRegion1.name!!,
           region = "placeholder"
         ),
-        vpcName = vpcRegion1.name,
         description = "dummy security group"
       ),
     override val regionalSecurityGroups: Map<String, SecurityGroup> =
@@ -218,11 +224,17 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
         "us-west-3" to securityGroupBase.copy(
           location = SecurityGroup.Location(
             accountName = securityGroupBase.location.accountName,
-            region = "us-west-3")),
+            vpcName = securityGroupBase.location.vpcName,
+            region = "us-west-3"
+          )
+        ),
         "us-east-17" to securityGroupBase.copy(
           location = SecurityGroup.Location(
             accountName = securityGroupBase.location.accountName,
-            region = "us-east-17"))
+            vpcName = securityGroupBase.location.vpcName,
+            region = "us-east-17"
+          )
+        )
       )
   ) : Fixture
 
@@ -648,7 +660,12 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
               spec = resource.spec.copy(
                 locations = Locations(
                   accountName = securityGroupSpec.locations.accountName,
-                  regions = setOf(SimpleRegionSpec("us-east-17")))))
+                  vpcName = securityGroupSpec.locations.vpcName,
+                  regions = setOf(SimpleRegionSpec("us-east-17")
+                  )
+                )
+              )
+            )
 
           handler.update(
             resource,

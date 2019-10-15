@@ -22,6 +22,7 @@ internal class ClassicLoadBalancerAvailabilityZonesResolverTests : AvailabilityZ
           ),
           Locations(
             accountName = "test",
+            vpcName = "vpc0",
             regions = setOf(
               SubnetAwareRegionSpec(
                 region = "us-east-1",
@@ -35,7 +36,6 @@ internal class ClassicLoadBalancerAvailabilityZonesResolverTests : AvailabilityZ
               )
             )
           ),
-          vpcName = "vpc0",
           healthCheck = ClassicLoadBalancerHealthCheck(
             target = "/healthcheck"
           )

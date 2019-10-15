@@ -21,6 +21,7 @@ internal class ApplicationLoadBalancerAvailabilityZonesResolverTests : Availabil
           ),
           Locations(
             accountName = "test",
+            vpcName = "vpc0",
             regions = setOf(
               SubnetAwareRegionSpec(
                 region = "us-east-1",
@@ -34,7 +35,6 @@ internal class ApplicationLoadBalancerAvailabilityZonesResolverTests : Availabil
               )
             )
           ),
-          vpcName = "vpc0",
           listeners = emptySet(),
           targetGroups = emptySet()
         )

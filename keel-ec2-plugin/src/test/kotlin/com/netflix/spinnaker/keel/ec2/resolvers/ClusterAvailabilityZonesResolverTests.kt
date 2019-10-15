@@ -33,6 +33,7 @@ internal class ClusterAvailabilityZonesResolverTests : AvailabilityZonesResolver
           imageProvider = ArtifactImageProvider(DeliveryArtifact("fnord", ArtifactType.DEB)),
           locations = Locations(
             accountName = "test",
+            vpcName = "vpc0",
             regions = setOf(
               SubnetAwareRegionSpec(
                 region = "us-east-1",

@@ -120,6 +120,7 @@ object Fixture {
     imageProvider = ArtifactImageProvider(DeliveryArtifact("fnord", DEB)),
     locations = Locations(
       accountName = "test",
+      vpcName = "vpc0",
       regions = setOf(
         SubnetAwareRegionSpec(
           region = "us-east-1",

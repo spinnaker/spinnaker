@@ -10,7 +10,6 @@ interface LoadBalancerSpec : Monikered, Locatable<SubnetAwareRegionSpec> {
   val loadBalancerType: LoadBalancerType
   override val locations: Locations<SubnetAwareRegionSpec>
   val internal: Boolean
-  val vpcName: String? // TODO: belongs on locations? Or can we derive this from subnet?
   val dependencies: LoadBalancerDependencies
   val idleTimeout: Duration
 }

@@ -20,6 +20,7 @@ package com.netflix.spinnaker.keel.api.ec2
 data class Location(
   val accountName: String,
   val region: String,
-  val subnet: String?, // TODO: is this actually optional?
+  val vpcName: String,
+  val subnet: String,
   val availabilityZones: Set<String>
 )

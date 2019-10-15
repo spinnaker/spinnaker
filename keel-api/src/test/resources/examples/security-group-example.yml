@@ -10,10 +10,10 @@ spec:
     detail: ec2v1
   locations:
     accountName: test
+    vpcName: vpc0
     regions:
       - us-west-2
       - us-east-1
-  vpcName: vpc0
   description: Managed Security Group for keeldemo example
   inboundRules:
     - protocol: TCP

@@ -10,13 +10,13 @@ spec:
     detail: clbec2v1
   locations:
     accountName: test
+    vpcName: vpc0
     regions:
     - region: us-east-1
       subnet: internal (vpc0)
     - region: us-west-2
       subnet: internal (vpc0)
   internal: true
-  vpcName: vpc0
   securityGroupNames: []
   idleTimeout: 60
   listeners:

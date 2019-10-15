@@ -60,7 +60,7 @@ data class CrossAccountReferenceRule(
     protocol = protocol,
     name = reference.moniker.name,
     account = reference.locations.accountName,
-    vpcName = reference.vpcName!!,
+    vpcName = reference.locations.vpcName,
     portRange = portRange
   )
 }

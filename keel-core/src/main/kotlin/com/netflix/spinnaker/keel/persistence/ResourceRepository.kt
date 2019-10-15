@@ -173,6 +173,7 @@ interface ResourceRepository : PeriodicallyCheckedRepository<ResourceHeader> {
       locations = if (spec is Locatable<*>) {
         Locations(
           accountName = spec.locations.accountName,
+          vpcName = spec.locations.vpcName,
           regions = spec.locations.regions.map { SimpleRegionSpec(it.region) }.toSet()
         )
       } else {

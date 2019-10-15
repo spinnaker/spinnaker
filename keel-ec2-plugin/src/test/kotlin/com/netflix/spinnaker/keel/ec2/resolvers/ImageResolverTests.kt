@@ -121,6 +121,7 @@ internal class ImageResolverTests : JUnit5Minutests {
         imageProvider = imageProvider,
         locations = Locations(
           accountName = account,
+          vpcName = "vpc0",
           regions = setOf(
             SubnetAwareRegionSpec(
               region = resourceRegion,

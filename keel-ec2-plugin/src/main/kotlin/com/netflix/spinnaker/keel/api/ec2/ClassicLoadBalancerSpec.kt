@@ -11,7 +11,6 @@ data class ClassicLoadBalancerSpec(
   override val moniker: Moniker,
   override val locations: Locations<SubnetAwareRegionSpec>,
   override val internal: Boolean = true,
-  override val vpcName: String?,
   override val dependencies: LoadBalancerDependencies = LoadBalancerDependencies(),
   val listeners: Set<ClassicLoadBalancerListener> = emptySet(),
   val healthCheck: ClassicLoadBalancerHealthCheck,

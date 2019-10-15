@@ -18,10 +18,11 @@ fun ClusterSpec.resolve(): Set<ServerGroup> =
     ServerGroup(
       name = moniker.name,
       location = Location(
-        locations.accountName,
-        it.region,
-        it.subnet,
-        it.availabilityZones
+        accountName = locations.accountName,
+        region = it.region,
+        vpcName = locations.vpcName,
+        subnet = it.subnet,
+        availabilityZones = it.availabilityZones
       ),
       launchConfiguration = resolveLaunchConfiguration(it),
       capacity = resolveCapacity(it.region),

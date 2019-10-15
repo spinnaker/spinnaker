@@ -52,7 +52,11 @@ fun locatableResource(
   kind: String = "locatable",
   id: String = randomString(),
   application: String = "fnord",
-  locations: Locations<SimpleRegionSpec> = Locations("test", setOf(SimpleRegionSpec("us-west-1")))
+  locations: Locations<SimpleRegionSpec> = Locations(
+    accountName = "test",
+    vpcName = "vpc0",
+    regions = setOf(SimpleRegionSpec("us-west-1"))
+  )
 ): Resource<DummyLocatableResourceSpec> =
   DummyLocatableResourceSpec(id = id, application = application, locations = locations)
     .let { spec ->
@@ -119,7 +123,11 @@ data class DummyLocatableResourceSpec(
   override val id: String = randomString(),
   val data: String = randomString(),
   override val application: String = "fnord",
-  override val locations: Locations<SimpleRegionSpec> = Locations("test", setOf(SimpleRegionSpec("us-west-1")))
+  override val locations: Locations<SimpleRegionSpec> = Locations(
+    accountName = "test",
+    vpcName = "vpc0",
+    regions = setOf(SimpleRegionSpec("us-west-1"))
+  )
 ) : ResourceSpec, Locatable<SimpleRegionSpec>
 
 data class DummyResource(

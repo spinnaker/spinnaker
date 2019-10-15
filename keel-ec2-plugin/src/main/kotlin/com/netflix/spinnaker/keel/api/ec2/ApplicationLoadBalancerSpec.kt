@@ -14,7 +14,6 @@ data class ApplicationLoadBalancerSpec(
   override val moniker: Moniker,
   override val locations: Locations<SubnetAwareRegionSpec>,
   override val internal: Boolean = true,
-  override val vpcName: String?,
   override val dependencies: LoadBalancerDependencies = LoadBalancerDependencies(),
   override val idleTimeout: Duration = Duration.ofSeconds(60),
   val listeners: Set<Listener>,

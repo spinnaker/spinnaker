@@ -26,7 +26,6 @@ import de.danielbechler.diff.introspection.ObjectDiffProperty
 data class SecurityGroupSpec(
   override val moniker: Moniker,
   override val locations: Locations<SimpleRegionSpec>,
-  val vpcName: String?,
   val description: String?,
   val inboundRules: Set<SecurityGroupRule> = emptySet(),
   val overrides: Map<String, SecurityGroupOverride> = emptyMap()
@@ -39,7 +38,6 @@ data class SecurityGroupSpec(
 }
 
 data class SecurityGroupOverride(
-  val vpcName: String? = null,
   @get:ObjectDiffProperty(inclusion = EXCLUDED)
   val description: String? = null,
   val inboundRules: Set<SecurityGroupRule>? = null

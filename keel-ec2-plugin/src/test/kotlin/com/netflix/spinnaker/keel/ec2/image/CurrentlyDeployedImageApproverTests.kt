@@ -76,6 +76,7 @@ internal class CurrentlyDeployedImageApproverTests : JUnit5Minutests {
         moniker = Moniker("fnord", "api"),
         locations = Locations(
           accountName = "test",
+          vpcName = "vpc0",
           regions = setOf(
             SubnetAwareRegionSpec(
               region = "ap-south-1",
@@ -107,6 +108,7 @@ internal class CurrentlyDeployedImageApproverTests : JUnit5Minutests {
         imageProvider = ArtifactImageProvider(deliveryArtifact = artifact),
         locations = Locations(
           accountName = "test",
+          vpcName = "vpc0",
           regions = setOf(
             SubnetAwareRegionSpec(
               region = "ap-south-1",
