@@ -65,7 +65,7 @@ internal class ApplicationLoadBalancerSpecHandlerTests : JUnit5Minutests {
     |  vpcName: vpc0
     |  subnet: internal (vpc0)
     |  regions:
-    |  - region: us-east-1
+    |  - name: us-east-1
     |    availabilityZones:
     |    - us-east-1c
     |    - us-east-1d

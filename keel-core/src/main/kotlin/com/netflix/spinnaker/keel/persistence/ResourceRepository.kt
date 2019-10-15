@@ -17,12 +17,13 @@ package com.netflix.spinnaker.keel.persistence
 
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Locatable
-import com.netflix.spinnaker.keel.api.Locations
 import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.ResourceSummary
+import com.netflix.spinnaker.keel.api.SimpleLocations
+import com.netflix.spinnaker.keel.api.SimpleRegionSpec
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceCheckError
@@ -32,7 +33,6 @@ import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
 import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.events.ResourceMissing
 import com.netflix.spinnaker.keel.events.ResourceValid
-import com.netflix.spinnaker.keel.model.SimpleRegionSpec
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.ACTUATING
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.CREATED
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.DIFF
@@ -171,11 +171,10 @@ interface ResourceRepository : PeriodicallyCheckedRepository<ResourceHeader> {
         null
       },
       locations = if (spec is Locatable<*>) {
-        Locations(
+        SimpleLocations(
           accountName = spec.locations.accountName,
           vpcName = spec.locations.vpcName,
-          subnet = null, // TODO: can we avoid this for non-subnet resources?
-          regions = spec.locations.regions.map { SimpleRegionSpec(it.region) }.toSet()
+          regions = spec.locations.regions.map { SimpleRegionSpec(it.name) }.toSet()
         )
       } else {
         null

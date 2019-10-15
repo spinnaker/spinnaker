@@ -3,14 +3,14 @@ package com.netflix.spinnaker.keel.api.ec2
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.Locations
+import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.HealthSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.VirtualMachineImage
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType.ELB
 import com.netflix.spinnaker.keel.model.Moniker
-import com.netflix.spinnaker.keel.model.SubnetAwareRegionSpec
+import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import dev.minutest.junit.JUnit5Minutests
@@ -118,17 +118,17 @@ object Fixture {
       stack = "test"
     ),
     imageProvider = ArtifactImageProvider(DeliveryArtifact("fnord", DEB)),
-    locations = Locations(
+    locations = SubnetAwareLocations(
       accountName = "test",
       vpcName = "vpc0",
       subnet = "internal (vpc0)",
       regions = setOf(
         SubnetAwareRegionSpec(
-          region = "us-east-1",
+          name = "us-east-1",
           availabilityZones = setOf("us-east-1c", "us-east-1d", "us-east-1e")
         ),
         SubnetAwareRegionSpec(
-          region = "us-west-2",
+          name = "us-west-2",
           availabilityZones = setOf("us-west-2a", "us-west-2b", "us-west-2c")
         )
       )

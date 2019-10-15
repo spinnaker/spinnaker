@@ -99,14 +99,14 @@ class ImageResolver(
       .filterNotNullValues()
       .filterValues { it.isNotEmpty() }
       .mapValues { it.value.first() }
-    val missingRegions = spec.locations.regions.map { it.region } - imageIdByRegion.keys
+    val missingRegions = spec.locations.regions.map { it.name } - imageIdByRegion.keys
     if (missingRegions.isNotEmpty()) {
       throw NoImageFoundForRegions(image.imageName, missingRegions)
     }
 
     val overrides = mutableMapOf<String, ServerGroupSpec>()
     overrides.putAll(spec.overrides)
-    spec.locations.regions.map { it.region }.forEach { region ->
+    spec.locations.regions.map { it.name }.forEach { region ->
       overrides[region] = overrides[region].withVirtualMachineImage(VirtualMachineImage(imageIdByRegion.getValue(region), image.appVersion))
     }
 

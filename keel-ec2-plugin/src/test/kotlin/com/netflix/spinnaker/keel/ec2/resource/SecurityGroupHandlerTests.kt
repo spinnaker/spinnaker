@@ -16,9 +16,10 @@
 package com.netflix.spinnaker.keel.ec2.resource
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.keel.api.Locations
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
+import com.netflix.spinnaker.keel.api.SimpleLocations
+import com.netflix.spinnaker.keel.api.SimpleRegionSpec
 import com.netflix.spinnaker.keel.api.ec2.CidrRule
 import com.netflix.spinnaker.keel.api.ec2.CrossAccountReferenceRule
 import com.netflix.spinnaker.keel.api.ec2.PortRange
@@ -40,7 +41,6 @@ import com.netflix.spinnaker.keel.ec2.RETROFIT_NOT_FOUND
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
-import com.netflix.spinnaker.keel.model.SimpleRegionSpec
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
@@ -116,10 +116,9 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
           app = "keel",
           stack = "fnord"
         ),
-        locations = Locations(
+        locations = SimpleLocations(
           accountName = vpcRegion1.account,
           vpcName = vpcRegion1.name!!,
-          subnet = null, // TODO: can we avoid requiring this for security groups?
           regions = setOf(SimpleRegionSpec(vpcRegion1.region), SimpleRegionSpec(vpcRegion2.region))
         ),
         description = "dummy security group"
@@ -200,10 +199,9 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
           app = "keel",
           stack = "fnord"
         ),
-        locations = Locations(
+        locations = SimpleLocations(
           accountName = vpcRegion1.account,
           vpcName = vpcRegion1.name!!,
-          subnet = null,
           regions = setOf(SimpleRegionSpec(vpcRegion1.region), SimpleRegionSpec(vpcRegion2.region))
         ),
         description = "dummy security group"
@@ -410,7 +408,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
 
           before {
             securityGroupSpec.locations.regions.forEach { region ->
-              Network(CLOUD_PROVIDER, randomUUID().toString(), "vpc1", "test", region.region)
+              Network(CLOUD_PROVIDER, randomUUID().toString(), "vpc1", "test", region.name)
                 .also {
                   every { cloudDriverCache.networkBy(it.id) } returns it
                   every { cloudDriverCache.networkBy(it.name, it.account, it.region) } returns it
@@ -660,10 +658,9 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
           val onlyInEast = resource
             .copy(
               spec = resource.spec.copy(
-                locations = Locations(
+                locations = SimpleLocations(
                   accountName = securityGroupSpec.locations.accountName,
                   vpcName = securityGroupSpec.locations.vpcName,
-                  subnet = null,
                   regions = setOf(SimpleRegionSpec("us-east-17"))
                 )
               )

@@ -15,11 +15,10 @@ spec:
   locations:
     accountName: test
     vpcName: vpc0
+    subnet: internal (vpc0)
     regions:
-      - region: us-west-2
-        subnet: internal (vpc0)
-      - region: us-east-1
-        subnet: internal (vpc0)
+      - name: us-west-2
+      - name: us-east-1
   overrides: {}
   launchConfiguration:
     instanceType: m5.large

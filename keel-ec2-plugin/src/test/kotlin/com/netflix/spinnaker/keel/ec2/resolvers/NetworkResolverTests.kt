@@ -3,8 +3,8 @@ package com.netflix.spinnaker.keel.ec2.resolvers
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.Locatable
-import com.netflix.spinnaker.keel.api.Locations
 import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.Capacity
@@ -20,7 +20,7 @@ import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
 import com.netflix.spinnaker.keel.ec2.resolvers.NetworkResolver.Companion.DEFAULT_SUBNET_PURPOSE
 import com.netflix.spinnaker.keel.ec2.resolvers.NetworkResolver.Companion.DEFAULT_VPC_NAME
 import com.netflix.spinnaker.keel.model.Moniker
-import com.netflix.spinnaker.keel.model.SubnetAwareRegionSpec
+import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.plugin.supporting
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
@@ -31,7 +31,7 @@ import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 import java.time.Duration
 
-internal abstract class NetworkResolverTests<T : Locatable<SubnetAwareRegionSpec>> : JUnit5Minutests {
+internal abstract class NetworkResolverTests<T : Locatable<SubnetAwareLocations>> : JUnit5Minutests {
   protected abstract fun createSubject(): NetworkResolver<T>
   protected abstract fun createResource(vpcName: String?, subnetPurpose: String?): Resource<T>
 
@@ -109,13 +109,13 @@ internal class ClusterNetworkResolverTests : NetworkResolverTests<ClusterSpec>()
         stack = "test"
       ),
       imageProvider = ArtifactImageProvider(DeliveryArtifact("fnord", DEB)),
-      locations = Locations(
+      locations = SubnetAwareLocations(
         accountName = "test",
         vpcName = vpcName,
         subnet = subnetPurpose,
         regions = setOf(
           SubnetAwareRegionSpec(
-            region = "us-west-2"
+            name = "us-west-2"
           )
         )
       ),
@@ -171,13 +171,13 @@ internal class ClassicLoadBalancerNetworkResolverTests : NetworkResolverTests<Cl
         app = "fnord",
         stack = "test"
       ),
-      locations = Locations(
+      locations = SubnetAwareLocations(
         accountName = "test",
         vpcName = vpcName,
         subnet = subnetPurpose,
         regions = setOf(
           SubnetAwareRegionSpec(
-            region = "us-west-2"
+            name = "us-west-2"
           )
         )
       ),
@@ -199,13 +199,13 @@ internal class ApplicationLoadBalancerNetworkResolverTests : NetworkResolverTest
         app = "fnord",
         stack = "test"
       ),
-      locations = Locations(
+      locations = SubnetAwareLocations(
         accountName = "test",
         vpcName = vpcName,
         subnet = subnetPurpose,
         regions = setOf(
           SubnetAwareRegionSpec(
-            region = "us-west-2"
+            name = "us-west-2"
           )
         )
       ),

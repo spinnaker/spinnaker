@@ -67,16 +67,16 @@ class SecurityGroupHandler(
 
   override suspend fun toResolvedType(resource: Resource<SecurityGroupSpec>): Map<String, SecurityGroup> =
     with(resource.spec) {
-      locations.regions.map { simpleRegionSpec ->
-        simpleRegionSpec.region to SecurityGroup(
+      locations.regions.map { region ->
+        region.name to SecurityGroup(
           moniker = Moniker(app = moniker.app, stack = moniker.stack, detail = moniker.detail),
           location = SecurityGroup.Location(
             accountName = locations.accountName,
             vpcName = locations.vpcName ?: error("No VPC name supplied or resolved"),
-            region = simpleRegionSpec.region
+            region = region.name
           ),
-          description = overrides[simpleRegionSpec.region]?.description ?: description,
-          inboundRules = overrides[simpleRegionSpec.region]?.inboundRules ?: inboundRules
+          description = overrides[region.name]?.description ?: description,
+          inboundRules = overrides[region.name]?.inboundRules ?: inboundRules
         )
       }.toMap()
     }
@@ -157,8 +157,8 @@ class SecurityGroupHandler(
               spec.locations.accountName,
               CLOUD_PROVIDER,
               spec.moniker.name,
-              region.region,
-              cloudDriverCache.networkBy(spec.locations.vpcName, spec.locations.accountName, region.region).id
+              region.name,
+              cloudDriverCache.networkBy(spec.locations.vpcName, spec.locations.accountName, region.name).id
             )
               .toSecurityGroup()
           } catch (e: HttpException) {

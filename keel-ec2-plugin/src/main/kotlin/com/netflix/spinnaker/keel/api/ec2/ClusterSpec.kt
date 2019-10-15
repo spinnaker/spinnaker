@@ -6,8 +6,9 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.Locations
 import com.netflix.spinnaker.keel.api.MultiRegion
+import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.model.Moniker
-import com.netflix.spinnaker.keel.model.SubnetAwareRegionSpec
+import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import java.time.Duration
 
 /**
@@ -19,38 +20,38 @@ fun ClusterSpec.resolve(): Set<ServerGroup> =
       name = moniker.name,
       location = Location(
         accountName = locations.accountName,
-        region = it.region,
+        region = it.name,
         vpcName = locations.vpcName ?: error("No VPC name supplied or resolved"),
         subnet = locations.subnet ?: error("No subnet purpose supplied or resolved"),
         availabilityZones = it.availabilityZones
       ),
       launchConfiguration = resolveLaunchConfiguration(it),
-      capacity = resolveCapacity(it.region),
-      dependencies = resolveDependencies(it.region),
-      health = resolveHealth(it.region),
-      scaling = resolveScaling(it.region),
-      tags = defaults.tags + overrides[it.region]?.tags
+      capacity = resolveCapacity(it.name),
+      dependencies = resolveDependencies(it.name),
+      health = resolveHealth(it.name),
+      scaling = resolveScaling(it.name),
+      tags = defaults.tags + overrides[it.name]?.tags
     )
   }
     .toSet()
 
 private fun ClusterSpec.resolveLaunchConfiguration(region: SubnetAwareRegionSpec): LaunchConfiguration {
-  val image = checkNotNull(overrides[region.region]?.launchConfiguration?.image
-    ?: defaults.launchConfiguration?.image) { "No image resolved / specified for ${region.region}" }
+  val image = checkNotNull(overrides[region.name]?.launchConfiguration?.image
+    ?: defaults.launchConfiguration?.image) { "No image resolved / specified for ${region.name}" }
   return LaunchConfiguration(
     appVersion = image.appVersion,
     imageId = image.id,
-    instanceType = checkNotNull(overrides[region.region]?.launchConfiguration?.instanceType
+    instanceType = checkNotNull(overrides[region.name]?.launchConfiguration?.instanceType
       ?: defaults.launchConfiguration?.instanceType),
-    ebsOptimized = checkNotNull(overrides[region.region]?.launchConfiguration?.ebsOptimized
+    ebsOptimized = checkNotNull(overrides[region.name]?.launchConfiguration?.ebsOptimized
       ?: defaults.launchConfiguration?.ebsOptimized),
-    iamRole = checkNotNull(overrides[region.region]?.launchConfiguration?.iamRole
+    iamRole = checkNotNull(overrides[region.name]?.launchConfiguration?.iamRole
       ?: defaults.launchConfiguration?.iamRole),
-    keyPair = checkNotNull(overrides[region.region]?.launchConfiguration?.keyPair
+    keyPair = checkNotNull(overrides[region.name]?.launchConfiguration?.keyPair
       ?: defaults.launchConfiguration?.keyPair),
-    instanceMonitoring = overrides[region.region]?.launchConfiguration?.instanceMonitoring
+    instanceMonitoring = overrides[region.name]?.launchConfiguration?.instanceMonitoring
       ?: defaults.launchConfiguration?.instanceMonitoring ?: false,
-    ramdiskId = overrides[region.region]?.launchConfiguration?.ramdiskId
+    ramdiskId = overrides[region.name]?.launchConfiguration?.ramdiskId
       ?: defaults.launchConfiguration?.ramdiskId
   )
 }
@@ -87,15 +88,15 @@ private fun ClusterSpec.resolveHealth(region: String): Health {
 data class ClusterSpec(
   override val moniker: Moniker,
   val imageProvider: ImageProvider? = null,
-  override val locations: Locations<SubnetAwareRegionSpec>,
+  override val locations: SubnetAwareLocations,
   private val _defaults: ServerGroupSpec,
   val overrides: Map<String, ServerGroupSpec> = emptyMap()
-) : MultiRegion, Locatable<SubnetAwareRegionSpec> {
+) : MultiRegion, Locatable<SubnetAwareLocations> {
   @JsonIgnore
   override val id = "${locations.accountName}:${moniker.name}"
 
   override val regionalIds = locations.regions.map { clusterRegion ->
-    "${locations.accountName}:${clusterRegion.region}:${moniker.name}"
+    "${locations.accountName}:${clusterRegion.name}:${moniker.name}"
   }.sorted()
 
   /**
@@ -112,7 +113,7 @@ data class ClusterSpec(
   constructor(
     moniker: Moniker,
     imageProvider: ImageProvider,
-    locations: Locations<SubnetAwareRegionSpec>,
+    locations: SubnetAwareLocations,
     launchConfiguration: LaunchConfigurationSpec?,
     capacity: Capacity?,
     dependencies: ClusterDependencies?,
@@ -169,7 +170,7 @@ data class ClusterSpec(
 }
 
 operator fun Locations<SubnetAwareRegionSpec>.get(region: String) =
-  regions.first { it.region == region }
+  regions.first { it.name == region }
 
 private operator fun <E> Set<E>?.plus(elements: Set<E>?): Set<E> =
   when {

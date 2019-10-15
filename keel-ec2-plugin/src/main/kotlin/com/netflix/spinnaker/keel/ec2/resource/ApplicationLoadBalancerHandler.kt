@@ -52,7 +52,7 @@ class ApplicationLoadBalancerHandler(
           moniker,
           Location(
             locations.accountName,
-            it.region,
+            it.name,
             locations.vpcName ?: error("No VPC name supplied or resolved"),
             locations.subnet ?: error("No subnet purpose supplied or resolved"),
             it.availabilityZones
@@ -126,13 +126,13 @@ class ApplicationLoadBalancerHandler(
               serviceAccount,
               CLOUD_PROVIDER,
               spec.locations.accountName,
-              region.region,
+              region.name,
               spec.moniker.name
             )
               .firstOrNull()
               ?.let { lb ->
                 val securityGroupNames = lb.securityGroups.map {
-                  cloudDriverCache.securityGroupById(spec.locations.accountName, region.region, it).name
+                  cloudDriverCache.securityGroupById(spec.locations.accountName, region.name, it).name
                 }.toMutableSet()
 
                 ApplicationLoadBalancer(
@@ -144,7 +144,7 @@ class ApplicationLoadBalancerHandler(
                   },
                   location = Location(
                     accountName = spec.locations.accountName,
-                    region = region.region,
+                    region = region.name,
                     vpcName = lb.vpcId.let { cloudDriverCache.networkBy(it).name }
                       ?: error("Keel does not support load balancers that are not in a VPC subnet"),
                     subnet = cloudDriverCache.subnetBy(lb.subnets.first()).purpose

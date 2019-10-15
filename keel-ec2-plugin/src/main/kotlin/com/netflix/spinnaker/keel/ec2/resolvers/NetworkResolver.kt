@@ -2,9 +2,9 @@ package com.netflix.spinnaker.keel.ec2.resolvers
 
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Locatable
-import com.netflix.spinnaker.keel.api.Locations
-import com.netflix.spinnaker.keel.api.RegionSpec
 import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.SimpleLocations
+import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component
 
 abstract class NetworkResolver<T : Locatable<*>> : Resolver<T> {
 
-  protected fun <S : RegionSpec> Locations<S>.withResolvedNetwork(): Locations<S> {
+  protected fun SubnetAwareLocations.withResolvedNetwork(): SubnetAwareLocations {
     val resolvedVpcName: String =
       vpcName
         ?: subnet?.let { Regex("""^.+\((.+)\)$""").find(it)?.groupValues?.get(1) }
@@ -23,6 +23,10 @@ abstract class NetworkResolver<T : Locatable<*>> : Resolver<T> {
       vpcName = resolvedVpcName,
       subnet = subnet ?: DEFAULT_SUBNET_PURPOSE.format(resolvedVpcName)
     )
+  }
+
+  protected fun SimpleLocations.withResolvedNetwork(): SimpleLocations {
+    return copy(vpcName = vpcName ?: DEFAULT_VPC_NAME)
   }
 
   companion object {

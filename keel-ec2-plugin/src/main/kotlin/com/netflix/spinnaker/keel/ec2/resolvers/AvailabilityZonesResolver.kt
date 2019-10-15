@@ -1,13 +1,13 @@
 package com.netflix.spinnaker.keel.ec2.resolvers
 
 import com.netflix.spinnaker.keel.api.Locatable
-import com.netflix.spinnaker.keel.api.Locations
 import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
-import com.netflix.spinnaker.keel.model.SubnetAwareRegionSpec
+import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.plugin.Resolver
 
-abstract class AvailabilityZonesResolver<T : Locatable<SubnetAwareRegionSpec>>(
+abstract class AvailabilityZonesResolver<T : Locatable<SubnetAwareLocations>>(
   private val cloudDriverCache: CloudDriverCache
 ) : Resolver<T> {
 
@@ -28,7 +28,7 @@ abstract class AvailabilityZonesResolver<T : Locatable<SubnetAwareRegionSpec>>(
     }
   }
 
-  protected abstract fun T.withLocations(locations: Locations<SubnetAwareRegionSpec>): T
+  protected abstract fun T.withLocations(locations: SubnetAwareLocations): T
 }
 
 private fun CloudDriverCache.resolveAvailabilityZones(accountName: String, subnetPurpose: String, region: SubnetAwareRegionSpec) =
@@ -36,8 +36,8 @@ private fun CloudDriverCache.resolveAvailabilityZones(accountName: String, subne
     accountName,
     subnetBy(
       accountName,
-      region.region,
+      region.name,
       subnetPurpose
     ).vpcId,
-    region.region
+    region.name
   ).toSet()

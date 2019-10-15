@@ -1,12 +1,12 @@
 package com.netflix.spinnaker.keel.ec2.resolvers
 
-import com.netflix.spinnaker.keel.api.Locations
+import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerHealthCheck
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerSpec
 import com.netflix.spinnaker.keel.clouddriver.MemoryCloudDriverCache
 import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
 import com.netflix.spinnaker.keel.model.Moniker
-import com.netflix.spinnaker.keel.model.SubnetAwareRegionSpec
+import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.test.resource
 
 internal class ClassicLoadBalancerAvailabilityZonesResolverTests : AvailabilityZonesResolverTests<ClassicLoadBalancerSpec>() {
@@ -16,21 +16,21 @@ internal class ClassicLoadBalancerAvailabilityZonesResolverTests : AvailabilityZ
         apiVersion = SPINNAKER_EC2_API_V1,
         kind = "classic-load-balancer",
         spec = ClassicLoadBalancerSpec(
-          Moniker(
+          moniker = Moniker(
             app = "fnord",
             stack = "test"
           ),
-          Locations(
+          locations = SubnetAwareLocations(
             accountName = "test",
             vpcName = "vpc0",
             subnet = "internal (vpc0)",
             regions = setOf(
               SubnetAwareRegionSpec(
-                region = "us-east-1",
+                name = "us-east-1",
                 availabilityZones = eastAvailabilityZones ?: emptySet()
               ),
               SubnetAwareRegionSpec(
-                region = "us-west-2",
+                name = "us-west-2",
                 availabilityZones = westAvailabilityZones ?: emptySet()
               )
             )

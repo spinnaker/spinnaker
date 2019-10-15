@@ -1,18 +1,17 @@
 package com.netflix.spinnaker.keel.api.ec2
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.netflix.spinnaker.keel.api.Locations
+import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.ec2.LoadBalancerType.APPLICATION
 import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel.Action
 import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel.Rule
 import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel.TargetGroupAttributes
 import com.netflix.spinnaker.keel.model.Moniker
-import com.netflix.spinnaker.keel.model.SubnetAwareRegionSpec
 import java.time.Duration
 
 data class ApplicationLoadBalancerSpec(
   override val moniker: Moniker,
-  override val locations: Locations<SubnetAwareRegionSpec>,
+  override val locations: SubnetAwareLocations,
   override val internal: Boolean = true,
   override val dependencies: LoadBalancerDependencies = LoadBalancerDependencies(),
   override val idleTimeout: Duration = Duration.ofSeconds(60),

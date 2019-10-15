@@ -29,5 +29,5 @@ data class ResourceSummary(
   val kind: String,
   val status: ResourceStatus,
   val moniker: Moniker?,
-  val locations: Locations<out RegionSpec>?
+  val locations: Locations<*>?
 )

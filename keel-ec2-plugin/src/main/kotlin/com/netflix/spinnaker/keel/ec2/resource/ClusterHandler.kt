@@ -248,7 +248,7 @@ class ClusterHandler(
               resource.spec.moniker.app,
               resource.spec.locations.accountName,
               resource.spec.moniker.name,
-              it.region,
+              it.name,
               CLOUD_PROVIDER
             )
               .toServerGroup()
