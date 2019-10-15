@@ -192,6 +192,7 @@ public class KustomizeTemplateUtils {
   private Artifact artifactFromBase(Artifact artifact, String reference, String name) {
     return Artifact.builder()
         .reference(reference)
+        .version(artifact.getVersion())
         .name(name)
         .type(artifact.getType())
         .artifactAccount(artifact.getArtifactAccount())
