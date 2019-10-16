@@ -29,12 +29,12 @@ The following high level diagram shows how events flow through `echo`:
 6. `echo` uses external services (e.g. email/slack) to send notifications.  
     Notifications can either be a result of an event received by `echo` (e.g. stage completed which has a notification on completion), or a specific notification request from another service (e.g. orca will send a notifcation for Manual Judgement stage)
 
-7. `echo` can also send events to any URL (ala webhook style)
+7. `echo` can also send events to any URL (à la webhook style)
 
 
 ## Outgoing Events
 
-Echo provides integrations for outgoing notifications in the `echo-notifications` package via:
+`Echo` provides integrations for outgoing notifications in the `echo-notifications` package via:
 
 * email
 * Slack
