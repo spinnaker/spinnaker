@@ -42,35 +42,39 @@ export const BitbucketDefault: IArtifactKindConfig = {
     }
 
     private onReferenceChanged = (reference: string) => {
-      const bitbucketCloudRegex = new RegExp('/1.0/repositories/[^/]*/[^/]*/raw/[^/]*/(.*)$');
-      const bitbucketServerRegex = new RegExp('/projects/[^/]*/repos/[^/]*/raw/([^?]*)');
-
       const clonedArtifact = cloneDeep(this.props.artifact);
       clonedArtifact.reference = reference;
+      this.props.onChange(clonedArtifact);
+    };
 
-      let results;
-      results = bitbucketCloudRegex.exec(reference);
-      if (results === null) {
-        results = bitbucketServerRegex.exec(reference);
-      }
-
-      if (results !== null) {
-        clonedArtifact.name = decodeURIComponent(results[1]);
-      }
+    private onFilePathChanged = (name: string) => {
+      const clonedArtifact = cloneDeep(this.props.artifact);
+      clonedArtifact.name = name;
       this.props.onChange(clonedArtifact);
     };
 
     public render() {
       return (
-        <StageConfigField label="Object path" helpKey="pipeline.config.expectedArtifact.defaultBitbucket.reference">
-          <SpelText
-            placeholder="https://api.bitbucket.com/repos/$ORG/$REPO/contents/$FILEPATH"
-            value={this.props.artifact.reference}
-            onChange={this.onReferenceChanged}
-            pipeline={this.props.pipeline}
-            docLink={true}
-          />
-        </StageConfigField>
+        <>
+          <StageConfigField label="Object path" helpKey="pipeline.config.expectedArtifact.defaultBitbucket.reference">
+            <SpelText
+              placeholder="https://api.bitbucket.com/rest/api/1.0/$PROJECTS/$PROJECTKEY/repos/$REPONAME/raw/$FILEPATH"
+              value={this.props.artifact.reference}
+              onChange={this.onReferenceChanged}
+              pipeline={this.props.pipeline}
+              docLink={true}
+            />
+          </StageConfigField>
+          <StageConfigField label="File Path" helpKey="pipeline.config.expectedArtifact.defaultBitbucket.filepath">
+            <SpelText
+              placeholder="path/to/file.yml"
+              onChange={this.onFilePathChanged}
+              value={this.props.artifact.name}
+              pipeline={this.props.pipeline}
+              docLink={true}
+            />
+          </StageConfigField>
+        </>
       );
     }
   },
