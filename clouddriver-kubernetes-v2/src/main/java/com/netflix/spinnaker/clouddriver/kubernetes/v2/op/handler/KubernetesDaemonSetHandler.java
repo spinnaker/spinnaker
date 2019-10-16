@@ -38,7 +38,12 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class KubernetesDaemonSetHandler extends KubernetesHandler
-    implements CanResize, CanPauseRollout, CanResumeRollout, CanUndoRollout, ServerGroupHandler {
+    implements CanResize,
+        CanPauseRollout,
+        CanResumeRollout,
+        CanUndoRollout,
+        CanRollingRestart,
+        ServerGroupHandler {
 
   @Nonnull
   @Override

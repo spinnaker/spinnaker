@@ -531,6 +531,14 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
         () -> jobExecutor.resumeRollout(this, kind, namespace, name));
   }
 
+  public void rollingRestart(KubernetesKind kind, String namespace, String name) {
+    runAndRecordMetrics(
+        "rollingRestart",
+        kind,
+        namespace,
+        () -> jobExecutor.rollingRestart(this, kind, namespace, name));
+  }
+
   public void patch(
       KubernetesKind kind,
       String namespace,

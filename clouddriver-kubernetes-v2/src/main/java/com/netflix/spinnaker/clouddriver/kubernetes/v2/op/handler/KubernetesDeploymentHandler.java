@@ -47,6 +47,7 @@ public class KubernetesDeploymentHandler extends KubernetesHandler
         CanPauseRollout,
         CanResumeRollout,
         CanUndoRollout,
+        CanRollingRestart,
         ServerGroupManagerHandler {
 
   private static final ImmutableSet<KubernetesApiVersion> SUPPORTED_API_VERSIONS =

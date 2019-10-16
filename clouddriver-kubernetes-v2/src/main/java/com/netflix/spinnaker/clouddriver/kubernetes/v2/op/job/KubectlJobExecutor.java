@@ -346,6 +346,31 @@ public class KubectlJobExecutor {
     return null;
   }
 
+  public Void rollingRestart(
+      KubernetesV2Credentials credentials, KubernetesKind kind, String namespace, String name) {
+    List<String> command = kubectlNamespacedAuthPrefix(credentials, namespace);
+
+    command.add("rollout");
+    command.add("restart");
+    command.add(kind.toString() + "/" + name);
+
+    JobResult<String> status = jobExecutor.runJob(new JobRequest(command));
+
+    if (status.getResult() != JobResult.Result.SUCCESS) {
+      throw new KubectlException(
+          "Failed to complete rolling restart of "
+              + kind
+              + "/"
+              + name
+              + " from "
+              + namespace
+              + ": "
+              + status.getError());
+    }
+
+    return null;
+  }
+
   public KubernetesManifest get(
       KubernetesV2Credentials credentials, KubernetesKind kind, String namespace, String name) {
     List<String> command =

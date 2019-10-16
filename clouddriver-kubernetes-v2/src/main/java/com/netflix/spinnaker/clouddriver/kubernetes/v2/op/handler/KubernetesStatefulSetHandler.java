@@ -52,6 +52,7 @@ public class KubernetesStatefulSetHandler extends KubernetesHandler
         CanPauseRollout,
         CanResumeRollout,
         CanUndoRollout,
+        CanRollingRestart,
         ServerGroupHandler {
   @Nonnull
   @Override
