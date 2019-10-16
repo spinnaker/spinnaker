@@ -328,6 +328,7 @@
         ]
       },
       "location": "default",
+      "mode": "label",
       "name": "Delete Canary",
       "options": {
         "cascading": true
@@ -356,6 +357,7 @@
         ]
       },
       "location": "default",
+      "mode": "label",
       "name": "Delete Baseline",
       "options": {
         "cascading": true
