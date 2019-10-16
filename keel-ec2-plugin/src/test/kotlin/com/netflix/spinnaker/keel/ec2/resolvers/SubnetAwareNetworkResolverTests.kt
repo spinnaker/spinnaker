@@ -4,7 +4,10 @@ import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.SimpleLocations
+import com.netflix.spinnaker.keel.api.SimpleRegionSpec
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
+import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.Capacity
@@ -16,11 +19,11 @@ import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.HealthSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType.ELB
+import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
 import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
 import com.netflix.spinnaker.keel.ec2.resolvers.NetworkResolver.Companion.DEFAULT_SUBNET_PURPOSE
 import com.netflix.spinnaker.keel.ec2.resolvers.NetworkResolver.Companion.DEFAULT_VPC_NAME
 import com.netflix.spinnaker.keel.model.Moniker
-import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.plugin.supporting
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
@@ -31,7 +34,7 @@ import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 import java.time.Duration
 
-internal abstract class NetworkResolverTests<T : Locatable<SubnetAwareLocations>> : JUnit5Minutests {
+internal abstract class NetworkResolverTests<T : Locatable<*>> : JUnit5Minutests {
   protected abstract fun createSubject(): NetworkResolver<T>
   protected abstract fun createResource(vpcName: String?, subnetPurpose: String?): Resource<T>
 
@@ -43,6 +46,43 @@ internal abstract class NetworkResolverTests<T : Locatable<SubnetAwareLocations>
   }
 
   fun tests() = rootContext<Fixture<T>> {
+    fixture {
+      Fixture(
+        createSubject(),
+        createResource(null, null)
+      )
+    }
+
+    test("supports the resource kind") {
+      expectThat(listOf(subject).supporting(resource))
+        .containsExactly(subject)
+    }
+
+    context("VPC name is not specified") {
+      test("VPC name is defaulted") {
+        expectThat(resolved.spec.locations.vpcName)
+          .isEqualTo(DEFAULT_VPC_NAME)
+      }
+    }
+
+    context("VPC name is specified") {
+      deriveFixture {
+        copy(
+          resource = createResource("vpc5", null)
+        )
+      }
+
+      test("specified VPC name is used") {
+        expectThat(resolved.spec.locations.vpcName)
+          .isEqualTo("vpc5")
+      }
+    }
+  }
+}
+
+internal abstract class SubnetAwareNetworkResolverTests<T : Locatable<SubnetAwareLocations>> : NetworkResolverTests<T>() {
+
+  fun subnetAwareTests() = rootContext<Fixture<T>> {
     context("neither VPC name or subnet is specified") {
       fixture {
         Fixture(
@@ -97,70 +137,97 @@ internal abstract class NetworkResolverTests<T : Locatable<SubnetAwareLocations>
   }
 }
 
-internal class ClusterNetworkResolverTests : NetworkResolverTests<ClusterSpec>() {
+internal class SecurityGroupNetworkResolverTests : NetworkResolverTests<SecurityGroupSpec>() {
+  override fun createSubject() = SecurityGroupNetworkResolver()
+
+  override fun createResource(vpcName: String?, subnetPurpose: String?): Resource<SecurityGroupSpec> =
+    resource(
+      apiVersion = SPINNAKER_EC2_API_V1,
+      kind = "security-group",
+      spec = SecurityGroupSpec(
+        moniker = Moniker(
+          app = "fnord",
+          stack = "test"
+        ),
+        locations = SimpleLocations(
+          accountName = "test",
+          vpcName = vpcName,
+          regions = setOf(
+            SimpleRegionSpec(
+              name = "us-west-2"
+            )
+          )
+        ),
+        description = "a security group"
+      )
+    )
+}
+
+internal class ClusterNetworkResolverTests : SubnetAwareNetworkResolverTests<ClusterSpec>() {
   override fun createSubject(): NetworkResolver<ClusterSpec> = ClusterNetworkResolver()
 
-  override fun createResource(vpcName: String?, subnetPurpose: String?): Resource<ClusterSpec> = resource(
-    apiVersion = SPINNAKER_EC2_API_V1,
-    kind = "cluster",
-    spec = ClusterSpec(
-      moniker = Moniker(
-        app = "fnord",
-        stack = "test"
-      ),
-      imageProvider = ArtifactImageProvider(DeliveryArtifact("fnord", DEB)),
-      locations = SubnetAwareLocations(
-        accountName = "test",
-        vpcName = vpcName,
-        subnet = subnetPurpose,
-        regions = setOf(
-          SubnetAwareRegionSpec(
-            name = "us-west-2"
+  override fun createResource(vpcName: String?, subnetPurpose: String?): Resource<ClusterSpec> =
+    resource(
+      apiVersion = SPINNAKER_EC2_API_V1,
+      kind = "cluster",
+      spec = ClusterSpec(
+        moniker = Moniker(
+          app = "fnord",
+          stack = "test"
+        ),
+        imageProvider = ArtifactImageProvider(DeliveryArtifact("fnord", DEB)),
+        locations = SubnetAwareLocations(
+          accountName = "test",
+          vpcName = vpcName,
+          subnet = subnetPurpose,
+          regions = setOf(
+            SubnetAwareRegionSpec(
+              name = "us-west-2"
+            )
           )
-        )
-      ),
-      _defaults = ServerGroupSpec(
-        launchConfiguration = LaunchConfigurationSpec(
-          instanceType = "m5.large",
-          ebsOptimized = true,
-          iamRole = "fnordInstanceProfile",
-          instanceMonitoring = false
         ),
-        capacity = Capacity(2, 2, 2),
-        dependencies = ClusterDependencies(
-          loadBalancerNames = setOf("fnord-internal"),
-          securityGroupNames = setOf("fnord", "fnord-elb")
-        ),
-        health = HealthSpec(
-          warmup = Duration.ofSeconds(120)
-        )
-      ),
-      overrides = mapOf(
-        "us-east-1" to ServerGroupSpec(
+        _defaults = ServerGroupSpec(
           launchConfiguration = LaunchConfigurationSpec(
-            iamRole = "fnordEastInstanceProfile",
-            keyPair = "fnord-keypair-325719997469-us-east-1"
+            instanceType = "m5.large",
+            ebsOptimized = true,
+            iamRole = "fnordInstanceProfile",
+            instanceMonitoring = false
           ),
-          capacity = Capacity(5, 5, 5),
+          capacity = Capacity(2, 2, 2),
           dependencies = ClusterDependencies(
-            loadBalancerNames = setOf("fnord-external"),
-            securityGroupNames = setOf("fnord-ext")
+            loadBalancerNames = setOf("fnord-internal"),
+            securityGroupNames = setOf("fnord", "fnord-elb")
           ),
           health = HealthSpec(
-            healthCheckType = ELB
+            warmup = Duration.ofSeconds(120)
           )
         ),
-        "us-west-2" to ServerGroupSpec(
-          launchConfiguration = LaunchConfigurationSpec(
-            keyPair = "fnord-keypair-${randomNumeric(12)}-us-west-2"
+        overrides = mapOf(
+          "us-east-1" to ServerGroupSpec(
+            launchConfiguration = LaunchConfigurationSpec(
+              iamRole = "fnordEastInstanceProfile",
+              keyPair = "fnord-keypair-325719997469-us-east-1"
+            ),
+            capacity = Capacity(5, 5, 5),
+            dependencies = ClusterDependencies(
+              loadBalancerNames = setOf("fnord-external"),
+              securityGroupNames = setOf("fnord-ext")
+            ),
+            health = HealthSpec(
+              healthCheckType = ELB
+            )
+          ),
+          "us-west-2" to ServerGroupSpec(
+            launchConfiguration = LaunchConfigurationSpec(
+              keyPair = "fnord-keypair-${randomNumeric(12)}-us-west-2"
+            )
           )
         )
       )
     )
-  )
 }
 
-internal class ClassicLoadBalancerNetworkResolverTests : NetworkResolverTests<ClassicLoadBalancerSpec>() {
+internal class ClassicLoadBalancerNetworkResolverTests : SubnetAwareNetworkResolverTests<ClassicLoadBalancerSpec>() {
   override fun createSubject(): NetworkResolver<ClassicLoadBalancerSpec> = ClassicLoadBalancerNetworkResolver()
 
   override fun createResource(vpcName: String?, subnetPurpose: String?): Resource<ClassicLoadBalancerSpec> = resource(
@@ -188,7 +255,7 @@ internal class ClassicLoadBalancerNetworkResolverTests : NetworkResolverTests<Cl
   )
 }
 
-internal class ApplicationLoadBalancerNetworkResolverTests : NetworkResolverTests<ApplicationLoadBalancerSpec>() {
+internal class ApplicationLoadBalancerNetworkResolverTests : SubnetAwareNetworkResolverTests<ApplicationLoadBalancerSpec>() {
   override fun createSubject(): NetworkResolver<ApplicationLoadBalancerSpec> = ApplicationLoadBalancerNetworkResolver()
 
   override fun createResource(vpcName: String?, subnetPurpose: String?): Resource<ApplicationLoadBalancerSpec> = resource(
