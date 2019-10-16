@@ -159,6 +159,12 @@ internal class ImageHandlerTests : JUnit5Minutests {
         before {
           val artifact = DeliveryArtifact("keel", DEB)
           artifactRepository.register(artifact)
+          every {
+            baseImageCache.getBaseImage(resource.spec.baseOs, resource.spec.baseLabel)
+          } returns "xenialbase-x86_64-201904291721-ebs"
+          coEvery {
+            igorService.getVersions("keel", any())
+          } returns listOf()
         }
 
         test("an exception is thrown") {
@@ -171,6 +177,12 @@ internal class ImageHandlerTests : JUnit5Minutests {
           val artifact = DeliveryArtifact("keel", DEB)
           artifactRepository.register(artifact)
           artifactRepository.store(artifact, image.appVersion, FINAL)
+          every {
+            baseImageCache.getBaseImage(resource.spec.baseOs, resource.spec.baseLabel)
+          } returns "xenialbase-x86_64-201904291721-ebs"
+          coEvery {
+            igorService.getVersions("keel", any())
+          } returns listOf()
         }
 
         test("an exception is thrown") {

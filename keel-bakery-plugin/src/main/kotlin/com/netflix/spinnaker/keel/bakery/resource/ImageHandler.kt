@@ -27,8 +27,10 @@ import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
-import com.netflix.spinnaker.keel.plugin.ResourceHandler
+import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
 import com.netflix.spinnaker.keel.plugin.Resolver
+import com.netflix.spinnaker.keel.plugin.ResourceHandler
+import kotlinx.coroutines.runBlocking
 import org.springframework.context.ApplicationEventPublisher
 
 class ImageHandler(
@@ -53,12 +55,6 @@ class ImageHandler(
   override suspend fun toResolvedType(resource: Resource<ImageSpec>): Image =
     with(resource) {
       val artifact = DeliveryArtifact(spec.artifactName, DEB)
-
-      if (!artifactRepository.isRegistered(artifact.name, artifact.type)) {
-        // we clearly care about this artifact, let's register it.
-        publisher.publishEvent(ArtifactRegisteredEvent(artifact, resource.spec.artifactStatuses))
-      }
-
       val latestVersion = artifact.findLatestVersion(resource.spec.artifactStatuses)
       val baseImage = baseImageCache.getBaseImage(spec.baseOs, spec.baseLabel)
       val baseAmi = findBaseAmi(baseImage, resource.serviceAccount)
@@ -76,10 +72,34 @@ class ImageHandler(
       }
     }
 
-  private fun DeliveryArtifact.findLatestVersion(statuses: List<ArtifactStatus>): String =
-    artifactRepository
-      .versions(this, statuses)
-      .firstOrNull() ?: throw NoKnownArtifactVersions(this)
+  /**
+   * First checks our repo, and if a version isn't found checks igor.
+   */
+  private fun DeliveryArtifact.findLatestVersion(statuses: List<ArtifactStatus>): String {
+    try {
+      val knownVersion = artifactRepository
+        .versions(this, statuses)
+        .firstOrNull()
+      if (knownVersion != null) {
+        return knownVersion
+      }
+    } catch (e: NoSuchArtifactException) {
+      if (!artifactRepository.isRegistered(name, type)) {
+        // we clearly care about this artifact, let's register it.
+        publisher.publishEvent(ArtifactRegisteredEvent(this, statuses))
+      }
+    }
+
+    // even though the artifact isn't registered we should grab the latest version to use
+    return runBlocking {
+      igorService
+        .getVersions(name, statuses.map { it.toString() })
+        .firstOrNull()
+        ?.let {
+          "$name-$it"
+        }
+    } ?: throw NoKnownArtifactVersions(this)
+  }
 
   override suspend fun upsert(
     resource: Resource<ImageSpec>,
