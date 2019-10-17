@@ -18,5 +18,6 @@ package com.netflix.spinnaker.keel.clouddriver.model
 
 data class SecurityGroupSummary(
   val name: String,
-  val id: String
+  val id: String,
+  val vpcId: String
 )

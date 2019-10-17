@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.keel.clouddriver
 
+import com.netflix.spinnaker.keel.clouddriver.model.Credential
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
@@ -27,6 +28,7 @@ interface CloudDriverCache {
   fun availabilityZonesBy(account: String, vpcId: String, region: String): Collection<String>
   fun subnetBy(subnetId: String): Subnet
   fun subnetBy(account: String, region: String, purpose: String): Subnet
+  fun credentialBy(name: String): Credential
 }
 
 class ResourceNotFound(message: String) : RuntimeException(message)

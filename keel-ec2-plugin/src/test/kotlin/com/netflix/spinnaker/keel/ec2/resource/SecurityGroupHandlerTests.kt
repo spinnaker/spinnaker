@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.keel.ec2.resource
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.SimpleLocations
@@ -35,12 +36,15 @@ import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel.SecurityG
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel.SecurityGroupRuleCidr
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel.SecurityGroupRulePortRange
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel.SecurityGroupRuleReference
+import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.ec2.RETROFIT_NOT_FOUND
+import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
+import com.netflix.spinnaker.keel.model.parseMoniker
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
@@ -65,6 +69,7 @@ import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFalse
 import strikt.assertions.isNotEmpty
 import strikt.assertions.isNotNull
 import java.time.Clock
@@ -177,6 +182,10 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
         emptySet(),
         Moniker(app = "keel", stack = "fnord")
       ),
+    val cloudDriverSummaryResponseWest: SecurityGroupSummary =
+      SecurityGroupSummary("keel-fnord", "sg-3a0c495f", vpcRegion1.id),
+    val cloudDriverSummaryResponseEast: SecurityGroupSummary =
+      SecurityGroupSummary("keel-fnord", "sg-5a2a497d", vpcRegion2.id),
     val vpcOtherAccount: Network = Network(CLOUD_PROVIDER, randomUUID().toString(), "vpc0", "mgmt", vpcRegion1.region)
   ) : Fixture
 
@@ -274,6 +283,32 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
         expectThat(response["us-east-17"])
           .isNotNull()
           .isEqualTo(regionalSecurityGroups["us-east-17"])
+      }
+
+      test("export generates a spec for the existing security group") {
+        val exportable = Exportable(
+          account = "prod",
+          serviceAccount = "keel@spin.io",
+          moniker = parseMoniker("keel-fnord"),
+          regions = setOf("us-west-3", "us-east-17"),
+          kind = handler.supportedKind.first
+        )
+        val export = runBlocking {
+          handler.export(exportable)
+        }
+        expectThat(export.kind)
+          .isEqualTo("security-group")
+        expectThat(export.apiVersion)
+          .isEqualTo(SPINNAKER_EC2_API_V1)
+        expectThat(export.spec.locations.regions)
+          .hasSize(2)
+        expectThat(export.spec.overrides)
+          .hasSize(0)
+
+        // The export cleanly diffs against the fixture spec
+        val diff = ResourceDiff(securityGroupSpec, export.spec)
+        expectThat(diff.hasChanges())
+          .isFalse()
       }
     }
 
@@ -770,6 +805,17 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
           cloudDriverService.getSecurityGroup(any(), accountName, CLOUD_PROVIDER, name, region, vpcId)
         } returns this
       }
+    }
+
+    with(cloudDriverSummaryResponseWest) {
+      coEvery {
+        cloudDriverCache.securityGroupByName("prod", "us-west-3", name)
+      } returns this
+    }
+    with(cloudDriverSummaryResponseEast) {
+      coEvery {
+        cloudDriverCache.securityGroupByName("prod", "us-east-17", name)
+      } returns this
     }
   }
 

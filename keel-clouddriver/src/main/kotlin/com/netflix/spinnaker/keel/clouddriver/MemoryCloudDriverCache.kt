@@ -60,7 +60,7 @@ class MemoryCloudDriverCache(
     .expireAfterWrite(1, HOURS)
     .build<String, Subnet>()
 
-  private fun credentialBy(name: String): Credential =
+  override fun credentialBy(name: String): Credential =
     credentials.getOrNotFound(name, "Credentials with name $name not found") {
       cloudDriver
         .getCredential(name)

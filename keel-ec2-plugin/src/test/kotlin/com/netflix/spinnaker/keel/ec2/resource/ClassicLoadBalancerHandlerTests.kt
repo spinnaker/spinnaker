@@ -98,9 +98,9 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
   private val vpc = Network(CLOUD_PROVIDER, "vpc-23144", "vpc0", "test", "us-east-1")
   private val sub1 = Subnet("subnet-1", vpc.id, vpc.account, vpc.region, "${vpc.region}c", "internal (vpc0)")
   private val sub2 = Subnet("subnet-1", vpc.id, vpc.account, vpc.region, "${vpc.region}d", "internal (vpc0)")
-  private val sg1 = SecurityGroupSummary("testapp-eb", "sg-55555")
-  private val sg2 = SecurityGroupSummary("nondefault-elb", "sg-12345")
-  private val sg3 = SecurityGroupSummary("backdoor", "sg-666666")
+  private val sg1 = SecurityGroupSummary("testapp-eb", "sg-55555", "vpc-1")
+  private val sg2 = SecurityGroupSummary("nondefault-elb", "sg-12345", "vpc-1")
+  private val sg3 = SecurityGroupSummary("backdoor", "sg-666666", "vpc-1")
 
   private val listener = spec.listeners.first()
 

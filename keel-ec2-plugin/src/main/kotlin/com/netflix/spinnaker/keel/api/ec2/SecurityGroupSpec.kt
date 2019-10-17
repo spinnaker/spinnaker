@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.keel.api.ec2
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.MultiRegion
 import com.netflix.spinnaker.keel.api.SimpleLocations
@@ -29,8 +30,10 @@ data class SecurityGroupSpec(
   val inboundRules: Set<SecurityGroupRule> = emptySet(),
   val overrides: Map<String, SecurityGroupOverride> = emptyMap()
 ) : MultiRegion, Locatable<SimpleLocations> {
+  @JsonIgnore
   override val id = "${locations.account}:${moniker.name}"
 
+  @JsonIgnore
   override val regionalIds = locations.regions.map { region ->
     "${locations.account}:$region:${moniker.name}"
   }.sorted()
@@ -39,5 +42,6 @@ data class SecurityGroupSpec(
 data class SecurityGroupOverride(
   @get:ObjectDiffProperty(inclusion = EXCLUDED)
   val description: String? = null,
-  val inboundRules: Set<SecurityGroupRule>? = null
+  val inboundRules: Set<SecurityGroupRule>? = null,
+  val vpc: String? = null
 )

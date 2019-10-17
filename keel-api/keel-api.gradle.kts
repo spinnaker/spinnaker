@@ -7,6 +7,7 @@ plugins {
 dependencies {
   api(project(":keel-actuator"))
   api(project(":keel-plugin"))
+  api(project(":keel-clouddriver"))
   api(project(":keel-eureka"))
   api(project(":keel-artifact"))
   api(project(":keel-veto"))

@@ -16,14 +16,19 @@
 package com.netflix.spinnaker.keel.ec2.resource
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.ResourceKind
+import com.netflix.spinnaker.keel.api.SimpleLocations
+import com.netflix.spinnaker.keel.api.SimpleRegionSpec
+import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.ec2.CidrRule
 import com.netflix.spinnaker.keel.api.ec2.CrossAccountReferenceRule
 import com.netflix.spinnaker.keel.api.ec2.PortRange
 import com.netflix.spinnaker.keel.api.ec2.ReferenceRule
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroup
+import com.netflix.spinnaker.keel.api.ec2.SecurityGroupOverride
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule.Protocol
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
@@ -32,6 +37,7 @@ import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
+import com.netflix.spinnaker.keel.clouddriver.ResourceNotFound
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
@@ -134,9 +140,109 @@ class SecurityGroupHandler(
         .map { it.await() }
     }
 
+  override suspend fun export(exportable: Exportable): SubmittedResource<SecurityGroupSpec> {
+    val summaries = exportable.regions.associateWith { region ->
+      try {
+        cloudDriverCache.securityGroupByName(
+          account = exportable.account,
+          region = region,
+          name = exportable.moniker.name
+        )
+      } catch (e: ResourceNotFound) {
+        null
+      }
+    }
+      .filterValues { it != null }
+
+    val securityGroups =
+      coroutineScope {
+        summaries.map { (region, summary) ->
+          async {
+            try {
+              cloudDriverService.getSecurityGroup(
+                exportable.serviceAccount,
+                exportable.account,
+                CLOUD_PROVIDER,
+                summary!!.name,
+                region,
+                summary.vpcId
+              )
+                .toSecurityGroup()
+            } catch (e: HttpException) {
+              if (e.isNotFound) {
+                null
+              } else {
+                throw e
+              }
+            }
+          }
+        }
+          .mapNotNull { it.await() }
+          .associateBy { it.location.region }
+      }
+
+    val base = securityGroups.values.first()
+    val spec = SecurityGroupSpec(
+      moniker = base.moniker,
+      locations = SimpleLocations(
+        account = exportable.account,
+        vpc = base.location.vpc,
+        regions = securityGroups.keys.map {
+          SimpleRegionSpec(it)
+        }
+          .toSet()
+      ),
+      description = base.description,
+      inboundRules = base.inboundRules,
+      overrides = mutableMapOf()
+    )
+
+    spec.generateOverrides(securityGroups)
+
+    return SubmittedResource(
+      apiVersion = apiVersion,
+      kind = supportedKind.first.singular,
+      spec = spec,
+      metadata = mapOf(
+        "serviceAccount" to exportable.serviceAccount
+      )
+    )
+  }
+
   private fun ResourceDiff<Map<String, SecurityGroup>>.toIndividualDiffs() =
     desired.map { (region, desire) ->
       ResourceDiff(desire, current?.getOrDefault(region, null))
+    }
+
+  private fun SecurityGroupSpec.generateOverrides(
+    regionalGroups: Map<String, SecurityGroup>
+  ) =
+    regionalGroups.forEach { (region, securityGroup) ->
+      val inboundDiff =
+        ResourceDiff(securityGroup.inboundRules, this.inboundRules)
+          .hasChanges()
+      val vpcDiff = securityGroup.location.vpc != this.locations.vpc
+      val descriptionDiff = securityGroup.description != this.description
+
+      if (inboundDiff || vpcDiff || descriptionDiff) {
+        (this.overrides as MutableMap)[region] = SecurityGroupOverride(
+          vpc = if (vpcDiff) {
+            securityGroup.location.vpc
+          } else {
+            null
+          },
+          description = if (descriptionDiff) {
+            securityGroup.description
+          } else {
+            null
+          },
+          inboundRules = if (inboundDiff) {
+            securityGroup.inboundRules
+          } else {
+            null
+          }
+        )
+      }
     }
 
   override suspend fun actuationInProgress(id: ResourceId) =

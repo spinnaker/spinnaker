@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.plugin
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.ApiVersion
+import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceId
@@ -157,6 +158,15 @@ abstract class ResourceHandler<S : ResourceSpec, R : Any>(
   open suspend fun delete(resource: Resource<S>): List<Task> = TODO("Not implemented")
 
   /**
+   * Generate a Keel SubmittedResource definition from currently existing resources.
+   */
+  open suspend fun export(
+    exportable: Exportable
+  ): SubmittedResource<*> {
+    TODO("Not implemented")
+  }
+
+  /**
    * @return `true` if this plugin is still busy running a previous actuation for the resource
    * associated with [id], `false` otherwise.
    */
@@ -173,7 +183,10 @@ fun Collection<ResourceHandler<*, *>>.supporting(
   apiVersion: ApiVersion,
   kind: String
 ): ResourceHandler<*, *> =
-  find { it.apiVersion == apiVersion && it.supportedKind.first.singular == kind }
+  find {
+    it.apiVersion == apiVersion &&
+      (it.supportedKind.first.singular == kind || it.supportedKind.first.plural == kind)
+  }
     ?: throw UnsupportedKind(apiVersion, kind)
 
 class UnsupportedKind(apiVersion: ApiVersion, kind: String) :

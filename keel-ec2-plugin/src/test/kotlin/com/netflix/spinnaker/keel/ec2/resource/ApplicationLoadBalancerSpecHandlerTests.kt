@@ -87,7 +87,7 @@ internal class ApplicationLoadBalancerSpecHandlerTests : JUnit5Minutests {
   private val vpc = Network(CLOUD_PROVIDER, "vpc-23144", "vpc0", "test", "us-east-1")
   private val sub1 = Subnet("subnet-1", vpc.id, vpc.account, vpc.region, "${vpc.region}c", "internal (vpc0)")
   private val sub2 = Subnet("subnet-1", vpc.id, vpc.account, vpc.region, "${vpc.region}d", "internal (vpc0)")
-  private val sg1 = SecurityGroupSummary("testapp-elb", "sg-55555")
+  private val sg1 = SecurityGroupSummary("testapp-elb", "sg-55555", "vpc-1")
 
   private val model = ApplicationLoadBalancerModel(
     moniker = null,

@@ -19,8 +19,8 @@ object MemoryCloudDriverCacheTest {
   val subject = MemoryCloudDriverCache(cloudDriver)
 
   val securityGroupSummaries = setOf(
-    SecurityGroupSummary("foo", "sg-1"),
-    SecurityGroupSummary("bar", "sg-2")
+    SecurityGroupSummary("foo", "sg-1", "vpc-1"),
+    SecurityGroupSummary("bar", "sg-2", "vpc-1")
   )
 
   val vpcs = setOf(
