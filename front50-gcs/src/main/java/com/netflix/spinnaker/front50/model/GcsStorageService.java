@@ -20,7 +20,6 @@ import static net.logstash.logback.argument.StructuredArguments.value;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.googleapis.services.AbstractGoogleClientRequest;
 import com.google.api.client.http.ByteArrayContent;
@@ -36,6 +35,8 @@ import com.google.api.services.storage.StorageScopes;
 import com.google.api.services.storage.model.Bucket;
 import com.google.api.services.storage.model.Objects;
 import com.google.api.services.storage.model.StorageObject;
+import com.google.auth.http.HttpCredentialsAdapter;
+import com.google.auth.oauth2.GoogleCredentials;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spectator.api.Clock;
@@ -112,22 +113,23 @@ public class GcsStorageService implements StorageService {
     return this.objectMapper;
   }
 
-  private GoogleCredential loadCredential(
-      HttpTransport transport, JsonFactory factory, String jsonPath) throws IOException {
-    GoogleCredential credential;
+  private GoogleCredentials loadCredential(String jsonPath) throws IOException {
+    GoogleCredentials credentials = null;
+
     if (!jsonPath.isEmpty()) {
       FileInputStream stream = new FileInputStream(jsonPath);
-      credential =
-          GoogleCredential.fromStream(stream, transport, factory)
-              .createScoped(Collections.singleton(StorageScopes.DEVSTORAGE_FULL_CONTROL));
+      credentials = GoogleCredentials.fromStream(stream);
       log.info("Loaded credentials from {}", value("jsonPath", jsonPath));
     } else {
       log.info(
           "spinnaker.gcs.enabled without spinnaker.gcs.jsonPath. "
               + "Using default application credentials. Using default credentials.");
-      credential = GoogleCredential.getApplicationDefault();
+      credentials = GoogleCredentials.getApplicationDefault();
     }
-    return credential;
+
+    return credentials.createScopedRequired()
+        ? credentials.createScoped(Collections.singleton(StorageScopes.DEVSTORAGE_FULL_CONTROL))
+        : credentials;
   }
 
   @VisibleForTesting
@@ -218,11 +220,11 @@ public class GcsStorageService implements StorageService {
     try {
       HttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
       JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
-      GoogleCredential credential = loadCredential(httpTransport, jsonFactory, credentialsPath);
+      GoogleCredentials credentials = loadCredential(credentialsPath);
       HttpRequestInitializer requestInitializer =
-          new HttpRequestInitializer() {
+          new HttpCredentialsAdapter(credentials) {
             public void initialize(HttpRequest request) throws IOException {
-              credential.initialize(request);
+              super.initialize(request);
               request.setConnectTimeout(connectTimeoutSec * 1000);
               request.setReadTimeout(readTimeoutSec * 1000);
             }
@@ -230,9 +232,8 @@ public class GcsStorageService implements StorageService {
 
       String applicationName = "Spinnaker/" + applicationVersion;
       storage =
-          new Storage.Builder(httpTransport, jsonFactory, credential)
+          new Storage.Builder(httpTransport, jsonFactory, requestInitializer)
               .setApplicationName(applicationName)
-              .setHttpRequestInitializer(requestInitializer)
               .build();
     } catch (IOException | java.security.GeneralSecurityException e) {
       throw new IllegalStateException(e);

@@ -24,6 +24,7 @@ dependencies {
   implementation "com.netflix.spinnaker.clouddriver:clouddriver-google-common:$clouddriverVersion"
   implementation "org.apache.commons:commons-lang3"
   implementation "com.google.apis:google-api-services-storage"
+  implementation 'com.google.auth:google-auth-library-oauth2-http'
   implementation "com.netflix.spinnaker.kork:kork-hystrix"
   implementation "com.netflix.spinnaker.kork:kork-security"
   implementation "net.logstash.logback:logstash-logback-encoder"
