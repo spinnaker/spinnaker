@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2019 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,8 @@ public class BastionProperties {
   private Integer port;
   private String proxyCluster;
   private String proxyRegion;
+
+  /** AWS IAM role to assume. */
   private String accountIamRole;
 
   public Boolean getEnabled() {
