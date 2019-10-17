@@ -62,6 +62,12 @@ public class ManagedController {
     return keelService.upsertResource(resource);
   }
 
+  @ApiOperation(value = "Ad-hoc validate and diff a resource", response = Resource.class)
+  @RequestMapping(value = "/resources/diff", method = POST)
+  Map diffResource(@RequestBody Resource resource) {
+    return keelService.diffResource(resource);
+  }
+
   @ApiOperation(value = "Delete a resource", response = Resource.class)
   @RequestMapping(value = "/resources/{name}", method = DELETE)
   Resource deleteResource(@PathVariable("name") String name) {
@@ -80,6 +86,14 @@ public class ManagedController {
   @RequestMapping(value = "/delivery-configs", method = POST)
   DeliveryConfig upsertManifest(@RequestBody DeliveryConfig manifest) {
     return keelService.upsertManifest(manifest);
+  }
+
+  @ApiOperation(
+      value = "Ad-hoc validate and diff a config manifest",
+      response = DeliveryConfig.class)
+  @RequestMapping(value = "/delivery-configs", method = POST)
+  Map diffManifest(@RequestBody DeliveryConfig manifest) {
+    return keelService.diffManifest(manifest);
   }
 
   @ApiOperation(value = "Get managed details about an application", response = Map.class)

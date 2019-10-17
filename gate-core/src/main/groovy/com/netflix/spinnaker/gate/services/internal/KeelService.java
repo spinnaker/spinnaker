@@ -44,6 +44,9 @@ public interface KeelService {
   @POST("/resources")
   Resource upsertResource(@Body Resource resource);
 
+  @POST("/resources/diff")
+  Map diffResource(@Body Resource resource);
+
   @DELETE("/resources/{name}")
   Resource deleteResource(@Path("name") String name);
 
@@ -52,6 +55,9 @@ public interface KeelService {
 
   @POST("/delivery-configs")
   DeliveryConfig upsertManifest(@Body DeliveryConfig manifest);
+
+  @POST("/delivery-configs/diff")
+  Map diffManifest(@Body DeliveryConfig manifest);
 
   @GET("/application/{application}")
   Map getApplicationDetails(
