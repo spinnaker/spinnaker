@@ -16,19 +16,19 @@
 
 package com.netflix.spinnaker.kork.secrets.engines;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.http.HttpRequestInitializer;
+import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.storage.Storage;
-import com.google.api.services.storage.StorageScopes;
+import com.google.auth.oauth2.GoogleCredentials;
 import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import com.netflix.spinnaker.kork.secrets.InvalidSecretFormatException;
 import com.netflix.spinnaker.kork.secrets.SecretException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collections;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -38,20 +38,7 @@ public class GcsSecretEngine extends AbstractStorageSecretEngine {
   private static final String IDENTIFIER = "gcs";
   private static final String APPLICATION_NAME = "Spinnaker";
 
-  private final Storage googleStorage;
-
-  public GcsSecretEngine() {
-    Storage storage;
-    try {
-      storage = createAuthenticatedStorage();
-    } catch (IOException e) {
-      log.debug(
-          "No application default credential could be loaded for reading GCS secrets. Continuing unauthenticated: {}",
-          e.getMessage());
-      storage = createAnonymousStorage();
-    }
-    this.googleStorage = storage;
-  }
+  private final AtomicReference<Storage> googleStorage = new AtomicReference();
 
   public String identifier() {
     return IDENTIFIER;
@@ -79,7 +66,9 @@ public class GcsSecretEngine extends AbstractStorageSecretEngine {
     log.info("Getting contents of object {} from bucket {}", objName, bucket);
 
     try {
-      return googleStorage.objects().get(bucket, objName).executeMediaAsInputStream();
+      Storage storage = getStorage();
+
+      return storage.objects().get(bucket, objName).executeMediaAsInputStream();
     } catch (IOException e) {
       throw new SecretException(
           String.format(
@@ -88,28 +77,24 @@ public class GcsSecretEngine extends AbstractStorageSecretEngine {
     }
   }
 
-  private Storage createAuthenticatedStorage() throws IOException {
-    GoogleCredential credential = GoogleCredential.getApplicationDefault();
-    return commonCreateStorage(credential);
-  }
+  private Storage getStorage() throws IOException {
+    Storage storage = googleStorage.get();
 
-  private Storage createAnonymousStorage() {
-    GoogleCredential credential = new GoogleCredential();
-    return commonCreateStorage(credential);
-  }
+    if (storage == null) {
+      HttpTransport httpTransport = GoogleUtils.buildHttpTransport();
+      JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
+      GoogleCredentials credentials = GoogleUtils.buildGoogleCredentials();
+      HttpRequestInitializer requestInitializer =
+          GoogleUtils.setTimeoutsAndRetryBehavior(credentials);
 
-  private Storage commonCreateStorage(GoogleCredential credential) {
-    if (credential.createScopedRequired()) {
-      credential =
-          credential.createScoped(Collections.singleton(StorageScopes.DEVSTORAGE_READ_ONLY));
+      storage =
+          new Storage.Builder(httpTransport, jsonFactory, requestInitializer)
+              .setApplicationName(APPLICATION_NAME)
+              .build();
+
+      googleStorage.compareAndSet(null, storage);
     }
-    HttpRequestInitializer requestInitializer =
-        GoogleHttpUtils.setTimeoutsAndRetryBehavior(credential);
-    JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
 
-    return new Storage.Builder(
-            GoogleHttpUtils.buildHttpTransport(), jsonFactory, requestInitializer)
-        .setApplicationName(APPLICATION_NAME)
-        .build();
+    return storage;
   }
 }
