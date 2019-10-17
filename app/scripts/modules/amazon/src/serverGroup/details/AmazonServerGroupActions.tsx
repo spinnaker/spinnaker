@@ -12,16 +12,37 @@ import {
   ReactInjector,
   ServerGroupWarningMessageService,
   SETTINGS,
+  Overridable,
 } from '@spinnaker/core';
 
 import { IAmazonServerGroup, IAmazonServerGroupView } from 'amazon/domain';
 import { AmazonCloneServerGroupModal } from 'amazon/serverGroup/configure/wizard/AmazonCloneServerGroupModal';
 import { AwsReactInjector } from 'amazon/reactShims';
 import { IAmazonServerGroupCommand } from '../configure';
-import { AmazonResizeServerGroupModal } from './resize/AmazonResizeServerGroupModal';
+import {
+  AmazonResizeServerGroupModal,
+  IAmazonResizeServerGroupModalProps,
+} from './resize/AmazonResizeServerGroupModal';
 
 export interface IAmazonServerGroupActionsProps extends IServerGroupActionsProps {
   serverGroup: IAmazonServerGroupView;
+}
+
+@Overridable('AmazonServerGroupActions.resize')
+export class AmazonServerGroupActionsResize extends React.Component<IAmazonResizeServerGroupModalProps> {
+  private resizeServerGroup = (): void => {
+    AmazonResizeServerGroupModal.show(this.props);
+  };
+
+  public render(): JSX.Element {
+    return (
+      <li>
+        <a className="clickable" onClick={this.resizeServerGroup}>
+          Resize
+        </a>
+      </li>
+    );
+  }
 }
 
 export class AmazonServerGroupActions extends React.Component<IAmazonServerGroupActionsProps> {
@@ -255,11 +276,6 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
     });
   };
 
-  private resizeServerGroup = (): void => {
-    const { app, serverGroup } = this.props;
-    AmazonResizeServerGroupModal.show({ application: app, serverGroup });
-  };
-
   private cloneServerGroup = (): void => {
     const { app, serverGroup } = this.props;
     AwsReactInjector.awsServerGroupCommandBuilder
@@ -289,11 +305,7 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
             </li>
           )}
           {this.isRollbackEnabled() && <li role="presentation" className="divider" />}
-          <li>
-            <a className="clickable" onClick={this.resizeServerGroup}>
-              Resize
-            </a>
-          </li>
+          <AmazonServerGroupActionsResize application={app} serverGroup={serverGroup} />
           {!serverGroup.isDisabled && (
             <li>
               <a className="clickable" onClick={this.disableServerGroup}>
