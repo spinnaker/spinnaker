@@ -17,10 +17,17 @@
 package com.netflix.spinnaker.kork.core;
 
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
+import java.time.Duration;
 import java.util.function.Supplier;
 
 public class RetrySupport {
-  public <T> T retry(Supplier<T> fn, int maxRetries, long retryBackoff, boolean exponential) {
+  /** @deprecated replaced by {@link #retry(Supplier, int, Duration, boolean)} */
+  @Deprecated
+  public <T> T retry(Supplier<T> fn, int maxRetries, long retryBackoffMillis, boolean exponential) {
+    return retry(fn, maxRetries, Duration.ofMillis(retryBackoffMillis), exponential);
+  }
+
+  public <T> T retry(Supplier<T> fn, int maxRetries, Duration retryBackoff, boolean exponential) {
     int retries = 0;
     while (true) {
       try {
@@ -36,7 +43,10 @@ public class RetrySupport {
           throw e;
         }
 
-        long timeout = !exponential ? retryBackoff : (long) Math.pow(2, retries) * retryBackoff;
+        long timeout =
+            !exponential
+                ? retryBackoff.toMillis()
+                : (long) Math.pow(2, retries) * retryBackoff.toMillis();
         sleep(timeout);
 
         retries++;
@@ -45,9 +55,9 @@ public class RetrySupport {
   }
 
   /** Overridable by test cases to avoid Thread.sleep() */
-  void sleep(long duration) {
+  void sleep(long millis) {
     try {
-      Thread.sleep(duration);
+      Thread.sleep(millis);
     } catch (InterruptedException ignored) {
     }
   }
