@@ -75,6 +75,16 @@ export class ManifestWriter {
     });
   }
 
+  public static rollingRestartManifest(command: any, application: Application): IPromise<ITask> {
+    const description = 'Rolling restart of manifest';
+    command.type = 'rollingRestartManifest';
+    return TaskExecutor.executeTask({
+      job: [command],
+      application,
+      description,
+    });
+  }
+
   public static findArtifactsFromResource(command: any, application: Application): IPromise<ITask> {
     const description = 'Find artifacts from a Kubernetes resource';
     command.type = 'findArtifactsFromResource';

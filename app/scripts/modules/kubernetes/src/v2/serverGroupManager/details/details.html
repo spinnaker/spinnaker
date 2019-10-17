@@ -63,6 +63,11 @@
               Pause Rollout
             </a>
           </li>
+          <kubernetes-rolling-restart
+            ng-if="!ctrl.manifest.status.paused.state"
+            application="ctrl.app"
+            server-group-manager="ctrl.serverGroupManager"
+          />
           <li role="presentation" class="divider"></li>
           <li>
             <a href ng-click="ctrl.editServerGroupManager()">

@@ -36,6 +36,7 @@ import { ManifestWizard } from 'kubernetes/v2/manifest/wizard/ManifestWizard';
 import { KUBERNETES_ENABLE_MANIFEST_STAGE } from 'kubernetes/v2/pipelines/stages/traffic/enableManifest.stage';
 import { KUBERNETES_DISABLE_MANIFEST_STAGE } from 'kubernetes/v2/pipelines/stages/traffic/disableManifest.stage';
 import { KubernetesSecurityGroupReader } from 'kubernetes/shared/securityGroup/securityGroup.reader';
+import { KUBERNETES_ROLLING_RESTART } from 'kubernetes/v2/manifest/rollout/RollingRestart';
 
 import 'kubernetes/shared/validation/applicationName.validator';
 import 'kubernetes/shared/help/kubernetes.help';
@@ -87,6 +88,7 @@ module(KUBERNETES_V2_MODULE, [
   KUBERNETES_ENABLE_MANIFEST_STAGE,
   KUBERNETES_DISABLE_MANIFEST_STAGE,
   STAGE_ARTIFACT_SELECTOR_COMPONENT_REACT,
+  KUBERNETES_ROLLING_RESTART,
 ]).config(() => {
   CloudProviderRegistry.registerProvider('kubernetes', {
     name: 'Kubernetes',
