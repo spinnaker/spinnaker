@@ -81,7 +81,9 @@ class UpsertTitusScalingPolicyAtomicOperation implements AtomicOperation<Map> {
 
       task.updateStatus BASE_PHASE, "Create Scaling Policy request constructed, sending..."
 
-      ScalingPolicyID result = client.createScalingPolicy(requestBuilder.build())
+      ScalingPolicyID result = retrySupport.retry({ ->
+        client.createScalingPolicy(requestBuilder.build())
+      }, 10, 3000, false)
 
       task.updateStatus BASE_PHASE, "Create Scaling Policy succeeded; new policy ID: ${result.id}; monitoring creation..."
 
@@ -99,9 +101,9 @@ class UpsertTitusScalingPolicyAtomicOperation implements AtomicOperation<Map> {
     retrySupport.retry({ ->
       ScalingPolicyResult updatedPolicy = client.getScalingPolicy(result.id)
       if (!updatedPolicy || (updatedPolicy.getPolicyState().state != ScalingPolicyState.Applied)) {
-        throw new IllegalStateException("New policy did not transition to applied state within 45 seconds")
+        throw new IllegalStateException("Timed out while waiting for policy to be applied")
       }
-    }, 5000, 10, false)
+    }, 10, 5000, true)
   }
 
 }
