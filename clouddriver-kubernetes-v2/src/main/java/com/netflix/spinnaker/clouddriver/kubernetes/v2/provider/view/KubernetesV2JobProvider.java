@@ -83,14 +83,15 @@ public class KubernetesV2JobProvider implements JobProvider<KubernetesV2JobStatu
   }
 
   public Map<String, Object> getFileContents(
-      String account, String location, String id, String filename) {
+      String account, String location, String id, String containerName) {
     KubernetesV2Credentials credentials =
         (KubernetesV2Credentials)
             accountCredentialsProvider.getCredentials(account).getCredentials();
     Map<String, Object> props = null;
     try {
       V1Job job = getKubernetesJob(account, location, id);
-      String logContents = credentials.jobLogs(location, job.getMetadata().getName());
+      String logContents =
+          credentials.jobLogs(location, job.getMetadata().getName(), containerName);
       props = PropertyParser.extractPropertiesFromLog(logContents);
     } catch (Exception e) {
       log.error("Couldn't parse properties for account {} at {}", account, location);

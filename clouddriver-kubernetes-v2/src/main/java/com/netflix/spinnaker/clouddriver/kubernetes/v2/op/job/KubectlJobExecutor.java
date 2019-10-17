@@ -124,10 +124,12 @@ public class KubectlJobExecutor {
     return status.getOutput();
   }
 
-  public String jobLogs(KubernetesV2Credentials credentials, String namespace, String jobName) {
+  public String jobLogs(
+      KubernetesV2Credentials credentials, String namespace, String jobName, String containerName) {
     List<String> command = kubectlNamespacedAuthPrefix(credentials, namespace);
     command.add("logs");
     command.add("job/" + jobName);
+    command.add("-c=" + containerName);
 
     JobResult<String> status = jobExecutor.runJob(new JobRequest(command));
 

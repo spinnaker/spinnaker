@@ -452,9 +452,12 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
         () -> jobExecutor.logs(this, namespace, podName, containerName));
   }
 
-  public String jobLogs(String namespace, String jobName) {
+  public String jobLogs(String namespace, String jobName, String containerName) {
     return runAndRecordMetrics(
-        "logs", KubernetesKind.JOB, namespace, () -> jobExecutor.jobLogs(this, namespace, jobName));
+        "logs",
+        KubernetesKind.JOB,
+        namespace,
+        () -> jobExecutor.jobLogs(this, namespace, jobName, containerName));
   }
 
   public void scale(KubernetesKind kind, String namespace, String name, int replicas) {
