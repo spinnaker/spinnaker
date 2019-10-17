@@ -23,6 +23,7 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation 'com.jayway.jsonpath:json-path:2.3.0'
   implementation "com.github.ben-manes.caffeine:guava"
+  implementation "com.netflix.spinnaker.kork:kork-web"
 
   testImplementation "cglib:cglib-nodep"
   testImplementation "org.assertj:assertj-core"

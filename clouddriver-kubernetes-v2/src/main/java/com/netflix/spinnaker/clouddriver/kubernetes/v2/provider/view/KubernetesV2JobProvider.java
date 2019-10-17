@@ -21,11 +21,11 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.Kubern
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.model.KubernetesV2JobStatus;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.model.Manifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.model.ManifestProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesSelectorList;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.model.JobProvider;
-import com.netflix.spinnaker.clouddriver.model.Manifest;
-import com.netflix.spinnaker.clouddriver.model.ManifestProvider;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import io.kubernetes.client.models.V1Job;
 import io.kubernetes.client.models.V1Pod;

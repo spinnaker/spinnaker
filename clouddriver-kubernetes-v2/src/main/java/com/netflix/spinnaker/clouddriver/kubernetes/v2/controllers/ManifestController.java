@@ -15,11 +15,11 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.controllers;
+package com.netflix.spinnaker.clouddriver.kubernetes.v2.controllers;
 
-import com.netflix.spinnaker.clouddriver.model.Manifest;
-import com.netflix.spinnaker.clouddriver.model.ManifestProvider;
-import com.netflix.spinnaker.clouddriver.model.ManifestProvider.Sort;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.model.Manifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.model.ManifestProvider;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.model.ManifestProvider.Sort;
 import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.util.List;

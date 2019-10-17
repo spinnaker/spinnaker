@@ -15,7 +15,7 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.model;
+package com.netflix.spinnaker.clouddriver.kubernetes.v2.model;
 
 import com.netflix.spinnaker.moniker.Moniker;
 import java.util.List;

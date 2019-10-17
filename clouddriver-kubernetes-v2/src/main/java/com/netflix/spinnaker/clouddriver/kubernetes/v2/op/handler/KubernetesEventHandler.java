@@ -26,7 +26,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
-import com.netflix.spinnaker.clouddriver.model.Manifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.model.Manifest;
 import io.kubernetes.client.models.V1Event;
 import io.kubernetes.client.models.V1ObjectReference;
 import java.util.ArrayList;
