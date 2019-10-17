@@ -44,4 +44,39 @@ class EvaluateVariablesTaskSpec extends Specification {
     result.outputs.get("myKey1") == "ohWow"
     result.outputs.get("myKey2") == "myMy"
   }
+
+  void "Supports values that are complex objects"() {
+    setup:
+    def simpleValue = "A simple string";
+    def simpleArray = ["string1", "string2", "string3"];
+    def objectArray = [ [id: "15"], [id: "25"], [id: "45"] ];
+    def someStuff = [
+      nestedValue: 'value',
+      number: 1,
+      nestedHash: [
+        nestedNested: 'nestedNestedValue',
+        nestedArray: [1, 2, 3, 4, 5],
+      ]
+    ]
+
+    def stage = stage {
+      refId = "1"
+      type = "evaluateVariables"
+      context["variables"] = [
+        ["key": "simpleValue", "value": simpleValue],
+        ["key": "simpleArray", "value": simpleArray],
+        ["key": "objectArray", "value": objectArray],
+        ["key": "hashMap", "value": someStuff]
+      ]
+    }
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    result.outputs.get("simpleValue") == simpleValue
+    result.outputs.get("simpleArray") == simpleArray
+    result.outputs.get("objectArray") == objectArray
+    result.outputs.get("hashMap") == someStuff
+  }
 }

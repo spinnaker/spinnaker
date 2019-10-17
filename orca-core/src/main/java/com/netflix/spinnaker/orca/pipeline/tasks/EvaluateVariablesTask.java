@@ -44,7 +44,7 @@ public class EvaluateVariablesTask implements Task {
     EvaluateVariablesStage.EvaluateVariablesStageContext context =
         stage.mapTo(EvaluateVariablesStage.EvaluateVariablesStageContext.class);
 
-    Map<String, String> outputs = new HashMap<>();
+    Map<String, Object> outputs = new HashMap<>();
     for (EvaluateVariablesStage.Variable v : context.getVariables()) {
       outputs.put(v.getKey(), v.getValue());
     }

@@ -51,10 +51,10 @@ public class EvaluateVariablesStage implements StageDefinitionBuilder {
 
   public static class Variable {
     private String key;
-    private String value;
+    private Object value;
 
     @JsonCreator
-    public Variable(@JsonProperty("key") String key, @JsonProperty("value") String value) {
+    public Variable(@JsonProperty("key") String key, @JsonProperty("value") Object value) {
       this.key = key;
       this.value = value;
     }
@@ -63,7 +63,7 @@ public class EvaluateVariablesStage implements StageDefinitionBuilder {
       this.key = key;
     }
 
-    public void setValue(String value) {
+    public void setValue(Object value) {
       this.value = value;
     }
 
@@ -71,7 +71,7 @@ public class EvaluateVariablesStage implements StageDefinitionBuilder {
       return key;
     }
 
-    public String getValue() {
+    public Object getValue() {
       return value;
     }
   }
