@@ -20,13 +20,15 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesAtomicOperationDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesCoordinates;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.tuple.Pair;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class KubernetesManifestOperationDescription extends KubernetesAtomicOperationDescription {
+public class KubernetesManifestOperationDescription
+    extends KubernetesAtomicOperationDescription<KubernetesV2Credentials> {
   private String manifestName;
   private String location;
 
