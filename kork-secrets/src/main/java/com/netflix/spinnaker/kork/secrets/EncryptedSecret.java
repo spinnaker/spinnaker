@@ -41,8 +41,11 @@ import lombok.Setter;
 public class EncryptedSecret {
 
   public static final String ENCRYPTED_STRING_PREFIX = "encrypted:";
+  public static final String ENCRYPTED_FILE_PREFIX = "encryptedFile:";
+  private static final String ENCRYPTED_TAG_REGEX = ".+(![a-zA-Z0-9]+:.+)+";
   private static final String ENCRYPTED_STRING_REGEX =
-      ENCRYPTED_STRING_PREFIX + ".+(![a-zA-Z0-9]+:.+)+";
+      ENCRYPTED_STRING_PREFIX + ENCRYPTED_TAG_REGEX;
+  private static final String ENCRYPTED_FILE_REGEX = ENCRYPTED_FILE_PREFIX + ENCRYPTED_TAG_REGEX;
 
   @Getter @Setter private String engineIdentifier;
 
@@ -89,16 +92,20 @@ public class EncryptedSecret {
    */
   public static boolean isEncryptedSecret(String secretConfig) {
     return secretConfig != null
-        && secretConfig.startsWith(ENCRYPTED_STRING_PREFIX)
+        && (matchesEncryptedStringSyntax(secretConfig) || matchesEncryptedFileSyntax(secretConfig));
+  }
+
+  public static boolean isEncryptedFile(String secretConfig) {
+    return secretConfig != null && matchesEncryptedFileSyntax(secretConfig);
+  }
+
+  private static boolean matchesEncryptedStringSyntax(String secretConfig) {
+    return secretConfig.startsWith(ENCRYPTED_STRING_PREFIX)
         && secretConfig.matches(ENCRYPTED_STRING_REGEX);
   }
 
-  /** @return formatted encrypted secret */
-  public String formatString() {
-    StringBuilder sb = new StringBuilder(ENCRYPTED_STRING_PREFIX).append(engineIdentifier);
-    for (String key : params.keySet()) {
-      sb.append('!').append(key).append(':').append(params.get(key));
-    }
-    return sb.toString();
+  private static boolean matchesEncryptedFileSyntax(String secretConfig) {
+    return secretConfig.toLowerCase().startsWith(ENCRYPTED_FILE_PREFIX.toLowerCase())
+        && secretConfig.matches(ENCRYPTED_FILE_REGEX);
   }
 }

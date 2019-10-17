@@ -30,6 +30,7 @@ public class EncryptedSecretTest {
   public void isEncryptedSecretShouldReturnFalse() {
     String secretConfig = "foo";
     assertEquals(false, EncryptedSecret.isEncryptedSecret(secretConfig));
+    assertEquals(false, EncryptedSecret.isEncryptedFile(secretConfig));
   }
 
   @Test
@@ -45,8 +46,22 @@ public class EncryptedSecretTest {
   }
 
   @Test
+  public void isEncryptedFileShouldReturnTrue() {
+    String secretConfig = "encryptedFile:aws-kms!foo:bar";
+    assertEquals(true, EncryptedSecret.isEncryptedSecret(secretConfig));
+    assertEquals(true, EncryptedSecret.isEncryptedFile(secretConfig));
+  }
+
+  @Test
   public void parseSecretConfigValue() {
     String secretConfig = "encrypted:s3!first:key!second:another-valu:e!3rd:yetAnothervalue";
+    EncryptedSecret encryptedSecret = EncryptedSecret.parse(secretConfig);
+    assertEquals("s3", encryptedSecret.getEngineIdentifier());
+  }
+
+  @Test
+  public void parseSecretFileConfigValue() {
+    String secretConfig = "encryptedFile:s3!first:key!second:another-valu:e!3rd:yetAnothervalue";
     EncryptedSecret encryptedSecret = EncryptedSecret.parse(secretConfig);
     assertEquals("s3", encryptedSecret.getEngineIdentifier());
   }
@@ -66,16 +81,13 @@ public class EncryptedSecretTest {
     assertEquals("bar", encryptedSecret.getParams().get("foo"));
     assertEquals("secret-param-1", encryptedSecret.getParams().get("key"));
     assertEquals("secret-param:2", encryptedSecret.getParams().get("Key"));
-  }
 
-  @Test
-  public void formatEncryptedSecret() {
-    String secretConfig =
-        "encrypted:aws-kms!foo:bar!key:value!config:value:with:colon!lastKey:secret-param_3";
-    EncryptedSecret encryptedSecret = new EncryptedSecret(secretConfig);
-    String formattedSecret = encryptedSecret.formatString();
-    EncryptedSecret encryptedSecretFromFormattedSecret = new EncryptedSecret(formattedSecret);
-    assertEquals(encryptedSecret, encryptedSecretFromFormattedSecret);
+    String secretFileConfig = "encryptedFile:aws-kms!foo:bar!key:secret-param-1!Key:secret-param:2";
+    EncryptedSecret encryptedSecretFile = new EncryptedSecret(secretConfig);
+    assertEquals("aws-kms", encryptedSecretFile.getEngineIdentifier());
+    assertEquals("bar", encryptedSecretFile.getParams().get("foo"));
+    assertEquals("secret-param-1", encryptedSecretFile.getParams().get("key"));
+    assertEquals("secret-param:2", encryptedSecretFile.getParams().get("Key"));
   }
 
   @Test
