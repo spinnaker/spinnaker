@@ -369,6 +369,8 @@ const helpContents: { [key: string]: string } = {
     '<p>Monitored Deploy will scale up the new server group as specified by these per cent steps. After each step, the health of the new server group will be evaluated by the specified deployment monitor.</p>',
   'strategy.monitored.rollback':
     '<p>If deploy fails, disable the new server group and ensure that the previous server group is active and restored to its original capacity.</p>',
+  'strategy.monitored.destroyFailedAsg':
+    '<p>If deploy fails and rollback succeeds destroys the server group that failed the deploy instead of just disabling it.</p>',
   'loadBalancers.filter.serverGroups': `
       <p>Displays all server groups configured to use the load balancer.</p>
       <p>If the server group is configured to <em>not</em> add new instances to the load balancer, it will be grayed out.</p>`,

@@ -13,8 +13,9 @@ import {
 
 export interface IMonitoredDeployCommand extends IServerGroupCommand {
   delayBeforeScaleDownSec: string;
-  rollback: {
-    onFailure: boolean;
+  failureActions: {
+    destroyInstances: boolean;
+    rollback: string;
   };
   maxRemainingAsgs: number;
   scaleDown: boolean;
@@ -23,6 +24,12 @@ export interface IMonitoredDeployCommand extends IServerGroupCommand {
     id: string;
     parameters: {};
   };
+}
+
+export enum RollbackType {
+  None = 'None',
+  Automatic = 'Automatic',
+  Manual = 'Manual',
 }
 
 export interface IMonitoredDeployStrategyAdditionalFieldsProps extends IDeploymentStrategyAdditionalFieldsProps {
@@ -58,7 +65,16 @@ export class AdditionalFields extends React.Component<
   };
 
   private rollbackOnFailureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    this.props.command.rollback.onFailure = e.target.checked;
+    this.props.command.failureActions.rollback = e.target.checked ? RollbackType.Automatic : RollbackType.None;
+
+    if (this.props.command.failureActions.rollback === RollbackType.None) {
+      this.props.command.failureActions.destroyInstances = false;
+    }
+    this.forceUpdate();
+  };
+
+  private destroyFailedAsgChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    this.props.command.failureActions.destroyInstances = e.target.checked;
     this.forceUpdate();
   };
 
@@ -80,7 +96,8 @@ export class AdditionalFields extends React.Component<
   public render() {
     const { NumberList } = NgReact;
     const { command } = this.props;
-    const rollbackOnFailure = command.rollback && command.rollback.onFailure;
+    const rollbackOnFailure = command.failureActions && command.failureActions.rollback === RollbackType.Automatic;
+    const destroyFailedAsg = command.failureActions && command.failureActions.destroyInstances;
 
     return (
       <div className="form-group">
@@ -117,6 +134,17 @@ export class AdditionalFields extends React.Component<
           <label>
             <input type="checkbox" checked={rollbackOnFailure} onChange={this.rollbackOnFailureChange} />
             Rollback to previous server group if deployment fails <HelpField id="strategy.monitored.rollback" />
+          </label>
+        </div>
+        <div className="col-md-12 checkbox" style={{ marginTop: 0 }}>
+          <label>
+            <input
+              type="checkbox"
+              checked={destroyFailedAsg}
+              disabled={!rollbackOnFailure}
+              onChange={this.destroyFailedAsgChange}
+            />
+            Destroy the failed server group after rollback <HelpField id="strategy.monitored.destroyFailedAsg" />
           </label>
         </div>
         <div className="col-md-12 checkbox">
