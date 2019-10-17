@@ -62,7 +62,7 @@ public class ManagedController {
     return keelService.upsertResource(resource);
   }
 
-  @ApiOperation(value = "Ad-hoc validate and diff a resource", response = Resource.class)
+  @ApiOperation(value = "Ad-hoc validate and diff a resource", response = Map.class)
   @RequestMapping(value = "/resources/diff", method = POST)
   Map diffResource(@RequestBody Resource resource) {
     return keelService.diffResource(resource);
@@ -88,10 +88,8 @@ public class ManagedController {
     return keelService.upsertManifest(manifest);
   }
 
-  @ApiOperation(
-      value = "Ad-hoc validate and diff a config manifest",
-      response = DeliveryConfig.class)
-  @RequestMapping(value = "/delivery-configs", method = POST)
+  @ApiOperation(value = "Ad-hoc validate and diff a config manifest", response = Map.class)
+  @RequestMapping(value = "/delivery-configs/diff", method = POST)
   Map diffManifest(@RequestBody DeliveryConfig manifest) {
     return keelService.diffManifest(manifest);
   }
