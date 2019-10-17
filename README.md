@@ -7,6 +7,9 @@ _**IMPORTANT:** This service is currently under development and is not ready for
 This document describes the architecture of Spinnaker’s Keel service, which is responsible for managed delivery.
 
 
+**Check out our [FAQ section](FAQ.md) for more information beyond architecture, and join us in the [#sig-spinnaker-as-code](https://slack.com/app_redirect?team=T091CRSGH&channel=CERACDPDZ) channel on the [Spinnaker Slack workspace](http://join.spinnaker.io/) if you have questions or want to get involved.**
+
+
 ## Terminology
 
 
