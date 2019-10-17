@@ -55,7 +55,7 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
   public KubernetesDeployManifestOperation(
       KubernetesDeployManifestDescription description, ArtifactProvider provider) {
     this.description = description;
-    this.credentials = (KubernetesV2Credentials) description.getCredentials().getCredentials();
+    this.credentials = description.getCredentials().getCredentials();
     this.provider = provider;
     this.accountName = description.getCredentials().getName();
     this.namer =

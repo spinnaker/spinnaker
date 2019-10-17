@@ -51,7 +51,7 @@ public class KubernetesCleanupArtifactsOperation implements AtomicOperation<Oper
   public KubernetesCleanupArtifactsOperation(
       KubernetesCleanupArtifactsDescription description, ArtifactProvider artifactProvider) {
     this.description = description;
-    this.credentials = (KubernetesV2Credentials) description.getCredentials().getCredentials();
+    this.credentials = description.getCredentials().getCredentials();
     this.accountName = description.getCredentials().getName();
     this.artifactProvider = artifactProvider;
   }

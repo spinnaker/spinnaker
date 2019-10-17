@@ -17,13 +17,14 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.description
 
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesAtomicOperationDescription
+import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
 
 // Pair of credentials name and associated kubernetes client
 @AutoClone
 @Canonical
-class KubernetesKindAtomicOperationDescription extends KubernetesAtomicOperationDescription {
+class KubernetesKindAtomicOperationDescription extends KubernetesAtomicOperationDescription<KubernetesV1Credentials> {
   String kind
   String apiVersion
 }

@@ -35,7 +35,7 @@ public class KubernetesResizeServerGroupOperation implements AtomicOperation<Voi
 
   public KubernetesResizeServerGroupOperation(KubernetesResizeServerGroupDescription description) {
     this.description = description;
-    this.credentials = (KubernetesV2Credentials) description.getCredentials().getCredentials();
+    this.credentials = description.getCredentials().getCredentials();
   }
 
   private static Task getTask() {

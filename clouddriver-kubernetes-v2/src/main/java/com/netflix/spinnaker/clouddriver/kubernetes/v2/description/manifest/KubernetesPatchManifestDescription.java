@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesAtomicOperationDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPatchOptions;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.List;
 import lombok.Data;
@@ -28,7 +29,8 @@ import org.apache.commons.lang3.tuple.Pair;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class KubernetesPatchManifestDescription extends KubernetesAtomicOperationDescription {
+public class KubernetesPatchManifestDescription
+    extends KubernetesAtomicOperationDescription<KubernetesV2Credentials> {
   private String manifestName;
   private String location;
 

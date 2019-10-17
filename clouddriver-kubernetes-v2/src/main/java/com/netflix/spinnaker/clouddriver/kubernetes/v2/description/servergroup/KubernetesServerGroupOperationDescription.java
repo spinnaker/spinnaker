@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesAtomic
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.tuple.Pair;
@@ -29,7 +30,7 @@ import org.apache.commons.lang3.tuple.Pair;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class KubernetesServerGroupOperationDescription
-    extends KubernetesAtomicOperationDescription {
+    extends KubernetesAtomicOperationDescription<KubernetesV2Credentials> {
   private String serverGroupName;
   private String region; // :(
 

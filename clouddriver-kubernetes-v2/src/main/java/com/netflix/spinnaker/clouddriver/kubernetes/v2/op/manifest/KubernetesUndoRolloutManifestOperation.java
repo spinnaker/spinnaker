@@ -36,7 +36,7 @@ public class KubernetesUndoRolloutManifestOperation implements AtomicOperation<V
   public KubernetesUndoRolloutManifestOperation(
       KubernetesUndoRolloutManifestDescription description) {
     this.description = description;
-    this.credentials = (KubernetesV2Credentials) description.getCredentials().getCredentials();
+    this.credentials = description.getCredentials().getCredentials();
   }
 
   private static Task getTask() {
