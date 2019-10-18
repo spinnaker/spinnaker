@@ -2,7 +2,7 @@ import { IPromise } from 'angular';
 import { $q } from 'ngimport';
 import { isNil } from 'lodash';
 
-import { useLatestPromise, IUseLatestPromiseResult } from './useLatestPromise';
+import { useLatestPromise, IUseLatestPromiseResult } from './useLatestPromise.hook';
 
 /**
  * A react hook which invokes a promise returning callback whenever any of its dependencies changes.

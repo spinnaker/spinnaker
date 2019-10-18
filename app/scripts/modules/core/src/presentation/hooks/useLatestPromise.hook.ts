@@ -28,7 +28,7 @@ export interface IUseLatestPromiseResult<T> {
  * @returns an object with the result and current status of the promise
  */
 export function useLatestPromise<T>(callback: () => IPromise<T>, deps: DependencyList): IUseLatestPromiseResult<T> {
-  const mounted = useRef(false);
+  const isMounted = useRef(false);
   const requestInFlight = useRef<IPromise<T>>();
   const [status, setStatus] = useState<IRequestStatus>('NONE');
   const [result, setResult] = useState<T>();
@@ -36,22 +36,26 @@ export function useLatestPromise<T>(callback: () => IPromise<T>, deps: Dependenc
   const [requestId, setRequestId] = useState(0);
 
   // Starts a new request (runs the callback again)
-  const refresh = () => setRequestId(currentRequestId => currentRequestId + 1);
+  const refresh = () => setRequestId(id => id + 1);
 
   // refresh whenever any dependency in the dependency list changes
-  useEffect(() => refresh(), deps);
+  useEffect(() => {
+    if (isMounted.current) {
+      refresh();
+    }
+  }, deps);
 
   // Manage the mount/unmounted state
   useEffect(() => {
-    mounted.current = true;
-    return () => (mounted.current = false);
+    isMounted.current = true;
+    return () => (isMounted.current = false);
   }, []);
 
   // Invokes the callback and manages its lifecycle.
   // This is triggered when the requestId changes
   useEffect(() => {
     const promise = callback();
-    const isCurrent = () => mounted.current === true && promise === requestInFlight.current;
+    const isCurrent = () => isMounted.current === true && promise === requestInFlight.current;
 
     // If no promise is returned from the callback, noop this effect.
     if (!promise) {
