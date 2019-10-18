@@ -49,7 +49,8 @@ public class Plugins extends Node {
         plugins.stream()
             .filter(p -> p.getEnabled())
             .filter(p -> !p.getManifestLocation().isEmpty())
-            .collect(Collectors.toMap(p -> p.getName(), p -> p.getCombinedOptions()));
+            .collect(
+                Collectors.toMap(p -> p.generateManifest().getName(), p -> p.getCombinedOptions()));
 
     fullyRenderedYaml.put("plugins", pluginMetadata);
     return fullyRenderedYaml;

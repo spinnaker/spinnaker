@@ -36,10 +36,10 @@ import org.yaml.snakeyaml.representer.Representer;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class Plugin extends Node {
-  public String name;
-  public Boolean enabled;
-  public String manifestLocation;
-  public Map<String, Object> options = new HashMap<>();
+  private String name;
+  private Boolean enabled;
+  private String manifestLocation;
+  private Map<String, Object> options = new HashMap<>();
 
   @Override
   public String getNodeName() {
@@ -113,6 +113,6 @@ public class Plugin extends Node {
   }
 
   public Map<String, Object> getCombinedOptions() {
-    return Plugin.merge(generateManifest().getOptions(), options);
+    return Plugin.merge(generateManifest().getOptions(), getOptions());
   }
 }
