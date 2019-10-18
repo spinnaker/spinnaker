@@ -7,8 +7,7 @@ import { IFormInputValidation } from './interface';
 
 export const orEmptyString = (val: any) => (isUndefined(val) ? '' : val);
 
-export const validationClassName = (validation: IFormInputValidation) => {
-  validation = validation || {};
+export const validationClassName = (validation = {} as IFormInputValidation) => {
   return classNames({
     'ng-dirty': !!validation.touched,
     'ng-invalid': validation.category === 'error',

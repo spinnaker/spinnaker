@@ -22,6 +22,7 @@ export function FormField(props: IFormFieldProps): JSX.Element {
 
   // Internal validators are defined by an Input component
   const [internalValidators, setInternalValidators] = useState([]);
+  const [revalidateRequestId, setRevalidateRequestId] = useState(0);
   const addValidator = useCallback((v: IValidator) => setInternalValidators(list => list.concat(v)), []);
   const removeValidator = useCallback((v: IValidator) => setInternalValidators(list => list.filter(x => x !== v)), []);
 
@@ -30,7 +31,7 @@ export function FormField(props: IFormFieldProps): JSX.Element {
 
   const fieldValidator = useMemo(
     () => createFieldValidator(label, required, [].concat(validate || noop).concat(internalValidators)),
-    [label, required, validate],
+    [label, required, validate, internalValidators.length],
   );
 
   const FieldLayoutFromContext = useContext(LayoutContext);
@@ -40,7 +41,10 @@ export function FormField(props: IFormFieldProps): JSX.Element {
 
   const [hasBlurred, setHasBlurred] = useState(false);
   const touched = firstDefined(props.touched, hasBlurred);
-  const validatorResult = useMemo(() => fieldValidator(value), [fieldValidator, value]);
+
+  // When called, this bumps a revalidateRequestId which in causes validatorResult to be updated
+  const revalidate = () => setRevalidateRequestId(prev => prev + 1);
+  const validatorResult = useMemo(() => fieldValidator(value), [fieldValidator, value, revalidateRequestId]);
   const validationMessage = firstDefined(props.validationMessage, validatorResult ? validatorResult : undefined);
   const validationData = useValidationData(validationMessage, touched);
 
@@ -48,6 +52,7 @@ export function FormField(props: IFormFieldProps): JSX.Element {
     touched,
     addValidator,
     removeValidator,
+    revalidate,
     ...validationData,
   };
 

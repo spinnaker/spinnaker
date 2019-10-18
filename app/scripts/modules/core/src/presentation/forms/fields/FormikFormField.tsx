@@ -40,20 +40,32 @@ function FormikFormFieldImpl<T = any>(props: IFormikFormFieldImplProps<T>) {
   const { name, onChange, fastField: fastFieldProp } = props;
   const { input, layout, label, help, required, actions, validate, validationMessage, touched: touchedProp } = props;
 
+  const FieldLayoutFromContext = useContext(LayoutContext);
+
   const formikTouched = getIn(formik.touched, name);
   const formikError = getIn(formik.errors, props.name);
   const fastField = firstDefined(fastFieldProp, true);
   const touched = firstDefined(touchedProp, formikTouched as boolean);
 
-  const validationNodeProps = useValidationData(firstDefined(validationMessage, formikError as string), touched);
-  const FieldLayoutFromContext = useContext(LayoutContext);
+  const message = firstDefined(validationMessage, formikError as string);
+  const { hidden, category, messageNode } = useValidationData(message, touched);
 
   const [internalValidators, setInternalValidators] = useState([]);
   const addValidator = useCallback((v: IValidator) => setInternalValidators(list => list.concat(v)), []);
   const removeValidator = useCallback((v: IValidator) => setInternalValidators(list => list.filter(x => x !== v)), []);
+  const revalidate = () => formik.validate(formik.values);
+
+  const validation: IFormInputValidation = {
+    touched,
+    revalidate,
+    addValidator,
+    removeValidator,
+    hidden,
+    category,
+    messageNode,
+  };
 
   const renderField = ({ field }: FieldProps<any>) => {
-    const validation: IFormInputValidation = { touched, addValidator, removeValidator, ...validationNodeProps };
     const inputRenderPropOrNode = firstDefined(input, noop);
     const layoutFromContext = (fieldLayoutProps: ILayoutProps) => <FieldLayoutFromContext {...fieldLayoutProps} />;
     const layoutRenderPropOrNode = firstDefined(layout, layoutFromContext);

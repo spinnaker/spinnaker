@@ -5,7 +5,7 @@ import { isNil } from 'lodash';
 
 import { noop } from 'core/utils';
 
-import { IFormInputProps, OmitControlledInputPropsFrom } from './interface';
+import { IFormInputProps, IFormInputValidation, OmitControlledInputPropsFrom } from './interface';
 import { createFakeReactSyntheticEvent, isStringArray, orEmptyString } from './utils';
 import { StringsAsOptions } from './StringsAsOptions';
 import { useValidationData } from '../validation';
@@ -64,7 +64,7 @@ export function ReactSelectInput(props: IReactSelectInputProps) {
     onChange,
     onBlur,
     value,
-    validation = {},
+    validation = {} as IFormInputValidation,
     stringOptions,
     options: optionOptions,
     ignoreAccents: accents,

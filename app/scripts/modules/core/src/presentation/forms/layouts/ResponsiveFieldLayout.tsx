@@ -1,6 +1,7 @@
 import * as React from 'react';
 
 import { HelpTextExpandedContext } from 'core/help';
+import { IFormInputValidation } from '../inputs';
 import { ValidationMessage } from '../validation';
 
 import { ILayoutProps } from './interface';
@@ -8,7 +9,7 @@ import { ILayoutProps } from './interface';
 import '../forms.less';
 
 export function ResponsiveFieldLayout(props: ILayoutProps) {
-  const { label, help, input, actions, validation = {} } = props;
+  const { label, help, input, actions, validation = {} as IFormInputValidation } = props;
   const { hidden, messageNode, category } = validation;
   const showLabel = !!label || !!help;
 

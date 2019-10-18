@@ -1,11 +1,12 @@
 import * as React from 'react';
 import { isUndefined } from 'lodash';
 import { ValidationMessage } from '../validation';
+import { IFormInputValidation } from '../inputs';
 import { ILayoutProps } from './interface';
 import './StandardFieldLayout.css';
 
 export function StandardFieldLayout(props: ILayoutProps) {
-  const { label, help, input, actions, validation = {} } = props;
+  const { label, help, input, actions, validation = {} as IFormInputValidation } = props;
   const { hidden, messageNode, category } = validation;
   const showLabel = !isUndefined(label) || !isUndefined(help);
 
