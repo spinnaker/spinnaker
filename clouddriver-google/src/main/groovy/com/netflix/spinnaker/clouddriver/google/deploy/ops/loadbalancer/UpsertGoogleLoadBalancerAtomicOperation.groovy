@@ -132,12 +132,7 @@ class UpsertGoogleLoadBalancerAtomicOperation extends GoogleAtomicOperation<Map>
         project, region, GCEUtil.getLocalName(existingForwardingRule.target), compute, task, BASE_PHASE, this)
 
       if (existingTargetPool) {
-        GoogleSessionAffinity newSessionAffinity
-        if (description.sessionAffinity == null) {
-          newSessionAffinity = GoogleSessionAffinity.NONE
-        } else {
-          newSessionAffinity = description.sessionAffinity
-        }
+        GoogleSessionAffinity newSessionAffinity = Optional.ofNullable(description.sessionAffinity).orElse(GoogleSessionAffinity.NONE)
         boolean sessionAffinityChanged = newSessionAffinity != GoogleSessionAffinity.valueOf(existingTargetPool.getSessionAffinity())
         if (sessionAffinityChanged && existingTargetPool.instances.any()) {
           task.updateStatus BASE_PHASE, "Impossible to change Session Affinity for target pool with existing instances."
