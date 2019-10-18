@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.fiat.providers.internal;
 
+import static com.netflix.spinnaker.security.AuthenticatedRequest.allowAnonymous;
+
 import com.netflix.spinnaker.fiat.model.resources.Account;
 import com.netflix.spinnaker.fiat.model.resources.Application;
 import com.netflix.spinnaker.fiat.providers.HealthTrackable;
@@ -66,13 +68,13 @@ public class ClouddriverService implements HealthTrackable, InitializingBean {
 
   @Scheduled(fixedDelayString = "${fiat.clouddriver-refresh-ms:30000}")
   public void refreshAccounts() {
-    accountCache.set(clouddriverApi.getAccounts());
+    accountCache.set(allowAnonymous(clouddriverApi::getAccounts));
     healthTracker.success();
   }
 
   @Scheduled(fixedDelayString = "${fiat.clouddriver-refresh-ms:30000}")
   public void refreshApplications() {
-    applicationCache.set(clouddriverApi.getApplications());
+    applicationCache.set(allowAnonymous(clouddriverApi::getApplications));
     healthTracker.success();
   }
 }

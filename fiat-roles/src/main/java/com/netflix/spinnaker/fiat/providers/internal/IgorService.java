@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.fiat.providers.internal;
 
+import static com.netflix.spinnaker.security.AuthenticatedRequest.allowAnonymous;
+
 import com.netflix.spinnaker.fiat.model.resources.BuildService;
 import com.netflix.spinnaker.fiat.providers.HealthTrackable;
 import com.netflix.spinnaker.fiat.providers.ProviderHealthTracker;
@@ -60,7 +62,7 @@ public class IgorService implements HealthTrackable, InitializingBean {
   @Scheduled(fixedDelayString = "${fiat.igor-refresh-ms:30000}")
   public void refreshBuildServices() {
     if (igorEnabled) {
-      buildServicesCache.set(igorApi.getBuildMasters());
+      buildServicesCache.set(allowAnonymous(igorApi::getBuildMasters));
     }
     healthTracker.success();
   }

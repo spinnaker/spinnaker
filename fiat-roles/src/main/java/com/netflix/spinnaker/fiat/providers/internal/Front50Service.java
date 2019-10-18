@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.fiat.providers.internal;
 
+import static com.netflix.spinnaker.security.AuthenticatedRequest.*;
+
 import com.netflix.hystrix.exception.HystrixBadRequestException;
 import com.netflix.spinnaker.fiat.model.resources.Application;
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
@@ -55,7 +57,7 @@ public class Front50Service implements HealthTrackable, InitializingBean {
             GROUP_KEY,
             "getAllApplicationPermissions",
             () -> {
-              applicationCache.set(front50Api.getAllApplicationPermissions());
+              applicationCache.set(allowAnonymous(front50Api::getAllApplicationPermissions));
               healthTracker.success();
               return applicationCache.get();
             },
@@ -75,7 +77,7 @@ public class Front50Service implements HealthTrackable, InitializingBean {
             GROUP_KEY,
             "getAccounts",
             () -> {
-              serviceAccountCache.set(front50Api.getAllServiceAccounts());
+              serviceAccountCache.set(allowAnonymous(front50Api::getAllServiceAccounts));
               healthTracker.success();
               return serviceAccountCache.get();
             },
