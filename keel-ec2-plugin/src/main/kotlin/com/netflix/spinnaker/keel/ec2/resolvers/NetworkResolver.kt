@@ -5,24 +5,42 @@ import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
+import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
+import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
 import com.netflix.spinnaker.keel.plugin.Resolver
 import org.springframework.stereotype.Component
 
-abstract class NetworkResolver<T : Locatable<*>> : Resolver<T> {
+abstract class NetworkResolver<T : Locatable<*>>(
+  private val cloudDriverCache: CloudDriverCache
+) : Resolver<T> {
 
   protected fun SubnetAwareLocations.withResolvedNetwork(): SubnetAwareLocations {
     val resolvedVpcName: String =
       vpc
         ?: subnet?.let { Regex("""^.+\((.+)\)$""").find(it)?.groupValues?.get(1) }
         ?: DEFAULT_VPC_NAME
+    val resolvedSubnet = subnet ?: DEFAULT_SUBNET_PURPOSE.format(resolvedVpcName)
     return copy(
       vpc = resolvedVpcName,
-      subnet = subnet ?: DEFAULT_SUBNET_PURPOSE.format(resolvedVpcName)
+      subnet = resolvedSubnet,
+      regions = regions.map { region ->
+        if (region.availabilityZones.isEmpty()) {
+          region.copy(
+            availabilityZones = cloudDriverCache.resolveAvailabilityZones(
+              account = account,
+              subnet = resolvedSubnet,
+              region = region
+            )
+          )
+        } else {
+          region
+        }
+      }.toSet()
     )
   }
 
@@ -37,7 +55,7 @@ abstract class NetworkResolver<T : Locatable<*>> : Resolver<T> {
 }
 
 @Component
-class SecurityGroupNetworkResolver : NetworkResolver<SecurityGroupSpec>() {
+class SecurityGroupNetworkResolver(cloudDriverCache: CloudDriverCache) : NetworkResolver<SecurityGroupSpec>(cloudDriverCache) {
   override val apiVersion: ApiVersion = SPINNAKER_EC2_API_V1
   override val supportedKind: String = "security-group"
 
@@ -54,7 +72,7 @@ class SecurityGroupNetworkResolver : NetworkResolver<SecurityGroupSpec>() {
 }
 
 @Component
-class ClusterNetworkResolver : NetworkResolver<ClusterSpec>() {
+class ClusterNetworkResolver(cloudDriverCache: CloudDriverCache) : NetworkResolver<ClusterSpec>(cloudDriverCache) {
   override val apiVersion: ApiVersion = SPINNAKER_EC2_API_V1
   override val supportedKind: String = "cluster"
 
@@ -71,7 +89,7 @@ class ClusterNetworkResolver : NetworkResolver<ClusterSpec>() {
 }
 
 @Component
-class ClassicLoadBalancerNetworkResolver : NetworkResolver<ClassicLoadBalancerSpec>() {
+class ClassicLoadBalancerNetworkResolver(cloudDriverCache: CloudDriverCache) : NetworkResolver<ClassicLoadBalancerSpec>(cloudDriverCache) {
   override val apiVersion: ApiVersion = SPINNAKER_EC2_API_V1
   override val supportedKind: String = "classic-load-balancer"
 
@@ -88,7 +106,7 @@ class ClassicLoadBalancerNetworkResolver : NetworkResolver<ClassicLoadBalancerSp
 }
 
 @Component
-class ApplicationLoadBalancerNetworkResolver : NetworkResolver<ApplicationLoadBalancerSpec>() {
+class ApplicationLoadBalancerNetworkResolver(cloudDriverCache: CloudDriverCache) : NetworkResolver<ApplicationLoadBalancerSpec>(cloudDriverCache) {
   override val apiVersion: ApiVersion = SPINNAKER_EC2_API_V1
   override val supportedKind: String = "application-load-balancer"
 
@@ -103,3 +121,14 @@ class ApplicationLoadBalancerNetworkResolver : NetworkResolver<ApplicationLoadBa
       )
     }
 }
+
+private fun CloudDriverCache.resolveAvailabilityZones(
+  account: String,
+  subnet: String,
+  region: SubnetAwareRegionSpec
+) =
+  availabilityZonesBy(
+    account,
+    subnetBy(account, region.name, subnet).vpcId,
+    region.name
+  ).toSet()
