@@ -1,0 +1,19 @@
+pull_request_rules:
+  - name: Automatically merge on CI success and review
+    conditions:
+      - status-success=continuous-integration/travis-ci/pr
+      - "label=ready to merge"
+      - "approved-reviews-by=@oss-approvers"
+    actions:
+      merge:
+        method: squash
+        strict: smart
+  - name: Automatically merge kork autobump PRs on CI success
+    conditions:
+      - status-success=continuous-integration/travis-ci/pr
+      - "label~=autobump-*"
+      - "author:spinnakerbot"
+    actions:
+      merge:
+        method: squash
+        strict: smart
