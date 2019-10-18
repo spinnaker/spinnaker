@@ -20,22 +20,23 @@ publishing {
 
 ext {
   versions = [
-    aws           : "1.11.622",
-    bouncycastle  : "1.61",
-    groovy        : "2.5.7", //this needs to keep in sync with the version from boot... if we could get rid of groovy-all we'd no longer need this
-    hystrix       : "1.4.21",
-    jsch          : "0.0.9",
-    protobuf      : "3.9.1",
-    okhttp        : "2.7.0",
-    okhttp3       : "3.14.2",
-    resilience4j  : "1.0.0",
-    retrofit      : "1.9.0",
-    retrofit2     : "2.6.1",
-    spectator     : "0.75.0",
-    spek          : "1.2.1",
-    springBoot    : "2.1.7.RELEASE",
-    springCloud   : "Greenwich.SR2",
-    swagger       : "2.9.2"
+    aws            : "1.11.622",
+    bouncycastle   : "1.61",
+    groovy         : "2.5.7", //this needs to keep in sync with the version from boot... if we could get rid of groovy-all we'd no longer need this
+    hystrix        : "1.4.21",
+    jsch           : "0.1.54",
+    jschAgentProxy : "0.0.9",
+    protobuf       : "3.9.1",
+    okhttp         : "2.7.0",
+    okhttp3        : "3.14.2",
+    resilience4j   : "1.0.0",
+    retrofit       : "1.9.0",
+    retrofit2      : "2.6.1",
+    spectator      : "0.75.0",
+    spek           : "1.2.1",
+    springBoot     : "2.1.7.RELEASE",
+    springCloud    : "Greenwich.SR2",
+    swagger        : "2.9.2"
   ]
 }
 
@@ -63,7 +64,6 @@ dependencies {
 
   constraints {
     api("cglib:cglib-nodep:3.2.0")
-    api("com.aestasit.infrastructure.sshoogr:sshoogr:0.9.25")
     api("com.amazonaws:aws-java-sdk:${versions.aws}")
     api("com.google.api-client:google-api-client:1.28.0")
     api("com.google.auth:google-auth-library-oauth2-http:0.18.0")
@@ -75,8 +75,9 @@ dependencies {
     api("com.google.code.findbugs:jsr305:3.0.2")
     api("com.google.guava:guava:28.0-jre")
     api("com.hubspot.jinjava:jinjava:2.2.3") // DO NOT CHANGE: MPTv1 strongly depends on this version of Jinjava
-    api("com.jcraft:jsch.agentproxy.connector-factory:${versions.jsch}")
-    api("com.jcraft:jsch.agentproxy.jsch:${versions.jsch}")
+    api("com.jcraft.jsch:${versions.jsch}")
+    api("com.jcraft:jsch.agentproxy.connector-factory:${versions.jschAgentProxy}")
+    api("com.jcraft:jsch.agentproxy.jsch:${versions.jschAgentProxy}")
     api("com.natpryce:hamkrest:1.4.2.2")
     api("com.netflix.archaius:archaius-core:0.7.5")
     api("com.netflix.awsobjectmapper:awsobjectmapper:${versions.aws}")

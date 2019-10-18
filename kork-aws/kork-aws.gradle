@@ -16,10 +16,6 @@
 apply plugin: "java-library"
 apply plugin: "groovy"
 
-//TODO(csmalley): Move away from sshoogr
-sourceSets.main.java.srcDirs = []
-sourceSets.main.groovy.srcDirs += ["src/main/java"]
-
 dependencies {
   api(platform(project(":spinnaker-dependencies")))
   annotationProcessor(platform(project(":spinnaker-dependencies")))
@@ -34,7 +30,6 @@ dependencies {
   api "com.hubspot.jinjava:jinjava"
   api "com.jcraft:jsch.agentproxy.jsch"
   api "com.jcraft:jsch.agentproxy.connector-factory"
-  api "com.aestasit.infrastructure.sshoogr:sshoogr"
 
   implementation "com.netflix.spectator:spectator-ext-aws"
 
