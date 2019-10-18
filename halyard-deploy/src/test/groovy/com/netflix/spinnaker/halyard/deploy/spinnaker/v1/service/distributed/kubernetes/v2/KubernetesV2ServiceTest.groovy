@@ -394,4 +394,16 @@ class KubernetesV2ServiceTest extends Specification {
         then:
         yaml.contains('"tolerations": [{"key":"test","operator":"Equal","value":"a","effect":"NoSchedule"}]')
     }
+
+    def "Can we set ServiceAccountNames"() {
+        setup:
+        def executor = Mock(KubernetesV2Executor)
+        serviceSettings.getKubernetes().serviceAccountName = "customServiceAccount"
+
+        when:
+        String podSpecYaml = testService.getPodSpecYaml(executor, details, config)
+
+        then:
+        podSpecYaml.contains('"serviceAccountName": customServiceAccount')
+    }
 }
