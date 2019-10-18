@@ -120,7 +120,7 @@ class BakeStageSpec extends Specification {
     }
   }
 
-  def "should fail if image names don't match across regions (unless user opts out)"() {
+  def "should fail if image names don't match across regions"() {
     given:
     def pipeline = pipeline {
       stage {
@@ -152,6 +152,51 @@ class BakeStageSpec extends Specification {
 
     then:
     thrown(ConstraintViolationException)
+  }
+
+  def "should NOT fail if image names from unrelated bake stages don't match"() {
+    given:
+    def pipeline = pipeline {
+      stage {
+        id = "1"
+        type = "bake"
+        context = [
+          "region": "us-east-1",
+          "regions": ["us-east-1", "us-west-2"]
+        ]
+        status = ExecutionStatus.RUNNING
+      }
+      // this is a sibling bake stage whose child bake contexts should not be included in stage 1's outputs, but are
+      stage {
+        id = "2"
+        type = "bake"
+        context = [
+          "region": "us-east-1",
+          "regions": ["us-east-1"]
+        ]
+        status = ExecutionStatus.RUNNING
+      }
+    }
+
+    for (stageId in ["1", "2"]) {
+      def bakeStage = pipeline.stageById(stageId)
+      def graph = StageGraphBuilder.beforeStages(bakeStage)
+      new BakeStage(regionCollector: new RegionCollector()).beforeStages(bakeStage, graph)
+      def childBakeStages = graph.build()
+      childBakeStages.eachWithIndex { it, idx ->
+        it.context.ami = "${idx}"
+        it.context.imageName = "image-from-bake-stage-${stageId}"
+      }
+      pipeline.stages.addAll(childBakeStages)
+    }
+
+    dynamicConfigService.isEnabled("stages.bake.failOnImageNameMismatch", false) >> { true }
+
+    when:
+    new BakeStage.CompleteParallelBakeTask(dynamicConfigService).execute(pipeline.stageById("1"))
+
+    then:
+    notThrown(ConstraintViolationException)
   }
 
   private

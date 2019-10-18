@@ -141,6 +141,9 @@ class BakeStage implements StageDefinitionBuilder {
         it.parentStageId == stage.parentStageId && it.status == ExecutionStatus.RUNNING
       }
 
+      // FIXME? (lpollo): I don't know why we do this, but we include in relatedStages all parallel bake stages in the
+      //  same pipeline, not just the ones related to the stage passed to this task, which means this list actually
+      //  contains *unrelated* bake stages...
       def relatedBakeStages = stage.execution.stages.findAll {
         it.type == PIPELINE_CONFIG_TYPE && bakeInitializationStages*.id.contains(it.parentStageId)
       }
@@ -159,8 +162,11 @@ class BakeStage implements StageDefinitionBuilder {
       ]
 
       if (failOnImageNameMismatchEnabled()) {
-         List<String> distinctImageNames = globalContext.deploymentDetails.stream()
-          .map({details -> details['imageName']})
+        // find distinct image names in bake stages that are actually related to the stage passed into the task
+        List<String> distinctImageNames = relatedBakeStages
+          .findAll { childStage -> childStage.parentStageId == stage.id && childStage.context.imageName }
+          .stream()
+          .map { childStage -> childStage.context.imageName }
           .distinct()
           .collect(Collectors.toList())
 
