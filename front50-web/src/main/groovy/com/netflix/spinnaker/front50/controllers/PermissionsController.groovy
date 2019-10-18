@@ -124,7 +124,7 @@ public class PermissionsController {
       roles += oldPermission.permissions.allGroups()
     }
 
-    if (!roles.isEmpty() && roleSync) {
+    if (roleSync) {
       try {
         fiatService.sync(roles as List)
       } catch (RetrofitError re) {
