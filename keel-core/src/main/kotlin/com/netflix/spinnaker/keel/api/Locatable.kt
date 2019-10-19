@@ -30,22 +30,27 @@ interface Locations<T : RegionSpec> {
    * If not specified here, this should be derived from the [SubnetAwareLocations.subnet] (if
    * present) or use a default VPC name.
    */
-  val vpc: String?
+  val vpc: String
   val regions: Set<T>
 }
 
 data class SubnetAwareLocations(
   override val account: String,
-  override val vpc: String?,
   /**
    * If not specified here, this should be derived from a default subnet purpose using [vpc].
    */
   val subnet: String?,
+  // TODO: this is not ideal as we'd like this default to be configurable
+  override val vpc: String = defaultVPC(subnet),
   override val regions: Set<SubnetAwareRegionSpec>
 ) : Locations<SubnetAwareRegionSpec>
 
 data class SimpleLocations(
   override val account: String,
-  override val vpc: String?,
+  // TODO: this is not ideal as we'd like this default to be configurable
+  override val vpc: String = "vpc0",
   override val regions: Set<SimpleRegionSpec>
 ) : Locations<SimpleRegionSpec>
+
+fun defaultVPC(subnet: String?) =
+  subnet?.let { Regex("""^.+\((.+)\)$""").find(it)?.groupValues?.get(1) } ?: "vpc0"

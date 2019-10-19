@@ -53,11 +53,11 @@ class ClassicLoadBalancerHandler(
         ClassicLoadBalancer(
           moniker,
           Location(
-            locations.account,
-            it.name,
-            locations.vpc ?: error("No VPC name supplied or resolved"),
-            locations.subnet ?: error("No subnet purpose supplied or resolved"),
-            it.availabilityZones
+            account = locations.account,
+            region = it.name,
+            vpc = locations.vpc,
+            subnet = locations.subnet ?: error("No subnet purpose supplied or resolved"),
+            availabilityZones = it.availabilityZones
           ),
           internal,
           dependencies,

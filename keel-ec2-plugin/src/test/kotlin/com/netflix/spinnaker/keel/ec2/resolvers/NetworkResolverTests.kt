@@ -5,8 +5,6 @@ import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.RegionSpec
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.SimpleLocations
-import com.netflix.spinnaker.keel.api.SimpleRegionSpec
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
@@ -19,7 +17,6 @@ import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.HealthSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
-import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.MemoryCloudDriverCache
@@ -44,17 +41,43 @@ import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
 import java.time.Duration
 
-internal abstract class NetworkResolverTests<T : Locatable<*>> : JUnit5Minutests {
+internal abstract class NetworkResolverTests<T : Locatable<SubnetAwareLocations>> : JUnit5Minutests {
 
   protected abstract val createSubject: (CloudDriverCache) -> NetworkResolver<T>
-  protected abstract fun createResource(
+  protected abstract fun createResource(locations: SubnetAwareLocations): Resource<T>
+  private fun locations(
     vpc: String? = null,
     subnetPurpose: String? = null,
     eastZones: Set<String> = emptySet(),
     westZones: Set<String> = emptySet()
-  ): Resource<T>
+  ): SubnetAwareLocations =
+    setOf(
+      SubnetAwareRegionSpec(
+        name = "us-east-1",
+        availabilityZones = eastZones
+      ),
+      SubnetAwareRegionSpec(
+        name = "us-west-2",
+        availabilityZones = westZones
+      )
+    ).let { regions ->
+      if (vpc == null) {
+        SubnetAwareLocations(
+          account = "test",
+          subnet = subnetPurpose,
+          regions = regions
+        )
+      } else {
+        SubnetAwareLocations(
+          account = "test",
+          vpc = vpc,
+          subnet = subnetPurpose,
+          regions = regions
+        )
+      }
+    }
 
-  data class Fixture<T : Locatable<*>>(
+  data class Fixture<T : Locatable<SubnetAwareLocations>>(
     val subjectFactory: (CloudDriverCache) -> NetworkResolver<T>,
     val resource: Resource<T>
   ) {
@@ -108,7 +131,7 @@ internal abstract class NetworkResolverTests<T : Locatable<*>> : JUnit5Minutests
     fixture {
       Fixture(
         createSubject,
-        createResource()
+        createResource(locations())
       )
     }
 
@@ -117,36 +140,11 @@ internal abstract class NetworkResolverTests<T : Locatable<*>> : JUnit5Minutests
         .containsExactly(subject)
     }
 
-    context("VPC name is not specified") {
-      test("VPC name is defaulted") {
-        expectThat(resolved.spec.locations.vpc)
-          .isEqualTo(DEFAULT_VPC_NAME)
-      }
-    }
-
-    context("VPC name is specified") {
-      deriveFixture {
-        copy(
-          resource = createResource(vpc = "vpc5")
-        )
-      }
-
-      test("specified VPC name is used") {
-        expectThat(resolved.spec.locations.vpc)
-          .isEqualTo("vpc5")
-      }
-    }
-  }
-}
-
-internal abstract class SubnetAwareNetworkResolverTests<T : Locatable<SubnetAwareLocations>> : NetworkResolverTests<T>() {
-
-  fun subnetAwareTests() = rootContext<Fixture<T>> {
     context("neither VPC name, subnet, or AZs are specified") {
       fixture {
         Fixture(
           createSubject,
-          createResource()
+          createResource(locations())
         )
       }
 
@@ -165,7 +163,7 @@ internal abstract class SubnetAwareNetworkResolverTests<T : Locatable<SubnetAwar
       fixture {
         Fixture(
           createSubject,
-          createResource(westZones = setOf("us-west-2c"))
+          createResource(locations(westZones = setOf("us-west-2c")))
         )
       }
 
@@ -194,8 +192,13 @@ internal abstract class SubnetAwareNetworkResolverTests<T : Locatable<SubnetAwar
       fixture {
         Fixture(
           createSubject,
-          createResource(vpc = "vpc5")
+          createResource(locations(vpc = "vpc5"))
         )
+      }
+
+      test("specified VPC name is used") {
+        expectThat(resolved.spec.locations.vpc)
+          .isEqualTo("vpc5")
       }
 
       test("subnets are defaulted based on VPC name") {
@@ -213,7 +216,7 @@ internal abstract class SubnetAwareNetworkResolverTests<T : Locatable<SubnetAwar
       fixture {
         Fixture(
           createSubject,
-          createResource(subnetPurpose = "external (vpc5)")
+          createResource(locations(subnetPurpose = "external (vpc5)"))
         )
       }
 
@@ -233,49 +236,10 @@ internal abstract class SubnetAwareNetworkResolverTests<T : Locatable<SubnetAwar
 private operator fun <E : RegionSpec> Collection<E>.get(region: String): E =
   first { it.name == region }
 
-internal class SecurityGroupNetworkResolverTests : NetworkResolverTests<SecurityGroupSpec>() {
-  override val createSubject = ::SecurityGroupNetworkResolver
-
-  override fun createResource(
-    vpc: String?,
-    subnetPurpose: String?,
-    eastZones: Set<String>,
-    westZones: Set<String>
-  ): Resource<SecurityGroupSpec> =
-    resource(
-      apiVersion = SPINNAKER_EC2_API_V1,
-      kind = "security-group",
-      spec = SecurityGroupSpec(
-        moniker = Moniker(
-          app = "fnord",
-          stack = "test"
-        ),
-        locations = SimpleLocations(
-          account = "test",
-          vpc = vpc,
-          regions = setOf(
-            SimpleRegionSpec(
-              name = "us-east-1"
-            ),
-            SimpleRegionSpec(
-              name = "us-west-2"
-            )
-          )
-        ),
-        description = "a security group"
-      )
-    )
-}
-
-internal class ClusterNetworkResolverTests : SubnetAwareNetworkResolverTests<ClusterSpec>() {
+internal class ClusterNetworkResolverTests : NetworkResolverTests<ClusterSpec>() {
   override val createSubject = ::ClusterNetworkResolver
 
-  override fun createResource(
-    vpc: String?,
-    subnetPurpose: String?,
-    eastZones: Set<String>,
-    westZones: Set<String>
-  ): Resource<ClusterSpec> =
+  override fun createResource(locations: SubnetAwareLocations): Resource<ClusterSpec> =
     resource(
       apiVersion = SPINNAKER_EC2_API_V1,
       kind = "cluster",
@@ -285,21 +249,7 @@ internal class ClusterNetworkResolverTests : SubnetAwareNetworkResolverTests<Clu
           stack = "test"
         ),
         imageProvider = ArtifactImageProvider(DeliveryArtifact("fnord", DEB)),
-        locations = SubnetAwareLocations(
-          account = "test",
-          vpc = vpc,
-          subnet = subnetPurpose,
-          regions = setOf(
-            SubnetAwareRegionSpec(
-              name = "us-east-1",
-              availabilityZones = eastZones
-            ),
-            SubnetAwareRegionSpec(
-              name = "us-west-2",
-              availabilityZones = westZones
-            )
-          )
-        ),
+        locations = locations,
         _defaults = ServerGroupSpec(
           launchConfiguration = LaunchConfigurationSpec(
             instanceType = "m5.large",
@@ -320,15 +270,10 @@ internal class ClusterNetworkResolverTests : SubnetAwareNetworkResolverTests<Clu
     )
 }
 
-internal class ClassicLoadBalancerNetworkResolverTests : SubnetAwareNetworkResolverTests<ClassicLoadBalancerSpec>() {
+internal class ClassicLoadBalancerNetworkResolverTests : NetworkResolverTests<ClassicLoadBalancerSpec>() {
   override val createSubject = ::ClassicLoadBalancerNetworkResolver
 
-  override fun createResource(
-    vpc: String?,
-    subnetPurpose: String?,
-    eastZones: Set<String>,
-    westZones: Set<String>
-  ): Resource<ClassicLoadBalancerSpec> = resource(
+  override fun createResource(locations: SubnetAwareLocations): Resource<ClassicLoadBalancerSpec> = resource(
     apiVersion = SPINNAKER_EC2_API_V1,
     kind = "classic-load-balancer",
     spec = ClassicLoadBalancerSpec(
@@ -336,21 +281,7 @@ internal class ClassicLoadBalancerNetworkResolverTests : SubnetAwareNetworkResol
         app = "fnord",
         stack = "test"
       ),
-      locations = SubnetAwareLocations(
-        account = "test",
-        vpc = vpc,
-        subnet = subnetPurpose,
-        regions = setOf(
-          SubnetAwareRegionSpec(
-            name = "us-east-1",
-            availabilityZones = eastZones
-          ),
-          SubnetAwareRegionSpec(
-            name = "us-west-2",
-            availabilityZones = westZones
-          )
-        )
-      ),
+      locations = locations,
       healthCheck = ClassicLoadBalancerHealthCheck(
         target = "HTTP:7001/health"
       )
@@ -358,15 +289,10 @@ internal class ClassicLoadBalancerNetworkResolverTests : SubnetAwareNetworkResol
   )
 }
 
-internal class ApplicationLoadBalancerNetworkResolverTests : SubnetAwareNetworkResolverTests<ApplicationLoadBalancerSpec>() {
+internal class ApplicationLoadBalancerNetworkResolverTests : NetworkResolverTests<ApplicationLoadBalancerSpec>() {
   override val createSubject = ::ApplicationLoadBalancerNetworkResolver
 
-  override fun createResource(
-    vpc: String?,
-    subnetPurpose: String?,
-    eastZones: Set<String>,
-    westZones: Set<String>
-  ): Resource<ApplicationLoadBalancerSpec> = resource(
+  override fun createResource(locations: SubnetAwareLocations): Resource<ApplicationLoadBalancerSpec> = resource(
     apiVersion = SPINNAKER_EC2_API_V1,
     kind = "application-load-balancer",
     spec = ApplicationLoadBalancerSpec(
@@ -374,21 +300,7 @@ internal class ApplicationLoadBalancerNetworkResolverTests : SubnetAwareNetworkR
         app = "fnord",
         stack = "test"
       ),
-      locations = SubnetAwareLocations(
-        account = "test",
-        vpc = vpc,
-        subnet = subnetPurpose,
-        regions = setOf(
-          SubnetAwareRegionSpec(
-            name = "us-east-1",
-            availabilityZones = eastZones
-          ),
-          SubnetAwareRegionSpec(
-            name = "us-west-2",
-            availabilityZones = westZones
-          )
-        )
-      ),
+      locations = locations,
       listeners = emptySet(),
       targetGroups = emptySet()
     )
