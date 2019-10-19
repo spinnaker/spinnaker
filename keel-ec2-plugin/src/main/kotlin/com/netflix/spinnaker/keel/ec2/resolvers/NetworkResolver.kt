@@ -44,9 +44,8 @@ abstract class NetworkResolver<T : Locatable<*>>(
     )
   }
 
-  protected fun SimpleLocations.withResolvedNetwork(): SimpleLocations {
-    return copy(vpc = vpc ?: DEFAULT_VPC_NAME)
-  }
+  protected fun SimpleLocations.withResolvedNetwork(): SimpleLocations =
+    copy(vpc = vpc ?: DEFAULT_VPC_NAME)
 
   companion object {
     const val DEFAULT_VPC_NAME = "vpc0"

@@ -66,7 +66,7 @@ abstract class ResourceHandler<S : ResourceSpec, R : Any>(
     resolvers
       .supporting(resource)
       .fold(resource) { r, resolver ->
-        log.debug("Applying ${resolver.javaClass} to ${r.id}")
+        log.debug("Applying ${resolver.javaClass.simpleName} to ${r.id}")
         resolver(r)
       }
 

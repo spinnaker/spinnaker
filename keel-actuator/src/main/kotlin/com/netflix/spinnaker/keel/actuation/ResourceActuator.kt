@@ -93,7 +93,7 @@ class ResourceActuator(
         }
       }
     } catch (e: Exception) {
-      log.error("Resource check for {} failed due to \"{}\" {}", id, e.message, e.cause?.message ?: "")
+      log.error("Resource check for $id failed", e)
       publisher.publishEvent(ResourceCheckError(resource, e, clock))
     }
   }
