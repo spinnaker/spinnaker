@@ -21,12 +21,7 @@ import io.swagger.annotations.ApiOperation
 import io.swagger.annotations.ApiParam
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping('/v2/canaries')
@@ -87,10 +82,19 @@ class V2CanaryController {
       storageAccountName)
   }
 
-  @ApiOperation(value = 'Retrieve a canary result')
+  // TODO: Change callers to the new endpoint sans canary config id in Spinnaker 1.17.x.
+  @ApiOperation(value = '(DEPRECATED) Retrieve a canary result')
   @RequestMapping(value = '/canary/{canaryConfigId}/{canaryExecutionId}', method = RequestMethod.GET)
-  Map getCanaryResult(@PathVariable String canaryConfigId,
+  @Deprecated
+  Map getCanaryResult(@PathVariable String canaryConfigId /* unused */,
                       @PathVariable String canaryExecutionId,
+                      @RequestParam(value='storageAccountName', required = false) String storageAccountName) {
+    v2CanaryService.getCanaryResults(canaryExecutionId, storageAccountName)
+  }
+
+  @ApiOperation(value = 'Retrieve a canary result')
+  @RequestMapping(value = '/canary/{canaryExecutionId}', method = RequestMethod.GET)
+  Map getCanaryResult(@PathVariable String canaryExecutionId,
                       @RequestParam(value='storageAccountName', required = false) String storageAccountName) {
     v2CanaryService.getCanaryResults(canaryExecutionId, storageAccountName)
   }
