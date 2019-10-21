@@ -24,6 +24,7 @@ import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
+import com.netflix.spinnaker.keel.api.titus.cluster.TitusClusterSpec
 import com.netflix.spinnaker.keel.bakery.api.ImageSpec
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import dev.minutest.junit.JUnit5Minutests
@@ -87,6 +88,17 @@ class ConvertExampleFilesTest : JUnit5Minutests {
       test("yml can be parsed") {
         expectCatching {
           mapper.readValue<SubmittedResource<ApplicationLoadBalancerSpec>>(file)
+        }.succeeded()
+      }
+    }
+
+    context("titus cluster") {
+      mapper.registerSubtypes(NamedType(TitusClusterSpec::class.java, "titus-cluster"))
+      val file = this.javaClass.getResource("/examples/titus-cluster-example.yml").readText()
+
+      test("yml can be parsed") {
+        expectCatching {
+          mapper.readValue<SubmittedResource<TitusClusterSpec>>(file)
         }.succeeded()
       }
     }

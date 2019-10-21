@@ -52,12 +52,10 @@ class AdHocDiffer(
         val (desired, current) = plugin.resolve(resource)
         val diff = ResourceDiff(desired, current)
 
-        if (current == null) {
-          DiffResult(status = MISSING, resourceId = resourceId, resource = resource)
-        } else if (diff.hasChanges()) {
-          DiffResult(status = DIFF, diff = diff.toDeltaJson(), resourceId = resourceId, resource = resource)
-        } else {
-          DiffResult(status = NO_DIFF, resourceId = resourceId, resource = resource)
+        when {
+          current == null -> DiffResult(status = MISSING, resourceId = resourceId, resource = resource)
+          diff.hasChanges() -> DiffResult(status = DIFF, diff = diff.toDeltaJson(), resourceId = resourceId, resource = resource)
+          else -> DiffResult(status = NO_DIFF, resourceId = resourceId, resource = resource)
         }
       } catch (e: Exception) {
         DiffResult(status = ERROR, errorMsg = e.message, resourceId = resourceId, resource = resource)

@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.clouddriver.model
 
+import com.netflix.spinnaker.keel.api.Capacity
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.retrofit.model.ModelParsingTestSupport
@@ -385,7 +386,7 @@ object ActiveServerGroupTest : ModelParsingTestSupport<CloudDriverService, Activ
     ),
     vpcId = vpc,
     loadBalancers = emptySet(),
-    capacity = ServerGroupCapacity(1, 1, 1),
+    capacity = Capacity(1, 1, 1),
     securityGroups = securityGroups.values.toSet(),
     moniker = Moniker(
       app = app,

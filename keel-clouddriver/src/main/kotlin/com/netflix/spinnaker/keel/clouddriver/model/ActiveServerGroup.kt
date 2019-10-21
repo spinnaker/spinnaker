@@ -1,8 +1,10 @@
 package com.netflix.spinnaker.keel.clouddriver.model
 
 import com.fasterxml.jackson.annotation.JsonCreator
+import com.netflix.spinnaker.keel.api.Capacity
 import com.netflix.spinnaker.keel.model.Moniker
 
+// todo eb: this should be more general so that it works for all server groups, not just ec2
 data class ActiveServerGroup(
   val name: String,
   val region: String,
@@ -13,7 +15,7 @@ data class ActiveServerGroup(
   val vpcId: String,
   val targetGroups: Set<String>,
   val loadBalancers: Set<String>,
-  val capacity: ServerGroupCapacity,
+  val capacity: Capacity,
   val cloudProvider: String,
   val securityGroups: Set<String>,
   val accountName: String,
@@ -72,12 +74,6 @@ data class SuspendedProcess(
 data class Tag(
   val key: String,
   val value: String
-)
-
-data class ServerGroupCapacity(
-  val min: Int,
-  val max: Int,
-  val desired: Int
 )
 
 data class InstanceMonitoring(

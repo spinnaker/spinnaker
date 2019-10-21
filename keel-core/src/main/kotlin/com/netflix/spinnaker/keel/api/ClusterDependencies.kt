@@ -15,7 +15,7 @@
  * limitations under the License.
  *
  */
-package com.netflix.spinnaker.keel.api.ec2
+package com.netflix.spinnaker.keel.api
 
 data class ClusterDependencies(
   val loadBalancerNames: Set<String> = emptySet(),

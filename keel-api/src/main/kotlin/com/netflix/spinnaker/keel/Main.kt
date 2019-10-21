@@ -81,6 +81,7 @@ class KeelApplication {
   @Autowired
   lateinit var objectMappers: List<ObjectMapper>
 
+  // todo eb: https://github.com/spinnaker/keel/issues/527
   @PostConstruct
   fun registerResourceSpecSubtypes() {
     plugins

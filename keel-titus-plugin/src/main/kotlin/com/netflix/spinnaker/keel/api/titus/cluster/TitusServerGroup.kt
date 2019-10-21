@@ -15,16 +15,16 @@
  * limitations under the License.
  *
  */
-package com.netflix.spinnaker.keel.api.ec2
+package com.netflix.spinnaker.keel.api.titus.cluster
 
 import com.netflix.spinnaker.keel.api.Capacity
 import com.netflix.spinnaker.keel.api.ClusterDependencies
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.model.parseMoniker
-import de.danielbechler.diff.inclusion.Inclusion.EXCLUDED
+import de.danielbechler.diff.inclusion.Inclusion
 import de.danielbechler.diff.introspection.ObjectDiffProperty
 
-data class ServerGroup(
+data class TitusServerGroup(
   /**
    * This field is immutable, so we would never be reacting to a diff on it. If the name differs,
    * it's a different resource. Also, a server group name retrieved from CloudDriver will include
@@ -33,19 +33,27 @@ data class ServerGroup(
    * useful for some things (e.g. specifying ancestor server group when red-blacking a new version)
    * but is meaningless for a diff.
    */
-  @get:ObjectDiffProperty(inclusion = EXCLUDED)
+  @get:ObjectDiffProperty(inclusion = Inclusion.EXCLUDED)
   val name: String,
+  val container: Container,
   val location: Location,
-  val launchConfiguration: LaunchConfiguration,
-  val capacity: Capacity = Capacity(1, 1, 1),
+  val containerOptions: ContainerOptions,
+  val capacity: Capacity,
+  val tags: Map<String, String> = emptyMap(),
   val dependencies: ClusterDependencies = ClusterDependencies(),
-  val health: Health = Health(),
-  val scaling: Scaling = Scaling(),
-  val tags: Map<String, String> = emptyMap()
+  val deferredInitialization: Boolean = true,
+  val delayBeforeDisableSec: Int = 0,
+  val delayBeforeScaleDownSec: Int = 0
 )
 
-val ServerGroup.moniker: Moniker
+val TitusServerGroup.moniker: Moniker
   get() = parseMoniker(name)
 
-fun Iterable<ServerGroup>.byRegion(): Map<String, ServerGroup> =
+fun Iterable<TitusServerGroup>.byRegion(): Map<String, TitusServerGroup> =
   associateBy { it.location.region }
+
+// todo eb: should this be more general?
+data class Location(
+  val account: String,
+  val region: String
+)

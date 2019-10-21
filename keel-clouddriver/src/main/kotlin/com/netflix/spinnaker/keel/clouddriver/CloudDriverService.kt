@@ -15,15 +15,16 @@
  */
 package com.netflix.spinnaker.keel.clouddriver
 
+import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel
 import com.netflix.spinnaker.keel.clouddriver.model.ClassicLoadBalancerModel
-import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.Credential
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
+import com.netflix.spinnaker.keel.clouddriver.model.TitusActiveServerGroup
 import com.netflix.spinnaker.keel.tags.EntityTags
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -108,6 +109,18 @@ interface CloudDriverService {
     @Path("region") region: String,
     @Path("cloudProvider") cloudProvider: String
   ): ActiveServerGroup
+
+  // todo eb: titus has different fields than [ActiveServerGroup], so right now this is a separate call
+  // make above call general and roll titus into it.
+  @GET("/applications/{app}/clusters/{account}/{cluster}/{cloudProvider}/{region}/serverGroups/target/current_asg_dynamic?onlyEnabled=true")
+  suspend fun titusActiveServerGroup(
+    @Header("X-SPINNAKER-USER") serviceAccount: String,
+    @Path("app") app: String,
+    @Path("account") account: String,
+    @Path("cluster") cluster: String,
+    @Path("region") region: String,
+    @Path("cloudProvider") cloudProvider: String = "titus"
+  ): TitusActiveServerGroup
 
   @GET("/aws/images/find")
   suspend fun namedImages(

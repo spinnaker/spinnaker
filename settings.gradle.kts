@@ -36,6 +36,7 @@ include(
   "keel-sql",
   "keel-tagging-plugin",
   "keel-test",
+  "keel-titus-plugin",
   "keel-veto"
 )
 
