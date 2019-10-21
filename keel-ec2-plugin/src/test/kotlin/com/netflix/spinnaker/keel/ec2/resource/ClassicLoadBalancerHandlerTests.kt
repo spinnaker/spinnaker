@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.ec2.resource
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerSpec
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
@@ -15,8 +16,10 @@ import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
+import com.netflix.spinnaker.keel.ec2.resolvers.ClassicLoadBalancerNetworkResolver
 import com.netflix.spinnaker.keel.ec2.resolvers.ClassicLoadBalancerSecurityGroupsResolver
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
+import com.netflix.spinnaker.keel.model.parseMoniker
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
@@ -47,7 +50,9 @@ import strikt.api.expectThat
 import strikt.assertions.get
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFalse
 import strikt.assertions.isNotNull
+import strikt.assertions.isTrue
 import java.time.Clock
 import java.util.UUID
 
@@ -62,7 +67,9 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
   private val mapper = ObjectMapper().registerKotlinModule()
   private val yamlMapper = configuredYamlMapper()
 
-  private val normalizers: List<Resolver<*>> = listOf(ClassicLoadBalancerSecurityGroupsResolver())
+  private val normalizers: List<Resolver<*>> = listOf(
+    ClassicLoadBalancerSecurityGroupsResolver(),
+    ClassicLoadBalancerNetworkResolver(cloudDriverCache))
 
   private val yaml = """
     |---
@@ -98,7 +105,7 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
   private val vpc = Network(CLOUD_PROVIDER, "vpc-23144", "vpc0", "test", "us-east-1")
   private val sub1 = Subnet("subnet-1", vpc.id, vpc.account, vpc.region, "${vpc.region}c", "internal (vpc0)")
   private val sub2 = Subnet("subnet-1", vpc.id, vpc.account, vpc.region, "${vpc.region}d", "internal (vpc0)")
-  private val sg1 = SecurityGroupSummary("testapp-eb", "sg-55555", "vpc-1")
+  private val sg1 = SecurityGroupSummary("testapp-elb", "sg-55555", "vpc-1")
   private val sg2 = SecurityGroupSummary("nondefault-elb", "sg-12345", "vpc-1")
   private val sg3 = SecurityGroupSummary("backdoor", "sg-666666", "vpc-1")
 
@@ -109,6 +116,7 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
     availabilityZones = spec.locations.regions.first().availabilityZones,
     vpcId = vpc.id,
     subnets = setOf(sub1.id, sub2.id),
+    scheme = "internal",
     securityGroups = setOf(sg1.id),
     listenerDescriptions = listOf(
       ClassicLoadBalancerListenerDescription(
@@ -129,8 +137,7 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
       unhealthyThreshold = 2
     ),
     idleTimeout = 60,
-    moniker = null,
-    scheme = null
+    moniker = null
   )
 
   fun tests() = rootContext<ClassicLoadBalancerHandler> {
@@ -147,8 +154,10 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
 
     before {
       with(cloudDriverCache) {
+        every { availabilityZonesBy(any(), any(), vpc.region) } returns listOf("us-east-1c", "us-east-1d")
         every { networkBy(vpc.id) } returns vpc
         every { networkBy(vpc.name, vpc.account, vpc.region) } returns vpc
+        every { subnetBy(any(), any(), any()) } returns sub1
         every { subnetBy(sub1.id) } returns sub1
         every { subnetBy(sub2.id) } returns sub2
         every { securityGroupById(vpc.account, vpc.region, sg1.id) } returns sg1
@@ -245,7 +254,6 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
               .isNotNull()
               .and {
                 state.isEqualTo(CHANGED)
-                getChild(CollectionItemElementSelector("testapp-eb")).isNotNull().state.isEqualTo(REMOVED)
                 getChild(CollectionItemElementSelector("testapp-elb")).isNotNull().state.isEqualTo(REMOVED)
               }
           }
@@ -256,6 +264,32 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
 
         val slot = slot<OrchestrationRequest>()
         coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
+      }
+
+      test("export generates a valid spec for the deployed CLB") {
+        val exportable = Exportable(
+          account = "test",
+          serviceAccount = "keel@spin.spin.spin",
+          moniker = parseMoniker("testapp-managedogge-wow"),
+          regions = setOf("us-east-1"),
+          kind = supportedKind.first
+        )
+        val export = runBlocking {
+          export(exportable)
+        }
+        expectThat(export.kind)
+          .isEqualTo("classic-load-balancer")
+
+        runBlocking {
+          // Export differs from the model prior to the application of resolvers
+          val unresolvedDiff = ResourceDiff(resource, resource.copy(spec = export.spec))
+          expectThat(unresolvedDiff.hasChanges())
+            .isTrue()
+          // But diffs cleanly after resolvers are applied
+          val resolvedDiff = ResourceDiff(desired(resource), desired(normalize(export)))
+          expectThat(resolvedDiff.hasChanges())
+            .isFalse()
+        }
       }
     }
   }

@@ -1,6 +1,8 @@
 package com.netflix.spinnaker.keel.api.ec2
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.ec2.LoadBalancerType.APPLICATION
 import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel.Action
@@ -16,7 +18,9 @@ data class ApplicationLoadBalancerSpec(
   override val dependencies: LoadBalancerDependencies = LoadBalancerDependencies(),
   override val idleTimeout: Duration = Duration.ofSeconds(60),
   val listeners: Set<Listener>,
-  val targetGroups: Set<TargetGroup>
+  val targetGroups: Set<TargetGroup>,
+  @JsonInclude(NON_EMPTY)
+  val overrides: Map<String, ApplicationLoadBalancerOverride> = emptyMap()
 ) : LoadBalancerSpec {
 
   init {
@@ -30,6 +34,11 @@ data class ApplicationLoadBalancerSpec(
 
   @JsonIgnore
   override val id: String = "${locations.account}:${moniker.name}"
+
+  @JsonIgnore
+  override val regionalIds = locations.regions.map { region ->
+    "${locations.account}:${region.name}:${moniker.name}"
+  }
 
   data class Listener(
     val port: Int,
@@ -62,3 +71,9 @@ data class ApplicationLoadBalancerSpec(
     }
   }
 }
+
+data class ApplicationLoadBalancerOverride(
+  val dependencies: LoadBalancerDependencies? = null,
+  val listeners: Set<ApplicationLoadBalancerSpec.Listener>? = null,
+  val targetGroups: Set<ApplicationLoadBalancerSpec.TargetGroup>? = null
+)

@@ -1,12 +1,17 @@
 package com.netflix.spinnaker.keel.ec2.resource
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.ResourceKind
+import com.netflix.spinnaker.keel.api.SubmittedResource
+import com.netflix.spinnaker.keel.api.SubnetAwareLocations
+import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancer
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerHealthCheck
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerListener
+import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerOverride
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.LoadBalancerDependencies
 import com.netflix.spinnaker.keel.api.ec2.Location
@@ -22,6 +27,7 @@ import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
+import com.netflix.spinnaker.keel.model.parseMoniker
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
@@ -49,20 +55,20 @@ class ClassicLoadBalancerHandler(
 
   override suspend fun toResolvedType(resource: Resource<ClassicLoadBalancerSpec>): Map<String, ClassicLoadBalancer> =
     with(resource.spec) {
-      locations.regions.map {
+      locations.regions.map { region ->
         ClassicLoadBalancer(
           moniker,
           Location(
             account = locations.account,
-            region = it.name,
+            region = region.name,
             vpc = locations.vpc,
             subnet = locations.subnet ?: error("No subnet purpose supplied or resolved"),
-            availabilityZones = it.availabilityZones
+            availabilityZones = region.availabilityZones
           ),
           internal,
-          dependencies,
-          listeners,
-          healthCheck,
+          overrides[region.name]?.dependencies ?: dependencies,
+          overrides[region.name]?.listeners ?: listeners,
+          overrides[region.name]?.healthCheck ?: healthCheck,
           idleTimeout
         )
       }
@@ -113,32 +119,106 @@ class ClassicLoadBalancerHandler(
         .map { it.await() }
     }
 
+  override suspend fun export(exportable: Exportable): SubmittedResource<ClassicLoadBalancerSpec> {
+    val clbs = cloudDriverService.getClassicLoadBalancer(
+      account = exportable.account,
+      name = exportable.moniker.name,
+      regions = exportable.regions,
+      serviceAccount = exportable.serviceAccount)
+
+    val zonesByRegion = clbs.map { (region, clb) ->
+      region to cloudDriverCache.availabilityZonesBy(
+        account = exportable.account,
+        vpcId = cloudDriverCache.subnetBy(exportable.account, region, clb.location.subnet).vpcId,
+        region = region
+      )
+    }
+      .toMap()
+
+    val zonesForCLB = clbs.map { (region, clb) ->
+      region to if (
+        clb.location.availabilityZones
+          .containsAll(zonesByRegion[region]
+            ?: error(
+              "Failed resolving availabilityZones for account: ${exportable.account}, region: $region, " +
+                "subnet: ${clb.location.subnet}")
+          )
+      ) {
+        emptySet()
+      } else {
+        clb.location.availabilityZones
+      }
+    }.toMap()
+
+    val base = clbs.values.first()
+    val spec = ClassicLoadBalancerSpec(
+      moniker = base.moniker,
+      locations = SubnetAwareLocations(
+        account = exportable.account,
+        vpc = base.location.vpc,
+        subnet = base.location.subnet,
+        regions = clbs.map { (region, clb) ->
+          SubnetAwareRegionSpec(
+            name = region,
+            availabilityZones = zonesForCLB.getValue(region)
+          )
+        }.toSet()
+      ),
+      internal = base.internal,
+      dependencies = base.dependencies,
+      idleTimeout = base.idleTimeout,
+      listeners = base.listeners,
+      healthCheck = base.healthCheck,
+      overrides = mutableMapOf()
+    )
+
+    spec.generateOverrides(clbs)
+
+    return SubmittedResource(
+      apiVersion = apiVersion,
+      kind = supportedKind.first.singular,
+      spec = spec,
+      metadata = mapOf(
+        "serviceAccount" to exportable.serviceAccount
+      )
+    )
+  }
+
   override suspend fun actuationInProgress(id: ResourceId) =
     orcaService.getCorrelatedExecutions(id.value).isNotEmpty()
 
-  private suspend fun CloudDriverService.getClassicLoadBalancer(spec: ClassicLoadBalancerSpec, serviceAccount: String): Map<String, ClassicLoadBalancer> =
-    spec.locations.regions.map { region ->
+  private suspend fun CloudDriverService.getClassicLoadBalancer(
+    spec: ClassicLoadBalancerSpec,
+    serviceAccount: String
+  ) = cloudDriverService.getClassicLoadBalancer(
+    account = spec.locations.account,
+    name = spec.moniker.name,
+    regions = spec.locations.regions.map { it.name }.toSet(),
+    serviceAccount = serviceAccount
+  )
+
+  private suspend fun CloudDriverService.getClassicLoadBalancer(
+    account: String,
+    name: String,
+    regions: Set<String>,
+    serviceAccount: String
+  ): Map<String, ClassicLoadBalancer> =
+    regions.map { region ->
       coroutineScope {
         async {
           try {
             getClassicLoadBalancer(
               serviceAccount,
               CLOUD_PROVIDER,
-              spec.locations.account,
-              region.name,
-              spec.moniker.name
+              account,
+              region,
+              name
             )
               .firstOrNull()
               ?.let { lb ->
                 val securityGroupNames = lb.securityGroups.map {
-                  cloudDriverCache.securityGroupById(spec.locations.account, region.name, it).name
+                  cloudDriverCache.securityGroupById(account, region, it).name
                 }.toMutableSet()
-
-                /***
-                 * Clouddriver creates an "$application-elb" security group if one doesn't already exist and
-                 * attaches it when creating a new AmazonLoadBalancer, see IngressLoadBalancerBuilder. If not
-                 * specified in the resource spec, we should remove it from current prior to diffing.
-                 */
 
                 /***
                  * Clouddriver creates an "$application-elb" security group if one doesn't already exist and
@@ -149,14 +229,15 @@ class ClassicLoadBalancerHandler(
                   moniker = if (lb.moniker != null) {
                     Moniker(lb.moniker!!.app, lb.moniker!!.stack, lb.moniker!!.detail)
                   } else {
-                    val parsedNamed = lb.loadBalancerName.split("-")
-                    Moniker(app = parsedNamed[0], stack = parsedNamed.getOrNull(1), detail = parsedNamed.getOrNull(2))
+                    parseMoniker(lb.loadBalancerName)
                   },
                   location = Location(
-                    account = spec.locations.account,
-                    region = region.name,
-                    vpc = lb.vpcId.let { cloudDriverCache.networkBy(it).name } ?: error("Keel does not support load balancers that are not in a VPC subnet"),
-                    subnet = cloudDriverCache.subnetBy(lb.subnets.first()).purpose ?: error("Keel does not support load balancers that are not in a VPC subnet"),
+                    account = account,
+                    region = region,
+                    vpc = lb.vpcId.let { cloudDriverCache.networkBy(it).name }
+                      ?: error("Keel does not support load balancers that are not in a VPC subnet"),
+                    subnet = cloudDriverCache.subnetBy(lb.subnets.first()).purpose
+                      ?: error("Keel does not support load balancers that are not in a VPC subnet"),
                     availabilityZones = lb.availabilityZones
                   ),
                   internal = lb.scheme != null && lb.scheme!!.contains("internal", ignoreCase = true),
@@ -200,6 +281,35 @@ class ClassicLoadBalancerHandler(
       .map { (region, desired) ->
         ResourceDiff(desired, current?.get(region))
       }
+
+  private fun ClassicLoadBalancerSpec.generateOverrides(
+    regionalClbs: Map<String, ClassicLoadBalancer>
+  ) =
+    regionalClbs.forEach { (region, clb) ->
+      val dependenciesDiff = ResourceDiff(clb.dependencies, dependencies).hasChanges()
+      val listenersDiff = ResourceDiff(clb.listeners, listeners).hasChanges()
+      val healthCheckDiff = ResourceDiff(clb.healthCheck, healthCheck).hasChanges()
+
+      if (dependenciesDiff || listenersDiff || healthCheckDiff) {
+        (overrides as MutableMap)[region] = ClassicLoadBalancerOverride(
+          dependencies = if (dependenciesDiff) {
+            clb.dependencies
+          } else {
+            null
+          },
+          listeners = if (listenersDiff) {
+            clb.listeners
+          } else {
+            null
+          },
+          healthCheck = if (healthCheckDiff) {
+            clb.healthCheck
+          } else {
+            null
+          }
+        )
+      }
+    }
 
   private fun ResourceDiff<ClassicLoadBalancer>.toUpsertJob(): Job =
     with(desired) {

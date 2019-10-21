@@ -16,6 +16,8 @@
 package com.netflix.spinnaker.keel.api.ec2
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.MultiRegion
 import com.netflix.spinnaker.keel.api.SimpleLocations
@@ -28,6 +30,7 @@ data class SecurityGroupSpec(
   override val locations: SimpleLocations,
   val description: String?,
   val inboundRules: Set<SecurityGroupRule> = emptySet(),
+  @JsonInclude(NON_EMPTY)
   val overrides: Map<String, SecurityGroupOverride> = emptyMap()
 ) : MultiRegion, Locatable<SimpleLocations> {
   @JsonIgnore

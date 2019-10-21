@@ -1,10 +1,15 @@
 package com.netflix.spinnaker.keel.ec2.resource
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.ResourceKind
+import com.netflix.spinnaker.keel.api.SubmittedResource
+import com.netflix.spinnaker.keel.api.SubnetAwareLocations
+import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancer
+import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerOverride
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.LoadBalancerDependencies
 import com.netflix.spinnaker.keel.api.ec2.Location
@@ -45,23 +50,24 @@ class ApplicationLoadBalancerHandler(
     "application-load-balancers"
   ) to ApplicationLoadBalancerSpec::class.java
 
-  override suspend fun toResolvedType(resource: Resource<ApplicationLoadBalancerSpec>): Map<String, ApplicationLoadBalancer> =
+  override suspend fun toResolvedType(resource: Resource<ApplicationLoadBalancerSpec>):
+    Map<String, ApplicationLoadBalancer> =
     with(resource.spec) {
-      locations.regions.map {
+      locations.regions.map { region ->
         ApplicationLoadBalancer(
           moniker,
           Location(
             account = locations.account,
-            region = it.name,
+            region = region.name,
             vpc = locations.vpc,
             subnet = locations.subnet ?: error("No subnet purpose supplied or resolved"),
-            availabilityZones = it.availabilityZones
+            availabilityZones = region.availabilityZones
           ),
           internal,
-          dependencies,
+          overrides[region.name]?.dependencies ?: dependencies,
           idleTimeout,
-          listeners,
-          targetGroups
+          overrides[region.name]?.listeners ?: listeners,
+          overrides[region.name]?.targetGroups ?: targetGroups
         )
       }
         .associateBy { it.location.region }
@@ -112,27 +118,105 @@ class ApplicationLoadBalancerHandler(
         .map { it.await() }
     }
 
+  override suspend fun export(exportable: Exportable): SubmittedResource<ApplicationLoadBalancerSpec> {
+    val albs = cloudDriverService.getApplicationLoadBalancer(
+      account = exportable.account,
+      name = exportable.moniker.name,
+      regions = exportable.regions,
+      serviceAccount = exportable.serviceAccount
+    )
+
+    val zonesByRegion = albs.map { (region, alb) ->
+      region to cloudDriverCache.availabilityZonesBy(
+        account = exportable.account,
+        vpcId = cloudDriverCache.subnetBy(exportable.account, region, alb.location.subnet).vpcId,
+        region = region
+      )
+    }
+      .toMap()
+
+    val zonesForALB = albs.map { (region, alb) ->
+      region to if (
+        alb.location.availabilityZones
+          .containsAll(zonesByRegion[region]
+            ?: error(
+              "Failed resolving availabilityZones for account: ${exportable.account}, region: $region, " +
+                "subnet: ${alb.location.subnet}")
+          )
+      ) {
+        emptySet()
+      } else {
+        alb.location.availabilityZones
+      }
+    }.toMap()
+
+    val base = albs.values.first()
+    val spec = ApplicationLoadBalancerSpec(
+      moniker = base.moniker,
+      locations = SubnetAwareLocations(
+        account = exportable.account,
+        vpc = base.location.vpc,
+        subnet = base.location.subnet,
+        regions = albs.map { (region, alb) ->
+          SubnetAwareRegionSpec(
+            name = region,
+            availabilityZones = zonesForALB.getValue(region)
+          )
+        }.toSet()
+      ),
+      internal = base.internal,
+      dependencies = base.dependencies,
+      idleTimeout = base.idleTimeout,
+      listeners = base.listeners,
+      targetGroups = base.targetGroups,
+      overrides = mutableMapOf()
+    )
+
+    spec.generateOverrides(albs)
+
+    return SubmittedResource(
+      apiVersion = apiVersion,
+      kind = supportedKind.first.singular,
+      spec = spec,
+      metadata = mapOf("serviceAccount" to exportable.serviceAccount)
+    )
+  }
+
   override suspend fun actuationInProgress(id: ResourceId) =
     orcaService.getCorrelatedExecutions(id.value).isNotEmpty()
 
-  private suspend fun CloudDriverService.getApplicationLoadBalancer(spec: ApplicationLoadBalancerSpec, serviceAccount: String):
-    Map<String, ApplicationLoadBalancer> =
+  private suspend fun CloudDriverService.getApplicationLoadBalancer(
+    spec: ApplicationLoadBalancerSpec,
+    serviceAccount: String
+  ) = cloudDriverService.getApplicationLoadBalancer(
+    account = spec.locations.account,
+    name = spec.moniker.name,
+    regions = spec.locations.regions.map { it.name }.toSet(),
+    serviceAccount = serviceAccount
+  )
+
+  private suspend fun CloudDriverService.getApplicationLoadBalancer(
+    account: String,
+    name: String,
+    regions: Set<String>,
+    serviceAccount: String
+  ): Map<String, ApplicationLoadBalancer> =
     // TODO: filtering out default rules seems wrong, see TODO in ApplicationLoadBalancerNormalizer
-    spec.locations.regions.map { region ->
+    regions.map { region ->
       coroutineScope {
         async {
           try {
             getApplicationLoadBalancer(
               serviceAccount,
               CLOUD_PROVIDER,
-              spec.locations.account,
-              region.name,
-              spec.moniker.name
+              account,
+              region,
+              name
             )
               .firstOrNull()
               ?.let { lb ->
                 val securityGroupNames = lb.securityGroups.map {
-                  cloudDriverCache.securityGroupById(spec.locations.account, region.name, it).name
+                  cloudDriverCache.securityGroupById(account, region, it).name
                 }.toMutableSet()
 
                 ApplicationLoadBalancer(
@@ -143,8 +227,8 @@ class ApplicationLoadBalancerHandler(
                     Moniker(app = parsedNamed[0], stack = parsedNamed.getOrNull(1), detail = parsedNamed.getOrNull(2))
                   },
                   location = Location(
-                    account = spec.locations.account,
-                    region = region.name,
+                    account = account,
+                    region = region,
                     vpc = lb.vpcId.let { cloudDriverCache.networkBy(it).name }
                       ?: error("Keel does not support load balancers that are not in a VPC subnet"),
                     subnet = cloudDriverCache.subnetBy(lb.subnets.first()).purpose
@@ -242,5 +326,34 @@ class ApplicationLoadBalancerHandler(
           }
         )
       )
+    }
+
+  private fun ApplicationLoadBalancerSpec.generateOverrides(
+    regionalAlbs: Map<String, ApplicationLoadBalancer>
+  ) =
+    regionalAlbs.forEach { (region, alb) ->
+      val dependenciesDiff = ResourceDiff(alb.dependencies, dependencies).hasChanges()
+      val listenersDiff = ResourceDiff(alb.listeners, listeners).hasChanges()
+      val targetGroupDiff = ResourceDiff(alb.targetGroups, targetGroups).hasChanges()
+
+      if (dependenciesDiff || listenersDiff || targetGroupDiff) {
+        (overrides as MutableMap)[region] = ApplicationLoadBalancerOverride(
+          dependencies = if (dependenciesDiff) {
+            alb.dependencies
+          } else {
+            null
+          },
+          listeners = if (listenersDiff) {
+            alb.listeners
+          } else {
+            null
+          },
+          targetGroups = if (targetGroupDiff) {
+            alb.targetGroups
+          } else {
+            null
+          }
+        )
+      }
     }
 }
