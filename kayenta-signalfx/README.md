@@ -18,7 +18,7 @@ This module adds support to Kayenta to use SignalFx as a metric source.
 ```
 
 ### Canary Config
-See [The metric query config](metric-query-config.md) page.
+See [canary-config](../docs/canary-config.md) and the [SignalFx metric query config](docs/metric-set-query-config.md) page.
 
 ## Development
 

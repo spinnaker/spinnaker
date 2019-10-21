@@ -102,7 +102,7 @@ class NewRelicQueryBuilderServiceSpec extends Specification {
           "FROM Transaction " +
           "TIMESERIES 60 seconds " +
           "SINCE \${startEpochSeconds} UNTIL \${endEpochSeconds} " +
-          "WHERE httpStatusCode LIKE '5% " +
+          "WHERE httpStatusCode LIKE '5%' " +
           "AND autoScalingGroupName LIKE '\${scope}' " +
           "AND region LIKE '\${location}'",
       expectedQuery       :
@@ -110,7 +110,7 @@ class NewRelicQueryBuilderServiceSpec extends Specification {
           "FROM Transaction " +
           "TIMESERIES 60 seconds " +
           "SINCE ${start.epochSecond} UNTIL ${end.epochSecond} " +
-          "WHERE httpStatusCode LIKE '5% " +
+          "WHERE httpStatusCode LIKE '5%' " +
           "AND autoScalingGroupName LIKE 'myservice-prod-v01' " +
           "AND region LIKE 'us-west-2'"
     ],
@@ -124,7 +124,7 @@ class NewRelicQueryBuilderServiceSpec extends Specification {
           "FROM Transaction " +
           "TIMESERIES 60 seconds " +
           "SINCE \${startEpochSeconds} UNTIL \${endEpochSeconds} " +
-          "WHERE httpStatusCode LIKE '5% " +
+          "WHERE httpStatusCode LIKE '5%' " +
           "AND someKeyThatIsSetDuringDeployment LIKE '\${someKey}' " +
           "AND autoScalingGroupName LIKE '\${scope}' " +
           "AND region LIKE '\${location}'",
@@ -133,7 +133,7 @@ class NewRelicQueryBuilderServiceSpec extends Specification {
           "FROM Transaction " +
           "TIMESERIES 60 seconds " +
           "SINCE ${start.epochSecond} UNTIL ${end.epochSecond} " +
-          "WHERE httpStatusCode LIKE '5% " +
+          "WHERE httpStatusCode LIKE '5%' " +
           "AND someKeyThatIsSetDuringDeployment LIKE 'someValue' " +
           "AND autoScalingGroupName LIKE 'myservice-prod-v01' " +
           "AND region LIKE 'us-west-2'"
