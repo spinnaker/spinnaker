@@ -377,7 +377,7 @@ class RollingRedBlackStrategy implements Strategy, ApplicationContextAware {
       def pipelineContext = [
         application        : stageData.pipelineBeforeCleanup.application,
         pipelineApplication: stageData.pipelineBeforeCleanup.application,
-        pipelineId         : stageData.pipelineBeforeCleanup.pipelineId,
+        pipeline           : stageData.pipelineBeforeCleanup.pipelineId,
         pipelineParameters : stageData.pipelineBeforeCleanup.pipelineParameters + [
           "deployedServerGroup": serverGroupCoordinates + [
             serverGroupName: deployedServerGroupName

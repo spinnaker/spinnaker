@@ -157,7 +157,11 @@ class RollingRedBlackStrategySpec extends Specification {
     afterStages.size() == 5
     afterStages.first().type == determineTargetServerGroupStage.type
     afterStages[2].type == pipelineStage.type
+    afterStages[2].context.pipelineApplication == stage.context.pipelineBeforeCleanup.application
+    afterStages[2].context.pipeline == stage.context.pipelineBeforeCleanup.pipelineId
     afterStages[4].type == pipelineStage.type
+    afterStages[4].context.pipelineApplication == stage.context.pipelineBeforeCleanup.application
+    afterStages[4].context.pipeline == stage.context.pipelineBeforeCleanup.pipelineId
   }
 
   def "should correctly determine source during pin/unpin"() {
