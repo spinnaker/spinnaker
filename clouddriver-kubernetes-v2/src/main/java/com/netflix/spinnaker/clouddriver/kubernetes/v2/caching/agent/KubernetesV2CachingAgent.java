@@ -200,4 +200,12 @@ public abstract class KubernetesV2CachingAgent
         .filter(n -> agentCount == 1 || Math.abs(n.hashCode() % agentCount) == agentIndex)
         .collect(ImmutableList.toImmutableList());
   }
+
+  /**
+   * Should this caching agent be responsible for caching cluster-scoped resources (ie, those that
+   * do not live in a particular namespace)?
+   */
+  protected boolean handleClusterScopedResources() {
+    return agentIndex == 0;
+  }
 }

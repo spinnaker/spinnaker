@@ -311,7 +311,7 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
       namespace = "";
     }
 
-    if (!StringUtils.isEmpty(namespace) && !getNamespaces().contains(namespace)) {
+    if (!handleNamespace(namespace)) {
       return null;
     }
 
@@ -398,5 +398,12 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
    */
   private boolean handleReadRequests() {
     return agentIndex == 0;
+  }
+
+  private boolean handleNamespace(String namespace) {
+    if (StringUtils.isEmpty(namespace)) {
+      return handleClusterScopedResources();
+    }
+    return getNamespaces().contains(namespace);
   }
 }
