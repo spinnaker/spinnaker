@@ -1,4 +1,4 @@
-apiVersion: apps/v1beta2 # for versions before 1.9.0 use apps/v1beta2
+apiVersion: apps/v1 # As of Kubernetes 1.16, apps/v1beta2 has been deprecated
 kind: Deployment
 metadata:
   name: spin-{{ name }}
