@@ -73,7 +73,7 @@ dependencies {
     api("com.google.apis:google-api-services-monitoring:v3-rev477-1.25.0")
     api("com.google.apis:google-api-services-storage:v1-rev141-1.25.0")
     api("com.google.code.findbugs:jsr305:3.0.2")
-    api("com.google.guava:guava:28.0-jre")
+    api("com.google.guava:guava:28.1-jre")
     api("com.hubspot.jinjava:jinjava:2.2.3") // DO NOT CHANGE: MPTv1 strongly depends on this version of Jinjava
     api("com.jcraft.jsch:${versions.jsch}")
     api("com.jcraft:jsch.agentproxy.connector-factory:${versions.jschAgentProxy}")
