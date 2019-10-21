@@ -73,6 +73,8 @@ public class Job {
 
   private SubmitJobRequest.Constraints constraints;
 
+  private List<SignedAddressAllocations> signedAddressAllocations = new ArrayList<>();
+
   public Job() {}
 
   public Job(
@@ -205,6 +207,15 @@ public class Job {
               .getServiceJobProcesses()
               .getDisableIncreaseDesired());
     }
+    addSignedAllocationList(grpcJob);
+  }
+
+  // Add SignedAddressAllocationsList from grpc to Job.signedAddressAllocations
+  private void addSignedAllocationList(com.netflix.titus.grpc.protogen.Job grpcJob) {
+    grpcJob.getJobDescriptor().getContainer().getResources().getSignedAddressAllocationsList()
+        .stream()
+        .map(this::addSignedAddressAllocations)
+        .forEach(signedAddressAllocation -> signedAddressAllocations.add(signedAddressAllocation));
   }
 
   private void addDisruptionBudget(com.netflix.titus.grpc.protogen.Job grpcJob) {
@@ -267,6 +278,40 @@ public class Job {
                           w.getTimeZone()))
               .collect(Collectors.toList()));
     }
+  }
+
+  // Construct the titus internal model SignedAddressAllocations
+  private SignedAddressAllocations addSignedAddressAllocations(
+      SignedAddressAllocation signedAddressAllocation) {
+    SignedAddressAllocations grpcSignedAddressAllocations = new SignedAddressAllocations();
+
+    SignedAddressAllocations.AddressLocation grpcAddressLocation =
+        new SignedAddressAllocations.AddressLocation();
+    grpcAddressLocation.setAvailabilityZone(
+        signedAddressAllocation.getAddressAllocation().getAddressLocation().getAvailabilityZone());
+    grpcAddressLocation.setRegion(
+        signedAddressAllocation.getAddressAllocation().getAddressLocation().getRegion());
+    grpcAddressLocation.setSubnetId(
+        signedAddressAllocation.getAddressAllocation().getAddressLocation().getSubnetId());
+
+    SignedAddressAllocations.AddressAllocation grpcAddressAllocation =
+        new SignedAddressAllocations.AddressAllocation();
+    grpcAddressAllocation.setAddress(signedAddressAllocation.getAddressAllocation().getAddress());
+    grpcAddressAllocation.setUuid(signedAddressAllocation.getAddressAllocation().getUuid());
+    grpcAddressAllocation.setAddressLocation(grpcAddressLocation);
+
+    grpcSignedAddressAllocations.setAddressAllocation(grpcAddressAllocation);
+    grpcSignedAddressAllocations.setAuthoritativePublicKey(
+        signedAddressAllocation.getAuthoritativePublicKey().toStringUtf8());
+    grpcSignedAddressAllocations.setHostPublicKey(
+        signedAddressAllocation.getHostPublicKey().toStringUtf8());
+    grpcSignedAddressAllocations.setHostPublicKeySignature(
+        signedAddressAllocation.getHostPublicKeySignature().toStringUtf8());
+    grpcSignedAddressAllocations.setMessage(signedAddressAllocation.getMessage().toStringUtf8());
+    grpcSignedAddressAllocations.setMessageSignature(
+        signedAddressAllocation.getMessageSignature().toStringUtf8());
+
+    return grpcSignedAddressAllocations;
   }
 
   public String getId() {
@@ -551,6 +596,14 @@ public class Job {
 
   public MigrationPolicy getMigrationPolicy() {
     return migrationPolicy;
+  }
+
+  public List<SignedAddressAllocations> getSignedAddressAllocations() {
+    return signedAddressAllocations;
+  }
+
+  public void setSignedAddressAllocations(List<SignedAddressAllocations> signedAddressAllocations) {
+    this.signedAddressAllocations = signedAddressAllocations;
   }
 
   public void setMigrationPolicy(MigrationPolicy migrationPolicy) {

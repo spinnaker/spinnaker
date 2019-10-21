@@ -41,6 +41,20 @@ class TitusDeployAtomicOperationConverterSpec extends Specification {
 
   void 'convertDescription should return a valid TitusDeployDescription'() {
     given:
+
+    Map signedAddressAllocations = [
+      addressAllocation     : [
+        addressLocation: [region  : "us-east-1", availabilityZone: "us-east-1d",
+                          subnetId: "subnet-ffab009"],
+        uuid           : "7e571794-4a8b-4335-8be7-c5e3b2660688",
+        address        : "192.122.100.100"],
+      authoritativePublicKey: "authoritativePublicKeyValue",
+      hostPublicKey         : "hostPublicKeyValue",
+      hostPublicKeySignature: "hostPublicKeySignatureValue",
+      message               : "message",
+      messageSignature      : "messageSignatureValue"
+    ]
+
     Map input = [
       application: 'api',
       stack      : 'test',
@@ -49,7 +63,8 @@ class TitusDeployAtomicOperationConverterSpec extends Specification {
       subnetType : 'vpc0',
       imageId    : 'api.server:master-201506020033-trusty-7366606',
       capacity   : [desired: 3, min: 2, max: 5],
-      resources  : [cpu: 2, memory: 4, disk: 4000, ports: [7001], allocateIpAddress: true],
+      resources  : [cpu                     : 2, memory: 4, disk: 4000, ports: [7001], allocateIpAddress: true,
+                    signedAddressAllocations: [signedAddressAllocations]],
       env        : ['netflix.environment': 'test'],
       credentials: 'test'
     ]

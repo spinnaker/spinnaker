@@ -153,6 +153,11 @@ public class PrepareTitusDeploy extends AbstractTitusDeployAction
               "interestingHealthProviderNames",
               String.join(",", description.getInterestingHealthProviderNames()));
     }
+    if (!isNullOrEmpty(description.getResources().getSignedAddressAllocations())) {
+      description
+          .getResources()
+          .setSignedAddressAllocations(description.getResources().getSignedAddressAllocations());
+    }
 
     resolveSecurityGroups(saga, description);
 
@@ -285,6 +290,15 @@ public class PrepareTitusDeploy extends AbstractTitusDeployAction
         .getResources()
         .setNetworkMbps(
             orDefault(description.getResources().getNetworkMbps(), sourceJob.getNetworkMbps()));
+
+    // Fallback to source allocations if request does not include allocations
+    description
+        .getResources()
+        .setSignedAddressAllocations(
+            orDefault(
+                description.getResources().getSignedAddressAllocations(),
+                sourceJob.getSignedAddressAllocations()));
+
     description.setRetries(orDefault(description.getRetries(), sourceJob.getRetries()));
     description.setRuntimeLimitSecs(
         orDefault(description.getRuntimeLimitSecs(), sourceJob.getRuntimeLimitSecs()));

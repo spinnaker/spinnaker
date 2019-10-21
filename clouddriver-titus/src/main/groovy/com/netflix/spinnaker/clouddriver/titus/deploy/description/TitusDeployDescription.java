@@ -9,6 +9,7 @@ import com.netflix.spinnaker.clouddriver.titus.client.model.DisruptionBudget;
 import com.netflix.spinnaker.clouddriver.titus.client.model.Efs;
 import com.netflix.spinnaker.clouddriver.titus.client.model.MigrationPolicy;
 import com.netflix.spinnaker.clouddriver.titus.client.model.ServiceJobProcesses;
+import com.netflix.spinnaker.clouddriver.titus.client.model.SignedAddressAllocations;
 import com.netflix.spinnaker.clouddriver.titus.client.model.SubmitJobRequest;
 import com.netflix.spinnaker.clouddriver.titus.model.DockerImage;
 import java.util.ArrayList;
@@ -132,6 +133,7 @@ public class TitusDeployDescription extends AbstractTitusCredentialsDescription
             .credentials(getCredentials().getName())
             .containerAttributes(containerAttributes)
             .disruptionBudget(disruptionBudget)
+            .signedAddressAllocations(resources.getSignedAddressAllocations())
             .serviceJobProcesses(serviceJobProcesses);
 
     if (!securityGroups.isEmpty()) {
@@ -189,6 +191,7 @@ public class TitusDeployDescription extends AbstractTitusCredentialsDescription
     private int networkMbps;
     private int[] ports;
     private boolean allocateIpAddress;
+    private List<SignedAddressAllocations> signedAddressAllocations;
   }
 
   @Data

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.titus.client.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.protobuf.ByteString;
 import com.netflix.titus.grpc.protogen.*;
 import java.util.HashMap;
 import java.util.List;
@@ -68,6 +69,7 @@ public class JobDescription {
 
   private SubmitJobRequest.Constraints constraints;
   private ServiceJobProcesses serviceJobProcesses;
+  private List<SignedAddressAllocations> signedAddressAllocations;
 
   // Soft/Hard constraints
 
@@ -124,6 +126,7 @@ public class JobDescription {
     disruptionBudget = request.getDisruptionBudget();
     constraints = request.getContainerConstraints();
     serviceJobProcesses = request.getServiceJobProcesses();
+    signedAddressAllocations = request.getSignedAddressAllocations();
   }
 
   public String getName() {
@@ -417,6 +420,14 @@ public class JobDescription {
     this.serviceJobProcesses = serviceJobProcesses;
   }
 
+  public List<SignedAddressAllocations> getSignedAddressAllocations() {
+    return signedAddressAllocations;
+  }
+
+  public void setSignedAddressAllocations(List<SignedAddressAllocations> signedAddressAllocations) {
+    this.signedAddressAllocations = signedAddressAllocations;
+  }
+
   @JsonIgnore
   public SubmitJobRequest.Constraints getConstraints() {
     return constraints;
@@ -472,6 +483,15 @@ public class JobDescription {
 
     if (disk != 0) {
       containerResources.setDiskMB(disk);
+    }
+
+    if (signedAddressAllocations != null && !signedAddressAllocations.isEmpty()) {
+      signedAddressAllocations.forEach(
+          signedAddressAllocation -> {
+            SignedAddressAllocation.Builder builder =
+                convertSignedAddressAllocations(signedAddressAllocation);
+            containerResources.addSignedAddressAllocations(builder);
+          });
     }
 
     if (efs != null && efs.getEfsId() != null) {
@@ -630,6 +650,43 @@ public class JobDescription {
     }
 
     return jobDescriptorBuilder.build();
+  }
+
+  // Returns builder for Protobuf type com.netflix.titus.SignedAddressAllocation
+  private SignedAddressAllocation.Builder convertSignedAddressAllocations(
+      SignedAddressAllocations signedAddressAllocation) {
+
+    SignedAddressAllocations.AddressLocation addressLocation =
+        signedAddressAllocation.getAddressAllocation().getAddressLocation();
+
+    AddressLocation.Builder addressLocationBuilder = AddressLocation.newBuilder();
+    addressLocationBuilder.setAvailabilityZone(addressLocation.getAvailabilityZone());
+    addressLocationBuilder.setRegion(addressLocation.getRegion());
+    addressLocationBuilder.setSubnetId(addressLocation.getSubnetId());
+    addressLocationBuilder.build();
+
+    AddressAllocation.Builder addressAllocationBuilder =
+        AddressAllocation.newBuilder().setAddressLocation(addressLocationBuilder);
+    addressAllocationBuilder.setUuid(signedAddressAllocation.getAddressAllocation().getUuid());
+    addressAllocationBuilder.setAddress(
+        signedAddressAllocation.getAddressAllocation().getAddress());
+    addressAllocationBuilder.build();
+
+    SignedAddressAllocation.Builder signedAddressAllocationBuilder =
+        SignedAddressAllocation.newBuilder().setAddressAllocation(addressAllocationBuilder);
+    signedAddressAllocationBuilder.setAuthoritativePublicKey(
+        ByteString.copyFromUtf8(signedAddressAllocation.getAuthoritativePublicKey()));
+    signedAddressAllocationBuilder.setHostPublicKey(
+        ByteString.copyFromUtf8(signedAddressAllocation.getHostPublicKey()));
+    signedAddressAllocationBuilder.setHostPublicKeySignature(
+        ByteString.copyFromUtf8(signedAddressAllocation.getHostPublicKeySignature()));
+    signedAddressAllocationBuilder.setMessage(
+        ByteString.copyFromUtf8(signedAddressAllocation.getMessage()));
+    signedAddressAllocationBuilder.setMessageSignature(
+        ByteString.copyFromUtf8(signedAddressAllocation.getMessageSignature()));
+    signedAddressAllocationBuilder.build();
+
+    return signedAddressAllocationBuilder;
   }
 
   private JobDisruptionBudget convertJobDisruptionBudget(DisruptionBudget budget) {

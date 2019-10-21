@@ -106,6 +106,7 @@ public class SubmitJobRequest {
 
   @Builder.Default private Constraints containerConstraints = null;
   @Builder.Default private ServiceJobProcesses serviceJobProcesses = null;
+  @Builder.Default private List<SignedAddressAllocations> signedAddressAllocations = null;
 
   @JsonIgnore
   public JobDescription getJobDescription() {

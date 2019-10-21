@@ -26,6 +26,23 @@ class TitusDeployDescriptionSpec extends Specification {
 
   @Unroll
   def "ser/de"() {
+
+    Map signedAddressAllocations =  [
+      addressAllocation : [
+        addressLocation : [
+          region          : "us-east-1",
+          availabilityZone: "us-east-1d",
+          subnetId        : "subnet-ffab009"
+        ],
+        uuid           : "7e571794-4a8b-4335-8be7-c5e3b2660688",
+        address        : "192.122.100.100",
+      ],
+      authoritativePublicKey: "authoritativePublicKeyValue",
+      hostPublicKey         : "hostPublicKeyValue",
+      hostPublicKeySignature: "hostPublicKeySignatureValue",
+      message               : "message",
+      messageSignature      : "messageSignatureValue"
+    ]
     given:
     ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules()
 
@@ -56,7 +73,8 @@ class TitusDeployDescriptionSpec extends Specification {
         cpu: 2,
         disk: 10000,
         memory: 4096,
-        networkMbps: 128
+        networkMbps: 128,
+        signedAddressAllocations: [signedAddressAllocations]
       ),
       securityGroups: [],
       softConstraints: [],
