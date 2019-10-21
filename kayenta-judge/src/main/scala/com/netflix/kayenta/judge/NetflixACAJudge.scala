@@ -63,14 +63,26 @@ class NetflixACAJudge extends CanaryJudge with StrictLogging {
   /**
     * Metric Transformations
     */
-  def transformMetric(metric: Metric, nanStrategy: NaNStrategy): Metric = {
-    val detector = new IQRDetector(factor = 3.0, reduceSensitivity = true)
-    val transform = if (nanStrategy == NaNStrategy.Remove) {
-      Function.chain[Metric](Seq(Transforms.removeNaNs(_), Transforms.removeOutliers(_, detector)))
+  def transformMetric(metric: Metric, nanStrategy: NaNStrategy, outlierStrategy: OutlierStrategy, outlierFactor: Double): Metric = {
+    handleOutliers(handleNaNs(metric, nanStrategy), outlierStrategy, outlierFactor)
+  }
+
+  def handleNaNs(metric: Metric, nanStrategy: NaNStrategy): Metric = {
+    if (nanStrategy == NaNStrategy.Remove) {
+      Transforms.removeNaNs(metric)
     } else {
-      Function.chain[Metric](Seq(Transforms.replaceNaNs(_), Transforms.removeOutliers(_, detector)))
+      Transforms.replaceNaNs(metric)
     }
-    transform(metric)
+  }
+
+  def handleOutliers(metric: Metric, outlierStrategy: OutlierStrategy, outlierFactor: Double): Metric = {
+    if (outlierStrategy == OutlierStrategy.Remove) {
+      val detector = new IQRDetector(outlierFactor, reduceSensitivity = true)
+
+      Transforms.removeOutliers(metric, detector)
+    } else {
+      metric
+    }
   }
 
   /**
@@ -95,6 +107,10 @@ class NetflixACAJudge extends CanaryJudge with StrictLogging {
     val nanStrategyString = MapUtils.getAsStringWithDefault("none", metricConfig.getAnalysisConfigurations, "canary", "nanStrategy")
     val nanStrategy = NaNStrategy.parse(nanStrategyString)
 
+    val outlierStrategyString = MapUtils.getAsStringWithDefault("none", metricConfig.getAnalysisConfigurations, "canary", "outliers", "strategy")
+    val outlierStrategy = OutlierStrategy.parse(outlierStrategyString)
+    val outlierFactor = MapUtils.getAsDoubleWithDefault(3.0, metricConfig.getAnalysisConfigurations, "canary", "outliers", "outlierFactor")
+
     val isCriticalMetric = MapUtils.getAsBooleanWithDefault(false, metricConfig.getAnalysisConfigurations, "canary", "critical")
 
     val isDataRequired = MapUtils.getAsBooleanWithDefault(false, metricConfig.getAnalysisConfigurations, "canary", "mustHaveData")
@@ -112,8 +128,8 @@ class NetflixACAJudge extends CanaryJudge with StrictLogging {
     //=============================================
     // Metric Transformation (Remove NaN values, etc.)
     // ============================================
-    val transformedExperiment = transformMetric(experiment, nanStrategy)
-    val transformedControl = transformMetric(control, nanStrategy)
+    val transformedExperiment = transformMetric(experiment, nanStrategy, outlierStrategy, outlierFactor)
+    val transformedControl = transformMetric(control, nanStrategy, outlierStrategy, outlierFactor)
 
     //=============================================
     // Calculate metric statistics

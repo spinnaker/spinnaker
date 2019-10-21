@@ -56,6 +56,20 @@ object NaNStrategy {
   }
 }
 
+sealed trait OutlierStrategy
+object OutlierStrategy {
+  case object Remove extends OutlierStrategy
+  case object Keep extends OutlierStrategy
+
+  def parse(outlierStrategy: String): OutlierStrategy = {
+    outlierStrategy match {
+      case "remove" => OutlierStrategy.Remove
+      case "keep" => OutlierStrategy.Keep
+      case _ => OutlierStrategy.Keep
+    }
+  }
+}
+
 case class MetricClassification(classification: MetricClassificationLabel,
                                 reason: Option[String],
                                 deviation: Double,
