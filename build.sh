@@ -10,11 +10,11 @@ go_arch=
 
 
 function process_args() {
-  while [[ $# > 0 ]]
+  while [[ $# -gt 0 ]]
   do
     local key="$1"
     shift
-    case $key in
+    case ${key} in
       --go-arch)
         go_arch="$1"
         shift
@@ -56,24 +56,24 @@ usage: $0 --version <version>
 
     --release-phase <arg>        Release phase to decorate the version with.
 
-    --version <arg>              Version to build the `spin` binaries with.
+    --version <arg>              Version to build the 'spin' binaries with.
 EOF
 }
 
 
 process_args "$@"
 
-if [ -z "$VERSION" ]; then
+if [[ -z "$VERSION" ]]; then
     echo "No Version specified, using git hash at head."
-    VERSION=$(git rev-parse HEAD)
+    VERSION="$(git rev-parse HEAD)"
 fi
 
-if [ ! -z "$go_arch"]; then
-    export $GOARCH=$go_arch
+if [[ ! -z "$go_arch" ]]; then
+    export GOARCH="$go_arch"
 fi
 
-if [ ! -z "$go_os"]; then
-    export $GO_OS=$go_os
+if [[ ! -z "$go_os" ]]; then
+    export GOOS="$go_os"
 fi
 
 LD_FLAGS="-X github.com/spinnaker/spin/version.Version=${VERSION} \

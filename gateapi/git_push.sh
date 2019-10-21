@@ -7,17 +7,17 @@ git_user_id=$1
 git_repo_id=$2
 release_note=$3
 
-if [ "$git_user_id" = "" ]; then
+if [[ "$git_user_id" = "" ]]; then
     git_user_id="GIT_USER_ID"
     echo "[INFO] No command line input provided. Set \$git_user_id to $git_user_id"
 fi
 
-if [ "$git_repo_id" = "" ]; then
+if [[ "$git_repo_id" = "" ]]; then
     git_repo_id="GIT_REPO_ID"
     echo "[INFO] No command line input provided. Set \$git_repo_id to $git_repo_id"
 fi
 
-if [ "$release_note" = "" ]; then
+if [[ "$release_note" = "" ]]; then
     release_note="Minor update"
     echo "[INFO] No command line input provided. Set \$release_note to $release_note"
 fi
@@ -32,14 +32,14 @@ git add .
 git commit -m "$release_note"
 
 # Sets the new remote
-git_remote=`git remote`
-if [ "$git_remote" = "" ]; then # git remote not defined
+git_remote=$(git remote)
+if [[ "$git_remote" = "" ]]; then # git remote not defined
 
-    if [ "$GIT_TOKEN" = "" ]; then
+    if [[ "$GIT_TOKEN" = "" ]]; then
         echo "[INFO] \$GIT_TOKEN (environment variable) is not set. Using the git credential in your environment."
         git remote add origin https://github.com/${git_user_id}/${git_repo_id}.git
     else
-        git remote add origin https://${git_user_id}:${GIT_TOKEN}@github.com/${git_user_id}/${git_repo_id}.git
+        git remote add origin "https://${git_user_id}:${GIT_TOKEN}@github.com/${git_user_id}/${git_repo_id}.git"
     fi
 
 fi
