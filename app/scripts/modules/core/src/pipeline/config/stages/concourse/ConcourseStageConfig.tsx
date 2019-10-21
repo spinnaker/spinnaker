@@ -46,17 +46,17 @@ export class ConcourseStageConfig extends React.Component<IStageConfigProps, ICo
 
     return (
       <>
-        <StageConfigField label="Master">
+        <StageConfigField label="Build Service">
           <Select
             value={master}
-            placeholder="Select a master..."
+            placeholder="Select a build service..."
             onChange={this.onMasterChanged}
             options={masters.map((name: string) => ({ label: name, value: name }))}
             clearable={false}
           />
         </StageConfigField>
         <StageConfigField label="Team">
-          {!master && <p className="form-control-static">(Select a master)</p>}
+          {!master && <p className="form-control-static">(Select a build service)</p>}
           {master && (
             <Select
               value={teamName}
@@ -68,7 +68,7 @@ export class ConcourseStageConfig extends React.Component<IStageConfigProps, ICo
           )}
         </StageConfigField>
         <StageConfigField label="Pipeline">
-          {!teamName && <p className="form-control-static">(Select a master and team)</p>}
+          {!teamName && <p className="form-control-static">(Select a build service and team)</p>}
           {teamName && (
             <Select
               value={pipelineName}
@@ -80,7 +80,7 @@ export class ConcourseStageConfig extends React.Component<IStageConfigProps, ICo
           )}
         </StageConfigField>
         <StageConfigField label="Resource Name">
-          {!pipelineName && <p className="form-control-static">(Select a master, team, and pipeline)</p>}
+          {!pipelineName && <p className="form-control-static">(Select a build service, team, and pipeline)</p>}
           {pipelineName && (
             <Select
               value={resourceName}

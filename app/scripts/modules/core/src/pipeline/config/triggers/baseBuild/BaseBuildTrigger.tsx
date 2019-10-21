@@ -34,11 +34,13 @@ export function BaseBuildTrigger(buildTriggerProps: IBaseBuildTriggerConfigProps
     }
   }, [fetchJobs.result]);
 
+  const label = buildTriggerType === 'jenkins' ? 'Controller' : 'Build Service';
+
   return (
     <>
       <FormikFormField
         name="master"
-        label="Master"
+        label={label}
         fastField={false}
         input={props => (
           <RefreshableReactSelectInput
@@ -48,7 +50,7 @@ export function BaseBuildTrigger(buildTriggerProps: IBaseBuildTriggerConfigProps
             isLoading={fetchMasters.status === 'PENDING'}
             onRefreshClicked={() => fetchMasters.refresh()}
             refreshButtonTooltipText={fetchMasters.status === 'PENDING' ? 'Masters refreshing' : 'Refresh masters list'}
-            placeholder="Select a master..."
+            placeholder={`Select a ${label.toLowerCase()}`}
           />
         )}
       />

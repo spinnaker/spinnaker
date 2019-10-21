@@ -18,7 +18,7 @@ export function ConcourseExecutionDetails(props: IExecutionDetailsSectionProps) 
   return (
     <ExecutionDetailsSection name={name} current={current}>
       <dl className="dl-narrow dl-horizontal">
-        <dt>Master</dt>
+        <dt>Build Service</dt>
         <dd>{context.master}</dd>
         <dt>Team</dt>
         <dd>{context.teamName}</dd>

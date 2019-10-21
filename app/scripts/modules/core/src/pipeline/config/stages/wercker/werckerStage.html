@@ -1,6 +1,6 @@
 <div class="form-horizontal">
   <div class="form-group">
-    <label class="col-md-2 col-md-offset-1 sm-label-right">Master</label>
+    <label class="col-md-2 col-md-offset-1 sm-label-right">Build Service</label>
     <div class="col-md-6">
       <p class="form-control-static" ng-if="$ctrl.viewState.masterIsParameterized">{{$ctrl.stage.master}}</p>
       <ui-select
@@ -8,7 +8,7 @@
         ng-if="!$ctrl.viewState.masterIsParameterized"
         ng-model="$ctrl.stage.master"
       >
-        <ui-select-match placeholder="Select a Wercker Master...">{{$select.selected}}</ui-select-match>
+        <ui-select-match placeholder="Select a Wercker build service...">{{$select.selected}}</ui-select-match>
         <ui-select-choices repeat="master in $ctrl.masters | filter: $select.search">
           <span ng-bind-html="master | highlight: $select.search"></span>
         </ui-select-choices>
@@ -29,7 +29,7 @@
   <div class="form-group">
     <label class="col-md-2 col-md-offset-1 sm-label-right">Application</label>
     <div class="col-md-6">
-      <p class="form-control-static" ng-if="!$ctrl.stage.master">(Select a master)</p>
+      <p class="form-control-static" ng-if="!$ctrl.stage.master">(Select a build service)</p>
       <p
         class="form-control-static"
         ng-if="$ctrl.viewState.masterIsParameterized || $ctrl.viewState.appIsParameterized"
