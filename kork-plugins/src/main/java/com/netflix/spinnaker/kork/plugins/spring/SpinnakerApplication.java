@@ -24,7 +24,10 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 /**
  * Projects that want to support plugins should extend SpinnakerApplication instead of
  * SpringBootServletInitializer.
+ *
+ * @deprecated Use `SpinnakerPluginManager` instead.
  */
+@Deprecated
 @Beta
 public class SpinnakerApplication extends SpringBootServletInitializer {
 

@@ -1,10 +1,14 @@
 apply plugin: "java-library"
 apply plugin: "groovy"
+apply from: "$rootDir/gradle/kotlin.gradle"
 apply from: "$rootDir/gradle/lombok.gradle"
 
 dependencies {
   api(platform(project(":spinnaker-dependencies")))
   api project(":kork-exceptions")
+  implementation project(":kork-plugins-api")
+
+  implementation "org.pf4j:pf4j"
 
   api "org.springframework.boot:spring-boot-starter-web"
   implementation("com.google.guava:guava")
@@ -14,6 +18,7 @@ dependencies {
   testImplementation "org.codehaus.groovy:groovy-all"
   testImplementation("org.mockito:mockito-core")
   testImplementation "org.spockframework:spock-core"
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
 
   testRuntimeOnly "cglib:cglib-nodep"
   testRuntimeOnly "org.objenesis:objenesis"

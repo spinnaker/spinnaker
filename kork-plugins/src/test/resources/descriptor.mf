@@ -1,0 +1,8 @@
+Plugin-Id: netflix/sentient-robot
+Plugin-Description: You pass the butter
+Plugin-Class: org.pf4j.Plugin
+Plugin-Version: 0.0.1
+Plugin-Provider: Netflix
+Plugin-Requires: *
+Plugin-License: Apache 2.0
+Plugin-Unsafe: true

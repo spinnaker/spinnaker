@@ -142,6 +142,7 @@ dependencies {
     api("org.jetbrains.spek:spek-subject-extension:${versions.spek}")
     api("org.jooq:jooq:3.11.12")
     api("org.objenesis:objenesis:2.5.1")
+    api("org.pf4j:pf4j:3.1.0")
     api("org.springframework.boot:spring-boot-configuration-processor:${versions.springBoot}")
     api("org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure:2.1.5.RELEASE")
     api("org.springframework.security.extensions:spring-security-saml-dsl-core:1.0.5.RELEASE")

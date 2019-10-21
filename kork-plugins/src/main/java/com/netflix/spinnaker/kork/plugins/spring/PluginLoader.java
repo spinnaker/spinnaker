@@ -21,12 +21,19 @@ import com.google.common.annotations.Beta;
 import com.netflix.spinnaker.kork.plugins.spring.configs.PluginConfiguration;
 import com.netflix.spinnaker.kork.plugins.spring.configs.PluginProperties;
 import com.netflix.spinnaker.kork.plugins.spring.configs.PluginPropertyDetails;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
@@ -37,7 +44,10 @@ import org.slf4j.LoggerFactory;
  * adding their jar locations to the classpath. If loadPlugins is called prior to spring context
  * initialization, plugins are able to be autowired. The PluginLoader config file's location is
  * configurable itself, via an environment variable.
+ *
+ * @deprecated Should use `SpringPluginManager` instead. See `PluginsAutoConfiguration`.
  */
+@Deprecated
 @Beta
 public class PluginLoader {
 
