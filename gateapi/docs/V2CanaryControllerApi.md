@@ -4,7 +4,8 @@ All URIs are relative to *https://localhost*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**GetCanaryResultUsingGET**](V2CanaryControllerApi.md#GetCanaryResultUsingGET) | **Get** /v2/canaries/canary/{canaryConfigId}/{canaryExecutionId} | Retrieve a canary result
+[**GetCanaryResultUsingGET**](V2CanaryControllerApi.md#GetCanaryResultUsingGET) | **Get** /v2/canaries/canary/{canaryConfigId}/{canaryExecutionId} | (DEPRECATED) Retrieve a canary result
+[**GetCanaryResultUsingGET1**](V2CanaryControllerApi.md#GetCanaryResultUsingGET1) | **Get** /v2/canaries/canary/{canaryExecutionId} | Retrieve a canary result
 [**GetCanaryResultsByApplicationUsingGET**](V2CanaryControllerApi.md#GetCanaryResultsByApplicationUsingGET) | **Get** /v2/canaries/{application}/executions | Retrieve a list of an application&#39;s canary results
 [**GetMetricSetPairListUsingGET**](V2CanaryControllerApi.md#GetMetricSetPairListUsingGET) | **Get** /v2/canaries/metricSetPairList/{metricSetPairListId} | Retrieve a metric set pair list
 [**InitiateCanaryUsingPOST**](V2CanaryControllerApi.md#InitiateCanaryUsingPOST) | **Post** /v2/canaries/canary/{canaryConfigId} | Start a canary execution
@@ -16,7 +17,7 @@ Method | HTTP request | Description
 
 # **GetCanaryResultUsingGET**
 > interface{} GetCanaryResultUsingGET(ctx, canaryConfigId, canaryExecutionId, optional)
-Retrieve a canary result
+(DEPRECATED) Retrieve a canary result
 
 ### Required Parameters
 
@@ -33,6 +34,41 @@ Optional parameters are passed through a map[string]interface{}.
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **canaryConfigId** | **string**| canaryConfigId | 
+ **canaryExecutionId** | **string**| canaryExecutionId | 
+ **storageAccountName** | **string**| storageAccountName | 
+
+### Return type
+
+[**interface{}**](interface{}.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: */*
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **GetCanaryResultUsingGET1**
+> interface{} GetCanaryResultUsingGET1(ctx, canaryExecutionId, optional)
+Retrieve a canary result
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+  **canaryExecutionId** | **string**| canaryExecutionId | 
+ **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+
+### Optional Parameters
+Optional parameters are passed through a map[string]interface{}.
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
  **canaryExecutionId** | **string**| canaryExecutionId | 
  **storageAccountName** | **string**| storageAccountName | 
 
