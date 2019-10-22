@@ -391,6 +391,7 @@ object ActiveServerGroupTest : ModelParsingTestSupport<CloudDriverService, Activ
     moniker = Moniker(
       app = app,
       sequence = 0
-    )
+    ),
+    buildInfo = BuildInfo(packageName = "fnord")
   )
 }

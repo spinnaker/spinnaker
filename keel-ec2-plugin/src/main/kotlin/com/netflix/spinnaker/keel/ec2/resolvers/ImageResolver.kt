@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.ec2.resolvers
 
 import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.keel.api.ApiVersion
+import com.netflix.spinnaker.keel.api.ArtifactStatus
 import com.netflix.spinnaker.keel.api.NoImageFound
 import com.netflix.spinnaker.keel.api.NoImageFoundForRegions
 import com.netflix.spinnaker.keel.api.NoImageSatisfiesConstraints
@@ -63,7 +64,11 @@ class ImageResolver(
         deliveryConfig,
         artifact,
         environment.name,
-        imageProvider.artifactStatuses
+        if (imageProvider.artifactStatuses.isEmpty()) {
+          enumValues<ArtifactStatus>().toList()
+        } else {
+          imageProvider.artifactStatuses
+        }
       ) ?: throw NoImageSatisfiesConstraints(artifact.name, environment.name)
       imageService.getLatestNamedImage(
         appVersion = AppVersion.parseName(artifactVersion),

@@ -17,6 +17,10 @@
  */
 package com.netflix.spinnaker.keel.api.ec2
 
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY
+
 data class Scaling(
+  @JsonInclude(NON_EMPTY)
   val suspendedProcesses: Set<ScalingProcess> = emptySet()
 )

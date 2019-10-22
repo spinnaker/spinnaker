@@ -17,12 +17,18 @@
  */
 package com.netflix.spinnaker.keel.api.ec2
 
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY
 import java.time.Duration
 
+@JsonInclude(NON_EMPTY)
 data class Health(
   val cooldown: Duration = Duration.ofSeconds(10),
   val warmup: Duration = Duration.ofSeconds(600),
   val healthCheckType: HealthCheckType = HealthCheckType.EC2,
   val enabledMetrics: Set<Metric> = emptySet(),
   val terminationPolicies: Set<TerminationPolicy> = setOf(TerminationPolicy.OldestInstance)
-)
+) {
+  fun toClusterHealthSpec() =
+    ClusterSpec.HealthSpec(cooldown, warmup, healthCheckType, enabledMetrics, terminationPolicies)
+}

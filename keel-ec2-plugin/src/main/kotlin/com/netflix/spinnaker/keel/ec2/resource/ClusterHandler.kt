@@ -3,9 +3,15 @@ package com.netflix.spinnaker.keel.ec2.resource
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.Capacity
 import com.netflix.spinnaker.keel.api.ClusterDependencies
+import com.netflix.spinnaker.keel.api.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.ResourceKind
+import com.netflix.spinnaker.keel.api.SubmittedResource
+import com.netflix.spinnaker.keel.api.SubnetAwareLocations
+import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
+import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.Health
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
@@ -31,6 +37,7 @@ import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
 import com.netflix.spinnaker.keel.ec2.image.ArtifactVersionDeployed
 import com.netflix.spinnaker.keel.events.Task
 import com.netflix.spinnaker.keel.model.Job
+import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.orca.OrcaService
@@ -115,11 +122,163 @@ class ClusterHandler(
         .map { it.await() }
     }
 
+  override suspend fun export(exportable: Exportable): SubmittedResource<ClusterSpec> {
+    val serverGroups = cloudDriverService.getServerGroups(
+      account = exportable.account,
+      moniker = exportable.moniker,
+      regions = exportable.regions,
+      serviceAccount = exportable.serviceAccount
+    )
+      .byRegion()
+
+    val zonesByRegion = serverGroups.map { (region, serverGroup) ->
+      region to cloudDriverCache.availabilityZonesBy(
+        account = exportable.account,
+        vpcId = cloudDriverCache.subnetBy(exportable.account, region, serverGroup.location.subnet).vpcId,
+        region = region
+      )
+    }
+      .toMap()
+
+    val subnetAwareRegionSpecs = serverGroups.map { (region, serverGroup) ->
+      SubnetAwareRegionSpec(
+        name = region,
+        availabilityZones =
+        if (!serverGroup.location.availabilityZones.containsAll(zonesByRegion[region]
+            ?: error("Failed resolving availabilityZones for account: ${exportable.account}, region: $region"))) {
+          serverGroup.location.availabilityZones
+        } else {
+          emptySet()
+        }
+      )
+    }
+      .toSet()
+
+    val base = serverGroups.values.first()
+    val modifiedHealth = ResourceDiff(base.health, Health()).hasChanges()
+
+    val locations = SubnetAwareLocations(
+      account = exportable.account,
+      subnet = base.location.subnet,
+      vpc = base.location.vpc,
+      regions = subnetAwareRegionSpecs
+    )
+
+    val spec = ClusterSpec(
+      moniker = exportable.moniker,
+      imageProvider = if (base.buildInfo?.packageName != null) {
+        ArtifactImageProvider(
+          deliveryArtifact = DeliveryArtifact(name = base.buildInfo.packageName!!))
+      } else {
+        null
+      },
+      locations = locations,
+      _defaults = ClusterSpec.ServerGroupSpec(
+        launchConfiguration = ClusterSpec.LaunchConfigurationSpec(
+          instanceType = base.launchConfiguration.instanceType,
+          ebsOptimized = base.launchConfiguration.ebsOptimized,
+          iamRole = base.launchConfiguration.iamRole,
+          keyPair = base.launchConfiguration.keyPair,
+          instanceMonitoring = base.launchConfiguration.instanceMonitoring
+        ),
+        capacity = base.capacity,
+        dependencies = base.dependencies,
+        health = if (modifiedHealth) {
+          ClusterSpec.HealthSpec(
+            cooldown = base.health.cooldown,
+            warmup = base.health.warmup,
+            healthCheckType = base.health.healthCheckType,
+            enabledMetrics = base.health.enabledMetrics,
+            terminationPolicies = base.health.terminationPolicies
+          )
+        } else {
+          null
+        },
+        scaling = if (base.scaling.suspendedProcesses.isEmpty()) {
+          null
+        } else {
+          base.scaling
+        },
+        tags = base.tags
+      ),
+      overrides = mutableMapOf()
+    )
+
+    spec.generateOverrides(
+      serverGroups
+        .filter { it.value.location.region != base.location.region }
+    )
+
+    return SubmittedResource(
+      apiVersion = apiVersion,
+      kind = supportedKind.first.singular,
+      spec = spec,
+      metadata = mapOf("serviceAccount" to exportable.serviceAccount)
+    )
+  }
+
   private fun ResourceDiff<Map<String, ServerGroup>>.toIndividualDiffs() =
     desired
       .map { (region, desired) ->
         ResourceDiff(desired, current?.get(region))
       }
+
+  private fun ClusterSpec.generateOverrides(serverGroups: Map<String, ServerGroup>) =
+    serverGroups.forEach { region, serverGroup ->
+      val launchSpec = with(serverGroup.launchConfiguration) {
+        ClusterSpec.LaunchConfigurationSpec(
+          instanceType = instanceType,
+          ebsOptimized = ebsOptimized,
+          iamRole = iamRole,
+          keyPair = keyPair,
+          instanceMonitoring = instanceMonitoring
+        )
+      }
+      val healthSpec = with(serverGroup.health) {
+        ClusterSpec.HealthSpec(
+          cooldown = cooldown,
+          warmup = warmup,
+          healthCheckType = healthCheckType,
+          enabledMetrics = enabledMetrics,
+          terminationPolicies = terminationPolicies
+        )
+      }
+      val dependencies = with(serverGroup.dependencies) {
+        ClusterDependencies(
+          loadBalancerNames = loadBalancerNames,
+          securityGroupNames = securityGroupNames,
+          targetGroups = targetGroups
+        )
+      }
+
+      val launchDiff = ResourceDiff(launchSpec, defaults.launchConfiguration).hasChanges()
+      val healthDiff = if (defaults.health == null) {
+        ResourceDiff(healthSpec, Health().toClusterHealthSpec()).hasChanges()
+      } else {
+        ResourceDiff(healthSpec, defaults.health).hasChanges()
+      }
+      val dependenciesDiff = ResourceDiff(dependencies, defaults.dependencies).hasChanges()
+
+      if (launchDiff || healthDiff || dependenciesDiff) {
+        (overrides as MutableMap)[region] = ClusterSpec.ServerGroupSpec(
+          launchConfiguration = if (launchDiff) {
+            launchSpec
+          } else {
+            null
+          },
+          health = if (healthDiff) {
+            healthSpec
+          } else {
+            null
+          },
+          dependencies = if (dependenciesDiff) {
+            dependencies
+          } else {
+            null
+          }
+        )
+      }
+    }
 
   override suspend fun actuationInProgress(id: ResourceId) =
     orcaService
@@ -239,16 +398,37 @@ class ClusterHandler(
   }
 
   private suspend fun CloudDriverService.getServerGroups(resource: Resource<ClusterSpec>): Iterable<ServerGroup> =
+    cloudDriverService.getServerGroups(
+      account = resource.spec.locations.account,
+      moniker = resource.spec.moniker,
+      regions = resource.spec.locations.regions.map { it.name }.toSet(),
+      serviceAccount = resource.serviceAccount
+    )
+      .also { them ->
+        if (them.distinctBy { it.launchConfiguration.appVersion }.size == 1) {
+          publisher.publishEvent(ArtifactVersionDeployed(
+            resourceId = resource.id,
+            artifactVersion = them.first().launchConfiguration.appVersion
+          ))
+        }
+      }
+
+  private suspend fun CloudDriverService.getServerGroups(
+    account: String,
+    moniker: Moniker,
+    regions: Set<String>,
+    serviceAccount: String
+  ): Iterable<ServerGroup> =
     coroutineScope {
-      resource.spec.locations.regions.map {
+      regions.map {
         async {
           try {
             activeServerGroup(
-              resource.serviceAccount,
-              resource.spec.moniker.app,
-              resource.spec.locations.account,
-              resource.spec.moniker.name,
-              it.name,
+              serviceAccount,
+              moniker.app,
+              account,
+              moniker.name,
+              it,
               CLOUD_PROVIDER
             )
               .toServerGroup()
@@ -261,14 +441,6 @@ class ClusterHandler(
         }
       }
         .mapNotNull { it.await() }
-        .also { them ->
-          if (them.distinctBy { it.launchConfiguration.appVersion }.size == 1) {
-            publisher.publishEvent(ArtifactVersionDeployed(
-              resourceId = resource.id,
-              artifactVersion = them.first().launchConfiguration.appVersion
-            ))
-          }
-        }
     }
 
   /**
@@ -296,6 +468,7 @@ class ClusterHandler(
           ramdiskId = ramdiskId.orNull()
         )
       },
+      buildInfo = buildInfo,
       capacity = capacity.let { Capacity(it.min, it.max, it.desired) },
       dependencies = ClusterDependencies(
         loadBalancerNames = loadBalancers,

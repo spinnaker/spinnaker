@@ -2,7 +2,7 @@ package com.netflix.spinnaker.keel.api
 
 data class DeliveryArtifact(
   val name: String,
-  val type: ArtifactType
+  val type: ArtifactType = ArtifactType.DEB
 )
 
 enum class ArtifactType {

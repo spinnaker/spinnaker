@@ -2,6 +2,8 @@ package com.netflix.spinnaker.keel.api.ec2
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY
 import com.fasterxml.jackson.annotation.JsonUnwrapped
 import com.netflix.spinnaker.keel.api.Capacity
 import com.netflix.spinnaker.keel.api.ClusterDependencies
@@ -92,11 +94,13 @@ data class ClusterSpec(
   val imageProvider: ImageProvider? = null,
   override val locations: SubnetAwareLocations,
   private val _defaults: ServerGroupSpec,
+  @JsonInclude(NON_EMPTY)
   val overrides: Map<String, ServerGroupSpec> = emptyMap()
 ) : MultiRegion, Locatable<SubnetAwareLocations> {
   @JsonIgnore
   override val id = "${locations.account}:${moniker.name}"
 
+  @JsonIgnore
   override val regionalIds = locations.regions.map { clusterRegion ->
     "${locations.account}:${clusterRegion.name}:${moniker.name}"
   }.sorted()
@@ -120,8 +124,10 @@ data class ClusterSpec(
     capacity: Capacity?,
     dependencies: ClusterDependencies?,
     health: HealthSpec?,
+    @JsonInclude(NON_EMPTY)
     scaling: Scaling?,
     tags: Map<String, String>?,
+    @JsonInclude(NON_EMPTY)
     overrides: Map<String, ServerGroupSpec> = emptyMap()
   ) : this(
     moniker,
@@ -144,6 +150,7 @@ data class ClusterSpec(
     val dependencies: ClusterDependencies? = null,
     val health: HealthSpec? = null,
     val scaling: Scaling? = null,
+    @JsonInclude(NON_EMPTY)
     val tags: Map<String, String>? = null
   )
 
@@ -162,6 +169,7 @@ data class ClusterSpec(
     val appVersion: String
   )
 
+  @JsonInclude(NON_EMPTY)
   data class HealthSpec(
     val cooldown: Duration? = null,
     val warmup: Duration? = null,

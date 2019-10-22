@@ -17,8 +17,10 @@
  */
 package com.netflix.spinnaker.keel.api.ec2
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.keel.api.Capacity
 import com.netflix.spinnaker.keel.api.ClusterDependencies
+import com.netflix.spinnaker.keel.clouddriver.model.BuildInfo
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.model.parseMoniker
 import de.danielbechler.diff.inclusion.Inclusion.EXCLUDED
@@ -41,7 +43,9 @@ data class ServerGroup(
   val dependencies: ClusterDependencies = ClusterDependencies(),
   val health: Health = Health(),
   val scaling: Scaling = Scaling(),
-  val tags: Map<String, String> = emptyMap()
+  val tags: Map<String, String> = emptyMap(),
+  @JsonIgnore
+  val buildInfo: BuildInfo? = null
 )
 
 val ServerGroup.moniker: Moniker

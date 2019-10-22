@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.clouddriver.model
 
+import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.netflix.spinnaker.keel.api.Capacity
 import com.netflix.spinnaker.keel.model.Moniker
@@ -19,7 +20,8 @@ data class ActiveServerGroup(
   val cloudProvider: String,
   val securityGroups: Set<String>,
   val accountName: String,
-  val moniker: Moniker
+  val moniker: Moniker,
+  val buildInfo: BuildInfo? = null
 )
 
 data class ActiveServerGroupImage(
@@ -78,4 +80,9 @@ data class Tag(
 
 data class InstanceMonitoring(
   val enabled: Boolean
+)
+
+data class BuildInfo(
+  @JsonAlias("package_name")
+  val packageName: String?
 )
