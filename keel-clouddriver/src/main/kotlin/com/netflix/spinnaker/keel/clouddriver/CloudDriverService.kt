@@ -148,4 +148,10 @@ interface CloudDriverService {
     @QueryMap allParameters: Map<String, String>,
     @Header("X-SPINNAKER-USER") serviceAccount: String = DEFAULT_SERVICE_ACCOUNT
   ): EntityTags
+
+  @GET("/credentials/{account}")
+  suspend fun getAccountInformation(
+    @Path("account") account: String,
+    @Header("X-SPINNAKER-USER") serviceAccount: String = DEFAULT_SERVICE_ACCOUNT
+  ): Map<String, Any?>
 }

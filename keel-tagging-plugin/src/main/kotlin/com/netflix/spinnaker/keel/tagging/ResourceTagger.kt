@@ -76,6 +76,7 @@ class ResourceTagger(
 
   private val taggableResources = listOf(
     "cluster",
+    "titus-cluster", // todo eb: fix to just be cluster
     "security-group",
     "classic-load-balancer",
     "application-load-balancer"

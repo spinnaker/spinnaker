@@ -102,5 +102,16 @@ class ConvertExampleFilesTest : JUnit5Minutests {
         }.succeeded()
       }
     }
+
+    context("simple titus cluster") {
+      mapper.registerSubtypes(NamedType(TitusClusterSpec::class.java, "titus-cluster"))
+      val file = this.javaClass.getResource("/examples/simple-titus-cluster-example.yml").readText()
+
+      test("yml can be parsed") {
+        expectCatching {
+          mapper.readValue<SubmittedResource<TitusClusterSpec>>(file)
+        }.succeeded()
+      }
+    }
   }
 }

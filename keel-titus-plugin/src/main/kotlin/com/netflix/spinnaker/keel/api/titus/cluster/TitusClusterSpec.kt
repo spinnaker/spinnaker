@@ -37,7 +37,7 @@ import com.netflix.spinnaker.keel.model.Moniker
 data class TitusClusterSpec(
   override val moniker: Moniker,
   override val locations: SimpleLocations,
-  val container: ContainerSpec,
+  val container: Container,
   private val _defaults: TitusServerGroupSpec,
   val overrides: Map<String, TitusServerGroupSpec> = emptyMap()
 ) : MultiRegion, Locatable<SimpleLocations> {
@@ -56,10 +56,15 @@ data class TitusClusterSpec(
   constructor(
     moniker: Moniker,
     locations: SimpleLocations,
-    container: ContainerSpec,
+    container: Container,
     capacity: Capacity?,
     constraints: Constraints?,
-    containerOptions: ContainerOptions?,
+    env: Map<String, String>?,
+    resources: ResourcesSpec?,
+    iamProfile: String?,
+    entryPoint: String?,
+    capacityGroup: String?,
+    migrationPolicy: MigrationPolicy?,
     dependencies: ClusterDependencies?,
     tags: Map<String, String>?,
     overrides: Map<String, TitusServerGroupSpec> = emptyMap()
@@ -68,79 +73,87 @@ data class TitusClusterSpec(
     locations,
     container,
     TitusServerGroupSpec(
-      capacity,
-      constraints,
-      containerOptions,
-      dependencies,
-      container,
-      tags
+      capacity = capacity,
+      capacityGroup = capacityGroup,
+      constraints = constraints,
+      container = container,
+      dependencies = dependencies,
+      entryPoint = entryPoint,
+      env = env,
+      iamProfile = iamProfile,
+      migrationPolicy = migrationPolicy,
+      resources = resources,
+      tags = tags
     ),
     overrides
   )
 }
 
 data class Container(
-  val image: String,
-  val digest: String,
-  val tag: String
-)
-
-data class ContainerSpec(
   val organization: String,
-  val registry: String,
   val image: String,
-  val digest: String,
-  val tag: String
-)
-
-data class ContainerOptions(
-  val iamProfile: String,
-  val entryPoint: String = "",
-  val resources: Resources = Resources(),
-  val env: Map<String, String> = emptyMap(),
-  val constraints: Constraints = Constraints(),
-  val capacityGroup: String,
-  val migrationPolicy: MigrationPolicy = MigrationPolicy()
+  val digest: String
 )
 
 data class TitusServerGroupSpec(
   val capacity: Capacity? = null,
+  val capacityGroup: String? = null,
   val constraints: Constraints? = null,
-  val containerOptions: ContainerOptions? = null,
+  val container: Container? = null,
   val dependencies: ClusterDependencies? = null,
-  val container: ContainerSpec? = null,
-  val tags: Map<String, String>? = null,
-  val deferredInitialization: Boolean? = null,
-  val delayBeforeDisableSec: Int? = null,
-  val delayBeforeScaleDownSec: Int? = null
+  val entryPoint: String? = null,
+  val env: Map<String, String>? = null,
+  val iamProfile: String? = null,
+  val migrationPolicy: MigrationPolicy? = null,
+  val resources: ResourcesSpec? = null,
+  val tags: Map<String, String>? = null
 )
 
-private fun TitusClusterSpec.resolveCapacity(region: String) =
+data class ResourcesSpec(
+  val cpu: Int? = null,
+  val disk: Int? = null,
+  val gpu: Int? = null,
+  val memory: Int? = null,
+  val networkMbps: Int? = null
+)
+
+internal fun TitusClusterSpec.resolveCapacity(region: String) =
   overrides[region]?.capacity ?: defaults.capacity ?: Capacity(1, 1, 1)
 
-private fun TitusClusterSpec.resolveContainer(region: String): Container =
-  checkNotNull(overrides[region]?.container?.toContainer() ?: defaults.container?.toContainer()) {
-    "No docker container supplied for $region"
-  }
+internal fun TitusClusterSpec.resolveEnv(region: String) =
+  emptyMap<String, String>() + overrides[region]?.env + defaults.env
 
-private fun TitusClusterSpec.resolveContainerOptions(region: String, application: String): ContainerOptions =
-  overrides[region]?.containerOptions ?: defaults.containerOptions ?: ContainerOptions(
-    iamProfile = "${application}InstanceProfile",
-    capacityGroup = application
+internal fun TitusClusterSpec.resolveResources(region: String): Resources {
+  val default by lazy { Resources() }
+  return Resources(
+    cpu = overrides[region]?.resources?.cpu ?: defaults.resources?.cpu ?: default.cpu,
+    disk = overrides[region]?.resources?.disk ?: defaults.resources?.disk ?: default.disk,
+    gpu = overrides[region]?.resources?.gpu ?: defaults.resources?.gpu ?: default.gpu,
+    memory = overrides[region]?.resources?.memory ?: defaults.resources?.memory ?: default.memory,
+    networkMbps = overrides[region]?.resources?.networkMbps ?: defaults.resources?.networkMbps ?: default.networkMbps
   )
+}
 
-private fun TitusClusterSpec.resolveDependencies(region: String): ClusterDependencies =
+internal fun TitusClusterSpec.resolveIamProfile(region: String) =
+  overrides[region]?.iamProfile ?: defaults.iamProfile ?: moniker.app + "InstanceProfile"
+
+internal fun TitusClusterSpec.resolveEntryPoint(region: String) =
+  overrides[region]?.entryPoint ?: defaults.entryPoint ?: ""
+
+internal fun TitusClusterSpec.resolveCapacityGroup(region: String) =
+  overrides[region]?.capacityGroup ?: defaults.capacityGroup ?: moniker.app
+
+internal fun TitusClusterSpec.resolveConstraints(region: String) =
+  overrides[region]?.constraints ?: defaults.constraints ?: Constraints()
+
+internal fun TitusClusterSpec.resolveMigrationPolicy(region: String) =
+  overrides[region]?.migrationPolicy ?: defaults.migrationPolicy ?: MigrationPolicy()
+
+internal fun TitusClusterSpec.resolveDependencies(region: String): ClusterDependencies =
   ClusterDependencies(
     loadBalancerNames = defaults.dependencies?.loadBalancerNames + overrides[region]?.dependencies?.loadBalancerNames,
     securityGroupNames = defaults.dependencies?.securityGroupNames + overrides[region]?.dependencies?.securityGroupNames,
     targetGroups = defaults.dependencies?.targetGroups + overrides[region]?.dependencies?.targetGroups
-  )
-
-private fun ContainerSpec.toContainer() =
-  Container(
-    image = image,
-    digest = digest,
-    tag = tag
   )
 
 fun TitusClusterSpec.resolve(): Set<TitusServerGroup> =
@@ -152,9 +165,15 @@ fun TitusClusterSpec.resolve(): Set<TitusServerGroup> =
         region = it.name
       ),
       capacity = resolveCapacity(it.name),
-      container = resolveContainer(it.name),
-      containerOptions = resolveContainerOptions(it.name, moniker.app),
+      capacityGroup = resolveCapacityGroup(it.name),
+      constraints = resolveConstraints(it.name),
+      container = container,
       dependencies = resolveDependencies(it.name),
+      entryPoint = resolveEntryPoint(it.name),
+      env = resolveEnv(it.name),
+      iamProfile = resolveIamProfile(it.name),
+      migrationPolicy = resolveMigrationPolicy(it.name),
+      resources = resolveResources(it.name),
       tags = defaults.tags + overrides[it.name]?.tags
     )
   }

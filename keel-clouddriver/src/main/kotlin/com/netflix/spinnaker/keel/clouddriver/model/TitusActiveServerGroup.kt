@@ -35,7 +35,6 @@ data class TitusActiveServerGroup(
   val cloudProvider: String,
   val moniker: Moniker,
   val env: Map<String, String>,
-  val labels: Map<String, String>,
   val containerAttributes: Map<String, String> = emptyMap(),
   val migrationPolicy: MigrationPolicy,
   val serviceJobProcesses: ServiceJobProcesses,

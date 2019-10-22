@@ -17,17 +17,6 @@ spec:
     regions:
       - name: us-west-2
       - name: us-east-1
-  entrypoint: ""
-  resources:
-    cpu: 1
-    memory: 5000
-    disk: 10000
-    networkMbps: 128
-    gpu: 0
-  env:
-    myvar: myvalue
-  iamProfile: emburnstestInstanceProfile
-  capacityGroup: emburnstest
   capacity:
     min: 1
     max: 1
