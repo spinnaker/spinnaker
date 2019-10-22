@@ -30,16 +30,25 @@ import java.nio.file.Path
 
 /**
  * The primary entry-point to the plugins system from a provider-side (services, libs, CLIs, and so-on).
+ *
+ * @param enabled Whether or not the PluginManager should do anything. While Plugins are an incubating
+ * feature, this flag allows operators to disable the functionality, but keeps integrating services from
+ * having to deal with `Optional<PluginManager>` autowiring.
+ * @param pluginsRoot The root path to search for in-process plugin artifacts.
  */
 @Beta
 class SpinnakerPluginManager(
+  val enabled: Boolean,
   pluginsRoot: Path
 ) : DefaultPluginManager(pluginsRoot) {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  init {
-    log.warn("Spinnaker Plugins enabled! This is a core incubating feature that may cause instability of the service")
+  override fun initialize() {
+    if (enabled) {
+      log.warn("Spinnaker Plugins enabled! This is a core incubating feature that may cause instability of the service")
+      super.initialize()
+    }
   }
 
   override fun createExtensionFactory(): ExtensionFactory {

@@ -33,13 +33,15 @@ class PluginBeanPostProcessor(
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   override fun postProcessBeanDefinitionRegistry(registry: BeanDefinitionRegistry) {
-    val start = System.currentTimeMillis()
-    preparePlugins()
-    log.info("Finished preparing plugins in {}ms", System.currentTimeMillis() - start)
+    if (pluginManager.enabled) {
+      log.debug("Preparing plugins")
+      val start = System.currentTimeMillis()
+      preparePlugins()
+      log.info("Finished preparing plugins in {}ms", System.currentTimeMillis() - start)
+    }
   }
 
   private fun preparePlugins() {
-    log.debug("Preparing plugins")
     pluginManager.loadPlugins()
     pluginManager.startPlugins()
     extensionsInjector.injectExtensions()

@@ -18,7 +18,6 @@ package com.netflix.spinnaker.config
 import com.netflix.spinnaker.kork.plugins.ExtensionsInjector
 import com.netflix.spinnaker.kork.plugins.PluginBeanPostProcessor
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginManager
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -29,7 +28,6 @@ import java.nio.file.Paths
  * Include this [Configuration] to enable plugins within a Spinnaker service or library.
  */
 @Configuration
-@ConditionalOnProperty("spinnaker.plugins.enabled", matchIfMissing = true)
 @EnableConfigurationProperties(PluginsConfigurationProperties::class)
 class PluginsAutoConfiguration {
 
@@ -37,14 +35,14 @@ class PluginsAutoConfiguration {
   fun pluginManager(
     properties: PluginsConfigurationProperties
   ): SpinnakerPluginManager =
-    SpinnakerPluginManager(Paths.get(properties.rootPath))
+    SpinnakerPluginManager(properties.enabled, Paths.get(properties.rootPath))
 
   @Bean
   fun extensionsInjector(
     pluginManager: SpinnakerPluginManager,
-    registry: GenericApplicationContext
+    context: GenericApplicationContext
   ): ExtensionsInjector =
-    ExtensionsInjector(pluginManager, registry)
+    ExtensionsInjector(pluginManager, context)
 
   @Bean
   fun pluginBeanPostProcessor(
