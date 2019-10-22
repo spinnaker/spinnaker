@@ -61,7 +61,7 @@ export class KubernetesV2RunJobStageConfig extends React.Component<IStageConfigP
 
   public accountChanged = (account: string) => {
     this.props.updateStageField({
-      credentails: account,
+      credentials: account,
       account: account,
     });
   };
