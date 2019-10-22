@@ -46,8 +46,10 @@ export class LoadBalancerActions extends React.Component<ILoadBalancerActionsPro
           this.setState({ application: loadBalancerApp });
         })
         .catch(() => {
-          // If the application can't be found, just use the old one
-          this.setState({ application: this.props.app });
+          // We should not "just use the current app" in place of the (missing) app
+          // that the load balancer actually belongs.
+          // Instead, the user should be forced to create the application of the orphaned load balancer.
+          // Otherwise, there will be unexpected behavior.
         });
     }
 
@@ -107,6 +109,8 @@ export class LoadBalancerActions extends React.Component<ILoadBalancerActionsPro
     const { AddEntityTagLinks } = NgReact;
 
     const { loadBalancerType, instances, instanceCounts } = loadBalancer;
+    const loadBalancerAppName = loadBalancer.name.split('-')[0];
+
     const clbInstances =
       loadBalancerType === 'classic' && values(instanceCounts).filter((v: number | undefined) => v).length;
     const allowDeletion = !clbInstances && !instances.length;
@@ -118,11 +122,23 @@ export class LoadBalancerActions extends React.Component<ILoadBalancerActionsPro
             <span>Load Balancer Actions</span>
           </Dropdown.Toggle>
           <Dropdown.Menu className="dropdown-menu">
-            <li className={!application ? 'disabled' : ''}>
-              <a className="clickable" onClick={this.editLoadBalancer}>
-                Edit Load Balancer
-              </a>
-            </li>
+            {application && (
+              <li>
+                <a className="clickable" onClick={this.editLoadBalancer}>
+                  Edit Load Balancer
+                </a>
+              </li>
+            )}
+            {!application && (
+              <li className="disabled">
+                <a className="clickable" onClick={this.editLoadBalancer}>
+                  Edit Load Balancer{' '}
+                  <HelpField
+                    content={`The application <b>${loadBalancerAppName}</b> must be configured before this load balancer can be edited.`}
+                  />
+                </a>
+              </li>
+            )}
             {allowDeletion && (
               <li>
                 <a className="clickable" onClick={this.deleteLoadBalancer}>
