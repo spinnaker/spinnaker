@@ -112,7 +112,7 @@ export class ProjectHeader extends React.Component<IProjectHeaderProps, IProject
                     </UISref>
                     <MenuItem divider={true} />
                     {config.applications &&
-                      config.applications.map(app => (
+                      config.applications.sort().map(app => (
                         <UISref key={app} to=".application.insight.clusters" params={{ application: app }}>
                           <MenuItem onClick={closeDropdown}> {app} </MenuItem>
                         </UISref>
