@@ -9,6 +9,7 @@ test {
 dependencies {
   api(platform(project(":spinnaker-dependencies")))
 
+  api project(":kork-plugins-api")
   api "com.fasterxml.jackson.core:jackson-databind"
   api "org.springframework:spring-context"
   api "org.slf4j:slf4j-api"

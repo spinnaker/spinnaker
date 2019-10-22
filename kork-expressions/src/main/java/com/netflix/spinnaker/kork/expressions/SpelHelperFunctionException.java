@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.kork.expressions;
 
-public class SpelHelperFunctionException extends RuntimeException {
+import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
+
+public class SpelHelperFunctionException extends SpinnakerException {
   public SpelHelperFunctionException(String message) {
     super(message);
   }

@@ -19,9 +19,30 @@ package com.netflix.spinnaker.kork.expressions;
 import static java.lang.String.format;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.kork.expressions.whitelisting.*;
+import com.netflix.spinnaker.kork.expressions.whitelisting.FilteredMethodResolver;
+import com.netflix.spinnaker.kork.expressions.whitelisting.FilteredPropertyAccessor;
+import com.netflix.spinnaker.kork.expressions.whitelisting.MapPropertyAccessor;
+import com.netflix.spinnaker.kork.expressions.whitelisting.ReturnTypeRestrictor;
+import com.netflix.spinnaker.kork.expressions.whitelisting.WhitelistTypeLocator;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import org.pf4j.PluginManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -38,14 +59,15 @@ public class ExpressionsSupport {
   private final List<ExpressionFunctionProvider> expressionFunctionProviders;
 
   public ExpressionsSupport(Class<?> extraAllowedReturnType) {
-    this(new Class[] {extraAllowedReturnType}, null);
+    this(new Class[] {extraAllowedReturnType}, null, null);
   }
 
   public ExpressionsSupport(
       Class<?>[] extraAllowedReturnTypes,
-      List<ExpressionFunctionProvider> extraExpressionFunctionProviders) {
+      List<ExpressionFunctionProvider> extraExpressionFunctionProviders,
+      PluginManager pluginManager) {
 
-    this.allowedReturnTypes =
+    allowedReturnTypes =
         new HashSet<>(
             Arrays.asList(
                 Collection.class,
@@ -62,14 +84,21 @@ public class ExpressionsSupport {
                 LinkedHashMap.class,
                 TreeMap.class,
                 TreeSet.class));
-    Collections.addAll(this.allowedReturnTypes, extraAllowedReturnTypes);
+    Collections.addAll(allowedReturnTypes, extraAllowedReturnTypes);
 
-    this.expressionFunctionProviders =
+    expressionFunctionProviders =
         new ArrayList<>(
             Arrays.asList(
                 new JsonExpressionFunctionProvider(), new StringExpressionFunctionProvider()));
     if (extraExpressionFunctionProviders != null) {
-      this.expressionFunctionProviders.addAll(extraExpressionFunctionProviders);
+      expressionFunctionProviders.addAll(extraExpressionFunctionProviders);
+    }
+
+    // TODO(rz): Once plugins are no longer an incubating feature, extraExpressionFunctionProviders
+    //  var could be removed
+    if (pluginManager != null) {
+      expressionFunctionProviders.addAll(
+          pluginManager.getExtensions(ExpressionFunctionProvider.class));
     }
   }
 
@@ -154,20 +183,6 @@ public class ExpressionsSupport {
 
   @SuppressWarnings("unused")
   public static class JsonExpressionFunctionProvider implements ExpressionFunctionProvider {
-    @Override
-    public String getNamespace() {
-      return null;
-    }
-
-    @Override
-    public Functions getFunctions() {
-      return new Functions(
-          new FunctionDefinition(
-              "toJson",
-              new FunctionParameter(
-                  Object.class, "value", "An Object to marshall to a JSON String")));
-    }
-
     /**
      * @param o represents an object to convert to json
      * @return json representation of the said object
@@ -184,10 +199,7 @@ public class ExpressionsSupport {
         throw new SpelHelperFunctionException(format("#toJson(%s) failed", o.toString()), e);
       }
     }
-  }
 
-  @SuppressWarnings("unused")
-  public static class StringExpressionFunctionProvider implements ExpressionFunctionProvider {
     @Override
     public String getNamespace() {
       return null;
@@ -197,30 +209,14 @@ public class ExpressionsSupport {
     public Functions getFunctions() {
       return new Functions(
           new FunctionDefinition(
-              "toInt",
-              new FunctionParameter(String.class, "value", "A String value to convert to an int")),
-          new FunctionDefinition(
-              "toFloat",
-              new FunctionParameter(String.class, "value", "A String value to convert to a float")),
-          new FunctionDefinition(
-              "toBoolean",
+              "toJson",
               new FunctionParameter(
-                  String.class, "value", "A String value to convert to a boolean")),
-          new FunctionDefinition(
-              "toBase64",
-              new FunctionParameter(String.class, "value", "A String value to base64 encode")),
-          new FunctionDefinition(
-              "fromBase64",
-              new FunctionParameter(
-                  String.class, "value", "A base64-encoded String value to decode")),
-          new FunctionDefinition(
-              "alphanumerical",
-              new FunctionParameter(
-                  String.class,
-                  "value",
-                  "A String value to strip of all non-alphanumeric characters")));
+                  Object.class, "value", "An Object to marshall to a JSON String")));
     }
+  }
 
+  @SuppressWarnings("unused")
+  public static class StringExpressionFunctionProvider implements ExpressionFunctionProvider {
     /**
      * Parses a string to an integer
      *
@@ -279,6 +275,39 @@ public class ExpressionsSupport {
      */
     public static String alphanumerical(String str) {
       return str.replaceAll("[^A-Za-z0-9]", "");
+    }
+
+    @Override
+    public String getNamespace() {
+      return null;
+    }
+
+    @Override
+    public Functions getFunctions() {
+      return new Functions(
+          new FunctionDefinition(
+              "toInt",
+              new FunctionParameter(String.class, "value", "A String value to convert to an int")),
+          new FunctionDefinition(
+              "toFloat",
+              new FunctionParameter(String.class, "value", "A String value to convert to a float")),
+          new FunctionDefinition(
+              "toBoolean",
+              new FunctionParameter(
+                  String.class, "value", "A String value to convert to a boolean")),
+          new FunctionDefinition(
+              "toBase64",
+              new FunctionParameter(String.class, "value", "A String value to base64 encode")),
+          new FunctionDefinition(
+              "fromBase64",
+              new FunctionParameter(
+                  String.class, "value", "A base64-encoded String value to decode")),
+          new FunctionDefinition(
+              "alphanumerical",
+              new FunctionParameter(
+                  String.class,
+                  "value",
+                  "A String value to strip of all non-alphanumeric characters")));
     }
   }
 }
