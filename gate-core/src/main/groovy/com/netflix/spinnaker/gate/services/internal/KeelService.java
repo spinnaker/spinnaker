@@ -68,4 +68,12 @@ public interface KeelService {
 
   @GET("/vetos/{name}/rejections")
   List<String> getVetoRejections(@Path("name") String name);
+
+  @GET("/export/{cloudProvider}/{account}/{type}/{name}")
+  Resource exportResource(
+      @Path("cloudProvider") String cloudProvider,
+      @Path("account") String account,
+      @Path("type") String type,
+      @Path("name") String name,
+      @Query("serviceAccount") String serviceAccount);
 }

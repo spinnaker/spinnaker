@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import retrofit.RetrofitError;
 import retrofit.client.Header;
+import retrofit.http.Query;
 
 @RequestMapping("/managed")
 @RestController
@@ -72,6 +73,19 @@ public class ManagedController {
   @RequestMapping(value = "/resources/{name}", method = DELETE)
   Resource deleteResource(@PathVariable("name") String name) {
     return keelService.deleteResource(name);
+  }
+
+  @ApiOperation(
+      value = "Generate a keel resource definition for a deployed cloud resource",
+      response = Resource.class)
+  @RequestMapping(value = "/resources/export/{cloudProvider}/{account}/{type}/{name}", method = GET)
+  Resource exportResource(
+      @PathVariable("cloudProvider") String cloudProvider,
+      @PathVariable("account") String account,
+      @PathVariable("type") String type,
+      @PathVariable("name") String name,
+      @Query("serviceAccount") String serviceAccount) {
+    return keelService.exportResource(cloudProvider, account, type, name, serviceAccount);
   }
 
   @ApiOperation(value = "Get a delivery config manifest", response = DeliveryConfig.class)
