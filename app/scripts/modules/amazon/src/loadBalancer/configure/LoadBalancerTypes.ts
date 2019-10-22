@@ -11,7 +11,7 @@ export interface ICloseableLoadBalancerModal extends React.ComponentClass<ILoadB
 }
 
 export interface IAmazonLoadBalancerConfig {
-  type: string;
+  type: 'network' | 'application' | 'classic';
   label: string;
   sublabel: string;
   description: string;

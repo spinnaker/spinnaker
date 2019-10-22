@@ -26,6 +26,11 @@ export interface IAWSProviderSettings extends IProviderSettings {
   };
   minRootVolumeSize?: number;
   disableSpotPricing?: boolean;
+  createLoadBalancerWarnings?: {
+    network?: string;
+    application?: string;
+    classic?: string;
+  };
 }
 
 export const AWSProviderSettings: IAWSProviderSettings = (SETTINGS.providers.aws as IAWSProviderSettings) || {
