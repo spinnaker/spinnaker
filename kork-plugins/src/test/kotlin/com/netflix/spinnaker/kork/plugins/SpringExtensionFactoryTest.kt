@@ -17,7 +17,6 @@ package com.netflix.spinnaker.kork.plugins
 
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 
@@ -40,9 +39,5 @@ class SpringExtensionFactoryTest : JUnit5Minutests {
     val pluginManager: SpinnakerPluginManager = mockk(relaxed = true)
     val extensionInjector: ExtensionsInjector = mockk(relaxed = true)
     val subject = PluginBeanPostProcessor(pluginManager, extensionInjector)
-
-    init {
-      every { pluginManager.enabled } returns true
-    }
   }
 }

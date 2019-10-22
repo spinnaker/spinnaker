@@ -35,7 +35,7 @@ class PluginsAutoConfiguration {
   fun pluginManager(
     properties: PluginsConfigurationProperties
   ): SpinnakerPluginManager =
-    SpinnakerPluginManager(properties.enabled, Paths.get(properties.rootPath))
+    SpinnakerPluginManager(Paths.get(properties.rootPath))
 
   @Bean
   fun extensionsInjector(

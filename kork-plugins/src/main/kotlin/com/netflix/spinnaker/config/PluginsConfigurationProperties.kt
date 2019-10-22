@@ -25,11 +25,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 @ConfigurationProperties("spinnaker.plugins")
 class PluginsConfigurationProperties {
   /**
-   * Whether or not plugins are enabled for a particular service.
-   */
-  var enabled: Boolean = false
-
-  /**
    * The root filepath to the directory containing all plugins.
    *
    * If an absolute path is not provided, the path will be calculated relative to the executable.
