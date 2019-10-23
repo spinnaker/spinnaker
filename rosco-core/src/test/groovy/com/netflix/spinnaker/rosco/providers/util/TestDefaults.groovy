@@ -10,6 +10,7 @@ trait TestDefaults {
   static final String PACKAGES_NAME = "kato nflx-djangobase-enhanced_0.1-h12.170cdbd_all mongodb"
   static final String NUPKG_PACKAGES_NAME = "googlechrome javaruntime"
   static final String DEBIAN_REPOSITORY = "http://some-debian-repository"
+  static final String DEBIAN_CUSTOM_REPOSITORY = "http://some-custom-debian-repository"
   static final String YUM_REPOSITORY = "http://some-yum-repository"
   static final String CHOCOLATEY_REPOSITORY = "http://some-chocolatey-repository"
   static final CloudProviderType DOCKER_CLOUD_PROVIDER = BakeRequest.CloudProviderType.docker

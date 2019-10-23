@@ -197,7 +197,9 @@ abstract class CloudProviderBakeHandler {
 
     def parameterMap = buildParameterMap(region, virtualizationSettings, imageName, bakeRequest, appVersionStr)
 
-    if (debianRepository && selectedOptions.baseImage.packageType == BakeRequest.PackageType.DEB) {
+    if (selectedOptions.baseImage.customRepository) {
+      parameterMap.repository = selectedOptions.baseImage.customRepository
+    } else if (debianRepository && selectedOptions.baseImage.packageType == BakeRequest.PackageType.DEB) {
       parameterMap.repository = debianRepository
     } else if (yumRepository && selectedOptions.baseImage.packageType == BakeRequest.PackageType.RPM) {
       parameterMap.repository = yumRepository

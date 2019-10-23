@@ -30,6 +30,7 @@ class BakeOptions {
     BakeRequest.PackageType packageType
     String templateFile
     BakeRequest.OsType osType = BakeRequest.OsType.linux
+    String customRepository
   }
 
   static class Selected {

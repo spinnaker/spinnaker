@@ -29,6 +29,8 @@ packer:
 # debianRepository: http://dl.bintray.com/spinnaker/ospackages trusty main;http://other.repo.com/repo/packages trusty main
 # yumRepository: https://jfrog.bintray.com/yum/repos/some-package
 # chocolateyRepository: https://chocolatey.org/api/v2/
+# This general repository can be override at BaseImage level using customRepository entry
+
 
 defaultCloudProviderType: aws
 
@@ -136,6 +138,8 @@ aws:
         # You can specify the templateFile used for this baseImage.
         # If not specified, the default templateFile will be used.
         templateFile: aws-ebs.json
+        # You can specify a different repository for this baseImage.
+        # customRepository: http://dl.bintray.com/spinnaker/ospackages bionic main
       virtualizationSettings:
       - region: us-east-1
         virtualizationType: hvm

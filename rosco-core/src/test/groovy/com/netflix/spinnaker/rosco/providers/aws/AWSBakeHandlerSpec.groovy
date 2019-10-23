@@ -98,6 +98,24 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
         ],
         [
           baseImage: [
+            id: "trusty_custom_repo",
+            packageType: "DEB",
+            customRepository: DEBIAN_CUSTOM_REPOSITORY
+          ],
+          virtualizationSettings: [
+            [
+              region: REGION,
+              virtualizationType: "hvm",
+              instanceType: "t2.micro",
+              sourceAmi: SOURCE_TRUSTY_HVM_IMAGE_NAME,
+              sshUserName: "ubuntu",
+              spotPrice: "auto",
+              spotPriceAutoProduct: "Linux/UNIX (Amazon VPC)"
+            ]
+          ]
+        ],
+        [
+          baseImage: [
            id: "amzn",
            packageType: "RPM",
           ],
@@ -738,7 +756,48 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
       parameterMap.aws_spot_price == "auto"
       parameterMap.aws_spot_price_auto_product == "Linux/UNIX (Amazon VPC)"
   }
+  void 'overrides repository for images with custom repository property'() {
+    setup:
+    def imageNameFactoryMock = Mock(ImageNameFactory)
+    def packerCommandFactoryMock = Mock(PackerCommandFactory)
+    def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+            package_name: PACKAGES_NAME,
+            base_os: "trusty_custom_repo",
+            vm_type: BakeRequest.VmType.hvm,
+            cloud_provider_type: BakeRequest.CloudProviderType.aws)
+    def targetImageName = "kato-x8664-timestamp-trusty"
+    def osPackages = parseDebOsPackageNames(PACKAGES_NAME)
+    def parameterMap = [
+            aws_region: REGION,
+            aws_ssh_username: "ubuntu",
+            aws_instance_type: "t2.micro",
+            aws_source_ami: SOURCE_TRUSTY_HVM_IMAGE_NAME,
+            aws_target_ami: targetImageName,
+            aws_spot_price: "auto",
+            aws_spot_price_auto_product: "Linux/UNIX (Amazon VPC)",
+            repository: DEBIAN_CUSTOM_REPOSITORY,
+            package_type: DEB_PACKAGE_TYPE.util.packageType,
+            packages: PACKAGES_NAME,
+            configDir: configDir
+    ]
 
+    @Subject
+    AWSBakeHandler awsBakeHandler = new AWSBakeHandler(configDir: configDir,
+            awsBakeryDefaults: awsBakeryDefaults,
+            imageNameFactory: imageNameFactoryMock,
+            packerCommandFactory: packerCommandFactoryMock,
+            debianRepository: DEBIAN_REPOSITORY)
+
+    when:
+    awsBakeHandler.produceBakeRecipe(REGION, bakeRequest)
+
+    then:
+    1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
+    1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages, DEB_PACKAGE_TYPE) >> null
+    1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
+    1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/$awsBakeryDefaults.templateFile")
+  }
+  
   void 'produces packer command with all required parameters for trusty, using explicit vm type'() {
     setup:
       def imageNameFactoryMock = Mock(ImageNameFactory)
