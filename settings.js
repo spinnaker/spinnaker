@@ -72,7 +72,6 @@ window.spinnakerSettings = {
     iapRefresherEnabled: iapRefresherEnabled,
     // whether stages affecting infrastructure (like "Create Load Balancer") should be enabled or not
     infrastructureStages: infrastructureEnabled,
-    jobs: false,
     managedPipelineTemplatesV2UI: managedPipelineTemplatesV2UIEnabled,
     managedServiceAccounts: managedServiceAccountsEnabled,
     managedResources: managedResourcesEnabled,
