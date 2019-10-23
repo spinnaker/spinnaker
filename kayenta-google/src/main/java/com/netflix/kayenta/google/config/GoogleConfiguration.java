@@ -16,8 +16,8 @@
 
 package com.netflix.kayenta.google.config;
 
-import com.netflix.kayenta.google.security.GoogleCredentials;
-import com.netflix.kayenta.google.security.GoogleJsonCredentials;
+import com.netflix.kayenta.google.security.GoogleClientFactory;
+import com.netflix.kayenta.google.security.GoogleJsonClientFactory;
 import com.netflix.kayenta.google.security.GoogleNamedAccountCredentials;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
@@ -62,21 +62,21 @@ public class GoogleConfiguration {
 
       try {
         String jsonKey = googleManagedAccount.getJsonKey();
-        GoogleCredentials googleCredentials =
+        GoogleClientFactory googleClientFactory =
             StringUtils.hasLength(jsonKey)
-                ? new GoogleJsonCredentials(project, jsonKey)
-                : new GoogleCredentials(project);
+                ? new GoogleJsonClientFactory(project, jsonKey)
+                : new GoogleClientFactory(project);
 
         GoogleNamedAccountCredentials.GoogleNamedAccountCredentialsBuilder
             googleNamedAccountCredentialsBuilder =
                 GoogleNamedAccountCredentials.builder()
                     .name(name)
                     .project(project)
-                    .credentials(googleCredentials);
+                    .credentials(googleClientFactory);
 
         if (!CollectionUtils.isEmpty(supportedTypes)) {
           if (supportedTypes.contains(AccountCredentials.Type.METRICS_STORE)) {
-            googleNamedAccountCredentialsBuilder.monitoring(googleCredentials.getMonitoring());
+            googleNamedAccountCredentialsBuilder.monitoring(googleClientFactory.getMonitoring());
           }
 
           if (supportedTypes.contains(AccountCredentials.Type.OBJECT_STORE)) {
@@ -97,7 +97,7 @@ public class GoogleConfiguration {
             googleNamedAccountCredentialsBuilder.bucketLocation(
                 googleManagedAccount.getBucketLocation());
             googleNamedAccountCredentialsBuilder.rootFolder(rootFolder);
-            googleNamedAccountCredentialsBuilder.storage(googleCredentials.getStorage());
+            googleNamedAccountCredentialsBuilder.storage(googleClientFactory.getStorage());
           }
 
           googleNamedAccountCredentialsBuilder.supportedTypes(supportedTypes);

@@ -16,9 +16,7 @@
 
 package com.netflix.kayenta.google.security;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.json.JsonFactory;
+import com.google.auth.oauth2.GoogleCredentials;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,26 +27,23 @@ import lombok.extern.slf4j.Slf4j;
 
 @ToString(callSuper = true)
 @Slf4j
-public class GoogleJsonCredentials extends GoogleCredentials {
+public class GoogleJsonClientFactory extends GoogleClientFactory {
 
   @Getter private final String jsonKey;
 
-  public GoogleJsonCredentials(String project, String jsonKey) {
+  public GoogleJsonClientFactory(String project, String jsonKey) {
     super(project);
 
     this.jsonKey = jsonKey;
   }
 
   @Override
-  protected GoogleCredential getCredential(
-      HttpTransport httpTransport, JsonFactory jsonFactory, Collection<String> scopes)
-      throws IOException {
+  protected GoogleCredentials getCredentials(Collection<String> scopes) throws IOException {
     log.debug(
         "Loading credentials for project {} from json key, with scopes {}.", getProject(), scopes);
 
     InputStream credentialStream = new ByteArrayInputStream(jsonKey.getBytes("UTF-8"));
 
-    return GoogleCredential.fromStream(credentialStream, httpTransport, jsonFactory)
-        .createScoped(scopes);
+    return GoogleCredentials.fromStream(credentialStream).createScoped(scopes);
   }
 }

@@ -28,13 +28,13 @@ import lombok.Singular;
 
 @Builder
 @Data
-public class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredentials> {
+public class GoogleNamedAccountCredentials implements AccountCredentials<GoogleClientFactory> {
 
   @NotNull private String name;
 
   @NotNull @Singular private List<Type> supportedTypes;
 
-  @NotNull private GoogleCredentials credentials;
+  @NotNull private GoogleClientFactory credentials;
 
   @NotNull private String project;
 

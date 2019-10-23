@@ -16,7 +16,6 @@
 
 package com.netflix.kayenta.google.security;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestInitializer;
@@ -27,6 +26,8 @@ import com.google.api.services.monitoring.v3.Monitoring;
 import com.google.api.services.monitoring.v3.MonitoringScopes;
 import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.StorageScopes;
+import com.google.auth.http.HttpCredentialsAdapter;
+import com.google.auth.oauth2.GoogleCredentials;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Optional;
@@ -36,47 +37,43 @@ import lombok.extern.slf4j.Slf4j;
 
 @ToString
 @Slf4j
-public class GoogleCredentials {
+public class GoogleClientFactory {
 
   private static String applicationVersion =
-      Optional.ofNullable(GoogleCredentials.class.getPackage().getImplementationVersion())
+      Optional.ofNullable(GoogleClientFactory.class.getPackage().getImplementationVersion())
           .orElse("Unknown");
 
   @Getter private String project;
 
-  public GoogleCredentials(String project) {
+  public GoogleClientFactory(String project) {
     this.project = project;
   }
 
   public Monitoring getMonitoring() throws IOException {
-    JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
     HttpTransport httpTransport = buildHttpTransport();
-    GoogleCredential credential = getCredential(httpTransport, jsonFactory, MonitoringScopes.all());
-    HttpRequestInitializer reqInit = setHttpTimeout(credential);
+    JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
+    GoogleCredentials credentials = getCredentials(MonitoringScopes.all());
+    HttpRequestInitializer reqInit = setHttpTimeout(credentials);
     String applicationName = "Spinnaker/" + applicationVersion;
 
-    return new Monitoring.Builder(httpTransport, jsonFactory, credential)
+    return new Monitoring.Builder(httpTransport, jsonFactory, reqInit)
         .setApplicationName(applicationName)
-        .setHttpRequestInitializer(reqInit)
         .build();
   }
 
   public Storage getStorage() throws IOException {
-    JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
     HttpTransport httpTransport = buildHttpTransport();
-    GoogleCredential credential = getCredential(httpTransport, jsonFactory, StorageScopes.all());
-    HttpRequestInitializer reqInit = setHttpTimeout(credential);
+    JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
+    GoogleCredentials credentials = getCredentials(StorageScopes.all());
+    HttpRequestInitializer reqInit = setHttpTimeout(credentials);
     String applicationName = "Spinnaker/" + applicationVersion;
 
-    return new Storage.Builder(httpTransport, jsonFactory, credential)
+    return new Storage.Builder(httpTransport, jsonFactory, reqInit)
         .setApplicationName(applicationName)
-        .setHttpRequestInitializer(reqInit)
         .build();
   }
 
-  protected GoogleCredential getCredential(
-      HttpTransport httpTransport, JsonFactory jsonFactory, Collection<String> scopes)
-      throws IOException {
+  protected GoogleCredentials getCredentials(Collection<String> scopes) throws IOException {
     log.debug(
         "Loading credentials for project {} using application default credentials, with scopes {}.",
         project,
@@ -84,7 +81,7 @@ public class GoogleCredentials {
 
     // No JSON key was specified in matching config on key server, so use application default
     // credentials.
-    return GoogleCredential.getApplicationDefault().createScoped(scopes);
+    return GoogleCredentials.getApplicationDefault().createScoped(scopes);
   }
 
   protected HttpTransport buildHttpTransport() {
@@ -95,11 +92,11 @@ public class GoogleCredentials {
     }
   }
 
-  static HttpRequestInitializer setHttpTimeout(final HttpRequestInitializer requestInitializer) {
-    return new HttpRequestInitializer() {
+  static HttpRequestInitializer setHttpTimeout(final GoogleCredentials credentials) {
+    return new HttpCredentialsAdapter(credentials) {
       @Override
       public void initialize(HttpRequest httpRequest) throws IOException {
-        requestInitializer.initialize(httpRequest);
+        super.initialize(httpRequest);
         httpRequest.setConnectTimeout(2 * 60000); // 2 minutes connect timeout
         httpRequest.setReadTimeout(2 * 60000); // 2 minutes read timeout
       }
