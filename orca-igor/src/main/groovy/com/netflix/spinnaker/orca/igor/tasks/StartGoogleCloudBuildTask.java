@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.igor.tasks;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.orca.ExecutionStatus;
@@ -28,6 +27,7 @@ import com.netflix.spinnaker.orca.igor.model.GoogleCloudBuild;
 import com.netflix.spinnaker.orca.igor.model.GoogleCloudBuildStageDefinition;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import java.io.IOException;
 import java.util.Map;
 import javax.annotation.Nonnull;
@@ -43,8 +43,8 @@ public class StartGoogleCloudBuildTask implements Task {
   private final IgorService igorService;
   private final OortService oortService;
   private final ArtifactResolver artifactResolver;
+  private final ContextParameterProcessor contextParameterProcessor;
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
   private final RetrySupport retrySupport = new RetrySupport();
   private static final ThreadLocal<Yaml> yamlParser =
       ThreadLocal.withInitial(() -> new Yaml(new SafeConstructor()));
@@ -90,18 +90,22 @@ public class StartGoogleCloudBuildTask implements Task {
       throw new IllegalArgumentException("No manifest artifact account was specified.");
     }
 
-    return retrySupport.retry(
-        () -> {
-          try {
-            Response buildText = oortService.fetchArtifact(buildDefinitionArtifact);
-            Object result = yamlParser.get().load(buildText.getBody().in());
-            return (Map<String, Object>) result;
-          } catch (IOException e) {
-            throw new RuntimeException(e);
-          }
-        },
-        10,
-        200,
-        false);
+    Map<String, Object> buildDefinition =
+        retrySupport.retry(
+            () -> {
+              try {
+                Response buildText = oortService.fetchArtifact(buildDefinitionArtifact);
+                Object result = yamlParser.get().load(buildText.getBody().in());
+                return (Map<String, Object>) result;
+              } catch (IOException e) {
+                throw new RuntimeException(e);
+              }
+            },
+            10,
+            200,
+            false);
+
+    return contextParameterProcessor.process(
+        buildDefinition, contextParameterProcessor.buildExecutionContext(stage), true);
   }
 }

@@ -25,6 +25,7 @@ import com.netflix.spinnaker.orca.igor.model.GoogleCloudBuild
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import retrofit.client.Response
 import retrofit.mime.TypedString
 import spock.lang.Specification
@@ -32,8 +33,27 @@ import spock.lang.Subject
 
 class StartGoogleCloudBuildTaskSpec extends Specification {
   def ACCOUNT = "my-account"
+  def RAW_BUILD = [
+    steps: [
+      [
+        args: [
+          "bin/echo",
+          '${#currentStage()["name"].toString()}'
+        ],
+        name: "debian"
+      ]
+    ]
+  ]
   def BUILD = [
-    steps: []
+    steps: [
+      [
+        args: [
+          "bin/echo",
+          "My GCB Stage"
+        ],
+        name: "debian"
+      ]
+    ]
   ]
   def objectMapper = new ObjectMapper()
 
@@ -41,9 +61,10 @@ class StartGoogleCloudBuildTaskSpec extends Specification {
   IgorService igorService = Mock(IgorService)
   OortService oortService = Mock(OortService)
   ArtifactResolver artifactResolver = Mock(ArtifactResolver)
+  ContextParameterProcessor contextParameterProcessor = Mock(ContextParameterProcessor)
 
   @Subject
-  StartGoogleCloudBuildTask task = new StartGoogleCloudBuildTask(igorService, oortService, artifactResolver)
+  StartGoogleCloudBuildTask task = new StartGoogleCloudBuildTask(igorService, oortService, artifactResolver, contextParameterProcessor)
 
   def "starts a build defined inline"() {
     given:
@@ -74,7 +95,8 @@ class StartGoogleCloudBuildTaskSpec extends Specification {
       buildDefinitionSource: "artifact",
       buildDefinitionArtifact: [
         artifact: artifact
-      ]
+      ],
+      name: "My GCB Stage"
     ])
 
     when:
@@ -82,7 +104,8 @@ class StartGoogleCloudBuildTaskSpec extends Specification {
 
     then:
     artifactResolver.getBoundArtifactForStage(stage, null, artifact) >> artifact
-    oortService.fetchArtifact(artifact) >> new Response("", 200, "", Collections.emptyList(), new TypedString(objectMapper.writeValueAsString(BUILD)))
+    oortService.fetchArtifact(artifact) >> new Response("", 200, "", Collections.emptyList(), new TypedString(objectMapper.writeValueAsString(RAW_BUILD)))
+    1 * contextParameterProcessor.process(RAW_BUILD, _, _) >> BUILD
 
     1 * igorService.createGoogleCloudBuild(ACCOUNT, BUILD) >> igorResponse
     result.context.buildInfo == igorResponse
