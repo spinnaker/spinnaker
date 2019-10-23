@@ -19,7 +19,6 @@ apply from: "$rootDir/gradle/groovy.gradle"
 dependencies {
   implementation(project(":orca-core"))
   implementation(project(":orca-retrofit"))
-  implementation(project(":orca-extensionpoint"))
   implementation("com.netflix.spinnaker.fiat:fiat-api:$fiatVersion")
   implementation("com.netflix.spinnaker.fiat:fiat-core:$fiatVersion")
   implementation("com.netflix.spectator:spectator-api")

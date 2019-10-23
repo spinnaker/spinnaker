@@ -32,7 +32,6 @@ dependencies {
   api("com.netflix.spinnaker.kork:kork-plugins")
   api("io.reactivex:rxjava")
 
-  implementation(project(":orca-extensionpoint"))
   implementation(project(":orca-api"))
   implementation("com.github.ben-manes.caffeine:guava")
   implementation("org.slf4j:slf4j-api")

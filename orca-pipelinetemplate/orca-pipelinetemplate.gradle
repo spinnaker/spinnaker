@@ -2,7 +2,6 @@ apply from: "$rootDir/gradle/spock.gradle"
 apply from: "$rootDir/gradle/kotlin.gradle"
 
 dependencies {
-  implementation(project(":orca-extensionpoint"))
   implementation(project(":orca-core"))
   implementation(project(":orca-retrofit"))
   implementation(project(":orca-front50"))
