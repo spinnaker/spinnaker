@@ -23,7 +23,6 @@ import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import com.netflix.spinnaker.orca.bakery.api.BaseImage
 import com.netflix.spinnaker.orca.bakery.api.manifests.BakeManifestRequest
-import com.netflix.spinnaker.orca.bakery.api.manifests.helm.HelmBakeManifestRequest
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfigurationProperties
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import retrofit.http.Body

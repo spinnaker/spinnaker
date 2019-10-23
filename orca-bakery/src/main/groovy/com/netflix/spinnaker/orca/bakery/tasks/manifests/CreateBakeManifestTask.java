@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.orca.bakery.tasks.manifests;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
 import com.netflix.spinnaker.orca.ExecutionStatus;
@@ -34,8 +33,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,45 +55,48 @@ public class CreateBakeManifestTask implements RetryableTask {
     return 300000;
   }
 
-  @Autowired(required = false)
-  BakeryService bakery;
+  @Nullable private final BakeryService bakery;
 
-  @Autowired ArtifactResolver artifactResolver;
+  private final ArtifactResolver artifactResolver;
 
-  @Autowired ObjectMapper objectMapper;
+  private final ContextParameterProcessor contextParameterProcessor;
 
-  @Autowired ContextParameterProcessor contextParameterProcessor;
+  @Autowired
+  public CreateBakeManifestTask(
+      ArtifactResolver artifactResolver,
+      ContextParameterProcessor contextParameterProcessor,
+      Optional<BakeryService> bakery) {
+    this.artifactResolver = artifactResolver;
+    this.contextParameterProcessor = contextParameterProcessor;
+    this.bakery = bakery.orElse(null);
+  }
 
   @Nonnull
   @Override
   public TaskResult execute(@Nonnull Stage stage) {
-    BakeManifestContext context = stage.mapTo(BakeManifestContext.class);
-
-    List<InputArtifactPair> inputArtifactsObj = context.getInputArtifacts();
-    List<Artifact> inputArtifacts;
-
-    // kustomize depends on a single input artifact so we may not have a list here
-    // but we still want the resolution provided by the stream below
-    if (inputArtifactsObj == null || inputArtifactsObj.isEmpty()) {
-      if (context.getInputArtifact() != null) {
-        inputArtifactsObj.add(context.getInputArtifact());
-      } else {
-        throw new IllegalArgumentException("At least one input artifact to bake must be supplied");
-      }
+    if (bakery == null) {
+      throw new IllegalStateException(
+          "A BakeryService must be configured in order to run a Bake Manifest task.");
     }
 
-    inputArtifacts =
-        inputArtifactsObj.stream()
+    BakeManifestContext context = stage.mapTo(BakeManifestContext.class);
+
+    List<InputArtifact> inputArtifacts = context.getInputArtifacts();
+    if (inputArtifacts.isEmpty()) {
+      throw new IllegalArgumentException("At least one input artifact to bake must be supplied");
+    }
+
+    List<Artifact> resolvedInputArtifacts =
+        inputArtifacts.stream()
             .map(
                 p -> {
                   Artifact a =
                       artifactResolver.getBoundArtifactForStage(stage, p.getId(), p.getArtifact());
                   if (a == null) {
                     throw new IllegalArgumentException(
-                        stage.getExecution().getId()
-                            + ": Input artifact "
-                            + p.getId()
-                            + " could not be found in the execution");
+                        String.format(
+                            "Input artifact (id: %s, account: %s) could not be found in execution (id: %s).",
+                            p.getId(), p.getAccount(), stage.getExecution().getId()));
                   }
                   a.setArtifactAccount(p.getAccount());
                   return a;
@@ -101,13 +105,9 @@ public class CreateBakeManifestTask implements RetryableTask {
 
     List<ExpectedArtifact> expectedArtifacts = context.getExpectedArtifacts();
 
-    if (expectedArtifacts == null || expectedArtifacts.isEmpty()) {
+    if (expectedArtifacts.size() != 1) {
       throw new IllegalArgumentException(
-          "At least one expected artifact to baked manifest must be supplied");
-    }
-
-    if (expectedArtifacts.size() > 1) {
-      throw new IllegalArgumentException("Too many artifacts provided as expected");
+          "Exactly one expected artifact must be supplied. Please ensure that your Bake stage config's `expectedArtifacts` list contains exactly one artifact.");
     }
 
     String outputArtifactName = expectedArtifacts.get(0).getMatchArtifact().getName();
@@ -126,10 +126,11 @@ public class CreateBakeManifestTask implements RetryableTask {
     switch (context.getTemplateRenderer().toUpperCase()) {
       case "HELM2":
         request =
-            new HelmBakeManifestRequest(context, inputArtifacts, outputArtifactName, overrides);
+            new HelmBakeManifestRequest(
+                context, resolvedInputArtifacts, outputArtifactName, overrides);
         break;
       case "KUSTOMIZE":
-        Artifact inputArtifact = inputArtifacts.get(0);
+        Artifact inputArtifact = resolvedInputArtifacts.get(0);
         request = new KustomizeBakeManifestRequest(context, inputArtifact, outputArtifactName);
         break;
       default:
@@ -146,7 +147,7 @@ public class CreateBakeManifestTask implements RetryableTask {
   }
 
   @Data
-  protected static class InputArtifactPair {
+  static class InputArtifact {
     String id;
     String account;
     Artifact artifact;

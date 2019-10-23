@@ -18,15 +18,16 @@ package com.netflix.spinnaker.orca.bakery.tasks.manifests;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import lombok.Getter;
 
 @Getter
 public class BakeManifestContext {
-  @Nullable private final List<CreateBakeManifestTask.InputArtifactPair> inputArtifacts;
-  @Nullable private final CreateBakeManifestTask.InputArtifactPair inputArtifact;
+  private final List<CreateBakeManifestTask.InputArtifact> inputArtifacts;
   private final List<ExpectedArtifact> expectedArtifacts;
   private final Map<String, Object> overrides;
   private final Boolean evaluateOverrideExpressions;
@@ -39,24 +40,26 @@ public class BakeManifestContext {
   // Jackson can use to deserialize.
   public BakeManifestContext(
       @Nullable @JsonProperty("inputArtifacts")
-          List<CreateBakeManifestTask.InputArtifactPair> inputArtifacts,
+          List<CreateBakeManifestTask.InputArtifact> inputArtifacts,
       @JsonProperty("expectedArtifacts") List<ExpectedArtifact> expectedArtifacts,
       @JsonProperty("overrides") Map<String, Object> overrides,
       @JsonProperty("evaluateOverrideExpressions") Boolean evaluateOverrideExpressions,
       @JsonProperty("templateRenderer") String templateRenderer,
       @JsonProperty("outputName") String outputName,
       @JsonProperty("namespace") String namespace,
-      @Nullable @JsonProperty("inputArtifact")
-          CreateBakeManifestTask.InputArtifactPair inputArtifact,
+      @Nullable @JsonProperty("inputArtifact") CreateBakeManifestTask.InputArtifact inputArtifact,
       @JsonProperty("rawOverrides") Boolean rawOverrides) {
-    this.inputArtifacts = inputArtifacts;
-    this.expectedArtifacts = expectedArtifacts;
+    this.inputArtifacts = Optional.of(inputArtifacts).orElse(new ArrayList<>());
+    // Kustomize stage configs provide a single input artifact
+    if (this.inputArtifacts.isEmpty() && inputArtifact != null) {
+      this.inputArtifacts.add(inputArtifact);
+    }
+    this.expectedArtifacts = Optional.of(expectedArtifacts).orElse(new ArrayList<>());
     this.overrides = overrides;
     this.evaluateOverrideExpressions = evaluateOverrideExpressions;
     this.templateRenderer = templateRenderer;
     this.outputName = outputName;
     this.namespace = namespace;
-    this.inputArtifact = inputArtifact;
     this.rawOverrides = rawOverrides;
   }
 }
