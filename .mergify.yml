@@ -8,3 +8,5 @@ pull_request_rules:
       merge:
         method: squash
         strict: smart
+      label:
+        add: ["auto merged"]
