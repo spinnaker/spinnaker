@@ -94,7 +94,6 @@ export interface ISpinnakerSettings {
   };
   checkForUpdates: boolean;
   debugEnabled: boolean;
-  defaultCategory: string;
   defaultInstancePort: number;
   defaultProviders: string[];
   defaultTimeZone: string; // see http://momentjs.com/timezone/docs/#/data-utilities/
