@@ -8,6 +8,8 @@ pull_request_rules:
       merge:
         method: squash
         strict: smart
+      label:
+        add: ["auto merged"]
   - name: Automatically merge kork autobump PRs on CI success
     conditions:
       - status-success=continuous-integration/travis-ci/pr
@@ -17,3 +19,5 @@ pull_request_rules:
       merge:
         method: squash
         strict: smart
+      label:
+        add: ["auto merged"]
