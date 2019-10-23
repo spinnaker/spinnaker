@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.igor.gcb;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.services.cloudbuild.v1.CloudBuildScopes;
+import com.google.auth.oauth2.GoogleCredentials;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,13 +25,13 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 /**
- * Factory for calling Google API code to create a GoogleCredential, either from application default
- * credentials or from a supplied path to a JSON key.
+ * Factory for calling Google API code to create a GoogleCredentials, either from application
+ * default credentials or from a supplied path to a JSON key.
  */
 @Component
 @ConditionalOnProperty("gcb.enabled")
-public class GoogleCredentialService {
-  GoogleCredential getFromKey(String jsonPath) {
+public class GoogleCredentialsService {
+  GoogleCredentials getFromKey(String jsonPath) {
     try {
       InputStream stream = getCredentialAsStream(jsonPath);
       return loadCredential(stream);
@@ -40,9 +40,13 @@ public class GoogleCredentialService {
     }
   }
 
-  GoogleCredential getApplicationDefault() {
+  GoogleCredentials getApplicationDefault() {
     try {
-      return GoogleCredential.getApplicationDefault();
+      GoogleCredentials credentials = GoogleCredentials.getApplicationDefault();
+
+      return credentials.createScopedRequired()
+          ? credentials.createScoped(CloudBuildScopes.all())
+          : credentials;
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -57,7 +61,7 @@ public class GoogleCredentialService {
     }
   }
 
-  private GoogleCredential loadCredential(InputStream stream) throws IOException {
-    return GoogleCredential.fromStream(stream).createScoped(CloudBuildScopes.all());
+  private GoogleCredentials loadCredential(InputStream stream) throws IOException {
+    return GoogleCredentials.fromStream(stream).createScoped(CloudBuildScopes.all());
   }
 }

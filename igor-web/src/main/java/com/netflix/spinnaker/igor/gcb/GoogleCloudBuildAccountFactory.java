@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.igor.gcb;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import com.google.auth.oauth2.GoogleCredentials;
 import com.netflix.spinnaker.igor.config.GoogleCloudBuildProperties;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -28,16 +28,16 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty("gcb.enabled")
 @RequiredArgsConstructor
 public class GoogleCloudBuildAccountFactory {
-  private final GoogleCredentialService credentialService;
+  private final GoogleCredentialsService credentialService;
   private final GoogleCloudBuildClient.Factory googleCloudBuildClientFactory;
   private final GoogleCloudBuildCache.Factory googleCloudBuildCacheFactory;
   private final GoogleCloudBuildParser googleCloudBuildParser;
 
   public GoogleCloudBuildAccount build(GoogleCloudBuildProperties.Account account) {
-    GoogleCredential credential = getCredential(account);
+    GoogleCredentials credentials = getCredentials(account);
 
     GoogleCloudBuildClient client =
-        googleCloudBuildClientFactory.create(credential, account.getProject());
+        googleCloudBuildClientFactory.create(credentials, account.getProject());
     return new GoogleCloudBuildAccount(
         client,
         googleCloudBuildCacheFactory.create(account.getName()),
@@ -45,7 +45,7 @@ public class GoogleCloudBuildAccountFactory {
         new GoogleCloudBuildArtifactFetcher(client));
   }
 
-  private GoogleCredential getCredential(GoogleCloudBuildProperties.Account account) {
+  private GoogleCredentials getCredentials(GoogleCloudBuildProperties.Account account) {
     String jsonKey = account.getJsonKey();
     if (StringUtils.isEmpty(jsonKey)) {
       return credentialService.getApplicationDefault();

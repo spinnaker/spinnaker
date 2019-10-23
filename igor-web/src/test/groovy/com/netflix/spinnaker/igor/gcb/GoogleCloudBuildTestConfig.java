@@ -20,11 +20,10 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.testing.auth.oauth2.MockTokenServerTransport;
 import com.google.api.client.http.HttpTransport;
-import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.cloudbuild.v1.CloudBuildScopes;
+import com.google.auth.oauth2.GoogleCredentials;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spectator.api.Registry;
 import java.io.IOException;
@@ -61,10 +60,10 @@ public class GoogleCloudBuildTestConfig {
 
   @Bean
   @Primary
-  GoogleCredentialService googleCredentialService() {
-    return new GoogleCredentialService() {
+  GoogleCredentialsService googleCredentialService() {
+    return new GoogleCredentialsService() {
       @Override
-      GoogleCredential getFromKey(String jsonPath) {
+      GoogleCredentials getFromKey(String jsonPath) {
         if (!jsonPath.equals("/path/to/some/file")) {
           return null;
         }
@@ -77,7 +76,7 @@ public class GoogleCloudBuildTestConfig {
               new MockTokenServerTransport("https://accounts.google.com/o/oauth2/auth");
           mockTransport.addServiceAccount(
               "test-account@spinnaker-gcb-test.iam.gserviceaccount.com", "test-token");
-          return GoogleCredential.fromStream(is, mockTransport, JacksonFactory.getDefaultInstance())
+          return GoogleCredentials.fromStream(is, () -> mockTransport)
               .createScoped(CloudBuildScopes.all());
         } catch (IOException e) {
           throw new RuntimeException(e);

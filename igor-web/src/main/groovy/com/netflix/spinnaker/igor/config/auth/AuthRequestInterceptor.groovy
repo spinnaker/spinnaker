@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.igor.config.auth
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
+import com.google.auth.oauth2.GoogleCredentials
 import com.netflix.spinnaker.igor.config.JenkinsProperties
 import com.squareup.okhttp.Credentials
 import groovy.util.logging.Slf4j
@@ -71,20 +71,17 @@ class AuthRequestInterceptor implements RequestInterceptor {
 
     static class GoogleBearerTokenHeaderSupplier implements AuthorizationHeaderSupplier {
 
-        private GoogleCredential credential
+        private GoogleCredentials credentials
 
         GoogleBearerTokenHeaderSupplier(String jsonPath, List<String> scopes) {
             InputStream is = new File(jsonPath).newInputStream()
-            credential = GoogleCredential.fromStream(is).createScoped(scopes)
+            credentials = GoogleCredentials.fromStream(is).createScoped(scopes)
         }
 
         String toString() {
             log.debug("Including Google Bearer token in Authorization header")
-            if (credential.expirationTimeMilliseconds < System.currentTimeMillis()) {
-                log.info("Google OAuth Access token expired. Refreshing.")
-                credential.refreshToken()
-            }
-            return credential.accessToken
+            credentials.refreshIfExpired()
+            return credentials.accessToken.tokenValue
         }
     }
 

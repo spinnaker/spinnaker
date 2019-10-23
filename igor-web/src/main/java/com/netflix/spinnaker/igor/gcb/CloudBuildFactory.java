@@ -16,13 +16,16 @@
 
 package com.netflix.spinnaker.igor.gcb;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.cloudbuild.v1.CloudBuild;
 import com.google.api.services.storage.Storage;
+import com.google.auth.http.HttpCredentialsAdapter;
+import com.google.auth.oauth2.GoogleCredentials;
+import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -47,8 +50,8 @@ public class CloudBuildFactory {
     this(httpTransport, null);
   }
 
-  public CloudBuild getCloudBuild(GoogleCredential credential, String applicationName) {
-    HttpRequestInitializer requestInitializer = getRequestInitializer(credential);
+  public CloudBuild getCloudBuild(GoogleCredentials credentials, String applicationName) {
+    HttpRequestInitializer requestInitializer = getRequestInitializer(credentials);
     CloudBuild.Builder builder =
         new CloudBuild.Builder(httpTransport, jsonFactory, requestInitializer)
             .setApplicationName(applicationName);
@@ -59,8 +62,8 @@ public class CloudBuildFactory {
     return builder.build();
   }
 
-  public Storage getCloudStorage(GoogleCredential credential, String applicationName) {
-    HttpRequestInitializer requestInitializer = getRequestInitializer(credential);
+  public Storage getCloudStorage(GoogleCredentials credentials, String applicationName) {
+    HttpRequestInitializer requestInitializer = getRequestInitializer(credentials);
     Storage.Builder builder =
         new Storage.Builder(httpTransport, jsonFactory, requestInitializer)
             .setApplicationName(applicationName);
@@ -71,11 +74,13 @@ public class CloudBuildFactory {
     return builder.build();
   }
 
-  private HttpRequestInitializer getRequestInitializer(GoogleCredential credential) {
-    return request -> {
-      credential.initialize(request);
-      request.setConnectTimeout(connectTimeoutSec * 1000);
-      request.setReadTimeout(readTimeoutSec * 1000);
+  private HttpRequestInitializer getRequestInitializer(GoogleCredentials credentials) {
+    return new HttpCredentialsAdapter(credentials) {
+      public void initialize(HttpRequest request) throws IOException {
+        super.initialize(request);
+        request.setConnectTimeout(connectTimeoutSec * 1000);
+        request.setReadTimeout(readTimeoutSec * 1000);
+      }
     };
   }
 }
