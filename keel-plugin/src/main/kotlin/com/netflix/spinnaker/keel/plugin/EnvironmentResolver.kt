@@ -15,7 +15,7 @@
  * limitations under the License.
  *
  */
-package com.netflix.spinnaker.keel.ec2.resource
+package com.netflix.spinnaker.keel.plugin
 
 import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.model.EchoNotification

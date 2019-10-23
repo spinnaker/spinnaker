@@ -39,6 +39,7 @@ import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.orca.OrcaService
+import com.netflix.spinnaker.keel.plugin.EnvironmentResolver
 import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.retrofit.isNotFound
@@ -58,6 +59,7 @@ class TitusClusterHandler(
   private val cloudDriverCache: CloudDriverCache,
   private val orcaService: OrcaService,
   private val clock: Clock,
+  private val environmentResolver: EnvironmentResolver,
   private val publisher: ApplicationEventPublisher,
   objectMapper: ObjectMapper,
   resolvers: List<Resolver<*>>
@@ -103,8 +105,7 @@ class TitusClusterHandler(
           log.info("Upserting server group using task: {}", job)
           val description = "Upsert server group ${desired.moniker.name} in ${desired.location.account}/${desired.location.region}"
 
-          // todo eb: support notifications
-          val notifications: List<EchoNotification> = emptyList()
+          val notifications: List<EchoNotification> = environmentResolver.getNotificationsFor(resource.id)
 
           async {
             orcaService
