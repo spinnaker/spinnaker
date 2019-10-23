@@ -65,8 +65,10 @@ export class InstanceLoadBalancerHealth extends React.Component<IInstanceLoadBal
       const tooltip = <Tooltip id={name}>{tooltipText}</Tooltip>;
       return (
         <OverlayTrigger placement="left" overlay={tooltip}>
-          {healthDiv}
-          {ipAddress && healthCheckPath && healthCheckLinkSpan}
+          <>
+            {healthDiv}
+            {ipAddress && healthCheckPath && healthCheckLinkSpan}
+          </>
         </OverlayTrigger>
       );
     }
