@@ -1,7 +1,6 @@
 import { IProviderSettings, SETTINGS } from '@spinnaker/core';
 
 export interface ITitusProviderSettings extends IProviderSettings {
-  autoScalingEnabled?: boolean;
   defaults: {
     account?: string;
     region?: string;
