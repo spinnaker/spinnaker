@@ -33,8 +33,8 @@ auth:
     clientId:
     clientSecret:
     scopes:
-    - scope1
-    - scope2
+      - scope1
+      - scope2
 
   iap:
     # check detailed config in https://cloud.google.com/iap/docs/authentication-howto#authenticating_from_a_desktop_app

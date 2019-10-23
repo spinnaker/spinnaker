@@ -23,14 +23,14 @@ import (
 	"github.com/spinnaker/spin/config/auth/x509"
 )
 
-// AuthConfig is the CLI's authentication configuration.
-type AuthConfig struct {
-	Enabled bool                 `yaml:"enabled"`
-	X509    *x509.X509Config     `yaml:"x509,omitempty"`
-	OAuth2  *oauth2.OAuth2Config `yaml:"oauth2,omitempty"`
-	Basic   *basic.BasicConfig   `yaml:"basic,omitempty"`
-	Iap     *config.IapConfig    `yaml:"iap,omitempty"`
-	Ldap    *ldap.LdapConfig     `yaml:"ldap,omitempty`
+// Config is the CLI's authentication configuration.
+type Config struct {
+	Enabled bool           `yaml:"enabled"`
+	X509    *x509.Config   `yaml:"x509,omitempty"`
+	OAuth2  *oauth2.Config `yaml:"oauth2,omitempty"`
+	Basic   *basic.Config  `yaml:"basic,omitempty"`
+	Iap     *config.Config `yaml:"iap,omitempty"`
+	Ldap    *ldap.Config   `yaml:"ldap,omitempty`
 
-	GoogleServiceAccount *gsa.GoogleServiceAccountConfig `yaml:"google_service_account,omitempty"`
+	GoogleServiceAccount *gsa.Config `yaml:"google_service_account,omitempty"`
 }

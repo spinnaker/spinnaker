@@ -14,11 +14,11 @@
 
 package basic
 
-type BasicConfig struct {
+type Config struct {
 	Username string `yaml:"username"`
 	Password string `yaml:"password"`
 }
 
-func (b *BasicConfig) IsValid() bool {
+func (b *Config) IsValid() bool {
 	return b.Username != "" && b.Password != ""
 }

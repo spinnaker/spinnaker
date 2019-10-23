@@ -40,7 +40,7 @@ const (
 
 // GetIDTokenWithServiceAccount gets an IAP ID Token required for authenticating a service account with IAP.
 // For more info, see https://cloud.google.com/iap/docs/authentication-howto#authenticating_from_a_service_account
-func GetIDTokenWithServiceAccount(config IapConfig) (string, error) {
+func GetIDTokenWithServiceAccount(config Config) (string, error) {
 	creds, err := ioutil.ReadFile(config.ServiceAccountKeyPath)
 	if err != nil {
 		return "", fmt.Errorf("could not read service account creds file: %v", err)

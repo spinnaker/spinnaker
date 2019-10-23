@@ -18,9 +18,9 @@ import (
 	"golang.org/x/oauth2"
 )
 
-// OAuth2Config is the configuration for using OAuth2.0 to
+// Config is the configuration for using OAuth2.0 to
 // authenticate with Spinnaker
-type OAuth2Config struct {
+type Config struct {
 	TokenUrl     string        `yaml:"tokenUrl"`
 	AuthUrl      string        `yaml:"authUrl"`
 	ClientId     string        `yaml:"clientId"`
@@ -29,6 +29,6 @@ type OAuth2Config struct {
 	CachedToken  *oauth2.Token `yaml:"cachedToken,omitempty"`
 }
 
-func (x *OAuth2Config) IsValid() bool {
+func (x *Config) IsValid() bool {
 	return x.TokenUrl != "" && x.AuthUrl != "" && len(x.Scopes) != 0
 }

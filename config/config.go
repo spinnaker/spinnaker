@@ -23,5 +23,5 @@ type Config struct {
 	Gate struct {
 		Endpoint string `yaml:"endpoint"`
 	} `yaml:"gate"`
-	Auth *auth.AuthConfig `yaml:"auth"`
+	Auth *auth.Config `yaml:"auth"`
 }

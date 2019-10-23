@@ -35,7 +35,7 @@ const (
 )
 
 // returns the token get from google for IAP
-func GetIapToken(iapConfig IapConfig) (string, error) {
+func GetIapToken(iapConfig Config) (string, error) {
 	if iapConfig.IapIdToken != "" {
 		return iapConfig.IapIdToken, nil
 	}
@@ -55,7 +55,7 @@ func GetIapToken(iapConfig IapConfig) (string, error) {
 }
 
 // userInteract lets the spin user fetch a token.
-func userInteract(cfg IapConfig) (string, error) {
+func userInteract(cfg Config) (string, error) {
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		return "", err

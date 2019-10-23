@@ -14,16 +14,16 @@
 
 package x509
 
-// X509Config is the configuration for using X.509 certs to
+// Config is the configuration for using X.509 certs to
 // authenticate with Spinnaker.
-type X509Config struct {
+type Config struct {
 	CertPath string `yaml:"certPath"`
 	KeyPath  string `yaml:"keyPath"`
 	Cert     string `yaml:"cert"` // Cert is base64 encoded PEM block.
 	Key      string `yaml:"key"`  // Key is base64 encoded PEM block.
 }
 
-func (x *X509Config) IsValid() bool {
+func (x *Config) IsValid() bool {
 	// Only one pair of configs properties should be set.
 	pathPropertySet := x.CertPath != "" || x.KeyPath != ""
 	pemPropertySet := x.Cert != "" || x.Key != ""

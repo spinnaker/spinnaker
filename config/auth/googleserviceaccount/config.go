@@ -18,12 +18,12 @@ package googleserviceaccount
 
 import "golang.org/x/oauth2"
 
-type GoogleServiceAccountConfig struct {
+type Config struct {
 	File string `yaml:"file"`
 
 	CachedToken *oauth2.Token `yaml:"cachedToken,omitempty"`
 }
 
-func (g *GoogleServiceAccountConfig) IsEnabled() bool {
+func (g *Config) IsEnabled() bool {
 	return g != nil
 }
