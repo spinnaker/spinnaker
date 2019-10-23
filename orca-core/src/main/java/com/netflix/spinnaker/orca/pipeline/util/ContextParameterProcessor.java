@@ -23,6 +23,7 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.annotations.VisibleForTesting;
 import com.netflix.spinnaker.kork.expressions.ExpressionEvaluationSummary;
 import com.netflix.spinnaker.kork.expressions.ExpressionFunctionProvider;
 import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions;
@@ -30,11 +31,9 @@ import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator;
 import com.netflix.spinnaker.orca.pipeline.expressions.functions.*;
 import com.netflix.spinnaker.orca.pipeline.model.*;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import org.pf4j.DefaultPluginManager;
+import org.pf4j.PluginManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,6 +48,7 @@ public class ContextParameterProcessor {
 
   private PipelineExpressionEvaluator expressionEvaluator;
 
+  @VisibleForTesting
   public ContextParameterProcessor() {
     this(
         Arrays.asList(
@@ -56,12 +56,14 @@ public class ContextParameterProcessor {
             new DeployedServerGroupsExpressionFunctionProvider(),
             new ManifestLabelValueExpressionFunctionProvider(),
             new StageExpressionFunctionProvider(),
-            new UrlExpressionFunctionProvider(
-                new UserConfiguredUrlRestrictions.Builder().build())));
+            new UrlExpressionFunctionProvider(new UserConfiguredUrlRestrictions.Builder().build())),
+        new DefaultPluginManager());
   }
 
-  public ContextParameterProcessor(List<ExpressionFunctionProvider> expressionFunctionProviders) {
-    this.expressionEvaluator = new PipelineExpressionEvaluator(expressionFunctionProviders);
+  public ContextParameterProcessor(
+      List<ExpressionFunctionProvider> expressionFunctionProviders, PluginManager pluginManager) {
+    this.expressionEvaluator =
+        new PipelineExpressionEvaluator(expressionFunctionProviders, pluginManager);
   }
 
   public Map<String, Object> process(

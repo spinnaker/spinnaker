@@ -18,9 +18,14 @@ package com.netflix.spinnaker.orca.pipeline.expressions
 
 import com.netflix.spinnaker.kork.expressions.ExpressionFunctionProvider
 import com.netflix.spinnaker.orca.pipeline.model.Execution
+import org.pf4j.PluginManager
 import spock.lang.Specification
 
 class PipelineExpressionEvaluatorSpec extends Specification {
+
+  PluginManager pluginManager = Mock() {
+    getExtensions(_) >> []
+  }
 
   def 'should set execution aware functions for the given function providers'() {
 
@@ -29,7 +34,10 @@ class PipelineExpressionEvaluatorSpec extends Specification {
     ExpressionFunctionProvider expressionFunctionProvider2 = buildExpressionFunctionProvider('jenkins')
 
     when: 'registered with pipeline evaluator'
-    PipelineExpressionEvaluator evaluator = new PipelineExpressionEvaluator([expressionFunctionProvider1, expressionFunctionProvider2])
+    PipelineExpressionEvaluator evaluator = new PipelineExpressionEvaluator(
+      [expressionFunctionProvider1, expressionFunctionProvider2],
+      pluginManager
+    )
 
     then:
     noExceptionThrown()

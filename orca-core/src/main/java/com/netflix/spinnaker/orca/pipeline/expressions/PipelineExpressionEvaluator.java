@@ -23,13 +23,10 @@ import com.netflix.spinnaker.kork.expressions.ExpressionTransform;
 import com.netflix.spinnaker.kork.expressions.ExpressionsSupport;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.pipeline.model.*;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import lombok.Getter;
+import org.pf4j.PluginManager;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.ParserContext;
 import org.springframework.expression.common.TemplateParserContext;
@@ -66,8 +63,10 @@ public class PipelineExpressionEvaluator {
 
   @Getter private final Set<String> executionAwareFunctions = new HashSet<String>();
 
-  public PipelineExpressionEvaluator(List<ExpressionFunctionProvider> expressionFunctionProviders) {
-    this.support = new ExpressionsSupport(extraAllowedReturnTypes, expressionFunctionProviders);
+  public PipelineExpressionEvaluator(
+      List<ExpressionFunctionProvider> expressionFunctionProviders, PluginManager pluginManager) {
+    this.support =
+        new ExpressionsSupport(extraAllowedReturnTypes, expressionFunctionProviders, pluginManager);
     initExecutionAwareFunctions(expressionFunctionProviders);
   }
 
