@@ -25,6 +25,7 @@ import org.pf4j.DefaultPluginManager
 import org.pf4j.ExtensionFactory
 import org.pf4j.PluginDescriptorFinder
 import org.pf4j.PluginLoader
+import org.pf4j.PluginStatusProvider
 import java.nio.file.Path
 
 /**
@@ -34,6 +35,7 @@ import java.nio.file.Path
  */
 @Beta
 class SpinnakerPluginManager(
+  private val statusProvider: PluginStatusProvider,
   pluginsRoot: Path
 ) : DefaultPluginManager(pluginsRoot) {
 
@@ -49,4 +51,7 @@ class SpinnakerPluginManager(
 
   override fun createPluginDescriptorFinder(): PluginDescriptorFinder =
     SpinnakerPluginDescriptorFinder()
+
+  override fun createPluginStatusProvider(): PluginStatusProvider =
+    statusProvider
 }
