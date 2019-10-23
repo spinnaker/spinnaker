@@ -16,11 +16,13 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
+@JsonIgnoreProperties({"jobs"})
 public class Features extends Node {
   @Override
   public String getNodeName() {
@@ -36,7 +38,6 @@ public class Features extends Node {
   private boolean fiat;
   private boolean chaos;
   private boolean entityTags;
-  private boolean jobs;
 
   @ValidForSpinnakerVersion(
       lowerBound = "1.2.0",

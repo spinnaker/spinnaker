@@ -43,13 +43,6 @@ public class EditFeaturesCommand extends AbstractConfigCommand {
   private Boolean chaos = null;
 
   @Parameter(
-      names = "--jobs",
-      description =
-          "Allow Spinnaker to run containers in Kubernetes and Titus as Job stages in pipelines.",
-      arity = 1)
-  private Boolean jobs = null;
-
-  @Parameter(
       names = "--pipeline-templates",
       description =
           "Enable pipeline template support. Read more at https://github.com/spinnaker/dcd-spec.",
@@ -122,7 +115,6 @@ public class EditFeaturesCommand extends AbstractConfigCommand {
     int originalHash = features.hashCode();
 
     features.setChaos(chaos != null ? chaos : features.isChaos());
-    features.setJobs(jobs != null ? jobs : features.isJobs());
     features.setPipelineTemplates(
         pipelineTemplates != null ? pipelineTemplates : features.getPipelineTemplates());
     features.setArtifacts(artifacts != null ? artifacts : features.getArtifacts());

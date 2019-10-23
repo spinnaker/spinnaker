@@ -106,7 +106,6 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
     // Configure feature-flags
     bindings.put("features.auth", Boolean.toString(features.isAuth(deploymentConfiguration)));
     bindings.put("features.chaos", Boolean.toString(features.isChaos()));
-    bindings.put("features.jobs", Boolean.toString(features.isJobs()));
     bindings.put(
         "features.fiat",
         Boolean.toString(deploymentConfiguration.getSecurity().getAuthz().isEnabled()));
