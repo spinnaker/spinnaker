@@ -22,6 +22,8 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PostFilter;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import retrofit.http.Query;
 
@@ -34,6 +36,7 @@ public class GoogleCloudBuildController {
   private final GoogleCloudBuildParser googleCloudBuildParser;
 
   @RequestMapping(value = "/accounts", method = RequestMethod.GET)
+  @PostFilter("hasPermission(filterObject, 'BUILD_SERVICE', 'READ')")
   List<String> getAccounts() {
     return googleCloudBuildAccountRepository.getAccounts();
   }
@@ -42,6 +45,7 @@ public class GoogleCloudBuildController {
       value = "/builds/create/{account}",
       method = RequestMethod.POST,
       consumes = MediaType.APPLICATION_JSON_VALUE)
+  @PreAuthorize("hasPermission(#account, 'BUILD_SERVICE', 'WRITE')")
   Build createBuild(@PathVariable String account, @RequestBody String buildString) {
     Build build = googleCloudBuildParser.parse(buildString, Build.class);
     return googleCloudBuildAccountRepository.getGoogleCloudBuild(account).createBuild(build);
@@ -62,11 +66,13 @@ public class GoogleCloudBuildController {
   }
 
   @RequestMapping(value = "/builds/{account}/{buildId}", method = RequestMethod.GET)
+  @PreAuthorize("hasPermission(#account, 'BUILD_SERVICE', 'READ')")
   Build getBuild(@PathVariable String account, @PathVariable String buildId) {
     return googleCloudBuildAccountRepository.getGoogleCloudBuild(account).getBuild(buildId);
   }
 
   @RequestMapping(value = "/builds/{account}/{buildId}/artifacts", method = RequestMethod.GET)
+  @PreAuthorize("hasPermission(#account, 'BUILD_SERVICE', 'READ')")
   List<Artifact> getArtifacts(@PathVariable String account, @PathVariable String buildId) {
     return googleCloudBuildAccountRepository.getGoogleCloudBuild(account).getArtifacts(buildId);
   }

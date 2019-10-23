@@ -16,7 +16,11 @@
 
 package com.netflix.spinnaker.igor.config;
 
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
+import com.netflix.spinnaker.igor.model.BuildServiceProvider;
+import com.netflix.spinnaker.igor.service.BuildService;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -25,11 +29,26 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class GoogleCloudBuildProperties {
   private List<Account> accounts;
 
+  public List<BuildService> getGcbBuildServices() {
+    return this.accounts.stream().map(BuildService::getView).collect(Collectors.toList());
+  }
+
   @Data
-  public static class Account {
+  public static class Account implements BuildService {
     private String name;
     private String project;
     private String subscriptionName;
     private String jsonKey;
+    private Permissions.Builder permissions = new Permissions.Builder();
+
+    @Override
+    public BuildServiceProvider getBuildServiceProvider() {
+      return BuildServiceProvider.GCB;
+    }
+
+    @Override
+    public Permissions getPermissions() {
+      return this.permissions.build();
+    }
   }
 }

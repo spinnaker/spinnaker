@@ -19,6 +19,7 @@ package com.netflix.spinnaker.igor.build
 
 import com.netflix.spinnaker.igor.config.ConcourseProperties
 import com.netflix.spinnaker.igor.config.GitlabCiProperties
+import com.netflix.spinnaker.igor.config.GoogleCloudBuildProperties
 import com.netflix.spinnaker.igor.config.JenkinsProperties
 import com.netflix.spinnaker.igor.config.TravisProperties
 import com.netflix.spinnaker.igor.config.WerckerProperties
@@ -69,6 +70,9 @@ class InfoController {
     @Autowired(required = false)
     ConcourseProperties concourseProperties
 
+    @Autowired(required = false)
+    GoogleCloudBuildProperties gcbProperties
+
     @RequestMapping(value = '/masters', method = RequestMethod.GET)
     @PostFilter("hasPermission(filterObject, 'BUILD_SERVICE', 'READ')")
     List<String> listMasters(@RequestParam(value = "type", defaultValue = "") String type) {
@@ -84,7 +88,13 @@ class InfoController {
 
     @RequestMapping(value = '/buildServices', method = RequestMethod.GET)
     List<BuildService> getAllBuildServices() {
-        buildServices.allBuildServices
+      List<BuildService> allBuildServices = new ArrayList<>(buildServices.allBuildServices)
+      // GCB accounts are not part of com.netflix.spinnaker.igor.service.BuildServices class.
+      if (gcbProperties != null) {
+        allBuildServices.addAll(gcbProperties.getGcbBuildServices())
+      }
+
+      return allBuildServices
     }
 
     @RequestMapping(value = '/jobs/{master:.+}', method = RequestMethod.GET)
