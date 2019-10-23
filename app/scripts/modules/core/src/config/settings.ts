@@ -28,7 +28,7 @@ export interface INotificationSettings {
     botName: string;
     enabled: boolean;
   };
-  githubstatus: {
+  githubStatus: {
     enabled: boolean;
   };
 }
