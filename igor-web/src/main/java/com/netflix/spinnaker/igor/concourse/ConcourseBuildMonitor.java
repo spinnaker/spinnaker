@@ -124,7 +124,13 @@ public class ConcourseBuildMonitor
     List<GenericBuild> genericBuilds =
         builds.stream()
             .map(build -> concourseService.getGenericBuild(jobPath, build, false))
+            .filter(b -> !cache.getEventPosted(host, job, cursor, b.getNumber()))
             .collect(Collectors.toList());
+
+    if (genericBuilds.size() == 0) {
+      cache.setLastPollCycleTimestamp(host, job, cursor);
+      return null;
+    }
 
     return new JobDelta(host, job, cursor, lowerBound, upperBound, genericBuilds);
   }
@@ -152,9 +158,14 @@ public class ConcourseBuildMonitor
                 jobDelta.getHost(), jobDelta.getJob(), jobDelta.getCursor(), build.getNumber());
         if (!eventPosted && sendEvents) {
           sendEventForBuild(jobDelta.getHost(), jobDelta.getJob(), build);
-          cache.setEventPosted(
-              jobDelta.getHost(), jobDelta.getJob(), jobDelta.getCursor(), build.getNumber());
         }
+        log.info(
+            "({}) caching build {} for : {}",
+            jobDelta.getHost().getName(),
+            build.getNumber(),
+            build.getFullDisplayName());
+        cache.setEventPosted(
+            jobDelta.getHost(), jobDelta.getJob(), jobDelta.getCursor(), build.getNumber());
       }
       cache.setLastPollCycleTimestamp(jobDelta.getHost(), jobDelta.getJob(), jobDelta.getCursor());
     }
@@ -162,7 +173,11 @@ public class ConcourseBuildMonitor
 
   private void sendEventForBuild(ConcourseProperties.Host host, Job job, GenericBuild build) {
     if (echoService.isPresent()) {
-      log.info("({}) pushing event for : {}", host.getName(), build.getFullDisplayName());
+      log.info(
+          "({}) pushing build {} for : {}",
+          host.getName(),
+          build.getNumber(),
+          build.getFullDisplayName());
 
       GenericProject project =
           new GenericProject(
