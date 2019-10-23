@@ -16,33 +16,26 @@
 
 package com.netflix.spinnaker.fiat.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.fiat.config.FiatServerConfigurationProperties;
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig;
 import com.netflix.spinnaker.fiat.model.Authorization;
 import com.netflix.spinnaker.fiat.model.UserPermission;
-import com.netflix.spinnaker.fiat.model.resources.Account;
-import com.netflix.spinnaker.fiat.model.resources.Application;
-import com.netflix.spinnaker.fiat.model.resources.ResourceType;
-import com.netflix.spinnaker.fiat.model.resources.Role;
-import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
+import com.netflix.spinnaker.fiat.model.resources.*;
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
+import com.netflix.spinnaker.fiat.providers.ResourcePermissionProvider;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
@@ -52,6 +45,8 @@ public class AuthorizeController {
   private final Registry registry;
   private final PermissionsRepository permissionsRepository;
   private final FiatServerConfigurationProperties configProps;
+  private final ResourcePermissionProvider<Application> applicationResourcePermissionProvider;
+  private final ObjectMapper objectMapper;
 
   private final Id getUserPermissionCounterId;
 
@@ -59,10 +54,14 @@ public class AuthorizeController {
   public AuthorizeController(
       Registry registry,
       PermissionsRepository permissionsRepository,
-      FiatServerConfigurationProperties configProps) {
+      FiatServerConfigurationProperties configProps,
+      ResourcePermissionProvider<Application> applicationResourcePermissionProvider,
+      ObjectMapper objectMapper) {
     this.registry = registry;
     this.permissionsRepository = permissionsRepository;
     this.configProps = configProps;
+    this.applicationResourcePermissionProvider = applicationResourcePermissionProvider;
+    this.objectMapper = objectMapper;
 
     this.getUserPermissionCounterId = registry.createId("fiat.getUserPermission");
   }
@@ -187,6 +186,44 @@ public class AuthorizeController {
     }
 
     response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+  }
+
+  @RequestMapping(value = "/{userId:.+}/{resourceType:.+}", method = RequestMethod.POST)
+  public void canCreate(
+      @PathVariable String userId,
+      @PathVariable String resourceType,
+      @RequestBody @Nonnull Object resource,
+      HttpServletResponse response)
+      throws IOException {
+    ResourceType rt = ResourceType.parse(resourceType);
+    if (rt != ResourceType.APPLICATION) {
+      response.sendError(
+          HttpServletResponse.SC_BAD_REQUEST,
+          "Resource type " + resourceType + " does not support creation");
+      return;
+    }
+
+    if (!configProps.isRestrictApplicationCreation()) {
+      response.setStatus(HttpServletResponse.SC_OK);
+      return;
+    }
+
+    UserPermission.View userPermissionView = getUserPermissionView(userId);
+    List<String> userRoles =
+        userPermissionView.getRoles().stream().map(Role.View::getName).collect(Collectors.toList());
+
+    Resource r = objectMapper.convertValue(resource, rt.modelClass);
+
+    // can easily implement options other than APPLICATION, but it is not currently needed.
+    if (userPermissionView.isAdmin()
+        || applicationResourcePermissionProvider
+            .getPermissions((Application) r)
+            .getAuthorizations(userRoles)
+            .contains(Authorization.CREATE)) {
+      response.setStatus(HttpServletResponse.SC_OK);
+    } else {
+      response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+    }
   }
 
   private Optional<UserPermission> getUserPermissionOrDefault(String userId) {

@@ -22,7 +22,7 @@ import java.util.Objects;
 import javax.annotation.Nonnull;
 
 /**
- * A ResourcePermissionProvider that delegates to a single ResourcePermissionProvider.
+ * A ResourcePermissionProvider that delegates to a single ResourcePermissionSource.
  *
  * @param <T> the type of Resource for this DefaultResourcePermissionProvider
  */

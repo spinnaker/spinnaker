@@ -51,6 +51,20 @@ public interface FiatService {
       @Path("authorization") String authorization);
 
   /**
+   * Determine whether the user can create a resource. Returns 200 if the user can, throws 404
+   * otherwise
+   *
+   * @param userId The username of the user
+   * @param resourceType The type of the resource
+   * @param resource The resource to check
+   */
+  @POST("/authorize/{userId}/{resourceType}")
+  void canCreate(
+      @Path("userId") String userId,
+      @Path("resourceType") String resourceType,
+      @Body Object resource);
+
+  /**
    * Use to update all users.
    *
    * @return The number of non-anonymous users synced.

@@ -33,6 +33,8 @@ public class FiatServerConfigurationProperties {
 
   private Authorization executeFallback = Authorization.READ;
 
+  private boolean restrictApplicationCreation = false;
+
   private WriteMode writeMode = new WriteMode();
 
   @Data

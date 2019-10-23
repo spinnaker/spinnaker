@@ -25,6 +25,7 @@ import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.Account;
 import com.netflix.spinnaker.fiat.model.resources.Authorizable;
 import com.netflix.spinnaker.fiat.model.resources.ResourceType;
+import com.netflix.spinnaker.kork.exceptions.IntegrationException;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import com.netflix.spinnaker.security.User;
 import java.io.Serializable;
@@ -43,12 +44,14 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.backoff.BackOffExecution;
 import org.springframework.util.backoff.ExponentialBackOff;
+import retrofit.RetrofitError;
 
 @Component
 @Slf4j
@@ -146,6 +149,45 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
     return false;
   }
 
+  public boolean canCreate(String resourceType, Object resource) {
+    if (!fiatStatus.isEnabled()) {
+      return true;
+    }
+
+    String username = getUsername(SecurityContextHolder.getContext().getAuthentication());
+
+    try {
+      return AuthenticatedRequest.propagate(
+              () -> {
+                return retryHandler.retry(
+                    "determine whether " + username + " can create resource " + resource,
+                    () -> {
+                      try {
+                        fiatService.canCreate(username, resourceType, resource);
+                        return true;
+                      } catch (RetrofitError re) {
+                        boolean shouldRetry = true;
+                        if (re.getKind() == RetrofitError.Kind.HTTP) {
+                          switch (HttpStatus.valueOf(re.getResponse().getStatus())) {
+                            case NOT_FOUND:
+                              return false;
+                            case BAD_REQUEST:
+                              shouldRetry = false;
+                          }
+                        }
+                        IntegrationException ie = new IntegrationException(re);
+                        ie.setRetryable(shouldRetry);
+                        throw ie;
+                      }
+                    });
+              })
+          .call();
+    } catch (Exception e) {
+      log.info(e.toString());
+      return false;
+    }
+  }
+
   public boolean hasPermission(
       String username, Serializable resourceName, String resourceType, Object authorization) {
     if (!fiatStatus.isEnabled()) {
@@ -163,9 +205,15 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
 
     ResourceType r = ResourceType.parse(resourceType);
     Authorization a = null;
+
     // Service accounts don't have read/write authorizations.
     if (r != ResourceType.SERVICE_ACCOUNT) {
       a = Authorization.valueOf(authorization.toString());
+    }
+
+    if (a == Authorization.CREATE) {
+      throw new IllegalArgumentException(
+          "This method should not be called for `CREATE`. Please call the other implementation");
     }
 
     if (r == ResourceType.APPLICATION && StringUtils.isNotEmpty(resourceName.toString())) {

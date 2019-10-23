@@ -20,15 +20,21 @@ import com.netflix.spinnaker.fiat.model.Authorization
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Application
 import com.netflix.spinnaker.fiat.model.resources.Permissions
+import com.netflix.spinnaker.fiat.model.resources.Resource
 import com.netflix.spinnaker.fiat.model.resources.ResourceType
 import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.slf4j.MDC
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken
+import retrofit.RetrofitError
+import retrofit.client.Response
 import spock.lang.Shared
 import spock.lang.Subject
 import spock.lang.Unroll
+
+import javax.servlet.http.HttpServletResponse
 
 class FiatPermissionEvaluatorSpec extends FiatSharedSpecification {
 
@@ -97,6 +103,14 @@ class FiatPermissionEvaluatorSpec extends FiatSharedSpecification {
                                                      .setMemberOf(["foo"])] as Set)
     fiatService.getUserPermission("testUser") >> upv
 
+    SecurityContextHolder.getContext().setAuthentication(authentication)
+    Resource resourceCanCreate = new Application().setName("app1")
+    Resource resourceCannotCreate = new Application().setName("app2")
+    fiatService.canCreate("testUser", 'APPLICATION', resourceCanCreate) >> null // doesn't return anything in case of success
+    fiatService.canCreate("testUser", 'APPLICATION', resourceCannotCreate) >> {
+      throw RetrofitError.httpError("", new Response("", HttpServletResponse.SC_NOT_FOUND, "", [], null), null, null)
+    }
+
     expect:
     evaluator.hasPermission(authentication, resource, 'APPLICATION', 'READ')
 
@@ -107,6 +121,9 @@ class FiatPermissionEvaluatorSpec extends FiatSharedSpecification {
     !evaluator.hasPermission(authentication, resource, 'SERVICE_ACCOUNT', 'WRITE')
 
     evaluator.hasPermission(authentication, svcAcct, 'SERVICE_ACCOUNT', 'WRITE')
+
+    evaluator.canCreate('APPLICATION', resourceCanCreate)
+    !evaluator.canCreate('APPLICATION', resourceCannotCreate)
   }
 
   @Unroll

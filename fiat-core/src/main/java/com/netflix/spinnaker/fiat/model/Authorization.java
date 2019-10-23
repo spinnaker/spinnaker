@@ -23,7 +23,8 @@ import java.util.Set;
 public enum Authorization {
   READ,
   WRITE,
-  EXECUTE;
+  EXECUTE,
+  CREATE;
 
   public static final Set<Authorization> ALL =
       Collections.unmodifiableSet(EnumSet.allOf(Authorization.class));
