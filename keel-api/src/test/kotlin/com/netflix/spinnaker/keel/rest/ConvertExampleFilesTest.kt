@@ -30,6 +30,7 @@ import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectCatching
+import strikt.assertions.isA
 import strikt.assertions.succeeded
 
 class ConvertExampleFilesTest : JUnit5Minutests {
@@ -43,8 +44,11 @@ class ConvertExampleFilesTest : JUnit5Minutests {
 
       test("yaml can be parsed") {
         expectCatching {
-          mapper.readValue<SubmittedResource<ClusterSpec>>(file)
-        }.succeeded()
+          mapper.readValue<SubmittedResource<*>>(file)
+        }
+          .succeeded()
+          .get { spec }
+          .isA<ClusterSpec>()
       }
     }
 
@@ -54,8 +58,11 @@ class ConvertExampleFilesTest : JUnit5Minutests {
 
       test("yml can be parsed") {
         expectCatching {
-          mapper.readValue<SubmittedResource<SecurityGroupSpec>>(file)
-        }.succeeded()
+          mapper.readValue<SubmittedResource<*>>(file)
+        }
+          .succeeded()
+          .get { spec }
+          .isA<SecurityGroupSpec>()
       }
     }
 
@@ -65,8 +72,11 @@ class ConvertExampleFilesTest : JUnit5Minutests {
 
       test("yml can be parsed") {
         expectCatching {
-          mapper.readValue<SubmittedResource<ImageSpec>>(file)
-        }.succeeded()
+          mapper.readValue<SubmittedResource<*>>(file)
+        }
+          .succeeded()
+          .get { spec }
+          .isA<ImageSpec>()
       }
     }
 
@@ -76,8 +86,11 @@ class ConvertExampleFilesTest : JUnit5Minutests {
 
       test("yml can be parsed") {
         expectCatching {
-          mapper.readValue<SubmittedResource<ClassicLoadBalancerSpec>>(file)
-        }.succeeded()
+          mapper.readValue<SubmittedResource<*>>(file)
+        }
+          .succeeded()
+          .get { spec }
+          .isA<ClassicLoadBalancerSpec>()
       }
     }
 
@@ -87,8 +100,11 @@ class ConvertExampleFilesTest : JUnit5Minutests {
 
       test("yml can be parsed") {
         expectCatching {
-          mapper.readValue<SubmittedResource<ApplicationLoadBalancerSpec>>(file)
-        }.succeeded()
+          mapper.readValue<SubmittedResource<*>>(file)
+        }
+          .succeeded()
+          .get { spec }
+          .isA<ApplicationLoadBalancerSpec>()
       }
     }
 
@@ -109,8 +125,11 @@ class ConvertExampleFilesTest : JUnit5Minutests {
 
       test("yml can be parsed") {
         expectCatching {
-          mapper.readValue<SubmittedResource<TitusClusterSpec>>(file)
-        }.succeeded()
+          mapper.readValue<SubmittedResource<*>>(file)
+        }
+          .succeeded()
+          .get { spec }
+          .isA<TitusClusterSpec>()
       }
     }
   }
