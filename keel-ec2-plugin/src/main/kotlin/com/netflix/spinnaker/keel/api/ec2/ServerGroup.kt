@@ -45,6 +45,7 @@ data class ServerGroup(
   val scaling: Scaling = Scaling(),
   val tags: Map<String, String> = emptyMap(),
   @JsonIgnore
+  @get:ObjectDiffProperty(inclusion = EXCLUDED)
   val buildInfo: BuildInfo? = null
 )
 
