@@ -52,9 +52,7 @@ class PermissionsSpec extends Specification {
   String permissionSerialized = '''\
     {
       "READ" : [ "foo" ],
-      "WRITE" : [ "bar" ],
-      "EXECUTE" : [ ],
-      "CREATE" : [ ]
+      "WRITE" : [ "bar" ]
     }'''.stripIndent()
 
   def "should deserialize"() {

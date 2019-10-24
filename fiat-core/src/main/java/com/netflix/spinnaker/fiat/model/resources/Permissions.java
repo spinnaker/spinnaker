@@ -104,18 +104,17 @@ public class Permissions {
     private static Permissions fromMap(Map<Authorization, List<String>> authConfig) {
       final Map<Authorization, List<String>> perms = new EnumMap<>(Authorization.class);
       for (Authorization auth : Authorization.values()) {
-        perms.put(
-            auth,
-            Optional.ofNullable(authConfig.get(auth))
-                .map(
-                    groups ->
-                        groups.stream()
-                            .map(String::trim)
-                            .filter(s -> !s.isEmpty())
-                            .map(String::toLowerCase)
-                            .collect(Collectors.toList()))
-                .map(Collections::unmodifiableList)
-                .orElse(Collections.emptyList()));
+        Optional.ofNullable(authConfig.get(auth))
+            .map(
+                groups ->
+                    groups.stream()
+                        .map(String::trim)
+                        .filter(s -> !s.isEmpty())
+                        .map(String::toLowerCase)
+                        .collect(Collectors.toList()))
+            .filter(g -> !g.isEmpty())
+            .map(Collections::unmodifiableList)
+            .ifPresent(roles -> perms.put(auth, roles));
       }
       return new Permissions(perms);
     }

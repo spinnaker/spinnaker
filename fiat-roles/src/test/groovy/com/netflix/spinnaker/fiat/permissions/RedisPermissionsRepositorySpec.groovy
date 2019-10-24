@@ -37,7 +37,7 @@ import spock.lang.Subject
 
 class RedisPermissionsRepositorySpec extends Specification {
 
-  private static final String EMPTY_PERM_JSON = "{${Authorization.values().collect {/"$it":[]/}.join(',')}}"
+  private static final String EMPTY_PERM_JSON = "{}"
 
   private static final String UNRESTRICTED = UnrestrictedResourceConfig.UNRESTRICTED_USERNAME
 
