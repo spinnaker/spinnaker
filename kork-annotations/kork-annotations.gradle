@@ -15,15 +15,3 @@
  */
 
 apply plugin: "java-library"
-apply from: "$rootDir/gradle/kotlin.gradle"
-
-dependencies {
-  api(platform(project(":spinnaker-dependencies")))
-
-  api project(":kork-annotations")
-  api project(":kork-exceptions")
-  api "org.pf4j:pf4j"
-  api "org.springframework.boot:spring-boot-starter"
-
-  testImplementation "org.springframework.boot:spring-boot-starter-test"
-}

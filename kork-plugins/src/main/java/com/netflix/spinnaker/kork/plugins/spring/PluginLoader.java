@@ -17,7 +17,7 @@ package com.netflix.spinnaker.kork.plugins.spring;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.google.common.annotations.Beta;
+import com.netflix.spinnaker.kork.annotations.Beta;
 import com.netflix.spinnaker.kork.plugins.spring.configs.PluginConfiguration;
 import com.netflix.spinnaker.kork.plugins.spring.configs.PluginProperties;
 import com.netflix.spinnaker.kork.plugins.spring.configs.PluginPropertyDetails;

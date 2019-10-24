@@ -16,6 +16,7 @@
 
 include(
   "spinnaker-dependencies",
+  "kork-annotations",
   "kork-artifacts",
   "kork-aws",
   "kork-bom",

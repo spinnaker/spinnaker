@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.kork.plugins.spring;
 
-import com.google.common.annotations.Beta;
+import com.netflix.spinnaker.kork.annotations.Beta;
 import java.util.Map;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;

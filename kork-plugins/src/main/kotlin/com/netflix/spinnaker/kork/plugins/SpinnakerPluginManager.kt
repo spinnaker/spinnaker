@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.kork.plugins
 
-import com.google.common.annotations.Beta
+import com.netflix.spinnaker.kork.annotations.Beta
 import com.netflix.spinnaker.kork.plugins.finders.SpinnakerPluginDescriptorFinder
 import com.netflix.spinnaker.kork.plugins.loaders.SpinnakerDefaultPluginLoader
 import com.netflix.spinnaker.kork.plugins.loaders.SpinnakerDevelopmentPluginLoader

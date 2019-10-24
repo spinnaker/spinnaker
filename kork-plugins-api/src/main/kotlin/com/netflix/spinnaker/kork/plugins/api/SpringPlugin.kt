@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.kork.plugins.api
 
+import com.netflix.spinnaker.kork.annotations.Alpha
 import org.pf4j.Plugin
 import org.pf4j.PluginWrapper
 import org.springframework.context.ApplicationContext
@@ -26,6 +27,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
  * The [ApplicationContext] created by a plugin extending this class will also have its [ApplicationContext]
  * auto-configured with a subset of standard core configuration properties & beans.
  */
+@Alpha
 abstract class SpringPlugin(wrapper: PluginWrapper) : Plugin(wrapper) {
   lateinit var applicationContext: AnnotationConfigApplicationContext
 
