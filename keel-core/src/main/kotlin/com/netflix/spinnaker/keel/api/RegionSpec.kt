@@ -35,4 +35,6 @@ data class SubnetAwareRegionSpec(
 
 data class SimpleRegionSpec(
   override val name: String
-) : RegionSpec
+) : RegionSpec {
+  override fun toString() = name
+}

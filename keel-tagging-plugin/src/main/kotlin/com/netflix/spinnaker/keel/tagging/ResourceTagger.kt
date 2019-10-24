@@ -71,7 +71,8 @@ class ResourceTagger(
 
   private val entityTypeTransforms = mapOf(
     "classic-load-balancer" to "loadbalancer",
-    "application-load-balancer" to "loadbalancer"
+    "application-load-balancer" to "loadbalancer",
+    "security-group" to "securitygroup"
   )
 
   private val taggableResources = listOf(
