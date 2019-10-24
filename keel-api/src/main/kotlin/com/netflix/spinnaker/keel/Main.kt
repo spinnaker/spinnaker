@@ -86,11 +86,11 @@ class KeelApplication {
   fun registerResourceSpecSubtypes() {
     plugins
       .filterIsInstance<ResourceHandler<*, *>>()
-      .map { it.supportedKind }
-      .forEach { (kind, type) ->
+      .map { Triple(it.apiVersion, it.supportedKind.first.singular, it.supportedKind.second) }
+      .forEach { (apiVersion, kind, type) ->
         objectMappers.forEach { objectMapper ->
-          log.info("Registering ResourceSpec sub-type {}: {}", kind.singular, type.simpleName)
-          objectMapper.registerSubtypes(NamedType(type, kind.singular))
+          log.info("Registering ResourceSpec sub-type {}/{}: {}", apiVersion, kind, type.simpleName)
+          objectMapper.registerSubtypes(NamedType(type, "$apiVersion/$kind"))
         }
       }
   }

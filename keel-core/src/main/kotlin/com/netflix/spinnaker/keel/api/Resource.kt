@@ -15,9 +15,8 @@
  */
 package com.netflix.spinnaker.keel.api
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo
-import com.fasterxml.jackson.annotation.JsonTypeInfo.As
-import com.fasterxml.jackson.annotation.JsonTypeInfo.Id
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.netflix.spinnaker.keel.serialization.SubmittedResourceDeserializer
 
 /**
  * Internal representation of a resource.
@@ -63,15 +62,11 @@ data class Resource<T : ResourceSpec>(
 /**
  * External representation of a resource that would be submitted to the API
  */
+@JsonDeserialize(using = SubmittedResourceDeserializer::class)
 data class SubmittedResource<T : ResourceSpec>(
   val metadata: Map<String, Any?>,
   val apiVersion: ApiVersion,
   val kind: String,
-  @JsonTypeInfo(
-    use = Id.NAME,
-    include = As.EXTERNAL_PROPERTY,
-    property = "kind"
-  )
   val spec: T
 ) {
   init {

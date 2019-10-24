@@ -19,6 +19,7 @@ package com.netflix.spinnaker.keel.rest
 
 import com.fasterxml.jackson.databind.jsontype.NamedType
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancerSpec
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerSpec
@@ -26,7 +27,9 @@ import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupSpec
 import com.netflix.spinnaker.keel.api.titus.cluster.TitusClusterSpec
 import com.netflix.spinnaker.keel.bakery.api.ImageSpec
+import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
+import dev.minutest.experimental.minus
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectCatching
@@ -39,7 +42,7 @@ class ConvertExampleFilesTest : JUnit5Minutests {
   fun tests() = rootContext<Unit> {
 
     context("cluster") {
-      mapper.registerSubtypes(NamedType(ClusterSpec::class.java, "cluster"))
+      mapper.registerSubtypes(NamedType(ClusterSpec::class.java, "$SPINNAKER_EC2_API_V1/cluster"))
       val file = this.javaClass.getResource("/examples/cluster-example.yml").readText()
 
       test("yaml can be parsed") {
@@ -53,7 +56,7 @@ class ConvertExampleFilesTest : JUnit5Minutests {
     }
 
     context("security group") {
-      mapper.registerSubtypes(NamedType(SecurityGroupSpec::class.java, "security-group"))
+      mapper.registerSubtypes(NamedType(SecurityGroupSpec::class.java, "$SPINNAKER_EC2_API_V1/security-group"))
       val file = this.javaClass.getResource("/examples/security-group-example.yml").readText()
 
       test("yml can be parsed") {
@@ -67,7 +70,7 @@ class ConvertExampleFilesTest : JUnit5Minutests {
     }
 
     context("image") {
-      mapper.registerSubtypes(NamedType(ImageSpec::class.java, "image"))
+      mapper.registerSubtypes(NamedType(ImageSpec::class.java, "${SPINNAKER_API_V1.subApi("bakery")}/image"))
       val file = this.javaClass.getResource("/examples/image-example.yml").readText()
 
       test("yml can be parsed") {
@@ -81,7 +84,7 @@ class ConvertExampleFilesTest : JUnit5Minutests {
     }
 
     context("clb") {
-      mapper.registerSubtypes(NamedType(ClassicLoadBalancerSpec::class.java, "classic-load-balancer"))
+      mapper.registerSubtypes(NamedType(ClassicLoadBalancerSpec::class.java, "$SPINNAKER_EC2_API_V1/classic-load-balancer"))
       val file = this.javaClass.getResource("/examples/clb-example.yml").readText()
 
       test("yml can be parsed") {
@@ -95,7 +98,7 @@ class ConvertExampleFilesTest : JUnit5Minutests {
     }
 
     context("alb") {
-      mapper.registerSubtypes(NamedType(ApplicationLoadBalancerSpec::class.java, "application-load-balancer"))
+      mapper.registerSubtypes(NamedType(ApplicationLoadBalancerSpec::class.java, "$SPINNAKER_EC2_API_V1/application-load-balancer"))
       val file = this.javaClass.getResource("/examples/alb-example.yml").readText()
 
       test("yml can be parsed") {
@@ -109,7 +112,7 @@ class ConvertExampleFilesTest : JUnit5Minutests {
     }
 
     context("titus cluster") {
-      mapper.registerSubtypes(NamedType(TitusClusterSpec::class.java, "titus-cluster"))
+      mapper.registerSubtypes(NamedType(TitusClusterSpec::class.java, "${SPINNAKER_API_V1.subApi("titus")}/cluster"))
       val file = this.javaClass.getResource("/examples/titus-cluster-example.yml").readText()
 
       test("yml can be parsed") {
@@ -120,7 +123,7 @@ class ConvertExampleFilesTest : JUnit5Minutests {
     }
 
     context("simple titus cluster") {
-      mapper.registerSubtypes(NamedType(TitusClusterSpec::class.java, "titus-cluster"))
+      mapper.registerSubtypes(NamedType(TitusClusterSpec::class.java, "cluster"))
       val file = this.javaClass.getResource("/examples/simple-titus-cluster-example.yml").readText()
 
       test("yml can be parsed") {
