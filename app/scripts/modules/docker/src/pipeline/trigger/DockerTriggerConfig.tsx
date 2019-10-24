@@ -22,6 +22,7 @@ export function DockerTriggerConfig(props: IDockerTriggerConfigProps) {
   return (
     <div className="form-horizontal">
       <DockerImageAndTagSelector
+        allowManualDefinition={false}
         specifyTagByRegex={true}
         account={trigger.account}
         organization={trigger.organization}

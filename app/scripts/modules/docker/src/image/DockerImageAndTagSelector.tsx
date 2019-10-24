@@ -32,6 +32,7 @@ export interface IDockerImageAndTagSelectorProps {
   onChange: (changes: IDockerImageAndTagChanges) => void;
   deferInitialization?: boolean;
   showDigest?: boolean;
+  allowManualDefinition?: boolean;
 }
 
 export interface IDockerImageAndTagSelectorState {
@@ -59,6 +60,7 @@ export class DockerImageAndTagSelector extends React.Component<
     registry: '',
     repository: '',
     showDigest: true,
+    allowManualDefinition: true,
   };
 
   private images: IDockerImage[];
@@ -82,7 +84,7 @@ export class DockerImageAndTagSelector extends React.Component<
       props.repository && props.repository.length ? [{ label: props.repository, value: props.repository }] : [];
     const tagOptions = props.tag && props.tag.length ? [{ label: props.tag, value: props.tag }] : [];
     const parsedImageId = DockerImageUtils.splitImageId(props.imageId);
-    const defineManually = Boolean(props.imageId && props.imageId.includes('${'));
+    const defineManually = props.allowManualDefinition && Boolean(props.imageId && props.imageId.includes('${'));
 
     this.state = {
       accountOptions,
@@ -409,6 +411,7 @@ export class DockerImageAndTagSelector extends React.Component<
   public render() {
     const {
       account,
+      allowManualDefinition,
       digest,
       imageId,
       organization,
@@ -447,7 +450,7 @@ export class DockerImageAndTagSelector extends React.Component<
             <span className="field">
               <Select
                 value={defineManually}
-                disabled={imagesLoading}
+                disabled={imagesLoading || !allowManualDefinition}
                 onChange={(o: Option<boolean>) => this.showManualInput(o.value)}
                 options={defineOptions}
                 clearable={false}
