@@ -2,6 +2,8 @@ import * as React from 'react';
 import { UISref } from '@uirouter/react';
 
 import { IExecutionDetailsSectionProps, ExecutionDetailsSection, StageFailureMessage } from 'core/pipeline';
+import { IPipeline } from 'core/domain';
+import { useLatestPromise } from 'core/presentation/hooks/useLatestPromise.hook';
 
 export function PipelineStageExecutionDetails(props: IExecutionDetailsSectionProps) {
   const {
@@ -13,6 +15,13 @@ export function PipelineStageExecutionDetails(props: IExecutionDetailsSectionPro
     current,
   } = props;
 
+  const { result: pipelineConfigs } = useLatestPromise<IPipeline[]>(() => {
+    application.pipelineConfigs.activate();
+    return application.pipelineConfigs.ready();
+  }, []);
+  const pipelineConfig =
+    pipelineConfigs && context.pipeline && pipelineConfigs.find(({ id }) => context.pipeline === id);
+
   return (
     <ExecutionDetailsSection name={name} current={current}>
       <div className="row">
@@ -22,9 +31,9 @@ export function PipelineStageExecutionDetails(props: IExecutionDetailsSectionPro
             <dt>Application</dt>
             <dd>{context.application}</dd>
             <dt>Pipeline</dt>
-            <dd>{context.executionName}</dd>
+            <dd>{(pipelineConfig && pipelineConfig.name) || context.executionName || 'N/A'}</dd>
             <dt>Status</dt>
-            <dd>{context.status}</dd>
+            <dd>{context.status || 'N/A'}</dd>
           </dl>
         </div>
       </div>
@@ -32,17 +41,20 @@ export function PipelineStageExecutionDetails(props: IExecutionDetailsSectionPro
       <div className="row">
         <div className="col-md-12">
           <div className="well alert alert-info">
-            <UISref
-              to="home.applications.application.pipelines.executionDetails.execution"
-              params={{
-                application: stage.context.application,
-                executionId: stage.context.executionId,
-                executionParams: { application: application.name, executionId: execution.id },
-              }}
-              options={{ inherit: false, reload: 'home.applications.application.pipelines.executionDetails' }}
-            >
-              <a target="_self">View Pipeline Execution</a>
-            </UISref>
+            {(stage.hasNotStarted || !context.executionId) && <span>No Execution Started</span>}
+            {!stage.hasNotStarted && context.executionId && (
+              <UISref
+                to="home.applications.application.pipelines.executionDetails.execution"
+                params={{
+                  application: stage.context.application,
+                  executionId: stage.context.executionId,
+                  executionParams: { application: application.name, executionId: execution.id },
+                }}
+                options={{ inherit: false, reload: 'home.applications.application.pipelines.executionDetails' }}
+              >
+                <a target="_self">View Pipeline Execution</a>
+              </UISref>
+            )}
           </div>
         </div>
       </div>
