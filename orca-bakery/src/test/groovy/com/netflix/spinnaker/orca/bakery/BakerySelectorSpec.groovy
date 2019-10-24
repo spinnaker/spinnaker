@@ -47,6 +47,7 @@ class BakerySelectorSpec extends Specification {
         config: [:],
         parameters: [
           new Parameter(name: "region", values: ["us-east-1"]),
+          new Parameter(name: "baseOs", values: ["centos"]),
           new Parameter(name: "cloudProviderType", values: ["aws"])
         ]
       ),
@@ -97,7 +98,7 @@ class BakerySelectorSpec extends Specification {
     where:
     ctx                                       | user               || service
     [region: "us-east-1"]                     | "user@netflix.com" || new TestBakeryService(url: "http://bakery.com")
-    [region: "us-east-1", cloudProviderType: "aws", selectBakery: true] | "user@netflix.com" || new TestBakeryService(url: "http://rosco.us-east-1.com")
+    [region: "us-east-1", cloudProviderType: "aws", selectBakery: true, baseOs: "centos"] | "user@netflix.com" || new TestBakeryService(url: "http://rosco.us-east-1.com")
     [region: "eu-west-1", selectBakery: true] | "test@netflix.com" || new TestBakeryService(url: "http://bakery.com")
     [selectBakery: true]                      | "bob@netflix.com"  || new TestBakeryService(url: "http://rosco.eu-west-1.com")
     [selectBakery: false]                     | "bob@netflix.com"  || new TestBakeryService(url: "http://bakery.com")

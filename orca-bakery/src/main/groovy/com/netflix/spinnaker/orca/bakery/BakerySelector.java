@@ -130,7 +130,7 @@ public class BakerySelector {
 
     // Allows to shard the bakery based on common bake stage fields
     List<String> contextFields =
-        Arrays.asList("cloudProvider", "region", "baseOS", "cloudProviderType");
+        Arrays.asList("cloudProvider", "region", "baseOs", "cloudProviderType");
   }
 
   interface ConfigFields {
