@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.pipeline.model;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonMap;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import java.util.Map;
@@ -58,17 +59,25 @@ public class OptionalStageSupport {
       return false;
     }
 
+    if ("expression".equals(optionalType) && isNullOrEmpty(stageEnabled.get("expression"))) {
+      log.warn(
+          "No expression found on stage, treating as non-optional (executionId: {}, stageId: {}",
+          stage.getExecution().getId(),
+          stage.getId());
+      return false;
+    }
+
     try {
       return !stage
           .mapTo("/stageEnabled", OPTIONAL_STAGE_TYPES.get(optionalType))
           .evaluate(stage, contextParameterProcessor);
     } catch (InvalidExpression e) {
       log.warn(
-          "Unable to determine stage optionality, reason: {} (executionId: {}, stageId: {})",
+          "{}, skipping stage (executionId: {}, stageId: {})",
           e.getMessage(),
           stage.getExecution().getId(),
           stage.getId());
-      return false;
+      return true;
     }
   }
 
@@ -112,11 +121,15 @@ public class OptionalStageSupport {
       if (!asList("true", "false").contains(expression.toLowerCase())) {
         // expression failed to evaluate successfully
         throw new InvalidExpression(
-            format("Expression '%s' could not be evaluated", this.expression));
+            format("Conditional Expression '%s' could not be evaluated", this.expression));
       }
 
       return Boolean.valueOf(expression);
     }
+  }
+
+  private static boolean isNullOrEmpty(Object object) {
+    return object == null || object instanceof String && isBlank((String) object);
   }
 
   static class InvalidExpression extends RuntimeException {
