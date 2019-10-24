@@ -15,8 +15,9 @@ export interface IAWSProviderSettings extends IProviderSettings {
   };
   defaultSecurityGroups?: string[];
   loadBalancers?: {
-    inferInternalFlagFromSubnet: boolean;
     certificateTypes?: string[];
+    disableManualOidcDialog?: boolean;
+    inferInternalFlagFromSubnet: boolean;
   };
   useAmiBlockDeviceMappings?: boolean;
   classicLaunchLockout?: number;

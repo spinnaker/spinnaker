@@ -7,30 +7,19 @@ export interface IAdditionalHelpLinks {
 }
 
 export interface IProviderSettings {
+  bakeryRegions?: string[];
   defaults: any;
   resetToOriginal?: () => void;
 }
 
 export interface INotificationSettings {
-  email: {
-    enabled: boolean;
-  };
-  bearychat: {
-    enabled: boolean;
-  };
-  googlechat: {
-    enabled: boolean;
-  };
-  sms: {
-    enabled: boolean;
-  };
-  slack: {
-    botName: string;
-    enabled: boolean;
-  };
-  githubStatus: {
-    enabled: boolean;
-  };
+  bearychat: { enabled: boolean };
+  email: { enabled: boolean };
+  githubStatus: { enabled: boolean };
+  googlechat: { enabled: boolean };
+  pubsub: { enabled: boolean };
+  slack: { botName: string; enabled: boolean };
+  sms: { enabled: boolean };
 }
 
 export interface IFeatures {
