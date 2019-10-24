@@ -33,7 +33,7 @@ class ConfigFileServiceTest {
       Paths.get(System.getProperty("java.io.tmpdir"), TEST_FILE_NAME).toString();
   private static final String TEST_FILE_CONTENTS = "test file contents";
 
-  private ConfigFileService configFileService = new ConfigFileService();
+  private ConfigFileService configFileService = new ConfigFileService(null);
 
   @AfterEach
   void tearDown() throws IOException {

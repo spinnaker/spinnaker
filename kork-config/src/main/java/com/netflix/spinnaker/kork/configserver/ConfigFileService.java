@@ -30,10 +30,17 @@ import org.apache.commons.lang3.StringUtils;
 @Slf4j
 public class ConfigFileService {
   private static final String CLASSPATH_FILE_PREFIX = "classpath:";
+  private final CloudConfigResourceService cloudConfigResourceService;
 
-  public ConfigFileService() {}
+  public ConfigFileService(CloudConfigResourceService cloudConfigResourceService) {
+    this.cloudConfigResourceService = cloudConfigResourceService;
+  }
 
   public String getLocalPath(String path) {
+    if (CloudConfigResourceService.isCloudConfigResource(path)
+        && cloudConfigResourceService != null) {
+      path = cloudConfigResourceService.getLocalPath(path);
+    }
     verifyLocalPath(path);
     return path;
   }
@@ -51,8 +58,7 @@ public class ConfigFileService {
       if (isClasspathResource(path)) {
         return retrieveFromClasspath(path);
       }
-
-      return retrieveFromLocalPath(path);
+      return retrieveFromLocalPath(getLocalPath(path));
     }
 
     return null;
