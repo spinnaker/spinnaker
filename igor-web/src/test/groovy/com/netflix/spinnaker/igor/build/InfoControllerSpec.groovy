@@ -137,7 +137,7 @@ class InfoControllerSpec extends Specification {
       then:
       def actualAccounts = new JsonSlurper().parseText(response.contentAsString);
       actualAccounts.size == 1
-      actualAccounts[0].permissions == [READ:[], WRITE:[], CREATE:[], EXECUTE:[]]
+      actualAccounts[0].permissions == [:]
 
     }
 
@@ -195,12 +195,7 @@ class InfoControllerSpec extends Specification {
                 {
                     "name": "jenkins-foo",
                     "buildServiceProvider": "JENKINS",
-                    "permissions": {
-                      "READ": [],
-                      "WRITE": [],
-                      "EXECUTE": [],
-                      "CREATE": []
-                    }
+                    "permissions": {}
                 },
                 {
                     "name": "jenkins-bar",
@@ -212,9 +207,7 @@ class InfoControllerSpec extends Specification {
                         ],
                         "WRITE": [
                             "group-2"
-                        ],
-                        "EXECUTE": [ ],
-                        "CREATE": []
+                        ]
                     }
                 },
                 {
@@ -227,9 +220,7 @@ class InfoControllerSpec extends Specification {
                         ],
                         "WRITE": [
                             "group-3"
-                        ],
-                        "EXECUTE": [ ],
-                        "CREATE": []
+                        ]
                     }
                 },
                 {   "name": "gcbAccount",
@@ -241,9 +232,7 @@ class InfoControllerSpec extends Specification {
                         ],
                         "WRITE": [
                             "group-5"
-                        ],
-                        "EXECUTE": [ ],
-                        "CREATE": []
+                        ]
                     }
                 }
             ]
