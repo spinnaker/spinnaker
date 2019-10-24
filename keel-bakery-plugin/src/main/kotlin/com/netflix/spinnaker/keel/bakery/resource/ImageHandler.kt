@@ -131,7 +131,15 @@ class ImageHandler(
               "storeType" to resource.spec.storeType.name.toLowerCase(),
               "user" to "keel",
               "vmType" to "hvm"
-            )
+            ).let { job ->
+              if (resourceDiff.isRegionOnly()) {
+                job + mapOf(
+                  "rebake" to true
+                )
+              } else {
+                job
+              }
+            }
           )
         ),
         trigger = OrchestrationTrigger(
@@ -164,6 +172,9 @@ class ImageHandler(
         }
       } ?: throw BaseAmiNotFound(baseImage)
   }
+
+  private fun ResourceDiff<Image>.isRegionOnly(): Boolean =
+    current != null && (current as Image).regions.size != desired.regions.size
 }
 
 class BaseAmiNotFound(baseImage: String) : RuntimeException("Could not find a base AMI for base image $baseImage")
