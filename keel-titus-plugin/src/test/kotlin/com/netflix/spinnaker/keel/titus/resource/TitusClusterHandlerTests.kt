@@ -21,10 +21,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.netflix.spinnaker.keel.api.Capacity
 import com.netflix.spinnaker.keel.api.ClusterDependencies
-import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
 import com.netflix.spinnaker.keel.api.titus.CLOUD_PROVIDER
+import com.netflix.spinnaker.keel.api.titus.SPINNAKER_TITUS_API_V1
 import com.netflix.spinnaker.keel.api.titus.cluster.Container
 import com.netflix.spinnaker.keel.api.titus.cluster.TitusClusterHandler
 import com.netflix.spinnaker.keel.api.titus.cluster.TitusClusterSpec
@@ -132,8 +132,8 @@ class TitusClusterHandlerTests : JUnit5Minutests {
   val activeServerGroupResponseWest = serverGroupWest.toClouddriverResponse(listOf(sg1West, sg2West))
 
   val resource = resource(
-    apiVersion = SPINNAKER_API_V1,
-    kind = "titus-cluster",
+    apiVersion = SPINNAKER_TITUS_API_V1,
+    kind = "cluster",
     spec = spec
   )
 

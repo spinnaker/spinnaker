@@ -68,8 +68,8 @@ class TitusClusterHandler(
   override val apiVersion = SPINNAKER_TITUS_API_V1
   override val supportedKind = ResourceKind(
     group = apiVersion.group,
-    singular = "titus-cluster",
-    plural = "titus-clusters"
+    singular = "cluster",
+    plural = "clusters"
   ) to TitusClusterSpec::class.java
 
   override suspend fun toResolvedType(resource: Resource<TitusClusterSpec>): Map<String, TitusServerGroup> =
