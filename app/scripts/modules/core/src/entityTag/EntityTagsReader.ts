@@ -5,15 +5,7 @@ import { $q } from 'ngimport';
 import { API } from 'core/api/ApiService';
 import { IEntityTags, IEntityTag, ICreationMetadataTag } from '../domain/IEntityTags';
 import { Application } from 'core/application/application.model';
-import {
-  IExecution,
-  IPipeline,
-  IServerGroup,
-  IServerGroupManager,
-  ILoadBalancer,
-  ISecurityGroup,
-  IFunction,
-} from 'core/domain';
+import { IExecution, IPipeline, IServerGroup, IServerGroupManager, ILoadBalancer, ISecurityGroup } from 'core/domain';
 import { SETTINGS } from 'core/config/settings';
 
 export class EntityTagsReader {
@@ -79,21 +71,6 @@ export class EntityTagsReader {
     });
   }
 
-  public static addTagsToFunctions(application: Application): void {
-    if (!SETTINGS.feature.entityTags) {
-      return;
-    }
-    const allTags = application.getDataSource('entityTags').data;
-    const functionTags: IEntityTags[] = allTags.filter(t => t.entityRef.entityType === 'function');
-    application.getDataSource('functions').data.forEach((fn: IFunction) => {
-      fn.entityTags = functionTags.find(
-        t =>
-          t.entityRef.entityId === fn.functionName &&
-          t.entityRef.account === fn.account &&
-          t.entityRef.region === fn.region,
-      );
-    });
-  }
   public static addTagsToSecurityGroups(application: Application): void {
     if (!SETTINGS.feature.entityTags) {
       return;

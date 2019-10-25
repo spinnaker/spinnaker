@@ -1,7 +1,6 @@
 export * from './IAmazonCertificate';
 export * from './IAmazonInstance';
 export * from './IAmazonLoadBalancer';
-export * from './IAmazonFunction';
 export * from './IAmazonLoadBalancerSourceData';
 export * from './IAmazonHealth';
 export * from './IAmazonScalingPolicy';
