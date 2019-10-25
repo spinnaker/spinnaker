@@ -74,37 +74,50 @@ class DependentPipelineExecutionListener implements ExecutionListener {
       // Resolve templated pipelines if enabled.
       allPipelines = allPipelines.collect { pipeline ->
        if (V2Util.isV2Pipeline(pipeline)) {
-         return V2Util.planPipeline(contextParameterProcessor, executionPreprocessors, pipeline)
+         try {
+           return V2Util.planPipeline(contextParameterProcessor, executionPreprocessors, pipeline)
+         } catch (Exception e) {
+           log.error("Failed to plan V2 templated pipeline {}", pipeline.getOrDefault("id", "<UNKNOWN ID>"), e)
+           return null
+         }
        } else {
          return pipeline
        }
       }
     }
 
-    allPipelines.findAll { !it.disabled }
+    allPipelines.findAll { (it != null) && (!it.disabled) }
       .each {
       it.triggers.each { trigger ->
-        if (trigger.enabled &&
-          trigger.type == 'pipeline' &&
-          trigger.pipeline &&
-          trigger.pipeline == execution.pipelineConfigId &&
-          trigger.status.contains(status)
-        ) {
-          User authenticatedUser = null
+        try {
+          if (trigger.enabled &&
+            trigger.type == 'pipeline' &&
+            trigger.pipeline &&
+            trigger.pipeline == execution.pipelineConfigId &&
+            trigger.status.contains(status)
+          ) {
+            User authenticatedUser = null
 
-          if (fiatStatus.enabled && trigger.runAsUser) {
-            authenticatedUser = new User()
-            authenticatedUser.setEmail(trigger.runAsUser)
+            if (fiatStatus.enabled && trigger.runAsUser) {
+              authenticatedUser = new User()
+              authenticatedUser.setEmail(trigger.runAsUser)
+            }
+
+            dependentPipelineStarter.trigger(
+              it,
+              execution.trigger?.user as String,
+              execution,
+              [:],
+              null,
+              authenticatedUser
+            )
           }
-
-          dependentPipelineStarter.trigger(
-            it,
-            execution.trigger?.user as String,
-            execution,
-            [:],
-            null,
-            authenticatedUser
-          )
+        }
+        catch (Exception e) {
+          log.error(
+            "Failed to process triggers for pipeline {} while triggering dependent pipelines",
+            it.getOrDefault("id", "<UNKNOWN ID>"),
+            e)
         }
       }
     }

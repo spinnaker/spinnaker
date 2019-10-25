@@ -106,13 +106,36 @@ class DependentPipelineExecutionListenerSpec extends Specification {
     status << [ExecutionStatus.SUCCEEDED, ExecutionStatus.TERMINAL]
   }
 
+  def "should trigger downstream v2 templated pipeline even when templates are invalid"() {
+    given:
+    pipeline.stages.each {
+      it.status = ExecutionStatus.SUCCEEDED
+      it.tasks = [Mock(Task)]
+    }
+
+    pipeline.pipelineConfigId = "97c435a0-0faf-11e5-a62b-696d38c37faa"
+    front50Service.getAllPipelines() >> [
+      v2MptPipelineConfig, v2MptPipelineConfig
+    ]
+    GroovyMock(V2Util, global: true)
+    V2Util.planPipeline(_, _, v2MptPipelineConfig) >>
+      {throw new Exception("planning failed")} >>
+      v2MptPipelineConfig
+    V2Util.isV2Pipeline(_) >> true
+
+    when:
+    listener.afterExecution(null, pipeline, null, true)
+
+    then:
+    1 * dependentPipelineStarter.trigger(_, _, _, _, _, _)
+  }
+
   def "should not trigger downstream pipeline when conditions don't match"() {
     given:
     pipeline.stages.each {
       it.status = status
       it.tasks = [Mock(Task)]
     }
-
 
     pipeline.pipelineConfigId = id
 
