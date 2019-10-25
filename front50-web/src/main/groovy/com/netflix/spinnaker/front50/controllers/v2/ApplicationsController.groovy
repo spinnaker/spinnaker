@@ -75,7 +75,7 @@ public class ApplicationsController {
 
     def applications
     def permissions = applicationPermissionDAO ? applicationPermissionDAO.all()
-      .findAll { !it.permissions.isEmpty() }
+      .findAll { it.permissions.isRestricted() }
       .groupBy { it.name.toLowerCase() } : [:]
     if (params.isEmpty()) {
       applications = applicationDAO.all().sort { it.name }
