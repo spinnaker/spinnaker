@@ -84,7 +84,9 @@ module.exports = angular
           if (!$scope.stage.baseLabel && $scope.baseLabelOptions && $scope.baseLabelOptions.length) {
             $scope.stage.baseLabel = $scope.baseLabelOptions[0];
           }
-          $scope.viewState.roscoMode = SETTINGS.feature.roscoMode;
+          $scope.viewState.roscoMode =
+            SETTINGS.feature.roscoModeSETTINGS.feature.roscoMode ||
+            (typeof SETTINGS.feature.roscoSelector === 'function' && SETTINGS.feature.roscoSelector($scope.stage));
           $scope.showAdvancedOptions = showAdvanced();
           $scope.viewState.loading = false;
         });
