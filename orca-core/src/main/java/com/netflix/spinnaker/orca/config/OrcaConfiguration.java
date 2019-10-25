@@ -204,8 +204,10 @@ public class OrcaConfiguration {
   @Bean
   public StageResolver stageResolver(
       Collection<StageDefinitionBuilder> stageDefinitionBuilders,
-      Optional<Collection<SimpleStage>> simpleStages) {
+      Optional<Collection<SimpleStage>> simpleStages,
+      PluginManager pluginManager) {
     Collection<SimpleStage> stages = simpleStages.orElseGet(ArrayList::new);
+    stages.addAll(pluginManager.getExtensions(SimpleStage.class));
     return new StageResolver(stageDefinitionBuilders, stages);
   }
 

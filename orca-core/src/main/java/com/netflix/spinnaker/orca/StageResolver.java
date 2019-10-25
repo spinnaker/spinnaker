@@ -53,11 +53,8 @@ public class StageResolver {
       }
     }
 
-    simpleStages.stream()
-        .forEach(
-            s ->
-                stageDefinitionBuilderByAlias.put(
-                    s.getName(), new SimpleStageDefinitionBuilder(s)));
+    simpleStages.forEach(
+        s -> stageDefinitionBuilderByAlias.put(s.getName(), new SimpleStageDefinitionBuilder(s)));
   }
 
   /**

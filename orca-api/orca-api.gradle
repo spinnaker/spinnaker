@@ -24,6 +24,8 @@ test {
 }
 
 dependencies {
+  api "com.netflix.spinnaker.kork:kork-plugins-api"
+
   implementation("com.google.guava:guava")
 
   compileOnly("org.projectlombok:lombok")
