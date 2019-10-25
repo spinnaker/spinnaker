@@ -131,6 +131,9 @@ fun Stage.shouldFailPipeline(): Boolean =
 fun Stage.shouldContinueOnFailure(): Boolean =
   context["continuePipeline"] == true
 
+fun Stage.setContinueOnFailure(continueOnFailure: Boolean) =
+  context.put("continuePipeline", continueOnFailure)
+
 fun Stage.failureStatus(default: ExecutionStatus = TERMINAL) =
   when {
     shouldContinueOnFailure() -> FAILED_CONTINUE
