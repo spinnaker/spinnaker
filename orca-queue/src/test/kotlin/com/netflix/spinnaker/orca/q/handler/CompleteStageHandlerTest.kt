@@ -1078,6 +1078,41 @@ object CompleteStageHandlerTest : SubjectSpek<CompleteStageHandler>({
           verify(queue).push(message.copy(stageId = pipeline.stageByRef("1").id))
         }
       }
+
+      given("a synthetic stage's task ends with $FAILED_CONTINUE status and the synthetic allows siblings to continue") {
+        val pipeline = pipeline {
+          stage {
+            refId = "1"
+            type = stageWithSyntheticBefore.type
+            stageWithSyntheticBefore.buildBeforeStages(this)
+            stageWithSyntheticBefore.plan(this)
+          }
+        }
+
+        val syntheticStage = pipeline.stageByRef("1<1")
+        syntheticStage.allowSiblingStagesToContinueOnFailure = true
+        val message = CompleteStage(syntheticStage)
+
+        beforeGroup {
+          pipeline.stageById(message.stageId).apply {
+            status = RUNNING
+            singleTaskStage.plan(this)
+            tasks.first().status = FAILED_CONTINUE
+          }
+
+          whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
+        }
+
+        on("receiving the message") {
+          subject.handle(message)
+        }
+
+        afterGroup(::resetMocks)
+
+        it("starts executing the next sibling") {
+          verify(queue).push(StartStage(pipeline.stageByRef("1<2")))
+        }
+      }
     }
 
     setOf(TERMINAL, CANCELED).forEach { taskStatus ->

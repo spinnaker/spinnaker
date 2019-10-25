@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline.model
 
+import com.netflix.spinnaker.kork.exceptions.SpinnakerException
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -317,5 +318,42 @@ class StageSpec extends Specification {
     100             | null            | null            || 100
     100             | 200             | null            || 200
     100             | 200             | 300             || 300
+  }
+
+  def "should set propagateFailuresToParent correctly"() {
+    given:
+    def pipeline = pipeline {
+      stage {
+        refId = "parent"
+
+        stage {
+          refId = "child"
+        }
+      }
+    }
+
+    def parentStage = pipeline.stageByRef("parent")
+    def childStage = pipeline.stageByRef("child")
+
+    when: 'trying to set PropagateFailuresToParent on parent stage'
+    parentStage.setAllowSiblingStagesToContinueOnFailure(true)
+
+    then: 'it should fail'
+    thrown(SpinnakerException)
+
+    when: 'parent stage erroneously has the setting in context'
+    parentStage = pipeline.stageByRef("parent")
+    parentStage.context.put("allowSiblingStagesToContinueOnFailure", true)
+
+    then: 'we ignore the value in context'
+    childStage.getAllowSiblingStagesToContinueOnFailure() == false
+
+    when: 'trying to set PropagateFailuresToParent on a child stage'
+    childStage.setAllowSiblingStagesToContinueOnFailure(true)
+
+    then: 'it should succeed'
+    noExceptionThrown()
+    childStage.context.allowSiblingStagesToContinueOnFailure == true
+    childStage.getAllowSiblingStagesToContinueOnFailure() == true
   }
 }

@@ -142,7 +142,7 @@ class CompleteStageHandler(
 
         // When a synthetic stage ends with FAILED_CONTINUE, propagate that status up to the stage's
         // parent so that no more of the parent's synthetic children will run.
-        if (stage.status == FAILED_CONTINUE && stage.syntheticStageOwner != null) {
+        if (stage.status == FAILED_CONTINUE && stage.syntheticStageOwner != null && !stage.allowSiblingStagesToContinueOnFailure) {
           queue.push(message.copy(stageId = stage.parentStageId!!))
         } else if (stage.status in listOf(SUCCEEDED, FAILED_CONTINUE, SKIPPED)) {
           stage.startNext()

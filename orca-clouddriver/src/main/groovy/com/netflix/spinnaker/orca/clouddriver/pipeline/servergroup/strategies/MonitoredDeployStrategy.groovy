@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies
 
-import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.config.DeploymentMonitorServiceProvider
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.RollbackClusterStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ScaleDownClusterStage
@@ -181,6 +180,7 @@ class MonitoredDeployStrategy implements Strategy {
         stage,
         SyntheticStageOwner.STAGE_AFTER
       )
+      notifyDeployStartingStage.setAllowSiblingStagesToContinueOnFailure(true)
       stages << notifyDeployStartingStage
     } else {
       log.warn("No deployment monitor specified, all monitoring will be skipped")
@@ -246,7 +246,7 @@ class MonitoredDeployStrategy implements Strategy {
       if (stageData.deploymentMonitor?.id) {
         evalContext.currentProgress = p
 
-        stages << newStage(
+        Stage evaluateHealthStage = newStage(
           stage.execution,
           EvaluateDeploymentHealthStage.PIPELINE_CONFIG_TYPE,
           "Evaluate health of deployed instances",
@@ -254,6 +254,9 @@ class MonitoredDeployStrategy implements Strategy {
           stage,
           SyntheticStageOwner.STAGE_AFTER
         )
+        evaluateHealthStage.setAllowSiblingStagesToContinueOnFailure(true)
+
+        stages << evaluateHealthStage
       }
     })
 

@@ -64,6 +64,16 @@ public class StageContext extends ForwardingMap<String, Object> {
     }
   }
 
+  /**
+   * Get a value from the current context ONLY - never looking at the ancestors' outputs
+   *
+   * @param key The key to look
+   * @param defaultValue default value to return if key is not present
+   * @return value or null if not present
+   */
+  Object getCurrentOnly(@Nullable Object key, Object defaultValue) {
+    return super.getOrDefault(key, defaultValue);
+  }
   /*
    * Gets all objects matching 'key', sorted by proximity to the current stage.
    * If the key exists in the current context, it will be the first element returned
