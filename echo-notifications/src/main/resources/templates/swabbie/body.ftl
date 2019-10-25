@@ -175,7 +175,7 @@
                     cleanup date
                   </td>
                   <td align="left" style="padding: 4px 0; font-family: Helvetica, Arial, sans-serif; font-size: 12px;">
-                    ${resourceData.resource.projectedDeletionStamp?number_to_date?string("EEE, d MMM yyyy")}
+                    ${resourceData.deletionDate}
                   </td>
                 </tr>
               </table>
