@@ -309,6 +309,7 @@
       withManifests(manifests):: self + if std.type(manifests) == 'array' then { manifests: manifests } else { manifests: [manifests] },
       withMoniker(moniker):: self + { moniker: moniker },
       withSkipExpressionEvaluation():: self + { skipExpressionEvaluation: true },
+      withNamespaceOverride(namespace):: self + { namespaceOverride: namespace },
     },
     deleteManifest(name):: stage(name, 'deleteManifest') {
       cloudProvider: 'kubernetes',
