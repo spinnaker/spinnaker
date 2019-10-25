@@ -108,12 +108,12 @@ class MemoryCloudDriverCache(
         ?.firstOrNull { it.name == name && it.account == account && it.region == region }
     }
 
-  override fun availabilityZonesBy(account: String, vpcId: String, region: String): Set<String> =
-    availabilityZones.get("$account:$vpcId:$region") {
+  override fun availabilityZonesBy(account: String, vpcId: String, purpose: String, region: String): Set<String> =
+    availabilityZones.get("$account:$vpcId:$purpose:$region") {
       runBlocking {
         cloudDriver
           .listSubnets("aws")
-          .filter { it.account == account && it.vpcId == vpcId && it.region == region }
+          .filter { it.account == account && it.vpcId == vpcId && it.purpose == purpose && it.region == region }
           .map { it.availabilityZone }
           .toSet()
       }

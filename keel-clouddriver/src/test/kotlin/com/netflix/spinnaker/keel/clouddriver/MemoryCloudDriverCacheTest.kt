@@ -9,6 +9,7 @@ import io.mockk.mockk
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.api.expectThrows
+import strikt.assertions.containsExactly
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
@@ -31,18 +32,19 @@ object MemoryCloudDriverCacheTest {
   )
 
   val subnets = setOf(
-    Subnet("1", "vpc-1", "prod", "us-west-2", "us-west-2a", null),
-    Subnet("2", "vpc-1", "prod", "us-west-2", "us-west-2b", null),
-    Subnet("3", "vpc-1", "prod", "us-west-2", "us-west-2c", null),
-    Subnet("4", "vpc-1", "prod", "us-west-1", "us-west-1a", null),
-    Subnet("5", "vpc-1", "prod", "us-west-1", "us-west-1b", null),
-    Subnet("6", "vpc-1", "prod", "us-west-1", "us-west-1c", null),
-    Subnet("7", "vpc-2", "test", "us-west-2", "us-west-2a", null),
-    Subnet("8", "vpc-2", "test", "us-west-2", "us-west-2b", null),
-    Subnet("9", "vpc-2", "test", "us-west-2", "us-west-2c", null),
-    Subnet("a", "vpc-3", "prod", "us-west-2", "us-west-2a", null),
-    Subnet("b", "vpc-3", "prod", "us-west-2", "us-west-2b", null),
-    Subnet("c", "vpc-3", "prod", "us-west-2", "us-west-2c", null)
+    Subnet("1", "vpc-1", "prod", "us-west-2", "us-west-2a", "internal (vpc1)"),
+    Subnet("2", "vpc-1", "prod", "us-west-2", "us-west-2b", "internal (vpc1)"),
+    Subnet("3", "vpc-1", "prod", "us-west-2", "us-west-2c", "internal (vpc1)"),
+    Subnet("4", "vpc-1", "prod", "us-west-1", "us-west-1a", "internal (vpc1)"),
+    Subnet("5", "vpc-1", "prod", "us-west-1", "us-west-1b", "internal (vpc1)"),
+    Subnet("6", "vpc-1", "prod", "us-west-1", "us-west-1c", "internal (vpc1)"),
+    Subnet("7", "vpc-2", "test", "us-west-2", "us-west-2a", "internal (vpc2)"),
+    Subnet("8", "vpc-2", "test", "us-west-2", "us-west-2b", "internal (vpc2)"),
+    Subnet("9", "vpc-2", "test", "us-west-2", "us-west-2c", "internal (vpc2)"),
+    Subnet("a", "vpc-3", "prod", "us-west-2", "us-west-2a", "internal (vpc3)"),
+    Subnet("b", "vpc-3", "prod", "us-west-2", "us-west-2b", "internal (vpc3)"),
+    Subnet("c", "vpc-3", "prod", "us-west-2", "us-west-2c", "internal (vpc3)"),
+    Subnet("d", "vpc-3", "prod", "us-west-2", "us-west-2d", "external (vpc3)")
   )
 
   @Test
@@ -144,7 +146,7 @@ object MemoryCloudDriverCacheTest {
       cloudDriver.listSubnets("aws")
     } returns subnets
 
-    subject.availabilityZonesBy("test", "vpc-2", "us-west-2").let { zones ->
+    subject.availabilityZonesBy("test", "vpc-2", "internal (vpc2)", "us-west-2").let { zones ->
       expectThat(zones)
         .containsExactlyInAnyOrder("us-west-2a", "us-west-2b", "us-west-2c")
     }
@@ -157,7 +159,18 @@ object MemoryCloudDriverCacheTest {
     } returns mapOf("aws" to vpcs)
 
     expectThat(
-      subject.availabilityZonesBy("test", "vpc-2", "ew-west-1")
+      subject.availabilityZonesBy("test", "vpc-2", "external (vpc2)", "ew-west-1")
     ).isEmpty()
+  }
+
+  @Test
+  fun `availability zones are scoped by subnet`() {
+    coEvery {
+      cloudDriver.listSubnets("aws")
+    } returns subnets
+
+    expectThat(
+      subject.availabilityZonesBy("prod", "vpc-3", "external (vpc3)", "us-west-2")
+    ).containsExactly("us-west-2d")
   }
 }

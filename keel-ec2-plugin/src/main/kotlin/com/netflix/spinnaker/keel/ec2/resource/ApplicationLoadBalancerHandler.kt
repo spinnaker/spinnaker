@@ -131,6 +131,7 @@ class ApplicationLoadBalancerHandler(
       region to cloudDriverCache.availabilityZonesBy(
         account = exportable.account,
         vpcId = cloudDriverCache.subnetBy(exportable.account, region, alb.location.subnet).vpcId,
+        purpose = alb.location.subnet,
         region = region
       )
     }

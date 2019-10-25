@@ -164,7 +164,7 @@ internal class ApplicationLoadBalancerSpecHandlerTests : JUnit5Minutests {
 
     before {
       with(cloudDriverCache) {
-        every { availabilityZonesBy(any(), any(), vpc.region) } returns listOf("us-east-1c", "us-east-1d")
+        every { availabilityZonesBy(any(), any(), any(), vpc.region) } returns listOf("us-east-1c", "us-east-1d")
         every { networkBy(vpc.id) } returns vpc
         every { networkBy(vpc.name, vpc.account, vpc.region) } returns vpc
         every { subnetBy(any(), any(), any()) } returns sub1

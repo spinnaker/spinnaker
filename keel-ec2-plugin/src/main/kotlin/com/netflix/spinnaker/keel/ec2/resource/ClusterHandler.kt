@@ -136,6 +136,7 @@ class ClusterHandler(
       region to cloudDriverCache.availabilityZonesBy(
         account = exportable.account,
         vpcId = cloudDriverCache.subnetBy(exportable.account, region, serverGroup.location.subnet).vpcId,
+        purpose = serverGroup.location.subnet,
         region = region
       )
     }

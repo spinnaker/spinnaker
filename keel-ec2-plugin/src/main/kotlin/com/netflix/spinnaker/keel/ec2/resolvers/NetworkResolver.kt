@@ -103,5 +103,6 @@ private fun CloudDriverCache.resolveAvailabilityZones(
   availabilityZonesBy(
     account,
     subnetBy(account, region.name, subnet).vpcId,
+    subnet,
     region.name
   ).toSet()
