@@ -18,11 +18,9 @@ package com.netflix.spinnaker.igor.build
 
 import com.netflix.spinnaker.fiat.model.Authorization
 import com.netflix.spinnaker.fiat.model.resources.Permissions
-import com.netflix.spinnaker.igor.config.GitlabCiProperties
 import com.netflix.spinnaker.igor.config.GoogleCloudBuildProperties
 import com.netflix.spinnaker.igor.config.JenkinsConfig
 import com.netflix.spinnaker.igor.config.JenkinsProperties
-import com.netflix.spinnaker.igor.config.TravisProperties
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.service.BuildOperations
@@ -53,9 +51,6 @@ class InfoControllerSpec extends Specification {
     MockMvc mockMvc
     BuildCache cache
     BuildServices buildServices
-    JenkinsProperties jenkinsProperties
-    TravisProperties travisProperties
-    GitlabCiProperties gitlabCiProperties
     GoogleCloudBuildProperties gcbProperties
 
     @Shared
@@ -80,15 +75,9 @@ class InfoControllerSpec extends Specification {
           this.gcbProperties = new GoogleCloudBuildProperties()
           this.gcbProperties.accounts = gcbAccounts
         }
-        jenkinsProperties = Mock(JenkinsProperties)
-        travisProperties = Mock(TravisProperties)
-        gitlabCiProperties = Mock(GitlabCiProperties)
         mockMvc = MockMvcBuilders.standaloneSetup(
             new InfoController(buildCache: cache,
                 buildServices: this.buildServices,
-                jenkinsProperties: jenkinsProperties,
-                travisProperties: travisProperties,
-                gitlabCiProperties: gitlabCiProperties,
                 gcbProperties: gcbProperties))
             .build()
     }
