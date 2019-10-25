@@ -91,7 +91,7 @@ class ResourcePersister(
     val handler = handlerFor(updated)
     @Suppress("UNCHECKED_CAST")
     val existing = resourceRepository.get(id) as Resource<T>
-    val resource = existing.withSpec(updated.spec, handler.supportedKind.second)
+    val resource = existing.withSpec(updated.spec, handler.supportedKind.specClass)
 
     val diff = ResourceDiff(resource.spec, existing.spec)
 

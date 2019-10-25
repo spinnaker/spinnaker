@@ -50,6 +50,7 @@ import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.plugin.EnvironmentResolver
 import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
+import com.netflix.spinnaker.keel.plugin.SupportedKind
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -64,8 +65,8 @@ class SecurityGroupHandler(
   resolvers: List<Resolver<*>>
 ) : ResourceHandler<SecurityGroupSpec, Map<String, SecurityGroup>>(objectMapper, resolvers) {
 
-  override val apiVersion = SPINNAKER_EC2_API_V1
-  override val supportedKind = "security-group" to SecurityGroupSpec::class.java
+  override val supportedKind =
+    SupportedKind(SPINNAKER_EC2_API_V1, "security-group", SecurityGroupSpec::class.java)
 
   override suspend fun toResolvedType(resource: Resource<SecurityGroupSpec>): Map<String, SecurityGroup> =
     with(resource.spec) {
@@ -196,8 +197,8 @@ class SecurityGroupHandler(
     spec.generateOverrides(securityGroups)
 
     return SubmittedResource(
-      apiVersion = apiVersion,
-      kind = supportedKind.first,
+      apiVersion = supportedKind.apiVersion,
+      kind = supportedKind.kind,
       spec = spec,
       metadata = mapOf(
         "serviceAccount" to exportable.serviceAccount

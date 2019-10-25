@@ -85,7 +85,7 @@ class DefaultConfiguration {
       }
 
       override fun identify(apiVersion: ApiVersion, kind: String): Class<out ResourceSpec> {
-        return handlers.supporting(apiVersion, kind).supportedKind.second
+        return handlers.supporting(apiVersion, kind).supportedKind.specClass
       }
     }
 

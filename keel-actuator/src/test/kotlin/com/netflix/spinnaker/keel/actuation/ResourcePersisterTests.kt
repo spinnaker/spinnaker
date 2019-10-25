@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.keel.actuation
 
-import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
@@ -20,6 +19,7 @@ import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.plugin.SimpleResourceHandler
+import com.netflix.spinnaker.keel.plugin.SupportedKind
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import dev.minutest.junit.JUnit5Minutests
@@ -321,9 +321,8 @@ internal class ResourcePersisterTests : JUnit5Minutests {
 internal object DummyResourceHandler : SimpleResourceHandler<DummyResourceSpec>(
   configuredObjectMapper(), emptyList()
 ) {
-  override val apiVersion: ApiVersion = SPINNAKER_API_V1.subApi("test")
-
-  override val supportedKind = "whatever" to DummyResourceSpec::class.java
+  override val supportedKind =
+    SupportedKind(SPINNAKER_API_V1.subApi("test"), "whatever", DummyResourceSpec::class.java)
 
   override suspend fun current(resource: Resource<DummyResourceSpec>): DummyResourceSpec? {
     TODO("not implemented")

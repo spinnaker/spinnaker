@@ -41,6 +41,7 @@ import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.plugin.EnvironmentResolver
 import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
+import com.netflix.spinnaker.keel.plugin.SupportedKind
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -64,8 +65,8 @@ class TitusClusterHandler(
   resolvers: List<Resolver<*>>
 ) : ResourceHandler<TitusClusterSpec, Map<String, TitusServerGroup>>(objectMapper, resolvers) {
 
-  override val apiVersion = SPINNAKER_TITUS_API_V1
-  override val supportedKind = "cluster" to TitusClusterSpec::class.java
+  override val supportedKind =
+    SupportedKind(SPINNAKER_TITUS_API_V1, "cluster", TitusClusterSpec::class.java)
 
   override suspend fun toResolvedType(resource: Resource<TitusClusterSpec>): Map<String, TitusServerGroup> =
     with(resource.spec) {

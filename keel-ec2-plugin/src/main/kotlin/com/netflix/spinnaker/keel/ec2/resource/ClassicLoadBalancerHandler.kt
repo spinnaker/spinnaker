@@ -31,6 +31,7 @@ import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.plugin.EnvironmentResolver
 import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
+import com.netflix.spinnaker.keel.plugin.SupportedKind
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -46,8 +47,8 @@ class ClassicLoadBalancerHandler(
   resolvers: List<Resolver<*>>
 ) : ResourceHandler<ClassicLoadBalancerSpec, Map<String, ClassicLoadBalancer>>(objectMapper, resolvers) {
 
-  override val apiVersion = SPINNAKER_EC2_API_V1
-  override val supportedKind = "classic-load-balancer" to ClassicLoadBalancerSpec::class.java
+  override val supportedKind =
+    SupportedKind(SPINNAKER_EC2_API_V1, "classic-load-balancer", ClassicLoadBalancerSpec::class.java)
 
   override suspend fun toResolvedType(resource: Resource<ClassicLoadBalancerSpec>): Map<String, ClassicLoadBalancer> =
     with(resource.spec) {
@@ -172,8 +173,8 @@ class ClassicLoadBalancerHandler(
     spec.generateOverrides(clbs)
 
     return SubmittedResource(
-      apiVersion = apiVersion,
-      kind = supportedKind.first,
+      apiVersion = supportedKind.apiVersion,
+      kind = supportedKind.kind,
       spec = spec,
       metadata = mapOf(
         "serviceAccount" to exportable.serviceAccount

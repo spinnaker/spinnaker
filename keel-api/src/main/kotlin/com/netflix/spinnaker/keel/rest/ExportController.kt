@@ -68,7 +68,7 @@ class ExportController(
         )
         .map { it["name"] as String }
         .toSet(),
-      kind = handler.supportedKind.first
+      kind = kind
     )
 
     return runBlocking {

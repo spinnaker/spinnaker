@@ -28,12 +28,10 @@ abstract class ResourceHandler<S : ResourceSpec, R : Any>(
 
   protected val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
 
-  abstract val apiVersion: ApiVersion
-
   /**
    * Maps the kind to the implementation type.
    */
-  abstract val supportedKind: Pair<String, Class<S>>
+  abstract val supportedKind: SupportedKind<S>
 
   /**
    * Validates the resource spec and generates a metadata header.
@@ -178,11 +176,10 @@ abstract class ResourceHandler<S : ResourceSpec, R : Any>(
    * saw this method, alright?
    */
   fun registerResourceKind(objectMappers: Iterable<ObjectMapper>) {
-    val (kind, specClass) = supportedKind
-    val typeId = "$apiVersion/$kind"
-    val namedType = NamedType(specClass, typeId)
-    log.info("Registering ResourceSpec sub-type {}: {}", typeId, specClass.simpleName)
-    objectMappers.forEach { it.registerSubtypes(namedType) }
+    with(supportedKind) {
+      log.info("Registering ResourceSpec sub-type {}: {}", typeId, specClass.simpleName)
+      objectMappers.forEach { it.registerSubtypes(namedType) }
+    }
   }
 
   /**
@@ -191,6 +188,15 @@ abstract class ResourceHandler<S : ResourceSpec, R : Any>(
   fun registerResourceKind(vararg objectMappers: ObjectMapper) {
     registerResourceKind(objectMappers.toList())
   }
+}
+
+data class SupportedKind<SPEC : ResourceSpec>(
+  val apiVersion: ApiVersion,
+  val kind: String,
+  val specClass: Class<SPEC>
+) {
+  val typeId = "$apiVersion/$kind"
+  val namedType = NamedType(specClass, typeId)
 }
 
 /**
@@ -204,7 +210,7 @@ fun Collection<ResourceHandler<*, *>>.supporting(
   kind: String
 ): ResourceHandler<*, *> =
   find {
-    it.apiVersion == apiVersion && it.supportedKind.first == kind
+    it.supportedKind.apiVersion == apiVersion && it.supportedKind.kind == kind
   }
     ?: throw UnsupportedKind(apiVersion, kind)
 

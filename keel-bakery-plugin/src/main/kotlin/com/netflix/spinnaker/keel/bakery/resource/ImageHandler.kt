@@ -29,6 +29,7 @@ import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
 import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
+import com.netflix.spinnaker.keel.plugin.SupportedKind
 import kotlinx.coroutines.runBlocking
 import org.springframework.context.ApplicationEventPublisher
 
@@ -44,8 +45,8 @@ class ImageHandler(
   resolvers: List<Resolver<*>>
 ) : ResourceHandler<ImageSpec, Image>(objectMapper, resolvers) {
 
-  override val apiVersion = SPINNAKER_API_V1.subApi("bakery")
-  override val supportedKind = "image" to ImageSpec::class.java
+  override val supportedKind =
+    SupportedKind(SPINNAKER_API_V1.subApi("bakery"), "image", ImageSpec::class.java)
 
   override suspend fun toResolvedType(resource: Resource<ImageSpec>): Image =
     with(resource) {

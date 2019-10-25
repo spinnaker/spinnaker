@@ -31,6 +31,7 @@ import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.Resolver
+import com.netflix.spinnaker.keel.plugin.SupportedKind
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import com.netflix.spinnaker.keel.tags.EntityTag
 import com.netflix.spinnaker.keel.tags.EntityTags
@@ -48,8 +49,8 @@ class KeelTagHandler(
   resolvers: List<Resolver<*>>
 ) : ResourceHandler<KeelTagSpec, TaggedResource>(objectMapper, resolvers) {
 
-  override val apiVersion = SPINNAKER_API_V1.subApi("tag")
-  override val supportedKind = "keel-tag" to KeelTagSpec::class.java
+  override val supportedKind =
+    SupportedKind(SPINNAKER_API_V1.subApi("tag"), "keel-tag", KeelTagSpec::class.java)
 
   override suspend fun toResolvedType(resource: Resource<KeelTagSpec>): TaggedResource =
     when (resource.spec.tagState) {

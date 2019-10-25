@@ -292,7 +292,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
           serviceAccount = "keel@spin.io",
           moniker = parseMoniker("keel-fnord"),
           regions = setOf("us-west-3", "us-east-17"),
-          kind = handler.supportedKind.first
+          kind = handler.supportedKind.kind
         )
         val export = runBlocking {
           handler.export(exportable)

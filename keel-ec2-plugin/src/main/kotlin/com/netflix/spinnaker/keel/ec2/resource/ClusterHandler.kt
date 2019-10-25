@@ -43,6 +43,7 @@ import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.plugin.EnvironmentResolver
 import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
+import com.netflix.spinnaker.keel.plugin.SupportedKind
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -65,8 +66,8 @@ class ClusterHandler(
   resolvers: List<Resolver<*>>
 ) : ResourceHandler<ClusterSpec, Map<String, ServerGroup>>(objectMapper, resolvers) {
 
-  override val apiVersion = SPINNAKER_EC2_API_V1
-  override val supportedKind = "cluster" to ClusterSpec::class.java
+  override val supportedKind =
+    SupportedKind(SPINNAKER_EC2_API_V1, "cluster", ClusterSpec::class.java)
 
   override suspend fun toResolvedType(resource: Resource<ClusterSpec>): Map<String, ServerGroup> =
     with(resource.spec) {
@@ -207,8 +208,8 @@ class ClusterHandler(
     )
 
     return SubmittedResource(
-      apiVersion = apiVersion,
-      kind = supportedKind.first,
+      apiVersion = supportedKind.apiVersion,
+      kind = supportedKind.kind,
       spec = spec,
       metadata = mapOf("serviceAccount" to exportable.serviceAccount)
     )

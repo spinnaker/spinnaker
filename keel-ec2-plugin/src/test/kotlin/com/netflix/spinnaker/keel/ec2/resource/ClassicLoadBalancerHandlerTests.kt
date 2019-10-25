@@ -273,7 +273,7 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
           serviceAccount = "keel@spin.spin.spin",
           moniker = parseMoniker("testapp-managedogge-wow"),
           regions = setOf("us-east-1"),
-          kind = supportedKind.first
+          kind = supportedKind.kind
         )
         val export = runBlocking {
           export(exportable)

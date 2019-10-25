@@ -16,6 +16,7 @@ import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.plugin.CannotResolveCurrentState
 import com.netflix.spinnaker.keel.plugin.CannotResolveDesiredState
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
+import com.netflix.spinnaker.keel.plugin.SupportedKind
 import com.netflix.spinnaker.keel.telemetry.ResourceCheckSkipped
 import com.netflix.spinnaker.keel.test.DummyResource
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
@@ -57,11 +58,9 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
     before {
       every { plugin1.name } returns "plugin1"
-      every { plugin1.apiVersion } returns SPINNAKER_API_V1.subApi("plugin1")
-      every { plugin1.supportedKind } returns ("foo" to DummyResourceSpec::class.java)
+      every { plugin1.supportedKind } returns SupportedKind(SPINNAKER_API_V1.subApi("plugin1"), "foo", DummyResourceSpec::class.java)
       every { plugin2.name } returns "plugin2"
-      every { plugin2.apiVersion } returns SPINNAKER_API_V1.subApi("plugin2")
-      every { plugin2.supportedKind } returns ("bar" to DummyResourceSpec::class.java)
+      every { plugin2.supportedKind } returns SupportedKind(SPINNAKER_API_V1.subApi("plugin2"), "bar", DummyResourceSpec::class.java)
     }
 
     after {
