@@ -61,6 +61,17 @@ public class Permissions {
     return permissions.values().stream().flatMap(Collection::stream).collect(Collectors.toSet());
   }
 
+  /**
+   * Determines whether this Permissions has any Authorizations with associated roles.
+   *
+   * @return whether this Permissions has any Authorizations with associated roles
+   * @deprecated check {@code !isRestricted()} instead
+   */
+  @Deprecated
+  public boolean isEmpty() {
+    return !isRestricted();
+  }
+
   public boolean isRestricted() {
     return this.permissions.values().stream().anyMatch(groups -> !groups.isEmpty());
   }
