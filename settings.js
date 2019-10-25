@@ -32,6 +32,7 @@ var onDemandClusterThreshold = process.env.ON_DEMAND_CLUSTER_THRESHOLD || '350';
 var reduxLoggerEnabled = process.env.REDUX_LOGGER === 'true';
 var templatesEnabled = process.env.TEMPLATES_ENABLED === 'true';
 var useClassicFirewallLabels = process.env.USE_CLASSIC_FIREWALL_LABELS === 'true';
+var functionsEnabled = process.env.FUNCTIONS_ENABLED === 'true' ? true : false;
 
 window.spinnakerSettings = {
   authEnabled: authEnabled,
@@ -85,6 +86,7 @@ window.spinnakerSettings = {
     travis: false,
     versionedProviders: true,
     wercker: false,
+    functions: functionsEnabled,
   },
   gateUrl: apiHost,
   gitSources: ['stash', 'github', 'bitbucket', 'gitlab'],

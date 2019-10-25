@@ -41,7 +41,7 @@ export * from './image';
 export * from './instance';
 
 export * from './loadBalancer';
-
+export * from './function';
 export * from './modal';
 
 export * from './managed';
