@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.halyard.core.registry.v1;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.http.ByteArrayContent;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
@@ -47,35 +46,35 @@ public class GoogleWriteableProfileRegistry {
   GoogleWriteableProfileRegistry(WriteableProfileRegistryProperties properties) {
     HttpTransport httpTransport = GoogleCredentials.buildHttpTransport();
     JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
-    GoogleCredential credential;
+    com.google.auth.oauth2.GoogleCredentials credentials;
     try {
-      credential = loadCredential(httpTransport, jsonFactory, properties.getJsonPath());
+      credentials = loadCredentials(properties.getJsonPath());
     } catch (IOException e) {
       throw new RuntimeException("Failed to load json credential", e);
     }
 
     this.storage =
         new Storage.Builder(
-                httpTransport, jsonFactory, GoogleCredentials.setHttpTimeout(credential))
+                httpTransport, jsonFactory, GoogleCredentials.setHttpTimeout(credentials))
             .setApplicationName("halyard")
             .build();
     this.properties = properties;
   }
 
-  private GoogleCredential loadCredential(
-      HttpTransport transport, JsonFactory factory, String jsonPath) throws IOException {
-    GoogleCredential credential;
+  private com.google.auth.oauth2.GoogleCredentials loadCredentials(String jsonPath)
+      throws IOException {
+    com.google.auth.oauth2.GoogleCredentials credentials;
     if (!jsonPath.isEmpty()) {
       FileInputStream stream = new FileInputStream(jsonPath);
-      credential =
-          GoogleCredential.fromStream(stream, transport, factory)
+      credentials =
+          com.google.auth.oauth2.GoogleCredentials.fromStream(stream)
               .createScoped(Collections.singleton(StorageScopes.DEVSTORAGE_FULL_CONTROL));
       log.info("Loaded credentials from " + jsonPath);
     } else {
       log.info("Using default application credentials.");
-      credential = GoogleCredential.getApplicationDefault();
+      credentials = com.google.auth.oauth2.GoogleCredentials.getApplicationDefault();
     }
-    return credential;
+    return credentials;
   }
 
   public void writeBom(String version, String contents) {

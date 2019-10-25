@@ -19,7 +19,6 @@
 package com.netflix.spinnaker.halyard.core.registry.v1;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
@@ -121,15 +120,15 @@ public class GoogleProfileReader implements ProfileReader {
     HttpRequestInitializer requestInitializer;
 
     try {
-      GoogleCredential credential =
+      com.google.auth.oauth2.GoogleCredentials credentials =
           useApplicationDefaultCreds
-              ? GoogleCredential.getApplicationDefault()
-              : new GoogleCredential();
-      if (credential.createScopedRequired()) {
-        credential =
-            credential.createScoped(Collections.singleton(StorageScopes.DEVSTORAGE_FULL_CONTROL));
+              ? com.google.auth.oauth2.GoogleCredentials.getApplicationDefault()
+              : com.google.auth.oauth2.GoogleCredentials.newBuilder().build();
+      if (credentials.createScopedRequired()) {
+        credentials =
+            credentials.createScoped(Collections.singleton(StorageScopes.DEVSTORAGE_FULL_CONTROL));
       }
-      requestInitializer = GoogleCredentials.setHttpTimeout(credential);
+      requestInitializer = GoogleCredentials.setHttpTimeout(credentials);
 
       log.info("Loaded application default credential for reading BOMs & profiles.");
     } catch (Exception e) {

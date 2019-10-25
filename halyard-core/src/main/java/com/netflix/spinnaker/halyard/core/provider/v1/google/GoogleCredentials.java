@@ -20,9 +20,11 @@ package com.netflix.spinnaker.halyard.core.provider.v1.google;
 
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.HttpBackOffUnsuccessfulResponseHandler;
+import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.util.ExponentialBackOff;
+import com.google.auth.http.HttpCredentialsAdapter;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.concurrent.TimeUnit;
@@ -47,13 +49,15 @@ public class GoogleCredentials {
   }
 
   public static HttpRequestInitializer setHttpTimeout(
-      final HttpRequestInitializer requestInitializer) {
-    return request -> {
-      requestInitializer.initialize(request);
-      request.setConnectTimeout((int) TimeUnit.MINUTES.toMillis(2));
-      request.setReadTimeout((int) TimeUnit.MINUTES.toMillis(2));
-      request.setUnsuccessfulResponseHandler(
-          new HttpBackOffUnsuccessfulResponseHandler(new ExponentialBackOff()));
+      final com.google.auth.oauth2.GoogleCredentials credentials) {
+    return new HttpCredentialsAdapter(credentials) {
+      public void initialize(HttpRequest request) throws IOException {
+        super.initialize(request);
+        request.setConnectTimeout((int) TimeUnit.MINUTES.toMillis(2));
+        request.setReadTimeout((int) TimeUnit.MINUTES.toMillis(2));
+        request.setUnsuccessfulResponseHandler(
+            new HttpBackOffUnsuccessfulResponseHandler(new ExponentialBackOff()));
+      }
     };
   }
 }

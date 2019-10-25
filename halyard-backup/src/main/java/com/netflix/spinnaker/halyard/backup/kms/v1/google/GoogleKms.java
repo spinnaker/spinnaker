@@ -18,7 +18,6 @@
 
 package com.netflix.spinnaker.halyard.backup.kms.v1.google;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
@@ -27,6 +26,9 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.cloudkms.v1.CloudKMS;
 import com.google.api.services.cloudkms.v1.CloudKMSScopes;
 import com.google.api.services.cloudkms.v1.model.*;
+import com.google.auth.http.HttpCredentialsAdapter;
+import com.google.auth.oauth2.GoogleCredentials;
+import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import java.io.FileInputStream;
@@ -46,7 +48,7 @@ class GoogleKms {
   private final KeyRing keyRing;
   private final CryptoKey cryptoKey;
 
-  private GoogleCredential credential;
+  private GoogleCredentials credentials;
 
   private static final String KEY_PURPOSE = "ENCRYPT_DECRYPT";
 
@@ -73,7 +75,7 @@ class GoogleKms {
                 : properties.getCryptoKeyName());
 
     keyRing = ensureKeyRingExists(cloudKms, locationId, keyRingId);
-    cryptoKey = ensureCryptoKeyExists(cloudKms, credential, keyRingId, cryptoKeyId);
+    cryptoKey = ensureCryptoKeyExists(cloudKms, credentials, keyRingId, cryptoKeyId);
   }
 
   byte[] encryptContents(String plaintext) {
@@ -101,12 +103,12 @@ class GoogleKms {
     HttpTransport transport = new NetHttpTransport();
     JsonFactory jsonFactory = new JacksonFactory();
     try {
-      credential = loadKmsCredential(transport, jsonFactory, properties.getJsonPath());
+      credentials = loadKmsCredential(properties.getJsonPath());
     } catch (IOException e) {
       throw new RuntimeException("Unable to load KMS credentials: " + e.getMessage(), e);
     }
 
-    return new CloudKMS.Builder(transport, jsonFactory, credential)
+    return new CloudKMS.Builder(transport, jsonFactory, new HttpCredentialsAdapter(credentials))
         .setApplicationName("halyard")
         .build();
   }
@@ -124,7 +126,7 @@ class GoogleKms {
   }
 
   private static CryptoKey ensureCryptoKeyExists(
-      CloudKMS cloudKms, GoogleCredential credential, String keyRingId, String cryptoKeyId) {
+      CloudKMS cloudKms, GoogleCredentials credentials, String keyRingId, String cryptoKeyId) {
     CryptoKey cryptoKey;
     try {
       cryptoKey =
@@ -144,8 +146,15 @@ class GoogleKms {
     if (cryptoKey == null) {
       String cryptoKeyName = cryptoKeyId.substring(cryptoKeyId.lastIndexOf('/') + 1);
       log.info("Creating a new crypto key " + cryptoKeyName);
-      String user = "serviceAccount:" + credential.getServiceAccountId();
-      cryptoKey = createCryptoKey(cloudKms, keyRingId, cryptoKeyName, user);
+      if (credentials instanceof ServiceAccountCredentials) {
+        String user =
+            "serviceAccount:" + ((ServiceAccountCredentials) credentials).getClientEmail();
+        cryptoKey = createCryptoKey(cloudKms, keyRingId, cryptoKeyName, user);
+      } else {
+        throw new HalException(
+            Problem.Severity.FATAL,
+            "Credentials are not an instance of ServiceAccountCredentials: " + credentials);
+      }
     }
 
     return cryptoKey;
@@ -255,22 +264,21 @@ class GoogleKms {
     }
   }
 
-  private static GoogleCredential loadKmsCredential(
-      HttpTransport transport, JsonFactory factory, String jsonPath) throws IOException {
-    GoogleCredential credential;
+  private static GoogleCredentials loadKmsCredential(String jsonPath) throws IOException {
+    GoogleCredentials credentials;
     if (!jsonPath.isEmpty()) {
       FileInputStream stream = new FileInputStream(jsonPath);
-      credential = GoogleCredential.fromStream(stream, transport, factory);
+      credentials = GoogleCredentials.fromStream(stream);
       log.info("Loaded kms credentials from " + jsonPath);
     } else {
       log.info("Using kms default application credentials.");
-      credential = GoogleCredential.getApplicationDefault();
+      credentials = GoogleCredentials.getApplicationDefault();
     }
 
-    if (credential.createScopedRequired()) {
-      credential = credential.createScoped(CloudKMSScopes.all());
+    if (credentials.createScopedRequired()) {
+      credentials = credentials.createScoped(CloudKMSScopes.all());
     }
 
-    return credential;
+    return credentials;
   }
 }

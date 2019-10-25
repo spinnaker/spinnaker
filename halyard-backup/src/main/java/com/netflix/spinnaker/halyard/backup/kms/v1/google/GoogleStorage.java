@@ -18,7 +18,6 @@
 
 package com.netflix.spinnaker.halyard.backup.kms.v1.google;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.http.ByteArrayContent;
 import com.google.api.client.http.HttpTransport;
@@ -29,6 +28,8 @@ import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.StorageScopes;
 import com.google.api.services.storage.model.Bucket;
 import com.google.api.services.storage.model.StorageObject;
+import com.google.auth.http.HttpCredentialsAdapter;
+import com.google.auth.oauth2.GoogleCredentials;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import java.io.FileInputStream;
@@ -73,14 +74,14 @@ class GoogleStorage {
   private Storage buildCredentials(GoogleSecureStorageProperties properties) {
     HttpTransport transport = new NetHttpTransport();
     JsonFactory jsonFactory = new JacksonFactory();
-    GoogleCredential credential;
+    GoogleCredentials credentials;
     try {
-      credential = loadStorageCredential(transport, jsonFactory, properties.getJsonPath());
+      credentials = loadStorageCredential(properties.getJsonPath());
     } catch (IOException e) {
       throw new RuntimeException("Unable to load KMS credentials: " + e.getMessage(), e);
     }
 
-    return new Storage.Builder(transport, jsonFactory, credential)
+    return new Storage.Builder(transport, jsonFactory, new HttpCredentialsAdapter(credentials))
         .setApplicationName("halyard")
         .build();
   }
@@ -124,22 +125,21 @@ class GoogleStorage {
     }
   }
 
-  private static GoogleCredential loadStorageCredential(
-      HttpTransport transport, JsonFactory factory, String jsonPath) throws IOException {
-    GoogleCredential credential;
+  private static GoogleCredentials loadStorageCredential(String jsonPath) throws IOException {
+    GoogleCredentials credentials;
     if (!jsonPath.isEmpty()) {
       FileInputStream stream = new FileInputStream(jsonPath);
-      credential = GoogleCredential.fromStream(stream, transport, factory);
+      credentials = GoogleCredentials.fromStream(stream);
       log.info("Loaded storage credentials from " + jsonPath);
     } else {
       log.info("Using storage default application credentials.");
-      credential = GoogleCredential.getApplicationDefault();
+      credentials = GoogleCredentials.getApplicationDefault();
     }
 
-    if (credential.createScopedRequired()) {
-      credential = credential.createScoped(StorageScopes.all());
+    if (credentials.createScopedRequired()) {
+      credentials = credentials.createScoped(StorageScopes.all());
     }
 
-    return credential;
+    return credentials;
   }
 }

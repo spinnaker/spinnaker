@@ -7,6 +7,7 @@ dependencies {
   // TODO(lwander) Move to spinnaker-dependencies
   implementation 'com.google.apis:google-api-services-cloudkms:v1-rev8-1.22.0'
   implementation 'com.google.apis:google-api-services-storage'
+  implementation 'com.google.auth:google-auth-library-oauth2-http'
   implementation 'org.apache.commons:commons-lang3'
   implementation 'commons-io:commons-io:2.6'
   implementation 'org.apache.commons:commons-compress:1.14'
