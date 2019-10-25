@@ -27,7 +27,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import retrofit.RetrofitError;
 import retrofit.client.Header;
-import retrofit.http.Query;
 
 @RequestMapping("/managed")
 @RestController
@@ -84,7 +83,7 @@ public class ManagedController {
       @PathVariable("account") String account,
       @PathVariable("type") String type,
       @PathVariable("name") String name,
-      @Query("serviceAccount") String serviceAccount) {
+      @RequestParam("serviceAccount") String serviceAccount) {
     return keelService.exportResource(cloudProvider, account, type, name, serviceAccount);
   }
 
