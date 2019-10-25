@@ -16,10 +16,10 @@ class KindController(
   fun get(): List<Map<String, Any>> =
     plugins
       .groupBy { it.apiVersion }
-      .map { (apiVersion, plugin) ->
+      .map { (apiVersion, plugins) ->
         mapOf(
           "api-version" to apiVersion,
-          "kinds" to plugin.map { it.supportedKind.first.singular }
+          "kinds" to plugins.map { it.supportedKind.first }
         )
       }
 }

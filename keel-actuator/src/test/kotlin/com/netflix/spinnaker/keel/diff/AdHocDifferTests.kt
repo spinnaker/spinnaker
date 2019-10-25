@@ -20,7 +20,6 @@ package com.netflix.spinnaker.keel.diff
 import com.netflix.spinnaker.keel.api.ArtifactType
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DependsOnConstraint
-import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.api.SubmittedEnvironment
@@ -82,10 +81,10 @@ class AdHocDifferTests : JUnit5Minutests {
     before {
       every { plugin1.name } returns "plugin1"
       every { plugin1.apiVersion } returns SPINNAKER_API_V1.subApi("plugin1")
-      every { plugin1.supportedKind } returns (ResourceKind(SPINNAKER_API_V1.subApi("plugin1").group, "foo", "foos") to DummyResourceSpec::class.java)
+      every { plugin1.supportedKind } returns ("foo" to DummyResourceSpec::class.java)
       every { plugin2.name } returns "plugin2"
       every { plugin2.apiVersion } returns SPINNAKER_API_V1.subApi("plugin2")
-      every { plugin2.supportedKind } returns (ResourceKind(SPINNAKER_API_V1.subApi("plugin2").group, "bar", "bars") to DummyResourceSpec::class.java)
+      every { plugin2.supportedKind } returns ("bar" to DummyResourceSpec::class.java)
 
       coEvery {
         plugin1.normalize(subResource)

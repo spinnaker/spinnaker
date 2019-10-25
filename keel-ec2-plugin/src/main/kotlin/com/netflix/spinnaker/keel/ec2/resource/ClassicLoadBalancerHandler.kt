@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceId
-import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
@@ -48,11 +47,7 @@ class ClassicLoadBalancerHandler(
 ) : ResourceHandler<ClassicLoadBalancerSpec, Map<String, ClassicLoadBalancer>>(objectMapper, resolvers) {
 
   override val apiVersion = SPINNAKER_EC2_API_V1
-  override val supportedKind = ResourceKind(
-    apiVersion.group,
-    "classic-load-balancer",
-    "classic-load-balancers"
-  ) to ClassicLoadBalancerSpec::class.java
+  override val supportedKind = "classic-load-balancer" to ClassicLoadBalancerSpec::class.java
 
   override suspend fun toResolvedType(resource: Resource<ClassicLoadBalancerSpec>): Map<String, ClassicLoadBalancer> =
     with(resource.spec) {
@@ -178,7 +173,7 @@ class ClassicLoadBalancerHandler(
 
     return SubmittedResource(
       apiVersion = apiVersion,
-      kind = supportedKind.first.singular,
+      kind = supportedKind.first,
       spec = spec,
       metadata = mapOf(
         "serviceAccount" to exportable.serviceAccount

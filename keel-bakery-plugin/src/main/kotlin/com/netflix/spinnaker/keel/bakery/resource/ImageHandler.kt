@@ -9,7 +9,6 @@ import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.NoKnownArtifactVersions
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceId
-import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.id
@@ -46,11 +45,7 @@ class ImageHandler(
 ) : ResourceHandler<ImageSpec, Image>(objectMapper, resolvers) {
 
   override val apiVersion = SPINNAKER_API_V1.subApi("bakery")
-  override val supportedKind = ResourceKind(
-    apiVersion.group,
-    "image",
-    "images"
-  ) to ImageSpec::class.java
+  override val supportedKind = "image" to ImageSpec::class.java
 
   override suspend fun toResolvedType(resource: Resource<ImageSpec>): Image =
     with(resource) {

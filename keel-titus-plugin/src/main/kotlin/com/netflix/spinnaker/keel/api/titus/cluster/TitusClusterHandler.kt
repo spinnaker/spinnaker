@@ -22,7 +22,6 @@ import com.netflix.spinnaker.keel.api.Capacity
 import com.netflix.spinnaker.keel.api.ClusterDependencies
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceId
-import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.api.titus.CLOUD_PROVIDER
@@ -66,11 +65,7 @@ class TitusClusterHandler(
 ) : ResourceHandler<TitusClusterSpec, Map<String, TitusServerGroup>>(objectMapper, resolvers) {
 
   override val apiVersion = SPINNAKER_TITUS_API_V1
-  override val supportedKind = ResourceKind(
-    group = apiVersion.group,
-    singular = "cluster",
-    plural = "clusters"
-  ) to TitusClusterSpec::class.java
+  override val supportedKind = "cluster" to TitusClusterSpec::class.java
 
   override suspend fun toResolvedType(resource: Resource<TitusClusterSpec>): Map<String, TitusServerGroup> =
     with(resource.spec) {

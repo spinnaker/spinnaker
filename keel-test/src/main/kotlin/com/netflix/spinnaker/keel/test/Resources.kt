@@ -4,7 +4,6 @@ import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.SimpleLocations
@@ -149,8 +148,7 @@ object DummyResourceHandler : SimpleResourceHandler<DummyResourceSpec>(
 ) {
   override val apiVersion: ApiVersion = SPINNAKER_API_V1.subApi("test")
 
-  override val supportedKind: Pair<ResourceKind, Class<DummyResourceSpec>> =
-    ResourceKind("test", "whatever", "whatevers") to DummyResourceSpec::class.java
+  override val supportedKind = "whatever" to DummyResourceSpec::class.java
 
   override suspend fun current(resource: Resource<DummyResourceSpec>): DummyResourceSpec? {
     TODO("not implemented")

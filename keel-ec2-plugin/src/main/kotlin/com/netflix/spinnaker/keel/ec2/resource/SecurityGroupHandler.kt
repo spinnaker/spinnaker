@@ -19,7 +19,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceId
-import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
 import com.netflix.spinnaker.keel.api.SubmittedResource
@@ -66,11 +65,7 @@ class SecurityGroupHandler(
 ) : ResourceHandler<SecurityGroupSpec, Map<String, SecurityGroup>>(objectMapper, resolvers) {
 
   override val apiVersion = SPINNAKER_EC2_API_V1
-  override val supportedKind = ResourceKind(
-    apiVersion.group,
-    "security-group",
-    "security-groups"
-  ) to SecurityGroupSpec::class.java
+  override val supportedKind = "security-group" to SecurityGroupSpec::class.java
 
   override suspend fun toResolvedType(resource: Resource<SecurityGroupSpec>): Map<String, SecurityGroup> =
     with(resource.spec) {
@@ -202,7 +197,7 @@ class SecurityGroupHandler(
 
     return SubmittedResource(
       apiVersion = apiVersion,
-      kind = supportedKind.first.singular,
+      kind = supportedKind.first,
       spec = spec,
       metadata = mapOf(
         "serviceAccount" to exportable.serviceAccount

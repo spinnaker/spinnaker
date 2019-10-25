@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.keel
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.jsontype.NamedType
 import com.netflix.spinnaker.keel.info.InstanceIdSupplier
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
@@ -81,17 +80,12 @@ class KeelApplication {
   @Autowired
   lateinit var objectMappers: List<ObjectMapper>
 
-  // todo eb: https://github.com/spinnaker/keel/issues/527
   @PostConstruct
   fun registerResourceSpecSubtypes() {
     plugins
       .filterIsInstance<ResourceHandler<*, *>>()
-      .map { Triple(it.apiVersion, it.supportedKind.first.singular, it.supportedKind.second) }
-      .forEach { (apiVersion, kind, type) ->
-        objectMappers.forEach { objectMapper ->
-          log.info("Registering ResourceSpec sub-type {}/{}: {}", apiVersion, kind, type.simpleName)
-          objectMapper.registerSubtypes(NamedType(type, "$apiVersion/$kind"))
-        }
+      .forEach { handler ->
+        handler.registerResourceKind(objectMappers)
       }
   }
 

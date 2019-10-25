@@ -19,7 +19,6 @@ package com.netflix.spinnaker.keel.tagging
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.serviceAccount
@@ -50,11 +49,7 @@ class KeelTagHandler(
 ) : ResourceHandler<KeelTagSpec, TaggedResource>(objectMapper, resolvers) {
 
   override val apiVersion = SPINNAKER_API_V1.subApi("tag")
-  override val supportedKind = ResourceKind(
-    apiVersion.group,
-    "keel-tag",
-    "keel-tags"
-  ) to KeelTagSpec::class.java
+  override val supportedKind = "keel-tag" to KeelTagSpec::class.java
 
   override suspend fun toResolvedType(resource: Resource<KeelTagSpec>): TaggedResource =
     when (resource.spec.tagState) {

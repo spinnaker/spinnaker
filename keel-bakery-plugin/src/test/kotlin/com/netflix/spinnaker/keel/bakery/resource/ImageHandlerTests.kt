@@ -62,7 +62,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
     )
     val resource = resource(
       apiVersion = handler.apiVersion,
-      kind = handler.supportedKind.first.singular,
+      kind = handler.supportedKind.first,
       spec = ImageSpec(
         artifactName = "keel",
         baseLabel = RELEASE,

@@ -7,5 +7,5 @@ data class Exportable(
   val serviceAccount: String,
   val moniker: Moniker,
   val regions: Set<String>,
-  val kind: ResourceKind
+  val kind: String
 )

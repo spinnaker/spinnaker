@@ -1,10 +1,10 @@
 package com.netflix.spinnaker.keel.plugin
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.jsontype.NamedType
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.SubmittedResource
@@ -33,7 +33,7 @@ abstract class ResourceHandler<S : ResourceSpec, R : Any>(
   /**
    * Maps the kind to the implementation type.
    */
-  abstract val supportedKind: Pair<ResourceKind, Class<S>>
+  abstract val supportedKind: Pair<String, Class<S>>
 
   /**
    * Validates the resource spec and generates a metadata header.
@@ -171,6 +171,26 @@ abstract class ResourceHandler<S : ResourceSpec, R : Any>(
    * associated with [id], `false` otherwise.
    */
   open suspend fun actuationInProgress(id: ResourceId): Boolean = false
+
+  /**
+   * Used to register the [ResourceSpec] sub-type supported by this handler with Jackson so we can
+   * serialize and deserialize it. Do not override this or call it, or even look at it. You never
+   * saw this method, alright?
+   */
+  fun registerResourceKind(objectMappers: Iterable<ObjectMapper>) {
+    val (kind, specClass) = supportedKind
+    val typeId = "$apiVersion/$kind"
+    val namedType = NamedType(specClass, typeId)
+    log.info("Registering ResourceSpec sub-type {}: {}", typeId, specClass.simpleName)
+    objectMappers.forEach { it.registerSubtypes(namedType) }
+  }
+
+  /**
+   * Convenient version of `registerResourceKind(Iterable<ObjectMapper>)` for tests, etc.
+   */
+  fun registerResourceKind(vararg objectMappers: ObjectMapper) {
+    registerResourceKind(objectMappers.toList())
+  }
 }
 
 /**
@@ -184,8 +204,7 @@ fun Collection<ResourceHandler<*, *>>.supporting(
   kind: String
 ): ResourceHandler<*, *> =
   find {
-    it.apiVersion == apiVersion &&
-      (it.supportedKind.first.singular == kind || it.supportedKind.first.plural == kind)
+    it.apiVersion == apiVersion && it.supportedKind.first == kind
   }
     ?: throw UnsupportedKind(apiVersion, kind)
 

@@ -7,7 +7,6 @@ import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceId
-import com.netflix.spinnaker.keel.api.ResourceKind
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
@@ -67,11 +66,7 @@ class ClusterHandler(
 ) : ResourceHandler<ClusterSpec, Map<String, ServerGroup>>(objectMapper, resolvers) {
 
   override val apiVersion = SPINNAKER_EC2_API_V1
-  override val supportedKind = ResourceKind(
-    group = apiVersion.group,
-    singular = "cluster",
-    plural = "clusters"
-  ) to ClusterSpec::class.java
+  override val supportedKind = "cluster" to ClusterSpec::class.java
 
   override suspend fun toResolvedType(resource: Resource<ClusterSpec>): Map<String, ServerGroup> =
     with(resource.spec) {
@@ -213,7 +208,7 @@ class ClusterHandler(
 
     return SubmittedResource(
       apiVersion = apiVersion,
-      kind = supportedKind.first.singular,
+      kind = supportedKind.first,
       spec = spec,
       metadata = mapOf("serviceAccount" to exportable.serviceAccount)
     )
