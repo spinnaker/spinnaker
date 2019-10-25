@@ -50,6 +50,11 @@ export class Clusters extends React.Component<IClustersProps> implements IWizard
     formik.setFieldValue(path, isChecked ? [] : null);
   }
 
+  private areStackAndDetailDisabled(cluster: IProjectCluster): boolean {
+    const account = this.props.accounts.find(({ name }) => name === cluster.account);
+    return account.type === 'kubernetes' && account.providerVersion === 'v2';
+  }
+
   public render() {
     const { HelpField } = NgReact;
     const { accounts } = this.props;
@@ -87,6 +92,7 @@ export class Clusters extends React.Component<IClustersProps> implements IWizard
                   {clusters.map((cluster, idx) => {
                     const clusterPath = `config.clusters[${idx}]`;
                     const applicationsPath = `${clusterPath}.applications`;
+                    const areStackAndDetailDisabled = this.areStackAndDetailDisabled(cluster);
 
                     return (
                       <tr key={idx}>
@@ -118,14 +124,26 @@ export class Clusters extends React.Component<IClustersProps> implements IWizard
                         <td>
                           <FormikFormField
                             name={`${clusterPath}.stack`}
-                            input={props => <TextInput {...props} inputClassName="sp-padding-xs-xaxis" />}
+                            input={props => (
+                              <TextInput
+                                {...props}
+                                disabled={areStackAndDetailDisabled}
+                                inputClassName="sp-padding-xs-xaxis"
+                              />
+                            )}
                           />
                         </td>
 
                         <td>
                           <FormikFormField
                             name={`${clusterPath}.detail`}
-                            input={props => <TextInput {...props} inputClassName="sp-padding-xs-xaxis" />}
+                            input={props => (
+                              <TextInput
+                                {...props}
+                                disabled={areStackAndDetailDisabled}
+                                inputClassName="sp-padding-xs-xaxis"
+                              />
+                            )}
                           />
                         </td>
 
