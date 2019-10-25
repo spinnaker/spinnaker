@@ -16,15 +16,16 @@
 
 package com.netflix.spinnaker.clouddriver.googlecommon.security
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.client.http.HttpTransport
 import com.google.api.client.json.JsonFactory
+import com.google.auth.oauth2.GoogleCredentials
+import groovy.transform.CompileStatic
 
+@CompileStatic
 class GoogleCommonCredentialUtils {
-  static getCredentials (HttpTransport httpTransport, JsonFactory jsonFactory, String jsonKey, String scope) {
+  static GoogleCredentials getCredentials(String jsonKey, String scope) {
     InputStream credentialStream = new ByteArrayInputStream(jsonKey.getBytes("UTF-8"))
 
-    return GoogleCredential.fromStream(credentialStream, httpTransport, jsonFactory)
-      .createScoped(Collections.singleton(scope))
+    return GoogleCredentials.fromStream(credentialStream).createScoped(Collections.singleton(scope))
   }
 }

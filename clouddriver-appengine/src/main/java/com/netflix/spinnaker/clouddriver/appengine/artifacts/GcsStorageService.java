@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.artifacts;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
@@ -25,6 +25,8 @@ import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.StorageScopes;
 import com.google.api.services.storage.model.Objects;
 import com.google.api.services.storage.model.StorageObject;
+import com.google.auth.http.HttpCredentialsAdapter;
+import com.google.auth.oauth2.GoogleCredentials;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactUtils;
 import java.io.File;
 import java.io.FileInputStream;
@@ -64,30 +66,31 @@ public class GcsStorageService {
     }
 
     public GcsStorageService newForCredentials(String credentialsPath) throws IOException {
-      GoogleCredential credential = loadCredential(credentialsPath);
+      GoogleCredentials credentials = loadCredentials(credentialsPath);
+      HttpRequestInitializer requestInitializer = new HttpCredentialsAdapter(credentials);
       Storage storage =
-          new Storage.Builder(transport_, jsonFactory_, credential)
+          new Storage.Builder(transport_, jsonFactory_, requestInitializer)
               .setApplicationName(applicationName_)
               .build();
 
       return new GcsStorageService(storage);
     }
 
-    private GoogleCredential loadCredential(String credentialsPath) throws IOException {
-      GoogleCredential credential;
+    private GoogleCredentials loadCredentials(String credentialsPath) throws IOException {
+      GoogleCredentials credentials;
       if (credentialsPath != null && !credentialsPath.isEmpty()) {
         FileInputStream stream = new FileInputStream(credentialsPath);
-        credential =
-            GoogleCredential.fromStream(stream, transport_, jsonFactory_)
+        credentials =
+            GoogleCredentials.fromStream(stream)
                 .createScoped(Collections.singleton(StorageScopes.DEVSTORAGE_READ_ONLY));
         log.info("Loaded credentials from " + credentialsPath);
       } else {
         log.info(
             "spinnaker.gcs.enabled without spinnaker.gcs.jsonPath. "
                 + "Using default application credentials. Using default credentials.");
-        credential = GoogleCredential.getApplicationDefault();
+        credentials = GoogleCredentials.getApplicationDefault();
       }
-      return credential;
+      return credentials;
     }
   };
 

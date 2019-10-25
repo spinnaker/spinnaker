@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.google.security
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
-import com.google.api.client.googleapis.testing.auth.oauth2.MockGoogleCredential
 import com.google.api.client.http.HttpTransport
-import com.google.api.client.json.JsonFactory
 import com.google.api.client.testing.http.MockHttpTransport
+import com.google.auth.oauth2.AccessToken
 import com.netflix.spinnaker.clouddriver.google.ComputeVersion
+
+import java.time.LocalDate
 
 class FakeGoogleCredentials extends GoogleCredentials {
 
@@ -39,7 +39,8 @@ class FakeGoogleCredentials extends GoogleCredentials {
   }
 
   @Override
-  GoogleCredential getCredential(HttpTransport httpTransport, JsonFactory _) {
-    return new MockGoogleCredential.Builder().setTransport(httpTransport).build()
+  com.google.auth.oauth2.GoogleCredentials getCredentials() {
+    LocalDate tomorrow = LocalDate.now().plusDays(1)
+    com.google.auth.oauth2.GoogleCredentials.create(new AccessToken("some-token", java.sql.Date.valueOf(tomorrow)))
   }
 }

@@ -16,13 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.google.security
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
-import com.google.api.client.http.HttpTransport
-import com.google.api.client.json.JsonFactory
 import com.google.api.services.compute.ComputeScopes
 import com.netflix.spinnaker.clouddriver.google.ComputeVersion
 import com.netflix.spinnaker.clouddriver.googlecommon.security.GoogleCommonCredentialUtils
+import groovy.transform.CompileStatic
 
+@CompileStatic
 class GoogleJsonCredentials extends GoogleCredentials {
   final String jsonKey
 
@@ -32,7 +31,7 @@ class GoogleJsonCredentials extends GoogleCredentials {
   }
 
   @Override
-  GoogleCredential getCredential(HttpTransport httpTransport, JsonFactory jsonFactory) {
-    GoogleCommonCredentialUtils.getCredentials(httpTransport, jsonFactory, jsonKey, ComputeScopes.COMPUTE);
+  com.google.auth.oauth2.GoogleCredentials getCredentials() {
+    GoogleCommonCredentialUtils.getCredentials(jsonKey, ComputeScopes.COMPUTE);
   }
 }

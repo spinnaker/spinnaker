@@ -22,22 +22,23 @@ import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.compute.Compute
 import com.netflix.spinnaker.clouddriver.google.ComputeVersion
 import com.netflix.spinnaker.clouddriver.googlecommon.security.GoogleCommonCredentials
+import groovy.transform.CompileStatic
 import groovy.transform.TupleConstructor
 
 @TupleConstructor
+@CompileStatic
 public class GoogleCredentials extends GoogleCommonCredentials {
   final String project
   final ComputeVersion computeVersion
 
   Compute getCompute(String applicationName) {
-    JsonFactory jsonFactory = JacksonFactory.getDefaultInstance()
     HttpTransport httpTransport = buildHttpTransport()
+    JsonFactory jsonFactory = JacksonFactory.getDefaultInstance()
 
-    def credential = getCredential(httpTransport, jsonFactory)
-    def reqInit = setHttpTimeout(credential)
-    def computeBuilder = new Compute.Builder(httpTransport, jsonFactory, credential)
+    def credentials = getCredentials()
+    def reqInit = setHttpTimeout(credentials)
+    def computeBuilder = new Compute.Builder(httpTransport, jsonFactory, reqInit)
         .setApplicationName(applicationName)
-        .setHttpRequestInitializer(reqInit)
 
     if (computeVersion.servicePath) {
       computeBuilder.setServicePath(computeVersion.servicePath)

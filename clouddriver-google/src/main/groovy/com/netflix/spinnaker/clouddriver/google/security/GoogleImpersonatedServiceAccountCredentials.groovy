@@ -16,12 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.google.security
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
-import com.google.api.client.http.HttpTransport
-import com.google.api.client.json.JsonFactory
+import com.google.api.services.compute.ComputeScopes
+import com.google.auth.oauth2.ImpersonatedCredentials
 import com.netflix.spinnaker.clouddriver.google.ComputeVersion
+import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
+@CompileStatic
 @Slf4j
 class GoogleImpersonatedServiceAccountCredentials extends GoogleCredentials {
 
@@ -38,11 +39,16 @@ class GoogleImpersonatedServiceAccountCredentials extends GoogleCredentials {
   }
 
   @Override
-  GoogleCredential getCredential(HttpTransport httpTransport, JsonFactory jsonFactory) {
-    def builder = new GoogleCredential.Builder()
-        .setTransport(httpTransport)
-        .setJsonFactory(jsonFactory)
-        .setClientAuthentication(GoogleCredential.getApplicationDefault())
-    return new GoogleImpersonatedCredential(builder, serviceAccountId, serviceAccountProject)
+  com.google.auth.oauth2.GoogleCredentials getCredentials() {
+    def sourceCredentials = com.google.auth.oauth2.GoogleCredentials.getApplicationDefault()
+    def targetPrincipal = "${serviceAccountId}@${serviceAccountProject}.iam.gserviceaccount.com".toString()
+    def scopes = Collections.singletonList(ComputeScopes.CLOUD_PLATFORM)
+    def lifetime = 3600
+
+    return ImpersonatedCredentials.create(sourceCredentials,
+        targetPrincipal,
+        null /* delegates */,
+        scopes,
+        lifetime)
   }
 }

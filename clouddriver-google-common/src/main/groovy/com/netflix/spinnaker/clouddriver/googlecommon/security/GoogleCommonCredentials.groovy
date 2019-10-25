@@ -16,17 +16,19 @@
 
 package com.netflix.spinnaker.clouddriver.googlecommon.security
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
 import com.google.api.client.http.HttpRequest
 import com.google.api.client.http.HttpRequestInitializer
 import com.google.api.client.http.HttpTransport
-import com.google.api.client.json.JsonFactory
+import com.google.auth.http.HttpCredentialsAdapter
+import com.google.auth.oauth2.GoogleCredentials
+import groovy.transform.CompileStatic
 
+@CompileStatic
 class GoogleCommonCredentials {
-  GoogleCredential getCredential(HttpTransport httpTransport, JsonFactory jsonFactory) {
+  GoogleCredentials getCredentials() {
     // No JSON key was specified in matching config on key server, so use application default credentials.
-    GoogleCredential.getApplicationDefault()
+    GoogleCredentials.getApplicationDefault()
   }
 
   HttpTransport buildHttpTransport() {
@@ -37,11 +39,11 @@ class GoogleCommonCredentials {
     }
   }
 
-  static HttpRequestInitializer setHttpTimeout(final HttpRequestInitializer requestInitializer) {
-    return new HttpRequestInitializer() {
+  static HttpRequestInitializer setHttpTimeout(final GoogleCredentials credentials) {
+    return new HttpCredentialsAdapter(credentials) {
       @Override
       public void initialize(HttpRequest httpRequest) throws IOException {
-        requestInitializer.initialize(httpRequest)
+        super.initialize(httpRequest);
         httpRequest.setConnectTimeout(2 * 60000)  // 2 minutes connect timeout
         httpRequest.setReadTimeout(2 * 60000)  // 2 minutes read timeout
       }

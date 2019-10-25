@@ -419,8 +419,9 @@ class AbstractGoogleServerGroupCachingAgentTest {
         .isEqualTo(serverInstance.getNetworkInterfaces());
     assertThat(cacheInstance.getNetworkName()).isEqualTo("myNetworkName");
     assertThat(cacheInstance.getMetadata()).isEqualTo(serverInstance.getMetadata());
-    assertThat(cacheInstance.getDisks()).isEqualTo(serverInstance.getDisks());
-
+    AttachedDisk diskWithCorrectType = new AttachedDisk();
+    diskWithCorrectType.putAll(cacheInstance.getDisks().get(0));
+    assertThat(ImmutableList.of(diskWithCorrectType)).isEqualTo(serverInstance.getDisks());
     assertThat(cacheInstance.getServiceAccounts()).isEqualTo(serverInstance.getServiceAccounts());
     assertThat(cacheInstance.getSelfLink()).isEqualTo(serverInstance.getSelfLink());
     assertThat(cacheInstance.getTags()).isEqualTo(serverInstance.getTags());

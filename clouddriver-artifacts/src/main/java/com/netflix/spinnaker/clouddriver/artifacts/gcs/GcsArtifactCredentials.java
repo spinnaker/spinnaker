@@ -18,13 +18,15 @@
 package com.netflix.spinnaker.clouddriver.artifacts.gcs;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.StorageScopes;
+import com.google.auth.http.HttpCredentialsAdapter;
+import com.google.auth.oauth2.GoogleCredentials;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.io.FileInputStream;
@@ -50,25 +52,27 @@ public class GcsArtifactCredentials implements ArtifactCredentials {
     JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
     String credentialsPath = account.getJsonPath();
 
-    GoogleCredential credential;
+    GoogleCredentials credentials;
 
-    if (!StringUtils.isEmpty(credentialsPath)) {
-      FileInputStream stream = new FileInputStream(credentialsPath);
-      credential =
-          GoogleCredential.fromStream(stream, transport, jsonFactory)
-              .createScoped(Collections.singleton(StorageScopes.DEVSTORAGE_READ_ONLY));
-
-      log.info("Loaded credentials from {}", credentialsPath);
-    } else {
+    if (StringUtils.isEmpty(credentialsPath)) {
       log.info(
           "artifacts.gcs.enabled without artifacts.gcs.[].jsonPath. Using default application credentials.");
 
-      credential = GoogleCredential.getApplicationDefault();
+      credentials = GoogleCredentials.getApplicationDefault();
+    } else {
+      FileInputStream stream = new FileInputStream(credentialsPath);
+      credentials =
+          GoogleCredentials.fromStream(stream)
+              .createScoped(Collections.singleton(StorageScopes.DEVSTORAGE_READ_ONLY));
+
+      log.info("Loaded credentials from {}", credentialsPath);
     }
+
+    HttpRequestInitializer requestInitializer = new HttpCredentialsAdapter(credentials);
 
     name = account.getName();
     storage =
-        new Storage.Builder(transport, jsonFactory, credential)
+        new Storage.Builder(transport, jsonFactory, requestInitializer)
             .setApplicationName(applicationName)
             .build();
   }
