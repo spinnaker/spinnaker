@@ -16,11 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.google.cache
 
+import com.google.common.collect.ImmutableSet
+import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import groovy.util.logging.Slf4j
 
+import static com.google.common.collect.ImmutableSet.toImmutableSet
+import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.ON_DEMAND
 
 @Slf4j
@@ -29,6 +33,27 @@ class CacheResultBuilder {
   Long startTime
 
   CacheMutation onDemand = new CacheMutation()
+
+  Set<String> authoritativeTypes = ImmutableSet.of()
+
+  CacheResultBuilder() {}
+
+  /**
+   * Create a CacheResultBuilder for the given dataTypes.
+   *
+   * Any authoritative types in dataTypes are guaranteed to be listed in the
+   * output. If you say you are authoritative for "clusters", but don't include
+   * any data under that namespace, an empty list will be included in the
+   * result. (Whereas if you don't pass dataTypes to the constructor, "clusters"
+   * will just be missing from the result if you don't specify any, and any
+   * existing clusters will remain in the cache).
+   */
+  CacheResultBuilder(Collection<AgentDataType> dataTypes) {
+    authoritativeTypes = dataTypes.stream()
+      .filter({ dataType -> dataType.getAuthority() == AUTHORITATIVE })
+      .map({ dataType -> dataType.getTypeName() })
+      .collect(toImmutableSet())
+  }
 
   Map<String, NamespaceBuilder> namespaceBuilders = [:].withDefault {
     String ns -> new NamespaceBuilder(namespace: ns)
@@ -42,6 +67,9 @@ class CacheResultBuilder {
     Map<String, Collection<CacheData>> keep = [:]
     Map<String, Collection<String>> evict = [:]
 
+    authoritativeTypes.each { namespace ->
+      keep[namespace] = []
+    }
     if (!onDemand.toKeep.empty) {
       keep += [(ON_DEMAND.ns): onDemand.toKeep.values()]
     }

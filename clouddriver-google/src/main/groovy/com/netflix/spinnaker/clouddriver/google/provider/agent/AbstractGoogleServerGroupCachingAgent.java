@@ -150,7 +150,7 @@ abstract class AbstractGoogleServerGroupCachingAgent
   public CacheResult loadData(ProviderCache providerCache) {
 
     try {
-      CacheResultBuilder cacheResultBuilder = new CacheResultBuilder();
+      CacheResultBuilder cacheResultBuilder = new CacheResultBuilder(DATA_TYPES);
       cacheResultBuilder.setStartTime(System.currentTimeMillis());
 
       List<GoogleServerGroup> serverGroups = getServerGroups(providerCache);
