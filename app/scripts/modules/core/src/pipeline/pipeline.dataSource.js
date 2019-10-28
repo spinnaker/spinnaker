@@ -77,6 +77,7 @@ module.exports = angular.module('spinnaker.core.pipeline.dataSource', [EXECUTION
         lazy: true,
         badge: 'runningExecutions',
         description: 'Orchestrated deployment management',
+        defaultData: [],
       });
 
       ApplicationDataSourceRegistry.registerDataSource({
@@ -86,6 +87,7 @@ module.exports = angular.module('spinnaker.core.pipeline.dataSource', [EXECUTION
         afterLoad: addPipelineTags,
         lazy: true,
         visible: false,
+        defaultData: [],
       });
 
       ApplicationDataSourceRegistry.registerDataSource({
@@ -94,6 +96,7 @@ module.exports = angular.module('spinnaker.core.pipeline.dataSource', [EXECUTION
         loader: loadRunningExecutions,
         onLoad: addRunningExecutions,
         afterLoad: runningExecutionsLoaded,
+        defaultData: [],
       });
     }
   },

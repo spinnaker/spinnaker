@@ -42,6 +42,7 @@ module(FUNCTION_DATA_SOURCE, [FUNCTION_READ_SERVICE]).run([
       credentialsField: 'account',
       regionField: 'region',
       description: 'Serverless Compute Service.',
+      defaultData: [],
     });
   },
 ]);

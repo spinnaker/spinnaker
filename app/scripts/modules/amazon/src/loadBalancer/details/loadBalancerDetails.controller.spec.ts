@@ -23,7 +23,11 @@ describe('Controller: LoadBalancerDetailsCtrl', function() {
     mock.inject(($controller: IControllerService, $rootScope: IRootScopeService, _$state_: StateService) => {
       $scope = $rootScope.$new();
       $state = _$state_;
-      const app = ApplicationModelBuilder.createApplicationForTests('app', { key: 'loadBalancers', lazy: true });
+      const app = ApplicationModelBuilder.createApplicationForTests('app', {
+        key: 'loadBalancers',
+        lazy: true,
+        defaultData: [],
+      });
       app.loadBalancers.data.push(loadBalancer);
       controller = $controller(AwsLoadBalancerDetailsController, {
         $scope,

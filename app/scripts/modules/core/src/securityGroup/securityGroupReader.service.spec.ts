@@ -55,11 +55,13 @@ describe('Service: securityGroupReader', function() {
         key: 'securityGroups',
         loader: () => $q.resolve([]),
         onLoad: (_app, _data) => $q.resolve(_data),
+        defaultData: [],
       },
       {
         key: 'serverGroups',
         loader: () => $q.resolve([]),
         onLoad: (_app, _data) => $q.resolve(_data),
+        defaultData: [],
       },
       {
         key: 'loadBalancers',
@@ -73,6 +75,7 @@ describe('Service: securityGroupReader', function() {
             },
           ]),
         onLoad: (_app, _data) => $q.resolve(_data),
+        defaultData: [],
       },
     );
 
@@ -132,11 +135,13 @@ describe('Service: securityGroupReader', function() {
       'app',
       {
         key: 'securityGroups',
+        defaultData: [],
       },
       {
         key: 'serverGroups',
         loader: () => $q.resolve([]),
         onLoad: (_app, _data) => $q.resolve(_data),
+        defaultData: [],
       },
       {
         key: 'loadBalancers',
@@ -150,6 +155,7 @@ describe('Service: securityGroupReader', function() {
             },
           ]),
         onLoad: (_app, _data) => $q.resolve(_data),
+        defaultData: [],
       },
     );
 

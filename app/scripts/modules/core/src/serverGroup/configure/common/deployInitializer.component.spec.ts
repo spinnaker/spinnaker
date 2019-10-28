@@ -27,7 +27,11 @@ describe('Component: deployInitializer', () => {
 
   describe('template initialization', () => {
     it('creates separate template options for each account and region of a cluster', () => {
-      application = ApplicationModelBuilder.createApplicationForTests('app', { key: 'serverGroups', lazy: true });
+      application = ApplicationModelBuilder.createApplicationForTests('app', {
+        key: 'serverGroups',
+        lazy: true,
+        defaultData: [],
+      });
       application.getDataSource('serverGroups').data = [
         {
           name: 'sg1',

@@ -51,6 +51,7 @@ module(SERVER_GROUP_DATA_SOURCE, [CLUSTER_SERVICE]).run([
       credentialsField: 'account',
       regionField: 'region',
       description: 'Collections of server groups or jobs',
+      defaultData: [],
     });
   },
 ]);

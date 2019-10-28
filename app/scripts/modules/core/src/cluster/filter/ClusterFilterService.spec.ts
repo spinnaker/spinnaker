@@ -29,7 +29,11 @@ describe('Service: clusterFilterService', function() {
     });
 
     this.buildApplication = (json: any) => {
-      const app = ApplicationModelBuilder.createApplicationForTests('app', { key: 'serverGroups', lazy: true });
+      const app = ApplicationModelBuilder.createApplicationForTests('app', {
+        key: 'serverGroups',
+        lazy: true,
+        defaultData: [],
+      });
       if (json.serverGroups) {
         app.getDataSource('serverGroups').data = _.cloneDeep(json.serverGroups.data);
       }

@@ -54,9 +54,11 @@ describe('Service: SkinService', () => {
               },
             ]),
           onLoad: (_app, data) => $q.resolve(data),
+          defaultData: [],
         },
         {
           key: 'loadBalancers',
+          defaultData: [],
         },
       );
 
@@ -82,9 +84,11 @@ describe('Service: SkinService', () => {
               },
             ]),
           onLoad: (_app, data) => $q.resolve(data),
+          defaultData: [],
         },
         {
           key: 'serverGroups',
+          defaultData: [],
         },
       );
 
@@ -116,9 +120,11 @@ describe('Service: SkinService', () => {
               },
             ]),
           onLoad: (_app, data) => $q.resolve(data),
+          defaultData: [],
         },
         {
           key: 'serverGroups',
+          defaultData: [],
         },
       );
 

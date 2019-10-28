@@ -16,6 +16,7 @@ import {
   IRegion,
   ISubnet,
   SubnetReader,
+  ILoadBalancer,
 } from '@spinnaker/core';
 
 import {
@@ -174,7 +175,8 @@ export class OracleLoadBalancerController implements IController {
       .getDataSource('loadBalancers')
       .refresh(true)
       .then(() => {
-        this.application.getDataSource('loadBalancers').data.forEach(loadBalancer => {
+        const loadBalancers: ILoadBalancer[] = this.application.loadBalancers.data;
+        loadBalancers.forEach(loadBalancer => {
           if (loadBalancer.account === account) {
             accountLoadBalancerNamesByRegion[loadBalancer.region] =
               accountLoadBalancerNamesByRegion[loadBalancer.region] || [];

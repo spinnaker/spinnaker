@@ -13,6 +13,7 @@ import {
   ServerGroupReader,
   ServerGroupWarningMessageService,
   ServerGroupWriter,
+  ILoadBalancer,
 } from '@spinnaker/core';
 
 import { AppengineHealth } from 'appengine/common/appengineHealth';
@@ -441,7 +442,7 @@ class AppengineServerGroupDetailsController implements IController {
       });
 
       if (!fromApp) {
-        this.app.getDataSource('loadBalancers').data.some(loadBalancer => {
+        this.app.getDataSource('loadBalancers').data.some((loadBalancer: ILoadBalancer) => {
           if (loadBalancer.account === fromParams.accountId) {
             return loadBalancer.serverGroups.some((toCheck: IServerGroup) => {
               let result = false;
@@ -451,6 +452,8 @@ class AppengineServerGroupDetailsController implements IController {
               }
               return result;
             });
+          } else {
+            return false;
           }
         });
       }

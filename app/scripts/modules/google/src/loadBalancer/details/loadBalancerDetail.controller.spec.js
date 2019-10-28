@@ -20,7 +20,11 @@ describe('Controller: LoadBalancerDetailsCtrl', function() {
     window.inject(function($controller, $rootScope, _$state_) {
       $scope = $rootScope.$new();
       $state = _$state_;
-      const app = ApplicationModelBuilder.createApplicationForTests('app', { key: 'loadBalancers', lazy: true });
+      const app = ApplicationModelBuilder.createApplicationForTests('app', {
+        key: 'loadBalancers',
+        lazy: true,
+        defaultData: [],
+      });
       app.loadBalancers.data.push(loadBalancer);
       controller = $controller('gceLoadBalancerDetailsCtrl', {
         $scope: $scope,

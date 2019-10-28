@@ -29,7 +29,7 @@ describe('Pipeline Data Source', function() {
   );
 
   function configureApplication() {
-    ApplicationDataSourceRegistry.registerDataSource({ key: 'serverGroups' });
+    ApplicationDataSourceRegistry.registerDataSource({ key: 'serverGroups', defaultData: [] });
     application = ApplicationModelBuilder.createApplicationForTests(
       'app',
       ...ApplicationDataSourceRegistry.getDataSources(),

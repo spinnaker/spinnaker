@@ -17,6 +17,7 @@ describe('Controller: PipelineConfigCtrl', function() {
     const application = ApplicationModelBuilder.createApplicationForTests('app', {
       key: 'pipelineConfigs',
       lazy: true,
+      defaultData: [],
     });
     application.pipelineConfigs.data = [{ id: 'a' }];
     application.pipelineConfigs.loaded = true;
@@ -36,6 +37,7 @@ describe('Controller: PipelineConfigCtrl', function() {
     const application = ApplicationModelBuilder.createApplicationForTests('app', {
       key: 'pipelineConfigs',
       lazy: true,
+      defaultData: [],
     });
     spyOn(application.pipelineConfigs, 'activate').and.callFake(angular.noop);
     let vm = controller('PipelineConfigCtrl', {

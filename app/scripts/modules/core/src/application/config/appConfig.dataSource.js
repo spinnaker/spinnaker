@@ -9,5 +9,6 @@ module.exports = angular.module('spinnaker.core.application.config.dataSource', 
     label: 'Config',
     sref: '.config',
     active: '**.config.**',
+    defaultData: [],
   });
 });

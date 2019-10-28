@@ -436,10 +436,10 @@ export class ExecutionService {
   public updateExecution(
     application: Application,
     updatedExecution: IExecution,
-    dataSource: ApplicationDataSource = application.executions,
+    dataSource: ApplicationDataSource<IExecution[]> = application.executions,
   ): void {
     if (dataSource.data && dataSource.data.length) {
-      dataSource.data.forEach((currentExecution: IExecution, idx: number) => {
+      dataSource.data.forEach((currentExecution, idx) => {
         if (updatedExecution.id === currentExecution.id) {
           updatedExecution.stringVal = this.stringifyExecution(updatedExecution);
           if (

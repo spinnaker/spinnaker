@@ -18,7 +18,7 @@ export interface IFetchStatus {
   data: any;
 }
 
-export interface IDataSourceConfig {
+export interface IDataSourceConfig<T> {
   /**
    * (Optional) Used to determine when the application header tab should appear active; the field will be used via
    * $state.includes(activeState).
@@ -72,6 +72,11 @@ export interface IDataSourceConfig {
   key: string;
 
   /**
+   * The initial value of the data source
+   */
+  defaultData: T;
+
+  /**
    * (Optional) The display label of the application header tab
    *
    * If omitted, the value will default to the result of running the "key" through the robotToHuman filter
@@ -101,7 +106,7 @@ export interface IDataSourceConfig {
    * If the onLoad method resolves with a null value, the result will be discarded and the data source's "data" field
    * will remain unchanged.
    */
-  onLoad?: (application: Application, result: any) => IPromise<any>;
+  onLoad?: (application: Application, result: any) => IPromise<T>;
 
   /**
    * (Optional) whether this data source should be included in the application by default
@@ -180,7 +185,7 @@ export interface IDataSourceConfig {
   category?: string;
 }
 
-export class ApplicationDataSource implements IDataSourceConfig {
+export class ApplicationDataSource<T = any> implements IDataSourceConfig<T> {
   /** Index Signature */
   [k: string]: any;
 
@@ -196,7 +201,7 @@ export class ApplicationDataSource implements IDataSourceConfig {
   public category: string;
   public lazy = false;
   public loader: (application: Application) => IPromise<any>;
-  public onLoad: (application: Application, result: any) => IPromise<any>;
+  public onLoad: (application: Application, result: any) => IPromise<T>;
   public optIn = false;
   public optional = false;
   public primary = false;
@@ -242,9 +247,19 @@ export class ApplicationDataSource implements IDataSourceConfig {
   public active = false;
 
   /**
+   * The initial default value for the data source
+   */
+  public defaultData: T;
+
+  /**
    * The actual data (if any) for the data source. This field should only be populated by the "loader" method.
    */
-  public data: any[] = [];
+  public data: T;
+
+  /**
+   * The current fetch status of the data source
+   */
+  public status: IFetchStatus;
 
   /**
    * If entity tags are enabled, and any of the data has entity tags with alerts, they will be added to the data source
@@ -277,13 +292,13 @@ export class ApplicationDataSource implements IDataSourceConfig {
   });
 
   /** BehaviorSubject of data changes, starts by emitting the current value */
-  public data$ = new BehaviorSubject<any>(this.data);
+  public data$ = new BehaviorSubject<T>(this.data);
 
   /**
    * Stream of data changes
    * @deprecated use data$.skip(1) instead
    */
-  public refresh$: Observable<any> = this.data$.skip(1);
+  public refresh$: Observable<T> = this.data$.skip(1);
 
   /** Stream of failed IFetchStatus */
   private refreshFailure$ = this.status$.skip(1).filter(({ status }) => status === 'ERROR');
@@ -306,7 +321,7 @@ export class ApplicationDataSource implements IDataSourceConfig {
    * Called when a method mutates some item in the data source's data, e.g. when a running execution is updated
    * independent of the execution data source's refresh cycle
    */
-  public dataUpdated(data?: any | undefined): void {
+  public dataUpdated(data?: T): void {
     if (this.loaded) {
       this.updateData(data !== undefined ? data : this.data);
     }
@@ -325,9 +340,10 @@ export class ApplicationDataSource implements IDataSourceConfig {
     this.debug(`status: ${fetchStatus.status}`);
   }
 
-  constructor(config: IDataSourceConfig, private application: Application) {
+  constructor(config: IDataSourceConfig<T>, private application: Application) {
     Object.assign(this, config);
 
+    this.data = this.data || this.defaultData;
     this.label = FirewallLabels.get(config.label || robotToHuman(config.key));
 
     if (!config.activeState && this.sref) {
@@ -423,7 +439,7 @@ export class ApplicationDataSource implements IDataSourceConfig {
    *
    * @returns {IPromise<T>}
    */
-  public ready(): IPromise<any> {
+  public ready(): IPromise<T> {
     if (this.disabled || this.loaded || (this.lazy && !this.active)) {
       return $q.resolve(this.data);
     }
@@ -450,8 +466,8 @@ export class ApplicationDataSource implements IDataSourceConfig {
     this.active = false;
   }
 
-  private updateData(data: any) {
-    this.data = data || [];
+  private updateData(data: T) {
+    this.data = data || this.defaultData;
     this.data$.next(this.data);
     this.debug(`this.data:`, this.data);
   }
@@ -476,7 +492,7 @@ export class ApplicationDataSource implements IDataSourceConfig {
     this.debug(`refresh(${forceRefresh})`);
     if (!this.loader || this.disabled || (this.lazy && !this.active)) {
       this.loaded = false;
-      this.updateData([]);
+      this.updateData(this.defaultData);
       return $q.resolve(this.data);
     }
 
@@ -493,7 +509,7 @@ export class ApplicationDataSource implements IDataSourceConfig {
 
   private addAlerts(): void {
     this.alerts = [];
-    if (this.data && this.data.length) {
+    if (Array.isArray(this.data) && this.data.length) {
       this.alerts = this.data
         .filter((d: any) => get(d, 'entityTags.alerts.length', 0))
         .map((d: any) => d['entityTags'] as IEntityTags);

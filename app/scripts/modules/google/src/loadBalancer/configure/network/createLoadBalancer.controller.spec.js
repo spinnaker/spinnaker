@@ -14,7 +14,11 @@ describe('Controller: gceCreateLoadBalancerCtrl', function() {
   beforeEach(
     window.inject(function($controller, $rootScope) {
       this.$scope = $rootScope.$new();
-      const app = ApplicationModelBuilder.createApplicationForTests('app', { key: 'loadBalancers', lazy: true });
+      const app = ApplicationModelBuilder.createApplicationForTests('app', {
+        key: 'loadBalancers',
+        lazy: true,
+        defaultData: [],
+      });
       this.ctrl = $controller('gceCreateLoadBalancerCtrl', {
         $scope: this.$scope,
         $uibModalInstance: { dismiss: angular.noop, result: { then: angular.noop } },

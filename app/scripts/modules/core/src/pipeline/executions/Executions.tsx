@@ -8,7 +8,7 @@ import { $q } from 'ngimport';
 import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application';
-import { IPipeline, IPipelineCommand } from 'core/domain';
+import { IPipeline, IPipelineCommand, IExecution } from 'core/domain';
 import { ReactInjector } from 'core/reactShims';
 import { ManualExecutionModal } from 'core/pipeline';
 import { Tooltip } from 'core/presentation/Tooltip';
@@ -202,7 +202,8 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
         // if an execution was selected but is no longer present, navigate up
         const { $state } = ReactInjector;
         if ($state.params.executionId) {
-          if (app.getDataSource('executions').data.every(e => e.id !== $state.params.executionId)) {
+          const executions: IExecution[] = app.executions.data;
+          if (executions.every(e => e.id !== $state.params.executionId)) {
             $state.go('.^');
           }
         }

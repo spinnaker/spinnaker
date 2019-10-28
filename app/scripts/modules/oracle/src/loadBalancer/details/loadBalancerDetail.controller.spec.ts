@@ -51,7 +51,11 @@ describe('Controller: oracleLoadBalancerDetailCtrl', function() {
       ) => {
         $scope = $rootScope.$new();
         $state = _$state_;
-        const app = ApplicationModelBuilder.createApplicationForTests('app', { key: 'loadBalancers', lazy: true });
+        const app = ApplicationModelBuilder.createApplicationForTests('app', {
+          key: 'loadBalancers',
+          lazy: true,
+          defaultData: [],
+        });
         app.loadBalancers.data.push(loadBalancer);
         securityGroupReader = _securityGroupReader_;
         confirmationModalService = _confirmationModalService_;

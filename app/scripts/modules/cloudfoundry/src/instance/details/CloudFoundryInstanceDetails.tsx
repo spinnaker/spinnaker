@@ -9,6 +9,7 @@ import {
   InstanceWriter,
   RecentHistoryService,
   Spinner,
+  ILoadBalancer,
 } from '@spinnaker/core';
 
 import { ICloudFoundryInstance } from 'cloudfoundry/domain';
@@ -68,7 +69,9 @@ export class CloudFoundryInstanceDetails extends React.Component<
     const dataSources: InstanceManager[] = flattenDeep([
       this.props.app.getDataSource('serverGroups').data,
       this.props.app.getDataSource('loadBalancers').data,
-      this.props.app.getDataSource('loadBalancers').data.map(loadBalancer => loadBalancer.serverGroups),
+      this.props.app
+        .getDataSource('loadBalancers')
+        .data.map((loadBalancer: ILoadBalancer) => loadBalancer.serverGroups),
     ]);
 
     const instanceManager = dataSources.find(instanceLocatorPredicate);

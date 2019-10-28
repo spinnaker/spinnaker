@@ -93,7 +93,11 @@ export class Application {
 
   private dataLoader: Subscription;
 
-  constructor(private applicationName: string, private scheduler: any, dataSourceConfigs: IDataSourceConfig[]) {
+  constructor(
+    private applicationName: string,
+    private scheduler: any,
+    dataSourceConfigs: Array<IDataSourceConfig<any>>,
+  ) {
     dataSourceConfigs.forEach(config => this.addDataSource(config));
     this.status$ = Observable.combineLatest(this.dataSources.map(ds => ds.status$)).map(statuses =>
       this.getDerivedApplicationStatus(statuses),
@@ -118,7 +122,7 @@ export class Application {
     };
   }
 
-  private addDataSource(config: IDataSourceConfig) {
+  private addDataSource<T>(config: IDataSourceConfig<T>) {
     const dataSource = new ApplicationDataSource(config, this);
     this.dataSources.push(dataSource);
     this[config.key] = dataSource;
@@ -222,21 +226,27 @@ export class Application {
   private setApplicationAccounts(): void {
     let accounts = this.accounts.concat(this.attributes.accounts || []);
     this.dataSources
-      .filter(ds => ds.credentialsField !== undefined)
-      .forEach(ds => (accounts = accounts.concat(ds.data.map(d => d[ds.credentialsField]))));
+      .filter(ds => Array.isArray(ds.data) && ds.credentialsField !== undefined)
+      .forEach(
+        (ds: ApplicationDataSource<any[]>) => (accounts = accounts.concat(ds.data.map(d => d[ds.credentialsField]))),
+      );
 
     this.accounts = uniq(accounts);
   }
 
   private extractProviderDefault(field: string): Map<string, string> {
     const results = new Map<string, string>();
-    const sources = this.dataSources.filter(d => d[field] !== undefined);
+    const sources: Array<ApplicationDataSource<any[]>> = this.dataSources.filter(
+      ds => ds[field] !== undefined && Array.isArray(ds.data) && ds.providerField !== undefined,
+    );
     const providers = sources.map(ds => ds.data.map(d => d[ds.providerField])).filter(p => p.length > 0);
     let allProviders: any; // typescript made me do it this way
     allProviders = union<string[]>(...providers);
     allProviders.forEach((provider: string) => {
       const vals = sources
-        .map(ds => map(ds.data.filter(d => d[ds.providerField] === provider), ds[field]))
+        .map(ds =>
+          map(ds.data.filter((d: any) => typeof d === 'object' && d[ds.providerField] === provider), ds[field]),
+        )
         .filter(v => v.length > 0);
       const allValues = union(...vals);
       if (allValues.length === 1) {

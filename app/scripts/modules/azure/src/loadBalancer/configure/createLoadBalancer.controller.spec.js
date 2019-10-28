@@ -11,7 +11,11 @@ describe('Controller: azureCreateLoadBalancerCtrl', function() {
   // Initialize the controller and a mock scope
   beforeEach(
     window.inject(function($controller, $rootScope) {
-      const app = ApplicationModelBuilder.createApplicationForTests('app', { key: 'loadBalancers', lazy: true });
+      const app = ApplicationModelBuilder.createApplicationForTests('app', {
+        key: 'loadBalancers',
+        lazy: true,
+        defaultData: [],
+      });
       this.$scope = $rootScope.$new();
       this.ctrl = $controller('azureCreateLoadBalancerCtrl', {
         $scope: this.$scope,

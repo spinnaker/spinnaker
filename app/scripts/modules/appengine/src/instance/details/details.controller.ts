@@ -9,6 +9,7 @@ import {
   InstanceReader,
   InstanceWriter,
   RecentHistoryService,
+  ILoadBalancer,
 } from '@spinnaker/core';
 
 import { IAppengineInstance } from 'appengine/domain';
@@ -91,7 +92,7 @@ class AppengineInstanceDetailsController implements IController {
     const dataSources: InstanceManager[] = flattenDeep([
       this.app.getDataSource('serverGroups').data,
       this.app.getDataSource('loadBalancers').data,
-      this.app.getDataSource('loadBalancers').data.map(loadBalancer => loadBalancer.serverGroups),
+      this.app.getDataSource('loadBalancers').data.map((loadBalancer: ILoadBalancer) => loadBalancer.serverGroups),
     ]);
 
     const instanceManager = dataSources.find(instanceLocatorPredicate);

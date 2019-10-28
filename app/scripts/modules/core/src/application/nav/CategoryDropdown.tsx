@@ -55,7 +55,7 @@ export class CategoryDropdown extends React.Component<ICategoryDropdownProps, IC
     const withBadges = category.dataSources.filter(ds => ds.badge).map(ds => application.getDataSource(ds.badge));
     this.runningCountSubscription = merge(...withBadges.map(ds => ds.refresh$)).subscribe(() => {
       this.setState({
-        runningCount: withBadges.reduce((acc: number, ds: ApplicationDataSource) => acc + ds.data.length, 0),
+        runningCount: withBadges.reduce((acc: number, ds: ApplicationDataSource<any[]>) => acc + ds.data.length, 0),
       });
     });
     if (category.key === 'delivery') {

@@ -15,8 +15,8 @@ describe('Controller: azureInstanceDetailsCtrl', function() {
 
       application = ApplicationModelBuilder.createApplicationForTests(
         'app',
-        { key: 'loadBalancers', lazy: true },
-        { key: 'serverGroups', lazy: true },
+        { key: 'loadBalancers', lazy: true, defaultData: [] },
+        { key: 'serverGroups', lazy: true, defaultData: [] },
       );
 
       this.createController = function(application, instance) {

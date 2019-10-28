@@ -14,7 +14,11 @@ describe('Service: loadBalancerFilterService', function() {
   });
 
   beforeEach(function() {
-    app = ApplicationModelBuilder.createApplicationForTests('app', { key: 'loadBalancers', lazy: true });
+    app = ApplicationModelBuilder.createApplicationForTests('app', {
+      key: 'loadBalancers',
+      lazy: true,
+      defaultData: [],
+    });
     app.getDataSource('loadBalancers').data = [
       {
         name: 'elb-1',

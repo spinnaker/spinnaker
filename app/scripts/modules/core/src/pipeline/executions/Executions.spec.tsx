@@ -38,8 +38,8 @@ describe('<Executions/>', () => {
       scope = $rootScope.$new();
       application = ApplicationModelBuilder.createApplicationForTests(
         'app',
-        { key: 'executions', lazy: true },
-        { key: 'pipelineConfigs', lazy: true },
+        { key: 'executions', lazy: true, defaultData: [] },
+        { key: 'pipelineConfigs', lazy: true, defaultData: [] },
       );
     }),
   );

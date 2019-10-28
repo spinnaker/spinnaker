@@ -37,6 +37,7 @@ module(SECURITY_GROUP_DATA_SOURCE, [SECURITY_GROUP_READER]).run([
       credentialsField: 'accountName',
       regionField: 'region',
       description: 'Network traffic access management',
+      defaultData: [],
     });
   },
 ]);

@@ -112,6 +112,7 @@ describe('ApplicationReader', function() {
           visible: true,
           optional: true,
           optIn: true,
+          defaultData: [],
         });
       });
 

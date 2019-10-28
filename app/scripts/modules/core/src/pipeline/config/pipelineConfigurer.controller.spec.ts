@@ -127,6 +127,7 @@ describe('Controller: pipelineConfigurer', function() {
       $scope.application = ApplicationModelBuilder.createApplicationForTests('app', {
         key: 'pipelineConfigs',
         lazy: true,
+        defaultData: [],
       });
       $scope.plan = plan;
       $scope.isTemplatedPipeline = true;

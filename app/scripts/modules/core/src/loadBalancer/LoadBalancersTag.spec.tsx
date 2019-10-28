@@ -23,6 +23,7 @@ describe('<LoadBalancersTag />', () => {
         key: 'loadBalancers',
         loader: () => $q.resolve(application.loadBalancers.data),
         onLoad: (_app, data) => $q.resolve(data),
+        defaultData: [],
       });
       application.loadBalancers.refresh();
       $scope.$digest();

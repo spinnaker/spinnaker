@@ -25,6 +25,7 @@ module(SERVER_GROUP_MANAGER_DATA_SOURCE, []).run([
       loader,
       onLoad,
       afterLoad: addTags,
+      defaultData: [],
     });
   },
 ]);

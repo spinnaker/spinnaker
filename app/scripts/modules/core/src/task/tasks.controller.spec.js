@@ -13,7 +13,11 @@ describe('Controller: tasks', function() {
       $q = _$q_;
 
       this.initializeController = tasks => {
-        let application = ApplicationModelBuilder.createApplicationForTests('app', { key: 'tasks', lazy: true });
+        let application = ApplicationModelBuilder.createApplicationForTests('app', {
+          key: 'tasks',
+          lazy: true,
+          defaultData: [],
+        });
         application.tasks.activate = angular.noop;
         application.tasks.data = tasks || [];
         application.tasks.loaded = true;

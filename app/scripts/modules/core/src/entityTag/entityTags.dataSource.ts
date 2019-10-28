@@ -1,6 +1,6 @@
 import { module, IQService } from 'angular';
 
-import { ApplicationDataSourceRegistry } from 'core/application/service/ApplicationDataSourceRegistry';
+import { ApplicationDataSourceRegistry } from 'core/application';
 import { Application } from 'core/application/application.model';
 import { EntityTagsReader } from './EntityTagsReader';
 import { IEntityTags } from 'core/domain/IEntityTags';
@@ -56,6 +56,7 @@ module(ENTITY_TAGS_DATA_SOURCE, [LOAD_BALANCER_READ_SERVICE]).run([
       loader: loadEntityTags,
       onLoad: addEntityTags,
       afterLoad: addTagsToEntities,
+      defaultData: [],
     });
   },
 ]);

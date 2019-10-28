@@ -45,7 +45,8 @@ describe('<AccountRegionClusterSelector />', () => {
           createServerGroup('account-name-one', 'app-stack-detailFour', 'app', 'region-three'),
           createServerGroup('account-name-one', 'app-stack-detailFive', 'app', 'region-two'),
         ],
-      } as ApplicationDataSource);
+        defaultData: [] as IServerGroup[],
+      } as ApplicationDataSource<IServerGroup[]>);
     }),
   );
 

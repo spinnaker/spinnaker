@@ -9,6 +9,7 @@ describe('AppListExtractor', function() {
     const application: Application = ApplicationModelBuilder.createApplicationForTests('app', {
       key: 'serverGroups',
       lazy: true,
+      defaultData: [],
     });
     application.getDataSource('serverGroups').data = serverGroups;
     return application;

@@ -11,7 +11,7 @@ export class ApplicationDataSourceRegistry {
     'tasks',
     'config',
   ];
-  private static dataSources: IDataSourceConfig[] = [];
+  private static dataSources: Array<IDataSourceConfig<any>> = [];
   private static dataSourceOrder: string[] = [];
 
   public static setDataSourceOrder(keys: string[]): void {
@@ -32,12 +32,12 @@ export class ApplicationDataSourceRegistry {
     this.dataSources.sort((a, b) => order.indexOf(a.key) - order.indexOf(b.key));
   }
 
-  public static registerDataSource(config: IDataSourceConfig): void {
+  public static registerDataSource(config: IDataSourceConfig<any>): void {
     this.dataSources.push(config);
     this.sortDataSources();
   }
 
-  public static getDataSources(): IDataSourceConfig[] {
+  public static getDataSources(): Array<IDataSourceConfig<any>> {
     return cloneDeep(this.dataSources);
   }
 

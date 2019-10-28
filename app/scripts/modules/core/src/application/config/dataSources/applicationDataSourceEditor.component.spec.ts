@@ -44,20 +44,24 @@ describe('Component: Application Data Source Editor', () => {
         key: 'optionalSource',
         optional: true,
         visible: true,
+        defaultData: [],
       },
       {
         key: 'invisibleSource',
         visible: false,
+        defaultData: [],
       },
       {
         key: 'requiredSource',
         visible: true,
+        defaultData: [],
       },
       {
         key: 'optInSource',
         optional: true,
         visible: true,
         optIn: true,
+        defaultData: [],
       },
     );
     application.getDataSource('optInSource').disabled = true;

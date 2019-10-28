@@ -46,6 +46,7 @@ describe('Service: instance writer', function() {
       const application: Application = ApplicationModelBuilder.createApplicationForTests('app', {
         key: 'serverGroups',
         lazy: true,
+        defaultData: [],
       });
       let executedTask: IJob = null;
 

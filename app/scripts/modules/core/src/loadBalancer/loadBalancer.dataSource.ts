@@ -37,6 +37,7 @@ module(LOAD_BALANCER_DATA_SOURCE, [LOAD_BALANCER_READ_SERVICE]).run([
       credentialsField: 'account',
       regionField: 'region',
       description: 'Traffic distribution management between servers',
+      defaultData: [],
     });
   },
 ]);

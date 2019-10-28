@@ -8,6 +8,7 @@ import {
   InstanceReader,
   RecentHistoryService,
   IManifest,
+  ILoadBalancer,
 } from '@spinnaker/core';
 
 import { IKubernetesInstance } from './IKubernetesInstance';
@@ -115,7 +116,7 @@ class KubernetesInstanceDetailsController implements IController {
     const dataSources: InstanceManager[] = flattenDeep([
       this.app.getDataSource('serverGroups').data,
       this.app.getDataSource('loadBalancers').data,
-      this.app.getDataSource('loadBalancers').data.map(loadBalancer => loadBalancer.serverGroups),
+      this.app.getDataSource('loadBalancers').data.map((loadBalancer: ILoadBalancer) => loadBalancer.serverGroups),
     ]);
 
     const instanceManager = dataSources.find(instanceLocatorPredicate);

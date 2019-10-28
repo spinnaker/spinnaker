@@ -36,9 +36,9 @@ describe('Service: Cluster', function() {
 
       application = ApplicationModelBuilder.createApplicationForTests(
         'app',
-        { key: 'serverGroups' },
-        { key: 'runningExecutions' },
-        { key: 'runningTasks' },
+        { key: 'serverGroups', defaultData: [] },
+        { key: 'runningExecutions', defaultData: [] },
+        { key: 'runningTasks', defaultData: [] },
       );
       application.getDataSource('serverGroups').data = [
         { name: 'the-target', account: 'not-the-target', region: 'us-east-1' },

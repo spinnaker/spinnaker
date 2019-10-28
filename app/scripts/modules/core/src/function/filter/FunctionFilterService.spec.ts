@@ -14,7 +14,7 @@ describe('Service: functionFilterService', function() {
   });
 
   beforeEach(function() {
-    app = ApplicationModelBuilder.createApplicationForTests('app', { key: 'functions', lazy: true });
+    app = ApplicationModelBuilder.createApplicationForTests('app', { key: 'functions', lazy: true, defaultData: [] });
     app.getDataSource('functions').data = [
       {
         functionName: 'function1',

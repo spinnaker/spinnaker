@@ -45,6 +45,7 @@ describe('Controller: ChaosMonkeyExceptions', () => {
         key: 'serverGroups',
         loader: () => $q.resolve([]),
         onLoad: (_app, data) => $q.resolve(data),
+        defaultData: [],
       });
       $ctrl.application.serverGroups.refresh();
       $scope.$digest();

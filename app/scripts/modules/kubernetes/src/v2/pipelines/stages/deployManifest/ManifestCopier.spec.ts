@@ -46,6 +46,7 @@ describe('<ManifestCopier />', () => {
               },
             ]),
           onLoad: (_app: Application, data: any) => $q.resolve(data),
+          defaultData: [],
         },
         {
           key: 'serverGroupManagers',
@@ -59,16 +60,19 @@ describe('<ManifestCopier />', () => {
               },
             ]),
           onLoad: (_app: Application, data: any) => $q.resolve(data),
+          defaultData: [],
         },
         {
           key: 'securityGroups',
           loader: () => $q.resolve([]),
           onLoad: (_app: Application, data: any) => $q.resolve(data),
+          defaultData: [],
         },
         {
           key: 'loadBalancers',
           loader: () => $q.resolve([]),
           onLoad: (_app: Application, data: any) => $q.resolve(data),
+          defaultData: [],
         },
       );
       application.refresh();

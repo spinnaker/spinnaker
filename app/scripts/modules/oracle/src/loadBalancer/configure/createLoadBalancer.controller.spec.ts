@@ -28,6 +28,7 @@ describe('Controller: oracleCreateLoadBalancerCtrl', function() {
       const application = ApplicationModelBuilder.createApplicationForTests('app', {
         key: 'loadBalancers',
         lazy: true,
+        defaultData: [],
       });
 
       const isNew = true;

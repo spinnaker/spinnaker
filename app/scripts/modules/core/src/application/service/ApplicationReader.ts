@@ -3,7 +3,7 @@ import { IPromise } from 'angular';
 import { API } from 'core/api';
 import { SchedulerFactory } from 'core/scheduler';
 import { Application } from '../application.model';
-import { ApplicationDataSource, IDataSourceConfig } from '../service/applicationDataSource';
+import { ApplicationDataSource } from '../service/applicationDataSource';
 import { ApplicationDataSourceRegistry } from './ApplicationDataSourceRegistry';
 import { InferredApplicationWarningService } from './InferredApplicationWarningService';
 
@@ -46,7 +46,7 @@ export class ApplicationReader {
       .withParams({ expand: expand })
       .get()
       .then((fromServer: Application) => {
-        const configs: IDataSourceConfig[] = ApplicationDataSourceRegistry.getDataSources();
+        const configs = ApplicationDataSourceRegistry.getDataSources();
         const application: Application = new Application(fromServer.name, SchedulerFactory.createScheduler(), configs);
         application.attributes = fromServer.attributes;
         this.splitAttributes(application.attributes, ['accounts', 'cloudProviders']);
@@ -69,7 +69,7 @@ export class ApplicationReader {
   }
 
   public static setDisabledDataSources(application: Application) {
-    const allDataSources: ApplicationDataSource[] = application.dataSources;
+    const allDataSources = application.dataSources;
     const appDataSources: IApplicationDataSourceAttribute = application.attributes.dataSources;
 
     if (!appDataSources) {

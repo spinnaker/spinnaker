@@ -64,6 +64,7 @@ describe('Application Model', function() {
       ApplicationDataSourceRegistry.registerDataSource({
         key: 'lazySource',
         lazy: true,
+        defaultData: [],
         loader: () => $q.resolve(['a']),
         onLoad: (_app, data) => $q.resolve(data),
       });

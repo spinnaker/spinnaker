@@ -40,6 +40,7 @@ module.exports = angular.module('spinnaker.core.task.dataSource', [CLUSTER_SERVI
       lazy: true,
       primary: true,
       icon: 'fa fa-sm fa-fw fa-check-square',
+      defaultData: [],
     });
 
     ApplicationDataSourceRegistry.registerDataSource({
@@ -47,6 +48,7 @@ module.exports = angular.module('spinnaker.core.task.dataSource', [CLUSTER_SERVI
       visible: false,
       loader: loadRunningTasks,
       onLoad: addRunningTasks,
+      defaultData: [],
     });
   },
 ]);

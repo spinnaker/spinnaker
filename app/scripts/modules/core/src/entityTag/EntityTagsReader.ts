@@ -28,21 +28,23 @@ export class EntityTagsReader {
     if (!SETTINGS.feature.entityTags) {
       return;
     }
-    const allTags = application.getDataSource('entityTags').data;
-    const serverGroupTags: IEntityTags[] = allTags.filter(t => t.entityRef.entityType === 'servergroup');
-    const clusterTags: IEntityTags[] = allTags.filter(t => t.entityRef.entityType === 'cluster');
-    application.getDataSource('serverGroups').data.forEach((serverGroup: IServerGroup) => {
+    const allTags: IEntityTags[] = application.entityTags.data;
+    const serverGroupTags = allTags.filter(({ entityRef }) => entityRef.entityType === 'servergroup');
+    const clusterTags = allTags.filter(({ entityRef }) => entityRef.entityType === 'cluster');
+    const serverGroups: IServerGroup[] = application.serverGroups.data;
+
+    serverGroups.forEach(serverGroup => {
       serverGroup.entityTags = serverGroupTags.find(
-        t =>
-          t.entityRef.entityId === serverGroup.name &&
-          t.entityRef.account === serverGroup.account &&
-          t.entityRef.region === serverGroup.region,
+        ({ entityRef }) =>
+          entityRef.entityId === serverGroup.name &&
+          entityRef.account === serverGroup.account &&
+          entityRef.region === serverGroup.region,
       );
       serverGroup.clusterEntityTags = clusterTags.filter(
-        t =>
-          t.entityRef.entityId === serverGroup.cluster &&
-          (t.entityRef.account === '*' || t.entityRef.account === serverGroup.account) &&
-          (t.entityRef.region === '*' || t.entityRef.region === serverGroup.region),
+        ({ entityRef }) =>
+          entityRef.entityId === serverGroup.cluster &&
+          (entityRef.account === '*' || entityRef.account === serverGroup.account) &&
+          (entityRef.region === '*' || entityRef.region === serverGroup.region),
       );
     });
   }
@@ -51,14 +53,16 @@ export class EntityTagsReader {
     if (!SETTINGS.feature.entityTags) {
       return;
     }
-    const allTags = application.getDataSource('entityTags').data;
-    const serverGroupManagerTags: IEntityTags[] = allTags.filter(t => t.entityRef.entityType === 'servergroupmanager');
-    application.getDataSource('serverGroupManagers').data.forEach((serverGroupManager: IServerGroupManager) => {
+    const allTags: IEntityTags[] = application.entityTags.data;
+    const serverGroupManagerTags = allTags.filter(({ entityRef }) => entityRef.entityType === 'servergroupmanager');
+    const serverGroupManagers: IServerGroupManager[] = application.serverGroupManagers.data;
+
+    serverGroupManagers.forEach(serverGroupManager => {
       serverGroupManager.entityTags = serverGroupManagerTags.find(
-        t =>
-          t.entityRef.entityId === serverGroupManager.name &&
-          t.entityRef.account === serverGroupManager.account &&
-          t.entityRef.region === serverGroupManager.region,
+        ({ entityRef }) =>
+          entityRef.entityId === serverGroupManager.name &&
+          entityRef.account === serverGroupManager.account &&
+          entityRef.region === serverGroupManager.region,
       );
     });
   }
@@ -67,14 +71,16 @@ export class EntityTagsReader {
     if (!SETTINGS.feature.entityTags) {
       return;
     }
-    const allTags = application.getDataSource('entityTags').data;
-    const loadBalancerTags: IEntityTags[] = allTags.filter(t => t.entityRef.entityType === 'loadbalancer');
-    application.getDataSource('loadBalancers').data.forEach((loadBalancer: ILoadBalancer) => {
+    const allTags: IEntityTags[] = application.entityTags.data;
+    const loadBalancerTags = allTags.filter(({ entityRef }) => entityRef.entityType === 'loadbalancer');
+    const loadBalancers: ILoadBalancer[] = application.loadBalancers.data;
+
+    loadBalancers.forEach(loadBalancer => {
       loadBalancer.entityTags = loadBalancerTags.find(
-        t =>
-          t.entityRef.entityId === loadBalancer.name &&
-          t.entityRef.account === loadBalancer.account &&
-          t.entityRef.region === loadBalancer.region,
+        ({ entityRef }) =>
+          entityRef.entityId === loadBalancer.name &&
+          entityRef.account === loadBalancer.account &&
+          entityRef.region === loadBalancer.region,
       );
     });
   }
@@ -83,14 +89,14 @@ export class EntityTagsReader {
     if (!SETTINGS.feature.entityTags || !SETTINGS.feature.functions) {
       return;
     }
-    const allTags = application.getDataSource('entityTags').data;
-    const functionTags: IEntityTags[] = allTags.filter(t => t.entityRef.entityType === 'function');
-    application.getDataSource('functions').data.forEach((fn: IFunction) => {
+    const allTags: IEntityTags[] = application.entityTags.data;
+    const functionTags = allTags.filter(({ entityRef }) => entityRef.entityType === 'function');
+    const functions: IFunction[] = application.functions.data;
+
+    functions.forEach(fn => {
       fn.entityTags = functionTags.find(
-        t =>
-          t.entityRef.entityId === fn.functionName &&
-          t.entityRef.account === fn.account &&
-          t.entityRef.region === fn.region,
+        ({ entityRef }) =>
+          entityRef.entityId === fn.functionName && entityRef.account === fn.account && entityRef.region === fn.region,
       );
     });
   }
@@ -98,14 +104,16 @@ export class EntityTagsReader {
     if (!SETTINGS.feature.entityTags) {
       return;
     }
-    const allTags = application.getDataSource('entityTags').data;
-    const securityGroupTags: IEntityTags[] = allTags.filter(t => t.entityRef.entityType === 'securitygroup');
-    application.getDataSource('securityGroups').data.forEach((securityGroup: ISecurityGroup) => {
+    const allTags: IEntityTags[] = application.entityTags.data;
+    const securityGroupTags = allTags.filter(({ entityRef }) => entityRef.entityType === 'securitygroup');
+    const securityGroups: ISecurityGroup[] = application.securityGroups.data;
+
+    securityGroups.forEach(securityGroup => {
       securityGroup.entityTags = securityGroupTags.find(
-        t =>
-          t.entityRef.entityId === securityGroup.name &&
-          t.entityRef.account === securityGroup.account &&
-          t.entityRef.region === securityGroup.region,
+        ({ entityRef }) =>
+          entityRef.entityId === securityGroup.name &&
+          entityRef.account === securityGroup.account &&
+          entityRef.region === securityGroup.region,
       );
     });
   }
@@ -114,10 +122,12 @@ export class EntityTagsReader {
     if (!SETTINGS.feature.entityTags) {
       return;
     }
-    const allTags = application.getDataSource('entityTags').data;
-    const executionTags: IEntityTags[] = allTags.filter(t => t.entityRef.entityType === 'execution');
-    application.getDataSource('executions').data.forEach((execution: IExecution) => {
-      execution.entityTags = executionTags.find(t => t.entityRef.entityId === execution.id);
+    const allTags: IEntityTags[] = application.entityTags.data;
+    const executionTags = allTags.filter(({ entityRef }) => entityRef.entityType === 'execution');
+    const executions: IExecution[] = application.executions.data;
+
+    executions.forEach(execution => {
+      execution.entityTags = executionTags.find(({ entityRef }) => entityRef.entityId === execution.id);
     });
   }
 
@@ -125,10 +135,12 @@ export class EntityTagsReader {
     if (!SETTINGS.feature.entityTags) {
       return;
     }
-    const allTags = application.getDataSource('entityTags').data;
-    const pipelineTags: IEntityTags[] = allTags.filter(t => t.entityRef.entityType === 'pipeline');
-    application.getDataSource('pipelineConfigs').data.forEach((pipeline: IPipeline) => {
-      pipeline.entityTags = pipelineTags.find(t => t.entityRef.entityId === pipeline.id);
+    const allTags: IEntityTags[] = application.entityTags.data;
+    const pipelineTags = allTags.filter(({ entityRef }) => entityRef.entityType === 'pipeline');
+    const pipelineConfigs: IPipeline[] = application.pipelineConfigs.data;
+
+    pipelineConfigs.forEach(pipeline => {
+      pipeline.entityTags = pipelineTags.find(({ entityRef }) => entityRef.entityId === pipeline.id);
     });
   }
 
