@@ -35,6 +35,8 @@ class DependencyBumpExtension {
     fiat: [
       "clouddriver",
       "echo",
+      "igor",
+      "keel",
       "orca",
       "front50",
       "gate"
