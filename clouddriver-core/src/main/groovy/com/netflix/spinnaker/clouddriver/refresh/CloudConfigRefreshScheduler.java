@@ -19,12 +19,14 @@ package com.netflix.spinnaker.clouddriver.refresh;
 import com.netflix.spinnaker.cats.thread.NamedThreadFactory;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.context.refresh.ContextRefresher;
 
 /**
  * Refresh the Spring Cloud Config context on a schedule. The configured interval should
  * approximately match the cache refresh interval.
  */
+@Slf4j
 public class CloudConfigRefreshScheduler implements Runnable {
   private final ContextRefresher contextRefresher;
 
@@ -38,6 +40,10 @@ public class CloudConfigRefreshScheduler implements Runnable {
 
   @Override
   public void run() {
-    contextRefresher.refresh();
+    try {
+      contextRefresher.refresh();
+    } catch (Throwable t) {
+      log.error("Error refreshing cloud config", t);
+    }
   }
 }
