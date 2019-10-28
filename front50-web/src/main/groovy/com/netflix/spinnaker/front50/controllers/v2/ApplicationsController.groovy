@@ -94,7 +94,7 @@ public class ApplicationsController {
     return results
   }
 
-  @PreAuthorize("@fiatPermissionEvaluator.canCreate('APPLICATION', app)")
+  @PreAuthorize("@fiatPermissionEvaluator.canCreate('APPLICATION', #app)")
   @ApiOperation(value = "", notes = "Create an application")
   @RequestMapping(method = RequestMethod.POST)
   Application create(@RequestBody final Application app) {
