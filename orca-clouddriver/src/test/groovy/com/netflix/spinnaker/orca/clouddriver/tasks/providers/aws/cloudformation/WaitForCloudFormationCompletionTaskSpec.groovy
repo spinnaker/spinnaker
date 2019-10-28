@@ -64,12 +64,15 @@ class WaitForCloudFormationCompletionTaskSpec extends Specification {
     1 * oortService.getCloudFormationStack('stackId') >> stack
     result.status == expectedResult
     result.outputs == stack
+    def deleteChangeSet = result.context.get('deleteChangeSet')
+    (deleteChangeSet != null && deleteChangeSet) == shouldDeleteChangeset
 
     where:
-    isChangeSet | status            | statusReason                                        || expectedResult
-    false       | 'CREATE_COMPLETE' | 'ignored'                                           || ExecutionStatus.SUCCEEDED
-    false       | 'UPDATE_COMPLETE' | 'ignored'                                           || ExecutionStatus.SUCCEEDED
-    true        | 'FAILED'          | 'The submitted information didn\'t contain changes' || ExecutionStatus.SUCCEEDED
+    isChangeSet | status            | statusReason                                        | shouldDeleteChangeset || expectedResult
+    false       | 'CREATE_COMPLETE' | 'ignored'                                           | false                 || ExecutionStatus.SUCCEEDED
+    false       | 'UPDATE_COMPLETE' | 'ignored'                                           | false                 || ExecutionStatus.SUCCEEDED
+    true        | 'FAILED'          | 'The submitted information didn\'t contain changes' | true                  || ExecutionStatus.SUCCEEDED
+    true        | 'CREATE_COMPLETE' | 'ignored'                                           | false                 || ExecutionStatus.SUCCEEDED
   }
 
   @Unroll

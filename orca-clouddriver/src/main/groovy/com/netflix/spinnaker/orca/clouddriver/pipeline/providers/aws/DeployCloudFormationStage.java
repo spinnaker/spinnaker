@@ -17,11 +17,13 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws;
 
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.cloudformation.CloudFormationForceCacheRefreshTask;
+import com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.cloudformation.DeleteCloudFormationChangeSetTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.cloudformation.DeployCloudFormationTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.cloudformation.WaitForCloudFormationCompletionTask;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import java.util.Optional;
 import javax.annotation.Nonnull;
 import org.springframework.stereotype.Component;
 
@@ -36,5 +38,9 @@ public class DeployCloudFormationStage implements StageDefinitionBuilder {
         .withTask("monitorCloudFormation", MonitorKatoTask.class)
         .withTask("forceRefreshCache", CloudFormationForceCacheRefreshTask.class)
         .withTask("waitForCloudFormationCompletion", WaitForCloudFormationCompletionTask.class);
+    if ((boolean) Optional.ofNullable(stage.getContext().get("isChangeSet")).orElse(false)) {
+      builder.withTask("deleteCloudFormationChangeSet", DeleteCloudFormationChangeSetTask.class);
+      builder.withTask("monitorDeleteCloudFormationChangeSet", MonitorKatoTask.class);
+    }
   }
 }
