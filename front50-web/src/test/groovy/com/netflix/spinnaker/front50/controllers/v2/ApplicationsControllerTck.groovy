@@ -21,6 +21,7 @@ import com.amazonaws.ClientConfiguration
 import com.amazonaws.services.s3.AmazonS3Client
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.fiat.shared.FiatService
 import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.model.DefaultObjectKeyLoader
 import com.netflix.spinnaker.front50.model.S3StorageService
@@ -75,6 +76,9 @@ abstract class ApplicationsControllerTck extends Specification {
   @Shared
   PipelineStrategyDAO pipelineStrategyDAO = Stub(PipelineStrategyDAO)
 
+  @Shared
+  Optional<FiatService> fiatService = Optional.empty();
+
   void setup() {
     this.dao = createApplicationDAO()
     this.controller = new ApplicationsController(
@@ -84,7 +88,8 @@ abstract class ApplicationsControllerTck extends Specification {
       pipelineStrategyDAO: pipelineStrategyDAO,
       pipelineDAO: pipelineDAO,
       applicationValidators: [new HasNameValidator(), new HasEmailValidator()],
-      messageSource: new StaticMessageSource()
+      messageSource: new StaticMessageSource(),
+      fiatService: fiatService
     )
     this.mockMvc = MockMvcBuilders.standaloneSetup(controller).build()
   }
