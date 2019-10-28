@@ -22,6 +22,7 @@ import com.netflix.spinnaker.fiat.model.resources.BuildService;
 import com.netflix.spinnaker.fiat.providers.*;
 import java.util.List;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -51,6 +52,13 @@ class DefaultResourcePermissionConfig {
   public ResourcePermissionProvider<Account> aggregateAccountPermissionProvider(
       List<ResourcePermissionSource<Account>> sources) {
     return new AggregatingResourcePermissionProvider<>(sources);
+  }
+
+  @Bean
+  @ConditionalOnProperty("auth.permissions.source.application.prefix.enabled")
+  @ConfigurationProperties("auth.permissions.source.application.prefix")
+  ResourcePermissionSource<Application> applicationPrefixResourcePermissionSource() {
+    return new ResourcePrefixPermissionSource<Application>();
   }
 
   @Bean
