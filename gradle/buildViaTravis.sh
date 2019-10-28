@@ -1,6 +1,8 @@
 #!/bin/bash
 # This script will build the project.
 
+set -e
+
 GRADLE="./gradlew -PenablePublishing=true --no-daemon --max-workers=1"
 export GRADLE_OPTS="-Xmx1g -Xms1g"
 
@@ -17,7 +19,10 @@ elif [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_TAG" != "" ]; then
     $GRADLE -Prelease.travisci=true -Prelease.useLastTag=true -PbintrayUser="${bintrayUser}" -PbintrayKey="${bintrayKey}" candidate --info
     ;;
   *)
-    $GRADLE -Prelease.travisci=true -Prelease.useLastTag=true -PbintrayUser="${bintrayUser}" -PbintrayKey="${bintrayKey}" -Pgithub.token="${githubToken}" final bumpDependencies --info
+    $GRADLE --info -Prelease.travisci=true -Prelease.useLastTag=true -PbintrayUser="${bintrayUser}" -PbintrayKey="${bintrayKey}" final
+    # delay a bit to let published artifacts get all mirrored etc before autobumping
+    sleep 60
+    $GRADLE --info -Prelease.travisci=true -Prelease.useLastTag=true -PbintrayUser="${bintrayUser}" -PbintrayKey="${bintrayKey}" -Pgithub.token="${githubToken}" bumpDependencies
     ;;
   esac
 else
