@@ -38,7 +38,7 @@ public class HaEchoValidator extends Validator<DeploymentEnvironment> {
       p.addProblem(
           Problem.Severity.WARNING,
           "High Availability (HA) is enabled for echo, but found custom sizing for the main service (this setting will be ignored). "
-              + "With HA enabled, the service is split into multiple sub-services (echo-scheduler, echo-scheduler). You need to update the component sizing for each sub-service, individually.");
+              + "With HA enabled, the service is split into multiple sub-services (spin-echo-scheduler, spin-echo-worker). You need to update the component sizing for each sub-service, individually.");
     }
 
     if (!haEchoEnabled
