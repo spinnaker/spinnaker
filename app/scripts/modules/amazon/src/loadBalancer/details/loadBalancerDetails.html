@@ -59,8 +59,8 @@
     </div>
   </div>
   <managed-resource-details-indicator
-    ng-if="!ctrl.state.loading && ctrl.loadBalancer.entityTags"
-    entity-tags="[ctrl.loadBalancer.entityTags]"
+    ng-if="!ctrl.state.loading && ctrl.loadBalancer.isManaged"
+    resource-summary="ctrl.loadBalancer.managedResourceSummary"
   >
   </managed-resource-details-indicator>
   <div ng-if="!ctrl.state.loading" class="content">

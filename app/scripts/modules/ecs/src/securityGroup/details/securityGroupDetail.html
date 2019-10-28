@@ -30,11 +30,6 @@
       </h3>
     </div>
   </div>
-  <managed-resource-details-indicator
-    ng-if="!state.loading && securityGroup.entityTags"
-    entity-tags="[securityGroup.entityTags]"
-  >
-  </managed-resource-details-indicator>
   <div class="content" ng-if="!state.loading">
     <collapsible-section heading="{{ctrl.firewallLabel}} Details" expanded="true">
       <dl class="dl-horizontal dl-medium">

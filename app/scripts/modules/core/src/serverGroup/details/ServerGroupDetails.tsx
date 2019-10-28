@@ -122,7 +122,9 @@ export class ServerGroupDetails extends React.Component<IServerGroupDetailsProps
         {serverGroup && serverGroup.isDisabled && (
           <div className="band band-info">Disabled {timestamp(serverGroup.disabledDate)}</div>
         )}
-        {!loading && <ManagedResourceDetailsIndicator entityTags={serverGroup.clusterEntityTags} />}
+        {!loading && serverGroup.isManaged && (
+          <ManagedResourceDetailsIndicator resourceSummary={serverGroup.managedResourceSummary} />
+        )}
         {!loading && (
           <div className="content">
             <RunningTasks serverGroup={serverGroup} application={app} />
