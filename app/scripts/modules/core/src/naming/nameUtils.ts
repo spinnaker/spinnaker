@@ -1,4 +1,4 @@
-import { padStart, isNil } from 'lodash';
+import { padStart, isNil, pickBy } from 'lodash';
 import { IMoniker } from './IMoniker';
 
 export interface IComponentName {
@@ -102,6 +102,6 @@ export class NameUtils {
   }
 
   public static getMoniker(app: string, stack: string, detail: string): IMoniker {
-    return { app, stack, detail };
+    return pickBy({ app, stack, detail });
   }
 }

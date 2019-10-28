@@ -1,5 +1,8 @@
 import { ILoadBalancer } from 'core/domain/ILoadBalancer';
 import { IServerGroup } from 'core/domain/IServerGroup';
+import { IMoniker } from 'core/naming';
+import { IManagedResourceSummary } from 'core/managed';
+
 import { IEntityTags } from './IEntityTags';
 
 export interface ILoadBalancerUsage {
@@ -30,6 +33,9 @@ export interface ISecurityGroup {
   entityTags?: IEntityTags;
   id?: string;
   inferredName?: boolean;
+  isManaged?: boolean;
+  moniker?: IMoniker;
+  managedResourceSummary?: IManagedResourceSummary;
   name?: string;
   provider?: string;
   region?: string;

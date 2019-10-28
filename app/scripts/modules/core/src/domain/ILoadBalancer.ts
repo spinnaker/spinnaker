@@ -1,8 +1,10 @@
+import { IMoniker } from 'core/naming';
+import { IManagedResourceSummary } from 'core/managed';
+
 import { IInstance } from './IInstance';
 import { IInstanceCounts } from './IInstanceCounts';
 import { IServerGroup } from './IServerGroup';
 import { ITaggedEntity } from './ITaggedEntity';
-import { IMoniker } from 'core/naming/IMoniker';
 
 export interface ILoadBalancerSourceData {
   cloudProvider?: string;
@@ -18,10 +20,12 @@ export interface ILoadBalancer extends ITaggedEntity {
   healthState?: string;
   instanceCounts?: IInstanceCounts;
   instances?: IInstance[];
+  isManaged?: boolean;
   listenerDescriptions?: any[];
   loadBalancerType?: string;
-  name?: string;
+  managedResourceSummary?: IManagedResourceSummary;
   moniker?: IMoniker;
+  name?: string;
   provider?: string;
   region?: string;
   searchField?: string;

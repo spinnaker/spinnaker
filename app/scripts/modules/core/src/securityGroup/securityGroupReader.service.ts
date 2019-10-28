@@ -216,6 +216,7 @@ export class SecurityGroupReader {
     const nameParts: IComponentName = NameUtils.parseSecurityGroupName(securityGroup.name);
     securityGroup.stack = nameParts.stack;
     securityGroup.detail = nameParts.freeFormDetails;
+    securityGroup.moniker = NameUtils.getMoniker(nameParts.application, nameParts.stack, nameParts.freeFormDetails);
   }
 
   private attachSecurityGroups(

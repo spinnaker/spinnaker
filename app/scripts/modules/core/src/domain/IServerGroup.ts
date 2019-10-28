@@ -3,8 +3,9 @@ import { IExecution } from './IExecution';
 import { IInstance } from './IInstance';
 import { IInstanceCounts } from './IInstanceCounts';
 import { ITask } from './ITask';
-import { IMoniker } from 'core/naming/IMoniker';
+import { IMoniker } from 'core/naming';
 import { ICapacity } from 'core/serverGroup';
+import { IManagedResourceSummary } from 'core/managed';
 
 // remnant from legacy code
 export interface IAsg {
@@ -19,8 +20,8 @@ export interface IServerGroup {
   app?: string;
   asg?: IAsg;
   buildInfo?: any;
-  category?: string;
   capacity?: ICapacity;
+  category?: string;
   cloudProvider: string;
   cluster: string;
   clusterEntityTags?: IEntityTags[];
@@ -34,12 +35,14 @@ export interface IServerGroup {
   instances: IInstance[];
   instanceType?: string;
   isDisabled?: boolean;
+  isManaged?: boolean;
   labels?: { [key: string]: string };
   launchConfig?: any;
   loadBalancers?: string[];
+  managedResourceSummary?: IManagedResourceSummary;
+  moniker?: IMoniker;
   name: string;
   namespace?: string;
-  moniker?: IMoniker;
   provider?: string;
   providerMetadata?: any;
   region: string;

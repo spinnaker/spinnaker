@@ -6,6 +6,7 @@ import { Application } from 'core/application/application.model';
 import { EntityTagsReader } from 'core/entityTag/EntityTagsReader';
 import { ILoadBalancer } from 'core/domain';
 import { LOAD_BALANCER_READ_SERVICE, LoadBalancerReader } from 'core/loadBalancer/loadBalancer.read.service';
+import { addManagedResourceMetadataToLoadBalancers } from 'core/managed';
 
 export const LOAD_BALANCER_DATA_SOURCE = 'spinnaker.core.loadBalancer.dataSource';
 module(LOAD_BALANCER_DATA_SOURCE, [LOAD_BALANCER_READ_SERVICE]).run([
@@ -22,6 +23,7 @@ module(LOAD_BALANCER_DATA_SOURCE, [LOAD_BALANCER_READ_SERVICE]).run([
 
     const addTags = (application: Application) => {
       EntityTagsReader.addTagsToLoadBalancers(application);
+      addManagedResourceMetadataToLoadBalancers(application);
     };
 
     ApplicationDataSourceRegistry.registerDataSource({

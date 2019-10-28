@@ -6,6 +6,7 @@ import { Application } from 'core/application/application.model';
 import { SECURITY_GROUP_READER, SecurityGroupReader } from 'core/securityGroup/securityGroupReader.service';
 import { EntityTagsReader } from 'core/entityTag/EntityTagsReader';
 import { ISecurityGroup } from 'core/domain';
+import { addManagedResourceMetadataToSecurityGroups } from 'core/managed';
 
 export const SECURITY_GROUP_DATA_SOURCE = 'spinnaker.core.securityGroup.dataSource';
 module(SECURITY_GROUP_DATA_SOURCE, [SECURITY_GROUP_READER]).run([
@@ -20,7 +21,8 @@ module(SECURITY_GROUP_DATA_SOURCE, [SECURITY_GROUP_READER]).run([
     };
 
     const addTags = (application: Application) => {
-      return EntityTagsReader.addTagsToSecurityGroups(application);
+      EntityTagsReader.addTagsToSecurityGroups(application);
+      addManagedResourceMetadataToSecurityGroups(application);
     };
 
     ApplicationDataSourceRegistry.registerDataSource({
