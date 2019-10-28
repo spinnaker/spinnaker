@@ -5,7 +5,6 @@ import { CHAOS_MONKEY_CONFIG_COMPONENT } from 'core/chaosMonkey/chaosMonkeyConfi
 import { TRAFFIC_GUARD_CONFIG_COMPONENT } from './trafficGuard/trafficGuardConfig.component';
 import { SETTINGS } from 'core/config/settings';
 import { ApplicationWriter } from 'core/application/service/ApplicationWriter';
-import { ManagedReader } from 'core/managed';
 import { DELETE_APPLICATION_SECTION } from './deleteApplicationSection.module';
 
 const angular = require('angular');
@@ -69,11 +68,14 @@ module.exports = angular
 
       if (this.feature.managedResources) {
         this.hasManagedResources = false;
-        ManagedReader.getApplicationSummary(this.application.name).then(({ hasManagedResources }) => {
-          $scope.$applyAsync(() => {
-            this.hasManagedResources = hasManagedResources;
+        this.application
+          .getDataSource('managedResources')
+          .ready()
+          .then(({ hasManagedResources }) => {
+            $scope.$applyAsync(() => {
+              this.hasManagedResources = hasManagedResources;
+            });
           });
-        });
       }
     },
   ]);
