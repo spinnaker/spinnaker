@@ -13,6 +13,8 @@ import { SETTINGS } from 'core/config/settings';
 import { PipelineRoles } from './PipelineRoles';
 import { Trigger } from './Trigger';
 
+const { useState } = React;
+
 export interface ITriggersPageContentProps {
   application: Application;
   pipeline: IPipeline;
@@ -28,9 +30,15 @@ export function TriggersPageContent(props: ITriggersPageContentProps) {
     updatePipelineConfig,
   } = props;
   // must keep track of state to avoid race condition -- Remove once PipelineConfigurer is converted over to React
-  const [expectedArtifacts, setExpectedArtifacts] = React.useState<IExpectedArtifact[]>(
+  const [expectedArtifacts, setExpectedArtifacts] = useState<IExpectedArtifact[]>(
     props.pipeline.expectedArtifacts ? props.pipeline.expectedArtifacts : [],
   );
+  // KLUDGE: because we don't have a stable identifier to use for each trigger object, we need to reset the keys
+  // used for each trigger in the list when a delete happens (because the array of triggers shifts by one).
+  // For now, we do this by incrementing a counter every time a delete happens, and sticking that number
+  // into the key of each trigger before its index value. Ideally, we should generate stable UUIDs for
+  // each trigger object that we can use instead of relying on index keys.
+  const [deleteCount, setDeleteCount] = useState(0);
 
   function updateRoles(roles: any[]): void {
     updatePipelineConfig({ roles });
@@ -48,6 +56,7 @@ export function TriggersPageContent(props: ITriggersPageContentProps) {
   function removeTrigger(triggerIndex: number): void {
     const newTriggers = triggers.slice(0);
     newTriggers.splice(triggerIndex, 1);
+    setDeleteCount(deleteCount + 1);
     updatePipelineConfig({ triggers: newTriggers });
   }
 
@@ -125,7 +134,7 @@ export function TriggersPageContent(props: ITriggersPageContentProps) {
         </div>
       )}
       {triggers.map((trigger, index) => (
-        <div className="trigger-config" key={index}>
+        <div className="trigger-config" key={`${deleteCount}:${index}`}>
           <Trigger
             application={application}
             index={index}
