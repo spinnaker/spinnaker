@@ -22,7 +22,9 @@ module.exports = angular
         $scope.detailsSection = $stateParams.details;
         $scope.provider = $scope.stage.context.cloudProviderType || 'oracle';
         $scope.roscoMode = SETTINGS.feature.roscoMode;
-        $scope.bakeryDetailUrl = $interpolate(SETTINGS.bakeryDetailUrl);
+        $scope.bakeryDetailUrl = $interpolate(
+          $scope.roscoMode && SETTINGS.roscoDetailUrl ? SETTINGS.roscoDetailUrl : SETTINGS.bakeryDetailUrl,
+        );
       };
 
       let initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);

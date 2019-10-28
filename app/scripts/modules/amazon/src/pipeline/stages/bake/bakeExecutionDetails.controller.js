@@ -22,7 +22,9 @@ module.exports = angular
           SETTINGS.feature.roscoMode ||
           (typeof SETTINGS.feature.roscoSelector === 'function' &&
             SETTINGS.feature.roscoSelector($scope.stage.context));
-        $scope.bakeryDetailUrl = $interpolate(SETTINGS.bakeryDetailUrl);
+        $scope.bakeryDetailUrl = $interpolate(
+          $scope.roscoMode && SETTINGS.roscoDetailUrl ? SETTINGS.roscoDetailUrl : SETTINGS.bakeryDetailUrl,
+        );
         $scope.bakeFailedNoError =
           get($scope.stage, 'context.status.result') === 'FAILURE' && !$scope.stage.failureMessage;
       };
