@@ -129,7 +129,7 @@ public class MonitoredDeployBaseTask implements RetryableTask {
     DeploymentMonitorDefinition monitorDefinition = getDeploymentMonitorDefinition(stage);
 
     try {
-      return executeInternal(stage, context, monitorDefinition);
+      return executeInternal(stage, monitorDefinition);
     } catch (RetrofitError e) {
       log.warn(
           "HTTP Error encountered while talking to {}->{}, {}}",
@@ -151,9 +151,7 @@ public class MonitoredDeployBaseTask implements RetryableTask {
   }
 
   public @Nonnull TaskResult executeInternal(
-      Stage stage,
-      MonitoredDeployStageData context,
-      DeploymentMonitorDefinition monitorDefinition) {
+      Stage stage, DeploymentMonitorDefinition monitorDefinition) {
     throw new UnsupportedOperationException("Must implement executeInternal method");
   }
 

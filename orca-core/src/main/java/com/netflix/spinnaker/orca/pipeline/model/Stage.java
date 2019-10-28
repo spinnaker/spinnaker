@@ -615,6 +615,21 @@ public class Stage implements Serializable {
     return children;
   }
 
+  /**
+   * Gets all direct children of the current stage. This is not a recursive method and will return
+   * only the children in the first level of the stage.
+   */
+  public List<Stage> directChildren() {
+
+    if (execution != null) {
+      return getExecution().getStages().stream()
+          .filter(
+              stage -> stage.getParentStageId() != null && stage.getParentStageId().equals(getId()))
+          .collect(toList());
+    }
+    return emptyList();
+  }
+
   /** Maps the stage's context to a typed object */
   public <O> O mapTo(Class<O> type) {
     return mapTo(null, type);

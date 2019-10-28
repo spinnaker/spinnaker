@@ -29,11 +29,14 @@ public class DeploymentCompletedRequest extends RequestBase {
     SUCCESS,
 
     @JsonProperty("failure")
-    FAILURE
+    FAILURE,
+
+    @JsonProperty("not_performed")
+    ROLLBACK_NOT_PERFORMED;
   }
 
   private DeploymentStatus status;
-  private Boolean rolledback;
+  private DeploymentStatus rollback;
 
   public DeploymentCompletedRequest(Stage stage) {
     super(stage);

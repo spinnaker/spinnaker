@@ -126,7 +126,7 @@ class ClusterSizePreconditionTask extends AbstractCloudProviderAwareTask impleme
       int actual = serverGroups.size()
       boolean acceptable = config.getOp().evaluate(actual, config.expected)
       if (!acceptable) {
-        failures << "expected $config.comparison $config.expected ${config.onlyEnabledServerGroups ? 'enabled ' : ''}server groups in $region but found $actual: ${serverGroups*.name}"
+        failures << "expected $config.comparison $config.expected ${config.onlyEnabledServerGroups ? 'enabled ' : ''}server groups in $region but found $actual: ${serverGroups*.name}. Please clean up the cluster to only have the specific number of server groups, or opt out of this check in your deploy stage."
       }
     }
 

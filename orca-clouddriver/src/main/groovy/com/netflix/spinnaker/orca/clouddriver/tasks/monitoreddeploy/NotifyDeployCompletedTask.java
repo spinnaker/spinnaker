@@ -21,7 +21,7 @@ import com.netflix.spinnaker.config.DeploymentMonitorDefinition;
 import com.netflix.spinnaker.config.DeploymentMonitorServiceProvider;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.TaskResult;
-import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.MonitoredDeployStageData;
+import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.RollbackClusterStage;
 import com.netflix.spinnaker.orca.deploymentmonitor.models.DeploymentCompletedRequest;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import javax.annotation.Nonnull;
@@ -40,13 +40,33 @@ public class NotifyDeployCompletedTask extends MonitoredDeployBaseTask {
 
   @Override
   public @Nonnull TaskResult executeInternal(
-      Stage stage,
-      MonitoredDeployStageData context,
-      DeploymentMonitorDefinition monitorDefinition) {
-    // TODO(mvulfson): actually populate the request data
+      Stage stage, DeploymentMonitorDefinition monitorDefinition) {
     DeploymentCompletedRequest request = new DeploymentCompletedRequest(stage);
-    monitorDefinition.getService().notifyCompleted(request);
 
+    request.setStatus(
+        convertStageStatus(
+            (boolean) stage.getContext().getOrDefault("hasDeploymentFailed", false)));
+    request.setRollback(DeploymentCompletedRequest.DeploymentStatus.ROLLBACK_NOT_PERFORMED);
+
+    // check whether rollback was initiated and successful
+    if (stage.getParent() != null) {
+      stage.getParent().directChildren().stream()
+          .filter(s -> s.getType().equals(RollbackClusterStage.PIPELINE_CONFIG_TYPE))
+          .findFirst()
+          .ifPresent(
+              foundRollbackStage ->
+                  request.setRollback(
+                      convertStageStatus(
+                          foundRollbackStage.getStatus() != ExecutionStatus.SUCCEEDED)));
+    }
+
+    monitorDefinition.getService().notifyCompleted(request);
     return TaskResult.ofStatus(ExecutionStatus.SUCCEEDED);
+  }
+
+  private DeploymentCompletedRequest.DeploymentStatus convertStageStatus(Boolean failedStatus) {
+    return failedStatus
+        ? DeploymentCompletedRequest.DeploymentStatus.FAILURE
+        : DeploymentCompletedRequest.DeploymentStatus.SUCCESS;
   }
 }
