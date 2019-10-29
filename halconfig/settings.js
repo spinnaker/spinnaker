@@ -19,6 +19,7 @@ var defaultStorageAccountName = '{%canary.defaultStorageAccount%}';
 var displayTimestampsInUserLocalTime = '{%features.displayTimestampsInUserLocalTime%}' === 'true';
 var entityTagsEnabled = false;
 var fiatEnabled = '{%features.fiat%}' === 'true';
+var gceScaleDownControlsEnabled = '{%features.gceScaleDownControlsEnabled%}' === 'true';
 var gceStatefulMigsEnabled = '{%features.gceStatefulMigsEnabled%}' === 'true';
 var gremlinEnabled = '{%features.gremlin%}' === 'true';
 var iapRefresherEnabled = '{%features.iapRefresherEnabled%}' === 'true';
@@ -157,6 +158,7 @@ window.spinnakerSettings = {
     displayTimestampsInUserLocalTime: displayTimestampsInUserLocalTime,
     entityTags: entityTagsEnabled,
     fiatEnabled: fiatEnabled,
+    gceScaleDownControlsEnabled: gceScaleDownControlsEnabled,
     gceStatefulMigsEnabled: gceStatefulMigsEnabled,
     gremlinEnabled: gremlinEnabled,
     iapRefresherEnabled: iapRefresherEnabled,

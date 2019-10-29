@@ -26,6 +26,18 @@
     <help-field key="gce.serverGroup.autoscaling.mode"></help-field>
   </dt>
   <dd>{{$ctrl.policy.mode}}</dd>
+  <dt ng-if="$ctrl.scaleDownControlsEnabled">
+    Scale-down Controls
+  </dt>
+  <dd ng-if="$ctrl.scaleDownControlsEnabled">{{$ctrl.scaleDownControlsConfigured ? 'Enabled' : 'Disabled'}}</dd>
+  <dt ng-if="$ctrl.scaleDownControlsConfigured">
+    Max Scaled-down Replicas
+  </dt>
+  <dd ng-if="$ctrl.scaleDownControlsConfigured">{{$ctrl.maxScaledDownReplicasMessage}}</dd>
+  <dt ng-if="$ctrl.scaleDownControlsConfigured">
+    Scale-down Time Window
+  </dt>
+  <dd ng-if="$ctrl.scaleDownControlsConfigured">{{$ctrl.timeWindowSecMessage}}</dd>
   <dt ng-if="$ctrl.serverGroup.autoscalingMessages">Messages</dt>
   <dd ng-if="$ctrl.serverGroup.autoscalingMessages" ng-repeat="message in $ctrl.serverGroup.autoscalingMessages">
     {{message}}

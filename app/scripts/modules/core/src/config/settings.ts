@@ -32,6 +32,7 @@ export interface IFeatures {
   dockerBake?: boolean;
   entityTags?: boolean;
   fiatEnabled?: boolean;
+  gceScaleDownControlsEnabled?: boolean;
   gceStatefulMigsEnabled?: boolean;
   iapRefresherEnabled?: boolean;
   // whether stages affecting infrastructure (like "Create Load Balancer") should be enabled or not

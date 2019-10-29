@@ -7,6 +7,7 @@ module.exports = angular
   .component('gceAutoscalingPolicyBasicSettings', {
     bindings: {
       policy: '=',
+      updatePolicy: '<',
     },
     templateUrl: require('./basicSettings.component.html'),
     controller: function controller() {

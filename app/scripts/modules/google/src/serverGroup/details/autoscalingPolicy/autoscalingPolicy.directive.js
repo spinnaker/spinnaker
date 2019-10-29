@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { CONFIRMATION_MODAL_SERVICE } from '@spinnaker/core';
+import { CONFIRMATION_MODAL_SERVICE, SETTINGS } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.gce.instance.details.scalingPolicy.directive', [
@@ -75,6 +75,23 @@ module.exports = angular
           }
 
           policy.bases.push(basis);
+        }
+
+        this.scaleDownControlsEnabled = SETTINGS.feature.gceScaleDownControlsEnabled;
+        this.scaleDownControlsConfigured =
+          this.scaleDownControlsEnabled &&
+          policy.scaleDownControl &&
+          policy.scaleDownControl.timeWindowSec &&
+          policy.scaleDownControl.maxScaledDownReplicas &&
+          (policy.scaleDownControl.maxScaledDownReplicas.percent ||
+            policy.scaleDownControl.maxScaledDownReplicas.fixed);
+
+        if (this.scaleDownControlsConfigured) {
+          this.maxScaledDownReplicasMessage = policy.scaleDownControl.maxScaledDownReplicas.percent
+            ? `${policy.scaleDownControl.maxScaledDownReplicas.percent}%`
+            : `${policy.scaleDownControl.maxScaledDownReplicas.fixed}`;
+
+          this.timeWindowSecMessage = `${policy.scaleDownControl.timeWindowSec} seconds`;
         }
 
         this.editPolicy = () => {

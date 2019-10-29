@@ -18,7 +18,8 @@ module.exports = angular
     'serverGroup',
     '$uibModalInstance',
     'gceAutoscalingPolicyWriter',
-    function(policy, application, serverGroup, $uibModalInstance, gceAutoscalingPolicyWriter) {
+    '$scope',
+    function(policy, application, serverGroup, $uibModalInstance, gceAutoscalingPolicyWriter, $scope) {
       [this.action, this.isNew] = policy ? ['Edit', false] : ['New', true];
       this.policy = _.cloneDeep(policy || {});
 
@@ -35,6 +36,12 @@ module.exports = angular
           gceAutoscalingPolicyWriter.upsertAutoscalingPolicy(application, serverGroup, this.policy);
 
         this.taskMonitor.submit(submitMethod);
+      };
+
+      this.updatePolicy = updatedPolicy => {
+        $scope.$applyAsync(() => {
+          this.policy = updatedPolicy;
+        });
       };
     },
   ]);
