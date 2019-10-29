@@ -25,6 +25,7 @@ import com.netflix.spinnaker.igor.docker.model.DockerRegistryAccounts
 import com.netflix.spinnaker.igor.docker.service.TaggedImage
 import com.netflix.spinnaker.igor.history.EchoService
 import com.netflix.spinnaker.igor.history.model.DockerEvent
+import com.netflix.spinnaker.igor.keel.KeelService
 import com.netflix.spinnaker.igor.polling.LockService
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -38,6 +39,7 @@ class DockerMonitorSpec extends Specification {
     def dockerRegistryCache = Mock(DockerRegistryCache)
     def dockerRegistryAccounts = Mock(DockerRegistryAccounts)
     def echoService = Mock(EchoService)
+    def keelService = Mock(KeelService)
     Optional<DockerRegistryCacheV2KeysMigration> keysMigration = Optional.empty()
     def dockerRegistryProperties = new DockerRegistryProperties(enabled: true, itemUpperThreshold: 5)
 
@@ -53,7 +55,7 @@ class DockerMonitorSpec extends Specification {
         )
 
         when:
-        new DockerMonitor(properties, registry, discoveryClient, lockService, dockerRegistryCache, dockerRegistryAccounts, Optional.of(echoService), Optional.empty(), dockerRegistryProperties)
+        new DockerMonitor(properties, registry, discoveryClient, lockService, dockerRegistryCache, dockerRegistryAccounts, Optional.of(echoService), Optional.of(keelService), Optional.empty(), dockerRegistryProperties)
             .postEvent(cachedImages, taggedImage, "imageId")
 
         then:
@@ -102,7 +104,13 @@ class DockerMonitorSpec extends Specification {
             assert event.artifact.metadata.registry == taggedImage.registry
             return true
         })
-
+        1 * keelService.sendArtifactEvent({ Map event ->
+          def artifacts = event.payload.artifacts
+          assert artifacts.size() == 1
+          assert artifacts[0].name == "repository"
+          assert artifacts[0].type == "DOCKER"
+          return true
+        })
     }
 
     @Unroll
@@ -164,7 +172,7 @@ class DockerMonitorSpec extends Specification {
     }
 
     private DockerMonitor createSubject() {
-        return new DockerMonitor(properties, registry, discoveryClient, lockService, dockerRegistryCache, dockerRegistryAccounts, Optional.of(echoService), keysMigration, dockerRegistryProperties)
+        return new DockerMonitor(properties, registry, discoveryClient, lockService, dockerRegistryCache, dockerRegistryAccounts, Optional.of(echoService), Optional.of(keelService), keysMigration, dockerRegistryProperties)
     }
 
     private static String keyFromTaggedImage(TaggedImage taggedImage) {

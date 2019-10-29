@@ -26,11 +26,13 @@ import com.netflix.spinnaker.igor.docker.model.DockerRegistryAccounts
 import com.netflix.spinnaker.igor.docker.service.TaggedImage
 import com.netflix.spinnaker.igor.history.EchoService
 import com.netflix.spinnaker.igor.history.model.DockerEvent
+import com.netflix.spinnaker.igor.keel.KeelService
 import com.netflix.spinnaker.igor.polling.CommonPollingMonitor
 import com.netflix.spinnaker.igor.polling.DeltaItem
 import com.netflix.spinnaker.igor.polling.LockService
 import com.netflix.spinnaker.igor.polling.PollContext
 import com.netflix.spinnaker.igor.polling.PollingDelta
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -48,6 +50,7 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
     private final DockerRegistryCache cache
     private final DockerRegistryAccounts dockerRegistryAccounts
     private final Optional<EchoService> echoService
+    private final Optional<KeelService> keelService
     private final Optional<DockerRegistryCacheV2KeysMigration> keysMigration
     private final DockerRegistryProperties dockerRegistryProperties
 
@@ -59,6 +62,7 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
                   DockerRegistryCache cache,
                   DockerRegistryAccounts dockerRegistryAccounts,
                   Optional<EchoService> echoService,
+                  Optional<KeelService> keelService,
                   Optional<DockerRegistryCacheV2KeysMigration> keysMigration,
                   DockerRegistryProperties dockerRegistryProperties) {
         super(properties, registry, discoveryClient, lockService)
@@ -67,6 +71,7 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
         this.echoService = echoService
         this.keysMigration = keysMigration
         this.dockerRegistryProperties = dockerRegistryProperties
+        this.keelService = keelService
     }
 
     @Override
@@ -186,6 +191,26 @@ class DockerMonitor extends CommonPollingMonitor<ImageDelta, DockerPollingDelta>
             digest: image.digest,
             account: image.account,
           ), artifact: dockerArtifact))
+        }
+
+        if (keelService.isPresent()) {
+          String imageReference = image.repository + ":" + image.tag
+          Artifact artifact = Artifact.builder()
+            .type("DOCKER")
+            .customKind(false)
+            .name(image.repository)
+            .version(image.tag)
+            .location(image.account)
+            .reference(imageId)
+            .metadata([fullname: imageReference, registry: image.account, tag: image.tag],)
+            .provenance(image.registry)
+            .build()
+
+          Map artifactEvent = [
+            payload: [artifacts: [artifact], details: [:]],
+            eventName: "spinnaker_artifacts_docker"
+          ]
+          AuthenticatedRequest.allowAnonymous { keelService.get().sendArtifactEvent(artifactEvent) }
         }
     }
 

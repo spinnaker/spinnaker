@@ -99,6 +99,8 @@ class IgorConfigurationProperties {
         final ServiceConfiguration clouddriver = new ServiceConfiguration()
         @NestedConfigurationProperty
         final ServiceConfiguration echo = new ServiceConfiguration()
+        @NestedConfigurationProperty
+        final ServiceConfiguration keel = new ServiceConfiguration()
     }
 
     @NestedConfigurationProperty
