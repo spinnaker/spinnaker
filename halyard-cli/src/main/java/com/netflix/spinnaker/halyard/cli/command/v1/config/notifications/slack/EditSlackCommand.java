@@ -37,10 +37,26 @@ public class EditSlackCommand extends AbstractEditNotificationCommand<SlackNotif
   @Parameter(names = "--token", password = true, description = "Your slack bot token.")
   private String token;
 
+  @Parameter(
+      names = "--base-url",
+      description = "Slack endpoint. Optional, only set if using a compatible API.")
+  private String baseUrl;
+
+  @Parameter(
+      names = "--force-use-incoming-webhook",
+      description =
+          "Force usage of incoming webhooks endpoint for slack. Optional, only set if using a compatible API.")
+  private Boolean forceUseIncomingWebhook;
+
   @Override
   protected Notification editNotification(SlackNotification notification) {
+    notification.setBaseUrl(isSet(baseUrl) ? baseUrl : notification.getBaseUrl());
     notification.setBotName(isSet(botName) ? botName : notification.getBotName());
     notification.setToken(isSet(token) ? token : notification.getToken());
+    notification.setForceUseIncomingWebhook(
+        isSet(forceUseIncomingWebhook)
+            ? forceUseIncomingWebhook
+            : notification.getForceUseIncomingWebhook());
     return notification;
   }
 }

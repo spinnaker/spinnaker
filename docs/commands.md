@@ -6578,8 +6578,10 @@ hal config notification slack edit [parameters]
 ```
 
 #### Parameters
+ * `--base-url`: Slack endpoint. Optional, only set if using a compatible API.
  * `--bot-name`: The name of your slack bot.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--force-use-incoming-webhook`: Force usage of incoming webhooks endpoint for slack. Optional, only set if using a compatible API.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--token`: (*Sensitive data* - user will be prompted on standard input) Your slack bot token.
 
