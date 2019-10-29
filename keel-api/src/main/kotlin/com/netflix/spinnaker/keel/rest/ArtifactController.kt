@@ -1,8 +1,11 @@
 package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.api.ArtifactType
+import com.netflix.spinnaker.keel.api.ArtifactType.DEB
+import com.netflix.spinnaker.keel.api.ArtifactType.DOCKER
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.events.ArtifactEvent
+import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.persistence.ArtifactAlreadyRegistered
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
@@ -38,12 +41,23 @@ class ArtifactController(
   @ResponseStatus(ACCEPTED)
   fun submitArtifact(@RequestBody echoArtifactEvent: EchoArtifactEvent) {
     echoArtifactEvent.payload.artifacts.forEach { artifact ->
-      if (artifact.type.equals(ArtifactType.DEB.toString(), true) && artifact.isFromArtifactEvent()) {
+      if (artifact.type.equals(DEB.toString(), true) && artifact.isFromArtifactEvent()) {
+        publisher.publishEvent(ArtifactEvent(listOf(artifact), emptyMap()))
+      } else if (artifact.type.equals(DOCKER.toString(), true)) {
         publisher.publishEvent(ArtifactEvent(listOf(artifact), emptyMap()))
       } else {
         log.debug("Ignoring artifact event with type {}: {}", artifact.type, artifact)
       }
     }
+  }
+
+  @PostMapping(
+    path = ["/register"],
+    consumes = [APPLICATION_JSON_VALUE]
+  )
+  @ResponseStatus(ACCEPTED)
+  fun register(@RequestBody artifact: DeliveryArtifact) {
+    publisher.publishEvent(ArtifactRegisteredEvent(artifact))
   }
 
   @GetMapping(
@@ -68,7 +82,7 @@ class ArtifactController(
     log.error(e.message)
   }
 
-  // Artifacts should contain a releaseStatus in the metadata
+  // Debian Artifacts should contain a releaseStatus in the metadata
   private fun Artifact.isFromArtifactEvent() =
     this.metadata.containsKey("releaseStatus") && this.metadata["releaseStatus"] != null
 }

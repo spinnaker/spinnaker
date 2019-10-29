@@ -6,7 +6,7 @@ data class DeliveryArtifact(
 )
 
 enum class ArtifactType {
-  DEB
+  DEB, DOCKER
 }
 
 // todo eb: add RELEASE

@@ -3,6 +3,8 @@ package com.netflix.spinnaker.keel.artifact
 import com.netflix.spinnaker.igor.ArtifactService
 import com.netflix.spinnaker.keel.api.ArtifactStatus
 import com.netflix.spinnaker.keel.api.ArtifactType
+import com.netflix.spinnaker.keel.api.ArtifactType.DEB
+import com.netflix.spinnaker.keel.api.ArtifactType.DOCKER
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.events.ArtifactEvent
 import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
@@ -30,8 +32,19 @@ class ArtifactListener(
       .forEach { korkArtifact ->
         val artifact = korkArtifact.toDeliveryArtifact()
         if (artifactRepository.isRegistered(artifact.name, artifact.type)) {
-          val version = "${korkArtifact.name}-${korkArtifact.version}"
-          val status = artifactStatus(korkArtifact)
+          val version: String
+          val status: ArtifactStatus
+          when (artifact.type) {
+            DEB -> {
+              version = "${korkArtifact.name}-${korkArtifact.version}"
+              status = debStatus(korkArtifact)
+            }
+            DOCKER -> {
+              version = "${korkArtifact.name}:${korkArtifact.version}"
+              status = ArtifactStatus.FINAL // todo eb: should we default? should we re-think status? should status be null?
+            }
+            else -> throw UnsupportedArtifactTypeException(korkArtifact.type)
+          }
           log.info("Registering version {} ({}) of {} {}", version, status, artifact.name, artifact.type)
           artifactRepository.store(artifact, version, status)
             .also { wasAdded ->
@@ -53,22 +66,22 @@ class ArtifactListener(
       artifactRepository.register(artifact)
     }
 
-    if (artifactRepository.versions(artifact).isEmpty()) {
-      storeLatestVersion(artifact, event.statuses)
+    if (artifact.type == DEB && artifactRepository.versions(artifact).isEmpty()) {
+      storeLatestDebVersion(artifact, event.statuses)
     }
   }
 
   /**
    * Grab the latest version which matches the statuses we care about, so the artifact is relevant.
    */
-  protected fun storeLatestVersion(artifact: DeliveryArtifact, statuses: List<ArtifactStatus>) =
+  protected fun storeLatestDebVersion(artifact: DeliveryArtifact, statuses: List<ArtifactStatus>) =
     runBlocking {
       artifactService
         .getVersions(artifact.name, statuses.map { it.toString() })
         .firstOrNull()
         ?.let { firstVersion ->
           val version = "${artifact.name}-$firstVersion"
-          val status = artifactStatus(artifactService.getArtifact(artifact.name, firstVersion))
+          val status = debStatus(artifactService.getArtifact(artifact.name, firstVersion))
           log.debug("Storing latest version {} ({}) for registered artifact {}", version, status, artifact)
           artifactRepository.store(artifact, version, status)
         }
@@ -78,7 +91,7 @@ class ArtifactListener(
    * Parses the status from a kork artifact, and throws an error if [releaseStatus] isn't
    * present in [metadata]
    */
-  private fun artifactStatus(artifact: Artifact): ArtifactStatus {
+  private fun debStatus(artifact: Artifact): ArtifactStatus {
     val status = artifact.metadata["releaseStatus"]?.toString()
       ?: throw IllegalStateException("Artifact event received without 'releaseStatus' field")
     return ArtifactStatus.valueOf(status)
