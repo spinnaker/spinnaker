@@ -35,6 +35,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.CustomKubernetesResource;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesCachingPolicy;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
+import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryConfiguration;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubeconfigFileHasher;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentialFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
@@ -398,6 +399,11 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
             customResource ->
                 kindMap.put(customResource.getKubernetesKind(), customResource.getSpinnakerKind()));
     return kindMap;
+  }
+
+  @Override
+  public List<LinkedDockerRegistryConfiguration> getDockerRegistries() {
+    return Collections.emptyList();
   }
 
   public KubernetesManifest get(KubernetesKind kind, String namespace, String name) {
