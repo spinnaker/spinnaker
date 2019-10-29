@@ -10,6 +10,7 @@ import com.netflix.spinnaker.kork.manageddelivery.model.DeliveryConfig;
 import com.netflix.spinnaker.kork.manageddelivery.model.Resource;
 import groovy.util.logging.Slf4j;
 import io.swagger.annotations.ApiOperation;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -34,12 +39,16 @@ import retrofit.client.Header;
 @ConditionalOnProperty("services.keel.enabled")
 public class ManagedController {
 
+  private final HttpHeaders yamlResponseHeaders;
   private static final Logger log = LoggerFactory.getLogger(ManagedController.class);
   private final KeelService keelService;
 
   @Autowired
   public ManagedController(KeelService keelService) {
     this.keelService = keelService;
+    this.yamlResponseHeaders = new HttpHeaders();
+    yamlResponseHeaders.setContentType(
+        new MediaType("application", "x-yaml", StandardCharsets.UTF_8));
   }
 
   @ApiOperation(value = "Get a resource", response = Resource.class)
@@ -78,13 +87,15 @@ public class ManagedController {
       value = "Generate a keel resource definition for a deployed cloud resource",
       response = Resource.class)
   @RequestMapping(value = "/resources/export/{cloudProvider}/{account}/{type}/{name}", method = GET)
-  Resource exportResource(
+  ResponseEntity<Resource> exportResource(
       @PathVariable("cloudProvider") String cloudProvider,
       @PathVariable("account") String account,
       @PathVariable("type") String type,
       @PathVariable("name") String name,
       @RequestParam("serviceAccount") String serviceAccount) {
-    return keelService.exportResource(cloudProvider, account, type, name, serviceAccount);
+    Resource resource =
+        keelService.exportResource(cloudProvider, account, type, name, serviceAccount);
+    return new ResponseEntity<>(resource, yamlResponseHeaders, HttpStatus.OK);
   }
 
   @ApiOperation(value = "Get a delivery config manifest", response = DeliveryConfig.class)
