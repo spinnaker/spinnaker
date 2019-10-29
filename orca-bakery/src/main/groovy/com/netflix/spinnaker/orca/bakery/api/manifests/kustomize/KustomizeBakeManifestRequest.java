@@ -29,6 +29,9 @@ public class KustomizeBakeManifestRequest extends BakeManifestRequest {
   @JsonProperty("inputArtifact")
   private Artifact inputArtifact;
 
+  @JsonProperty("kustomizeFilePath")
+  private String kustomizeFilePath;
+
   public KustomizeBakeManifestRequest(
       BakeManifestContext bakeManifestContext, Artifact inputArtifact, String outputArtifactName) {
     super(
@@ -36,5 +39,6 @@ public class KustomizeBakeManifestRequest extends BakeManifestRequest {
         outputArtifactName,
         bakeManifestContext.getOutputName());
     this.inputArtifact = inputArtifact;
+    this.kustomizeFilePath = bakeManifestContext.getKustomizeFilePath();
   }
 }
