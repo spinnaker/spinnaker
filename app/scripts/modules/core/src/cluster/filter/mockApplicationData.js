@@ -57,12 +57,16 @@ module.exports = angular
           hasDiscovery: false,
           hasLoadBalancers: false,
           entityTags: undefined,
+          isManaged: false,
+          managedResourceSummary: undefined,
           subgroups: [
             {
               heading: 'eu-east-2',
               category: 'serverGroup',
               key: 'eu-east-2:serverGroup',
               entityTags: undefined,
+              isManaged: false,
+              managedResourceSummary: undefined,
               serverGroups: [
                 {
                   cluster: 'in-eu-east-2-only',
@@ -105,12 +109,16 @@ module.exports = angular
           hasDiscovery: false,
           hasLoadBalancers: false,
           entityTags: undefined,
+          isManaged: false,
+          managedResourceSummary: undefined,
           subgroups: [
             {
               heading: 'us-west-1',
               category: 'serverGroup',
               key: 'us-west-1:serverGroup',
               entityTags: undefined,
+              isManaged: false,
+              managedResourceSummary: undefined,
               serverGroups: [
                 {
                   cluster: 'in-us-west-1-only',

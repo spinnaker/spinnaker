@@ -9,6 +9,7 @@ import { ClusterState } from 'core/state';
 import { FilterModelService, ISortFilter } from 'core/filterModel';
 import { ReactInjector } from 'core/reactShims';
 import { ILabelFilter, trueKeyObjectToLabelFilters } from 'core/cluster/filter/labelFilterUtils';
+import { IManagedResourceSummary } from 'core/managed';
 
 export interface IParentGrouping {
   subgroups: IClusterSubgroup[] | IServerGroupSubgroup[];
@@ -30,6 +31,8 @@ export interface IClusterSubgroup extends IParentGrouping {
   hasDiscovery?: boolean;
   hasLoadBalancers?: boolean;
   entityTags: IEntityTags;
+  isManaged: boolean;
+  managedResourceSummary?: IManagedResourceSummary;
 }
 
 export interface IServerGroupSubgroup {
@@ -38,6 +41,8 @@ export interface IServerGroupSubgroup {
   category: string;
   serverGroups: IServerGroup[];
   entityTags: IEntityTags;
+  isManaged: boolean;
+  managedResourceSummary?: IManagedResourceSummary;
 }
 
 export type Grouping = IClusterGroup | IClusterSubgroup | IServerGroupSubgroup;
@@ -83,6 +88,8 @@ export class ClusterFilterService {
               serverGroups: regionGroup,
               key: `${region}:${category}`,
               entityTags: (regionGroup[0].clusterEntityTags || []).find(t => t.entityRef['region'] === region),
+              isManaged: !!regionGroup[0].isManaged,
+              managedResourceSummary: regionGroup[0].managedResourceSummary,
             });
           });
 
@@ -91,6 +98,7 @@ export class ClusterFilterService {
           );
 
           if (appCluster) {
+            const isEntireClusterManaged = regionGroups.every(({ isManaged }) => isManaged);
             clusterGroups.push({
               heading: cluster,
               category,
@@ -100,6 +108,8 @@ export class ClusterFilterService {
               entityTags: (clusterGroup[0].clusterEntityTags || []).find(
                 t => t.entityRef['region'] === '*' || t.entityRef['region'] === undefined,
               ),
+              isManaged: isEntireClusterManaged,
+              managedResourceSummary: isEntireClusterManaged ? regionGroups[0].managedResourceSummary : undefined,
             });
           }
         });
