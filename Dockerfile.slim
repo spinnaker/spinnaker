@@ -18,10 +18,9 @@ RUN wget https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get &&
   ./get && \
   rm get
 
-RUN curl -s -L -O https://github.com/kubernetes-sigs/kustomize/releases/download/v3.1.0/kustomize_3.1.0_linux_amd64 && \
-  mkdir kustomize && \
-  mv kustomize_*_linux_amd64 kustomize/kustomize && \
-  chmod +x kustomize/kustomize
+RUN mkdir kustomize && \
+  curl -s -L https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v3.3.0/kustomize_v3.3.0_linux_amd64.tar.gz |\
+  tar xvz -C kustomize/
 
 ENV PATH "kustomize:$PATH"
 
