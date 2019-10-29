@@ -98,8 +98,6 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
 
     Set<Artifact> boundArtifacts = new HashSet<>();
 
-    validateManifestsForRolloutStrategies(inputManifests);
-
     for (KubernetesManifest manifest : inputManifests) {
       if (credentials.getKindRegistry().getKindProperties(manifest.getKind()).isNamespaced()) {
         if (!StringUtils.isEmpty(description.getNamespaceOverride())) {
@@ -249,15 +247,6 @@ public class KubernetesDeployManifestOperation implements AtomicOperation<Operat
 
   private void applyTraffic(KubernetesManifestTraffic traffic, KubernetesManifest target) {
     traffic.getLoadBalancers().forEach(l -> attachLoadBalancer(l, target));
-  }
-
-  private void validateManifestsForRolloutStrategies(List<KubernetesManifest> manifests) {
-    long numReplicaSets =
-        manifests.stream().filter(m -> m.getKind().equals(KubernetesKind.REPLICA_SET)).count();
-    if (description.getStrategy() != null && numReplicaSets != 1) {
-      throw new RuntimeException(
-          "Spinnaker can manage traffic for one ReplicaSet only. Please deploy one ReplicaSet manifest or disable rollout strategies.");
-    }
   }
 
   private void attachLoadBalancer(String loadBalancerName, KubernetesManifest target) {
