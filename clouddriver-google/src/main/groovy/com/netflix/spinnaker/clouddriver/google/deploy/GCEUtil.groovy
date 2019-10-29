@@ -32,6 +32,7 @@ import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactUtils
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.google.GoogleExecutorTraits
+import com.netflix.spinnaker.clouddriver.google.batch.GoogleBatchRequest
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BaseGoogleInstanceDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
@@ -43,7 +44,6 @@ import com.netflix.spinnaker.clouddriver.google.model.*
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
-import com.netflix.spinnaker.clouddriver.google.batch.GoogleBatchRequest
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleNetworkProvider
@@ -652,53 +652,6 @@ class GCEUtil {
     )
   }
 
-  static GoogleAutoscalingPolicy buildAutoscalingPolicyDescriptionFromAutoscalingPolicy(
-    AutoscalingPolicy autoscalingPolicy) {
-    if (!autoscalingPolicy) {
-      return null
-    }
-
-    autoscalingPolicy.with {
-      def autoscalingPolicyDescription =
-          new GoogleAutoscalingPolicy(
-              coolDownPeriodSec: coolDownPeriodSec,
-              minNumReplicas: minNumReplicas,
-              maxNumReplicas: maxNumReplicas
-          )
-
-      if (cpuUtilization) {
-        autoscalingPolicyDescription.cpuUtilization =
-            new GoogleAutoscalingPolicy.CpuUtilization(
-                utilizationTarget: cpuUtilization.utilizationTarget
-            )
-      }
-
-      if (loadBalancingUtilization) {
-        autoscalingPolicyDescription.loadBalancingUtilization =
-            new GoogleAutoscalingPolicy.LoadBalancingUtilization(
-                utilizationTarget: loadBalancingUtilization.utilizationTarget
-            )
-      }
-
-      if (customMetricUtilizations) {
-        autoscalingPolicyDescription.customMetricUtilizations =
-            customMetricUtilizations.collect {
-              new GoogleAutoscalingPolicy.CustomMetricUtilization(
-                  metric: it.metric,
-                  utilizationTarget: it.utilizationTarget,
-                  utilizationTargetType: it.utilizationTargetType
-              )
-            }
-      }
-
-      if (mode) {
-        autoscalingPolicyDescription.mode = GoogleAutoscalingPolicy.AutoscalingMode.valueOf(mode)
-      }
-
-      return autoscalingPolicyDescription
-    }
-  }
-
   static GoogleAutoHealingPolicy buildAutoHealingPolicyDescriptionFromAutoHealingPolicy(
     InstanceGroupManagerAutoHealingPolicy autoHealingPolicy) {
     if (!autoHealingPolicy) {
@@ -892,6 +845,20 @@ class GCEUtil {
                                                        utilizationTarget: it.utilizationTarget,
                                                        utilizationTargetType: it.utilizationTargetType)
         }
+      }
+
+      if (scaleDownControl) {
+        def scaledDownReplicasInput = scaleDownControl.maxScaledDownReplicas
+        def maxScaledDownReplicas = null
+        if (scaledDownReplicasInput != null) {
+          maxScaledDownReplicas = FixedOrPercent.newInstance()
+            .setFixed(scaledDownReplicasInput.fixed)
+            .setPercent(scaledDownReplicasInput.percent)
+        }
+        gceAutoscalingPolicy.scaleDownControl =
+          new AutoscalingPolicyScaleDownControl(
+            maxScaledDownReplicas: maxScaledDownReplicas,
+            timeWindowSec: scaleDownControl.timeWindowSec)
       }
 
       new Autoscaler(name: serverGroupName,

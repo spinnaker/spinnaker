@@ -99,8 +99,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
 
     def autoscaler = null
     if (description.autoscalingPolicy) {
-      def ancestorAutoscalingPolicyDescription =
-        GCEUtil.buildAutoscalingPolicyDescriptionFromAutoscalingPolicy(serverGroup.autoscalingPolicy)
+      def ancestorAutoscalingPolicyDescription = serverGroup.autoscalingPolicy
       if (ancestorAutoscalingPolicyDescription) {
         task.updateStatus BASE_PHASE, "Updating autoscaler for $serverGroupName..."
 
@@ -227,6 +226,17 @@ class UpsertGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
     ["minNumReplicas", "maxNumReplicas", "coolDownPeriodSec", "customMetricUtilizations", "mode"].each {
       if (update[it] != null) {
         newDescription[it] = update[it]
+      }
+    }
+
+    // If scaleDownControl is completely absent, we leave the previous value.
+    // To remove it, set it to an empty object.
+    if (update.scaleDownControl != null) {
+      def scaleDownControl = update.scaleDownControl
+      if (scaleDownControl.timeWindowSec != null && scaleDownControl.maxScaledDownReplicas != null) {
+        newDescription.scaleDownControl = scaleDownControl
+      } else {
+        newDescription.scaleDownControl = null
       }
     }
 

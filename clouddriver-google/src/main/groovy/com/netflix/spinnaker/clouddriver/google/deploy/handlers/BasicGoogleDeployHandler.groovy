@@ -458,7 +458,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
                                                          description.source.serverGroupName)
 
       description.targetSize = ancestorServerGroup.capacity.desired
-      description.autoscalingPolicy = GCEUtil.buildAutoscalingPolicyDescriptionFromAutoscalingPolicy(ancestorServerGroup.autoscalingPolicy)
+      description.autoscalingPolicy = ancestorServerGroup.autoscalingPolicy
     }
 
     def autoHealingHealthCheck = null

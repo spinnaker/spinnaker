@@ -31,6 +31,7 @@ class GoogleAutoscalingPolicy {
   CpuUtilization cpuUtilization
   LoadBalancingUtilization loadBalancingUtilization
   List<CustomMetricUtilization> customMetricUtilizations
+  ScaleDownControl scaleDownControl
   AutoscalingMode mode
 
   @ToString(includeNames = true)
@@ -56,6 +57,15 @@ class GoogleAutoscalingPolicy {
     }
   }
 
+  static class ScaleDownControl {
+    FixedOrPercent maxScaledDownReplicas
+    Integer timeWindowSec
+  }
+
+  static class FixedOrPercent {
+    Integer fixed
+    Integer percent
+  }
 
   static enum AutoscalingMode {
     ON,

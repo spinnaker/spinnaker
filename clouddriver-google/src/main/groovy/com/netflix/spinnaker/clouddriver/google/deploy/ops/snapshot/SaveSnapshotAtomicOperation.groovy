@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.description.snapshot.SaveSnapshotDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceIllegalStateException
+import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleCluster
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.GoogleSecurityGroup
@@ -378,7 +379,7 @@ class SaveSnapshotAtomicOperation implements AtomicOperation<Void> {
     return numDisks > 0
   }
 
-  private Void addAutoscalerToResourceMap(String targetName, String targetZone, AutoscalingPolicy autoscalingPolicy, Map resourceMap) {
+  private Void addAutoscalerToResourceMap(String targetName, String targetZone, GoogleAutoscalingPolicy autoscalingPolicy, Map resourceMap) {
     def autoscalerMap = [:]
 
     autoscalerMap.name = targetName
@@ -668,7 +669,7 @@ class SaveSnapshotAtomicOperation implements AtomicOperation<Void> {
   }
 
   private ShieldedVmConfig convertMapToShieldedVmConfig(Map shieldedVmConfigMap) {
-    
+
     ShieldedVmConfig shieldedVmConfig = new ShieldedVmConfig()
 
     shieldedVmConfig.enableSecureBoot = shieldedVmConfigMap.enableSecureBoot as Boolean

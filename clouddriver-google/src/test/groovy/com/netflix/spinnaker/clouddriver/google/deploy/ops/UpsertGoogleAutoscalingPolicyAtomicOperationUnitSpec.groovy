@@ -198,20 +198,19 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
   void "builds autoscaler based on ancestor autoscaling policy and input description: input overrides nothing"() {
     setup:
     def registry = new DefaultRegistry()
-    def ancestorPolicy = new AutoscalingPolicy(
+    def ancestorPolicy = new GoogleAutoscalingPolicy(
       minNumReplicas: MIN_NUM_REPLICAS, maxNumReplicas: MAX_NUM_REPLICAS, coolDownPeriodSec: COOL_DOWN_PERIOD_SEC,
-      cpuUtilization: new AutoscalingPolicyCpuUtilization(utilizationTarget: UTILIZATION_TARGET),
-      loadBalancingUtilization: new AutoscalingPolicyLoadBalancingUtilization(utilizationTarget: UTILIZATION_TARGET),
-      customMetricUtilizations: [new AutoscalingPolicyCustomMetricUtilization(
+      cpuUtilization: new GoogleAutoscalingPolicy.CpuUtilization(utilizationTarget: UTILIZATION_TARGET),
+      loadBalancingUtilization: new GoogleAutoscalingPolicy.LoadBalancingUtilization(utilizationTarget: UTILIZATION_TARGET),
+      customMetricUtilizations: [new GoogleAutoscalingPolicy.CustomMetricUtilization(
         metric: METRIC,
         utilizationTarget: UTILIZATION_TARGET,
         utilizationTargetType: "DELTA_PER_MINUTE")]);
-    def ancestorDescription = GCEUtil.buildAutoscalingPolicyDescriptionFromAutoscalingPolicy(ancestorPolicy)
 
     def updatePolicy = new GoogleAutoscalingPolicy()
 
     def expectedAutoscaler = GCEUtil.buildAutoscaler(
-      SERVER_GROUP_NAME, SELF_LINK, ancestorDescription)
+      SERVER_GROUP_NAME, SELF_LINK, ancestorPolicy)
 
     def computeMock = Mock(Compute)
     def serverGroup = new GoogleServerGroup(

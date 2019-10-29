@@ -491,23 +491,19 @@ abstract class AbstractEnableDisableAtomicOperation extends GoogleAtomicOperatio
     String region = serverGroup.region
     String zone = serverGroup.zone
     if (serverGroup.autoscalingPolicy) {
-      def policyDescription =
-        GCEUtil.buildAutoscalingPolicyDescriptionFromAutoscalingPolicy(serverGroup.autoscalingPolicy)
-      if (policyDescription) {
-        def autoscaler = GCEUtil.buildAutoscaler(serverGroupName, serverGroup.selfLink, policyDescription)
-        autoscaler.getAutoscalingPolicy().setMode(mode.toString())
+      def autoscaler = GCEUtil.buildAutoscaler(serverGroupName, serverGroup.selfLink, serverGroup.autoscalingPolicy)
+      autoscaler.getAutoscalingPolicy().setMode(mode.toString())
 
-        if (serverGroup.regional) {
-          timeExecute(
-            compute.regionAutoscalers().update(project, region, autoscaler),
-            "compute.regionAutoscalers.update",
-            TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
-        } else {
-          timeExecute(
-            compute.autoscalers().update(project, zone, autoscaler),
-            "compute.autoscalers.update",
-            TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, zone)
-        }
+      if (serverGroup.regional) {
+        timeExecute(
+          compute.regionAutoscalers().update(project, region, autoscaler),
+          "compute.regionAutoscalers.update",
+          TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
+      } else {
+        timeExecute(
+          compute.autoscalers().update(project, zone, autoscaler),
+          "compute.autoscalers.update",
+          TAG_SCOPE, SCOPE_ZONAL, TAG_ZONE, zone)
       }
     }
   }

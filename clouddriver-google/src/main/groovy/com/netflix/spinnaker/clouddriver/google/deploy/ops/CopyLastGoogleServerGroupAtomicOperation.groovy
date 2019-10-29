@@ -266,9 +266,7 @@ class CopyLastGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Dep
       }
     }
 
-    AutoscalingPolicy ancestorAutoscalingPolicy = ancestorServerGroup.autoscalingPolicy
-    GoogleAutoscalingPolicy ancestorAutoscalingPolicyDescription =
-      GCEUtil.buildAutoscalingPolicyDescriptionFromAutoscalingPolicy(ancestorAutoscalingPolicy)
+    GoogleAutoscalingPolicy ancestorAutoscalingPolicyDescription = ancestorServerGroup.autoscalingPolicy
 
     newDescription.autoscalingPolicy = description.autoscalingPolicy ?: ancestorAutoscalingPolicyDescription
 

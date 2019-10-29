@@ -40,6 +40,10 @@ import com.google.api.services.compute.model.AttachedDisk;
 import com.google.api.services.compute.model.Autoscaler;
 import com.google.api.services.compute.model.AutoscalerStatusDetails;
 import com.google.api.services.compute.model.AutoscalingPolicy;
+import com.google.api.services.compute.model.AutoscalingPolicyCpuUtilization;
+import com.google.api.services.compute.model.AutoscalingPolicyCustomMetricUtilization;
+import com.google.api.services.compute.model.AutoscalingPolicyLoadBalancingUtilization;
+import com.google.api.services.compute.model.AutoscalingPolicyScaleDownControl;
 import com.google.api.services.compute.model.DistributionPolicy;
 import com.google.api.services.compute.model.Instance;
 import com.google.api.services.compute.model.InstanceGroupManager;
@@ -73,6 +77,14 @@ import com.netflix.spinnaker.clouddriver.google.compute.BatchPaginatedComputeReq
 import com.netflix.spinnaker.clouddriver.google.compute.GoogleComputeApiFactory;
 import com.netflix.spinnaker.clouddriver.google.compute.InstanceTemplates;
 import com.netflix.spinnaker.clouddriver.google.compute.Instances;
+import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy;
+import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy.AutoscalingMode;
+import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy.CpuUtilization;
+import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy.CustomMetricUtilization;
+import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy.CustomMetricUtilization.UtilizationTargetType;
+import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy.FixedOrPercent;
+import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy.LoadBalancingUtilization;
+import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy.ScaleDownControl;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDistributionPolicy;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstances;
@@ -869,7 +881,7 @@ abstract class AbstractGoogleServerGroupCachingAgent
 
     AutoscalingPolicy autoscalingPolicy = autoscaler.getAutoscalingPolicy();
     if (autoscalingPolicy != null) {
-      serverGroup.setAutoscalingPolicy(autoscalingPolicy);
+      serverGroup.setAutoscalingPolicy(convertAutoscalingPolicy(autoscalingPolicy));
       // is asg possibly null???
       HashMap<String, Object> autoscalingGroup = new HashMap<>(serverGroup.getAsg());
       autoscalingGroup.put("minSize", autoscalingPolicy.getMinNumReplicas());
@@ -882,6 +894,95 @@ abstract class AbstractGoogleServerGroupCachingAgent
               .map(AutoscalerStatusDetails::getMessage)
               .filter(Objects::nonNull)
               .collect(toImmutableList()));
+    }
+  }
+
+  private static GoogleAutoscalingPolicy convertAutoscalingPolicy(AutoscalingPolicy input) {
+    CpuUtilization cpu = convertCpuUtilization(input.getCpuUtilization());
+    LoadBalancingUtilization loadBalancing =
+        convertLoadBalancingUtilization(input.getLoadBalancingUtilization());
+    List<CustomMetricUtilization> customMetrics =
+        convertCustomMetricUtilizations(input.getCustomMetricUtilizations());
+    GoogleAutoscalingPolicy output = new GoogleAutoscalingPolicy();
+    output.setCoolDownPeriodSec(input.getCoolDownPeriodSec());
+    output.setCpuUtilization(cpu);
+    output.setCustomMetricUtilizations(customMetrics);
+    output.setLoadBalancingUtilization(loadBalancing);
+    output.setMaxNumReplicas(input.getMaxNumReplicas());
+    output.setMinNumReplicas(input.getMinNumReplicas());
+    output.setMode(valueOf(AutoscalingMode.class, input.getMode()));
+    output.setScaleDownControl(convertScaleDownControl(input.getScaleDownControl()));
+    return output;
+  }
+
+  @Nullable
+  private static CpuUtilization convertCpuUtilization(
+      @Nullable AutoscalingPolicyCpuUtilization input) {
+    if (input == null) {
+      return null;
+    }
+    CpuUtilization output = new CpuUtilization();
+    output.setUtilizationTarget(input.getUtilizationTarget());
+    return output;
+  }
+
+  @Nullable
+  private static LoadBalancingUtilization convertLoadBalancingUtilization(
+      @Nullable AutoscalingPolicyLoadBalancingUtilization input) {
+    if (input == null) {
+      return null;
+    }
+    LoadBalancingUtilization output = new LoadBalancingUtilization();
+    output.setUtilizationTarget(input.getUtilizationTarget());
+    return output;
+  }
+
+  @Nullable
+  private static ImmutableList<CustomMetricUtilization> convertCustomMetricUtilizations(
+      @Nullable List<AutoscalingPolicyCustomMetricUtilization> input) {
+    if (input == null) {
+      return null;
+    }
+    return input.stream()
+        .map(AbstractGoogleServerGroupCachingAgent::convertCustomMetricUtilization)
+        .collect(toImmutableList());
+  }
+
+  private static CustomMetricUtilization convertCustomMetricUtilization(
+      AutoscalingPolicyCustomMetricUtilization input) {
+    CustomMetricUtilization output = new CustomMetricUtilization();
+    output.setMetric(input.getMetric());
+    output.setUtilizationTarget(input.getUtilizationTarget());
+    output.setUtilizationTargetType(
+        valueOf(UtilizationTargetType.class, input.getUtilizationTargetType()));
+    return output;
+  }
+
+  private static ScaleDownControl convertScaleDownControl(
+      @Nullable AutoscalingPolicyScaleDownControl input) {
+    if (input == null) {
+      return null;
+    }
+    FixedOrPercent maxScaledDownReplicas = null;
+    if (input.getMaxScaledDownReplicas() != null) {
+      maxScaledDownReplicas = new FixedOrPercent();
+      maxScaledDownReplicas.setFixed(input.getMaxScaledDownReplicas().getFixed());
+      maxScaledDownReplicas.setPercent(input.getMaxScaledDownReplicas().getPercent());
+    }
+    ScaleDownControl output = new ScaleDownControl();
+    output.setTimeWindowSec(input.getTimeWindowSec());
+    output.setMaxScaledDownReplicas(maxScaledDownReplicas);
+    return output;
+  }
+
+  private static <T extends Enum<T>> T valueOf(Class<T> enumType, @Nullable String value) {
+    if (value == null) {
+      return null;
+    }
+    try {
+      return Enum.valueOf(enumType, value);
+    } catch (IllegalArgumentException e) {
+      return null;
     }
   }
 
