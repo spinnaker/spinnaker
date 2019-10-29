@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSetMultimap;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentIntervalAware;
 import com.netflix.spinnaker.cats.agent.CacheResult;
@@ -31,6 +32,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesCachingPoli
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.RegistryUtils;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKindProperties;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKindProperties.ResourceScope;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor.KubectlException;
@@ -40,8 +43,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -74,27 +80,61 @@ public abstract class KubernetesV2CachingAgent
 
   protected abstract List<KubernetesKind> primaryKinds();
 
+  private ImmutableList<KubernetesManifest> loadResources(
+      @Nonnull Iterable<KubernetesKind> kubernetesKinds, Optional<String> optionalNamespace) {
+    String namespace = optionalNamespace.orElse(null);
+    try {
+      return credentials.list(ImmutableList.copyOf(kubernetesKinds), namespace);
+    } catch (KubectlException e) {
+      log.warn(
+          "{}: Failed to read kind {} from namespace {}: {}",
+          getAgentType(),
+          kubernetesKinds,
+          namespace,
+          e.getMessage());
+      throw e;
+    }
+  }
+
+  @Nonnull
+  private ImmutableList<KubernetesManifest> loadNamespaceScopedResources(
+      @Nonnull Iterable<KubernetesKind> kubernetesKinds) {
+    return getNamespaces()
+        .parallelStream()
+        .map(n -> loadResources(kubernetesKinds, Optional.of(n)))
+        .flatMap(Collection::stream)
+        .collect(ImmutableList.toImmutableList());
+  }
+
+  @Nonnull
+  private ImmutableList<KubernetesManifest> loadClusterScopedResources(
+      @Nonnull Iterable<KubernetesKind> kubernetesKinds) {
+    if (handleClusterScopedResources()) {
+      return loadResources(kubernetesKinds, Optional.empty());
+    } else {
+      return ImmutableList.of();
+    }
+  }
+
+  private ImmutableSetMultimap<ResourceScope, KubernetesKind> primaryKindsByScope() {
+    return primaryKinds().stream()
+        .collect(
+            ImmutableSetMultimap.toImmutableSetMultimap(
+                k -> credentials.getKindRegistry().getKindProperties(k).getResourceScope(),
+                Function.identity()));
+  }
+
   protected Map<KubernetesKind, List<KubernetesManifest>> loadPrimaryResourceList() {
-    List<KubernetesKind> primaryKinds = primaryKinds();
+    ImmutableSetMultimap<ResourceScope, KubernetesKind> kindsByScope = primaryKindsByScope();
+
     Map<KubernetesKind, List<KubernetesManifest>> result =
-        getNamespaces()
-            .parallelStream()
-            .map(
-                n -> {
-                  try {
-                    return credentials.list(primaryKinds, n);
-                  } catch (KubectlException e) {
-                    log.warn(
-                        "{}: Failed to read kind {} from namespace {}: {}",
-                        getAgentType(),
-                        primaryKinds,
-                        n,
-                        e.getMessage());
-                    throw e;
-                  }
-                })
-            .filter(Objects::nonNull)
-            .flatMap(Collection::stream)
+        Stream.concat(
+                loadClusterScopedResources(
+                    kindsByScope.get(KubernetesKindProperties.ResourceScope.CLUSTER))
+                    .stream(),
+                loadNamespaceScopedResources(
+                    kindsByScope.get(KubernetesKindProperties.ResourceScope.NAMESPACE))
+                    .stream())
             .collect(Collectors.groupingBy(KubernetesManifest::getKind));
 
     for (KubernetesCachingPolicy policy : credentials.getCachingPolicies()) {

@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job;
 
+import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.stream.JsonReader;
@@ -39,6 +40,7 @@ import java.io.ByteArrayInputStream;
 import java.io.EOFException;
 import java.util.*;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -397,7 +399,8 @@ public class KubectlJobExecutor {
     }
   }
 
-  public List<KubernetesManifest> eventsFor(
+  @Nonnull
+  public ImmutableList<KubernetesManifest> eventsFor(
       KubernetesV2Credentials credentials, KubernetesKind kind, String namespace, String name) {
     List<String> command =
         kubectlNamespacedGet(
@@ -408,7 +411,7 @@ public class KubectlJobExecutor {
             "involvedObject.name=%s,involvedObject.kind=%s",
             name, StringUtils.capitalize(kind.toString())));
 
-    JobResult<List<KubernetesManifest>> status =
+    JobResult<ImmutableList<KubernetesManifest>> status =
         jobExecutor.runJob(new JobRequest(command), parseManifestList());
 
     if (status.getResult() != JobResult.Result.SUCCESS) {
@@ -421,13 +424,14 @@ public class KubectlJobExecutor {
     }
 
     if (status.getError().contains("No resources found")) {
-      return new ArrayList<>();
+      return ImmutableList.of();
     }
 
     return status.getOutput();
   }
 
-  public List<KubernetesManifest> list(
+  @Nonnull
+  public ImmutableList<KubernetesManifest> list(
       KubernetesV2Credentials credentials,
       List<KubernetesKind> kinds,
       String namespace,
@@ -437,7 +441,7 @@ public class KubectlJobExecutor {
       command.add("-l=" + selectors.toString());
     }
 
-    JobResult<List<KubernetesManifest>> status =
+    JobResult<ImmutableList<KubernetesManifest>> status =
         jobExecutor.runJob(new JobRequest(command), parseManifestList());
 
     if (status.getResult() != JobResult.Result.SUCCESS) {
@@ -450,7 +454,7 @@ public class KubectlJobExecutor {
     }
 
     if (status.getError().contains("No resources found")) {
-      return new ArrayList<>();
+      return ImmutableList.of();
     }
 
     return status.getOutput();
@@ -779,16 +783,16 @@ public class KubectlJobExecutor {
     return null;
   }
 
-  private ReaderConsumer<List<KubernetesManifest>> parseManifestList() {
+  private ReaderConsumer<ImmutableList<KubernetesManifest>> parseManifestList() {
     return (BufferedReader r) -> {
       try (JsonReader reader = new JsonReader(r)) {
-        List<KubernetesManifest> manifestList = new ArrayList<>();
         try {
           reader.beginObject();
         } catch (EOFException e) {
           // If the stream we're parsing is empty, just return an empty list
-          return manifestList;
+          return ImmutableList.of();
         }
+        ImmutableList.Builder<KubernetesManifest> manifestList = new ImmutableList.Builder<>();
         while (reader.hasNext()) {
           if (reader.nextName().equals("items")) {
             reader.beginArray();
@@ -802,7 +806,7 @@ public class KubectlJobExecutor {
           }
         }
         reader.endObject();
-        return manifestList;
+        return manifestList.build();
       }
     };
   }

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.security
 
+import com.google.common.collect.ImmutableList
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties
@@ -117,11 +118,11 @@ class KubernetesV2CredentialsSpec extends Specification {
         namespaces: [NAMESPACE],
         checkPermissionsOnStartup: true,
       ))
-    kubectlJobExecutor.list(_ as KubernetesV2Credentials, [KubernetesKind.DEPLOYMENT], NAMESPACE, _ as KubernetesSelectorList) >> {
+    kubectlJobExecutor.list(_ as KubernetesV2Credentials, ImmutableList.of(KubernetesKind.DEPLOYMENT), NAMESPACE, _ as KubernetesSelectorList) >> {
       throw new KubectlJobExecutor.KubectlException("Error", new Exception())
     }
-    kubectlJobExecutor.list(_ as KubernetesV2Credentials, [KubernetesKind.REPLICA_SET], NAMESPACE, _ as KubernetesSelectorList) >> {
-      return Collections.emptyList()
+    kubectlJobExecutor.list(_ as KubernetesV2Credentials, ImmutableList.of(KubernetesKind.REPLICA_SET), NAMESPACE, _ as KubernetesSelectorList) >> {
+      return ImmutableList.of()
     }
 
     expect:

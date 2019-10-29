@@ -405,7 +405,8 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
         "get", kind, namespace, () -> jobExecutor.get(this, kind, namespace, name));
   }
 
-  public List<KubernetesManifest> list(KubernetesKind kind, String namespace) {
+  @Nonnull
+  public ImmutableList<KubernetesManifest> list(KubernetesKind kind, String namespace) {
     return runAndRecordMetrics(
         "list",
         kind,
@@ -415,7 +416,8 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
                 this, Collections.singletonList(kind), namespace, new KubernetesSelectorList()));
   }
 
-  public List<KubernetesManifest> list(
+  @Nonnull
+  public ImmutableList<KubernetesManifest> list(
       KubernetesKind kind, String namespace, KubernetesSelectorList selectors) {
     return runAndRecordMetrics(
         "list",
@@ -424,9 +426,10 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
         () -> jobExecutor.list(this, Collections.singletonList(kind), namespace, selectors));
   }
 
-  public List<KubernetesManifest> list(List<KubernetesKind> kinds, String namespace) {
+  @Nonnull
+  public ImmutableList<KubernetesManifest> list(List<KubernetesKind> kinds, String namespace) {
     if (kinds.isEmpty()) {
-      return new ArrayList<>();
+      return ImmutableList.of();
     } else {
       return runAndRecordMetrics(
           "list",
@@ -436,7 +439,9 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     }
   }
 
-  public List<KubernetesManifest> eventsFor(KubernetesKind kind, String namespace, String name) {
+  @Nonnull
+  public ImmutableList<KubernetesManifest> eventsFor(
+      KubernetesKind kind, String namespace, String name) {
     return runAndRecordMetrics(
         "list",
         KubernetesKind.EVENT,

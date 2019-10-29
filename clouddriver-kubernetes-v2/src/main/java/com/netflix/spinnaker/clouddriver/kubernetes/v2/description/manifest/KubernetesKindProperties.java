@@ -99,4 +99,13 @@ public class KubernetesKindProperties {
   public boolean hasClusterRelationship() {
     return this.hasClusterRelationship;
   }
+
+  public ResourceScope getResourceScope() {
+    return isNamespaced ? ResourceScope.NAMESPACE : ResourceScope.CLUSTER;
+  }
+
+  public enum ResourceScope {
+    CLUSTER,
+    NAMESPACE;
+  }
 }
