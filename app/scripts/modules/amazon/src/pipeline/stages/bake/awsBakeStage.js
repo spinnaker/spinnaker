@@ -109,6 +109,14 @@ module.exports = angular
         });
       }
 
+      function stageUpdated() {
+        deleteEmptyProperties();
+        // Since the selector computes using stage as an input, it needs to be able to recompute roscoMode on updates
+        if (typeof SETTINGS.feature.roscoSelector === 'function') {
+          $scope.viewState.roscoMode = SETTINGS.feature.roscoSelector($scope.stage);
+        }
+      }
+
       function deleteEmptyProperties() {
         _.forOwn($scope.stage, function(val, key) {
           if (val === '') {
@@ -195,7 +203,7 @@ module.exports = angular
         }
       };
 
-      $scope.$watch('stage', deleteEmptyProperties, true);
+      $scope.$watch('stage', stageUpdated, true);
 
       initialize();
     },
