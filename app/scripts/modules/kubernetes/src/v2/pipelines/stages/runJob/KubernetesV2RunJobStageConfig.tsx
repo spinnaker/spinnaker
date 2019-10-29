@@ -183,6 +183,7 @@ export class KubernetesV2RunJobStageConfig extends React.Component<IStageConfigP
         selectedArtifactAccount={stage.consumeArtifactAccount}
         setArtifactAccount={(artifactAccount: string) => this.updateArtifactAccount(artifactAccount)}
         setArtifactId={(artifactId: string) => this.updateArtifactId(artifactId)}
+        updatePipeline={this.props.updatePipeline}
       />
     );
   }
