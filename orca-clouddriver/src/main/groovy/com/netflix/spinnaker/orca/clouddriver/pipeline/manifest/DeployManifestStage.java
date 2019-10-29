@@ -86,46 +86,44 @@ public class DeployManifestStage implements StageDefinitionBuilder {
 
   private void addStagesForOldManifests(
       Map parentContext, StageGraphBuilder graph, String stageType) {
-    Map deployedManifest = getNewManifest(parentContext);
+    List<Map<String, ?>> deployedManifests = getNewManifests(parentContext);
     String account = (String) parentContext.get("account");
     Map manifestMoniker = (Map) parentContext.get("moniker");
     String application = (String) manifestMoniker.get("app");
 
-    Map manifestMetadata = (Map) deployedManifest.get("metadata");
-    String manifestName = String.format("replicaSet %s", (String) manifestMetadata.get("name"));
-    String namespace = (String) manifestMetadata.get("namespace");
-    Map annotations = (Map) manifestMetadata.get("annotations");
-    String clusterName = (String) annotations.get("moniker.spinnaker.io/cluster");
-    String cloudProvider = "kubernetes";
+    deployedManifests.forEach(
+        manifest -> {
+          Map manifestMetadata = (Map) manifest.get("metadata");
+          String manifestName =
+              String.format("replicaSet %s", (String) manifestMetadata.get("name"));
+          String namespace = (String) manifestMetadata.get("namespace");
+          Map annotations = (Map) manifestMetadata.get("annotations");
+          String clusterName = (String) annotations.get("moniker.spinnaker.io/cluster");
+          String cloudProvider = "kubernetes";
 
-    List<String> previousManifestNames =
-        getOldManifestNames(application, account, clusterName, namespace, manifestName);
-    previousManifestNames.forEach(
-        name -> {
-          graph.append(
-              (stage) -> {
-                stage.setType(stageType);
-                Map<String, Object> context = stage.getContext();
-                context.put("account", account);
-                context.put("app", application);
-                context.put("cloudProvider", cloudProvider);
-                context.put("manifestName", name);
-                context.put("location", namespace);
+          List<String> previousManifestNames =
+              getOldManifestNames(application, account, clusterName, namespace, manifestName);
+          previousManifestNames.forEach(
+              name -> {
+                graph.append(
+                    (stage) -> {
+                      stage.setType(stageType);
+                      Map<String, Object> context = stage.getContext();
+                      context.put("account", account);
+                      context.put("app", application);
+                      context.put("cloudProvider", cloudProvider);
+                      context.put("manifestName", name);
+                      context.put("location", namespace);
+                    });
               });
         });
   }
 
-  private Map getNewManifest(Map parentContext) {
+  private List<Map<String, ?>> getNewManifests(Map parentContext) {
     List<Map<String, ?>> manifests = (List<Map<String, ?>>) parentContext.get("outputs.manifests");
-    List<Map<String, ?>> replicaSetManifests =
-        manifests.stream()
-            .filter(manifest -> manifest.get("kind").equals("ReplicaSet"))
-            .collect(Collectors.toList());
-    if (replicaSetManifests.size() != 1) {
-      throw new IllegalArgumentException(
-          "Spinnaker can manage traffic for one ReplicaSet only. Please deploy one ReplicaSet manifest or disable rollout strategies.");
-    }
-    return replicaSetManifests.get(0);
+    return manifests.stream()
+        .filter(manifest -> manifest.get("kind").equals("ReplicaSet"))
+        .collect(Collectors.toList());
   }
 
   private List<String> getOldManifestNames(
