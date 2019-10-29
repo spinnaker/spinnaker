@@ -22,8 +22,10 @@ import com.netflix.spinnaker.rosco.jobs.BakeRecipe;
 import com.netflix.spinnaker.rosco.manifests.ArtifactDownloader;
 import com.netflix.spinnaker.rosco.manifests.BakeManifestEnvironment;
 import com.netflix.spinnaker.rosco.manifests.kustomize.mapping.Kustomization;
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -31,9 +33,13 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.stereotype.Component;
 
@@ -50,13 +56,27 @@ public class KustomizeTemplateUtils {
   }
 
   public BakeRecipe buildBakeRecipe(
-      BakeManifestEnvironment env, KustomizeBakeManifestRequest request) {
+      BakeManifestEnvironment env, KustomizeBakeManifestRequest request) throws IOException {
     BakeRecipe result = new BakeRecipe();
     result.setName(request.getOutputName());
     Artifact artifact = request.getInputArtifact();
     if (artifact == null) {
       throw new IllegalArgumentException("Exactly one input artifact must be provided to bake.");
     }
+
+    String artifactType = Optional.of(artifact.getType()).orElse("");
+    if ("git/repo".equals(artifactType)) {
+      return buildBakeRecipeFromGitRepo(env, request, artifact);
+    } else {
+      return oldBuildBakeRecipe(env, request, artifact);
+    }
+  }
+
+  // Keep the old logic for now. This will be removed as soon as the rest of the git/repo artifact
+  // PRs are merged
+  private BakeRecipe oldBuildBakeRecipe(
+      BakeManifestEnvironment env, KustomizeBakeManifestRequest request, Artifact artifact) {
+
     String kustomizationfilename = FilenameUtils.getName(artifact.getReference());
     if (kustomizationfilename == null
         || (kustomizationfilename != null
@@ -79,9 +99,76 @@ public class KustomizeTemplateUtils {
     command.add("kustomize");
     command.add("build");
     command.add(templatePath.getParent().toString());
-    result.setCommand(command);
 
+    BakeRecipe result = new BakeRecipe();
+    result.setCommand(command);
     return result;
+  }
+
+  private BakeRecipe buildBakeRecipeFromGitRepo(
+      BakeManifestEnvironment env, KustomizeBakeManifestRequest request, Artifact artifact)
+      throws IOException {
+    // This is a redundant check for now, but it's here for when we soon remove the old logic of
+    // building from a github/file artifact type and instead, only support the git/repo artifact
+    // type
+    if (!"git/repo".equals(artifact.getType())) {
+      throw new IllegalArgumentException("The inputArtifact should be of type \"git/repo\".");
+    }
+
+    String kustomizeFilePath = request.getKustomizeFilePath();
+    if (kustomizeFilePath == null) {
+      throw new IllegalArgumentException("The bake request should contain a kustomize file path.");
+    }
+
+    InputStream inputStream;
+    try {
+      inputStream = artifactDownloader.downloadArtifact(artifact);
+    } catch (IOException e) {
+      throw new IOException("Failed to download git/repo artifact: " + e.getMessage(), e);
+    }
+
+    try {
+      extractArtifact(inputStream, env.resolvePath(""));
+    } catch (IOException e) {
+      throw new IOException("Failed to extract git/repo artifact: " + e.getMessage(), e);
+    }
+
+    List<String> command = new ArrayList<>();
+    command.add("kustomize");
+    command.add("build");
+    command.add(env.resolvePath(kustomizeFilePath).getParent().toString());
+
+    BakeRecipe result = new BakeRecipe();
+    result.setCommand(command);
+    return result;
+  }
+
+  // This being here is temporary until we find a better way to abstract it
+  private static void extractArtifact(InputStream inputStream, Path outputPath) throws IOException {
+    try (TarArchiveInputStream tarArchiveInputStream =
+        new TarArchiveInputStream(
+            new GzipCompressorInputStream(new BufferedInputStream(inputStream)))) {
+
+      ArchiveEntry archiveEntry;
+      while ((archiveEntry = tarArchiveInputStream.getNextEntry()) != null) {
+        Path archiveEntryOutput = validateArchiveEntry(archiveEntry.getName(), outputPath);
+        if (archiveEntry.isDirectory()) {
+          if (!Files.exists(archiveEntryOutput)) {
+            Files.createDirectory(archiveEntryOutput);
+          }
+        } else {
+          Files.copy(tarArchiveInputStream, archiveEntryOutput);
+        }
+      }
+    }
+  }
+
+  private static Path validateArchiveEntry(String archiveEntryName, Path outputPath) {
+    Path entryPath = outputPath.resolve(archiveEntryName);
+    if (!entryPath.normalize().startsWith(outputPath)) {
+      throw new IllegalStateException("Attempting to create a file outside of the staging path.");
+    }
+    return entryPath;
   }
 
   protected void downloadArtifactToTmpFileStructure(
@@ -93,7 +180,7 @@ public class KustomizeTemplateUtils {
     Path artifactFilePath = env.resolvePath(artifactFileName);
     Path artifactParentDirectory = artifactFilePath.getParent();
     Files.createDirectories(artifactParentDirectory);
-    artifactDownloader.downloadArtifact(artifact, artifactFilePath);
+    artifactDownloader.downloadArtifactToFile(artifact, artifactFilePath);
   }
 
   private List<Artifact> getArtifacts(Artifact artifact) {

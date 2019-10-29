@@ -9,6 +9,7 @@ dependencies {
   implementation "com.netflix.spinnaker.kork:kork-exceptions"
   implementation "com.netflix.spinnaker.kork:kork-security"
   implementation "commons-io:commons-io"
+  implementation "org.apache.commons:commons-compress:1.14"
   implementation "org.yaml:snakeyaml:1.25"
 
   implementation "com.squareup.retrofit:retrofit"

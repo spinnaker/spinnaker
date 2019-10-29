@@ -93,7 +93,7 @@ public class HelmTemplateUtils {
       throws IOException {
     String fileName = UUID.randomUUID().toString();
     Path targetPath = env.resolvePath(fileName);
-    artifactDownloader.downloadArtifact(artifact, targetPath);
+    artifactDownloader.downloadArtifactToFile(artifact, targetPath);
     return targetPath;
   }
 }

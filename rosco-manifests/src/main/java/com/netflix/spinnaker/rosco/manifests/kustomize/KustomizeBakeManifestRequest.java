@@ -25,4 +25,5 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class KustomizeBakeManifestRequest extends BakeManifestRequest {
   private Artifact inputArtifact;
+  private String kustomizeFilePath;
 }

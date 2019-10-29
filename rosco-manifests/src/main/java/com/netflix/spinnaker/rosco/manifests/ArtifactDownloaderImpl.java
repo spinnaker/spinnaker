@@ -24,19 +24,24 @@ public final class ArtifactDownloaderImpl implements ArtifactDownloader {
     this.clouddriverService = clouddriverService;
   }
 
-  public void downloadArtifact(Artifact artifact, Path targetFile) throws IOException {
+  public InputStream downloadArtifact(Artifact artifact) throws IOException {
+    Response response =
+        retrySupport.retry(() -> clouddriverService.fetchArtifact(artifact), 5, 1000, true);
+    if (response.getBody() == null) {
+      throw new IOException("Failure to fetch artifact: empty response");
+    }
+    return response.getBody().in();
+  }
+
+  public void downloadArtifactToFile(Artifact artifact, Path targetFile) throws IOException {
     try (OutputStream outputStream = Files.newOutputStream(targetFile)) {
-      Response response =
-          retrySupport.retry(() -> clouddriverService.fetchArtifact(artifact), 5, 1000, true);
-      if (response.getBody() != null) {
-        try (InputStream inputStream = response.getBody().in()) {
-          IOUtils.copy(inputStream, outputStream);
-        } catch (IOException e) {
-          throw new IOException(
-              String.format(
-                  "Failed to read input stream of downloaded artifact: %s. Error: %s",
-                  artifact, e.getMessage()));
-        }
+      try (InputStream inputStream = downloadArtifact(artifact)) {
+        IOUtils.copy(inputStream, outputStream);
+      } catch (IOException e) {
+        throw new IOException(
+            String.format(
+                "Failed to read input stream of downloaded artifact: %s. Error: %s",
+                artifact, e.getMessage()));
       }
     } catch (RetrofitError e) {
       throw new IOException(

@@ -18,8 +18,11 @@ package com.netflix.spinnaker.rosco.manifests;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 
 public interface ArtifactDownloader {
-  void downloadArtifact(Artifact artifact, Path targetFile) throws IOException;
+  InputStream downloadArtifact(Artifact artifact) throws IOException;
+
+  void downloadArtifactToFile(Artifact artifact, Path targetFile) throws IOException;
 }

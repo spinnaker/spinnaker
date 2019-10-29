@@ -48,7 +48,7 @@ final class ArtifactDownloaderImplTest {
     try (ArtifactDownloaderImplTest.AutoDeletingFile file = new AutoDeletingFile()) {
       when(clouddriverService.fetchArtifact(testArtifact))
           .thenReturn(successfulResponse(testContent));
-      artifactDownloader.downloadArtifact(testArtifact, file.path);
+      artifactDownloader.downloadArtifactToFile(testArtifact, file.path);
 
       Assertions.assertThat(file.path).hasContent(testContent);
     }
@@ -63,7 +63,7 @@ final class ArtifactDownloaderImplTest {
       when(clouddriverService.fetchArtifact(testArtifact))
           .thenThrow(RetrofitError.networkError("", new IOException("timeout")))
           .thenReturn(successfulResponse(testContent));
-      artifactDownloader.downloadArtifact(testArtifact, file.path);
+      artifactDownloader.downloadArtifactToFile(testArtifact, file.path);
 
       Assertions.assertThat(file.path).hasContent(testContent);
     }
