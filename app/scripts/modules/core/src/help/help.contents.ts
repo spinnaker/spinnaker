@@ -142,6 +142,13 @@ const helpContents: { [key: string]: string } = {
   'pipeline.config.expectedArtifact.defaultGitlab.reference': `
       <p>The Gitlab API file url the artifact lives under. The domain name may change if you're running your own Gitlab server. The repository and path to files must be URL encoded.</p>
       <p>An example is <code>https://gitlab.com/api/v4/projects/$ORG%2F$REPO/repository/files/path%2Fto%2Ffile.yml/raw</code>. See <a href="https://www.spinnaker.io/reference/artifacts/types/gitlab-file/#fields">our docs</a> for more info.</p>`,
+  'pipeline.config.expectedArtifact.gitrepo.url': '<p>The location of your Git repository.</p>',
+  'pipeline.config.expectedArtifact.gitrepo.branch': '<p>The branch of the repository you want to use.</p>',
+  'pipeline.config.expectedArtifact.gitrepo.checkoutSubpath':
+    '<p>Check this if you want to specify a subpath; doing so will reduce the size of the generated artifact.</p>',
+  'pipeline.config.expectedArtifact.gitrepo.subpath': `
+    <p>The subpath within the Git repository you desire to checkout.</p>
+    <p>e.g.: <b>examples/wordpress/mysql/</b></p>`,
   'pipeline.config.expectedArtifact.helm.account': `
       <p>The account contains url the charts can be found</p>`,
   'pipeline.config.expectedArtifact.helm.name': `
@@ -258,8 +265,12 @@ const helpContents: { [key: string]: string } = {
   'pipeline.config.bake.manifest.expectedArtifact': '<p>This is the template you want to render.</p>',
   'pipeline.config.bake.manifest.overrideExpressionEvaluation':
     '<p>Explicitly evaluate SpEL expressions in overrides just prior to manifest baking. Can be paired with the "Skip SpEL evaluation" option in the Deploy Manifest stage when baking a third-party manifest artifact with expressions not meant for Spinnaker to evaluate as SpEL.</p>',
+  'pipeline.config.bake.manifest.templateRenderer': '<p>This is the engine used for rendering your manifest.</p>',
   'pipeline.config.bake.manifest.helm.rawOverrides':
     'Use <i>--set</i> instead of <i>--set-string</i> when injecting override values. Values injected using <i>--set</i> will be converted to primitive types by Helm.',
+  'pipeline.config.bake.manifest.kustomize.filePath': `
+    <p>This is the relative path to the kustomization.yaml file within your Git repo.</p>
+    <p>e.g.: <b>examples/wordpress/mysql/kustomization.yaml</b></p>`,
   'pipeline.config.haltPipelineOnFailure':
     'Immediately halts execution of all running stages and fails the entire execution.',
   'pipeline.config.haltBranchOnFailure':
