@@ -5,10 +5,13 @@ import { IMoniker } from 'core/naming';
 
 export enum ManagedResourceStatus {
   ACTUATING = 'ACTUATING',
+  CREATED = 'CREATED',
   DIFF = 'DIFF',
   ERROR = 'ERROR',
   HAPPY = 'HAPPY',
+  PAUSED = 'PAUSED',
   UNHAPPY = 'UNHAPPY',
+  UNKNOWN = 'UNKNOWN',
 }
 
 export interface IManagedResourceSummary {

@@ -1,8 +1,11 @@
 import * as React from 'react';
+import * as classNames from 'classnames';
 
 import { AccountTag } from 'core/account';
 import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';
 import { HealthCounts } from 'core/healthCounts';
+import { ManagedResourceStatusIndicator } from 'core/managed';
+
 import { IClusterPodTitleProps } from './ClusterPodTitleWrapper';
 
 export class DefaultClusterPodTitle extends React.Component<IClusterPodTitleProps> {
@@ -15,22 +18,32 @@ export class DefaultClusterPodTitle extends React.Component<IClusterPodTitleProp
           <AccountTag account={parentHeading} />
         </div>
 
-        <div className="pod-center horizontal space-between center flex-1">
+        <div
+          className={classNames('pod-center horizontal space-between flex-1', {
+            'no-right-padding': grouping.isManaged,
+          })}
+        >
           <div>
             <span className="glyphicon glyphicon-th" />
             {' ' + grouping.heading}
           </div>
 
-          <EntityNotifications
-            entity={grouping}
-            application={application}
-            placement="top"
-            hOffsetPercent="90%"
-            entityType="cluster"
-            pageLocation="pod"
-            className="inverse"
-            onUpdate={() => application.serverGroups.refresh()}
-          />
+          <div className="flex-container-h margin-between-md">
+            <EntityNotifications
+              entity={grouping}
+              application={application}
+              placement="top"
+              hOffsetPercent="90%"
+              entityType="cluster"
+              pageLocation="pod"
+              className="inverse"
+              onUpdate={() => application.serverGroups.refresh()}
+            />
+
+            {grouping.isManaged && (
+              <ManagedResourceStatusIndicator shape="square" resourceSummary={grouping.managedResourceSummary} />
+            )}
+          </div>
         </div>
 
         <HealthCounts container={grouping.cluster.instanceCounts} />

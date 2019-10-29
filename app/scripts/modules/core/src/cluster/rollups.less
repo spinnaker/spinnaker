@@ -5,6 +5,7 @@
     font-size: 200%;
     margin: 0;
   }
+
   .server-group-title {
     input {
       margin: 0 5px 3px 0;
@@ -19,10 +20,12 @@
     background-color: var(--color-alabaster);
     margin: 0;
     padding: 10px 0;
+
     &.heading-sticky {
       box-shadow: 0 8px 6px -6px var(--color-concrete);
     }
   }
+
   .heading-sticky {
     > h4 {
       box-shadow: 0 8px 6px -6px var(--color-concrete);
@@ -41,6 +44,7 @@
   &.disabled {
     opacity: 0.4;
     border: 1px dashed var(--color-titanium);
+
     &:hover,
     &.active {
       opacity: 0.75;
@@ -69,6 +73,7 @@
 table.instances {
   table-layout: fixed;
   display: table;
+
   td {
     word-break: break-all;
   }
@@ -79,16 +84,20 @@ table.instances {
   line-height: 10px;
   border-radius: 2px;
   padding-bottom: 5px;
+
   td:first-child,
   th:first-child {
     padding-left: 0;
   }
+
   .instance-group-Starting {
     .pulsing(1);
+
     &:hover {
       animation: none;
     }
   }
+
   a.instance {
     margin: 0;
     display: inline-block;
@@ -101,10 +110,12 @@ table.instances {
     &.health-status-Up {
       background-color: var(--color-success-light);
     }
+
     &.health-status-Down,
     &.health-status-Failed {
       background-color: var(--color-danger);
     }
+
     &.health-status-OutOfService {
       background-color: var(--color-concrete);
     }
@@ -129,10 +140,12 @@ table.instances {
       &.health-status-Up {
         background-color: var(--color-success);
       }
+
       &.health-status-Down,
       &.health-status-Failed {
         background-color: var(--color-danger);
       }
+
       &.health-status-OutOfService {
         background-color: var(--color-dovegray);
         border-color: var(--color-mineshaft);
@@ -158,29 +171,35 @@ table.instances {
     padding: 0 5px;
     margin-left: 2px;
     text-align: center;
+
     button {
       margin-right: 0;
     }
+
     background-color: var(--color-accent-g2);
   }
 
   .tooltip {
     text-transform: none;
   }
+
   button {
     padding: 0;
     display: inline-block;
     margin-right: 5px;
     line-height: 1;
+
     &.active,
     &:focus {
       outline: 0;
       box-shadow: none;
     }
+
     .icon {
       position: relative;
       font-size: 120%;
     }
+
     .icon-spinner {
       font-size: 20px;
     }
@@ -195,6 +214,7 @@ table.instances {
   line-height: 36px;
   font-size: 16px;
   color: var(--color-primary);
+
   .pod-center {
     min-width: 0;
     background-color: var(--color-accent-g2);
@@ -202,26 +222,35 @@ table.instances {
     border-right: 1px solid var(--color-alabaster);
     border-left: 1px solid var(--color-alabaster);
     font-weight: 600;
+
     > div {
       white-space: nowrap;
       overflow-x: hidden;
       text-overflow: ellipsis;
     }
+
+    &.no-right-padding {
+      padding-right: 0;
+    }
   }
+
   .health-counts {
     flex: 0 0 auto;
     background-color: var(--color-cirrus);
     padding: 0 10px;
     border-left: 1px solid var(--color-alabaster);
   }
+
   &:active,
   &:hover,
   &:focus {
     text-decoration: none;
   }
+
   @media (min-width: 768px) and (max-width: 992px) {
     font-size: 85%;
   }
+
   .instance-health-counts {
     padding-right: 10px;
   }
@@ -231,6 +260,7 @@ running-tasks-tag {
   position: relative;
   top: 2px;
   right: 5px;
+
   .icon-spinner {
     color: var(--color-accent);
   }
@@ -267,6 +297,7 @@ running-tasks-tag {
     color: var(--color-cirrus);
     background-color: var(--color-dovegray);
   }
+
   .menu-load-balancers-header,
   a {
     text-transform: none;
@@ -274,6 +305,7 @@ running-tasks-tag {
     padding: 5px 10px;
     display: block;
   }
+
   a {
     cursor: pointer;
     display: flex;
@@ -283,6 +315,7 @@ running-tasks-tag {
 
     .health-counts {
       margin-left: 5px;
+
       .instance-health-counts {
         float: none !important;
       }
@@ -291,11 +324,13 @@ running-tasks-tag {
     &:last-child {
       border-bottom-width: 0;
     }
+
     &:hover,
     &:focus {
       background-color: var(--color-cirrus);
       text-decoration: none;
     }
+
     &:focus {
       padding-left: 15px;
       padding-right: 5px;
@@ -308,6 +343,7 @@ running-tasks-tag {
   &.overflowing {
     position: relative;
   }
+
   .btn-load-balancer button,
   .btn-multiple-load-balancers {
     margin-top: -5px;
@@ -319,16 +355,20 @@ running-tasks-tag {
 
   text-align: right;
   margin-right: 3px;
+
   &:hover {
     text-decoration: none;
   }
+
   .icon {
     width: 30px;
   }
+
   .icon-sitemap {
     height: 14px;
     width: 14px;
   }
+
   .badge-counter {
     color: var(--color-text-link);
     background-color: var(--color-white);
@@ -338,6 +378,7 @@ running-tasks-tag {
     padding: 1px 4px;
     border-radius: 4px;
   }
+
   span {
     position: relative;
   }
@@ -347,6 +388,7 @@ running-tasks-tag {
   .badge-counter {
     margin-top: -5px;
     height: 19px;
+
     .fa-server {
       padding: 1px 0;
     }
@@ -359,6 +401,7 @@ running-tasks-tag {
 
   .section-title {
     margin-bottom: 3px;
+
     span {
       font-size: 13px;
     }
@@ -370,10 +413,12 @@ running-tasks-tag {
     margin: 5px 15px 3px;
     position: relative;
     z-index: 1;
+
     &.active {
       border-color: var(--color-accent-g1);
       background-color: var(--color-accent-g3);
     }
+
     &:hover {
       border-color: var(--color-accent-g1);
       box-shadow: 0 0 4px 2px var(--color-accent-g1);
@@ -385,9 +430,11 @@ running-tasks-tag {
       border-style: dashed;
     }
   }
+
   .permalinks {
     font-size: 80%;
   }
+
   .pod-subgroup {
     h6 {
       text-transform: uppercase;
@@ -395,52 +442,65 @@ running-tasks-tag {
       padding: 10px 10px 5px;
       background-color: var(--color-alabaster);
     }
+
     .heading-sticky {
       > h6 {
         background-color: var(--color-alabaster);
       }
     }
+
     .rollup-pod-server-group {
       .server-group-title {
         background-color: rgba(255, 255, 255, 0.9);
       }
+
       &.running {
         background-color: var(--color-alabaster);
         .pulsing(1);
+
         .server-group-title {
           background-color: var(--color-alabaster);
         }
       }
+
       &.failed {
         background-color: var(--color-cirrus);
+
         .server-group-title {
           background-color: var(--color-cirrus);
         }
       }
+
       &.succeeded {
         background-color: var(--color-accent-g3);
+
         .server-group-title {
           background-color: var(--color-accent-g3);
         }
       }
+
       &.active {
         border-color: var(--color-accent-g1);
         background-color: var(--color-accent-g3);
+
         .server-group-title {
           background-color: var(--color-accent-g3);
         }
       }
     }
+
     .table {
       margin-top: -5px;
       margin-bottom: 10px;
       font-size: 90%;
+
       th,
       td {
         padding: 5px 1px;
       }
     }
   }
+
   h5,
   h6 {
     font-weight: 600;
@@ -458,9 +518,11 @@ running-tasks-tag {
   .rollup-details-section {
     border-right: 1px solid var(--color-silver);
     padding: 10px;
+
     &:last-child {
       border-right-width: 0;
     }
+
     .rollup-row {
       padding: 0;
     }
@@ -468,6 +530,7 @@ running-tasks-tag {
 
   .rollup-row {
     padding: 10px;
+
     &:first-child {
       border-top-width: 0;
     }
@@ -475,15 +538,18 @@ running-tasks-tag {
 
   .disabled {
     opacity: 1;
+
     .section-title,
     .health-counts,
     .load-balancers-tag .badge,
     .instances {
       opacity: 0.4;
     }
+
     .icon-server-group {
       color: var(--color-dovegray);
     }
+
     &:hover {
       .section-title,
       .health-counts,
@@ -520,18 +586,22 @@ running-tasks-tag {
       box-shadow: none;
     }
   }
+
   .server-group-sequence {
     text-transform: uppercase;
     font-weight: 600;
     margin-left: 2px;
   }
+
   .build-link {
     margin-left: 3px;
   }
+
   .server-group-title,
   .subgroup-title {
     padding: 5px 10px 2px;
     border-bottom-width: 0;
+
     &.clickable {
       &:hover,
       &.active {
@@ -539,6 +609,7 @@ running-tasks-tag {
       }
     }
   }
+
   .heading-sticky {
     box-shadow: 0 8px 6px -6px var(--color-concrete);
   }

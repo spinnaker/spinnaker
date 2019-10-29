@@ -1,4 +1,5 @@
 import * as React from 'react';
+import * as classNames from 'classnames';
 import { orderBy, partition, groupBy, map } from 'lodash';
 
 import { ClusterState } from 'core/state';
@@ -11,6 +12,7 @@ import { IClusterSubgroup, IServerGroupSubgroup } from './filter/ClusterFilterSe
 import { ISortFilter } from 'core/filterModel';
 import { ClusterPodTitleWrapper } from 'core/cluster/ClusterPodTitleWrapper';
 import { ServerGroupManager } from 'core/serverGroupManager/ServerGroupManager';
+import { ManagedResourceStatusIndicator } from 'core/managed';
 
 export interface IClusterPodProps {
   grouping: IClusterSubgroup;
@@ -89,20 +91,25 @@ export class ClusterPod extends React.Component<IClusterPodProps, IClusterPodSta
       group => group.serverGroupManagers && group.serverGroupManagers.length,
     );
     const serverGroupManagers = groupBy(managedServerGroups, serverGroup => serverGroup.serverGroupManagers[0].name);
-
+    const showManagedIndicator = !grouping.isManaged && subgroup.isManaged;
     return (
       <div className="pod-subgroup" key={subgroup.key}>
         <h6 className="sticky-header-2 subgroup-title horizontal middle">
           <div>{subgroup.heading}</div>
-          <EntityNotifications
-            entity={subgroup}
-            application={application}
-            placement="top"
-            hOffsetPercent="20%"
-            entityType="cluster"
-            pageLocation="pod"
-            onUpdate={() => application.serverGroups.refresh()}
-          />
+          <div className={classNames('flex-container-h middle', { 'sp-margin-xs-left': showManagedIndicator })}>
+            {showManagedIndicator && (
+              <ManagedResourceStatusIndicator shape="circle" resourceSummary={subgroup.managedResourceSummary} />
+            )}
+            <EntityNotifications
+              entity={subgroup}
+              application={application}
+              placement="top"
+              hOffsetPercent="20%"
+              entityType="cluster"
+              pageLocation="pod"
+              onUpdate={() => application.serverGroups.refresh()}
+            />
+          </div>
         </h6>
 
         {map(serverGroupManagers, (serverGroups, manager) => (
