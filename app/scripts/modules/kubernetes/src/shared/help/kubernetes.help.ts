@@ -203,7 +203,7 @@ const helpContents: { [key: string]: string } = {
       </p>
   `,
   'kubernetes.manifest.rolloutStrategyOptions': `
-    <p>Allow Spinnaker to associate your workload with one or more Services and manage traffic based on your selected rollout strategy options. Valid for ReplicaSets only.</p>
+    <p>Allow Spinnaker to associate each ReplicaSet deployed in this stage with one or more Services and manage traffic based on your selected rollout strategy options.</p>
   `,
   'kubernetes.manifest.rolloutStrategy': `
     <p>The rollout strategy tells Spinnaker what to do with the previous version(s) of the ReplicaSet in the cluster.</p>
