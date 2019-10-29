@@ -54,7 +54,7 @@ class RoutesTest {
     route.setPath("/path");
 
     RouteService routeService = mock(RouteService.class);
-    when(routeService.all(any(), any())).thenReturn(Page.singleton(route, "abc123"));
+    when(routeService.all(any(), any(), any())).thenReturn(Page.singleton(route, "abc123"));
     when(routeService.routeMappings(any(), any())).thenReturn(new Page<>());
 
     Routes routes = new Routes("pws", routeService, null, domains, spaces);
@@ -124,7 +124,7 @@ class RoutesTest {
     routeMappingPage.setTotalPages(1);
 
     when(spaces.findById("space-guid")).thenReturn(space);
-    when(routeService.all(any(), any())).thenReturn(routePage);
+    when(routeService.all(any(), any(), any())).thenReturn(routePage);
     when(routeService.routeMappings(any(), any())).thenReturn(routeMappingPage);
 
     Routes routes = new Routes("pws", routeService, null, domains, spaces);

@@ -41,11 +41,11 @@ class CloudFoundryClientUtilsTest {
     pageOne.setPagination(new Pagination.Details().setTotalPages(1));
     pageOne.setResources(pageOneResources);
 
-    when(applicationService.all(null, null, null)).thenReturn(pageOne);
+    when(applicationService.all(null, null, null, null)).thenReturn(pageOne);
 
     List results =
         CloudFoundryClientUtils.collectPages(
-            "applications", page -> applicationService.all(page, null, null));
+            "applications", page -> applicationService.all(page, null, null, null));
 
     assertThat(results).containsExactly(applicationOne);
   }
@@ -64,12 +64,12 @@ class CloudFoundryClientUtilsTest {
     pageTwo.setPagination(new Pagination.Details().setTotalPages(2));
     pageTwo.setResources(pageTwoResources);
 
-    when(applicationService.all(null, null, null)).thenReturn(pageOne);
-    when(applicationService.all(2, null, null)).thenReturn(pageTwo);
+    when(applicationService.all(null, null, null, null)).thenReturn(pageOne);
+    when(applicationService.all(2, null, null, null)).thenReturn(pageTwo);
 
     List results =
         CloudFoundryClientUtils.collectPages(
-            "applications", page -> applicationService.all(page, null, null));
+            "applications", page -> applicationService.all(page, null, null, null));
 
     assertThat(results).containsExactly(applicationOne, applicationTwo);
   }

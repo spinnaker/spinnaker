@@ -59,7 +59,7 @@ public class Routes {
 
   private LoadingCache<String, List<RouteMapping>> routeMappings =
       CacheBuilder.newBuilder()
-          .expireAfterWrite(1, TimeUnit.SECONDS)
+          .expireAfterWrite(30, TimeUnit.SECONDS)
           .build(
               new CacheLoader<String, List<RouteMapping>>() {
                 @Override
@@ -111,7 +111,7 @@ public class Routes {
     if (routeId.getPath() != null) queryParams.add("path:" + routeId.getPath());
     if (routeId.getPort() != null) queryParams.add("port:" + routeId.getPort().toString());
 
-    return collectPageResources("route mappings", pg -> api.all(pg, queryParams)).stream()
+    return collectPageResources("route mappings", pg -> api.all(pg, 5000, queryParams)).stream()
         .filter(
             routeResource ->
                 (routeId.getPath() != null || routeResource.getEntity().getPath().isEmpty())
@@ -142,7 +142,8 @@ public class Routes {
   }
 
   public List<CloudFoundryLoadBalancer> all() throws CloudFoundryApiException {
-    List<Resource<Route>> routeResources = collectPageResources("routes", pg -> api.all(pg, null));
+    List<Resource<Route>> routeResources =
+        collectPageResources("routes", pg -> api.all(pg, 5000, null));
     List<CloudFoundryLoadBalancer> loadBalancers = new ArrayList<>(routeResources.size());
     for (Resource<Route> routeResource : routeResources) {
       loadBalancers.add(map(routeResource));

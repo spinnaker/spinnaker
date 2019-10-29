@@ -96,17 +96,47 @@ public class Applications {
   }
 
   public List<CloudFoundryApplication> all() {
+    List<Application> newCloudFoundryAppList =
+        collectPages("applications", page -> api.all(page, 5000, null, null));
+
+    // Evict Records from `cache` that are no longer in the foundation
+    List<String> availableAppIds =
+        newCloudFoundryAppList.stream().map(Application::getGuid).collect(toList());
+    serverGroupCache.asMap().keySet().stream()
+        .forEach(
+            key -> {
+              if (!availableAppIds.contains(key)) {
+                log.debug("Evicting the following SG with id '" + key + "'");
+                serverGroupCache.invalidate(key);
+              }
+            });
+
+    // if the update time doesn't match then we need to update the cache
+    // if the app is not found in the cache we need to process with `map` and update the cache
+    List<Application> appsToBeUpdated =
+        newCloudFoundryAppList.stream()
+            .filter(
+                a ->
+                    Optional.ofNullable(findById(a.getGuid()))
+                        .map(
+                            r ->
+                                !r.getUpdatedTime()
+                                    .equals(a.getUpdatedAt().toInstant().toEpochMilli()))
+                        .orElse(true))
+            .collect(Collectors.toList());
+
     List<CloudFoundryServerGroup> serverGroups =
-        collectPages("applications", page -> api.all(page, null, null)).stream()
-            .map(this::map)
-            .collect(toList());
-    serverGroupCache.invalidateAll();
+        appsToBeUpdated.stream().map(this::map).collect(toList());
     serverGroups.forEach(sg -> serverGroupCache.put(sg.getId(), sg));
+
+    // execute health check on instances, set number of available instances and health status
+    newCloudFoundryAppList.forEach(
+        a -> serverGroupCache.put(a.getGuid(), checkHealthStatus(findById(a.getGuid()), a)));
 
     Map<String, Set<CloudFoundryServerGroup>> serverGroupsByClusters = new HashMap<>();
     Map<String, Set<String>> clustersByApps = new HashMap<>();
 
-    for (CloudFoundryServerGroup serverGroup : serverGroups) {
+    for (CloudFoundryServerGroup serverGroup : serverGroupCache.asMap().values()) {
       Names names = Names.parseName(serverGroup.getName());
       serverGroupsByClusters
           .computeIfAbsent(names.getCluster(), clusterName -> new HashSet<>())
@@ -153,7 +183,7 @@ public class Applications {
         .map(CloudFoundryServerGroup::getId)
         .orElseGet(
             () ->
-                safelyCall(() -> api.all(null, singletonList(name), singletonList(spaceId)))
+                safelyCall(() -> api.all(null, 1, singletonList(name), singletonList(spaceId)))
                     .flatMap(
                         page ->
                             page.getResources().stream()
@@ -179,68 +209,6 @@ public class Applications {
     ApplicationEnv applicationEnv =
         safelyCall(() -> api.findApplicationEnvById(appId)).orElse(null);
     Process process = safelyCall(() -> api.findProcessById(appId)).orElse(null);
-
-    Set<CloudFoundryInstance> instances;
-    switch (state) {
-      case STOPPED:
-        instances = emptySet();
-        break;
-      case STARTED:
-        try {
-          instances =
-              safelyCall(() -> api.instances(appId)).orElse(emptyMap()).entrySet().stream()
-                  .map(
-                      inst -> {
-                        HealthState healthState = HealthState.Unknown;
-                        switch (inst.getValue().getState()) {
-                          case RUNNING:
-                            healthState = HealthState.Up;
-                            break;
-                          case DOWN:
-                          case CRASHED:
-                            healthState = HealthState.Down;
-                            break;
-                          case STARTING:
-                            healthState = HealthState.Starting;
-                            break;
-                        }
-                        return CloudFoundryInstance.builder()
-                            .appGuid(appId)
-                            .key(inst.getKey())
-                            .healthState(healthState)
-                            .details(inst.getValue().getDetails())
-                            .launchTime(
-                                System.currentTimeMillis() - (inst.getValue().getUptime() * 1000))
-                            .zone(space == null ? "unknown" : space.getName())
-                            .build();
-                      })
-                  .collect(toSet());
-
-          log.debug(
-              "Successfully retrieved "
-                  + instances.size()
-                  + " instances for application '"
-                  + application.getName()
-                  + "'");
-        } catch (RetrofitError e) {
-          try {
-            log.debug(
-                "Unable to retrieve instances for application '"
-                    + application.getName()
-                    + "': "
-                    + IOUtils.toString(e.getResponse().getBody().in(), Charset.defaultCharset()));
-          } catch (IOException e1) {
-            log.debug("Unable to retrieve droplet for application '" + application.getName() + "'");
-          }
-          instances = emptySet();
-        } catch (Exception ex) {
-          log.debug("Unable to retrieve droplet for application '" + application.getName() + "'");
-          instances = emptySet();
-        }
-        break;
-      default:
-        instances = emptySet();
-    }
 
     CloudFoundryDroplet droplet = null;
     try {
@@ -350,28 +318,98 @@ public class Applications {
       serverGroupMetricsUri = metricsUri + "/apps/" + appId;
     }
 
-    return CloudFoundryServerGroup.builder()
-        .account(account)
-        .appsManagerUri(serverGroupAppManagerUri)
-        .metricsUri(serverGroupMetricsUri)
-        .name(application.getName())
-        .id(appId)
-        .memory(process != null ? process.getMemoryInMb() : null)
-        .instances(emptySet())
-        .droplet(droplet)
-        .diskQuota(process != null ? process.getDiskInMb() : null)
-        .healthCheckType(healthCheckType)
-        .healthCheckHttpEndpoint(healthCheckHttpEndpoint)
-        .space(space)
-        .createdTime(application.getCreatedAt().toInstant().toEpochMilli())
-        .serviceInstances(cloudFoundryServices)
-        .instances(instances)
-        .state(state)
-        .env(environmentVars)
-        .ciBuild(buildInfo)
-        .appArtifact(artifactInfo)
-        .pipelineId(pipelineId)
-        .build();
+    CloudFoundryServerGroup cloudFoundryServerGroup =
+        CloudFoundryServerGroup.builder()
+            .account(account)
+            .appsManagerUri(serverGroupAppManagerUri)
+            .metricsUri(serverGroupMetricsUri)
+            .name(application.getName())
+            .id(appId)
+            .memory(process != null ? process.getMemoryInMb() : null)
+            .instances(emptySet())
+            .droplet(droplet)
+            .diskQuota(process != null ? process.getDiskInMb() : null)
+            .healthCheckType(healthCheckType)
+            .healthCheckHttpEndpoint(healthCheckHttpEndpoint)
+            .space(space)
+            .createdTime(application.getCreatedAt().toInstant().toEpochMilli())
+            .serviceInstances(cloudFoundryServices)
+            .state(state)
+            .env(environmentVars)
+            .ciBuild(buildInfo)
+            .appArtifact(artifactInfo)
+            .pipelineId(pipelineId)
+            .updatedTime(application.getUpdatedAt().toInstant().toEpochMilli())
+            .build();
+
+    return checkHealthStatus(cloudFoundryServerGroup, application);
+  }
+
+  private CloudFoundryServerGroup checkHealthStatus(
+      CloudFoundryServerGroup cloudFoundryServerGroup, Application application) {
+    CloudFoundryServerGroup.State state =
+        CloudFoundryServerGroup.State.valueOf(application.getState());
+    Set<CloudFoundryInstance> instances;
+    switch (state) {
+      case STARTED:
+        try {
+          instances =
+              safelyCall(() -> api.instances(cloudFoundryServerGroup.getId())).orElse(emptyMap())
+                  .entrySet().stream()
+                  .map(
+                      inst -> {
+                        HealthState healthState = HealthState.Unknown;
+                        switch (inst.getValue().getState()) {
+                          case RUNNING:
+                            healthState = HealthState.Up;
+                            break;
+                          case DOWN:
+                          case CRASHED:
+                            healthState = HealthState.Down;
+                            break;
+                          case STARTING:
+                            healthState = HealthState.Starting;
+                            break;
+                        }
+                        return CloudFoundryInstance.builder()
+                            .appGuid(cloudFoundryServerGroup.getId())
+                            .key(inst.getKey())
+                            .healthState(healthState)
+                            .details(inst.getValue().getDetails())
+                            .launchTime(
+                                System.currentTimeMillis() - (inst.getValue().getUptime() * 1000))
+                            .zone(cloudFoundryServerGroup.getRegion())
+                            .build();
+                      })
+                  .collect(toSet());
+
+          log.debug(
+              "Successfully retrieved "
+                  + instances.size()
+                  + " instances for application '"
+                  + application.getName()
+                  + "'");
+        } catch (RetrofitError e) {
+          try {
+            log.debug(
+                "Unable to retrieve instances for application '"
+                    + application.getName()
+                    + "': "
+                    + IOUtils.toString(e.getResponse().getBody().in(), Charset.defaultCharset()));
+          } catch (IOException e1) {
+            log.debug("Unable to retrieve droplet for application '" + application.getName() + "'");
+          }
+          instances = emptySet();
+        } catch (Exception ex) {
+          log.debug("Unable to retrieve droplet for application '" + application.getName() + "'");
+          instances = emptySet();
+        }
+        break;
+      case STOPPED:
+      default:
+        instances = emptySet();
+    }
+    return cloudFoundryServerGroup.toBuilder().state(state).instances(instances).build();
   }
 
   private String getEnvironmentVar(

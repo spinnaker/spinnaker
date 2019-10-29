@@ -28,7 +28,10 @@ public interface RouteService {
   // Mapping to CF API style query params -
   // https://apidocs.cloudfoundry.org/1.34.0/routes/list_all_routes.html
   @GET("/v2/routes?results-per-page=100")
-  Page<Route> all(@Query("page") Integer page, @Query("q") List<String> queryParams);
+  Page<Route> all(
+      @Query("page") Integer page,
+      @Query("per_page") Integer perPage,
+      @Query("q") List<String> queryParams);
 
   @GET("/v2/routes/{guid}")
   Resource<Route> findById(@Path("guid") String guid);

@@ -43,7 +43,7 @@ import lombok.experimental.Wither;
 
 @Value
 @EqualsAndHashCode(of = "id", callSuper = false)
-@Builder
+@Builder(toBuilder = true)
 @JsonDeserialize(builder = CloudFoundryServerGroup.CloudFoundryServerGroupBuilder.class)
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonIgnoreProperties("loadBalancerNames")
@@ -88,6 +88,9 @@ public class CloudFoundryServerGroup extends CloudFoundryModel implements Server
 
   @JsonView(Views.Cache.class)
   CloudFoundrySpace space;
+
+  @JsonView(Views.Cache.class)
+  Long updatedTime;
 
   @JsonView(Views.Cache.class)
   Long createdTime;

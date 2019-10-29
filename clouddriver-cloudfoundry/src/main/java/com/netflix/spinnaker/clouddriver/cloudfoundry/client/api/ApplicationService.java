@@ -33,6 +33,7 @@ public interface ApplicationService {
   @GET("/v3/apps")
   Pagination<Application> all(
       @Query("page") Integer page,
+      @Query("per_page") Integer perPage,
       @Query("names") List<String> names,
       @Query("space_guids") List<String> spaceGuids);
 

@@ -26,5 +26,6 @@ public class Application {
   private String guid;
   private String state;
   private ZonedDateTime createdAt;
+  private ZonedDateTime updatedAt;
   private Map<String, Link> links;
 }
