@@ -135,7 +135,7 @@ export interface ITargetGroup {
   cloudProvider: string; // returned from clouddriver
   detachedInstances?: IInstance[];
   healthCheckProtocol: string;
-  healthCheckPort: number;
+  healthCheckPort: number | 'traffic-port';
   healthCheckPath: string;
   healthTimeout: number;
   healthInterval: number;
