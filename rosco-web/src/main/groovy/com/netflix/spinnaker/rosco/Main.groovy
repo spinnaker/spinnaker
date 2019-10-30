@@ -69,6 +69,7 @@ class Main extends SpringBootServletInitializer {
   static final Map<String, String> DEFAULT_PROPS = [
     'netflix.environment': 'test',
     'netflix.account': '${netflix.environment}',
+    'bakeAccount': '${netflix.account}',
     'netflix.stack': 'test',
     'spring.config.additional-location': '${user.home}/.spinnaker/',
     'spring.application.name': 'rosco',

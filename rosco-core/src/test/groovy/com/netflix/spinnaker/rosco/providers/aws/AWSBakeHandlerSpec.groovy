@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.rosco.providers.aws
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.config.RoscoConfiguration
@@ -25,6 +26,7 @@ import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
 import com.netflix.spinnaker.rosco.providers.util.PackageNameConverter
 import com.netflix.spinnaker.rosco.providers.util.PackerCommandFactory
 import com.netflix.spinnaker.rosco.providers.util.TestDefaults
+import com.netflix.spinnaker.rosco.services.ClouddriverService
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -35,6 +37,8 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
   private static final String REGION = "us-east-1"
   private static final String SOURCE_UBUNTU_HVM_IMAGE_NAME = "ami-a123456b"
   private static final String SOURCE_UBUNTU_PV_IMAGE_NAME = "ami-a654321b"
+  private static final String SOURCE_BIONIC_HVM_IMAGE_NAME = "bionic-base-123"
+  private static final String SOURCE_BIONIC_HVM_IMAGE_ID = "ami-b054321b"
   private static final String SOURCE_TRUSTY_HVM_IMAGE_NAME = "ami-c456789d"
   private static final String SOURCE_AMZN_HVM_IMAGE_NAME = "ami-8fcee4e5"
   private static final String SOURCE_WINDOWS_2012_R2_HVM_IMAGE_NAME = "ami-21414f36"
@@ -76,6 +80,19 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
               sshUserName: "ubuntu",
               spotPrice: "auto",
               spotPriceAutoProduct: "Linux/UNIX (Amazon VPC)"
+            ]
+          ]
+        ],
+        [
+          baseImage: [
+            id: "bionic",
+            packageType: "DEB"
+          ],
+          virtualizationSettings: [
+            [
+              region: REGION,
+              virtualizationType: "hvm",
+              sourceAmi: SOURCE_BIONIC_HVM_IMAGE_NAME
             ]
           ]
         ],
@@ -395,6 +412,44 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
         !ami
         !image_name
       }
+  }
+
+  void 'looks up base ami id from name'() {
+    def packerCommandFactoryMock = Mock(PackerCommandFactory)
+    def imageNameFactoryMock = Mock(ImageNameFactory)
+    def clouddriverService = Mock(ClouddriverService)
+    def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+      package_name: PACKAGES_NAME,
+      base_os: "bionic",
+      base_label: "release",
+      vm_type: BakeRequest.VmType.hvm,
+      cloud_provider_type: BakeRequest.CloudProviderType.aws)
+
+    @Subject
+    AWSBakeHandler awsBakeHandler = new AWSBakeHandler(configDir: configDir,
+      awsBakeryDefaults: awsBakeryDefaults,
+      imageNameFactory: imageNameFactoryMock,
+      packerCommandFactory: packerCommandFactoryMock,
+      clouddriverService: clouddriverService,
+      retrySupport: new NoSleepRetry(),
+      defaultAccount: "test",
+      debianRepository: DEBIAN_REPOSITORY)
+
+    when:
+    def vmSettings = awsBakeHandler.findVirtualizationSettings(REGION, bakeRequest)
+
+    then:
+    1 * clouddriverService.findAmazonImageByName(_, _, _) >> [
+      new RoscoAWSConfiguration.AWSNamedImage(
+        imageName: SOURCE_BIONIC_HVM_IMAGE_NAME,
+        attributes: new RoscoAWSConfiguration.AWSImageAttributes(virtualizationType: BakeRequest.VmType.hvm),
+        amis: [
+          (REGION): [ SOURCE_BIONIC_HVM_IMAGE_ID ]
+        ]
+      )
+    ]
+
+    vmSettings.sourceAmi == SOURCE_BIONIC_HVM_IMAGE_ID
   }
 
   void 'produces packer command with all required parameters for ubuntu, using default vm type'() {
@@ -797,7 +852,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
     1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
     1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/$awsBakeryDefaults.templateFile")
   }
-  
+
   void 'produces packer command with all required parameters for trusty, using explicit vm type'() {
     setup:
       def imageNameFactoryMock = Mock(ImageNameFactory)
@@ -1258,5 +1313,9 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
       1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages, DEB_PACKAGE_TYPE) >> appVersionStr
       1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> fullyQualifiedPackageName
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/$awsBakeryDefaults.templateFile")
+  }
+
+  static class NoSleepRetry extends RetrySupport {
+    void sleep(long time) {}
   }
 }

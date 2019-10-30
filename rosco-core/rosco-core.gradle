@@ -6,6 +6,7 @@ dependencies {
   implementation "com.netflix.spinnaker.kork:kork-artifacts"
   implementation "com.netflix.spinnaker.kork:kork-jedis"
   implementation "com.netflix.spinnaker.kork:kork-swagger"
+  implementation "com.netflix.spinnaker.kork:kork-web"
   implementation "com.squareup.retrofit:converter-jackson"
   implementation "com.squareup.retrofit:retrofit"
   implementation "io.reactivex:rxjava"
@@ -13,7 +14,7 @@ dependencies {
   implementation "org.codehaus.groovy:groovy-all"
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "redis.clients:jedis"
-
+  implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0"
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.objenesis:objenesis"
 }

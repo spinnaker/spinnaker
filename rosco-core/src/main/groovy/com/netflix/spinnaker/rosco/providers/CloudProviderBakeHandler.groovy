@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.rosco.providers
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
+import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeOptions
 import com.netflix.spinnaker.rosco.api.BakeOptions.BaseImage
@@ -25,9 +27,11 @@ import com.netflix.spinnaker.rosco.jobs.BakeRecipe
 import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
 import com.netflix.spinnaker.rosco.providers.util.PackageNameConverter
 import com.netflix.spinnaker.rosco.providers.util.PackerCommandFactory
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 
+@Slf4j
 abstract class CloudProviderBakeHandler {
 
   @Value('${rosco.config-dir}')
@@ -35,6 +39,9 @@ abstract class CloudProviderBakeHandler {
 
   @Autowired
   PackerCommandFactory packerCommandFactory
+
+  @Autowired
+  DynamicConfigService dynamicConfigService
 
   @Value('${debian-repository:}')
   String debianRepository
@@ -240,6 +247,22 @@ abstract class CloudProviderBakeHandler {
                                                                 finaltemplateFilePath)
 
     return new BakeRecipe(name: imageName, version: appVersionStr, command: packerCommand)
+  }
+
+  /**
+   * Ability to lookup base image via dynamicConfigService when unset in bakeRequest or rosco.yml
+   * Property name:
+   *  "${bakeRequest.cloud_provider_type}.base.${bakeRequest.base_os}.${bakeRequest.vm_type}.${bakeRequest.base_label}.$region"
+   *  I.e.:
+   *  "aws.base.bionic.hvm.release.us-west-2"
+   */
+  protected String lookupBaseByDynamicProperty(String region, BakeRequest bakeRequest) {
+    String property = "${bakeRequest.cloud_provider_type}.base.${bakeRequest.base_os}.${bakeRequest.vm_type}.${bakeRequest.base_label}.$region"
+    String base = dynamicConfigService.getConfig(String, property, null)
+    if (base == null) {
+      log.warn("No base image found for property '$property'")
+    }
+    return base
   }
 
   protected Map unrollParameters(Map.Entry entry) {

@@ -17,16 +17,23 @@
 package com.netflix.spinnaker.rosco.providers.aws
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
-import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeOptions
 import com.netflix.spinnaker.rosco.api.BakeRequest
+import com.netflix.spinnaker.rosco.api.BakeRequest.VmType
 import com.netflix.spinnaker.rosco.providers.CloudProviderBakeHandler
 import com.netflix.spinnaker.rosco.providers.aws.config.RoscoAWSConfiguration
 import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
+import com.netflix.spinnaker.rosco.services.ClouddriverService
+import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
+
+import java.time.Duration
+import java.util.regex.Pattern
 
 @Component
 @Slf4j
@@ -37,6 +44,7 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
   // AMI_EXTRACTOR finds amis from the format produced by packer ie:
   // eu-north-1: ami-076cf277a86b6e5b4
   // us-east-1: ami-2c014644
+  private static final Pattern AMI_ID = Pattern.compile("^ami-[a-z0-9]+\$")
   private static final String AMI_EXTRACTOR = "[a-z]{2}-[a-z]{2,10}-[0-9]:\\sami-[a-z0-9]{8,}"
   private static final String AMI_TYPE = "aws/image"
   private static final String PACKER_BUILD_FINISHED = "==> Builds finished. The artifacts of successful builds are:"
@@ -47,7 +55,13 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
   RoscoAWSConfiguration.AWSBakeryDefaults awsBakeryDefaults
 
   @Autowired
-  DynamicConfigService dynamicConfigService
+  ClouddriverService clouddriverService
+
+  @Autowired
+  RetrySupport retrySupport
+
+  @Value('${bakeAccount}')
+  String defaultAccount
 
   @Override
   def getBakeryDefaults() {
@@ -78,6 +92,7 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
   @Override
   def findVirtualizationSettings(String region, BakeRequest bakeRequest) {
     BakeRequest.VmType vm_type = bakeRequest.vm_type ?: awsBakeryDefaults.defaultVirtualizationType
+    String account = bakeRequest.account_name ?: defaultAccount
 
     def awsOperatingSystemVirtualizationSettings = awsBakeryDefaults?.baseImages.find {
       it.baseImage.id == bakeRequest.base_os
@@ -95,17 +110,27 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
       throw new IllegalArgumentException("No virtualization settings found for region '$region', operating system '$bakeRequest.base_os', and vm type '$vm_type'.")
     }
 
+    awsVirtualizationSettings = awsVirtualizationSettings.clone()
+
     if (bakeRequest.base_ami) {
-      awsVirtualizationSettings = awsVirtualizationSettings.clone()
       awsVirtualizationSettings.sourceAmi = bakeRequest.base_ami
     }
 
-    // Attempt to lookup baseAmi via dynamicConfigService if unset in the bakeRequest or rosco.yml
-    // Property name: "aws.base.${bakeRequest.base_os}.${bakeRequest.vm_type}.${bakeRequest.base_label}.$region"
     if (!awsVirtualizationSettings.sourceAmi) {
-      def property = "aws.base.${bakeRequest.base_os}.${bakeRequest.vm_type}.${bakeRequest.base_label}.$region"
-      awsVirtualizationSettings.sourceAmi = dynamicConfigService.getConfig(String, property, null)
-      log.debug("Found ami $awsVirtualizationSettings.sourceAmi for property $property")
+      String base = lookupBaseByDynamicProperty(region, bakeRequest)
+      if (base != null && !base.matches(AMI_ID)) {
+        awsVirtualizationSettings.sourceAmi = lookupAmiByName(base, region, account, vm_type)
+      } else {
+        awsVirtualizationSettings.sourceAmi = base
+      }
+    } else if (!awsVirtualizationSettings.sourceAmi.matches(AMI_ID)) {
+      awsVirtualizationSettings.sourceAmi = lookupAmiByName(
+        awsVirtualizationSettings.sourceAmi, region, account, vm_type)
+    }
+
+    if (awsVirtualizationSettings.sourceAmi == null) {
+      throw new IllegalArgumentException("No base image found for os '$bakeRequest.base_os', vm type '$vm_type', " +
+        "region '$region', label: '$bakeRequest.base_label', account: '$account'")
     }
 
     return awsVirtualizationSettings
@@ -203,5 +228,17 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
     }
 
     return new Bake(id: bakeId, ami: amiId, image_name: imageName, artifacts: artifacts)
+  }
+
+  private String lookupAmiByName(String name, String region, String account, VmType vmType) {
+    def images = AuthenticatedRequest.allowAnonymous(
+      {
+        retrySupport.retry({
+          clouddriverService.findAmazonImageByName(name, account, region)
+        }, 3, Duration.ofSeconds(3), false)
+      }
+    )
+    def image = images?.find { it.attributes.virtualizationType == vmType }
+    return image?.amis?.get(region)?.first()
   }
 }

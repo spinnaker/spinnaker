@@ -77,6 +77,18 @@ class RoscoAWSConfiguration {
     String spotPriceAutoProduct
   }
 
+  static class AWSNamedImage {
+    String imageName
+    AWSImageAttributes attributes
+    Map<String, Map<String, String>> tagsByImageId = [:]
+    Set<String> accounts = []
+    Map<String, Collection<String>> amis = [:]
+  }
+
+  static class AWSImageAttributes {
+    BakeRequest.VmType virtualizationType
+  }
+
   @PostConstruct
   void init() {
     cloudProviderBakeHandlerRegistry.register(BakeRequest.CloudProviderType.aws, awsBakeHandler)
