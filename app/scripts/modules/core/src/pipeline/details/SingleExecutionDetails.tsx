@@ -24,6 +24,7 @@ export interface ISingleExecutionDetailsProps {
 
 export interface ISingleExecutionDetailsState {
   execution: IExecution;
+  pipelineConfig?: IPipeline;
   sortFilter: ISortFilter;
   stateNotFound: boolean;
 }
@@ -76,6 +77,12 @@ export class SingleExecutionDetails extends React.Component<
           this.executionLoader.unsubscribe();
         }
         this.setState({ execution });
+
+        app.pipelineConfigs.activate();
+        app.pipelineConfigs.ready().then(() => {
+          const pipelineConfig = app.pipelineConfigs.data.find((p: IPipeline) => p.id === execution.pipelineConfigId);
+          this.setState({ pipelineConfig });
+        });
       },
       () => {
         this.setState({ execution: null, stateNotFound: true });
@@ -130,24 +137,22 @@ export class SingleExecutionDetails extends React.Component<
 
   private rerunExecution = (execution: IExecution) => {
     const { app } = this.props;
-    app.pipelineConfigs.activate();
-    app.pipelineConfigs.ready().then(() => {
-      const pipeline = app.pipelineConfigs.data.find((p: IPipeline) => p.id === execution.pipelineConfigId);
-      ManualExecutionModal.show({
-        pipeline: pipeline,
-        application: app,
-        trigger: execution.trigger,
-      }).then(command => {
-        const { executionService } = ReactInjector;
-        executionService.startAndMonitorPipeline(app, command.pipelineName, command.trigger);
-        ReactInjector.$state.go('^.^.executions');
-      });
+    const { pipelineConfig: pipeline } = this.state;
+
+    ManualExecutionModal.show({
+      pipeline: pipeline,
+      application: app,
+      trigger: execution.trigger,
+    }).then(command => {
+      const { executionService } = ReactInjector;
+      executionService.startAndMonitorPipeline(app, command.pipelineName, command.trigger);
+      ReactInjector.$state.go('^.^.executions');
     });
   };
 
   public render() {
     const { app } = this.props;
-    const { execution, sortFilter, stateNotFound } = this.state;
+    const { execution, pipelineConfig, sortFilter, stateNotFound } = this.state;
 
     const defaultExecutionParams = { application: app.name, executionId: execution ? execution.id : '' };
     const executionParams = ReactInjector.$state.params.executionParams || defaultExecutionParams;
@@ -216,9 +221,12 @@ export class SingleExecutionDetails extends React.Component<
                 pipelineConfig={null}
                 standalone={true}
                 showDurations={sortFilter.showDurations}
-                onRerun={() => {
-                  this.rerunExecution(execution);
-                }}
+                onRerun={
+                  pipelineConfig &&
+                  (() => {
+                    this.rerunExecution(execution);
+                  })
+                }
               />
             </div>
           </div>
