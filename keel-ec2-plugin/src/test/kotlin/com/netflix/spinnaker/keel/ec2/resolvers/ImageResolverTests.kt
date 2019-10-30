@@ -174,7 +174,7 @@ internal class ImageResolverTests : JUnit5Minutests {
       context("the resource is not in an environment") {
         before {
           coEvery {
-            imageService.getLatestImageWithAllRegions(artifact.name, any(), listOf(resourceRegion))
+            imageService.getLatestNamedImageWithAllRegions(artifact.name, any(), listOf(resourceRegion))
           } answers {
             images.lastOrNull { it.appVersion.startsWith(firstArg<String>()) }
           }
@@ -206,7 +206,7 @@ internal class ImageResolverTests : JUnit5Minutests {
             artifactRepository.store(artifact, "${artifact.name}-$version2", FINAL)
             artifactRepository.approveVersionFor(deliveryConfig, artifact, "${artifact.name}-$version2", "test")
             coEvery {
-              imageService.getLatestImageWithAllRegions(AppVersion.parseName("${artifact.name}-$version2"), any(), listOf(resourceRegion))
+              imageService.getLatestNamedImageWithAllRegionsForAppVersion(AppVersion.parseName("${artifact.name}-$version2"), any(), listOf(resourceRegion))
             } answers {
               images.lastOrNull { AppVersion.parseName(it.appVersion).version == firstArg<AppVersion>().version }
             }
@@ -258,7 +258,7 @@ internal class ImageResolverTests : JUnit5Minutests {
             artifactRepository.store(artifact, "${artifact.name}-$version2", FINAL)
             artifactRepository.approveVersionFor(deliveryConfig, artifact, "${artifact.name}-$version2", "test")
             coEvery {
-              imageService.getLatestImageWithAllRegions(AppVersion.parseName("${artifact.name}-$version2"), any(), listOf(resourceRegion))
+              imageService.getLatestNamedImageWithAllRegionsForAppVersion(AppVersion.parseName("${artifact.name}-$version2"), any(), listOf(resourceRegion))
             } returns null
           }
 
@@ -292,7 +292,7 @@ internal class ImageResolverTests : JUnit5Minutests {
             artifactRepository.store(artifact, "${artifact.name}-$version2", FINAL)
             artifactRepository.approveVersionFor(deliveryConfig, artifact, "${artifact.name}-$version2", "test")
             coEvery {
-              imageService.getLatestImageWithAllRegions(AppVersion.parseName("${artifact.name}-$version2"), any(), listOf(resourceRegion))
+              imageService.getLatestNamedImageWithAllRegionsForAppVersion(AppVersion.parseName("${artifact.name}-$version2"), any(), listOf(resourceRegion))
             } answers {
               images.lastOrNull { AppVersion.parseName(it.appVersion).version == firstArg<AppVersion>().version }
             }

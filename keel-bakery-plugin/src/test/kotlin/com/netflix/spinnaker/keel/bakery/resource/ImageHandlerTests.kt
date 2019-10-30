@@ -229,7 +229,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
       context("the image already exists in more regions than desired") {
         before {
           coEvery {
-            imageService.getLatestImage("keel", "test")
+            imageService.getLatestImageWithAllRegions("keel", "test", image.regions.toList())
           } returns image.copy(regions = image.regions + "eu-west-1")
         }
         test("current should filter the undesireable regions out of the image") {

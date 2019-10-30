@@ -326,7 +326,7 @@ internal class ImageServiceTests {
     } returns realImages
 
     runBlocking {
-      val image = subject.getLatestImageWithAllRegions(packageName, "test", regions)
+      val image = subject.getLatestNamedImageWithAllRegions(packageName, "test", regions)
       expectThat(image)
         .isNotNull()
         .get { imageName }
@@ -347,7 +347,7 @@ internal class ImageServiceTests {
     } returns realImages
 
     runBlocking {
-      val image = subject.getLatestImageWithAllRegions(appVersion, "test", regions)
+      val image = subject.getLatestNamedImageWithAllRegionsForAppVersion(AppVersion.parseName(appVersion), "test", regions)
       expectThat(image)
         .isNotNull()
         .get { imageName }

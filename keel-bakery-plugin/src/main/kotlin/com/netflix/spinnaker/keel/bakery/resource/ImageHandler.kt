@@ -63,7 +63,7 @@ class ImageHandler(
 
   override suspend fun current(resource: Resource<ImageSpec>): Image? =
     with(resource) {
-      imageService.getLatestImage(spec.artifactName, "test")?.let {
+      imageService.getLatestImageWithAllRegions(spec.artifactName, "test", resource.spec.regions.toList())?.let {
         it.copy(regions = it.regions.intersect(resource.spec.regions))
       }
     }

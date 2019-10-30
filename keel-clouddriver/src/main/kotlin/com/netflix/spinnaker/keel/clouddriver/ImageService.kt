@@ -30,33 +30,35 @@ class ImageService(
 ) {
   val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
 
-  suspend fun getLatestImage(artifactName: String, account: String): Image? {
-    return cloudDriverService.namedImages(DEFAULT_SERVICE_ACCOUNT, artifactName, account)
-      .sortedWith(NamedImageComparator)
-      .lastOrNull {
-        AppVersion.parseName(it.appVersion).packageName == artifactName
+  suspend fun getLatestImage(artifactName: String, account: String): Image? =
+    getLatestNamedImage(artifactName, account)?.toImage(artifactName)
+
+  /**
+   * If possible, return the latest image that's present in all regions and has tags.
+   * If that doesn't exist, just return the latest image.
+   */
+  suspend fun getLatestImageWithAllRegions(artifactName: String, account: String, regions: List<String>): Image? =
+    getLatestNamedImageWithAllRegions(artifactName, account, regions)?.toImage(artifactName)
+      ?: getLatestImage(artifactName, account)
+
+  private fun NamedImage.toImage(artifactName: String): Image? =
+    tagsByImageId
+      .values
+      .firstOrNull { it?.containsKey("base_ami_version") ?: false && it?.containsKey("appversion") ?: false }
+      .let { tags ->
+        return if (tags == null) {
+          log.debug("No images found for {}", artifactName)
+          null
+        } else {
+          val image = Image(
+            tags.getValue("base_ami_version")!!,
+            tags.getValue("appversion")!!.substringBefore('/'),
+            amis.keys
+          )
+          log.debug("Latest image for {} is {}", artifactName, image)
+          image
+        }
       }
-      ?.let { namedImage ->
-        namedImage
-          .tagsByImageId
-          .values
-          .firstOrNull { it?.containsKey("base_ami_version") ?: false && it?.containsKey("appversion") ?: false }
-          .let { tags ->
-            if (tags == null) {
-              log.debug("No images found for {}", artifactName)
-              null
-            } else {
-              val image = Image(
-                tags.getValue("base_ami_version")!!,
-                tags.getValue("appversion")!!.substringBefore('/'),
-                namedImage.amis.keys
-              )
-              log.debug("Latest image for {} is {}", artifactName, image)
-              image
-            }
-          }
-      }
-  }
 
   /**
    * Get the latest named image for a package.
@@ -95,7 +97,7 @@ class ImageService(
    * Returns the latest image that is present in all regions.
    * Each ami must have tags.
    */
-  suspend fun getLatestImageWithAllRegions(appVersion: AppVersion, account: String, regions: List<String>): NamedImage? =
+  suspend fun getLatestNamedImageWithAllRegionsForAppVersion(appVersion: AppVersion, account: String, regions: List<String>): NamedImage? =
     cloudDriverService.images(
       serviceAccount = DEFAULT_SERVICE_ACCOUNT,
       provider = "aws",
@@ -112,7 +114,7 @@ class ImageService(
    * Returns the latest image that is present in all regions.
    * Each ami must have tags.
    */
-  suspend fun getLatestImageWithAllRegions(packageName: String, account: String, regions: List<String>): NamedImage? =
+  suspend fun getLatestNamedImageWithAllRegions(packageName: String, account: String, regions: List<String>): NamedImage? =
     cloudDriverService.images(
       serviceAccount = DEFAULT_SERVICE_ACCOUNT,
       provider = "aws",
