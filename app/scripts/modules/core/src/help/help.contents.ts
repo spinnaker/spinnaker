@@ -317,7 +317,8 @@ const helpContents: { [key: string]: string } = {
     '<p>If concurrent pipeline execution is disabled, then the pipelines that are in the waiting queue will get canceled when the next execution starts. <br><br>Check this box if you want to keep them in the queue.</p>',
   'pipeline.config.timeout': `
       <p>Allows you to force the stage to fail if its running time exceeds a specific length.</p>
-      <p><b>Note:</b> by default there is not a time limit on the stage, only the individual tasks it runs. The maximum possible running time for a stage is the sum of each task's timeout.</p>`,
+      <p><b>Note:</b> By default, Spinnaker will use sensible timeouts that depend on the stage type and the operations the stage needs to perform at runtime. These defaults can vary based on chosen configuration and other external factors.
+      </p>`,
   'pipeline.config.trigger.runAsUser':
     "The current user must have access to the specified service account, and the service account must have access to the current application. Otherwise, you'll receive an 'Access is denied' error.",
   'pipeline.config.script.repoUrl':
