@@ -12,6 +12,7 @@ import com.netflix.spinnaker.keel.api.NoImageFoundForRegions
 import com.netflix.spinnaker.keel.api.NoImageSatisfiesConstraints
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
+import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
@@ -23,7 +24,6 @@ import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.appVersion
 import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
 import com.netflix.spinnaker.keel.model.Moniker
-import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
 import com.netflix.spinnaker.keel.test.resource
@@ -156,7 +156,7 @@ internal class ImageResolverTests : JUnit5Minutests {
 
   fun tests() = rootContext<Fixture<*>> {
     context("no image provider") {
-        fixture { Fixture(null) }
+      fixture { Fixture(null) }
 
       test("returns the original spec unchanged") {
         expectThat(resolve())
@@ -174,7 +174,7 @@ internal class ImageResolverTests : JUnit5Minutests {
       context("the resource is not in an environment") {
         before {
           coEvery {
-            imageService.getLatestNamedImage(artifact.name, any(), null)
+            imageService.getLatestImageWithAllRegions(artifact.name, any(), listOf(resourceRegion))
           } answers {
             images.lastOrNull { it.appVersion.startsWith(firstArg<String>()) }
           }
@@ -206,7 +206,7 @@ internal class ImageResolverTests : JUnit5Minutests {
             artifactRepository.store(artifact, "${artifact.name}-$version2", FINAL)
             artifactRepository.approveVersionFor(deliveryConfig, artifact, "${artifact.name}-$version2", "test")
             coEvery {
-              imageService.getLatestNamedImage(AppVersion.parseName("${artifact.name}-$version2"), any(), null)
+              imageService.getLatestImageWithAllRegions(AppVersion.parseName("${artifact.name}-$version2"), any(), listOf(resourceRegion))
             } answers {
               images.lastOrNull { AppVersion.parseName(it.appVersion).version == firstArg<AppVersion>().version }
             }
@@ -258,7 +258,7 @@ internal class ImageResolverTests : JUnit5Minutests {
             artifactRepository.store(artifact, "${artifact.name}-$version2", FINAL)
             artifactRepository.approveVersionFor(deliveryConfig, artifact, "${artifact.name}-$version2", "test")
             coEvery {
-              imageService.getLatestNamedImage(AppVersion.parseName("${artifact.name}-$version2"), any(), null)
+              imageService.getLatestImageWithAllRegions(AppVersion.parseName("${artifact.name}-$version2"), any(), listOf(resourceRegion))
             } returns null
           }
 
@@ -292,7 +292,7 @@ internal class ImageResolverTests : JUnit5Minutests {
             artifactRepository.store(artifact, "${artifact.name}-$version2", FINAL)
             artifactRepository.approveVersionFor(deliveryConfig, artifact, "${artifact.name}-$version2", "test")
             coEvery {
-              imageService.getLatestNamedImage(AppVersion.parseName("${artifact.name}-$version2"), any(), null)
+              imageService.getLatestImageWithAllRegions(AppVersion.parseName("${artifact.name}-$version2"), any(), listOf(resourceRegion))
             } answers {
               images.lastOrNull { AppVersion.parseName(it.appVersion).version == firstArg<AppVersion>().version }
             }

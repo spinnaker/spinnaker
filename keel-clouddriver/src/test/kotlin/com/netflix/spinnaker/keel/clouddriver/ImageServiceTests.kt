@@ -17,11 +17,13 @@
  */
 package com.netflix.spinnaker.keel.clouddriver
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImageComparator
 import com.netflix.spinnaker.keel.clouddriver.model.appVersion
 import com.netflix.spinnaker.keel.clouddriver.model.creationDate
+import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -37,6 +39,17 @@ import strikt.assertions.isNull
 internal class ImageServiceTests {
   val cloudDriver = mockk<CloudDriverService>()
   val subject = ImageService(cloudDriver)
+
+  val mapper = configuredObjectMapper()
+
+  /*
+  example payload for a package that has been baked 3 times
+  the oldest was baked correctly
+  the middle is missing tags in one region
+  the newest is missing a region
+   */
+  val imageJson = this.javaClass.getResource("/named-images.json").readText()
+  val realImages = mapper.readValue<List<NamedImage>>(imageJson)
 
   val image1 = NamedImage(
     imageName = "my-package-0.0.1_rc.97-h98",
@@ -297,6 +310,48 @@ internal class ImageServiceTests {
         .isNotNull()
         .get { imageName }
         .isEqualTo("my-package-0.0.1_rc.97-h98")
+    }
+  }
+
+  @Test
+  fun `get latest image from package name with all regions ignores amis with missing regions or missing tags`() {
+    val packageName = "keel"
+    val regions = listOf("us-west-2", "us-east-1")
+    coEvery {
+      cloudDriver.images(
+        serviceAccount = DEFAULT_SERVICE_ACCOUNT,
+        provider = "aws",
+        name = packageName
+      )
+    } returns realImages
+
+    runBlocking {
+      val image = subject.getLatestImageWithAllRegions(packageName, "test", regions)
+      expectThat(image)
+        .isNotNull()
+        .get { imageName }
+        .isEqualTo("keel-0.312.0-h240.44eaaa3-x86_64-20191025212812-xenial-hvm-sriov-ebs")
+    }
+  }
+
+  @Test
+  fun `get latest image from appVersion with all regions ignores amis with missing regions or missing tags`() {
+    val appVersion = "keel-0.312.0-h240.44eaaa3"
+    val regions = listOf("us-west-2", "us-east-1")
+    coEvery {
+      cloudDriver.images(
+        serviceAccount = DEFAULT_SERVICE_ACCOUNT,
+        provider = "aws",
+        name = appVersion
+      )
+    } returns realImages
+
+    runBlocking {
+      val image = subject.getLatestImageWithAllRegions(appVersion, "test", regions)
+      expectThat(image)
+        .isNotNull()
+        .get { imageName }
+        .isEqualTo("keel-0.312.0-h240.44eaaa3-x86_64-20191025212812-xenial-hvm-sriov-ebs")
     }
   }
 }

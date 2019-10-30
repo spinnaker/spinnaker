@@ -91,6 +91,40 @@ class ImageService(
         }
       }
 
+  /**
+   * Returns the latest image that is present in all regions.
+   * Each ami must have tags.
+   */
+  suspend fun getLatestImageWithAllRegions(appVersion: AppVersion, account: String, regions: List<String>): NamedImage? =
+    cloudDriverService.images(
+      serviceAccount = DEFAULT_SERVICE_ACCOUNT,
+      provider = "aws",
+      name = appVersion.toImageName().replace("~", "_")
+    )
+      .sortedWith(NamedImageComparator)
+      .findLast {
+        AppVersion.parseName(it.appVersion).run {
+          packageName == appVersion.packageName && version == appVersion.version && commit == appVersion.commit
+        } && it.accounts.contains(account) && it.amis.keys.containsAll(regions) && tagsExistForAllAmis(it.tagsByImageId)
+      }
+
+  /**
+   * Returns the latest image that is present in all regions.
+   * Each ami must have tags.
+   */
+  suspend fun getLatestImageWithAllRegions(packageName: String, account: String, regions: List<String>): NamedImage? =
+    cloudDriverService.images(
+      serviceAccount = DEFAULT_SERVICE_ACCOUNT,
+      provider = "aws",
+      name = packageName
+    )
+      .sortedWith(NamedImageComparator)
+      .findLast {
+        AppVersion.parseName(it.appVersion).run {
+          packageName == packageName
+        } && it.accounts.contains(account) && it.amis.keys.containsAll(regions) && tagsExistForAllAmis(it.tagsByImageId)
+      }
+
   suspend fun getNamedImageFromJenkinsInfo(packageName: String, account: String, buildHost: String, buildName: String, buildNumber: String): NamedImage? =
     cloudDriverService.namedImages(DEFAULT_SERVICE_ACCOUNT, packageName, account)
       .sortedWith(NamedImageComparator)
@@ -127,6 +161,16 @@ class ImageService(
 
     if (appversion[1] != buildName || appversion[2] != buildNumber) {
       return false
+    }
+    return true
+  }
+
+  private fun tagsExistForAllAmis(tagsByImageId: Map<String, Map<String, String?>?>): Boolean {
+    tagsByImageId.keys.forEach { key ->
+      val tags = tagsByImageId[key]
+      if (tags == null || tags.isEmpty()) {
+        return false
+      }
     }
     return true
   }
