@@ -3,6 +3,8 @@ import * as React from 'react';
 import { AccountTag } from 'core/account';
 import { Application } from 'core/application/application.model';
 import { ILoadBalancerGroup } from 'core/domain';
+import { ManagedResourceStatusIndicator } from 'core/managed';
+
 import { LoadBalancer } from './LoadBalancer';
 
 import './loadBalancerPod.less';
@@ -22,6 +24,7 @@ export class LoadBalancerPod extends React.Component<ILoadBalancerPodProps> {
       <LoadBalancer
         key={subgroup.heading}
         application={application}
+        grouping={grouping}
         loadBalancer={subgroup.loadBalancer}
         serverGroups={subgroup.serverGroups}
         showServerGroups={showServerGroups}
@@ -36,8 +39,11 @@ export class LoadBalancerPod extends React.Component<ILoadBalancerPodProps> {
             <div className="heading-tag">
               <AccountTag account={parentHeading} />
             </div>
-            <div className="pod-center horizontal space-between center flex-1">
+            <div className="pod-center horizontal space-between flex-1 no-right-padding">
               <div>{grouping.heading}</div>
+              {grouping.isManaged && (
+                <ManagedResourceStatusIndicator shape="square" resourceSummary={grouping.managedResourceSummary} />
+              )}
             </div>
           </div>
         </div>

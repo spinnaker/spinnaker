@@ -1,9 +1,11 @@
 import * as React from 'react';
 import { UISref, UISrefActive } from '@uirouter/react';
+import * as classNames from 'classnames';
 
 import { Application } from 'core/application/application.model';
 import { CloudProviderRegistry } from 'core/cloudProvider';
-import { ILoadBalancer, IServerGroup } from 'core/domain';
+import { ILoadBalancer, IServerGroup, ILoadBalancerGroup } from 'core/domain';
+import { ManagedResourceStatusIndicator } from 'core/managed';
 
 import { HealthCounts } from 'core/healthCounts/HealthCounts';
 import { LoadBalancerClusterContainer } from './LoadBalancerClusterContainer';
@@ -11,6 +13,7 @@ import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifica
 
 export interface ILoadBalancerProps {
   application: Application;
+  grouping: ILoadBalancerGroup;
   loadBalancer: ILoadBalancer;
   serverGroups: IServerGroup[];
   showServerGroups?: boolean;
@@ -24,9 +27,10 @@ export class LoadBalancer extends React.Component<ILoadBalancerProps> {
   };
 
   public render(): React.ReactElement<LoadBalancer> {
-    const { application, loadBalancer, serverGroups, showInstances, showServerGroups } = this.props;
+    const { application, grouping, loadBalancer, serverGroups, showInstances, showServerGroups } = this.props;
     const config = CloudProviderRegistry.getValue(loadBalancer.provider || loadBalancer.cloudProvider, 'loadBalancer');
     const ClusterContainer = config.ClusterContainer || LoadBalancerClusterContainer;
+    const showManagedIndicator = !grouping.isManaged && loadBalancer.isManaged;
 
     const params = {
       application: application.name,
@@ -45,7 +49,17 @@ export class LoadBalancer extends React.Component<ILoadBalancerProps> {
               <h6 className="clickable clickable-row horizontal middle">
                 <i className="fa icon-sitemap" />
                 &nbsp; {(loadBalancer.region || '').toUpperCase()}
-                <div className="flex-1">
+                <div
+                  className={classNames('flex-container-h middle flex-1', {
+                    'sp-margin-s-left': showManagedIndicator,
+                  })}
+                >
+                  {showManagedIndicator && (
+                    <ManagedResourceStatusIndicator
+                      shape="circle"
+                      resourceSummary={loadBalancer.managedResourceSummary}
+                    />
+                  )}
                   <EntityNotifications
                     entity={loadBalancer}
                     application={application}
