@@ -55,24 +55,24 @@ public class ExceptionClassifier {
 
     boolean retryable = false;
     try {
-      String dynamicNonRetryableClasses =
+      String dynamicRetraybleClasses =
           dynamicConfigService.getConfig(
               String.class,
-              "clouddriver.exceptionClassifier.nonRetryableExceptions",
-              String.join(",", properties.getNonRetryableClasses()));
+              "clouddriver.exception-classifier.retryable-exceptions",
+              String.join(",", properties.getRetryableClasses()));
 
-      if (dynamicNonRetryableClasses != null) {
-        List<String> dynamicNonRetryableClassesList =
-            Lists.newArrayList(Splitter.on(",").split(dynamicNonRetryableClasses));
+      if (dynamicRetraybleClasses != null) {
+        List<String> dynamicRetraybleClassesList =
+            Lists.newArrayList(Splitter.on(",").split(dynamicRetraybleClasses));
 
-        List<String> nonRetryableClasses =
-            Stream.of(dynamicNonRetryableClassesList, properties.getNonRetryableClasses())
+        List<String> retryableClasses =
+            Stream.of(dynamicRetraybleClassesList, properties.getRetryableClasses())
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
 
-        retryable = !nonRetryableClasses.contains(e.getClass().getName());
+        retryable = retryableClasses.contains(e.getClass().getName());
       } else {
-        retryable = !properties.getNonRetryableClasses().contains(e.getClass().getName());
+        retryable = properties.getRetryableClasses().contains(e.getClass().getName());
       }
     } catch (Exception caughtException) {
       log.error("Unexpected exception while processing retryable classes", caughtException);
