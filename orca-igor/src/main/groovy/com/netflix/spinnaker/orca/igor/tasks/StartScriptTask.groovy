@@ -81,7 +81,7 @@ class StartScriptTask implements Task {
     }
 
     String queuedBuild = buildService.build(master, job, parameters)
-    TaskResult.builder(ExecutionStatus.SUCCEEDED).context([master: master, job: job, queuedBuild: queuedBuild]).build()
+    TaskResult.builder(ExecutionStatus.SUCCEEDED).context([master: master, job: job, queuedBuild: queuedBuild, REPO_URL: repoUrl?:'default' ]).build()
   }
 
 }
