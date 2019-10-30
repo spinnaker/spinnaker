@@ -23,13 +23,28 @@ import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import lombok.Getter;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class HalconfigDirectoryStructure {
-  @Autowired @Getter String halconfigDirectory;
+  private static ThreadLocal<String> directoryOverride = new ThreadLocal<>();
+
+  public static void setDirectoryOverride(String directory) {
+    directoryOverride.set(directory);
+  }
+
+  @Autowired @Setter String halconfigDirectory;
+
+  public String getHalconfigDirectory() {
+    String directory = directoryOverride.get();
+    return directory == null ? halconfigDirectory : directory;
+  }
+
+  public String getHalconfigPath() {
+    return normalizePath(Paths.get(getHalconfigDirectory(), "config").toString());
+  }
 
   public Path getLogsPath(String deploymentName) {
     return ensureRelativeHalDirectory(deploymentName, "service-logs");
@@ -63,31 +78,31 @@ public class HalconfigDirectoryStructure {
   }
 
   public Path getVaultTokenPath(String deploymentName) {
-    Path halconfigPath = Paths.get(halconfigDirectory, deploymentName);
+    Path halconfigPath = Paths.get(getHalconfigDirectory(), deploymentName);
     ensureDirectory(halconfigPath);
     return new File(halconfigPath.toFile(), "vault-token").toPath();
   }
 
   public Path getUnInstallScriptPath(String deploymentName) {
-    Path halconfigPath = Paths.get(halconfigDirectory, deploymentName);
+    Path halconfigPath = Paths.get(getHalconfigDirectory(), deploymentName);
     ensureDirectory(halconfigPath);
     return new File(halconfigPath.toFile(), "uninstall.sh").toPath();
   }
 
   public Path getPrepScriptPath(String deploymentName) {
-    Path halconfigPath = Paths.get(halconfigDirectory, deploymentName);
+    Path halconfigPath = Paths.get(getHalconfigDirectory(), deploymentName);
     ensureDirectory(halconfigPath);
     return new File(halconfigPath.toFile(), "prep.sh").toPath();
   }
 
   public Path getInstallScriptPath(String deploymentName) {
-    Path halconfigPath = Paths.get(halconfigDirectory, deploymentName);
+    Path halconfigPath = Paths.get(getHalconfigDirectory(), deploymentName);
     ensureDirectory(halconfigPath);
     return new File(halconfigPath.toFile(), "install.sh").toPath();
   }
 
   public Path getConnectScriptPath(String deploymentName) {
-    Path halconfigPath = Paths.get(halconfigDirectory, deploymentName);
+    Path halconfigPath = Paths.get(getHalconfigDirectory(), deploymentName);
     ensureDirectory(halconfigPath);
     return new File(halconfigPath.toFile(), "connect.sh").toPath();
   }
@@ -97,20 +112,20 @@ public class HalconfigDirectoryStructure {
   }
 
   public Path getCachePath() {
-    return ensureDirectory(Paths.get(halconfigDirectory, ".cache"));
+    return ensureDirectory(Paths.get(getHalconfigDirectory(), ".cache"));
   }
 
   public Path getSpinInstallScriptPath() {
-    return ensureDirectory((Paths.get("/opt/spin/install/install-spin.sh")));
+    return ensureDirectory(Paths.get("/opt/spin/install/install-spin.sh"));
   }
 
   public Path getBackupConfigPath() {
-    Path backup = ensureDirectory(Paths.get(halconfigDirectory, ".backup"));
+    Path backup = ensureDirectory(Paths.get(getHalconfigDirectory(), ".backup"));
     return new File(backup.toFile(), "config").toPath();
   }
 
   public Path getBackupConfigDependenciesPath() {
-    return ensureDirectory(Paths.get(halconfigDirectory, ".backup", "required-files"));
+    return ensureDirectory(Paths.get(getHalconfigDirectory(), ".backup", "required-files"));
   }
 
   public Path getServiceSettingsPath(String deploymentName) {
@@ -124,7 +139,7 @@ public class HalconfigDirectoryStructure {
   }
 
   private Path ensureRelativeHalDirectory(String deploymentName, String directoryName) {
-    Path path = Paths.get(halconfigDirectory, deploymentName, directoryName);
+    Path path = Paths.get(getHalconfigDirectory(), deploymentName, directoryName);
     ensureDirectory(path);
     return path;
   }
@@ -159,5 +174,15 @@ public class HalconfigDirectoryStructure {
     }
 
     return path;
+  }
+
+  private String normalizePath(String path) {
+    String result = path.replaceFirst("^~", System.getProperty("user.home"));
+    // Strip trailing path separator
+    if (result.endsWith(File.separator)) {
+      result = result.substring(0, result.length() - 1);
+    }
+
+    return result;
   }
 }

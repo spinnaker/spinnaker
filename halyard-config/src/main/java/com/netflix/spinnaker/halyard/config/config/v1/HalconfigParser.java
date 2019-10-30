@@ -36,7 +36,6 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -61,11 +60,6 @@ import org.yaml.snakeyaml.scanner.ScannerException;
 @Slf4j
 @Component
 public class HalconfigParser {
-
-  @Autowired String halconfigPath;
-
-  @Autowired String halyardVersion;
-
   @Autowired StrictObjectMapper objectMapper;
 
   @Autowired HalconfigDirectoryStructure halconfigDirectoryStructure;
@@ -73,7 +67,6 @@ public class HalconfigParser {
   @Autowired Yaml yamlParser;
 
   private boolean useBackup = false;
-  private String backupHalconfigPath;
 
   /**
    * Parse Halyard's config.
@@ -104,8 +97,11 @@ public class HalconfigParser {
   }
 
   private InputStream getHalconfigStream() throws FileNotFoundException {
-    String path = useBackup ? backupHalconfigPath : halconfigPath;
-    return new FileInputStream(new File(path));
+    String baseDirectory =
+        useBackup
+            ? halconfigDirectoryStructure.getBackupConfigPath().toString()
+            : halconfigDirectoryStructure.getHalconfigPath();
+    return new FileInputStream(new File(baseDirectory));
   }
 
   /**
@@ -145,7 +141,7 @@ public class HalconfigParser {
     }
 
     input.parentify();
-    input.setPath(halconfigPath);
+    input.setPath(halconfigDirectoryStructure.getHalconfigPath());
 
     return input;
   }
@@ -157,7 +153,7 @@ public class HalconfigParser {
 
   /** Write your halconfig object to the halconfigPath. */
   public void saveConfig() {
-    saveConfigTo(Paths.get(halconfigPath));
+    saveConfigTo(Paths.get(halconfigDirectoryStructure.getHalconfigPath()));
   }
 
   /** Deletes all files in the staging directory that are not referenced in the hal config. */
@@ -166,7 +162,7 @@ public class HalconfigParser {
       return;
     }
     Halconfig halconfig = getHalconfig();
-    Set<String> referencedFiles = new HashSet<String>();
+    Set<String> referencedFiles = new HashSet<>();
     Consumer<Node> fileFinder =
         n ->
             referencedFiles.addAll(
@@ -188,12 +184,11 @@ public class HalconfigParser {
     halconfig.recursiveConsume(fileFinder);
 
     Set<String> existingStagingFiles =
-        ((List<File>)
-                FileUtils.listFiles(
-                    stagingDirectoryPath.toFile(),
-                    TrueFileFilter.INSTANCE,
-                    TrueFileFilter.INSTANCE))
-            .stream().map(f -> f.getAbsolutePath()).collect(Collectors.toSet());
+        FileUtils.listFiles(
+                stagingDirectoryPath.toFile(), TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE)
+            .stream()
+            .map(f -> f.getAbsolutePath())
+            .collect(Collectors.toSet());
 
     existingStagingFiles.removeAll(referencedFiles);
 
@@ -217,7 +212,6 @@ public class HalconfigParser {
 
   public void switchToBackupConfig() {
     DaemonTaskHandler.setContext(null);
-    backupHalconfigPath = halconfigDirectoryStructure.getBackupConfigPath().toString();
     useBackup = true;
   }
 
@@ -243,7 +237,10 @@ public class HalconfigParser {
     } catch (IOException e) {
       throw new HalException(
           Severity.FATAL,
-          "Failure writing your halconfig to path \"" + halconfigPath + "\": " + e.getMessage(),
+          "Failure writing your halconfig to path \""
+              + halconfigDirectoryStructure.getHalconfigPath()
+              + "\": "
+              + e.getMessage(),
           e);
     } finally {
       DaemonTaskHandler.setContext(null);

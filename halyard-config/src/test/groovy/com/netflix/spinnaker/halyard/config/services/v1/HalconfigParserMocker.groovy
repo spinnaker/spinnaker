@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.services.v1
 
+import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructure
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser
 import com.netflix.spinnaker.halyard.config.config.v1.StrictObjectMapper
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig
@@ -30,7 +31,7 @@ class HalconfigParserMocker extends Specification {
     def parserStub = new HalconfigParser()
     parserStub.objectMapper = new StrictObjectMapper()
     parserStub.yamlParser = new Yaml(new SafeConstructor())
-    parserStub.halconfigPath = "/some/nonsense/file"
+    parserStub.halconfigDirectoryStructure = new HalconfigDirectoryStructure();
 
     def stream = new ByteArrayInputStream(config.getBytes(StandardCharsets.UTF_8))
     Halconfig halconfig = parserStub.parseHalconfig(stream)

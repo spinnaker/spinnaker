@@ -52,12 +52,8 @@ public class ResourceConfig {
   }
 
   @Bean
-  String halconfigPath(@Value("${halyard.halconfig.directory:~/.hal}") String path) {
-    return normalizePath(Paths.get(path, "config").toString());
-  }
-
-  @Bean
   String localBomPath(@Value("${halyard.halconfig.directory:~/.hal}") String path) {
+
     return normalizePath(Paths.get(path, ".boms").toString());
   }
 
