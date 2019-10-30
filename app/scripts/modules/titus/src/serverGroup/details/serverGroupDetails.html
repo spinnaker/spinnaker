@@ -113,26 +113,7 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Launch Configuration">
-      <dl class="horizontal-when-filters-collapsed" ng-if="serverGroup.image">
-        <dt ng-if="serverGroup.image.dockerImageName">Image Name</dt>
-        <dd ng-if="serverGroup.image.dockerImageName">{{serverGroup.image.dockerImageName}}</dd>
-        <dt ng-if="serverGroup.image.dockerImageVersion">Image Version</dt>
-        <dd ng-if="serverGroup.image.dockerImageVersion">{{serverGroup.image.dockerImageVersion}}</dd>
-        <dt ng-if="serverGroup.entryPoint">Entrypoint</dt>
-        <dd ng-if="serverGroup.entryPoint">{{serverGroup.entryPoint}}</dd>
-        <dt ng-if="serverGroup.iamProfile">IAM Profile</dt>
-        <dd ng-if="serverGroup.iamProfile">{{serverGroup.iamProfile}}</dd>
-        <dt>CPU(s)</dt>
-        <dd>{{serverGroup.resources.cpu}}</dd>
-        <dt>Memory</dt>
-        <dd>{{serverGroup.resources.memory}} MB</dd>
-        <dt>Disk</dt>
-        <dd>{{serverGroup.resources.disk}} MB</dd>
-        <dt>Network</dt>
-        <dd>{{serverGroup.resources.networkMbps}} Mbps</dd>
-        <dt>GPU(s)</dt>
-        <dd>{{serverGroup.resources.gpu}}</dd>
-      </dl>
+      <titus-launch-config-section server-group="serverGroup"></titus-launch-config-section>
     </collapsible-section>
 
     <titus-security-groups

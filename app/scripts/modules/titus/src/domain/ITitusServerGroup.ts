@@ -4,15 +4,26 @@ import { IJobDisruptionBudget } from './IJobDisruptionBudget';
 import { ITitusPolicy } from './ITitusScalingPolicy';
 import { ITitusServiceJobProcesses } from './ITitusServiceJobProcesses';
 
+export interface ITitusResources {
+  cpu: number;
+  disk: number;
+  gpu: number;
+  memory: number;
+  networkMbps: number;
+}
+
 export interface ITitusServerGroup extends IServerGroup {
-  id?: string;
-  disruptionBudget?: IJobDisruptionBudget;
-  migrationPolicy?: { type: string };
-  image?: ITitusImage;
-  serviceJobProcesses?: ITitusServiceJobProcesses;
-  scalingPolicies?: ITitusPolicy[];
-  targetGroups?: string[];
   capacityGroup?: string;
+  disruptionBudget?: IJobDisruptionBudget;
+  entryPoint: string;
+  iamProfile: string;
+  id?: string;
+  image?: ITitusImage;
+  migrationPolicy?: { type: string };
+  resources: ITitusResources;
+  scalingPolicies?: ITitusPolicy[];
+  serviceJobProcesses?: ITitusServiceJobProcesses;
+  targetGroups?: string[];
 }
 
 export interface ITitusImage {

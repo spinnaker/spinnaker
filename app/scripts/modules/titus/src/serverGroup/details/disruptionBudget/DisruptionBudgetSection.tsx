@@ -20,7 +20,11 @@ import {
 import { ITitusServerGroup, IJobDisruptionBudget } from '../../../domain';
 import { EditDisruptionBudgetModal } from './EditDisruptionBudgetModal';
 
-export class DisruptionBudgetSection extends React.Component<IServerGroupDetailsSectionProps> {
+interface IDisruptionBudgetSection extends IServerGroupDetailsSectionProps {
+  serverGroup: ITitusServerGroup;
+}
+
+export class DisruptionBudgetSection extends React.Component<IDisruptionBudgetSection> {
   private SectionHeading = ({
     budget,
     options,
