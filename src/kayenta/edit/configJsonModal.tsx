@@ -4,15 +4,13 @@ import { connect } from 'react-redux';
 import { Modal } from 'react-bootstrap';
 import { get, omit } from 'lodash';
 
-import { JsonUtils, NgReact, IJsonDiff, JsonEditor } from '@spinnaker/core';
+import { JsonUtils, IJsonDiff, JsonEditor, DiffView } from '@spinnaker/core';
 import * as Creators from 'kayenta/actions/creators';
 import { ICanaryState } from 'kayenta/reducers';
 import { mapStateToConfig } from 'kayenta/service/canaryConfig.service';
 import Styleguide from 'kayenta/layout/styleguide';
 import { Tab, Tabs } from 'kayenta/layout/tabs';
 import { DISABLE_EDIT_CONFIG } from 'kayenta/layout/disableable';
-
-const { DiffView } = NgReact;
 
 import './configJson.less';
 import 'brace/mode/json';
