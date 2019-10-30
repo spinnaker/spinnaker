@@ -9,6 +9,8 @@ invalid_command_format = ("You must specify exactly 1 release to cherry-pick " +
 
 not_merged = "Only merged PRs can be cherry picked into a release branch"
 
+cherry_pick_label = "cherry-pick"
+
 class PullRequestCherryPickEventHandler(Handler):
     def __init__(self):
         super().__init__()
@@ -45,6 +47,7 @@ class PullRequestCherryPickEventHandler(Handler):
 
         try:
             p = g.cherry_pick(repo=repo, release=release, commit=commit)
+            AddLabel(g, p, cherry_pick_label)
             pull_request.create_issue_comment("Cherry pick successful: #{}".format(p.number))
         except RuntimeError as e:
             pull_request.create_issue_comment("Cherry pick failed: {}".format(str(e)))
