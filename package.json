@@ -77,8 +77,8 @@
     "ui-select": "^0.19.6"
   },
   "devDependencies": {
-    "@spinnaker/amazon": "^0.0.173",
-    "@spinnaker/core": "0.0.362",
+    "@spinnaker/amazon": "^0.0.222",
+    "@spinnaker/core": "0.0.428",
     "@spinnaker/styleguide": "^1.0.12",
     "@types/angular": "1.6.26",
     "@types/angular-mocks": "^1.5.10",
@@ -191,7 +191,7 @@
     "tslint-eslint-rules": "^5.2.0",
     "tslint-loader": "^3.6.0",
     "tslint-react": "^3.6.0",
-    "typescript": "^3.0.2",
+    "typescript": "~3.4.0",
     "url-loader": "^0.5.7",
     "webpack": "^2.5.1",
     "webpack-dev-server": "^2.3.0",

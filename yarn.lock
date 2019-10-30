@@ -14,15 +14,15 @@
   dependencies:
     tinyqueue "^1.1.0"
 
-"@spinnaker/amazon@^0.0.173":
-  version "0.0.173"
-  resolved "https://registry.yarnpkg.com/@spinnaker/amazon/-/amazon-0.0.173.tgz#6a41a7169ea375582d9e201426f4ff0de909ed0f"
-  integrity sha512-D5AGFKFkGpTYJsaTnj2Ismmy5OuTzBtRZ7/Rh108AsMW3j/0LLgCUqwsAwOn6IDlHYYCGw0BBG1SE+A/y9CPug==
+"@spinnaker/amazon@^0.0.222":
+  version "0.0.222"
+  resolved "https://registry.yarnpkg.com/@spinnaker/amazon/-/amazon-0.0.222.tgz#22ab8e5be412032248de1e69818b2a50402edad1"
+  integrity sha512-vzgz+5WvvR+JaeAO8pSEoOzksuk3qxv7FoW3vRTfLQYmt2e4uioAe6ZwZZ6bFPfiryYcUwY8dsADmbqYJvQz4g==
 
-"@spinnaker/core@0.0.362":
-  version "0.0.362"
-  resolved "https://registry.yarnpkg.com/@spinnaker/core/-/core-0.0.362.tgz#03945d0ef80de49f4b7ee47163d9cf34a2a7d2c4"
-  integrity sha512-92dio2Ucve1i+OOqXpf26r3PmoTqVnTo6PbiLNIEYRJ1Q8FAnEdP8vduu3MytKMZ7H+pz7ODTIIXGhXVidEUHg==
+"@spinnaker/core@0.0.428":
+  version "0.0.428"
+  resolved "https://registry.yarnpkg.com/@spinnaker/core/-/core-0.0.428.tgz#7dda2bf9f8016153d6aca3e763576552f0604976"
+  integrity sha512-uVZ7i9CAMXF4PE0TbjyI+fbfvR5WWfUmBI5Z8KChz9p0M3xcaShU7Sxf0t1N+9WHP6IsGETbFcMG6ulpnCY2LQ==
 
 "@spinnaker/styleguide@^1.0.12":
   version "1.0.12"
@@ -10222,10 +10222,10 @@ typedarray@^0.0.6, typedarray@~0.0.5:
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
   integrity sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
 
-typescript@^3.0.2:
-  version "3.0.3"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.0.3.tgz#4853b3e275ecdaa27f78fda46dc273a7eb7fc1c8"
-  integrity sha512-kk80vLW9iGtjMnIv11qyxLqZm20UklzuR2tL0QAnDIygIUIemcZMxlMWudl9OOt76H3ntVzcTiddQ1/pAAJMYg==
+typescript@~3.4.0:
+  version "3.4.5"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.4.5.tgz#2d2618d10bb566572b8d7aad5180d84257d70a99"
+  integrity sha512-YycBxUb49UUhdNMU5aJ7z5Ej2XGmaIBL0x34vZ82fn3hGvD+bgrMrVDpatgz2f7YxUMJxMkbWxJZeAvDxVe7Vw==
 
 ua-parser-js@^0.7.18:
   version "0.7.19"
