@@ -2,6 +2,7 @@ import { Application } from 'core/application/application.model';
 import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 import { ILoadBalancer, IServerGroup, ILoadBalancerGroup } from 'core/domain';
 import { LoadBalancerState } from 'core/state';
+import { IManagedResourceSummary } from 'core/managed';
 
 // Most of this logic has been moved to filter.model.service.js, so these act more as integration tests
 describe('Service: loadBalancerFilterService', function() {
@@ -50,9 +51,27 @@ describe('Service: loadBalancerFilterService', function() {
     ];
 
     resultJson = [
-      { heading: 'us-east-1', loadBalancer: app.loadBalancers.data[0], serverGroups: [] },
-      { heading: 'us-west-1', loadBalancer: app.loadBalancers.data[1], serverGroups: [] },
-      { heading: 'us-east-1', loadBalancer: app.loadBalancers.data[2], serverGroups: [] },
+      {
+        heading: 'us-east-1',
+        loadBalancer: app.loadBalancers.data[0],
+        serverGroups: [],
+        isManaged: false,
+        managedResourceSummary: undefined,
+      },
+      {
+        heading: 'us-west-1',
+        loadBalancer: app.loadBalancers.data[1],
+        serverGroups: [],
+        isManaged: false,
+        managedResourceSummary: undefined,
+      },
+      {
+        heading: 'us-east-1',
+        loadBalancer: app.loadBalancers.data[2],
+        serverGroups: [],
+        isManaged: false,
+        managedResourceSummary: undefined,
+      },
     ];
     LoadBalancerState.filterModel.asFilterModel.clearFilters();
   });
@@ -62,11 +81,25 @@ describe('Service: loadBalancerFilterService', function() {
       const expected = [
         {
           heading: 'prod',
-          subgroups: [{ heading: 'elb-2', subgroups: [resultJson[2]] }],
+          subgroups: [
+            {
+              heading: 'elb-2',
+              subgroups: [resultJson[2]],
+              isManaged: false,
+              managedResourceSummary: undefined as IManagedResourceSummary,
+            },
+          ],
         },
         {
           heading: 'test',
-          subgroups: [{ heading: 'elb-1', subgroups: [resultJson[0], resultJson[1]] }],
+          subgroups: [
+            {
+              heading: 'elb-1',
+              subgroups: [resultJson[0], resultJson[1]],
+              isManaged: false,
+              managedResourceSummary: undefined,
+            },
+          ],
         },
       ];
       LoadBalancerState.filterService.updateLoadBalancerGroups(app);
@@ -104,7 +137,9 @@ describe('Service: loadBalancerFilterService', function() {
           expect(LoadBalancerState.filterModel.asFilterModel.groups).toEqual([
             {
               heading: 'test',
-              subgroups: [{ heading: 'elb-1', subgroups: [resultJson[1]] }],
+              subgroups: [
+                { heading: 'elb-1', subgroups: [resultJson[1]], isManaged: false, managedResourceSummary: undefined },
+              ],
             },
           ]);
           done();
@@ -130,7 +165,9 @@ describe('Service: loadBalancerFilterService', function() {
           expect(LoadBalancerState.filterModel.asFilterModel.groups).toEqual([
             {
               heading: 'prod',
-              subgroups: [{ heading: 'elb-2', subgroups: [resultJson[2]] }],
+              subgroups: [
+                { heading: 'elb-2', subgroups: [resultJson[2]], isManaged: false, managedResourceSummary: undefined },
+              ],
             },
           ]);
           done();
@@ -145,11 +182,20 @@ describe('Service: loadBalancerFilterService', function() {
           expect(LoadBalancerState.filterModel.asFilterModel.groups).toEqual([
             {
               heading: 'prod',
-              subgroups: [{ heading: 'elb-2', subgroups: [resultJson[2]] }],
+              subgroups: [
+                { heading: 'elb-2', subgroups: [resultJson[2]], isManaged: false, managedResourceSummary: undefined },
+              ],
             },
             {
               heading: 'test',
-              subgroups: [{ heading: 'elb-1', subgroups: [resultJson[0], resultJson[1]] }],
+              subgroups: [
+                {
+                  heading: 'elb-1',
+                  subgroups: [resultJson[0], resultJson[1]],
+                  isManaged: false,
+                  managedResourceSummary: undefined,
+                },
+              ],
             },
           ]);
           done();
@@ -167,11 +213,15 @@ describe('Service: loadBalancerFilterService', function() {
         expect(LoadBalancerState.filterModel.asFilterModel.groups).toEqual([
           {
             heading: 'prod',
-            subgroups: [{ heading: 'elb-2', subgroups: [resultJson[2]] }],
+            subgroups: [
+              { heading: 'elb-2', subgroups: [resultJson[2]], isManaged: false, managedResourceSummary: undefined },
+            ],
           },
           {
             heading: 'test',
-            subgroups: [{ heading: 'elb-1', subgroups: [resultJson[0]] }],
+            subgroups: [
+              { heading: 'elb-1', subgroups: [resultJson[0]], isManaged: false, managedResourceSummary: undefined },
+            ],
           },
         ]);
         done();
@@ -186,11 +236,20 @@ describe('Service: loadBalancerFilterService', function() {
         expect(LoadBalancerState.filterModel.asFilterModel.groups).toEqual([
           {
             heading: 'prod',
-            subgroups: [{ heading: 'elb-2', subgroups: [resultJson[2]] }],
+            subgroups: [
+              { heading: 'elb-2', subgroups: [resultJson[2]], isManaged: false, managedResourceSummary: undefined },
+            ],
           },
           {
             heading: 'test',
-            subgroups: [{ heading: 'elb-1', subgroups: [resultJson[0], resultJson[1]] }],
+            subgroups: [
+              {
+                heading: 'elb-1',
+                subgroups: [resultJson[0], resultJson[1]],
+                isManaged: false,
+                managedResourceSummary: undefined,
+              },
+            ],
           },
         ]);
         done();
@@ -212,11 +271,15 @@ describe('Service: loadBalancerFilterService', function() {
         expect(LoadBalancerState.filterModel.asFilterModel.groups).toEqual([
           {
             heading: 'prod',
-            subgroups: [{ heading: 'elb-2', subgroups: [resultJson[2]] }],
+            subgroups: [
+              { heading: 'elb-2', subgroups: [resultJson[2]], isManaged: false, managedResourceSummary: undefined },
+            ],
           },
           {
             heading: 'test',
-            subgroups: [{ heading: 'elb-1', subgroups: [resultJson[1]] }],
+            subgroups: [
+              { heading: 'elb-1', subgroups: [resultJson[1]], isManaged: false, managedResourceSummary: undefined },
+            ],
           },
         ]);
         done();
@@ -237,7 +300,9 @@ describe('Service: loadBalancerFilterService', function() {
         expect(LoadBalancerState.filterModel.asFilterModel.groups).toEqual([
           {
             heading: 'test',
-            subgroups: [{ heading: 'elb-1', subgroups: [resultJson[0]] }],
+            subgroups: [
+              { heading: 'elb-1', subgroups: [resultJson[0]], isManaged: false, managedResourceSummary: undefined },
+            ],
           },
         ]);
         done();
@@ -258,7 +323,9 @@ describe('Service: loadBalancerFilterService', function() {
         expect(LoadBalancerState.filterModel.asFilterModel.groups).toEqual([
           {
             heading: 'test',
-            subgroups: [{ heading: 'elb-1', subgroups: [resultJson[0]] }],
+            subgroups: [
+              { heading: 'elb-1', subgroups: [resultJson[0]], isManaged: false, managedResourceSummary: undefined },
+            ],
           },
         ]);
         done();
@@ -280,11 +347,15 @@ describe('Service: loadBalancerFilterService', function() {
         expect(LoadBalancerState.filterModel.asFilterModel.groups).toEqual([
           {
             heading: 'prod',
-            subgroups: [{ heading: 'elb-2', subgroups: [resultJson[2]] }],
+            subgroups: [
+              { heading: 'elb-2', subgroups: [resultJson[2]], isManaged: false, managedResourceSummary: undefined },
+            ],
           },
           {
             heading: 'test',
-            subgroups: [{ heading: 'elb-1', subgroups: [resultJson[0]] }],
+            subgroups: [
+              { heading: 'elb-1', subgroups: [resultJson[0]], isManaged: false, managedResourceSummary: undefined },
+            ],
           },
         ]);
         done();
@@ -299,11 +370,20 @@ describe('Service: loadBalancerFilterService', function() {
         expect(LoadBalancerState.filterModel.asFilterModel.groups).toEqual([
           {
             heading: 'prod',
-            subgroups: [{ heading: 'elb-2', subgroups: [resultJson[2]] }],
+            subgroups: [
+              { heading: 'elb-2', subgroups: [resultJson[2]], isManaged: false, managedResourceSummary: undefined },
+            ],
           },
           {
             heading: 'test',
-            subgroups: [{ heading: 'elb-1', subgroups: [resultJson[0], resultJson[1]] }],
+            subgroups: [
+              {
+                heading: 'elb-1',
+                subgroups: [resultJson[0], resultJson[1]],
+                isManaged: false,
+                managedResourceSummary: undefined,
+              },
+            ],
           },
         ]);
         done();
@@ -318,11 +398,20 @@ describe('Service: loadBalancerFilterService', function() {
         expect(LoadBalancerState.filterModel.asFilterModel.groups).toEqual([
           {
             heading: 'prod',
-            subgroups: [{ heading: 'elb-2', subgroups: [resultJson[2]] }],
+            subgroups: [
+              { heading: 'elb-2', subgroups: [resultJson[2]], isManaged: false, managedResourceSummary: undefined },
+            ],
           },
           {
             heading: 'test',
-            subgroups: [{ heading: 'elb-1', subgroups: [resultJson[0], resultJson[1]] }],
+            subgroups: [
+              {
+                heading: 'elb-1',
+                subgroups: [resultJson[0], resultJson[1]],
+                isManaged: false,
+                managedResourceSummary: undefined,
+              },
+            ],
           },
         ]);
         done();
@@ -337,11 +426,20 @@ describe('Service: loadBalancerFilterService', function() {
       LoadBalancerState.filterModel.asFilterModel.groups = [
         {
           heading: 'prod',
-          subgroups: [{ heading: 'elb-2', subgroups: [resultJson[2]] }],
+          subgroups: [
+            { heading: 'elb-2', subgroups: [resultJson[2]], isManaged: false, managedResourceSummary: undefined },
+          ],
         },
         {
           heading: 'test',
-          subgroups: [{ heading: 'elb-1', subgroups: [resultJson[0], resultJson[1]] }],
+          subgroups: [
+            {
+              heading: 'elb-1',
+              subgroups: [resultJson[0], resultJson[1]],
+              isManaged: false,
+              managedResourceSummary: undefined,
+            },
+          ],
         },
       ];
     });
@@ -360,8 +458,16 @@ describe('Service: loadBalancerFilterService', function() {
           {
             heading: 'elb-1',
             subgroups: [
-              { heading: 'us-east-1', loadBalancer: app.loadBalancers.data[3], serverGroups: [] as IServerGroup[] },
+              {
+                heading: 'us-east-1',
+                loadBalancer: app.loadBalancers.data[3],
+                serverGroups: [] as IServerGroup[],
+                isManaged: false,
+                managedResourceSummary: undefined as IManagedResourceSummary,
+              },
             ],
+            isManaged: false,
+            managedResourceSummary: undefined as IManagedResourceSummary,
           },
         ],
       };
@@ -372,11 +478,20 @@ describe('Service: loadBalancerFilterService', function() {
           newGroup,
           {
             heading: 'prod',
-            subgroups: [{ heading: 'elb-2', subgroups: [resultJson[2]] }],
+            subgroups: [
+              { heading: 'elb-2', subgroups: [resultJson[2]], isManaged: false, managedResourceSummary: undefined },
+            ],
           },
           {
             heading: 'test',
-            subgroups: [{ heading: 'elb-1', subgroups: [resultJson[0], resultJson[1]] }],
+            subgroups: [
+              {
+                heading: 'elb-1',
+                subgroups: [resultJson[0], resultJson[1]],
+                isManaged: false,
+                managedResourceSummary: undefined,
+              },
+            ],
           },
         ]);
         done();
@@ -394,8 +509,16 @@ describe('Service: loadBalancerFilterService', function() {
       const newSubGroup = {
         heading: 'elb-3',
         subgroups: [
-          { heading: 'eu-west-1', loadBalancer: app.loadBalancers.data[3], serverGroups: [] as IServerGroup[] },
+          {
+            heading: 'eu-west-1',
+            loadBalancer: app.loadBalancers.data[3],
+            serverGroups: [] as IServerGroup[],
+            isManaged: false,
+            managedResourceSummary: undefined as IManagedResourceSummary,
+          },
         ],
+        isManaged: false,
+        managedResourceSummary: undefined as IManagedResourceSummary,
       };
       LoadBalancerState.filterService.updateLoadBalancerGroups(app);
 
@@ -403,11 +526,21 @@ describe('Service: loadBalancerFilterService', function() {
         expect(LoadBalancerState.filterModel.asFilterModel.groups).toEqual([
           {
             heading: 'prod',
-            subgroups: [{ heading: 'elb-2', subgroups: [resultJson[2]] }, newSubGroup],
+            subgroups: [
+              { heading: 'elb-2', subgroups: [resultJson[2]], isManaged: false, managedResourceSummary: undefined },
+              newSubGroup,
+            ],
           },
           {
             heading: 'test',
-            subgroups: [{ heading: 'elb-1', subgroups: [resultJson[0], resultJson[1]] }],
+            subgroups: [
+              {
+                heading: 'elb-1',
+                subgroups: [resultJson[0], resultJson[1]],
+                isManaged: false,
+                managedResourceSummary: undefined,
+              },
+            ],
           },
         ]);
         done();
@@ -426,6 +559,8 @@ describe('Service: loadBalancerFilterService', function() {
         heading: 'eu-west-1',
         loadBalancer: app.loadBalancers.data[3],
         serverGroups: [] as IServerGroup[],
+        isManaged: false,
+        managedResourceSummary: undefined as IManagedResourceSummary,
       };
       LoadBalancerState.filterService.updateLoadBalancerGroups(app);
 
@@ -433,13 +568,25 @@ describe('Service: loadBalancerFilterService', function() {
         expect(LoadBalancerState.filterModel.asFilterModel.groups).toEqual([
           {
             heading: 'prod',
-            subgroups: [{ heading: 'elb-2', subgroups: [resultJson[2]] }],
+            subgroups: [
+              {
+                heading: 'elb-2',
+                subgroups: [resultJson[2]],
+                isManaged: false,
+                managedResourceSummary: undefined,
+              },
+            ],
           },
           {
             heading: 'test',
             subgroups: [
-              { heading: 'elb-1', subgroups: [resultJson[0], resultJson[1]] },
-              { heading: 'elb-2', subgroups: [newSubsubGroup] },
+              {
+                heading: 'elb-1',
+                subgroups: [resultJson[0], resultJson[1]],
+                isManaged: false,
+                managedResourceSummary: undefined,
+              },
+              { heading: 'elb-2', subgroups: [newSubsubGroup], isManaged: false, managedResourceSummary: undefined },
             ],
           },
         ]);

@@ -43,4 +43,6 @@ export interface ILoadBalancerGroup {
   serverGroups?: IServerGroup[];
   subgroups?: ILoadBalancerGroup[];
   searchField?: string;
+  isManaged?: boolean;
+  managedResourceSummary?: IManagedResourceSummary;
 }

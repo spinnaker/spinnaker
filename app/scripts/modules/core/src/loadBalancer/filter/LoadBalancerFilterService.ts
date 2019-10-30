@@ -235,13 +235,18 @@ export class LoadBalancerFilterService {
             heading: loadBalancer.region,
             loadBalancer,
             serverGroups: this.filterServerGroups(loadBalancer),
+            isManaged: !!loadBalancer.isManaged,
+            managedResourceSummary: loadBalancer.managedResourceSummary,
           });
         });
 
         const heading = `${name}${crossTypeLoadBalancerNames[name] && type ? ` (${type})` : ''}`;
+        const allRegionsManaged = subSubGroups.every(({ isManaged }) => isManaged);
         subGroups.push({
           heading,
           subgroups: sortBy(subSubGroups, 'heading'),
+          isManaged: allRegionsManaged,
+          managedResourceSummary: allRegionsManaged ? subSubGroups[0].managedResourceSummary : undefined,
         });
       });
 
