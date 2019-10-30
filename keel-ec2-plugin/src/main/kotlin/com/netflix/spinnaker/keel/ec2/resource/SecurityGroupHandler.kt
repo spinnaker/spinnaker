@@ -178,6 +178,11 @@ class SecurityGroupHandler(
           .associateBy { it.location.region }
       }
 
+    if (securityGroups.isEmpty()) {
+      throw ResourceNotFound("Could not find security group: ${exportable.moniker.name} " +
+        "in account: ${exportable.account}")
+    }
+
     val base = securityGroups.values.first()
     val spec = SecurityGroupSpec(
       moniker = base.moniker,

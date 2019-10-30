@@ -28,6 +28,7 @@ import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
+import com.netflix.spinnaker.keel.clouddriver.ResourceNotFound
 import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.Tag
 import com.netflix.spinnaker.keel.diff.ResourceDiff
@@ -127,6 +128,11 @@ class ClusterHandler(
       serviceAccount = exportable.serviceAccount
     )
       .byRegion()
+
+    if (serverGroups.isEmpty()) {
+      throw ResourceNotFound("Could not find cluster: ${exportable.moniker.name} " +
+        "in account: ${exportable.account} for export")
+    }
 
     val zonesByRegion = serverGroups.map { (region, serverGroup) ->
       region to cloudDriverCache.availabilityZonesBy(

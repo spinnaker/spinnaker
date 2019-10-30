@@ -18,6 +18,7 @@ import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
+import com.netflix.spinnaker.keel.clouddriver.ResourceNotFound
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
@@ -123,6 +124,10 @@ class ClassicLoadBalancerHandler(
       regions = exportable.regions,
       serviceAccount = exportable.serviceAccount)
 
+    if (clbs.isEmpty()) {
+      throw ResourceNotFound("Could not find classic load balancer: ${exportable.moniker.name} " +
+        "in account: ${exportable.account} for ")
+    }
     val zonesByRegion = clbs.map { (region, clb) ->
       region to cloudDriverCache.availabilityZonesBy(
         account = exportable.account,

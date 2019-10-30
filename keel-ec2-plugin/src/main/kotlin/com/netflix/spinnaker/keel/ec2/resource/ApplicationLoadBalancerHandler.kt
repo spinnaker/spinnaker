@@ -16,6 +16,7 @@ import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
+import com.netflix.spinnaker.keel.clouddriver.ResourceNotFound
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
@@ -122,6 +123,11 @@ class ApplicationLoadBalancerHandler(
       regions = exportable.regions,
       serviceAccount = exportable.serviceAccount
     )
+
+    if (albs.isEmpty()) {
+      throw ResourceNotFound("Could not find application load balancer: ${exportable.moniker.name} " +
+        "in account: ${exportable.account}")
+    }
 
     val zonesByRegion = albs.map { (region, alb) ->
       region to cloudDriverCache.availabilityZonesBy(
