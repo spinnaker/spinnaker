@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.api;
 
-import com.google.common.annotations.Beta;
+import com.netflix.spinnaker.kork.annotations.Beta;
 import lombok.Data;
 
 @Beta
