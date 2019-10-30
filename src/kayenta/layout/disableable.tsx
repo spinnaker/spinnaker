@@ -32,7 +32,7 @@ function disableable<T extends IDisableable>(Component: React.SFC<T>) {
     const { disabled, disabledBecauseOfState } = props;
 
     // Would use object spread except for weird interaction with TS generics.
-    const otherProps = omit(props, ['disabled', 'disabledBecauseOfState', 'disabledStateKeys', 'dispatch']);
+    const otherProps: T = omit(props, ['disabled', 'disabledBecauseOfState', 'disabledStateKeys', 'dispatch']);
     return <Component {...otherProps} disabled={disabled || disabledBecauseOfState} />;
   });
 }
