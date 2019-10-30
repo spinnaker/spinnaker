@@ -47,6 +47,7 @@ module(CANARY_DATA_SOURCE, []).run([
       description: 'Canary analysis configuration and reporting',
       key: 'canaryConfigs',
       label: 'Canary',
+      defaultData: [],
     });
 
     const loadCanaryJudges = () => $q.resolve(listJudges());
@@ -78,6 +79,7 @@ module(CANARY_DATA_SOURCE, []).run([
       afterLoad: afterJudgesLoad,
       lazy: true,
       autoActivate: true,
+      defaultData: [],
     });
 
     const loadCanaryExecutions = (application: Application) => {
@@ -118,6 +120,7 @@ module(CANARY_DATA_SOURCE, []).run([
       afterLoad: afterCanaryExecutionsLoaded,
       lazy: true,
       autoActivate: true,
+      defaultData: [],
     });
   },
 ]);
