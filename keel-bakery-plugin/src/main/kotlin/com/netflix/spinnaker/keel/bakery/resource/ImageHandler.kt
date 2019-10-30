@@ -127,15 +127,7 @@ class ImageHandler(
               "storeType" to resource.spec.storeType.name.toLowerCase(),
               "user" to "keel",
               "vmType" to "hvm"
-            ).let { job ->
-              if (resourceDiff.isRegionOnly()) {
-                job + mapOf(
-                  "rebake" to true
-                )
-              } else {
-                job
-              }
-            }
+            )
           )
         ),
         trigger = OrchestrationTrigger(
