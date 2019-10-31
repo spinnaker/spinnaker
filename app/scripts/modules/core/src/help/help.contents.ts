@@ -136,7 +136,7 @@ const helpContents: { [key: string]: string } = {
       <p>Either the commit or branch to checkout.</p>`,
   'pipeline.config.expectedArtifact.defaultGithub.reference': `
       <p>The GitHub API content url the artifact lives under. The domain name may change if you're running GHE.</p>
-      <p>An example is <code>https://api.github.com/repos/$ORG/$REPO/contents/$FILEPATH</code>. See <a href="https://www.spinnaker.io/reference/artifacts/types/github-file/#fields">our docs</a> for more info.</p>`,
+      <p>An example for GitHub.com is <code>https://api.github.com/repos/$ORG/$REPO/contents/$FILEPATH</code>. An example for GitHub Enterprise is <code>https://github.domain.com/api/v3/repos/$ORG/$REPO/contents/$FILEPATH</code>. See <a href="https://www.spinnaker.io/reference/artifacts/types/github-file/#fields">our docs</a> for more info.</p>`,
   'pipeline.config.expectedArtifact.defaultGitlab.version': `
       <p>Either the commit or branch to checkout.</p>`,
   'pipeline.config.expectedArtifact.defaultGitlab.reference': `
