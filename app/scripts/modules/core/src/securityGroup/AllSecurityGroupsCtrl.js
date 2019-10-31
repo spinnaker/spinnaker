@@ -9,11 +9,16 @@ import { SETTINGS } from 'core/config/settings';
 import { FirewallLabels } from './label/FirewallLabels';
 import { SecurityGroupState } from 'core/state';
 import { noop } from 'core/utils';
+import { MANAGED_RESOURCE_STATUS_INDICATOR } from 'core/managed';
 
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.core.securityGroup.all.controller', [SKIN_SELECTION_SERVICE, require('angular-ui-bootstrap')])
+  .module('spinnaker.core.securityGroup.all.controller', [
+    SKIN_SELECTION_SERVICE,
+    require('angular-ui-bootstrap'),
+    MANAGED_RESOURCE_STATUS_INDICATOR,
+  ])
   .controller('AllSecurityGroupsCtrl', [
     '$scope',
     'app',
@@ -69,7 +74,11 @@ module.exports = angular
 
       function createSecurityGroupProviderFilterFn(application, account, provider) {
         const sgConfig = provider.securityGroup;
-        return sgConfig && (sgConfig.CreateSecurityGroupModal || (sgConfig.createSecurityGroupTemplateUrl && sgConfig.createSecurityGroupController));
+        return (
+          sgConfig &&
+          (sgConfig.CreateSecurityGroupModal ||
+            (sgConfig.createSecurityGroupTemplateUrl && sgConfig.createSecurityGroupController))
+        );
       }
 
       this.createSecurityGroup = function createSecurityGroup() {

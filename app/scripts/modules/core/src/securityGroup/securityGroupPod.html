@@ -4,11 +4,17 @@
       <div class="heading-tag">
         <account-tag account="parentHeading"></account-tag>
       </div>
-      <div class="pod-center horizontal space-between center flex-1">
+      <div class="pod-center horizontal space-between flex-1 no-right-padding">
         <div>
           <span class="glyphicon glyphicon-transfer"></span>
           {{grouping.heading}}
         </div>
+        <managed-resource-status-indicator
+          class="flex-container-h"
+          ng-if="grouping.isManaged"
+          shape="'square'"
+          resource-summary="grouping.managedResourceSummary"
+        ></managed-resource-status-indicator>
       </div>
     </div>
   </div>
@@ -17,6 +23,7 @@
       <security-group
         application="application"
         security-group="subgroup.securityGroup"
+        parent-grouping="grouping"
         heading="subgroup.heading"
         sort-filter="sortFilter"
       ></security-group>

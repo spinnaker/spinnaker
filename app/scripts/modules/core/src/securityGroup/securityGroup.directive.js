@@ -14,12 +14,14 @@ module.exports = angular.module('spinnaker.core.securityGroup.directive', []).di
       scope: {
         application: '=',
         securityGroup: '=',
+        parentGrouping: '=',
         sortFilter: '=',
         heading: '=',
       },
       link: function(scope) {
         scope.sortFilter = SecurityGroupState.filterModel.asFilterModel.sortFilter;
         scope.$state = $rootScope.$state;
+        scope.showManagedIndicator = !scope.parentGrouping.isManaged && scope.securityGroup.isManaged;
 
         const securityGroup = scope.securityGroup;
         scope.srefParams = {

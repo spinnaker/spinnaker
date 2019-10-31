@@ -7,6 +7,12 @@
     <span class="glyphicon glyphicon-transfer"></span>&nbsp;
     <div className="flex-1">{{heading | uppercase}}</div>
 
+    <managed-resource-status-indicator
+      class="sp-margin-s-left"
+      ng-if="showManagedIndicator"
+      shape="'circle'"
+      resource-summary="securityGroup.managedResourceSummary"
+    ></managed-resource-status-indicator>
     <entity-notifications
       entity="securityGroup"
       application="application"
