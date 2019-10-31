@@ -27,7 +27,7 @@ import retrofit.Endpoints;
 import retrofit.RestAdapter;
 import retrofit.converter.JacksonConverter;
 
-@ConditionalOnProperty("services.keel.base-url")
+@ConditionalOnProperty("services.keel.enabled")
 @Configuration
 public class KeelConfig {
 
