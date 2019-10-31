@@ -18,8 +18,10 @@ package com.netflix.spinnaker.kork.expressions.whitelisting;
 
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
+import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
@@ -40,6 +42,8 @@ public class InstantiationTypeRestrictor {
                   UUID.class,
                   Boolean.class,
                   LocalDate.class,
+                  LocalDateTime.class,
+                  DayOfWeek.class,
                   Instant.class,
                   ChronoUnit.class,
                   URLEncoder.class)));
