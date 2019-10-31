@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model;
 
+import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.EXTENSIONS_V1BETA1;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.NETWORKING_K8S_IO_V1;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiVersion.NETWORKING_K8S_IO_V1BETA1;
 
@@ -50,7 +51,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class KubernetesV2SecurityGroup extends ManifestBasedModel implements SecurityGroup {
   private static final ImmutableSet<KubernetesApiVersion> SUPPORTED_API_VERSIONS =
-      ImmutableSet.of(NETWORKING_K8S_IO_V1BETA1, NETWORKING_K8S_IO_V1);
+      ImmutableSet.of(EXTENSIONS_V1BETA1, NETWORKING_K8S_IO_V1BETA1, NETWORKING_K8S_IO_V1);
 
   private KubernetesManifest manifest;
   private Keys.InfrastructureCacheKey key;

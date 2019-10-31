@@ -31,12 +31,12 @@ class KubernetesApiVersionSpec extends Specification {
     apiVersion.equals(expectedApiGroup)
 
     where:
-    name                     | expectedApiGroup
-    null                     | KubernetesApiVersion.NONE
-    ""                       | KubernetesApiVersion.NONE
-    "v1"                     | KubernetesApiVersion.V1
-    "network.k8s.io/v1beta1" | KubernetesApiVersion.NETWORKING_K8S_IO_V1BETA1
-    "neTwoRk.k8s.io/v1beTA1" | KubernetesApiVersion.NETWORKING_K8S_IO_V1BETA1
+    name                        | expectedApiGroup
+    null                        | KubernetesApiVersion.NONE
+    ""                          | KubernetesApiVersion.NONE
+    "v1"                        | KubernetesApiVersion.V1
+    "networking.k8s.io/v1beta1" | KubernetesApiVersion.NETWORKING_K8S_IO_V1BETA1
+    "neTwoRkiNG.k8s.io/v1beTA1" | KubernetesApiVersion.NETWORKING_K8S_IO_V1BETA1
   }
 
   @Unroll
