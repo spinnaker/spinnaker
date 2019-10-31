@@ -13,14 +13,14 @@ enum class ArtifactType(@JsonValue val friendlyName: String) {
   DOCKER("docker");
 
   companion object {
-    @JsonCreator @JvmStatic
+    @JsonCreator
+    @JvmStatic
     fun fromFriendlyName(friendlyName: String): ArtifactType? {
       return valueOf(friendlyName.toUpperCase())
     }
   }
 }
 
-// todo eb: add RELEASE
 enum class ArtifactStatus {
-  FINAL, CANDIDATE, SNAPSHOT
+  FINAL, CANDIDATE, SNAPSHOT, RELEASE
 }
