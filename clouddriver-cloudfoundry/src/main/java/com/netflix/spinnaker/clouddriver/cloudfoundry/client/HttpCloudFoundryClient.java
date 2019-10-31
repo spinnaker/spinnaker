@@ -109,8 +109,8 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
       };
 
   private static class RetryableApiException extends RuntimeException {
-    RetryableApiException() {
-      super();
+    RetryableApiException(String message) {
+      super(message);
     }
 
     RetryableApiException(String message, Throwable cause) {
@@ -158,13 +158,19 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
               case 504:
                 // after retries fail, the response body for these status codes will get wrapped up
                 // into a CloudFoundryApiException
-                throw new RetryableApiException();
+                throw new RetryableApiException(
+                    "Response Code "
+                        + response.code()
+                        + ": "
+                        + chain.request().httpUrl()
+                        + " attempting retry");
             }
 
             return response;
           });
     } catch (SocketTimeoutException e) {
-      throw new RetryableApiException("Timeout " + callName, e);
+      throw new RetryableApiException(
+          "Timeout " + callName + " " + chain.request().httpUrl() + ",  attempting retrying", e);
     } catch (Exception e) {
       final Response response = lastResponse.get();
       if (response == null) {
