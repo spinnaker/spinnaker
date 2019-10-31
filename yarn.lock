@@ -37,10 +37,10 @@
   dependencies:
     tinyqueue "^1.1.0"
 
-"@spinnaker/kayenta@0.0.87":
-  version "0.0.87"
-  resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-0.0.87.tgz#a5a12fd9e395be48830aa9e1cbc2fc22b786e7db"
-  integrity sha512-+Q4ORP3Jdqf2QwcP32AFXn5b0z7PQslWdfhzqD0yrajTireTBJes2idQkrZybwpsZ5dcnr+JhDWfLBIczDWgug==
+"@spinnaker/kayenta@0.0.88":
+  version "0.0.88"
+  resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-0.0.88.tgz#6a8f33dd9d704d0e35673626441c737aa2517832"
+  integrity sha512-7jbqPHFO7ICKgUmoF4+ZysyPyTEqmhrlpsMnxul9GgToVecUGPTmeiDDfaiIJwPy1a0KsvNs+2asl/KGtu8u9g==
   dependencies:
     "@fortawesome/fontawesome-free" "5.5.0"
     "@uirouter/angularjs" "^1.0.15"
@@ -60,12 +60,13 @@
     memoize-one "4.0.2"
     moment-timezone "^0.4.0"
     ngimport "^0.6.0"
-    react "16.3.2"
+    react "~16.8.0"
     react-ace "6.4.0"
     react-bootstrap "^0.32.1"
     react-bootstrap-typeahead "^3.2.4"
     react-container-dimensions "^1.4.1"
-    react-dom "16.3.3"
+    react-day-picker "~7.3.0"
+    react-dom "~16.8.0"
     react-ga "^2.4.1"
     react-redux "^5.0.7"
     react-select "^1.2.1"
@@ -9998,22 +9999,12 @@ react-container-dimensions@^1.4.1:
     invariant "^2.2.2"
     prop-types "^15.5.8"
 
-react-day-picker@^7.3.0:
-  version "7.3.0"
-  resolved "https://registry.yarnpkg.com/react-day-picker/-/react-day-picker-7.3.0.tgz#59b6d4e19d274650c79dcf49fbcce2637313467d"
-  integrity sha512-t2kz0Zy4P5U4qwU5YhsBq2QGmypP8L/u+89TSnuD0h4dYKSEDQArFPWfin9gv8erV1ciR1Wzr485TMaYnI7FTw==
+react-day-picker@^7.3.0, react-day-picker@~7.3.0:
+  version "7.3.2"
+  resolved "https://registry.yarnpkg.com/react-day-picker/-/react-day-picker-7.3.2.tgz#b9b9b0000ba53b2c9df9bccb79664862aba6b60a"
+  integrity sha512-mij2j2Un/v2V2ow+hf/hFBMdl6Eis/C/YhBtlI6Xpbvh3Q6WMix78zEkCdw6i9GldafOrpnupWKofv/h5oSI4g==
   dependencies:
     prop-types "^15.6.2"
-
-react-dom@16.3.3:
-  version "16.3.3"
-  resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-16.3.3.tgz#af4c2aef9f6a66251a46da50253c860a67ae66d9"
-  integrity sha512-ALCp7ZbSGkqRDtQoZozKVNgwXMxbxf/IGOUMC2A0yF6JHeZrS8e2cOotPT87Vf4b7PKCuUVKU4/RDEXxToA/yA==
-  dependencies:
-    fbjs "^0.8.16"
-    loose-envify "^1.1.0"
-    object-assign "^4.1.1"
-    prop-types "^15.6.0"
 
 react-dom@^0.14.8:
   version "0.14.9"
@@ -10208,16 +10199,6 @@ react2angular@^3.2.1:
     angular ">=1.5"
     lodash.frompairs "^4.0.1"
     ngcomponent "^4.1.0"
-
-react@16.3.2:
-  version "16.3.2"
-  resolved "https://registry.yarnpkg.com/react/-/react-16.3.2.tgz#fdc8420398533a1e58872f59091b272ce2f91ea9"
-  integrity sha512-o5GPdkhciQ3cEph6qgvYB7LTOHw/GB0qRI6ZFNugj49qJCFfgHwVNjZ5u+b7nif4vOeMIOuYj3CeYe2IBD74lg==
-  dependencies:
-    fbjs "^0.8.16"
-    loose-envify "^1.1.0"
-    object-assign "^4.1.1"
-    prop-types "^15.6.0"
 
 react@^0.14.8:
   version "0.14.9"
