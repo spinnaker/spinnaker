@@ -131,11 +131,17 @@ export class SecurityGroupFilterService {
             heading,
             vpcName: securityGroup.vpcName,
             securityGroup,
+            isManaged: !!securityGroup.isManaged,
+            managedResourceSummary: securityGroup.managedResourceSummary,
           });
         });
+
+        const allRegionsManaged = subSubGroups.every(({ isManaged }) => isManaged);
         subGroups.push({
           heading: subKey,
           subgroups: sortBy(subSubGroups, ['heading', 'vpcName']),
+          isManaged: allRegionsManaged,
+          managedResourceSummary: allRegionsManaged ? subSubGroups[0].managedResourceSummary : undefined,
         });
       });
 

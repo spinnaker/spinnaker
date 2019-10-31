@@ -20,9 +20,27 @@ describe('Service: securityGroupFilterService', function() {
       },
     };
     resultJson = [
-      { heading: 'us-east-1', vpcName: '', securityGroup: app.securityGroups.data[0] },
-      { heading: 'us-west-1 (main)', vpcName: 'main', securityGroup: app.securityGroups.data[1] },
-      { heading: 'us-east-1', vpcName: '', securityGroup: app.securityGroups.data[2] },
+      {
+        heading: 'us-east-1',
+        vpcName: '',
+        securityGroup: app.securityGroups.data[0],
+        isManaged: false,
+        managedResourceSummary: undefined,
+      },
+      {
+        heading: 'us-west-1 (main)',
+        vpcName: 'main',
+        securityGroup: app.securityGroups.data[1],
+        isManaged: false,
+        managedResourceSummary: undefined,
+      },
+      {
+        heading: 'us-east-1',
+        vpcName: '',
+        securityGroup: app.securityGroups.data[2],
+        isManaged: false,
+        managedResourceSummary: undefined,
+      },
     ];
     State.SecurityGroupState.filterModel.asFilterModel.clearFilters();
   });
@@ -32,11 +50,20 @@ describe('Service: securityGroupFilterService', function() {
       var expected = [
         {
           heading: 'prod',
-          subgroups: [{ heading: 'sg-2', subgroups: [resultJson[2]] }],
+          subgroups: [
+            { heading: 'sg-2', subgroups: [resultJson[2]], isManaged: false, managedResourceSummary: undefined },
+          ],
         },
         {
           heading: 'test',
-          subgroups: [{ heading: 'sg-1', subgroups: [resultJson[0], resultJson[1]] }],
+          subgroups: [
+            {
+              heading: 'sg-1',
+              subgroups: [resultJson[0], resultJson[1]],
+              isManaged: false,
+              managedResourceSummary: undefined,
+            },
+          ],
         },
       ];
       State.SecurityGroupState.filterService.updateSecurityGroups(app);
@@ -64,7 +91,9 @@ describe('Service: securityGroupFilterService', function() {
         expect(State.SecurityGroupState.filterModel.asFilterModel.groups).toEqual([
           {
             heading: 'test',
-            subgroups: [{ heading: 'sg-1', subgroups: [resultJson[1]] }],
+            subgroups: [
+              { heading: 'sg-1', subgroups: [resultJson[1]], isManaged: false, managedResourceSummary: undefined },
+            ],
           },
         ]);
       });
@@ -83,7 +112,9 @@ describe('Service: securityGroupFilterService', function() {
         expect(State.SecurityGroupState.filterModel.asFilterModel.groups).toEqual([
           {
             heading: 'prod',
-            subgroups: [{ heading: 'sg-2', subgroups: [resultJson[2]] }],
+            subgroups: [
+              { heading: 'sg-2', subgroups: [resultJson[2]], isManaged: false, managedResourceSummary: undefined },
+            ],
           },
         ]);
       });
@@ -94,11 +125,20 @@ describe('Service: securityGroupFilterService', function() {
         expect(State.SecurityGroupState.filterModel.asFilterModel.groups).toEqual([
           {
             heading: 'prod',
-            subgroups: [{ heading: 'sg-2', subgroups: [resultJson[2]] }],
+            subgroups: [
+              { heading: 'sg-2', subgroups: [resultJson[2]], isManaged: false, managedResourceSummary: undefined },
+            ],
           },
           {
             heading: 'test',
-            subgroups: [{ heading: 'sg-1', subgroups: [resultJson[0], resultJson[1]] }],
+            subgroups: [
+              {
+                heading: 'sg-1',
+                subgroups: [resultJson[0], resultJson[1]],
+                isManaged: false,
+                managedResourceSummary: undefined,
+              },
+            ],
           },
         ]);
       });
@@ -113,11 +153,15 @@ describe('Service: securityGroupFilterService', function() {
       expect(State.SecurityGroupState.filterModel.asFilterModel.groups).toEqual([
         {
           heading: 'prod',
-          subgroups: [{ heading: 'sg-2', subgroups: [resultJson[2]] }],
+          subgroups: [
+            { heading: 'sg-2', subgroups: [resultJson[2]], isManaged: false, managedResourceSummary: undefined },
+          ],
         },
         {
           heading: 'test',
-          subgroups: [{ heading: 'sg-1', subgroups: [resultJson[0]] }],
+          subgroups: [
+            { heading: 'sg-1', subgroups: [resultJson[0]], isManaged: false, managedResourceSummary: undefined },
+          ],
         },
       ]);
     });
@@ -129,11 +173,20 @@ describe('Service: securityGroupFilterService', function() {
       expect(State.SecurityGroupState.filterModel.asFilterModel.groups).toEqual([
         {
           heading: 'prod',
-          subgroups: [{ heading: 'sg-2', subgroups: [resultJson[2]] }],
+          subgroups: [
+            { heading: 'sg-2', subgroups: [resultJson[2]], isManaged: false, managedResourceSummary: undefined },
+          ],
         },
         {
           heading: 'test',
-          subgroups: [{ heading: 'sg-1', subgroups: [resultJson[0], resultJson[1]] }],
+          subgroups: [
+            {
+              heading: 'sg-1',
+              subgroups: [resultJson[0], resultJson[1]],
+              isManaged: false,
+              managedResourceSummary: undefined,
+            },
+          ],
         },
       ]);
     });
@@ -151,11 +204,15 @@ describe('Service: securityGroupFilterService', function() {
       expect(State.SecurityGroupState.filterModel.asFilterModel.groups).toEqual([
         {
           heading: 'prod',
-          subgroups: [{ heading: 'sg-2', subgroups: [resultJson[2]] }],
+          subgroups: [
+            { heading: 'sg-2', subgroups: [resultJson[2]], isManaged: false, managedResourceSummary: undefined },
+          ],
         },
         {
           heading: 'test',
-          subgroups: [{ heading: 'sg-1', subgroups: [resultJson[0]] }],
+          subgroups: [
+            { heading: 'sg-1', subgroups: [resultJson[0]], isManaged: false, managedResourceSummary: undefined },
+          ],
         },
       ]);
     });
@@ -166,11 +223,20 @@ describe('Service: securityGroupFilterService', function() {
       expect(State.SecurityGroupState.filterModel.asFilterModel.groups).toEqual([
         {
           heading: 'prod',
-          subgroups: [{ heading: 'sg-2', subgroups: [resultJson[2]] }],
+          subgroups: [
+            { heading: 'sg-2', subgroups: [resultJson[2]], isManaged: false, managedResourceSummary: undefined },
+          ],
         },
         {
           heading: 'test',
-          subgroups: [{ heading: 'sg-1', subgroups: [resultJson[0], resultJson[1]] }],
+          subgroups: [
+            {
+              heading: 'sg-1',
+              subgroups: [resultJson[0], resultJson[1]],
+              isManaged: false,
+              managedResourceSummary: undefined,
+            },
+          ],
         },
       ]);
     });
@@ -181,11 +247,20 @@ describe('Service: securityGroupFilterService', function() {
       expect(State.SecurityGroupState.filterModel.asFilterModel.groups).toEqual([
         {
           heading: 'prod',
-          subgroups: [{ heading: 'sg-2', subgroups: [resultJson[2]] }],
+          subgroups: [
+            { heading: 'sg-2', subgroups: [resultJson[2]], isManaged: false, managedResourceSummary: undefined },
+          ],
         },
         {
           heading: 'test',
-          subgroups: [{ heading: 'sg-1', subgroups: [resultJson[0], resultJson[1]] }],
+          subgroups: [
+            {
+              heading: 'sg-1',
+              subgroups: [resultJson[0], resultJson[1]],
+              isManaged: false,
+              managedResourceSummary: undefined,
+            },
+          ],
         },
       ]);
     });
@@ -198,11 +273,20 @@ describe('Service: securityGroupFilterService', function() {
       State.SecurityGroupState.filterModel.asFilterModel.groups = [
         {
           heading: 'prod',
-          subgroups: [{ heading: 'sg-2', subgroups: [resultJson[2]] }],
+          subgroups: [
+            { heading: 'sg-2', subgroups: [resultJson[2]], isManaged: false, managedResourceSummary: undefined },
+          ],
         },
         {
           heading: 'test',
-          subgroups: [{ heading: 'sg-1', subgroups: [resultJson[0], resultJson[1]] }],
+          subgroups: [
+            {
+              heading: 'sg-1',
+              subgroups: [resultJson[0], resultJson[1]],
+              isManaged: false,
+              managedResourceSummary: undefined,
+            },
+          ],
         },
       ];
     });
@@ -219,7 +303,17 @@ describe('Service: securityGroupFilterService', function() {
         subgroups: [
           {
             heading: 'sg-1',
-            subgroups: [{ heading: 'us-east-1', vpcName: '', securityGroup: app.securityGroups.data[3] }],
+            subgroups: [
+              {
+                heading: 'us-east-1',
+                vpcName: '',
+                securityGroup: app.securityGroups.data[3],
+                isManaged: false,
+                managedResourceSummary: undefined,
+              },
+            ],
+            isManaged: false,
+            managedResourceSummary: undefined,
           },
         ],
       };
@@ -228,11 +322,20 @@ describe('Service: securityGroupFilterService', function() {
         newGroup,
         {
           heading: 'prod',
-          subgroups: [{ heading: 'sg-2', subgroups: [resultJson[2]] }],
+          subgroups: [
+            { heading: 'sg-2', subgroups: [resultJson[2]], isManaged: false, managedResourceSummary: undefined },
+          ],
         },
         {
           heading: 'test',
-          subgroups: [{ heading: 'sg-1', subgroups: [resultJson[0], resultJson[1]] }],
+          subgroups: [
+            {
+              heading: 'sg-1',
+              subgroups: [resultJson[0], resultJson[1]],
+              isManaged: false,
+              managedResourceSummary: undefined,
+            },
+          ],
         },
       ]);
     });
@@ -246,17 +349,37 @@ describe('Service: securityGroupFilterService', function() {
       });
       var newSubGroup = {
         heading: 'sg-3',
-        subgroups: [{ heading: 'eu-west-1', vpcName: '', securityGroup: app.securityGroups.data[3] }],
+        subgroups: [
+          {
+            heading: 'eu-west-1',
+            vpcName: '',
+            securityGroup: app.securityGroups.data[3],
+            isManaged: false,
+            managedResourceSummary: undefined,
+          },
+        ],
+        isManaged: false,
+        managedResourceSummary: undefined,
       };
       State.SecurityGroupState.filterService.updateSecurityGroups(app);
       expect(State.SecurityGroupState.filterModel.asFilterModel.groups).toEqual([
         {
           heading: 'prod',
-          subgroups: [{ heading: 'sg-2', subgroups: [resultJson[2]] }, newSubGroup],
+          subgroups: [
+            { heading: 'sg-2', subgroups: [resultJson[2]], isManaged: false, managedResourceSummary: undefined },
+            newSubGroup,
+          ],
         },
         {
           heading: 'test',
-          subgroups: [{ heading: 'sg-1', subgroups: [resultJson[0], resultJson[1]] }],
+          subgroups: [
+            {
+              heading: 'sg-1',
+              subgroups: [resultJson[0], resultJson[1]],
+              isManaged: false,
+              managedResourceSummary: undefined,
+            },
+          ],
         },
       ]);
     });
@@ -268,18 +391,31 @@ describe('Service: securityGroupFilterService', function() {
         region: 'eu-west-1',
         vpcName: '',
       });
-      var newSubsubGroup = { heading: 'eu-west-1', vpcName: '', securityGroup: app.securityGroups.data[3] };
+      var newSubsubGroup = {
+        heading: 'eu-west-1',
+        vpcName: '',
+        securityGroup: app.securityGroups.data[3],
+        isManaged: false,
+        managedResourceSummary: undefined,
+      };
       State.SecurityGroupState.filterService.updateSecurityGroups(app);
       expect(State.SecurityGroupState.filterModel.asFilterModel.groups).toEqual([
         {
           heading: 'prod',
-          subgroups: [{ heading: 'sg-2', subgroups: [resultJson[2]] }],
+          subgroups: [
+            { heading: 'sg-2', subgroups: [resultJson[2]], isManaged: false, managedResourceSummary: undefined },
+          ],
         },
         {
           heading: 'test',
           subgroups: [
-            { heading: 'sg-1', subgroups: [resultJson[0], resultJson[1]] },
-            { heading: 'sg-2', subgroups: [newSubsubGroup] },
+            {
+              heading: 'sg-1',
+              subgroups: [resultJson[0], resultJson[1]],
+              isManaged: false,
+              managedResourceSummary: undefined,
+            },
+            { heading: 'sg-2', subgroups: [newSubsubGroup], isManaged: false, managedResourceSummary: undefined },
           ],
         },
       ]);

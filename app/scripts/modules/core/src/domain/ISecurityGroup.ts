@@ -49,10 +49,12 @@ export interface ISecurityGroup {
 
 export interface ISecurityGroupGroup {
   heading: string;
+  isManaged?: boolean;
+  loadBalancers?: ILoadBalancer[];
+  managedResourceSummary?: IManagedResourceSummary;
+  searchField?: string;
   securityGroup?: ISecurityGroup;
   serverGroups?: IServerGroup[];
-  loadBalancers?: ILoadBalancer[];
   subgroups?: ISecurityGroupGroup[];
-  searchField?: string;
   vpcName?: string;
 }
