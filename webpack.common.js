@@ -47,7 +47,7 @@ function configure(IS_TEST, IS_INSTRUMENTED) {
         { test: require.resolve('jquery'), use: ['expose-loader?$', 'expose-loader?jQuery'] },
         {
           test: /\.js$/,
-          use: ['cache-loader', 'ng-annotate-loader', 'eslint-loader'],
+          use: ['cache-loader', 'eslint-loader'],
           include: inclusionPattern.concat(path.resolve(__dirname, 'settings.js')),
         },
         {
@@ -182,7 +182,7 @@ function configure(IS_TEST, IS_INSTRUMENTED) {
   } else {
     config.module.rules.push({
       test: /\.tsx?$/,
-      use: ['cache-loader', 'ng-annotate-loader', 'awesome-typescript-loader'],
+      use: ['cache-loader', 'awesome-typescript-loader'],
       include: inclusionPattern.concat(path.join(__dirname, 'test')),
     });
   }
