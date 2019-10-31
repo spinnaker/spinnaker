@@ -570,17 +570,19 @@ public class JobDescription {
     Capacity.Builder jobCapacity = Capacity.newBuilder();
     jobCapacity.setMin(instancesMin).setMax(instancesMax).setDesired(instancesDesired);
 
-    if (type.equals("service")) {
-      JobGroupInfo.Builder jobGroupInfoBuilder = JobGroupInfo.newBuilder();
-      if (jobGroupStack != null) {
-        jobGroupInfoBuilder.setStack(jobGroupStack);
-      }
-      if (jobGroupDetail != null) {
-        jobGroupInfoBuilder.setDetail(jobGroupDetail);
-      }
+    JobGroupInfo.Builder jobGroupInfoBuilder = JobGroupInfo.newBuilder();
+    if (jobGroupStack != null) {
+      jobGroupInfoBuilder.setStack(jobGroupStack);
+    }
+    if (jobGroupDetail != null) {
+      jobGroupInfoBuilder.setDetail(jobGroupDetail);
+    }
+    if (jobGroupSequence != null) {
       jobGroupInfoBuilder.setSequence(jobGroupSequence);
-      jobDescriptorBuilder.setJobGroupInfo(jobGroupInfoBuilder);
+    }
+    jobDescriptorBuilder.setJobGroupInfo(jobGroupInfoBuilder);
 
+    if (type.equals("service")) {
       if (inService == null) {
         inService = true;
       }
