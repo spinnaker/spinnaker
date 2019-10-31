@@ -86,6 +86,8 @@ public class GithubWebhookEventHandler implements GitWebhookHandler {
     results.put("slug", webhookEvent.getSlug(event, postedEvent));
     results.put("hash", webhookEvent.getHash(event, postedEvent));
     results.put("branch", webhookEvent.getBranch(event, postedEvent));
+    results.put(
+        "action", githubEvent.concat(":").concat(webhookEvent.getAction(event, postedEvent)));
     event.content.putAll(results);
 
     log.info(

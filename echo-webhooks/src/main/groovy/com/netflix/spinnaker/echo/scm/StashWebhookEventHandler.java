@@ -46,6 +46,7 @@ public class StashWebhookEventHandler implements GitWebhookHandler {
         "branch", stashWebhookEvent.refChanges.get(0).refId.replace("refs/heads/", ""));
     event.content.put("repoProject", stashWebhookEvent.repository.project.key);
     event.content.put("slug", stashWebhookEvent.repository.slug);
+    event.content.put("action", "");
   }
 
   public boolean shouldSendEvent(Event event) {

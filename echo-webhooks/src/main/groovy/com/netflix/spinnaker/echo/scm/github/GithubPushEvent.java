@@ -28,6 +28,8 @@ public class GithubPushEvent implements GithubWebhookEvent {
   String after;
   String ref;
 
+  public static final String ACTION = "push";
+
   // `.repository.full_name`
   @Override
   public String getFullRepoName(Event event, Map postedEvent) {
@@ -67,6 +69,11 @@ public class GithubPushEvent implements GithubWebhookEvent {
   public String getBranch(Event event, Map postedEvent) {
     // Replace on "" still returns "", which is fine
     return Optional.of(this).map(GithubPushEvent::getRef).orElse("").replace("refs/heads/", "");
+  }
+
+  @Override
+  public String getAction(Event event, Map postedEvent) {
+    return ACTION;
   }
 
   @Data

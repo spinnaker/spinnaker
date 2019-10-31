@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.echo.scm;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.echo.model.Event;
@@ -48,6 +49,7 @@ public class GitlabWehbookEventHandler implements GitWebhookHandler {
     event.content.put("branch", gitlabWebhookEvent.ref.replace("refs/heads/", ""));
     event.content.put("repoProject", gitlabWebhookEvent.project.namespace);
     event.content.put("slug", gitlabWebhookEvent.project.name);
+    event.content.put("action", gitlabWebhookEvent.objectKind);
   }
 
   @Data
@@ -55,6 +57,9 @@ public class GitlabWehbookEventHandler implements GitWebhookHandler {
     String after;
     String ref;
     GitlabProject project;
+
+    @JsonProperty("object_kind")
+    String objectKind;
   }
 
   @Data

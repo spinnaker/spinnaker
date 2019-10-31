@@ -71,6 +71,7 @@ class GitEventHandlerSpec extends Specification implements RetrofitStubs {
     matchingPipelines[0].trigger.project == enabledStashTrigger.project
     matchingPipelines[0].trigger.slug == enabledStashTrigger.slug
     matchingPipelines[0].trigger.hash == event.content.hash
+    matchingPipelines[0].trigger.action == event.content.action
 
     where:
     event = createGitEvent("stash")
@@ -90,6 +91,7 @@ class GitEventHandlerSpec extends Specification implements RetrofitStubs {
     matchingPipelines[0].trigger.project == enabledBitBucketTrigger.project
     matchingPipelines[0].trigger.slug == enabledBitBucketTrigger.slug
     matchingPipelines[0].trigger.hash == event.content.hash
+    matchingPipelines[0].trigger.action == event.content.action
 
     where:
     event = createGitEvent("bitbucket")

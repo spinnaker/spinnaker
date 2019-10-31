@@ -29,4 +29,6 @@ public interface GithubWebhookEvent {
   String getHash(Event event, Map postedEvent);
 
   String getBranch(Event event, Map postedEvent);
+
+  String getAction(Event event, Map postedEvent);
 }

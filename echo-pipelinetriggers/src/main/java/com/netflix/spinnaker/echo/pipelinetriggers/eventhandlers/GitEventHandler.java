@@ -115,7 +115,8 @@ public class GitEventHandler extends BaseTriggerEventHandler<GitEvent> {
         trigger
             .atHash(gitEvent.getHash())
             .atBranch(gitEvent.getBranch())
-            .atEventId(gitEvent.getEventId());
+            .atEventId(gitEvent.getEventId())
+            .atAction(gitEvent.getAction());
   }
 
   private boolean matchesPattern(String s, String pattern) {

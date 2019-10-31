@@ -29,6 +29,8 @@ public class GithubPullRequestEvent implements GithubWebhookEvent {
   @JsonProperty("pull_request")
   PullRequest pullRequest;
 
+  String action;
+
   // `.repository.full_name`
   @Override
   public String getFullRepoName(Event event, Map postedEvent) {
@@ -78,6 +80,12 @@ public class GithubPullRequestEvent implements GithubWebhookEvent {
         .map(PullRequest::getHead)
         .map(PullRequestHead::getRef)
         .orElse("");
+  }
+
+  // `.action`
+  @Override
+  public String getAction(Event event, Map postedEvent) {
+    return Optional.of(this).map(GithubPullRequestEvent::getAction).orElse("");
   }
 
   @Data

@@ -70,7 +70,7 @@ trait RetrofitStubs {
 
   GitEvent createGitEvent(String eventSource) {
     def res = new GitEvent()
-    res.content = new GitEvent.Content("project", "slug", "hash", "master", [])
+    res.content = new GitEvent.Content("project", "slug", "hash", "master", "action", [])
     res.details = new Metadata([type: GitEvent.TYPE, source: eventSource])
     return res
   }

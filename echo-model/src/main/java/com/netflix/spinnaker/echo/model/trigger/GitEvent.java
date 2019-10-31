@@ -42,6 +42,7 @@ public class GitEvent extends TriggerEvent {
     private String slug;
     private String hash;
     private String branch;
+    private String action;
     private List<Artifact> artifacts;
   }
 
@@ -53,5 +54,10 @@ public class GitEvent extends TriggerEvent {
   @JsonIgnore
   public String getBranch() {
     return content.branch;
+  }
+
+  @JsonIgnore
+  public String getAction() {
+    return content.action;
   }
 }

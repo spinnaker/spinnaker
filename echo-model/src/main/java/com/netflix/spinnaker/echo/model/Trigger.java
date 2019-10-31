@@ -171,6 +171,7 @@ public class Trigger {
   String runAsUser;
   String secret;
   String digest;
+  String action;
 
   @Builder.Default boolean rebake = false;
 
@@ -257,6 +258,10 @@ public class Trigger {
 
   public Trigger atNexusSearchName(final String nexusSearchName) {
     return this.toBuilder().nexusSearchName(nexusSearchName).build();
+  }
+
+  public Trigger atAction(final String action) {
+    return this.toBuilder().action(action).build();
   }
 
   @JsonPOJOBuilder(withPrefix = "")

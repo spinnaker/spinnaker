@@ -174,6 +174,8 @@ class WebhooksControllerSpec extends Specification {
     event.content.repoProject == "PROJ"
     event.content.slug == "repository"
     event.content.hash == "178864a7d521b6f5e720b386b2c2b0ef8563e0dc"
+    event.content.action == "repo:refs_changed"
+
   }
 
   void 'handles Bitbucket Server Merge Webhook'() {
@@ -311,6 +313,7 @@ class WebhooksControllerSpec extends Specification {
     event.content.hash == "7e48f426f0a6e47c5b5e862c31be6ca965f82c9c"
     event.content.repoProject == "PROJ"
     event.content.slug == "repository"
+    event.content.action == "pr:merged"
   }
 
   void 'returns success status with eventId'() {
@@ -404,6 +407,7 @@ class WebhooksControllerSpec extends Specification {
     event.content.repoProject == "Codertocat"
     event.content.slug == "Hello-World"
     event.content.branch == "simple-tag"
+    event.content.action == "push:push"
   }
 
   void 'handles Github PR Webhook Event'() {
@@ -420,6 +424,7 @@ class WebhooksControllerSpec extends Specification {
       "git",
       "github",
       """{
+          "action": "opened",
           "pull_request": {
             "head": {
               "ref": "simple-tag",
@@ -444,6 +449,7 @@ class WebhooksControllerSpec extends Specification {
     event.content.repoProject == "Codertocat"
     event.content.slug == "Hello-World"
     event.content.branch == "simple-tag"
+    event.content.action == "pull_request:opened"
   }
 
   void 'handles non-push Github Webhook Event gracefully'() {
@@ -480,6 +486,7 @@ class WebhooksControllerSpec extends Specification {
     event.content.repoProject == "Codertocat"
     event.content.slug == "Hello-World"
     event.content.branch == ""
+    event.content.action == "push:push"
   }
 
   void "handles Gitlab Webhook Event"() {
@@ -496,6 +503,7 @@ class WebhooksControllerSpec extends Specification {
       "git",
       "gitlab",
       """{
+          "object_kind": "push",
           "after": "da1560886d4f094c3e6c9ef40349f7d38b5d27d7",
           "ref": "refs/heads/master",
           "project":{
@@ -514,6 +522,7 @@ class WebhooksControllerSpec extends Specification {
     event.content.repoProject == "Mike"
     event.content.slug == "Diaspora"
     event.content.branch == "master"
+    event.content.action == "push"
   }
 
   void "handles Stash Webhook Event"() {
@@ -550,10 +559,10 @@ class WebhooksControllerSpec extends Specification {
     event.content.repoProject == "spinnaker"
     event.content.slug == "echo"
     event.content.branch == "master"
-
+    event.content.action == ""
   }
 
-  void "handles Bitbucket Cloud Webhook Event"() {
+  void "handles Bitbucket Cloud Webhook PR Event"() {
     def event
 
     given:
@@ -562,7 +571,7 @@ class WebhooksControllerSpec extends Specification {
     controller.artifactExtractor = Mock(ArtifactExtractor)
     controller.artifactExtractor.extractArtifacts(_, _, _) >> []
     HttpHeaders headers = new HttpHeaders();
-    headers.add("X-Event-Key", "repo:push")
+    headers.add("X-Event-Key", "pullrequest:fulfilled")
 
     when:
     def response = controller.forwardEvent(
@@ -593,6 +602,56 @@ class WebhooksControllerSpec extends Specification {
     event.content.repoProject == "spinnaker"
     event.content.slug == "echo"
     event.content.branch == "master"
+    event.content.action == "pullrequest:fulfilled"
+  }
 
+  void "handles Bitbucket Cloud Webhook Push Event"() {
+    def event
+
+    given:
+    WebhooksController controller = new WebhooksController(mapper: new ObjectMapper(), scmWebhookHandler: scmWebhookHandler)
+    controller.propagator = Mock(EventPropagator)
+    controller.artifactExtractor = Mock(ArtifactExtractor)
+    controller.artifactExtractor.extractArtifacts(_, _, _) >> []
+    HttpHeaders headers = new HttpHeaders();
+    headers.add("X-Event-Key", "repo:push")
+
+    when:
+    def response = controller.forwardEvent(
+      "git",
+      "bitbucket",
+      """{
+          "repository": {
+            "full_name": "echo",
+            "owner": {"username": "spinnaker"}
+          },
+          "push": {
+            "changes": [
+              {
+                "new": {
+                  "type": "branch",
+                  "name": "master"
+                },
+                "commits": [
+                  {
+                   "hash": "firstHash"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+        """,headers)
+
+    then:
+    1 * controller.propagator.processEvent(_) >> {
+      event = it[0]
+    }
+
+    event.content.hash == "firstHash"
+    event.content.repoProject == "spinnaker"
+    event.content.slug == "echo"
+    event.content.branch == "master"
+    event.content.action == "repo:push"
   }
 }

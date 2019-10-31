@@ -153,6 +153,7 @@ public class BitbucketWehbookEventHandler implements GitWebhookHandler {
     String slug = "";
     String hash = "";
     String branch = "";
+    String action = "";
 
     BitbucketCloudEvent bitbucketCloudEvent =
         objectMapper.convertValue(postedEvent, BitbucketCloudEvent.class);
@@ -183,11 +184,13 @@ public class BitbucketWehbookEventHandler implements GitWebhookHandler {
         }
       }
     }
+    action = emptyOrDefault(event.content.get("event_type").toString(), "");
 
     event.content.put("repoProject", repoProject);
     event.content.put("slug", slug);
     event.content.put("hash", hash);
     event.content.put("branch", branch);
+    event.content.put("action", action);
   }
 
   private void handleBitbucketServerEvent(Event event, Map postedEvent) {
@@ -238,6 +241,7 @@ public class BitbucketWehbookEventHandler implements GitWebhookHandler {
     event.content.put("slug", slug);
     event.content.put("hash", hash);
     event.content.put("branch", branch);
+    event.content.put("action", eventType);
   }
 
   private String emptyOrDefault(String test, String def) {
