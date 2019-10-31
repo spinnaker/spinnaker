@@ -23,6 +23,7 @@ import com.netflix.spinnaker.gate.services.PipelineService
 import com.netflix.spinnaker.gate.services.TaskService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.kork.exceptions.HasAdditionalAttributes
+import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.CompileDynamic
@@ -191,7 +192,9 @@ class PipelineController {
 
   @ApiOperation(value = "Trigger a pipeline execution")
   @RequestMapping(value = "/{application}/{pipelineNameOrId:.+}", method = RequestMethod.POST)
-  HttpEntity invokePipelineConfig(@PathVariable("application") String application,
+  @ResponseBody
+  @ResponseStatus(HttpStatus.ACCEPTED)
+  Map invokePipelineConfig(@PathVariable("application") String application,
                                   @PathVariable("pipelineNameOrId") String pipelineNameOrId,
                                   @RequestBody(required = false) Map trigger) {
     trigger = trigger ?: [:]
@@ -200,14 +203,13 @@ class PipelineController {
 
     RequestContext.setApplication(application)
     try {
-      def body = pipelineService.trigger(application, pipelineNameOrId, trigger)
-      new ResponseEntity(body, HttpStatus.ACCEPTED)
+      pipelineService.trigger(application, pipelineNameOrId, trigger)
     } catch (NotFoundException e) {
       throw e
     } catch (e) {
       log.error("Unable to trigger pipeline (application: {}, pipelineId: {})",
         value("application", application), value("pipelineId", pipelineNameOrId), e)
-      new ResponseEntity([message: e.message], new HttpHeaders(), HttpStatus.UNPROCESSABLE_ENTITY)
+      throw new PipelineExecutionException(e.message)
     }
   }
 
@@ -306,6 +308,14 @@ class PipelineController {
 
     PipelineException(Map<String, Object> additionalAttributes) {
       this.additionalAttributes = additionalAttributes
+    }
+  }
+
+  @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+  @InheritConstructors
+  class PipelineExecutionException extends InvalidRequestException {
+    PipelineExecutionException(String message) {
+      super(message)
     }
   }
 }
