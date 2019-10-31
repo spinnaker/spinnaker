@@ -98,10 +98,10 @@ class ImageService(
    * Each ami must have tags.
    */
   suspend fun getLatestNamedImageWithAllRegionsForAppVersion(appVersion: AppVersion, account: String, regions: List<String>): NamedImage? =
-    cloudDriverService.images(
+    cloudDriverService.namedImages(
       serviceAccount = DEFAULT_SERVICE_ACCOUNT,
-      provider = "aws",
-      name = appVersion.toImageName().replace("~", "_")
+      imageName = appVersion.toImageName().replace("~", "_"),
+      account = account
     )
       .sortedWith(NamedImageComparator)
       .findLast {
@@ -115,10 +115,10 @@ class ImageService(
    * Each ami must have tags.
    */
   suspend fun getLatestNamedImageWithAllRegions(packageName: String, account: String, regions: List<String>): NamedImage? =
-    cloudDriverService.images(
+    cloudDriverService.namedImages(
       serviceAccount = DEFAULT_SERVICE_ACCOUNT,
-      provider = "aws",
-      name = packageName
+      imageName = packageName,
+      account = account
     )
       .sortedWith(NamedImageComparator)
       .findLast {

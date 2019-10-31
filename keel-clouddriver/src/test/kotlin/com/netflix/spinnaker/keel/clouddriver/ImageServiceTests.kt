@@ -318,10 +318,10 @@ internal class ImageServiceTests {
     val packageName = "keel"
     val regions = listOf("us-west-2", "us-east-1")
     coEvery {
-      cloudDriver.images(
+      cloudDriver.namedImages(
         serviceAccount = DEFAULT_SERVICE_ACCOUNT,
-        provider = "aws",
-        name = packageName
+        imageName = packageName,
+        account = "test"
       )
     } returns realImages
 
@@ -339,10 +339,10 @@ internal class ImageServiceTests {
     val appVersion = "keel-0.312.0-h240.44eaaa3"
     val regions = listOf("us-west-2", "us-east-1")
     coEvery {
-      cloudDriver.images(
+      cloudDriver.namedImages(
         serviceAccount = DEFAULT_SERVICE_ACCOUNT,
-        provider = "aws",
-        name = appVersion
+        imageName = appVersion,
+        account = "test"
       )
     } returns realImages
 
