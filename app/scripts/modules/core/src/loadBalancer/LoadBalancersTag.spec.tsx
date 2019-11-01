@@ -45,6 +45,7 @@ describe('<LoadBalancersTag />', () => {
     component = mount(<LoadBalancersTag {...props} />);
 
     $scope.$digest();
+    component.update();
     expect(component.render().find('span.btn-load-balancer').length).toBe(1);
   });
 
