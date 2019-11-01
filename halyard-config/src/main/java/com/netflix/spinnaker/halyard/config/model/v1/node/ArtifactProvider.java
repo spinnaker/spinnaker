@@ -54,6 +54,7 @@ public abstract class ArtifactProvider<A extends ArtifactAccount> extends Node {
     ORACLE("oracle"),
     GITHUB("github"),
     GITLAB("gitlab"),
+    GITREPO("gitrepo"),
     HELM("helm"),
     HTTP("http"),
     S3("s3"),

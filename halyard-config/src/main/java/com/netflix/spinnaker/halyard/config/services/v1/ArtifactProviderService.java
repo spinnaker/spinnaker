@@ -24,6 +24,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.artifacts.bitbucket.Bitbuck
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.gcs.GcsArtifactProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.github.GitHubArtifactProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.gitlab.GitlabArtifactProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.artifacts.gitrepo.GitRepoArtifactProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.helm.HelmArtifactProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.http.HttpArtifactProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.oracle.OracleArtifactProvider;
@@ -113,6 +114,9 @@ public class ArtifactProviderService {
         break;
       case GITLAB:
         artifacts.setGitlab((GitlabArtifactProvider) provider);
+        break;
+      case GITREPO:
+        artifacts.setGitrepo((GitRepoArtifactProvider) provider);
         break;
       case HTTP:
         artifacts.setHttp((HttpArtifactProvider) provider);

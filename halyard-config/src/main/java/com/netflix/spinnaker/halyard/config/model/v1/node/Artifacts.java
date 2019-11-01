@@ -23,6 +23,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.artifacts.bitbucket.Bitbuck
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.gcs.GcsArtifactProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.github.GitHubArtifactProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.gitlab.GitlabArtifactProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.artifacts.gitrepo.GitRepoArtifactProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.helm.HelmArtifactProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.http.HttpArtifactProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.artifacts.maven.MavenArtifactProvider;
@@ -45,6 +46,7 @@ public class Artifacts extends Node {
   OracleArtifactProvider oracle = new OracleArtifactProvider();
   GitHubArtifactProvider github = new GitHubArtifactProvider();
   GitlabArtifactProvider gitlab = new GitlabArtifactProvider();
+  GitRepoArtifactProvider gitrepo = new GitRepoArtifactProvider();
   HttpArtifactProvider http = new HttpArtifactProvider();
   HelmArtifactProvider helm = new HelmArtifactProvider();
   S3ArtifactProvider s3 = new S3ArtifactProvider();

@@ -55,6 +55,15 @@
  * [**hal config artifact gitlab account list**](#hal-config-artifact-gitlab-account-list)
  * [**hal config artifact gitlab disable**](#hal-config-artifact-gitlab-disable)
  * [**hal config artifact gitlab enable**](#hal-config-artifact-gitlab-enable)
+ * [**hal config artifact gitrepo**](#hal-config-artifact-gitrepo)
+ * [**hal config artifact gitrepo account**](#hal-config-artifact-gitrepo-account)
+ * [**hal config artifact gitrepo account add**](#hal-config-artifact-gitrepo-account-add)
+ * [**hal config artifact gitrepo account delete**](#hal-config-artifact-gitrepo-account-delete)
+ * [**hal config artifact gitrepo account edit**](#hal-config-artifact-gitrepo-account-edit)
+ * [**hal config artifact gitrepo account get**](#hal-config-artifact-gitrepo-account-get)
+ * [**hal config artifact gitrepo account list**](#hal-config-artifact-gitrepo-account-list)
+ * [**hal config artifact gitrepo disable**](#hal-config-artifact-gitrepo-disable)
+ * [**hal config artifact gitrepo enable**](#hal-config-artifact-gitrepo-enable)
  * [**hal config artifact helm**](#hal-config-artifact-helm)
  * [**hal config artifact helm account**](#hal-config-artifact-helm-account)
  * [**hal config artifact helm account add**](#hal-config-artifact-helm-account-add)
@@ -851,6 +860,7 @@ hal config artifact [subcommands]
  * `gcs`: Manage and view Spinnaker configuration for the gcs provider
  * `github`: Manage and view Spinnaker configuration for the github provider
  * `gitlab`: Manage and view Spinnaker configuration for the gitlab provider
+ * `gitrepo`: Manage and view Spinnaker configuration for the gitrepo provider
  * `helm`: Manage and view Spinnaker configuration for the helm provider
  * `http`: Manage and view Spinnaker configuration for the http provider
  * `maven`: Manage and view Spinnaker configuration for the maven provider
@@ -1473,6 +1483,174 @@ Set the gitlab artifact provider as enabled
 #### Usage
 ```
 hal config artifact gitlab enable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact gitrepo
+
+Manage and view Spinnaker configuration for the gitrepo provider
+
+#### Usage
+```
+hal config artifact gitrepo [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `account`: Manage and view Spinnaker configuration for the gitrepo artifact provider's account
+ * `disable`: Set the gitrepo artifact provider as disabled
+ * `enable`: Set the gitrepo artifact provider as enabled
+
+---
+## hal config artifact gitrepo account
+
+Manage and view Spinnaker configuration for the gitrepo artifact provider's account
+
+#### Usage
+```
+hal config artifact gitrepo account ACCOUNT [parameters] [subcommands]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `add`: Add an artifact account to the gitrepo artifact provider.
+ * `delete`: Delete a specific gitrepo artifact account by name.
+ * `edit`: Edit an artifact account in the gitrepo artifact provider.
+ * `get`: Get the specified account details for the gitrepo provider.
+ * `list`: List the artifact account names for the gitrepo artifact provider.
+
+---
+## hal config artifact gitrepo account add
+
+Add an artifact account to the gitrepo artifact provider.
+
+#### Usage
+```
+hal config artifact gitrepo account add ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--password`: (*Sensitive data* - user will be prompted on standard input) Git password
+ * `--ssh-known-hosts-file-path`: File containing the known and trusted SSH hosts.
+ * `--ssh-private-key-file-path`: Path to the ssh private key in PEM format
+ * `--ssh-private-key-passphrase`: (*Sensitive data* - user will be prompted on standard input) Passphrase for encrypted private key
+ * `--ssh-trust-unknown-hosts`: Setting this to true allows Spinnaker to authenticate with unknown hosts
+ * `--token`: (*Sensitive data* - user will be prompted on standard input) Git token
+ * `--token-file`: File containing a Git authentication token
+ * `--username`: Git username
+ * `--username-password-file`: File containing "username:password" to use for Git authentication
+
+
+---
+## hal config artifact gitrepo account delete
+
+Delete a specific gitrepo artifact account by name.
+
+#### Usage
+```
+hal config artifact gitrepo account delete ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact gitrepo account edit
+
+Edit an artifact account in the gitrepo artifact provider.
+
+#### Usage
+```
+hal config artifact gitrepo account edit ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--password`: (*Sensitive data* - user will be prompted on standard input) Git password
+ * `--ssh-known-hosts-file-path`: File containing the known and trusted SSH hosts
+ * `--ssh-private-key-file-path`: Path to the ssh private key in PEM format
+ * `--ssh-private-key-passphrase`: (*Sensitive data* - user will be prompted on standard input) Passphrase for encrypted private key
+ * `--ssh-trust-unknown-hosts`: Setting this to true allows Spinnaker to authenticate with unknown hosts
+ * `--token`: (*Sensitive data* - user will be prompted on standard input) Git token
+ * `--token-file`: File containing a Git authentication token
+ * `--username`: Git username
+ * `--username-password-file`: File containing "username:password" to use for Git authentication
+
+
+---
+## hal config artifact gitrepo account get
+
+Get the specified account details for the gitrepo provider.
+
+#### Usage
+```
+hal config artifact gitrepo account get ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact gitrepo account list
+
+List the artifact account names for the gitrepo artifact provider.
+
+#### Usage
+```
+hal config artifact gitrepo account list [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact gitrepo disable
+
+Set the gitrepo artifact provider as disabled
+
+#### Usage
+```
+hal config artifact gitrepo disable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config artifact gitrepo enable
+
+Set the gitrepo artifact provider as enabled
+
+#### Usage
+```
+hal config artifact gitrepo enable [parameters]
 ```
 
 #### Parameters
