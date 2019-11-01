@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.orca.pipeline.expressions
 
+import com.netflix.spinnaker.kork.expressions.ExpressionEvaluationSummary
 import com.netflix.spinnaker.kork.expressions.ExpressionFunctionProvider
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import org.pf4j.PluginManager
 import spock.lang.Specification
@@ -43,6 +45,26 @@ class PipelineExpressionEvaluatorSpec extends Specification {
     noExceptionThrown()
     evaluator.getExecutionAwareFunctions().size() == 2 // only 1 function is execution aware.
     evaluator.getExecutionAwareFunctions().findAll { it.contains('functionWithExecutionContext') }.size() == 2
+  }
+
+  def "should allow comparing ExecutionStatus to string"() {
+    given:
+    def source = [test: testCase]
+    PipelineExpressionEvaluator evaluator = new PipelineExpressionEvaluator([], pluginManager)
+
+    when:
+    ExpressionEvaluationSummary evaluationSummary = new ExpressionEvaluationSummary()
+    def result = evaluator.evaluate(source, [status: ExecutionStatus.TERMINAL], evaluationSummary, true)
+
+    then:
+    result.test == evalResult
+
+    where:
+    testCase                                    | evalResult
+    '${status.toString() == "TERMINAL"}'        | true
+    '${status == "TERMINAL"}'                   | true
+    '${status.toString() == "SUCCEEDED"}'       | false
+    '${status == "SUCCEEDED"}'                  | false
   }
 
   private ExpressionFunctionProvider buildExpressionFunctionProvider(String providerName) {

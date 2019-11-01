@@ -852,5 +852,25 @@ public class Stage implements Serializable {
     return "Stage {id='" + id + "', executionId='" + execution.getId() + "'}";
   }
 
+  /**
+   * NOTE: this function is mostly for convenience to endusers using SpEL
+   *
+   * @return true if stage has succeeded
+   */
+  @JsonIgnore
+  public boolean getHasSucceeded() {
+    return (status == ExecutionStatus.SUCCEEDED);
+  }
+
+  /**
+   * NOTE: this function is mostly for convenience to endusers using SpEL
+   *
+   * @return true if stage has failed
+   */
+  @JsonIgnore
+  public boolean getHasFailed() {
+    return (status == ExecutionStatus.TERMINAL);
+  }
+
   public static final String STAGE_TIMEOUT_OVERRIDE_KEY = "stageTimeoutMs";
 }

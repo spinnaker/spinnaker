@@ -20,7 +20,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
-public enum ExecutionStatus {
+/**
+ * Execution Status enumerations used for executions and stages Note: we implement CharSequence to
+ * allow simple SpEL expressions such as: {#stage('s1').status == 'SUCCEEDED'}
+ */
+public enum ExecutionStatus implements CharSequence {
   /** The task has yet to start. */
   NOT_STARTED(false, false),
 
@@ -92,5 +96,20 @@ public enum ExecutionStatus {
 
   public boolean isFailure() {
     return FAILURE.contains(this);
+  }
+
+  @Override
+  public int length() {
+    return toString().length();
+  }
+
+  @Override
+  public char charAt(int index) {
+    return toString().charAt(index);
+  }
+
+  @Override
+  public CharSequence subSequence(int start, int end) {
+    return toString().subSequence(start, end);
   }
 }

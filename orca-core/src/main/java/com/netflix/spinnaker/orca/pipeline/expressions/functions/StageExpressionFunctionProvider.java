@@ -91,7 +91,7 @@ public class StageExpressionFunctionProvider implements ExpressionFunctionProvid
    * @param refId the stage reference ID
    * @return a stage specified by refId
    */
-  static Object stageByRefId(Execution execution, String refId) {
+  public static Stage stageByRefId(Execution execution, String refId) {
     if (refId == null) {
       throw new SpelHelperFunctionException(
           format(
@@ -115,7 +115,7 @@ public class StageExpressionFunctionProvider implements ExpressionFunctionProvid
    * @param id the name or id of the stage to find
    * @return a stage specified by id
    */
-  public static Object stage(Execution execution, String id) {
+  public static Stage stage(Execution execution, String id) {
     return execution.getStages().stream()
         .filter(i -> id != null && (id.equals(i.getName()) || id.equals(i.getId())))
         .findFirst()

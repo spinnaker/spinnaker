@@ -68,6 +68,6 @@ class AbstractCloudFoundryWaitForServiceOperationTaskTest<T extends AbstractWait
     TaskResult result =
         task.execute(new Stage(new Execution(PIPELINE, "orca"), operationType, context));
 
-    assertThat(result.getStatus()).isEqualTo(expectedStatus);
+    assertThat(result.getStatus().toString()).isEqualTo(expectedStatus.toString());
   }
 }
