@@ -68,6 +68,9 @@ class CleanupCanaryClustersStage : StageDefinitionBuilder {
     }
 
     disableStages.forEach {
+      // Continue the stages even if disabling one of the clusters fails - subsequent stages will delete them
+      // but we need to make sure they run
+      it.allowSiblingStagesToContinueOnFailure = true
       graph.connect(it, waitStage)
     }
 
