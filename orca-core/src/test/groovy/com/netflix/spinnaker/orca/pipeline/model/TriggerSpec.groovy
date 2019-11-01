@@ -242,6 +242,7 @@ class TriggerSpec extends Specification {
       project == "CAD"
       branch == "bladerunner-release"
       slug == "Main"
+      action == "push"
     }
 
     where:
@@ -270,7 +271,38 @@ class TriggerSpec extends Specification {
   "enabled": true,
   "slug": "Main",
   "hash": "adb2554e870ae86622f05de2a15f4539030d87a7",
-  "master": "cbp"
+  "master": "cbp",
+  "action": "push"
+}
+'''
+  }
+
+  def "can parse a Git trigger without optional fields"() {
+    given:
+    def trigger = mapper.readValue(triggerJson, Trigger)
+
+    expect:
+    trigger instanceof GitTrigger
+    with(trigger) {
+      hash == "f5d3cd95665a1aa45842230472c2abf3721bea02"
+      source == "github"
+      project == "spinnaker"
+      branch == "release-0.2.x"
+      slug == "orca"
+      action == "undefined"
+    }
+
+    where:
+    triggerJson = '''
+{
+  "project": "spinnaker",
+  "source": "github",
+  "type": "git",
+  "branch": "release-0.2.x",
+  "user": "[anonymous]",
+  "enabled": true,
+  "slug": "orca",
+  "hash": "f5d3cd95665a1aa45842230472c2abf3721bea02"
 }
 '''
   }

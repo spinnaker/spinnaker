@@ -138,7 +138,8 @@ internal class TriggerDeserializer :
           get("source").textValue(),
           get("project").textValue(),
           get("branch").textValue(),
-          get("slug").textValue()
+          get("slug").textValue(),
+          get("action")?.textValue() ?: "undefined"
         )
         looksLikeCustom() -> {
           // chooses the first custom deserializer to keep behavior consistent
