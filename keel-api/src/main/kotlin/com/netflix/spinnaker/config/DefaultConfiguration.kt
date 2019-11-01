@@ -10,12 +10,10 @@ import com.netflix.spinnaker.keel.persistence.ApplicationVetoRepository
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
-import com.netflix.spinnaker.keel.persistence.ResourceVersionTracker
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryApplicationVetoRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
-import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceVersionTracker
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.supporting
 import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
@@ -65,10 +63,6 @@ class DefaultConfiguration {
   @Bean
   @ConditionalOnMissingBean
   fun applicationVetoRepository(): ApplicationVetoRepository = InMemoryApplicationVetoRepository()
-
-  @Bean
-  @ConditionalOnMissingBean(ResourceVersionTracker::class)
-  fun resourceVersionTracker(): ResourceVersionTracker = InMemoryResourceVersionTracker()
 
   @Bean
   @ConditionalOnMissingBean(ResourceHandler::class)
