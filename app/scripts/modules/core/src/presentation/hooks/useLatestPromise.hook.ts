@@ -1,5 +1,6 @@
 import { IPromise } from 'angular';
 import { DependencyList, useEffect, useRef, useState } from 'react';
+import { useIsMountedRef } from './useIsMountedRef.hook';
 
 export type IRequestStatus = 'NONE' | 'PENDING' | 'REJECTED' | 'RESOLVED';
 
@@ -16,6 +17,14 @@ export interface IUseLatestPromiseResult<T> {
   requestId: number;
 }
 
+type IPromiseState<T> = Pick<IUseLatestPromiseResult<T>, 'result' | 'status' | 'error' | 'requestId'>;
+const initialPromiseState: IPromiseState<any> = {
+  error: undefined,
+  requestId: 0,
+  result: undefined,
+  status: 'NONE',
+};
+
 /**
  * A react hook which invokes a callback that returns a promise.
  * If multiple requests are made concurrently, only returns data from the latest request.
@@ -23,64 +32,63 @@ export interface IUseLatestPromiseResult<T> {
  * This can be useful when fetching data based on a users keyboard input, for example.
  * This behavior is similar to RxJS switchMap.
  *
+ * example:
+ * const fetch = useLatestPromise(() => fetch(url + '?foo=" + foo).then(x=>x.json()), [foo]);
+ * return (fetch.status === 'RESOLVED' ? <pre>{JSON.stringify(fetch.result, null, 2)}</pre> :
+ *         fetch.status === 'REJECTED' ? <span>Error: {fetch.error}</span> :
+ *         fetch.status === 'PENDING' ? <span>Loading...</span> : null);
+ *
  * @param callback a callback that returns an IPromise
  * @param deps array of dependencies, which (when changed) cause the callback to be invoked again
  * @returns an object with the result and current status of the promise
  */
 export function useLatestPromise<T>(callback: () => IPromise<T>, deps: DependencyList): IUseLatestPromiseResult<T> {
-  const isMounted = useRef(false);
+  const isMountedRef = useIsMountedRef();
+  // Capture the isMountedRef.current value before effects run
+  const isInitialRender = !isMountedRef.current;
   const requestInFlight = useRef<IPromise<T>>();
-  const [status, setStatus] = useState<IRequestStatus>('NONE');
-  const [result, setResult] = useState<T>();
-  const [error, setError] = useState<any>();
-  const [requestId, setRequestId] = useState(0);
+  // A counter that is used to trigger the promise handling useEffect
+  const [requestIdTrigger, setRequestIdTrigger] = useState(0);
+  const [promiseState, setPromiseState] = useState<IPromiseState<T>>(initialPromiseState);
+  const { result, error, status, requestId } = promiseState;
 
   // Starts a new request (runs the callback again)
-  const refresh = () => setRequestId(id => id + 1);
+  const refresh = () => setRequestIdTrigger(id => id + 1);
 
   // refresh whenever any dependency in the dependency list changes
   useEffect(() => {
-    if (isMounted.current) {
-      refresh();
-    }
+    !isInitialRender && refresh();
   }, deps);
-
-  // Manage the mount/unmounted state
-  useEffect(() => {
-    isMounted.current = true;
-    return () => (isMounted.current = false);
-  }, []);
 
   // Invokes the callback and manages its lifecycle.
   // This is triggered when the requestId changes
   useEffect(() => {
     const promise = callback();
-    const isCurrent = () => isMounted.current === true && promise === requestInFlight.current;
+    const isCurrent = () => isMountedRef.current && promise === requestInFlight.current;
 
     // If no promise is returned from the callback, noop this effect.
     if (!promise) {
       return;
     }
 
-    setStatus('PENDING');
+    // Don't clear out previous error/result when a new request is pending
+    setPromiseState({ status: 'PENDING', error, result, requestId: requestIdTrigger });
     requestInFlight.current = promise;
 
     const resolve = (newResult: T) => {
       if (isCurrent()) {
-        setResult(newResult);
-        setStatus('RESOLVED');
+        setPromiseState({ status: 'RESOLVED', result: newResult, error: undefined, requestId: requestIdTrigger });
       }
     };
 
     const reject = (rejection: any) => {
       if (isCurrent()) {
-        setError(rejection);
-        setStatus('REJECTED');
+        setPromiseState({ status: 'REJECTED', result: undefined, error: rejection, requestId: requestIdTrigger });
       }
     };
 
     promise.then(resolve, reject);
-  }, [requestId]);
+  }, [requestIdTrigger]);
 
   return { result, status, error, refresh, requestId };
 }
