@@ -8,8 +8,7 @@ import { useEffect, useState } from 'react';
  */
 export function useDebouncedValue<T>(value: T, debounceMs: number): [T, boolean] {
   const [debouncedValue, setDebouncedValue] = useState(value);
-  const [isDebouncing, setIsDebouncing] = useState(false);
-  useEffect(() => setIsDebouncing(value !== debouncedValue));
+  const isDebouncing = value !== debouncedValue;
   useEffect(() => {
     const id = setTimeout(() => setDebouncedValue(value), debounceMs);
     return () => clearTimeout(id);
