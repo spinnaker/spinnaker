@@ -19,3 +19,4 @@ export * from './labeledValues';
 export * from './navigation';
 export * from './robotToHumanFilter/robotToHuman.filter';
 export * from './sortToggle';
+export * from './spel';
