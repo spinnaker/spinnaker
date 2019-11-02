@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers;
 
+import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.isConstraintInPayload;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.build.BuildInfoService;
@@ -26,10 +28,7 @@ import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import com.netflix.spinnaker.security.User;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import lombok.extern.slf4j.Slf4j;
@@ -122,7 +121,8 @@ public class BuildEventHandler extends BaseTriggerEventHandler<BuildEvent> {
     return trigger ->
         isBuildTrigger(trigger)
             && trigger.getJob().equals(jobName)
-            && trigger.getMaster().equals(master);
+            && trigger.getMaster().equals(master)
+            && checkPayloadConstraintsMet(buildEvent, trigger);
   }
 
   private boolean isBuildTrigger(Trigger trigger) {
@@ -150,5 +150,38 @@ public class BuildEventHandler extends BaseTriggerEventHandler<BuildEvent> {
       user.setEmail(trigger.getRunAsUser());
     }
     return user;
+  }
+
+  private boolean checkPayloadConstraintsMet(BuildEvent event, Trigger trigger) {
+    if (trigger.getPayloadConstraints() == null) {
+      return true; // No constraints, can trigger build
+    }
+
+    // Constraints are present, check they are all met
+    Map buildProperties = getPropertiesFromEvent(event, trigger);
+    boolean constraintsMet =
+        buildProperties != null
+            && isConstraintInPayload(trigger.getPayloadConstraints(), buildProperties);
+    if (!constraintsMet) {
+      log.info(
+          "Constraints {} not met by build properties {}",
+          trigger.getPayloadConstraints(),
+          buildProperties);
+    }
+    return constraintsMet;
+  }
+
+  private Map getPropertiesFromEvent(BuildEvent event, Trigger trigger) {
+    if (buildInfoService.isPresent()) {
+      try {
+        return AuthenticatedRequest.propagate(
+                () -> buildInfoService.get().getProperties(event, trigger.getPropertyFile()),
+                getKorkUser(trigger))
+            .call();
+      } catch (Exception e) {
+        log.warn("Unable to get artifacts from event {}, trigger {}", event, trigger, e);
+      }
+    }
+    return Collections.emptyMap();
   }
 }
