@@ -23,15 +23,13 @@ import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.api.SimpleStage;
 import com.netflix.spinnaker.orca.api.SimpleStageInput;
 import com.netflix.spinnaker.orca.api.SimpleStageOutput;
+import com.netflix.spinnaker.orca.api.SimpleStageStatus;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
@@ -48,9 +46,7 @@ public class SimpleTask implements Task {
     this.simpleStage = simpleStage;
   }
 
-  private SimpleStageInput getStageInput(Stage stage) {
-    ObjectMapper objectMapper = OrcaObjectMapper.newInstance();
-
+  private SimpleStageInput getStageInput(Stage stage, ObjectMapper objectMapper) {
     try {
       List<Class<?>> cArg = Arrays.asList(SimpleStageInput.class);
       Method method = simpleStage.getClass().getMethod("execute", cArg.toArray(new Class[0]));
@@ -69,19 +65,25 @@ public class SimpleTask implements Task {
   @Nonnull
   public TaskResult execute(@Nonnull Stage stage) {
     ObjectMapper objectMapper = OrcaObjectMapper.newInstance();
-    SimpleStageInput simpleStageInput = getStageInput(stage);
+    SimpleStageInput simpleStageInput = getStageInput(stage, objectMapper);
     SimpleStageOutput output = simpleStage.execute(simpleStageInput);
-    ExecutionStatus status = ExecutionStatus.valueOf(output.getStatus().toString());
+    ExecutionStatus status =
+        ExecutionStatus.valueOf(
+            Optional.ofNullable(output.getStatus()).orElse(SimpleStageStatus.RUNNING).toString());
 
     return TaskResult.builder(status)
         .context(
             output.getContext() == null
                 ? new HashMap<>()
-                : objectMapper.convertValue(output.getContext(), Map.class))
+                : objectMapper.convertValue(
+                    Optional.ofNullable(output.getContext()).orElse(Collections.emptyMap()),
+                    Map.class))
         .outputs(
             output.getOutput() == null
                 ? new HashMap<>()
-                : objectMapper.convertValue(output.getOutput(), Map.class))
+                : objectMapper.convertValue(
+                    Optional.ofNullable(output.getOutput()).orElse(Collections.emptyMap()),
+                    Map.class))
         .build();
   }
 }
