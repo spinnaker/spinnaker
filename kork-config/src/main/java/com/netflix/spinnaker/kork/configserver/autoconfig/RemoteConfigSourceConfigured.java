@@ -17,27 +17,31 @@
 package com.netflix.spinnaker.kork.configserver.autoconfig;
 
 import javax.validation.constraints.NotNull;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
+import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 
 public class RemoteConfigSourceConfigured implements Condition {
+  private static final String DEFAULT_REMOTE_REPO_TYPES = "default,git,vault,jdbc,credhub";
+
   @Override
   public boolean matches(ConditionContext context, @NotNull AnnotatedTypeMetadata metadata) {
     ConfigurableListableBeanFactory beanFactory = context.getBeanFactory();
     if (beanFactory != null) {
-      return
-      // beans added via Spring Cloud Config profile activation
-      beanFactory.containsBean("defaultEnvironmentRepository")
-          || beanFactory.containsBean("vaultEnvironmentRepository")
-          || beanFactory.containsBean("jdbcEnvironmentRepository")
-          || beanFactory.containsBean("credhubEnvironmentRepository")
-          // beans added via composite Spring Cloud Config profile
-          || beanFactory.containsBean("git-env-repo0")
-          || beanFactory.containsBean("vault-env-repo0")
-          || beanFactory.containsBean("jdbc-env-repo0")
-          || beanFactory.containsBean("credhub-env-repo0");
+      Environment environment = context.getEnvironment();
+      String remoteRepoTypes =
+          environment.getProperty(
+              "spring.cloud.config.remote-repo-types", DEFAULT_REMOTE_REPO_TYPES);
+
+      for (String remoteRepoType : StringUtils.split(remoteRepoTypes, ',')) {
+        if (beanFactory.containsBean(remoteRepoType + "EnvironmentRepository")
+            || beanFactory.containsBean(remoteRepoType + "-env-repo0")) {
+          return true;
+        }
+      }
     }
     return false;
   }
