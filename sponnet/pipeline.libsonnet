@@ -365,6 +365,8 @@
       withManifestArtifactAccount(account):: self + { manifestArtifactAccount: account },
       withManifestArtifact(artifact):: self + { manifestArtifactId: artifact.id, manifestArtifactAccount: artifact.matchArtifact.artifactAccount, source: 'artifact' },
       withManifestText(text):: self + { manifest: std.parseJson(text), source: 'text' },
+      withRequiredArtifactIds(artifacts):: self + { requiredArtifactIds: [a.id for a in artifacts] },
+      withMoniker(moniker):: self + { moniker: moniker },
     },
 
     // pipeline stages
