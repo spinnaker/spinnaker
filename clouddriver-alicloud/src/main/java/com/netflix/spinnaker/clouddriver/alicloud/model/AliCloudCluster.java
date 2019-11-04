@@ -17,9 +17,10 @@
 package com.netflix.spinnaker.clouddriver.alicloud.model;
 
 import com.netflix.spinnaker.clouddriver.model.Cluster;
+import java.io.Serializable;
 import java.util.Set;
 
-public class AliCloudCluster implements Cluster {
+public class AliCloudCluster implements Cluster, Serializable {
 
   private String name;
   private String type;
