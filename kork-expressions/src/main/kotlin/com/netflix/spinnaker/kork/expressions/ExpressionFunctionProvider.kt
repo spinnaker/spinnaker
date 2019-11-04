@@ -83,10 +83,15 @@ interface ExpressionFunctionProvider : ExtensionPoint {
    */
   data class FunctionDefinition(
     val name: String,
+    val description: String,
     val parameters: List<FunctionParameter>
   ) {
+    @Deprecated("Please use the overload with description", replaceWith = ReplaceWith("FunctionDefinition(name, \"\", functionParameters)"))
     constructor(name: String, vararg functionParameters: FunctionParameter) :
-      this(name, listOf(*functionParameters))
+      this(name, "", listOf(*functionParameters))
+
+    constructor(name: String, description: String, vararg functionParameters: FunctionParameter) :
+      this(name, description, listOf(*functionParameters))
   }
 
   /**

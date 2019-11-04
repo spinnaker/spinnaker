@@ -102,6 +102,10 @@ public class ExpressionsSupport {
     }
   }
 
+  public List<ExpressionFunctionProvider> getExpressionFunctionProviders() {
+    return expressionFunctionProviders;
+  }
+
   private static void registerFunction(
       StandardEvaluationContext context,
       String registrationName,
@@ -210,6 +214,7 @@ public class ExpressionsSupport {
       return new Functions(
           new FunctionDefinition(
               "toJson",
+              "Converts an object to JSON string",
               new FunctionParameter(
                   Object.class, "value", "An Object to marshall to a JSON String")));
     }
@@ -287,23 +292,29 @@ public class ExpressionsSupport {
       return new Functions(
           new FunctionDefinition(
               "toInt",
+              "Converts a string to integer",
               new FunctionParameter(String.class, "value", "A String value to convert to an int")),
           new FunctionDefinition(
               "toFloat",
+              "Converts a string to float",
               new FunctionParameter(String.class, "value", "A String value to convert to a float")),
           new FunctionDefinition(
               "toBoolean",
+              "Converts a string value to boolean",
               new FunctionParameter(
                   String.class, "value", "A String value to convert to a boolean")),
           new FunctionDefinition(
               "toBase64",
+              "Encodes a string to base64 string",
               new FunctionParameter(String.class, "value", "A String value to base64 encode")),
           new FunctionDefinition(
               "fromBase64",
+              "Decodes a base64 string",
               new FunctionParameter(
                   String.class, "value", "A base64-encoded String value to decode")),
           new FunctionDefinition(
               "alphanumerical",
+              "Removes all non-alphanumeric characters from a string",
               new FunctionParameter(
                   String.class,
                   "value",

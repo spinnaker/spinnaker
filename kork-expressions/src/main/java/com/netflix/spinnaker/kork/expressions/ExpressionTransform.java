@@ -73,6 +73,9 @@ public class ExpressionTransform {
   /**
    * Helper to escape a simple expression string Used to extract a simple expression when parsing
    * fails
+   *
+   * @param expression Expression to escape
+   * @return escaped expression string
    */
   public static String escapeSimpleExpression(String expression) {
     String escaped = null;
@@ -88,6 +91,9 @@ public class ExpressionTransform {
    * Traverses and attempts to evaluate expressions Failures can either be INFO (for a simple
    * unresolved expression) or ERROR when an exception is thrown
    *
+   * @param source Source object to apply SpEL transformations to
+   * @param evaluationContext Context used during evaluation of source object
+   * @param summary Summary of evaluation after all transformations are applied
    * @return the transformed source object
    */
   public Map<String, Object> transformMap(
