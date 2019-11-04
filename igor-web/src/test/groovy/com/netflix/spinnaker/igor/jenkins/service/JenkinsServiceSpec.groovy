@@ -22,10 +22,18 @@ import com.netflix.spinnaker.igor.build.model.GenericGitRevision
 import com.netflix.spinnaker.igor.config.JenkinsConfig
 import com.netflix.spinnaker.igor.config.JenkinsProperties
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
+import com.netflix.spinnaker.igor.jenkins.client.model.Build
+import com.netflix.spinnaker.igor.jenkins.client.model.BuildArtifact
 import com.netflix.spinnaker.igor.jenkins.client.model.BuildsList
 import com.netflix.spinnaker.igor.jenkins.client.model.Project
+import com.netflix.spinnaker.kork.exceptions.SpinnakerException
 import com.squareup.okhttp.mockwebserver.MockResponse
 import com.squareup.okhttp.mockwebserver.MockWebServer
+import org.springframework.http.HttpStatus
+import retrofit.RetrofitError
+import retrofit.client.Response
+import retrofit.mime.TypedInput
+import retrofit.mime.TypedString
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -683,4 +691,64 @@ class JenkinsServiceSpec extends Specification {
         ]
     }
 
+    @Unroll
+    def "getBuildProperties retries on transient Jenkins failure"() {
+      given:
+      def jobName = "job1"
+      def buildNumber = 10
+      def artifact = new BuildArtifact()
+      artifact.displayPath = "test.properties"
+      artifact.relativePath = "test.properties"
+      artifact.fileName = "test.properties"
+      def build = new Build()
+      build.number = buildNumber
+      build.duration = 0L
+      build.artifacts = [artifact]
+      def badGatewayError = RetrofitError.httpError(
+        "http://my.jenkins.net",
+        new Response("http://my.jenkins.net", 502, "bad gateway", [], null),
+        null,
+        null
+      )
+      def propertyFile = new Response("http://my.jenkins.net", 200, "", [], new TypedString("a=b"))
+
+      when:
+      def properties = service.getBuildProperties(jobName, build.genericBuild(jobName), artifact.fileName)
+
+      then:
+      1 * client.getBuild(jobName, buildNumber) >> build
+      2 * client.getPropertyFile(jobName, buildNumber, artifact.fileName) >> { throw badGatewayError } >> propertyFile
+
+      properties == [a: "b"]
+    }
+
+    @Unroll
+    def "getBuildProperties do not retry on 404"() {
+      given:
+      def jobName = "job1"
+      def buildNumber = 10
+      def artifact = new BuildArtifact()
+      artifact.displayPath = "test.properties"
+      artifact.relativePath = "test.properties"
+      artifact.fileName = "test.properties"
+      def build = new Build()
+      build.number = buildNumber
+      build.duration = 0L
+      build.artifacts = [artifact]
+      def notFoundError = RetrofitError.httpError(
+        "http://my.jenkins.net",
+        new Response("http://my.jenkins.net", 404, "not found", [], null),
+        null,
+        null
+      )
+
+      when:
+      def properties = service.getBuildProperties(jobName, build.genericBuild(jobName), artifact.fileName)
+
+      then:
+      1 * client.getBuild(jobName, buildNumber) >> build
+      1 * client.getPropertyFile(jobName, buildNumber, artifact.fileName) >> { throw notFoundError }
+
+      properties == [:]
+    }
 }

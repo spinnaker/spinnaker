@@ -43,8 +43,10 @@ import com.netflix.spinnaker.igor.model.Crumb;
 import com.netflix.spinnaker.igor.service.BuildOperations;
 import com.netflix.spinnaker.igor.service.BuildProperties;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.io.InputStream;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -307,7 +309,24 @@ public class JenkinsService implements BuildOperations, BuildProperties {
   }
 
   private Response getPropertyFile(String jobName, Integer buildNumber, String fileName) {
-    return jenkinsClient.getPropertyFile(encode(jobName), buildNumber, fileName);
+    return retrySupport.retry(
+        () -> {
+          try {
+            return jenkinsClient.getPropertyFile(encode(jobName), buildNumber, fileName);
+          } catch (RetrofitError e) {
+            // do not retry on client/deserialization error
+            if (e.getKind() == RetrofitError.Kind.CONVERSION
+                || (e.getResponse().getStatus() >= 400 && e.getResponse().getStatus() < 500)) {
+              SpinnakerException ex = new SpinnakerException(e);
+              ex.setRetryable(false);
+              throw ex;
+            }
+            throw e;
+          }
+        },
+        5,
+        Duration.ofSeconds(2),
+        false);
   }
 
   public Response stopRunningBuild(String jobName, Integer buildNumber) {
