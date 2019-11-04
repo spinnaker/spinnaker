@@ -33,4 +33,5 @@ public class AwsAccount extends Account {
   private List<AwsProvider.AwsRegion> regions = new ArrayList<>();
   private String assumeRole;
   private String sessionName;
+  private List<AwsProvider.AwsLifecycleHook> lifecycleHooks = new ArrayList<>();
 }

@@ -50,4 +50,22 @@ public class AwsCommandProperties {
           + "as described at http://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/credentials.html#credentials-default";
 
   public static final String SECRET_KEY_DESCRIPTION = "Your AWS Secret Key.";
+
+  public static final String HOOK_DEFAULT_VALUE_DESCRIPTION =
+      "Defines the action the Auto Scaling group should take when "
+          + "the lifecycle hook timeout elapses or if an unexpected failure occurs. This parameter can be either CONTINUE or ABANDON. "
+          + "The default value is ABANDON.";
+
+  public static final String HOOK_HEARTBEAT_TIMEOUT_DESCRIPTION =
+      "Set the heartbeat timeout for the lifecycle hook. Instances can \" +\n"
+          + "          \"remain in a wait state for a finite period of time. The default is one hour (3600 seconds).";
+
+  public static final String HOOK_NOTIFICATION_TARGET_ARN =
+      "The ARN of the notification target that Amazon EC2 Auto Scaling "
+          + "uses to notify you when an instance is in the transition state for the lifecycle hook. This target can be either "
+          + "an SQS queue or an SNS topic.\n";
+
+  public static final String HOOK_ROLE_ARN_DESCRIPTION =
+      "The ARN of the IAM role that allows the Auto Scaling group "
+          + "to publish to the specified notification target, for example, an Amazon SNS topic or an Amazon SQS queue.";
 }

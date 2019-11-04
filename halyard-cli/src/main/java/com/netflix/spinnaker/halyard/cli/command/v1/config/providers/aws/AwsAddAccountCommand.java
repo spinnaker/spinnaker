@@ -17,15 +17,20 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.aws;
 
+import static com.netflix.spinnaker.halyard.cli.command.v1.config.providers.aws.AwsLifecycleHookUtil.getLifecycleHook;
+
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.AbstractAddAccountCommand;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsProvider.AwsLifecycleHook;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Parameters(separators = "=")
 public class AwsAddAccountCommand extends AbstractAddAccountCommand {
@@ -62,6 +67,46 @@ public class AwsAddAccountCommand extends AbstractAddAccountCommand {
       required = true)
   private String assumeRole;
 
+  @Parameter(
+      names = "--launching-lifecycle-hook-default-result",
+      description = AwsCommandProperties.HOOK_DEFAULT_VALUE_DESCRIPTION)
+  private String launchingHookDefaultResult = "ABANDON";
+
+  @Parameter(
+      names = "--launching-lifecycle-hook-heartbeat-timeout-seconds",
+      description = AwsCommandProperties.HOOK_HEARTBEAT_TIMEOUT_DESCRIPTION)
+  private Integer launchingHookHeartbeatTimeoutSeconds = 3600;
+
+  @Parameter(
+      names = "--launching-lifecycle-hook-notification-target-arn",
+      description = AwsCommandProperties.HOOK_NOTIFICATION_TARGET_ARN)
+  private String launchingHookNotificationTargetArn;
+
+  @Parameter(
+      names = "--launching-lifecycle-hook-role-arn",
+      description = AwsCommandProperties.HOOK_ROLE_ARN_DESCRIPTION)
+  private String launchingHookRoleArn;
+
+  @Parameter(
+      names = "--terminating-lifecycle-hook-default-result",
+      description = AwsCommandProperties.HOOK_DEFAULT_VALUE_DESCRIPTION)
+  private String terminatingHookDefaultResult = "ABANDON";
+
+  @Parameter(
+      names = "--terminating-lifecycle-hook-heartbeat-timeout-seconds",
+      description = AwsCommandProperties.HOOK_HEARTBEAT_TIMEOUT_DESCRIPTION)
+  private Integer terminatingHookHeartbeatTimeoutSeconds = 3600;
+
+  @Parameter(
+      names = "--terminating-lifecycle-hook-notification-target-arn",
+      description = AwsCommandProperties.HOOK_NOTIFICATION_TARGET_ARN)
+  private String terminatingHookNotificationTargetArn;
+
+  @Parameter(
+      names = "--terminating-lifecycle-hook-role-arn",
+      description = AwsCommandProperties.HOOK_ROLE_ARN_DESCRIPTION)
+  private String terminatingHookRoleArn;
+
   @Override
   protected Account buildAccount(String accountName) {
     AwsAccount account = (AwsAccount) new AwsAccount().setName(accountName);
@@ -74,9 +119,33 @@ public class AwsAddAccountCommand extends AbstractAddAccountCommand {
             regions.stream()
                 .map(r -> new AwsProvider.AwsRegion().setName(r))
                 .collect(Collectors.toList()))
-        .setAssumeRole(assumeRole);
+        .setAssumeRole(assumeRole)
+        .setLifecycleHooks(getLifecycleHooks());
 
     return account;
+  }
+
+  private List<AwsLifecycleHook> getLifecycleHooks() {
+    Optional<AwsLifecycleHook> initHook =
+        getLifecycleHook(
+            "autoscaling:EC2_INSTANCE_LAUNCHING",
+            launchingHookDefaultResult,
+            launchingHookNotificationTargetArn,
+            launchingHookRoleArn,
+            launchingHookHeartbeatTimeoutSeconds);
+
+    Optional<AwsLifecycleHook> terminatingHook =
+        getLifecycleHook(
+            "autoscaling:EC2_INSTANCE_TERMINATING",
+            terminatingHookDefaultResult,
+            terminatingHookNotificationTargetArn,
+            terminatingHookRoleArn,
+            terminatingHookHeartbeatTimeoutSeconds);
+
+    return Stream.of(initHook, terminatingHook)
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .collect(Collectors.toList());
   }
 
   @Override

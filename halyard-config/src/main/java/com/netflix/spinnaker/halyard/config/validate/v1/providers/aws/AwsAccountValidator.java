@@ -31,11 +31,14 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class AwsAccountValidator extends Validator<AwsAccount> {
+
   @Autowired ProviderService providerService;
 
   @Override
-  public void validate(ConfigProblemSetBuilder p, AwsAccount n) {
-    p.addProblem(Severity.WARNING, "No validation for the AWS provider has been implemented.");
+  public void validate(ConfigProblemSetBuilder p, AwsAccount awsAccount) {
+    awsAccount.getLifecycleHooks().stream()
+        .flatMap(AwsLifecycleHookValidation::getValidationErrors)
+        .forEach(error -> p.addProblem(Severity.FATAL, error));
   }
 
   public static AWSCredentialsProvider getAwsCredentialsProvider(

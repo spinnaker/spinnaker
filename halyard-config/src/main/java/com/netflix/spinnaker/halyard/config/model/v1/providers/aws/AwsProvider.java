@@ -44,6 +44,15 @@ public class AwsProvider extends HasImageProvider<AwsAccount, AwsBakeryDefaults>
   }
 
   @Data
+  public static class AwsLifecycleHook {
+    String defaultResult;
+    Integer heartbeatTimeout;
+    String lifecycleTransition;
+    String notificationTargetARN;
+    String roleARN;
+  }
+
+  @Data
   public static class AwsDefaults {
     String iamRole = "BaseIAMRole";
   }
