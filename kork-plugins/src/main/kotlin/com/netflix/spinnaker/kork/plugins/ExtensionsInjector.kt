@@ -26,20 +26,19 @@ import org.springframework.beans.factory.support.RootBeanDefinition
  * application to autowire enabled plugins into their correct places.
  */
 class ExtensionsInjector(
-  private val pluginManager: PluginManager,
-  private var registry: BeanDefinitionRegistry
+  private val pluginManager: PluginManager
 ) {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  fun injectExtensions() {
+  fun injectExtensions(registry: BeanDefinitionRegistry) {
     // add extensions from classpath (non plugin)
     var extensionClassNames = pluginManager.getExtensionClassNames(null)
     for (extensionClassName in extensionClassNames) {
       try {
         log.debug("Register extension '{}' as bean", extensionClassName)
         val extensionClass = javaClass.classLoader.loadClass(extensionClassName)
-        registerExtension(extensionClass)
+        registerExtension(extensionClass, registry)
       } catch (e: ClassNotFoundException) {
         log.error(e.message, e)
       }
@@ -54,7 +53,7 @@ class ExtensionsInjector(
         try {
           log.debug("Register extension '{}' as bean", extensionClassName)
           val extensionClass = plugin.pluginClassLoader.loadClass(extensionClassName)
-          registerExtension(extensionClass)
+          registerExtension(extensionClass, registry)
         } catch (e: ClassNotFoundException) {
           log.error(e.message, e)
         }
@@ -62,9 +61,8 @@ class ExtensionsInjector(
     }
   }
 
-  private fun registerExtension(extensionClass: Class<*>) {
+  private fun registerExtension(extensionClass: Class<*>, registry: BeanDefinitionRegistry) {
     val extension = pluginManager.extensionFactory.create(extensionClass)
-
     val definition = RootBeanDefinition(extension.javaClass)
     definition.targetType = extensionClass
     definition.role = BeanDefinition.ROLE_APPLICATION

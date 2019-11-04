@@ -33,7 +33,7 @@ class PluginBeanPostProcessorTest : JUnit5Minutests {
     val extensionsInjector: ExtensionsInjector = mockk(relaxed = true)
     val pluginWrapper: PluginWrapper = mockk(relaxed = true)
 
-    val subject = PluginBeanPostProcessor(pluginManager, extensionsInjector)
+    val subject = ExtensionBeanDefinitionRegistryPostProcessor(pluginManager, extensionsInjector)
 
     init {
       every { pluginWrapper.plugin } returns TestSpringPlugin(pluginWrapper)

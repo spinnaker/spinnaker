@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.config
+package com.netflix.spinnaker.config;
 
-import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * Root-level configuration properties for plugins.
@@ -23,11 +23,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties
  * @see PluginsAutoConfiguration
  */
 @ConfigurationProperties("spinnaker.plugins")
-class PluginsConfigurationProperties {
+public class PluginsConfigurationProperties {
+
   /**
    * The root filepath to the directory containing all plugins.
    *
-   * If an absolute path is not provided, the path will be calculated relative to the executable.
+   * <p>If an absolute path is not provided, the path will be calculated relative to the executable.
    */
-  var rootPath: String = "plugins"
+  public String rootPath = "plugins";
 }

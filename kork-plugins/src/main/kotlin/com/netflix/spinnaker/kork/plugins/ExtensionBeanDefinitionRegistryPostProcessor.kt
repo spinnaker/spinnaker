@@ -25,7 +25,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProce
  * in the Spring application lifecycle (before any other Beans are created), but after
  * the environment is prepared.
  */
-class PluginBeanPostProcessor(
+class ExtensionBeanDefinitionRegistryPostProcessor(
   private val pluginManager: SpinnakerPluginManager,
   private val extensionsInjector: ExtensionsInjector
 ) : BeanDefinitionRegistryPostProcessor {
@@ -33,16 +33,18 @@ class PluginBeanPostProcessor(
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   override fun postProcessBeanDefinitionRegistry(registry: BeanDefinitionRegistry) {
-    log.debug("Preparing plugins")
+    log.debug("Preparing extensions")
     val start = System.currentTimeMillis()
     preparePlugins()
-    log.info("Finished preparing plugins in {}ms", System.currentTimeMillis() - start)
+    log.info("Finished preparing extensions in {}ms", System.currentTimeMillis() - start)
+
+    extensionsInjector.injectExtensions(registry)
+    log.info("Finished injecting extensions into parent context")
   }
 
   private fun preparePlugins() {
     pluginManager.loadPlugins()
     pluginManager.startPlugins()
-    extensionsInjector.injectExtensions()
   }
 
   override fun postProcessBeanFactory(beanFactory: ConfigurableListableBeanFactory) {

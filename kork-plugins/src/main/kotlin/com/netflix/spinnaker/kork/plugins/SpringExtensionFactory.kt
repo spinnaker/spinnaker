@@ -18,6 +18,7 @@ package com.netflix.spinnaker.kork.plugins
 import com.netflix.spinnaker.kork.plugins.api.SpringPlugin
 import org.pf4j.ExtensionFactory
 import org.pf4j.PluginManager
+import org.pf4j.PluginRuntimeException
 import org.pf4j.PluginWrapper
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
@@ -34,8 +35,9 @@ open class SpringExtensionFactory(
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  override fun <T> create(extensionClass: Class<T>): T? {
-    val extension = createWithoutSpring(extensionClass) ?: return null
+  override fun <T> create(extensionClass: Class<T>): T {
+    val extension = createWithoutSpring(extensionClass)
+      ?: throw PluginRuntimeException("Failed to create object of extension class: $extensionClass")
     val pluginWrapper = pluginManager.whichPlugin(extensionClass) ?: return extension
 
     val plugin = pluginWrapper.plugin

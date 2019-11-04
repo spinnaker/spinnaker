@@ -31,13 +31,13 @@ class SpringExtensionFactoryTest : JUnit5Minutests {
       subject.postProcessBeanDefinitionRegistry(mockk())
       verify(exactly = 1) { pluginManager.loadPlugins() }
       verify(exactly = 1) { pluginManager.startPlugins() }
-      verify(exactly = 1) { extensionInjector.injectExtensions() }
+      verify(exactly = 1) { extensionInjector.injectExtensions(any()) }
     }
   }
 
   private inner class Fixture {
     val pluginManager: SpinnakerPluginManager = mockk(relaxed = true)
     val extensionInjector: ExtensionsInjector = mockk(relaxed = true)
-    val subject = PluginBeanPostProcessor(pluginManager, extensionInjector)
+    val subject = ExtensionBeanDefinitionRegistryPostProcessor(pluginManager, extensionInjector)
   }
 }

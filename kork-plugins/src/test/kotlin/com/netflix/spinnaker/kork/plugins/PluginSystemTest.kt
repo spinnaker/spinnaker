@@ -39,7 +39,7 @@ class PluginSystemTest : JUnit5Minutests {
         expect {
           that(ctx.getBean("pluginManager")).isA<SpinnakerPluginManager>()
           that(ctx.getBean("extensionsInjector")).isA<ExtensionsInjector>()
-          that(ctx.getBean("pluginBeanPostProcessor")).isA<PluginBeanPostProcessor>()
+          that(ctx.getBean("pluginBeanPostProcessor")).isA<ExtensionBeanDefinitionRegistryPostProcessor>()
         }
       }
     }
