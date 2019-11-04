@@ -2,7 +2,7 @@ import * as React from 'react';
 import { UISref } from '@uirouter/react';
 import { UIRouterContext } from '@uirouter/react-hybrid';
 
-import { Application, ConfirmationModalService, LoadBalancerWriter, Spinner } from '@spinnaker/core';
+import { Application, LoadBalancerWriter, Spinner } from '@spinnaker/core';
 import { CloudFoundryLoadBalancerActions } from 'cloudfoundry/loadBalancer/details/CloudFoundryLoadBalancerActions';
 import { CloudFoundryLoadBalancerDetailsSection } from 'cloudfoundry/loadBalancer/details/sections';
 import { ICloudFoundryLoadBalancer } from 'cloudfoundry/domain';
@@ -24,7 +24,6 @@ interface ICloudFoundryLoadBalancerDetailsState {
 
 export interface ICloudFoundryLoadBalancerDetailsProps {
   app: Application;
-  confirmationModalService: ConfirmationModalService;
   loadBalancer: ILoadBalancer;
   loadBalancerWriter: LoadBalancerWriter;
 }
@@ -82,7 +81,7 @@ export class CloudFoundryLoadBalancerDetails extends React.Component<
   }
 
   public render(): JSX.Element {
-    const { app, confirmationModalService } = this.props;
+    const { app } = this.props;
     const { loadBalancer, loadBalancerNotFound, loading } = this.state;
 
     const CloseButton = (
@@ -115,11 +114,7 @@ export class CloudFoundryLoadBalancerDetails extends React.Component<
           <i className="fa icon-sitemap" />
           <h3 className="horizontal middle space-between flex-1">{loadBalancer.name}</h3>
         </div>
-        <CloudFoundryLoadBalancerActions
-          application={app}
-          confirmationModalService={confirmationModalService}
-          loadBalancer={loadBalancer}
-        />
+        <CloudFoundryLoadBalancerActions application={app} loadBalancer={loadBalancer} />
       </div>
     );
     const notFoundContent = () => (
