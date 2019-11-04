@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
 import com.amazonaws.services.elasticloadbalancing.model.DescribeInstanceHealthRequest
+import com.amazonaws.services.elasticloadbalancing.model.DescribeInstanceHealthResult
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerNotFoundException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
@@ -28,6 +29,7 @@ import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
+import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
@@ -98,39 +100,60 @@ class AmazonLoadBalancerInstanceStateCachingAgent implements CachingAgent, Healt
     def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(account, region)
     def allVpcsGlob = Keys.getLoadBalancerKey('*', account.name, region, '*', null)
     def nonVpcGlob = Keys.getLoadBalancerKey('*', account.name, region, null, null)
-    def loadBalancerKeys =
-      getCacheView().filterIdentifiers(LOAD_BALANCERS.ns, allVpcsGlob) + getCacheView().filterIdentifiers(LOAD_BALANCERS.ns, nonVpcGlob)
+    def loadBalancerKeys = getCacheView()
+      .filterIdentifiers(LOAD_BALANCERS.ns, allVpcsGlob) +
+      getCacheView().filterIdentifiers(LOAD_BALANCERS.ns, nonVpcGlob)
 
-    Collection<CacheData> lbHealths = []
-    Collection<CacheData> instances = []
+    Collection<CacheData> lbHealths = new ArrayList<>()
+    Collection<CacheData> instanceRels = new ArrayList<>()
+
     for (loadBalancerKey in loadBalancerKeys) {
       try {
         Map<String, String> idObj = Keys.parse(loadBalancerKey)
-        def lbName = idObj.loadBalancer
+        String lbName = idObj.loadBalancer
         if (idObj.loadBalancerType && idObj.loadBalancerType != 'classic')
           continue
 
-        def result = loadBalancing.describeInstanceHealth(new DescribeInstanceHealthRequest(lbName))
-        def loadBalancerInstances = []
+        List<LoadBalancerInstance> loadBalancerInstances = new ArrayList<>()
+        DescribeInstanceHealthResult result = loadBalancing
+          .describeInstanceHealth(new DescribeInstanceHealthRequest(lbName))
+
         for (instanceState in result.instanceStates) {
-          def loadBalancerInstance = new LoadBalancerInstance(instanceState.instanceId, instanceState.state, instanceState.reasonCode, instanceState.description)
+          LoadBalancerInstance loadBalancerInstance = new LoadBalancerInstance(
+            instanceState.instanceId,
+            instanceState.state,
+            instanceState.reasonCode,
+            instanceState.description)
           loadBalancerInstances << loadBalancerInstance
         }
-        def loadBalancerInstanceState = new LoadBalancerInstanceState(name: lbName, instances: loadBalancerInstances)
-        def ilbs = InstanceLoadBalancers.fromLoadBalancerInstanceState([loadBalancerInstanceState])
+
+        LoadBalancerInstanceState loadBalancerInstanceState = new LoadBalancerInstanceState(
+          name: lbName,
+          instances: loadBalancerInstances)
+        List<InstanceLoadBalancers> ilbs = InstanceLoadBalancers
+          .fromLoadBalancerInstanceState([loadBalancerInstanceState])
+        Collection<String> instanceIds = ilbs.collect {
+          Keys.getInstanceKey(it.instanceId, account.name, region)
+        }
+        Map<String, CacheData> instances = providerCache
+          .getAll(INSTANCES.ns, instanceIds, RelationshipCacheFilter.none())
+          .collectEntries { [(it.id): it] }
 
         for (InstanceLoadBalancers ilb in ilbs) {
           String instanceId = Keys.getInstanceKey(ilb.instanceId, account.name, region)
           String healthId = Keys.getInstanceHealthKey(ilb.instanceId, account.name, region, healthId)
-
           Map<String, Object> attributes = objectMapper.convertValue(ilb, ATTRIBUTES)
-          if (idObj.containsKey("application")) {
-            attributes.put("application", idObj.get("application"))
+          Map<String, Collection<String>> relationships = [(INSTANCES.ns): [instanceId]]
+
+          if (instances[instanceId] != null) {
+            String application = instances[instanceId].attributes.get("application")
+            if (application != null) {
+              attributes.put("application", application)
+            }
           }
 
-          Map<String, Collection<String>> relationships = [(INSTANCES.ns): [instanceId]]
           lbHealths.add(new DefaultCacheData(healthId, attributes, relationships))
-          instances.add(new DefaultCacheData(instanceId, [:], [(HEALTH.ns): [healthId]]))
+          instanceRels.add(new DefaultCacheData(instanceId, [:], [(HEALTH.ns): [healthId]]))
         }
       } catch (LoadBalancerNotFoundException e) {
         // this is acceptable since we may be waiting for the caches to catch up
@@ -139,7 +162,7 @@ class AmazonLoadBalancerInstanceStateCachingAgent implements CachingAgent, Healt
     log.info("Caching ${lbHealths.size()} items in ${agentType}")
     new DefaultCacheResult(
       (HEALTH.ns): lbHealths,
-      (INSTANCES.ns): instances)
+      (INSTANCES.ns): instanceRels)
   }
 
   private Cache getCacheView() {
