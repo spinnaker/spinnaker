@@ -30,6 +30,7 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.PinServerGrou
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.DetermineTargetServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
+import com.netflix.spinnaker.orca.deploymentmonitor.models.DeploymentMonitorStageConfig
 import com.netflix.spinnaker.orca.deploymentmonitor.models.MonitoredDeployInternalStageData
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
@@ -121,18 +122,17 @@ class MonitoredDeployStrategy implements Strategy {
     }
 
     // TODO(mvulfson): I don't love this
-    def evalContext = stageData.getChildStageContext()
     MonitoredDeployInternalStageData internalStageData = new MonitoredDeployInternalStageData()
     internalStageData.account = baseContext.credentials
     internalStageData.cloudProvider = baseContext.cloudProvider
     internalStageData.region = baseContext.region
     internalStageData.oldServerGroup = source?.serverGroupName
-    internalStageData.parameters = stageData.deploymentMonitor?.parameters
+    internalStageData.deploymentMonitor = stageData.deploymentMonitor
 
     CreateServerGroupStage.StageData createServerStageData = stage.mapTo(CreateServerGroupStage.StageData)
     internalStageData.newServerGroup = createServerStageData.getServerGroup()
 
-    evalContext += internalStageData.toContextMap()
+    def evalContext = internalStageData.toContextMap()
 
     def findContext = baseContext + [
       //target        : TargetServerGroup.Params.Target.current_asg_dynamic,
@@ -391,16 +391,16 @@ class MonitoredDeployStrategy implements Strategy {
     MonitoredDeployStageData stageData = parent.mapTo(MonitoredDeployStageData)
     if (stageData.deploymentMonitor?.id) {
       CreateServerGroupStage.StageData createServerStageData = parent.mapTo(CreateServerGroupStage.StageData)
-      def evalContext = stageData.getChildStageContext()
       MonitoredDeployInternalStageData internalStageData = new MonitoredDeployInternalStageData()
       internalStageData.account = baseContext.credentials
       internalStageData.cloudProvider = baseContext.cloudProvider
       internalStageData.region = baseContext.region
       internalStageData.oldServerGroup = source?.serverGroupName
       internalStageData.newServerGroup = createServerStageData.getServerGroup()
-      internalStageData.parameters = stageData.deploymentMonitor.parameters
+      internalStageData.deploymentMonitor = stageData.deploymentMonitor
       internalStageData.hasDeploymentFailed = true;
-      evalContext += internalStageData.toContextMap()
+
+      Map evalContext = internalStageData.toContextMap()
       stages << newStage(
         parent.execution,
         NotifyDeployCompletedStage.PIPELINE_CONFIG_TYPE,
@@ -523,27 +523,13 @@ class FailureActions {
   }
 }
 
-class DeploymentMonitor {
-  String id
-  Map<String, Object> parameters
-}
-
 class MonitoredDeployStageData extends StageData {
   List<Integer> deploySteps = []
   Capacity targetCapacity
   int maxRemainingAsgs
   int scaleDownOldAsgs
   FailureActions failureActions = new FailureActions()
-  DeploymentMonitor deploymentMonitor
-  int deployMonitorHttpRetryCount
-
-  Map getChildStageContext() {
-    def context = [
-      deploymentMonitor: deploymentMonitor,
-    ]
-
-    return context
-  }
+  DeploymentMonitorStageConfig deploymentMonitor
 
   //Capacity originalCapacity
 }

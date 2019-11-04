@@ -16,24 +16,13 @@
 
 package com.netflix.spinnaker.orca.deploymentmonitor.models;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 import lombok.Data;
 
-// Stuff used in intermediate stages
 @Data
-public class MonitoredDeployInternalStageData {
-  private String newServerGroup;
-  private String oldServerGroup;
-  private String account;
-  private String region;
-  private String cloudProvider;
-  private int currentProgress;
-  private boolean hasDeploymentFailed;
-  private DeploymentMonitorStageConfig deploymentMonitor;
-  private int deployMonitorHttpRetryCount;
-
-  public Map toContextMap() {
-    return new ObjectMapper().convertValue(this, Map.class);
-  }
+public class DeploymentMonitorStageConfig {
+  private String id;
+  private Map<String, Object> parameters;
+  private Integer maxAnalysisMinutesOverride;
+  private Boolean failOnErrorOverride;
 }

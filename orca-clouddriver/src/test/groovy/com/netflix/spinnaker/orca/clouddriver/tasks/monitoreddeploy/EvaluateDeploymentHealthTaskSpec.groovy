@@ -16,28 +16,28 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.monitoreddeploy
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.DeploymentMonitorDefinition
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.DeploymentMonitor
-import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.MonitoredDeployStageData
 import com.netflix.spinnaker.orca.deploymentmonitor.DeploymentMonitorService
+import com.netflix.spinnaker.orca.deploymentmonitor.models.DeploymentMonitorStageConfig
 import com.netflix.spinnaker.orca.deploymentmonitor.models.DeploymentStep
 import com.netflix.spinnaker.orca.deploymentmonitor.models.EvaluateHealthResponse
+import com.netflix.spinnaker.orca.deploymentmonitor.models.MonitoredDeployInternalStageData
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.RetrofitError
 import spock.lang.Specification
 import com.netflix.spinnaker.config.DeploymentMonitorServiceProvider
+import spock.lang.Unroll
 
 import java.time.Instant
+import java.util.concurrent.TimeUnit
 
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 
 class EvaluateDeploymentHealthTaskSpec extends Specification {
-  ObjectMapper mapper = new ObjectMapper()
   Execution pipe = pipeline {
   }
 
@@ -49,40 +49,49 @@ class EvaluateDeploymentHealthTaskSpec extends Specification {
       }
     }
 
-    def serviceProviderStub = Stub(DeploymentMonitorServiceProvider) {
-      getDefinitionById(_) >> {
-        def deploymentMonitor = new DeploymentMonitorDefinition()
-        deploymentMonitor.id = "LogMonitorId"
-        deploymentMonitor.name = "LogMonitor"
-        deploymentMonitor.failOnError = true
-        deploymentMonitor.service = monitorServiceStub
-
-        return deploymentMonitor
-      }
-    }
+    def serviceProviderStub = getServiceProviderStub(monitorServiceStub)
 
     def task = new EvaluateDeploymentHealthTask(serviceProviderStub, new NoopRegistry())
 
-    MonitoredDeployStageData stageData = new MonitoredDeployStageData()
-    stageData.deploymentMonitor = new DeploymentMonitor()
+    MonitoredDeployInternalStageData stageData = new MonitoredDeployInternalStageData()
+    stageData.deploymentMonitor = new DeploymentMonitorStageConfig()
     stageData.deploymentMonitor.id = "LogMonitorId"
-    stageData.application = pipe.application
 
-    def stage = new Stage(pipe, "evaluateDeploymentHealth", mapper.convertValue(stageData, Map))
+    def stage = new Stage(pipe, "evaluateDeploymentHealth", stageData.toContextMap() + [application: pipe.application])
     stage.startTime = Instant.now().toEpochMilli()
 
-    when:
+    when: 'we can still retry'
     TaskResult result = task.execute(stage)
 
-    then:
+    then: 'should retry'
     result.status == ExecutionStatus.RUNNING
     result.context.deployMonitorHttpRetryCount == 1
 
-    when:
-    stage.context.deployMonitorHttpRetryCount = 3
+    when: 'we ran out of retries'
+    stage.context.deployMonitorHttpRetryCount = MonitoredDeployBaseTask.MAX_RETRY_COUNT
     result = task.execute(stage)
 
-    then:
+    then: 'should terminate'
+    result.status == ExecutionStatus.TERMINAL
+
+    when: 'we ran out of retries and failOnError = false'
+    serviceProviderStub = getServiceProviderStub(monitorServiceStub, {DeploymentMonitorDefinition dm -> dm.failOnError = false})
+    task = new EvaluateDeploymentHealthTask(serviceProviderStub, new NoopRegistry())
+    result = task.execute(stage)
+
+    then: 'should return fail_continue'
+    result.status == ExecutionStatus.FAILED_CONTINUE
+
+    when: 'we ran out of retries and failOnError = false but there is a stage override for failOnError=true'
+    stageData.deploymentMonitor.failOnErrorOverride = true
+    stage = new Stage(pipe, "evaluateDeploymentHealth", stageData.toContextMap() + [
+      application: pipe.application,
+      deployMonitorHttpRetryCount: MonitoredDeployBaseTask.MAX_RETRY_COUNT
+    ])
+    stage.startTime = Instant.now().toEpochMilli()
+    result = task.execute(stage)
+
+    then: 'should terminate'
     result.status == ExecutionStatus.TERMINAL
   }
 
@@ -105,26 +114,15 @@ class EvaluateDeploymentHealthTaskSpec extends Specification {
       }
     }
 
-    def serviceProviderStub = Stub(DeploymentMonitorServiceProvider) {
-      getDefinitionById(_) >> {
-        def deploymentMonitor = new DeploymentMonitorDefinition()
-        deploymentMonitor.id = "LogMonitorId"
-        deploymentMonitor.name = "LogMonitor"
-        deploymentMonitor.failOnError = true
-        deploymentMonitor.service = monitorServiceStub
-
-        return deploymentMonitor
-      }
-    }
+    def serviceProviderStub = getServiceProviderStub(monitorServiceStub)
 
     def task = new EvaluateDeploymentHealthTask(serviceProviderStub, new NoopRegistry())
 
-    MonitoredDeployStageData stageData = new MonitoredDeployStageData()
-    stageData.deploymentMonitor = new DeploymentMonitor()
+    MonitoredDeployInternalStageData stageData = new MonitoredDeployInternalStageData()
+    stageData.deploymentMonitor = new DeploymentMonitorStageConfig()
     stageData.deploymentMonitor.id = "LogMonitorId"
-    stageData.application = pipe.application
 
-    def stage = new Stage(pipe, "evaluateDeploymentHealth", mapper.convertValue(stageData, Map))
+    def stage = new Stage(pipe, "evaluateDeploymentHealth", stageData.toContextMap() + [application: pipe.application])
     stage.startTime = Instant.now().toEpochMilli()
 
     when: 'monitor returns an empty EvaluateHealthResponse'
@@ -138,5 +136,85 @@ class EvaluateDeploymentHealthTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.TERMINAL
+  }
+
+  def 'should compute task timeout'() {
+    given:
+    def monitorServiceStub = Mock(DeploymentMonitorService)
+
+    def serviceProviderStub = getServiceProviderStub(monitorServiceStub,
+      {DeploymentMonitorDefinition deploymentMonitor -> deploymentMonitor.maxAnalysisMinutes = 15})
+
+    def task = new EvaluateDeploymentHealthTask(serviceProviderStub, new NoopRegistry())
+
+    MonitoredDeployInternalStageData stageData = new MonitoredDeployInternalStageData()
+    stageData.deploymentMonitor = new DeploymentMonitorStageConfig()
+    stageData.deploymentMonitor.id = "LogMonitorId"
+
+    when: 'no override is provided'
+    def stage = new Stage(pipe, "evaluateDeploymentHealth", stageData.toContextMap() + [application: pipe.application])
+
+    then:
+    task.getTimeout() == 0
+    task.getDynamicTimeout(stage) == TimeUnit.MINUTES.toMillis(15)
+
+    when: 'stage override is provided'
+    stageData.deploymentMonitor.maxAnalysisMinutesOverride = new Integer(21)
+    stage = new Stage(pipe, "evaluateDeploymentHealth", stageData.toContextMap() + [application: pipe.application])
+
+    then:
+    task.getDynamicTimeout(stage) == TimeUnit.MINUTES.toMillis(21)
+  }
+
+  @Unroll
+  def 'should respect failOnError during onTimeout'() {
+    given:
+    def monitorServiceStub = Mock(DeploymentMonitorService)
+
+    def serviceProviderStub = getServiceProviderStub(monitorServiceStub,
+      {DeploymentMonitorDefinition deploymentMonitor -> deploymentMonitor.failOnError = monitorFailOnError})
+
+    def task = new EvaluateDeploymentHealthTask(serviceProviderStub, new NoopRegistry())
+
+    MonitoredDeployInternalStageData stageData = new MonitoredDeployInternalStageData()
+    stageData.deploymentMonitor = new DeploymentMonitorStageConfig()
+    stageData.deploymentMonitor.id = "LogMonitorId"
+    stageData.deploymentMonitor.failOnErrorOverride = stageFailOnError
+    def stage = new Stage(pipe, "evaluateDeploymentHealth", stageData.toContextMap() + [application: pipe.application])
+
+    when:
+    def result = task.onTimeout(stage)
+
+    then:
+    result.status == expected
+
+    where:
+    monitorFailOnError | stageFailOnError || expected
+    true               | true             || ExecutionStatus.TERMINAL
+    true               | false            || ExecutionStatus.FAILED_CONTINUE
+    true               | null             || ExecutionStatus.TERMINAL
+    false              | true             || ExecutionStatus.TERMINAL
+    false              | false            || ExecutionStatus.FAILED_CONTINUE
+    false              | null             || ExecutionStatus.FAILED_CONTINUE
+  }
+
+  private getServiceProviderStub(monitorServiceStub) {
+    return getServiceProviderStub(monitorServiceStub, {})
+  }
+
+  private getServiceProviderStub(monitorServiceStub, extraInitLambda) {
+    return Stub(DeploymentMonitorServiceProvider) {
+      getDefinitionById(_) >> {
+        def deploymentMonitor = new DeploymentMonitorDefinition()
+        deploymentMonitor.id = "LogMonitorId"
+        deploymentMonitor.name = "LogMonitor"
+        deploymentMonitor.failOnError = true
+        deploymentMonitor.service = monitorServiceStub
+
+        extraInitLambda(deploymentMonitor)
+
+        return deploymentMonitor
+      }
+    }
   }
 }

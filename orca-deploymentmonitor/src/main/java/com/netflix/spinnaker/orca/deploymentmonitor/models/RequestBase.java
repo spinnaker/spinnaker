@@ -90,6 +90,6 @@ public class RequestBase {
     account = stageData.getAccount();
     region = stageData.getRegion();
     cloudProvider = stageData.getCloudProvider();
-    parameters = stageData.getParameters();
+    parameters = stageData.getDeploymentMonitor().getParameters();
   }
 }

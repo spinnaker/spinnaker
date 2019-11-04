@@ -26,6 +26,7 @@ import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.MonitoredDeployStageData;
 import com.netflix.spinnaker.orca.deploymentmonitor.models.DeploymentStep;
 import com.netflix.spinnaker.orca.deploymentmonitor.models.EvaluateHealthResponse;
+import com.netflix.spinnaker.orca.deploymentmonitor.models.MonitoredDeployInternalStageData;
 import com.netflix.spinnaker.orca.deploymentmonitor.models.StatusExplanation;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.io.InputStreamReader;
@@ -43,7 +44,7 @@ import retrofit.client.Header;
 import retrofit.client.Response;
 
 public class MonitoredDeployBaseTask implements RetryableTask {
-  private static final int MAX_RETRY_COUNT = 3;
+  static final int MAX_RETRY_COUNT = 3;
   protected final Logger log = LoggerFactory.getLogger(getClass());
   protected Registry registry;
   private DeploymentMonitorServiceProvider deploymentMonitorServiceProvider;
@@ -84,24 +85,29 @@ public class MonitoredDeployBaseTask implements RetryableTask {
 
   @Override
   public long getDynamicTimeout(Stage stage) {
+    MonitoredDeployInternalStageData stageData =
+        stage.mapTo(MonitoredDeployInternalStageData.class);
+
+    // If stage has an override, use that
+    Integer stageOverride = stageData.getDeploymentMonitor().getMaxAnalysisMinutesOverride();
+    if ((stageOverride != null) && (stageOverride > 0)) {
+      return Duration.ofMinutes(stageOverride).toMillis();
+    }
+
     DeploymentMonitorDefinition monitorDefinition = getDeploymentMonitorDefinition(stage);
 
-    final Duration defaultTimeout = Duration.ofMinutes(60);
-    long timeout;
-
     try {
-      timeout = TimeUnit.MINUTES.toMillis(monitorDefinition.getMaxAnalysisMinutes());
+      return Duration.ofMinutes(monitorDefinition.getMaxAnalysisMinutes()).toMillis();
     } catch (Exception e) {
       log.error(
           "Failed to compute timeout for {}, returning {} min",
           getClass().getSimpleName(),
-          defaultTimeout.toMinutes(),
+          DeploymentMonitorDefinition.DEFAULT_MAX_ANALYSIS_MINUTES,
           e);
 
-      timeout = defaultTimeout.toMillis();
+      return Duration.ofMinutes(DeploymentMonitorDefinition.DEFAULT_MAX_ANALYSIS_MINUTES)
+          .toMillis();
     }
-
-    return timeout;
   }
 
   @Override
@@ -110,7 +116,7 @@ public class MonitoredDeployBaseTask implements RetryableTask {
     String message;
     DeploymentMonitorDefinition monitorDefinition = getDeploymentMonitorDefinition(stage);
 
-    if (monitorDefinition.isFailOnError()) {
+    if (shouldFailOnError(stage, monitorDefinition)) {
       message =
           "Deployment monitor failed to evaluate health in the allotted time, assuming failure because the monitor is configured to failOnError";
       taskStatus = ExecutionStatus.TERMINAL;
@@ -138,10 +144,10 @@ public class MonitoredDeployBaseTask implements RetryableTask {
           getRetrofitLogMessage(e.getResponse()),
           e);
 
-      return handleError(context, e, true, monitorDefinition);
+      return handleError(stage, e, true, monitorDefinition);
     } catch (DeploymentMonitorInvalidDataException e) {
 
-      return handleError(context, e, false, monitorDefinition);
+      return handleError(stage, e, false, monitorDefinition);
     } catch (Exception e) {
       log.error("Exception while executing {}, aborting deployment", getClass().getSimpleName(), e);
 
@@ -156,7 +162,7 @@ public class MonitoredDeployBaseTask implements RetryableTask {
   }
 
   private TaskResult handleError(
-      MonitoredDeployStageData context,
+      Stage stage,
       Exception e,
       boolean retryAllowed,
       DeploymentMonitorDefinition monitorDefinition) {
@@ -165,7 +171,9 @@ public class MonitoredDeployBaseTask implements RetryableTask {
         .increment();
 
     if (retryAllowed) {
-      int currentRetryCount = context.getDeployMonitorHttpRetryCount();
+      MonitoredDeployInternalStageData stageData =
+          stage.mapTo(MonitoredDeployInternalStageData.class);
+      int currentRetryCount = stageData.getDeployMonitorHttpRetryCount();
 
       if (currentRetryCount < MAX_RETRY_COUNT) {
         log.warn(
@@ -180,7 +188,7 @@ public class MonitoredDeployBaseTask implements RetryableTask {
       }
     }
 
-    if (monitorDefinition.isFailOnError()) {
+    if (shouldFailOnError(stage, monitorDefinition)) {
       registry
           .counter("deploymentMonitor.fatalErrors", "monitorId", monitorDefinition.getId())
           .increment();
@@ -210,7 +218,7 @@ public class MonitoredDeployBaseTask implements RetryableTask {
             "Failed to get a valid response from deployment monitor %s, proceeding anyway because this deployment monitor is configured to not failOnError",
             monitorDefinition.getName());
 
-    return buildTaskResult(TaskResult.builder(ExecutionStatus.SUCCEEDED), userMessage);
+    return buildTaskResult(TaskResult.builder(ExecutionStatus.FAILED_CONTINUE), userMessage);
   }
 
   TaskResult buildTaskResult(
@@ -264,6 +272,14 @@ public class MonitoredDeployBaseTask implements RetryableTask {
     }
 
     return String.format("status: %s\nheaders: %s\nresponse body: %s", status, headers, body);
+  }
+
+  private boolean shouldFailOnError(Stage stage, DeploymentMonitorDefinition definition) {
+    MonitoredDeployInternalStageData stageData =
+        stage.mapTo(MonitoredDeployInternalStageData.class);
+
+    return Optional.ofNullable(stageData.getDeploymentMonitor().getFailOnErrorOverride())
+        .orElse(definition.isFailOnError());
   }
 
   void sanitizeAndLogResponse(

@@ -21,6 +21,8 @@ import lombok.Data;
 
 @Data
 public class DeploymentMonitorDefinition {
+  public static final int DEFAULT_MAX_ANALYSIS_MINUTES = 30;
+
   /** Unique ID of this deployment monitor */
   private String id;
 
@@ -37,7 +39,7 @@ public class DeploymentMonitorDefinition {
    * Maximum number of minutes this deployment monitor is allowed to respond to the /evaluateHealth
    * request. Failure to respond in this time frame will result in deployment failure.
    */
-  private int maxAnalysisMinutes = 30;
+  private int maxAnalysisMinutes = DEFAULT_MAX_ANALYSIS_MINUTES;
 
   /** true to terminate if the deployment monitor repeatedly fails with HTTP errors */
   private boolean failOnError = true;

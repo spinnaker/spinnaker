@@ -25,10 +25,10 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.RollbackClusterStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.monitoreddeploy.NotifyDeployCompletedStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CreateServerGroupStage
-import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.DeploymentMonitor
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.MonitoredDeployStageData
 import com.netflix.spinnaker.orca.deploymentmonitor.DeploymentMonitorService
 import com.netflix.spinnaker.orca.deploymentmonitor.models.DeploymentCompletedRequest
+import com.netflix.spinnaker.orca.deploymentmonitor.models.DeploymentMonitorStageConfig
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.client.Response
@@ -64,7 +64,7 @@ class NotifyDeployCompletedTaskSpec extends Specification {
     def task = new NotifyDeployCompletedTask(serviceProviderStub, new NoopRegistry())
 
     MonitoredDeployStageData stageData = new MonitoredDeployStageData()
-    stageData.deploymentMonitor = new DeploymentMonitor()
+    stageData.deploymentMonitor = new DeploymentMonitorStageConfig()
     stageData.deploymentMonitor.id = "LogMonitorId"
     stageData.application = pipe.application
 
@@ -125,7 +125,7 @@ class NotifyDeployCompletedTaskSpec extends Specification {
     def task = new NotifyDeployCompletedTask(serviceProviderStub, new NoopRegistry())
 
     MonitoredDeployStageData stageData = new MonitoredDeployStageData()
-    stageData.deploymentMonitor = new DeploymentMonitor()
+    stageData.deploymentMonitor = new DeploymentMonitorStageConfig()
     stageData.deploymentMonitor.id = "LogMonitorId"
     stageData.application = pipe.application
 
