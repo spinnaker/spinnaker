@@ -117,7 +117,9 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
       try {
         if (UnrestrictedResourceConfig.UNRESTRICTED_USERNAME.equalsIgnoreCase(userId)) {
           permission.addResources(provider.getAllUnrestricted());
-        } else if (!roles.isEmpty()) {
+        }
+
+        if (!roles.isEmpty()) {
           permission.addResources(provider.getAllRestricted(roles, permission.isAdmin()));
         }
       } catch (ProviderException pe) {

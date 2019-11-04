@@ -19,9 +19,11 @@ package com.netflix.spinnaker.fiat.permissions
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.fiat.config.FiatAdminConfig
 import com.netflix.spinnaker.fiat.config.FiatRoleConfig
+import com.netflix.spinnaker.fiat.model.Authorization
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Account
 import com.netflix.spinnaker.fiat.model.resources.Application
+import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
 import com.netflix.spinnaker.fiat.providers.AccessControlledResourcePermissionSource
@@ -41,6 +43,9 @@ class DefaultPermissionsResolverSpec extends Specification {
   UserRolesProvider userRolesProvider = Mock(UserRolesProvider)
 
   @Shared
+  Role anonymous = new Role("anonymous")
+
+  @Shared
   Account noReqGroupsAcct = new Account().setName("noReqGroups")
 
   @Shared
@@ -51,8 +56,12 @@ class DefaultPermissionsResolverSpec extends Specification {
                                            .setRequiredGroupMembership(["group1", "GrouP2"]) // test case insensitivity.
 
   @Shared
+  Account anonymousRead = new Account().setName("anonymousRead")
+                                       .setPermissions(Permissions.factory((Authorization.READ): [anonymous.name], (Authorization.WRITE): ["otherGroup"]))
+
+  @Shared
   ClouddriverService clouddriverService = Mock(ClouddriverService) {
-    getAccounts() >> [noReqGroupsAcct, reqGroup1Acct, reqGroup1and2Acct]
+    getAccounts() >> [noReqGroupsAcct, reqGroup1Acct, reqGroup1and2Acct, anonymousRead]
   }
 
   @Shared
@@ -102,8 +111,8 @@ class DefaultPermissionsResolverSpec extends Specification {
     1 * userRolesProvider.loadUnrestrictedRoles() >> { return [new Role("anonymous")] }
 
     def expected = new UserPermission().setId("__unrestricted_user__")
-                                       .setAccounts([noReqGroupsAcct] as Set)
-                                       .setRoles([new Role("anonymous")] as Set)
+                                       .setAccounts([noReqGroupsAcct, anonymousRead] as Set)
+                                       .setRoles([anonymous] as Set)
     result == expected
   }
 
@@ -183,7 +192,7 @@ class DefaultPermissionsResolverSpec extends Specification {
     def expected = new UserPermission().setId("testUserId")
     expected.setRoles([role1] as Set).setAdmin(true)
             .setServiceAccounts([group1SvcAcct, group2SvcAcct] as Set)
-            .setAccounts([reqGroup1Acct, reqGroup1and2Acct] as Set)
+            .setAccounts([reqGroup1Acct, reqGroup1and2Acct, anonymousRead] as Set)
     result == expected
 
   }
