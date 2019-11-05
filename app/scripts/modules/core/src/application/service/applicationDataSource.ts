@@ -343,6 +343,14 @@ export class ApplicationDataSource<T = any> implements IDataSourceConfig<T> {
   constructor(config: IDataSourceConfig<T>, private application: Application) {
     Object.assign(this, config);
 
+    if (!config.hasOwnProperty('defaultData')) {
+      console.error(
+        'The defaultData field is required when registering a data source.\n\n' +
+          'defaultData accepts the initial default value that will be used before data has been fetched.\n' +
+          'For example, if your data source holds an array of objects, you should set defaultData to an empty array.',
+      );
+    }
+
     this.data = this.data || this.defaultData;
     this.label = FirewallLabels.get(config.label || robotToHuman(config.key));
 
