@@ -47,12 +47,14 @@ data:
       - spinnaker/spinnaker.github.io
       - spinnaker/clouddriver
       - spinnaker/deck
+      - spinnaker/deck-kayenta
       - spinnaker/echo
       - spinnaker/fiat
       - spinnaker/front50
       - spinnaker/gate
       - spinnaker/igor
       - spinnaker/kayenta
+      - spinnaker/keel
       - spinnaker/spinnaker-monitoring
       - spinnaker/orca
       - spinnaker/rosco
