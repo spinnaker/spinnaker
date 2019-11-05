@@ -183,20 +183,26 @@ class MonitorKatoTaskSpec extends Specification {
     def stage = stage {
       type = "type"
       context = [
-        "kato.last.task.id": new TaskId(katoTask.id)
+        "kato.last.task.id": new TaskId(katoTask.id),
+        "kato.task.terminalRetryCount": 8
       ]
     }
 
     when:
-    task.execute(stage)
+    def result = task.execute(stage)
 
     then:
     notThrown(RetrofitError)
-    dynamicConfigService.isEnabled("tasks.monitor-kato-task.saga-retries", _) >> true
+    dynamicConfigService.isEnabled("tasks.monitor-kato-task.terminal-retries", _) >> true
     with(kato) {
       1 * lookupTask(katoTask.id, false) >> { Observable.just(katoTask) }
       1 * resumeTask(katoTask.id) >> { new TaskId(katoTask.id) }
     }
+
+    and:
+    result.status == ExecutionStatus.RUNNING
+    result.context["kato.task.lastStatus"] == ExecutionStatus.TERMINAL
+    result.context['kato.task.terminalRetryCount'] == 9
   }
 
   def "should get task from master when kato.task.skipReplica=true"() {

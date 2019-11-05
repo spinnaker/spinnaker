@@ -36,6 +36,8 @@ import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 
 import java.time.Clock
+import java.time.Duration
+import java.util.concurrent.TimeUnit
 
 @Slf4j
 @Component
@@ -70,6 +72,14 @@ class MonitorKatoTask implements RetryableTask, CloudProviderAware {
   long getBackoffPeriod() { 5000L }
 
   long getTimeout() { 3600000L }
+
+  @Override
+  long getDynamicBackoffPeriod(Stage stage, Duration taskDuration) {
+    if ((stage.context."kato.task.lastStatus" as ExecutionStatus) == ExecutionStatus.TERMINAL) {
+      return Math.max(backoffPeriod, TimeUnit.MINUTES.toMillis(2))
+    }
+    return backoffPeriod
+  }
 
   @Override
   TaskResult execute(Stage stage) {
@@ -120,8 +130,10 @@ class MonitorKatoTask implements RetryableTask, CloudProviderAware {
     }
 
     def outputs = [
+      'kato.task.terminalRetryCount': 0,
       'kato.task.firstNotFoundRetry': -1L,
-      'kato.task.notFoundRetryCount': 0
+      'kato.task.notFoundRetryCount': 0,
+      'kato.task.lastStatus': status
     ] as Map<String, ?>
 
     if (status == ExecutionStatus.SUCCEEDED) {
@@ -136,6 +148,8 @@ class MonitorKatoTask implements RetryableTask, CloudProviderAware {
       }
 
       if (stage.context."kato.task.retriedOperation" == true) {
+        Integer totalRetries = stage.context."kato.task.terminalRetryCount" as Integer
+        log.info("Completed kato task ${katoTask.id} (total retries: ${totalRetries}) after exception: {}", getException(katoTask))
         stage.execution.systemNotifications.add(new SystemNotification(
           clock.millis(),
           "katoRetryTask",
@@ -164,8 +178,9 @@ class MonitorKatoTask implements RetryableTask, CloudProviderAware {
       outputs["kato.tasks"] = katoTasks
     }
 
-    if (status == ExecutionStatus.TERMINAL && katoTask.status.retryable && dynamicConfigService.isEnabled("tasks.monitor-kato-task.saga-retries", true)) {
-      stage.execution.systemNotifications.add(new SystemNotification(
+    if (shouldRetry(katoTask, status)) {
+      stage.execution.systemNotifications.add(
+        new SystemNotification(
         clock.millis(),
         "katoRetryTask",
         "Retrying failed downstream cloud provider operation",
@@ -178,10 +193,24 @@ class MonitorKatoTask implements RetryableTask, CloudProviderAware {
         log.error("Request failed attempting to resume task", e)
       }
       status = ExecutionStatus.RUNNING
+
+      Integer retryCount = ((stage.context."kato.task.terminalRetryCount" as Integer) ?: 0) + 1
+      outputs["kato.task.terminalRetryCount"] = retryCount
+
       stage.context."kato.task.retriedOperation" = true
+
+      log.info("Retrying kato task ${katoTask.id} (retry: ${retryCount}) with exception: {}", getException(katoTask))
     }
 
     TaskResult.builder(status).context(outputs).build()
+  }
+
+  private boolean shouldRetry(Task katoTask, ExecutionStatus status) {
+    return (
+      status == ExecutionStatus.TERMINAL
+      && katoTask.status.retryable
+      && dynamicConfigService.isEnabled("tasks.monitor-kato-task.terminal-retries", true)
+    )
   }
 
   private static ExecutionStatus katoStatusToTaskStatus(Task katoTask, boolean katoResultExpected) {
@@ -239,5 +268,9 @@ class MonitorKatoTask implements RetryableTask, CloudProviderAware {
     } ?: [:]
 
     return (Map<String, List<String>>) result.deployedNamesByLocation
+  }
+
+  private static Map getException(Task task) {
+    return task.resultObjects?.find { it.type == "EXCEPTION" } ?: [:]
   }
 }
