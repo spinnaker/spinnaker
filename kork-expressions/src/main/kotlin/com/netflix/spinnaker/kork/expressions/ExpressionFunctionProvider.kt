@@ -84,14 +84,18 @@ interface ExpressionFunctionProvider : ExtensionPoint {
   data class FunctionDefinition(
     val name: String,
     val description: String,
-    val parameters: List<FunctionParameter>
+    val parameters: List<FunctionParameter>,
+    val documentation: FunctionDocumentation?
   ) {
     @Deprecated("Please use the overload with description", replaceWith = ReplaceWith("FunctionDefinition(name, \"\", functionParameters)"))
     constructor(name: String, vararg functionParameters: FunctionParameter) :
-      this(name, "", listOf(*functionParameters))
+      this(name, "", listOf(*functionParameters), null)
 
     constructor(name: String, description: String, vararg functionParameters: FunctionParameter) :
-      this(name, description, listOf(*functionParameters))
+      this(name, description, listOf(*functionParameters), null)
+
+    constructor(name: String, description: String, documentation: FunctionDocumentation, vararg functionParameters: FunctionParameter) :
+      this(name, description, listOf(*functionParameters), documentation)
   }
 
   /**
@@ -104,6 +108,33 @@ interface ExpressionFunctionProvider : ExtensionPoint {
   data class FunctionParameter(
     val type: Class<*>,
     val name: String,
+    val description: String
+  )
+
+  /**
+   * Documentation for a function
+   * This documentation is used by deck to display in-line docs for a SpEL function
+   *
+   * @param documentation Documentation text, can contains markdown
+   * @param examples list of example usages of the function, optional
+   */
+  data class FunctionDocumentation(
+    val documentation: String,
+    val examples: List<FunctionUsageExample>?
+  ) {
+    constructor(documentation: String, vararg examples: FunctionUsageExample) :
+      this(documentation, listOf(*examples))
+  }
+
+  /**
+   * Function usage example
+   * This is used by deck to display in-line docs for a SpEL function
+   *
+   * @param usage example usage, e.g. "#stage('bake in us-east').hasSucceeded"
+   * @param description explanation of the usage sample, markdown supported e.g. "checks if the bake stage has completed successfully"
+   */
+  data class FunctionUsageExample(
+    val usage: String,
     val description: String
   )
 }
