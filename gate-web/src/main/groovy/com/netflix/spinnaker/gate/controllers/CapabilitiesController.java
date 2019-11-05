@@ -20,6 +20,7 @@ import com.netflix.spinnaker.gate.security.RequestContext;
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector;
 import io.swagger.annotations.ApiOperation;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,5 +35,13 @@ public class CapabilitiesController {
   @GetMapping(value = "/deploymentMonitors")
   List<Object> getDeploymentMonitors() {
     return orcaService.withContext(RequestContext.get()).getDeploymentMonitors();
+  }
+
+  @ApiOperation(
+      value = "Retrieve the SpEL expression capabilities (e.g. registered functions, etc)",
+      response = Map.class)
+  @GetMapping(value = "/expressions")
+  Map getExpressionCapabilities() {
+    return orcaService.withContext(RequestContext.get()).getExpressionCapabilities();
   }
 }

@@ -136,4 +136,7 @@ interface OrcaService {
 
   @GET("/capabilities/deploymentMonitors")
   List<Object> getDeploymentMonitors();
+
+  @GET("/capabilities/expressions")
+  Map getExpressionCapabilities();
 }
