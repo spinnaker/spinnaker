@@ -43,6 +43,7 @@ public class ManifestLabelValueExpressionFunctionProvider implements ExpressionF
     return new Functions(
         new FunctionDefinition(
             "manifestLabelValue",
+            "Returns the value of a label with given key and kind from a Kubernetes Deployment or ReplicaSet manifest deployed by a stage with a given name",
             new FunctionParameter(
                 Execution.class, "execution", "The execution to search for stages within"),
             new FunctionParameter(

@@ -18,9 +18,9 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.monitoreddeploy;
 
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.DeploymentMonitorDefinition;
-import com.netflix.spinnaker.config.DeploymentMonitorServiceProvider;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.TaskResult;
+import com.netflix.spinnaker.orca.deploymentmonitor.DeploymentMonitorServiceProvider;
 import com.netflix.spinnaker.orca.deploymentmonitor.models.EvaluateHealthResponse;
 import com.netflix.spinnaker.orca.deploymentmonitor.models.RequestBase;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;

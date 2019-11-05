@@ -14,22 +14,23 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.model;
+package com.netflix.spinnaker.orca.capabilities.models;
 
+import com.netflix.spinnaker.kork.expressions.ExpressionFunctionProvider;
 import lombok.Data;
 
 @Data
-public class DeploymentMonitorDefinition {
-  private String id;
+public class ExpressionFunctionParameterDefinition {
   private String name;
-  private String supportContact;
+  private String description;
+  private String type;
 
-  public DeploymentMonitorDefinition() {}
+  public ExpressionFunctionParameterDefinition() {}
 
-  public DeploymentMonitorDefinition(
-      com.netflix.spinnaker.config.DeploymentMonitorDefinition definition) {
-    id = definition.getId();
-    name = definition.getName();
-    supportContact = definition.getSupportContact();
+  public ExpressionFunctionParameterDefinition(
+      ExpressionFunctionProvider.FunctionParameter parameter) {
+    name = parameter.getName();
+    description = parameter.getDescription();
+    type = parameter.getType().getSimpleName();
   }
 }

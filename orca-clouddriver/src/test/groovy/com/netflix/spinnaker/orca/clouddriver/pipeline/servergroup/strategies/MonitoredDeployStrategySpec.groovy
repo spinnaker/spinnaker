@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies
 
 import com.netflix.spinnaker.config.DeploymentMonitorDefinition
-import com.netflix.spinnaker.config.DeploymentMonitorServiceProvider
+import com.netflix.spinnaker.orca.deploymentmonitor.DeploymentMonitorServiceProvider
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.netflix.spinnaker.moniker.Moniker
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.RollbackClusterStage

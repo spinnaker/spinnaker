@@ -16,34 +16,38 @@
 
 package com.netflix.spinnaker.orca.controllers;
 
-import com.netflix.spinnaker.config.MonitoredDeployConfigurationProperties;
-import com.netflix.spinnaker.orca.model.DeploymentMonitorDefinition;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import com.netflix.spinnaker.orca.capabilities.CapabilitiesService;
+import com.netflix.spinnaker.orca.capabilities.models.ExpressionCapabilityResult;
+import com.netflix.spinnaker.orca.deploymentmonitor.DeploymentMonitorCapabilities;
+import com.netflix.spinnaker.orca.deploymentmonitor.models.DeploymentMonitorDefinition;
+import java.util.*;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /** Controller intended for querying various capabilities of orca */
 @RestController
 public class CapabilitiesController {
-  private MonitoredDeployConfigurationProperties monitoredDeployConfigurationProperties;
+  private CapabilitiesService orcaCapabilities;
+  private DeploymentMonitorCapabilities deploymentMonitorCapabilities;
 
   public CapabilitiesController(
-      Optional<MonitoredDeployConfigurationProperties> monitoredDeployConfigurationProperties) {
-    this.monitoredDeployConfigurationProperties =
-        monitoredDeployConfigurationProperties.orElse(null);
+      CapabilitiesService orcaCapabilities,
+      Optional<DeploymentMonitorCapabilities> deploymentMonitorCapabilities) {
+    this.deploymentMonitorCapabilities = deploymentMonitorCapabilities.orElse(null);
+    this.orcaCapabilities = orcaCapabilities;
   }
 
   @GetMapping("/capabilities/deploymentMonitors")
   public List<DeploymentMonitorDefinition> getDeploymentMonitors() {
-    if (monitoredDeployConfigurationProperties == null) {
+    if (deploymentMonitorCapabilities == null) {
       return Collections.emptyList();
     }
 
-    return monitoredDeployConfigurationProperties.getDeploymentMonitors().stream()
-        .map(DeploymentMonitorDefinition::new)
-        .collect(Collectors.toList());
+    return deploymentMonitorCapabilities.getDeploymentMonitors();
+  }
+
+  @GetMapping("/capabilities/expressions")
+  public ExpressionCapabilityResult getExpressionCapabilities() {
+    return orcaCapabilities.getExpressionCapabilities();
   }
 }

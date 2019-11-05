@@ -1,7 +1,7 @@
 /*
  * Copyright 2019 Netflix, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License")
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/spock.gradle"
+package com.netflix.spinnaker.orca.capabilities.models;
 
-repositories {
-  jcenter()
-}
+import java.util.ArrayList;
+import java.util.List;
+import lombok.Data;
 
-dependencies {
-  implementation(project(":orca-core"))
-  implementation(project(":orca-retrofit"))
+@Data
+public class ExpressionCapabilityResult {
+  private List<ExpressionFunctionDefinition> functions;
+  private List<ExpressionSpelEvaluatorDefinition> spelEvaluators;
 
-  implementation("org.springframework.boot:spring-boot-autoconfigure")
-
-  compileOnly("org.projectlombok:lombok")
-  annotationProcessor("org.projectlombok:lombok")
+  public ExpressionCapabilityResult() {
+    functions = new ArrayList<>();
+    spelEvaluators = new ArrayList<>();
+  }
 }

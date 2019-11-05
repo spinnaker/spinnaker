@@ -16,9 +16,11 @@
 
 package com.netflix.spinnaker.config;
 
+import com.netflix.spinnaker.orca.deploymentmonitor.DeploymentMonitorServiceProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
@@ -27,6 +29,7 @@ import retrofit.client.Client;
 @Configuration
 @ConditionalOnProperty(value = "monitored-deploy.enabled")
 @EnableConfigurationProperties(MonitoredDeployConfigurationProperties.class)
+@ComponentScan("com.netflix.spinnaker.orca.deploymentmonitor")
 public class DeploymentMonitorConfiguration {
   @Bean
   DeploymentMonitorServiceProvider deploymentMonitorServiceProvider(

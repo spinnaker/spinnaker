@@ -42,11 +42,13 @@ public class ArtifactExpressionFunctionProvider implements ExpressionFunctionPro
     return new Functions(
         new FunctionDefinition(
             "triggerResolvedArtifact",
+            "Looks up the an artifact in current execution given its name. If multiple artifacts are found, only 1 will be returned.",
             new FunctionParameter(
                 Execution.class, "execution", "The execution to search for artifacts"),
             new FunctionParameter(String.class, "name", "The name of the resolved artifact")),
         new FunctionDefinition(
             "triggerResolvedArtifactByType",
+            "Looks up the an artifact in current execution given its type. If multiple artifacts are found, only 1 will be returned.",
             new FunctionParameter(
                 Execution.class, "execution", "The execution to search for artifacts"),
             new FunctionParameter(String.class, "type", "The type of the resolved artifact")));

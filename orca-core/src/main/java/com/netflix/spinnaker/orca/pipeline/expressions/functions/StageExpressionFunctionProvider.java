@@ -47,21 +47,43 @@ public class StageExpressionFunctionProvider implements ExpressionFunctionProvid
     return new Functions(
         new FunctionDefinition(
             "currentStage",
+            "Returns the current stage object",
             new FunctionParameter(
                 Execution.class,
                 "execution",
                 "The execution containing the currently executing stage")),
         new FunctionDefinition(
             "stageByRefId",
+            "Locates and returns a stage with the given refId",
             new FunctionParameter(
                 Execution.class,
                 "execution",
                 "The execution containing the currently executing stage"),
             new FunctionParameter(String.class, "refId", "A valid stage reference identifier")),
-        new FunctionDefinition("stage", stageParameters),
-        new FunctionDefinition("stageExists", stageParameters),
-        new FunctionDefinition("judgment", stageParameters),
-        new FunctionDefinition("judgement", stageParameters));
+        new FunctionDefinition(
+            "stage",
+            "Locates a stage by name",
+            new FunctionDocumentation(
+                "The most common use of this function is to check whether a specific stage has succeeded or failed. It can also be used to retrieve any information from the specified stage.",
+                new FunctionUsageExample(
+                    "#stage('bake').hasSucceeded",
+                    "Returns `true` if the stage with the name `bake` has succeeded"),
+                new FunctionUsageExample(
+                    "#stage('bake').hasFailed",
+                    "Returns `true` if the stage with the name `bake` has failed")),
+            stageParameters),
+        new FunctionDefinition(
+            "stageExists",
+            "Checks if the stage with the specified name exists in the current execution",
+            stageParameters),
+        new FunctionDefinition(
+            "judgment",
+            "Returns the judgement made by the user in the given manual judgement stage",
+            stageParameters),
+        new FunctionDefinition(
+            "judgement",
+            "Returns the judgement made by the user in the given manual judgement stage",
+            stageParameters));
   }
 
   /**

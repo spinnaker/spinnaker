@@ -52,6 +52,7 @@ public class PipelineExpressionFunctionProvider implements ExpressionFunctionPro
     return new Functions(
         new FunctionDefinition(
             "pipelineId",
+            "Lookup pipeline ID given the name of the pipeline in the current application",
             new FunctionParameter(
                 Execution.class,
                 "execution",

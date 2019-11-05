@@ -67,7 +67,7 @@ class PipelineExpressionEvaluatorSpec extends Specification {
     '${status == "SUCCEEDED"}'                  | false
   }
 
-  private ExpressionFunctionProvider buildExpressionFunctionProvider(String providerName) {
+  static ExpressionFunctionProvider buildExpressionFunctionProvider(String providerName) {
     new ExpressionFunctionProvider() {
       @Override
       String getNamespace() {
@@ -79,6 +79,7 @@ class PipelineExpressionEvaluatorSpec extends Specification {
         return new ExpressionFunctionProvider.Functions(
           new ExpressionFunctionProvider.FunctionDefinition(
             "functionWithExecutionContext-${providerName}",
+            "description for: functionWithExecutionContext-${providerName}",
             new ExpressionFunctionProvider.FunctionParameter(
               Execution.class,
               "execution",
@@ -87,6 +88,7 @@ class PipelineExpressionEvaluatorSpec extends Specification {
               String.class, "someArg", "A valid stage reference identifier")),
           new ExpressionFunctionProvider.FunctionDefinition(
             "functionWithNoExecutionContext-${providerName}",
+            "description for: functionWithNoExecutionContext-${providerName}",
             new ExpressionFunctionProvider.FunctionParameter(
               String.class, "someArg", "A valid stage reference identifier"))
         )

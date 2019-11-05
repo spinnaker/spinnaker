@@ -47,6 +47,7 @@ public class DeployedServerGroupsExpressionFunctionProvider implements Expressio
     return new Functions(
         new FunctionDefinition(
             "deployedServerGroups",
+            "Returns the list of server groups that were deployed in the specified stages",
             new FunctionParameter(
                 Execution.class, "execution", "The execution to search for stages within"),
             new FunctionParameter(

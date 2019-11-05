@@ -26,25 +26,32 @@ public class DeploymentMonitorDefinition {
   /** Unique ID of this deployment monitor */
   private String id;
 
-  /** Human friendly name of this deployment monitor */
+  /** Human friendly name of this deployment monitor (displayed in the UI) */
   private String name;
 
   /** Base URL for this deployment monitor */
   private String baseUrl;
 
-  /** Contact/support information link */
+  /** Contact/support information link (displayed in the UI) */
   private String supportContact;
 
   /**
-   * Maximum number of minutes this deployment monitor is allowed to respond to the /evaluateHealth
-   * request. Failure to respond in this time frame will result in deployment failure.
+   * Maximum number of minutes this deployment monitor is allowed to respond to the /starting &
+   * /evaluateHealth request. Failure to respond in this time frame will result in deployment
+   * failure.
    */
   private int maxAnalysisMinutes = DEFAULT_MAX_ANALYSIS_MINUTES;
 
-  /** true to terminate if the deployment monitor repeatedly fails with HTTP errors */
+  /**
+   * true to terminate the deployment if the deployment monitor repeatedly fails with HTTP errors or
+   * fails to respond in the allotted time
+   */
   private boolean failOnError = true;
 
-  /** For internal use, indicates if this deployment monitor is considered stable or not */
+  /**
+   * For internal use, indicates if this deployment monitor is considered stable or not Unstable
+   * monitors will not show up in the UI, but can still be used in JSON
+   */
   private boolean stable = false;
 
   private DeploymentMonitorService service;

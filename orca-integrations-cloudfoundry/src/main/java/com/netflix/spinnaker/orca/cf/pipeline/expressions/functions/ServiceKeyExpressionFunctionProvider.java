@@ -48,6 +48,7 @@ public class ServiceKeyExpressionFunctionProvider implements ExpressionFunctionP
     return new Functions(
         new FunctionDefinition(
             "cfServiceKey",
+            "A shortcut to refer to a service key which has been created in the given stage",
             new FunctionParameter(
                 Execution.class, "execution", "The execution within which to search for stages"),
             new FunctionParameter(String.class, "idOrName", "A stage name or stage ID to match")));

@@ -37,6 +37,37 @@ public class PipelineExpressionEvaluator {
   public static final String SUMMARY = "expressionEvaluationSummary";
   public static final String ERROR = "Failed Expression Evaluation";
 
+  public enum SpelEvaluatorVersion {
+    V4("v4", "Supports sequential evaluation of variables in Evaluate Variables stage", false),
+    V3("v3", "", true);
+
+    SpelEvaluatorVersion(String key, String description, boolean supported) {
+      this.key = key;
+      this.description = description;
+      this.isSupported = supported;
+    }
+
+    String key;
+    String description;
+    boolean isSupported;
+
+    public boolean equalsTo(String key) {
+      return (this.key.compareToIgnoreCase(key) == 0);
+    }
+
+    public boolean getIsSupported() {
+      return isSupported;
+    }
+
+    public String getKey() {
+      return key;
+    }
+
+    public String getDescription() {
+      return description;
+    }
+  }
+
   // No new items should go in to this list. We should use functions instead of vars going forward.
   private static final List<String> EXECUTION_AWARE_ALIASES =
       Collections.singletonList("deployedServerGroups");

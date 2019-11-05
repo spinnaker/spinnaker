@@ -14,22 +14,30 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.controllers
+package com.netflix.spinnaker.orca.deploymentmonitor
 
 import com.netflix.spinnaker.config.DeploymentMonitorDefinition
 import com.netflix.spinnaker.config.MonitoredDeployConfigurationProperties
 import spock.lang.Specification
 
-class CapabilitiesControllerSpec extends Specification {
-  void '/capabilities/deploymentMonitors returns a empty list when no monitors registered or disabled'() {
-    given:
-    CapabilitiesController controller = new CapabilitiesController(Optional.empty())
+class DeploymentMonitorCapabilitiesSpec extends Specification {
+  void 'returns an empty list when no monitors registered or disabled'() {
+    when: 'monitored deploy is not enabled'
+    DeploymentMonitorCapabilities capabilities = new DeploymentMonitorCapabilities(Optional.empty())
 
-    expect:
-    controller.getDeploymentMonitors() == []
+    then: 'no monitors are returned'
+    noExceptionThrown()
+    capabilities.getDeploymentMonitors() == []
+
+    when: 'monitored deploy is enabled but no monitors are registeres'
+    capabilities = new DeploymentMonitorCapabilities(Optional.of(new MonitoredDeployConfigurationProperties()))
+
+    then: 'no monitors are returned'
+    noExceptionThrown()
+    capabilities.getDeploymentMonitors() == []
   }
 
-  void '/capabilities/deploymentMonitors returns valid data'() {
+  void 'returns valid data'() {
     given:
     MonitoredDeployConfigurationProperties configProperties = new MonitoredDeployConfigurationProperties()
     configProperties.deploymentMonitors = new ArrayList<>()
@@ -37,19 +45,22 @@ class CapabilitiesControllerSpec extends Specification {
       def dmdef = new DeploymentMonitorDefinition()
       dmdef.setName("name${it}")
       dmdef.setId("id${it}")
+      dmdef.setStable((it % 2) == 0)
       configProperties.deploymentMonitors.add(dmdef)
     })
 
-    CapabilitiesController controller = new CapabilitiesController(Optional.of(configProperties))
+    DeploymentMonitorCapabilities capabilities = new DeploymentMonitorCapabilities(Optional.of(configProperties))
 
     when:
-    def result = controller.getDeploymentMonitors()
+    def result = capabilities.getDeploymentMonitors()
 
     then:
     result.size() == 3
     result[0].id == "id0"
     result[0].name == "name0"
+    result[0].stable == true
     result[1].id == "id1"
     result[1].name == "name1"
+    result[1].stable == false
   }
 }

@@ -29,7 +29,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.RetrofitError
 import spock.lang.Specification
-import com.netflix.spinnaker.config.DeploymentMonitorServiceProvider
+import com.netflix.spinnaker.orca.deploymentmonitor.DeploymentMonitorServiceProvider
 import spock.lang.Unroll
 
 import java.time.Instant

@@ -59,21 +59,28 @@ public class UrlExpressionFunctionProvider implements ExpressionFunctionProvider
   public Functions getFunctions() {
     return new Functions(
         new FunctionDefinition(
-            "fromUrl", new FunctionParameter(String.class, "url", "A URL to retrieve text from")),
+            "fromUrl",
+            "Downloads text from the given URL",
+            new FunctionParameter(String.class, "url", "A URL to retrieve text from")),
         new FunctionDefinition(
             "jsonFromUrl",
+            "Downloads and parses JSON from the given URL",
             new FunctionParameter(String.class, "url", "A URL to retrieve a JSON file from")),
         new FunctionDefinition(
             "yamlFromUrl",
+            "Downloads and parses YAML from the given URL",
             new FunctionParameter(String.class, "url", "A URL to retrieve a YAML file from")),
         new FunctionDefinition(
             "propertiesFromUrl",
+            "Downloads and parses Java style properties from the given URL",
             new FunctionParameter(String.class, "url", "A URL to retrieve a Properties file from")),
         new FunctionDefinition(
             "readJson",
+            "Parses JSON from a string to be accessed, parsed JSON can be accessed as an object",
             new FunctionParameter(String.class, "value", "A String containing JSON text")),
         new FunctionDefinition(
             "readYaml",
+            "Parses YAML from a string to be accessed, parsed JSON can be accessed as an object",
             new FunctionParameter(String.class, "value", "A String containing YAML text")));
   }
 

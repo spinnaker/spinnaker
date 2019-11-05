@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.config;
+package com.netflix.spinnaker.orca.deploymentmonitor;
 
+import com.netflix.spinnaker.config.DeploymentMonitorDefinition;
 import com.netflix.spinnaker.kork.exceptions.UserException;
-import com.netflix.spinnaker.orca.deploymentmonitor.DeploymentMonitorService;
 import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog;
 import java.util.HashMap;
 import java.util.List;
