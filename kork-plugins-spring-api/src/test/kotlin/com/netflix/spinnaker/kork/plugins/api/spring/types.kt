@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.kork.plugins.api
+package com.netflix.spinnaker.kork.plugins.api.spring
 
 import org.pf4j.Extension
 import org.pf4j.PluginWrapper

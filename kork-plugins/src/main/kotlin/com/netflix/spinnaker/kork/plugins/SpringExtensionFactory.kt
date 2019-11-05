@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.kork.plugins
 
-import com.netflix.spinnaker.kork.plugins.api.SpringPlugin
+import com.netflix.spinnaker.kork.plugins.api.spring.SpringPlugin
 import org.pf4j.ExtensionFactory
 import org.pf4j.PluginManager
 import org.pf4j.PluginRuntimeException

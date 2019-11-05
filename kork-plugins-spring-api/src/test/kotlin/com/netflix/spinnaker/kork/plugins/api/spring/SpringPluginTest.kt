@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.kork.plugins.api
+package com.netflix.spinnaker.kork.plugins.api.spring
 
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -30,7 +30,7 @@ class SpringPluginTest : JUnit5Minutests {
 
     test("should close application context on stop") {
       plugin.stop()
-      verify(exactly = 1) { applicationContext.close() }
+      verify(exactly = 1) { applicationContext.stop() }
     }
   }
 

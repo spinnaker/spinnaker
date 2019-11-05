@@ -32,6 +32,7 @@ include(
   "kork-manageddelivery",
   "kork-plugins",
   "kork-plugins-api",
+  "kork-plugins-spring-api",
   "kork-proto",
   "kork-secrets",
   "kork-secrets-aws",
