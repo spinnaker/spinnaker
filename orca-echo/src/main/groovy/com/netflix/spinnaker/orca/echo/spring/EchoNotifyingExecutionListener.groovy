@@ -54,6 +54,8 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
   void beforeExecution(Persister persister, Execution execution) {
     try {
       if (execution.status != ExecutionStatus.SUSPENDED) {
+        processSpelInNotifications(execution)
+
         if (execution.type == PIPELINE) {
           addApplicationNotifications(execution)
         }
@@ -80,6 +82,8 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
                       boolean wasSuccessful) {
     try {
       if (execution.status != ExecutionStatus.SUSPENDED) {
+        processSpelInNotifications(execution)
+
         if (execution.type == PIPELINE) {
           addApplicationNotifications(execution)
         }
@@ -97,6 +101,15 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
     } catch (Exception e) {
       log.error("Failed to send pipeline end event: ${execution?.id}", e)
     }
+  }
+
+  private void processSpelInNotifications(Execution execution) {
+    Map executionMap = objectMapper.convertValue(execution, Map)
+
+    List<Map<String, Object>> spelProcessedNotifications = execution.notifications.collect({
+      contextParameterProcessor.process(it, executionMap, true)
+    })
+    execution.notifications = spelProcessedNotifications
   }
 
   /**

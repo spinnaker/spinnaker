@@ -46,6 +46,8 @@ class EchoNotifyingExecutionListenerSpec extends Specification {
   @Shared
   ApplicationNotifications notifications = new ApplicationNotifications()
 
+  ApplicationNotifications notificationsWithSpel = new ApplicationNotifications()
+
   @Shared
   Notification slackPipes
 
@@ -73,6 +75,14 @@ class EchoNotifyingExecutionListenerSpec extends Specification {
 
     notifications.set("slack", [slackPipes, slackTasks])
     notifications.set("email", [emailTasks])
+
+    def slackPipesWithSpel = new Notification([
+      when   : ["pipeline.started", "pipeline.failed"],
+      type   : "slack",
+      address: '${"spinnaker"}'
+    ])
+    notificationsWithSpel.set("slack", [slackPipesWithSpel, slackTasks])
+    notificationsWithSpel.set("email", [emailTasks])
   }
 
   void "sends events with expected type to Echo"() {
@@ -139,6 +149,29 @@ class EchoNotifyingExecutionListenerSpec extends Specification {
     pipeline.notifications.when.containsAll(["pipeline.started", "pipeline.completed"], ["pipeline.failed"])
     pipeline.notifications.extraField.containsAll("extra", null)
     1 * front50Service.getApplicationNotifications("myapp") >> notifications
+    1 * echoService.recordEvent(_)
+    0 * _
+  }
+
+  void "evaluates SpEL and correctly dedupes notifications"() {
+    given:
+    def pipeline = Execution.newPipeline("myapp")
+    def pipelineConfiguredNotification = [
+      when   : ["pipeline.started", "pipeline.completed"],
+      type   : "slack",
+      address: '${"spin" + "naker"}',
+      extraField: "extra"
+    ]
+    pipeline.notifications.add(pipelineConfiguredNotification)
+
+    when:
+    echoListener.beforeExecution(null, pipeline)
+
+    then:
+    pipeline.notifications.size() == 2
+    pipeline.notifications.when.containsAll(["pipeline.started", "pipeline.completed"], ["pipeline.failed"])
+    pipeline.notifications.extraField.containsAll("extra", null)
+    1 * front50Service.getApplicationNotifications("myapp") >> notificationsWithSpel
     1 * echoService.recordEvent(_)
     0 * _
   }
