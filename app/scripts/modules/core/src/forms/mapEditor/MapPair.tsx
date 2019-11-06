@@ -1,6 +1,8 @@
 import * as React from 'react';
+import { ValidationMessage } from 'core/presentation';
 import { IPipeline } from '../../domain';
 import { SpelText } from '../../widgets';
+import './MapPair.css';
 
 export interface IMapPair {
   key: string;
@@ -21,51 +23,59 @@ export const MapPair = (props: {
   const { keyLabel, labelsLeft, pair, onChange, onDelete, valueLabel, valueCanContainSpel, pipeline } = props;
 
   return (
-    <tr>
-      {labelsLeft && (
-        <td className="table-label">
-          <b>{keyLabel}</b>
-        </td>
-      )}
-      <td>
-        <input
-          className="form-control input input-sm"
-          type="text"
-          value={pair.key}
-          onChange={e => onChange({ key: e.target.value, value: pair.value })}
-        />
-        {pair.error && <div className="error-message">{pair.error}</div>}
-      </td>
-      {labelsLeft && (
-        <td className="table-label">
-          <b>{valueLabel}</b>
-        </td>
-      )}
-      <td>
-        {valueCanContainSpel ? (
-          <SpelText
-            value={pair.value}
-            pipeline={pipeline}
-            docLink={true}
-            onChange={value => onChange({ key: pair.key, value: value })}
-          />
-        ) : (
+    <>
+      <tr>
+        {labelsLeft && (
+          <td className="table-label">
+            <b>{keyLabel}</b>
+          </td>
+        )}
+        <td>
           <input
             className="form-control input input-sm"
             type="text"
-            value={pair.value}
-            onChange={e => onChange({ key: pair.key, value: e.target.value })}
+            value={pair.key}
+            onChange={e => onChange({ key: e.target.value, value: pair.value })}
           />
+        </td>
+        {labelsLeft && (
+          <td className="table-label">
+            <b>{valueLabel}</b>
+          </td>
         )}
-      </td>
-      <td>
-        <div className="form-control-static">
-          <a className="clickable" onClick={onDelete}>
-            <span className="glyphicon glyphicon-trash" />
-            <span className="sr-only">Remove field</span>
-          </a>
-        </div>
-      </td>
-    </tr>
+        <td>
+          {valueCanContainSpel ? (
+            <SpelText
+              value={pair.value}
+              pipeline={pipeline}
+              docLink={true}
+              onChange={value => onChange({ key: pair.key, value: value })}
+            />
+          ) : (
+            <input
+              className="form-control input input-sm"
+              type="text"
+              value={pair.value}
+              onChange={e => onChange({ key: pair.key, value: e.target.value })}
+            />
+          )}
+        </td>
+        <td>
+          <div className="form-control-static">
+            <a className="clickable" onClick={onDelete}>
+              <span className="glyphicon glyphicon-trash" />
+              <span className="sr-only">Remove field</span>
+            </a>
+          </div>
+        </td>
+      </tr>
+      {pair.error && (
+        <tr className="MapPair_error">
+          <td colSpan={3}>
+            <ValidationMessage message={pair.error} type={'error'} />
+          </td>
+        </tr>
+      )}
+    </>
   );
 };
