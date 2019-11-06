@@ -193,4 +193,94 @@ internal class ArtifactListenerTests : JUnit5Minutests {
       }
     }
   }
+
+  val newerKorkArtifact = Artifact(
+    "DEB",
+    false,
+    "fnord",
+    "0.161.0-h61.116f116",
+    null,
+    "debian-local:pool/f/fnord/fnord_0.161.0-h61.116f116_all.deb",
+    mapOf("releaseStatus" to FINAL),
+    null,
+    "https://my.jenkins.master/jobs/fnord-release/60",
+    null
+  )
+
+  data class SyncArtifactsFixture(
+    val artifact: DeliveryArtifact,
+    val repository: ArtifactRepository = mockk(relaxUnitFun = true),
+    val artifactService: ArtifactService = mockk(relaxUnitFun = true),
+    val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
+  ) {
+    val listener: ArtifactListener = ArtifactListener(repository, artifactService, publisher)
+  }
+
+  fun syncArtifactsFixture() = rootContext<SyncArtifactsFixture> {
+    fixture {
+      SyncArtifactsFixture(
+        artifact = DeliveryArtifact(
+          name = "fnord",
+          type = DEB
+        )
+      )
+    }
+
+    context("we don't have any versions of an artifact") {
+      before {
+        every { repository.getAll(DEB) } returns listOf(artifact)
+        every { repository.versions(artifact) } returns listOf()
+        coEvery { artifactService.getVersions(artifact.name) } returns listOf("0.161.0-h61.116f116", "0.160.0-h60.f67f671")
+        coEvery { artifactService.getArtifact(artifact.name, "0.161.0-h61.116f116") } returns newerKorkArtifact
+        every { repository.store(artifact, "${artifact.name}-0.161.0-h61.116f116", FINAL) } returns true
+      }
+
+      test("new version is stored") {
+        listener.syncDebArtifactVersions()
+        verify { repository.store(artifact, "${artifact.name}-0.161.0-h61.116f116", FINAL) }
+      }
+    }
+
+    context("there is one artifact with one version stored") {
+      before {
+        every { repository.getAll(DEB) } returns listOf(artifact)
+        every { repository.versions(artifact) } returns listOf("${artifact.name}-0.156.0-h58.f67fe09")
+      }
+
+      context("a new version") {
+        before {
+          coEvery { artifactService.getVersions(artifact.name) } returns listOf("0.161.0-h61.116f116", "0.160.0-h60.f67f671")
+          coEvery { artifactService.getArtifact(artifact.name, "0.161.0-h61.116f116") } returns newerKorkArtifact
+          every { repository.store(artifact, "${artifact.name}-0.161.0-h61.116f116", FINAL) } returns true
+        }
+
+        test("new version stored") {
+          listener.syncDebArtifactVersions()
+          verify { repository.store(artifact, "${artifact.name}-0.161.0-h61.116f116", FINAL) }
+        }
+      }
+
+      context("no new version") {
+        before {
+          coEvery { artifactService.getVersions(artifact.name) } returns listOf("0.156.0-h58.f67fe09")
+        }
+
+        test("store not called") {
+          listener.syncDebArtifactVersions()
+          verify(exactly = 0) { repository.store(artifact, any(), FINAL) }
+        }
+      }
+
+      context("no version information ") {
+        before {
+          coEvery { artifactService.getVersions(artifact.name) } returns listOf()
+        }
+
+        test("store not called") {
+          listener.syncDebArtifactVersions()
+          verify(exactly = 0) { repository.store(artifact, any(), FINAL) }
+        }
+      }
+    }
+  }
 }

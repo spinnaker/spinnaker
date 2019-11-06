@@ -16,3 +16,7 @@ data class ArtifactRegisteredEvent(
   val artifact: DeliveryArtifact,
   val statuses: List<ArtifactStatus> = enumValues<ArtifactStatus>().toList()
 )
+
+data class ArtifactSyncEvent(
+  val controllerTriggered: Boolean = false
+)

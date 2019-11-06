@@ -15,6 +15,8 @@ interface ArtifactRepository {
 
   fun isRegistered(name: String, type: ArtifactType): Boolean
 
+  fun getAll(type: ArtifactType? = null): List<DeliveryArtifact>
+
   /**
    * @return `true` if a new version is persisted, `false` if the specified version was already
    * known (in which case this method is a no-op).
@@ -88,7 +90,7 @@ interface ArtifactRepository {
   )
 }
 
-private val VERSION_COMPARATOR: Comparator<String> = object : Comparator<String> {
+val VERSION_COMPARATOR: Comparator<String> = object : Comparator<String> {
   override fun compare(s1: String, s2: String) =
     debComparator.compare(s1.toVersion(), s2.toVersion())
 

@@ -6,6 +6,7 @@ import com.netflix.spinnaker.keel.api.ArtifactType.DOCKER
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.events.ArtifactEvent
 import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
+import com.netflix.spinnaker.keel.events.ArtifactSyncEvent
 import com.netflix.spinnaker.keel.persistence.ArtifactAlreadyRegistered
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
@@ -58,6 +59,14 @@ class ArtifactController(
   @ResponseStatus(ACCEPTED)
   fun register(@RequestBody artifact: DeliveryArtifact) {
     publisher.publishEvent(ArtifactRegisteredEvent(artifact))
+  }
+
+  @PostMapping(
+    path = ["/sync"]
+  )
+  @ResponseStatus(ACCEPTED)
+  fun sync() {
+    publisher.publishEvent(ArtifactSyncEvent(true))
   }
 
   @GetMapping(

@@ -8,13 +8,17 @@ import com.netflix.spinnaker.keel.api.ArtifactType.DOCKER
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.events.ArtifactEvent
 import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
+import com.netflix.spinnaker.keel.events.ArtifactSyncEvent
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
+import com.netflix.spinnaker.keel.persistence.VERSION_COMPARATOR
 import com.netflix.spinnaker.keel.telemetry.ArtifactVersionUpdated
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.event.EventListener
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
 @Component
@@ -70,6 +74,45 @@ class ArtifactListener(
       storeLatestDebVersion(artifact, event.statuses)
     }
   }
+
+  @EventListener(ArtifactSyncEvent::class)
+  fun triggerDebSync(event: ArtifactSyncEvent) {
+    if (event.controllerTriggered) {
+      log.info("Fetching latest version of all registered artifacts...")
+    }
+    syncDebArtifactVersions()
+  }
+
+  /**
+   * For each registered debian artifact, get the last version, and persist if it's newer than what we have.
+   */
+  // todo eb: should we fetch more than one version?
+  @Scheduled(initialDelay = 60000, fixedDelayString = "\${keel.artifact-refresh.frequency:PT6H}")
+  fun syncDebArtifactVersions() =
+    runBlocking {
+      artifactRepository.getAll(DEB).forEach { artifact ->
+        launch {
+          val lastRecordedVersion: String? = artifactRepository.versions(artifact).firstOrNull()
+          val latestVersion: String? = artifactService.getVersions(artifact.name).firstOrNull()
+          val latestAppVersion = "${artifact.name}-$latestVersion"
+          if (latestVersion != null) {
+            val hasNew = when {
+              lastRecordedVersion == null -> true
+              latestAppVersion != lastRecordedVersion -> {
+                listOf(latestAppVersion, lastRecordedVersion).sortedWith(VERSION_COMPARATOR.reversed()).first() == latestAppVersion
+              }
+              else -> false
+            }
+
+            if (hasNew) {
+              log.debug("Artifact {} has a missing version {}, persisting..", artifact, latestVersion)
+              val version = artifactService.getArtifact(artifact.name, latestVersion)
+              artifactRepository.store(artifact, latestAppVersion, debStatus(version))
+            }
+          }
+        }
+      }
+    }
 
   /**
    * Grab the latest version which matches the statuses we care about, so the artifact is relevant.

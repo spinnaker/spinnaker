@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.persistence
 import com.netflix.spinnaker.keel.api.ArtifactStatus.FINAL
 import com.netflix.spinnaker.keel.api.ArtifactStatus.SNAPSHOT
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
+import com.netflix.spinnaker.keel.api.ArtifactType.DOCKER
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
@@ -33,6 +34,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
   ) {
     val artifact1 = DeliveryArtifact("foo", DEB)
     val artifact2 = DeliveryArtifact("bar", DEB)
+    val artifact3 = DeliveryArtifact("baz", DOCKER)
     val environment1 = Environment("test")
     val environment2 = Environment("staging")
     val manifest = DeliveryConfig(
@@ -46,6 +48,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
     val version3 = "keeldemo-0.0.1~dev.10-h10.1d2d542"
     val version4 = "keeldemo-1.0.0-h11.518aea2"
     val version5 = "keeldemo-1.0.0-h12.4ea8a9d"
+    val version6 = "master-h12.4ea8a9d"
   }
 
   fun tests() = rootContext<Fixture<T>> {
@@ -302,6 +305,23 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
         expect {
           that(subject.latestVersionApprovedIn(manifest, artifact1, environment1.name, listOf(SNAPSHOT))).isEqualTo(version1)
           that(subject.latestVersionApprovedIn(manifest, artifact1, environment1.name)).isEqualTo(version4)
+        }
+      }
+    }
+
+    context("getting all filters by type") {
+      before {
+        persist()
+        subject.register(artifact3)
+        subject.store(artifact1, version4, FINAL)
+        subject.store(artifact3, version6, FINAL)
+      }
+
+      test("querying works") {
+        expect {
+          that(subject.getAll().size).isEqualTo(3)
+          that(subject.getAll(DOCKER).size).isEqualTo(1)
+          that(subject.getAll(DEB).size).isEqualTo(2)
         }
       }
     }

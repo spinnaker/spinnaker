@@ -62,6 +62,15 @@ class SqlArtifactRepository(
       .and(DELIVERY_ARTIFACT.TYPE.eq(type.name))
       .fetchOne() != null
 
+  override fun getAll(type: ArtifactType?): List<DeliveryArtifact> =
+    jooq
+      .select(DELIVERY_ARTIFACT.NAME, DELIVERY_ARTIFACT.TYPE)
+      .from(DELIVERY_ARTIFACT)
+      .apply { if (type != null) where(DELIVERY_ARTIFACT.TYPE.eq(type.toString())) }
+      .fetch { (name, type) ->
+        DeliveryArtifact(name, ArtifactType.valueOf(type))
+      }
+
   override fun versions(artifact: DeliveryArtifact, statuses: List<ArtifactStatus>): List<String> {
     val status = statuses.map { it.toString() }
     return if (isRegistered(artifact.name, artifact.type)) {

@@ -42,6 +42,9 @@ class InMemoryArtifactRepository : ArtifactRepository {
       it.name == name && it.type == type
     }
 
+  override fun getAll(type: ArtifactType?): List<DeliveryArtifact> =
+    artifacts.keys.toList().filter { type == null || it.type == type }
+
   override fun versions(artifact: DeliveryArtifact, statuses: List<ArtifactStatus>): List<String> {
     val versions = artifacts[artifact] ?: throw NoSuchArtifactException(artifact)
     return versions.filter { it.status in statuses }.map { it.version }.sortAppVersion()
