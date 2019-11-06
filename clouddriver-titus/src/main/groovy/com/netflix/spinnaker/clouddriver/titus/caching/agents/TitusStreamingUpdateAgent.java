@@ -220,12 +220,7 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent, CachingA
       final Future handler =
           executor.submit(
               () -> {
-                Iterator<JobChangeNotification> notificationIt =
-                    titusClient.observeJobs(
-                        ObserveJobsQuery.newBuilder()
-                            .putFilteringCriteria("jobType", "SERVICE")
-                            .putFilteringCriteria("attributes", "source:spinnaker")
-                            .build());
+                Iterator<JobChangeNotification> notificationIt = observeJobs();
 
                 while (continueStreaming(startTime)) {
                   try {
@@ -274,16 +269,25 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent, CachingA
                       }
                     }
                   } catch (io.grpc.StatusRuntimeException e) {
+                    Integer backoff =
+                        dynamicConfigService.getConfig(
+                            Integer.class, "titus.streaming.retry-backoff-ms", 2000);
                     log.warn(
-                        "gRPC exception while streaming {} updates, attempting to reconnect",
+                        "gRPC exception while streaming {} updates, attempting to reconnect in {}ms",
                         getAgentType(),
+                        backoff,
                         e);
-                    notificationIt =
-                        titusClient.observeJobs(
-                            ObserveJobsQuery.newBuilder()
-                                .putFilteringCriteria("jobType", "SERVICE")
-                                .putFilteringCriteria("attributes", "source:spinnaker")
-                                .build());
+
+                    try {
+                      Thread.sleep(backoff);
+                    } catch (InterruptedException ex) {
+                      log.warn(
+                          "Interrupted while attempting to reconnect to observeJobs, bailing on this invocation",
+                          ex);
+                      break;
+                    }
+
+                    notificationIt = observeJobs();
                     state.snapshotComplete = false;
                     state.savedSnapshot = false;
                   } catch (Exception e) {
@@ -299,6 +303,14 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent, CachingA
           getTimeoutMillis(),
           TimeUnit.MILLISECONDS);
       CompletableFuture.completedFuture(handler).join();
+    }
+
+    private Iterator<JobChangeNotification> observeJobs() {
+      return titusClient.observeJobs(
+          ObserveJobsQuery.newBuilder()
+              .putFilteringCriteria("jobType", "SERVICE")
+              .putFilteringCriteria("attributes", "source:spinnaker")
+              .build());
     }
 
     private void updateJob(StreamingCacheState state, Job job) {
