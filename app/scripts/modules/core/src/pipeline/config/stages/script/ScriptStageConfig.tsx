@@ -76,6 +76,12 @@ export const ScriptStageConfig: React.SFC<IStageConfigProps> = stageConfigProps 
           help={<HelpField id="script.waitForCompletion" />}
           input={props => <CheckboxInput {...props} />}
         />
+        <FormikFormField
+          name="propertyFile"
+          label="Property File"
+          help={<HelpField id="pipeline.config.script.propertyFile" />}
+          input={props => <TextInput {...props} />}
+        />
       </div>
     )}
   />
