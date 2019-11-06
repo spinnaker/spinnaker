@@ -17,10 +17,7 @@ jobs:
     #     key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
     #     restore-keys: |
     #       ${{ runner.os }}-gradle-
-    - uses: eskatos/gradle-command-action@v1
+    - name: Build
       env:
         GRADLE_OPTS: -Xmx6g -Xms6g -Dorg.gradle.daemon=false
-      with:
-        wrapper-directory: ./
-        arguments: build javadoc 
-
+      run: ./gradlew build javadoc
