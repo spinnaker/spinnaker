@@ -26,20 +26,25 @@ import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
+import com.netflix.spinnaker.keel.events.ResourceActuationPaused
+import com.netflix.spinnaker.keel.events.ResourceActuationResumed
 import com.netflix.spinnaker.keel.events.ResourceCheckError
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
 import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
 import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.events.ResourceMissing
-import com.netflix.spinnaker.keel.events.ResourceValid
-import com.netflix.spinnaker.keel.persistence.ResourceStatus.ACTUATING
-import com.netflix.spinnaker.keel.persistence.ResourceStatus.CREATED
-import com.netflix.spinnaker.keel.persistence.ResourceStatus.DIFF
-import com.netflix.spinnaker.keel.persistence.ResourceStatus.ERROR
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.HAPPY
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.UNHAPPY
+import com.netflix.spinnaker.keel.persistence.ResourceStatus.DIFF
+import com.netflix.spinnaker.keel.persistence.ResourceStatus.ACTUATING
+import com.netflix.spinnaker.keel.persistence.ResourceStatus.ERROR
+import com.netflix.spinnaker.keel.persistence.ResourceStatus.CREATED
+import com.netflix.spinnaker.keel.persistence.ResourceStatus.PAUSED
+import com.netflix.spinnaker.keel.persistence.ResourceStatus.RESUMED
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.UNKNOWN
+import com.netflix.spinnaker.keel.events.ResourceValid
+
 import java.time.Duration
 
 data class ResourceHeader(
@@ -101,6 +106,14 @@ interface ResourceRepository : PeriodicallyCheckedRepository<ResourceHeader> {
   fun eventHistory(id: ResourceId, limit: Int = DEFAULT_MAX_EVENTS): List<ResourceEvent>
 
   /**
+   * Retrieves the last event from the history of state change events for the resource represented by [id] or null if
+   * none found.
+   *
+   * @param id the resource id.
+   */
+  fun lastEvent(id: ResourceId): ResourceEvent? = eventHistory(id, 1).firstOrNull()
+
+  /**
    * Records an event associated with a resource.
    */
   fun appendHistory(event: ResourceEvent)
@@ -123,6 +136,8 @@ interface ResourceRepository : PeriodicallyCheckedRepository<ResourceHeader> {
       history.isActuating() -> ACTUATING
       history.isError() -> ERROR
       history.isCreated() -> CREATED
+      history.isPaused() -> PAUSED
+      history.isResumed() -> RESUMED
       else -> UNKNOWN
     }
   }
@@ -145,6 +160,14 @@ interface ResourceRepository : PeriodicallyCheckedRepository<ResourceHeader> {
 
   private fun List<ResourceEvent>.isDiff(): Boolean {
     return first() is ResourceDeltaDetected || first() is ResourceMissing
+  }
+
+  private fun List<ResourceEvent>.isPaused(): Boolean {
+    return first() is ResourceActuationPaused
+  }
+
+  private fun List<ResourceEvent>.isResumed(): Boolean {
+    return first() is ResourceActuationResumed
   }
 
   /**
@@ -195,5 +218,5 @@ sealed class NoSuchResourceException(override val message: String?) : RuntimeExc
 class NoSuchResourceId(id: ResourceId) : NoSuchResourceException("No resource with id $id exists in the repository")
 
 enum class ResourceStatus {
-  HAPPY, ACTUATING, UNHAPPY, CREATED, DIFF, ERROR, UNKNOWN
+  HAPPY, ACTUATING, UNHAPPY, CREATED, DIFF, ERROR, PAUSED, RESUMED, UNKNOWN
 }

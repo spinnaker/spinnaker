@@ -56,7 +56,9 @@ import java.time.Instant
   Type(value = ResourceDeltaDetected::class, name = "ResourceDeltaDetected"),
   Type(value = ResourceDeltaResolved::class, name = "ResourceDeltaResolved"),
   Type(value = ResourceValid::class, name = "ResourceValid"),
-  Type(value = ResourceCheckError::class, name = "ResourceCheckError")
+  Type(value = ResourceCheckError::class, name = "ResourceCheckError"),
+  Type(value = ResourceActuationPaused::class, name = "ResourceActuationPaused"),
+  Type(value = ResourceActuationResumed::class, name = "ResourceActuationResumed")
 )
 sealed class ResourceEvent {
   abstract val apiVersion: ApiVersion
@@ -246,6 +248,54 @@ data class ResourceActuationLaunched(
       tasks,
       clock.instant()
     )
+}
+
+/**
+ * Actuation on the managed resource has been paused.
+ *
+ * @property reason The reason why actuation was paused.
+ */
+data class ResourceActuationPaused(
+  override val apiVersion: ApiVersion,
+  override val kind: String,
+  override val id: String,
+  override val application: String,
+  val reason: String?,
+  override val timestamp: Instant
+) : ResourceEvent() {
+  @JsonIgnore
+  override val ignoreRepeatedInHistory = true
+
+  constructor(resource: Resource<*>, reason: String?, clock: Clock = Companion.clock) : this(
+    resource.apiVersion,
+    resource.kind,
+    resource.id.value,
+    resource.application,
+    reason,
+    clock.instant()
+  )
+}
+
+/**
+ * Actuation on the managed resource has resumed.
+ */
+data class ResourceActuationResumed(
+  override val apiVersion: ApiVersion,
+  override val kind: String,
+  override val id: String,
+  override val application: String,
+  override val timestamp: Instant
+) : ResourceEvent() {
+  @JsonIgnore
+  override val ignoreRepeatedInHistory = true
+
+  constructor(resource: Resource<*>, clock: Clock = Companion.clock) : this(
+    resource.apiVersion,
+    resource.kind,
+    resource.id.value,
+    resource.application,
+    clock.instant()
+  )
 }
 
 /**

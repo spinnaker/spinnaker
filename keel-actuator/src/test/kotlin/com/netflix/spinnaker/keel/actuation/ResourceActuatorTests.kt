@@ -4,6 +4,8 @@ import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
+import com.netflix.spinnaker.keel.events.ResourceActuationPaused
+import com.netflix.spinnaker.keel.events.ResourceActuationResumed
 import com.netflix.spinnaker.keel.events.ResourceCheckError
 import com.netflix.spinnaker.keel.events.ResourceCheckResult
 import com.netflix.spinnaker.keel.events.ResourceCreated
@@ -308,16 +310,37 @@ internal class ResourceActuatorTests : JUnit5Minutests {
       context("the resource check is vetoed") {
         before {
           every { veto.check(resource.id) } returns VetoResponse(false)
-        }
 
-        test("checking skipped") {
           with(resource) {
             runBlocking {
               subject.checkResource(id, apiVersion, kind)
             }
           }
+        }
 
+        test("resource checking is skipped and actuation is paused") {
           verify { publisher.publishEvent(ResourceCheckSkipped(resource)) }
+          verify { publisher.publishEvent(ofType<ResourceActuationPaused>()) }
+        }
+      }
+
+      context("actuation was paused and veto is removed") {
+        before {
+          every { veto.check(resource.id) } returns VetoResponse(true)
+          coEvery { plugin1.actuationInProgress(resource.id) } returns false
+          coEvery { plugin1.desired(resource) } returns DummyResource(resource.spec)
+          coEvery { plugin1.current(resource) } returns DummyResource(resource.spec)
+          resourceRepository.appendHistory(ResourceActuationPaused(resource, null))
+
+          with(resource) {
+            runBlocking {
+              subject.checkResource(id, apiVersion, kind)
+            }
+          }
+        }
+
+        test("actuation resumes") {
+          verify { publisher.publishEvent(ofType<ResourceActuationResumed>()) }
         }
       }
     }

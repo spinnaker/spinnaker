@@ -7,6 +7,8 @@ import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
+import com.netflix.spinnaker.keel.events.ResourceActuationPaused
+import com.netflix.spinnaker.keel.events.ResourceActuationResumed
 import com.netflix.spinnaker.keel.events.ResourceCheckError
 import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
 import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
@@ -42,6 +44,8 @@ class ResourceActuator(
     if (!response.allowed) {
       log.debug("Skipping actuation for resource {} because it was vetoed: {}", id, response.message)
       publisher.publishEvent(ResourceCheckSkipped(apiVersion, kind, id))
+      publisher.publishEvent(ResourceActuationPaused(apiVersion, kind, id.value, id.application, response.message,
+        clock.instant()))
       return
     }
 
@@ -54,6 +58,11 @@ class ResourceActuator(
     }
 
     log.debug("Checking resource {}", id)
+
+    if (resourceRepository.lastEvent(id) is ResourceActuationPaused) {
+      log.info("Actuation for resource {} resuming", id)
+      publisher.publishEvent(ResourceActuationResumed(apiVersion, kind, id.value, id.application, clock.instant()))
+    }
 
     val resource = resourceRepository.get(id)
 
@@ -84,7 +93,7 @@ class ResourceActuator(
         else -> {
           log.info("Resource {} is valid", id)
           // TODO: not sure this logic belongs here
-          val lastEvent = resourceRepository.eventHistory(resource.id, limit = 1).first()
+          val lastEvent = resourceRepository.lastEvent(id)
           if (lastEvent is ResourceDeltaDetected || lastEvent is ResourceActuationLaunched) {
             publisher.publishEvent(ResourceDeltaResolved(resource, clock))
           } else {

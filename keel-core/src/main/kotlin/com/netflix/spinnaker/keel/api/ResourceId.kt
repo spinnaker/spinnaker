@@ -24,4 +24,8 @@ import com.netflix.spinnaker.keel.serialization.ResourceIdDeserializer
 @JsonDeserialize(using = ResourceIdDeserializer::class)
 data class ResourceId(val value: String) {
   override fun toString(): String = value
+
+  // Resource names (the last token in a ResourceId) follow the Moniker format (<app>-<stack>-<detail>)
+  val application: String
+    get() = value.split(":").last().split("-").first()
 }

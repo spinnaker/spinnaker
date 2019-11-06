@@ -34,9 +34,8 @@ class ApplicationVeto(
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   override fun check(id: ResourceId): VetoResponse {
-    val appName = id.toString().split(":").last().split("-").first()
-    if (applicationVetoRepository.appVetoed(appName)) {
-      return VetoResponse(allowed = false, message = "Application $appName has been opted out.")
+    if (applicationVetoRepository.appVetoed(id.application)) {
+      return VetoResponse(allowed = false, message = "Application ${id.application} has been opted out.")
     }
     return VetoResponse(allowed = true)
   }
