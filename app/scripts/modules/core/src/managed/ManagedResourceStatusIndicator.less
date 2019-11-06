@@ -1,28 +1,32 @@
 .ManagedResourceStatusIndicator {
-  &.info {
+  .HoverablePopover {
+    display: flex;
+  }
+
+  .info {
     background-color: var(--color-status-info);
   }
 
-  &.warning {
+  .warning {
     background-color: var(--color-status-warning);
   }
 
-  &.error {
+  .error {
     background-color: var(--color-status-error);
   }
 
-  &.square {
+  .square {
     padding: 0 8px;
     font-size: 20px;
   }
 
-  &.circle {
+  .circle {
     padding: 4px;
     font-size: 14px;
     border-radius: 50%;
   }
 
-  > i {
+  i {
     color: var(--color-white);
   }
 }

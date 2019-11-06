@@ -6,6 +6,8 @@ import { Observable, Subject } from 'rxjs';
 import { Placement } from 'core/presentation';
 import { UUIDGenerator } from 'core/utils';
 
+import './HoverablePopover.css';
+
 export interface IHoverablePopoverContentsProps extends IHoverablePopoverProps {
   // The popover contents can forcibly hide the popover by calling this function
   hidePopover: () => void;
@@ -28,10 +30,6 @@ export interface IHoverablePopoverProps extends React.HTMLProps<any> {
   hOffsetPercent?: string;
   /** class to put on the popover content */
   className?: string;
-  /** class to put on the outermost element */
-  wrapperClassName?: string;
-  /** custom style attributes */
-  style?: React.CSSProperties;
   /** Rendered on the top of the popover content */
   title?: string;
   id?: string;
@@ -149,18 +147,7 @@ export class HoverablePopover extends React.Component<IHoverablePopoverProps, IH
   };
 
   public render() {
-    const {
-      Component,
-      template,
-      placement,
-      container,
-      hOffsetPercent,
-      id,
-      title,
-      className,
-      wrapperClassName,
-      style,
-    } = this.props;
+    const { Component, template, placement, container, hOffsetPercent, id, title, className } = this.props;
     const { popoverIsOpen, animation, placementOverride } = this.state;
     const { Wrapper } = this;
 
@@ -171,12 +158,7 @@ export class HoverablePopover extends React.Component<IHoverablePopoverProps, IH
     );
 
     return (
-      <Wrapper
-        className={wrapperClassName}
-        style={{ display: 'inline', ...style }}
-        onMouseEnter={this.handleMouseEvent}
-        onMouseLeave={this.handleMouseEvent}
-      >
+      <Wrapper className="HoverablePopover" onMouseEnter={this.handleMouseEvent} onMouseLeave={this.handleMouseEvent}>
         {this.props.children}
         <Overlay
           show={popoverIsOpen}

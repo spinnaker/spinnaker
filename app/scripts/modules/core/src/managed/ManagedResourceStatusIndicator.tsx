@@ -173,17 +173,12 @@ export const ManagedResourceStatusIndicator = ({
   resourceSummary: { id, status },
 }: IManagedResourceStatusIndicatorProps) => {
   return (
-    <HoverablePopover
-      template={viewConfigurationByStatus[status].popoverContents(id)}
-      placement="left"
-      style={{ display: 'flex' }}
-      wrapperClassName={classNames(
-        'flex-container-h middle ManagedResourceStatusIndicator',
-        shape,
-        viewConfigurationByStatus[status].colorClass,
-      )}
-    >
-      <i className={classNames('fa', viewConfigurationByStatus[status].iconClass)} />
-    </HoverablePopover>
+    <div className="flex-container-h stretch ManagedResourceStatusIndicator">
+      <HoverablePopover template={viewConfigurationByStatus[status].popoverContents(id)} placement="left">
+        <div className={classNames('flex-container-h middle', shape, viewConfigurationByStatus[status].colorClass)}>
+          <i className={classNames('fa', viewConfigurationByStatus[status].iconClass)} />
+        </div>
+      </HoverablePopover>
+    </div>
   );
 };
