@@ -28,7 +28,7 @@ export class ApplicationComponent extends React.Component<IApplicationComponentP
   }
 
   private mountApplication(app: Application) {
-    if (app.notFound) {
+    if (app.notFound || app.hasError) {
       RecentHistoryService.removeLastItem('applications');
       return;
     }
@@ -38,7 +38,7 @@ export class ApplicationComponent extends React.Component<IApplicationComponentP
   }
 
   private unmountApplication(app: Application) {
-    if (app.notFound) {
+    if (app.notFound || app.hasError) {
       return;
     }
     DebugWindow.application = undefined;
@@ -49,12 +49,20 @@ export class ApplicationComponent extends React.Component<IApplicationComponentP
     const { app } = this.props;
     return (
       <div className="application">
-        {!app.notFound && <ApplicationHeader app={app} />}
+        {!app.notFound && !app.hasError && <ApplicationHeader app={app} />}
         {app.notFound && (
           <div>
             <h2 className="text-center">Application Not Found</h2>
             <p className="text-center" style={{ marginBottom: '20px' }}>
               Please check your URL - we can't find any data for <em>{app.name}</em>.
+            </p>
+          </div>
+        )}
+        {app.hasError && (
+          <div>
+            <h2 className="text-center">Something went wrong</h2>
+            <p className="text-center" style={{ marginBottom: '20px' }}>
+              There was a problem loading <em>{app.name}</em>. Try checking your browser console for errors.
             </p>
           </div>
         )}

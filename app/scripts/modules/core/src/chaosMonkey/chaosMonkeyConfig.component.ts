@@ -48,7 +48,7 @@ export class ChaosMonkeyConfigController implements IController {
   };
 
   public $onInit(): void {
-    if (this.application.notFound) {
+    if (this.application.notFound || this.application.hasError) {
       return;
     }
     this.config = new ChaosMonkeyConfig(this.application.attributes.chaosMonkey || {});

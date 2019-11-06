@@ -20,7 +20,7 @@ module.exports = angular
       '$state',
       'confirmationModalService',
       function($state, confirmationModalService) {
-        if (this.application.notFound) {
+        if (this.application.notFound || this.application.hasError) {
           return;
         }
 

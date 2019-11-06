@@ -70,6 +70,13 @@ export class Application {
   public notFound = false;
 
   /**
+   * Indicates that there was an exception while trying to load or create
+   * the application model.
+   * @type {boolean}
+   */
+  public hasError = false;
+
+  /**
    * Indicates that the application does not exist and is used as a stub
    * @type {boolean}
    */

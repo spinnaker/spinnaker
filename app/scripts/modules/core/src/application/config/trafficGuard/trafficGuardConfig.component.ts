@@ -31,7 +31,7 @@ export class TrafficGuardConfigController {
   public constructor(private $log: ILogService) {}
 
   public $onInit(): void {
-    if (this.application.notFound) {
+    if (this.application.notFound || this.application.hasError) {
       return;
     }
     this.config = this.application.attributes.trafficGuards || [];

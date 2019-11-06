@@ -75,7 +75,7 @@ module.exports = angular
         }
       };
 
-      if (!app.notFound) {
+      if (!app.notFound && !app.hasError) {
         app.pipelineConfigs.activate();
         app.pipelineConfigs
           .ready()

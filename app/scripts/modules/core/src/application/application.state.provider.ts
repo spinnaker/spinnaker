@@ -88,7 +88,15 @@ export class ApplicationStateProvider implements IServiceProvider {
                   return app || ApplicationModelBuilder.createNotFoundApplication($stateParams.application);
                 },
               )
-              .catch(() => ApplicationModelBuilder.createNotFoundApplication($stateParams.application));
+              .catch(error => {
+                if (error.status && error.status === 404) {
+                  return ApplicationModelBuilder.createNotFoundApplication($stateParams.application);
+                } else {
+                  // tslint:disable-next-line:no-console
+                  console.error(error);
+                  return ApplicationModelBuilder.createApplicationWithError($stateParams.application);
+                }
+              });
           },
         ],
       },

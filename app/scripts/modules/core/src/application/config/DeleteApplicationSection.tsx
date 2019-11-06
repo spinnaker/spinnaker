@@ -35,6 +35,14 @@ export function DeleteApplicationSection(props: IDeleteApplicationSection) {
         <p>Application not found.</p>
       </>
     );
+  } else if (application.hasError) {
+    return (
+      <>
+        <p>
+          Something went wrong loading <em>{application.name}</em>.
+        </p>
+      </>
+    );
   } else {
     return Boolean(application.serverGroups.data.length) ? (
       <>

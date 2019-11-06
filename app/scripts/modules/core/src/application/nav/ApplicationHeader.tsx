@@ -164,7 +164,7 @@ export class ApplicationHeader extends React.Component<IApplicationHeaderProps, 
             </div>
           </div>
         </div>
-        {app && !app.notFound && <ThirdLevelNavigation category={activeCategory} application={app} />}
+        {app && !app.notFound && !app.hasError && <ThirdLevelNavigation category={activeCategory} application={app} />}
       </div>
     );
   }

@@ -21,7 +21,7 @@ export class DataSourceEditorController implements IController {
   public dataSources: ApplicationDataSource[];
 
   public $onInit() {
-    if (this.application.notFound) {
+    if (this.application.notFound || this.application.hasError) {
       return;
     }
     if (!this.application.attributes) {

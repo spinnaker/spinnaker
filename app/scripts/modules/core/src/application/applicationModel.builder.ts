@@ -22,4 +22,11 @@ export class ApplicationModelBuilder {
     application.notFound = true;
     return application;
   }
+
+  public static createApplicationWithError(name: string): Application {
+    const config: IDataSourceConfig<IServerGroup[]> = { key: 'serverGroups', lazy: true, defaultData: [] };
+    const application = new Application(name, SchedulerFactory.createScheduler(), [config]);
+    application.hasError = true;
+    return application;
+  }
 }

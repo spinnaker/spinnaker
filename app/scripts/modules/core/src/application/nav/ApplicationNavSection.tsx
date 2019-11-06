@@ -12,7 +12,7 @@ export interface IApplicationNavProps {
 }
 
 export const ApplicationNavSection = ({ application, categories, activeCategory }: IApplicationNavProps) => {
-  if (application.notFound) {
+  if (application.notFound || application.hasError) {
     return null;
   }
   return (

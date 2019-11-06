@@ -12,11 +12,16 @@
         has-dynamic-source="vm.hasDynamicSource"
         application="vm.application"
         template-error="vm.templateError"
-      ></pipeline-configurer>
+      >
+      </pipeline-configurer>
     </div>
   </div>
 </div>
-<div class="row" ng-if="!vm.application.notFound && !vm.state.pipelinesLoaded" style="min-height: 300px">
+<div
+  class="row"
+  ng-if="!vm.application.notFound && !vm.application.hasError && !vm.state.pipelinesLoaded"
+  style="min-height: 300px"
+>
   <div class="horizontal center middle spinner-container">
     <loading-spinner size="'small'"></loading-spinner>
   </div>

@@ -25,7 +25,7 @@ module.exports = angular
     'app',
     'confirmationModalService',
     function($scope, $state, $stateParams, $q, app, confirmationModalService) {
-      if (app.notFound) {
+      if (app.notFound || app.hasError) {
         return;
       }
 

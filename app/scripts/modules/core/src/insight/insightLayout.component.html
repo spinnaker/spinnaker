@@ -1,6 +1,6 @@
 <div
   class="insight"
-  ng-if="!$ctrl.app.notFound"
+  ng-if="!$ctrl.app.notFound && !$ctrl.app.hasError"
   ng-class="$ctrl.insightFilterStateModel.filtersExpanded ? 'filters-expanded' : 'filters-collapsed'"
 >
   <div ui-view="nav" ng-if="!$ctrl.insightFilterStateModel.filtersHidden" class="nav"></div>

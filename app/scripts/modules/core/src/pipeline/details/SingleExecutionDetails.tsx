@@ -61,7 +61,7 @@ export class SingleExecutionDetails extends React.Component<
     const { executionService, $state } = ReactInjector;
     const { app } = this.props;
 
-    if (!app || app.notFound) {
+    if (!app || app.notFound || app.hasError) {
       return;
     }
 

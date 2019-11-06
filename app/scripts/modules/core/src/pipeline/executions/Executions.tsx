@@ -181,7 +181,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
       ExecutionState.filterModel.mostRecentApplication = app.name;
     }
 
-    if (app.notFound) {
+    if (app.notFound || app.hasError) {
       return;
     }
     app.setActiveState(app.executions);
@@ -276,7 +276,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
 
     const hasPipelines = !!(get(app, 'executions.data', []).length || get(app, 'pipelineConfigs.data', []).length);
 
-    if (!app.notFound) {
+    if (!app.notFound && !app.hasError) {
       if (!hasPipelines && !loading) {
         return (
           <div className="text-center full-width">

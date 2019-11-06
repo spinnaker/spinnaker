@@ -23,7 +23,7 @@ module.exports = angular
       '$uibModal',
       function($uibModal) {
         let initialize = () => {
-          if (this.application.notFound) {
+          if (this.application.notFound || this.application.hasError) {
             return;
           }
 
