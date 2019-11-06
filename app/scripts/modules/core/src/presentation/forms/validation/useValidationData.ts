@@ -22,15 +22,17 @@ export function useValidationData(validationMessage: React.ReactNode, touched: b
       return { category: null, messageNode: null, hidden: true };
     }
 
-    if (!isString(validationMessage)) {
+    if (React.isValidElement(validationMessage)) {
       return { category: null, messageNode: validationMessage, hidden: false };
+    } else if (isString(validationMessage)) {
+      const [category, messageNode] = categorizeValidationMessage(validationMessage as string);
+
+      const isErrorOrWarning = category === 'error' || category === 'warning';
+      const hidden = !touched && isErrorOrWarning;
+
+      return { category, messageNode, hidden };
     }
 
-    const [category, messageNode] = categorizeValidationMessage(validationMessage);
-
-    const isErrorOrWarning = category === 'error' || category === 'warning';
-    const hidden = !touched && isErrorOrWarning;
-
-    return { category, messageNode, hidden };
+    return { category: null, messageNode: validationMessage, hidden: true };
   }, [validationMessage, touched]);
 }
