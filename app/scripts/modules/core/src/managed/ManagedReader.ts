@@ -10,6 +10,7 @@ export enum ManagedResourceStatus {
   ERROR = 'ERROR',
   HAPPY = 'HAPPY',
   PAUSED = 'PAUSED',
+  RESUMED = 'RESUMED',
   UNHAPPY = 'UNHAPPY',
   UNKNOWN = 'UNKNOWN',
 }

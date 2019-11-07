@@ -106,6 +106,29 @@ const viewConfigurationByStatus = {
       </>
     ),
   },
+  RESUMED: {
+    iconClass: 'icon-md-resumed',
+    colorClass: 'info',
+    popoverContents: (id: string) => (
+      <>
+        <p>
+          <b>Continuous management was just resumed.</b>
+        </p>
+        <p>
+          Management was resumed after being temporarily paused. If Spinnaker detects that a drift from the declarative
+          configuration occurred while paused, it will take automatic action to resolve the drift.
+        </p>
+        <p>
+          You can pause and resume management on the{' '}
+          <UISref to="home.applications.application.config" params={{ section: 'managed-resources' }}>
+            <a>config view</a>
+          </UISref>
+          .
+        </p>
+        <LearnMoreLink id={id} status={ManagedResourceStatus.RESUMED} />
+      </>
+    ),
+  },
   UNHAPPY: {
     iconClass: 'icon-md-flapping',
     colorClass: 'error',
