@@ -2,7 +2,7 @@ import { Registry } from 'core/registry';
 
 import { ExecutionDetailsTasks } from '../common';
 import { EvaluateVariablesExecutionDetails } from './EvaluateVariablesExecutionDetails';
-import { EvaluateVariablesStageConfig } from './EvaluateVariablesStageConfig';
+import { EvaluateVariablesStageConfig, validateEvaluateVariablesStage } from './EvaluateVariablesStageConfig';
 
 Registry.pipeline.registerStage({
   label: 'Evaluate Variables',
@@ -15,5 +15,5 @@ Registry.pipeline.registerStage({
   component: EvaluateVariablesStageConfig,
   executionDetailsSections: [EvaluateVariablesExecutionDetails, ExecutionDetailsTasks],
   strategy: true,
-  validators: [{ type: 'requiredField', fieldName: 'variables' }],
+  validateFn: validateEvaluateVariablesStage,
 });

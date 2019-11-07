@@ -1,3 +1,5 @@
+import { IEvaluatedVariable } from 'core/pipeline/config/stages/evaluateVariables/EvaluateVariablesStageConfig';
+
 export interface IStage {
   [k: string]: any;
   alias?: string;
@@ -7,4 +9,5 @@ export interface IStage {
   refId: string | number; // unfortunately, we kept this loose early on, so it's either a string or a number
   requisiteStageRefIds: Array<string | number>;
   type: string;
+  variables?: IEvaluatedVariable[];
 }
