@@ -32,6 +32,7 @@ import java.util.function.Predicate
 class SagaFlow {
 
   internal val steps: MutableList<Step> = mutableListOf()
+  internal var exceptionHandler: Class<out SagaExceptionHandler>? = null
   internal var completionHandler: Class<out SagaCompletionHandler<*>>? = null
 
   /**
@@ -104,6 +105,16 @@ class SagaFlow {
    */
   fun completionHandler(handler: Class<out SagaCompletionHandler<*>>): SagaFlow {
     completionHandler = handler
+    return this
+  }
+
+  /**
+   * An optional [SagaExceptionHandler].
+   *
+   * @param handler The [SagaExceptionHandler] to invoke when an exception is caught
+   */
+  fun exceptionHandler(handler: Class<out SagaExceptionHandler>): SagaFlow {
+    exceptionHandler = handler
     return this
   }
 

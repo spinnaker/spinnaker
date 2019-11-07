@@ -21,36 +21,16 @@ import com.netflix.spinnaker.kork.exceptions.IntegrationException;
 public class TitusException extends IntegrationException {
   public TitusException(String message) {
     super(message);
-    setRetryable(true);
-  }
-
-  public TitusException(String message, Throwable cause) {
-    super(message, cause);
-    setRetryable(isExceptionRetryable(cause));
-  }
-
-  public TitusException(Throwable cause) {
-    super(cause);
-    setRetryable(isExceptionRetryable(cause));
+    setRetryable(false);
   }
 
   public TitusException(String message, String userMessage) {
     super(message, userMessage);
-    setRetryable(true);
+    setRetryable(false);
   }
 
-  public TitusException(String message, Throwable cause, String userMessage) {
-    super(message, cause, userMessage);
-    setRetryable(isExceptionRetryable(cause));
-  }
-
-  private static boolean isExceptionRetryable(Throwable cause) {
-    final String message = cause.getMessage();
-    if (message == null) {
-      return true;
-    }
-
-    // If the request sent to Titus is invalid, there's no sense is retrying.
-    return !message.startsWith("INVALID_ARGUMENT");
+  public TitusException(Throwable cause, boolean retryable) {
+    super(cause);
+    setRetryable(retryable);
   }
 }

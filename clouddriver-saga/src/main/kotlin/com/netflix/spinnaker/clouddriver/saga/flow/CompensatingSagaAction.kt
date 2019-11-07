@@ -15,10 +15,10 @@
  */
 package com.netflix.spinnaker.clouddriver.saga.flow
 
-import com.google.common.annotations.Beta
 import com.netflix.spinnaker.clouddriver.saga.SagaCommand
 import com.netflix.spinnaker.clouddriver.saga.SagaRollbackCommand
 import com.netflix.spinnaker.clouddriver.saga.models.Saga
+import com.netflix.spinnaker.kork.annotations.Beta
 
 /**
  * A [SagaAction] that has a companion [rollback] method.

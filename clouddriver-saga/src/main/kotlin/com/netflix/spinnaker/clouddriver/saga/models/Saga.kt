@@ -17,7 +17,6 @@ package com.netflix.spinnaker.clouddriver.saga.models
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.google.common.annotations.Beta
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.clouddriver.saga.SagaCommand
 import com.netflix.spinnaker.clouddriver.saga.SagaCommandCompleted
@@ -27,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.saga.SagaLogAppended
 import com.netflix.spinnaker.clouddriver.saga.SagaRollbackStarted
 import com.netflix.spinnaker.clouddriver.saga.exceptions.SagaStateIntegrationException
 import com.netflix.spinnaker.clouddriver.saga.exceptions.SagaSystemException
+import com.netflix.spinnaker.kork.annotations.Beta
 import org.slf4j.LoggerFactory
 
 /**

@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.clouddriver.saga
 
-import com.google.common.annotations.Beta
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.saga.exceptions.SagaIntegrationException
 import com.netflix.spinnaker.clouddriver.saga.exceptions.SagaMissingRequiredCommandException
@@ -26,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.saga.flow.SagaFlow
 import com.netflix.spinnaker.clouddriver.saga.flow.SagaFlowIterator
 import com.netflix.spinnaker.clouddriver.saga.models.Saga
 import com.netflix.spinnaker.clouddriver.saga.persistence.SagaRepository
+import com.netflix.spinnaker.kork.annotations.Beta
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationContext
@@ -99,14 +99,18 @@ class SagaService(
           }
         } catch (e: Exception) {
           // TODO(rz): Add SagaAction.recover()
+          val handledException = invokeExceptionHandler(flow, e)
 
           log.error(
-            "Encountered error while applying action '${action.javaClass.simpleName}' on ${saga.name}/${saga.id}", e)
+            "Encountered error while applying action '${action.javaClass.simpleName}' on ${saga.name}/${saga.id}",
+            handledException
+          )
+
           saga.addEvent(SagaActionErrorOccurred(
             actionName = action.javaClass.simpleName,
-            error = e,
-            retryable = when (e) {
-              is SpinnakerException -> e.retryable ?: false
+            error = handledException,
+            retryable = when (handledException) {
+              is SpinnakerException -> handledException.retryable ?: false
               else -> false
             }
           ))
@@ -117,7 +121,7 @@ class SagaService(
             .increment()
 
           log.error("Failed to apply action ${action.javaClass.simpleName} for ${saga.name}/${saga.id}")
-          throw e
+          throw handledException
         }
 
         saga.setSequence(stepCommand.getMetadata().sequence)
@@ -176,6 +180,14 @@ class SagaService(
           throw SagaIntegrationException("The completion handler is incompatible with the expected return type", e)
         }
       }
+  }
+
+  private fun invokeExceptionHandler(flow: SagaFlow, exception: Exception): Exception {
+    flow.exceptionHandler?.let { exceptionHandler ->
+        val handler = applicationContext.getBean(exceptionHandler)
+        return handler.handle(exception)
+    }
+    return exception
   }
 
   private fun getRequiredCommand(action: SagaAction<SagaCommand>): Class<SagaCommand> {

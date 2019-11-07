@@ -13,24 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.clouddriver.titus
 
-import spock.lang.Specification
-import spock.lang.Unroll
+package com.netflix.spinnaker.clouddriver.saga.flow
 
-class TitusExceptionSpec extends Specification {
+import com.netflix.spinnaker.kork.annotations.Beta
+import kotlin.Exception
 
-  @Unroll
-  def "should set retryable=#retryable on message=#message"() {
-    given:
-    Exception downstream = new RuntimeException(message)
-
-    expect:
-    new TitusException("Something bad happened", downstream).retryable == retryable
-
-    where:
-    message                                  || retryable
-    "INVALID_ARGUMENT: Image does not exist" || false
-    "Something else entirely"                || true
-  }
+/**
+ * The [SagaExceptionHandler] is an optional interface for implementors to use when determining how to
+ * handle an exception thrown during a [SagaFlow].  An example use-case would be if one wants to
+ * flag a specific exception as retryable.
+ */
+@Beta
+interface SagaExceptionHandler {
+  fun handle(exception: Exception): Exception
 }

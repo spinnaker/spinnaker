@@ -15,8 +15,8 @@
  */
 package com.netflix.spinnaker.clouddriver.saga.flow
 
-import com.google.common.annotations.Beta
 import com.netflix.spinnaker.clouddriver.saga.models.Saga
+import com.netflix.spinnaker.kork.annotations.Beta
 
 /**
  * The completion handler is used as a way of registering Beans as a callback once a particular [Saga]

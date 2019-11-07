@@ -57,6 +57,7 @@ public class TitusDeployHandler implements DeployHandler<TitusDeployDescription>
                       .then(AttachTitusServiceLoadBalancers.class)
                       .then(CopyTitusServiceScalingPolicies.class);
                 })
+            .exceptionHandler(TitusExceptionHandler.class)
             .completionHandler(TitusDeployCompletionHandler.class);
 
     final TitusDeploymentResult result =
