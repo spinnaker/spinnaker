@@ -9,7 +9,7 @@ import com.netflix.spinnaker.keel.api.Capacity
 import com.netflix.spinnaker.keel.api.ClusterDependencies
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.Locations
-import com.netflix.spinnaker.keel.api.MultiRegion
+import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.model.Moniker
@@ -96,14 +96,9 @@ data class ClusterSpec(
   private val _defaults: ServerGroupSpec,
   @JsonInclude(NON_EMPTY)
   val overrides: Map<String, ServerGroupSpec> = emptyMap()
-) : MultiRegion, Locatable<SubnetAwareLocations> {
+) : Monikered, Locatable<SubnetAwareLocations> {
   @JsonIgnore
   override val id = "${locations.account}:${moniker.name}"
-
-  @JsonIgnore
-  override val regionalIds = locations.regions.map { clusterRegion ->
-    "${locations.account}:${clusterRegion.name}:${moniker.name}"
-  }.sorted()
 
   /**
    * I have no idea why, but if I annotate the constructor property with @get:JsonUnwrapped, the

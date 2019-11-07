@@ -43,7 +43,6 @@ class ApplicationController(
   ): Map<String, Any> {
     if (includeDetails) {
       val resources = resourceRepository.getSummaryByApplication(application)
-        .filter { it.kind != "keel-tag" }
 
       return mapOf(
         "hasManagedResources" to resources.isNotEmpty(),

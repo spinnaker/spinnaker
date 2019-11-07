@@ -34,7 +34,6 @@ include(
   "keel-retrofit-test-support",
   "keel-spring-test-support",
   "keel-sql",
-  "keel-tagging-plugin",
   "keel-test",
   "keel-titus-plugin",
   "keel-veto"

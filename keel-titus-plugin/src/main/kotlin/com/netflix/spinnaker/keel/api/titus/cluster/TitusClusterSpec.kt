@@ -23,7 +23,7 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped
 import com.netflix.spinnaker.keel.api.Capacity
 import com.netflix.spinnaker.keel.api.ClusterDependencies
 import com.netflix.spinnaker.keel.api.Locatable
-import com.netflix.spinnaker.keel.api.MultiRegion
+import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.clouddriver.model.Constraints
 import com.netflix.spinnaker.keel.clouddriver.model.MigrationPolicy
@@ -40,14 +40,10 @@ data class TitusClusterSpec(
   val container: Container,
   private val _defaults: TitusServerGroupSpec,
   val overrides: Map<String, TitusServerGroupSpec> = emptyMap()
-) : MultiRegion, Locatable<SimpleLocations> {
+) : Monikered, Locatable<SimpleLocations> {
 
   @JsonIgnore
   override val id = "${locations.account}:${moniker.name}"
-
-  override val regionalIds = locations.regions.map { clusterRegion ->
-    "${locations.account}:${clusterRegion.name}:${moniker.name}"
-  }.sorted()
 
   val defaults: TitusServerGroupSpec
     @JsonUnwrapped get() = _defaults

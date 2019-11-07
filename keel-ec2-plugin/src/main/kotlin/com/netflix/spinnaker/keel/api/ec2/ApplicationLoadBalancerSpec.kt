@@ -35,11 +35,6 @@ data class ApplicationLoadBalancerSpec(
   @JsonIgnore
   override val id: String = "${locations.account}:${moniker.name}"
 
-  @JsonIgnore
-  override val regionalIds = locations.regions.map { region ->
-    "${locations.account}:${region.name}:${moniker.name}"
-  }
-
   data class Listener(
     val port: Int,
     val protocol: String,

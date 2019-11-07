@@ -28,7 +28,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer
 import com.netflix.spinnaker.keel.api.ApiVersion
-import com.netflix.spinnaker.keel.api.MultiRegion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.application
@@ -64,24 +63,12 @@ sealed class ResourceEvent {
   abstract val apiVersion: ApiVersion
   abstract val kind: String
   abstract val id: String // TODO: should be ResourceId but Jackson can't handle inline classes
-  /**
-   * [ids] can optionally contain regional cloud resources, generated from a multi-region spec
-   */
-  @JsonIgnore
-  open val ids: List<String>? = null
   abstract val application: String
   abstract val timestamp: Instant
 
   val resourceId: ResourceId
     @JsonIgnore
     get() = ResourceId(id)
-
-  /**
-   * for [MultiRegion] specific events
-   */
-  val resourceIds: Set<ResourceId>
-    @JsonIgnore
-    get() = ids?.map { ResourceId(it) }?.toSet() ?: emptySet()
 
   /**
    * Should repeated events of the same type
@@ -101,7 +88,6 @@ data class ResourceCreated(
   override val apiVersion: ApiVersion,
   override val kind: String,
   override val id: String,
-  override val ids: List<String>? = null,
   override val application: String,
   override val timestamp: Instant
 ) : ResourceEvent() {
@@ -110,13 +96,6 @@ data class ResourceCreated(
     resource.apiVersion,
     resource.kind,
     resource.id.value,
-    if (resource.spec is MultiRegion) {
-      resource.spec.regionalIds.map {
-        "${resource.apiVersion.prefix}:${resource.kind}:$it"
-      }
-    } else {
-      null
-    },
     resource.application,
     clock.instant()
   )
@@ -150,7 +129,6 @@ data class ResourceDeleted(
   override val apiVersion: ApiVersion,
   override val kind: String,
   override val id: String,
-  override val ids: List<String>? = null,
   override val application: String,
   override val timestamp: Instant
 ) : ResourceEvent() {
@@ -158,13 +136,6 @@ data class ResourceDeleted(
     resource.apiVersion,
     resource.kind,
     resource.id.value,
-    if (resource.spec is MultiRegion) {
-      resource.spec.regionalIds.map {
-        "${resource.apiVersion.prefix}:${resource.kind}:$it"
-      }
-    } else {
-      null
-    },
     resource.application,
     clock.instant()
   )
