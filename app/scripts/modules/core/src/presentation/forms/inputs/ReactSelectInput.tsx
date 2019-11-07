@@ -58,7 +58,7 @@ export const reactSelectOnBlurAdapter = (name: string, value: any, onBlur: IReac
  *
  * This component does not attempt to support async loading
  */
-export function ReactSelectInput(props: IReactSelectInputProps) {
+export function ReactSelectInput<T = string>(props: IReactSelectInputProps<T>) {
   const {
     name,
     onChange,
@@ -85,9 +85,9 @@ export function ReactSelectInput(props: IReactSelectInputProps) {
     onChange: reactSelectOnChangeAdapter(name, onChange),
   };
 
-  const commonProps = { className, style, ignoreAccents, ...fieldProps, ...otherProps };
+  const commonProps = { className, style, ignoreAccents, ...fieldProps, ...otherProps } as any;
 
-  const SelectElement = ({ options }: { options: IReactSelectInputProps['options'] }) =>
+  const SelectElement = ({ options }: { options: any[] }) =>
     mode === 'TETHERED' ? (
       <TetheredSelect {...commonProps} options={options} />
     ) : mode === 'VIRTUALIZED' ? (
