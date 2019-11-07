@@ -25,6 +25,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
 
@@ -98,6 +100,35 @@ public class Keys implements KeyParser {
         + (lb.getPort() != null ? lb.getPort() : -1)
         + ":"
         + lb.getRegion();
+  }
+
+  public static String getLoadBalancerKey(String account, String uri, String region) {
+    Pattern VALID_ROUTE_REGEX =
+        Pattern.compile("^([a-zA-Z0-9_-]+)\\.([a-zA-Z0-9_.-]+)(:[0-9]+)?([/a-zA-Z0-9_-]+)?$");
+    Matcher matcher = VALID_ROUTE_REGEX.matcher(uri);
+    if (matcher.find()) {
+      String host = Optional.ofNullable(matcher.group(1)).orElse("*");
+      String domain = Optional.ofNullable(matcher.group(2)).orElse("*");
+      String port = Optional.ofNullable(matcher.group(3)).orElse("-1");
+      String path = Optional.ofNullable(matcher.group(4)).orElse("");
+      return ID
+          + ":"
+          + Namespace.LOAD_BALANCERS
+          + ":"
+          + account
+          + ":*:"
+          + host
+          + ":"
+          + domain
+          + ":"
+          + path
+          + ":"
+          + port
+          + ":"
+          + region;
+    } else {
+      return null;
+    }
   }
 
   public static String getClusterKey(String account, String app, String name) {

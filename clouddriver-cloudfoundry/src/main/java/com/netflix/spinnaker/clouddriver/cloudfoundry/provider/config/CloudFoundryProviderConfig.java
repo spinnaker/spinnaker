@@ -18,15 +18,14 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.provider.config;
 
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.CloudFoundryProvider;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.agent.CloudFoundryCachingAgent;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.agent.CloudFoundryLoadBalancerCachingAgent;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.agent.CloudFoundryServerGroupCachingAgent;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils;
 import java.util.Collections;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
@@ -52,18 +51,20 @@ public class CloudFoundryProviderConfig {
     Set<CloudFoundryCredentials> allAccounts =
         ProviderUtils.buildThreadSafeSetOfAccounts(
             accountCredentialsRepository, CloudFoundryCredentials.class);
-
-    cloudFoundryProvider
-        .getAgents()
-        .addAll(
-            allAccounts.stream()
-                .map(
-                    credentials ->
-                        !scheduledAccounts.contains(credentials.getName())
-                            ? new CloudFoundryCachingAgent(
-                                credentials.getName(), credentials.getClient(), registry)
-                            : null)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList()));
+    allAccounts.forEach(
+        credentials -> {
+          if (!scheduledAccounts.contains(credentials.getName())) {
+            cloudFoundryProvider
+                .getAgents()
+                .add(
+                    new CloudFoundryServerGroupCachingAgent(
+                        credentials.getName(), credentials.getClient(), registry));
+            cloudFoundryProvider
+                .getAgents()
+                .add(
+                    new CloudFoundryLoadBalancerCachingAgent(
+                        credentials.getName(), credentials.getClient(), registry));
+          }
+        });
   }
 }

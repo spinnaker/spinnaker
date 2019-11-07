@@ -111,7 +111,7 @@ public class Routes {
     if (routeId.getPath() != null) queryParams.add("path:" + routeId.getPath());
     if (routeId.getPort() != null) queryParams.add("port:" + routeId.getPort().toString());
 
-    return collectPageResources("route mappings", pg -> api.all(pg, 5000, queryParams)).stream()
+    return collectPageResources("route mappings", pg -> api.all(pg, 1, queryParams)).stream()
         .filter(
             routeResource ->
                 (routeId.getPath() != null || routeResource.getEntity().getPath().isEmpty())

@@ -26,7 +26,7 @@ import com.netflix.spinnaker.cats.module.CatsModuleAware;
 import com.netflix.spinnaker.cats.provider.ProviderRegistry;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.config.CloudFoundryConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.CloudFoundryProvider;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.agent.CloudFoundryCachingAgent;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.agent.CloudFoundryServerGroupCachingAgent;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository;
@@ -131,7 +131,7 @@ class CloudFoundryCredentialsSynchronizerTest {
         .containsExactlyInAnyOrder("unchanged2", "unchanged3", "added", "to-be-changed");
 
     assertThat(scheduler.getScheduledAccountNames())
-        .containsExactlyInAnyOrder("added", "to-be-changed");
+        .containsExactlyInAnyOrder("added", "added", "to-be-changed", "to-be-changed");
     assertThat(scheduler.getUnscheduledAccountNames())
         .containsExactlyInAnyOrder("to-be-changed", "to-be-deleted");
   }
@@ -156,11 +156,12 @@ class CloudFoundryCredentialsSynchronizerTest {
     Set<CloudFoundryCredentials> accounts =
         ProviderUtils.buildThreadSafeSetOfAccounts(repository, CloudFoundryCredentials.class);
 
-    List<CloudFoundryCachingAgent> agents =
+    List<CloudFoundryServerGroupCachingAgent> agents =
         accounts.stream()
             .map(
                 account ->
-                    new CloudFoundryCachingAgent(account.getName(), account.getClient(), registry))
+                    new CloudFoundryServerGroupCachingAgent(
+                        account.getName(), account.getClient(), registry))
             .collect(Collectors.toList());
 
     provider.getAgents().addAll(agents);

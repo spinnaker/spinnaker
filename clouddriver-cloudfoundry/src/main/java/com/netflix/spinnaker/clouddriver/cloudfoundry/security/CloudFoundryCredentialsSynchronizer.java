@@ -21,7 +21,8 @@ import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.module.CatsModule;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.config.CloudFoundryConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.CloudFoundryProvider;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.agent.CloudFoundryCachingAgent;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.agent.CloudFoundryLoadBalancerCachingAgent;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.agent.CloudFoundryServerGroupCachingAgent;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.security.CredentialsInitializerSynchronizable;
@@ -141,11 +142,18 @@ public class CloudFoundryCredentialsSynchronizer implements CredentialsInitializ
         ProviderUtils.buildThreadSafeSetOfAccounts(
             accountCredentialsRepository, CloudFoundryCredentials.class);
 
-    return allAccounts.stream()
+    List<Agent> agents = new ArrayList<>();
+    allAccounts.stream()
         .filter(account -> !existingAgentAccountNames.contains(account.getName()))
-        .map(
-            account ->
-                new CloudFoundryCachingAgent(account.getName(), account.getClient(), registry))
-        .collect(Collectors.toList());
+        .forEach(
+            account -> {
+              agents.add(
+                  new CloudFoundryServerGroupCachingAgent(
+                      account.getName(), account.getClient(), registry));
+              agents.add(
+                  new CloudFoundryLoadBalancerCachingAgent(
+                      account.getName(), account.getClient(), registry));
+            });
+    return agents;
   }
 }

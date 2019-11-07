@@ -1,13 +1,16 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.provider.agent;
 
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.cache.Keys.Namespace.*;
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.provider.agent.CloudFoundryCachingAgent.cacheView;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.provider.agent.CloudFoundryServerGroupCachingAgent.cacheView;
 import static java.util.Collections.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult;
@@ -21,7 +24,6 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.ResourceCacheData;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.Applications;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.Organizations;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.Routes;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.*;
 import com.netflix.spinnaker.moniker.Moniker;
 import io.vavr.collection.HashMap;
@@ -34,14 +36,16 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 
-class CloudFoundryCachingAgentTest {
+class CloudFoundryServerGroupCachingAgentTest {
   private Instant now = Instant.now();
   private String accountName = "account";
+  private ObjectMapper objectMapper =
+      new ObjectMapper().disable(MapperFeature.DEFAULT_VIEW_INCLUSION);
   private CloudFoundryClient cloudFoundryClient = mock(CloudFoundryClient.class);
   private Registry registry = mock(Registry.class);
   private final Clock internalClock = Clock.fixed(now, ZoneId.systemDefault());
-  private CloudFoundryCachingAgent cloudFoundryCachingAgent =
-      new CloudFoundryCachingAgent(accountName, cloudFoundryClient, registry, internalClock);
+  private CloudFoundryServerGroupCachingAgent cloudFoundryServerGroupCachingAgent =
+      new CloudFoundryServerGroupCachingAgent(accountName, cloudFoundryClient, registry);
   private ProviderCache mockProviderCache = mock(ProviderCache.class);
   private String spaceId = "space-guid";
   private String spaceName = "space";
@@ -58,14 +62,15 @@ class CloudFoundryCachingAgentTest {
   void handleShouldReturnNullWhenAccountDoesNotMatch() {
     Map<String, Object> data = HashMap.<String, Object>of("account", "other-account").toJavaMap();
 
-    OnDemandAgent.OnDemandResult result = cloudFoundryCachingAgent.handle(mockProviderCache, data);
+    OnDemandAgent.OnDemandResult result =
+        cloudFoundryServerGroupCachingAgent.handle(mockProviderCache, data);
     assertThat(result).isNull();
   }
 
   @Test
   void handleShouldReturnNullWhenRegionIsUnspecified() {
     OnDemandAgent.OnDemandResult result =
-        cloudFoundryCachingAgent.handle(mockProviderCache, emptyMap());
+        cloudFoundryServerGroupCachingAgent.handle(mockProviderCache, emptyMap());
 
     assertThat(result).isNull();
   }
@@ -84,7 +89,8 @@ class CloudFoundryCachingAgentTest {
 
     when(cloudFoundryClient.getOrganizations()).thenReturn(organizations);
 
-    OnDemandAgent.OnDemandResult result = cloudFoundryCachingAgent.handle(mockProviderCache, data);
+    OnDemandAgent.OnDemandResult result =
+        cloudFoundryServerGroupCachingAgent.handle(mockProviderCache, data);
     assertThat(result).isNull();
     verify(organizations).findSpaceByRegion(eq(region));
   }
@@ -102,7 +108,8 @@ class CloudFoundryCachingAgentTest {
     when(cloudFoundryClient.getOrganizations()).thenReturn(organizations);
     when(organizations.findSpaceByRegion(any())).thenReturn(Optional.of(cloudFoundrySpace));
 
-    OnDemandAgent.OnDemandResult result = cloudFoundryCachingAgent.handle(mockProviderCache, data);
+    OnDemandAgent.OnDemandResult result =
+        cloudFoundryServerGroupCachingAgent.handle(mockProviderCache, data);
     assertThat(result).isNull();
     verify(organizations).findSpaceByRegion(eq(region));
   }
@@ -126,7 +133,8 @@ class CloudFoundryCachingAgentTest {
     when(cloudFoundryClient.getApplications()).thenReturn(mockApplications);
     when(mockApplications.findServerGroupByNameAndSpaceId(any(), any())).thenReturn(null);
 
-    OnDemandAgent.OnDemandResult result = cloudFoundryCachingAgent.handle(mockProviderCache, data);
+    OnDemandAgent.OnDemandResult result =
+        cloudFoundryServerGroupCachingAgent.handle(mockProviderCache, data);
 
     assertThat(result).isNull();
     verify(organizations).findSpaceByRegion(eq(region));
@@ -143,42 +151,43 @@ class CloudFoundryCachingAgentTest {
                 "region", region,
                 "serverGroupName", serverGroupName)
             .toJavaMap();
-    CacheData onDemandCacheData =
-        new DefaultCacheData(
-            Keys.getServerGroupKey(accountName, serverGroupName, region),
-            (int) TimeUnit.MINUTES.toSeconds(10),
-            io.vavr.collection.HashMap.<String, Object>of("cacheTime", now.toEpochMilli())
-                .toJavaMap(),
-            emptyMap(),
-            internalClock);
-    Organizations mockOrganizations = mock(Organizations.class);
-    when(mockOrganizations.findSpaceByRegion(any())).thenReturn(Optional.of(cloudFoundrySpace));
+    CloudFoundryInstance cloudFoundryInstance =
+        CloudFoundryInstance.builder().appGuid("instance-guid").key("instance-key").build();
     CloudFoundryServerGroup matchingCloudFoundryServerGroup =
         CloudFoundryServerGroup.builder()
             .name(serverGroupName)
             .account(accountName)
             .space(cloudFoundrySpace)
-            .instances(
-                singleton(
-                    CloudFoundryInstance.builder()
-                        .appGuid("instance-guid")
-                        .key("instance-key")
-                        .build()))
+            .instances(singleton(cloudFoundryInstance))
             .build();
+    ResourceCacheData onDemandCacheData =
+        new ResourceCacheData(
+            Keys.getServerGroupKey(accountName, serverGroupName, region),
+            cacheView(matchingCloudFoundryServerGroup),
+            HashMap.<String, Collection<String>>of(
+                    INSTANCES.getNs(),
+                        Collections.singletonList(
+                            Keys.getInstanceKey(accountName, cloudFoundryInstance.getName())),
+                    LOAD_BALANCERS.getNs(), Collections.emptyList())
+                .toJavaMap());
+    Organizations mockOrganizations = mock(Organizations.class);
+    when(mockOrganizations.findSpaceByRegion(any())).thenReturn(Optional.of(cloudFoundrySpace));
     Applications mockApplications = mock(Applications.class);
     when(mockApplications.findServerGroupByNameAndSpaceId(any(), any()))
         .thenReturn(matchingCloudFoundryServerGroup);
     when(cloudFoundryClient.getOrganizations()).thenReturn(mockOrganizations);
     when(cloudFoundryClient.getApplications()).thenReturn(mockApplications);
     Map<String, Collection<CacheData>> cacheResults =
-        HashMap.<String, Collection<CacheData>>of(ON_DEMAND.getNs(), singleton(onDemandCacheData))
+        HashMap.<String, Collection<CacheData>>of(
+                SERVER_GROUPS.getNs(), singleton(onDemandCacheData))
             .toJavaMap();
-    String sourceAgentType = "account/CloudFoundryCachingAgent-OnDemand";
+    String sourceAgentType = "account/CloudFoundryServerGroupCachingAgent-OnDemand";
     CacheResult expectedCacheResult = new DefaultCacheResult(cacheResults);
     OnDemandAgent.OnDemandResult expectedResult =
         new OnDemandAgent.OnDemandResult(sourceAgentType, expectedCacheResult, emptyMap());
 
-    OnDemandAgent.OnDemandResult result = cloudFoundryCachingAgent.handle(mockProviderCache, data);
+    OnDemandAgent.OnDemandResult result =
+        cloudFoundryServerGroupCachingAgent.handle(mockProviderCache, data);
 
     assertThat(result).isEqualToComparingFieldByFieldRecursively(expectedResult);
   }
@@ -226,7 +235,8 @@ class CloudFoundryCachingAgentTest {
                     "processedTime", processedTime)
                 .toJavaMap());
 
-    Collection<Map> result = cloudFoundryCachingAgent.pendingOnDemandRequests(mockProviderCache);
+    Collection<Map> result =
+        cloudFoundryServerGroupCachingAgent.pendingOnDemandRequests(mockProviderCache);
 
     assertThat(result).isEqualTo(expectedResult);
     verify(mockProviderCache)
@@ -238,14 +248,14 @@ class CloudFoundryCachingAgentTest {
 
   @Test
   void convertOnDemandDetailsShouldReturnNullMonikerForNullMonikerData() {
-    Moniker result = cloudFoundryCachingAgent.convertOnDemandDetails(null);
+    Moniker result = cloudFoundryServerGroupCachingAgent.convertOnDemandDetails(null);
 
     assertThat(result).isNull();
   }
 
   @Test
   void convertOnDemandDetailsShouldReturnNullMonikerForNoServerGroupInMonikerData() {
-    Moniker result = cloudFoundryCachingAgent.convertOnDemandDetails(emptyMap());
+    Moniker result = cloudFoundryServerGroupCachingAgent.convertOnDemandDetails(emptyMap());
 
     assertThat(result).isNull();
   }
@@ -262,7 +272,7 @@ class CloudFoundryCachingAgentTest {
             .build();
 
     Moniker result =
-        cloudFoundryCachingAgent.convertOnDemandDetails(
+        cloudFoundryServerGroupCachingAgent.convertOnDemandDetails(
             singletonMap("serverGroupName", "app-stack-detail-v235"));
 
     assertThat(result).isEqualToComparingFieldByFieldRecursively(expectedMoniker);
@@ -283,6 +293,18 @@ class CloudFoundryCachingAgentTest {
     String serverGroupKey2 = Keys.getServerGroupKey(accountName, serverGroupName2, region);
     String serverGroupKey3 = Keys.getServerGroupKey(accountName, serverGroupName3, region);
 
+    CloudFoundryLoadBalancer loadBalancer1 =
+        CloudFoundryLoadBalancer.builder()
+            .account(accountName)
+            .id("lb-guid-1")
+            .domain(CloudFoundryDomain.builder().name("domain-name").build())
+            .build();
+    CloudFoundryLoadBalancer loadBalancer2 =
+        CloudFoundryLoadBalancer.builder()
+            .account(accountName)
+            .id("lb-guid-2")
+            .domain(CloudFoundryDomain.builder().name("domain-name").build())
+            .build();
     CloudFoundryInstance instance1 =
         CloudFoundryInstance.builder().appGuid("instance-guid-1").key("instance-key").build();
     CloudFoundryServerGroup serverGroup1 =
@@ -292,6 +314,7 @@ class CloudFoundryCachingAgentTest {
             .account(accountName)
             .space(cloudFoundrySpace)
             .instances(singleton(instance1))
+            .loadBalancerNames(Collections.singleton(loadBalancer1.getName()))
             .build();
     CloudFoundryServerGroup serverGroup2 =
         CloudFoundryServerGroup.builder()
@@ -300,6 +323,7 @@ class CloudFoundryCachingAgentTest {
             .account(accountName)
             .space(cloudFoundrySpace)
             .instances(emptySet())
+            .loadBalancerNames(Collections.singleton(loadBalancer2.getName()))
             .build();
     CloudFoundryServerGroup serverGroup3 =
         CloudFoundryServerGroup.builder()
@@ -309,20 +333,7 @@ class CloudFoundryCachingAgentTest {
             .space(cloudFoundrySpace)
             .instances(emptySet())
             .build();
-    CloudFoundryLoadBalancer loadBalancer1 =
-        CloudFoundryLoadBalancer.builder()
-            .mappedApps(singleton(serverGroup1))
-            .account(accountName)
-            .id("lb-guid-1")
-            .domain(CloudFoundryDomain.builder().name("domain-name").build())
-            .build();
-    CloudFoundryLoadBalancer loadBalancer2 =
-        CloudFoundryLoadBalancer.builder()
-            .mappedApps(singleton(serverGroup2))
-            .account(accountName)
-            .id("lb-guid-2")
-            .domain(CloudFoundryDomain.builder().name("domain-name").build())
-            .build();
+
     CloudFoundryCluster cloudFoundryCluster1 =
         CloudFoundryCluster.builder()
             .accountName(accountName)
@@ -348,13 +359,10 @@ class CloudFoundryCachingAgentTest {
 
     when(mockProviderCache.getAll(any(), anyCollection())).thenReturn(emptySet());
 
-    Routes mockRoutes = mock(Routes.class);
-    when(mockRoutes.all()).thenReturn(List.of(loadBalancer1, loadBalancer2).toJavaList());
     Applications mockApplications = mock(Applications.class);
     when(mockApplications.all())
         .thenReturn(List.of(cloudFoundryApplication1, cloudFoundryApplication3).toJavaList());
 
-    when(cloudFoundryClient.getRoutes()).thenReturn(mockRoutes);
     when(cloudFoundryClient.getApplications()).thenReturn(mockApplications);
 
     Map<String, Collection<String>> applicationRelationships1 =
@@ -378,36 +386,21 @@ class CloudFoundryCachingAgentTest {
             cacheView(cloudFoundryApplication3),
             applicationRelationships3);
 
-    CacheData loadBalancerCacheData1 =
-        new ResourceCacheData(
-            Keys.getLoadBalancerKey(accountName, loadBalancer1),
-            cacheView(loadBalancer1),
-            singletonMap(
-                SERVER_GROUPS.getNs(),
-                singleton(
-                    Keys.getServerGroupKey(
-                        accountName, serverGroup1.getName(), serverGroup1.getRegion()))));
-    CacheData loadBalancerCacheData2 =
-        new ResourceCacheData(
-            Keys.getLoadBalancerKey(accountName, loadBalancer2),
-            cacheView(loadBalancer2),
-            singletonMap(
-                SERVER_GROUPS.getNs(),
-                singleton(
-                    Keys.getServerGroupKey(
-                        accountName, serverGroup2.getName(), serverGroup2.getRegion()))));
-
     Map<String, Collection<String>> serverGroupRelationships1 =
         HashMap.<String, Collection<String>>of(
                 INSTANCES.getNs(), singleton(Keys.getInstanceKey(accountName, instanceId1)),
                 LOAD_BALANCERS.getNs(),
-                    singleton(Keys.getLoadBalancerKey(accountName, loadBalancer1)))
+                    singleton(
+                        Keys.getLoadBalancerKey(
+                            accountName, loadBalancer1.getName(), serverGroup1.getRegion())))
             .toJavaMap();
     Map<String, Collection<String>> serverGroupRelationships2 =
         HashMap.<String, Collection<String>>of(
                 INSTANCES.getNs(), emptySet(),
                 LOAD_BALANCERS.getNs(),
-                    singleton(Keys.getLoadBalancerKey(accountName, loadBalancer2)))
+                    singleton(
+                        Keys.getLoadBalancerKey(
+                            accountName, loadBalancer2.getName(), serverGroup2.getRegion())))
             .toJavaMap();
     Map<String, Collection<String>> serverGroupRelationships3 =
         HashMap.<String, Collection<String>>of(
@@ -443,8 +436,6 @@ class CloudFoundryCachingAgentTest {
 
     Map<String, Collection<CacheData>> cacheResults =
         HashMap.<String, Collection<CacheData>>of(
-                LOAD_BALANCERS.getNs(),
-                    HashSet.of(loadBalancerCacheData1, loadBalancerCacheData2).toJavaSet(),
                 APPLICATIONS.getNs(),
                     HashSet.of(applicationsCacheData1, applicationsCacheData3).toJavaSet(),
                 CLUSTERS.getNs(), HashSet.of(clusterCacheData1, clusterCacheData3).toJavaSet(),
@@ -454,83 +445,163 @@ class CloudFoundryCachingAgentTest {
                 INSTANCES.getNs(), singleton(instanceCacheData),
                 ON_DEMAND.getNs(), emptySet())
             .toJavaMap();
-    CacheResult expectedCacheResult = new DefaultCacheResult(cacheResults);
+    CacheResult expectedCacheResult =
+        new DefaultCacheResult(
+            cacheResults,
+            HashMap.<String, Collection<String>>of(ON_DEMAND.getNs(), emptySet()).toJavaMap());
 
-    CacheResult result = cloudFoundryCachingAgent.loadData(mockProviderCache);
+    CacheResult result = cloudFoundryServerGroupCachingAgent.loadData(mockProviderCache);
 
     assertThat(result).isEqualToComparingFieldByFieldRecursively(expectedCacheResult);
     verify(mockApplications).all();
-    verify(mockRoutes).all();
   }
 
   @Test
-  void loadDataShouldReturnOnDemandCacheDataWithProcessedTime() {
-    Routes mockRoutes = mock(Routes.class);
-    when(mockRoutes.all()).thenReturn(emptyList());
+  void loadDataShouldReturnCacheResultWithDataFromOnDemandNamespace()
+      throws JsonProcessingException {
+
+    CloudFoundryInstance cloudFoundryInstance =
+        CloudFoundryInstance.builder().appGuid("instance-guid-1").key("instance-key").build();
+
+    CloudFoundryServerGroup cloudFoundryServerGroup =
+        CloudFoundryServerGroup.builder()
+            .name("serverGroupName")
+            .id("sg-guid-1")
+            .account(accountName)
+            .space(cloudFoundrySpace)
+            .instances(singleton(cloudFoundryInstance))
+            .build();
+
+    CloudFoundryServerGroup onDemandCloudFoundryServerGroup =
+        CloudFoundryServerGroup.builder()
+            .name("serverGroupName")
+            .id("sg-guid-1")
+            .account(accountName)
+            .space(cloudFoundrySpace)
+            .diskQuota(1024)
+            .instances(singleton(cloudFoundryInstance))
+            .build();
+
+    CloudFoundryCluster cloudFoundryCluster =
+        CloudFoundryCluster.builder()
+            .accountName(accountName)
+            .name("clusterName-foo-bar")
+            .serverGroups(Collections.singleton(cloudFoundryServerGroup))
+            .build();
+
+    CloudFoundryApplication cloudFoundryApplication =
+        CloudFoundryApplication.builder()
+            .name("appName")
+            .clusters(singleton(cloudFoundryCluster))
+            .build();
+
+    Map<String, Collection<String>> applicationRelationships =
+        HashMap.<String, Collection<String>>of(
+                CLUSTERS.getNs(),
+                singleton(
+                    Keys.getClusterKey(
+                        accountName,
+                        cloudFoundryApplication.getName(),
+                        cloudFoundryCluster.getName())))
+            .toJavaMap();
+
+    Map<String, Collection<String>> clusterRelationships =
+        HashMap.<String, Collection<String>>of(
+                SERVER_GROUPS.getNs(),
+                HashSet.of(
+                        Keys.getServerGroupKey(
+                            accountName,
+                            cloudFoundryServerGroup.getName(),
+                            cloudFoundryServerGroup.getRegion()))
+                    .toJavaSet())
+            .toJavaMap();
+
+    Map<String, Collection<String>> serverGroupRelationships =
+        HashMap.<String, Collection<String>>of(
+                INSTANCES.getNs(),
+                    singleton(Keys.getInstanceKey(accountName, cloudFoundryInstance.getName())),
+                LOAD_BALANCERS.getNs(), emptyList())
+            .toJavaMap();
+
     Applications mockApplications = mock(Applications.class);
-    when(mockApplications.all()).thenReturn(emptyList());
-    String region = "org > space";
+    when(mockApplications.all()).thenReturn(List.of(cloudFoundryApplication).toJavaList());
 
-    CacheData cacheData1 =
-        new DefaultCacheData(
-            Keys.getServerGroupKey(accountName, "app1-stack1-detail1-v000", region),
-            (int) TimeUnit.MINUTES.toSeconds(10),
-            io.vavr.collection.HashMap.<String, Object>of(
-                    "cacheTime", Date.from(internalClock.instant()))
-                .toJavaMap(),
-            Collections.emptyMap(),
-            internalClock);
-    CacheData cacheData2 =
-        new DefaultCacheData(
-            Keys.getServerGroupKey(accountName, "app2-stack2-detail2-v000", region),
-            (int) TimeUnit.MINUTES.toSeconds(10),
-            io.vavr.collection.HashMap.<String, Object>of(
-                    "cacheTime", Date.from(internalClock.instant()))
-                .toJavaMap(),
-            Collections.emptyMap(),
-            internalClock);
-    Collection<CacheData> onDemandCachedData = HashSet.of(cacheData1, cacheData2).toJavaSet();
+    ResourceCacheData onDemandCacheResults =
+        new ResourceCacheData(
+            Keys.getServerGroupKey(
+                accountName,
+                onDemandCloudFoundryServerGroup.getName(),
+                onDemandCloudFoundryServerGroup.getRegion()),
+            cacheView(onDemandCloudFoundryServerGroup),
+            serverGroupRelationships);
 
-    when(cloudFoundryClient.getRoutes()).thenReturn(mockRoutes);
+    when(mockProviderCache.getAll(any(), anyCollection()))
+        .thenReturn(
+            singleton(
+                new DefaultCacheData(
+                    Keys.getServerGroupKey(
+                        accountName,
+                        onDemandCloudFoundryServerGroup.getName(),
+                        onDemandCloudFoundryServerGroup.getRegion()),
+                    (int) TimeUnit.MINUTES.toSeconds(10), // ttl
+                    io.vavr.collection.HashMap.<String, Object>of(
+                            "cacheTime",
+                            internalClock.instant().plusSeconds(600).toEpochMilli(),
+                            "cacheResults",
+                            objectMapper.writeValueAsString(
+                                Collections.singletonMap(
+                                    SERVER_GROUPS.getNs(),
+                                    Collections.singleton(onDemandCacheResults))),
+                            "processedCount",
+                            0)
+                        .toJavaMap(),
+                    emptyMap(),
+                    internalClock)));
     when(cloudFoundryClient.getApplications()).thenReturn(mockApplications);
-    when(mockProviderCache.getAll(any(), anyCollectionOf(String.class)))
-        .thenReturn(onDemandCachedData);
 
-    CacheData updatedCacheData1 =
-        new DefaultCacheData(
-            Keys.getServerGroupKey(accountName, "app1-stack1-detail1-v000", region),
-            (int) TimeUnit.MINUTES.toSeconds(10),
-            io.vavr.collection.HashMap.<String, Object>of(
-                    "cacheTime", Date.from(internalClock.instant()),
-                    "processedTime", internalClock.millis(),
-                    "processedCount", 1)
-                .toJavaMap(),
-            Collections.emptyMap(),
-            internalClock);
-    CacheData updatedCacheData2 =
-        new DefaultCacheData(
-            Keys.getServerGroupKey(accountName, "app2-stack2-detail2-v000", region),
-            (int) TimeUnit.MINUTES.toSeconds(10),
-            io.vavr.collection.HashMap.<String, Object>of(
-                    "cacheTime", Date.from(internalClock.instant()),
-                    "processedTime", internalClock.millis(),
-                    "processedCount", 1)
-                .toJavaMap(),
-            Collections.emptyMap(),
-            internalClock);
     Map<String, Collection<CacheData>> cacheResults =
         HashMap.<String, Collection<CacheData>>of(
-                LOAD_BALANCERS.getNs(), emptySet(),
-                APPLICATIONS.getNs(), emptySet(),
-                CLUSTERS.getNs(), emptySet(),
-                SERVER_GROUPS.getNs(), emptySet(),
-                INSTANCES.getNs(), emptySet(),
-                ON_DEMAND.getNs(), HashSet.of(updatedCacheData1, updatedCacheData2).toJavaSet())
+                APPLICATIONS.getNs(),
+                Collections.singleton(
+                    new ResourceCacheData(
+                        Keys.getApplicationKey(cloudFoundryApplication.getName()),
+                        cacheView(cloudFoundryApplication),
+                        applicationRelationships)),
+                CLUSTERS.getNs(),
+                Collections.singleton(
+                    new ResourceCacheData(
+                        Keys.getClusterKey(
+                            accountName,
+                            cloudFoundryCluster.getMoniker().getApp(),
+                            cloudFoundryCluster.getName()),
+                        cacheView(cloudFoundryCluster),
+                        clusterRelationships)),
+                SERVER_GROUPS.getNs(),
+                Collections.singleton(
+                    new ResourceCacheData(
+                        Keys.getServerGroupKey(
+                            accountName,
+                            onDemandCloudFoundryServerGroup.getName(),
+                            onDemandCloudFoundryServerGroup.getRegion()),
+                        cacheView(onDemandCloudFoundryServerGroup),
+                        serverGroupRelationships)),
+                INSTANCES.getNs(),
+                singleton(
+                    new ResourceCacheData(
+                        Keys.getInstanceKey(accountName, cloudFoundryInstance.getName()),
+                        cacheView(cloudFoundryInstance),
+                        emptyMap())),
+                ON_DEMAND.getNs(),
+                emptySet())
             .toJavaMap();
-    CacheResult expectedResult = new DefaultCacheResult(cacheResults);
 
-    CacheResult result = cloudFoundryCachingAgent.loadData(mockProviderCache);
+    CacheResult expectedCacheResult =
+        new DefaultCacheResult(
+            cacheResults,
+            HashMap.<String, Collection<String>>of(ON_DEMAND.getNs(), emptySet()).toJavaMap());
 
-    assertThat(result).isEqualToComparingFieldByFieldRecursively(expectedResult);
+    CacheResult result = cloudFoundryServerGroupCachingAgent.loadData(mockProviderCache);
+
+    assertThat(result).isEqualToComparingFieldByFieldRecursively(expectedCacheResult);
   }
 }
