@@ -20,7 +20,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.cloudbuild.v1.model.Build
 import com.google.api.services.cloudbuild.v1.model.BuildOptions
 import com.google.api.services.cloudbuild.v1.model.BuildStep
+import com.google.api.services.cloudbuild.v1.model.BuildTrigger
+import com.google.api.services.cloudbuild.v1.model.ListBuildTriggersResponse
 import com.google.api.services.cloudbuild.v1.model.Operation
+import com.google.api.services.cloudbuild.v1.model.RepoSource
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -33,6 +36,41 @@ class GoogleCloudBuildAccountSpec extends Specification {
   GoogleCloudBuildAccount googleCloudBuildAccount = new GoogleCloudBuildAccount(client, cache, parser, artifactFetcher)
 
   static ObjectMapper objectMapper = new ObjectMapper()
+
+  def "listTriggers returns the trigger list correctly"() {
+    given:
+    def expectedTriggers = [getBuildTrigger("id1"), getBuildTrigger("id2")]
+    when:
+    def result = googleCloudBuildAccount.listTriggers();
+    then:
+    1 * client.listTriggers() >> getListBuildTriggersResponse(expectedTriggers)
+    result == expectedTriggers
+  }
+
+  def "runTrigger invokes the trigger and returns the created build"() {
+    given:
+    def triggerId = "id1"
+    def repoSource = getRepoSource()
+    def queuedBuild = getBuild().setStatus("QUEUED").setOptions(new BuildOptions().setLogging("LEGACY"))
+    when:
+    def result = googleCloudBuildAccount.runTrigger(triggerId, repoSource)
+    then:
+    1 * client.runTrigger(triggerId, repoSource) >> createBuildOperation(queuedBuild)
+    result == queuedBuild
+  }
+
+  def "runTrigger updates the build cache with the newly created build"() {
+    given:
+    def triggerId = "id1"
+    def repoSource = getRepoSource()
+    def queuedBuild = getBuild().setStatus("QUEUED").setOptions(new BuildOptions().setLogging("LEGACY"))
+    def serializedBuild = parser.serialize(queuedBuild)
+    client.runTrigger(triggerId, repoSource) >> createBuildOperation(queuedBuild)
+    when:
+    googleCloudBuildAccount.runTrigger(triggerId, repoSource)
+    then:
+    1 * cache.updateBuild(queuedBuild.getId(), "QUEUED", serializedBuild)
+  }
 
   def "createBuild creates a build and returns the result"() {
     given:
@@ -146,6 +184,18 @@ class GoogleCloudBuildAccountSpec extends Specification {
       .setStatus(status)
       .setSteps(Collections.singletonList(buildStep))
       .setOptions(buildOptions);
+  }
+
+  private static BuildTrigger getBuildTrigger(String id) {
+    return new BuildTrigger().setId(id).setDescription("Description for ${id}");
+  }
+
+  private static ListBuildTriggersResponse getListBuildTriggersResponse(List<BuildTrigger> triggers) {
+    return new ListBuildTriggersResponse().setTriggers(triggers);
+  }
+
+  private static RepoSource getRepoSource() {
+    return new RepoSource().setBranchName("master")
   }
 
   private static createBuildOperation(Build inputBuild) {

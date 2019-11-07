@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.igor.gcb;
 
 import com.google.api.services.cloudbuild.v1.model.Build;
+import com.google.api.services.cloudbuild.v1.model.BuildTrigger;
+import com.google.api.services.cloudbuild.v1.model.RepoSource;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -85,5 +87,26 @@ public class GoogleCloudBuildController {
       @PathVariable String account, @RequestBody String serializedBuild) {
     Build build = googleCloudBuildParser.parse(serializedBuild, Build.class);
     return googleCloudBuildAccountRepository.getGoogleCloudBuild(account).extractArtifacts(build);
+  }
+
+  @RequestMapping(value = "/triggers/{account}", method = RequestMethod.GET)
+  @PreAuthorize("hasPermission(#account, 'BUILD_SERVICE', 'READ')")
+  List<BuildTrigger> listTriggers(@PathVariable String account) {
+    return googleCloudBuildAccountRepository.getGoogleCloudBuild(account).listTriggers();
+  }
+
+  @RequestMapping(
+      value = "/triggers/{account}/{triggerId}/run",
+      method = RequestMethod.POST,
+      consumes = MediaType.APPLICATION_JSON_VALUE)
+  @PreAuthorize("hasPermission(#account, 'BUILD_SERVICE', 'WRITE')")
+  Build runTrigger(
+      @PathVariable String account,
+      @PathVariable String triggerId,
+      @RequestBody String repoSourceString) {
+    RepoSource repoSource = googleCloudBuildParser.parse(repoSourceString, RepoSource.class);
+    return googleCloudBuildAccountRepository
+        .getGoogleCloudBuild(account)
+        .runTrigger(triggerId, repoSource);
   }
 }

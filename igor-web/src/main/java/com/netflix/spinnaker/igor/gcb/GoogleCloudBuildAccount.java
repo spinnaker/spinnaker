@@ -17,7 +17,10 @@
 package com.netflix.spinnaker.igor.gcb;
 
 import com.google.api.services.cloudbuild.v1.model.Build;
+import com.google.api.services.cloudbuild.v1.model.BuildTrigger;
+import com.google.api.services.cloudbuild.v1.model.ListBuildTriggersResponse;
 import com.google.api.services.cloudbuild.v1.model.Operation;
+import com.google.api.services.cloudbuild.v1.model.RepoSource;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.ArrayList;
 import java.util.List;
@@ -69,6 +72,22 @@ public class GoogleCloudBuildAccount {
       this.updateBuild(buildId, build.getStatus(), buildString);
     }
     return googleCloudBuildParser.parse(buildString, Build.class);
+  }
+
+  public List<BuildTrigger> listTriggers() {
+    ListBuildTriggersResponse listBuildTriggersResponse = client.listTriggers();
+    return listBuildTriggersResponse.getTriggers();
+  }
+
+  public Build runTrigger(String triggerId, RepoSource repoSource) {
+    Operation operation = client.runTrigger(triggerId, repoSource);
+    Build triggerResponse =
+        googleCloudBuildParser.convert(operation.getMetadata().get("build"), Build.class);
+    this.updateBuild(
+        triggerResponse.getId(),
+        triggerResponse.getStatus(),
+        googleCloudBuildParser.serialize(triggerResponse));
+    return triggerResponse;
   }
 
   public List<Artifact> getArtifacts(String buildId) {

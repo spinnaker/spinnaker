@@ -33,16 +33,21 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.google.api.services.cloudbuild.v1.model.Build;
 import com.google.api.services.cloudbuild.v1.model.BuildOptions;
 import com.google.api.services.cloudbuild.v1.model.BuildStep;
+import com.google.api.services.cloudbuild.v1.model.BuildTrigger;
+import com.google.api.services.cloudbuild.v1.model.ListBuildTriggersResponse;
 import com.google.api.services.cloudbuild.v1.model.Operation;
+import com.google.api.services.cloudbuild.v1.model.RepoSource;
 import com.netflix.spinnaker.igor.RedisConfig;
 import com.netflix.spinnaker.igor.config.GoogleCloudBuildConfig;
 import com.netflix.spinnaker.igor.config.LockManagerConfig;
 import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -189,6 +194,65 @@ public class GoogleCloudBuildTest {
   }
 
   @Test
+  public void listTriggersTest() throws Exception {
+    List<BuildTrigger> triggers = Arrays.asList(buildTrigger("trigger1"), buildTrigger("trigger2"));
+    String listBuildTriggersResponseJson =
+        objectMapper.writeValueAsString(listBuildTriggersResponse(triggers));
+    String expectedTriggers = objectMapper.writeValueAsString(triggers);
+    stubCloudBuildService.stubFor(
+        WireMock.get(urlEqualTo("/v1/projects/spinnaker-gcb-test/triggers"))
+            .withHeader("Authorization", equalTo("Bearer test-token"))
+            .willReturn(aResponse().withStatus(200).withBody(listBuildTriggersResponseJson)));
+
+    mockMvc
+        .perform(get("/gcb/triggers/gcb-account").accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().is(200))
+        .andExpect(content().json(expectedTriggers));
+
+    assertThat(stubCloudBuildService.findUnmatchedRequests().getRequests()).isEmpty();
+  }
+
+  @Test
+  public void testListTrigersWorkWhenNoTrigerDefined() throws Exception {
+    String emptyListResponse =
+        objectMapper.writeValueAsString(listBuildTriggersResponse(Arrays.asList()));
+    stubCloudBuildService.stubFor(
+        WireMock.get(urlEqualTo("/v1/projects/spinnaker-gcb-test/triggers"))
+            .withHeader("Authorization", equalTo("Bearer test-token"))
+            .willReturn(aResponse().withStatus(200).withBody(emptyListResponse)));
+
+    mockMvc
+        .perform(get("/gcb/triggers/gcb-account").accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().is(200))
+        .andExpect(content().json("[]"));
+
+    assertThat(stubCloudBuildService.findUnmatchedRequests().getRequests()).isEmpty();
+  }
+
+  @Test
+  public void runTriggerWorksSuccessfullyTest() throws Exception {
+    String buildResponse = objectMapper.writeValueAsString(buildResponse());
+    String operationResponse = objectMapper.writeValueAsString(operationResponse());
+    String repoSource = objectMapper.writeValueAsString(repoSource("master"));
+    stubCloudBuildService.stubFor(
+        WireMock.post(urlEqualTo("/v1/projects/spinnaker-gcb-test/triggers/my-id:run"))
+            .withHeader("Authorization", equalTo("Bearer test-token"))
+            .withRequestBody(equalToJson(repoSource))
+            .willReturn(aResponse().withStatus(200).withBody(operationResponse)));
+
+    mockMvc
+        .perform(
+            post("/gcb/triggers/gcb-account/my-id/run")
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(repoSource))
+        .andExpect(status().is(200))
+        .andExpect(content().json(buildResponse));
+
+    assertThat(stubCloudBuildService.findUnmatchedRequests().getRequests()).isEmpty();
+  }
+
+  @Test
   public void fallbackToPollingTest() throws Exception {
     String buildId = "f0fc7c14-6035-4e5c-bda1-4848a73af5b4";
     String working = "WORKING";
@@ -240,6 +304,21 @@ public class GoogleCloudBuildTest {
 
   private Build taggedBuild() {
     return buildRequest().setTags(Collections.singletonList("started-by.spinnaker.io"));
+  }
+
+  private ListBuildTriggersResponse listBuildTriggersResponse(List<BuildTrigger> triggers) {
+    return new ListBuildTriggersResponse().setTriggers(triggers);
+  }
+
+  private BuildTrigger buildTrigger(String description) {
+    return new BuildTrigger()
+        .setDescription(description)
+        .setDisabled(false)
+        .setId(UUID.randomUUID().toString());
+  }
+
+  private RepoSource repoSource(String branch) {
+    return new RepoSource().setBranchName(branch);
   }
 
   private Build buildResponse() {
