@@ -29,6 +29,7 @@ dependencies {
   api("org.springframework:spring-context")
   api("org.springframework.boot:spring-boot-autoconfigure")
   api("com.netflix.frigga:frigga")
+  api("com.netflix.spinnaker.kork:kork-core")
 
   testImplementation(project(":keel-test"))
   testImplementation(project (":keel-core-test"))

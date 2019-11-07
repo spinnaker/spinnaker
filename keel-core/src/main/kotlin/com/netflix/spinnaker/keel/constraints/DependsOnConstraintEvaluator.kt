@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.constraints
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.DependsOnConstraint
+import com.netflix.spinnaker.keel.constraints.ConstraintEvaluator.Companion.getConstraintForEnvironment
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import org.springframework.stereotype.Component
 
@@ -19,15 +20,7 @@ class DependsOnConstraintEvaluator(
     deliveryConfig: DeliveryConfig,
     targetEnvironment: String
   ): Boolean {
-    val target = deliveryConfig.environments.firstOrNull { it.name == targetEnvironment }
-    requireNotNull(target) {
-      "No environment named $targetEnvironment exists in the configuration ${deliveryConfig.name}"
-    }
-
-    val constraint = target
-      .constraints
-      .filterIsInstance<DependsOnConstraint>()
-      .first()
+    val constraint = getConstraintForEnvironment(deliveryConfig, targetEnvironment, constraintType)
 
     val requiredEnvironment = deliveryConfig
       .environments

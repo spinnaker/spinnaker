@@ -141,7 +141,12 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
         |      application: someapp
         |- name: prod
         |  constraints:
-        |  - environment: test
+        |  - type: depends-on
+        |    environment: test
+        |  - type: allowed-times
+        |    windows:
+        |      - hours: 6-18
+        |        days: mon-fri
         |  resources:
         |  - apiVersion: test.spinnaker.netflix.com/v1
         |    kind: whatever
@@ -184,7 +189,18 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
         |      "name": "prod",
         |      "constraints": [
         |        {
+        |          "type": "depends-on",
         |          "environment": "test"
+        |        },
+        |        {
+        |          "type": "allowed-times",
+        |          "windows": [
+        |            {
+        |              "hours": "6-18",
+        |              "days": "Monday-Friday",
+        |              "tz": "America/Los_Angeles"
+        |            }
+        |          ]
         |        }
         |      ],
         |      "resources": [

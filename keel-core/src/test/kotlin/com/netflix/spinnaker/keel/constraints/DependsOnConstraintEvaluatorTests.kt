@@ -6,12 +6,14 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
+import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
 import io.mockk.mockk
 import strikt.api.expectCatching
 import strikt.api.expectThat
+import strikt.assertions.contains
 import strikt.assertions.failed
 import strikt.assertions.isA
 import strikt.assertions.isFalse
@@ -56,6 +58,13 @@ internal class DependsOnConstraintEvaluatorTests : JUnit5Minutests {
     test("an environment without the constraint throws an exception (don't pass it to this method)") {
       expectCatching { subject.canPromote(artifact, "1.1", manifest, previousEnvironment.name) }
         .failed()
+    }
+
+    test("constraint serializes with type information") {
+      val mapper = configuredObjectMapper()
+      val serialized = mapper.writeValueAsString(fixture.constrainedEnvironment.constraints)
+      expectThat(serialized)
+        .contains("depends-on")
     }
 
     context("the requested version is not in the required environment") {
