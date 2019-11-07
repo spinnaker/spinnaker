@@ -55,7 +55,18 @@ window.spinnakerSettings = {
   checkForUpdates: true,
   debugEnabled: debugEnabled,
   defaultInstancePort: 80,
-  defaultProviders: ['appengine', 'aws', 'azure', 'cloudfoundry', 'dcos', 'ecs', 'gce', 'kubernetes', 'oracle'],
+  defaultProviders: [
+    'appengine',
+    'aws',
+    'azure',
+    'cloudfoundry',
+    'dcos',
+    'ecs',
+    'gce',
+    'huaweicloud',
+    'kubernetes',
+    'oracle',
+  ],
   defaultTimeZone: process.env.TIMEZONE || 'America/Los_Angeles', // see http://momentjs.com/timezone/docs/#/data-utilities/
   entityTags: {
     maxResults: 5000,
@@ -186,6 +197,12 @@ window.spinnakerSettings = {
         },
         region: 'us-central1',
         zone: 'us-central1-f',
+      },
+    },
+    huaweicloud: {
+      defaults: {
+        account: 'default',
+        region: 'cn-north-1',
       },
     },
     kubernetes: {

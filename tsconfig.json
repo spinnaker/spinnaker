@@ -44,7 +44,10 @@
       "cloudfoundry/": ["cloudfoundry/src"],
       "@spinnaker/titus": ["titus/src"],
       "titus/*": ["titus/src/*"],
-      "titus/": ["titus/src"]
+      "titus/": ["titus/src"],
+      "@spinnaker/huaweicloud": ["huaweicloud/src"],
+      "huaweicloud/*": ["huaweicloud/src/*"],
+      "huaweicloud": ["huaweicloud/src"]
     },
     "pretty": true,
     "removeComments": true,

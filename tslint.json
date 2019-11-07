@@ -19,6 +19,7 @@
       "docker",
       "ecs",
       "google",
+      "huaweicloud",
       "kubernetes",
       "oracle",
       "titus "

@@ -1,0 +1,38 @@
+{
+  "buildOnSave": false,
+  "compileOnSave": true,
+  "compilerOptions": {
+    "allowJs": false,
+    "baseUrl": "./src",
+    "declaration": true,
+    "declarationDir": "lib",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "jsx": "react",
+    "lib": ["es2016", "dom"],
+    "moduleResolution": "node",
+    "module": "esnext",
+    "noEmitHelpers": false,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "outDir": "lib",
+    "pretty": true,
+    "removeComments": false,
+    "rootDir": "./src",
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "inlineSources": true,
+    "strictNullChecks": false,
+    "target": "es6",
+    "typeRoots": ["../../../../node_modules/@types"],
+    "paths": {
+      "@spinnaker/core": ["../../core/lib"],
+      "core/*": ["../../core/lib/*"]
+    }
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["./lib", "**/*.spec.*"]
+}

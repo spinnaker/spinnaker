@@ -81,6 +81,8 @@ function configure(env, webpackOpts) {
         '@spinnaker/kubernetes': path.join(__dirname, 'app', 'scripts', 'modules', 'kubernetes', 'src'),
         ecs: path.join(__dirname, 'app', 'scripts', 'modules', 'ecs', 'src'),
         '@spinnaker/ecs': path.join(__dirname, 'app', 'scripts', 'modules', 'ecs', 'src'),
+        huaweicloud: path.join(__dirname, 'app', 'scripts', 'modules', 'huaweicloud', 'src'),
+        '@spinnaker/huaweicloud': path.join(__dirname, 'app', 'scripts', 'modules', 'huaweicloud', 'src'),
         coreImports: path.resolve(
           __dirname,
           'app',

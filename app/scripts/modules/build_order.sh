@@ -14,6 +14,7 @@ ModuleDeps () {
       docker) echo "core" ;;
       ecs) echo "amazon core" ;;
       google) echo "core" ;;
+      huaweicloud) echo "core" ;;
       kubernetes) echo "core" ;;
       oracle) echo "core" ;;
       titus) echo "amazon docker core" ;;
