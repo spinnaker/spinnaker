@@ -3,9 +3,9 @@ package com.netflix.spinnaker.keel.ec2.resolvers
 import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.ArtifactStatus
-import com.netflix.spinnaker.keel.api.NoImageFound
-import com.netflix.spinnaker.keel.api.NoImageFoundForRegions
-import com.netflix.spinnaker.keel.api.NoImageSatisfiesConstraints
+import com.netflix.spinnaker.keel.ec2.NoImageFound
+import com.netflix.spinnaker.keel.ec2.NoImageFoundForRegions
+import com.netflix.spinnaker.keel.ec2.NoImageSatisfiesConstraints
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
@@ -58,6 +58,7 @@ class ImageResolver(
     val environment = deliveryConfigRepository.environmentFor(resource.id)
     val artifact = imageProvider.deliveryArtifact
     val account = dynamicConfigService.getConfig("images.default-account", "test")
+    val regions = resource.spec.locations.regions.map { it.name }
 
     return if (deliveryConfig != null && environment != null) {
       val artifactVersion = artifactRepository.latestVersionApprovedIn(
@@ -73,14 +74,14 @@ class ImageResolver(
       imageService.getLatestNamedImageWithAllRegionsForAppVersion(
         appVersion = AppVersion.parseName(artifactVersion),
         account = account,
-        regions = resource.spec.locations.regions.map { it.name }
-      ) ?: throw NoImageFound(artifactVersion)
+        regions = regions
+      ) ?: throw NoImageFoundForRegions(artifactVersion, regions)
     } else {
       imageService.getLatestNamedImageWithAllRegions(
         packageName = artifact.name,
         account = account,
-        regions = resource.spec.locations.regions.map { it.name }
-      ) ?: throw NoImageFound(artifact.name)
+        regions = regions
+      ) ?: throw NoImageFoundForRegions(artifact.name, regions)
     }
   }
 

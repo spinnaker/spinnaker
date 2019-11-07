@@ -7,9 +7,8 @@ import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
-import com.netflix.spinnaker.keel.api.NoImageFound
-import com.netflix.spinnaker.keel.api.NoImageFoundForRegions
-import com.netflix.spinnaker.keel.api.NoImageSatisfiesConstraints
+import com.netflix.spinnaker.keel.ec2.NoImageFoundForRegions
+import com.netflix.spinnaker.keel.ec2.NoImageSatisfiesConstraints
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
@@ -269,7 +268,7 @@ internal class ImageResolverTests : JUnit5Minutests {
           test("throws an exception") {
             expectCatching { resolve() }
               .failed()
-              .isA<NoImageFound>()
+              .isA<NoImageFoundForRegions>()
           }
         }
 

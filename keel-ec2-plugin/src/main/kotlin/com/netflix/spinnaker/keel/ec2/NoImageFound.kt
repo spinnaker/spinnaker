@@ -15,16 +15,15 @@
  * limitations under the License.
  *
  */
-package com.netflix.spinnaker.keel.api
+package com.netflix.spinnaker.keel.ec2
+
+import com.netflix.spinnaker.keel.api.ResourceDependencyNotFound
 
 class NoImageFound(artifactName: String) :
-  RuntimeException("No image found for artifact $artifactName")
-
-class NoImageFoundForRegion(artifactName: String, region: String) :
-  RuntimeException("No image found for artifact $artifactName in region $region")
+  ResourceDependencyNotFound("No image found for artifact $artifactName")
 
 class NoImageFoundForRegions(artifactName: String, regions: Collection<String>) :
-  RuntimeException("No image found for artifact $artifactName in regions ${regions.joinToString()}")
+  ResourceDependencyNotFound("No image found for artifact $artifactName in regions ${regions.joinToString()}")
 
 class NoImageSatisfiesConstraints(artifactName: String, environment: String) :
-  RuntimeException("No image found for artifact $artifactName in $environment")
+  ResourceDependencyNotFound("No image found for artifact $artifactName in $environment")

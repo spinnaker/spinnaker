@@ -17,6 +17,7 @@
  */
 package com.netflix.spinnaker.keel.events
 
+import com.netflix.spinnaker.keel.api.ResourceDependencyNotFound
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.exceptions.InvalidResourceFormatException
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.HAPPY
@@ -43,6 +44,7 @@ internal class ResourceStatusTests : JUnit5Minutests {
     val deltaDetectedEvent = ResourceDeltaDetected(resource, mapOf("hi" to "wow"))
     val actuationLaunchedEvent = ResourceActuationLaunched(resource, "resourceHandlerPlugin", listOf(Task("1", "task name")))
     val deltaResolvedEvent = ResourceDeltaResolved(resource)
+    val dependencyMissingEvent = ResourceCheckDependencyMissing(resource, object : ResourceDependencyNotFound("I guess I can't find the AMI or something") {})
     val errorEvent = ResourceCheckError(resource, InvalidResourceFormatException("bad resource", "who knows"))
     val actuationPausedEvent = ResourceActuationPaused(resource, "whatever")
     val actuationResumedEvent = ResourceActuationResumed(resource)
@@ -192,6 +194,17 @@ internal class ResourceStatusTests : JUnit5Minutests {
 
       test("returns resumed status") {
         expectThat(resourceRepository.getStatus(resource.id)).isEqualTo(RESUMED)
+      }
+    }
+
+    context("resource dependency is missing") {
+      before {
+        resourceRepository.appendHistory(deltaDetectedEvent)
+        resourceRepository.appendHistory(dependencyMissingEvent)
+      }
+
+      test("returns diff status") {
+        expectThat(resourceRepository.getStatus(resource.id)).isEqualTo(DIFF)
       }
     }
   }

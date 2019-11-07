@@ -1,11 +1,13 @@
 package com.netflix.spinnaker.keel.actuation
 
+import com.netflix.spinnaker.keel.api.ResourceDependencyNotFound
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceActuationPaused
 import com.netflix.spinnaker.keel.events.ResourceActuationResumed
+import com.netflix.spinnaker.keel.events.ResourceCheckDependencyMissing
 import com.netflix.spinnaker.keel.events.ResourceCheckError
 import com.netflix.spinnaker.keel.events.ResourceCheckResult
 import com.netflix.spinnaker.keel.events.ResourceCreated
@@ -256,7 +258,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
             }
           }
 
-          context("plugin throws an exception in desired state resolution") {
+          context("plugin throws an unhandled exception in desired state resolution") {
             before {
               coEvery { plugin1.desired(resource) } throws RuntimeException("o noes")
               coEvery { plugin1.current(resource) } returns null
@@ -279,6 +281,32 @@ internal class ResourceActuatorTests : JUnit5Minutests {
                 .isA<ResourceCheckError>()
                 .get { exceptionType }
                 .isEqualTo(CannotResolveDesiredState::class.java)
+            }
+          }
+
+          context("plugin throws a transient dependency exception in desired state resolution") {
+            before {
+              coEvery { plugin1.desired(resource) } throws object : ResourceDependencyNotFound("o noes") {}
+              coEvery { plugin1.current(resource) } returns null
+
+              with(resource) {
+                runBlocking {
+                  subject.checkResource(id, apiVersion, kind)
+                }
+              }
+            }
+
+            test("the resource is not updated") {
+              coVerify(exactly = 0) { plugin1.update(any(), any()) }
+            }
+
+            test("a telemetry event is published with detail of the problem") {
+              val event = slot<ResourceCheckDependencyMissing>()
+              verify { publisher.publishEvent(capture(event)) }
+              expectThat(event.captured)
+                .isA<ResourceCheckDependencyMissing>()
+                .get { message }
+                .isEqualTo("o noes")
             }
           }
 
