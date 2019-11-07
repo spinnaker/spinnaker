@@ -17,29 +17,41 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ErrorDescription;
 import java.util.Arrays;
+import java.util.Collections;
 import org.junit.jupiter.api.Test;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
 
 class CloudFoundryApiExceptionTest {
   @Test
   void constructorWithErrorDescription() {
+    Response response = new Response("url", 500, "reason", Collections.emptyList(), null);
+    RetrofitError retrofitError = mock(RetrofitError.class);
+    when(retrofitError.getResponse()).thenReturn(response);
     CloudFoundryApiException e =
         new CloudFoundryApiException(
             new ErrorDescription()
                 .setErrors(
                     Arrays.asList(
                         new ErrorDescription.Detail().setDetail("Main Error"),
-                        new ErrorDescription.Detail().setDetail("Foo"))));
+                        new ErrorDescription.Detail().setDetail("Foo"))),
+            retrofitError);
 
     assertThat(e.getMessage()).contains("Main Error and Foo");
   }
 
   @Test
   void constructorHandlesNullErrorDescription() {
-    CloudFoundryApiException e = new CloudFoundryApiException((ErrorDescription) null);
+    Response response = new Response("url", 500, "reason", Collections.emptyList(), null);
+    RetrofitError retrofitError = mock(RetrofitError.class);
+    when(retrofitError.getResponse()).thenReturn(response);
+    CloudFoundryApiException e =
+        new CloudFoundryApiException((ErrorDescription) null, retrofitError);
 
-    assertThat(e.getMessage()).contains("Unknown Error");
+    assertThat(e.getMessage()).contains("status: 500. url: url. raw response body: null");
   }
 }

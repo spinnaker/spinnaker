@@ -33,7 +33,7 @@ final class CloudFoundryClientUtils {
     } catch (RetrofitError retrofitError) {
       if (retrofitError.getResponse() == null || retrofitError.getResponse().getStatus() != 404) {
         throw new CloudFoundryApiException(
-            (ErrorDescription) retrofitError.getBodyAs(ErrorDescription.class));
+            (ErrorDescription) retrofitError.getBodyAs(ErrorDescription.class), retrofitError);
       }
     }
   }
@@ -52,7 +52,7 @@ final class CloudFoundryClientUtils {
         if (errorDescription == null) {
           throw new CloudFoundryApiException(retrofitError.getCause());
         }
-        throw new CloudFoundryApiException(errorDescription);
+        throw new CloudFoundryApiException(errorDescription, retrofitError);
       }
     }
   }

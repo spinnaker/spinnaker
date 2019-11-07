@@ -21,17 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ApplicationService;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.AuthenticationService;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ConfigService;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.DomainService;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.DopplerService;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.OrganizationService;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.RouteService;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ServiceInstanceService;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ServiceKeyService;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.SpaceService;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.TaskService;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.Token;
 import com.squareup.okhttp.Interceptor;
 import com.squareup.okhttp.OkHttpClient;
@@ -63,6 +53,8 @@ import okio.Buffer;
 import okio.BufferedSource;
 import org.apache.commons.fileupload.MultipartStream;
 import org.cloudfoundry.dropsonde.events.EventFactory.Envelope;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
 import retrofit.client.OkClient;
@@ -99,6 +91,8 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
   private Tasks tasks;
   private Logs logs;
 
+  Logger logger = LoggerFactory.getLogger(HttpCloudFoundryClient.class);
+
   private final RequestInterceptor oauthInterceptor =
       new RequestInterceptor() {
         @Override
@@ -127,7 +121,7 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
                 .intervalFunction(IntervalFunction.ofExponentialBackoff(Duration.ofSeconds(10), 3))
                 .retryExceptions(RetryableApiException.class)
                 .build());
-
+    logger.debug("cf request: " + chain.request().urlString());
     AtomicReference<Response> lastResponse = new AtomicReference<>();
     try {
       return retry.executeCallable(

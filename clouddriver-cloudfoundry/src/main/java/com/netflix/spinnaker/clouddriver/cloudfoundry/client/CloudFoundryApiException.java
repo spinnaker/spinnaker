@@ -25,18 +25,24 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import lombok.Getter;
+import retrofit.RetrofitError;
 
 @Getter
 public class CloudFoundryApiException extends RuntimeException {
-  private static final String UNKNOWN_ERROR = "Unknown Error";
 
   @Nullable private ErrorDescription.Code errorCode;
 
-  public CloudFoundryApiException(ErrorDescription errorCause) {
+  public CloudFoundryApiException(ErrorDescription errorCause, RetrofitError retrofitError) {
     super(
         Optional.ofNullable(errorCause)
             .map(e -> getMessage(e.getErrors().toArray(new String[0])))
-            .orElse(UNKNOWN_ERROR));
+            .orElse(
+                "status: "
+                    + retrofitError.getResponse().getStatus()
+                    + ". url: "
+                    + retrofitError.getResponse().getUrl()
+                    + ". raw response body: "
+                    + retrofitError.getResponse().getBody()));
     if (errorCause != null) {
       this.errorCode = errorCause.getCode();
     }
