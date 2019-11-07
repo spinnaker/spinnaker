@@ -31,6 +31,14 @@ import org.springframework.beans.factory.annotation.Autowired
 class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "UPSERT_SG"
 
+  /**
+   * An arbitrary limit on the number of rules we will enumerate in the operation "status" logs.
+   *
+   * If the number of rules is greater than this number, we should just render the number of changes, rather than
+   * each of the differences.
+   */
+  private static final int MAX_RULES_FOR_STATUS = 50
+
   final UpsertSecurityGroupDescription description
 
   UpsertSecurityGroupAtomicOperation(UpsertSecurityGroupDescription description) {
@@ -98,18 +106,32 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
 
     // Converge on the desired final set of security group rules
     if (ipPermissionsToAdd) {
+      String status = "Permissions added to '${description.name}'"
+      if (ipPermissionsToAdd.size() > MAX_RULES_FOR_STATUS) {
+        status = "$status (${ipPermissionsToAdd.size()} rules added)."
+      } else {
+        status = "$status ($ipPermissionsToAdd)."
+      }
+
       try {
         securityGroupUpdater.addIngress(ipPermissionsToAdd)
-        task.updateStatus BASE_PHASE, "Permissions added to '${description.name}' (${ipPermissionsToAdd})."
+        task.updateStatus BASE_PHASE, status
       } catch (AmazonServiceException e) {
         task.updateStatus BASE_PHASE, "Error adding ingress to '${description.name}' - ${e.errorMessage}"
         throw e
       }
     }
     if (ipPermissionsToRemove && !description.ingressAppendOnly) {
+      String status = "Permissions removed from '${description.name}'"
+      if (ipPermissionsToRemove.size() > MAX_RULES_FOR_STATUS) {
+        status = "$status (${ipPermissionsToRemove.size()} rules removed)."
+      } else {
+        status = "$status ($ipPermissionsToRemove)."
+      }
+
       try {
         securityGroupUpdater.removeIngress(ipPermissionsToRemove)
-        task.updateStatus BASE_PHASE, "Permissions removed from ${description.name} (${ipPermissionsToRemove})."
+        task.updateStatus BASE_PHASE, status
       } catch (AmazonServiceException e) {
         task.updateStatus BASE_PHASE, "Error removing ingress from ${description.name}: ${e.errorMessage}"
         throw e

@@ -164,7 +164,7 @@ class SqlTaskRepository(
     withPool(POOL_NAME) {
       jooq.transactional { ctx ->
         val state = selectLatestState(ctx, task.id)
-        addToHistory(ctx, historyId, task.id, state?.state ?: STARTED, phase, status)
+        addToHistory(ctx, historyId, task.id, state?.state ?: STARTED, phase, status.take(MAX_STATUS_LENGTH))
       }
     }
   }
@@ -320,5 +320,6 @@ class SqlTaskRepository(
   companion object {
     private val ulid = ULID()
     private val POOL_NAME = ConnectionPools.TASKS.value
+    private val MAX_STATUS_LENGTH = 10_000
   }
 }
