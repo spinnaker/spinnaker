@@ -46,10 +46,10 @@ export class PatchManifestStageForm extends React.Component<
 
   public constructor(props: IPatchManifestStageConfigFormProps & IFormikStageConfigInjectedProps) {
     super(props);
-    const patchBody: string = get(props.formik.values, 'patchBody');
+    const patchBody: any[] = get(props.formik.values, 'patchBody');
     const isTextManifest: boolean = get(props.formik.values, 'source') === this.textSource;
     this.state = {
-      rawManifest: !isEmpty(patchBody) && isTextManifest ? yamlDocumentsToString([patchBody]) : '',
+      rawManifest: !isEmpty(patchBody) && isTextManifest ? yamlDocumentsToString(patchBody) : '',
     };
   }
 
@@ -86,7 +86,7 @@ export class PatchManifestStageForm extends React.Component<
     this.setState({
       rawManifest,
     });
-    this.props.formik.setFieldValue('patchBody', manifests[0]);
+    this.props.formik.setFieldValue('patchBody', manifests);
   };
 
   private onManifestSelectorChange = (): void => {

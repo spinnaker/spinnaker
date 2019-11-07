@@ -29,6 +29,13 @@ export class PatchManifestStageConfig extends React.Component<IStageConfigProps>
     });
     delete props.stage.options.strategy;
 
+    // There was a bug introduced in Spinnaker 1.15 where we were incorrectly
+    // always storing the patchBody as an object. In order to auto-fix pipelines
+    // affected by that bug, massage any configured patchBody value into a list.
+    if (props.stage.patchBody && !Array.isArray(props.stage.patchBody)) {
+      props.stage.patchBody = [props.stage.patchBody];
+    }
+
     // Intentionally initializing the stage config only once in the constructor
     // The stage config is then completely owned within FormikStageConfig's Formik state
     this.stage = props.stage;
