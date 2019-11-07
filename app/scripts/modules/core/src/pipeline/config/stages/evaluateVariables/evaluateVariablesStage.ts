@@ -6,8 +6,7 @@ import { EvaluateVariablesStageConfig, validateEvaluateVariablesStage } from './
 
 Registry.pipeline.registerStage({
   label: 'Evaluate Variables',
-  description:
-    'Evaluates variables for use in SpEL expressions in downstream stages. Variables can be accessed by their key.',
+  description: 'Evaluates variables for use in downstream stages.',
   key: 'evaluateVariables',
   defaults: {
     failOnFailedExpressions: true,
