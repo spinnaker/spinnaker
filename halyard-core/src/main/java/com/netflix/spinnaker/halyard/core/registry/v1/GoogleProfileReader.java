@@ -117,25 +117,27 @@ public class GoogleProfileReader implements ProfileReader {
   private Storage createGoogleStorage(boolean useApplicationDefaultCreds) {
     JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
     String applicationName = "Spinnaker/Halyard";
-    HttpRequestInitializer requestInitializer;
+    HttpRequestInitializer requestInitializer = null;
 
-    try {
-      com.google.auth.oauth2.GoogleCredentials credentials =
-          useApplicationDefaultCreds
-              ? com.google.auth.oauth2.GoogleCredentials.getApplicationDefault()
-              : com.google.auth.oauth2.GoogleCredentials.newBuilder().build();
-      if (credentials.createScopedRequired()) {
-        credentials =
-            credentials.createScoped(Collections.singleton(StorageScopes.DEVSTORAGE_FULL_CONTROL));
+    if (useApplicationDefaultCreds) {
+      try {
+        com.google.auth.oauth2.GoogleCredentials credentials =
+            com.google.auth.oauth2.GoogleCredentials.getApplicationDefault();
+        if (credentials.createScopedRequired()) {
+          credentials =
+              credentials.createScoped(
+                  Collections.singleton(StorageScopes.DEVSTORAGE_FULL_CONTROL));
+        }
+        requestInitializer = GoogleCredentials.setHttpTimeout(credentials);
+        log.info("Loaded application default credential for reading BOMs & profiles.");
+      } catch (Exception e) {
+        log.debug(
+            "No application default credential could be loaded for reading BOMs & profiles. Continuing unauthenticated: {}",
+            e.getMessage());
       }
-      requestInitializer = GoogleCredentials.setHttpTimeout(credentials);
-
-      log.info("Loaded application default credential for reading BOMs & profiles.");
-    } catch (Exception e) {
+    }
+    if (requestInitializer == null) {
       requestInitializer = GoogleCredentials.retryRequestInitializer();
-      log.debug(
-          "No application default credential could be loaded for reading BOMs & profiles. Continuing unauthenticated: {}",
-          e.getMessage());
     }
 
     return new Storage.Builder(
