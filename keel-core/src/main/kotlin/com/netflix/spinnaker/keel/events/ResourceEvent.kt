@@ -29,7 +29,7 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceDependencyNotFound
+import com.netflix.spinnaker.keel.api.ResourceCurrentlyUnresolvable
 import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.id
@@ -57,7 +57,7 @@ import java.time.Instant
   Type(value = ResourceDeltaResolved::class, name = "ResourceDeltaResolved"),
   Type(value = ResourceValid::class, name = "ResourceValid"),
   Type(value = ResourceCheckError::class, name = "ResourceCheckError"),
-  Type(value = ResourceDependencyNotFound::class, name = "ResourceDependencyNotFound"),
+  Type(value = ResourceCheckUnresolvable::class, name = "ResourceCheckPending"),
   Type(value = ResourceActuationPaused::class, name = "ResourceActuationPaused"),
   Type(value = ResourceActuationResumed::class, name = "ResourceActuationResumed")
 )
@@ -317,7 +317,7 @@ data class ResourceValid(
     )
 }
 
-data class ResourceCheckDependencyMissing(
+data class ResourceCheckUnresolvable(
   override val apiVersion: ApiVersion,
   override val kind: String,
   override val id: String,
@@ -331,7 +331,7 @@ data class ResourceCheckDependencyMissing(
   @JsonIgnore
   override val ignoreRepeatedInHistory = true
 
-  constructor(resource: Resource<*>, exception: ResourceDependencyNotFound, clock: Clock = Companion.clock) :
+  constructor(resource: Resource<*>, exception: ResourceCurrentlyUnresolvable, clock: Clock = Companion.clock) :
     this(
       resource.apiVersion,
       resource.kind,

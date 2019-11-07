@@ -28,7 +28,7 @@ import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceActuationPaused
 import com.netflix.spinnaker.keel.events.ResourceActuationResumed
-import com.netflix.spinnaker.keel.events.ResourceCheckDependencyMissing
+import com.netflix.spinnaker.keel.events.ResourceCheckUnresolvable
 import com.netflix.spinnaker.keel.events.ResourceCheckError
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
@@ -160,7 +160,7 @@ interface ResourceRepository : PeriodicallyCheckedRepository<ResourceHeader> {
   }
 
   private fun List<ResourceEvent>.isDiff(): Boolean {
-    return first() is ResourceDeltaDetected || first() is ResourceMissing || first() is ResourceCheckDependencyMissing
+    return first() is ResourceDeltaDetected || first() is ResourceMissing || first() is ResourceCheckUnresolvable
   }
 
   private fun List<ResourceEvent>.isPaused(): Boolean {

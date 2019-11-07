@@ -7,5 +7,5 @@ package com.netflix.spinnaker.keel.api
  *
  * Exceptions of this type are not treated as fatal as they are expected to be transient.
  */
-abstract class ResourceDependencyNotFound(message: String, cause: Throwable? = null) :
+abstract class ResourceCurrentlyUnresolvable(message: String, cause: Throwable? = null) :
   RuntimeException(message, cause)

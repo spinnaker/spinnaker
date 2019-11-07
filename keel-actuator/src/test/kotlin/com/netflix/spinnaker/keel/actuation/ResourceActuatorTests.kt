@@ -1,13 +1,13 @@
 package com.netflix.spinnaker.keel.actuation
 
-import com.netflix.spinnaker.keel.api.ResourceDependencyNotFound
+import com.netflix.spinnaker.keel.api.ResourceCurrentlyUnresolvable
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceActuationPaused
 import com.netflix.spinnaker.keel.events.ResourceActuationResumed
-import com.netflix.spinnaker.keel.events.ResourceCheckDependencyMissing
+import com.netflix.spinnaker.keel.events.ResourceCheckUnresolvable
 import com.netflix.spinnaker.keel.events.ResourceCheckError
 import com.netflix.spinnaker.keel.events.ResourceCheckResult
 import com.netflix.spinnaker.keel.events.ResourceCreated
@@ -286,7 +286,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
           context("plugin throws a transient dependency exception in desired state resolution") {
             before {
-              coEvery { plugin1.desired(resource) } throws object : ResourceDependencyNotFound("o noes") {}
+              coEvery { plugin1.desired(resource) } throws object : ResourceCurrentlyUnresolvable("o noes") {}
               coEvery { plugin1.current(resource) } returns null
 
               with(resource) {
@@ -301,10 +301,10 @@ internal class ResourceActuatorTests : JUnit5Minutests {
             }
 
             test("a telemetry event is published with detail of the problem") {
-              val event = slot<ResourceCheckDependencyMissing>()
+              val event = slot<ResourceCheckUnresolvable>()
               verify { publisher.publishEvent(capture(event)) }
               expectThat(event.captured)
-                .isA<ResourceCheckDependencyMissing>()
+                .isA<ResourceCheckUnresolvable>()
                 .get { message }
                 .isEqualTo("o noes")
             }

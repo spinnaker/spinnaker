@@ -17,13 +17,13 @@
  */
 package com.netflix.spinnaker.keel.ec2
 
-import com.netflix.spinnaker.keel.api.ResourceDependencyNotFound
+import com.netflix.spinnaker.keel.api.ResourceCurrentlyUnresolvable
 
 class NoImageFound(artifactName: String) :
-  ResourceDependencyNotFound("No image found for artifact $artifactName")
+  ResourceCurrentlyUnresolvable("No image found for artifact $artifactName")
 
 class NoImageFoundForRegions(artifactName: String, regions: Collection<String>) :
-  ResourceDependencyNotFound("No image found for artifact $artifactName in regions ${regions.joinToString()}")
+  ResourceCurrentlyUnresolvable("No image found for artifact $artifactName in regions ${regions.joinToString()}")
 
 class NoImageSatisfiesConstraints(artifactName: String, environment: String) :
-  ResourceDependencyNotFound("No image found for artifact $artifactName in $environment")
+  ResourceCurrentlyUnresolvable("No image found for artifact $artifactName in $environment")
