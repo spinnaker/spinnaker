@@ -6,10 +6,10 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.TimeWindow
 import com.netflix.spinnaker.keel.api.TimeWindowConstraint
-import com.netflix.spinnaker.keel.exceptions.InvalidConstraintException
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.every
 import io.mockk.mockk
 import strikt.api.expectCatching
 import strikt.api.expectThat
@@ -17,6 +17,7 @@ import strikt.assertions.failed
 import strikt.assertions.isA
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
+import java.lang.IllegalArgumentException
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
@@ -47,7 +48,11 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
       environments = setOf(environment)
     )
 
-    private val dynamicConfigService: DynamicConfigService = mockk(relaxUnitFun = true)
+    private val dynamicConfigService: DynamicConfigService = mockk(relaxUnitFun = true) {
+      every {
+        getConfig(String::class.java, "default.time-zone", any())
+      } returns "UTC"
+    }
 
     val subject = AllowedTimesConstraintEvaluator(clock, dynamicConfigService)
   }
@@ -186,6 +191,27 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
       }
     }
 
+    context("allowed-times constraint with default time zone") {
+      fixture {
+        Fixture(
+          clock = businessHoursClock,
+          constraint = TimeWindowConstraint(
+            listOf(
+              TimeWindow(
+                days = "mon-fri",
+                hours = "11-16"
+              )
+            )
+          )
+        )
+      }
+
+      test("11-16 is outside of allowed times when defaulting tz to UTC") {
+        expectThat(subject.canPromote(artifact, "1.1", manifest, environment.name))
+          .isFalse()
+      }
+    }
+
     context("wrap around hours and days") {
       fixture {
         Fixture(
@@ -208,11 +234,10 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
       }
     }
 
-    context("malformed day range") {
-      fixture {
-        Fixture(
-          clock = businessHoursClock,
-          constraint = TimeWindowConstraint(
+    context("window is validated at construction") {
+      test("invalid day range") {
+        expectCatching {
+          TimeWindowConstraint(
             listOf(
               TimeWindow(
                 days = "mon-frizzay",
@@ -221,15 +246,41 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
             ),
             tz = "America/Los_Angeles"
           )
-        )
-      }
-
-      test("InvalidConstraintException exception") {
-        expectCatching {
-          subject.canPromote(artifact, "1.1", manifest, environment.name)
         }
           .failed()
-          .isA<InvalidConstraintException>()
+          .isA<IllegalArgumentException>()
+      }
+
+      test("invalid hour range") {
+        expectCatching {
+          TimeWindowConstraint(
+            listOf(
+              TimeWindow(
+                days = "weekdays",
+                hours = "11-161"
+              )
+            ),
+            tz = "America/Los_Angeles"
+          )
+        }
+          .failed()
+          .isA<IllegalArgumentException>()
+      }
+
+      test("invalid tz") {
+        expectCatching {
+          TimeWindowConstraint(
+            listOf(
+              TimeWindow(
+                days = "weekdays",
+                hours = "11-16"
+              )
+            ),
+            tz = "America/Los_Spingeles"
+          )
+        }
+          .failed()
+          .isA<IllegalArgumentException>()
       }
     }
   }

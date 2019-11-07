@@ -44,10 +44,12 @@ class AllowedTimesConstraintEvaluator(
   private val dynamicConfigService: DynamicConfigService
 ) : ConstraintEvaluator<TimeWindowConstraint> {
   companion object {
+    const val CONSTRAINT_NAME = "allowed-times"
+
     val whiteSpace = """\s""".toRegex()
     val intOnly = """^\d+$""".toRegex()
     val intRange = """^\d+\-\d+$""".toRegex()
-
+    val seperators = """[\s,\-]""".toRegex()
     val fullDayFormatter: DateTimeFormatter = DateTimeFormatter
       .ofPattern("EEEE", Locale.getDefault())
     val shortDayFormatter: DateTimeFormatter = DateTimeFormatter
@@ -62,6 +64,20 @@ class AllowedTimesConstraintEvaluator(
       }
       .flatten()
       .toMutableSet()
+
+    val dayAliases = setOf("weekdays", "weekends")
+
+    fun validateHours(hours: String): Boolean {
+      return hours.split(seperators).all {
+        it.matches(intOnly) && it.toInt() >= 0 && it.toInt() <= 23
+      }
+    }
+
+    fun validateDays(days: String): Boolean {
+      return days.toLowerCase().split(seperators).all {
+        daysOfWeek.contains(it) || dayAliases.contains(it)
+      }
+    }
   }
 
   override val constraintType = TimeWindowConstraint::class.java
@@ -119,6 +135,7 @@ class AllowedTimesConstraintEvaluator(
         it.isInt() -> hours.add(it.toInt())
         it.isIntRange() -> hours.addAll(it.hourRange())
         else -> throw InvalidConstraintException(
+          CONSTRAINT_NAME,
           "Invalid allowed-times constraint ($it) on deliveryConfig: ${deliveryConfig.name}, " +
             "application: ${deliveryConfig.application}, environment: $targetEnvironment")
       }
@@ -143,6 +160,7 @@ class AllowedTimesConstraintEvaluator(
         it.isDay() -> days.add(it)
         it.isDayRange() -> days.addAll(it.dayRange())
         else -> throw InvalidConstraintException(
+          CONSTRAINT_NAME,
           "Invalid allowed-times constraint ($it) on deliveryConfig: ${deliveryConfig.name}, " +
             "application: ${deliveryConfig.application}, environment: $targetEnvironment")
       }
@@ -169,8 +187,7 @@ class AllowedTimesConstraintEvaluator(
 
   private fun String.isDay(): Boolean = daysOfWeek.contains(this)
 
-  private fun String.isDayAlias(): Boolean =
-    this == "weekends" || this == "weekdays"
+  private fun String.isDayAlias(): Boolean = dayAliases.contains(this)
 
   private fun String.isDayRange(): Boolean {
     val days = this.split("-")
@@ -185,7 +202,7 @@ class AllowedTimesConstraintEvaluator(
     when (this) {
       "weekdays" -> setOf("monday", "tuesday", "wednesday", "thursday", "friday")
       "weekends" -> setOf("saturday", "sunday")
-      else -> throw InvalidConstraintException("Failed parsing day alias $this")
+      else -> throw InvalidConstraintException(CONSTRAINT_NAME, "Failed parsing day alias $this")
     }
 
   private fun String.dayRange(): Set<String> {
@@ -197,10 +214,10 @@ class AllowedTimesConstraintEvaluator(
     val days = this.split("-").map { it.capitalize() }
     val day1Temporal = fullDayFormatter.parseUnresolved(days[0], ParsePosition(0))
       ?: shortDayFormatter.parseUnresolved(days[0], ParsePosition(0))
-      ?: throw InvalidConstraintException("Failed parsing day range $this")
+      ?: throw InvalidConstraintException(CONSTRAINT_NAME, "Failed parsing day range $this")
     val day2Temporal = fullDayFormatter.parseUnresolved(days[1], ParsePosition(0))
       ?: shortDayFormatter.parseUnresolved(days[1], ParsePosition(0))
-      ?: throw InvalidConstraintException("Failed parsing day range $this")
+      ?: throw InvalidConstraintException(CONSTRAINT_NAME, "Failed parsing day range $this")
 
     val day1 = DayOfWeek.from(day1Temporal).value
     val day2 = DayOfWeek.from(day2Temporal).value
