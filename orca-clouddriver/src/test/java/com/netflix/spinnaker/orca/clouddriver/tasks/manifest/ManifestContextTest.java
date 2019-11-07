@@ -55,7 +55,7 @@ class ManifestContextTest {
   }
 
   @Test
-  void deserializePatchManifestNoArtifacts() throws IOException {
+  void deserializeInlineMapPatchManifest() throws IOException {
     String json =
         "{\n"
             + "  \"manifestArtifactAccount\": \"account\",\n"
@@ -70,8 +70,33 @@ class ManifestContextTest {
     PatchManifestContext context = new ObjectMapper().readValue(json, PatchManifestContext.class);
     assertThat(context.getSource()).isEqualTo(ManifestContext.Source.Text);
     assertThat(context.getManifestArtifactAccount()).isEqualTo("account");
-    assertThat(context.getPatchBody()).containsOnlyKeys("spec");
-    assertThat(context.getPatchBody().get("spec"))
+    assertThat(context.getManifests()).isNotNull();
+    assertThat(context.getManifests().get(0)).containsOnlyKeys("spec");
+    assertThat(context.getManifests().get(0).get("spec"))
+        .isEqualTo(Collections.singletonMap("replicas", "3"));
+  }
+
+  @Test
+  void deserializeInlineListPatchManifest() throws IOException {
+    String json =
+        "{\n"
+            + "  \"manifestArtifactAccount\": \"account\",\n"
+            + "  \"source\": \"text\",\n"
+            + "  \"patchBody\": [\n"
+            + "    {\n"
+            + "         \"spec\": {\n"
+            + "             \"replicas\": \"3\"\n"
+            + "         }\n"
+            + "    }\n"
+            + "  ]\n"
+            + "}";
+
+    PatchManifestContext context = new ObjectMapper().readValue(json, PatchManifestContext.class);
+    assertThat(context.getSource()).isEqualTo(ManifestContext.Source.Text);
+    assertThat(context.getManifestArtifactAccount()).isEqualTo("account");
+    assertThat(context.getManifests()).isNotNull();
+    assertThat(context.getManifests().get(0)).containsOnlyKeys("spec");
+    assertThat(context.getManifests().get(0).get("spec"))
         .isEqualTo(Collections.singletonMap("replicas", "3"));
   }
 }

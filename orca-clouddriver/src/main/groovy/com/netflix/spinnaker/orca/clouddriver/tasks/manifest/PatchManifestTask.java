@@ -19,8 +19,10 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.manifest;
 import com.netflix.spinnaker.orca.Task;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
+import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.PatchManifestContext.MergeStrategy;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -39,11 +41,22 @@ public class PatchManifestTask extends AbstractCloudProviderAwareTask implements
   @Override
   public TaskResult execute(@Nonnull Stage stage) {
     PatchManifestContext context = stage.mapTo(PatchManifestContext.class);
+    MergeStrategy mergeStrategy = context.getOptions().getMergeStrategy();
     ManifestEvaluator.Result result = manifestEvaluator.evaluate(stage, context);
+    List<Map<Object, Object>> patchBody = result.getManifests();
+
+    if (patchBody == null || patchBody.isEmpty()) {
+      throw new IllegalArgumentException(
+          "The Patch (Manifest) stage requires a valid patch body. Please add a patch body inline or with an artifact.");
+    }
+    if (mergeStrategy != MergeStrategy.JSON && patchBody.size() > 1) {
+      throw new IllegalArgumentException(
+          "Only one patch object is valid when patching with `strategic` and `merge` patch strategies.");
+    }
 
     Map<String, Object> task = new HashMap<>(stage.getContext());
     task.put("source", "text");
-    task.put("patchBody", result.getManifests().get(0));
+    task.put("patchBody", mergeStrategy == MergeStrategy.JSON ? patchBody : patchBody.get(0));
     task.put("requiredArtifacts", result.getRequiredArtifacts());
     task.put("allArtifacts", result.getOptionalArtifacts());
 
