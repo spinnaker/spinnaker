@@ -1,9 +1,9 @@
 import * as React from 'react';
-import memoizeOne from 'memoize-one';
-
-import { orEmptyString, validationClassName } from './utils';
+import { useInternalValidator } from 'core/presentation';
 import { composeValidators, IValidator, Validators } from '../validation';
 import { IFormInputProps, OmitControlledInputPropsFrom } from './interface';
+
+import { orEmptyString, validationClassName } from './utils';
 
 import './NumberInput.css';
 
@@ -13,27 +13,18 @@ interface INumberInputProps extends IFormInputProps, OmitControlledInputPropsFro
 
 const isNumber = (val: any): val is number => typeof val === 'number';
 
-export class NumberInput extends React.Component<INumberInputProps> {
-  private getMinValidator = memoizeOne((min: any) => (isNumber(min) ? Validators.minValue(min) : undefined));
-  private getMaxValidator = memoizeOne((max: any) => (isNumber(max) ? Validators.maxValue(max) : undefined));
+export function NumberInput(props: INumberInputProps) {
+  const { value, validation, inputClassName, ...otherProps } = props;
 
-  private validator: IValidator = (val: any, label?: string) => {
-    const { min, max } = this.props;
-    const validator = composeValidators([this.getMinValidator(min), this.getMaxValidator(max)]);
+  const minMaxValidator: IValidator = (val: any, label?: string) => {
+    const minValidator = isNumber(props.min) ? Validators.minValue(props.min) : undefined;
+    const maxValidator = isNumber(props.max) ? Validators.maxValue(props.max) : undefined;
+    const validator = composeValidators([minValidator, maxValidator]);
     return validator ? validator(val, label) : null;
   };
 
-  public componentDidMount() {
-    this.props.validation && this.props.validation.addValidator(this.validator);
-  }
+  useInternalValidator(validation, minMaxValidator);
 
-  public componentWillUnmount() {
-    this.props.validation && this.props.validation.removeValidator(this.validator);
-  }
-
-  public render() {
-    const { value, validation, inputClassName, ...otherProps } = this.props;
-    const className = `NumberInput form-control ${orEmptyString(inputClassName)} ${validationClassName(validation)}`;
-    return <input className={className} type="number" value={orEmptyString(value)} {...otherProps} />;
-  }
+  const className = `NumberInput form-control ${orEmptyString(inputClassName)} ${validationClassName(validation)}`;
+  return <input className={className} type="number" value={orEmptyString(value)} {...otherProps} />;
 }
