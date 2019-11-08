@@ -32,7 +32,10 @@ export function SpelInput(props: ISpelInputProps) {
     if (status === 'NONE') {
       return null;
     } else if (status === 'PENDING' || isDebouncing) {
-      return asyncMessage('previewing expression...');
+      if (result) {
+        return asyncMessage('Updating preview...\n\n\n```\n' + JSON.stringify(result, null, 2) + '\n```');
+      }
+      return asyncMessage('Updating preview...');
     } else if (status === 'RESOLVED') {
       // Render as a code block
       return messageMessage('Preview\n\n\n```\n' + JSON.stringify(result, null, 2) + '\n```');

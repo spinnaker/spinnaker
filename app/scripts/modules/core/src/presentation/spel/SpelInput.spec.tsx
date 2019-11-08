@@ -167,6 +167,25 @@ describe('<SpelInput/>', () => {
       done();
     });
 
+    it('should continue to render the previous result when a SpelService fetch is pending', async done => {
+      const result1 = new Promise<any>(resolve => resolve('preview result'));
+      evaluateExpressionSpy.and.callFake(() => result1);
+      const component = mount(<SpelInput {...inputProps} previewExecutionId={'abc'} previewStageId={'123'} />);
+      expect(mockValidate).toHaveBeenCalledTimes(1);
+      expect(mockValidate.calls.mostRecent().returnValue).toMatch('Async: ');
+      mockValidate.calls.reset();
+
+      await result1;
+      component.setProps({ value: 'some other value' });
+
+      expect(mockValidate).toHaveBeenCalledTimes(2);
+      expect(mockValidate.calls.first().returnValue).toMatch('Message: ');
+      expect(mockValidate.calls.mostRecent().returnValue).toMatch('Async: ');
+      expect(mockValidate.calls.mostRecent().returnValue).toMatch('preview result');
+
+      done();
+    });
+
     it('should validate as "Message: *" when a SpelService fetch is resolved with a result', async done => {
       const deferred = defer();
       evaluateExpressionSpy.and.callFake(() => deferred.promise);
