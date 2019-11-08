@@ -15,14 +15,19 @@ import {
 
 import './SpelInput.less';
 
+export interface IStageForSpelPreview {
+  executionLabel: string;
+  executionId: string;
+  stageId: string;
+}
+
 interface ISpelInputProps extends ITextInputProps {
-  previewExecutionId: string;
-  previewStageId: string;
+  previewStage: IStageForSpelPreview;
 }
 
 /** An Input that previews Spel expressions */
 export function SpelInput(props: ISpelInputProps) {
-  const { previewExecutionId, previewStageId, ...rest } = props;
+  const { previewStage, ...rest } = props;
   const [expression, isDebouncing] = useDebouncedValue(props.value, 300);
   const isInitialRender = !useIsMountedRef().current;
   const hasNewlines = !!/\n/.exec(rest.value);
@@ -38,7 +43,12 @@ export function SpelInput(props: ISpelInputProps) {
       return asyncMessage('Updating preview...');
     } else if (status === 'RESOLVED') {
       // Render as a code block
-      return messageMessage('Preview\n\n\n```\n' + JSON.stringify(result, null, 2) + '\n```');
+      const previewMessage =
+        `Preview - based on previous execution: ${previewStage.executionLabel}\n\n\n` +
+        '```\n' +
+        JSON.stringify(result, null, 2) +
+        '\n```';
+      return messageMessage(previewMessage);
     } else if (status === 'REJECTED') {
       return warningMessage(error);
     }
@@ -48,9 +58,9 @@ export function SpelInput(props: ISpelInputProps) {
   useInternalValidator(props.validation, previewExpressionValidator);
 
   const fetchSpelPreview = useData(
-    () => SpelService.evaluateExpression(expression, previewExecutionId, previewStageId),
+    () => SpelService.evaluateExpression(expression, previewStage.executionId, previewStage.stageId),
     null,
-    [expression, previewExecutionId, previewStageId],
+    [expression, previewStage.executionId, previewStage.stageId],
   );
 
   // re-validate whenever an async event occurs
