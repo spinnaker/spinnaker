@@ -1,0 +1,77 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-environment-artifact-constraint-table
+      author: asher
+      changes:
+        - createTable:
+            tableName: environment_artifact_constraint
+            columns:
+              - column:
+                  name: environment_uid
+                  type: char(26)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: artifact_version
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: constraint_type
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: int
+                  constraints:
+                    nullable: true
+              - column:
+                  name: judged_by
+                  type: varchar(255)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: judged_at
+                  type: timestamp
+                  constraints:
+                    nullable: true
+              - column:
+                  name: comment
+                  type: varchar(255)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: json
+                  type: longtext
+                  constraints:
+                    nullable: true
+
+  - changeSet:
+      id: mysql-environment-artifact-constraint-status-enum
+      author: asher
+      changes:
+        - sql:
+            dbms: mysql
+            sql: ALTER TABLE `environment_artifact_constraint` MODIFY COLUMN `status` ENUM("PENDING", "PASS", "FAIL", "OVERRIDE_PASS", "OVERRIDE_FAIL") NOT NULL DEFAULT "PENDING"
+
+  - changeSet:
+      id: create-environment-artifact-constraint-indices
+      author: asher
+      changes:
+        - addPrimaryKey:
+            tableName: environment_artifact_constraint
+            constraintName: constraint_pk
+            columnNames: environment_uid, artifact_version, constraint_type
+        - createIndex:
+            tableName: environment_artifact_constraint
+            indexName: environment_artifact_constraint_judged_at_idx
+            columns:
+              - column:
+                  name: judged_at
