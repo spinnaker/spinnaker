@@ -106,6 +106,10 @@ export class LoadBalancerFilterService {
         if (newGroup.subgroups) {
           this.diffSubgroups(oldGroup.subgroups, newGroup.subgroups);
         }
+        if (oldGroup.hasOwnProperty('isManaged') || newGroup.hasOwnProperty('isManaged')) {
+          oldGroup.isManaged = newGroup.isManaged;
+          oldGroup.managedResourceSummary = newGroup.managedResourceSummary;
+        }
       }
     });
     groupsToRemove.reverse().forEach(idx => {

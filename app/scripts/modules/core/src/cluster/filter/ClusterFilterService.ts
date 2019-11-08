@@ -473,6 +473,12 @@ export class ClusterFilterService {
         if (oldGroup.entityTags || newGroup.entityTags) {
           oldGroup.entityTags = newGroup.entityTags;
         }
+        if (oldGroup.hasOwnProperty('isManaged') || newGroup.hasOwnProperty('isManaged')) {
+          const oldSubGroup = oldGroup as IClusterSubgroup | IServerGroupSubgroup;
+          const newSubGroup = newGroup as IClusterSubgroup | IServerGroupSubgroup;
+          oldSubGroup.isManaged = newSubGroup.isManaged;
+          oldSubGroup.managedResourceSummary = newSubGroup.managedResourceSummary;
+        }
       }
     });
     groupsToRemove.reverse().forEach((idx: number) => {
