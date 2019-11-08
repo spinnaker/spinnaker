@@ -23,6 +23,7 @@ dependencies {
   implementation(project(":orca-retrofit"))
   implementation(project(":orca-clouddriver"))
   implementation("org.springframework:spring-context")
+  implementation("org.springframework.boot:spring-boot-autoconfigure")
   implementation("com.netflix.frigga:frigga")
   implementation("com.netflix.spinnaker.moniker:moniker")
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")

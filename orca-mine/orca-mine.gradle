@@ -22,5 +22,6 @@ dependencies {
   implementation(project(":orca-clouddriver"))
   testImplementation(project(":orca-test-groovy"))
   implementation("org.springframework:spring-context")
+  implementation("org.springframework.boot:spring-boot-autoconfigure")
   implementation("com.netflix.frigga:frigga")
 }
