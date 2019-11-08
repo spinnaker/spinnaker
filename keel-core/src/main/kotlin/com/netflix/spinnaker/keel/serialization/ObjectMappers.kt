@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.serialization
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
 import com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
+import com.fasterxml.jackson.databind.MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS
 import com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_WITH_ZONE_ID
@@ -34,6 +35,7 @@ private fun <T : ObjectMapper> T.configureMe(): T =
       .registerModule(JavaTimeModule())
       .configureSaneDateTimeRepresentation()
       .disable(FAIL_ON_UNKNOWN_PROPERTIES)
+      .enable(ACCEPT_CASE_INSENSITIVE_ENUMS)
   }
 
 private fun ObjectMapper.registerULIDModule(): ObjectMapper =

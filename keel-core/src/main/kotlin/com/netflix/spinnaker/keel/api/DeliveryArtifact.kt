@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.keel.api
 
-import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonValue
 
 data class DeliveryArtifact(
@@ -8,17 +7,11 @@ data class DeliveryArtifact(
   val type: ArtifactType = ArtifactType.DEB
 )
 
-enum class ArtifactType(@JsonValue val friendlyName: String) {
-  DEB("deb"),
-  DOCKER("docker");
+enum class ArtifactType {
+  DEB, DOCKER;
 
-  companion object {
-    @JsonCreator
-    @JvmStatic
-    fun fromFriendlyName(friendlyName: String): ArtifactType? {
-      return valueOf(friendlyName.toUpperCase())
-    }
-  }
+  @JsonValue
+  fun value(): String = name.toLowerCase()
 }
 
 enum class ArtifactStatus {
