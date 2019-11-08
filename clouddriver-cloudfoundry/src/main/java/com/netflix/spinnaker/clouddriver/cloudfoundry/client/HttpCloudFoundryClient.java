@@ -74,6 +74,7 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
   private final String user;
   private final String password;
   private final OkHttpClient okHttpClient;
+  private Logger logger = LoggerFactory.getLogger(HttpCloudFoundryClient.class);
 
   private AuthenticationService uaaService;
   private AtomicLong tokenExpirationNs = new AtomicLong(System.nanoTime());
@@ -90,8 +91,6 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
   private ServiceKeys serviceKeys;
   private Tasks tasks;
   private Logs logs;
-
-  Logger logger = LoggerFactory.getLogger(HttpCloudFoundryClient.class);
 
   private final RequestInterceptor oauthInterceptor =
       new RequestInterceptor() {
@@ -164,7 +163,7 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
           });
     } catch (SocketTimeoutException e) {
       throw new RetryableApiException(
-          "Timeout " + callName + " " + chain.request().httpUrl() + ",  attempting retrying", e);
+          "Timeout " + callName + " " + chain.request().httpUrl() + ",  attempting retry", e);
     } catch (Exception e) {
       final Response response = lastResponse.get();
       if (response == null) {

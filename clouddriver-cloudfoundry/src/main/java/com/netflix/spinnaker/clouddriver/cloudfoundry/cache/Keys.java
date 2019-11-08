@@ -75,7 +75,7 @@ public class Keys implements KeyParser {
   }
 
   public static String getApplicationKey(String app) {
-    return ID + ":" + Namespace.APPLICATIONS + ":" + app;
+    return ID + ":" + Namespace.APPLICATIONS + ":" + app.toLowerCase();
   }
 
   public static String getAllLoadBalancers() {
@@ -132,11 +132,27 @@ public class Keys implements KeyParser {
   }
 
   public static String getClusterKey(String account, String app, String name) {
-    return ID + ":" + Namespace.CLUSTERS + ":" + account + ":" + app + ":" + name;
+    return ID
+        + ":"
+        + Namespace.CLUSTERS
+        + ":"
+        + account
+        + ":"
+        + app.toLowerCase()
+        + ":"
+        + name.toLowerCase();
   }
 
   public static String getServerGroupKey(String account, String name, String region) {
-    return ID + ":" + Namespace.SERVER_GROUPS + ":" + account + ":" + name + ":" + region;
+    return ID
+        + ":"
+        + Namespace.SERVER_GROUPS
+        + ":"
+        + account
+        + ":"
+        + name.toLowerCase()
+        + ":"
+        + region;
   }
 
   public static String getInstanceKey(String account, String instanceName) {

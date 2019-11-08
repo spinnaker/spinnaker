@@ -111,7 +111,7 @@ public class DeployCloudFoundryServerGroupAtomicOperation
       return deploymentResult();
     }
 
-    final Integer desiredInstanceCount = description.getApplicationAttributes().getInstances();
+    final int desiredInstanceCount = description.getApplicationAttributes().getInstances();
     if (description.isStartApplication() && desiredInstanceCount > 0) {
       client.getApplications().startApplication(serverGroup.getId());
       ProcessStats.State state =
@@ -285,13 +285,11 @@ public class DeployCloudFoundryServerGroupAtomicOperation
   private static ExternalReference resolveBuildInfo(
       DeployCloudFoundryServerGroupDescription description) {
     Map<String, Object> buildInfo = null;
-    if (buildInfo == null) {
-      final Artifact applicationArtifact = description.getApplicationArtifact();
-      if (applicationArtifact != null) {
-        final Map<String, Object> metadata = applicationArtifact.getMetadata();
-        if (metadata != null) {
-          buildInfo = (Map<String, Object>) applicationArtifact.getMetadata().get("build");
-        }
+    final Artifact applicationArtifact = description.getApplicationArtifact();
+    if (applicationArtifact != null) {
+      final Map<String, Object> metadata = applicationArtifact.getMetadata();
+      if (metadata != null) {
+        buildInfo = (Map<String, Object>) applicationArtifact.getMetadata().get("build");
       }
     }
     if (buildInfo == null) {

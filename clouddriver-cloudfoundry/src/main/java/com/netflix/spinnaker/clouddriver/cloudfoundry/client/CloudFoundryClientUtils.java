@@ -50,7 +50,7 @@ final class CloudFoundryClientUtils {
         ErrorDescription errorDescription =
             (ErrorDescription) retrofitError.getBodyAs(ErrorDescription.class);
         if (errorDescription == null) {
-          throw new CloudFoundryApiException(retrofitError.getCause());
+          throw new CloudFoundryApiException(retrofitError);
         }
         throw new CloudFoundryApiException(errorDescription, retrofitError);
       }

@@ -102,7 +102,9 @@ public class Applications {
     // Evict Records from `cache` that are no longer in the foundation
     List<String> availableAppIds =
         newCloudFoundryAppList.stream().map(Application::getGuid).collect(toList());
-    serverGroupCache.asMap().keySet().stream()
+    serverGroupCache
+        .asMap()
+        .keySet()
         .forEach(
             key -> {
               if (!availableAppIds.contains(key)) {
@@ -168,7 +170,7 @@ public class Applications {
   @Nullable
   public CloudFoundryServerGroup findServerGroupByNameAndSpaceId(String name, String spaceId) {
     return Optional.ofNullable(findServerGroupId(name, spaceId))
-        .map(serverGroupId -> Optional.ofNullable(findById(serverGroupId)).orElse(null))
+        .flatMap(serverGroupId -> Optional.ofNullable(findById(serverGroupId)))
         .orElse(null);
   }
 
@@ -214,7 +216,7 @@ public class Applications {
     try {
       CloudFoundryPackage cfPackage =
           safelyCall(() -> api.findPackagesByAppId(appId))
-              .map(
+              .flatMap(
                   packages ->
                       packages.getResources().stream()
                           .findFirst()
@@ -233,8 +235,7 @@ public class Applications {
                                           pkg.getData().getChecksum() == null
                                               ? null
                                               : pkg.getData().getChecksum().getValue())
-                                      .build())
-                          .orElse(null))
+                                      .build()))
               .orElse(null);
 
       droplet =
@@ -304,13 +305,17 @@ public class Applications {
     String serverGroupAppManagerUri = appsManagerUri;
     if (StringUtils.isNotEmpty(appsManagerUri)) {
       serverGroupAppManagerUri =
-          appsManagerUri
-              + "/organizations/"
-              + space.getOrganization().getId()
-              + "/spaces/"
-              + space.getId()
-              + "/applications/"
-              + appId;
+          Optional.ofNullable(space)
+              .map(
+                  s ->
+                      appsManagerUri
+                          + "/organizations/"
+                          + s.getOrganization().getId()
+                          + "/spaces/"
+                          + s.getId()
+                          + "/applications/"
+                          + appId)
+              .orElse("");
     }
 
     String serverGroupMetricsUri = metricsUri;
@@ -504,7 +509,7 @@ public class Applications {
       throws CloudFoundryApiException {
     final Process.HealthCheck healthCheck =
         healthCheckType != null ? new Process.HealthCheck().setType(healthCheckType) : null;
-    if (healthCheckEndpoint != null && !healthCheckEndpoint.isEmpty()) {
+    if (healthCheckEndpoint != null && !healthCheckEndpoint.isEmpty() && healthCheck != null) {
       healthCheck.setData(new Process.HealthCheckData().setEndpoint(healthCheckEndpoint));
     }
     safelyCall(() -> api.updateProcess(guid, new UpdateProcess(command, healthCheck)));
@@ -539,9 +544,9 @@ public class Applications {
     }
   }
 
-  public String uploadPackageBits(String packageGuid, File file) throws CloudFoundryApiException {
+  public void uploadPackageBits(String packageGuid, File file) throws CloudFoundryApiException {
     TypedFile uploadFile = new TypedFile("multipart/form-data", file);
-    return safelyCall(() -> api.uploadPackageBits(packageGuid, uploadFile))
+    safelyCall(() -> api.uploadPackageBits(packageGuid, uploadFile))
         .map(Package::getGuid)
         .orElseThrow(
             () ->
