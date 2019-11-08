@@ -18,107 +18,54 @@ package com.netflix.spinnaker.config
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
+import com.netflix.spinnaker.kork.sql.config.SqlProperties
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
 import com.netflix.spinnaker.orca.notifications.SqlNotificationClusterLock
-import com.netflix.spinnaker.orca.sql.JooqSqlCommentAppender
-import com.netflix.spinnaker.orca.sql.JooqToSpringExceptionTransformer
-import com.netflix.spinnaker.orca.sql.QueryLogger
 import com.netflix.spinnaker.orca.sql.SpringLiquibaseProxy
 import com.netflix.spinnaker.orca.sql.SqlHealthIndicator
 import com.netflix.spinnaker.orca.sql.SqlHealthcheckActivator
-import com.netflix.spinnaker.orca.sql.config.DataSourceConfiguration
 import com.netflix.spinnaker.orca.sql.pipeline.persistence.SqlExecutionRepository
-import com.netflix.spinnaker.orca.sql.telemetry.SlowQueryLogger
 import com.netflix.spinnaker.orca.sql.telemetry.SqlInstrumentedExecutionRepository
 import liquibase.integration.spring.SpringLiquibase
 import org.jooq.DSLContext
-import org.jooq.impl.DataSourceConnectionProvider
-import org.jooq.impl.DefaultConfiguration
-import org.jooq.impl.DefaultDSLContext
-import org.jooq.impl.DefaultExecuteListenerProvider
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Primary
-import org.springframework.jdbc.datasource.DataSourceTransactionManager
-import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy
-import sun.net.InetAddressCachePolicy
-import java.lang.reflect.Field
-import java.security.Security
-import java.sql.Connection
 import java.time.Clock
-import javax.sql.DataSource
 
 @Configuration
 @ConditionalOnProperty("sql.enabled")
-@EnableConfigurationProperties(SqlProperties::class)
-@Import(DataSourceConfiguration::class, DataSourceAutoConfiguration::class)
+@EnableConfigurationProperties(OrcaSqlProperties::class)
+@Import(DefaultSqlConfiguration::class)
 @ComponentScan("com.netflix.spinnaker.orca.sql")
+
 class SqlConfiguration {
-
-  init {
-    // Ugh, jOOQ, why. WHY.
-    System.setProperty("org.jooq.no-logo", "true")
-
-    forceInetAddressCachePolicy()
-    Security.setProperty("networkaddress.cache.ttl", "0")
-  }
-
-  @Bean fun liquibase(properties: SqlProperties): SpringLiquibase =
+  @Bean
+  fun liquibase(properties: SqlProperties): SpringLiquibase =
     SpringLiquibaseProxy(properties)
-
-  @Bean fun transactionManager(dataSource: DataSource): DataSourceTransactionManager =
-    DataSourceTransactionManager(dataSource)
-
-  @Bean fun dataSourceConnectionProvider(dataSource: DataSource): DataSourceConnectionProvider =
-    object : DataSourceConnectionProvider(TransactionAwareDataSourceProxy(dataSource)) {
-      // Use READ COMMITTED if possible
-      override fun acquire(): Connection = super.acquire().apply {
-          if (metaData.supportsTransactionIsolationLevel(Connection.TRANSACTION_READ_COMMITTED)) {
-            transactionIsolation = Connection.TRANSACTION_READ_COMMITTED
-          }
-        }
-    }
-
-  @Bean fun jooqConfiguration(
-    connectionProvider: DataSourceConnectionProvider,
-    properties: SqlProperties,
-    dynamicConfigService: DynamicConfigService
-  ): DefaultConfiguration =
-    DefaultConfiguration().apply {
-      set(*DefaultExecuteListenerProvider.providers(
-        JooqToSpringExceptionTransformer(),
-        JooqSqlCommentAppender(),
-        SlowQueryLogger(),
-        QueryLogger(dynamicConfigService)
-      ))
-      set(connectionProvider)
-      setSQLDialect(properties.connectionPool.dialect)
-    }
-
-  @Bean(destroyMethod = "close") fun dsl(jooqConfiguration: DefaultConfiguration): DSLContext =
-    DefaultDSLContext(jooqConfiguration)
 
   @ConditionalOnProperty("execution-repository.sql.enabled")
   @Bean fun sqlExecutionRepository(
     dsl: DSLContext,
     mapper: ObjectMapper,
     registry: Registry,
-    properties: SqlProperties
+    properties: SqlProperties,
+    orcaSqlProperties: OrcaSqlProperties
   ) =
     SqlInstrumentedExecutionRepository(
       SqlExecutionRepository(
-        properties.partitionName,
+        orcaSqlProperties.partitionName,
         dsl,
         mapper,
-        properties.transactionRetry,
-        properties.batchReadSize,
-        properties.stageReadSize
+        properties.retries.transactions,
+        orcaSqlProperties.batchReadSize,
+        orcaSqlProperties.stageReadSize
       ),
       registry
     )
@@ -131,7 +78,7 @@ class SqlConfiguration {
     sqlProperties: SqlProperties,
     dynamicConfigService: DynamicConfigService
   ) =
-    SqlHealthIndicator(sqlHealthcheckActivator, sqlProperties.connectionPool.dialect, dynamicConfigService)
+    SqlHealthIndicator(sqlHealthcheckActivator, sqlProperties.getDefaultConnectionPoolProperties().dialect, dynamicConfigService)
 
   @ConditionalOnProperty("execution-repository.sql.enabled")
   @ConditionalOnMissingBean(NotificationClusterLock::class)
@@ -144,26 +91,6 @@ class SqlConfiguration {
   ) = SqlNotificationClusterLock(
     jooq = jooq,
     clock = clock,
-    retryProperties = properties.transactionRetry
+    retryProperties = properties.retries.transactions
   )
 }
-
-/**
- * When deployed with replicas, we want failover to be as fast as possible, so there's no DNS caching.
- */
-private fun forceInetAddressCachePolicy() {
-  if (InetAddressCachePolicy.get() != InetAddressCachePolicy.NEVER) {
-    val field: Field
-    try {
-      field = InetAddressCachePolicy::class.java.getDeclaredField("cachePolicy")
-      field.isAccessible = true
-    } catch (e: NoSuchFieldException) {
-      throw InetAddressOverrideFailure(e)
-    } catch (e: SecurityException) {
-      throw InetAddressOverrideFailure(e)
-    }
-    field.set(InetAddressCachePolicy::class.java.getDeclaredField("cachePolicy"), InetAddressCachePolicy.NEVER)
-  }
-}
-
-class InetAddressOverrideFailure(cause: Throwable) : IllegalStateException(cause)

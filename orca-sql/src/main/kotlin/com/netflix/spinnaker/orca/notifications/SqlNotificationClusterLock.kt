@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.notifications
 
-import com.netflix.spinnaker.config.TransactionRetryProperties
+import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import io.github.resilience4j.retry.Retry
 import io.github.resilience4j.retry.RetryConfig
 import io.vavr.control.Try
@@ -30,7 +30,7 @@ import java.time.Duration
 class SqlNotificationClusterLock(
   private val jooq: DSLContext,
   private val clock: Clock,
-  private val retryProperties: TransactionRetryProperties
+  private val retryProperties: RetryProperties
 ) : NotificationClusterLock {
 
   companion object {

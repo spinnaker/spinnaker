@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.sql.cleanup
 
+import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 
 import java.time.Clock
@@ -23,7 +24,6 @@ import java.time.Instant
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spinnaker.config.TransactionRetryProperties
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
@@ -65,7 +65,7 @@ class OldPipelineCleanupPollingNotificationAgentSpec extends Specification {
 
   def setupSpec() {
     currentDatabase = initTcMysqlDatabase()
-    executionRepository = new SqlExecutionRepository("test", currentDatabase.context, mapper, new TransactionRetryProperties(), 10, 100)
+    executionRepository = new SqlExecutionRepository("test", currentDatabase.context, mapper, new RetryProperties(), 10, 100, "poolName")
   }
 
   def "should preserve the most recent 5 executions when cleaning up old pipeline executions"() {

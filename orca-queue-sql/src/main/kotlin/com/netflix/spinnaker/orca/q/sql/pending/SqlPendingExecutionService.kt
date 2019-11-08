@@ -3,8 +3,8 @@ package com.netflix.spinnaker.orca.q.sql.pending
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.histogram.PercentileTimer
-import com.netflix.spinnaker.config.TransactionRetryProperties
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
@@ -34,7 +34,7 @@ class SqlPendingExecutionService(
   private val mapper: ObjectMapper,
   private val clock: Clock,
   private val registry: Registry,
-  private val retryProperties: TransactionRetryProperties,
+  private val retryProperties: RetryProperties,
   private val maxDepth: Int
 ) : PendingExecutionService {
 

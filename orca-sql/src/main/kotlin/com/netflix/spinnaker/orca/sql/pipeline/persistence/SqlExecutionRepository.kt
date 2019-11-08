@@ -16,8 +16,9 @@
 package com.netflix.spinnaker.orca.sql.pipeline.persistence
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.config.TransactionRetryProperties
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.kork.sql.config.RetryProperties
+import com.netflix.spinnaker.kork.sql.routing.withPool
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.ExecutionStatus.BUFFERED
 import com.netflix.spinnaker.orca.ExecutionStatus.CANCELED
@@ -70,9 +71,10 @@ class SqlExecutionRepository(
   private val partitionName: String?,
   private val jooq: DSLContext,
   private val mapper: ObjectMapper,
-  private val transactionRetryProperties: TransactionRetryProperties,
+  private val retryProperties: RetryProperties,
   private val batchReadSize: Int = 10,
-  private val stageReadSize: Int = 200
+  private val stageReadSize: Int = 200,
+  private val poolName: String = "default"
 ) : ExecutionRepository, ExecutionStatisticsRepository {
   companion object {
     val ulid = SpinULID(SecureRandom())
@@ -82,11 +84,15 @@ class SqlExecutionRepository(
   private val log = LoggerFactory.getLogger(javaClass)
 
   override fun store(execution: Execution) {
-    jooq.transactional { storeExecutionInternal(it, execution, true) }
+    withPool(poolName) {
+      jooq.transactional { storeExecutionInternal(it, execution, true) }
+    }
   }
 
   override fun storeStage(stage: Stage) {
-    jooq.transactional { storeStageInternal(it, stage) }
+    withPool(poolName) {
+      jooq.transactional { storeStageInternal(it, stage) }
+    }
   }
 
   override fun updateStageContext(stage: Stage) {
@@ -94,9 +100,11 @@ class SqlExecutionRepository(
   }
 
   override fun removeStage(execution: Execution, stageId: String) {
-    jooq.transactional {
-      it.delete(execution.type.stagesTableName)
-        .where(stageId.toWhereCondition()).execute()
+    withPool(poolName) {
+      jooq.transactional {
+        it.delete(execution.type.stagesTableName)
+          .where(stageId.toWhereCondition()).execute()
+      }
     }
   }
 
@@ -112,39 +120,43 @@ class SqlExecutionRepository(
   }
 
   override fun cancel(type: ExecutionType, id: String, user: String?, reason: String?) {
-    jooq.transactional {
-      selectExecution(it, type, id)
-        ?.let { execution ->
-          execution.isCanceled = true
-          if (user != null) {
-            execution.canceledBy = user
+    withPool(poolName) {
+      jooq.transactional {
+        selectExecution(it, type, id)
+          ?.let { execution ->
+            execution.isCanceled = true
+            if (user != null) {
+              execution.canceledBy = user
+            }
+            if (reason != null && reason.isNotEmpty()) {
+              execution.cancellationReason = reason
+            }
+            if (execution.status == NOT_STARTED) {
+              execution.status = CANCELED
+            }
+            storeExecutionInternal(it, execution)
           }
-          if (reason != null && reason.isNotEmpty()) {
-            execution.cancellationReason = reason
-          }
-          if (execution.status == NOT_STARTED) {
-            execution.status = CANCELED
-          }
-          storeExecutionInternal(it, execution)
-        }
+      }
     }
   }
 
   override fun pause(type: ExecutionType, id: String, user: String?) {
-    jooq.transactional {
-      selectExecution(it, type, id)
-        ?.let { execution ->
-          if (execution.status != RUNNING) {
-            throw UnpausablePipelineException("Unable to pause pipeline that is not RUNNING " +
-              "(executionId: $id, currentStatus: ${execution.status})")
+    withPool(poolName) {
+      jooq.transactional {
+        selectExecution(it, type, id)
+          ?.let { execution ->
+            if (execution.status != RUNNING) {
+              throw UnpausablePipelineException("Unable to pause pipeline that is not RUNNING " +
+                "(executionId: $id, currentStatus: ${execution.status})")
+            }
+            execution.status = PAUSED
+            execution.paused = PausedDetails().apply {
+              pausedBy = user
+              pauseTime = currentTimeMillis()
+            }
+            storeExecutionInternal(it, execution)
           }
-          execution.status = PAUSED
-          execution.paused = PausedDetails().apply {
-            pausedBy = user
-            pauseTime = currentTimeMillis()
-          }
-          storeExecutionInternal(it, execution)
-        }
+      }
     }
   }
 
@@ -153,42 +165,48 @@ class SqlExecutionRepository(
   }
 
   override fun resume(type: ExecutionType, id: String, user: String?, ignoreCurrentStatus: Boolean) {
-    jooq.transactional {
-      selectExecution(it, type, id)
-        ?.let { execution ->
-          if (!ignoreCurrentStatus && execution.status != PAUSED) {
-            throw UnresumablePipelineException("Unable to resume pipeline that is not PAUSED " +
-              "(executionId: $id, currentStatus: ${execution.status}")
+    withPool(poolName) {
+      jooq.transactional {
+        selectExecution(it, type, id)
+          ?.let { execution ->
+            if (!ignoreCurrentStatus && execution.status != PAUSED) {
+              throw UnresumablePipelineException("Unable to resume pipeline that is not PAUSED " +
+                "(executionId: $id, currentStatus: ${execution.status}")
+            }
+            execution.status = RUNNING
+            execution.paused?.resumedBy = user
+            execution.paused?.resumeTime = currentTimeMillis()
+            storeExecutionInternal(it, execution)
           }
-          execution.status = RUNNING
-          execution.paused?.resumedBy = user
-          execution.paused?.resumeTime = currentTimeMillis()
-          storeExecutionInternal(it, execution)
-        }
+      }
     }
   }
 
   override fun isCanceled(type: ExecutionType, id: String): Boolean {
-    return jooq.fetchExists(
-      jooq.selectFrom(type.tableName)
-        .where(id.toWhereCondition())
-        .and(field("canceled").eq(true))
-    )
+    withPool(poolName) {
+      return jooq.fetchExists(
+        jooq.selectFrom(type.tableName)
+          .where(id.toWhereCondition())
+          .and(field("canceled").eq(true))
+      )
+    }
   }
 
   override fun updateStatus(type: ExecutionType, id: String, status: ExecutionStatus) {
-    jooq.transactional {
-      selectExecution(it, type, id)
-        ?.let { execution ->
-          execution.status = status
-          if (status == RUNNING) {
-            execution.isCanceled = false
-            execution.startTime = currentTimeMillis()
-          } else if (status.isComplete && execution.startTime != null) {
-            execution.endTime = currentTimeMillis()
+    withPool(poolName) {
+      jooq.transactional {
+        selectExecution(it, type, id)
+          ?.let { execution ->
+            execution.status = status
+            if (status == RUNNING) {
+              execution.isCanceled = false
+              execution.startTime = currentTimeMillis()
+            } else if (status.isComplete && execution.startTime != null) {
+              execution.endTime = currentTimeMillis()
+            }
+            storeExecutionInternal(it, execution)
           }
-          storeExecutionInternal(it, execution)
-        }
+      }
     }
   }
 
@@ -206,14 +224,16 @@ class SqlExecutionRepository(
       .fetch()
       ?.into(String::class.java)?.toTypedArray()
 
-    jooq.transactional {
-      if (correlationId != null) {
-        it.delete(table("correlation_ids")).where(field("id").eq(correlationId)).execute()
+    withPool(poolName) {
+      jooq.transactional {
+        if (correlationId != null) {
+          it.delete(table("correlation_ids")).where(field("id").eq(correlationId)).execute()
+        }
+        if (stageIds != null) {
+          it.delete(type.stagesTableName).where(field("id").`in`(*stageIds)).execute()
+        }
+        it.delete(type.tableName).where(field("id").eq(ulid)).execute()
       }
-      if (stageIds != null) {
-        it.delete(type.stagesTableName).where(field("id").`in`(*stageIds)).execute()
-      }
-      it.delete(type.tableName).where(field("id").eq(ulid)).execute()
     }
   }
 
@@ -232,37 +252,41 @@ class SqlExecutionRepository(
   }
 
   private fun retrieve(type: ExecutionType, criteria: ExecutionCriteria, partition: String?): Observable<Execution> {
-    val select = jooq.selectExecutions(
-      type,
-      fields = selectFields() + field("status"),
-      conditions = {
-        if (partition.isNullOrEmpty()) {
-          it.statusIn(criteria.statuses)
-        } else {
-          it.where(field(name("partition")).eq(partition))
-            .statusIn(criteria.statuses)
-        }
-      },
-      seek = {
-        it.orderBy(field("id").desc())
-          .run {
-            if (criteria.pageSize > 0) {
-              limit(criteria.pageSize)
-            } else {
-              this
-            }
+    withPool(poolName) {
+      val select = jooq.selectExecutions(
+        type,
+        fields = selectFields() + field("status"),
+        conditions = {
+          if (partition.isNullOrEmpty()) {
+            it.statusIn(criteria.statuses)
+          } else {
+            it.where(field(name("partition")).eq(partition))
+              .statusIn(criteria.statuses)
           }
-      })
+        },
+        seek = {
+          it.orderBy(field("id").desc())
+            .run {
+              if (criteria.pageSize > 0) {
+                limit(criteria.pageSize)
+              } else {
+                this
+              }
+            }
+        })
 
-    return Observable.from(select.fetchExecutions())
+      return Observable.from(select.fetchExecutions())
+    }
   }
 
   override fun retrievePipelinesForApplication(application: String): Observable<Execution> =
-    Observable.from(fetchExecutions { pageSize, cursor ->
-      selectExecutions(PIPELINE, pageSize, cursor) {
-        it.where(field("application").eq(application))
-      }
-    })
+    withPool(poolName) {
+      Observable.from(fetchExecutions { pageSize, cursor ->
+        selectExecutions(PIPELINE, pageSize, cursor) {
+          it.where(field("application").eq(application))
+        }
+      })
+    }
 
   override fun retrievePipelinesForPipelineConfigId(
     pipelineConfigId: String,
@@ -271,34 +295,36 @@ class SqlExecutionRepository(
     // When not filtering by status, provide an index hint to ensure use of `pipeline_config_id_idx` which
     // fully satisfies the where clause and order by. Without, some lookups by config_id matching thousands
     // of executions triggered costly full table scans.
-    val select = if (criteria.statuses.isEmpty() || criteria.statuses.size == ExecutionStatus.values().size) {
-      jooq.selectExecutions(
-        PIPELINE,
-        usingIndex = "pipeline_config_id_idx",
-        conditions = {
-          it.where(field("config_id").eq(pipelineConfigId))
-            .statusIn(criteria.statuses)
-        },
-        seek = {
-          it.orderBy(field("id").desc()).limit(criteria.pageSize)
-        }
-      )
-    } else {
-      // When filtering by status, the above index hint isn't ideal. In this case, `pipeline_config_status_idx`
-      // appears to be used reliably without hinting.
-      jooq.selectExecutions(
-        PIPELINE,
-        conditions = {
-          it.where(field("config_id").eq(pipelineConfigId))
-            .statusIn(criteria.statuses)
-        },
-        seek = {
-          it.orderBy(field("id").desc()).limit(criteria.pageSize)
-        }
-      )
-    }
+    withPool(poolName) {
+      val select = if (criteria.statuses.isEmpty() || criteria.statuses.size == ExecutionStatus.values().size) {
+        jooq.selectExecutions(
+          PIPELINE,
+          usingIndex = "pipeline_config_id_idx",
+          conditions = {
+            it.where(field("config_id").eq(pipelineConfigId))
+              .statusIn(criteria.statuses)
+          },
+          seek = {
+            it.orderBy(field("id").desc()).limit(criteria.pageSize)
+          }
+        )
+      } else {
+        // When filtering by status, the above index hint isn't ideal. In this case, `pipeline_config_status_idx`
+        // appears to be used reliably without hinting.
+        jooq.selectExecutions(
+          PIPELINE,
+          conditions = {
+            it.where(field("config_id").eq(pipelineConfigId))
+              .statusIn(criteria.statuses)
+          },
+          seek = {
+            it.orderBy(field("id").desc()).limit(criteria.pageSize)
+          }
+        )
+      }
 
-    return Observable.from(select.fetchExecutions())
+      return Observable.from(select.fetchExecutions())
+    }
   }
 
   override fun retrieveOrchestrationsForApplication(
@@ -313,33 +339,35 @@ class SqlExecutionRepository(
     criteria: ExecutionCriteria,
     sorter: ExecutionComparator?
   ): MutableList<Execution> {
-    return jooq.selectExecutions(
-      ORCHESTRATION,
-      conditions = {
-        val where = it.where(field("application").eq(application))
+    withPool(poolName) {
+      return jooq.selectExecutions(
+        ORCHESTRATION,
+        conditions = {
+          val where = it.where(field("application").eq(application))
 
-        val startTime = criteria.startTimeCutoff
-        if (startTime != null) {
-          where
-            .and(
-              field("start_time").greaterThan(startTime.toEpochMilli())
-                .or(field("start_time").isNull)
-            )
-            .statusIn(criteria.statuses)
-        } else {
-          where.statusIn(criteria.statuses)
-        }
-      },
-      seek = {
-        val ordered = when (sorter) {
-          START_TIME_OR_ID -> it.orderBy(field("start_time").desc().nullsFirst(), field("id").desc())
-          BUILD_TIME_DESC -> it.orderBy(field("build_time").asc(), field("id").asc())
-          else -> it.orderBy(field("id").desc())
-        }
+          val startTime = criteria.startTimeCutoff
+          if (startTime != null) {
+            where
+              .and(
+                field("start_time").greaterThan(startTime.toEpochMilli())
+                  .or(field("start_time").isNull)
+              )
+              .statusIn(criteria.statuses)
+          } else {
+            where.statusIn(criteria.statuses)
+          }
+        },
+        seek = {
+          val ordered = when (sorter) {
+            START_TIME_OR_ID -> it.orderBy(field("start_time").desc().nullsFirst(), field("id").desc())
+            BUILD_TIME_DESC -> it.orderBy(field("build_time").asc(), field("id").asc())
+            else -> it.orderBy(field("id").desc())
+          }
 
-        ordered.offset((criteria.page - 1) * criteria.pageSize).limit(criteria.pageSize)
-      }
-    ).fetchExecutions().toMutableList()
+          ordered.offset((criteria.page - 1) * criteria.pageSize).limit(criteria.pageSize)
+        }
+      ).fetchExecutions().toMutableList()
+    }
   }
 
   override fun retrieveByCorrelationId(executionType: ExecutionType, correlationId: String) =
@@ -349,51 +377,55 @@ class SqlExecutionRepository(
     }
 
   override fun retrieveOrchestrationForCorrelationId(correlationId: String): Execution {
-    val execution = jooq.selectExecution(ORCHESTRATION)
-      .where(field("id").eq(
-        field(
-          jooq.select(field("c.orchestration_id"))
-            .from(table("correlation_ids").`as`("c"))
-            .where(field("c.id").eq(correlationId))
-            .limit(1)
-        ) as Any
-      ))
-      .fetchExecution()
+    withPool(poolName) {
+      val execution = jooq.selectExecution(ORCHESTRATION)
+        .where(field("id").eq(
+          field(
+            jooq.select(field("c.orchestration_id"))
+              .from(table("correlation_ids").`as`("c"))
+              .where(field("c.id").eq(correlationId))
+              .limit(1)
+          ) as Any
+        ))
+        .fetchExecution()
 
-    if (execution != null) {
-      if (!execution.status.isComplete) {
-        return execution
+      if (execution != null) {
+        if (!execution.status.isComplete) {
+          return execution
+        }
+        jooq.transactional {
+          it.deleteFrom(table("correlation_ids")).where(field("id").eq(correlationId)).execute()
+        }
       }
-      jooq.transactional {
-        it.deleteFrom(table("correlation_ids")).where(field("id").eq(correlationId)).execute()
-      }
+
+      throw ExecutionNotFoundException("No Orchestration found for correlation ID $correlationId")
     }
-
-    throw ExecutionNotFoundException("No Orchestration found for correlation ID $correlationId")
   }
 
   override fun retrievePipelineForCorrelationId(correlationId: String): Execution {
-    val execution = jooq.selectExecution(PIPELINE)
-      .where(field("id").eq(
-        field(
-          jooq.select(field("c.pipeline_id"))
-            .from(table("correlation_ids").`as`("c"))
-            .where(field("c.id").eq(correlationId))
-            .limit(1)
-        ) as Any
-      ))
-      .fetchExecution()
+    withPool(poolName) {
+      val execution = jooq.selectExecution(PIPELINE)
+        .where(field("id").eq(
+          field(
+            jooq.select(field("c.pipeline_id"))
+              .from(table("correlation_ids").`as`("c"))
+              .where(field("c.id").eq(correlationId))
+              .limit(1)
+          ) as Any
+        ))
+        .fetchExecution()
 
-    if (execution != null) {
-      if (!execution.status.isComplete) {
-        return execution
+      if (execution != null) {
+        if (!execution.status.isComplete) {
+          return execution
+        }
+        jooq.transactional {
+          it.deleteFrom(table("correlation_ids")).where(field("id").eq(correlationId)).execute()
+        }
       }
-      jooq.transactional {
-        it.deleteFrom(table("correlation_ids")).where(field("id").eq(correlationId)).execute()
-      }
+
+      throw ExecutionNotFoundException("No Pipeline found for correlation ID $correlationId")
     }
-
-    throw ExecutionNotFoundException("No Pipeline found for correlation ID $correlationId")
   }
 
   override fun retrieveBufferedExecutions(): MutableList<Execution> =
@@ -406,66 +438,72 @@ class SqlExecutionRepository(
       }
 
   override fun retrieveAllApplicationNames(type: ExecutionType?): List<String> {
-    return if (type == null) {
-      jooq.select(field("application"))
-        .from(PIPELINE.tableName)
-        .groupBy(field("application"))
-        .unionAll(
-          jooq.select(field("application"))
-            .from(ORCHESTRATION.tableName)
-            .groupBy(field("application"))
-        )
-        .fetch(0, String::class.java)
-        .distinct()
-    } else {
-      jooq.select(field("application"))
-        .from(type.tableName)
-        .groupBy(field("application"))
-        .fetch(0, String::class.java)
-        .distinct()
+    withPool(poolName) {
+      return if (type == null) {
+        jooq.select(field("application"))
+          .from(PIPELINE.tableName)
+          .groupBy(field("application"))
+          .unionAll(
+            jooq.select(field("application"))
+              .from(ORCHESTRATION.tableName)
+              .groupBy(field("application"))
+          )
+          .fetch(0, String::class.java)
+          .distinct()
+      } else {
+        jooq.select(field("application"))
+          .from(type.tableName)
+          .groupBy(field("application"))
+          .fetch(0, String::class.java)
+          .distinct()
+      }
     }
   }
 
   override fun retrieveAllApplicationNames(type: ExecutionType?, minExecutions: Int): List<String> {
-    return if (type == null) {
-      jooq.select(field("application"))
-        .from(PIPELINE.tableName)
-        .groupBy(field("application"))
-        .having(count().ge(minExecutions))
-        .unionAll(
-          jooq.select(field("application"))
-            .from(ORCHESTRATION.tableName)
-            .groupBy(field("application"))
-            .having(count().ge(minExecutions))
-        )
-        .fetch(0, String::class.java)
-        .distinct()
-    } else {
-      jooq.select(field("application"))
-        .from(type.tableName)
-        .groupBy(field("application"))
-        .having(count().ge(minExecutions))
-        .fetch(0, String::class.java)
-        .distinct()
+    withPool(poolName) {
+      return if (type == null) {
+        jooq.select(field("application"))
+          .from(PIPELINE.tableName)
+          .groupBy(field("application"))
+          .having(count().ge(minExecutions))
+          .unionAll(
+            jooq.select(field("application"))
+              .from(ORCHESTRATION.tableName)
+              .groupBy(field("application"))
+              .having(count().ge(minExecutions))
+          )
+          .fetch(0, String::class.java)
+          .distinct()
+      } else {
+        jooq.select(field("application"))
+          .from(type.tableName)
+          .groupBy(field("application"))
+          .having(count().ge(minExecutions))
+          .fetch(0, String::class.java)
+          .distinct()
+      }
     }
   }
 
   override fun countActiveExecutions(): ActiveExecutionsReport {
-    val orchestrationsQuery = jooq.selectCount()
-      .from(ORCHESTRATION.tableName)
-      .where(field("status").eq(RUNNING.toString()))
-      .asField<Int>("orchestrations")
-    val pipelinesQuery = jooq.selectCount()
-      .from(PIPELINE.tableName)
-      .where(field("status").eq(RUNNING.toString()))
-      .asField<Int>("pipelines")
+    withPool(poolName) {
+      val orchestrationsQuery = jooq.selectCount()
+        .from(ORCHESTRATION.tableName)
+        .where(field("status").eq(RUNNING.toString()))
+        .asField<Int>("orchestrations")
+      val pipelinesQuery = jooq.selectCount()
+        .from(PIPELINE.tableName)
+        .where(field("status").eq(RUNNING.toString()))
+        .asField<Int>("pipelines")
 
-    val record = jooq.select(orchestrationsQuery, pipelinesQuery).fetchOne()
+      val record = jooq.select(orchestrationsQuery, pipelinesQuery).fetchOne()
 
-    return ActiveExecutionsReport(
-      record.get(0, Int::class.java),
-      record.get(1, Int::class.java)
-    )
+      return ActiveExecutionsReport(
+        record.get(0, Int::class.java),
+        record.get(1, Int::class.java)
+      )
+    }
   }
 
   override fun retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
@@ -474,37 +512,39 @@ class SqlExecutionRepository(
     buildTimeEndBoundary: Long,
     executionCriteria: ExecutionCriteria
   ): List<Execution> {
-    val select = jooq.selectExecutions(
-      PIPELINE,
-      conditions = {
-        var conditions = it.where(
-          field("config_id").`in`(*pipelineConfigIds.toTypedArray())
-          .and(field("build_time").gt(buildTimeStartBoundary))
-          .and(field("build_time").lt(buildTimeEndBoundary))
-        )
+    withPool(poolName) {
+      val select = jooq.selectExecutions(
+        PIPELINE,
+        conditions = {
+          var conditions = it.where(
+            field("config_id").`in`(*pipelineConfigIds.toTypedArray())
+              .and(field("build_time").gt(buildTimeStartBoundary))
+              .and(field("build_time").lt(buildTimeEndBoundary))
+          )
 
-        if (executionCriteria.statuses.isNotEmpty()) {
-          val statusStrings = executionCriteria.statuses.map { it.toString() }
-          conditions = conditions.and(field("status").`in`(*statusStrings.toTypedArray()))
+          if (executionCriteria.statuses.isNotEmpty()) {
+            val statusStrings = executionCriteria.statuses.map { it.toString() }
+            conditions = conditions.and(field("status").`in`(*statusStrings.toTypedArray()))
+          }
+
+          conditions
+        },
+        seek = {
+          val seek = when (executionCriteria.sortType) {
+            ExecutionComparator.BUILD_TIME_ASC -> it.orderBy(field("build_time").asc())
+            ExecutionComparator.BUILD_TIME_DESC -> it.orderBy(field("build_time").desc())
+            ExecutionComparator.START_TIME_OR_ID -> it.orderBy(field("start_time").desc())
+            ExecutionComparator.NATURAL_ASC -> it.orderBy(field("id").desc())
+            else -> it.orderBy(field("id").asc())
+          }
+          seek
+            .limit(executionCriteria.pageSize)
+            .offset((executionCriteria.page - 1) * executionCriteria.pageSize)
         }
+      )
 
-        conditions
-      },
-      seek = {
-        val seek = when (executionCriteria.sortType) {
-          ExecutionComparator.BUILD_TIME_ASC -> it.orderBy(field("build_time").asc())
-          ExecutionComparator.BUILD_TIME_DESC -> it.orderBy(field("build_time").desc())
-          ExecutionComparator.START_TIME_OR_ID -> it.orderBy(field("start_time").desc())
-          ExecutionComparator.NATURAL_ASC -> it.orderBy(field("id").desc())
-          else -> it.orderBy(field("id").asc())
-        }
-        seek
-          .limit(executionCriteria.pageSize)
-          .offset((executionCriteria.page - 1) * executionCriteria.pageSize)
-      }
-    )
-
-    return select.fetchExecutions().toList()
+      return select.fetchExecutions().toList()
+    }
   }
 
   override fun retrieveAllPipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
@@ -535,14 +575,18 @@ class SqlExecutionRepository(
   }
 
   override fun hasExecution(type: ExecutionType, id: String): Boolean {
-    return jooq.selectCount()
-      .from(type.tableName)
-      .where(id.toWhereCondition())
-      .fetchOne(count()) > 0
+    withPool(poolName) {
+      return jooq.selectCount()
+        .from(type.tableName)
+        .where(id.toWhereCondition())
+        .fetchOne(count()) > 0
+    }
   }
 
   override fun retrieveAllExecutionIds(type: ExecutionType): MutableList<String> {
-    return jooq.select(field("id")).from(type.tableName).fetch("id", String::class.java)
+    withPool(poolName) {
+      return jooq.select(field("id")).from(type.tableName).fetch("id", String::class.java)
+    }
   }
 
   /**
@@ -560,15 +604,17 @@ class SqlExecutionRepository(
   ): Pair<String, String?> {
     if (isULID(id)) return Pair(id, null)
 
-    val ts = (timestamp ?: System.currentTimeMillis())
-    val row = ctx.select(field("id"))
-      .from(table)
-      .where(field("legacy_id").eq(id))
-      .limit(1)
-      .fetchOne()
-    val ulid = row?.let { it.getValue(field("id")) as String } ?: ulid.nextULID(ts)
+    withPool(poolName) {
+      val ts = (timestamp ?: System.currentTimeMillis())
+      val row = ctx.select(field("id"))
+        .from(table)
+        .where(field("legacy_id").eq(id))
+        .limit(1)
+        .fetchOne()
+      val ulid = row?.let { it.getValue(field("id")) as String } ?: ulid.nextULID(ts)
 
-    return Pair(ulid, id)
+      return Pair(ulid, id)
+    }
   }
 
   private fun storeExecutionInternal(ctx: DSLContext, execution: Execution, storeStages: Boolean = false) {
@@ -631,14 +677,16 @@ class SqlExecutionRepository(
         // Remove stages that are no longer part of the execution. This
         // would happen while restarting a completed or paused execution
         // and synthetics need to be cleaned up.
-        ctx.deleteFrom(stageTableName)
-          .where(field("execution_id").eq(executionId))
-          .apply {
-            if (!stageIds.isEmpty()) {
-              and(field("id").notIn(*stageIds))
-                .and(field("legacy_id").notIn(*stageIds).or(field("legacy_id").isNull))
-            }
-          }.execute()
+        withPool(poolName) {
+          ctx.deleteFrom(stageTableName)
+            .where(field("execution_id").eq(executionId))
+            .apply {
+              if (!stageIds.isEmpty()) {
+                and(field("id").notIn(*stageIds))
+                  .and(field("legacy_id").notIn(*stageIds).or(field("legacy_id").isNull))
+              }
+            }.execute()
+        }
 
         stages.forEach { storeStageInternal(ctx, it, executionId) }
       }
@@ -681,17 +729,19 @@ class SqlExecutionRepository(
         ORCHESTRATION -> field("orchestration_id")
       }
 
-      val exists = ctx.fetchExists(
-        ctx.select()
-          .from("correlation_ids")
-          .where(field("id").eq(execution.trigger.correlationId))
-          .and(executionIdField.eq(execution.id))
-      )
-      if (!exists) {
-        ctx.insertInto(table("correlation_ids"))
-          .columns(field("id"), executionIdField)
-          .values(execution.trigger.correlationId, execution.id)
-          .execute()
+      withPool(poolName) {
+        val exists = ctx.fetchExists(
+          ctx.select()
+            .from("correlation_ids")
+            .where(field("id").eq(execution.trigger.correlationId))
+            .and(executionIdField.eq(execution.id))
+        )
+        if (!exists) {
+          ctx.insertInto(table("correlation_ids"))
+            .columns(field("id"), executionIdField)
+            .values(execution.trigger.correlationId, execution.id)
+            .execute()
+        }
       }
     }
   }
@@ -708,19 +758,21 @@ class SqlExecutionRepository(
     // to do a select for update first.
     // TODO rz - Unfortunately, this seems to come at the cost of try/catching
     // to fallback to the simpler behavior.
-    try {
-      ctx.insertInto(table, *insertPairs.keys.toTypedArray())
-        .values(insertPairs.values)
-        .onDuplicateKeyUpdate()
-        .set(updatePairs)
-        .execute()
-    } catch (e: SQLDialectNotSupportedException) {
-      log.debug("Falling back to primitive upsert logic: ${e.message}")
-      val exists = ctx.fetchExists(ctx.select().from(table).where(field("id").eq(updateId)).forUpdate())
-      if (exists) {
-        ctx.update(table).set(updatePairs).where(field("id").eq(updateId)).execute()
-      } else {
-        ctx.insertInto(table).columns(insertPairs.keys).values(insertPairs.values).execute()
+    withPool(poolName) {
+      try {
+        ctx.insertInto(table, *insertPairs.keys.toTypedArray())
+          .values(insertPairs.values)
+          .onDuplicateKeyUpdate()
+          .set(updatePairs)
+          .execute()
+      } catch (e: SQLDialectNotSupportedException) {
+        log.debug("Falling back to primitive upsert logic: ${e.message}")
+        val exists = ctx.fetchExists(ctx.select().from(table).where(field("id").eq(updateId)).forUpdate())
+        if (exists) {
+          ctx.update(table).set(updatePairs).where(field("id").eq(updateId)).execute()
+        } else {
+          ctx.insertInto(table).columns(insertPairs.keys).values(insertPairs.values).execute()
+        }
       }
     }
   }
@@ -753,11 +805,13 @@ class SqlExecutionRepository(
     id: String,
     forUpdate: Boolean = false
   ): Execution? {
-    val select = ctx.selectExecution(type).where(id.toWhereCondition())
-    if (forUpdate) {
-      select.forUpdate()
+    withPool(poolName) {
+      val select = ctx.selectExecution(type).where(id.toWhereCondition())
+      if (forUpdate) {
+        select.forUpdate()
+      }
+      return select.fetchExecution()
     }
-    return select.fetchExecution()
   }
 
   private fun selectExecutions(
@@ -766,26 +820,28 @@ class SqlExecutionRepository(
     cursor: String?,
     where: ((SelectJoinStep<Record>) -> SelectConditionStep<Record>)? = null
   ): Collection<Execution> {
-    val select = jooq.selectExecutions(
-      type,
-      conditions = {
-        if (cursor == null) {
-          it.where("1=1")
-        } else {
-          if (where == null) {
-            it.where(field("id").gt(cursor))
+    withPool(poolName) {
+      val select = jooq.selectExecutions(
+        type,
+        conditions = {
+          if (cursor == null) {
+            it.where("1=1")
           } else {
-            where(it).and(field("id").gt(cursor))
+            if (where == null) {
+              it.where(field("id").gt(cursor))
+            } else {
+              where(it).and(field("id").gt(cursor))
+            }
           }
+        },
+        seek = {
+          it.orderBy(field("id").desc())
+            .limit(limit)
         }
-      },
-      seek = {
-        it.orderBy(field("id").desc())
-          .limit(limit)
-      }
-    )
+      )
 
-    return select.fetchExecutions()
+      return select.fetchExecutions()
+    }
   }
 
   /**
@@ -796,7 +852,7 @@ class SqlExecutionRepository(
       transaction { ctx ->
         fn(DSL.using(ctx))
       }
-    }, transactionRetryProperties.maxRetries, transactionRetryProperties.backoffMs, false)
+    }, retryProperties.maxRetries, retryProperties.backoffMs, false)
   }
 
   private fun DSLContext.selectExecutions(

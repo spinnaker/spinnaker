@@ -17,7 +17,7 @@ package com.netflix.spinnaker.orca.sql.pipeline.persistence
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.netflix.spinnaker.config.TransactionRetryProperties
+import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.TestDatabase
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Execution
@@ -70,12 +70,12 @@ class SqlExecutionRepositorySpec extends ExecutionRepositoryTck<SqlExecutionRepo
 
   @Override
   SqlExecutionRepository createExecutionRepository() {
-    new SqlExecutionRepository("test", currentDatabase.context, mapper, new TransactionRetryProperties(), 10, 100)
+    new SqlExecutionRepository("test", currentDatabase.context, mapper, new RetryProperties(), 10, 100, "poolName")
   }
 
   @Override
   SqlExecutionRepository createExecutionRepositoryPrevious() {
-    new SqlExecutionRepository("test", previousDatabase.context, mapper, new TransactionRetryProperties(), 10, 100)
+    new SqlExecutionRepository("test", previousDatabase.context, mapper, new RetryProperties(), 10, 100, "poolName")
   }
 
   def "can store a new pipeline"() {

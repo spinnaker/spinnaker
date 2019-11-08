@@ -20,8 +20,9 @@ apply plugin: "java"
 
 dependencies {
   implementation(project(":orca-core"))
-
   implementation(project(":orca-queue"))
+
+  implementation("com.netflix.spinnaker.kork:kork-sql")
   implementation("com.netflix.spectator:spectator-api")
   implementation("com.netflix.spinnaker.keiko:keiko-core:$keikoVersion")
   implementation("com.netflix.spinnaker.kork:kork-core")

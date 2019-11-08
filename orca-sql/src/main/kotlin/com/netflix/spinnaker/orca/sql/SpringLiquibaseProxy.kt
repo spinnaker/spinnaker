@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.orca.sql
 
-import com.netflix.spinnaker.config.SqlProperties
+import com.netflix.spinnaker.kork.sql.config.SqlProperties
 import liquibase.integration.spring.SpringLiquibase
 import org.springframework.jdbc.datasource.SingleConnectionDataSource
 import javax.sql.DataSource

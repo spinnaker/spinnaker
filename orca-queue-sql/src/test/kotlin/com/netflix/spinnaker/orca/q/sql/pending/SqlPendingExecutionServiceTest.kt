@@ -3,7 +3,7 @@ package com.netflix.spinnaker.orca.q.sql.pending
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spinnaker.config.TransactionRetryProperties
+import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import com.netflix.spinnaker.orca.fixture.pipeline
 import com.netflix.spinnaker.orca.fixture.stage
@@ -39,7 +39,7 @@ internal object SqlPendingExecutionServiceTest : SubjectSpek<SqlPendingExecution
   val repository = mock<ExecutionRepository>()
   val clock = fixedClock()
   val registry = NoopRegistry()
-  val retryProperties = TransactionRetryProperties()
+  val retryProperties = RetryProperties()
 
   val maxDepth = 4
 

@@ -22,12 +22,13 @@ import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.ObjectMapperSubtypeProperties
+import com.netflix.spinnaker.config.OrcaSqlProperties
 import com.netflix.spinnaker.config.SpringObjectMapperConfigurer
-import com.netflix.spinnaker.config.SqlProperties
-import com.netflix.spinnaker.config.TransactionRetryProperties
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import com.netflix.spinnaker.kork.jedis.RedisClientSelector
+import com.netflix.spinnaker.kork.sql.config.RetryProperties
+import com.netflix.spinnaker.kork.sql.config.SqlProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import com.netflix.spinnaker.orca.TaskResolver
@@ -116,14 +117,15 @@ class SqlTestConfig {
     dsl: DSLContext,
     mapper: ObjectMapper,
     registry: Registry,
-    properties: SqlProperties
+    properties: SqlProperties,
+    orcaSqlProperties: OrcaSqlProperties
   ) = SqlExecutionRepository(
-    properties.partitionName,
+    orcaSqlProperties.partitionName,
     dsl,
     mapper,
-    properties.transactionRetry,
-    properties.batchReadSize,
-    properties.stageReadSize
+    properties.retries.transactions,
+    orcaSqlProperties.batchReadSize,
+    orcaSqlProperties.stageReadSize
   )
 
   @Bean
@@ -142,9 +144,14 @@ class SqlTestConfig {
       mapper,
       clock,
       registry,
-      TransactionRetryProperties(),
+      RetryProperties(),
       5
     )
+
+  @Bean
+  fun orcaSqlProperties(): OrcaSqlProperties {
+    return OrcaSqlProperties()
+  }
 
   // TODO: remove this once Redis is no longer needed for distributed locking
   @Bean
