@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { mount } from 'enzyme';
-import { IFormInputProps, IValidator } from 'core/presentation';
+import { IFormInputProps, IStageForSpelPreview, IValidator } from 'core/presentation';
 import { SpelService } from './SpelService';
 import { SpelInput } from './SpelInput';
 
@@ -19,6 +19,12 @@ describe('<SpelInput/>', () => {
 
   let inputProps: IFormInputProps;
   let evaluateExpressionSpy: jasmine.Spy;
+
+  const previewStage: IStageForSpelPreview = {
+    stageId: '123',
+    executionId: 'abc',
+    executionLabel: 'execution ran yesterday',
+  };
 
   beforeEach(() => {
     inputProps = {
@@ -41,25 +47,25 @@ describe('<SpelInput/>', () => {
   });
 
   it('should render a text area with the value in it', () => {
-    const component = mount(<SpelInput {...inputProps} previewExecutionId={'abc'} previewStageId={'123'} />);
+    const component = mount(<SpelInput {...inputProps} previewStage={previewStage} />);
     expect(component.render().is('textarea')).toBe(true);
     expect(component.render().text()).toBe('abc123');
   });
 
   it('should eagerly fetch the preview from the server on initial load', () => {
-    mount(<SpelInput {...inputProps} previewExecutionId={'abc'} previewStageId={'123'} />);
+    mount(<SpelInput {...inputProps} previewStage={previewStage} />);
     expect(evaluateExpressionSpy).toHaveBeenCalledTimes(1);
   });
 
   it('should pass the value, pipeline, and stage ids to the SpelService', () => {
-    mount(<SpelInput {...inputProps} previewExecutionId={'abc'} previewStageId={'123'} />);
+    mount(<SpelInput {...inputProps} previewStage={previewStage} />);
     expect(evaluateExpressionSpy).toHaveBeenCalledWith('abc123', 'abc', '123');
   });
 
   it('should debounce preview fetches when the input value changes', async done => {
     const deferred1 = defer();
     evaluateExpressionSpy.and.callFake(() => deferred1.promise);
-    const component = mount(<SpelInput {...inputProps} previewExecutionId={'abc'} previewStageId={'123'} />);
+    const component = mount(<SpelInput {...inputProps} previewStage={previewStage} />);
     expect(evaluateExpressionSpy).toHaveBeenCalledTimes(1);
 
     // First preview request resolves
@@ -82,7 +88,7 @@ describe('<SpelInput/>', () => {
   it('should call revalidate whenever an async event occurs', async done => {
     const deferred1 = defer();
     evaluateExpressionSpy.and.callFake(() => deferred1.promise);
-    const component = mount(<SpelInput {...inputProps} previewExecutionId={'abc'} previewStageId={'123'} />);
+    const component = mount(<SpelInput {...inputProps} previewStage={previewStage} />);
 
     // [ NONE -> PENDING ] a promise was found, results pending
     expect(inputProps.validation.revalidate).toHaveBeenCalledTimes(1);
@@ -119,7 +125,7 @@ describe('<SpelInput/>', () => {
   });
 
   it('should add a validator on mount', () => {
-    mount(<SpelInput {...inputProps} previewExecutionId={'abc'} previewStageId={'123'} />);
+    mount(<SpelInput {...inputProps} previewStage={previewStage} />);
     expect(inputProps.validation.addValidator).toHaveBeenCalledTimes(1);
   });
 
@@ -127,7 +133,7 @@ describe('<SpelInput/>', () => {
     const addValidator = inputProps.validation.addValidator as jasmine.Spy;
     const removeValidator = inputProps.validation.removeValidator as jasmine.Spy;
 
-    const component = mount(<SpelInput {...inputProps} previewExecutionId={'abc'} previewStageId={'123'} />);
+    const component = mount(<SpelInput {...inputProps} previewStage={previewStage} />);
 
     expect(addValidator).toHaveBeenCalledTimes(1);
     expect(removeValidator).toHaveBeenCalledTimes(0);
@@ -161,7 +167,7 @@ describe('<SpelInput/>', () => {
 
     it('should validate as "Async: *" when a SpelService fetch is pending', async done => {
       evaluateExpressionSpy.and.callFake(() => new Promise<any>(() => null));
-      mount(<SpelInput {...inputProps} previewExecutionId={'abc'} previewStageId={'123'} />);
+      mount(<SpelInput {...inputProps} previewStage={previewStage} />);
       expect(mockValidate).toHaveBeenCalledTimes(1);
       expect(mockValidate.calls.mostRecent().returnValue).toMatch('Async: ');
       done();
@@ -170,7 +176,7 @@ describe('<SpelInput/>', () => {
     it('should continue to render the previous result when a SpelService fetch is pending', async done => {
       const result1 = new Promise<any>(resolve => resolve('preview result'));
       evaluateExpressionSpy.and.callFake(() => result1);
-      const component = mount(<SpelInput {...inputProps} previewExecutionId={'abc'} previewStageId={'123'} />);
+      const component = mount(<SpelInput {...inputProps} previewStage={previewStage} />);
       expect(mockValidate).toHaveBeenCalledTimes(1);
       expect(mockValidate.calls.mostRecent().returnValue).toMatch('Async: ');
       mockValidate.calls.reset();
@@ -189,7 +195,7 @@ describe('<SpelInput/>', () => {
     it('should validate as "Message: *" when a SpelService fetch is resolved with a result', async done => {
       const deferred = defer();
       evaluateExpressionSpy.and.callFake(() => deferred.promise);
-      const component = mount(<SpelInput {...inputProps} previewExecutionId={'abc'} previewStageId={'123'} />);
+      const component = mount(<SpelInput {...inputProps} previewStage={previewStage} />);
       expect(mockValidate).toHaveBeenCalledTimes(1);
       expect(mockValidate.calls.mostRecent().returnValue).toMatch('Async: ');
 
@@ -207,7 +213,7 @@ describe('<SpelInput/>', () => {
     it('should validate as "Warning: *" when a SpelService fetch is rejected', async done => {
       const deferred = defer();
       evaluateExpressionSpy.and.callFake(() => deferred.promise);
-      const component = mount(<SpelInput {...inputProps} previewExecutionId={'abc'} previewStageId={'123'} />);
+      const component = mount(<SpelInput {...inputProps} previewStage={previewStage} />);
       expect(mockValidate).toHaveBeenCalledTimes(1);
       expect(mockValidate.calls.mostRecent().returnValue).toMatch('Async: ');
 
