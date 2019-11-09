@@ -129,20 +129,28 @@
 
 // Flex item
 .flex-grow {
-  flex: auto; /* Same as flex: 1 1 auto; */
+  flex: auto;
+  /* Same as flex: 1 1 auto; */
 }
 
 .flex-nogrow {
-  flex: 0 1 auto; /* Same as flex: initial, or omitting flex: */
+  flex: 0 1 auto;
+  /* Same as flex: initial, or omitting flex: */
 }
 
 .flex-none {
-  flex: none; /* Same as flex: 0 0 auto */
+  flex: none;
+  /* Same as flex: 0 0 auto */
 }
 
 .flex-container-h .flex-pull-right,
 .flex-pull-right {
   margin-left: auto;
+}
+
+.flex-container-h .flex-pull-left,
+.flex-pull-left {
+  margin-right: auto;
 }
 
 .flex-fill {

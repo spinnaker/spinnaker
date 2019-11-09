@@ -7,7 +7,7 @@ import { HoverablePopover } from 'core/presentation';
 
 import { IManagedResourceSummary } from './ManagedReader';
 
-import './ManagedResourceDetailsIndicator.less';
+import './ManagedResourceDetailsIndicator.css';
 
 export interface IManagedResourceDetailsIndicatorProps {
   resourceSummary: IManagedResourceSummary;
@@ -46,32 +46,38 @@ export const ManagedResourceDetailsIndicator = ({ resourceSummary }: IManagedRes
   );
 
   return (
-    <div className="vertical middle center band band-info ManagedResourceDetailsIndicator">
+    <div className="flex-container-h middle ManagedResourceDetailsIndicator">
       <HoverablePopover template={helpText} placement="left">
-        <span className="summary-message horizontal sp-margin-s-bottom">
-          <span className="rainbow-icon">🌈</span>
-          Managed by Spinnaker
-        </span>
+        <div className="md-logo flex-container-h middle">
+          <img src={require('./icons/md-logo-color.svg')} width="36px" />
+        </div>
       </HoverablePopover>
-      <Dropdown className="dropdown" id="server-group-managed-resource-dropdown" pullRight={true}>
-        <Dropdown.Toggle className="btn btn-sm btn-default dropdown-toggle">Resource Actions</Dropdown.Toggle>
-        <Dropdown.Menu className="dropdown-menu">
-          <li>
-            <a target="_blank" onClick={() => logClick('History', id)} href={`${SETTINGS.gateUrl}/history/${id}`}>
-              History
-            </a>
-          </li>
-          <li>
-            <a
-              target="_blank"
-              onClick={() => logClick('Raw Source', id)}
-              href={`${SETTINGS.gateUrl}/managed/resources/${id}`}
-            >
-              Raw Source
-            </a>
-          </li>
-        </Dropdown.Menu>
-      </Dropdown>
+      <div className="flex-container-v middle flex-1 sp-margin-l-left">
+        <span className="summary-message sp-margin-s-bottom">Managed by Spinnaker</span>
+        <Dropdown
+          className="resource-actions sp-margin-xs-bottom flex-pull-left"
+          id="server-group-managed-resource-dropdown"
+          pullRight={true}
+        >
+          <Dropdown.Toggle className="btn btn-sm btn-default dropdown-toggle">Resource Actions</Dropdown.Toggle>
+          <Dropdown.Menu className="dropdown-menu">
+            <li>
+              <a target="_blank" onClick={() => logClick('History', id)} href={`${SETTINGS.gateUrl}/history/${id}`}>
+                History
+              </a>
+            </li>
+            <li>
+              <a
+                target="_blank"
+                onClick={() => logClick('Raw Source', id)}
+                href={`${SETTINGS.gateUrl}/managed/resources/${id}`}
+              >
+                Raw Source
+              </a>
+            </li>
+          </Dropdown.Menu>
+        </Dropdown>
+      </div>
     </div>
   );
 };
