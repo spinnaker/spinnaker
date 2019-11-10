@@ -32,6 +32,12 @@ export interface IAWSProviderSettings extends IProviderSettings {
     application?: string;
     classic?: string;
   };
+  instanceTypes?: {
+    exclude?: {
+      categories?: string[];
+      families?: string[];
+    };
+  };
 }
 
 export const AWSProviderSettings: IAWSProviderSettings = (SETTINGS.providers.aws as IAWSProviderSettings) || {

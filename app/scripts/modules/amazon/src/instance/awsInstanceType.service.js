@@ -5,6 +5,8 @@ import _ from 'lodash';
 
 import { API } from '@spinnaker/core';
 
+import { AWSProviderSettings } from 'amazon/aws.settings';
+
 module.exports = angular.module('spinnaker.amazon.instanceType.service', []).factory('awsInstanceTypeService', [
   '$http',
   '$q',
@@ -137,7 +139,7 @@ module.exports = angular.module('spinnaker.amazon.instanceType.service', []).fac
       ],
     };
 
-    var categories = [
+    var defaultCategories = [
       {
         type: 'general',
         label: 'General Purpose',
@@ -163,6 +165,16 @@ module.exports = angular.module('spinnaker.amazon.instanceType.service', []).fac
         icon: 'asterisk',
       },
     ];
+
+    const categories = defaultCategories
+      .filter(({ type }) => !_.get(AWSProviderSettings, 'instanceTypes.exclude.categories', []).includes(type))
+      .map(category =>
+        Object.assign({}, category, {
+          families: category.families.filter(
+            ({ type }) => !_.get(AWSProviderSettings, 'instanceTypes.exclude.families', []).includes(type),
+          ),
+        }),
+      );
 
     function getCategories() {
       return $q.when(categories);
