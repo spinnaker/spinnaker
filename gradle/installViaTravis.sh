@@ -9,7 +9,7 @@ if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
   $GRADLE assemble
 elif [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_TAG" == "" ]; then
   echo -e 'Assemble Branch with Snapshot => Branch ['$TRAVIS_BRANCH']'
-  $GRADLE -Prelease.travisci=true assemble 
+  $GRADLE -Prelease.travisci=true assemble
 elif [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_TAG" != "" ]; then
   echo -e 'Assemble Branch for Release => Branch ['$TRAVIS_BRANCH']  Tag ['$TRAVIS_TAG']'
   $GRADLE -Prelease.travisci=true assemble

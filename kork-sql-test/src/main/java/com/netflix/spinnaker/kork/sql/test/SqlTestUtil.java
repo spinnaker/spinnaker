@@ -60,7 +60,7 @@ public class SqlTestUtil {
   public static TestDatabase initTcMysqlDatabase() {
     // host, port, and db name are ignored with the jdbcUrl method of TC initialization and
     // overridden to "test" by the driver.
-    return initDatabase(tcJdbcUrl, SQLDialect.MYSQL_5_7);
+    return initDatabase(tcJdbcUrl, SQLDialect.MYSQL);
   }
 
   @Deprecated
@@ -78,7 +78,7 @@ public class SqlTestUtil {
             "%s?user=%s&password=%s",
             container.getJdbcUrl(), container.getUsername(), container.getPassword());
 
-    return initDatabase(jdbcUrl, SQLDialect.MYSQL_5_7, "previous");
+    return initDatabase(jdbcUrl, SQLDialect.MYSQL, "previous");
   }
 
   public static TestDatabase initDualTcMysqlDatabases() {
@@ -109,8 +109,8 @@ public class SqlTestUtil {
 
     String previousJdbcUrl = currentJdbcUrl.replace("/current", "/previous");
 
-    TestDatabase currentTDB = initDatabase(currentJdbcUrl, SQLDialect.MYSQL_5_7, "current");
-    TestDatabase previousTDB = initDatabase(previousJdbcUrl, SQLDialect.MYSQL_5_7, "previous");
+    TestDatabase currentTDB = initDatabase(currentJdbcUrl, SQLDialect.MYSQL, "current");
+    TestDatabase previousTDB = initDatabase(previousJdbcUrl, SQLDialect.MYSQL, "previous");
 
     return new TestDatabase(
         currentTDB.dataSource,

@@ -31,7 +31,7 @@ ext {
     okhttp3        : "3.14.2",
     resilience4j   : "1.0.0",
     retrofit       : "1.9.0",
-    retrofit2      : "2.6.1",
+    retrofit2      : "2.6.2",
     spectator      : "0.75.0",
     spek           : "1.2.1",
     springBoot     : "2.1.7.RELEASE",
@@ -59,7 +59,7 @@ dependencies {
   api(platform("io.strikt:strikt-bom:0.22.2"))
   api(platform("org.spockframework:spock-bom:1.3-groovy-2.5"))
   api(platform("com.oracle.oci.sdk:oci-java-sdk-bom:1.5.17"))
-  api(platform("org.testcontainers:testcontainers-bom:1.12.2"))
+  api(platform("org.testcontainers:testcontainers-bom:1.12.3"))
   api(platform("com.google.protobuf:protobuf-bom:${versions.protobuf}"))
 
   constraints {
@@ -118,7 +118,7 @@ dependencies {
     api("commons-io:commons-io:2.5")
     api("de.danielbechler:java-object-diff:0.95")
     api("de.huxhorn.sulky:de.huxhorn.sulky.ulid:8.2.0")
-    api("dev.minutest:minutest:1.7.0")
+    api("dev.minutest:minutest:1.10.0")
     api("io.github.resilience4j:resilience4j-annotations:${versions.resilience4j}")
     api("io.github.resilience4j:resilience4j-circuitbreaker:${versions.resilience4j}")
     api("io.github.resilience4j:resilience4j-kotlin:${versions.resilience4j}")
@@ -141,7 +141,7 @@ dependencies {
     api("org.jetbrains.spek:spek-junit-platform-engine:${versions.spek}")
     api("org.jetbrains.spek:spek-junit-platform-runner:${versions.spek}")
     api("org.jetbrains.spek:spek-subject-extension:${versions.spek}")
-    api("org.jooq:jooq:3.11.12")
+    api("org.jooq:jooq:3.12.3")
     api("org.objenesis:objenesis:2.5.1")
     api("org.pf4j:pf4j:3.1.0")
     api("org.springframework.boot:spring-boot-configuration-processor:${versions.springBoot}")
