@@ -9,6 +9,7 @@ ENV AWS_CLI_VERSION=1.16.208
 RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y \
+      openjdk-8-jre-headless \
       curl \
       python-pip && \
     pip install awscli==${AWS_CLI_VERSION} --upgrade
