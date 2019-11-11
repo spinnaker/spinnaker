@@ -9,10 +9,10 @@ export interface IFunctionSourceData {
 
 export interface IFunction extends ITaggedEntity {
   account?: string;
-  cloudProvider?: string;
+  cloudProvider: string;
   description?: string;
   functionName?: string;
-  region?: string;
+  region: string;
   searchField?: string;
   type?: string;
   vpcId?: string;

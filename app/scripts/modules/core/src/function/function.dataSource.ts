@@ -1,5 +1,4 @@
 import { module, IQService } from 'angular';
-
 import { ApplicationDataSourceRegistry } from 'core/application/service/ApplicationDataSourceRegistry';
 import { INFRASTRUCTURE_KEY } from 'core/application/nav/defaultCategories';
 import { Application } from 'core/application/application.model';
@@ -34,7 +33,7 @@ module(FUNCTION_DATA_SOURCE, [FUNCTION_READ_SERVICE]).run([
       sref: '.insight.functions',
       category: INFRASTRUCTURE_KEY,
       optional: true,
-      icon: 'fas fa-angle-up',
+      icon: 'fa fa-xs fa-fw fa-asterisk',
       loader: functions,
       onLoad: addFunctions,
       afterLoad: addTags,

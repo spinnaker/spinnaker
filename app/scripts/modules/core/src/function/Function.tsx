@@ -15,8 +15,8 @@ const Function = (props: IFunctionProps) => {
     application: application.name,
     region: functionDef.region,
     account: functionDef.account,
-    name: functionDef.functionName,
-    provider: functionDef.cloudProvider,
+    functionName: functionDef.functionName,
+    cloudProvider: functionDef.cloudProvider,
   };
   return (
     <div className="pod-subgroup function">
@@ -24,7 +24,7 @@ const Function = (props: IFunctionProps) => {
         <UISrefActive class="active">
           <UISref to=".functionDetails" params={params}>
             <h6 className="clickable clickable-row horizontal middle">
-              <i className="fas fa-angle-up" />
+              <i className="fa fa-xs fa-fw fa-asterisk" />
               &nbsp; {(functionDef.region || '').toUpperCase()}
               <div className="flex-1">
                 <EntityNotifications

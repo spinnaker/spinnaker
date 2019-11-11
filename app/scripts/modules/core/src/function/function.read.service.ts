@@ -36,7 +36,11 @@ export class FunctionReader {
   ): IPromise<IFunctionSourceData[]> {
     return API.all('functions')
       .withParams({ provider: cloudProvider, functionName: name, region: region, account: account })
-      .get();
+      .get()
+      .then((functions: IFunctionSourceData[]) => {
+        functions = this.functionTransformer.normalizeFunctionSet(functions);
+        return this.$q.all(functions.map(fn => this.normalizeFunction(fn)));
+      });
   }
 
   public listFunctions(cloudProvider: string): IPromise<IFunctionByAccount[]> {

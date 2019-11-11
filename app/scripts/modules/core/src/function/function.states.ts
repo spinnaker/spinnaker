@@ -19,7 +19,7 @@ module(FUNCTION_STATES, [APPLICATION_STATE_PROVIDER]).config([
     }
     const functionDetails: INestedState = {
       name: 'functionDetails',
-      url: '/functionDetails/:provider/:account/:region/:name',
+      url: '/functionDetails/:cloudProvider/:account/:region/:functionName',
       views: {
         'detail@../insight': {
           component: FunctionDetails,
@@ -32,8 +32,8 @@ module(FUNCTION_STATES, [APPLICATION_STATE_PROVIDER]).config([
           '$stateParams',
           ($stateParams: StateParams) => {
             return {
-              name: $stateParams.name,
-              accountId: $stateParams.account,
+              functionName: $stateParams.functionName,
+              account: $stateParams.account,
               region: $stateParams.region,
             };
           },
@@ -67,7 +67,6 @@ module(FUNCTION_STATES, [APPLICATION_STATE_PROVIDER]).config([
       },
       children: [],
     };
-
     applicationStateProvider.addInsightState(functions);
     applicationStateProvider.addInsightDetailState(functionDetails);
   },

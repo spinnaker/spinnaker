@@ -7,6 +7,7 @@ import { IFunctionGroup } from 'core/domain';
 import { FunctionState } from 'core/state';
 import { Spinner } from 'core/widgets/spinners/Spinner';
 import { FunctionGroupings } from './FunctionGroupings';
+import { CreateFunctionButton } from 'core/function/CreateFunctionButton';
 
 export interface IFunctionsProps {
   app: Application;
@@ -96,6 +97,9 @@ export class Functions extends React.Component<IFunctionsProps, IFunctionsState>
         <div className="header row header-clusters">
           <div className="col-lg-4 col-md-2">
             <div className="form-inline clearfix filters" />
+            <div className="application-actions">
+              <CreateFunctionButton app={this.props.app} />
+            </div>
           </div>
           <FilterTags tags={this.state.tags} tagCleared={this.tagCleared} clearFilters={this.clearFilters} />
         </div>

@@ -1,4 +1,4 @@
-import { IFunction } from '@spinnaker/core';
+import { IFunction, IFunctionDeleteCommand, IFunctionUpsertCommand } from '@spinnaker/core';
 
 export interface IAmazonFunction extends IFunction {
   credentials?: string;
@@ -10,10 +10,13 @@ export interface IAmazonFunction extends IFunction {
   functionName: string;
   publish: boolean;
   description: string;
-  tags: [{}];
+  tags: string | { [key: string]: string };
   memorySize: number;
   timeout: number;
   envVariables: {};
+  environment: {
+    variables: {};
+  };
   tracingConfig: {
     mode: string;
   };
@@ -26,4 +29,34 @@ export interface IAmazonFunction extends IFunction {
     subnetIds: [];
     vpcId: string;
   };
+}
+
+export interface IAmazonFunctionUpsertCommand extends IFunctionUpsertCommand {
+  role?: string;
+  runtime: string;
+  s3bucket: string;
+  s3key: string;
+  handler: string;
+  tags: string | { [key: string]: string };
+  memorySize: number;
+  timeout: number;
+  envVariables: {};
+  publish: boolean;
+  tracingConfig: {
+    mode: string;
+  };
+  deadLetterConfig: {
+    targetArn: string;
+  };
+  KMSKeyArn: string;
+  securityGroupIds: string[];
+  subnetIds: string[];
+  vpcId: string;
+}
+
+export interface IAmazonFunctionDeleteCommand extends IFunctionDeleteCommand {
+  cloudProvider: string;
+  functionName: string;
+  region: string;
+  credentials: string;
 }

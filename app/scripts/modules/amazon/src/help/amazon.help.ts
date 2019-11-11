@@ -141,6 +141,20 @@ const helpContents: { [key: string]: string } = {
       </p>
   `,
   'aws.cloudformation.expectedArtifact': `The artifact that is to be applied to this stage. The artifact should represent a valid cloudformation template.`,
+  'aws.function.name': `Enter a name that describes the purpose of your function. Function name will be prefixed with the application name.`,
+  'aws.function.runtime': `Choose the language to use to write your function`,
+  'aws.function.s3key': `The Amazon S3 key of the deployment package`,
+  'aws.function.handler': `The name of the method within your code that Lambda calls to execute your function. The format includes the file name. It can also include namespaces and other qualifiers, depending on the runtime.`,
+  'aws.function.s3bucket': `An Amazon S3 bucket in the same AWS Region as your function. The bucket can be in a different AWS account.`,
+  'aws.function.execution.role': `Lambda will create an execution role with permission to upload logs to Amazon CloudWatch Logs. You can also choose an existing role that defines the permissions of your function.`,
+  'aws.function.env.vars': `You can define environment variables as key-value pairs that are accessible from your function code. These are useful to store configuration settings without the need to change function code`,
+  'aws.function.tags': `You can use tags to group and filter your functions. A tag consists of a case-sensitive key-value pair`,
+  'aws.functionBasicSettings.memorySize': `Your function is allocated CPU proportional to the memory configured.`,
+  'aws.functionBasicSettings.timeout': `The amount of time that Lambda allows a function to run before stopping it. The default is 3 seconds. The maximum allowed value is 900 seconds.`,
+  'aws.function.publish': `Set to true to publish the first version of the function during creation.`,
+  'aws.function.deadletterqueue': `A dead letter queue configuration that specifies the queue or topic where Lambda sends asynchronous events when they fail processing. (SNS or SQS)`,
+  'aws.function.tracingConfig.mode': `The function's AWS X-Ray tracing configuration.`,
+  'aws.function.kmsKeyArn': `The ARN of the AWS Key Management Service (AWS KMS) key that's used to encrypt your function's environment variables. If it's not provided, AWS Lambda uses a default service key.`,
 };
 
 Object.keys(helpContents).forEach(key => HelpContentsRegistry.register(key, helpContents[key]));

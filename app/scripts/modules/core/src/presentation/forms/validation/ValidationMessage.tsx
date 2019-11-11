@@ -42,7 +42,6 @@ export interface IValidationMessageProps {
 export const ValidationMessage = (props: IValidationMessageProps) => {
   const { type, message, iconClassName, containerClassName } = props;
   const showIcon = iconClassName !== false;
-
   return (
     <div className={`ValidationMessage ${containerClassName || containerClassNames[type] || ''}`}>
       {showIcon && <i className={iconClassName || iconClassNames[type] || ''} />}

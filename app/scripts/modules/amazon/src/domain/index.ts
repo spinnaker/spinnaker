@@ -3,6 +3,7 @@ export * from './IAmazonInstance';
 export * from './IAmazonLoadBalancer';
 export * from './IAmazonFunction';
 export * from './IAmazonLoadBalancerSourceData';
+export * from './IAmazonFunctionSourceData';
 export * from './IAmazonHealth';
 export * from './IAmazonScalingPolicy';
 export * from './IAmazonServerGroup';

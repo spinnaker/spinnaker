@@ -1,8 +1,8 @@
 import { Application } from 'core/application/application.model';
 import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 import { FunctionState } from 'core/state';
-import { groupBy } from 'lodash';
-
+import { groupBy, Dictionary } from 'lodash';
+import { IFunction } from '@spinnaker/core';
 // Most of this logic has been moved to filter.model.service.js, so these act more as integration tests
 describe('Service: functionFilterService', function() {
   const debounceTimeout = 30;
@@ -162,7 +162,7 @@ describe('Service: functionFilterService', function() {
         region: 'eu-west-1',
       };
       app.functions.data.push(newFunction);
-      const groupedByAccount = groupBy(app.functions.data, 'account');
+      const groupedByAccount: Dictionary<IFunction[]> = groupBy(app.functions.data, 'account');
       const groups = FunctionState.filterService.getFunctionGroups(groupedByAccount);
       setTimeout(() => {
         expect(groups).toEqual([
