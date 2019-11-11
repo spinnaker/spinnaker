@@ -3,7 +3,7 @@ import com.diffplug.gradle.spotless.SpotlessExtension
 plugins {
   `java-library`
   id("kotlin-spring")
-  id("ch.ayedo.jooqmodelator") version "3.5.0"
+  id("ch.ayedo.jooqmodelator") version "3.6.0"
 }
 
 afterEvaluate {
@@ -50,7 +50,7 @@ dependencies {
 }
 
 jooqModelator {
-  jooqVersion = "3.11.11"
+  jooqVersion = "3.12.3"
   jooqEdition = "OSS"
   jooqConfigPath = "$projectDir/src/main/resources/jooqConfig.xml"
   jooqOutputPath = "$projectDir/src/generated/java"

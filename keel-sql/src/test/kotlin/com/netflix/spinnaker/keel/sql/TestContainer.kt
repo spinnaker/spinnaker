@@ -1,13 +1,13 @@
 package com.netflix.spinnaker.keel.sql
 
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.initDatabase
-import org.jooq.SQLDialect.MYSQL_5_7
+import org.jooq.SQLDialect.MYSQL
 import org.testcontainers.containers.JdbcDatabaseContainer
 import org.testcontainers.containers.MySQLContainerProvider
 
 internal fun initTestDatabase() = initDatabase(
   mySQLContainer.authenticatedJdbcUrl,
-  MYSQL_5_7
+  MYSQL
 )
 
 private val mySQLContainer = MySQLContainerProvider()
