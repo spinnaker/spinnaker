@@ -48,6 +48,15 @@ export function ExecutionAndStagePicker(props: IExecutionAndStagePickerProps) {
   const stageOptions: Option[] = stages ? stages.map(x => ({ label: x.name, value: x.id })) : [];
   const executionOptions: Array<Option<IExecution>> = executions ? executions.map(value => ({ value })) : [];
 
+  if (fetchExecutions.status === 'RESOLVED' && !executions.length) {
+    return (
+      <p>
+        This pipeline has never been executed. If you run this pipeline at least once, Spinnaker will show previews of
+        the variables on this screen.
+      </p>
+    );
+  }
+
   return (
     <>
       <p>
