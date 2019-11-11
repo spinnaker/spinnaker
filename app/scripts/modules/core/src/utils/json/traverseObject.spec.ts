@@ -42,6 +42,17 @@ describe('traverseObject', () => {
     expect(keyValuePairsWalked[i++]).toEqual(['bar.prop2', 2]);
   });
 
+  it('walks null and undefined properties of an object', () => {
+    const object = { foo: null, bar: undefined, baz: { prop1: 1, prop2: 2 } } as any;
+    traverseObject(object, defaultCallback);
+    expect(keyValuePairsWalked.length).toEqual(5);
+    expect(keyValuePairsWalked[i++]).toEqual(['foo', null]);
+    expect(keyValuePairsWalked[i++]).toEqual(['bar', undefined]);
+    expect(keyValuePairsWalked[i++]).toEqual(['baz', { prop1: 1, prop2: 2 }]);
+    expect(keyValuePairsWalked[i++]).toEqual(['baz.prop1', 1]);
+    expect(keyValuePairsWalked[i++]).toEqual(['baz.prop2', 2]);
+  });
+
   it('only walks simple leaf nodes an object when traverseLeafNodesOnly is true', () => {
     const object = { foo: 1, bar: { prop1: 1, prop2: 2 } };
     traverseObject(object, defaultCallback, true);

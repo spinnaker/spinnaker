@@ -45,6 +45,7 @@ const _traverseObject = (
   }
 
   if (isNull(obj) || isUndefined(obj)) {
+    maybeInvokeCallback(true);
     return;
   } else if (isPlainObject(obj)) {
     maybeInvokeCallback(false);
