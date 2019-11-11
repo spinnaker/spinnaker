@@ -6,3 +6,4 @@ Plugin-Provider: Netflix
 Plugin-Requires: *
 Plugin-License: Apache 2.0
 Plugin-Unsafe: true
+Plugin-Namespace: pf4j

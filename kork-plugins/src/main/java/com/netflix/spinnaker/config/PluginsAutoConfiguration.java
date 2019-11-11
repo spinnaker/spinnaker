@@ -16,14 +16,18 @@
 package com.netflix.spinnaker.config;
 
 import com.netflix.spinnaker.kork.plugins.ExtensionBeanDefinitionRegistryPostProcessor;
-import com.netflix.spinnaker.kork.plugins.ExtensionsInjector;
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginManager;
 import com.netflix.spinnaker.kork.plugins.SpringPluginStatusProvider;
+import com.netflix.spinnaker.kork.plugins.config.ConfigResolver;
+import com.netflix.spinnaker.kork.plugins.config.SpringEnvironmentExtensionConfigResolver;
 import java.nio.file.Paths;
 import org.pf4j.PluginStatusProvider;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 
 @Configuration
@@ -36,19 +40,25 @@ public class PluginsAutoConfiguration {
   }
 
   @Bean
-  public static SpinnakerPluginManager pluginManager(
-      PluginStatusProvider pluginStatusProvider, PluginsConfigurationProperties properties) {
-    return new SpinnakerPluginManager(pluginStatusProvider, Paths.get(properties.rootPath));
+  @ConditionalOnMissingBean(ConfigResolver.class)
+  public static ConfigResolver springEnvironmentConfigResolver(
+      ConfigurableEnvironment environment) {
+    return new SpringEnvironmentExtensionConfigResolver(environment);
   }
 
   @Bean
-  public static ExtensionsInjector extensionsInjector(SpinnakerPluginManager pluginManager) {
-    return new ExtensionsInjector(pluginManager);
+  public static SpinnakerPluginManager pluginManager(
+      PluginStatusProvider pluginStatusProvider,
+      PluginsConfigurationProperties properties,
+      ConfigResolver configResolver) {
+    return new SpinnakerPluginManager(
+        pluginStatusProvider, configResolver, Paths.get(properties.rootPath));
   }
 
   @Bean
   public static ExtensionBeanDefinitionRegistryPostProcessor pluginBeanPostProcessor(
-      SpinnakerPluginManager pluginManager, ExtensionsInjector injector) {
-    return new ExtensionBeanDefinitionRegistryPostProcessor(pluginManager, injector);
+      SpinnakerPluginManager pluginManager, ApplicationEventPublisher applicationEventPublisher) {
+    return new ExtensionBeanDefinitionRegistryPostProcessor(
+        pluginManager, applicationEventPublisher);
   }
 }

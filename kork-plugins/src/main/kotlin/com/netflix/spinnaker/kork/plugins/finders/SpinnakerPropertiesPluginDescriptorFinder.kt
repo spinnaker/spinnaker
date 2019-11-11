@@ -31,10 +31,12 @@ internal class SpinnakerPropertiesPluginDescriptorFinder(
   override fun createPluginDescriptor(properties: Properties): PluginDescriptor =
     SpinnakerPluginDescriptor(
       super.createPluginDescriptor(properties),
+      properties.getProperty(PLUGIN_NAMESPACE) ?: "undefined",
       properties.getProperty(PLUGIN_UNSAFE)?.toBoolean() ?: false
     )
 
   companion object {
+    const val PLUGIN_NAMESPACE = "plugin.namespace"
     const val PLUGIN_UNSAFE = "plugin.unsafe"
   }
 }

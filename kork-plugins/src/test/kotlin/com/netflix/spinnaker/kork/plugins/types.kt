@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.kork.plugins
 
 import com.netflix.spinnaker.kork.plugins.api.spring.SpringPlugin
-import org.pf4j.Extension
 import org.pf4j.PluginWrapper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
@@ -27,7 +26,7 @@ internal class TestSpringPlugin(wrapper: PluginWrapper) : SpringPlugin(wrapper) 
     applicationContext.register(TestSpringPluginConfiguration::class.java)
   }
 
-  @Extension
+  @SpinnakerExtension(namespace = "kork", id = "test")
   class TestExtension {
     @Autowired
     lateinit var myConfig: MyObject

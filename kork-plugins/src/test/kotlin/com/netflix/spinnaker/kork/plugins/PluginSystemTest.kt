@@ -38,7 +38,6 @@ class PluginSystemTest : JUnit5Minutests {
       run { ctx: AssertableApplicationContext ->
         expect {
           that(ctx.getBean("pluginManager")).isA<SpinnakerPluginManager>()
-          that(ctx.getBean("extensionsInjector")).isA<ExtensionsInjector>()
           that(ctx.getBean("pluginBeanPostProcessor")).isA<ExtensionBeanDefinitionRegistryPostProcessor>()
         }
       }

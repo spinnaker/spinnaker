@@ -28,10 +28,12 @@ internal class SpinnakerManifestPluginDescriptorFinder : ManifestPluginDescripto
   override fun createPluginDescriptor(manifest: Manifest): PluginDescriptor =
     SpinnakerPluginDescriptor(
       super.createPluginDescriptor(manifest),
+      manifest.mainAttributes.getValue(PLUGIN_NAMESPACE) ?: "undefined",
       manifest.mainAttributes.getValue(PLUGIN_UNSAFE)?.toBoolean() ?: false
     )
 
   companion object {
+    const val PLUGIN_NAMESPACE = "Plugin-Namespace"
     const val PLUGIN_UNSAFE = "Plugin-Unsafe"
   }
 }

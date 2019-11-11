@@ -15,10 +15,21 @@
  */
 package com.netflix.spinnaker.kork.plugins
 
+import com.netflix.spinnaker.kork.exceptions.IntegrationException
+import com.netflix.spinnaker.kork.plugins.config.ConfigResolver
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
+import org.pf4j.Extension
+import org.pf4j.ExtensionPoint
+import org.pf4j.Plugin
+import org.pf4j.PluginDescriptor
+import org.pf4j.PluginWrapper
+import strikt.api.expectThat
+import strikt.api.expectThrows
+import strikt.assertions.isA
+import strikt.assertions.isEqualTo
 
 class SpringExtensionFactoryTest : JUnit5Minutests {
 
@@ -27,17 +38,102 @@ class SpringExtensionFactoryTest : JUnit5Minutests {
       Fixture()
     }
 
-    test("loads and starts plugins") {
-      subject.postProcessBeanDefinitionRegistry(mockk())
-      verify(exactly = 1) { pluginManager.loadPlugins() }
-      verify(exactly = 1) { pluginManager.startPlugins() }
-      verify(exactly = 1) { extensionInjector.injectExtensions(any()) }
+    context("system extensions") {
+      test("without config") {
+        every { pluginManager.whichPlugin(any()) } returns null
+        expectThat(subject.create(NoConfigSystemExtension::class.java))
+          .isA<NoConfigSystemExtension>()
+      }
+
+      test("with config") {
+        every { pluginManager.whichPlugin(any()) } returns null
+
+        val config = ConfiguredSystemExtension.TheConfig()
+        every { configResolver.resolve(any(), any<Class<ConfiguredSystemExtension.TheConfig>>()) } returns config
+
+        expectThat(subject.create(ConfiguredSystemExtension::class.java))
+          .isA<ConfiguredSystemExtension>().get { config }
+          .isEqualTo(config)
+      }
+    }
+
+    context("plugin extensions") {
+      test("without config") {
+        every { pluginManager.whichPlugin(any()) } returns pluginWrapper
+        every { pluginWrapper.descriptor } returns createPluginDescriptor("pluginz", "bestone")
+
+        expectThat(subject.create(MyPlugin.NoConfigExtension::class.java))
+          .isA<MyPlugin.NoConfigExtension>()
+      }
+
+      test("with config") {
+        every { pluginManager.whichPlugin(any()) } returns pluginWrapper
+        every { pluginWrapper.descriptor } returns createPluginDescriptor("pluginz", "bestone")
+
+        val config = MyPlugin.ConfiguredExtension.TheConfig()
+        every { configResolver.resolve(any(), any<Class<MyPlugin.ConfiguredExtension.TheConfig>>()) } returns config
+
+        expectThat(subject.create(MyPlugin.ConfiguredExtension::class.java))
+          .isA<MyPlugin.ConfiguredExtension>()
+          .get { config }.isEqualTo(config)
+      }
+    }
+
+    test("extension with pf4j annotation fails to load") {
+      expectThrows<IntegrationException> {
+        subject.create(WrongExtensionAnno::class.java)
+      }
     }
   }
 
   private inner class Fixture {
+    val configResolver: ConfigResolver = mockk(relaxed = true)
     val pluginManager: SpinnakerPluginManager = mockk(relaxed = true)
-    val extensionInjector: ExtensionsInjector = mockk(relaxed = true)
-    val subject = ExtensionBeanDefinitionRegistryPostProcessor(pluginManager, extensionInjector)
+    val subject = SpringExtensionFactory(pluginManager)
+    val pluginWrapper: PluginWrapper = mockk(relaxed = true)
+
+    init {
+      every { pluginManager.configResolver } returns configResolver
+    }
+  }
+
+  private fun createPluginDescriptor(namespace: String, pluginId: String): SpinnakerPluginDescriptor {
+    val descriptor: PluginDescriptor = mockk(relaxed = true)
+    every { descriptor.pluginId } returns pluginId
+    return SpinnakerPluginDescriptor(descriptor, namespace)
+  }
+
+  interface TheExtensionPoint : ExtensionPoint
+
+  @SpinnakerExtension(namespace = "kork", id = "noconfig")
+  class NoConfigSystemExtension : TheExtensionPoint
+
+  @SpinnakerExtension(namespace = "kork", id = "configured")
+  class ConfiguredSystemExtension : TheExtensionPoint, ConfigurableExtension<ConfiguredSystemExtension.TheConfig> {
+    lateinit var config: Any
+    override fun setConfiguration(configuration: TheConfig) {
+      config = configuration
+    }
+
+    class TheConfig
+  }
+
+  @Extension
+  class WrongExtensionAnno : TheExtensionPoint
+
+  class MyPlugin(wrapper: PluginWrapper) : Plugin(wrapper) {
+
+    @SpinnakerExtension(namespace = "plugin", id = "noconfig")
+    class NoConfigExtension : TheExtensionPoint
+
+    @SpinnakerExtension(namespace = "plugin", id = "configured")
+    class ConfiguredExtension : TheExtensionPoint, ConfigurableExtension<ConfiguredExtension.TheConfig> {
+      lateinit var config: Any
+      override fun setConfiguration(configuration: TheConfig) {
+        config = configuration
+      }
+
+      class TheConfig
+    }
   }
 }

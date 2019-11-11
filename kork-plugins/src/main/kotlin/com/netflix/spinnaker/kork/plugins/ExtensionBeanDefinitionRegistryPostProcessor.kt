@@ -15,10 +15,13 @@
  */
 package com.netflix.spinnaker.kork.plugins
 
+import com.netflix.spinnaker.kork.exceptions.IntegrationException
+import com.netflix.spinnaker.kork.plugins.events.ExtensionLoaded
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory
 import org.springframework.beans.factory.support.BeanDefinitionRegistry
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor
+import org.springframework.context.ApplicationEventPublisher
 
 /**
  * The primary point of integration between PF4J and Spring, this class is invoked early
@@ -27,27 +30,59 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProce
  */
 class ExtensionBeanDefinitionRegistryPostProcessor(
   private val pluginManager: SpinnakerPluginManager,
-  private val extensionsInjector: ExtensionsInjector
+  private val applicationEventPublisher: ApplicationEventPublisher
 ) : BeanDefinitionRegistryPostProcessor {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   override fun postProcessBeanDefinitionRegistry(registry: BeanDefinitionRegistry) {
-    log.debug("Preparing extensions")
     val start = System.currentTimeMillis()
-    preparePlugins()
-    log.info("Finished preparing extensions in {}ms", System.currentTimeMillis() - start)
-
-    extensionsInjector.injectExtensions(registry)
-    log.info("Finished injecting extensions into parent context")
-  }
-
-  private fun preparePlugins() {
+    log.debug("Preparing plugins")
     pluginManager.loadPlugins()
     pluginManager.startPlugins()
+    log.debug("Finished preparing plugins in {}ms", System.currentTimeMillis() - start)
   }
 
   override fun postProcessBeanFactory(beanFactory: ConfigurableListableBeanFactory) {
-    // Do nothing.
+    log.debug("Creating system extensions")
+    pluginManager.getExtensionClassNames(null).forEach {
+      log.debug("Creating extension '{}'", it)
+
+      val extensionClass = try {
+        javaClass.classLoader.loadClass(it)
+      } catch (e: ClassNotFoundException) {
+        throw IntegrationException("Could not find system extension class '$it'", e)
+      }
+
+      val bean = pluginManager.extensionFactory.create(extensionClass)
+      val beanName = "${extensionClass.simpleName.decapitalize()}SystemExtension"
+
+      beanFactory.registerSingleton(beanName, bean)
+
+      applicationEventPublisher.publishEvent(ExtensionLoaded(this, beanName, extensionClass))
+    }
+
+    log.debug("Creating plugin extensions")
+    pluginManager.startedPlugins.forEach { plugin ->
+      log.debug("Creating extensions for plugin '{}'", plugin.pluginId)
+      pluginManager.getExtensionClassNames(plugin.pluginId).forEach {
+        log.debug("Creating extension '{}' for plugin '{}'", it, plugin.pluginId)
+
+        val extensionClass = try {
+          plugin.pluginClassLoader.loadClass(it)
+        } catch (e: ClassNotFoundException) {
+          throw IntegrationException("Could not find extension class '$it' for plugin '${plugin.pluginId}'", e)
+        }
+
+        val bean = pluginManager.extensionFactory.create(extensionClass)
+        val beanName = "${plugin.pluginId.replace(".", "")}${extensionClass.simpleName.capitalize()}"
+
+        beanFactory.registerSingleton(beanName, bean)
+
+        applicationEventPublisher.publishEvent(
+          ExtensionLoaded(this, beanName, extensionClass, plugin.descriptor as SpinnakerPluginDescriptor)
+        )
+      }
+    }
   }
 }

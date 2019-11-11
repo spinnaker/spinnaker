@@ -51,7 +51,7 @@ class SpinnakerManifestPluginDescriptorFinderTest : JUnit5Minutests {
     }
   }
 
-  internal class Fixture(val pluginsPath: Path) {
+  private class Fixture(val pluginsPath: Path) {
     init {
       val pluginPath = Files.createDirectories(pluginsPath.resolve("test-plugin-1"))
       storeManifestToPath(getPlugin1Manifest(), pluginPath)
@@ -67,6 +67,7 @@ class SpinnakerManifestPluginDescriptorFinderTest : JUnit5Minutests {
         ManifestPluginDescriptorFinder.PLUGIN_DEPENDENCIES to "test-plugin-2,test-plugin-3@~1.0",
         ManifestPluginDescriptorFinder.PLUGIN_REQUIRES to "*",
         ManifestPluginDescriptorFinder.PLUGIN_LICENSE to "Apache-2.0",
+        SpinnakerManifestPluginDescriptorFinder.PLUGIN_NAMESPACE to "pf4j",
         SpinnakerManifestPluginDescriptorFinder.PLUGIN_UNSAFE to "true"
       ))
     }

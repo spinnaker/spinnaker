@@ -14,6 +14,8 @@ dependencies {
   implementation("com.google.guava:guava")
 
   implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
+  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-properties")
+  implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
 
   testImplementation "org.codehaus.groovy:groovy-all"
   testImplementation("org.mockito:mockito-core")

@@ -43,7 +43,7 @@ class SpinnakerPluginDescriptorFinderTest : JUnit5Minutests {
     }
   }
 
-  internal class Fixture {
+  private inner class Fixture {
     val finder: CompoundPluginDescriptorFinder = mockk(relaxed = true)
     val subject = SpinnakerPluginDescriptorFinder(finder)
   }

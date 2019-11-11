@@ -53,7 +53,7 @@ class SpinnakerPropertiesPluginDescriptorFinderTest : JUnit5Minutests {
     }
   }
 
-  internal class Fixture(val pluginsPath: Path) {
+  private class Fixture(val pluginsPath: Path) {
 
     init {
       val pluginPath = Files.createDirectory(pluginsPath.resolve("test-plugin-1"))
@@ -70,6 +70,7 @@ class SpinnakerPropertiesPluginDescriptorFinderTest : JUnit5Minutests {
         PropertiesPluginDescriptorFinder.PLUGIN_DEPENDENCIES to "test-plugin-2,test-plugin-3@~1.0",
         PropertiesPluginDescriptorFinder.PLUGIN_REQUIRES to ">=1",
         PropertiesPluginDescriptorFinder.PLUGIN_LICENSE to "Apache-2.0",
+        SpinnakerPropertiesPluginDescriptorFinder.PLUGIN_NAMESPACE to "pf4j",
         SpinnakerPropertiesPluginDescriptorFinder.PLUGIN_UNSAFE to "true"
       ))
     }

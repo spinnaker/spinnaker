@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.kork.plugins
 
 import com.netflix.spinnaker.kork.annotations.Beta
+import com.netflix.spinnaker.kork.plugins.config.ConfigResolver
 import com.netflix.spinnaker.kork.plugins.finders.SpinnakerPluginDescriptorFinder
 import com.netflix.spinnaker.kork.plugins.loaders.SpinnakerDefaultPluginLoader
 import com.netflix.spinnaker.kork.plugins.loaders.SpinnakerDevelopmentPluginLoader
@@ -31,11 +32,22 @@ import java.nio.file.Path
 /**
  * The primary entry-point to the plugins system from a provider-side (services, libs, CLIs, and so-on).
  *
+ * WARNING: Due to how [org.pf4j.AbstractPluginManager] is written, we have to jump through hoops to get injected
+ * code to initialize correctly. Unfortunately, PF4J attempts to initialize everything on object creation, so we
+ * don't have access to [SpinnakerPluginManager] properties in the `create*` methods. To work around this, the
+ * [SpinnakerPluginManager] instance is passed in rather than the actual dependency that is needed. Barf, barf, barf.
+ * Unfortunately, there's a lot of logic in [org.pf4j.AbstractPluginManager] that we would need to copy if we wanted
+ * to implement the [org.pf4j.PluginManager] interface in a reasonable way, potentially losing out on critical fixes
+ * provided upstream. As a result, [statusProvider] and [configResolver] cannot be private, even though they should be.
+ *
+ * @param statusProvider A Spring Environment-aware plugin status provider.
+ * @param configResolver The config resolver for extensions.
  * @param pluginsRoot The root path to search for in-process plugin artifacts.
  */
 @Beta
-class SpinnakerPluginManager(
-  private val statusProvider: PluginStatusProvider,
+open class SpinnakerPluginManager(
+  internal val statusProvider: PluginStatusProvider,
+  internal val configResolver: ConfigResolver,
   pluginsRoot: Path
 ) : DefaultPluginManager(pluginsRoot) {
 
@@ -53,5 +65,9 @@ class SpinnakerPluginManager(
     SpinnakerPluginDescriptorFinder()
 
   override fun createPluginStatusProvider(): PluginStatusProvider =
-    statusProvider
+    PluginStatusProviderProxy(this)
+
+  private inner class PluginStatusProviderProxy(
+    pluginManager: SpinnakerPluginManager
+  ) : PluginStatusProvider by pluginManager.statusProvider
 }
