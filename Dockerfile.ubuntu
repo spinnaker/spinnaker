@@ -25,6 +25,6 @@ RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/v${KUBECT
 RUN curl -o  /usr/local/bin/aws-iam-authenticator https://amazon-eks.s3-us-west-2.amazonaws.com/${KUBECTL_RELEASE}/${AWS_BINARY_RELEASE_DATE}/bin/linux/amd64/aws-iam-authenticator && \
     chmod +x /usr/local/bin/aws-iam-authenticator
 
-RUN adduser --disabled-login --system spinnaker
+RUN adduser --disabled-login --system --group --uid 1000 spinnaker
 USER spinnaker
 CMD "/opt/halyard/bin/halyard"
