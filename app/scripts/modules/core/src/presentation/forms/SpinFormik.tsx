@@ -11,22 +11,38 @@ import { traverseObject } from 'core/utils';
  */
 function SpinFormikImpl<Values extends {}>(props: FormikConfig<Values>, ref?: React.MutableRefObject<Formik<Values>>) {
   const formikRef = ref || React.useRef<Formik<Values>>();
-  const formik = formikRef.current;
-  const defaultIsInitialValid = () => formikRef.current && Object.keys(formikRef.current.state.errors).length === 0;
+  const [refSaved, setRefSaved] = React.useState(false);
+  const [ready, setReady] = React.useState(false);
 
   // When a form is reloaded with existing data, we usually want to show validation errors immediately.
   // When the form is first rendered, mark all fields in initialValues as "touched".
   // Then run initial validation.
   React.useEffect(() => {
-    if (formik) {
+    if (refSaved) {
+      const formik = formikRef.current;
       const initialTouched = {};
-      traverseObject(props.initialValues, (path: string) => set(initialTouched, path, true));
+      traverseObject(props.initialValues, (path: string) => set(initialTouched, path, true), true);
       formik.setTouched(initialTouched);
       formik.getFormikActions().validateForm();
+      setReady(true);
     }
-  }, [!!formik]);
+  }, [refSaved]);
 
-  return <Formik<Values> ref={formikRef} isInitialValid={props.isInitialValid || defaultIsInitialValid} {...props} />;
+  function saveRef(formik: Formik<Values>) {
+    formikRef.current = formik;
+    if (!refSaved) {
+      // Trigger another render
+      setRefSaved(true);
+    }
+  }
+
+  return (
+    <Formik<Values>
+      ref={saveRef}
+      {...props}
+      render={renderProps => ready && props.render && props.render(renderProps)}
+    />
+  );
 }
 
 export const SpinFormik = (React.forwardRef(SpinFormikImpl) as any) as typeof Formik;
