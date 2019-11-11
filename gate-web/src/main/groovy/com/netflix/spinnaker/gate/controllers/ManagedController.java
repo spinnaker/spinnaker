@@ -54,16 +54,16 @@ public class ManagedController {
   }
 
   @ApiOperation(value = "Get a resource", response = Resource.class)
-  @GetMapping(path = "/resources/{name}")
-  Resource getResource(@PathVariable("name") String name) {
-    return keelService.getResource(name);
+  @GetMapping(path = "/resources/{resourceId}")
+  Resource getResource(@PathVariable("resourceId") String resourceId) {
+    return keelService.getResource(resourceId);
   }
 
   @ApiOperation(value = "Get status of a resource", response = Map.class)
-  @GetMapping(path = "/resources/{name}/status")
-  Map getResourceStatus(@PathVariable("name") String name) {
+  @GetMapping(path = "/resources/{resourceId}/status")
+  Map getResourceStatus(@PathVariable("resourceId") String resourceId) {
     Map<String, String> status = new HashMap<>();
-    status.put("status", keelService.getResourceStatus(name));
+    status.put("status", keelService.getResourceStatus(resourceId));
     return status;
   }
 
@@ -83,9 +83,9 @@ public class ManagedController {
   }
 
   @ApiOperation(value = "Delete a resource", response = Resource.class)
-  @DeleteMapping(path = "/resources/{name}")
-  Resource deleteResource(@PathVariable("name") String name) {
-    return keelService.deleteResource(name);
+  @DeleteMapping(path = "/resources/{resourceId}")
+  Resource deleteResource(@PathVariable("resourceId") String resourceId) {
+    return keelService.deleteResource(resourceId);
   }
 
   @ApiOperation(
