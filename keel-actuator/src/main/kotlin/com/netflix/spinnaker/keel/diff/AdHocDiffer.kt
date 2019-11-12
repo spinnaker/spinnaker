@@ -32,7 +32,6 @@ import com.netflix.spinnaker.keel.plugin.CannotResolveDesiredState
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.supporting
 import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Component
@@ -41,40 +40,39 @@ import org.springframework.stereotype.Component
 class AdHocDiffer(
   private val handlers: List<ResourceHandler<*, *>>
 ) {
-  fun <T : ResourceSpec> calculate(submittedResource: SubmittedResource<T>): DiffResult =
-    runBlocking {
-      var resourceId: ResourceId? = null
-      var resource: Resource<T>? = null
-      try {
-        val plugin = handlerFor(submittedResource)
-        resource = plugin.normalize(submittedResource)
-        resourceId = resource.id
-        val (desired, current) = plugin.resolve(resource)
-        val diff = ResourceDiff(desired, current)
+  suspend fun <T : ResourceSpec> calculate(submittedResource: SubmittedResource<T>): DiffResult {
+    var resourceId: ResourceId? = null
+    var resource: Resource<T>? = null
+    return try {
+      val plugin = handlerFor(submittedResource)
+      resource = plugin.normalize(submittedResource)
+      resourceId = resource.id
+      val (desired, current) = plugin.resolve(resource)
+      val diff = ResourceDiff(desired, current)
 
-        when {
-          current == null -> DiffResult(status = MISSING, resourceId = resourceId, resource = resource)
-          diff.hasChanges() -> DiffResult(status = DIFF, diff = diff.toDeltaJson(), resourceId = resourceId, resource = resource)
-          else -> DiffResult(status = NO_DIFF, resourceId = resourceId, resource = resource)
-        }
-      } catch (e: Exception) {
-        DiffResult(status = ERROR, errorMsg = e.message, resourceId = resourceId, resource = resource)
+      when {
+        current == null -> DiffResult(status = MISSING, resourceId = resourceId, resource = resource)
+        diff.hasChanges() -> DiffResult(status = DIFF, diff = diff.toDeltaJson(), resourceId = resourceId, resource = resource)
+        else -> DiffResult(status = NO_DIFF, resourceId = resourceId, resource = resource)
       }
+    } catch (e: Exception) {
+      DiffResult(status = ERROR, errorMsg = e.message, resourceId = resourceId, resource = resource)
     }
+  }
 
   fun calculate(submittedDeliveryConfig: SubmittedDeliveryConfig): List<EnvironmentDiff> =
-    runBlocking {
-      submittedDeliveryConfig.environments.map { env ->
-        val resourceDiffs = env.resources.map { resource ->
-          async { calculate(resource) }
-        }.awaitAll()
-
-        EnvironmentDiff(
-          name = env.name,
-          manifestName = submittedDeliveryConfig.name,
-          resourceDiffs = resourceDiffs
-        )
+    submittedDeliveryConfig.environments.map { env ->
+      val resourceDiffs = runBlocking {
+        env.resources.map { resource ->
+          calculate(resource)
+        }
       }
+
+      EnvironmentDiff(
+        name = env.name,
+        manifestName = submittedDeliveryConfig.name,
+        resourceDiffs = resourceDiffs
+      )
     }
 
   @Suppress("UNCHECKED_CAST")

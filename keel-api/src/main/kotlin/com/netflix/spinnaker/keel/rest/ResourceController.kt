@@ -27,6 +27,7 @@ import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceStatus
 import com.netflix.spinnaker.keel.plugin.UnsupportedKind
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
+import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus.BAD_REQUEST
 import org.springframework.http.HttpStatus.NOT_FOUND
@@ -89,7 +90,7 @@ class ResourceController(
   @PreAuthorize("@authorizationSupport.userCanModifySpec(#resource.metadata[serviceAccount], #resource.spec)")
   fun diff(@RequestBody resource: SubmittedResource<*>): DiffResult {
     log.debug("Diffing: $resource")
-    return adHocDiffer.calculate(resource)
+    return runBlocking { adHocDiffer.calculate(resource) }
   }
 
   @DeleteMapping(

@@ -36,6 +36,7 @@ import dev.minutest.rootContext
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.runBlocking
 import strikt.api.expect
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
@@ -100,7 +101,7 @@ class AdHocDifferTests : JUnit5Minutests {
         } returns DummyResource(resource.spec)
       }
       test("no diff result") {
-        val diffResult = subject.calculate(subResource)
+        val diffResult = runBlocking { subject.calculate(subResource) }
         expect {
           that(diffResult.status).isEqualTo(DiffStatus.NO_DIFF)
           that(diffResult.diff).isNull()
@@ -118,7 +119,7 @@ class AdHocDifferTests : JUnit5Minutests {
         } returns null
       }
       test("resource missing result") {
-        val diffResult = subject.calculate(subResource)
+        val diffResult = runBlocking { subject.calculate(subResource) }
         expect {
           that(diffResult.status).isEqualTo(DiffStatus.MISSING)
           that(diffResult.diff).isNull()
@@ -133,7 +134,7 @@ class AdHocDifferTests : JUnit5Minutests {
         } returns DummyResource(resource.spec.copy(data = "oh wow this is different"))
       }
       test("resource diff result") {
-        val diffResult = subject.calculate(subResource)
+        val diffResult = runBlocking { subject.calculate(subResource) }
         expect {
           that(diffResult.status).isEqualTo(DiffStatus.DIFF)
           that(diffResult.diff).isNotNull()
@@ -148,7 +149,7 @@ class AdHocDifferTests : JUnit5Minutests {
         } throws CannotResolveCurrentState(resource.id, RuntimeException("oopsie"))
       }
       test("resource error result") {
-        val diffResult = subject.calculate(subResource)
+        val diffResult = runBlocking { subject.calculate(subResource) }
         expect {
           that(diffResult.status).isEqualTo(DiffStatus.ERROR)
           that(diffResult.diff).isNull()
