@@ -93,7 +93,7 @@ module.exports = angular
             $scope.stage.baseLabel = $scope.baseLabelOptions[0];
           }
           $scope.viewState.roscoMode =
-            SETTINGS.feature.roscoModeSETTINGS.feature.roscoMode ||
+            SETTINGS.feature.roscoMode ||
             (typeof SETTINGS.feature.roscoSelector === 'function' && SETTINGS.feature.roscoSelector($scope.stage));
           $scope.viewState.loading = false;
         });
