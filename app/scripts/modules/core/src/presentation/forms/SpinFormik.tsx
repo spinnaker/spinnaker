@@ -14,6 +14,8 @@ function SpinFormikImpl<Values extends {}>(props: FormikConfig<Values>, ref?: Re
   const [refSaved, setRefSaved] = React.useState(false);
   const [ready, setReady] = React.useState(false);
 
+  const defaultIsInitialValid = () => formikRef.current && Object.keys(formikRef.current.state.errors).length === 0;
+
   // When a form is reloaded with existing data, we usually want to show validation errors immediately.
   // When the form is first rendered, mark all fields in initialValues as "touched".
   // Then run initial validation.
@@ -40,6 +42,7 @@ function SpinFormikImpl<Values extends {}>(props: FormikConfig<Values>, ref?: Re
     <Formik<Values>
       ref={saveRef}
       {...props}
+      isInitialValid={props.isInitialValid || defaultIsInitialValid}
       render={renderProps => ready && props.render && props.render(renderProps)}
     />
   );
