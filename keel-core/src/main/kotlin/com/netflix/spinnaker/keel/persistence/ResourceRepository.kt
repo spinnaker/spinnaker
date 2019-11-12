@@ -99,6 +99,11 @@ interface ResourceRepository : PeriodicallyCheckedRepository<Resource<out Resour
   fun delete(id: ResourceId)
 
   /**
+   * Deletes the resource associated with [application].
+   */
+  fun deleteByApplication(application: String): Int
+
+  /**
    * Retrieves the history of state change events for the resource represented by [uid].
    *
    * @param id the resource id.
@@ -217,6 +222,7 @@ inline fun <reified T : ResourceSpec> ResourceRepository.get(id: ResourceId): Re
 sealed class NoSuchResourceException(override val message: String?) : RuntimeException(message)
 
 class NoSuchResourceId(id: ResourceId) : NoSuchResourceException("No resource with id $id exists in the repository")
+class NoSuchApplication(application: String) : NoSuchResourceException("No resource with application name $application exists in the repository")
 
 enum class ResourceStatus {
   HAPPY, ACTUATING, UNHAPPY, CREATED, DIFF, ERROR, PAUSED, RESUMED, UNKNOWN

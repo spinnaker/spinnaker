@@ -33,6 +33,23 @@ open class SqlResourceRepository(
   private val objectMapper: ObjectMapper
 ) : ResourceRepository {
 
+  override fun deleteByApplication(application: String): Int {
+    val resourceIds = getUidByApplication(application)
+
+    resourceIds.forEach { uid ->
+      jooq.deleteFrom(RESOURCE)
+        .where(RESOURCE.UID.eq(uid))
+        .execute()
+      jooq.deleteFrom(RESOURCE_LAST_CHECKED)
+        .where(RESOURCE_LAST_CHECKED.RESOURCE_UID.eq(uid))
+        .execute()
+      jooq.deleteFrom(RESOURCE_EVENT)
+        .where(RESOURCE_EVENT.UID.eq(uid))
+        .execute()
+    }
+    return resourceIds.size
+  }
+
   override fun allResources(callback: (ResourceHeader) -> Unit) {
     jooq
       .select(RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.ID)
@@ -75,6 +92,14 @@ open class SqlResourceRepository(
       .from(RESOURCE)
       .where(RESOURCE.APPLICATION.eq(application))
       .fetch(RESOURCE.ID)
+  }
+
+  fun getUidByApplication(application: String): List<String> {
+    return jooq
+      .select(RESOURCE.UID)
+      .from(RESOURCE)
+      .where(RESOURCE.APPLICATION.eq(application))
+      .fetch(RESOURCE.UID)
   }
 
   override fun getSummaryByApplication(application: String): List<ResourceSummary> {

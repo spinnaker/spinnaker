@@ -57,6 +57,10 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
       repository.get(deliveryConfig.name)
     }
 
+    fun delete() {
+      repository.deleteByApplication(deliveryConfig.application)
+    }
+
     fun store() {
       repository.store(deliveryConfig)
     }
@@ -211,6 +215,18 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
           getByName()
             .succeeded()
             .get { environments }.hasSize(deliveryConfig.environments.size)
+        }
+      }
+
+      context("creating and deleting an application") {
+        before {
+          store()
+          delete()
+        }
+
+        test("delete application data successfully") {
+          getByName()
+              .failed()
         }
       }
     }

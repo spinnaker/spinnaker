@@ -33,9 +33,26 @@ import java.time.Instant.EPOCH
 class InMemoryResourceRepository(
   private val clock: Clock = Clock.systemDefaultZone()
 ) : ResourceRepository {
+
   private val resources = mutableMapOf<ResourceId, Resource<*>>()
   private val events = mutableMapOf<ResourceId, MutableList<ResourceEvent>>()
   private val lastCheckTimes = mutableMapOf<ResourceId, Instant>()
+
+  override fun deleteByApplication(application: String): Int {
+    val size = resources.count { it.value.application == application }
+
+    resources
+      .values
+      .filter { it.application == application }
+      .map { it.id }
+      .singleOrNull()
+      ?.also {
+        resources.remove(it)
+        events.remove(it)
+        lastCheckTimes.remove(it)
+      }
+    return size
+  }
 
   override fun allResources(callback: (ResourceHeader) -> Unit) {
     resources.values.forEach {

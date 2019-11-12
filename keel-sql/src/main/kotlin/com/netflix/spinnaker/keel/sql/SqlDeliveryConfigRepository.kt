@@ -18,6 +18,7 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG_A
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG_LAST_CHECKED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_RESOURCE
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
@@ -35,6 +36,52 @@ class SqlDeliveryConfigRepository(
 ) : DeliveryConfigRepository {
 
   private val mapper = configuredObjectMapper()
+
+  override fun deleteByApplication(application: String): Int {
+
+    val deliveryConfigUIDs = getUIDsByApplication(application)
+    val environmentUIDs = getEnvironmentUIDs(deliveryConfigUIDs)
+
+    deliveryConfigUIDs.forEach { uid ->
+      jooq.deleteFrom(DELIVERY_CONFIG)
+        .where(DELIVERY_CONFIG.UID.eq(uid))
+        .execute()
+      jooq.deleteFrom(DELIVERY_CONFIG_ARTIFACT)
+        .where(DELIVERY_CONFIG_ARTIFACT.DELIVERY_CONFIG_UID.eq(uid))
+        .execute()
+      jooq.deleteFrom(DELIVERY_CONFIG_LAST_CHECKED)
+        .where(DELIVERY_CONFIG_LAST_CHECKED.DELIVERY_CONFIG_UID.eq(uid))
+        .execute()
+    }
+    environmentUIDs.forEach { uid ->
+      jooq.deleteFrom(ENVIRONMENT)
+        .where(ENVIRONMENT.UID.eq(uid))
+        .execute()
+      jooq.deleteFrom(ENVIRONMENT_ARTIFACT_VERSIONS)
+        .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(uid))
+        .execute()
+      jooq.deleteFrom(ENVIRONMENT_RESOURCE)
+        .where(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(uid))
+        .execute()
+    }
+    return deliveryConfigUIDs.size
+  }
+
+  private fun getUIDsByApplication(application: String): List<String> {
+    return jooq
+      .select(DELIVERY_CONFIG.UID)
+      .from(DELIVERY_CONFIG)
+      .where(DELIVERY_CONFIG.APPLICATION.eq(application))
+      .fetch(DELIVERY_CONFIG.UID)
+  }
+
+  private fun getEnvironmentUIDs(deliveryConfigUIDs: List<String>): List<String> {
+    return jooq
+      .select(ENVIRONMENT.UID)
+      .from(ENVIRONMENT)
+      .where(ENVIRONMENT.DELIVERY_CONFIG_UID.`in`(deliveryConfigUIDs))
+      .fetch(ENVIRONMENT.UID)
+  }
 
   override fun store(deliveryConfig: DeliveryConfig) {
     with(deliveryConfig) {
@@ -155,7 +202,7 @@ class SqlDeliveryConfigRepository(
       }
 
   override fun deliveryConfigFor(resourceId: ResourceId): DeliveryConfig? =
-  // TODO: this implementation could be more efficient by sharing code with get(name)
+    // TODO: this implementation could be more efficient by sharing code with get(name)
     jooq
       .select(DELIVERY_CONFIG.NAME)
       .from(ENVIRONMENT, ENVIRONMENT_RESOURCE, RESOURCE, DELIVERY_CONFIG)
