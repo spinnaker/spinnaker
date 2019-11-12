@@ -6,6 +6,7 @@ import {
   StageExecutionLogs,
   StageFailureMessage,
 } from 'core/pipeline';
+import { Markdown } from '../../../../presentation';
 
 import { IEvaluatedVariable } from './EvaluateVariablesStageConfig';
 
@@ -19,11 +20,13 @@ export function EvaluateVariablesExecutionDetails(props: IExecutionDetailsSectio
 
   const evaluatedVariables = context.variables ? (
     <div>
-      <dl className="dl-horizontal">
+      <dl>
         {context.variables.map(({ key }: IEvaluatedVariable) => (
           <React.Fragment key={key}>
             <dt>{key}</dt>
-            <dd>{outputs[key]}</dd>
+            <dd>
+              <Markdown message={'```\n' + JSON.stringify(outputs[key], null, 2) + '\n```'} />
+            </dd>
           </React.Fragment>
         ))}
       </dl>
