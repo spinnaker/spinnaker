@@ -3,7 +3,7 @@ package com.netflix.spinnaker.keel.ec2.resource
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceId
+import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
@@ -105,7 +105,9 @@ class ClassicLoadBalancerHandler(
                   desired.moniker.app,
                   description,
                   listOf(diff.toUpsertJob()),
-                  OrchestrationTrigger(correlationId = resource.id.toString(), notifications = notifications)
+                  OrchestrationTrigger(
+                    correlationId = "${resource.id}:${desired.location.region}",
+                    notifications = notifications)
                 )
               )
               .let {
@@ -187,8 +189,15 @@ class ClassicLoadBalancerHandler(
     )
   }
 
-  override suspend fun actuationInProgress(id: ResourceId) =
-    orcaService.getCorrelatedExecutions(id.value).isNotEmpty()
+  override suspend fun <T : ResourceSpec> actuationInProgress(resource: Resource<T>) =
+    (resource.spec as ClassicLoadBalancerSpec).locations
+      .regions
+      .map { it.name }
+      .any { region ->
+        orcaService
+          .getCorrelatedExecutions("${resource.id}:$region")
+          .isNotEmpty()
+      }
 
   private suspend fun CloudDriverService.getClassicLoadBalancer(
     spec: ClassicLoadBalancerSpec,

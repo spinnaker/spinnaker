@@ -185,11 +185,11 @@ open class SqlResourceRepository(
       .execute()
   }
 
-  override fun itemsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<ResourceHeader> {
+  override fun itemsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<Resource<out ResourceSpec>> {
     val now = clock.instant()
     val cutoff = now.minus(minTimeSinceLastCheck).toLocal()
     return jooq.inTransaction {
-      select(RESOURCE.UID, RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.ID)
+      select(RESOURCE.UID, RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.METADATA, RESOURCE.SPEC)
         .from(RESOURCE, RESOURCE_LAST_CHECKED)
         .where(RESOURCE.UID.eq(RESOURCE_LAST_CHECKED.RESOURCE_UID))
         .and(RESOURCE_LAST_CHECKED.AT.lessOrEqual(cutoff))
@@ -198,7 +198,7 @@ open class SqlResourceRepository(
         .forUpdate()
         .fetch()
         .also {
-          it.forEach { (uid, _, _, _) ->
+          it.forEach { (uid, _, _, _, _) ->
             insertInto(RESOURCE_LAST_CHECKED)
               .set(RESOURCE_LAST_CHECKED.RESOURCE_UID, uid)
               .set(RESOURCE_LAST_CHECKED.AT, now.toLocal())
@@ -207,8 +207,13 @@ open class SqlResourceRepository(
               .execute()
           }
         }
-        .map { (_, apiVersion, kind, id) ->
-          ResourceHeader(ResourceId(id), ApiVersion(apiVersion), kind)
+        .map { (_, apiVersion, kind, metadata, spec) ->
+          Resource(
+            ApiVersion(apiVersion),
+            kind,
+            objectMapper.readValue<Map<String, Any?>>(metadata).asResourceMetadata(),
+            objectMapper.readValue(spec, resourceTypeIdentifier.identify(apiVersion.let(::ApiVersion), kind))
+          )
         }
     }
   }

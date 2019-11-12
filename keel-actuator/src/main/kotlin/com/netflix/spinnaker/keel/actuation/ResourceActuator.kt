@@ -1,9 +1,7 @@
 package com.netflix.spinnaker.keel.actuation
 
-import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceCurrentlyUnresolvable
-import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.diff.ResourceDiff
@@ -41,21 +39,28 @@ class ResourceActuator(
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  suspend fun checkResource(id: ResourceId, apiVersion: ApiVersion, kind: String) {
+  suspend fun <T : ResourceSpec> checkResource(resource: Resource<T>) {
+    val id = resource.id
     val response = vetoEnforcer.canCheck(id)
     if (!response.allowed) {
       log.debug("Skipping actuation for resource {} because it was vetoed: {}", id, response.message)
-      publisher.publishEvent(ResourceCheckSkipped(apiVersion, kind, id))
-      publisher.publishEvent(ResourceActuationPaused(apiVersion, kind, id.value, id.application, response.message,
-        clock.instant()))
+      publisher.publishEvent(ResourceCheckSkipped(resource.apiVersion, resource.kind, id))
+      publisher.publishEvent(
+        ResourceActuationPaused(
+          resource.apiVersion,
+          resource.kind,
+          id.value,
+          id.application,
+          response.message,
+          clock.instant()))
       return
     }
 
-    val plugin = handlers.supporting(apiVersion, kind)
+    val plugin = handlers.supporting(resource.apiVersion, resource.kind)
 
-    if (plugin.actuationInProgress(id)) {
+    if (plugin.actuationInProgress(resource)) {
       log.debug("Actuation for resource {} is already running, skipping checks", id)
-      publisher.publishEvent(ResourceCheckSkipped(apiVersion, kind, id))
+      publisher.publishEvent(ResourceCheckSkipped(resource.apiVersion, resource.kind, id))
       return
     }
 
@@ -63,10 +68,14 @@ class ResourceActuator(
 
     if (resourceRepository.lastEvent(id) is ResourceActuationPaused) {
       log.info("Actuation for resource {} resuming", id)
-      publisher.publishEvent(ResourceActuationResumed(apiVersion, kind, id.value, id.application, clock.instant()))
+      publisher.publishEvent(
+        ResourceActuationResumed(
+          resource.apiVersion,
+          resource.kind,
+          id.value,
+          id.application,
+          clock.instant()))
     }
-
-    val resource = resourceRepository.get(id)
 
     try {
       val (desired, current) = plugin.resolve(resource)

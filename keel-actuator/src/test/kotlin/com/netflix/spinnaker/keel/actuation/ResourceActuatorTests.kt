@@ -89,12 +89,10 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
         context("the plugin is already actuating this resource") {
           before {
-            coEvery { plugin1.actuationInProgress(resource.id) } returns true
+            coEvery { plugin1.actuationInProgress(resource) } returns true
 
-            with(resource) {
-              runBlocking {
-                subject.checkResource(id, apiVersion, kind)
-              }
+            runBlocking {
+              subject.checkResource(resource)
             }
           }
 
@@ -116,7 +114,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
         context("the plugin is not already actuating this resource") {
           before {
-            coEvery { plugin1.actuationInProgress(resource.id) } returns false
+            coEvery { plugin1.actuationInProgress(resource) } returns false
           }
 
           context("the current state matches the desired state") {
@@ -133,10 +131,8 @@ internal class ResourceActuatorTests : JUnit5Minutests {
               before {
                 resourceRepository.appendHistory(ResourceDeltaDetected(resource, emptyMap()))
 
-                with(resource) {
-                  runBlocking {
-                    subject.checkResource(id, apiVersion, kind)
-                  }
+                runBlocking {
+                  subject.checkResource(resource)
                 }
               }
 
@@ -158,10 +154,8 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
             context("the resource was already valid") {
               before {
-                with(resource) {
-                  runBlocking {
-                    subject.checkResource(id, apiVersion, kind)
-                  }
+                runBlocking {
+                  subject.checkResource(resource)
                 }
               }
 
@@ -188,10 +182,8 @@ internal class ResourceActuatorTests : JUnit5Minutests {
               coEvery { plugin1.current(resource) } returns null
               coEvery { plugin1.create(resource, any()) } returns listOf(Task(id = randomUID().toString(), name = "a task"))
 
-              with(resource) {
-                runBlocking {
-                  subject.checkResource(id, apiVersion, kind)
-                }
+              runBlocking {
+                subject.checkResource(resource)
               }
             }
 
@@ -213,10 +205,8 @@ internal class ResourceActuatorTests : JUnit5Minutests {
               coEvery { plugin1.current(resource) } returns DummyResource("some other state that does not match")
               coEvery { plugin1.update(resource, any()) } returns listOf(Task(id = randomUID().toString(), name = "a task"))
 
-              with(resource) {
-                runBlocking {
-                  subject.checkResource(id, apiVersion, kind)
-                }
+              runBlocking {
+                subject.checkResource(resource)
               }
             }
 
@@ -237,10 +227,8 @@ internal class ResourceActuatorTests : JUnit5Minutests {
               coEvery { plugin1.desired(resource) } returns DummyResource(resource.spec)
               coEvery { plugin1.current(resource) } throws RuntimeException("o noes")
 
-              with(resource) {
-                runBlocking {
-                  subject.checkResource(id, apiVersion, kind)
-                }
+              runBlocking {
+                subject.checkResource(resource)
               }
             }
 
@@ -263,10 +251,8 @@ internal class ResourceActuatorTests : JUnit5Minutests {
               coEvery { plugin1.desired(resource) } throws RuntimeException("o noes")
               coEvery { plugin1.current(resource) } returns null
 
-              with(resource) {
-                runBlocking {
-                  subject.checkResource(id, apiVersion, kind)
-                }
+              runBlocking {
+                subject.checkResource(resource)
               }
             }
 
@@ -289,10 +275,8 @@ internal class ResourceActuatorTests : JUnit5Minutests {
               coEvery { plugin1.desired(resource) } throws object : ResourceCurrentlyUnresolvable("o noes") {}
               coEvery { plugin1.current(resource) } returns null
 
-              with(resource) {
-                runBlocking {
-                  subject.checkResource(id, apiVersion, kind)
-                }
+              runBlocking {
+                subject.checkResource(resource)
               }
             }
 
@@ -316,10 +300,8 @@ internal class ResourceActuatorTests : JUnit5Minutests {
               coEvery { plugin1.current(resource) } returns DummyResource("some other state that does not match")
               coEvery { plugin1.update(resource, any()) } throws RuntimeException("o noes")
 
-              with(resource) {
-                runBlocking {
-                  subject.checkResource(id, apiVersion, kind)
-                }
+              runBlocking {
+                subject.checkResource(resource)
               }
             }
 
@@ -339,10 +321,8 @@ internal class ResourceActuatorTests : JUnit5Minutests {
         before {
           every { veto.check(resource.id) } returns VetoResponse(false)
 
-          with(resource) {
-            runBlocking {
-              subject.checkResource(id, apiVersion, kind)
-            }
+          runBlocking {
+            subject.checkResource(resource)
           }
         }
 
@@ -355,15 +335,13 @@ internal class ResourceActuatorTests : JUnit5Minutests {
       context("actuation was paused and veto is removed") {
         before {
           every { veto.check(resource.id) } returns VetoResponse(true)
-          coEvery { plugin1.actuationInProgress(resource.id) } returns false
+          coEvery { plugin1.actuationInProgress(resource) } returns false
           coEvery { plugin1.desired(resource) } returns DummyResource(resource.spec)
           coEvery { plugin1.current(resource) } returns DummyResource(resource.spec)
           resourceRepository.appendHistory(ResourceActuationPaused(resource, null))
 
-          with(resource) {
-            runBlocking {
-              subject.checkResource(id, apiVersion, kind)
-            }
+          runBlocking {
+            subject.checkResource(resource)
           }
         }
 

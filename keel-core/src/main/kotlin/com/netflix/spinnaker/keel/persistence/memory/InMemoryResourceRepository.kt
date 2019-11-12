@@ -96,7 +96,7 @@ class InMemoryResourceRepository(
       }
   }
 
-  override fun itemsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<ResourceHeader> {
+  override fun itemsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<Resource<out ResourceSpec>> {
     val cutoff = clock.instant().minus(minTimeSinceLastCheck)
     return lastCheckTimes
       .filter { it.value <= cutoff }
@@ -107,7 +107,8 @@ class InMemoryResourceRepository(
           lastCheckTimes[it] = clock.instant()
         }
       }
-      .map { uid -> ResourceHeader(resources[uid]!!) }
+      .map { resources[it]!! }
+      .toList()
   }
 
   fun dropAll() {

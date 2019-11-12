@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.Capacity
 import com.netflix.spinnaker.keel.api.ClusterDependencies
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceId
+import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.api.titus.CLOUD_PROVIDER
@@ -78,10 +78,15 @@ class TitusClusterHandler(
       .getServerGroups(resource)
       .byRegion()
 
-  override suspend fun actuationInProgress(id: ResourceId) =
-    orcaService
-      .getCorrelatedExecutions(id.value)
-      .isNotEmpty()
+  override suspend fun <T : ResourceSpec> actuationInProgress(resource: Resource<T>) =
+    (resource.spec as TitusClusterSpec).locations
+      .regions
+      .map { it.name }
+      .any { region ->
+        orcaService
+          .getCorrelatedExecutions("${resource.id}:$region")
+          .isNotEmpty()
+      }
 
   override suspend fun upsert(
     resource: Resource<TitusClusterSpec>,
@@ -112,7 +117,9 @@ class TitusClusterHandler(
                   application = desired.moniker.app,
                   description = description,
                   job = listOf(Job(job["type"].toString(), job)),
-                  trigger = OrchestrationTrigger(correlationId = "${resource.id}{${desired.location.region}}", notifications = notifications)
+                  trigger = OrchestrationTrigger(
+                    correlationId = "${resource.id}:${desired.location.region}",
+                    notifications = notifications)
                 ))
               .let {
                 log.info("Started task {} to upsert server group", it.ref)

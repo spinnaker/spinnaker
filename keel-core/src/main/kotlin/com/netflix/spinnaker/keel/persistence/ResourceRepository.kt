@@ -60,7 +60,7 @@ data class ResourceHeader(
   )
 }
 
-interface ResourceRepository : PeriodicallyCheckedRepository<ResourceHeader> {
+interface ResourceRepository : PeriodicallyCheckedRepository<Resource<out ResourceSpec>> {
   /**
    * Invokes [callback] once with each registered resource.
    */
@@ -126,7 +126,7 @@ interface ResourceRepository : PeriodicallyCheckedRepository<ResourceHeader> {
    * This method is _not_ intended to be idempotent, subsequent calls are expected to return
    * different values.
    */
-  override fun itemsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<ResourceHeader>
+  override fun itemsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<Resource<out ResourceSpec>>
 
   fun getStatus(id: ResourceId): ResourceStatus {
     val history = eventHistory(id, 10)

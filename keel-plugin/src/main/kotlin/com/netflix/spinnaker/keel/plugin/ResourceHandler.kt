@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.jsontype.NamedType
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.id
@@ -168,7 +167,7 @@ abstract class ResourceHandler<S : ResourceSpec, R : Any>(
    * @return `true` if this plugin is still busy running a previous actuation for the resource
    * associated with [id], `false` otherwise.
    */
-  open suspend fun actuationInProgress(id: ResourceId): Boolean = false
+  open suspend fun <T : ResourceSpec> actuationInProgress(resource: Resource<T>): Boolean = false
 
   /**
    * Used to register the [ResourceSpec] sub-type supported by this handler with Jackson so we can

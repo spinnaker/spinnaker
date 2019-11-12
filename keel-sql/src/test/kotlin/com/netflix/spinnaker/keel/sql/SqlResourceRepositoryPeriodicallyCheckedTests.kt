@@ -1,7 +1,8 @@
 package com.netflix.spinnaker.keel.sql
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.netflix.spinnaker.keel.persistence.ResourceHeader
+import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.persistence.ResourceRepositoryPeriodicallyCheckedTests
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
@@ -38,7 +39,7 @@ internal object SqlResourceRepositoryPeriodicallyCheckedTests :
     testDatabase.dataSource.close()
   }
 
-  fun parallelCheckingTests() = rootContext<Fixture<ResourceHeader, SqlResourceRepository>> {
+  fun parallelCheckingTests() = rootContext<Fixture<Resource<out ResourceSpec>, SqlResourceRepository>> {
     fixture {
       Fixture(factory, createAndStore, updateOne)
     }
@@ -58,7 +59,7 @@ internal object SqlResourceRepositoryPeriodicallyCheckedTests :
       }
 
       test("each thread gets a unique set of resources") {
-        val results = mutableSetOf<ResourceHeader>()
+        val results = mutableSetOf<Resource<out ResourceSpec>>()
         doInParallel(500) {
           nextResults().let(results::addAll)
         }

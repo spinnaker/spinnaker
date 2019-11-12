@@ -6,7 +6,7 @@ import com.netflix.spinnaker.keel.api.ClusterDependencies
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceId
+import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
@@ -109,7 +109,9 @@ class ClusterHandler(
                   desired.moniker.app,
                   description,
                   listOf(Job(job["type"].toString(), job)),
-                  OrchestrationTrigger(correlationId = "${resource.id}{${desired.location.region}}", notifications = notifications)
+                  OrchestrationTrigger(
+                    correlationId = "${resource.id}:${desired.location.region}",
+                    notifications = notifications)
                 ))
               .let {
                 log.info("Started task {} to upsert server group", it.ref)
@@ -284,10 +286,15 @@ class ClusterHandler(
       }
     }
 
-  override suspend fun actuationInProgress(id: ResourceId) =
-    orcaService
-      .getCorrelatedExecutions(id.value)
-      .isNotEmpty()
+  override suspend fun <T : ResourceSpec> actuationInProgress(resource: Resource<T>) =
+    (resource.spec as ClusterSpec).locations
+      .regions
+      .map { it.name }
+      .any { region ->
+        orcaService
+          .getCorrelatedExecutions("${resource.id}:$region")
+          .isNotEmpty()
+      }
 
   /**
    * @return `true` if the only changes in the diff are to capacity.
