@@ -1,6 +1,7 @@
 :doctype: book
 
 image:http://join.spinnaker.io/badge.svg[Slack Status,link=http://join.spinnaker.io]
+image:https://travis-ci.org/spinnaker/spinnaker.svg?branch=master["Build Status", link="https://travis-ci.org/spinnaker/spinnaker"]
 
 Spinnaker is a continuous delivery platform for releasing changes with high velocity and confidence.
 
