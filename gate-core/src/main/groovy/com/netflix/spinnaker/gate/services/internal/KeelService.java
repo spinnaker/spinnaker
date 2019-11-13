@@ -57,7 +57,7 @@ public interface KeelService {
   DeliveryConfig upsertManifest(@Body DeliveryConfig manifest);
 
   @POST("/delivery-configs/diff")
-  Map diffManifest(@Body DeliveryConfig manifest);
+  List<Map> diffManifest(@Body DeliveryConfig manifest);
 
   @GET("/application/{application}")
   Map getApplicationDetails(

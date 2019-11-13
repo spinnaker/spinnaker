@@ -122,7 +122,7 @@ public class ManagedController {
       path = "/delivery-configs/diff",
       consumes = {APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE},
       produces = {APPLICATION_JSON_VALUE})
-  Map diffManifest(@RequestBody DeliveryConfig manifest) {
+  List<Map> diffManifest(@RequestBody DeliveryConfig manifest) {
     return keelService.diffManifest(manifest);
   }
 
