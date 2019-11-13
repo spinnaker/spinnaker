@@ -194,6 +194,7 @@ class MonitoredDeployStrategy implements Strategy {
         scalePct                     : p,
         pinCapacity                  : p < 100,  // if p < 100, capacity should be pinned (min == max == desired)
         unpinMinimumCapacity         : p == 100, // if p == 100, min capacity should be restored to the original unpinned value from source
+        pinMinimumCapacity           : p < 100,  // pinMinimumCapacity should be false when unpinMinimumCapacity is true
         useNameAsLabel               : true,     // hint to deck that it should _not_ override the name
         targetHealthyDeployPercentage: stage.context.targetHealthyDeployPercentage
       ]
