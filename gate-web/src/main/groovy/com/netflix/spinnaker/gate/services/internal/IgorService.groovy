@@ -18,7 +18,7 @@
 
 package com.netflix.spinnaker.gate.services.internal
 
-
+import com.fasterxml.jackson.annotation.JsonProperty
 import retrofit.http.EncodedPath
 import retrofit.http.GET
 import retrofit.http.Path
@@ -71,6 +71,9 @@ interface IgorService {
   @GET('/gcb/accounts')
   List<String> getGoogleCloudBuildAccounts();
 
+  @GET('/gcb/triggers/{account}')
+  List<GoogleCloudBuildTrigger> getGoogleCloudBuildTriggers(@Path("account") String account);
+
   @GET('/artifacts/{provider}/{packageName}')
   List<String> getArtifactVersions(@Path("provider") String provider,
                                    @Path("packageName") String packageName,
@@ -83,4 +86,5 @@ interface IgorService {
 
   @GET('/concourse/{buildMaster}/teams/{team}/pipelines/{pipeline}/resources')
   List<String> getConcourseResources(@Path("buildMaster") String buildMaster, @Path("team") String team, @Path("pipeline") String pipeline);
+
 }

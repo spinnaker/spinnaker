@@ -18,15 +18,12 @@
 
 package com.netflix.spinnaker.gate.services
 
-import com.netflix.hystrix.exception.HystrixBadRequestException
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
+import com.netflix.spinnaker.gate.services.internal.GoogleCloudBuildTrigger
 import com.netflix.spinnaker.gate.services.internal.IgorService
 import groovy.transform.CompileStatic
-import groovy.transform.InheritConstructors
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
-import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.util.UriUtils
 import retrofit.RetrofitError
 
@@ -75,6 +72,23 @@ class BuildService {
       } catch (RetrofitError e) {
         if (e.response?.status == 404) {
           throw new BuildMasterNotFound("Build master '${buildMaster}' not found")
+        }
+
+        throw e
+      }
+    } execute()
+  }
+
+  List<GoogleCloudBuildTrigger> getGoogleCloudBuildTriggersForAccount(String account) {
+    if (!igorService) {
+      return []
+    }
+    HystrixFactory.newListCommand(GROUP, "triggersForGcbAccount") {
+      try {
+        igorService.getGoogleCloudBuildTriggers(account)
+      } catch (RetrofitError e) {
+        if (e.response?.status == 404) {
+          throw new GCBAccountNotFound("Account '${account}' not found")
         }
 
         throw e
@@ -133,7 +147,4 @@ class BuildService {
     } execute()
   }
 
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  @InheritConstructors
-  static class BuildMasterNotFound extends HystrixBadRequestException {}
 }
