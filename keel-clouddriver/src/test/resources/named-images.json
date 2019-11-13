@@ -94,5 +94,42 @@
     },
     "tags": {
     }
+  },
+  {
+    "imageName": "keeldemo-0.312.0-h240.44eaaa3-x86_64-20191025212812-xenial-hvm-sriov-ebs",
+    "attributes": {
+      "virtualizationType": "hvm",
+      "creationDate": "2019-10-25T21:32:36.000Z"
+    },
+    "tagsByImageId": {
+      "ami-0dfd69c2297ccd8b0": {
+        "build_host": "https://jenkins/",
+        "base_ami_version": "nflx-base-1.0.0-h1.111111",
+        "creator": "keel@spinnaker.io",
+        "appversion": "keeldemo-0.312.0-h240.44eaaa3/jenkins/240",
+        "creation_time": "2019-10-25 21:32:37 UTC"
+      },
+      "ami-0be384457d4e8471c": {
+        "creator": "keel@spinnaker.io",
+        "appversion": "keeldemo-0.312.0-h240.44eaaa3/jenkins/240",
+        "creation_time": "2019-10-25 21:32:18 UTC",
+        "base_ami_version": "nflx-base-1.0.0-h1.111111",
+        "build_host": "https://jenkins/"
+      }
+    },
+    "accounts": [
+      "test",
+      "prod"
+    ],
+    "amis": {
+      "us-east-1": [
+        "ami-000000000e"
+      ],
+      "us-west-2": [
+        "ami-000000000w"
+      ]
+    },
+    "tags": {
+    }
   }
 ]

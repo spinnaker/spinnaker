@@ -104,10 +104,14 @@ class ImageService(
       account = account
     )
       .sortedWith(NamedImageComparator)
-      .findLast {
-        AppVersion.parseName(it.appVersion).run {
-          packageName == appVersion.packageName && version == appVersion.version && commit == appVersion.commit
-        } && it.accounts.contains(account) && it.amis.keys.containsAll(regions) && tagsExistForAllAmis(it.tagsByImageId)
+      .findLast { namedImage ->
+        val curAppVersion = AppVersion.parseName(namedImage.appVersion)
+        curAppVersion.packageName == appVersion.packageName &&
+          curAppVersion.version == appVersion.version &&
+          curAppVersion.commit == appVersion.commit &&
+          namedImage.accounts.contains(account) &&
+          namedImage.amis.keys.containsAll(regions) &&
+          tagsExistForAllAmis(namedImage.tagsByImageId)
       }
 
   /**
@@ -122,9 +126,11 @@ class ImageService(
     )
       .sortedWith(NamedImageComparator)
       .findLast {
-        AppVersion.parseName(it.appVersion).run {
-          packageName == packageName
-        } && it.accounts.contains(account) && it.amis.keys.containsAll(regions) && tagsExistForAllAmis(it.tagsByImageId)
+        val curAppVersion = AppVersion.parseName(it.appVersion)
+        curAppVersion.packageName == packageName &&
+          it.accounts.contains(account) &&
+          it.amis.keys.containsAll(regions) &&
+          tagsExistForAllAmis(it.tagsByImageId)
       }
 
   suspend fun getNamedImageFromJenkinsInfo(packageName: String, account: String, buildHost: String, buildName: String, buildNumber: String): NamedImage? =
