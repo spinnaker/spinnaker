@@ -231,6 +231,7 @@
           type: 'expression',
         }],
       },
+      withCloudProvider(provider):: self + {cloudProvider: provider},
       withClusterSize(cluster, comparison, credentials, expected, moniker, regions, failPipeline):: self + {
         preconditions+: [{
           context: {
