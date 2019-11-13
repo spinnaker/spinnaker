@@ -27,8 +27,10 @@ public class GoogleCloudBuildStageDefinition implements RetryableStageDefinition
   private final String account;
   private final GoogleCloudBuild buildInfo;
   private final Map<String, Object> buildDefinition;
-  private final String buildDefinitionSource;
+  private final BuildDefinitionSource buildDefinitionSource;
   private final GoogleCloudBuildDefinitionArtifact buildDefinitionArtifact;
+  private final String triggerId;
+  private final GoogleCloudBuildRepoSource repoSource;
   private final int consecutiveErrors;
 
   // There does not seem to be a way to auto-generate a constructor using our current version of
@@ -41,14 +43,19 @@ public class GoogleCloudBuildStageDefinition implements RetryableStageDefinition
       @JsonProperty("buildDefinitionSource") String buildDefinitionSource,
       @JsonProperty("buildDefinitionArtifact")
           GoogleCloudBuildDefinitionArtifact buildDefinitionArtifact,
+      @JsonProperty("triggerId") String triggerId,
+      @JsonProperty("repoSource") GoogleCloudBuildRepoSource repoSource,
       @JsonProperty("consecutiveErrors") Integer consecutiveErrors) {
     this.account = account;
     this.buildInfo = build;
     this.buildDefinition = buildDefinition;
-    this.buildDefinitionSource = buildDefinitionSource;
+    this.buildDefinitionSource = BuildDefinitionSource.fromString(buildDefinitionSource);
     this.buildDefinitionArtifact =
         Optional.ofNullable(buildDefinitionArtifact)
             .orElse(new GoogleCloudBuildDefinitionArtifact(null, null, null));
+    this.repoSource =
+        Optional.ofNullable(repoSource).orElse(new GoogleCloudBuildRepoSource(null, null, null));
+    this.triggerId = triggerId;
     this.consecutiveErrors = Optional.ofNullable(consecutiveErrors).orElse(0);
   }
 
@@ -65,6 +72,20 @@ public class GoogleCloudBuildStageDefinition implements RetryableStageDefinition
       this.artifact = artifact;
       this.artifactAccount = artifactAccount;
       this.artifactId = artifactId;
+    }
+  }
+
+  public enum BuildDefinitionSource {
+    STAGE,
+    ARTIFACT,
+    TRIGGER;
+
+    public static BuildDefinitionSource fromString(String buildDefinitionSource) {
+      try {
+        return valueOf(buildDefinitionSource.toUpperCase());
+      } catch (NullPointerException | IllegalArgumentException e) {
+        return STAGE;
+      }
     }
   }
 }

@@ -17,6 +17,7 @@ package com.netflix.spinnaker.orca.igor;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.orca.igor.model.GoogleCloudBuild;
+import com.netflix.spinnaker.orca.igor.model.GoogleCloudBuildRepoSource;
 import java.util.List;
 import java.util.Map;
 import retrofit.http.*;
@@ -78,4 +79,10 @@ public interface IgorService {
   @GET("/gcb/builds/{account}/{buildId}/artifacts")
   List<Artifact> getGoogleCloudBuildArtifacts(
       @Path("account") String account, @Path("buildId") String buildId);
+
+  @POST("/gcb/triggers/{account}/{triggerId}/run")
+  GoogleCloudBuild runGoogleCloudBuildTrigger(
+      @Path("account") String account,
+      @Path("triggerId") String triggerId,
+      @Body GoogleCloudBuildRepoSource repoSource);
 }

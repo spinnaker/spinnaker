@@ -81,6 +81,31 @@ class StartGoogleCloudBuildTaskSpec extends Specification {
     result.context.buildInfo == igorResponse
   }
 
+  def "starts a build defined as a gcb trigger"() {
+    given:
+    def igorResponse = GoogleCloudBuild.builder()
+      .id("98edf783-162c-4047-9721-beca8bd2c275")
+      .build()
+    def stage = new Stage(execution, "googleCloudBuild", [
+      account: ACCOUNT,
+      buildDefinitionSource: "trigger",
+      triggerId: "myTriggerId",
+      repoSource: [
+        branchName: "myBranch"
+      ],
+      name: "My GCB Stage"
+    ])
+
+    when:
+    TaskResult result = task.execute(stage);
+
+    then:
+    1 * igorService.runGoogleCloudBuildTrigger(
+      ACCOUNT,"myTriggerId",{ it.getBranchName() == "myBranch" }) >> igorResponse
+
+    result.context.buildInfo == igorResponse
+  }
+
   def "starts a build defined as an artifact"() {
     given:
     def igorResponse = GoogleCloudBuild.builder()

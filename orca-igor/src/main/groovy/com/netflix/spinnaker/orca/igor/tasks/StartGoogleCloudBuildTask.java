@@ -55,15 +55,27 @@ public class StartGoogleCloudBuildTask implements Task {
     GoogleCloudBuildStageDefinition stageDefinition =
         stage.mapTo(GoogleCloudBuildStageDefinition.class);
 
-    Map<String, Object> buildDefinition;
-    if (stageDefinition.getBuildDefinitionSource() != null
-        && stageDefinition.getBuildDefinitionSource().equals("artifact")) {
-      buildDefinition = getBuildDefinitionFromArtifact(stage, stageDefinition);
-    } else {
-      buildDefinition = stageDefinition.getBuildDefinition();
+    GoogleCloudBuild result;
+    switch (stageDefinition.getBuildDefinitionSource()) {
+      case ARTIFACT:
+        result =
+            igorService.createGoogleCloudBuild(
+                stageDefinition.getAccount(),
+                getBuildDefinitionFromArtifact(stage, stageDefinition));
+        break;
+      case TRIGGER:
+        result =
+            igorService.runGoogleCloudBuildTrigger(
+                stageDefinition.getAccount(),
+                stageDefinition.getTriggerId(),
+                stageDefinition.getRepoSource());
+        break;
+      default:
+        result =
+            igorService.createGoogleCloudBuild(
+                stageDefinition.getAccount(), stageDefinition.getBuildDefinition());
     }
-    GoogleCloudBuild result =
-        igorService.createGoogleCloudBuild(stageDefinition.getAccount(), buildDefinition);
+
     Map<String, Object> context = stage.getContext();
     context.put("buildInfo", result);
     return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(context).build();
