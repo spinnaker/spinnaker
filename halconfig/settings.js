@@ -47,6 +47,7 @@ var travisEnabled = '{%features.travis%}' === 'true';
 var timezone = '{%timezone%}';
 var version = '{%version%}';
 var werckerEnabled = '{%features.wercker%}' === 'true';
+var functionsEnabled = '{%features.functions%}' === 'true';
 
 // Cloud Providers
 var appengine = {
@@ -180,6 +181,7 @@ window.spinnakerSettings = {
     travis: travisEnabled,
     versionedProviders: true,
     wercker: werckerEnabled,
+    functions: functionsEnabled,
   },
   gateUrl: gateHost,
   gitSources: ['bitbucket', 'gitlab', 'github', 'stash'],

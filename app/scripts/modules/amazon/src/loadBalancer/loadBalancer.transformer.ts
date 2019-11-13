@@ -368,6 +368,7 @@ export class AwsLoadBalancerTransformer {
               stickinessEnabled: targetGroup.attributes['stickiness.enabled'] === 'true',
               stickinessType: targetGroup.attributes['stickiness.type'],
               stickinessDuration: Number(targetGroup.attributes['stickiness.lb_cookie.duration_seconds']),
+              multiValueHeadersEnabled: targetGroup.attributes['lambda.multi_value_headers.enabled'] === 'true',
             },
           };
         });
@@ -556,6 +557,7 @@ export class AwsLoadBalancerTransformer {
             stickinessEnabled: false,
             stickinessType: 'lb_cookie',
             stickinessDuration: 8400,
+            multiValueHeadersEnabled: false,
           },
         },
       ],

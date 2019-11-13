@@ -169,7 +169,7 @@ export interface IALBTargetGroupDescription {
   name: string;
   protocol: 'HTTP' | 'HTTPS';
   port: number;
-  targetType: 'instance' | 'ip';
+  targetType: 'instance' | 'ip' | 'lambda';
   attributes: {
     // Defaults to 300
     deregistrationDelay?: number;
@@ -179,6 +179,7 @@ export interface IALBTargetGroupDescription {
     stickinessType?: 'lb_cookie';
     // Defaults to 86400
     stickinessDuration?: number;
+    multiValueHeadersEnabled?: boolean;
   };
   // Defaults to 10
   healthCheckInterval?: number;

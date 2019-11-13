@@ -247,7 +247,6 @@ export class CreateApplicationLoadBalancer extends React.Component<
   public render() {
     const { app, dismissModal, forPipelineConfig, loadBalancer } = this.props;
     const { isNew, loadBalancerCommand, taskMonitor } = this.state;
-
     let heading = forPipelineConfig ? 'Configure Application Load Balancer' : 'Create New Application Load Balancer';
     if (!isNew) {
       heading = `Edit ${loadBalancerCommand.name}: ${loadBalancerCommand.region}: ${loadBalancerCommand.credentials}`;

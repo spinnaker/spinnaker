@@ -29,6 +29,7 @@ export interface IAmazonFunction extends IFunction {
     subnetIds: [];
     vpcId: string;
   };
+  targetGroups: string | string[];
 }
 
 export interface IAmazonFunctionUpsertCommand extends IFunctionUpsertCommand {
@@ -52,6 +53,7 @@ export interface IAmazonFunctionUpsertCommand extends IFunctionUpsertCommand {
   securityGroupIds: string[];
   subnetIds: string[];
   vpcId: string;
+  targetGroups: string | string[];
 }
 
 export interface IAmazonFunctionDeleteCommand extends IFunctionDeleteCommand {

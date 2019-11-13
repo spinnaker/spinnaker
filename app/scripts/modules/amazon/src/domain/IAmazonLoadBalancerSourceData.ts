@@ -80,6 +80,7 @@ export interface IAmazonTargetGroupSourceData {
     'stickiness.enabled': boolean;
     'stickiness.lb_cookie.duration_seconds': number;
     'stickiness.type': 'lb_cookie';
+    'lambda.multi_value_headers.enabled': boolean;
   };
   cloudProvider: string;
   healthCheckIntervalSeconds: number;

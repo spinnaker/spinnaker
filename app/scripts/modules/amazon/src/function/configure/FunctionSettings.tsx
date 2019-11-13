@@ -20,25 +20,20 @@ export class FunctionSettings extends React.Component<IFunctionSettingsProps>
   public render() {
     return (
       <div className="container-fluid form-horizontal ">
-        <div className="sp-margin-m-bottom">
-          <FormikFormField name="description" label="Description" input={props => <TextInput {...props} />} />
-        </div>
-        <div className="sp-margin-m-bottom">
-          <FormikFormField
-            name="memorySize"
-            label="Memory (MB)"
-            help={<HelpField id="aws.functionBasicSettings.memorySize" />}
-            input={props => <NumberInput {...props} min={128} max={3008} />}
-          />
-        </div>
-        <div className="sp-margin-m-bottom">
-          <FormikFormField
-            name="timeout"
-            label="Timeout (seconds)"
-            help={<HelpField id="aws.functionBasicSettings.timeout" />}
-            input={props => <NumberInput {...props} min={1} max={900} />}
-          />
-        </div>
+        <FormikFormField name="description" label="Description" input={props => <TextInput {...props} />} />
+        <FormikFormField
+          name="memorySize"
+          label="Memory (MB)"
+          help={<HelpField id="aws.functionBasicSettings.memorySize" />}
+          input={props => <NumberInput {...props} min={128} max={3008} />}
+        />
+        <FormikFormField
+          name="timeout"
+          label="Timeout (seconds)"
+          help={<HelpField id="aws.functionBasicSettings.timeout" />}
+          input={props => <NumberInput {...props} min={1} max={900} />}
+        />
+        <FormikFormField name="targetGroups" label="Target Group Name" input={props => <TextInput {...props} />} />
       </div>
     );
   }
