@@ -37,5 +37,5 @@ public class GitRepoArtifactAccount extends ArtifactAccount {
   @LocalFile @SecretFile String sshPrivateKeyFilePath;
   @Secret String sshPrivateKeyPassphrase;
   @LocalFile @SecretFile String sshKnownHostsFilePath;
-  boolean sshTrustUnknownHosts;
+  Boolean sshTrustUnknownHosts = false;
 }

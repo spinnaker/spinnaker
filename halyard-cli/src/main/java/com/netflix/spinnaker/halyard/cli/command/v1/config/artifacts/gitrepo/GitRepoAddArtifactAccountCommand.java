@@ -69,7 +69,7 @@ public class GitRepoAddArtifactAccountCommand extends AbstractAddArtifactAccount
   @Parameter(
       names = "--ssh-trust-unknown-hosts",
       description = "Setting this to true allows Spinnaker to authenticate with unknown hosts")
-  private Boolean sshTrustUnknownHosts = null;
+  private Boolean sshTrustUnknownHosts;
 
   @Override
   protected ArtifactAccount buildArtifactAccount(String accountName) {

@@ -70,7 +70,7 @@ public class GitRepoEditArtifactAccountCommand
   @Parameter(
       names = "--ssh-trust-unknown-hosts",
       description = "Setting this to true allows Spinnaker to authenticate with unknown hosts")
-  private Boolean sshTrustUnknownHosts = null;
+  private Boolean sshTrustUnknownHosts;
 
   @Override
   protected ArtifactAccount editArtifactAccount(GitRepoArtifactAccount account) {
@@ -89,7 +89,7 @@ public class GitRepoEditArtifactAccountCommand
     account.setSshKnownHostsFilePath(
         isSet(sshKnownHostsFilePath) ? sshKnownHostsFilePath : account.getSshKnownHostsFilePath());
     account.setSshTrustUnknownHosts(
-        isSet(sshTrustUnknownHosts) ? sshTrustUnknownHosts : account.isSshTrustUnknownHosts());
+        isSet(sshTrustUnknownHosts) ? sshTrustUnknownHosts : account.getSshTrustUnknownHosts());
     return account;
   }
 
