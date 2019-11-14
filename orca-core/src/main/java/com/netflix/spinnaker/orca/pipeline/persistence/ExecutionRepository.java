@@ -17,6 +17,7 @@ package com.netflix.spinnaker.orca.pipeline.persistence;
 
 import static java.util.stream.Collectors.toList;
 
+import com.netflix.spinnaker.kork.telemetry.Instrumented;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType;
@@ -38,6 +39,7 @@ public interface ExecutionRepository {
 
   void addStage(@Nonnull Stage stage);
 
+  @Instrumented(metricName = "cancelNullReason")
   void cancel(@Nonnull ExecutionType type, @Nonnull String id);
 
   void cancel(
@@ -48,6 +50,7 @@ public interface ExecutionRepository {
 
   void pause(@Nonnull ExecutionType type, @Nonnull String id, @Nullable String user);
 
+  @Instrumented(metricName = "resumeNoIgnore")
   void resume(@Nonnull ExecutionType type, @Nonnull String id, @Nullable String user);
 
   void resume(
@@ -61,15 +64,18 @@ public interface ExecutionRepository {
   void updateStatus(ExecutionType type, @Nonnull String id, @Nonnull ExecutionStatus status);
 
   @Nonnull
+  @Instrumented(metricName = "retrieveById")
   Execution retrieve(@Nonnull ExecutionType type, @Nonnull String id)
       throws ExecutionNotFoundException;
 
   void delete(@Nonnull ExecutionType type, @Nonnull String id);
 
   @Nonnull
+  @Instrumented(metricName = "retrieveByType")
   Observable<Execution> retrieve(@Nonnull ExecutionType type);
 
   @Nonnull
+  @Instrumented(metricName = "retrieveByCriteria")
   Observable<Execution> retrieve(@Nonnull ExecutionType type, @Nonnull ExecutionCriteria criteria);
 
   @Nonnull
@@ -110,6 +116,7 @@ public interface ExecutionRepository {
 
   @Deprecated // Use the non-rx interface instead
   @Nonnull
+  @Instrumented(metricName = "retrieveOrchestrationsForApplicationSortedAsc")
   Observable<Execution> retrieveOrchestrationsForApplication(
       @Nonnull String application, @Nonnull ExecutionCriteria criteria);
 
@@ -141,6 +148,7 @@ public interface ExecutionRepository {
   List<String> retrieveAllApplicationNames(@Nullable ExecutionType executionType);
 
   @Nonnull
+  @Instrumented(metricName = "retrieveAllApplicationNamesWithMinExecutions")
   List<String> retrieveAllApplicationNames(
       @Nullable ExecutionType executionType, int minExecutions);
 

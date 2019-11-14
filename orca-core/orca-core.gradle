@@ -30,6 +30,7 @@ dependencies {
   api("com.netflix.spinnaker.kork:kork-exceptions")
   api("com.netflix.spinnaker.kork:kork-expressions")
   api("com.netflix.spinnaker.kork:kork-plugins")
+  api("com.netflix.spinnaker.kork:kork-telemetry")
   api("io.reactivex:rxjava")
 
   implementation(project(":orca-api"))

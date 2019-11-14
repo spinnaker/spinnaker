@@ -20,13 +20,14 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import com.netflix.spinnaker.kork.sql.config.SqlProperties
+import com.netflix.spinnaker.kork.telemetry.InstrumentedProxy
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
 import com.netflix.spinnaker.orca.notifications.SqlNotificationClusterLock
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.sql.SpringLiquibaseProxy
 import com.netflix.spinnaker.orca.sql.SqlHealthIndicator
 import com.netflix.spinnaker.orca.sql.SqlHealthcheckActivator
 import com.netflix.spinnaker.orca.sql.pipeline.persistence.SqlExecutionRepository
-import com.netflix.spinnaker.orca.sql.telemetry.SqlInstrumentedExecutionRepository
 import liquibase.integration.spring.SpringLiquibase
 import org.jooq.DSLContext
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
@@ -58,17 +59,16 @@ class SqlConfiguration {
     properties: SqlProperties,
     orcaSqlProperties: OrcaSqlProperties
   ) =
-    SqlInstrumentedExecutionRepository(
-      SqlExecutionRepository(
-        orcaSqlProperties.partitionName,
-        dsl,
-        mapper,
-        properties.retries.transactions,
-        orcaSqlProperties.batchReadSize,
-        orcaSqlProperties.stageReadSize
-      ),
-      registry
-    )
+    SqlExecutionRepository(
+      orcaSqlProperties.partitionName,
+      dsl,
+      mapper,
+      properties.retries.transactions,
+      orcaSqlProperties.batchReadSize,
+      orcaSqlProperties.stageReadSize
+    ).let {
+      InstrumentedProxy.proxy(registry, it, "sql.executionRepository", mapOf()) as ExecutionRepository
+    }
 
   @Bean fun sqlHealthcheckActivator(dsl: DSLContext, registry: Registry) =
     SqlHealthcheckActivator(dsl, registry)
