@@ -6,6 +6,7 @@ import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.cats.cache.WriteableCacheSpec
 import com.netflix.spinnaker.cats.sql.cache.SqlCache
 import com.netflix.spinnaker.cats.sql.cache.SqlCacheMetrics
+import com.netflix.spinnaker.config.SqlConstraints
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
@@ -96,6 +97,23 @@ class SqlCacheSpec extends WriteableCacheSpec {
     null                                                   || null             || "1=1"
   }
 
+  @Unroll
+  def 'max length of table name is checked'() {
+    when:
+    def realName = ((SqlCache) cache).checkTableName("cats_v1_", name, suffix)
+
+    then:
+    realName == expected
+
+    where:
+    name              || expected                                                             || suffix
+    "foo"             || "cats_v1_test_foo"                                                   || ""
+    "abcdefghij" * 10 || "cats_v1_test_abcdefghijabcdefghijabcdefghijabcdeaa7d0fee7e891a66"   || ""
+    "abcdefghij" * 10 || "cats_v1_test_abcdefghijabcdefghijabcdefghija9246690b33571ecc_rel"   || "_rel"
+    "abcdefghij" * 10 || "cats_v1_test_abcdefghijabcdefghijabcdefghijabcdefe546a736182e553"   || "suffix"*10
+
+  }
+
   @Override
   Cache getSubject() {
     def mapper = new ObjectMapper()
@@ -119,7 +137,8 @@ class SqlCacheSpec extends WriteableCacheSpec {
       sqlRetryProperties,
       "test",
       Mock(SqlCacheMetrics),
-      dynamicConfigService
+      dynamicConfigService,
+      new SqlConstraints()
     )
   }
 

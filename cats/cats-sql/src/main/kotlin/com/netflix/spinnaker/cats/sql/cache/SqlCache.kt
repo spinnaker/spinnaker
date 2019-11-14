@@ -1,12 +1,14 @@
 package com.netflix.spinnaker.cats.sql.cache
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.common.hash.Hashing
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.cats.cache.WriteableCache
 import com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.ON_DEMAND
+import com.netflix.spinnaker.config.SqlConstraints
 import com.netflix.spinnaker.config.coroutineThreadPrefix
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
@@ -52,12 +54,11 @@ class SqlCache(
   private val sqlRetryProperties: SqlRetryProperties,
   private val tableNamespace: String?,
   private val cacheMetrics: SqlCacheMetrics,
-  private val dynamicConfigService: DynamicConfigService
+  private val dynamicConfigService: DynamicConfigService,
+  private val sqlConstraints: SqlConstraints
 ) : WriteableCache {
 
   companion object {
-    // 352 * 2 + 64 (max rel_type length) == 768; 768 * 4 (utf8mb4) == 3072 == Aurora's max index length
-    private const val MAX_ID_LENGTH = 352
     private const val onDemandType = "onDemand"
 
     private val schemaVersion = SqlSchemaVersion.current()
@@ -518,13 +519,13 @@ class SqlCache(
     val hashes = mutableMapOf<String, String>() // id to sha256(body)
     val apps = mutableMapOf<String, String>()
 
-    items.filter { it.id.length > MAX_ID_LENGTH }
+    items.filter { it.id.length > sqlConstraints.maxIdLength }
       .forEach {
-        log.error("Dropping ${it.id} - character length exceeds MAX_ID_LENGTH ($MAX_ID_LENGTH)")
+        log.error("Dropping ${it.id} - character length exceeds MAX_ID_LENGTH ($sqlConstraints.maxIdLength)")
       }
 
     items
-      .filter { it.id != "_ALL_" && it.id.length <= MAX_ID_LENGTH }
+      .filter { it.id != "_ALL_" && it.id.length <= sqlConstraints.maxIdLength }
       .forEach {
         currentIds.add(it.id)
         val nullKeys = it.attributes
@@ -712,11 +713,11 @@ class SqlCache(
     val newRevRelIds = mutableSetOf<String>()
 
     items
-      .filter { it.id != "_ALL_" && it.id.length <= MAX_ID_LENGTH }
+      .filter { it.id != "_ALL_" && it.id.length <= sqlConstraints.maxIdLength }
       .forEach { cacheData ->
         cacheData.relationships.entries.forEach { rels ->
           val relType = rels.key.substringBefore(delimiter = ":", missingDelimiterValue = "")
-          rels.value.filter { it.length <= MAX_ID_LENGTH }
+          rels.value.filter { it.length <= sqlConstraints.maxIdLength }
             .forEach { r ->
               val fwdKey = "${cacheData.id}|$r"
               val revKey = "$r|${cacheData.id}"
@@ -884,13 +885,44 @@ class SqlCache(
   }
 
   private fun resourceTableName(type: String): String =
-    "cats_v${schemaVersion}_${if (tableNamespace != null) "${tableNamespace}_" else ""}${sanitizeType(type)}"
+    checkTableName("cats_v${schemaVersion}_", sanitizeType(type), "")
 
   private fun relTableName(type: String): String =
-    "cats_v${schemaVersion}_${if (tableNamespace != null) "${tableNamespace}_" else ""}${sanitizeType(type)}_rel"
+    checkTableName("cats_v${schemaVersion}_", sanitizeType(type), "_rel")
 
   private fun sanitizeType(type: String): String {
     return type.replace(typeSanitization, "_")
+  }
+
+  /**
+   * Computes the actual name of the table less than MAX_TABLE_NAME_LENGTH characters long.
+   * It always keeps prefix with tablenamespace but can shorten name and suffix in that order.
+   * @return computed table name
+   */
+  private fun checkTableName(prefix: String, name: String, suffix: String): String {
+    var base = prefix
+    if (tableNamespace != null) {
+      base = "${prefix + tableNamespace}_"
+    }
+
+    // Optimistic and most frequent case
+    val tableName = base + name + suffix
+    if (tableName.length < sqlConstraints.maxTableNameLength) {
+      return tableName
+    }
+
+    // Hash the name and keep the suffix
+    val hash = Hashing.murmur3_128().hashBytes((name + suffix).toByteArray()).toString().substring(0..15)
+    val available = sqlConstraints.maxTableNameLength - base.length - suffix.length - hash.length - 1
+    if (available >= 0) {
+      return base + name.substring(0..available) + hash + suffix
+    }
+
+    // Remove suffix
+    if (available + suffix.length >= 0) {
+      return base + name.substring(0..(available + suffix.length)) + hash
+    }
+    throw IllegalArgumentException("property sql.table-namespace $tableNamespace is too long")
   }
 
   private fun getHash(body: String?): String? {

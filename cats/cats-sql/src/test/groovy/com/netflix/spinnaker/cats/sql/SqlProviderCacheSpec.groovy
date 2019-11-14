@@ -10,6 +10,7 @@ import com.netflix.spinnaker.cats.cache.WriteableCache
 import com.netflix.spinnaker.cats.provider.ProviderCacheSpec
 import com.netflix.spinnaker.cats.sql.cache.SpectatorSqlCacheMetrics
 import com.netflix.spinnaker.cats.sql.cache.SqlCache
+import com.netflix.spinnaker.config.SqlConstraints
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
@@ -67,7 +68,8 @@ class SqlProviderCacheSpec extends ProviderCacheSpec {
       sqlRetryProperties,
       "test",
       sqlMetrics,
-      dynamicConfigService
+      dynamicConfigService,
+      new SqlConstraints()
     )
 
     return new SqlProviderCache(backingStore)
