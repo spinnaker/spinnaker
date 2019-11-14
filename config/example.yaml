@@ -5,7 +5,7 @@ gate:
 auth:
   enabled: true
   x509:
-    # See https://www.spinnaker.io/setup/security/authentication/ssl/ and
+    # See https://www.spinnaker.io/setup/security/ssl/ and
     # https://www.spinnaker.io/setup/security/authentication/x509/ for guides on creating
     # the key and cert files.
     certPath: "~/.spin/certpath"
