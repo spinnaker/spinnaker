@@ -1,5 +1,9 @@
 databaseChangeLog:
   - changeSet:
+      preConditions:
+        onFail: CONTINUE
+        dbms:
+          type: mysql
       id: create-indexes
       author: ajordens
       changes:

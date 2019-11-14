@@ -1,0 +1,109 @@
+databaseChangeLog:
+  - changeSet:
+      preConditions:
+        onFail: CONTINUE
+        dbms:
+          type: postgresql
+      id: create-indexes-postgresql
+      author: srekapalli
+      changes:
+        - createIndex:
+            indexName: is_deleted_applications_idx
+            tableName: applications
+            columns:
+              - column:
+                  name: is_deleted
+        - createIndex:
+            indexName: is_deleted_application_permissions_idx
+            tableName: application_permissions
+            columns:
+              - column:
+                  name: is_deleted
+        - createIndex:
+            indexName: is_deleted_deliveries_idx
+            tableName: deliveries
+            columns:
+              - column:
+                  name: is_deleted
+        - createIndex:
+            indexName: is_deleted_entity_tags_idx
+            tableName: entity_tags
+            columns:
+              - column:
+                  name: is_deleted
+        - createIndex:
+            indexName: is_deleted_notifications_idx
+            tableName: notifications
+            columns:
+              - column:
+                  name: is_deleted
+        - createIndex:
+            indexName: is_deleted_pipeline_strategies_idx
+            tableName: pipeline_strategies
+            columns:
+              - column:
+                  name: is_deleted
+        - createIndex:
+            indexName: is_deleted_pipeline_templates_idx
+            tableName: pipeline_templates
+            columns:
+              - column:
+                  name: is_deleted
+        - createIndex:
+            indexName: is_deleted_pipelines_idx
+            tableName: pipelines
+            columns:
+              - column:
+                  name: is_deleted
+        - createIndex:
+            indexName: is_deleted_projects_idx
+            tableName: projects
+            columns:
+              - column:
+                  name: is_deleted
+        - createIndex:
+            indexName: is_deleted_service_accounts_idx
+            tableName: service_accounts
+            columns:
+              - column:
+                  name: is_deleted
+        - createIndex:
+            indexName: is_deleted_snapshots_idx
+            tableName: snapshots
+            columns:
+              - column:
+                  name: is_deleted
+      rollback:
+        - dropIndex:
+            indexName: is_deleted_applications_idx
+            tableName: applications
+        - dropIndex:
+            indexName: is_deleted_application_permissions_idx
+            tableName: application_permissions
+        - dropIndex:
+            indexName: is_deleted_deliveries_idx
+            tableName: deliveries
+        - dropIndex:
+            indexName: is_deleted_entity_tags_idx
+            tableName: entity_tags
+        - dropIndex:
+            indexName: is_deleted_notifications_idx
+            tableName: notifications
+        - dropIndex:
+            indexName: is_deleted_pipeline_strategies_idx
+            tableName: pipeline_strategies
+        - dropIndex:
+            indexName: is_deleted_pipeline_templates_idx
+            tableName: pipeline_templates
+        - dropIndex:
+            indexName: is_deleted_pipelines_idx
+            tableName: pipelines
+        - dropIndex:
+            indexName: is_deleted_projects_idx
+            tableName: projects
+        - dropIndex:
+            indexName: is_deleted_service_accounts_idx
+            tableName: service_accounts
+        - dropIndex:
+            indexName: is_deleted_snapshots_idx
+            tableName: snapshots

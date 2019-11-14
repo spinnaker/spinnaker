@@ -4,6 +4,7 @@ dependencies {
   implementation project(":front50-core")
   if (!rootProject.hasProperty("excludeSqlDrivers")) {
     runtimeOnly project(":front50-sql-mysql")
+    runtimeOnly project(":front50-sql-postgres")
   }
 
   implementation "com.netflix.spinnaker.kork:kork-sql"
@@ -16,10 +17,15 @@ dependencies {
   implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core"
 
   testImplementation "io.mockk:mockk"
-  testImplementation "mysql:mysql-connector-java"
   testImplementation "dev.minutest:minutest"
-  testImplementation "org.testcontainers:mysql"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
+
+  testImplementation "mysql:mysql-connector-java"
+  testImplementation "org.testcontainers:mysql"
+
+  testImplementation "org.testcontainers:postgresql"
+  testImplementation "org.postgresql:postgresql"
+
 }
 
 test {

@@ -168,7 +168,8 @@ class SqlStorageService(
               *insertPairs.keys.map { DSL.field(it) }.toTypedArray()
             )
             .values(insertPairs.values)
-            .onDuplicateKeyUpdate()
+            .onConflict(DSL.field("id", String::class.java))
+            .doUpdate()
             .set(updatePairs.mapKeys { DSL.field(it.key) })
             .execute()
         } catch (e: SQLDialectNotSupportedException) {

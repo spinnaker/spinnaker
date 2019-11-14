@@ -35,3 +35,9 @@ databaseChangeLog:
   - include:
       file: changelog/20190530-add-is-deleted-indexes.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20190530-add-is-deleted-indexes-postgres.yml
+      relativeToChangelogFile: true
+  - include:
+      file: changelog/20191112-modify-char-columns-postgres.yml
+      relativeToChangelogFile: true
