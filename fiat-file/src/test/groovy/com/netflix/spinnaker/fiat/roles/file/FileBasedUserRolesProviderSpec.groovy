@@ -33,20 +33,24 @@ class FileBasedUserRolesProviderSpec extends Specification {
     when:
     def result1 = provider.loadRoles(externalUser("batman"))
     def result2 = provider.loadRoles(externalUser("foo"))
+    def result3 = provider.loadRoles(externalUser("spiderman"))
 
     then:
     result1.name.containsAll(["crimefighter", "jokerjailer"])
     result2.name.containsAll(["bar", "baz"])
+    result3 == []
 
     when:
-    def result3 = provider.multiLoadRoles([externalUser("batman")])
-    def result4 = provider.multiLoadRoles([externalUser("batman"), externalUser("foo")])
+    def result4 = provider.multiLoadRoles([externalUser("batman")])
+    def result5 = provider.multiLoadRoles([externalUser("batman"), externalUser("foo")])
+    def result6 = provider.multiLoadRoles([externalUser("spiderman")])
 
     then:
-    result3.containsKey("batman")
-    !result3.containsKey("foo")
+    result4.containsKey("batman")
+    !result4.containsKey("foo")
 
-    result4.keySet().containsAll("batman", "foo")
+    result5.keySet().containsAll("batman", "foo")
+    result6.keySet().size() == 0
   }
 
   private static ExternalUser externalUser(String id) {

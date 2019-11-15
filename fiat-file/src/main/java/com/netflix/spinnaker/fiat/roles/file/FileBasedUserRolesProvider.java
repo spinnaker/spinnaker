@@ -26,11 +26,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -59,7 +55,7 @@ public class FileBasedUserRolesProvider implements UserRolesProvider {
   @Override
   public List<Role> loadRoles(ExternalUser user) {
     try {
-      return new ArrayList<>(parse().get(user.getId()));
+      return Optional.ofNullable(parse().get(user.getId())).orElse(Collections.emptyList());
     } catch (IOException io) {
       log.error("Couldn't load roles for user " + user.getId() + " from file", io);
     }
