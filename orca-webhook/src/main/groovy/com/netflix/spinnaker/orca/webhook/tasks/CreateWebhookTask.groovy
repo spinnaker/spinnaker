@@ -31,6 +31,7 @@ import com.netflix.spinnaker.orca.webhook.service.WebhookService
 import groovy.util.logging.Slf4j
 import org.apache.http.HttpHeaders
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpMethod
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
 import org.springframework.web.client.HttpStatusCodeException
@@ -108,12 +109,18 @@ class CreateWebhookTask implements RetryableTask {
         log.warn(errorMessage, e)
         outputs.webhook << [error: errorMessage]
         return TaskResult.builder(ExecutionStatus.RUNNING).context(outputs).build()
-      } else {
-        String errorMessage = "an exception occurred in webhook to ${stageData.url}: ${e}"
-        log.error(errorMessage, e)
-        outputs.webhook << [error: errorMessage]
-        return TaskResult.builder(ExecutionStatus.TERMINAL).context(outputs).build()
       }
+      if (stageData.method == HttpMethod.GET && (e instanceof SocketTimeoutException || e.cause instanceof SocketTimeoutException)) {
+        String errorMessage = "Socket timeout in webhook on GET request to ${stageData.url}, will retry."
+        log.warn(errorMessage, e)
+        outputs.webhook << [error: errorMessage]
+        return TaskResult.builder(ExecutionStatus.RUNNING).context(outputs).build()
+      }
+
+      String errorMessage = "an exception occurred in webhook to ${stageData.url}: ${e}"
+      log.error(errorMessage, e)
+      outputs.webhook << [error: errorMessage]
+      return TaskResult.builder(ExecutionStatus.TERMINAL).context(outputs).build()
     }
 
     def statusCode = response.statusCode

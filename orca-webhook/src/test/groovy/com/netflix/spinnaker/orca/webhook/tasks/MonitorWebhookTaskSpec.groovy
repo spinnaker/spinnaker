@@ -18,15 +18,13 @@
 package com.netflix.spinnaker.orca.webhook.tasks
 
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.events.ExecutionStarted
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.webhook.service.WebhookService
-import org.apache.tools.ant.taskdefs.condition.Http
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.client.HttpServerErrorException
-import org.springframework.web.client.HttpStatusCodeException
+import org.springframework.web.client.ResourceAccessException
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -103,6 +101,25 @@ class MonitorWebhookTaskSpec extends Specification {
     monitorWebhookTask.webhookService = Stub(WebhookService) {
       getStatus(_, _) >> {
         throw new Exception("Invalid URL", new UnknownHostException())
+      }
+    }
+
+    when:
+    def result = monitorWebhookTask.execute stage
+
+    then:
+    result.status == ExecutionStatus.RUNNING
+  }
+
+  def "should retry in case of timeout"() {
+    setup:
+    def stage = new Stage(pipeline, "webhook", [
+      statusEndpoint: 'https://my-service.io/api/status/123',
+      statusJsonPath: '$.status'])
+
+    monitorWebhookTask.webhookService = Stub(WebhookService) {
+      getStatus(_, _) >> {
+        throw new ResourceAccessException('I/O error on GET request for "https://my-service.io/api/status/123"', new SocketTimeoutException("timeout"))
       }
     }
 

@@ -106,6 +106,10 @@ class MonitorWebhookTask implements OverridableTimeoutRetryableTask {
         log.warn("name resolution failure in webhook for pipeline ${stage.execution.id} to ${stageData.statusEndpoint}, will retry.", e)
         return TaskResult.ofStatus(ExecutionStatus.RUNNING)
       }
+      if (e instanceof SocketTimeoutException || e.cause instanceof SocketTimeoutException) {
+        log.warn("Socket timeout when polling ${stageData.statusEndpoint}, will retry.", e)
+        return TaskResult.ofStatus(ExecutionStatus.RUNNING)
+      }
 
       String errorMessage = "an exception occurred in webhook monitor to ${stageData.statusEndpoint}: ${e}"
       log.error(errorMessage, e)

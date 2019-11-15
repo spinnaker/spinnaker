@@ -27,6 +27,7 @@ import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.client.HttpServerErrorException
+import org.springframework.web.client.ResourceAccessException
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -204,6 +205,33 @@ class CreateWebhookTaskSpec extends Specification {
     (result.context as Map) == [
       webhook: [
         error: "name resolution failure in webhook for pipeline ${stage.execution.id} to ${stage.context.url}, will retry."
+      ]
+    ]
+  }
+
+  def "should retry on timeout for GET request"() {
+    setup:
+    def webhookUrl = "https://my-service.io/api/"
+    def stage = new Stage(pipeline, "webhook", "My webhook", [
+      url: webhookUrl,
+      method: "get",
+    ])
+
+    createWebhookTask.webhookService = Stub(WebhookService) {
+      exchange(HttpMethod.GET, webhookUrl, _, _) >> {
+        throw new ResourceAccessException("I/O error on GET request for ${webhookUrl}", new SocketTimeoutException("timeout"))
+      }
+    }
+
+    when:
+    def result = createWebhookTask.execute(stage)
+
+    then:
+    def errorMessage = "Socket timeout in webhook on GET request to ${stage.context.url}, will retry."
+    result.status == ExecutionStatus.RUNNING
+    (result.context as Map) == [
+      webhook: [
+        error: errorMessage
       ]
     ]
   }
