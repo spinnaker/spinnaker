@@ -19,6 +19,7 @@ kayenta:
     - name: in-memory-store
       supportedTypes:
       - OBJECT_STORE
+      - CONFIGURATION_STORE
 
   configbin:
     enabled: false

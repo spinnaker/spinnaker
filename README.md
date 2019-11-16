@@ -12,8 +12,11 @@ The quality of the canary version is assessed by comparing key metrics that desc
 Canaries are usually run against deployments containing changes to code, but they
 can also be used for operational changes, including changes to configuration.
 
+### Frequently Asked Questions
+See the [FAQ](docs/faq.md).
+
 ### Creating Canary Config
-Checkout the [Canary Config Object model](docs/canary-config.md) for how a canary config is defined in [Markdown Syntax for Object Notation (MSON)](https://github.com/apiaryio/mson)
+See the [Canary Config Object model](docs/canary-config.md) for how a canary config is defined in [Markdown Syntax for Object Notation (MSON)](https://github.com/apiaryio/mson).
 
 ### Debugging
 
@@ -27,14 +30,14 @@ to be attached before starting Kayenta; the relevant JVM arguments can be seen a
 
 ### Running Standalone Kayenta Locally
 
-You can run a standalone kayenta instance locally with docker compose.
+You can run a standalone kayenta instance locally with `docker-compose`.
 
 ```
-# Copy and edit example config to edit to your needs
+# Copy and edit example config accordingly
 cp kayenta-web/config/kayenta.yml ~/.spinnaker/kayenta.yml
 
 # Build/Start Kayenta
 docker-compose up
 ```
 
-You should then be able to access your local kayenta instance at http://localhost:8090/swagger-ui.html
+You should then be able to access your local kayenta instance at http://localhost:8090/swagger-ui.html.
