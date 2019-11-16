@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline.model
 
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import spock.lang.Specification
 
@@ -675,5 +676,29 @@ class TriggerSpec extends Specification {
   "type": "wercker"
 }
 """
+  }
+
+  def "correctly map collection item to its type"() {
+    given:
+    def trigger = mapper.readValue(triggerJson, Trigger)
+
+    expect:
+    with(trigger) {
+      artifacts[0] instanceof Artifact
+      artifacts[0].type == "test/artifact"
+      artifacts[0].reference == "testreference"
+    }
+
+    where:
+    triggerJson = '''
+    {
+      "type": "manual",
+      "artifacts": [
+        {
+          "type": "test/artifact",
+          "reference": "testreference"
+        }
+      ]
+    }'''
   }
 }
