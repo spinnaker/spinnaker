@@ -147,7 +147,7 @@ local findArtifactsFromResource = pipelines.stages
                                   .findArtifactsFromResource('Find nginx-deployment')
                                   .withAccount(account)
                                   .withLocation('default')
-                                  .withManifestName('Deployment nginx-deployment')
+                                  .withManifestName('Deployment','nginx-deployment')
                                   .withRequisiteStages([deployManifestTextBaseline, deployManifestTextCanary, deployManifestArtifact]);
 
 local jenkinsJob = pipelines.stages
@@ -171,7 +171,7 @@ local pipeline = pipelines.pipeline()
 local metadata = mpt.metadata()
 .withName('My New MPT')
 .withDescription('Totally Rad k8s Pipeline')
-.withDescription('jacobkiefer@google.com')
+.withOwner('jacobkiefer@google.com')
 .withScopes(['global']);
 
 local waitTime = mpt.variable()
