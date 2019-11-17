@@ -57,7 +57,7 @@ import java.time.Instant
   Type(value = ResourceDeltaResolved::class, name = "ResourceDeltaResolved"),
   Type(value = ResourceValid::class, name = "ResourceValid"),
   Type(value = ResourceCheckError::class, name = "ResourceCheckError"),
-  Type(value = ResourceCheckUnresolvable::class, name = "ResourceCheckPending"),
+  Type(value = ResourceCheckUnresolvable::class, name = "ResourceCheckUnresolvable"),
   Type(value = ResourceActuationPaused::class, name = "ResourceActuationPaused"),
   Type(value = ResourceActuationResumed::class, name = "ResourceActuationResumed")
 )
