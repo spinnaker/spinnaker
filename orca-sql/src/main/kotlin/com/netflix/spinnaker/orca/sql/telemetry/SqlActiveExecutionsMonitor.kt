@@ -20,6 +20,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHEST
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.sql.pipeline.persistence.ExecutionStatisticsRepository
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
@@ -30,7 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger
 @Component
 @ConditionalOnProperty("monitor.active-executions.redis", havingValue = "false")
 class SqlActiveExecutionsMonitor(
-  private val executionRepository: ExecutionStatisticsRepository,
+  @Qualifier("sqlExecutionRepository") private val executionRepository: ExecutionStatisticsRepository,
   registry: Registry,
   @Value("\${monitor.active-executions.refresh.frequency.ms:60000}") refreshFrequencyMs: Long
 ) {

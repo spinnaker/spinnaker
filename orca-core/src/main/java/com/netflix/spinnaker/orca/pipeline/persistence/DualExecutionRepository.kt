@@ -25,6 +25,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.Execu
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
+import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Primary
 import org.springframework.stereotype.Component
 import rx.Observable
@@ -41,9 +42,12 @@ import rx.Observable
 @Component
 @ConditionalOnExpression("\${execution-repository.dual.enabled:false}")
 class DualExecutionRepository(
-  @Value("\${execution-repository.dual.primary-class}") private val primaryClass: String,
-  @Value("\${execution-repository.dual.previous-class}") private val previousClass: String,
-  allRepositories: List<ExecutionRepository>
+  @Value("\${execution-repository.dual.primary-class:}") private val primaryClass: String,
+  @Value("\${execution-repository.dual.previous-class:}") private val previousClass: String,
+  @Value("\${execution-repository.dual.primary-name:}") private val primaryName: String,
+  @Value("\${execution-repository.dual.previous-name:}") private val previousName: String,
+  allRepositories: List<ExecutionRepository>,
+  applicationContext: ApplicationContext
 ) : ExecutionRepository {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -64,8 +68,16 @@ class DualExecutionRepository(
       } ?: throw IllegalStateException("No ExecutionRepository bean of class $className found")
     }
 
-    primary = findExecutionRepositoryByClass(primaryClass)
-    previous = findExecutionRepositoryByClass(previousClass)
+    val findExecutionRepository = { beanName: String, beanClass: String ->
+      if (beanName.isNotBlank()) {
+        applicationContext.getBean(beanName) as ExecutionRepository
+      } else {
+        findExecutionRepositoryByClass(beanClass)
+      }
+    }
+
+    primary = findExecutionRepository(primaryName, primaryClass)
+    previous = findExecutionRepository(previousName, previousClass)
   }
 
   private fun select(execution: Execution): ExecutionRepository {

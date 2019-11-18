@@ -30,6 +30,7 @@ import com.netflix.spinnaker.orca.sql.SqlHealthcheckActivator
 import com.netflix.spinnaker.orca.sql.pipeline.persistence.SqlExecutionRepository
 import liquibase.integration.spring.SpringLiquibase
 import org.jooq.DSLContext
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -67,7 +68,28 @@ class SqlConfiguration {
       orcaSqlProperties.batchReadSize,
       orcaSqlProperties.stageReadSize
     ).let {
-      InstrumentedProxy.proxy(registry, it, "sql.executionRepository", mapOf()) as ExecutionRepository
+      InstrumentedProxy.proxy(registry, it, "sql.executions", mapOf(Pair("repository", "primary"))) as ExecutionRepository
+    }
+
+  @ConditionalOnProperty("execution-repository.sql.enabled", "execution-repository.sql.secondary.enabled")
+  @Bean fun secondarySqlExecutionRepository(
+    dsl: DSLContext,
+    mapper: ObjectMapper,
+    registry: Registry,
+    properties: SqlProperties,
+    orcaSqlProperties: OrcaSqlProperties,
+    @Value("\${execution-repository.sql.secondary.pool-name}") poolName: String
+  ) =
+    SqlExecutionRepository(
+      orcaSqlProperties.partitionName,
+      dsl,
+      mapper,
+      properties.retries.transactions,
+      orcaSqlProperties.batchReadSize,
+      orcaSqlProperties.stageReadSize,
+      poolName
+    ).let {
+      InstrumentedProxy.proxy(registry, it, "sql.executions", mapOf(Pair("repository", "secondary"))) as ExecutionRepository
     }
 
   @Bean fun sqlHealthcheckActivator(dsl: DSLContext, registry: Registry) =

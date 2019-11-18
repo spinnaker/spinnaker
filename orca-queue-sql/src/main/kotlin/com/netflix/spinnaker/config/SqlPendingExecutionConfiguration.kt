@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Configuration
 import java.time.Clock
 
 @Configuration
-@EnableConfigurationProperties(com.netflix.spinnaker.kork.sql.config.SqlProperties::class)
+@EnableConfigurationProperties(SqlProperties::class)
 class SqlPendingExecutionConfiguration {
 
   @Bean
