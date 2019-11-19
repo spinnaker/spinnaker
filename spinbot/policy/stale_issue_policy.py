@@ -7,7 +7,7 @@ class StaleIssuePolicy(Policy):
         super().__init__()
         self.stale_days = self.config.get('stale_days')
         self.ignore_lifecycle_label = self.config.get('ignore_lifecycle_label', 'no-lifecycle')
-        self.beginner_friendly_label = self.config.get('beginner-friendly_label', 'beginner-friendly')
+        self.beginner_friendly_label = self.config.get('beginner_friendly_label', 'beginner friendly')
         self.count = 0
         if not self.stale_days:
             self.stale_days = 45
