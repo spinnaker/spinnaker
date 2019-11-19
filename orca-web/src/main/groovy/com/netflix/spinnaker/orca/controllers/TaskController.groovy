@@ -537,7 +537,7 @@ class TaskController {
     )
     return [result: evaluated?.expression, detail: evaluated?.expressionEvaluationSummary]
   }
-  
+
   /**
    * Adds trigger and execution to stage context so that expression evaluation can be tested.
    * This is not great, because it's brittle, but it's very useful to be able to test expressions.
@@ -685,7 +685,7 @@ class TaskController {
     pipelineExecutions.each { pipelineExecution ->
       clearTriggerStages(pipelineExecution.trigger.other) // remove from the "other" field - that is what Jackson works against
       pipelineExecution.getStages().each { stage ->
-        if (stage.context?.group) {
+        if (stage.context?.containsKey("group")) {
           // TODO: consider making "group" a top-level field on the Stage model
           // for now, retain group in the context, as it is needed for collapsing templated pipelines in the UI
           stage.context = [ group: stage.context.group ]
