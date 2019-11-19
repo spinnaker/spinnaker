@@ -51,6 +51,7 @@ class SqlAgentSchedulerConfiguration {
       nodeStatusProvider = nodeStatusProvider,
       dynamicConfigService = dynamicConfigService,
       enabledAgentPattern = sqlAgentProperties.enabledPattern,
+      disabledAgentsConfig = sqlAgentProperties.disabledAgents,
       tableNamespace = tableNamespace,
       agentLockAcquisitionIntervalSeconds = sqlAgentProperties.agentLockAcquisitionIntervalSeconds
     )

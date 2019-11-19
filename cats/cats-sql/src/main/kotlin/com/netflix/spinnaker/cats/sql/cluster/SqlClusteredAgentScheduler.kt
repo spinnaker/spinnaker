@@ -57,6 +57,7 @@ class SqlClusteredAgentScheduler(
   private val nodeStatusProvider: NodeStatusProvider,
   private val dynamicConfigService: DynamicConfigService,
   enabledAgentPattern: String,
+  private val disabledAgentsConfig: List<String>,
   agentLockAcquisitionIntervalSeconds: Long? = null,
   private val tableNamespace: String? = null,
   private val agentExecutionPool: ExecutorService = Executors.newCachedThreadPool(
@@ -161,9 +162,16 @@ class SqlClusteredAgentScheduler(
       return emptyMap()
     }
 
+    val disabledAgents = dynamicConfigService.getConfig(
+      String::class.java,
+      "sql.agent.disabled-agents",
+      disabledAgentsConfig.joinToString(",")
+    ).split(",").map { it.trim() }
+
     val candidateAgentLocks = agents
       .filter { !activeAgents.containsKey(it.key) }
       .filter { enabledAgents.matcher(it.key).matches() }
+      .filterNot { disabledAgents.contains(it.key) }
       .toMutableMap()
 
     withPool(POOL_NAME) {
