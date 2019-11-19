@@ -18,7 +18,6 @@ package com.netflix.spinnaker.halyard.config.model.v1.node;
 
 import static com.netflix.spinnaker.halyard.config.model.v1.node.NodeDiff.ChangeType.*;
 import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,7 +31,6 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -414,115 +412,37 @@ public abstract class Node implements Validatable {
     return result;
   }
 
-  private void swapLocalFilePrefixes(String to, String from) {
-    Consumer<Node> fileFinder =
-        n ->
-            n.localFiles()
-                .forEach(
-                    f -> {
-                      try {
-                        f.setAccessible(true);
-                        String fPath = (String) f.get(n);
-                        if (fPath == null) {
-                          return;
-                        }
-
-                        if (fPath.startsWith(to)) {
-                          log.info(
-                              "File " + f.getName() + " was already in correct format " + fPath);
-                          return;
-                        }
-
-                        if (!fPath.startsWith(from)) {
-                          throw new HalException(
-                              FATAL,
-                              "Local file: "
-                                  + fPath
-                                  + " has incorrect prefix - must match "
-                                  + from);
-                        }
-
-                        fPath = to + fPath.substring(from.length());
-                        f.set(n, fPath);
-                      } catch (IllegalAccessException e) {
-                        throw new RuntimeException(
-                            "Failed to get local files for node " + n.getNodeName(), e);
-                      } finally {
-                        f.setAccessible(false);
-                      }
-                    });
-
-    recursiveConsume(fileFinder);
+  public String getStringFieldValue(Field f) {
+    try {
+      f.setAccessible(true);
+      String value = (String) f.get(this);
+      if (StringUtils.isNotEmpty(value)) {
+        return value;
+      }
+      // if no value in field, try using getter
+      try {
+        return (String)
+            this.getClass().getMethod("get" + StringUtils.capitalize(f.getName())).invoke(this);
+      } catch (NoSuchMethodException | InvocationTargetException ignored) {
+        return null;
+      }
+    } catch (IllegalAccessException e) {
+      return null;
+    } finally {
+      f.setAccessible(false);
+    }
   }
 
-  public void makeLocalFilesRelative(String halconfigPath) {
-    swapLocalFilePrefixes(LocalFile.RELATIVE_PATH_PLACEHOLDER, halconfigPath);
-  }
-
-  public void makeLocalFilesAbsolute(String halconfigPath) {
-    swapLocalFilePrefixes(halconfigPath, LocalFile.RELATIVE_PATH_PLACEHOLDER);
-  }
-
-  public List<String> backupLocalFiles(String outputPath) {
-    List<String> files = new ArrayList<>();
-
-    Consumer<Node> fileFinder =
-        n ->
-            files.addAll(
-                n.localFiles().stream()
-                    .map(
-                        f -> {
-                          try {
-                            f.setAccessible(true);
-                            String fPath = (String) f.get(n);
-                            if (fPath == null) {
-                              try {
-                                fPath =
-                                    (String)
-                                        n.getClass()
-                                            .getMethod("get" + StringUtils.capitalize(f.getName()))
-                                            .invoke(n);
-                              } catch (NoSuchMethodException | InvocationTargetException ignored) {
-                              }
-                            }
-
-                            if (fPath == null) {
-                              return null;
-                            }
-
-                            File fFile = new File(fPath);
-                            String fName = fFile.getName().replaceAll("[^-._a-zA-Z0-9]", "-");
-
-                            // Hash the path to uniquely flatten all files into the output directory
-                            Path newName =
-                                Paths.get(outputPath, Math.abs(fPath.hashCode()) + "-" + fName);
-                            File parent = newName.toFile().getParentFile();
-                            if (!parent.exists()) {
-                              parent.mkdirs();
-                            } else if (fFile.getParent() != null
-                                && fFile.getParent().equals(parent.toString())) {
-                              // Don't move paths that are already in the right folder
-                              return fPath;
-                            }
-                            Files.copy(Paths.get(fPath), newName, REPLACE_EXISTING);
-
-                            f.set(n, newName.toString());
-                            return newName.toString();
-                          } catch (IllegalAccessException e) {
-                            throw new RuntimeException(
-                                "Failed to get local files for node " + n.getNodeName(), e);
-                          } catch (IOException e) {
-                            throw new HalException(
-                                FATAL, "Failed to backup user file: " + e.getMessage(), e);
-                          } finally {
-                            f.setAccessible(false);
-                          }
-                        })
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList()));
-    recursiveConsume(fileFinder);
-
-    return files;
+  public void setStringFieldValue(Field f, String value) {
+    try {
+      f.setAccessible(true);
+      f.set(this, value);
+    } catch (IllegalAccessException e) {
+      throw new HalException(
+          FATAL, String.format("Unable to set value %s to field %s", value, f.getName()));
+    } finally {
+      f.setAccessible(false);
+    }
   }
 
   public <T> T cloneNode(Class<T> tClass) {

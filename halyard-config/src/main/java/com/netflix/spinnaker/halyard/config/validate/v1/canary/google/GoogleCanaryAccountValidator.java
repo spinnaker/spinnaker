@@ -27,6 +27,7 @@ import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.secrets.v1.SecretSessionManager;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
+import java.nio.file.Path;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
@@ -69,7 +70,7 @@ public class GoogleCanaryAccountValidator extends CanaryAccountValidator<GoogleC
       return;
     }
 
-    String jsonPath = n.getJsonPath();
+    Path jsonPath = validatingFileDecryptPath(n.getJsonPath());
 
     try {
       StorageService storageService =
@@ -78,7 +79,7 @@ public class GoogleCanaryAccountValidator extends CanaryAccountValidator<GoogleC
               n.getBucketLocation(),
               n.getRootFolder(),
               n.getProject(),
-              jsonPath != null ? secretSessionManager.decryptAsFile(jsonPath) : "",
+              jsonPath != null ? jsonPath.toString() : "",
               "halyard",
               connectTimeoutSec,
               readTimeoutSec,

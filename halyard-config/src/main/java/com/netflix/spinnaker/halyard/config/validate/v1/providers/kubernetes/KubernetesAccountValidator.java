@@ -41,6 +41,7 @@ import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.internal.KubeConfigUtils;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -259,9 +260,10 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
     }
 
     if (smoketest) {
+      Path kubeconfigPath = validatingFileDecryptPath(account.getKubeconfigFile());
       Config config =
           KubernetesConfigParser.parse(
-              secretSessionManager.decryptAsFile(account.getKubeconfigFile()),
+              kubeconfigPath != null ? kubeconfigPath.toString() : null,
               context,
               cluster,
               user,

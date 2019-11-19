@@ -26,6 +26,7 @@ import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
 import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -120,6 +121,7 @@ public class DockerRegistryAccountValidator extends Validator<DockerRegistryAcco
 
     DockerRegistryNamedAccountCredentials credentials;
     try {
+      Path passwordFilePath = validatingFileDecryptPath(n.getPasswordFile());
       credentials =
           (new DockerRegistryNamedAccountCredentials.Builder())
               .accountName(n.getName())
@@ -127,7 +129,7 @@ public class DockerRegistryAccountValidator extends Validator<DockerRegistryAcco
               .email(n.getEmail())
               .password(secretSessionManager.decrypt(n.getPassword()))
               .passwordCommand(n.getPasswordCommand())
-              .passwordFile(secretSessionManager.decryptAsFile(n.getPasswordFile()))
+              .passwordFile(passwordFilePath != null ? passwordFilePath.toString() : null)
               .dockerconfigFile(n.getDockerconfigFile())
               .username(n.getUsername())
               .clientTimeoutMillis(n.getClientTimeoutMillis())

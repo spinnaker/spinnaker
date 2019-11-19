@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.halyard.backup.services.v1.BackupService;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructure;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
@@ -40,6 +41,8 @@ public abstract class ProfileFactory {
   @Autowired private Yaml yamlParser;
 
   @Autowired protected SecretSessionManager secretSessionManager;
+
+  @Autowired private BackupService backupService;
 
   protected String getMinimumSecretDecryptionVersion(String deploymentName) {
     return null;
@@ -116,8 +119,8 @@ public abstract class ProfileFactory {
    * @return the list of files required by the node to function.
    */
   protected List<String> backupRequiredFiles(Node node, String deploymentName) {
-    return node.backupLocalFiles(
-        halconfigDirectoryStructure.getStagingDependenciesPath(deploymentName).toString());
+    return backupService.backupLocalFiles(
+        node, halconfigDirectoryStructure.getStagingDependenciesPath(deploymentName).toString());
   }
 
   protected String yamlToString(String deploymentName, Profile profile, Object o) {

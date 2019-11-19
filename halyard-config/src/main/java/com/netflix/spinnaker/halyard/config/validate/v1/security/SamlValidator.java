@@ -47,7 +47,7 @@ public class SamlValidator extends Validator<Saml> {
 
     if (StringUtils.isNotEmpty(saml.getMetadataLocal())) {
       try {
-        new File(new URI("file:" + secretSessionManager.decryptAsFile(saml.getMetadataLocal())));
+        new File(new URI("file:" + validatingFileDecryptPath(saml.getMetadataLocal())));
       } catch (Exception f) {
         p.addProblem(Problem.Severity.ERROR, f.getMessage());
       }

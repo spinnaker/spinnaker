@@ -24,6 +24,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.GcsPersis
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
+import java.nio.file.Path;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
@@ -45,7 +46,7 @@ public class GCSValidator extends Validator<GcsPersistentStore> {
 
   @Override
   public void validate(ConfigProblemSetBuilder ps, GcsPersistentStore n) {
-    String jsonPath = n.getJsonPath();
+    Path jsonPath = validatingFileDecryptPath(n.getJsonPath());
     try {
       StorageService storageService =
           new GcsStorageService(
@@ -53,7 +54,7 @@ public class GCSValidator extends Validator<GcsPersistentStore> {
               n.getBucketLocation(),
               n.getRootFolder(),
               n.getProject(),
-              jsonPath != null ? secretSessionManager.decryptAsFile(jsonPath) : "",
+              jsonPath != null ? jsonPath.toString() : "",
               "halyard",
               connectTimeoutSec,
               readTimeoutSec,

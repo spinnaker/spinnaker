@@ -25,6 +25,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.appengine.AppengineAccount;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
+import java.nio.file.Path;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -65,7 +66,11 @@ public class AppengineAccountValidator extends Validator<AppengineAccount> {
             "SSH private key filepath supplied without SSH private key passphrase.");
       }
     } else if (hasSshPrivateKeyPassphrase && hasSshPrivateKeyFilePath) {
-      String sshPrivateKey = validatingFileDecrypt(p, account.getSshPrivateKeyFilePath());
+      Path sshPrivateKeyFilePath = validatingFileDecryptPath(account.getSshPrivateKeyFilePath());
+      if (sshPrivateKeyFilePath == null) {
+        return;
+      }
+      String sshPrivateKey = validatingFileDecrypt(p, sshPrivateKeyFilePath.toString());
       if (sshPrivateKey == null) {
         return;
       } else if (sshPrivateKey.isEmpty()) {
@@ -74,10 +79,7 @@ public class AppengineAccountValidator extends Validator<AppengineAccount> {
         try {
           // Assumes that the public key is sitting next to the private key with the extension
           // ".pub".
-          KeyPair keyPair =
-              KeyPair.load(
-                  new JSch(),
-                  secretSessionManager.decryptAsFile(account.getSshPrivateKeyFilePath()));
+          KeyPair keyPair = KeyPair.load(new JSch(), sshPrivateKeyFilePath.toString());
           boolean decrypted =
               keyPair.decrypt(secretSessionManager.decrypt(account.getSshPrivateKeyPassphrase()));
           if (!decrypted) {

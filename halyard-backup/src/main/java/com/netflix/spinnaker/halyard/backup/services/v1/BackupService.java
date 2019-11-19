@@ -17,11 +17,15 @@
 
 package com.netflix.spinnaker.halyard.backup.services.v1;
 
+import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructure;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
+import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
+import com.netflix.spinnaker.halyard.config.services.v1.FileService;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import java.io.BufferedOutputStream;
@@ -33,9 +37,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Objects;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
@@ -44,6 +48,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -54,23 +59,40 @@ public class BackupService {
 
   @Autowired HalconfigDirectoryStructure directoryStructure;
 
+  @Autowired private FileService fileService;
+
   static String[] omitPaths = {"service-logs"};
 
   public void restore(String backupTar) {
     String halconfigDir = directoryStructure.getHalconfigDirectory();
     untarHalconfig(halconfigDir, backupTar);
 
+    // This is only needed to support old backups where file paths were prefixed with
+    // {%halconfig-dir%}
     Halconfig halconfig = halconfigParser.getHalconfig();
-    halconfig.makeLocalFilesAbsolute(halconfigDir);
+    removeHalconfigDirPrefix(halconfig);
     halconfigParser.saveConfig();
+  }
+
+  /**
+   * Removes {@link
+   * com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile#RELATIVE_PATH_PLACEHOLDER}
+   * instances from a backup. This is held for backwards compatibility reading old backups, new
+   * backups don't use the prefix and relative file paths are always resolved to hal config home.
+   *
+   * @param halconfig instance from backup.
+   */
+  @Deprecated
+  private void removeHalconfigDirPrefix(Halconfig halconfig) {
+    makeAbsoluteFilesRelative(halconfig, LocalFile.RELATIVE_PATH_PLACEHOLDER);
   }
 
   public String create() {
     String halconfigDir = directoryStructure.getHalconfigDirectory();
     halconfigParser.backupConfig();
     Halconfig halconfig = halconfigParser.getHalconfig();
-    halconfig.backupLocalFiles(directoryStructure.getBackupConfigDependenciesPath().toString());
-    halconfig.makeLocalFilesRelative(halconfigDir);
+    backupLocalFiles(halconfig, directoryStructure.getBackupConfigDependenciesPath().toString());
+    makeAbsoluteFilesRelative(halconfig, halconfigDir);
     halconfigParser.saveConfig();
 
     SimpleDateFormat dateFormatter =
@@ -210,5 +232,75 @@ public class BackupService {
               + e.getMessage(),
           e);
     }
+  }
+
+  public List<String> backupLocalFiles(Node node, String outputPath) {
+    List<String> files = new ArrayList<>();
+
+    Consumer<Node> fileFinder =
+        n ->
+            files.addAll(
+                n.localFiles().stream()
+                    .map(
+                        f -> {
+                          try {
+                            Path fPath = fileService.getLocalFilePath(n.getStringFieldValue(f));
+                            if (fPath == null) {
+                              return null;
+                            }
+                            File fFile = fPath.toFile();
+                            String fName = fFile.getName().replaceAll("[^-._a-zA-Z0-9]", "-");
+
+                            // Hash the path to uniquely flatten all files into the output directory
+                            Path newName =
+                                Paths.get(outputPath, Math.abs(fPath.hashCode()) + "-" + fName);
+                            File parent = newName.toFile().getParentFile();
+                            if (!parent.exists()) {
+                              parent.mkdirs();
+                            } else if (fFile.getParent() != null
+                                && fFile.getParent().equals(parent.toString())) {
+                              // Don't move paths that are already in the right folder
+                              return fPath.toString();
+                            }
+                            Files.copy(fPath, newName, REPLACE_EXISTING);
+
+                            n.setStringFieldValue(f, newName.toString());
+                            return newName.toString();
+                          } catch (IOException e) {
+                            throw new HalException(
+                                FATAL, "Failed to backup user file: " + e.getMessage(), e);
+                          }
+                        })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList()));
+    node.recursiveConsume(fileFinder);
+
+    return files;
+  }
+
+  /**
+   * Changes all file paths of Halconfig and beginning with "root" from being absolute, to a
+   * relative path by removing "root".
+   *
+   * @param halconfig instance to transform.
+   * @param root prefix to remove from the local path.
+   */
+  private void makeAbsoluteFilesRelative(Halconfig halconfig, String root) {
+    halconfig.recursiveConsume(
+        n ->
+            n.localFiles()
+                .forEach(
+                    field -> {
+                      String fPath = n.getStringFieldValue(field);
+                      if (StringUtils.isEmpty(fPath)) {
+                        return;
+                      }
+                      Path localPath = Paths.get(fPath);
+                      if (localPath.isAbsolute() || localPath.startsWith(root)) {
+                        Path rootPath = Paths.get(root);
+                        Path relativePath = rootPath.relativize(localPath);
+                        n.setStringFieldValue(field, relativePath.toString());
+                      }
+                    }));
   }
 }

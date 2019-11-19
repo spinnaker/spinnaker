@@ -16,5 +16,4 @@ dependencies {
 
   implementation project(':halyard-config')
   implementation project(':halyard-core')
-  implementation project(':halyard-deploy')
 }

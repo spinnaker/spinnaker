@@ -28,5 +28,10 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface LocalFile {
-  String RELATIVE_PATH_PLACEHOLDER = "{%halconfig-dir%}";
+  /**
+   * File path prefix used in old backup tarballs for local file references. Relative file paths are
+   * now supported and resolved to hal config home automatically, so this prefix is not needed
+   * anymore.
+   */
+  @Deprecated String RELATIVE_PATH_PLACEHOLDER = "{%halconfig-dir%}";
 }

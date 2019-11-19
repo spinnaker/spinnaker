@@ -26,6 +26,7 @@ dependencies {
 
   implementation project(':halyard-config')
   implementation project(':halyard-core')
+  implementation project(':halyard-backup')
 
   testImplementation 'org.spockframework:spock-core:1.3-groovy-2.5'
   testImplementation 'org.springframework:spring-test'
