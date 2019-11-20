@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.netflix.spinnaker.keel.constraints.AllowedTimesConstraintEvaluator
 import java.lang.Exception
 import java.time.DateTimeException
+import java.time.Duration
 import java.time.ZoneId
 import java.time.zone.ZoneRulesException
 
@@ -15,9 +16,16 @@ import java.time.zone.ZoneRulesException
   property = "type")
 @JsonSubTypes(
   Type(value = DependsOnConstraint::class, name = "depends-on"),
-  Type(value = TimeWindowConstraint::class, name = "allowed-times")
+  Type(value = TimeWindowConstraint::class, name = "allowed-times"),
+  Type(value = ManualJudgementConstraint::class, name = "manual-judgement")
 )
-sealed class Constraint(val type: String)
+sealed class Constraint(
+  open val type: String
+)
+
+sealed class StatefulConstraint(
+  override val type: String
+) : Constraint(type)
 
 /**
  * A constraint that requires that an artifact has been successfully promoted to a previous
@@ -51,6 +59,11 @@ data class TimeWindowConstraint(
     }
   }
 }
+
+data class ManualJudgementConstraint(
+  // TODO: process timeouts
+  val timeout: Duration = Duration.ofDays(7)
+) : StatefulConstraint("manual-judgement")
 
 data class TimeWindow(
   val days: String? = null,

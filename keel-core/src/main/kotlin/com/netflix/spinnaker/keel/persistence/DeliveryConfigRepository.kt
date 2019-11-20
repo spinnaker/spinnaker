@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.persistence
 
+import com.netflix.spinnaker.keel.api.ConstraintState
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.ResourceId
@@ -15,6 +16,21 @@ interface DeliveryConfigRepository : PeriodicallyCheckedRepository<DeliveryConfi
   fun deliveryConfigFor(resourceId: ResourceId): DeliveryConfig?
 
   fun deleteByApplication(application: String): Int
+
+  fun storeConstraintState(state: ConstraintState)
+
+  fun getConstraintState(
+    deliveryConfigName: String,
+    environmentName: String,
+    artifactVersion: String,
+    type: String
+  ): ConstraintState?
+
+  fun constraintStateFor(
+    deliveryConfigName: String,
+    environmentName: String,
+    limit: Int = 10
+  ): List<ConstraintState>
 }
 
 sealed class NoSuchDeliveryConfigException(message: String) : RuntimeException(message)

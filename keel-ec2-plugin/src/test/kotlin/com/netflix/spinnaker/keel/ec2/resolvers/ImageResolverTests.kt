@@ -144,7 +144,7 @@ internal class ImageResolverTests : JUnit5Minutests {
       "fnord",
       setOf(artifact),
       setOf(
-        Environment("test", setOf(resource))
+        Environment(name = "test", resources = setOf(resource))
       )
     )
 

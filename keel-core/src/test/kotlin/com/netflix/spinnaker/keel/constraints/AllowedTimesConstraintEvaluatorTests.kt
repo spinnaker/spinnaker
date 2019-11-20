@@ -74,7 +74,7 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
     }
 
     test("canPromote when in-window") {
-      expectThat(subject.canPromote(artifact, "1.1", manifest, environment.name))
+      expectThat(subject.canPromote(artifact, "1.1", manifest, environment))
         .isTrue()
     }
 
@@ -100,7 +100,7 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
       }
 
       test("canPromote due to second window") {
-        expectThat(subject.canPromote(artifact, "1.1", manifest, environment.name))
+        expectThat(subject.canPromote(artifact, "1.1", manifest, environment))
           .isTrue()
       }
     }
@@ -122,7 +122,7 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
       }
 
       test("can't promote, out of window") {
-        expectThat(subject.canPromote(artifact, "1.1", manifest, environment.name))
+        expectThat(subject.canPromote(artifact, "1.1", manifest, environment))
           .isFalse()
       }
     }
@@ -143,7 +143,7 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
       }
 
       test("can't promote, not a weekday") {
-        expectThat(subject.canPromote(artifact, "1.1", manifest, environment.name))
+        expectThat(subject.canPromote(artifact, "1.1", manifest, environment))
           .isFalse()
       }
     }
@@ -164,7 +164,7 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
       }
 
       test("can't promote, not a weekday") {
-        expectThat(subject.canPromote(artifact, "1.1", manifest, environment.name))
+        expectThat(subject.canPromote(artifact, "1.1", manifest, environment))
           .isTrue()
       }
     }
@@ -186,7 +186,7 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
       }
 
       test("in window with short day format") {
-        expectThat(subject.canPromote(artifact, "1.1", manifest, environment.name))
+        expectThat(subject.canPromote(artifact, "1.1", manifest, environment))
           .isTrue()
       }
     }
@@ -207,7 +207,7 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
       }
 
       test("11-16 is outside of allowed times when defaulting tz to UTC") {
-        expectThat(subject.canPromote(artifact, "1.1", manifest, environment.name))
+        expectThat(subject.canPromote(artifact, "1.1", manifest, environment))
           .isFalse()
       }
     }
@@ -229,7 +229,7 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
       }
 
       test("in window due to day and hour wrap-around") {
-        expectThat(subject.canPromote(artifact, "1.1", manifest, environment.name))
+        expectThat(subject.canPromote(artifact, "1.1", manifest, environment))
           .isTrue()
       }
     }

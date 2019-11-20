@@ -1,12 +1,16 @@
 package com.netflix.spinnaker.keel.actuation
 
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
+import com.netflix.spinnaker.keel.api.ConstraintState
+import com.netflix.spinnaker.keel.api.ConstraintStatus
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.constraints.ConstraintEvaluator
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
+import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.telemetry.ArtifactVersionApproved
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -26,13 +30,18 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
     )
   ) {
     val artifactRepository = mockk<ArtifactRepository>(relaxUnitFun = true)
-    val constraintEvaluator = mockk<ConstraintEvaluator<*>>() {
+    // TODO: add stateful constraint specific tests
+    val deliveryConfigRepository = mockk<DeliveryConfigRepository>(relaxUnitFun = true)
+    val statelessEvaluator = mockk<ConstraintEvaluator<*>>() {
       every { constraintType } returns DependsOnConstraint::class.java
+    }
+    val statefulEvaluator = mockk<ConstraintEvaluator<*>>() {
+      every { constraintType } returns ManualJudgementConstraint::class.java
     }
     val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
     val subject = EnvironmentPromotionChecker(
       artifactRepository,
-      listOf(constraintEvaluator),
+      listOf(statelessEvaluator, statefulEvaluator),
       publisher
     )
 
@@ -128,10 +137,9 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
         deriveFixture {
           copy(environment = Environment(
             name = "staging",
-            constraints = setOf(DependsOnConstraint("test"))
+            constraints = setOf(DependsOnConstraint("test"), ManualJudgementConstraint())
           ))
         }
-
         before {
           // TODO: sucks that this is necessary but when using deriveFixture you get a different mockk
           every {
@@ -142,10 +150,36 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
             artifactRepository.approveVersionFor(deliveryConfig, artifact, "1.2", environment.name)
           } returns true
 
-          every { constraintEvaluator.canPromote(artifact, "2.0", deliveryConfig, environment.name) } returns false
-          every { constraintEvaluator.canPromote(artifact, "1.2", deliveryConfig, environment.name) } returns true
-          every { constraintEvaluator.canPromote(artifact, "1.1", deliveryConfig, environment.name) } returns true
-          every { constraintEvaluator.canPromote(artifact, "1.0", deliveryConfig, environment.name) } returns true
+          every {
+            artifactRepository.approveVersionFor(deliveryConfig, artifact, "1.1", environment.name)
+          } returns true
+
+          every {
+            deliveryConfigRepository.getConstraintState(any(), any(), "2.0", "manual-judgement")
+          } returns ConstraintState(
+            deliveryConfig.name,
+            environment.name,
+            "2.0",
+            "manual-judgement",
+            ConstraintStatus.PENDING
+          )
+
+          every {
+            deliveryConfigRepository.getConstraintState(any(), any(), "1.2", "manual-judgement")
+          } returns ConstraintState(
+            deliveryConfig.name,
+            environment.name,
+            "1.2",
+            "manual-judgement",
+            ConstraintStatus.PENDING
+          )
+
+          every { statelessEvaluator.canPromote(artifact, "2.0", deliveryConfig, environment) } returns false
+          every { statelessEvaluator.canPromote(artifact, "1.2", deliveryConfig, environment) } returns true
+          every { statelessEvaluator.canPromote(artifact, "1.1", deliveryConfig, environment) } returns true
+          every { statelessEvaluator.canPromote(artifact, "1.0", deliveryConfig, environment) } returns true
+          every { statefulEvaluator.canPromote(artifact, "2.0", deliveryConfig, environment) } returns false
+          every { statefulEvaluator.canPromote(artifact, "1.2", deliveryConfig, environment) } returns true
 
           runBlocking {
             subject.checkEnvironments(deliveryConfig)
@@ -155,6 +189,14 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
         test("the environment is assigned the latest version of an artifact that passes the constraint") {
           verify {
             artifactRepository.approveVersionFor(deliveryConfig, artifact, "1.2", environment.name)
+            statefulEvaluator.canPromote(artifact, "1.2", deliveryConfig, environment)
+          }
+
+          /**
+           * Verify that stateful constraints are not checked if a stateless constraint blocks promotion
+           */
+          verify(inverse = true) {
+            statefulEvaluator.canPromote(artifact, "2.0", deliveryConfig, environment)
           }
         }
 
@@ -186,7 +228,7 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
             artifactRepository.versions(artifact)
           } returns listOf("1.0")
 
-          every { constraintEvaluator.canPromote(artifact, "1.0", deliveryConfig, environment.name) } returns false
+          every { statelessEvaluator.canPromote(artifact, "1.0", deliveryConfig, environment) } returns false
         }
 
         test("no exception is thrown") {

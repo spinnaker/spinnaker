@@ -75,3 +75,21 @@ databaseChangeLog:
             columns:
               - column:
                   name: judged_at
+
+  - changeSet:
+      id: mysql-environment-artifact-constraint-status-not-enum
+      author: asher
+      changes:
+        - sql:
+            dbms: mysql
+            sql: ALTER TABLE `environment_artifact_constraint` MODIFY COLUMN `status` VARCHAR(64)
+
+  - changeSet:
+      id: mysql-environment-artifact-constraint-attributes
+      author: asher
+      changes:
+        - renameColumn:
+            tableName: environment_artifact_constraint
+            oldColumnName: json
+            newColumnName: attributes
+            columnDataType: longtext

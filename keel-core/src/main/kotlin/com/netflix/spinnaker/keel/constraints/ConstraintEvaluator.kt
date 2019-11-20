@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.constraints
 import com.netflix.spinnaker.keel.api.Constraint
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.Environment
 
 interface ConstraintEvaluator<T : Constraint> {
 
@@ -31,6 +32,6 @@ interface ConstraintEvaluator<T : Constraint> {
     artifact: DeliveryArtifact,
     version: String,
     deliveryConfig: DeliveryConfig,
-    targetEnvironment: String
+    targetEnvironment: Environment
   ): Boolean
 }

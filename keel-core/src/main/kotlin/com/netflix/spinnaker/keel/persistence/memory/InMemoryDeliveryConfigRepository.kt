@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.persistence.memory
 
+import com.netflix.spinnaker.keel.api.ConstraintState
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.ResourceId
@@ -17,12 +18,13 @@ class InMemoryDeliveryConfigRepository(
 ) : DeliveryConfigRepository {
 
   private val configs = mutableMapOf<String, DeliveryConfig>()
+  private val constraints = mutableMapOf<String, ConstraintState>()
   private val lastCheckTimes = mutableMapOf<String, Instant>()
 
   override fun deleteByApplication(application: String): Int {
     val size = configs.count { it.value.application == application }
 
-      configs
+    configs
       .values
       .filter { it.application == application }
       .map { it.application }
@@ -56,6 +58,30 @@ class InMemoryDeliveryConfigRepository(
       .values
       .firstOrNull { it.resourceIds.contains(resourceId) }
 
+  override fun storeConstraintState(state: ConstraintState) {
+    constraints["${state.deliveryConfigName}:${state.environmentName}:${state.artifactVersion}:" +
+      state.constraintType] = state
+  }
+
+  override fun getConstraintState(
+    deliveryConfigName: String,
+    environmentName: String,
+    artifactVersion: String,
+    type: String
+  ): ConstraintState? =
+    constraints["$deliveryConfigName:$environmentName:$artifactVersion:$type"]
+
+  override fun constraintStateFor(
+    deliveryConfigName: String,
+    environmentName: String,
+    limit: Int
+  ): List<ConstraintState> =
+    constraints
+      .filter { it.key.startsWith("$deliveryConfigName:$environmentName:") }
+      .map { it.value }
+      .sortedByDescending { it.createdAt }
+      .take(limit)
+
   override fun itemsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<DeliveryConfig> {
     val cutoff = clock.instant().minus(minTimeSinceLastCheck)
     return lastCheckTimes
@@ -72,6 +98,7 @@ class InMemoryDeliveryConfigRepository(
 
   fun dropAll() {
     configs.clear()
+    constraints.clear()
   }
 
   private val Environment.resourceIds: Iterable<ResourceId>

@@ -49,14 +49,14 @@ internal class DependsOnConstraintEvaluatorTests : JUnit5Minutests {
 
     test("an invalid environment name causes an exception") {
       expectCatching {
-        subject.canPromote(artifact, "1.1", manifest, "foo")
+        subject.canPromote(artifact, "1.1", manifest, Environment(name = "foo"))
       }
         .failed()
         .isA<IllegalArgumentException>()
     }
 
     test("an environment without the constraint throws an exception (don't pass it to this method)") {
-      expectCatching { subject.canPromote(artifact, "1.1", manifest, previousEnvironment.name) }
+      expectCatching { subject.canPromote(artifact, "1.1", manifest, previousEnvironment) }
         .failed()
     }
 
@@ -75,7 +75,7 @@ internal class DependsOnConstraintEvaluatorTests : JUnit5Minutests {
       }
 
       test("promotion is vetoed") {
-        expectThat(subject.canPromote(artifact, "1.1", manifest, constrainedEnvironment.name))
+        expectThat(subject.canPromote(artifact, "1.1", manifest, constrainedEnvironment))
           .isFalse()
       }
     }
@@ -88,7 +88,7 @@ internal class DependsOnConstraintEvaluatorTests : JUnit5Minutests {
       }
 
       test("promotion is allowed") {
-        expectThat(subject.canPromote(artifact, "1.1", manifest, constrainedEnvironment.name))
+        expectThat(subject.canPromote(artifact, "1.1", manifest, constrainedEnvironment))
           .isTrue()
       }
     }

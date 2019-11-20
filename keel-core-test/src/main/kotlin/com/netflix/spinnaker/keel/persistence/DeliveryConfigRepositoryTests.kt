@@ -2,10 +2,13 @@ package com.netflix.spinnaker.keel.persistence
 
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
+import com.netflix.spinnaker.keel.api.ConstraintState
+import com.netflix.spinnaker.keel.api.ConstraintStatus
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.id
@@ -16,6 +19,7 @@ import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectCatching
+import strikt.api.expectThat
 import strikt.assertions.failed
 import strikt.assertions.hasSize
 import strikt.assertions.isA
@@ -49,7 +53,7 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
         }
       }
 
-    private val repository: T = deliveryConfigRepositoryProvider(resourceTypeIdentifier)
+    internal val repository: T = deliveryConfigRepositoryProvider(resourceTypeIdentifier)
     private val resourceRepository: R = resourceRepositoryProvider()
     private val artifactRepository: A = artifactRepositoryProvider()
 
@@ -74,6 +78,22 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
     fun storeArtifacts() {
       deliveryConfig.artifacts.forEach {
         artifactRepository.register(it)
+      }
+    }
+
+    fun storeJudgements() {
+      deliveryConfig.artifacts.forEach { art ->
+        deliveryConfig.environments.forEach { env ->
+          repository.storeConstraintState(
+            ConstraintState(
+              deliveryConfigName = deliveryConfig.name,
+              environmentName = env.name,
+              artifactVersion = "${art.name}-1.0.0",
+              constraintType = "manual-judgement",
+              status = ConstraintStatus.PENDING
+            )
+          )
+        }
       }
     }
 
@@ -142,7 +162,8 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
                 constraints = setOf(
                   DependsOnConstraint(
                     environment = "test"
-                  )
+                  ),
+                  ManualJudgementConstraint()
                 ),
                 resources = setOf(
                   resource(kind = "cluster"),
@@ -159,6 +180,7 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
           storeArtifacts()
           storeResources()
           store()
+          storeJudgements()
         }
 
         test("the config can be retrieved by name") {
@@ -181,6 +203,28 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
             .succeeded()
             .get { environments }
             .isEqualTo(deliveryConfig.environments)
+        }
+
+        test("constraint states can be retrieved and updated") {
+          val environment = deliveryConfig.environments.first { it.name == "staging" }
+          val recentConstraintState = repository.constraintStateFor(deliveryConfig.name, environment.name)
+
+          expectThat(recentConstraintState)
+            .hasSize(1)
+
+          expectThat(recentConstraintState.first().status)
+            .isEqualTo(ConstraintStatus.PENDING)
+
+          val constraint = recentConstraintState
+            .first()
+            .copy(status = ConstraintStatus.PASS)
+          repository.storeConstraintState(constraint)
+          val updatedConstraintState = repository.constraintStateFor(deliveryConfig.name, environment.name)
+
+          expectThat(updatedConstraintState)
+            .hasSize(1)
+          expectThat(updatedConstraintState.first().status)
+            .isEqualTo(ConstraintStatus.PASS)
         }
 
         test("can retrieve the environment for the resources") {
@@ -226,7 +270,7 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
 
         test("delete application data successfully") {
           getByName()
-              .failed()
+            .failed()
         }
       }
     }

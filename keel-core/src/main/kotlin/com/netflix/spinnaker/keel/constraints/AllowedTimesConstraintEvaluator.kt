@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.constraints
 
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.TimeWindowConstraint
 import com.netflix.spinnaker.keel.constraints.ConstraintEvaluator.Companion.getConstraintForEnvironment
 import com.netflix.spinnaker.keel.exceptions.InvalidConstraintException
@@ -86,9 +87,9 @@ class AllowedTimesConstraintEvaluator(
     artifact: DeliveryArtifact,
     version: String,
     deliveryConfig: DeliveryConfig,
-    targetEnvironment: String
+    targetEnvironment: Environment
   ): Boolean {
-    val constraint = getConstraintForEnvironment(deliveryConfig, targetEnvironment, constraintType)
+    val constraint = getConstraintForEnvironment(deliveryConfig, targetEnvironment.name, constraintType)
 
     val tz: ZoneId = if (constraint.tz != null) {
       ZoneId.of(constraint.tz)
@@ -101,7 +102,7 @@ class AllowedTimesConstraintEvaluator(
       .atZone(tz)
 
     constraint.windows.forEach {
-      val hours = parseHours(it.hours, deliveryConfig, targetEnvironment)
+      val hours = parseHours(it.hours, deliveryConfig, targetEnvironment.name)
       val hoursMatch = hours.isEmpty() || hours.contains(now.hour)
 
       val today = now.dayOfWeek
@@ -110,7 +111,7 @@ class AllowedTimesConstraintEvaluator(
       val todayShort = now.dayOfWeek
         .getDisplayName(TextStyle.SHORT, Locale.getDefault())
 
-      val days = parseDays(it.days, deliveryConfig, targetEnvironment)
+      val days = parseDays(it.days, deliveryConfig, targetEnvironment.name)
       val daysMatch = days.isEmpty() || days.contains(today) || days.contains(todayShort)
 
       if (hoursMatch && daysMatch) {
@@ -121,7 +122,7 @@ class AllowedTimesConstraintEvaluator(
     return false
   }
 
-  private fun parseHours(hourConfig: String?, deliveryConfig: DeliveryConfig, targetEnvironment: String): Set<Int> {
+  private fun parseHours(hourConfig: String?, deliveryConfig: DeliveryConfig, envName: String): Set<Int> {
     if (hourConfig == null) {
       return emptySet()
     }
@@ -137,14 +138,14 @@ class AllowedTimesConstraintEvaluator(
         else -> throw InvalidConstraintException(
           CONSTRAINT_NAME,
           "Invalid allowed-times constraint ($it) on deliveryConfig: ${deliveryConfig.name}, " +
-            "application: ${deliveryConfig.application}, environment: $targetEnvironment")
+            "application: ${deliveryConfig.application}, environment: $envName")
       }
     }
 
     return hours
   }
 
-  private fun parseDays(dayConfig: String?, deliveryConfig: DeliveryConfig, targetEnvironment: String): Set<String> {
+  private fun parseDays(dayConfig: String?, deliveryConfig: DeliveryConfig, envName: String): Set<String> {
     if (dayConfig == null) {
       return emptySet()
     }
@@ -162,7 +163,7 @@ class AllowedTimesConstraintEvaluator(
         else -> throw InvalidConstraintException(
           CONSTRAINT_NAME,
           "Invalid allowed-times constraint ($it) on deliveryConfig: ${deliveryConfig.name}, " +
-            "application: ${deliveryConfig.application}, environment: $targetEnvironment")
+            "application: ${deliveryConfig.application}, environment: $envName")
       }
     }
 

@@ -1,7 +1,9 @@
 package com.netflix.spinnaker.keel.actuation
 
+import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.StatefulConstraint
 import com.netflix.spinnaker.keel.constraints.ConstraintEvaluator
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.telemetry.ArtifactVersionApproved
@@ -15,7 +17,16 @@ class EnvironmentPromotionChecker(
   private val constraints: List<ConstraintEvaluator<*>>,
   private val publisher: ApplicationEventPublisher
 ) {
+  private val statefulEvaluators: List<ConstraintEvaluator<*>> = constraints
+    .filter { it.constraintType is StatefulConstraint }
+  private val statelessEvaluators = constraints - statefulEvaluators
 
+  /**
+   * TODO (Critical): The EC2 ClusterSpec enables artifact filtering by ArtifactStatus. This is
+   *  currently handled in ImageResolver after artifacts are "approved" for an environment.
+   *  Instead, this needs to happen here or earlier. Otherwise we may deploy canary clusters or
+   *  request manual judgements for artifacts that should never be allowed in a given environemnt.
+   */
   suspend fun checkEnvironments(deliveryConfig: DeliveryConfig) {
     deliveryConfig
       .artifacts
@@ -29,9 +40,13 @@ class EnvironmentPromotionChecker(
               versions.firstOrNull()
             } else {
               versions.firstOrNull { v ->
-                constraints.all { constraintEvaluator ->
-                  !environment.hasSupportedConstraint(constraintEvaluator) || constraintEvaluator.canPromote(artifact, v, deliveryConfig, environment.name)
-                }
+                /**
+                 * Only check stateful evaluators if all stateless evaluators pass. We don't
+                 * want to request judgement or deploy a canary for artifacts that aren't
+                 * deployed to a required environment or outside of an allowed time.
+                 */
+                checkConstraints(statelessEvaluators, artifact, deliveryConfig, v, environment) &&
+                  checkConstraints(statefulEvaluators, artifact, deliveryConfig, v, environment)
               }
             }
 
@@ -65,6 +80,23 @@ class EnvironmentPromotionChecker(
           }
         }
       }
+  }
+
+  private fun checkConstraints(
+    evaluators: List<ConstraintEvaluator<*>>,
+    artifact: DeliveryArtifact,
+    deliveryConfig: DeliveryConfig,
+    version: String,
+    environment: Environment
+  ): Boolean {
+    return if (evaluators.isEmpty()) {
+      true
+    } else {
+      evaluators.all { evaluator ->
+        !environment.hasSupportedConstraint(evaluator) ||
+          evaluator.canPromote(artifact, version, deliveryConfig, environment)
+      }
+    }
   }
 
   private fun Environment.hasSupportedConstraint(constraintEvaluator: ConstraintEvaluator<*>) =

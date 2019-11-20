@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.constraints
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.DependsOnConstraint
+import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.constraints.ConstraintEvaluator.Companion.getConstraintForEnvironment
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import org.springframework.stereotype.Component
@@ -18,9 +19,9 @@ class DependsOnConstraintEvaluator(
     artifact: DeliveryArtifact,
     version: String,
     deliveryConfig: DeliveryConfig,
-    targetEnvironment: String
+    targetEnvironment: Environment
   ): Boolean {
-    val constraint = getConstraintForEnvironment(deliveryConfig, targetEnvironment, constraintType)
+    val constraint = getConstraintForEnvironment(deliveryConfig, targetEnvironment.name, constraintType)
 
     val requiredEnvironment = deliveryConfig
       .environments
