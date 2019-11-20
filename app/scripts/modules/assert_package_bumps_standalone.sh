@@ -4,7 +4,7 @@
 
 PKGJSONCHANGED="Version change detected in package.json"
 ONLYVERSIONCHANGED="Version change must be the only line changed in package.json"
-ONLYPKGJSONCHANGED="package.json (in apps/scripts/modules) must be the only files changed in a pull request with version bumps"
+ONLYPKGJSONCHANGED="package.json (in app/scripts/modules) must be the only files changed in a pull request with version bumps"
 
 echo "TRAVIS_BRANCH=$TRAVIS_BRANCH"
 TARGET_BRANCH=${TRAVIS_BRANCH:-master}
@@ -38,8 +38,8 @@ for PKGJSON in `ls app/scripts/modules/*/package.json` ; do
       echo " [ PASS ] $ONLYVERSIONCHANGED"
     fi
 
-    # checking that the only files changed are apps/scripts/modules/*/package.json
-    OTHER_FILES_CHANGED=`git diff --name-only $TARGET_BRANCH | grep -v "apps/scripts/modules/*/package.json" | wc -l`
+    # checking that the only files changed are app/scripts/modules/*/package.json
+    OTHER_FILES_CHANGED=`git diff --name-only $TARGET_BRANCH | grep -v "app/scripts/modules/.*/package.json" | wc -l`
     if [ $OTHER_FILES_CHANGED -ne 0 ] ; then
       echo " [ FAIL ] $ONLYPKGJSONCHANGED"
       echo ""
