@@ -27,7 +27,7 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerG
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.DetermineTargetServerGroupStage;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroupResolver;
-import com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf.Manifest;
+import com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf.DeploymentManifest;
 import com.netflix.spinnaker.orca.front50.pipeline.PipelineStage;
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy;
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategySupport;
@@ -146,8 +146,8 @@ public class CFRollingRedBlackStrategy implements Strategy, ApplicationContextAw
         throw new IllegalStateException(e);
       }
     }
-    Manifest.Direct directManifestAttributes =
-        objectMapper.convertValue(manifest.get("direct"), Manifest.Direct.class);
+    DeploymentManifest.Direct directManifestAttributes =
+        objectMapper.convertValue(manifest.get("direct"), DeploymentManifest.Direct.class);
 
     if (!stage.getContext().containsKey("savedCapacity")) {
       int instances = directManifestAttributes.getInstances();

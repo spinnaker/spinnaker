@@ -18,9 +18,11 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.clone;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf.Manifest;
+import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestContext;
+import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestEvaluator;
+import com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf.CloudFoundryManifestContext;
+import com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf.DeploymentManifest;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -32,7 +34,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class CloudFoundryManifestArtifactDecorator implements CloneDescriptionDecorator {
   private final ObjectMapper mapper;
-  private final ArtifactResolver artifactResolver;
+  private final ManifestEvaluator manifestEvaluator;
 
   @Override
   public boolean shouldDecorate(Map<String, Object> operation) {
@@ -44,7 +46,20 @@ public class CloudFoundryManifestArtifactDecorator implements CloneDescriptionDe
       Map<String, Object> operation, List<Map<String, Object>> descriptions, Stage stage) {
     CloudFoundryCloneServerGroupOperation op =
         mapper.convertValue(operation, CloudFoundryCloneServerGroupOperation.class);
-
+    DeploymentManifest manifest =
+        mapper.convertValue(stage.getContext().get("manifest"), DeploymentManifest.class);
+    CloudFoundryManifestContext manifestContext =
+        CloudFoundryManifestContext.builder()
+            .source(ManifestContext.Source.Artifact)
+            .manifestArtifactId(manifest.getArtifactId())
+            .manifestArtifact(manifest.getArtifact())
+            .manifestArtifactAccount(manifest.getArtifact().getArtifactAccount())
+            .skipExpressionEvaluation(
+                (Boolean)
+                    Optional.ofNullable(stage.getContext().get("skipExpressionEvaluation"))
+                        .orElse(false))
+            .build();
+    ManifestEvaluator.Result manifestResult = manifestEvaluator.evaluate(stage, manifestContext);
     operation.put(
         "applicationArtifact",
         Artifact.builder()
@@ -53,7 +68,7 @@ public class CloudFoundryManifestArtifactDecorator implements CloneDescriptionDe
             .location(op.getSource().getRegion())
             .name(op.getSource().getAsgName())
             .build());
-    operation.put("manifest", op.getManifest().toArtifact(artifactResolver, stage));
+    operation.put("manifest", manifestResult.getManifests());
     operation.put("credentials", Optional.ofNullable(op.getAccount()).orElse(op.getCredentials()));
     operation.put("region", op.getRegion());
 
@@ -65,7 +80,7 @@ public class CloudFoundryManifestArtifactDecorator implements CloneDescriptionDe
     private String account;
     private String credentials;
     private String region;
-    private Manifest manifest;
+    private DeploymentManifest manifest;
     private Source source;
 
     @Data

@@ -17,18 +17,18 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
+import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestEvaluator;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -60,18 +60,14 @@ class CloudFoundryDeployServiceTaskTest {
     when(katoService.requestOperations(any(), any()))
         .thenReturn(Observable.just(new TaskId("taskid")));
 
-    ArtifactResolver artifactResolver = mock(ArtifactResolver.class);
-    Artifact boundArtifact =
-        Artifact.builder()
-            .reference("g:a:v")
-            .type("maven/file")
-            .artifactAccount("spring-artifactory")
-            .build();
-    when(artifactResolver.getBoundArtifactForStage(any(), isNull(), any()))
-        .thenReturn(boundArtifact);
+    ManifestEvaluator manifestEvaluator = mock(ManifestEvaluator.class);
+    List<Map<Object, Object>> returnedManifests =
+        Collections.singletonList(Collections.singletonMap("serviceNameInstance", "foo"));
+    when(manifestEvaluator.evaluate(any(), any()))
+        .thenReturn(new ManifestEvaluator.Result(returnedManifests, null, null));
 
     CloudFoundryDeployServiceTask task =
-        new CloudFoundryDeployServiceTask(katoService, artifactResolver);
+        new CloudFoundryDeployServiceTask(mapper, katoService, manifestEvaluator);
     Stage stage = new Stage();
     stage.setContext(mapper.readValue(stageJson, Map.class));
     task.execute(stage);
@@ -80,8 +76,7 @@ class CloudFoundryDeployServiceTaskTest {
     verify(katoService).requestOperations(eq("cloudfoundry"), captor.capture());
 
     Map<String, Map> operation = captor.getValue().iterator().next();
-    Map manifest = (Map) operation.get("deployService").get("manifest");
-    Object capturedBoundArtifact = manifest.get("artifact");
-    assertThat(boundArtifact).isEqualTo(mapper.convertValue(capturedBoundArtifact, Artifact.class));
+    List<Map> manifest = (List) operation.get("deployService").get("manifest");
+    assertThat(manifest).isEqualTo(returnedManifests);
   }
 }

@@ -19,30 +19,47 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestContext;
+import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestEvaluator;
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreator;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 class CloudFoundryServerGroupCreator implements ServerGroupCreator {
   private final ObjectMapper mapper;
   private final ArtifactResolver artifactResolver;
-
-  CloudFoundryServerGroupCreator(ObjectMapper mapper, ArtifactResolver artifactResolver) {
-    this.mapper = mapper;
-    this.artifactResolver = artifactResolver;
-  }
+  private final ManifestEvaluator manifestEvaluator;
 
   @Override
   public List<Map> getOperations(Stage stage) {
     Map<String, Object> context = stage.getContext();
+
+    DeploymentManifest manifest =
+        mapper.convertValue(context.get("manifest"), DeploymentManifest.class);
+    CloudFoundryManifestContext manifestContext =
+        CloudFoundryManifestContext.builder()
+            .source(ManifestContext.Source.Artifact)
+            .manifestArtifactId(manifest.getArtifactId())
+            .manifestArtifact(manifest.getArtifact())
+            .manifestArtifactAccount(manifest.getArtifact().getArtifactAccount())
+            .skipExpressionEvaluation(
+                (Boolean)
+                    Optional.ofNullable(context.get("skipExpressionEvaluation")).orElse(false))
+            .build();
+    ManifestEvaluator.Result manifestResult = manifestEvaluator.evaluate(stage, manifestContext);
     final Execution execution = stage.getExecution();
     ImmutableMap.Builder<String, Object> operation =
         ImmutableMap.<String, Object>builder()
@@ -54,8 +71,8 @@ class CloudFoundryServerGroupCreator implements ServerGroupCreator {
             .put("trigger", execution.getTrigger().getOther())
             .put(
                 "applicationArtifact",
-                applicationArtifact(stage, context.get("applicationArtifact")))
-            .put("manifest", manifestArtifact(stage, context.get("manifest")));
+                getCloudFoundryDeployArtifact(stage, context.get("applicationArtifact")))
+            .put("manifest", manifestResult.getManifests());
 
     if (context.get("stack") != null) {
       operation.put("stack", context.get("stack"));
@@ -69,9 +86,9 @@ class CloudFoundryServerGroupCreator implements ServerGroupCreator {
         ImmutableMap.<String, Object>builder().put(OPERATION, operation.build()).build());
   }
 
-  private Artifact applicationArtifact(Stage stage, Object input) {
-    ApplicationArtifact applicationArtifactInput =
-        mapper.convertValue(input, ApplicationArtifact.class);
+  private Artifact getCloudFoundryDeployArtifact(Stage stage, Object input) {
+    CloudFoundryDeployArtifact applicationArtifactInput =
+        mapper.convertValue(input, CloudFoundryDeployArtifact.class);
     Artifact artifact =
         artifactResolver.getBoundArtifactForStage(
             stage,
@@ -82,10 +99,6 @@ class CloudFoundryServerGroupCreator implements ServerGroupCreator {
     }
 
     return artifact;
-  }
-
-  private Artifact manifestArtifact(Stage stage, Object input) {
-    return mapper.convertValue(input, Manifest.class).toArtifact(artifactResolver, stage);
   }
 
   @Override
@@ -104,7 +117,7 @@ class CloudFoundryServerGroupCreator implements ServerGroupCreator {
   }
 
   @Data
-  private static class ApplicationArtifact {
+  private static class CloudFoundryDeployArtifact {
     @Nullable private String artifactId;
 
     @Nullable private Artifact artifact;

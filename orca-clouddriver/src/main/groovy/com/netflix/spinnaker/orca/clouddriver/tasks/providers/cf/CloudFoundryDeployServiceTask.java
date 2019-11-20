@@ -16,18 +16,19 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
+import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestContext;
+import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestEvaluator;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
-import java.util.*;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Optional;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
@@ -36,10 +37,9 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Component
 public class CloudFoundryDeployServiceTask extends AbstractCloudProviderAwareTask {
+  private final ObjectMapper mapper;
   private final KatoService kato;
-  private final ArtifactResolver artifactResolver;
-  private final ObjectMapper artifactMapper =
-      new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+  private final ManifestEvaluator manifestEvaluator;
 
   @Nonnull
   @Override
@@ -66,22 +66,19 @@ public class CloudFoundryDeployServiceTask extends AbstractCloudProviderAwareTas
   @NotNull
   private Map<String, Object> bindArtifactIfNecessary(@Nonnull Stage stage) {
     Map<String, Object> context = stage.getContext();
-    Map manifest = (Map) context.get("manifest");
-    if (manifest.get("artifactId") != null || manifest.get("artifact") != null) {
-      Artifact artifact =
-          manifest.get("artifact") != null
-              ? artifactMapper.convertValue(manifest.get("artifact"), Artifact.class)
-              : null;
-      Artifact boundArtifact =
-          artifactResolver.getBoundArtifactForStage(
-              stage, (String) manifest.get("artifactId"), artifact);
-      if (boundArtifact == null) {
-        throw new IllegalArgumentException("Unable to bind the service manifest artifact");
-      }
-      manifest.remove("artifactId"); // replacing with the bound artifact now
-      //noinspection unchecked
-      manifest.put("artifact", artifactMapper.convertValue(boundArtifact, Map.class));
-    }
+    ServiceManifest manifest = mapper.convertValue(context.get("manifest"), ServiceManifest.class);
+    CloudFoundryManifestContext manifestContext =
+        CloudFoundryManifestContext.builder()
+            .source(ManifestContext.Source.Artifact)
+            .manifestArtifactId(manifest.getArtifactId())
+            .manifestArtifact(manifest.getArtifact())
+            .manifestArtifactAccount(manifest.getArtifact().getArtifactAccount())
+            .skipExpressionEvaluation(
+                (Boolean)
+                    Optional.ofNullable(context.get("skipExpressionEvaluation")).orElse(false))
+            .build();
+    ManifestEvaluator.Result manifestResult = manifestEvaluator.evaluate(stage, manifestContext);
+    context.put("manifest", manifestResult.getManifests());
     return context;
   }
 }
