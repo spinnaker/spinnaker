@@ -21,12 +21,6 @@ import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id
-import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import com.fasterxml.jackson.databind.annotation.JsonSerialize
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer
-import com.fasterxml.jackson.databind.ser.std.ToStringSerializer
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceCurrentlyUnresolvable
@@ -365,22 +359,7 @@ data class ResourceCheckError(
   )
 }
 
-/**
- * The reference to a task launched (currently always in Orca) to resolve a difference between the
- * desired and actual states of a managed resource.
- */
-@JsonSerialize(using = ToStringSerializer::class)
-@JsonDeserialize(using = TaskRefDeserializer::class)
-data class TaskRef(val value: String) {
-  override fun toString(): String = value
-}
-
 data class Task(
   val id: String,
   val name: String
 )
-
-class TaskRefDeserializer : StdDeserializer<TaskRef>(TaskRef::class.java) {
-  override fun deserialize(parser: JsonParser, context: DeserializationContext): TaskRef =
-    TaskRef(parser.valueAsString)
-}
