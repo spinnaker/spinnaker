@@ -15,7 +15,9 @@ install: gradle/installViaTravis.sh
 jobs:
   include:
     - stage: tests
-      name: run tests for deck
+      name: ensure pull requests with package bumps only contain package bumps
+      script: app/scripts/modules/assert_package_bumps_standalone.sh
+    - name: run tests for deck
       script: gradle/buildViaTravis.sh
     - name: build the all module libs
       script: gradle/buildModules.sh
