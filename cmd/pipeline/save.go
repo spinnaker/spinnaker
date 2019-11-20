@@ -107,8 +107,7 @@ func savePipeline(cmd *cobra.Command, options SaveOptions) error {
 	saveResp, saveErr := gateClient.PipelineControllerApi.SavePipelineUsingPOST(gateClient.Context, pipelineJson)
 
 	if saveErr != nil {
-		fmt.Printf("s err: %v", saveErr)
-		return err
+		return saveErr
 	}
 	if saveResp.StatusCode != http.StatusOK {
 		return fmt.Errorf("Encountered an error saving pipeline, status code: %d\n", saveResp.StatusCode)

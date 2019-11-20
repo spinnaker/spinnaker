@@ -103,6 +103,29 @@ func TestPipelineSave_fail(t *testing.T) {
 	}
 }
 
+func TestPipelineSave_accessdenied(t *testing.T) {
+	ts := GateServerReadOnly()
+	defer ts.Close()
+
+	tempFile := tempPipelineFile(testPipelineJsonStr)
+	if tempFile == nil {
+		t.Fatal("Could not create temp pipeline file.")
+	}
+	defer os.Remove(tempFile.Name())
+
+	args := []string{"pipeline", "save", "--file", tempFile.Name(), "--gate-endpoint", ts.URL}
+	currentCmd := NewSaveCmd(pipelineOptions{})
+	rootCmd := getRootCmdForTest()
+	pipelineCmd := NewPipelineCmd(os.Stdout)
+	pipelineCmd.AddCommand(currentCmd)
+	rootCmd.AddCommand(pipelineCmd)
+
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err == nil {
+		t.Fatalf("Command failed with: %s", err)
+	}
+}
 func TestPipelineSave_flags(t *testing.T) {
 	ts := GateServerSuccess()
 	defer ts.Close()
@@ -209,6 +232,22 @@ func GateServerSuccess() *httptest.Server {
 	mux := util.TestGateMuxWithVersionHandler()
 	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, "") // Just write an empty 200 success on save.
+	}))
+	return httptest.NewServer(mux)
+}
+
+// GateServerReadOnly spins up a local http server that we will configure the GateClient
+// to direct requests to. Responds with a 200 OK for READ-type requests (GET), 400 otherwise.
+func GateServerReadOnly() *httptest.Server {
+	mux := util.TestGateMuxWithVersionHandler()
+	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch method := r.Method; method {
+		case "GET":
+			fmt.Fprintln(w, "") // Just write an empty 200 success on GET.
+		default:
+			// Return "400 Access is denied" (Bad Request)
+			http.Error(w, "Access is denied", http.StatusBadRequest)
+		}
 	}))
 	return httptest.NewServer(mux)
 }
