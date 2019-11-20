@@ -115,6 +115,9 @@ public class KubernetesV2SecurityGroup extends ManifestBasedModel implements Sec
   }
 
   private static Set<Rule> inboundRules(V1NetworkPolicy policy) {
+    if (policy.getSpec().getIngress() == null) {
+      return Collections.emptySet();
+    }
     return policy.getSpec().getIngress().stream()
         .map(i -> i.getPorts().stream().map(KubernetesV2SecurityGroup::fromPolicyPort))
         .flatMap(s -> s)
@@ -122,6 +125,9 @@ public class KubernetesV2SecurityGroup extends ManifestBasedModel implements Sec
   }
 
   private static Set<Rule> outboundRules(V1NetworkPolicy policy) {
+    if (policy.getSpec().getEgress() == null) {
+      return Collections.emptySet();
+    }
     return policy.getSpec().getEgress().stream()
         .map(i -> i.getPorts().stream().map(KubernetesV2SecurityGroup::fromPolicyPort))
         .flatMap(s -> s)
