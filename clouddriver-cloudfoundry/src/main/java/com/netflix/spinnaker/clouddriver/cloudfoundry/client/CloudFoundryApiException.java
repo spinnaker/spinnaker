@@ -66,11 +66,16 @@ public class CloudFoundryApiException extends RuntimeException {
   }
 
   private static String getRetrofitErrorMessage(RetrofitError retrofitError) {
-    return "status: "
-        + retrofitError.getResponse().getStatus()
-        + ". url: "
-        + retrofitError.getResponse().getUrl()
-        + ". raw response body: "
-        + retrofitError.getResponse().getBody();
+    return Optional.ofNullable(retrofitError.getResponse())
+        .map(
+            response -> {
+              return "status: "
+                  + response.getStatus()
+                  + ". url: "
+                  + response.getUrl()
+                  + ". raw response body: "
+                  + response.getBody();
+            })
+        .orElse("error, url :" + retrofitError.getUrl() + " body: " + retrofitError.getBody());
   }
 }

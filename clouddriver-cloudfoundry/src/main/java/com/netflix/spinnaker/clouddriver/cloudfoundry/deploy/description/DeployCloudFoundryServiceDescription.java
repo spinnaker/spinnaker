@@ -17,8 +17,7 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
-import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
@@ -30,9 +29,7 @@ import lombok.EqualsAndHashCode;
 public class DeployCloudFoundryServiceDescription extends AbstractCloudFoundryServiceDescription {
   private boolean userProvided = false;
 
-  @JsonIgnore private Artifact artifact;
-
-  @JsonIgnore private ArtifactCredentials artifactCredentials;
+  private List<Map<Object, Object>> manifest;
 
   @JsonIgnore private ServiceAttributes serviceAttributes;
 

@@ -16,20 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.converters;
 
-import com.netflix.spinnaker.clouddriver.artifacts.ArtifactDownloader;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
-import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Consumer;
-import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 public abstract class AbstractCloudFoundryAtomicOperationConverter
     extends AbstractAtomicOperationsCredentialsSupport {
@@ -41,16 +33,5 @@ public abstract class AbstractCloudFoundryAtomicOperationConverter
   protected CloudFoundryClient getClient(Map<?, ?> input) {
     CloudFoundryCredentials credentials = getCredentialsObject(input.get("credentials").toString());
     return credentials.getClient();
-  }
-
-  void downloadAndProcessManifest(
-      ArtifactDownloader downloader, Artifact manifest, Consumer<Map> processManifest) {
-    try {
-      InputStream manifestInput = downloader.download(manifest);
-      Yaml parser = new Yaml(new SafeConstructor());
-      processManifest.accept(parser.load(manifestInput));
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
   }
 }

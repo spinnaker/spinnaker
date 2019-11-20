@@ -20,20 +20,16 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.netflix.spinnaker.clouddriver.artifacts.ArtifactDownloader;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryOperation;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeployCloudFoundryServiceDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.DeployCloudFoundryServiceAtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
-import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
@@ -46,12 +42,11 @@ import org.springframework.stereotype.Component;
 public class DeployCloudFoundryServiceAtomicOperationConverter
     extends AbstractCloudFoundryAtomicOperationConverter {
   private static final ObjectMapper objectMapper =
-      new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-  private final ArtifactDownloader artifactDownloader;
+      new ObjectMapper()
+          .setPropertyNamingStrategy(PropertyNamingStrategy.KEBAB_CASE)
+          .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
-  public DeployCloudFoundryServiceAtomicOperationConverter(ArtifactDownloader artifactDownloader) {
-    this.artifactDownloader = artifactDownloader;
-  }
+  public DeployCloudFoundryServiceAtomicOperationConverter() {}
 
   @Override
   public AtomicOperation convertOperation(Map input) {
@@ -70,33 +65,22 @@ public class DeployCloudFoundryServiceAtomicOperationConverter
                     new IllegalArgumentException(
                         "Unable to find space '" + converted.getRegion() + "'.")));
 
-    Map manifest = (Map) input.get("manifest");
-    if (manifest.get("artifact") != null) {
-      Artifact manifestArtifact =
-          objectMapper.convertValue(manifest.get("artifact"), Artifact.class);
-      downloadAndProcessManifest(
-          artifactDownloader,
-          manifestArtifact,
-          myMap -> {
-            if (converted.isUserProvided()) {
-              converted.setUserProvidedServiceAttributes(convertUserProvidedServiceManifest(myMap));
-            } else {
-              converted.setServiceAttributes(convertManifest(myMap));
-            }
-          });
-    } else if (manifest.get("direct") != null) {
-      if (converted.isUserProvided()) {
-        converted.setUserProvidedServiceAttributes(
-            convertUserProvidedServiceManifest(manifest.get("direct")));
-      } else {
-        converted.setServiceAttributes(convertManifest(manifest.get("direct")));
-      }
+    List<Map<Object, Object>> manifest = converted.getManifest();
+
+    if (converted.isUserProvided()) {
+      converted.setUserProvidedServiceAttributes(
+          convertUserProvidedServiceManifest(manifest.stream().findFirst().orElse(null)));
+    } else {
+      converted.setServiceAttributes(convertManifest(manifest.stream().findFirst().orElse(null)));
     }
     return converted;
   }
 
   // visible for testing
   DeployCloudFoundryServiceDescription.ServiceAttributes convertManifest(Object manifestMap) {
+    if (manifestMap == null) {
+      throw new IllegalArgumentException("No configurations detected");
+    }
     ServiceManifest manifest = objectMapper.convertValue(manifestMap, ServiceManifest.class);
     if (manifest.getService() == null) {
       throw new IllegalArgumentException("Manifest is missing the service");
@@ -119,6 +103,9 @@ public class DeployCloudFoundryServiceAtomicOperationConverter
   // visible for testing
   DeployCloudFoundryServiceDescription.UserProvidedServiceAttributes
       convertUserProvidedServiceManifest(Object manifestMap) {
+    if (manifestMap == null) {
+      throw new IllegalArgumentException("No configurations detected");
+    }
     UserProvidedServiceManifest manifest =
         objectMapper.convertValue(manifestMap, UserProvidedServiceManifest.class);
     if (manifest.getServiceInstanceName() == null) {
@@ -140,10 +127,10 @@ public class DeployCloudFoundryServiceAtomicOperationConverter
     private String service;
     private boolean updatable = true;
 
-    @JsonAlias("service_instance_name")
+    @JsonAlias({"service_instance_name", "serviceInstanceName"})
     private String serviceInstanceName;
 
-    @JsonAlias("service_plan")
+    @JsonAlias({"service_plan", "servicePlan"})
     private String servicePlan;
 
     @Nullable private Set<String> tags;
@@ -157,21 +144,21 @@ public class DeployCloudFoundryServiceAtomicOperationConverter
   private static class UserProvidedServiceManifest {
     private boolean updatable = true;
 
-    @JsonAlias("service_instance_name")
+    @JsonAlias({"service_instance_name", "serviceInstanceName"})
     private String serviceInstanceName;
 
     @Nullable
-    @JsonAlias("syslog_drain_url")
+    @JsonAlias({"syslog_drain_url", "syslogDrainUrl"})
     private String syslogDrainUrl;
 
     @Nullable
-    @JsonAlias("route_service_url")
+    @JsonAlias({"route_service_url", "routeServiceUrl"})
     private String routeServiceUrl;
 
     @Nullable private Set<String> tags;
 
     @Nullable
-    @JsonAlias("credentials_map")
+    @JsonAlias({"credentials_map", "credentialsMap"})
     @JsonDeserialize(using = OptionallySerializedMapDeserializer.class)
     private Map<String, Object> credentials;
   }

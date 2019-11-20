@@ -24,7 +24,6 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
-import com.netflix.spinnaker.clouddriver.artifacts.ArtifactDownloader;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.artifacts.ArtifactCredentialsFromString;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.MockCloudFoundryClient;
@@ -104,8 +103,7 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
   private final AccountCredentialsProvider accountCredentialsProvider =
       new DefaultAccountCredentialsProvider(accountCredentialsRepository);
   private final DeployCloudFoundryServiceAtomicOperationConverter converter =
-      new DeployCloudFoundryServiceAtomicOperationConverter(
-          new ArtifactDownloader(artifactCredentialsRepository));
+      new DeployCloudFoundryServiceAtomicOperationConverter();
 
   @BeforeEach
   void initializeClassUnderTest() {
@@ -141,7 +139,7 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
         HashMap.of(
                 "service_instance_name", "my-service-instance-name",
                 "service_plan", "my-service-plan",
-                "tags", List.of("my-tag").asJava(),
+                "tags", Collections.singletonList("my-tag"),
                 "parameters", "{\"foo\": \"bar\"}")
             .toJavaMap();
 
@@ -157,7 +155,7 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
         HashMap.of(
                 "service_instance_name", "my-service-instance-name",
                 "service_plan", "my-service-plan",
-                "tags", List.of("my-tag").asJava(),
+                "tags", Collections.singletonList("my-tag"),
                 "parameters", "{\"foo\": \"bar\"}")
             .toJavaMap();
 
@@ -173,7 +171,7 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
         HashMap.of(
                 "service", "my-service",
                 "service_instance_name", "my-service-instance-name",
-                "tags", List.of("my-tag").asJava(),
+                "tags", Collections.singletonList("my-tag"),
                 "parameters", "{\"foo\": \"bar\"}")
             .toJavaMap();
 
@@ -191,7 +189,7 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
                 "syslog_drain_url", "test-syslog-drain-url",
                 "updatable", false,
                 "route_service_url", "test-route-service-url",
-                "tags", List.of("my-tag").asJava(),
+                "tags", Collections.singletonList("my-tag"),
                 "credentials_map", "{\"foo\": \"bar\"}")
             .toJavaMap();
 
@@ -203,7 +201,7 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
                 .setRouteServiceUrl("test-route-service-url")
                 .setTags(Collections.singleton("my-tag"))
                 .setUpdatable(false)
-                .setCredentials(HashMap.<String, Object>of("foo", "bar").toJavaMap()));
+                .setCredentials(Collections.singletonMap("foo", "bar")));
   }
 
   @Test
@@ -212,7 +210,7 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
         HashMap.of(
                 "syslog_drain_url", "test-syslog-drain-url",
                 "route_service_url", "test-route-service-url",
-                "tags", List.of("my-tag").asJava(),
+                "tags", Collections.singletonList("my-tag"),
                 "credentials_map", "{\"foo\": \"bar\"}")
             .toJavaMap();
 
@@ -220,43 +218,6 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
         IllegalArgumentException.class,
         () -> converter.convertUserProvidedServiceManifest(input),
         "Manifest is missing the service name");
-  }
-
-  @Test
-  void convertDescriptionWithDownloadedManifest() {
-    final Map input =
-        HashMap.of(
-                "credentials", "test",
-                "region", "org > space",
-                "manifest",
-                    HashMap.of(
-                            "artifact",
-                            HashMap.of(
-                                    "artifactAccount", "test",
-                                    "reference", "ref1",
-                                    "type", "test")
-                                .toJavaMap())
-                        .toJavaMap())
-            .toJavaMap();
-
-    final DeployCloudFoundryServiceDescription result = converter.convertDescription(input);
-
-    assertThat(result.getSpace())
-        .isEqualToComparingFieldByFieldRecursively(
-            CloudFoundrySpace.builder()
-                .id("space-guid")
-                .name("space")
-                .organization(CloudFoundryOrganization.builder().id("org-guid").name("org").build())
-                .build());
-    assertThat(result.getServiceAttributes())
-        .isEqualToComparingFieldByFieldRecursively(
-            new DeployCloudFoundryServiceDescription.ServiceAttributes()
-                .setService("my-service")
-                .setServiceInstanceName("my-service-instance-name")
-                .setServicePlan("my-service-plan")
-                .setTags(Collections.singleton("tag1"))
-                .setUpdatable(false)
-                .setParameterMap(HashMap.<String, Object>of("foo", "bar").toJavaMap()));
   }
 
   @Test
@@ -270,16 +231,14 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
                 "userProvided",
                 true,
                 "manifest",
-                HashMap.of(
-                        "direct",
-                        HashMap.of(
-                                "serviceInstanceName", "userProvidedServiceName",
-                                "tags", List.of("my-tag").asJava(),
-                                "syslogDrainUrl", "http://syslogDrainUrl.io",
-                                "credentials", "{\"foo\": \"bar\"}",
-                                "routeServiceUrl", "http://routeServiceUrl.io")
-                            .toJavaMap())
-                    .toJavaMap())
+                Collections.singletonList(
+                    HashMap.of(
+                            "serviceInstanceName", "userProvidedServiceName",
+                            "tags", Collections.singletonList("my-tag"),
+                            "syslogDrainUrl", "http://syslogDrainUrl.io",
+                            "credentials", "{\"foo\": \"bar\"}",
+                            "routeServiceUrl", "http://routeServiceUrl.io")
+                        .toJavaMap()))
             .toJavaMap();
 
     final DeployCloudFoundryServiceDescription result = converter.convertDescription(input);
@@ -295,15 +254,11 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
                 .setCredentials(HashMap.<String, Object>of("foo", "bar").toJavaMap()));
   }
 
-  private static <K, V> Map<K, V> mapOf(K key, V value) {
-    return HashMap.of(key, value).toJavaMap();
-  }
-
   private static class WithMap {
     public WithMap() {}
 
     public WithMap(String key, Object value) {
-      this.mapField = HashMap.of(key, value).toJavaMap();
+      this.mapField = Collections.singletonMap(key, value);
     }
 
     @Nullable
@@ -317,7 +272,8 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
   @Test
   void deserializeYamlSerializedMap() {
     final WithMap result =
-        new ObjectMapper().convertValue(mapOf("mapField", "key1: value1"), WithMap.class);
+        new ObjectMapper()
+            .convertValue(Collections.singletonMap("mapField", "key1: value1"), WithMap.class);
 
     assertThat(result).isEqualToComparingFieldByFieldRecursively(new WithMap("key1", "value1"));
   }
@@ -326,7 +282,8 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
   void deserializeJsonSerializedMap() {
     final WithMap result =
         new ObjectMapper()
-            .convertValue(mapOf("mapField", "{\"key1\": \"value1\"}}"), WithMap.class);
+            .convertValue(
+                Collections.singletonMap("mapField", "{\"key1\": \"value1\"}}"), WithMap.class);
 
     assertThat(result).isEqualToComparingFieldByFieldRecursively(new WithMap("key1", "value1"));
   }
@@ -334,21 +291,26 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
   @Test
   void deserializeAlreadyDeserializedMap() {
     final WithMap result =
-        new ObjectMapper().convertValue(mapOf("mapField", mapOf("key1", "value1")), WithMap.class);
+        new ObjectMapper()
+            .convertValue(
+                Collections.singletonMap("mapField", Collections.singletonMap("key1", "value1")),
+                WithMap.class);
 
     assertThat(result).isEqualToComparingFieldByFieldRecursively(new WithMap("key1", "value1"));
   }
 
   @Test
   void deserializeEmptyStringAsMap() {
-    final WithMap result = new ObjectMapper().convertValue(mapOf("mapField", ""), WithMap.class);
+    final WithMap result =
+        new ObjectMapper().convertValue(Collections.singletonMap("mapField", ""), WithMap.class);
 
     assertThat(result).isEqualToComparingFieldByFieldRecursively(new WithMap());
   }
 
   @Test
   void deserializeNullStringAsMap() {
-    final WithMap result = new ObjectMapper().convertValue(mapOf("mapField", null), WithMap.class);
+    final WithMap result =
+        new ObjectMapper().convertValue(Collections.singletonMap("mapField", null), WithMap.class);
 
     assertThat(result).isEqualToComparingFieldByFieldRecursively(new WithMap());
   }

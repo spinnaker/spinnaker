@@ -22,7 +22,6 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
-import com.netflix.spinnaker.clouddriver.artifacts.ArtifactDownloader;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.artifacts.ArtifactCredentialsFromString;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.MockCloudFoundryClient;
@@ -105,9 +104,7 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
 
   private final DeployCloudFoundryServerGroupAtomicOperationConverter converter =
       new DeployCloudFoundryServerGroupAtomicOperationConverter(
-          null,
-          artifactCredentialsRepository,
-          new ArtifactDownloader(artifactCredentialsRepository));
+          null, artifactCredentialsRepository);
 
   @BeforeEach
   void initializeClassUnderTest() {

@@ -25,7 +25,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactCredentialsRepository;
-import com.netflix.spinnaker.clouddriver.artifacts.ArtifactDownloader;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryOperation;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.artifacts.CloudFoundryArtifactCredentials;
@@ -50,15 +49,12 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter
     extends AbstractCloudFoundryServerGroupAtomicOperationConverter {
   private final OperationPoller operationPoller;
   private final ArtifactCredentialsRepository credentialsRepository;
-  private final ArtifactDownloader artifactDownloader;
 
   public DeployCloudFoundryServerGroupAtomicOperationConverter(
       @Qualifier("cloudFoundryOperationPoller") OperationPoller operationPoller,
-      ArtifactCredentialsRepository credentialsRepository,
-      ArtifactDownloader artifactDownloader) {
+      ArtifactCredentialsRepository credentialsRepository) {
     this.operationPoller = operationPoller;
     this.credentialsRepository = credentialsRepository;
-    this.artifactDownloader = artifactDownloader;
   }
 
   @Override
@@ -87,11 +83,9 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter
     // the deploy operation.
     converted.setArtifactCredentials(getArtifactCredentials(converted));
 
-    downloadAndProcessManifest(
-        artifactDownloader,
-        converted.getManifest(),
-        myMap -> converted.setApplicationAttributes(convertManifest(myMap)));
-
+    converted.setApplicationAttributes(
+        convertManifest(
+            converted.getManifest().stream().findFirst().orElse(Collections.emptyMap())));
     return converted;
   }
 
@@ -116,7 +110,8 @@ public class DeployCloudFoundryServerGroupAtomicOperationConverter
   }
 
   // visible for testing
-  DeployCloudFoundryServerGroupDescription.ApplicationAttributes convertManifest(Map manifestMap) {
+  DeployCloudFoundryServerGroupDescription.ApplicationAttributes convertManifest(
+      Map<Object, Object> manifestMap) {
     List<CloudFoundryManifest> manifestApps =
         new ObjectMapper()
             .setPropertyNamingStrategy(PropertyNamingStrategy.KEBAB_CASE)
