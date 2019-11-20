@@ -19,13 +19,9 @@ import java.time.zone.ZoneRulesException
   Type(value = TimeWindowConstraint::class, name = "allowed-times"),
   Type(value = ManualJudgementConstraint::class, name = "manual-judgement")
 )
-sealed class Constraint(
-  open val type: String
-)
+abstract class Constraint(val type: String)
 
-sealed class StatefulConstraint(
-  override val type: String
-) : Constraint(type)
+abstract class StatefulConstraint(type: String) : Constraint(type)
 
 /**
  * A constraint that requires that an artifact has been successfully promoted to a previous
