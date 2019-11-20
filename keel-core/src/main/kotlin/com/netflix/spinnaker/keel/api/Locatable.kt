@@ -30,7 +30,7 @@ interface Locations<T : RegionSpec> {
    * If not specified here, this should be derived from the [SubnetAwareLocations.subnet] (if
    * present) or use a default VPC name.
    */
-  val vpc: String
+  val vpc: String?
   val regions: Set<T>
 }
 
@@ -41,16 +41,35 @@ data class SubnetAwareLocations(
    */
   val subnet: String?,
   // TODO: this is not ideal as we'd like this default to be configurable
-  override val vpc: String = defaultVPC(subnet),
+  override val vpc: String? = defaultVPC(subnet),
   override val regions: Set<SubnetAwareRegionSpec>
-) : Locations<SubnetAwareRegionSpec>
+) : Locations<SubnetAwareRegionSpec> {
+  fun withDefaultsOmitted() =
+    copy(
+      vpc = if (vpc == LocationConstants.DEFAULT_VPC_NAME) {
+        null
+      } else {
+        vpc
+      },
+      subnet = if (subnet == LocationConstants.DEFAULT_SUBNET_PURPOSE.format(vpc)) {
+        null
+      } else {
+        subnet
+      }
+    )
+}
 
 data class SimpleLocations(
   override val account: String,
   // TODO: this is not ideal as we'd like this default to be configurable
-  override val vpc: String = "vpc0",
+  override val vpc: String? = LocationConstants.DEFAULT_VPC_NAME,
   override val regions: Set<SimpleRegionSpec>
 ) : Locations<SimpleRegionSpec>
 
 fun defaultVPC(subnet: String?) =
   subnet?.let { Regex("""^.+\((.+)\)$""").find(it)?.groupValues?.get(1) } ?: "vpc0"
+
+object LocationConstants {
+  const val DEFAULT_VPC_NAME = "vpc0"
+  const val DEFAULT_SUBNET_PURPOSE = "internal (%s)"
+}

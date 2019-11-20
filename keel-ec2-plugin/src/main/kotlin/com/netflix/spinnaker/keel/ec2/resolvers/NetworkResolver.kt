@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.ec2.resolvers
 
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Locatable
+import com.netflix.spinnaker.keel.api.LocationConstants
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
@@ -18,7 +19,7 @@ abstract class NetworkResolver<T : Locatable<SubnetAwareLocations>>(
 ) : Resolver<T> {
 
   protected fun SubnetAwareLocations.withResolvedNetwork(): SubnetAwareLocations {
-    val resolvedSubnet = subnet ?: DEFAULT_SUBNET_PURPOSE.format(vpc)
+    val resolvedSubnet = subnet ?: LocationConstants.DEFAULT_SUBNET_PURPOSE.format(vpc)
     return copy(
       vpc = vpc,
       subnet = resolvedSubnet,
@@ -36,11 +37,6 @@ abstract class NetworkResolver<T : Locatable<SubnetAwareLocations>>(
         }
       }.toSet()
     )
-  }
-
-  companion object {
-    const val DEFAULT_VPC_NAME = "vpc0"
-    const val DEFAULT_SUBNET_PURPOSE = "internal (%s)"
   }
 }
 

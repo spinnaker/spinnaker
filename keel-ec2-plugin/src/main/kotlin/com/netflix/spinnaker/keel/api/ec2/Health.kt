@@ -27,8 +27,7 @@ data class Health(
   val warmup: Duration = Duration.ofSeconds(600),
   val healthCheckType: HealthCheckType = HealthCheckType.EC2,
   val enabledMetrics: Set<Metric> = emptySet(),
+  // Note: the default for this in Deck is currently setOf(TerminationPolicy.Default), but we were advised by Netflix
+  // SRE to change the default to OldestInstance
   val terminationPolicies: Set<TerminationPolicy> = setOf(TerminationPolicy.OldestInstance)
-) {
-  fun toClusterHealthSpec() =
-    ClusterSpec.HealthSpec(cooldown, warmup, healthCheckType, enabledMetrics, terminationPolicies)
-}
+)

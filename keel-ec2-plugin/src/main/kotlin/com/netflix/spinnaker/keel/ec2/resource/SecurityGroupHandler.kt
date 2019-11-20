@@ -75,7 +75,7 @@ class SecurityGroupHandler(
           moniker = Moniker(app = moniker.app, stack = moniker.stack, detail = moniker.detail),
           location = SecurityGroup.Location(
             account = locations.account,
-            vpc = locations.vpc,
+            vpc = locations.vpc ?: error("No vpc supplied or resolved"),
             region = region.name
           ),
           description = overrides[region.name]?.description ?: description,

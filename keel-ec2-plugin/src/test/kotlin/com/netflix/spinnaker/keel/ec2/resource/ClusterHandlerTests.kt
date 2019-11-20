@@ -4,7 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.netflix.spinnaker.keel.api.Capacity
 import com.netflix.spinnaker.keel.api.ClusterDependencies
+import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
+import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
@@ -12,6 +14,7 @@ import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.VirtualMachineImage
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
+import com.netflix.spinnaker.keel.api.ec2.LaunchConfiguration
 import com.netflix.spinnaker.keel.api.ec2.Metric
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup
 import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
@@ -33,6 +36,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.Tag
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.ec2.RETROFIT_NOT_FOUND
+import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
 import com.netflix.spinnaker.keel.ec2.image.ArtifactVersionDeployed
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
@@ -64,6 +68,8 @@ import strikt.assertions.get
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEmpty
+import strikt.assertions.isNotNull
+import strikt.assertions.isNull
 import strikt.assertions.map
 import java.time.Clock
 import java.util.UUID.randomUUID
@@ -113,8 +119,8 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         ),
         instanceType = "r4.8xlarge",
         ebsOptimized = false,
-        iamRole = "keelRole",
-        keyPair = "keel-key-pair",
+        iamRole = LaunchConfiguration.defaultIamRoleFor("keel"),
+        keyPair = LaunchConfiguration.defaultKeyPairFor("test", "us-west-2"),
         instanceMonitoring = false
       ),
       capacity = Capacity(1, 6, 4),
@@ -137,6 +143,14 @@ internal class ClusterHandlerTests : JUnit5Minutests {
 
   val activeServerGroupResponseEast = serverGroupEast.toCloudDriverResponse(vpcEast, listOf(subnet1East, subnet2East, subnet3East), listOf(sg1East, sg2East))
   val activeServerGroupResponseWest = serverGroupWest.toCloudDriverResponse(vpcWest, listOf(subnet1West, subnet2West, subnet3West), listOf(sg1West, sg2West))
+
+  val exportable = Exportable(
+    account = spec.locations.account,
+    serviceAccount = "keel@spinnaker",
+    moniker = spec.moniker,
+    regions = spec.locations.regions.map { it.name }.toSet(),
+    kind = "cluster"
+  )
 
   private fun ServerGroup.toCloudDriverResponse(
     vpc: Network,
@@ -199,23 +213,30 @@ internal class ClusterHandlerTests : JUnit5Minutests {
 
     before {
       with(cloudDriverCache) {
+        every { defaultKeyPairForAccount("test") } returns LaunchConfiguration.defaultKeyPairTemplateFor("test")
         every { networkBy(vpcWest.id) } returns vpcWest
         every { subnetBy(subnet1West.id) } returns subnet1West
         every { subnetBy(subnet2West.id) } returns subnet2West
         every { subnetBy(subnet3West.id) } returns subnet3West
+        every { subnetBy(vpcWest.account, vpcWest.region, subnet1West.purpose!!) } returns subnet1West
         every { securityGroupById(vpcWest.account, vpcWest.region, sg1West.id) } returns sg1West
         every { securityGroupById(vpcWest.account, vpcWest.region, sg2West.id) } returns sg2West
         every { securityGroupByName(vpcWest.account, vpcWest.region, sg1West.name) } returns sg1West
         every { securityGroupByName(vpcWest.account, vpcWest.region, sg2West.name) } returns sg2West
+        every { availabilityZonesBy(vpcWest.account, vpcWest.id, subnet1West.purpose!!, vpcWest.region) } returns
+          setOf(subnet1West.availabilityZone)
 
         every { networkBy(vpcEast.id) } returns vpcEast
         every { subnetBy(subnet1East.id) } returns subnet1East
         every { subnetBy(subnet2East.id) } returns subnet2East
         every { subnetBy(subnet3East.id) } returns subnet3East
+        every { subnetBy(vpcEast.account, vpcEast.region, subnet1East.purpose!!) } returns subnet1East
         every { securityGroupById(vpcEast.account, vpcEast.region, sg1East.id) } returns sg1East
         every { securityGroupById(vpcEast.account, vpcEast.region, sg2East.id) } returns sg2East
         every { securityGroupByName(vpcEast.account, vpcEast.region, sg1East.name) } returns sg1East
         every { securityGroupByName(vpcEast.account, vpcEast.region, sg2East.name) } returns sg2East
+        every { availabilityZonesBy(vpcEast.account, vpcEast.id, subnet1East.purpose!!, vpcEast.region) } returns
+          setOf(subnet1East.availabilityZone)
       }
 
       coEvery { orcaService.orchestrate("keel@spinnaker", any()) } returns TaskRefResponse("/tasks/${randomUUID()}")
@@ -285,6 +306,76 @@ internal class ClusterHandlerTests : JUnit5Minutests {
 
         test("an event is fired if all server groups have the same artifact version") {
           verify { publisher.publishEvent(ofType<ArtifactVersionDeployed>()) }
+        }
+      }
+
+      derivedContext<SubmittedResource<ClusterSpec>>("exported cluster spec") {
+        deriveFixture {
+          runBlocking {
+            export(exportable)
+          }
+        }
+
+        test("has the expected basic properties") {
+          expectThat(kind)
+            .isEqualTo("cluster")
+          expectThat(apiVersion)
+            .isEqualTo(SPINNAKER_EC2_API_V1)
+          expectThat(spec.locations.regions)
+            .hasSize(2)
+          expectThat(spec.overrides)
+            .hasSize(0)
+        }
+
+        test("omits complex fields altogether when all their properties have default values") {
+          expectThat(spec.defaults.health)
+            .isNull()
+          expectThat(spec.defaults.scaling)
+            .isNull()
+        }
+      }
+
+      context("other handling of default properties in cluster export") {
+        before {
+          coEvery { cloudDriverService.activeServerGroup("us-east-1") } returns activeServerGroupResponseEast
+          coEvery { cloudDriverService.activeServerGroup("us-west-2") } returns activeServerGroupResponseWest
+            .withNonDefaultHealthProps()
+            .withNonDefaultLaunchConfigProps()
+        }
+
+        test("export omits properties with default values from complex fields") {
+          val exported = runBlocking {
+            export(exportable)
+          }
+          expectThat(exported.spec.locations.vpc)
+            .isNull()
+          expectThat(exported.spec.locations.subnet)
+            .isNull()
+          expectThat(exported.spec.defaults.health)
+            .isNotNull()
+          expectThat(exported.spec.defaults.health!!.cooldown)
+            .isNull()
+          expectThat(exported.spec.defaults.health!!.warmup)
+            .isNull()
+          expectThat(exported.spec.defaults.health!!.healthCheckType)
+            .isNull()
+          expectThat(exported.spec.defaults.health!!.enabledMetrics)
+            .isNull()
+          expectThat(exported.spec.defaults.health!!.cooldown)
+            .isNull()
+          expectThat(exported.spec.defaults.health!!.terminationPolicies)
+            .isEqualTo(setOf(TerminationPolicy.NewestInstance))
+
+          expectThat(exported.spec.defaults.launchConfiguration!!.ebsOptimized)
+            .isNull()
+          expectThat(exported.spec.defaults.launchConfiguration!!.instanceMonitoring)
+            .isNull()
+          expectThat(exported.spec.defaults.launchConfiguration!!.ramdiskId)
+            .isNull()
+          expectThat(exported.spec.defaults.launchConfiguration!!.iamRole)
+            .isNotNull()
+          expectThat(exported.spec.defaults.launchConfiguration!!.keyPair)
+            .isNotNull()
         }
       }
     }
@@ -460,4 +551,15 @@ private fun ActiveServerGroup.withOlderAppVersion(): ActiveServerGroup =
     launchConfig = launchConfig.copy(
       imageId = "ami-573e1b2650a5"
     )
+  )
+
+private fun ActiveServerGroup.withNonDefaultHealthProps(): ActiveServerGroup =
+  copy(
+    asg = asg.copy(terminationPolicies = setOf(TerminationPolicy.NewestInstance.name)
+    )
+  )
+
+private fun ActiveServerGroup.withNonDefaultLaunchConfigProps(): ActiveServerGroup =
+  copy(
+    launchConfig = launchConfig.copy(iamInstanceProfile = "NotTheDefaultInstanceProfile", keyName = "not-the-default-key")
   )

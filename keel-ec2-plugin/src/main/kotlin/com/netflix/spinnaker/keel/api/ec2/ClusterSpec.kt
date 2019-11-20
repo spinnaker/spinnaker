@@ -25,7 +25,7 @@ fun ClusterSpec.resolve(): Set<ServerGroup> =
       location = Location(
         account = locations.account,
         region = it.name,
-        vpc = locations.vpc,
+        vpc = locations.vpc ?: error("No vpc supplied or resolved"),
         subnet = locations.subnet ?: error("No subnet purpose supplied or resolved"),
         availabilityZones = it.availabilityZones
       ),
@@ -50,9 +50,11 @@ private fun ClusterSpec.resolveLaunchConfiguration(region: SubnetAwareRegionSpec
     ebsOptimized = checkNotNull(overrides[region.name]?.launchConfiguration?.ebsOptimized
       ?: defaults.launchConfiguration?.ebsOptimized),
     iamRole = checkNotNull(overrides[region.name]?.launchConfiguration?.iamRole
-      ?: defaults.launchConfiguration?.iamRole),
+      ?: defaults.launchConfiguration?.iamRole
+      ?: LaunchConfiguration.defaultIamRoleFor(moniker.app)),
     keyPair = checkNotNull(overrides[region.name]?.launchConfiguration?.keyPair
-      ?: defaults.launchConfiguration?.keyPair),
+      ?: defaults.launchConfiguration?.keyPair
+      ?: LaunchConfiguration.defaultKeyPairFor(locations.account, region.name)),
     instanceMonitoring = overrides[region.name]?.launchConfiguration?.instanceMonitoring
       ?: defaults.launchConfiguration?.instanceMonitoring ?: false,
     ramdiskId = overrides[region.name]?.launchConfiguration?.ramdiskId

@@ -161,14 +161,15 @@ class ClusterHandler(
       .toSet()
 
     val base = serverGroups.values.first()
-    val modifiedHealth = ResourceDiff(base.health, Health()).hasChanges()
+    val healthDiff = ResourceDiff(base.health, Health())
+    val modifiedHealth = healthDiff.hasChanges()
 
     val locations = SubnetAwareLocations(
       account = exportable.account,
       subnet = base.location.subnet,
       vpc = base.location.vpc,
       regions = subnetAwareRegionSpecs
-    )
+    ).withDefaultsOmitted()
 
     val spec = ClusterSpec(
       moniker = exportable.moniker,
@@ -180,23 +181,12 @@ class ClusterHandler(
       },
       locations = locations,
       _defaults = ClusterSpec.ServerGroupSpec(
-        launchConfiguration = ClusterSpec.LaunchConfigurationSpec(
-          instanceType = base.launchConfiguration.instanceType,
-          ebsOptimized = base.launchConfiguration.ebsOptimized,
-          iamRole = base.launchConfiguration.iamRole,
-          keyPair = base.launchConfiguration.keyPair,
-          instanceMonitoring = base.launchConfiguration.instanceMonitoring
-        ),
+        launchConfiguration = base.launchConfiguration
+          .exportSpec(exportable.account, exportable.moniker.app),
         capacity = base.capacity,
         dependencies = base.dependencies,
         health = if (modifiedHealth) {
-          ClusterSpec.HealthSpec(
-            cooldown = base.health.cooldown,
-            warmup = base.health.warmup,
-            healthCheckType = base.health.healthCheckType,
-            enabledMetrics = base.health.enabledMetrics,
-            terminationPolicies = base.health.terminationPolicies
-          )
+          base.health.exportSpec()
         } else {
           null
         },
@@ -211,6 +201,8 @@ class ClusterHandler(
     )
 
     spec.generateOverrides(
+      exportable.account,
+      exportable.moniker.app,
       serverGroups
         .filter { it.value.location.region != base.location.region }
     )
@@ -229,26 +221,10 @@ class ClusterHandler(
         ResourceDiff(desired, current?.get(region))
       }
 
-  private fun ClusterSpec.generateOverrides(serverGroups: Map<String, ServerGroup>) =
-    serverGroups.forEach { region, serverGroup ->
-      val launchSpec = with(serverGroup.launchConfiguration) {
-        ClusterSpec.LaunchConfigurationSpec(
-          instanceType = instanceType,
-          ebsOptimized = ebsOptimized,
-          iamRole = iamRole,
-          keyPair = keyPair,
-          instanceMonitoring = instanceMonitoring
-        )
-      }
-      val healthSpec = with(serverGroup.health) {
-        ClusterSpec.HealthSpec(
-          cooldown = cooldown,
-          warmup = warmup,
-          healthCheckType = healthCheckType,
-          enabledMetrics = enabledMetrics,
-          terminationPolicies = terminationPolicies
-        )
-      }
+  private fun ClusterSpec.generateOverrides(account: String, application: String, serverGroups: Map<String, ServerGroup>) =
+    serverGroups.forEach { (region, serverGroup) ->
+      val launchSpec = serverGroup.launchConfiguration.exportSpec(account, application)
+      val healthSpec = serverGroup.health.exportSpec()
       val dependencies = with(serverGroup.dependencies) {
         ClusterDependencies(
           loadBalancerNames = loadBalancerNames,
@@ -259,7 +235,7 @@ class ClusterHandler(
 
       val launchDiff = ResourceDiff(launchSpec, defaults.launchConfiguration).hasChanges()
       val healthDiff = if (defaults.health == null) {
-        ResourceDiff(healthSpec, Health().toClusterHealthSpec()).hasChanges()
+        ResourceDiff(healthSpec, Health().exportSpec()).hasChanges()
       } else {
         ResourceDiff(healthSpec, defaults.health).hasChanges()
       }
@@ -525,6 +501,82 @@ class ClusterHandler(
   private fun Instant.iso() =
     atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ISO_DATE_TIME)
 
+  /**
+   * Translates a LaunchConfiguration object to a ClusterSpec.LaunchConfigurationSpec with default values omitted for export.
+   */
+  private fun LaunchConfiguration.exportSpec(account: String, application: String): ClusterSpec.LaunchConfigurationSpec {
+    val defaultKeyPair = cloudDriverCache.defaultKeyPairForAccount(account)
+    return ClusterSpec.LaunchConfigurationSpec(
+      instanceType = instanceType,
+      ebsOptimized = if (!ebsOptimized) {
+        null
+      } else {
+        ebsOptimized
+      },
+      // for the iam role, we compare against a default based on a stable naming convention
+      iamRole = if (iamRole == LaunchConfiguration.defaultIamRoleFor(application)) {
+        null
+      } else {
+        iamRole
+      },
+      // for the key pair, we compare against the currently configured default in clouddriver since there are
+      // multiple naming conventions, and handle the case where the default includes a region placeholder
+      keyPair = if (defaultKeyPair.contains(REGION_PLACEHOLDER)) {
+        if (defaultKeyPair.replace(REGION_PLACEHOLDER, REGION_PATTERN).toRegex().matches(keyPair)) {
+          null
+        } else {
+          keyPair
+        }
+      } else {
+        if (keyPair == defaultKeyPair) {
+          null
+        } else {
+          keyPair
+        }
+      },
+      instanceMonitoring = if (!instanceMonitoring) {
+        null
+      } else {
+        instanceMonitoring
+      },
+      ramdiskId = ramdiskId
+    )
+  }
+
+  /**
+   * Translates a Health object to a ClusterSpec.HealthSpec with default values omitted for export.
+   */
+  private fun Health.exportSpec(): ClusterSpec.HealthSpec {
+    val defaults by lazy { Health() }
+    return ClusterSpec.HealthSpec(
+      cooldown = if (cooldown == defaults.cooldown) {
+        null
+      } else {
+        cooldown
+      },
+      warmup = if (warmup == defaults.warmup) {
+        null
+      } else {
+        warmup
+      },
+      healthCheckType = if (healthCheckType == defaults.healthCheckType) {
+        null
+      } else {
+        healthCheckType
+      },
+      enabledMetrics = if (enabledMetrics == defaults.enabledMetrics) {
+        null
+      } else {
+        enabledMetrics
+      },
+      terminationPolicies = if (terminationPolicies == defaults.terminationPolicies) {
+        null
+      } else {
+        terminationPolicies
+      }
+    )
+  }
+
   companion object {
     // these tags are auto-applied by CloudDriver so we should not consider them in a diff as they
     // will never be specified as part of desired state
@@ -533,6 +585,9 @@ class ClusterHandler(
       "spinnaker:stack",
       "spinnaker:details"
     )
+
+    private const val REGION_PLACEHOLDER = "{{region}}"
+    private const val REGION_PATTERN = "([a-z]{2}(-gov)?)-([a-z]+)-\\d"
   }
 }
 

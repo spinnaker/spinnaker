@@ -59,7 +59,7 @@ class ClassicLoadBalancerHandler(
           Location(
             account = locations.account,
             region = region.name,
-            vpc = locations.vpc,
+            vpc = locations.vpc ?: error("No vpc supplied or resolved"),
             subnet = locations.subnet ?: error("No subnet purpose supplied or resolved"),
             availabilityZones = region.availabilityZones
           ),

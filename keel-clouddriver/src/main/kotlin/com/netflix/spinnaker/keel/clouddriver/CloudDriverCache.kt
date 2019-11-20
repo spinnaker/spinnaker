@@ -29,6 +29,8 @@ interface CloudDriverCache {
   fun subnetBy(subnetId: String): Subnet
   fun subnetBy(account: String, region: String, purpose: String): Subnet
   fun credentialBy(name: String): Credential
+  fun defaultKeyPairForAccount(account: String) =
+    credentialBy(account).attributes["defaultKeyPair"] as String
 }
 
 class ResourceNotFound(message: String) : RuntimeException(message)
