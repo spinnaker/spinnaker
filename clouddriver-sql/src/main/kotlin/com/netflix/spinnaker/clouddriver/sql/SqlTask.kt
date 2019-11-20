@@ -102,6 +102,7 @@ class SqlTask(
     this.dirty.set(true)
     sagaIds.add(sagaId)
     repository.updateSagaIds(this)
+    log.debug("Added sagaId with name={} and id={} to task={}", sagaId.name, sagaId.id, id)
   }
 
   override fun getSagaIds(): MutableList<SagaId> {
