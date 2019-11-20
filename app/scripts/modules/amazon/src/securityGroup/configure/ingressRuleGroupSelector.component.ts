@@ -2,7 +2,8 @@ import { IController, IComponentOptions, module } from 'angular';
 import { Subject, Subscription } from 'rxjs';
 import { get, intersection, uniq } from 'lodash';
 
-import { ISecurityGroupRule, ISecurityGroup, IVpc } from '@spinnaker/core';
+import { ISecurityGroupRule, ISecurityGroup, IVpc, IAccountDetails } from '@spinnaker/core';
+import { AWSProviderSettings } from 'amazon/aws.settings';
 
 interface IInfiniteScroll {
   currentItems: number;
@@ -24,7 +25,8 @@ interface ISecurityGroupCommand extends ISecurityGroup {
 class IngressRuleSelectorController implements IController {
   public rule: IRuleCommand;
   public securityGroup: ISecurityGroupCommand;
-  public accounts: string[];
+  public accounts: IAccountDetails[];
+  public crossAccountAccounts: IAccountDetails[];
   public vpcs: IVpc[];
   public regionalVpcs: { [region: string]: IVpc[] };
   public allSecurityGroups: ISecurityGroup[];
@@ -64,6 +66,11 @@ class IngressRuleSelectorController implements IController {
 
   public enableCrossAccount(): void {
     this.rule.crossAccountEnabled = true;
+    this.crossAccountAccounts = this.accounts;
+    const exclusions = get(AWSProviderSettings, `crossAccountIngressExclusions["${this.securityGroup.credentials}"]`);
+    if (exclusions && Array.isArray(exclusions)) {
+      this.crossAccountAccounts = this.accounts.filter(account => !exclusions.includes(account.name));
+    }
     this.rule.accountName = this.securityGroup.credentials;
     this.rule.vpcId = this.securityGroup.vpcId;
   }
