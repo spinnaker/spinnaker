@@ -49,7 +49,7 @@ class TelemetryEventListenerSpec extends Specification {
             status             : "succeeded", // lowercase testing
             syntheticStageOwner: null,
             context            : [
-              "cloudProvider": "nine"
+              "cloudProvider": "gce"
             ]
           ],
           [
@@ -164,7 +164,7 @@ class TelemetryEventListenerSpec extends Specification {
       Stage stage1 = stages.get(0)
       assert stage1.type == "deploy"
       assert stage1.status == Status.SUCCEEDED
-      assert stage1.cloudProvider.id == "nine"
+      assert stage1.cloudProvider.id == CloudProvider.ID.GCE
 
       Stage stage2 = stages.get(1)
       assert stage2.type == "wait"

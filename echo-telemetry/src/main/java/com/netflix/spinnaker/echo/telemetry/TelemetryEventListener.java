@@ -30,6 +30,7 @@ import com.netflix.spinnaker.echo.events.EchoEventListener;
 import com.netflix.spinnaker.echo.model.Event;
 import com.netflix.spinnaker.kork.proto.stats.Application;
 import com.netflix.spinnaker.kork.proto.stats.CloudProvider;
+import com.netflix.spinnaker.kork.proto.stats.CloudProvider.ID;
 import com.netflix.spinnaker.kork.proto.stats.Execution;
 import com.netflix.spinnaker.kork.proto.stats.SpinnakerInstance;
 import com.netflix.spinnaker.kork.proto.stats.Stage;
@@ -194,8 +195,10 @@ public class TelemetryEventListener implements EchoEventListener {
 
     String cloudProvider = stage.getContext().getCloudProvider();
     if (StringUtils.isNotEmpty(cloudProvider)) {
+      CloudProvider.ID cloudProviderId =
+          CloudProvider.ID.valueOf(parseEnum(ID.getDescriptor(), cloudProvider.toUpperCase()));
       // TODO(ttomsu): Figure out how to detect Kubernetes "flavor" - i.e. GKE, EKS, vanilla, etc.
-      stageBuilder.setCloudProvider(CloudProvider.newBuilder().setId(cloudProvider).build());
+      stageBuilder.setCloudProvider(CloudProvider.newBuilder().setId(cloudProviderId).build());
     }
 
     return Optional.of(stageBuilder.build());
