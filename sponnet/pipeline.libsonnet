@@ -246,6 +246,13 @@
           type: 'clusterSize',
         }],
       },
+      withStageStatus(stageName, stageStatus, failPipeline):: self + {
+        preconditions+: [{
+          context: { stageName: stageName, stageStatus: stageStatus },
+          failPipeline: failPipeline,
+          type: 'stageStatus',
+        }],
+      },
     },
 
     findArtifactFromExecution(name):: stage(name, 'findArtifactFromExecution') {
