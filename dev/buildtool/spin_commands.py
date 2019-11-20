@@ -129,13 +129,12 @@ class BuildSpinCommand(RepositoryCommandProcessor):
       labels = {'repository': repository.name,
                 'dist': dist_arch.dist,
                 'arch': dist_arch.arch}
-      cmd = 'go get -v -u {}'.format(spin_package_path)
+      cmd = 'go get -v'
       self.metrics.time_call(
           'GoGet', labels, self.metrics.default_determine_outcome_labels,
           check_subprocesses_to_logfile, 'Fetching Go packages ' + context,
-          logfile, [cmd], cwd=gopath, env=env)
+          logfile, [cmd], cwd=repository.git_dir, env=env)
 
-    for dist_arch in DIST_ARCH_LIST:
       # GCS sub-directory the binaries are stored in are specified by
       # ${build_version}/${dist}.
       version_bin_path = ('spin/{}/{}/{}/{}'
@@ -163,9 +162,9 @@ class BuildSpinCommand(RepositoryCommandProcessor):
       self.metrics.time_call(
           'GoBuild', labels, self.metrics.default_determine_outcome_labels,
           check_subprocesses_to_logfile, 'Building spin ' + context, logfile,
-          [cmd], cwd=config_root, env=env)
+          [cmd], cwd=repository.git_dir, env=env)
 
-      spin_path = '{}/{}'.format(config_root, dist_arch.filename)
+      spin_path = '{}/{}'.format(repository.git_dir, dist_arch.filename)
       self.__gcs_uploader.upload_from_filename(
         version_bin_path, spin_path)
       os.remove(spin_path)
