@@ -63,8 +63,21 @@ message Stage {
 }
 
 message CloudProvider {
-  string id = 1;
+  ID id = 1;
   string variant = 2;
+
+  enum ID {
+    UNKNOWN = 0;
+    APPENGINE = 1;
+    AWS = 2;
+    AZURE = 3;
+    CLOUDFOUNDRY = 4;
+    DCOS = 5;
+    ECS = 6;
+    GCE = 7;
+    KUBERNETES = 8;
+    ORACLE = 9;
+  }
 }
 
 // Sourced from https://github.com/spinnaker/orca/blob/master/orca-core/src/main/java/com/netflix/spinnaker/orca/ExecutionStatus.java
