@@ -58,6 +58,8 @@ public class KubernetesKind {
   public static final KubernetesKind INGRESS =
       createWithAlias("ingress", null, KubernetesApiGroup.NETWORKING_K8S_IO);
   public static final KubernetesKind JOB = createWithAlias("job", null, KubernetesApiGroup.BATCH);
+  public static final KubernetesKind LIMIT_RANGE =
+      createWithAlias("limitRange", null, KubernetesApiGroup.NONE);
   public static final KubernetesKind MUTATING_WEBHOOK_CONFIGURATION =
       createWithAlias(
           "mutatingWebhookConfiguration", null, KubernetesApiGroup.ADMISSIONREGISTRATION_K8S_IO);
