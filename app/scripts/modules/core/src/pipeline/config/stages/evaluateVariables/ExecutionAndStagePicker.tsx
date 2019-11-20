@@ -143,11 +143,13 @@ function findCloseStageFromExecution(pipeline: IPipeline, execution: IExecution,
 }
 
 function stageRequisiteStageGraph(stage: IStage, allStages: { [key: string]: IStage }): { [key: string]: any } {
-  return stage.requisiteStageRefIds.reduce((acc, requisiteStageId) => {
-    const requisiteStage = allStages[requisiteStageId];
-    if (!requisiteStage) {
-      return acc;
-    }
-    return { ...acc, [requisiteStageId]: stageRequisiteStageGraph(requisiteStage, allStages) };
-  }, {});
+  return stage.requisiteStageRefIds
+    .filter(ref => /^[0-9]+$/.exec(ref.toString()))
+    .reduce((acc, requisiteStageId) => {
+      const requisiteStage = allStages[requisiteStageId];
+      if (!requisiteStage) {
+        return acc;
+      }
+      return { ...acc, [requisiteStageId]: stageRequisiteStageGraph(requisiteStage, allStages) };
+    }, {});
 }
