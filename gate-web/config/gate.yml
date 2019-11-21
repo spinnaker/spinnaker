@@ -58,6 +58,9 @@ services:
 redis:
   connection: redis://localhost:6379
 
+slack:
+  baseUrl: https://slack.com/api
+
 swagger:
   enabled: true
   title: Spinnaker API
