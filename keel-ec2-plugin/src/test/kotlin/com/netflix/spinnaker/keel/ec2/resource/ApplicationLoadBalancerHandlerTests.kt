@@ -49,7 +49,7 @@ import java.time.Clock
 import java.util.UUID
 
 @Suppress("UNCHECKED_CAST")
-internal class ApplicationLoadBalancerSpecHandlerTests : JUnit5Minutests {
+internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
   private val cloudDriverService = mockk<CloudDriverService>()
   private val cloudDriverCache = mockk<CloudDriverCache>()
   private val orcaService = mockk<OrcaService>()
