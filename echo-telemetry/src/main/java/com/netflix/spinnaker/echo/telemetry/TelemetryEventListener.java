@@ -178,7 +178,7 @@ public class TelemetryEventListener implements EchoEventListener {
           TELEMETRY_REGISTRY_NAME,
           cnpe.getMessage());
     } catch (Exception e) {
-      log.warn("Could not send Telemetry event {}", event, e);
+      log.debug("Could not send Telemetry event {}", event, e);
     }
   }
 

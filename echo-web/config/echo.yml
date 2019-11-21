@@ -28,8 +28,8 @@ webhooks:
 resilience4j.circuitbreaker:
   instances:
     telemetry:
-      # Startup config...
-      registerHealthIndicator: true
+      # This needs to stay false, because if the telemetry endpoint goes down, Echo goes unhealthy (no good!)
+      registerHealthIndicator: false
       # Warming up...
       minimumNumberOfCalls: 5
       slidingWindowSize: 10

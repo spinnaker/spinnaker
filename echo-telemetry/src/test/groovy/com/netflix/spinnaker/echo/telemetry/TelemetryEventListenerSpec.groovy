@@ -9,6 +9,7 @@ import com.netflix.spinnaker.kork.proto.stats.Event as EventProto
 import groovy.json.JsonOutput
 import groovy.util.logging.Slf4j
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry
+import retrofit.RetrofitError
 import retrofit.client.Response
 import spock.lang.Specification
 import spock.lang.Subject
@@ -172,6 +173,49 @@ class TelemetryEventListenerSpec extends Specification {
 
       return new Response("url", 200, "", [], null)
     }
+  }
+
+  def "test stat service in bad state"() {
+    given:
+    def configProps = new TelemetryConfig.TelemetryConfigProps()
+      .setInstanceId(instanceId)
+      .setSpinnakerVersion(spinnakerVersion)
+
+
+    @Subject
+    def listener = new TelemetryEventListener(service, configProps, registry)
+
+    when:
+    listener.processEvent(validEvent)
+
+    then:
+    1 * service.log(_) >> { _ ->
+      throw RetrofitError.networkError("url", new IOException("Uh oh - Network error!"))
+    }
+    noExceptionThrown()
+
+    when:
+    listener.processEvent(validEvent)
+
+    then:
+    1 * service.log(_) >> { _ ->
+      throw RetrofitError.httpError(
+        "url",
+        new Response("url", 500, "Uh oh - HTTP error!", [], null),
+        null,
+        null)
+    }
+    noExceptionThrown()
+
+    when:
+    listener.processEvent(validEvent)
+
+    then:
+    1 * service.log(_) >> { _ ->
+      throw RetrofitError.unexpectedError("url", new Exception("Uh oh - Unexpected error!"))
+    }
+    noExceptionThrown()
+
   }
 
   def "test circuit breaker"() {
