@@ -44,10 +44,8 @@ import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
 import com.netflix.spinnaker.keel.events.Task
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.Moniker
-import com.netflix.spinnaker.keel.model.OrchestrationRequest
-import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.orca.OrcaService
-import com.netflix.spinnaker.keel.plugin.EnvironmentResolver
+import com.netflix.spinnaker.keel.plugin.TaskLauncher
 import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.SupportedKind
@@ -60,7 +58,7 @@ class SecurityGroupHandler(
   private val cloudDriverService: CloudDriverService,
   private val cloudDriverCache: CloudDriverCache,
   private val orcaService: OrcaService,
-  private val environmentResolver: EnvironmentResolver,
+  private val taskLauncher: TaskLauncher,
   objectMapper: ObjectMapper,
   resolvers: List<Resolver<*>>
 ) : ResourceHandler<SecurityGroupSpec, Map<String, SecurityGroup>>(objectMapper, resolvers) {
@@ -113,27 +111,13 @@ class SecurityGroupHandler(
 
           log.info("${verb.first} security group using task: $job")
 
-          val description = "${verb.first} security group ${spec.moniker.name} in " +
-            "${spec.location.account}/${spec.location.region}"
-          val notifications = environmentResolver.getNotificationsFor(resource.id)
-
           async {
-            orcaService
-              .orchestrate(
-                resource.serviceAccount,
-                OrchestrationRequest(
-                  description,
-                  spec.moniker.app,
-                  description,
-                  listOf(job),
-                  OrchestrationTrigger(
-                    correlationId = "${resource.id}:${spec.location.region}",
-                    notifications = notifications)
-                ))
-              .let {
-                log.info("Started task {} to ${verb.second} security group", it.ref)
-                Task(id = it.taskId, name = description)
-              }
+            taskLauncher.submitJobToOrca(
+              resource = resource,
+              description = "${verb.first} security group ${spec.moniker.name} in ${spec.location.account}/${spec.location.region}",
+              correlationId = "${resource.id}:${spec.location.region}",
+              job = job
+            )
           }
         }
         .map { it.await() }

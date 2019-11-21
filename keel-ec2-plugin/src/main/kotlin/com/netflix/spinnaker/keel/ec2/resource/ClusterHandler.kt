@@ -36,12 +36,9 @@ import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
 import com.netflix.spinnaker.keel.ec2.image.ArtifactVersionDeployed
 import com.netflix.spinnaker.keel.events.Task
-import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.Moniker
-import com.netflix.spinnaker.keel.model.OrchestrationRequest
-import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.orca.OrcaService
-import com.netflix.spinnaker.keel.plugin.EnvironmentResolver
+import com.netflix.spinnaker.keel.plugin.TaskLauncher
 import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.SupportedKind
@@ -60,7 +57,7 @@ class ClusterHandler(
   private val cloudDriverService: CloudDriverService,
   private val cloudDriverCache: CloudDriverCache,
   private val orcaService: OrcaService,
-  private val environmentResolver: EnvironmentResolver,
+  private val taskLauncher: TaskLauncher,
   private val clock: Clock,
   private val publisher: ApplicationEventPublisher,
   objectMapper: ObjectMapper,
@@ -96,27 +93,14 @@ class ClusterHandler(
           }
 
           log.info("Upserting server group using task: {}", job)
-          val description = "Upsert server group ${desired.moniker.name} in ${desired.location.account}/${desired.location.region}"
-
-          val notifications = environmentResolver.getNotificationsFor(resource.id)
 
           async {
-            orcaService
-              .orchestrate(
-                resource.serviceAccount,
-                OrchestrationRequest(
-                  description,
-                  desired.moniker.app,
-                  description,
-                  listOf(Job(job["type"].toString(), job)),
-                  OrchestrationTrigger(
-                    correlationId = "${resource.id}:${desired.location.region}",
-                    notifications = notifications)
-                ))
-              .let {
-                log.info("Started task {} to upsert server group", it.ref)
-                Task(id = it.taskId, name = description)
-              }
+            taskLauncher.submitJobToOrca(
+              resource = resource,
+              description = "Upsert server group ${desired.moniker.name} in ${desired.location.account}/${desired.location.region}",
+              correlationId = "${resource.id}:${desired.location.region}",
+              job = job
+            )
           }
         }
         .map { it.await() }
@@ -385,7 +369,7 @@ class ClusterHandler(
   }
 
   private suspend fun CloudDriverService.getServerGroups(resource: Resource<ClusterSpec>): Iterable<ServerGroup> =
-    cloudDriverService.getServerGroups(
+    getServerGroups(
       account = resource.spec.locations.account,
       moniker = resource.spec.moniker,
       regions = resource.spec.locations.regions.map { it.name }.toSet(),

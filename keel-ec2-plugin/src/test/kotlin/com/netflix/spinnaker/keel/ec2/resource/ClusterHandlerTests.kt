@@ -44,7 +44,7 @@ import com.netflix.spinnaker.keel.model.parseMoniker
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
-import com.netflix.spinnaker.keel.plugin.EnvironmentResolver
+import com.netflix.spinnaker.keel.plugin.TaskLauncher
 import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
@@ -83,7 +83,10 @@ internal class ClusterHandlerTests : JUnit5Minutests {
   val normalizers = emptyList<Resolver<ClusterSpec>>()
   val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
   val clock = Clock.systemDefaultZone()
-  val environmentResolver: EnvironmentResolver = EnvironmentResolver(InMemoryDeliveryConfigRepository(clock))
+  val taskLauncher = TaskLauncher(
+    orcaService,
+    InMemoryDeliveryConfigRepository(clock)
+  )
 
   val vpcWest = Network(CLOUD_PROVIDER, "vpc-1452353", "vpc0", "test", "us-west-2")
   val vpcEast = Network(CLOUD_PROVIDER, "vpc-4342589", "vpc0", "test", "us-east-1")
@@ -203,7 +206,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         cloudDriverService,
         cloudDriverCache,
         orcaService,
-        environmentResolver,
+        taskLauncher,
         clock,
         publisher,
         objectMapper,

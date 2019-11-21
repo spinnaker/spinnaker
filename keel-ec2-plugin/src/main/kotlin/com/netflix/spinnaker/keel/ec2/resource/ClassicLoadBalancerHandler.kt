@@ -25,11 +25,9 @@ import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
 import com.netflix.spinnaker.keel.events.Task
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.Moniker
-import com.netflix.spinnaker.keel.model.OrchestrationRequest
-import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.model.parseMoniker
 import com.netflix.spinnaker.keel.orca.OrcaService
-import com.netflix.spinnaker.keel.plugin.EnvironmentResolver
+import com.netflix.spinnaker.keel.plugin.TaskLauncher
 import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.SupportedKind
@@ -43,7 +41,7 @@ class ClassicLoadBalancerHandler(
   private val cloudDriverService: CloudDriverService,
   private val cloudDriverCache: CloudDriverCache,
   private val orcaService: OrcaService,
-  private val environmentResolver: EnvironmentResolver,
+  private val taskLauncher: TaskLauncher,
   objectMapper: ObjectMapper,
   resolvers: List<Resolver<*>>
 ) : ResourceHandler<ClassicLoadBalancerSpec, Map<String, ClassicLoadBalancer>>(objectMapper, resolvers) {
@@ -86,34 +84,20 @@ class ClassicLoadBalancerHandler(
         .filter { diff -> diff.hasChanges() }
         .map { diff ->
           val desired = diff.desired
+
           val action = when {
             resourceDiff.current == null -> "Creating"
             else -> "Upserting"
           }
-
-          val description = "$action ${resource.kind} load balancer ${desired.moniker.name} in " +
-            "${desired.location.account}/${desired.location.region}"
-
-          val notifications = environmentResolver.getNotificationsFor(resource.id)
+          val description = "$action ${resource.kind} load balancer ${desired.moniker.name} in ${desired.location.account}/${desired.location.region}"
 
           async {
-            orcaService
-              .orchestrate(
-                resource.serviceAccount,
-                OrchestrationRequest(
-                  description,
-                  desired.moniker.app,
-                  description,
-                  listOf(diff.toUpsertJob()),
-                  OrchestrationTrigger(
-                    correlationId = "${resource.id}:${desired.location.region}",
-                    notifications = notifications)
-                )
-              )
-              .let {
-                log.info("Started task ${it.ref} to $description")
-                Task(id = it.taskId, name = description)
-              }
+            taskLauncher.submitJobToOrca(
+              resource = resource,
+              description = description,
+              correlationId = "${resource.id}:${desired.location.region}",
+              job = diff.toUpsertJob()
+            )
           }
         }
         .map { it.await() }
@@ -202,7 +186,7 @@ class ClassicLoadBalancerHandler(
   private suspend fun CloudDriverService.getClassicLoadBalancer(
     spec: ClassicLoadBalancerSpec,
     serviceAccount: String
-  ) = cloudDriverService.getClassicLoadBalancer(
+  ) = getClassicLoadBalancer(
     account = spec.locations.account,
     name = spec.moniker.name,
     regions = spec.locations.regions.map { it.name }.toSet(),

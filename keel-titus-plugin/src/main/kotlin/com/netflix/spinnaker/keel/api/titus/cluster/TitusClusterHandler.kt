@@ -33,12 +33,8 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.TitusActiveServerGroup
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.events.Task
-import com.netflix.spinnaker.keel.model.EchoNotification
-import com.netflix.spinnaker.keel.model.Job
-import com.netflix.spinnaker.keel.model.OrchestrationRequest
-import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.orca.OrcaService
-import com.netflix.spinnaker.keel.plugin.EnvironmentResolver
+import com.netflix.spinnaker.keel.plugin.TaskLauncher
 import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.SupportedKind
@@ -59,7 +55,7 @@ class TitusClusterHandler(
   private val cloudDriverCache: CloudDriverCache,
   private val orcaService: OrcaService,
   private val clock: Clock,
-  private val environmentResolver: EnvironmentResolver,
+  private val taskLauncher: TaskLauncher,
   private val publisher: ApplicationEventPublisher,
   objectMapper: ObjectMapper,
   resolvers: List<Resolver<*>>
@@ -104,29 +100,17 @@ class TitusClusterHandler(
           }
 
           log.info("Upserting server group using task: {}", job)
-          val description = "Upsert server group ${desired.moniker.name} in ${desired.location.account}/${desired.location.region}"
-
-          val notifications: List<EchoNotification> = environmentResolver.getNotificationsFor(resource.id)
 
           async {
-            orcaService
-              .orchestrate(
-                resource.serviceAccount,
-                OrchestrationRequest(
-                  name = description,
-                  application = desired.moniker.app,
-                  description = description,
-                  job = listOf(Job(job["type"].toString(), job)),
-                  trigger = OrchestrationTrigger(
-                    correlationId = "${resource.id}:${desired.location.region}",
-                    notifications = notifications)
-                ))
-              .let {
-                log.info("Started task {} to upsert server group", it.ref)
-                Task(id = it.taskId, name = description)
-              }
+            taskLauncher.submitJobToOrca(
+              resource = resource,
+              description = "Upsert server group ${desired.moniker.name} in ${desired.location.account}/${desired.location.region}",
+              correlationId = "${resource.id}:${desired.location.region}",
+              job = job
+            )
           }
-        }.map { it.await() }
+        }
+        .map { it.await() }
     }
 
   private fun ResourceDiff<TitusServerGroup>.resizeServerGroupJob(): Map<String, Any?> {

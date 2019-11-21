@@ -22,7 +22,7 @@ import com.netflix.spinnaker.keel.api.titus.cluster.TitusClusterHandler
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.orca.OrcaService
-import com.netflix.spinnaker.keel.plugin.EnvironmentResolver
+import com.netflix.spinnaker.keel.plugin.TaskLauncher
 import com.netflix.spinnaker.keel.plugin.Resolver
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.ApplicationEventPublisher
@@ -39,7 +39,7 @@ class TitusConfig {
     cloudDriverCache: CloudDriverCache,
     orcaService: OrcaService,
     clock: Clock,
-    environmentResolver: EnvironmentResolver,
+    taskLauncher: TaskLauncher,
     publisher: ApplicationEventPublisher,
     objectMapper: ObjectMapper,
     resolvers: List<Resolver<*>>
@@ -48,7 +48,7 @@ class TitusConfig {
     cloudDriverCache,
     orcaService,
     clock,
-    environmentResolver,
+    taskLauncher,
     publisher,
     objectMapper,
     resolvers

@@ -25,7 +25,7 @@ import com.netflix.spinnaker.keel.ec2.resource.ClusterHandler
 import com.netflix.spinnaker.keel.ec2.resource.SecurityGroupHandler
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
-import com.netflix.spinnaker.keel.plugin.EnvironmentResolver
+import com.netflix.spinnaker.keel.plugin.TaskLauncher
 import com.netflix.spinnaker.keel.plugin.Resolver
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.ApplicationEventPublisher
@@ -38,19 +38,18 @@ import java.time.Clock
 class EC2Config {
 
   @Bean
-  fun environmentResolver(
+  fun taskLauncher(
+    orcaService: OrcaService,
     deliveryConfigRepository: DeliveryConfigRepository
-  ): EnvironmentResolver =
-    EnvironmentResolver(
-      deliveryConfigRepository
-    )
+  ): TaskLauncher =
+    TaskLauncher(orcaService, deliveryConfigRepository)
 
   @Bean
   fun clusterHandler(
     cloudDriverService: CloudDriverService,
     cloudDriverCache: CloudDriverCache,
     orcaService: OrcaService,
-    environmentResolver: EnvironmentResolver,
+    taskLauncher: TaskLauncher,
     clock: Clock,
     objectMapper: ObjectMapper,
     normalizers: List<Resolver<*>>,
@@ -60,7 +59,7 @@ class EC2Config {
       cloudDriverService,
       cloudDriverCache,
       orcaService,
-      environmentResolver,
+      taskLauncher,
       clock,
       publisher,
       objectMapper,
@@ -72,7 +71,7 @@ class EC2Config {
     cloudDriverService: CloudDriverService,
     cloudDriverCache: CloudDriverCache,
     orcaService: OrcaService,
-    environmentResolver: EnvironmentResolver,
+    taskLauncher: TaskLauncher,
     objectMapper: ObjectMapper,
     normalizers: List<Resolver<*>>
   ): SecurityGroupHandler =
@@ -80,7 +79,7 @@ class EC2Config {
       cloudDriverService,
       cloudDriverCache,
       orcaService,
-      environmentResolver,
+      taskLauncher,
       objectMapper,
       normalizers
     )
@@ -90,7 +89,7 @@ class EC2Config {
     cloudDriverService: CloudDriverService,
     cloudDriverCache: CloudDriverCache,
     orcaService: OrcaService,
-    environmentResolver: EnvironmentResolver,
+    taskLauncher: TaskLauncher,
     objectMapper: ObjectMapper,
     normalizers: List<Resolver<*>>
   ): ClassicLoadBalancerHandler =
@@ -98,7 +97,7 @@ class EC2Config {
       cloudDriverService,
       cloudDriverCache,
       orcaService,
-      environmentResolver,
+      taskLauncher,
       objectMapper,
       normalizers
     )
@@ -108,7 +107,7 @@ class EC2Config {
     cloudDriverService: CloudDriverService,
     cloudDriverCache: CloudDriverCache,
     orcaService: OrcaService,
-    environmentResolver: EnvironmentResolver,
+    taskLauncher: TaskLauncher,
     objectMapper: ObjectMapper,
     normalizers: List<Resolver<*>>
   ): ApplicationLoadBalancerHandler =
@@ -116,7 +115,7 @@ class EC2Config {
       cloudDriverService,
       cloudDriverCache,
       orcaService,
-      environmentResolver,
+      taskLauncher,
       objectMapper,
       normalizers
     )

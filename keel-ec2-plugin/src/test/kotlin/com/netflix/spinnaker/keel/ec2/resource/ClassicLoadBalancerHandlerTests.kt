@@ -23,7 +23,7 @@ import com.netflix.spinnaker.keel.model.parseMoniker
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
-import com.netflix.spinnaker.keel.plugin.EnvironmentResolver
+import com.netflix.spinnaker.keel.plugin.TaskLauncher
 import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import com.netflix.spinnaker.keel.test.resource
@@ -64,7 +64,10 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
   private val cloudDriverCache = mockk<CloudDriverCache>()
   private val orcaService = mockk<OrcaService>()
   private val clock = Clock.systemDefaultZone()
-  private val environmentResolver: EnvironmentResolver = EnvironmentResolver(InMemoryDeliveryConfigRepository(clock))
+  private val taskLauncher = TaskLauncher(
+    orcaService,
+    InMemoryDeliveryConfigRepository(clock)
+  )
   private val mapper = ObjectMapper().registerKotlinModule()
   private val yamlMapper = configuredYamlMapper()
 
@@ -147,7 +150,7 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
         cloudDriverService,
         cloudDriverCache,
         orcaService,
-        environmentResolver,
+        taskLauncher,
         mapper,
         normalizers
       )
