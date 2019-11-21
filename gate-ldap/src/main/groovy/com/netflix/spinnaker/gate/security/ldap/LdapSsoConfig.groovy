@@ -39,6 +39,7 @@ import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.ldap.userdetails.UserDetailsContextMapper
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter
+import org.springframework.session.web.http.DefaultCookieSerializer
 import org.springframework.stereotype.Component
 
 @ConditionalOnExpression('${ldap.enabled:false}')
@@ -58,6 +59,9 @@ class LdapSsoConfig extends WebSecurityConfigurerAdapter {
 
   @Autowired
   SecurityProperties securityProperties
+
+  @Autowired
+  DefaultCookieSerializer defaultCookieSerializer
 
   @Override
   protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -88,6 +92,7 @@ class LdapSsoConfig extends WebSecurityConfigurerAdapter {
 
   @Override
   protected void configure(HttpSecurity http) throws Exception {
+    defaultCookieSerializer.setSameSite(null)
     http.formLogin()
     authConfig.configure(http)
     http.addFilterBefore(new BasicAuthenticationFilter(authenticationManager()), UsernamePasswordAuthenticationFilter)
