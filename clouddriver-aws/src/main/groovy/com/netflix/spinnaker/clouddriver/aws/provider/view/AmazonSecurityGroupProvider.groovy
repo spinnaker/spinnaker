@@ -187,7 +187,8 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
       description: securityGroup.description,
       accountName: account,
       region: region,
-      inboundRules: inboundRules
+      inboundRules: inboundRules,
+      tags: securityGroup.tags
     )
   }
 

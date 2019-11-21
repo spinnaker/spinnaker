@@ -257,7 +257,8 @@ class AmazonSecurityGroupProviderSpec extends Specification {
           new Rule.PortRange(startPort: 7001, endPort: 7001)
         ] as SortedSet
       )
-    ])
+    ],
+      tags: [])
     0 * _
   }
 
