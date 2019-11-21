@@ -215,7 +215,7 @@ interface ResourceRepository : PeriodicallyCheckedRepository<Resource<out Resour
   }
 }
 
-@Suppress("UNCHECKED_CAST")
+@Suppress("UNCHECKED_CAST", "EXTENSION_SHADOWED_BY_MEMBER")
 inline fun <reified T : ResourceSpec> ResourceRepository.get(id: ResourceId): Resource<T> =
   get(id).also { check(it.spec is T) } as Resource<T>
 

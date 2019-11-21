@@ -162,7 +162,7 @@ class ClassicLoadBalancerHandler(
         account = exportable.account,
         vpc = base.location.vpc,
         subnet = base.location.subnet,
-        regions = clbs.map { (region, clb) ->
+        regions = clbs.map { (region, _) ->
           SubnetAwareRegionSpec(
             name = region,
             availabilityZones = zonesForCLB.getValue(region)

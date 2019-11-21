@@ -163,7 +163,7 @@ class ApplicationLoadBalancerHandler(
         account = exportable.account,
         vpc = base.location.vpc,
         subnet = base.location.subnet,
-        regions = albs.map { (region, alb) ->
+        regions = albs.map { (region, _) ->
           SubnetAwareRegionSpec(
             name = region,
             availabilityZones = zonesForALB.getValue(region)
