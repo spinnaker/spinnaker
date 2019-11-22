@@ -377,10 +377,13 @@ class ClusterHandler(
     )
       .also { them ->
         if (them.distinctBy { it.launchConfiguration.appVersion }.size == 1) {
-          publisher.publishEvent(ArtifactVersionDeployed(
-            resourceId = resource.id,
-            artifactVersion = them.first().launchConfiguration.appVersion
-          ))
+          val appVersion = them.first().launchConfiguration.appVersion
+          if (appVersion != null) {
+            publisher.publishEvent(ArtifactVersionDeployed(
+              resourceId = resource.id,
+              artifactVersion = appVersion
+            ))
+          }
         }
       }
 

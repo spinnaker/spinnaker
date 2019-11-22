@@ -19,7 +19,7 @@ package com.netflix.spinnaker.keel.api.ec2
 
 data class LaunchConfiguration(
   val imageId: String,
-  val appVersion: String,
+  val appVersion: String?,
   val instanceType: String,
   val ebsOptimized: Boolean = false,
   val iamRole: String,

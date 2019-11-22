@@ -26,7 +26,7 @@ data class ActiveServerGroup(
 
 data class ActiveServerGroupImage(
   val imageId: String,
-  val appVersion: String
+  val appVersion: String?
 ) {
   @JsonCreator
   constructor(
@@ -39,7 +39,6 @@ data class ActiveServerGroupImage(
       ?.get("value")
       ?.toString()
       ?.substringBefore("/")
-      ?: throw RequiredTagMissing("appversion", imageId)
   )
 }
 

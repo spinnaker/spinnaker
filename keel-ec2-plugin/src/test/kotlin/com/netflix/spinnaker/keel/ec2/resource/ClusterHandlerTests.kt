@@ -61,6 +61,7 @@ import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomStringUtils.randomNumeric
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.Assertion
+import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.containsKey
@@ -71,6 +72,7 @@ import strikt.assertions.isNotEmpty
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.map
+import strikt.assertions.succeeded
 import java.time.Clock
 import java.util.UUID.randomUUID
 
@@ -398,6 +400,58 @@ internal class ClusterHandlerTests : JUnit5Minutests {
       }
     }
 
+    context("the cluster has active server groups with missing app version tag in one region") {
+      before {
+        coEvery { cloudDriverService.activeServerGroup("us-east-1") } returns activeServerGroupResponseEast
+        coEvery { cloudDriverService.activeServerGroup("us-west-2") } answers { activeServerGroupResponseWest.withMissingAppVersion() }
+      }
+
+      test("app version is null in the region with missing tag") {
+        val current = runBlocking {
+          current(resource)
+        }
+        expectThat(current).containsKey("us-west-2")
+        expectThat(current["us-west-2"]!!.launchConfiguration.appVersion).isNull()
+      }
+
+      test("no exception is thrown") {
+        expectCatching {
+          runBlocking {
+            current(resource)
+          }
+        }.succeeded()
+      }
+
+      test("no event is fired indicating an app version is deployed") {
+        runBlocking {
+          current(resource)
+        }
+        verify(exactly = 0) { publisher.publishEvent(ofType<ArtifactVersionDeployed>()) }
+      }
+
+      test("applying the diff creates a server group in the region with missing tag") {
+        val modified = setOf(
+          serverGroupEast.copy(name = activeServerGroupResponseEast.name),
+          serverGroupWest.copy(name = activeServerGroupResponseWest.name).withMissingAppVersion()
+        )
+        val diff = ResourceDiff(
+          serverGroups.byRegion(),
+          modified.byRegion()
+        )
+        runBlocking {
+          upsert(resource, diff)
+        }
+
+        val slot = slot<OrchestrationRequest>()
+        coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
+
+        expectThat(slot.captured.job.first()) {
+          get("type").isEqualTo("createServerGroup")
+          get { get("availabilityZones") as Map<String, String> }.containsKey("us-west-2")
+        }
+      }
+    }
+
     context("a diff has been detected") {
       context("the diff is only in capacity") {
 
@@ -545,6 +599,13 @@ private fun ServerGroup.withDifferentInstanceType(): ServerGroup =
     )
   )
 
+private fun ServerGroup.withMissingAppVersion(): ServerGroup =
+  copy(
+    launchConfiguration = launchConfiguration.copy(
+      appVersion = null
+    )
+  )
+
 private fun ActiveServerGroup.withOlderAppVersion(): ActiveServerGroup =
   copy(
     image = image.copy(
@@ -565,4 +626,12 @@ private fun ActiveServerGroup.withNonDefaultHealthProps(): ActiveServerGroup =
 private fun ActiveServerGroup.withNonDefaultLaunchConfigProps(): ActiveServerGroup =
   copy(
     launchConfig = launchConfig.copy(iamInstanceProfile = "NotTheDefaultInstanceProfile", keyName = "not-the-default-key")
+  )
+
+private fun ActiveServerGroup.withMissingAppVersion(): ActiveServerGroup =
+  copy(
+    image = ActiveServerGroupImage(
+      imageId = "ami-573e1b2650a5",
+      tags = emptyList()
+    )
   )
