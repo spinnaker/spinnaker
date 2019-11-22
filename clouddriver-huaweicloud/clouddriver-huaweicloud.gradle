@@ -1,0 +1,22 @@
+dependencies {
+  implementation project(":cats:cats-core")
+  implementation project(":clouddriver-core")
+  implementation project(":clouddriver-security")
+
+  compileOnly "org.projectlombok:lombok"
+  annotationProcessor "org.projectlombok:lombok"
+  testAnnotationProcessor "org.projectlombok:lombok"
+
+  implementation "com.netflix.frigga:frigga"
+  implementation "com.netflix.spectator:spectator-api"
+  implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"
+  implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
+  implementation "com.netflix.spinnaker.moniker:moniker"
+  implementation "org.glassfish.jersey.inject:jersey-hk2:2.28"
+  implementation 'com.huawei:openstack4j:1.0.17'
+  implementation "org.glassfish.jersey.core:jersey-client:2.22.1"
+  implementation "org.glassfish.jersey.media:jersey-media-json-jackson:2.11"
+  implementation "org.codehaus.groovy:groovy-all"
+  implementation "org.springframework.boot:spring-boot-actuator"
+  implementation "org.springframework.boot:spring-boot-starter-web"
+}
