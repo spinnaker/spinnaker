@@ -126,9 +126,10 @@ public class TelemetryEventListener implements EchoEventListener {
 
     List<Stage> protoStages =
         execution.getStages().stream()
-            .map(this::toStage)
+            .map(this::toStages)
             .filter(Optional::isPresent)
             .map(Optional::get)
+            .flatMap(List::stream)
             .collect(Collectors.toList());
 
     Execution.Builder executionBuilder =
@@ -182,7 +183,7 @@ public class TelemetryEventListener implements EchoEventListener {
     }
   }
 
-  private Optional<Stage> toStage(Holder.Stage stage) {
+  private Optional<List<Stage>> toStages(Holder.Stage stage) {
     // Only interested in user-configured stages.
     if (stage.isSyntheticStage()) {
       log.debug("Discarding synthetic stage");
@@ -193,15 +194,30 @@ public class TelemetryEventListener implements EchoEventListener {
         Status.valueOf(parseEnum(Status.getDescriptor(), stage.getStatus().toUpperCase()));
     Stage.Builder stageBuilder = Stage.newBuilder().setType(stage.getType()).setStatus(stageStatus);
 
+    List<Stage> returnList = new ArrayList<>();
     String cloudProvider = stage.getContext().getCloudProvider();
     if (StringUtils.isNotEmpty(cloudProvider)) {
-      CloudProvider.ID cloudProviderId =
-          CloudProvider.ID.valueOf(parseEnum(ID.getDescriptor(), cloudProvider.toUpperCase()));
-      // TODO(ttomsu): Figure out how to detect Kubernetes "flavor" - i.e. GKE, EKS, vanilla, etc.
-      stageBuilder.setCloudProvider(CloudProvider.newBuilder().setId(cloudProviderId).build());
+      stageBuilder.setCloudProvider(toCloudProvider(cloudProvider));
+      returnList.add(stageBuilder.build());
+    } else if (StringUtils.isNotEmpty(stage.getContext().getNewState().getCloudProviders())) {
+      // Create and Update Application operations can specify multiple cloud providers in 1
+      // operation.
+      String[] cloudProviders = stage.getContext().getNewState().getCloudProviders().split(",");
+      for (String cp : cloudProviders) {
+        returnList.add(stageBuilder.clone().setCloudProvider(toCloudProvider(cp)).build());
+      }
+    } else {
+      returnList.add(stageBuilder.build());
     }
 
-    return Optional.of(stageBuilder.build());
+    return Optional.of(returnList);
+  }
+
+  private CloudProvider toCloudProvider(String cloudProvider) {
+    CloudProvider.ID cloudProviderId =
+        CloudProvider.ID.valueOf(parseEnum(ID.getDescriptor(), cloudProvider.toUpperCase()));
+    // TODO(ttomsu): Figure out how to detect Kubernetes "flavor" - i.e. GKE, EKS, vanilla, etc.
+    return CloudProvider.newBuilder().setId(cloudProviderId).build();
   }
 
   private String hash(String clearText) {
@@ -297,9 +313,21 @@ public class TelemetryEventListener implements EchoEventListener {
     @JsonDeserialize(builder = Context.ContextBuilder.class)
     public static class Context {
       private final String cloudProvider;
+      // Only used during upsert of application
+      @Builder.Default private final NewState newState = NewState.builder().build();
 
       @JsonPOJOBuilder(withPrefix = "")
       public static class ContextBuilder {}
+    }
+
+    @Getter
+    @Builder
+    @JsonDeserialize(builder = NewState.NewStateBuilder.class)
+    public static class NewState {
+      private final String cloudProviders;
+
+      @JsonPOJOBuilder(withPrefix = "")
+      public static class NewStateBuilder {}
     }
   }
 }

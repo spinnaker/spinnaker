@@ -67,6 +67,36 @@ class TelemetryEventListenerSpec extends Specification {
     ]
   )
 
+  Event appCreatedEvent = mapToEventViaJson(
+    details: [
+      type       : "orca:pipeline:complete",
+      application: applicationName,
+    ],
+    content: [
+      execution: [
+        id     : executionId,
+        type   : "PIPELINE",
+        status : "SUCCEEDED",
+        trigger: [
+          type: "MANUAL"
+        ],
+        stages : [
+          [
+            type               : "createApplication",
+            status             : "succeeded", // lowercase testing
+            syntheticStageOwner: null,
+            context            : [
+              "newState": [
+                "name": applicationName,
+                "cloudProviders": "gce,kubernetes",
+              ],
+            ]
+          ],
+        ]
+      ]
+    ]
+  )
+
   def setup() {
     circuitBreaker.reset()
   }
@@ -294,6 +324,45 @@ class TelemetryEventListenerSpec extends Specification {
       assert s.type == "myType"
       assert s.status == Status.UNKNOWN
 
+    }
+  }
+
+  def "test create app cloud provider detection"() {
+    given:
+    def configProps = new TelemetryConfig.TelemetryConfigProps()
+      .setInstanceId(instanceId)
+      .setSpinnakerVersion(spinnakerVersion)
+
+    @Subject
+    def listener = new TelemetryEventListener(service, configProps, registry)
+
+    when:
+    listener.processEvent(appCreatedEvent)
+
+    then:
+    1 * service.log(_) >> { List args ->
+      String body = args[0]?.toString()
+      assert body != null
+
+      EventProto.Builder eventBuilder = EventProto.newBuilder()
+      JsonFormat.parser().merge(body, eventBuilder)
+
+      EventProto e = eventBuilder.build()
+
+      Execution ex = e.getExecution()
+      List<Stage> stages = ex.getStagesList()
+      assert stages != null
+      assert stages.size() == 2
+
+      Stage stage1 = stages.get(0)
+      assert stage1.type == "createApplication"
+      assert stage1.status == Status.SUCCEEDED
+      assert stage1.cloudProvider.id == CloudProvider.ID.GCE
+
+      Stage stage2 = stages.get(1)
+      assert stage2.type == "createApplication"
+      assert stage2.status == Status.SUCCEEDED
+      assert stage2.cloudProvider.id == CloudProvider.ID.KUBERNETES
     }
   }
 
