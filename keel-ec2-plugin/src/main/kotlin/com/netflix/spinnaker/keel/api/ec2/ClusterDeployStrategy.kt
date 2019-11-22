@@ -1,9 +1,10 @@
 package com.netflix.spinnaker.keel.api.ec2
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
-import com.fasterxml.jackson.annotation.JsonSubTypes.*
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import com.fasterxml.jackson.annotation.JsonTypeInfo.*
+import com.fasterxml.jackson.annotation.JsonTypeInfo.As
+import com.fasterxml.jackson.annotation.JsonTypeInfo.Id
 import com.fasterxml.jackson.annotation.JsonTypeName
 import java.time.Duration
 import java.time.Duration.ZERO
@@ -17,7 +18,9 @@ import java.time.Duration.ZERO
   Type(RedBlack::class),
   Type(Highlander::class)
 )
-sealed class ClusterDeployStrategy
+sealed class ClusterDeployStrategy {
+  abstract fun toOrcaJobProperties(): Map<String, Any?>
+}
 
 @JsonTypeName("red-black")
 data class RedBlack(
@@ -26,7 +29,20 @@ data class RedBlack(
   val maxServerGroups: Int = 2,
   val delayBeforeDisable: Duration = ZERO,
   val delayBeforeScaleDown: Duration = ZERO
-) : ClusterDeployStrategy()
+) : ClusterDeployStrategy() {
+  override fun toOrcaJobProperties() = mapOf(
+    "strategy" to "redblack",
+    "maxRemainingAsgs" to maxServerGroups,
+    "delayBeforeDisableSec" to delayBeforeDisable.seconds,
+    "delayBeforeScaleDownSec" to delayBeforeScaleDown.seconds,
+    "scaleDown" to resizePreviousToZero,
+    "rollback" to mapOf("onFailure" to rollbackOnFailure)
+  )
+}
 
 @JsonTypeName("highlander")
-object Highlander : ClusterDeployStrategy()
+object Highlander : ClusterDeployStrategy() {
+  override fun toOrcaJobProperties() = mapOf(
+    "strategy" to "highlander"
+  )
+}

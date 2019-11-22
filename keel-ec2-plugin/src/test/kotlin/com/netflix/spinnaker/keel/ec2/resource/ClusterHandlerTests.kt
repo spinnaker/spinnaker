@@ -621,7 +621,6 @@ internal class ClusterHandlerTests : JUnit5Minutests {
       }
 
       context("a deploy strategy is defined in the spec") {
-
       }
     }
   }

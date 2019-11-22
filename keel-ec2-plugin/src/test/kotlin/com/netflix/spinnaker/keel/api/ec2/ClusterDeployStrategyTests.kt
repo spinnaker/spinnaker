@@ -7,6 +7,7 @@ import dev.minutest.rootContext
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
+import strikt.assertions.isTrue
 import strikt.jackson.booleanValue
 import strikt.jackson.numberValue
 import strikt.jackson.path
@@ -29,7 +30,7 @@ internal class ClusterDeployStrategyTests : JUnit5Minutests {
       expectThat<ObjectNode>(mapper.valueToTree(RedBlack())) {
         path("strategy").textValue().isEqualTo("red-black")
         path("resizePreviousToZero").booleanValue().isFalse()
-        path("rollbackOnFailure").booleanValue().isFalse()
+        path("rollbackOnFailure").booleanValue().isTrue()
         path("maxServerGroups").numberValue().isEqualTo(2)
         path("delayBeforeDisable").textValue().isEqualTo("PT0S")
         path("delayBeforeScaleDown").textValue().isEqualTo("PT0S")

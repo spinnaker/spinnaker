@@ -117,7 +117,7 @@ data class ClusterSpec(
   constructor(
     moniker: Moniker,
     imageProvider: ImageProvider,
-    deployWith: ClusterDeployStrategy,
+    deployWith: ClusterDeployStrategy = RedBlack(),
     locations: SubnetAwareLocations,
     launchConfiguration: LaunchConfigurationSpec?,
     capacity: Capacity?,

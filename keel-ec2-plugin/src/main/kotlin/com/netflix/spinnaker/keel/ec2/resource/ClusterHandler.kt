@@ -14,11 +14,9 @@ import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.Health
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
-import com.netflix.spinnaker.keel.api.ec2.Highlander
 import com.netflix.spinnaker.keel.api.ec2.LaunchConfiguration
 import com.netflix.spinnaker.keel.api.ec2.Location
 import com.netflix.spinnaker.keel.api.ec2.Metric
-import com.netflix.spinnaker.keel.api.ec2.RedBlack
 import com.netflix.spinnaker.keel.api.ec2.Scaling
 import com.netflix.spinnaker.keel.api.ec2.ScalingProcess
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup
@@ -91,7 +89,7 @@ class ClusterHandler(
           val desired = diff.desired
           val job = when {
             diff.isCapacityOnly() -> diff.resizeServerGroupJob()
-            else -> diff.createServerGroupJob(resource.spec)
+            else -> diff.createServerGroupJob() + resource.spec.deployWith.toOrcaJobProperties()
           }
 
           log.info("Upserting server group using task: {}", job)
@@ -264,7 +262,7 @@ class ClusterHandler(
   private fun ResourceDiff<ServerGroup>.isCapacityOnly(): Boolean =
     current != null && affectedRootPropertyTypes.all { it == Capacity::class.java }
 
-  private fun ResourceDiff<ServerGroup>.createServerGroupJob(spec: ClusterSpec): Map<String, Any?> =
+  private fun ResourceDiff<ServerGroup>.createServerGroupJob(): Map<String, Any?> =
     with(desired) {
       mutableMapOf(
         "application" to moniker.app,
@@ -329,20 +327,6 @@ class ClusterHandler(
             "asgName" to moniker.serverGroup
           )
           job["copySourceCustomBlockDeviceMappings"] = true
-        }
-
-        when (spec.deployWith) {
-          is RedBlack -> {
-            job["strategy"] = "redblack"
-            job["maxRemainingAsgs"] = spec.deployWith.maxServerGroups
-            job["delayBeforeDisableSec"] = spec.deployWith.delayBeforeDisable.seconds
-            job["delayBeforeScaleDownSec"] = spec.deployWith.delayBeforeScaleDown.seconds
-            job["scaleDown"] = spec.deployWith.resizePreviousToZero
-            job["rollback"] = mapOf("onFailure" to spec.deployWith.rollbackOnFailure)
-          }
-          is Highlander -> {
-            job["strategy"] = "highlander"
-          }
         }
       }
 
