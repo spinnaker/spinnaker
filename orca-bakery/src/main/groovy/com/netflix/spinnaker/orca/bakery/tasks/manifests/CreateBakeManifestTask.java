@@ -142,6 +142,7 @@ public class CreateBakeManifestTask implements RetryableTask {
 
     Map<String, Object> outputs = new HashMap<>();
     outputs.put("artifacts", Collections.singleton(result));
+    outputs.put("cloudProvider", "kubernetes"); // Needed for stat collection.
 
     return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).outputs(outputs).build();
   }

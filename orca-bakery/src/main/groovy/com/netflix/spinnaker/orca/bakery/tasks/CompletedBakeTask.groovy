@@ -44,6 +44,9 @@ class CompletedBakeTask implements Task {
       imageId: bake.ami ?: bake.imageName,
       artifacts: bake.artifact ? [bake.artifact] : []
     ]
+    if (stage.context.cloudProvider) {
+      results.cloudProvider = stage.context.cloudProvider
+    }
     /**
      * TODO:
      * It would be good to standardize on the key here. "imageId" works for all providers.
