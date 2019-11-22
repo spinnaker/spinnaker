@@ -124,7 +124,8 @@ internal class ClusterHandlerTests : JUnit5Minutests {
       launchConfiguration = LaunchConfigurationSpec(
         image = VirtualMachineImage(
           id = "ami-123543254134",
-          appVersion = "keel-0.287.0-h208.fe2e8a1"
+          appVersion = "keel-0.287.0-h208.fe2e8a1",
+          baseImageVersion = "nflx-base-5.308.0-h1044.b4b3f78"
         ),
         instanceType = "r4.8xlarge",
         ebsOptimized = false,
@@ -173,7 +174,8 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         location.availabilityZones,
         ActiveServerGroupImage(
           launchConfiguration.imageId,
-          launchConfiguration.appVersion
+          launchConfiguration.appVersion,
+          launchConfiguration.baseImageVersion
         ),
         LaunchConfig(
           launchConfiguration.ramdiskId,

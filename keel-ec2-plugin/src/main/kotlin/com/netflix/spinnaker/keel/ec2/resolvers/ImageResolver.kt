@@ -17,6 +17,7 @@ import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.appVersion
+import com.netflix.spinnaker.keel.clouddriver.model.baseImageVersion
 import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
@@ -115,7 +116,14 @@ class ImageResolver(
     val overrides = mutableMapOf<String, ServerGroupSpec>()
     overrides.putAll(spec.overrides)
     spec.locations.regions.map { it.name }.forEach { region ->
-      overrides[region] = overrides[region].withVirtualMachineImage(VirtualMachineImage(imageIdByRegion.getValue(region), image.appVersion))
+      overrides[region] = overrides[region]
+        .withVirtualMachineImage(
+          VirtualMachineImage(
+            imageIdByRegion.getValue(region),
+            image.appVersion,
+            image.baseImageVersion
+          )
+        )
     }
 
     return copy(spec = spec.copy(overrides = overrides))

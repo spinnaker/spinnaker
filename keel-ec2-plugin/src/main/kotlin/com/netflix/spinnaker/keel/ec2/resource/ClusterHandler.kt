@@ -421,6 +421,7 @@ class ClusterHandler(
         LaunchConfiguration(
           imageId = imageId,
           appVersion = image.appVersion,
+          baseImageVersion = image.baseImageVersion,
           instanceType = instanceType,
           ebsOptimized = ebsOptimized,
           iamRole = iamInstanceProfile,

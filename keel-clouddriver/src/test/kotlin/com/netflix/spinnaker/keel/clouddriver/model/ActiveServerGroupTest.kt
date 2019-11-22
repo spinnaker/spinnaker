@@ -362,7 +362,8 @@ object ActiveServerGroupTest : ModelParsingTestSupport<CloudDriverService, Activ
     zones = setOf("a", "b", "c").map { "$region$it" }.toSet(),
     image = ActiveServerGroupImage(
       imageId = ami,
-      appVersion = "$app-3.16.0-h205.121d4ac"
+      appVersion = "$app-3.16.0-h205.121d4ac",
+      baseImageVersion = "nflx-base-5.308.0-h1044.b4b3f78"
     ),
     launchConfig = LaunchConfig(
       ramdiskId = "",

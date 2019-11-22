@@ -111,6 +111,7 @@ object Fixture {
     get() = result.first { it.location.region == "us-west-2" }
 
   val appVersion = "fnord-1.0.0"
+  val baseImageVersion = "nflx-base-5.308.0-h1044.b4b3f78"
   val usEastImageId = "ami-6874986"
   val usWestImageId = "ami-6271051"
 
@@ -156,6 +157,7 @@ object Fixture {
         launchConfiguration = LaunchConfigurationSpec(
           image = VirtualMachineImage(
             appVersion = appVersion,
+            baseImageVersion = baseImageVersion,
             id = usEastImageId
           ),
           iamRole = "fnordEastInstanceProfile",
@@ -174,6 +176,7 @@ object Fixture {
         launchConfiguration = LaunchConfigurationSpec(
           image = VirtualMachineImage(
             appVersion = appVersion,
+            baseImageVersion = baseImageVersion,
             id = usWestImageId
           ),
           keyPair = "fnord-keypair-325719997469-us-west-2"

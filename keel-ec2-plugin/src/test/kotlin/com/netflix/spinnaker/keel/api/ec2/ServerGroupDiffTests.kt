@@ -69,6 +69,7 @@ internal class ServerGroupDiffTests : JUnit5Minutests {
               launchConfiguration = LaunchConfiguration(
                 imageId = "ami-${randomAlphanumeric(7)}",
                 appVersion = "fnord-1.0.0.h23.${randomNumeric(6)}",
+                baseImageVersion = "nflx-base-5.308.0-h1044.b4b3f78",
                 instanceType = "r5.4xlarge",
                 ebsOptimized = true,
                 iamRole = "fnordInstanceRole",

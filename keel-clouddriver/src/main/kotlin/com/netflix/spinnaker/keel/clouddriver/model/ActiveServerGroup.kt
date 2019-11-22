@@ -26,7 +26,8 @@ data class ActiveServerGroup(
 
 data class ActiveServerGroupImage(
   val imageId: String,
-  val appVersion: String?
+  val appVersion: String?,
+  val baseImageVersion: String?
 ) {
   @JsonCreator
   constructor(
@@ -34,13 +35,15 @@ data class ActiveServerGroupImage(
     tags: List<Map<String, Any?>>
   ) : this(
     imageId,
-    appVersion = tags
-      .firstOrNull { it["key"] == "appversion" }
-      ?.get("value")
-      ?.toString()
-      ?.substringBefore("/")
+    appVersion = tags.getTag("appversion")?.substringBefore("/"),
+    baseImageVersion = tags.getTag("base_ami_version")
   )
 }
+
+private fun List<Map<String, Any?>>.getTag(key: String) =
+  firstOrNull { it["key"] == key }
+    ?.get("value")
+    ?.toString()
 
 class RequiredTagMissing(tagName: String, imageId: String) :
   RuntimeException("Required tag \"$tagName\" was not found on AMI $imageId")

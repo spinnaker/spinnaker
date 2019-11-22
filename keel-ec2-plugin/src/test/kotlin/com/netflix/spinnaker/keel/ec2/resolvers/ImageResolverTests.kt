@@ -74,7 +74,7 @@ internal class ImageResolverTests : JUnit5Minutests {
           "creationDate" to "2019-07-28T13:01:00.000Z"
         ),
         tagsByImageId = mapOf(
-          "ami-1" to mapOf("appversion" to "fnord-$version1")
+          "ami-1" to mapOf("appversion" to "fnord-$version1", "base_ami_version" to "nflx-base-5.464.0-h1473.31178a8")
         ),
         accounts = setOf(account),
         amis = mapOf(
@@ -87,7 +87,7 @@ internal class ImageResolverTests : JUnit5Minutests {
           "creationDate" to "2019-07-29T13:01:00.000Z"
         ),
         tagsByImageId = mapOf(
-          "ami-2" to mapOf("appversion" to "fnord-$version2")
+          "ami-2" to mapOf("appversion" to "fnord-$version2", "base_ami_version" to "nflx-base-5.464.0-h1473.31178a8")
         ),
         accounts = setOf(account),
         amis = mapOf(
@@ -100,7 +100,7 @@ internal class ImageResolverTests : JUnit5Minutests {
           "creationDate" to "2019-07-30T13:01:00.000Z"
         ),
         tagsByImageId = mapOf(
-          "ami-3" to mapOf("appversion" to "fnord-$version3")
+          "ami-3" to mapOf("appversion" to "fnord-$version3", "base_ami_version" to "nflx-base-5.464.0-h1473.31178a8")
         ),
         accounts = setOf(account),
         amis = mapOf(
@@ -184,6 +184,7 @@ internal class ImageResolverTests : JUnit5Minutests {
           expectThat(resolved.spec.overrides[imageRegion]?.launchConfiguration?.image)
             .isNotNull()
             .and {
+              get { baseImageVersion }.isEqualTo("nflx-base-5.464.0-h1473.31178a8")
               get { appVersion }.isEqualTo("fnord-$version3")
               get { id }.isEqualTo("ami-3")
             }

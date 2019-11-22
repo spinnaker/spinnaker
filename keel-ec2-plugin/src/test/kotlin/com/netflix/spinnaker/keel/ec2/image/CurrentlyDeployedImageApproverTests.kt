@@ -89,7 +89,8 @@ internal class CurrentlyDeployedImageApproverTests : JUnit5Minutests {
           launchConfiguration = LaunchConfigurationSpec(
             image = VirtualMachineImage(
               id = imageId,
-              appVersion = "fnord-0.477.0-h623.787afd7"
+              appVersion = "fnord-0.477.0-h623.787afd7",
+              baseImageVersion = "nflx-base-5.308.0-h1044.b4b3f78"
             ),
             instanceType = "m4.2xlarge",
             ebsOptimized = true,

@@ -46,6 +46,7 @@ private fun ClusterSpec.resolveLaunchConfiguration(region: SubnetAwareRegionSpec
     ?: defaults.launchConfiguration?.image) { "No image resolved / specified for ${region.name}" }
   return LaunchConfiguration(
     appVersion = image.appVersion,
+    baseImageVersion = image.baseImageVersion,
     imageId = image.id,
     instanceType = checkNotNull(overrides[region.name]?.launchConfiguration?.instanceType
       ?: defaults.launchConfiguration?.instanceType),
@@ -168,7 +169,8 @@ data class ClusterSpec(
 
   data class VirtualMachineImage(
     val id: String,
-    val appVersion: String
+    val appVersion: String,
+    val baseImageVersion: String
   )
 
   @JsonInclude(NON_EMPTY)

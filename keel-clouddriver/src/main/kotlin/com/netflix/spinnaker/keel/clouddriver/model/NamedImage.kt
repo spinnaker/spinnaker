@@ -33,3 +33,10 @@ val NamedImage.appVersion: String
     ?.getValue("appversion")
     .toString()
     .substringBefore("/")
+
+val NamedImage.baseImageVersion: String
+  get() = tagsByImageId
+    .values
+    .first()
+    ?.getValue("base_ami_version")
+    .toString()
