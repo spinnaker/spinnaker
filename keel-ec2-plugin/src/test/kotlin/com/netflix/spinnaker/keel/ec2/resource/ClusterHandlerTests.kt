@@ -523,6 +523,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         }
 
         test("the default deploy strategy is used") {
+          val deployWith = RedBlack()
           runBlocking {
             upsert(resource, diff)
           }
@@ -532,11 +533,11 @@ internal class ClusterHandlerTests : JUnit5Minutests {
 
           expectThat(slot.captured.job.first()) {
             get("strategy").isEqualTo("redblack")
-            get("delayBeforeDisableSec").isEqualTo(0L)
-            get("delayBeforeScaleDownSec").isEqualTo(0L)
-            get("rollback").isA<Map<String, Any?>>().get("onFailure").isEqualTo(true)
-            get("scaleDown").isEqualTo(false)
-            get("maxRemainingAsgs").isEqualTo(2)
+            get("delayBeforeDisableSec").isEqualTo(deployWith.delayBeforeDisable.seconds)
+            get("delayBeforeScaleDownSec").isEqualTo(deployWith.delayBeforeScaleDown.seconds)
+            get("rollback").isA<Map<String, Any?>>().get("onFailure").isEqualTo(deployWith.rollbackOnFailure)
+            get("scaleDown").isEqualTo(deployWith.resizePreviousToZero)
+            get("maxRemainingAsgs").isEqualTo(deployWith.maxServerGroups)
           }
         }
 
@@ -556,11 +557,11 @@ internal class ClusterHandlerTests : JUnit5Minutests {
 
           expectThat(slot.captured.job.first()) {
             get("strategy").isEqualTo("redblack")
-            get("delayBeforeDisableSec").isEqualTo(60L)
-            get("delayBeforeScaleDownSec").isEqualTo(300L)
-            get("rollback").isA<Map<String, Any?>>().get("onFailure").isEqualTo(true)
-            get("scaleDown").isEqualTo(true)
-            get("maxRemainingAsgs").isEqualTo(3)
+            get("delayBeforeDisableSec").isEqualTo(deployWith.delayBeforeDisable.seconds)
+            get("delayBeforeScaleDownSec").isEqualTo(deployWith.delayBeforeScaleDown.seconds)
+            get("rollback").isA<Map<String, Any?>>().get("onFailure").isEqualTo(deployWith.rollbackOnFailure)
+            get("scaleDown").isEqualTo(deployWith.resizePreviousToZero)
+            get("maxRemainingAsgs").isEqualTo(deployWith.maxServerGroups)
           }
         }
 
