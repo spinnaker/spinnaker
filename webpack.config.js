@@ -144,7 +144,23 @@ function configure(env, webpackOpts) {
         },
         {
           test: /\.css$/,
+          exclude: /\.module\.css$/,
           use: [{ loader: 'style-loader' }, { loader: 'css-loader' }, { loader: 'postcss-loader' }],
+        },
+        {
+          test: /\.module\.css$/i,
+          use: [
+            { loader: 'style-loader' },
+            {
+              loader: 'css-loader',
+              options: {
+                modules: true,
+                localIdentName: '[name]__[local]--[hash:base64:8]',
+              },
+            },
+            { loader: 'typed-css-modules-loader' },
+            { loader: 'postcss-loader' },
+          ],
         },
         {
           test: /\.html$/,

@@ -5,7 +5,8 @@
   "typings": "lib/index.d.ts",
   "scripts": {
     "clean": "../../../../node_modules/rimraf/bin.js lib",
-    "lib": "npm run clean && ../../../../node_modules/typescript/bin/tsc && node ../../../../node_modules/webpack/bin/webpack.js",
+    "lib": "npm run clean && npm run css-types && ../../../../node_modules/typescript/bin/tsc && node ../../../../node_modules/webpack/bin/webpack.js",
+    "css-types": "../../../../node_modules/typed-css-modules/lib/cli.js --p **/*.module.css src",
     "prepublishOnly": "npm run lib"
   }
 }
