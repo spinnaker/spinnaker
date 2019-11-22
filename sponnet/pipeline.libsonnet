@@ -173,6 +173,11 @@
       payloadConstraints: {},
       addPayloadConstraints(key, value):: self + { payloadConstraints+: { [key]: value } },
     },
+    pipeline(name, application, pipeline, statuses):: trigger(name, 'pipeline') {
+      application: application,
+      pipeline: pipeline,
+      status: statuses,
+    },
     cron(name, cronExpression):: trigger(name, 'cron') {
       cronExpression: cronExpression,
     },
