@@ -105,9 +105,9 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
 
   private void processSpelInNotifications(Execution execution) {
     List<Map<String, Object>> spelProcessedNotifications = execution.notifications.collect({
-      Map executionMap = objectMapper.convertValue(execution, Map)
-      contextParameterProcessor.process(it, executionMap, true)
+      contextParameterProcessor.process(it, contextParameterProcessor.buildExecutionContext(execution), true)
     })
+
     execution.notifications = spelProcessedNotifications
   }
 

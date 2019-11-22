@@ -383,12 +383,72 @@ class ContextParameterProcessorSpec extends Specification {
 
   }
 
+  @Unroll
+  def "constructs execution context correctly"() {
+    when:
+    def result = contextParameterProcessor.buildExecutionContext(execution)
+
+    then:
+    result.size() == 2
+    result.execution == execution
+    result.trigger == OrcaObjectMapper.newInstance().convertValue(execution.trigger, Map)
+
+    where:
+    execution << [
+      pipeline {
+        stage {
+          type = "wait"
+          status = SUCCEEDED
+        }
+        trigger = new JenkinsTrigger("master", "job", 1, null)
+      },
+      pipeline {
+        stage {
+          type = "wait"
+          status = SUCCEEDED
+        }
+      }]
+  }
+
+  @Unroll
+  def "constructs stage context correctly"() {
+    when:
+    def testStage = execution.stageByRef("stage1")
+    def result = contextParameterProcessor.buildExecutionContext(testStage)
+
+    then:
+    result.size() == 3
+    result.execution == execution
+    result.trigger == OrcaObjectMapper.newInstance().convertValue(execution.trigger, Map)
+    result.waitTime == testStage.context.waitTime
+
+    where:
+    execution << [
+      pipeline {
+        stage {
+          refId = "stage1"
+          type = "wait"
+          status = SUCCEEDED
+          context = [waitTime: 10]
+        }
+        trigger = new JenkinsTrigger("master", "job", 1, null)
+      },
+      pipeline {
+        stage {
+          refId = "stage1"
+          type = "wait"
+          status = SUCCEEDED
+          context = [waitTime: 10]
+        }
+      }]
+  }
+
   def "is able to parse deployment details correctly from execution"() {
     given:
     def source = ['deployed': '${deployedServerGroups}']
 
     when:
-    def result = contextParameterProcessor.process(source, [execution: execution], true)
+    def result = contextParameterProcessor.process(source, contextParameterProcessor.buildExecutionContext(execution), true)
 
     then:
     result.deployed.size == 2
@@ -537,7 +597,7 @@ class ContextParameterProcessorSpec extends Specification {
     def source = ['deployed': '${#deployedServerGroups()}']
 
     when:
-    def result = contextParameterProcessor.process(source, [execution: execution], true)
+    def result = contextParameterProcessor.process(source, contextParameterProcessor.buildExecutionContext(execution), true)
 
     then:
     result.deployed.size == 2
@@ -548,7 +608,7 @@ class ContextParameterProcessorSpec extends Specification {
 
     when: 'specifying a stage name'
     source = ['deployed': '${#deployedServerGroups("Deploy in us-east-1")}']
-    result = contextParameterProcessor.process(source, [execution: execution], true)
+    result = contextParameterProcessor.process(source, contextParameterProcessor.buildExecutionContext(execution), true)
 
     then: 'should only consider the specified stage name/id'
     result.deployed.size == 1

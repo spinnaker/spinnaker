@@ -532,21 +532,10 @@ class TaskController {
 
     def evaluated = contextParameterProcessor.process(
       [expression: expression],
-      augmentContext(stage),
+      contextParameterProcessor.buildExecutionContext(stage),
       true
     )
     return [result: evaluated?.expression, detail: evaluated?.expressionEvaluationSummary]
-  }
-
-  /**
-   * Adds trigger and execution to stage context so that expression evaluation can be tested.
-   * This is not great, because it's brittle, but it's very useful to be able to test expressions.
-   */
-  private Map<String, Object> augmentContext(Stage stage) {
-    Map <String, Object> augmentedContext = stage.context
-    augmentedContext.put("trigger", stage.execution.trigger)
-    augmentedContext.put("execution", stage.execution)
-    return augmentedContext
   }
 
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")

@@ -101,18 +101,41 @@ public class ContextParameterProcessor {
     return result;
   }
 
+  /**
+   * Builds a context for the SpEL evaluator to use while processing a stage This involves merging
+   * the following into a map - the stage context - execution object (if PIPELINE) - trigger object
+   * (if PIPELINE)
+   *
+   * @param stage Stage to build context for
+   * @return StageContext (really a map) for the merged context
+   */
   public StageContext buildExecutionContext(Stage stage) {
-    Map<String, Object> augmentedContext = new HashMap<>();
-    augmentedContext.putAll(stage.getContext());
+    Map<String, Object> augmentedContext = new HashMap<>(stage.getContext());
+
     if (stage.getExecution().getType() == PIPELINE) {
-      augmentedContext.put(
-          "trigger",
-          mapper.convertValue(
-              stage.getExecution().getTrigger(), new TypeReference<Map<String, Object>>() {}));
-      augmentedContext.put("execution", stage.getExecution());
+      augmentedContext.putAll(buildExecutionContext(stage.getExecution()));
     }
 
     return new StageContext(stage, augmentedContext);
+  }
+
+  /**
+   * Builds a context for the SpEL evaluator to use while processing an execution This involves
+   * merging the following into a map - execution object (if PIPELINE) - trigger object (if
+   * PIPELINE)
+   *
+   * @param execution Execution to build context for
+   * @return Map of the merged context
+   */
+  public Map<String, Object> buildExecutionContext(Execution execution) {
+    Map<String, Object> executionContext = new HashMap<>();
+
+    executionContext.put("execution", execution);
+    executionContext.put(
+        "trigger",
+        mapper.convertValue(execution.getTrigger(), new TypeReference<Map<String, Object>>() {}));
+
+    return executionContext;
   }
 
   public static boolean containsExpression(String value) {
