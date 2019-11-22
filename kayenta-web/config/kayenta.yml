@@ -152,6 +152,7 @@ kayenta:
       series: SERVER_ERROR
       statuses: REQUEST_TIMEOUT, TOO_MANY_REQUESTS
       attempts: 10
+      backoffPeriodMultiplierMs: 1000
 
 management.endpoints.web.exposure.include: '*'
 management.endpoint.health.show-details: always

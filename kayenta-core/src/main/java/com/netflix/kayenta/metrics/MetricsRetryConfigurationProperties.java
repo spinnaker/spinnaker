@@ -40,4 +40,6 @@ public class MetricsRetryConfigurationProperties {
       new HashSet<>(asList(HttpStatus.REQUEST_TIMEOUT, HttpStatus.TOO_MANY_REQUESTS));
 
   private int attempts = 10;
+
+  private int backoffPeriodMultiplierMs = 1000;
 }

@@ -108,13 +108,19 @@ public class SynchronousQueryProcessor {
           if (retries >= retryConfiguration.getAttempts()) {
             throw e;
           }
+          long backoffPeriod = getBackoffPeriodMs(retries);
+          try {
+            Thread.sleep(backoffPeriod);
+          } catch (InterruptedException ignored) {
+          }
           Object error = e.getResponse() != null ? e.getResponse().getStatus() : e.getCause();
           log.warn(
               "Got {} result when querying for metrics. Retrying request (current attempt: "
-                  + "{}, max attempts: {})",
+                  + "{}, max attempts: {}, last backoff period: {}ms)",
               error,
               retries,
-              retryConfiguration.getAttempts());
+              retryConfiguration.getAttempts(),
+              backoffPeriod);
         } else {
           throw e;
         }
@@ -123,11 +129,17 @@ public class SynchronousQueryProcessor {
         if (retries >= retryConfiguration.getAttempts()) {
           throw e;
         }
+        long backoffPeriod = getBackoffPeriodMs(retries);
+        try {
+          Thread.sleep(backoffPeriod);
+        } catch (InterruptedException ignored) {
+        }
         log.warn(
             "Got error when querying for metrics. Retrying request (current attempt: {}, max "
-                + "attempts: {})",
+                + "attempts: {}, last backoff period: {}ms)",
             retries,
             retryConfiguration.getAttempts(),
+            backoffPeriod,
             e);
       }
     }
@@ -137,6 +149,13 @@ public class SynchronousQueryProcessor {
         storageAccountName, ObjectType.METRIC_SET_LIST, metricSetListId, metricSetList);
 
     return metricSetListId;
+  }
+
+  private long getBackoffPeriodMs(int retryAttemptNumber) {
+    // The retries range from 1..max, but we want the backoff periods to range from Math.pow(2,
+    // 0)..Math.pow(2, max-1).
+    return (long) Math.pow(2, (retryAttemptNumber - 1))
+        * retryConfiguration.getBackoffPeriodMultiplierMs();
   }
 
   private boolean isRetryable(RetrofitError e) {
