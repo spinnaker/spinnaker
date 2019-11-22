@@ -1,6 +1,6 @@
 'use strict';
 
-// Use environment variables when developing locqlly via 'yarn start', i.e.:
+// Use environment variables when developing locally via 'yarn start', i.e.:
 // API_HOST=https://gate.spinnaker.mycompany.com yarn start
 var apiHost = process.env.API_HOST || 'http://localhost:8084';
 var artifactsEnabled = process.env.ARTIFACTS_ENABLED === 'true';
