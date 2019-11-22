@@ -14,10 +14,10 @@ import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.VirtualMachineImage
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
-import com.netflix.spinnaker.keel.api.ec2.Highlander
+import com.netflix.spinnaker.keel.api.Highlander
 import com.netflix.spinnaker.keel.api.ec2.LaunchConfiguration
 import com.netflix.spinnaker.keel.api.ec2.Metric
-import com.netflix.spinnaker.keel.api.ec2.RedBlack
+import com.netflix.spinnaker.keel.api.RedBlack
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup
 import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
 import com.netflix.spinnaker.keel.api.ec2.byRegion
@@ -619,9 +619,6 @@ internal class ClusterHandlerTests : JUnit5Minutests {
             .map { it.trigger.correlationId }
             .containsDistinctElements()
         }
-      }
-
-      context("a deploy strategy is defined in the spec") {
       }
     }
   }

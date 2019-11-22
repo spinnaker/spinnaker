@@ -22,8 +22,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonUnwrapped
 import com.netflix.spinnaker.keel.api.Capacity
 import com.netflix.spinnaker.keel.api.ClusterDependencies
+import com.netflix.spinnaker.keel.api.ClusterDeployStrategy
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.Monikered
+import com.netflix.spinnaker.keel.api.RedBlack
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.clouddriver.model.Constraints
 import com.netflix.spinnaker.keel.clouddriver.model.MigrationPolicy
@@ -36,6 +38,7 @@ import com.netflix.spinnaker.keel.model.Moniker
  */
 data class TitusClusterSpec(
   override val moniker: Moniker,
+  val deployWith: ClusterDeployStrategy = RedBlack(),
   override val locations: SimpleLocations,
   val container: Container,
   private val _defaults: TitusServerGroupSpec,
@@ -51,6 +54,7 @@ data class TitusClusterSpec(
   @JsonCreator
   constructor(
     moniker: Moniker,
+    deployWith: ClusterDeployStrategy = RedBlack(),
     locations: SimpleLocations,
     container: Container,
     capacity: Capacity?,
@@ -66,6 +70,7 @@ data class TitusClusterSpec(
     overrides: Map<String, TitusServerGroupSpec> = emptyMap()
   ) : this(
     moniker,
+    deployWith,
     locations,
     container,
     TitusServerGroupSpec(

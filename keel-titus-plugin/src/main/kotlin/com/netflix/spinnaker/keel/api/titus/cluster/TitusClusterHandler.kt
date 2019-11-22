@@ -96,7 +96,7 @@ class TitusClusterHandler(
           val desired = diff.desired
           val job = when {
             diff.isCapacityOnly() -> diff.resizeServerGroupJob()
-            else -> diff.upsertServerGroupJob()
+            else -> diff.upsertServerGroupJob() + resource.spec.deployWith.toOrcaJobProperties()
           }
 
           log.info("Upserting server group using task: {}", job)
@@ -145,20 +145,9 @@ class TitusClusterHandler(
         "credentials" to location.account,
         "region" to location.region,
         "network" to "default",
-        // <things to do with the strategy>
-        // TODO: parameterize strategy
-        "strategy" to if (current == null) "" else "redblack",
-        "delayBeforeDisableSec" to 0,
-        "delayBeforeScaleDownSec" to 0,
-        "maxRemainingAsgs" to 2,
         // todo: does 30 minutes then rollback make sense?
         "stageTimeoutMs" to Duration.ofMinutes(30).toMillis(),
-        "rollback" to mapOf(
-          "onFailure" to true
-        ),
-        "scaleDown" to false,
         "inService" to true,
-        // </things to do with the strategy>
         "capacity" to mapOf(
           "min" to capacity.min,
           "max" to capacity.max,

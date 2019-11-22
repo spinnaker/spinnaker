@@ -21,6 +21,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.netflix.spinnaker.keel.api.Capacity
 import com.netflix.spinnaker.keel.api.ClusterDependencies
+import com.netflix.spinnaker.keel.api.Highlander
+import com.netflix.spinnaker.keel.api.RedBlack
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
 import com.netflix.spinnaker.keel.api.titus.CLOUD_PROVIDER
@@ -73,10 +75,12 @@ import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.containsKey
 import strikt.assertions.get
 import strikt.assertions.hasSize
+import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEmpty
 import strikt.assertions.map
 import java.time.Clock
+import java.time.Duration
 import java.util.UUID
 
 // todo eb: we could probably have generic cluster tests
@@ -327,6 +331,67 @@ class TitusClusterHandlerTests : JUnit5Minutests {
                 "asgName" to activeServerGroupResponseWest.name
               )
             )
+          }
+        }
+
+        test("the default deploy strategy is used") {
+          val deployWith = RedBlack()
+          runBlocking {
+            upsert(resource, diff)
+          }
+
+          val slot = slot<OrchestrationRequest>()
+          coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
+
+          expectThat(slot.captured.job.first()) {
+            get("strategy").isEqualTo("redblack")
+            get("delayBeforeDisableSec").isEqualTo(deployWith.delayBeforeDisable.seconds)
+            get("delayBeforeScaleDownSec").isEqualTo(deployWith.delayBeforeScaleDown.seconds)
+            get("rollback").isA<Map<String, Any?>>().get("onFailure").isEqualTo(deployWith.rollbackOnFailure)
+            get("scaleDown").isEqualTo(deployWith.resizePreviousToZero)
+            get("maxRemainingAsgs").isEqualTo(deployWith.maxServerGroups)
+          }
+        }
+
+        test("the deploy strategy is configured") {
+          val deployWith = RedBlack(
+            resizePreviousToZero = true,
+            delayBeforeDisable = Duration.ofMinutes(1),
+            delayBeforeScaleDown = Duration.ofMinutes(5),
+            maxServerGroups = 3
+          )
+          runBlocking {
+            upsert(resource.copy(spec = resource.spec.copy(deployWith = deployWith)), diff)
+          }
+
+          val slot = slot<OrchestrationRequest>()
+          coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
+
+          expectThat(slot.captured.job.first()) {
+            get("strategy").isEqualTo("redblack")
+            get("delayBeforeDisableSec").isEqualTo(deployWith.delayBeforeDisable.seconds)
+            get("delayBeforeScaleDownSec").isEqualTo(deployWith.delayBeforeScaleDown.seconds)
+            get("rollback").isA<Map<String, Any?>>().get("onFailure").isEqualTo(deployWith.rollbackOnFailure)
+            get("scaleDown").isEqualTo(deployWith.resizePreviousToZero)
+            get("maxRemainingAsgs").isEqualTo(deployWith.maxServerGroups)
+          }
+        }
+
+        test("a different deploy strategy is used") {
+          runBlocking {
+            upsert(resource.copy(spec = resource.spec.copy(deployWith = Highlander)), diff)
+          }
+
+          val slot = slot<OrchestrationRequest>()
+          coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
+
+          expectThat(slot.captured.job.first()) {
+            get("strategy").isEqualTo("highlander")
+            not().containsKey("delayBeforeDisableSec")
+            not().containsKey("delayBeforeScaleDownSec")
+            not().containsKey("rollback")
+            not().containsKey("scaleDown")
+            not().containsKey("maxRemainingAsgs")
           }
         }
       }

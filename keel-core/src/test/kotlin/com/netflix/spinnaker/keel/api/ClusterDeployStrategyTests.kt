@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.keel.api.ec2
+package com.netflix.spinnaker.keel.api
 
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper

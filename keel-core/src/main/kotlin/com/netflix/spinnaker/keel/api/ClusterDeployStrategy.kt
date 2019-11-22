@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.keel.api.ec2
+package com.netflix.spinnaker.keel.api
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type
