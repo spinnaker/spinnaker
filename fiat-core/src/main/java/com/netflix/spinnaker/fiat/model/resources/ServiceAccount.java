@@ -26,6 +26,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.val;
+import org.springframework.util.StringUtils;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -38,6 +39,7 @@ public class ServiceAccount implements Resource, Viewable {
   public UserPermission toUserPermission() {
     val roles =
         memberOf.stream()
+            .filter(StringUtils::hasText)
             .map(membership -> new Role(membership).setSource(Role.Source.EXTERNAL))
             .collect(Collectors.toSet());
     return new UserPermission().setId(name).setRoles(roles);

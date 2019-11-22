@@ -20,10 +20,10 @@ import spock.lang.Specification
 
 class ServiceAccountSpec extends Specification {
 
-  def 'should convert to UserPermission'() {
+  def 'should convert to UserPermission, filtering non-text strings'() {
     setup:
     ServiceAccount acct = new ServiceAccount().setName("my-svc-acct")
-                                              .setMemberOf(["foo", "bar"])
+                                              .setMemberOf(["foo", "bar", "", "   "])
 
     when:
     def result = acct.toUserPermission()

@@ -22,6 +22,7 @@ import javax.annotation.Nonnull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.springframework.util.StringUtils;
 
 @Data
 @EqualsAndHashCode(of = "name")
@@ -46,7 +47,7 @@ public class Role implements Resource, Viewable {
   }
 
   public Role setName(@Nonnull String name) {
-    if (name.isEmpty()) {
+    if (!StringUtils.hasText(name)) {
       throw new IllegalArgumentException("name cannot be empty");
     }
     this.name = name.toLowerCase();
