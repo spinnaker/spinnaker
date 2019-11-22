@@ -94,6 +94,7 @@ private fun ClusterSpec.resolveHealth(region: String): Health {
 data class ClusterSpec(
   override val moniker: Moniker,
   val imageProvider: ImageProvider? = null,
+  val deployWith: ClusterDeployStrategy = RedBlack(),
   override val locations: SubnetAwareLocations,
   private val _defaults: ServerGroupSpec,
   @JsonInclude(NON_EMPTY)
@@ -116,6 +117,7 @@ data class ClusterSpec(
   constructor(
     moniker: Moniker,
     imageProvider: ImageProvider,
+    deployWith: ClusterDeployStrategy,
     locations: SubnetAwareLocations,
     launchConfiguration: LaunchConfigurationSpec?,
     capacity: Capacity?,
@@ -129,6 +131,7 @@ data class ClusterSpec(
   ) : this(
     moniker,
     imageProvider,
+    deployWith,
     locations,
     ServerGroupSpec(
       launchConfiguration,

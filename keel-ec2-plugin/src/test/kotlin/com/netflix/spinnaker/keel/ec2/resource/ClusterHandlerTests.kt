@@ -14,8 +14,10 @@ import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.VirtualMachineImage
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
+import com.netflix.spinnaker.keel.api.ec2.Highlander
 import com.netflix.spinnaker.keel.api.ec2.LaunchConfiguration
 import com.netflix.spinnaker.keel.api.ec2.Metric
+import com.netflix.spinnaker.keel.api.ec2.RedBlack
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup
 import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
 import com.netflix.spinnaker.keel.api.ec2.byRegion
@@ -67,6 +69,7 @@ import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.containsKey
 import strikt.assertions.get
 import strikt.assertions.hasSize
+import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEmpty
 import strikt.assertions.isNotNull
@@ -74,6 +77,7 @@ import strikt.assertions.isNull
 import strikt.assertions.map
 import strikt.assertions.succeeded
 import java.time.Clock
+import java.time.Duration
 import java.util.UUID.randomUUID
 
 internal class ClusterHandlerTests : JUnit5Minutests {
@@ -489,7 +493,6 @@ internal class ClusterHandlerTests : JUnit5Minutests {
       }
 
       context("the diff is something other than just capacity") {
-
         val modified = setOf(
           serverGroupEast.copy(name = activeServerGroupResponseEast.name),
           serverGroupWest.copy(name = activeServerGroupResponseWest.name).withDoubleCapacity().withDifferentInstanceType()
@@ -518,10 +521,69 @@ internal class ClusterHandlerTests : JUnit5Minutests {
             )
           }
         }
+
+        test("the default deploy strategy is used") {
+          runBlocking {
+            upsert(resource, diff)
+          }
+
+          val slot = slot<OrchestrationRequest>()
+          coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
+
+          expectThat(slot.captured.job.first()) {
+            get("strategy").isEqualTo("redblack")
+            get("delayBeforeDisableSec").isEqualTo(0L)
+            get("delayBeforeScaleDownSec").isEqualTo(0L)
+            get("rollback").isA<Map<String, Any?>>().get("onFailure").isEqualTo(true)
+            get("scaleDown").isEqualTo(false)
+            get("maxRemainingAsgs").isEqualTo(2)
+          }
+        }
+
+        test("the deploy strategy is configured") {
+          val deployWith = RedBlack(
+            resizePreviousToZero = true,
+            delayBeforeDisable = Duration.ofMinutes(1),
+            delayBeforeScaleDown = Duration.ofMinutes(5),
+            maxServerGroups = 3
+          )
+          runBlocking {
+            upsert(resource.copy(spec = resource.spec.copy(deployWith = deployWith)), diff)
+          }
+
+          val slot = slot<OrchestrationRequest>()
+          coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
+
+          expectThat(slot.captured.job.first()) {
+            get("strategy").isEqualTo("redblack")
+            get("delayBeforeDisableSec").isEqualTo(60L)
+            get("delayBeforeScaleDownSec").isEqualTo(300L)
+            get("rollback").isA<Map<String, Any?>>().get("onFailure").isEqualTo(true)
+            get("scaleDown").isEqualTo(true)
+            get("maxRemainingAsgs").isEqualTo(3)
+          }
+        }
+
+        test("a different deploy strategy is used") {
+          runBlocking {
+            upsert(resource.copy(spec = resource.spec.copy(deployWith = Highlander)), diff)
+          }
+
+          val slot = slot<OrchestrationRequest>()
+          coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
+
+          expectThat(slot.captured.job.first()) {
+            get("strategy").isEqualTo("highlander")
+            not().containsKey("delayBeforeDisableSec")
+            not().containsKey("delayBeforeScaleDownSec")
+            not().containsKey("rollback")
+            not().containsKey("scaleDown")
+            not().containsKey("maxRemainingAsgs")
+          }
+        }
       }
 
       context("multiple server groups have a diff") {
-
         val modified = setOf(
           serverGroupEast.copy(name = activeServerGroupResponseEast.name).withDifferentInstanceType(),
           serverGroupWest.copy(name = activeServerGroupResponseWest.name).withDoubleCapacity()
@@ -556,6 +618,10 @@ internal class ClusterHandlerTests : JUnit5Minutests {
             .map { it.trigger.correlationId }
             .containsDistinctElements()
         }
+      }
+
+      context("a deploy strategy is defined in the spec") {
+
       }
     }
   }

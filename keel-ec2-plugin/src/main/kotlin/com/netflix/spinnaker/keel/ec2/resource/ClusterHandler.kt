@@ -14,9 +14,11 @@ import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.Health
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
+import com.netflix.spinnaker.keel.api.ec2.Highlander
 import com.netflix.spinnaker.keel.api.ec2.LaunchConfiguration
 import com.netflix.spinnaker.keel.api.ec2.Location
 import com.netflix.spinnaker.keel.api.ec2.Metric
+import com.netflix.spinnaker.keel.api.ec2.RedBlack
 import com.netflix.spinnaker.keel.api.ec2.Scaling
 import com.netflix.spinnaker.keel.api.ec2.ScalingProcess
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup
@@ -89,7 +91,7 @@ class ClusterHandler(
           val desired = diff.desired
           val job = when {
             diff.isCapacityOnly() -> diff.resizeServerGroupJob()
-            else -> diff.createServerGroupJob()
+            else -> diff.createServerGroupJob(resource.spec)
           }
 
           log.info("Upserting server group using task: {}", job)
@@ -262,17 +264,11 @@ class ClusterHandler(
   private fun ResourceDiff<ServerGroup>.isCapacityOnly(): Boolean =
     current != null && affectedRootPropertyTypes.all { it == Capacity::class.java }
 
-  private fun ResourceDiff<ServerGroup>.createServerGroupJob(): Map<String, Any?> =
+  private fun ResourceDiff<ServerGroup>.createServerGroupJob(spec: ClusterSpec): Map<String, Any?> =
     with(desired) {
-      mapOf(
+      mutableMapOf(
         "application" to moniker.app,
         "credentials" to location.account,
-        // <things to do with the strategy>
-        // TODO: this will be parameterizable ultimately
-        "strategy" to "redblack",
-        "delayBeforeDisableSec" to 0,
-        "delayBeforeScaleDownSec" to 0,
-        "maxRemainingAsgs" to 2,
         // the 2hr default timeout sort-of? makes sense in an imperative
         // pipeline world where maybe within 2 hours the environment around
         // the instances will fix itself and the stage will succeed. Since
@@ -282,11 +278,6 @@ class ClusterHandler(
         // on failure of instances to come up will leave us in a non
         // converged state...
         "stageTimeoutMs" to Duration.ofMinutes(30).toMillis(),
-        "rollback" to mapOf(
-          "onFailure" to true
-        ),
-        "scaleDown" to false,
-        // </things to do with the strategy>
         "capacity" to mapOf(
           "min" to capacity.min,
           "max" to capacity.max,
@@ -330,17 +321,29 @@ class ClusterHandler(
         "account" to location.account
       )
     }
-      .let { job ->
-        current?.run {
-          job + mapOf(
-            "source" to mapOf(
-              "account" to location.account,
-              "region" to location.region,
-              "asgName" to moniker.serverGroup
-            ),
-            "copySourceCustomBlockDeviceMappings" to true
+      .also { job ->
+        current?.apply {
+          job["source"] = mapOf(
+            "account" to location.account,
+            "region" to location.region,
+            "asgName" to moniker.serverGroup
           )
-        } ?: job
+          job["copySourceCustomBlockDeviceMappings"] = true
+        }
+
+        when (spec.deployWith) {
+          is RedBlack -> {
+            job["strategy"] = "redblack"
+            job["maxRemainingAsgs"] = spec.deployWith.maxServerGroups
+            job["delayBeforeDisableSec"] = spec.deployWith.delayBeforeDisable.seconds
+            job["delayBeforeScaleDownSec"] = spec.deployWith.delayBeforeScaleDown.seconds
+            job["scaleDown"] = spec.deployWith.resizePreviousToZero
+            job["rollback"] = mapOf("onFailure" to spec.deployWith.rollbackOnFailure)
+          }
+          is Highlander -> {
+            job["strategy"] = "highlander"
+          }
+        }
       }
 
   private fun ResourceDiff<ServerGroup>.resizeServerGroupJob(): Map<String, Any?> {
