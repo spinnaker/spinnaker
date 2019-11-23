@@ -89,7 +89,11 @@ class RestConfig {
   }
 
   @Bean
-  RestUrls restServices(RestProperties restProperties, RestClientFactory clientFactory, LogLevel retrofitLogLevel, RequestInterceptorAttacher requestInterceptorAttacher, HeadersFromFile headersFromFile) {
+  RestUrls restServices(RestProperties restProperties,
+                        RestClientFactory clientFactory,
+                        LogLevel retrofitLogLevel,
+                        RequestInterceptorAttacher requestInterceptorAttacher,
+                        HeadersFromFile headersFromFile) {
 
     RestUrls restUrls = new RestUrls()
 

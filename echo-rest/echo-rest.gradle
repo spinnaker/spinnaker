@@ -21,6 +21,7 @@ dependencies {
   implementation "com.squareup.okhttp:okhttp-urlconnection"
   implementation "com.squareup.okhttp:okhttp-apache"
   implementation project(':echo-model')
+  implementation project(':echo-api')
 
   implementation "commons-codec:commons-codec"
 

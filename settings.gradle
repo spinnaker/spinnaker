@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-include 'echo-artifacts',
+include 'echo-api',
+        'echo-artifacts',
         'echo-bom',
         'echo-core',
         'echo-model',

@@ -20,6 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.echo.config.RestUrls
 import com.netflix.spinnaker.echo.model.Event
+import com.netflix.spinnaker.echo.extension.rest.RestEventParser
+import com.netflix.spinnaker.kork.annotations.Alpha
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -43,6 +45,9 @@ class RestEventListener implements EchoEventListener {
 
   Registry registry
 
+  @Alpha
+  Optional<RestEventParser> restEventParser
+
   @Value('${rest.default-event-name:spinnaker_events}')
   String eventName
 
@@ -52,9 +57,11 @@ class RestEventListener implements EchoEventListener {
   @Autowired
   RestEventListener(RestUrls restUrls,
                     RestEventTemplateEngine restEventTemplateEngine,
+                    Optional<RestEventParser> restEventParser,
                     Registry registry) {
     this.restUrls = restUrls
     this.restEventTemplateEngine = restEventTemplateEngine
+    this.restEventParser = restEventParser
     this.registry = registry
   }
 
@@ -68,6 +75,9 @@ class RestEventListener implements EchoEventListener {
         if (service.config.flatten) {
           eventAsMap.content = mapper.writeValueAsString(eventAsMap.content)
           eventAsMap.details = mapper.writeValueAsString(eventAsMap.details)
+        } else if (restEventParser.isPresent()) {
+          RestEventParser.Event e = mapper.convertValue(event, RestEventParser.Event)
+          eventAsMap = restEventParser.get().parse(e)
         }
 
         if (service.config.wrap) {

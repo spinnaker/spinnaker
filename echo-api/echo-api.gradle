@@ -1,0 +1,6 @@
+dependencies {
+  api "com.netflix.spinnaker.kork:kork-plugins-api"
+
+  compileOnly("org.projectlombok:lombok")
+  annotationProcessor("org.projectlombok:lombok")
+}
