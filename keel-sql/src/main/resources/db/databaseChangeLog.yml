@@ -41,3 +41,6 @@ databaseChangeLog:
   - include:
       file: changelog/20191108-environment-artifact-constraint.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20191123-rename-resource-check-pending-event.yml
+      relativeToChangelogFile: true
