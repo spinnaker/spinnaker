@@ -52,6 +52,7 @@ dependencies {
   implementation(project(":orca-mine"))
   implementation(project(":orca-pipelinetemplate"))
   implementation(project(":orca-qos"))
+  implementation(project(":orca-queue"))
   implementation(project(":orca-queue-redis"))
   implementation(project(":orca-queue-sql"))
   implementation(project(":orca-redis"))

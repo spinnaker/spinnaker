@@ -21,11 +21,13 @@ import static com.netflix.spinnaker.orca.pipeline.TaskNode.GraphType.FULL;
 
 import com.google.common.base.CaseFormat;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import com.netflix.spinnaker.kork.expressions.ExpressionEvaluationSummary;
 import com.netflix.spinnaker.orca.pipeline.TaskNode.TaskGraph;
 import com.netflix.spinnaker.orca.pipeline.graph.StageGraphBuilder;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner;
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -68,6 +70,18 @@ public interface StageDefinitionBuilder {
   /** @return the stage type this builder handles. */
   default @Nonnull String getType() {
     return getType(this.getClass());
+  }
+
+  /**
+   * Allows the stage to process SpEL expression in its own context in a custom way
+   *
+   * @return true to continue processing, false to stop generic processing of expressions
+   */
+  default boolean processExpressions(
+      @Nonnull Stage stage,
+      @Nonnull ContextParameterProcessor contextParameterProcessor,
+      @Nonnull ExpressionEvaluationSummary summary) {
+    return true;
   }
 
   /** Implementations can override this if they need any special cleanup on restart. */

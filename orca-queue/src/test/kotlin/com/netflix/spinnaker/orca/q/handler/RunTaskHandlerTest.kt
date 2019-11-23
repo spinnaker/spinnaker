@@ -26,12 +26,15 @@ import com.netflix.spinnaker.orca.ExecutionStatus.SKIPPED
 import com.netflix.spinnaker.orca.ExecutionStatus.STOPPED
 import com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL
+import com.netflix.spinnaker.orca.StageResolver
 import com.netflix.spinnaker.orca.TaskExecutionInterceptor
 import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.api.SimpleStage
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.fixture.pipeline
 import com.netflix.spinnaker.orca.fixture.stage
 import com.netflix.spinnaker.orca.fixture.task
+import com.netflix.spinnaker.orca.pipeline.DefaultStageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTrigger
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
@@ -97,12 +100,14 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
   val contextParameterProcessor = ContextParameterProcessor()
   val dynamicConfigService: DynamicConfigService = mock()
   val taskExecutionInterceptors: List<TaskExecutionInterceptor> = listOf(mock())
+  val stageResolver = StageResolver(emptyList(), emptyList<SimpleStage<Object>>())
 
   subject(GROUP) {
     RunTaskHandler(
       queue,
       repository,
       stageNavigator,
+      DefaultStageDefinitionBuilderFactory(stageResolver),
       contextParameterProcessor,
       listOf(task, timeoutOverrideTask, cloudProviderAwareTask),
       clock,

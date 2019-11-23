@@ -26,6 +26,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.orca.events.TaskComplete
 import com.netflix.spinnaker.orca.ext.isManuallySkipped
 import com.netflix.spinnaker.orca.ext.nextTask
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Task
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -48,6 +49,7 @@ import java.util.concurrent.TimeUnit
 class CompleteTaskHandler(
   override val queue: Queue,
   override val repository: ExecutionRepository,
+  override val stageDefinitionBuilderFactory: StageDefinitionBuilderFactory,
   override val contextParameterProcessor: ContextParameterProcessor,
   @Qualifier("queueEventPublisher") private val publisher: ApplicationEventPublisher,
   private val clock: Clock,

@@ -131,5 +131,11 @@ public class PipelineBuilder {
     return this;
   }
 
+  public PipelineBuilder withSpelEvaluator(String spelEvaluatorVersion) {
+    pipeline.setSpelEvaluator(spelEvaluatorVersion);
+
+    return this;
+  }
+
   private final Execution pipeline;
 }

@@ -36,7 +36,7 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 
 @Configuration
-@ComponentScan(basePackages = 'com.netflix.spinnaker.orca.controllers')
+@ComponentScan(['com.netflix.spinnaker.orca.controllers', 'com.netflix.spinnaker.orca.util'])
 @CompileStatic
 @EnableFiatAutoConfig
 class WebConfiguration extends WebMvcConfigurerAdapter {

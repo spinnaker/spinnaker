@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.pipelinetemplate;
 
 import com.netflix.spinnaker.kork.web.exceptions.ValidationException;
 import com.netflix.spinnaker.orca.extensionpoint.pipeline.ExecutionPreprocessor;
+import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import java.util.Collections;
 import java.util.HashMap;
@@ -54,11 +55,12 @@ public class V2Util {
     augmentedContext.put("trigger", pipeline.get("trigger"));
     augmentedContext.put(
         "templateVariables", pipeline.getOrDefault("templateVariables", Collections.EMPTY_MAP));
+
     Map<String, Object> spelEvaluatedPipeline =
-        contextParameterProcessor.process(pipeline, augmentedContext, true);
+        contextParameterProcessor.processPipeline(pipeline, augmentedContext, true);
 
     Map<String, Object> expressionEvalSummary =
-        (Map<String, Object>) spelEvaluatedPipeline.get("expressionEvaluationSummary");
+        (Map<String, Object>) spelEvaluatedPipeline.get(PipelineExpressionEvaluator.SUMMARY);
     if (expressionEvalSummary != null) {
       List<String> failedTemplateVars =
           expressionEvalSummary.entrySet().stream()

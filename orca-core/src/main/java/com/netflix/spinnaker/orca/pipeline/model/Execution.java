@@ -308,6 +308,16 @@ public class Execution implements Serializable {
     return systemNotifications;
   }
 
+  private String spelEvaluator;
+
+  public @Nullable String getSpelEvaluator() {
+    return spelEvaluator;
+  }
+
+  public void setSpelEvaluator(@Nullable String spelEvaluatorVersion) {
+    this.spelEvaluator = spelEvaluatorVersion;
+  }
+
   @Nullable
   public Stage namedStage(String type) {
     return stages.stream().filter(it -> it.getType().equals(type)).findFirst().orElse(null);

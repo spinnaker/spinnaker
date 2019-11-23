@@ -23,6 +23,7 @@ import lombok.Data;
 public class ExpressionSpelEvaluatorDefinition {
   private String versionKey;
   private String description;
+  private boolean isDeprecated;
 
   public ExpressionSpelEvaluatorDefinition() {}
 
@@ -30,5 +31,6 @@ public class ExpressionSpelEvaluatorDefinition {
       PipelineExpressionEvaluator.SpelEvaluatorVersion version) {
     this.versionKey = version.getKey();
     this.description = version.getDescription();
+    this.isDeprecated = version.isDeprecated();
   }
 }

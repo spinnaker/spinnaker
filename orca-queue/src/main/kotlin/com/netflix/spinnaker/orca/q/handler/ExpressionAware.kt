@@ -20,7 +20,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.expressions.ExpressionEvaluationSummary
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
+import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator.ERROR
+import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator.SpelEvaluatorVersion
+import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator.SUMMARY
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.StageContext
@@ -39,6 +42,7 @@ interface ExpressionAware {
     val mapper: ObjectMapper = OrcaObjectMapper.getInstance()
   }
 
+  val stageDefinitionBuilderFactory: StageDefinitionBuilderFactory
   val log: Logger
     get() = LoggerFactory.getLogger(javaClass)
 
@@ -77,7 +81,7 @@ interface ExpressionAware {
     // the error is still shown
     if (hasFailedExpressions()) {
       try {
-        val failedExpressions = this.context[PipelineExpressionEvaluator.SUMMARY] as MutableMap<String, *>
+        val failedExpressions = this.context[SUMMARY] as MutableMap<String, *>
 
         val keysToRemove: List<String> = failedExpressions.keys.filter { expressionKey ->
           (evalSummary.wasAttempted(expressionKey) && !evalSummary.hasFailed(expressionKey))
@@ -99,7 +103,7 @@ interface ExpressionAware {
     when {
       hasFailedExpressions() ->
         try {
-          val expressionEvaluationSummary = this.context[PipelineExpressionEvaluator.SUMMARY] as Map<*, *>
+          val expressionEvaluationSummary = this.context[SUMMARY] as Map<*, *>
           val evaluationErrors: List<String> = expressionEvaluationSummary.values.flatMap { (it as List<*>).map { (it as Map<*, *>)["description"] as String } }
           this.context["exception"] = mergedExceptionErrors(this.context["exception"] as Map<*, *>?, evaluationErrors)
         } catch (e: Exception) {
@@ -109,8 +113,8 @@ interface ExpressionAware {
   }
 
   fun Stage.hasFailedExpressions(): Boolean =
-    (PipelineExpressionEvaluator.SUMMARY in this.context) &&
-    ((this.context[PipelineExpressionEvaluator.SUMMARY] as Map<*, *>).size > 0)
+    (SUMMARY in this.context) &&
+      ((this.context[SUMMARY] as Map<*, *>).size > 0)
 
   fun Stage.shouldFailOnFailedExpressionEvaluation(): Boolean {
     return this.hasFailedExpressions() && this.context.containsKey("failOnFailedExpressions") &&
@@ -119,21 +123,35 @@ interface ExpressionAware {
 
   private fun mergedExceptionErrors(exception: Map<*, *>?, errors: List<String>): Map<*, *> =
     if (exception == null) {
-      mapOf("details" to ExceptionHandler.responseDetails(PipelineExpressionEvaluator.ERROR, errors))
+      mapOf("details" to ExceptionHandler.responseDetails(ERROR, errors))
     } else {
-      val details = exception["details"] as MutableMap<*, *>? ?: mutableMapOf("details" to mutableMapOf("errors" to mutableListOf<String>()))
+      val details = exception["details"] as MutableMap<*, *>?
+        ?: mutableMapOf("details" to mutableMapOf("errors" to mutableListOf<String>()))
       val mergedErrors: List<*> = (details["errors"] as List<*>? ?: mutableListOf<String>()) + errors
       mapOf("details" to mapOf("errors" to mergedErrors))
     }
 
-  private fun processEntries(stage: Stage, summary: ExpressionEvaluationSummary): StageContext =
-    StageContext(stage, contextParameterProcessor.process(
-      stage.context,
-      contextParameterProcessor.buildExecutionContext(stage),
-      true,
-      summary
-    )
-    )
+  private fun processEntries(stage: Stage, summary: ExpressionEvaluationSummary): StageContext {
+    var shouldContinueProcessing = true
+
+    val spelVersion = contextParameterProcessor.getEffectiveSpelVersionToUse(stage.execution.spelEvaluator)
+    if (SpelEvaluatorVersion.V4 == spelVersion) {
+      // Let the stage process its expressions first if it wants (e.g. see EvaluateVariables stage)
+      val stageBuilder = stageDefinitionBuilderFactory.builderFor(stage)
+      shouldContinueProcessing = stageBuilder.processExpressions(stage, contextParameterProcessor, summary)
+    }
+
+    if (shouldContinueProcessing) {
+      return StageContext(stage, contextParameterProcessor.process(
+        stage.context,
+        contextParameterProcessor.buildExecutionContext(stage),
+        true,
+        summary
+      ))
+    }
+
+    return StageContext(stage, stage.context)
+  }
 
   private operator fun StageContext.plus(map: Map<String, Any?>): StageContext =
     StageContext(this).apply { putAll(map) }

@@ -41,6 +41,7 @@ import com.netflix.spinnaker.orca.ext.beforeStages
 import com.netflix.spinnaker.orca.ext.failureStatus
 import com.netflix.spinnaker.orca.ext.isManuallySkipped
 import com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -72,6 +73,7 @@ class RunTaskHandler(
   override val queue: Queue,
   override val repository: ExecutionRepository,
   override val stageNavigator: StageNavigator,
+  override val stageDefinitionBuilderFactory: StageDefinitionBuilderFactory,
   override val contextParameterProcessor: ContextParameterProcessor,
   private val tasks: Collection<Task>,
   private val clock: Clock,

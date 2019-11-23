@@ -18,21 +18,82 @@ package com.netflix.spinnaker.orca.pipeline;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.kork.expressions.ExpressionEvaluationSummary;
+import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.pipeline.model.StageContext;
 import com.netflix.spinnaker.orca.pipeline.tasks.EvaluateVariablesTask;
-import java.util.List;
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
+import java.util.*;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class EvaluateVariablesStage implements StageDefinitionBuilder {
-
   public static String STAGE_TYPE = "evaluateVariables";
+
+  private ObjectMapper mapper;
+
+  @Autowired
+  public EvaluateVariablesStage(ObjectMapper objectMapper) {
+    mapper = objectMapper;
+  }
 
   @Override
   public void taskGraph(@Nonnull Stage stage, @Nonnull TaskNode.Builder builder) {
     builder.withTask("evaluateVariables", EvaluateVariablesTask.class);
+  }
+
+  @Override
+  public boolean processExpressions(
+      @Nonnull Stage stage,
+      @Nonnull ContextParameterProcessor contextParameterProcessor,
+      @Nonnull ExpressionEvaluationSummary summary) {
+
+    EvaluateVariablesStageContext context = stage.mapTo(EvaluateVariablesStageContext.class);
+    StageContext augmentedContext = contextParameterProcessor.buildExecutionContext(stage);
+    Map<String, Object> varSourceToEval = new HashMap<>();
+    int lastFailedCount = 0;
+
+    List<Variable> variables =
+        Optional.ofNullable(context.getVariables()).orElse(Collections.emptyList());
+
+    for (Variable var : variables) {
+      if (var.getValue() instanceof String) {
+        var.saveSourceExpression();
+        varSourceToEval.put("var", var.getValue());
+
+        Map<String, Object> evaluatedVar =
+            contextParameterProcessor.process(varSourceToEval, augmentedContext, true, summary);
+
+        // Since we process one variable at a time, the way we know if the current variable was
+        // evaluated properly is by
+        // checking if the total number of failures has changed since last evaluation. We can make
+        // this nicer, but that
+        // will involve a decent refactor of ExpressionEvaluationSummary
+        boolean evaluationSucceeded = summary.getFailureCount() == lastFailedCount;
+        if (evaluationSucceeded) {
+          var.setValue(evaluatedVar.get("var"));
+          augmentedContext.put(var.key, var.value);
+        } else {
+          lastFailedCount = summary.getFailureCount();
+        }
+      }
+    }
+
+    Map<String, Object> evaluatedContext =
+        mapper.convertValue(context, new TypeReference<Map<String, Object>>() {});
+    stage.getContext().putAll(evaluatedContext);
+
+    if (summary.getFailureCount() > 0) {
+      stage.getContext().put(PipelineExpressionEvaluator.SUMMARY, summary.getExpressionResult());
+    }
+
+    return false;
   }
 
   public static final class EvaluateVariablesStageContext {
@@ -50,14 +111,16 @@ public class EvaluateVariablesStage implements StageDefinitionBuilder {
   }
 
   public static class Variable {
+    /** Variable name */
     private String key;
+
+    /** Variable evaluated value */
     private Object value;
 
-    @JsonCreator
-    public Variable(@JsonProperty("key") String key, @JsonProperty("value") Object value) {
-      this.key = key;
-      this.value = value;
-    }
+    /** Variable original value */
+    private Object sourceExpression;
+
+    public Variable() {}
 
     public void setKey(String key) {
       this.key = key;
@@ -67,12 +130,26 @@ public class EvaluateVariablesStage implements StageDefinitionBuilder {
       this.value = value;
     }
 
+    public void setSourceValue(Object value) {
+      this.sourceExpression = value;
+    }
+
     public String getKey() {
       return key;
     }
 
     public Object getValue() {
       return value;
+    }
+
+    public Object getSourceValue() {
+      return sourceExpression;
+    }
+
+    public void saveSourceExpression() {
+      if (sourceExpression == null && value instanceof String) {
+        sourceExpression = value.toString().replace("${", "{");
+      }
     }
   }
 }

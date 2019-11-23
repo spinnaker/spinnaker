@@ -18,14 +18,17 @@ package com.netflix.spinnaker.orca.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
+import com.google.common.base.Strings
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.model.OrchestrationViewModel
+import com.netflix.spinnaker.orca.pipeline.EvaluateVariablesStage
 import com.netflix.spinnaker.orca.pipeline.ExecutionRunner
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
+import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -33,9 +36,13 @@ import com.netflix.spinnaker.orca.pipeline.model.Trigger
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
+import com.netflix.spinnaker.orca.q.handler.ExpressionAware
+import com.netflix.spinnaker.orca.util.ExpressionUtils
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
+import org.jetbrains.annotations.NotNull
+import org.slf4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
@@ -76,6 +83,9 @@ class TaskController {
 
   @Autowired
   ContextParameterProcessor contextParameterProcessor
+
+  @Autowired
+  ExpressionUtils expressionUtils
 
   @Autowired
   ObjectMapper mapper
@@ -302,7 +312,7 @@ class TaskController {
     @RequestParam(value = "triggerTimeStartBoundary", defaultValue = "0") long triggerTimeStartBoundary,
     @RequestParam(value = "triggerTimeEndBoundary", defaultValue = "9223372036854775807" /* Long.MAX_VALUE */) long triggerTimeEndBoundary,
     @RequestParam(value = "statuses", required = false) String statuses,
-    @RequestParam(value = "startIndex", defaultValue =  "0") int startIndex,
+    @RequestParam(value = "startIndex", defaultValue = "0") int startIndex,
     @RequestParam(value = "size", defaultValue = "10") int size,
     @RequestParam(value = "reverse", defaultValue = "false") boolean reverse,
     @RequestParam(value = "expand", defaultValue = "false") boolean expand
@@ -338,8 +348,8 @@ class TaskController {
       pipelineConfigIds = pipelines*.id as List<String>
     }
 
-    ExecutionCriteria executionCriteria =  new ExecutionCriteria()
-      .setSortType( sortType )
+    ExecutionCriteria executionCriteria = new ExecutionCriteria()
+      .setSortType(sortType)
     if (statuses != null && statuses != "") {
       executionCriteria.setStatuses(statuses.split(",").toList())
     }
@@ -485,7 +495,7 @@ class TaskController {
   // If other execution mutations need validation, factor this out.
   void validateStageUpdate(Stage stage) {
     if (stage.context.manualSkip
-        && !stageDefinitionBuilderFactory.builderFor(stage)?.canManuallySkip()) {
+      && !stageDefinitionBuilderFactory.builderFor(stage)?.canManuallySkip()) {
       throw new CannotUpdateExecutionStage("Cannot manually skip stage.")
     }
   }
@@ -507,7 +517,7 @@ class TaskController {
     def execution = executionRepository.retrieve(PIPELINE, id)
     def context = [
       execution: execution,
-      trigger: mapper.convertValue(execution.trigger, Map.class)
+      trigger  : mapper.convertValue(execution.trigger, Map.class)
     ]
 
     def evaluated = contextParameterProcessor.process(
@@ -524,7 +534,7 @@ class TaskController {
                                             @PathVariable("stageId") String stageId,
                                             @RequestParam("expression") String expression) {
     def execution = executionRepository.retrieve(PIPELINE, id)
-    def stage = execution.stages.find{it.id == stageId}
+    def stage = execution.stages.find { it.id == stageId }
 
     if (stage == null) {
       throw new NotFoundException("Stage $stageId not found in execution $id")
@@ -538,6 +548,31 @@ class TaskController {
     return [result: evaluated?.expression, detail: evaluated?.expressionEvaluationSummary]
   }
 
+  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'READ')")
+  @PostMapping("/pipelines/{id}/evaluateVariables")
+  Map evaluateVariables(@PathVariable("id") String id,
+                        @RequestParam(value = "requisiteStageRefIds", defaultValue = "") String requisiteStageRefIds,
+                        @RequestParam(value = "spelVersion", defaultValue = "") String spelVersionOverride,
+                        @RequestBody List<Map<String, String>> expressions) {
+    def execution = executionRepository.retrieve(PIPELINE, id)
+
+    return expressionUtils.evaluateVariables(execution,
+      requisiteStageRefIds.split("[,;\\s]").findAll({ it -> !it.empty }),
+      spelVersionOverride,
+      expressions)
+  }
+
+/**
+ * Adds trigger and execution to stage context so that expression evaluation can be tested.
+ * This is not great, because it's brittle, but it's very useful to be able to test expressions.
+ */
+  private Map<String, Object> augmentContext(Stage stage) {
+    Map<String, Object> augmentedContext = stage.context
+    augmentedContext.put("trigger", stage.execution.trigger)
+    augmentedContext.put("execution", stage.execution)
+    return augmentedContext
+  }
+
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/v2/applications/{application}/pipelines", method = RequestMethod.GET)
   List<Execution> getApplicationPipelines(@PathVariable String application,
@@ -545,7 +580,7 @@ class TaskController {
                                             int limit,
                                           @RequestParam(value = "statuses", required = false)
                                             String statuses,
-                                         @RequestParam(value = "expand", defaultValue = "true") Boolean expand) {
+                                          @RequestParam(value = "expand", defaultValue = "true") Boolean expand) {
     return getPipelinesForApplication(application, limit, statuses, expand)
   }
 
@@ -556,7 +591,7 @@ class TaskController {
                                                int limit,
                                              @RequestParam(value = "statuses", required = false)
                                                String statuses,
-                                            @RequestParam(value = "expand", defaultValue = "true") Boolean expand) {
+                                             @RequestParam(value = "expand", defaultValue = "true") Boolean expand) {
     if (!front50Service) {
       throw new UnsupportedOperationException("Cannot lookup pipelines, front50 has not been enabled. Fix this by setting front50.enabled: true")
     }
@@ -593,9 +628,9 @@ class TaskController {
   private void cancelExecution(ExecutionType executionType, String id, String reason) {
     executionRepository.retrieve(executionType, id).with { execution ->
       executionRunner.cancel(
-              execution,
-              AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"),
-              reason
+        execution,
+        AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"),
+        reason
       )
     }
     executionRepository.updateStatus(executionType, id, ExecutionStatus.CANCELED)
@@ -677,7 +712,7 @@ class TaskController {
         if (stage.context?.containsKey("group")) {
           // TODO: consider making "group" a top-level field on the Stage model
           // for now, retain group in the context, as it is needed for collapsing templated pipelines in the UI
-          stage.context = [ group: stage.context.group ]
+          stage.context = [group: stage.context.group]
         } else {
           stage.context = [:]
         }
@@ -739,8 +774,8 @@ class TaskController {
   private List<String> getPipelineConfigIdsOfReadableApplications() {
     List<String> applicationNames = front50Service.getAllApplications()*.name as List<String>
     List<String> pipelineConfigIds = applicationNames.stream()
-      .map{ applicationName -> front50Service.getPipelines(applicationName, false)*.id as List<String> }
-      .flatMap{ c -> c.stream() }
+      .map { applicationName -> front50Service.getPipelines(applicationName, false)*.id as List<String> }
+      .flatMap { c -> c.stream() }
       .collect(Collectors.toList())
 
     return pipelineConfigIds

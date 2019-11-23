@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.PluginsAutoConfiguration;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.expressions.ExpressionFunctionProvider;
 import com.netflix.spinnaker.orca.StageResolver;
 import com.netflix.spinnaker.orca.Task;
@@ -137,8 +138,11 @@ public class OrcaConfiguration {
 
   @Bean
   public ContextParameterProcessor contextParameterProcessor(
-      List<ExpressionFunctionProvider> expressionFunctionProviders, PluginManager pluginManager) {
-    return new ContextParameterProcessor(expressionFunctionProviders, pluginManager);
+      List<ExpressionFunctionProvider> expressionFunctionProviders,
+      PluginManager pluginManager,
+      DynamicConfigService dynamicConfigService) {
+    return new ContextParameterProcessor(
+        expressionFunctionProviders, pluginManager, dynamicConfigService);
   }
 
   @Bean

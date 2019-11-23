@@ -56,6 +56,6 @@ class CapabilitiesServiceSpec extends Specification {
     def spelVersions = capabilities.spelEvaluators.collect({ it.versionKey })
     spelVersions == supportedSpelEvaluators
     spelVersions.contains(PipelineExpressionEvaluator.SpelEvaluatorVersion.V3.key)
-    !spelVersions.contains(PipelineExpressionEvaluator.SpelEvaluatorVersion.V4.key)
+    spelVersions.contains(PipelineExpressionEvaluator.SpelEvaluatorVersion.V4.key)
   }
 }

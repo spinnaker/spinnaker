@@ -29,6 +29,7 @@ import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
+import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
@@ -130,10 +131,10 @@ public class ManifestEvaluator implements CloudProviderAware {
               contextParameterProcessor.process(
                   manifestWrapper, contextParameterProcessor.buildExecutionContext(stage), true);
 
-          if (manifestWrapper.containsKey("expressionEvaluationSummary")) {
+          if (manifestWrapper.containsKey(PipelineExpressionEvaluator.SUMMARY)) {
             throw new IllegalStateException(
                 "Failure evaluating manifest expressions: "
-                    + manifestWrapper.get("expressionEvaluationSummary"));
+                    + manifestWrapper.get(PipelineExpressionEvaluator.SUMMARY));
           }
         }
         manifests = (List<Map<Object, Object>>) manifestWrapper.get("manifests");

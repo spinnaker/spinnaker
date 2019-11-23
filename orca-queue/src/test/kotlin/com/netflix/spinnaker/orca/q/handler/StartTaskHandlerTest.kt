@@ -17,10 +17,13 @@
 package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
+import com.netflix.spinnaker.orca.StageResolver
 import com.netflix.spinnaker.orca.TaskResolver
+import com.netflix.spinnaker.orca.api.SimpleStage
 import com.netflix.spinnaker.orca.events.TaskStarted
 import com.netflix.spinnaker.orca.fixture.pipeline
 import com.netflix.spinnaker.orca.fixture.stage
+import com.netflix.spinnaker.orca.pipeline.DefaultStageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
@@ -53,10 +56,11 @@ object StartTaskHandlerTest : SubjectSpek<StartTaskHandler>({
   val repository: ExecutionRepository = mock()
   val publisher: ApplicationEventPublisher = mock()
   val taskResolver = TaskResolver(emptyList())
+  val stageResolver = StageResolver(emptyList(), emptyList<SimpleStage<Object>>())
   val clock = fixedClock()
 
   subject(GROUP) {
-    StartTaskHandler(queue, repository, ContextParameterProcessor(), publisher, taskResolver, clock)
+    StartTaskHandler(queue, repository, ContextParameterProcessor(), DefaultStageDefinitionBuilderFactory(stageResolver), publisher, taskResolver, clock)
   }
 
   fun resetMocks() = reset(queue, repository, publisher)

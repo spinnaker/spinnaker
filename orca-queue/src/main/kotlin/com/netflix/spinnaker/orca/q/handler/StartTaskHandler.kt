@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.q.handler
 import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
 import com.netflix.spinnaker.orca.TaskResolver
 import com.netflix.spinnaker.orca.events.TaskStarted
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.q.RunTask
@@ -34,6 +35,7 @@ class StartTaskHandler(
   override val queue: Queue,
   override val repository: ExecutionRepository,
   override val contextParameterProcessor: ContextParameterProcessor,
+  override val stageDefinitionBuilderFactory: StageDefinitionBuilderFactory,
   @Qualifier("queueEventPublisher") private val publisher: ApplicationEventPublisher,
   private val taskResolver: TaskResolver,
   private val clock: Clock
