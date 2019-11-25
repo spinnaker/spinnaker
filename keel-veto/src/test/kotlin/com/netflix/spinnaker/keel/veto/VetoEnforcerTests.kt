@@ -19,6 +19,7 @@ package com.netflix.spinnaker.keel.veto
 
 import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryApplicationVetoRepository
+import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.veto.application.ApplicationVeto
 import dev.minutest.junit.JUnit5Minutests
@@ -33,7 +34,8 @@ class VetoEnforcerTests : JUnit5Minutests {
 
   internal class Fixture {
     val applicationVetoRepository = InMemoryApplicationVetoRepository()
-    val applicationVeto = ApplicationVeto(applicationVetoRepository, configuredObjectMapper())
+    private val resourceRepository = InMemoryResourceRepository()
+    val applicationVeto = ApplicationVeto(applicationVetoRepository, resourceRepository, configuredObjectMapper())
     val subject = VetoEnforcer(listOf(applicationVeto))
   }
 

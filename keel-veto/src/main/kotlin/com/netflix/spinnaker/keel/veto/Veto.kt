@@ -17,6 +17,7 @@
  */
 package com.netflix.spinnaker.keel.veto
 
+import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceId
 
 /**
@@ -36,6 +37,11 @@ interface Veto {
    * Check whether the resource (identified by name) can be checked according to this veto
    */
   fun check(id: ResourceId): VetoResponse
+
+  /**
+   * Check whether the resource can be checked according to this veto
+   */
+  fun check(resource: Resource<*>): VetoResponse
 
   /**
    * The message format a veto accepts

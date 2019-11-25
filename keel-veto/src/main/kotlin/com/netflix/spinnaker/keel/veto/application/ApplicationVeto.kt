@@ -18,8 +18,11 @@
 package com.netflix.spinnaker.keel.veto.application
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.persistence.ApplicationVetoRepository
+import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
+import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.veto.Veto
 import com.netflix.spinnaker.keel.veto.VetoResponse
 import com.netflix.spinnaker.keel.veto.exceptions.MalformedMessageException
@@ -29,15 +32,21 @@ import org.springframework.stereotype.Component
 @Component
 class ApplicationVeto(
   val applicationVetoRepository: ApplicationVetoRepository,
+  val resourceRepository: ResourceRepository,
   val objectMapper: ObjectMapper
 ) : Veto {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   override fun check(id: ResourceId): VetoResponse {
-    if (applicationVetoRepository.appVetoed(id.application)) {
-      return VetoResponse(allowed = false, message = "Application ${id.application} has been opted out.")
+    return try {
+      check(resourceRepository.get(id))
+    } catch (e: NoSuchResourceException) {
+      checkApplication(id.application)
     }
-    return VetoResponse(allowed = true)
+  }
+
+  override fun check(resource: Resource<*>): VetoResponse {
+    return checkApplication(resource.spec.application)
   }
 
   override fun messageFormat() =
@@ -62,6 +71,13 @@ class ApplicationVeto(
 
   override fun currentRejections(): List<String> {
     return applicationVetoRepository.getAll().toList()
+  }
+
+  private fun checkApplication(application: String): VetoResponse {
+    if (applicationVetoRepository.appVetoed(application)) {
+      return VetoResponse(allowed = false, message = "Application $application has been opted out.")
+    }
+    return VetoResponse(allowed = true)
   }
 }
 
