@@ -38,6 +38,7 @@ import com.netflix.spinnaker.cats.agent.*;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.cats.provider.ProviderRegistry;
+import com.netflix.spinnaker.cats.thread.NamedThreadFactory;
 import com.netflix.spinnaker.clouddriver.aws.data.ArnUtils;
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent;
 import com.netflix.spinnaker.clouddriver.model.HealthState;
@@ -216,7 +217,9 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent, CachingA
 
       StreamingCacheState state = new StreamingCacheState();
 
-      ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+      ScheduledExecutorService executor =
+          Executors.newScheduledThreadPool(
+              1, new NamedThreadFactory(TitusStreamingUpdateAgent.class.getSimpleName()));
       final Future handler =
           executor.submit(
               () -> {

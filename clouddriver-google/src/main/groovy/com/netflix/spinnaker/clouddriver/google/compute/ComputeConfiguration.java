@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.google.compute;
 
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.netflix.spinnaker.cats.thread.NamedThreadFactory;
 import java.util.concurrent.Executors;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -31,6 +32,8 @@ public class ComputeConfiguration {
   @Bean
   @Qualifier(BATCH_REQUEST_EXECUTOR)
   public ListeningExecutorService batchRequestExecutor() {
-    return MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
+    return MoreExecutors.listeningDecorator(
+        Executors.newCachedThreadPool(
+            new NamedThreadFactory(ComputeConfiguration.class.getSimpleName())));
   }
 }

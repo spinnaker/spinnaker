@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.AgentProvider
+import com.netflix.spinnaker.cats.thread.NamedThreadFactory
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonApplicationLoadBalancerCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonCertificateCachingAgent
@@ -32,6 +33,7 @@ import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.model.ReservationReport
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
 import com.netflix.spinnaker.clouddriver.aws.edda.EddaApiFactory
@@ -93,7 +95,7 @@ class AwsProviderConfig {
 
   @Bean
   ExecutorService reservationReportPool(ReservationReportConfigurationProperties reservationReportConfigurationProperties) {
-    return Executors.newFixedThreadPool(reservationReportConfigurationProperties.threadPoolSize)
+    return Executors.newFixedThreadPool(reservationReportConfigurationProperties.threadPoolSize, new NamedThreadFactory(ReservationReport.class.getSimpleName()))
   }
 
   private void synchronizeAwsProvider(AwsProvider awsProvider,

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.cache
 
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.provider.ProviderRegistry
+import com.netflix.spinnaker.cats.thread.NamedThreadFactory
 import com.netflix.spinnaker.clouddriver.search.SearchProvider
 import com.netflix.spinnaker.clouddriver.search.SearchResultSet
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
@@ -87,7 +88,7 @@ class CatsSearchProvider implements SearchProvider, Runnable {
     }
 
     if (catsInMemorySearchProperties.enabled) {
-      scheduledExecutorService = Executors.newScheduledThreadPool(1)
+      scheduledExecutorService = Executors.newScheduledThreadPool(1, new NamedThreadFactory(CatsSearchProvider.class.getSimpleName()))
     }
   }
 

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.orchestration
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.cats.thread.NamedThreadFactory
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.metrics.TimedCallable
@@ -45,7 +46,8 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
 
   protected ExecutorService executorService = new ThreadPoolExecutor(0, Integer.MAX_VALUE,
     60L, TimeUnit.SECONDS,
-    new SynchronousQueue<Runnable>()) {
+    new SynchronousQueue<Runnable>(),
+    new NamedThreadFactory(DefaultOrchestrationProcessor.class.getSimpleName())) {
     @Override
     protected void afterExecute(Runnable r, Throwable t) {
       resetMDC()

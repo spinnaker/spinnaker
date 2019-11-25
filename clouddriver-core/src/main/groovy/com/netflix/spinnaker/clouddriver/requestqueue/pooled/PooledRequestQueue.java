@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.requestqueue.pooled;
 
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.cats.thread.NamedThreadFactory;
 import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import java.util.Collection;
@@ -87,7 +88,12 @@ public class PooledRequestQueue implements RequestQueue {
     final int actualThreads = requestPoolSize + 1;
     this.executorService =
         new ThreadPoolExecutor(
-            actualThreads, actualThreads, 0, TimeUnit.MILLISECONDS, submittedRequests);
+            actualThreads,
+            actualThreads,
+            0,
+            TimeUnit.MILLISECONDS,
+            submittedRequests,
+            new NamedThreadFactory(PooledRequestQueue.class.getSimpleName()));
     registry.gauge(
         "pooledRequestQueue.corePoolSize", executorService, ThreadPoolExecutor::getCorePoolSize);
 
