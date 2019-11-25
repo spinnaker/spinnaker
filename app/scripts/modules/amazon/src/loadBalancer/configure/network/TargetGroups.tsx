@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { filter, flatten, get, groupBy, set, uniq } from 'lodash';
+import { filter, flatten, groupBy, set, uniq } from 'lodash';
 import { FormikErrors, FormikProps } from 'formik';
 import { Observable, Subject } from 'rxjs';
 
@@ -9,8 +9,12 @@ import {
   IWizardPageComponent,
   spelNumberCheck,
   SpInput,
+  SpelNumberInput,
   ValidationMessage,
+  FormValidator,
+  Validators,
 } from '@spinnaker/core';
+import { isNameLong, isNameInUse } from '../common/targetGroupValidators';
 
 import { IAmazonApplicationLoadBalancer, IAmazonNetworkLoadBalancerUpsertCommand } from 'amazon/domain';
 
@@ -46,72 +50,55 @@ export class TargetGroups extends React.Component<ITargetGroupsProps, ITargetGro
   public validate(
     values: IAmazonNetworkLoadBalancerUpsertCommand,
   ): FormikErrors<IAmazonNetworkLoadBalancerUpsertCommand> {
-    const errors = {} as any;
-
-    let hasErrors = false;
     const duplicateTargetGroups = uniq(
       flatten(filter(groupBy(values.targetGroups, 'name'), count => count.length > 1)).map(tg => tg.name),
     );
-    const targetGroupsErrors = values.targetGroups.map((targetGroup: any) => {
-      const tgErrors: { [key: string]: string } = {};
+    const formValidator = new FormValidator(values);
+    const { arrayForEach } = formValidator;
 
-      if (
-        targetGroup.name &&
-        get(this.state.existingTargetGroupNames, [values.credentials, values.region], []).includes(
-          targetGroup.name.toLowerCase(),
-        )
-      ) {
-        tgErrors.name = `There is already a target group in ${values.credentials}:${values.region} with that name.`;
-      }
-
-      if (targetGroup.name && targetGroup.name.length > 32 - this.props.app.name.length) {
-        tgErrors.name =
-          'Target group name is automatically prefixed with the application name and cannot exceed 32 characters in length.';
-      }
-
-      if (duplicateTargetGroups.includes(targetGroup.name)) {
-        tgErrors.name = 'Duplicate target group name in this load balancer.';
-      }
-
-      ['port', 'healthCheckInterval', 'healthyThreshold', 'unhealthyThreshold'].forEach(key => {
-        const err = spelNumberCheck(targetGroup[key]);
-        if (err) {
-          tgErrors[key] = err;
-        }
-      });
-
-      if (targetGroup.healthCheckPort !== 'traffic-port') {
-        const err = spelNumberCheck(targetGroup.healthCheckPort);
-        if (err) {
-          tgErrors.healthCheckPort = err;
-        }
-      }
-
-      [
-        'name',
-        'protocol',
-        'port',
-        'healthCheckInterval',
-        'healthCheckPort',
-        'healthCheckProtocol',
-        'healthyThreshold',
-        'unhealthyThreshold',
-      ].forEach(key => {
-        if (!targetGroup[key]) {
-          tgErrors[key] = 'Required';
-        }
-      });
-
-      if (Object.keys(tgErrors).length > 0) {
-        hasErrors = true;
-      }
-      return tgErrors;
-    });
-
-    if (hasErrors) {
-      errors.targetGroups = targetGroupsErrors;
-    }
-    return errors;
+    formValidator.field('targetGroups').withValidators(
+      arrayForEach(builder => {
+        builder
+          .field('name', 'Name')
+          .required()
+          .withValidators(
+            isNameInUse(this.state.existingTargetGroupNames, values.credentials, values.region),
+            isNameLong(this.props.app.name.length),
+            Validators.valueUnique(
+              duplicateTargetGroups,
+              'There is already a target group in this load balancer with the same name.',
+            ),
+          );
+        builder
+          .field('port', 'Port')
+          .required()
+          .spelAware()
+          .withValidators(value => spelNumberCheck(value));
+        builder
+          .field('healthCheckInterval', 'Health Check Interval')
+          .required()
+          .spelAware()
+          .withValidators(value => spelNumberCheck(value));
+        builder
+          .field('healthyThreshold', 'Healthy Threshold')
+          .required()
+          .spelAware()
+          .withValidators(value => spelNumberCheck(value));
+        builder
+          .field('unhealthyThreshold', 'Unhealthy Threshold')
+          .required()
+          .spelAware()
+          .withValidators(value => spelNumberCheck(value));
+        builder
+          .field('healthCheckPort', 'Health Check Port')
+          .required()
+          .spelAware()
+          .withValidators(value => (value === 'traffic-port' ? null : spelNumberCheck(value)));
+        builder.field('protocol', 'Protocol').required();
+        builder.field('healthCheckProtocol', 'Health Check Protocol').required();
+      }),
+    );
+    return formValidator.validateForm();
   }
 
   private removeAppName(name: string): string {
@@ -335,27 +322,23 @@ export class TargetGroups extends React.Component<ITargetGroupsProps, ITargetGro
                           )}
                           <span className="wizard-pod-content">
                             <label>Timeout </label>
-                            <SpInput
-                              className="form-control input-sm inline-number"
+                            <SpelNumberInput
                               error={tgErrors.healthCheckTimeout}
-                              name="healthCheckTimeout"
                               required={true}
                               value={targetGroup.healthCheckTimeout}
-                              onChange={event =>
-                                this.targetGroupFieldChanged(index, 'healthCheckTimeout', event.target.value)
+                              onChange={(value: string) =>
+                                this.targetGroupFieldChanged(index, 'healthCheckTimeout', value)
                               }
                             />
                           </span>
                           <span className="wizard-pod-content">
                             <label>Interval </label>
-                            <SpInput
-                              className="form-control input-sm inline-number"
+                            <SpelNumberInput
                               error={tgErrors.healthCheckInterval}
-                              name="healthCheckInterval"
                               required={true}
                               value={targetGroup.healthCheckInterval}
-                              onChange={event =>
-                                this.targetGroupFieldChanged(index, 'healthCheckInterval', event.target.value)
+                              onChange={(value: string) =>
+                                this.targetGroupFieldChanged(index, 'healthCheckInterval', value)
                               }
                             />
                           </span>
@@ -367,14 +350,11 @@ export class TargetGroups extends React.Component<ITargetGroupsProps, ITargetGro
                       <div className="wizard-pod-row-contents">
                         <div className="wizard-pod-row-data">
                           <span className="wizard-pod-content">
-                            <SpInput
-                              className="form-control input-sm inline-number"
+                            <SpelNumberInput
                               error={tgErrors.healthyThreshold}
-                              name="healthyThreshold"
-                              type="text"
                               value={targetGroup.healthyThreshold}
-                              onChange={event =>
-                                this.targetGroupFieldChanged(index, 'healthyThreshold', event.target.value)
+                              onChange={(value: string) =>
+                                this.targetGroupFieldChanged(index, 'healthyThreshold', value)
                               }
                             />
                           </span>

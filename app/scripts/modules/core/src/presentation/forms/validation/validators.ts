@@ -1,5 +1,6 @@
 import { IValidator } from './validation';
 import { isNumber } from 'lodash';
+import { robotToHuman } from '@spinnaker/core';
 
 const THIS_FIELD = 'This field';
 
@@ -16,6 +17,8 @@ const isRequired = (message?: string): IValidator => {
     return (val === undefined || val === null || val === '') && message;
   };
 };
+
+const isNum = (message?: string) => (value: any) => (isNumber(value) ? null : message || 'Must be a number');
 
 const minValue = (min: number, message?: string): IValidator => {
   return (val: number, label = THIS_FIELD) => {
@@ -39,6 +42,19 @@ const maxValue = (max: number, message?: string): IValidator => {
     }
     return null;
   };
+};
+
+const checkBetween = (fieldName: string, min: number, max: number): IValidator => (value: string) => {
+  const sanitizedField = Number.parseInt(value, 10);
+
+  if (!Number.isNaN(sanitizedField)) {
+    const error =
+      Validators.minValue(min)(sanitizedField, robotToHuman(fieldName)) ||
+      Validators.maxValue(max)(sanitizedField, robotToHuman(fieldName));
+
+    return error;
+  }
+  return null;
 };
 
 const oneOf = (list: any[], message?: string): IValidator => {
@@ -81,8 +97,10 @@ export const Validators = {
   arrayNotEmpty,
   emailValue,
   isRequired,
+  isNum,
   maxValue,
   minValue,
+  checkBetween,
   oneOf,
   skipIfUndefined,
   valueUnique,

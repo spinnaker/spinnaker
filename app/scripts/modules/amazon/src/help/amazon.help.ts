@@ -110,6 +110,9 @@ const helpContents: { [key: string]: string } = {
     'The time period, in seconds, during which requests from a client should be routed to the same target. After this time period expires, the load balancer-generated cookie is considered stale. The range is 1 second to 1 week (604800 seconds). The default value is 1 day (86400 seconds).',
   'aws.targetGroup.attributes.healthCheckPort.trafficPort':
     'The port the load balancer uses when performing health checks on targets. The default is <b>traffic-port</b>, which is the port on which each target receives traffic from the load balancer.',
+  'aws.targetGroup.healthCheckProtocol': 'TCP health checks only support 10s and 30s intervals',
+  'aws.targetGroup.healthCheckTimeout':
+    'Target groups with TCP or TLS protocol must have a 6s timeout for HTTP health checks or a 10s timeout for HTTPS/TLS health checks.',
   'aws.serverGroup.capacityConstraint': `
       <p>Ensures that the capacity of this server group has not changed in the background (i.e. due to autoscaling activity).</p>
       <p>If the capacity has changed, this resize operation will be rejected.</p>`,

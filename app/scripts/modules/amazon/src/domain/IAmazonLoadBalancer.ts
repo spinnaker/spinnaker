@@ -167,7 +167,7 @@ export interface IListenerDescription {
 
 export interface IALBTargetGroupDescription {
   name: string;
-  protocol: 'HTTP' | 'HTTPS';
+  protocol: 'HTTP' | 'HTTPS' | 'TCP' | 'TLS';
   port: number;
   targetType: 'instance' | 'ip' | 'lambda';
   attributes: {
@@ -187,7 +187,7 @@ export interface IALBTargetGroupDescription {
   healthCheckMatcher?: string;
   healthCheckPath: string;
   healthCheckPort: string;
-  healthCheckProtocol: 'HTTP' | 'HTTPS';
+  healthCheckProtocol: 'HTTP' | 'HTTPS' | 'TCP';
   // Defaults to 10
   healthyThreshold?: number;
   // Defaults to 5

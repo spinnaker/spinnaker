@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { filter, flatten, get, groupBy, set, uniq } from 'lodash';
+import { filter, flatten, groupBy, set, uniq } from 'lodash';
 import { FormikErrors, FormikProps } from 'formik';
 import { Observable, Subject } from 'rxjs';
 
@@ -8,11 +8,13 @@ import {
   HelpField,
   IWizardPageComponent,
   SpInput,
+  SpelNumberInput,
   ValidationMessage,
-  spelNumberCheck,
+  FormValidator,
   Validators,
-  robotToHuman,
+  spelNumberCheck,
 } from '@spinnaker/core';
+import { isNameLong, isNameInUse, isValidTimeout, isValidHealthCheckInterval } from '../common/targetGroupValidators';
 
 import { IAmazonApplicationLoadBalancer, IAmazonApplicationLoadBalancerUpsertCommand } from 'amazon/domain';
 
@@ -44,94 +46,87 @@ export class TargetGroups extends React.Component<ITargetGroupsProps, ITargetGro
     };
   }
 
-  private checkBetween(errors: any, object: any, fieldName: string, min: number, max: number) {
-    const field = object[fieldName];
-    if (!Number.isNaN(field)) {
-      const error =
-        Validators.minValue(min)(field, robotToHuman(fieldName)) ||
-        Validators.maxValue(max)(field, robotToHuman(fieldName));
-      if (error) {
-        errors[fieldName] = error;
-      }
-    }
-  }
-
   public validate(
     values: IAmazonApplicationLoadBalancerUpsertCommand,
   ): FormikErrors<IAmazonApplicationLoadBalancerUpsertCommand> {
-    const errors = {} as any;
-
-    let hasErrors = false;
     const duplicateTargetGroups = uniq(
       flatten(filter(groupBy(values.targetGroups, 'name'), count => count.length > 1)).map(tg => tg.name),
     );
-    const targetGroupsErrors = values.targetGroups.map((targetGroup: any) => {
-      const tgErrors: { [key: string]: string } = {};
 
-      if (
-        targetGroup.name &&
-        get(this.state.existingTargetGroupNames, [values.credentials, values.region], []).includes(
-          targetGroup.name.toLowerCase(),
-        )
-      ) {
-        tgErrors.name = `There is already a target group in ${values.credentials}:${values.region} with that name.`;
-      }
+    const formValidator = new FormValidator(values);
+    const { arrayForEach } = formValidator;
 
-      if (targetGroup.name && targetGroup.name.length > 32 - this.props.app.name.length) {
-        tgErrors.name =
-          'Target group name is automatically prefixed with the application name and cannot exceed 32 characters in length.';
-      }
+    formValidator.field('targetGroups').withValidators(
+      arrayForEach((builder, item) => {
+        builder
+          .field('name', 'Name')
+          .withValidators(
+            isNameInUse(this.state.existingTargetGroupNames, values.credentials, values.region),
+            isNameLong(this.props.app.name.length),
+            Validators.valueUnique(
+              duplicateTargetGroups,
+              'There is already a target group in this load balancer with the same name.',
+            ),
+          );
+        builder
+          .field('healthCheckInterval', 'Health Check Interval')
+          .withValidators(isValidHealthCheckInterval(item), Validators.checkBetween('healthCheckInterval', 5, 300));
+        builder
+          .field('healthyThreshold', 'Healthy Threshold')
+          .withValidators(Validators.checkBetween('healthyThreshold', 2, 10));
+        builder
+          .field('unhealthyThreshold', 'Unhealthy Threshold')
+          .spelAware()
+          .withValidators(Validators.checkBetween('unhealthyThreshold', 2, 10));
+        builder
+          .field('healthCheckTimeout', 'Timeout')
+          .withValidators(isValidTimeout(item), Validators.checkBetween('healthCheckTimeout', 2, 120));
 
-      if (duplicateTargetGroups.includes(targetGroup.name)) {
-        tgErrors.name = 'Duplicate target group name in this load balancer.';
-      }
-
-      if (targetGroup.targetType !== 'lambda') {
-        ['port', 'healthCheckInterval', 'healthyThreshold', 'unhealthyThreshold'].forEach(key => {
-          const err = spelNumberCheck(targetGroup[key]);
-          if (err) {
-            tgErrors[key] = err;
-          }
-        });
-      }
-      this.checkBetween(tgErrors, targetGroup, 'healthCheckTimeout', 2, 60);
-      this.checkBetween(tgErrors, targetGroup, 'healthCheckInterval', 5, 300);
-      this.checkBetween(tgErrors, targetGroup, 'healthyThreshold', 2, 10);
-      this.checkBetween(tgErrors, targetGroup, 'unhealthyThreshold', 2, 10);
-
-      if (targetGroup.targetType !== 'lambda' && targetGroup.healthCheckPort !== 'traffic-port') {
-        const err = spelNumberCheck(targetGroup.healthCheckPort);
-        if (err) {
-          tgErrors.healthCheckPort = err;
+        if (item.targetType !== 'lambda') {
+          builder.field('protocol', 'Protocol').required();
+          builder.field('healthCheckPath', 'Health Check Path').required();
+          builder.field('healthCheckProtocol', 'Health Check Protocol').required();
+          builder.field('name', 'Name').required();
+          builder
+            .field('healthyThreshold', 'Healthy Threshold')
+            .required()
+            .spelAware()
+            .withValidators(value => spelNumberCheck(value));
+          builder
+            .field('unhealthyThreshold', 'Unhealthy Threshold')
+            .required()
+            .spelAware()
+            .withValidators(value => spelNumberCheck(value));
+          builder
+            .field('healthCheckInterval', 'Health Check Interval')
+            .required()
+            .spelAware()
+            .withValidators(value => spelNumberCheck(value));
+          builder
+            .field('healthCheckPort', 'Health Check Port')
+            .required()
+            .spelAware()
+            .withValidators(value => (value === 'traffic-port' ? null : spelNumberCheck(value)));
+          builder
+            .field('port', 'Port')
+            .required()
+            .spelAware()
+            .withValidators(value => spelNumberCheck(value));
+          builder
+            .field('healthyThreshold', 'Healthy Threshold')
+            .required()
+            .spelAware()
+            .withValidators(value => spelNumberCheck(value), Validators.checkBetween('healthyThreshold', 2, 10));
+          builder
+            .field('unhealthyThreshold', 'Unhealthy Threshold')
+            .required()
+            .spelAware()
+            .withValidators(value => spelNumberCheck(value), Validators.checkBetween('unhealthyThreshold', 2, 10));
         }
-      }
-      if (targetGroup.targetType !== 'lambda') {
-        [
-          'name',
-          'port',
-          'protocol',
-          'healthCheckInterval',
-          'healthCheckPath',
-          'healthCheckPort',
-          'healthCheckProtocol',
-          'healthyThreshold',
-          'unhealthyThreshold',
-        ].forEach(key => {
-          if (!targetGroup[key]) {
-            tgErrors[key] = 'Required';
-          }
-        });
-      }
-      if (Object.keys(tgErrors).length > 0) {
-        hasErrors = true;
-      }
-      return tgErrors;
-    });
+      }),
+    );
 
-    if (hasErrors) {
-      errors.targetGroups = targetGroupsErrors;
-    }
-    return errors;
+    return formValidator.validateForm();
   }
 
   private removeAppName(name: string): string {
@@ -164,7 +159,7 @@ export class TargetGroups extends React.Component<ITargetGroupsProps, ITargetGro
       });
   }
 
-  private targetGroupFieldChanged(index: number, field: string, value: string | boolean): void {
+  private targetGroupFieldChanged(index: number, field: string, value: string | boolean | number): void {
     const { setFieldValue, values } = this.props.formik;
     const targetGroup = values.targetGroups[index];
     if (field === 'targetType' && value === 'lambda') {
@@ -226,13 +221,19 @@ export class TargetGroups extends React.Component<ITargetGroupsProps, ITargetGro
 
     const ProtocolOptions = this.protocols.map(p => <option key={p}>{p}</option>);
     const TargetTypeOptions = this.targetTypes.map(p => <option key={p}>{p}</option>);
-
     return (
       <div className="container-fluid form-horizontal">
         <div className="form-group">
           <div className="col-md-12">
             {values.targetGroups.map((targetGroup, index) => {
               const tgErrors = (errors.targetGroups && errors.targetGroups[index]) || {};
+              const has6sTimeout =
+                (targetGroup.protocol === 'TCP' || targetGroup.protocol === 'TLS') &&
+                targetGroup.healthCheckProtocol === 'HTTP';
+              const has10sTimeout =
+                (targetGroup.protocol === 'TCP' || targetGroup.protocol === 'TLS') &&
+                targetGroup.healthCheckProtocol === 'HTTPS';
+
               return (
                 <div key={index} className="wizard-pod">
                   <div>
@@ -365,9 +366,55 @@ export class TargetGroups extends React.Component<ITargetGroupsProps, ITargetGro
                             </span>
                           )}
                           <span className="wizard-pod-content">
+                            <label>Protocol </label>
+                            {targetGroup.healthCheckProtocol === 'TCP' && (
+                              <HelpField id="aws.targetGroup.healthCheckProtocol" />
+                            )}{' '}
+                            <select
+                              className="form-control input-sm inline-number"
+                              value={targetGroup.healthCheckProtocol}
+                              onChange={event =>
+                                this.targetGroupFieldChanged(index, 'healthCheckProtocol', event.target.value)
+                              }
+                            >
+                              {ProtocolOptions}
+                            </select>
+                          </span>
+                          <span className="wizard-pod-content">
+                            <label>Port </label>
+                            <HelpField id="aws.targetGroup.attributes.healthCheckPort.trafficPort" />{' '}
+                            <select
+                              className="form-control input-sm inline-number"
+                              style={{ width: '90px' }}
+                              value={targetGroup.healthCheckPort === 'traffic-port' ? 'traffic-port' : 'manual'}
+                              onChange={event =>
+                                this.targetGroupFieldChanged(
+                                  index,
+                                  'healthCheckPort',
+                                  event.target.value === 'traffic-port' ? 'traffic-port' : '',
+                                )
+                              }
+                            >
+                              <option value="traffic-port">Traffic Port</option>
+                              <option value="manual">Manual</option>
+                            </select>{' '}
+                            <SpInput
+                              className="form-control input-sm inline-number"
+                              error={tgErrors.healthCheckPort}
+                              style={{
+                                visibility: targetGroup.healthCheckPort === 'traffic-port' ? 'hidden' : 'inherit',
+                              }}
+                              name="healthCheckPort"
+                              required={true}
+                              value={targetGroup.healthCheckPort}
+                              onChange={event =>
+                                this.targetGroupFieldChanged(index, 'healthCheckPort', event.target.value)
+                              }
+                            />
+                          </span>
+                          <span className="wizard-pod-content">
                             <label>Path </label>
                             <SpInput
-                              className="form-control input-sm inline-text"
                               error={tgErrors.healthCheckPath}
                               name="healthCheckPath"
                               required={true}
@@ -379,27 +426,29 @@ export class TargetGroups extends React.Component<ITargetGroupsProps, ITargetGro
                           </span>
                           <span className="wizard-pod-content">
                             <label>Timeout </label>
-                            <SpInput
-                              className="form-control input-sm inline-number"
+                            {(has6sTimeout || has10sTimeout) && <HelpField id="aws.targetGroup.healthCheckTimeout" />}
+                            <SpelNumberInput
                               error={tgErrors.healthCheckTimeout}
-                              name="healthCheckTimeout"
+                              disabled={has6sTimeout || has10sTimeout}
                               required={true}
-                              value={targetGroup.healthCheckTimeout}
-                              onChange={event =>
-                                this.targetGroupFieldChanged(index, 'healthCheckTimeout', event.target.value)
+                              value={has6sTimeout ? 6 : has10sTimeout ? 10 : targetGroup.healthCheckTimeout}
+                              min={2}
+                              max={120}
+                              onChange={(value: string | number) =>
+                                this.targetGroupFieldChanged(index, 'healthCheckTimeout', value)
                               }
                             />
                           </span>
                           <span className="wizard-pod-content">
                             <label>Interval </label>
-                            <SpInput
-                              className="form-control input-sm inline-number"
+                            <SpelNumberInput
                               error={tgErrors.healthCheckInterval}
-                              name="healthCheckInterval"
                               required={true}
                               value={targetGroup.healthCheckInterval}
-                              onChange={event =>
-                                this.targetGroupFieldChanged(index, 'healthCheckInterval', event.target.value)
+                              min={5}
+                              max={300}
+                              onChange={(value: string | number) =>
+                                this.targetGroupFieldChanged(index, 'healthCheckInterval', value)
                               }
                             />
                           </span>
@@ -412,27 +461,26 @@ export class TargetGroups extends React.Component<ITargetGroupsProps, ITargetGro
                         <div className="wizard-pod-row-data">
                           <span className="wizard-pod-content">
                             <label>Healthy </label>
-                            <SpInput
-                              className="form-control input-sm inline-number"
+                            <SpelNumberInput
                               error={tgErrors.healthyThreshold}
-                              name="healthyThreshold"
-                              type="text"
                               value={targetGroup.healthyThreshold}
-                              onChange={event =>
-                                this.targetGroupFieldChanged(index, 'healthyThreshold', event.target.value)
+                              min={2}
+                              max={10}
+                              onChange={(value: string | number) =>
+                                this.targetGroupFieldChanged(index, 'healthyThreshold', value)
                               }
                             />
                           </span>
                           <span className="wizard-pod-content">
                             <label>Unhealthy </label>
-                            <SpInput
-                              className="form-control input-sm inline-number"
+                            <SpelNumberInput
                               error={tgErrors.unhealthyThreshold}
-                              name="unhealthyThreshold"
                               required={true}
                               value={targetGroup.unhealthyThreshold}
-                              onChange={event =>
-                                this.targetGroupFieldChanged(index, 'unhealthyThreshold', event.target.value)
+                              min={2}
+                              max={10}
+                              onChange={(value: string | number) =>
+                                this.targetGroupFieldChanged(index, 'unhealthyThreshold', value)
                               }
                             />
                           </span>

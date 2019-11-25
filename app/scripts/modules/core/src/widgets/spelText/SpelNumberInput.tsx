@@ -8,6 +8,8 @@ export interface INumberInputProps {
   min?: number;
   max?: number;
   required?: boolean;
+  error?: string;
+  disabled?: boolean;
 }
 
 export interface INumberInputState {
@@ -46,49 +48,54 @@ export class SpelNumberInput extends React.Component<INumberInputProps, INumberI
 
   public render() {
     const { expressionActive, glowing } = this.state;
-    const { value, min, max, required = false } = this.props;
+    const { value, min, max, required = false, error, disabled } = this.props;
     return (
-      <div className="navbar-form" style={{ padding: 0, margin: 0 }}>
-        <div className={`button-input ${expressionActive ? 'text' : 'number'}${glowing ? ' focus' : ''}`}>
-          <span className="btn-group btn-group-xs" role="group">
-            <button
-              type="button"
-              className={`btn btn-default ${expressionActive ? '' : 'active'}`}
-              onClick={() => this.setExpressionActive(false)}
+      <div className="navbar-form" style={{ padding: 0, margin: 0, display: 'inline-block' }}>
+        <Tooltip value={error} placement="right">
+          <div className={`button-input${glowing && !error ? ' focus' : ''}${error ? ' invalid' : ''}`}>
+            <span className="btn-group btn-group-xs" role="group">
+              <button
+                type="button"
+                disabled={disabled}
+                className={`btn btn-default ${expressionActive ? '' : 'active'}`}
+                onClick={() => this.setExpressionActive(false)}
+                onFocus={() => this.setGlow(true)}
+                onBlur={() => this.setGlow(false)}
+              >
+                <Tooltip value="Toggle to enter number">
+                  <span>Num</span>
+                </Tooltip>
+              </button>
+              <button
+                type="button"
+                disabled={disabled}
+                className={`btn btn-default ${expressionActive ? 'active' : ''}`}
+                onClick={() => this.setExpressionActive(true)}
+                onFocus={() => this.setGlow(true)}
+                onBlur={() => this.setGlow(false)}
+              >
+                <Tooltip value="Toggle to enter expression">
+                  <span>
+                    {'${'}
+                    &hellip;}
+                  </span>
+                </Tooltip>
+              </button>
+            </span>
+            <input
+              type={expressionActive ? 'text' : 'number'}
+              disabled={disabled}
+              className={`form-control borderless inline-${expressionActive ? 'text' : 'number'}`}
+              value={value}
+              min={min}
+              max={max}
+              onChange={this.valueChanged}
               onFocus={() => this.setGlow(true)}
               onBlur={() => this.setGlow(false)}
-            >
-              <Tooltip value="Toggle to enter number">
-                <span>Num</span>
-              </Tooltip>
-            </button>
-            <button
-              type="button"
-              className={`btn btn-default ${expressionActive ? 'active' : ''}`}
-              onClick={() => this.setExpressionActive(true)}
-              onFocus={() => this.setGlow(true)}
-              onBlur={() => this.setGlow(false)}
-            >
-              <Tooltip value="Toggle to enter expression">
-                <span>
-                  {'${'}
-                  &hellip;}
-                </span>
-              </Tooltip>
-            </button>
-          </span>
-          <input
-            type={expressionActive ? 'text' : 'number'}
-            className="form-control borderless"
-            value={value}
-            min={min}
-            max={max}
-            onChange={this.valueChanged}
-            onFocus={() => this.setGlow(true)}
-            onBlur={() => this.setGlow(false)}
-            required={required}
-          />
-        </div>
+              required={required}
+            />
+          </div>
+        </Tooltip>
       </div>
     );
   }
