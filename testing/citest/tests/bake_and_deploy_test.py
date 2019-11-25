@@ -342,7 +342,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
         'user': '[anonymous]',
         'baseOs': 'trusty',
         'baseLabel': 'release',
-        'cloudProviderType': providerType,
+        'cloudProvider': providerType,
         'package': package,
         'rebake': True
     }
