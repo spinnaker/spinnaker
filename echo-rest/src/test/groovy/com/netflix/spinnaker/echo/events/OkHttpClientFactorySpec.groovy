@@ -1,10 +1,10 @@
 package com.netflix.spinnaker.echo.events
 
+import com.netflix.spinnaker.echo.rest.OkHttpClientFactory
+import com.netflix.spinnaker.echo.rest.OkHttpClientFactoryImpl
 import com.squareup.okhttp.OkHttpClient
 import spock.lang.Specification
 import spock.lang.Subject
-
-import javax.net.ssl.HostnameVerifier
 
 class OkHttpClientFactorySpec extends Specification {
 

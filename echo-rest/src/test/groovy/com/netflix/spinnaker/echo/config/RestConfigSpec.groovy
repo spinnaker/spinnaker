@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.echo.config
 
-import com.netflix.spinnaker.echo.events.RestClientFactory
+import com.netflix.spinnaker.echo.rest.RestClientFactory
 import retrofit.RequestInterceptor
 import retrofit.RestAdapter
 import spock.lang.Specification

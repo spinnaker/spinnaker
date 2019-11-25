@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.echo.events
 
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.echo.config.RestProperties
 import com.netflix.spinnaker.echo.config.RestUrls
 import com.netflix.spinnaker.echo.model.Event
 import com.netflix.spinnaker.echo.extension.rest.RestEventParser
@@ -44,15 +45,16 @@ class RestEventListenerSpec extends Specification {
 
   void 'render template when template is set'() {
     given:
-    listener.restUrls.services = [
-      [
-        client: restService,
-        config: [
-          template: '{"myCustomEventField":{{event}} }',
-          wrap    : true
-        ]
-      ]
-    ]
+    RestProperties.RestEndpointConfiguration config = new RestProperties.RestEndpointConfiguration()
+    config.setTemplate('{"myCustomEventField":{{event}} }')
+    config.setWrap(true)
+
+    RestUrls.Service service = RestUrls.Service.builder()
+      .client(restService)
+      .config(config)
+      .build()
+
+    listener.restUrls.services = [service]
 
     when:
     listener.processEvent(event)
@@ -65,14 +67,15 @@ class RestEventListenerSpec extends Specification {
 
   void 'wraps events when wrap is set'() {
     given:
-    listener.restUrls.services = [
-      [
-        client: restService,
-        config: [
-          wrap: true
-        ]
-      ]
-    ]
+    RestProperties.RestEndpointConfiguration config = new RestProperties.RestEndpointConfiguration()
+    config.setWrap(true)
+
+    RestUrls.Service service = RestUrls.Service.builder()
+      .client(restService)
+      .config(config)
+      .build()
+
+    listener.restUrls.services = [service]
 
     when:
     listener.processEvent(event)
@@ -86,16 +89,17 @@ class RestEventListenerSpec extends Specification {
 
   void 'can overwrite wrap field for'() {
     given:
-    listener.restUrls.services = [
-      [
-        client: restService,
-        config: [
-          wrap     : true,
-          fieldName: 'myField',
-          eventName: 'myEventName'
-        ]
-      ]
-    ]
+    RestProperties.RestEndpointConfiguration config = new RestProperties.RestEndpointConfiguration()
+    config.setWrap(true)
+    config.setFieldName('myField')
+    config.setEventName('myEventName')
+
+    RestUrls.Service service = RestUrls.Service.builder()
+      .client(restService)
+      .config(config)
+      .build()
+
+    listener.restUrls.services = [service]
 
     when:
     listener.processEvent(event)
@@ -110,14 +114,15 @@ class RestEventListenerSpec extends Specification {
 
   void 'can disable wrapping of events'() {
     given:
-    listener.restUrls.services = [
-      [
-        client: restService,
-        config: [
-          wrap: false
-        ]
-      ]
-    ]
+    RestProperties.RestEndpointConfiguration config = new RestProperties.RestEndpointConfiguration()
+    config.setWrap(false)
+
+    RestUrls.Service service = RestUrls.Service.builder()
+      .client(restService)
+      .config(config)
+      .build()
+
+    listener.restUrls.services = [service]
 
     when:
     listener.processEvent(event)
@@ -131,20 +136,21 @@ class RestEventListenerSpec extends Specification {
   void 'sends events to multiple hosts'() {
     given:
     RestService restService2 = Mock(RestService)
-    listener.restUrls.services = [
-      [
-        client: restService,
-        config: [
-          wrap: false
-        ]
-      ],
-      [
-        client: restService2,
-        config: [
-          wrap: false
-        ]
-      ]
-    ]
+
+    RestProperties.RestEndpointConfiguration config = new RestProperties.RestEndpointConfiguration()
+    config.setWrap(false)
+
+    RestUrls.Service service1 = RestUrls.Service.builder()
+      .client(restService)
+      .config(config)
+      .build()
+
+    RestUrls.Service service2 = RestUrls.Service.builder()
+      .client(restService2)
+      .config(config)
+      .build()
+
+    listener.restUrls.services = [service1, service2]
 
     when:
     listener.processEvent(event)
@@ -161,20 +167,21 @@ class RestEventListenerSpec extends Specification {
   void 'exception in sending event to one host does not affect second host'() {
     given:
     RestService restService2 = Mock(RestService)
-    listener.restUrls.services = [
-      [
-        client: restService,
-        config: [
-          wrap: false
-        ]
-      ],
-      [
-        client: restService2,
-        config: [
-          wrap: false
-        ]
-      ]
-    ]
+
+    RestProperties.RestEndpointConfiguration config = new RestProperties.RestEndpointConfiguration()
+    config.setWrap(false)
+
+    RestUrls.Service service1 = RestUrls.Service.builder()
+      .client(restService)
+      .config(config)
+      .build()
+
+    RestUrls.Service service2 = RestUrls.Service.builder()
+      .client(restService2)
+      .config(config)
+      .build()
+
+    listener.restUrls.services = [service1, service2]
 
     when:
     listener.processEvent(event)

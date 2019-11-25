@@ -1,7 +1,8 @@
 package com.netflix.spinnaker.echo.events
 
+import com.netflix.spinnaker.echo.rest.OkHttpClientFactory
+import com.netflix.spinnaker.echo.rest.RestClientFactory
 import com.squareup.okhttp.OkHttpClient
-import retrofit.client.Client
 import spock.lang.Specification
 import spock.lang.Subject
 

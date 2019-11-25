@@ -28,12 +28,20 @@ import org.pf4j.ExtensionPoint;
 public interface RestEventParser extends ExtensionPoint {
 
   /**
-   * Parse an Event prior to POST to the configured URL
+   * Parse an event prior to POST to the configured URL
    *
    * @param event {@link Event}
    * @return Map, which conforms to the RestEventListener API
    */
-  Map parse(Event event);
+  Map<String, Object> parseEvent(Event event);
+
+  /**
+   * Flatten an event prior to POST to configured URL
+   *
+   * @param event
+   * @return FlatEvent, which conforms to the RestEventListener API for flattened events
+   */
+  FlatEvent flattenEvent(Event event);
 
   @Data
   class Event {
@@ -57,5 +65,13 @@ public interface RestEventParser extends ExtensionPoint {
     private String _content_id;
     private Map<String, List> requestHeaders;
     private Map<String, String> attributes;
+  }
+
+  @Data
+  @AllArgsConstructor
+  @NoArgsConstructor
+  class FlatEvent {
+    private String details;
+    private String content;
   }
 }
