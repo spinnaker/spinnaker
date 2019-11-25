@@ -112,7 +112,8 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
     return st.OperationContract(
         self.agent.make_create_app_operation(
             bindings=self.bindings, application=self.TEST_APP,
-            account_name=self.bindings['SPINNAKER_AWS_ACCOUNT']),
+            account_name=self.bindings['SPINNAKER_AWS_ACCOUNT'],
+            cloud_providers="aws"),
         contract=contract)
 
   def delete_app(self):

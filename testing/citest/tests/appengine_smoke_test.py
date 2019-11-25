@@ -205,7 +205,8 @@ class AppengineSmokeTestScenario(sk.SpinnakerTestScenario):
       self.agent.make_create_app_operation(
         bindings=self.bindings,
         application=self.TEST_APP,
-        account_name=self.bindings['SPINNAKER_APPENGINE_ACCOUNT']),
+        account_name=self.bindings['SPINNAKER_APPENGINE_ACCOUNT'],
+        cloud_providers="appengine"),
       contract=contract)
 
   def delete_app(self):
