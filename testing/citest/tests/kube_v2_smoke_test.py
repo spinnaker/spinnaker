@@ -91,7 +91,8 @@ class KubeV2SmokeTestScenario(sk.SpinnakerTestScenario):
     return st.OperationContract(
         self.agent.make_create_app_operation(
             bindings=self.bindings, application=self.TEST_APP,
-            account_name=self.bindings['SPINNAKER_KUBERNETES_V2_ACCOUNT']),
+            account_name=self.bindings['SPINNAKER_KUBERNETES_V2_ACCOUNT'],
+            cloud_providers="kubernetes"),
         contract=contract)
 
   def delete_app(self):

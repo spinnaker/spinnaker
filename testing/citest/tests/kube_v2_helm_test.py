@@ -17,7 +17,7 @@ Integration test to see if the helm bake process is working for the
 Spinnaker Kubernetes V2 integration.
 
 This test requires 'helm', a tool for packaging & deploying Kubernetes
-manifests. Follow the instuctions here: 
+manifests. Follow the instuctions here:
 
   https://docs.helm.sh/using_helm/#from-the-binary-releases
 
@@ -121,7 +121,8 @@ class KubeV2HelmTestScenario(sk.SpinnakerTestScenario):
     return st.OperationContract(
         self.agent.make_create_app_operation(
             bindings=self.bindings, application=self.TEST_APP,
-            account_name=self.bindings['SPINNAKER_KUBERNETES_V2_ACCOUNT']),
+            account_name=self.bindings['SPINNAKER_KUBERNETES_V2_ACCOUNT'],
+            cloud_providers="kubernetes"),
         contract=contract)
 
   def delete_app(self):
@@ -181,9 +182,9 @@ class KubeV2HelmTestScenario(sk.SpinnakerTestScenario):
     namespace: {namespace}
     app: {app}
     name: {name}
-    """.format(image=image, 
-               namespace=self.TEST_NAMESPACE, 
-               app=self.TEST_APP, 
+    """.format(image=image,
+               namespace=self.TEST_NAMESPACE,
+               app=self.TEST_APP,
                name=name),
     'helm-values.yml')
     bake_artifact_id = 'bake-artifact'

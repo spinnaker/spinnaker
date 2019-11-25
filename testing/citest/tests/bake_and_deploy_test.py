@@ -227,7 +227,8 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
     return st.OperationContract(
         self.agent.make_create_app_operation(
             bindings=self.bindings, application=self.TEST_APP,
-            account_name=self.bindings['SPINNAKER_GOOGLE_ACCOUNT']),
+            account_name=self.bindings['SPINNAKER_GOOGLE_ACCOUNT'],
+            cloud_providers="gce,aws"),
         builder.build())
 
   def delete_app(self):

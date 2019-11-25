@@ -314,6 +314,7 @@ class GateAgent(sk.SpinnakerAgent):
   """
 
   def make_create_app_operation(self, bindings, application, account_name,
+                                cloud_providers=None,
                                 description=None):
     """Create a Gate operation that will create a new application.
 
@@ -321,6 +322,7 @@ class GateAgent(sk.SpinnakerAgent):
       bindings: [dict] key/value pairs including optional TEST_EMAIL.
       application: [string] Name of application to create.
       account_name: [string] Account name owning the application.
+      cloud_providers: [string] Comma-separated list of cloud providers.
       description: [string] Text description field for the operation payload.
 
     Returns:
@@ -335,7 +337,8 @@ class GateAgent(sk.SpinnakerAgent):
                 'name': application,
                 'description': description or 'Gate Testing Application',
                 'email': email,
-                'platformHealthOnly': True
+                'platformHealthOnly': True,
+                'cloudProviders': cloud_providers or "",
             },
             'user': '[anonymous]'
         }],
