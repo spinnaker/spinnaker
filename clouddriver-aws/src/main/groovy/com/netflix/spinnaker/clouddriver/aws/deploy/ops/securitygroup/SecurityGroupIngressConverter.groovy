@@ -61,9 +61,9 @@ class SecurityGroupIngressConverter {
     List<IpPermission> ipPermissions = description.ipIngress.collect { ingress ->
       IpPermission permission = new IpPermission(ipProtocol: ingress.ipProtocol, fromPort: ingress.startPort, toPort: ingress.endPort)
       if (ingress.cidr?.contains(':')) {
-        permission.ipv6Ranges = [new Ipv6Range().withCidrIpv6(ingress.cidr)]
+        permission.ipv6Ranges = [new Ipv6Range().withCidrIpv6(ingress.cidr).withDescription(ingress.description)]
       } else {
-        permission.ipv4Ranges = [new IpRange().withCidrIp(ingress.cidr)]
+        permission.ipv4Ranges = [new IpRange().withCidrIp(ingress.cidr).withDescription(ingress.description)]
       }
       permission
     }

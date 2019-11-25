@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.description
 
+import com.amazonaws.services.ec2.model.Tag
 import com.netflix.spinnaker.clouddriver.security.resources.ResourcesNameable
 import groovy.transform.Canonical
 
@@ -30,6 +31,8 @@ class UpsertSecurityGroupDescription extends AbstractAmazonCredentialsDescriptio
 
   boolean ingressAppendOnly = false
 
+  Map<String, Object> tags
+
   @Override
   Collection<String> getNames() {
     return [name]
@@ -39,6 +42,7 @@ class UpsertSecurityGroupDescription extends AbstractAmazonCredentialsDescriptio
     Integer startPort
     Integer endPort
     String ipProtocol
+    String description
 
     @Deprecated void setType(String ipProtocol) {
       this.ipProtocol = ipProtocol

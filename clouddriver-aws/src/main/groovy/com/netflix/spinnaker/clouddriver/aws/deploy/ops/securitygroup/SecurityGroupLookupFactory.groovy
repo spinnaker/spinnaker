@@ -136,9 +136,12 @@ class SecurityGroupLookupFactory {
          */
         retrySupport.retry({
           CreateTagsRequest createTagRequest = new CreateTagsRequest()
-          createTagRequest.withResources(result.groupId).withTags([
-            new Tag("Name", description.name)
-          ])
+          Collection<Tag> tags = new HashSet()
+          tags.add(new Tag("Name", description.name))
+          description.tags.each {
+            entry -> tags.add(new Tag(entry.key, entry.value))
+          }
+          createTagRequest.withResources(result.groupId).withTags(tags)
           amazonEC2.createTags(createTagRequest)
         }, 10, 3000, false);
       } catch (Exception e) {
