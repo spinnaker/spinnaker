@@ -306,6 +306,7 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent, CachingA
           getTimeoutMillis(),
           TimeUnit.MILLISECONDS);
       CompletableFuture.completedFuture(handler).join();
+      executor.shutdown();
     }
 
     private Iterator<JobChangeNotification> observeJobs() {
