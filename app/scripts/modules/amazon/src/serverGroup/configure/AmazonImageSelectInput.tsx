@@ -343,7 +343,10 @@ export class AmazonImageSelectInput extends React.Component<IAmazonImageSelector
             filterOptions={false as any}
             noResultsText={searchNoResultsText}
             options={searchResults}
-            onInputChange={searchInput => this.searchInput$.next(searchInput)}
+            onInputChange={searchInput => {
+              this.searchInput$.next(searchInput);
+              return searchInput;
+            }}
             onChange={onChange}
           />
           {error}
