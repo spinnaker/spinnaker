@@ -49,6 +49,8 @@ public class Pipeline {
 
   @JsonProperty String executionEngine;
 
+  @JsonProperty String spelEvaluator;
+
   @JsonProperty boolean parallel;
 
   @JsonProperty boolean disabled;
