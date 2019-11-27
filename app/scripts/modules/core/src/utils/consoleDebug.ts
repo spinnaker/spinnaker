@@ -17,6 +17,9 @@ export class ConsoleDebugWindow {
   public application: Application;
   public $injector: IInjectorService;
   public api = API;
+  public plugins = {
+    sharedLibraries: {} as { [libraryName: string]: any },
+  };
   [key: string]: any;
 
   public addInjectable(key: string): void {
