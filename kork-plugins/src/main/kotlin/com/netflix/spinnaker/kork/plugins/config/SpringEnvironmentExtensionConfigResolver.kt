@@ -60,12 +60,14 @@ class SpringEnvironmentExtensionConfigResolver(
     val pointer = when (coordinates) {
       is PluginConfigCoordinates ->
         listOf(
-          coordinates.pluginNamespace,
+          if (coordinates.pluginNamespace == "undefined") null else coordinates.pluginNamespace,
           coordinates.pluginId,
           "extensions",
           coordinates.extensionNamespace,
           coordinates.extensionId
-        ).let { "/spinnaker/plugins/${it.joinToString("/")}/config" }
+        ).filter { it != null }.let {
+          "/spinnaker/plugins/${it.joinToString("/")}/config"
+        }
       is SystemExtensionConfigCoordinates ->
         "/spinnaker/extensions/${coordinates.extensionNamespace}/${coordinates.extensionId}/config"
     }

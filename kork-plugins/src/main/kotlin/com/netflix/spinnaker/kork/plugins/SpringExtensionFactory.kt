@@ -170,7 +170,7 @@ class SpringExtensionFactory(
   }
 
   private fun PluginWrapper.getCoordinates(): PluginCoordinates =
-    (descriptor as SpinnakerPluginDescriptor).let { PluginCoordinates(it.namespace, it.pluginId) }
+    (descriptor as SpinnakerPluginDescriptor).let { PluginCoordinates(it.namespace, it.pluginName) }
 
   private inner class PluginCoordinates(
     val namespace: String,

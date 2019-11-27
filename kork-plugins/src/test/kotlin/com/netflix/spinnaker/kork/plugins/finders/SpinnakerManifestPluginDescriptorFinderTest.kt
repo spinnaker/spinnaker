@@ -45,7 +45,8 @@ class SpinnakerManifestPluginDescriptorFinderTest : JUnit5Minutests {
       expectThat(descriptorFinder.find(pluginsPath.resolve("test-plugin-1")))
         .isA<SpinnakerPluginDescriptor>()
         .and {
-          get { pluginId }.isEqualTo("test-plugin-1")
+          get { pluginId }.isEqualTo("pf4j.test-plugin-1")
+          get { pluginName }.isEqualTo("test-plugin-1")
           get { unsafe }.isTrue()
         }
     }

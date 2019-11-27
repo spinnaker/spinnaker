@@ -26,5 +26,14 @@ import org.pf4j.PluginDescriptor
 class SpinnakerPluginDescriptor(
   private val baseDescriptor: PluginDescriptor,
   val namespace: String,
-  val unsafe: Boolean = false
-) : PluginDescriptor by baseDescriptor
+  val unsafe: Boolean = false,
+  val pluginName: String = baseDescriptor.pluginId
+) : PluginDescriptor by baseDescriptor {
+  override fun getPluginId(): String {
+    if (namespace == "undefined") {
+      return baseDescriptor.pluginId
+    } else {
+      return "$namespace.${baseDescriptor.pluginId}"
+    }
+  }
+}
