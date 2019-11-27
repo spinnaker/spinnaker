@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.ops.servergroup
 
-import com.netflix.spinnaker.cats.thread.NamedThreadFactory
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.helpers.EnableDisablePercentageCategorizer
@@ -142,7 +141,7 @@ abstract class AbstractEnableDisableKubernetesAtomicOperation implements AtomicO
 
     task.updateStatus basePhase, "Resetting service labels for each pod..."
 
-    def pool = Executors.newWorkStealingPool((int) (pods.size() / 2) + 1, new NamedThreadFactory(AbstractEnableDisableKubernetesAtomicOperation.class.getSimpleName()))
+    def pool = Executors.newWorkStealingPool((int) (pods.size() / 2) + 1)
 
     if (desiredPercentage != null) {
       task.updateStatus basePhase, "Operating on $desiredPercentage% of pods"
