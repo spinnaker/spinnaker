@@ -43,6 +43,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.DependsOn
 import org.springframework.context.annotation.Import
+import org.springframework.context.annotation.Conditional
 import org.springframework.jdbc.datasource.DataSourceTransactionManager
 import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy
 import sun.net.InetAddressCachePolicy
@@ -71,6 +72,11 @@ class DefaultSqlConfiguration {
   @ConditionalOnMissingBean(SpringLiquibase::class)
   fun liquibase(properties: SqlProperties): SpringLiquibase =
     SpringLiquibaseProxy(properties.migration)
+
+  @Bean
+  @ConditionalOnProperty("sql.secondary-migration.jdbc-url")
+  fun secondaryLiquibase(properties: SqlProperties): SpringLiquibase =
+    SpringLiquibaseProxy(properties.secondaryMigration)
 
   @DependsOn("liquibase")
   @Bean
@@ -165,6 +171,22 @@ class DefaultSqlConfiguration {
   @ConditionalOnMissingBean(DSLContext::class)
   fun jooq(jooqConfiguration: DefaultConfiguration): DSLContext =
     DefaultDSLContext(jooqConfiguration)
+
+  @Bean(destroyMethod = "close")
+  @Conditional(SecondaryPoolDialectCondition::class)
+  fun secondaryJooq(connectionProvider: DataSourceConnectionProvider, sqlProperties: SqlProperties): DSLContext {
+    val secondaryPool: ConnectionPoolProperties = sqlProperties.connectionPools.filter { !it.value.default }.values.first()
+    val secondaryJooqConfig: DefaultConfiguration = DefaultConfiguration().apply {
+      set(*DefaultExecuteListenerProvider.providers(
+        JooqToSpringExceptionTransformer(),
+        JooqSqlCommentAppender(),
+        JooqSlowQueryLogger()
+      ))
+      set(connectionProvider)
+      setSQLDialect(secondaryPool.dialect)
+    }
+    return DefaultDSLContext(secondaryJooqConfig)
+  }
 
   @Bean
   fun sqlHealthProvider(

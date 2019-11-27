@@ -24,14 +24,17 @@ import org.jooq.impl.DSL.table
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.getBeansOfType
 import org.springframework.boot.actuate.health.HealthIndicator
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.junit4.SpringRunner
 import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import strikt.assertions.isNotNull
 
 @RunWith(SpringRunner::class)
 @SpringBootTest(
@@ -52,6 +55,9 @@ internal class SpringStartupTests {
   @Autowired
   lateinit var jooq: DSLContext
 
+  @Autowired
+  lateinit var applicationContext: ApplicationContext
+
   @Test
   fun `uses SqlHealthIndicator`() {
     expectThat(dbHealthIndicator).isA<SqlHealthIndicator>()
@@ -61,6 +67,10 @@ internal class SpringStartupTests {
         .insertInto(table("healthcheck"), listOf(field("id")))
         .values(true).execute()
     ).isEqualTo(1)
+
+    expectThat(applicationContext.getBeansOfType(DSLContext::class.java).size).isEqualTo(1)
+    expectThat(applicationContext.getBean("jooq")).isNotNull()
+    expectThat(applicationContext.getBean("liquibase")).isNotNull()
   }
 }
 

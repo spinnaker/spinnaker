@@ -20,6 +20,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 @ConfigurationProperties("sql")
 data class SqlProperties(
   var migration: SqlMigrationProperties = SqlMigrationProperties(),
+  var secondaryMigration: SqlMigrationProperties = SqlMigrationProperties(),
   var connectionPools: MutableMap<String, ConnectionPoolProperties> = mutableMapOf(),
   var retries: SqlRetryProperties = SqlRetryProperties(),
 
