@@ -1,0 +1,77 @@
+{
+  "variables": {
+    "huaweicloud_auth_url": null,
+    "huaweicloud_username": "{{env `HUAWEICLOUD_USERNAME`}}",
+    "huaweicloud_password": "{{env `HUAWEICLOUD_PASSWORD`}}",
+    "huaweicloud_project_name": null,
+    "huaweicloud_domain_name": null,
+    "huaweicloud_insecure": "false",
+
+    "huaweicloud_region": null,
+    "huaweicloud_eip_type": null,
+    "huaweicloud_ssh_username": null,
+    "huaweicloud_instance_type": null,
+    "huaweicloud_source_image_id": null,
+
+    "huaweicloud_vpc_id": null,
+    "huaweicloud_subnet_id": null,
+    "huaweicloud_security_group": null,
+    "huaweicloud_eip_bandwidth_size": null,
+
+    "huaweicloud_image_name": null,
+
+    "appversion": "",
+    "build_host": "",
+    "build_info_url": "",
+
+    "repository": "",
+    "package_type": "",
+    "packages": "",
+    "upgrade": "",
+    "configDir": null
+  },
+  "builders": [
+    {
+      "type": "huaweicloud-ecs",
+      "image_name": "{{user `huaweicloud_image_name`}}",
+
+      "identity_endpoint": "{{user `huaweicloud_auth_url`}}",
+      "username": "{{user `huaweicloud_username`}}",
+      "password": "{{user `huaweicloud_password`}}",
+      "tenant_name": "{{user `huaweicloud_project_name`}}",
+      "domain_name": "{{user `huaweicloud_domain_name`}}",
+      "insecure": "{{user `huaweicloud_insecure`}}",
+
+      "region": "{{user `huaweicloud_region`}}",
+      "eip_type": "{{user `huaweicloud_eip_type`}}",
+      "flavor": "{{user `huaweicloud_instance_type`}}",
+      "ssh_username": "{{user `huaweicloud_ssh_username`}}",
+      "source_image": "{{user `huaweicloud_source_image_id`}}",
+
+      "use_blockstorage_volume": true,
+      "vpc_id": "{{user `huaweicloud_vpc_id`}}",
+      "subnets": [ "{{user `huaweicloud_subnet_id`}}" ],
+      "security_groups": [ "{{user `huaweicloud_security_group`}}" ],
+      "eip_bandwidth_size": "{{user `huaweicloud_eip_bandwidth_size`}}",
+
+      "metadata": {
+        "appversion": "{{user `appversion`}}",
+        "build_host": "{{user `build_host`}}",
+        "build_info_url": "{{user `build_info_url`}}"
+      }
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "script": "{{user `configDir`}}/install_packages.sh",
+      "environment_vars": [
+        "repository={{user `repository`}}",
+        "package_type={{user `package_type`}}",
+        "packages={{user `packages`}}",
+        "upgrade={{user `upgrade`}}"
+      ],
+      "pause_before": "30s"
+    }
+  ]
+}

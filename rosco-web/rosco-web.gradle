@@ -41,6 +41,7 @@ if (project.plugins.hasPlugin('spinnaker.package')) {
     configurationFile('/opt/rosco/config/packer/aws-ebs.json')
     configurationFile('/opt/rosco/config/packer/azure-linux.json')
     configurationFile('/opt/rosco/config/packer/gce.json')
+    configurationFile('/opt/rosco/config/packer/huaweicloud.json')
     configurationFile('/opt/rosco/config/packer/oci.json')
     configurationFile('/opt/rosco/config/packer/install_packages.sh')
 

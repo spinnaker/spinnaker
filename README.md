@@ -4,7 +4,7 @@ Rosco
 
 A bakery for use by Spinnaker to produce machine images.
 
-It presently supports producing Alibaba Cloud images, Google Compute Engine images, AWS amis and Azure images. It relies on packer and can be easily extended to support additional platforms.
+It presently supports producing Alibaba Cloud images, Google Compute Engine images, Huawei Cloud images, AWS amis and Azure images. It relies on packer and can be easily extended to support additional platforms.
 
 It exposes a REST api which can be experimented with via the Swagger UI: http://localhost:8087/swagger-ui.html
 

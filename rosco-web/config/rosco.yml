@@ -414,6 +414,41 @@ google:
       virtualizationSettings:
         sourceImageFamily: ubuntu-1604-lts
 
+huaweicloud:
+  # The property referenced below, HUAWEICLOUD_ENABLED, is not set in the
+  # 'unified config' supported by the spinnaker/spinnaker project. If you
+  # copy/paste this section into a new rosco-local.yml file for use with a
+  # pre-built Spinnaker image, make sure to explicitly set the property's
+  # value to true.
+  enabled: ${HUAWEICLOUD_ENABLED:false}
+  bakeryDefaults:
+    authUrl: ${HUAWEICLOUD_AUTH_URL:}
+    username: ${HUAWEICLOUD_USERNAME:}
+    password: ${HUAWEICLOUD_PASSWORD:}
+    projectName: ${HUAWEICLOUD_PROJECT_NAME:''}
+    domainName: ${HUAWEICLOUD_DOMAIN_NAME:''}
+    insecure: ${HUAWEICLOUD_INSECURE:false}
+    vpcId: ${HUAWEICLOUD_VPC_ID:}
+    subnetId: ${HUAWEICLOUD_SUBNET_ID:}
+    eipBandwidthSize: ${HUAWEICLOUD_EIP_BANDWIDTH_SIZE:2}
+    securityGroup: ${HUAWEICLOUD_SECURITY_GROUP:}
+    templateFile: huaweicloud.json
+    baseImages:
+    # sourceImageId is the unique UUID of an huaweicloud image in a region,
+    # and can be found via console or the image api.
+    # It is immutable for the life of the image.
+    - baseImage:
+        id: ubuntu-1604
+        shortDescription: v16.04
+        detailedDescription: Ubuntu v16.04
+        packageType: deb
+      virtualizationSettings:
+      - region: cn-north-1
+        instanceType: s3.small.1
+        sourceImageId: f1dd2272-7041-479e-9663-646632b6ac00
+        sshUserName: ubuntu
+        eipType: 5_bgp
+
 swagger:
   enabled: true
   title: Spinnaker Rosco API

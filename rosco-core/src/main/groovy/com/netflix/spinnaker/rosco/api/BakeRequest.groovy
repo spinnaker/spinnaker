@@ -85,7 +85,7 @@ class BakeRequest {
   String spinnaker_execution_id
 
   static enum CloudProviderType {
-    alicloud, aws, azure, docker, gce, oracle
+    alicloud, aws, azure, docker, gce, huaweicloud, oracle
   }
 
   static enum Label {
