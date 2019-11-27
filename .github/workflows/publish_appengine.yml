@@ -1,0 +1,26 @@
+name: Publish appengine
+
+on:
+  push:
+    branches:
+      - 'master'
+    paths:
+      - 'app/scripts/modules/appengine/package.json'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+      - name: Use Node.js 10.15.1
+        uses: actions/setup-node@v1
+        with:
+          node-version: 10.15.1
+      - name: publish appengine
+        run: |
+          npm config set //registry.npmjs.org/:_authToken=$NPM_AUTH_TOKEN
+          app/scripts/modules/github_actions_publish.sh appengine
+        env:
+          CI: true
+          NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
