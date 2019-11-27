@@ -1,0 +1,2 @@
+@value mobile: 1024;
+@value belowMobileSize: screen and (max-width: 1024px);
