@@ -19,6 +19,7 @@ import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import com.netflix.spinnaker.kork.exceptions.SystemException
 import com.netflix.spinnaker.kork.plugins.api.spring.SpringPlugin
 import com.netflix.spinnaker.kork.plugins.config.ConfigCoordinates
+import com.netflix.spinnaker.kork.plugins.config.ConfigResolver
 import com.netflix.spinnaker.kork.plugins.config.PluginConfigCoordinates
 import com.netflix.spinnaker.kork.plugins.config.SystemExtensionConfigCoordinates
 import org.pf4j.ExtensionFactory
@@ -34,7 +35,8 @@ import java.lang.reflect.InvocationTargetException
  * TODO(rz): Support creation of unsafe plugins
  */
 class SpringExtensionFactory(
-  private val pluginManager: SpinnakerPluginManager
+  private val pluginManager: SpinnakerPluginManager,
+  private val configResolver: ConfigResolver
 ) : ExtensionFactory {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -116,7 +118,7 @@ class SpringExtensionFactory(
             it.resolve()
             it.getGeneric(0).rawClass
           }
-          ?.let { pluginManager.configResolver.resolve(coordinates, it) }
+          ?.let { configResolver.resolve(coordinates, it) }
           ?.also {
             try {
               val method = extension.javaClass.getDeclaredMethod("setConfiguration", it.javaClass)

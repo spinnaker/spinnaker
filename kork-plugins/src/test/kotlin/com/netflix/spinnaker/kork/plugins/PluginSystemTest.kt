@@ -18,6 +18,9 @@ package com.netflix.spinnaker.kork.plugins
 import com.netflix.spinnaker.config.PluginsAutoConfiguration
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import org.pf4j.DefaultPluginDescriptor
+import org.pf4j.PluginState
+import org.pf4j.PluginWrapper
 import org.springframework.boot.autoconfigure.AutoConfigurations
 import org.springframework.boot.test.context.assertj.AssertableApplicationContext
 import org.springframework.boot.test.context.runner.ApplicationContextRunner
@@ -40,6 +43,30 @@ class PluginSystemTest : JUnit5Minutests {
           that(ctx.getBean("pluginManager")).isA<SpinnakerPluginManager>()
           that(ctx.getBean("pluginBeanPostProcessor")).isA<ExtensionBeanDefinitionRegistryPostProcessor>()
         }
+      }
+    }
+
+    test("SpinnakerPluginManager is initialized properly and usable") {
+      run { ctx: AssertableApplicationContext ->
+        val pluginManager = ctx.getBean("pluginManager") as SpinnakerPluginManager
+        val testPluginWrapper = PluginWrapper(
+          pluginManager,
+          DefaultPluginDescriptor(
+            "TestPlugin",
+            "desc",
+            "TestPlugin.java",
+            "1.0.0",
+            "",
+            "Armory",
+            "Apache"
+          ),
+          null,
+          null
+        )
+        testPluginWrapper.pluginState = PluginState.DISABLED
+        pluginManager.setPlugins(listOf(testPluginWrapper))
+
+        pluginManager.enablePlugin("TestPlugin")
       }
     }
   }

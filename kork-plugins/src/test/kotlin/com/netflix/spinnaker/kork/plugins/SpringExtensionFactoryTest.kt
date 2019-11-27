@@ -89,12 +89,8 @@ class SpringExtensionFactoryTest : JUnit5Minutests {
   private inner class Fixture {
     val configResolver: ConfigResolver = mockk(relaxed = true)
     val pluginManager: SpinnakerPluginManager = mockk(relaxed = true)
-    val subject = SpringExtensionFactory(pluginManager)
+    val subject = SpringExtensionFactory(pluginManager, configResolver)
     val pluginWrapper: PluginWrapper = mockk(relaxed = true)
-
-    init {
-      every { pluginManager.configResolver } returns configResolver
-    }
   }
 
   private fun createPluginDescriptor(namespace: String, pluginId: String): SpinnakerPluginDescriptor {

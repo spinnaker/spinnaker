@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
  * initialization, plugins are able to be autowired. The PluginLoader config file's location is
  * configurable itself, via an environment variable.
  *
- * @deprecated Should use `SpringPluginManager` instead. See `PluginsAutoConfiguration`.
+ * @deprecated Should use `SpinnakerPluginManager` instead. See `PluginsAutoConfiguration`.
  */
 @Deprecated
 @Beta
