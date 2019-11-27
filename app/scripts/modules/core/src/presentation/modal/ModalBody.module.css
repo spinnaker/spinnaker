@@ -1,0 +1,19 @@
+@value smoke from "../colors.module.css";
+@value belowMobileSize from "../breakpoints.module.css";
+
+@value bodyColor: smoke;
+
+.body {
+  flex: 1 1 auto;
+  overflow: scroll;
+  overscroll-behavior: contain;
+  --webkit-overflow-scrolling: touch;
+  background-color: bodyColor;
+  padding: 0 64px;
+}
+
+@media belowMobileSize {
+  .body {
+    padding: 0 8px;
+  }
+}
