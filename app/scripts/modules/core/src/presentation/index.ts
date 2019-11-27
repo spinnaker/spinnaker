@@ -3,6 +3,7 @@ export * from './FormElements';
 export * from './HoverablePopover';
 export * from './LabelComponent';
 export * from './Markdown';
+export * from './modal';
 export * from './Placement';
 export * from './ReactModal';
 export * from './RenderOutputFile';
