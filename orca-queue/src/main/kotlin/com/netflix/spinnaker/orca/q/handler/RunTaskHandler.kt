@@ -112,8 +112,13 @@ class RunTaskHandler(
               .increment()
             taskResult = task.onTimeout(stage)
 
-            if (!setOf(TERMINAL, FAILED_CONTINUE).contains(taskResult?.status)) {
-              log.error("Task ${task.javaClass.name} returned invalid status (${taskResult?.status} for onTimeout")
+            if (taskResult == null) {
+              // This means this task doesn't care to alter the timeout flow, just throw
+              throw e
+            }
+
+            if (!setOf(TERMINAL, FAILED_CONTINUE).contains(taskResult.status)) {
+              log.error("Task ${task.javaClass.name} returned invalid status (${taskResult.status}) for onTimeout")
               throw e
             }
           }
