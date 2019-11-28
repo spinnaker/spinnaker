@@ -1056,7 +1056,10 @@ class ContextParameterProcessorSpec extends Specification {
     when:
     def result = contextParameterProcessor.process(stage.context, ctx, true)
 
-    then:
+    then: "doesn't mutate the context"
+    ctx == contextParameterProcessor.buildExecutionContext(stage)
+
+    and: "looks up results from prior stages"
     result.manifests == [
       [
         kind: 'ReplicaSet',

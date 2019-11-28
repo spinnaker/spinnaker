@@ -189,6 +189,13 @@ public class ContextParameterProcessor {
   }
 
   private Map<String, Object> precomputeValues(Map<String, Object> context) {
+    // Copy the data over so we don't mutate the original context!
+    if (context instanceof StageContext) {
+      context = new StageContext((StageContext) context);
+    } else {
+      context = new HashMap<>(context);
+    }
+
     Object rawTrigger = context.get("trigger");
     Trigger trigger;
     if (rawTrigger != null && !(rawTrigger instanceof Trigger)) {
