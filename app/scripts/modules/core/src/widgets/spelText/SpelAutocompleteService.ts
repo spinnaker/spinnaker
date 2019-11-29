@@ -89,7 +89,7 @@ export class SpelAutocompleteService {
     },
     {
       id: 'match brackets',
-      match: /([\[('])(\w*)$/,
+      match: /([[('])(\w*)$/,
       index: 1,
       search: (term: string, callback: (value: IBracket[]) => void) => {
         callback(this.brackets.filter((bracket: IBracket) => bracket.open.indexOf(term) === 0));
@@ -362,7 +362,7 @@ export class SpelAutocompleteService {
       const configList = [
         {
           id: 'helper functions',
-          match: /#([\w\.]*)$/,
+          match: /#([\w.]*)$/,
           index: 1,
           search: (term: string, callback: (value: string[]) => void) => {
             callback(helperFunctionsCopy.filter((helper: string) => helper.startsWith(term)));

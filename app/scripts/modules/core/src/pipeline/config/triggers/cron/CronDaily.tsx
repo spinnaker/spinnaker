@@ -25,7 +25,7 @@ export class CronDaily extends React.Component<ICronTriggerConfigProps, ICronDai
 
   public componentDidMount() {
     const everyDaysRegex = /0 (\d+) (\d+) 1\/(\d+) \* \? \*/g;
-    const everyWeekDayRegex = /0 (\d+) (\d+) \? \* MON\-FRI \*/g;
+    const everyWeekDayRegex = /0 (\d+) (\d+) \? \* MON-FRI \*/g;
     const everyDaysMatches = everyDaysRegex.exec(this.props.trigger.cronExpression);
     const everyWeekDayMatches = everyWeekDayRegex.exec(this.props.trigger.cronExpression);
     if (everyDaysMatches) {

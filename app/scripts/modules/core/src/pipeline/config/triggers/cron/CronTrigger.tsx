@@ -20,7 +20,7 @@ export class CronTrigger extends React.Component<ICronTriggerConfigProps, ICronT
   private tabOptions = [
     { label: 'minutes', value: 'minutes', regex: [/^(0 0\/\d+ \* 1\/1 \* \? \*)$/g] },
     { label: 'hourly', value: 'hourly', regex: [/^(0 \d+ 0\/\d+ 1\/1 \* \? \*)$/g] },
-    { label: 'daily', value: 'daily', regex: [/^(0 \d+ \d+ 1\/\d+ \* \? \*)$/g, /^(0 \d+ \d+ \? \* MON\-FRI \*)$/g] },
+    { label: 'daily', value: 'daily', regex: [/^(0 \d+ \d+ 1\/\d+ \* \? \*)$/g, /^(0 \d+ \d+ \? \* MON-FRI \*)$/g] },
     { label: 'weekly', value: 'weekly', regex: [/^(0 \d+ \d+ \? \*\s?([SUN,MON,TUE, WED, THU, FRI, SAT]*) \*)$/g] },
     {
       label: 'monthly',

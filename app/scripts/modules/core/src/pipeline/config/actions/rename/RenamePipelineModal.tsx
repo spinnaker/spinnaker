@@ -36,8 +36,8 @@ export function RenamePipelineModal(props: IRenamePipelineModalProps) {
 
   const validPipelineName = (): IValidator => {
     return (val: string) => {
-      const message = `${pipelineType} cannot contain: \\ ? % #`;
-      return val && !/^[^\\\^/^?^%^#]*$/i.test(val) && message;
+      const message = `${pipelineType} cannot contain: \\ ^ / ? % #`;
+      return val && !/^[^\\^/?%#]*$/i.test(val) && message;
     };
   };
 
