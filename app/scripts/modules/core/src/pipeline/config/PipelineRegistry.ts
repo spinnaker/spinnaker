@@ -284,7 +284,7 @@ export class PipelineRegistry {
     });
 
     switch (matches.length) {
-      case 0:
+      case 0: {
         // There are really only 2 usages for 'alias':
         // - to allow deck to still find a match for legacy stage types
         // - to have stages that actually run as their 'alias' in orca (addAliasToConfig) because their 'key' doesn't actually exist
@@ -293,6 +293,7 @@ export class PipelineRegistry {
           return aliasMatch;
         }
         return this.getStageTypes().find(s => s.key === 'unmatched') || null;
+      }
       case 1:
         return matches[0];
       default: {
