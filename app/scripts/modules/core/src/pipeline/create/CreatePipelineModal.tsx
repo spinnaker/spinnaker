@@ -332,8 +332,8 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
   public render() {
     const { preselectedTemplate } = this.props;
     const hasSelectedATemplate = this.state.useTemplate || preselectedTemplate;
-    const nameHasError: boolean = !this.validateNameCharacters();
-    const nameIsNotUnique: boolean = !this.validateNameIsUnique();
+    const nameHasError = !this.validateNameCharacters();
+    const nameIsNotUnique = !this.validateNameIsUnique();
     const formValid =
       !nameHasError &&
       !nameIsNotUnique &&

@@ -58,7 +58,7 @@ export class IgorService {
       .get();
   }
 
-  public static getGcbAccounts(): IPromise<String[]> {
+  public static getGcbAccounts(): IPromise<string[]> {
     return API.one('gcb')
       .one('accounts')
       .get();

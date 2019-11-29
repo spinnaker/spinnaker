@@ -63,7 +63,7 @@ export class PipelineOptions extends React.Component<IPipelineOptionsProps, IPip
     }
   };
 
-  private pipelineSelected = (option: Option<String>) => {
+  private pipelineSelected = (option: Option<string>) => {
     const { formatPipeline, pipelineOptions } = this.props;
     const pipelineId = option.value;
     const pipeline = formatPipeline(pipelineOptions.find(p => p.id === pipelineId));

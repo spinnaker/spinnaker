@@ -83,9 +83,9 @@ export interface IPipelineCommand {
 }
 
 export interface IPipelineRef {
-  application: String;
-  name: String;
-  id?: String;
+  application: string;
+  name: string;
+  id?: string;
 }
 
 export interface ITemplateInheritable {

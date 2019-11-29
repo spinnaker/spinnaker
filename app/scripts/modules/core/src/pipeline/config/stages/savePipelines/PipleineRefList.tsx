@@ -2,7 +2,7 @@ import * as React from 'react';
 import { IPipelineRef } from 'core/domain';
 
 export interface IPipelineRefListProps {
-  title: String;
+  title: string;
   pipelineRefs: IPipelineRef[];
 }
 
