@@ -32,7 +32,6 @@ module.exports = angular
   })
   .controller('ManualJudgmentStageCtrl', [
     '$scope',
-    '$uibModal',
     function($scope) {
       $scope.authEnabled = SETTINGS.authEnabled;
       $scope.stage.notifications = $scope.stage.notifications || [];

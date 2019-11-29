@@ -6,6 +6,7 @@ class CloudFormationTemplateController implements IController {
   public templateBody: any;
   public rawTemplateBody: string;
 
+  public static $inject = ['$scope'];
   constructor(private $scope: IScope) {
     'ngInject';
   }

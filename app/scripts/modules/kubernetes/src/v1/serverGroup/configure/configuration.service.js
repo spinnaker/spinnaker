@@ -15,7 +15,6 @@ module.exports = angular
     '$q',
     'kubernetesImageReader',
     'loadBalancerReader',
-    'cacheInitializer',
     function($q, kubernetesImageReader, loadBalancerReader) {
       function configureCommand(application, command, query = '') {
         // this ensures we get the images we need when cloning or copying a server group template.

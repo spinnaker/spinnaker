@@ -24,6 +24,7 @@ export class DeployCloudFormationStackConfigController implements IController {
   public cloudFormationStackArtifactDelegate: NgGenericArtifactDelegate;
   public cloudFormationStackArtifactController: ExpectedArtifactSelectorViewController;
 
+  public static $inject = ['$scope'];
   constructor(private $scope: IScope) {
     const dataToFetch = {
       accounts: AccountService.getAllAccountDetailsForProvider('aws'),
