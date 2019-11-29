@@ -4,6 +4,13 @@ import IInjectorService = angular.auto.IInjectorService;
 import { Application } from 'core/application';
 import { API } from '../api';
 
+declare global {
+  // tslint:disable-next-line
+  interface Window {
+    spinnaker: ConsoleDebugWindow;
+  }
+}
+
 const injectables: string[] = [];
 
 export class ConsoleDebugWindow {
@@ -18,6 +25,9 @@ export class ConsoleDebugWindow {
 }
 
 export const DebugWindow = new ConsoleDebugWindow();
+if (window) {
+  window.spinnaker = DebugWindow;
+}
 
 (window as any).spinnaker = DebugWindow;
 
