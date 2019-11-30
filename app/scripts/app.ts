@@ -1,5 +1,6 @@
 import 'jquery'; // ensures jQuery is loaded before Angular so Angular does not use jqlite
 import { module } from 'angular';
+import './strictDi';
 
 import { CORE_MODULE } from '@spinnaker/core';
 import { DOCKER_MODULE } from '@spinnaker/docker';
