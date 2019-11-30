@@ -87,7 +87,7 @@ module.exports = {
           { loader: 'thread-loader', options: { workers: WEBPACK_THREADS } },
           { loader: 'babel-loader' },
           { loader: 'ts-loader', options: { happyPackMode: true } },
-          { loader: 'tslint-loader' },
+          { loader: 'eslint-loader' },
         ],
         exclude: exclusionPattern,
       },

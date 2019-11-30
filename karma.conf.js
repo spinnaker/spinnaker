@@ -12,7 +12,7 @@ const webpackConfig = {
     new TypedCssModulesPlugin({
       globPattern: '**/*.module.css',
     }),
-    new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true, tslint: true }),
+    new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true }),
   ],
 };
 

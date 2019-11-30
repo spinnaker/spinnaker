@@ -185,7 +185,7 @@ function configure(env, webpackOpts) {
       new TypedCssModulesPlugin({
         globPattern: '**/*.module.css',
       }),
-      new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true, tslint: true }),
+      new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true }),
       new CopyWebpackPlugin([
         {
           from: `${NODE_MODULE_PATH}/@spinnaker/styleguide/public/styleguide.html`,
