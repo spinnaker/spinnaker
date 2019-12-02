@@ -199,14 +199,6 @@ google:
   bakeryDefaults:
     baseImages:
     - baseImage:
-        id: trusty
-        shortDescription: v14.04
-        detailedDescription: Ubuntu Trusty Tahr v14.04
-        packageType: deb
-        isImageFamily: true
-      virtualizationSettings:
-        sourceImageFamily: ubuntu-1404-lts
-    - baseImage:
         id: xenial
         shortDescription: v16.04
         detailedDescription: Ubuntu Xenial Xerus v16.04
@@ -214,3 +206,11 @@ google:
         isImageFamily: true
       virtualizationSettings:
         sourceImageFamily: ubuntu-1604-lts
+    - baseImage:
+        id: bionic
+        shortDescription: v18.04
+        detailedDescription: Ubuntu Bionic Beaver v18.04
+        packageType: deb
+        isImageFamily: true
+      virtualizationSettings:
+        sourceImageFamily: ubuntu-1804-lts
