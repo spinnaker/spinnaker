@@ -26,6 +26,8 @@ import com.netflix.spinnaker.clouddriver.titus.client.TitusJobCustomizer
 import com.netflix.spinnaker.clouddriver.titus.client.TitusRegion
 import com.netflix.spinnaker.clouddriver.titus.client.model.GrpcChannelFactory
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
+import com.netflix.spinnaker.fiat.model.Authorization
+import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer
 import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer.SubtypeLocator
@@ -66,7 +68,7 @@ class TitusConfiguration {
       if (!account.bastionHost && titusCredentialsConfig.defaultBastionHostTemplate) {
         account.bastionHost = titusCredentialsConfig.defaultBastionHostTemplate.replaceAll(Pattern.quote('{{environment}}'), account.environment)
       }
-      NetflixTitusCredentials credentials = new NetflixTitusCredentials(account.name, account.environment, account.accountType, regions, account.bastionHost, account.registry, account.awsAccount, account.awsVpc ?: titusCredentialsConfig.awsVpc, account.discoveryEnabled, account.discovery, account.stack ?: 'mainvpc', account.requiredGroupMembership, account.eurekaName, account.autoscalingEnabled ?: false, account.loadBalancingEnabled ?: false, account.splitCachingEnabled ?: false)
+      NetflixTitusCredentials credentials = new NetflixTitusCredentials(account.name, account.environment, account.accountType, regions, account.bastionHost, account.registry, account.awsAccount, account.awsVpc ?: titusCredentialsConfig.awsVpc, account.discoveryEnabled, account.discovery, account.stack ?: 'mainvpc', account.requiredGroupMembership, account.getPermissions(), account.eurekaName, account.autoscalingEnabled ?: false, account.loadBalancingEnabled ?: false, account.splitCachingEnabled ?: false)
       accounts.add(credentials)
       repository.save(account.name, credentials)
     }
@@ -101,10 +103,40 @@ class TitusConfiguration {
       String awsVpc
       String stack
       List<String> requiredGroupMembership
+      //see getPermissions for the reasoning behind
+      //the generic types on here..
+      Map<String, Map<String, String>> permissions
       String eurekaName
       Boolean autoscalingEnabled
       Boolean loadBalancingEnabled
       Boolean splitCachingEnabled
+
+      Permissions getPermissions() {
+        //boot yaml mapping is weird..
+        //READ:
+        //  - teamdl@company.org
+        //WRITE:
+        //  - teamdl@company.org
+        //
+        //ends up as: [
+        // READ: [0: teamdl@company.org],
+        // WRITE: [0: teamdl@company.org]
+        //]
+
+        if (!permissions) {
+          return Permissions.EMPTY
+        }
+
+        def builder = new Permissions.Builder()
+        permissions.each { String authType, Map<String, String> roles ->
+          //make sure we don't blow up on unknown enum values:
+          def auth =  Authorization.ALL.find { it.toString() == authType.toString() }
+          if (auth) {
+            builder.add(auth, roles.values() as List<String>)
+          }
+        }
+        return builder.build()
+      }
     }
 
     static class Region {

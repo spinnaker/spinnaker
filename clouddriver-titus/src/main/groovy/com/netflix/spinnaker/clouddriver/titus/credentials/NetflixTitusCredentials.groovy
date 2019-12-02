@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.clouddriver.titus.TitusCloudProvider
 import com.netflix.spinnaker.clouddriver.titus.client.TitusRegion
 import com.netflix.spinnaker.clouddriver.titus.client.security.TitusCredentials
+import com.netflix.spinnaker.fiat.model.resources.Permissions
 
 class NetflixTitusCredentials implements AccountCredentials<TitusCredentials> {
   private static final String CLOUD_PROVIDER = TitusCloudProvider.ID
@@ -28,6 +29,7 @@ class NetflixTitusCredentials implements AccountCredentials<TitusCredentials> {
   final String environment
   final String accountType
   final List<String> requiredGroupMembership = Collections.emptyList()
+  final Permissions permissions
   final String bastionHost
   final String registry
   final String discovery
@@ -54,6 +56,7 @@ class NetflixTitusCredentials implements AccountCredentials<TitusCredentials> {
                           String discovery,
                           String stack,
                           List<String> requiredGroupMembership,
+                          Permissions permissions,
                           String eurekaName,
                           boolean autoscalingEnabled,
                           boolean loadBalancingEnabled,
@@ -71,6 +74,7 @@ class NetflixTitusCredentials implements AccountCredentials<TitusCredentials> {
     this.discovery = discovery
     this.stack = stack
     this.requiredGroupMembership = requiredGroupMembership
+    this.permissions = permissions
     this.eurekaName = eurekaName
     this.autoscalingEnabled = autoscalingEnabled
     this.loadBalancingEnabled = loadBalancingEnabled
@@ -117,6 +121,10 @@ class NetflixTitusCredentials implements AccountCredentials<TitusCredentials> {
 
   List<String> getRequiredGroupMembership() {
     return requiredGroupMembership
+  }
+
+  Permissions getPermissions() {
+    return permissions;
   }
 
   String getEurekaName() {

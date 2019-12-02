@@ -32,6 +32,7 @@ import com.netflix.spinnaker.clouddriver.titus.deploy.actions.PrepareTitusDeploy
 import com.netflix.spinnaker.clouddriver.titus.deploy.actions.SubmitTitusJob
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.TitusDeployDescription
 import com.netflix.spinnaker.config.AwsConfiguration
+import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.kork.test.mimicker.DataContainer
 import com.netflix.spinnaker.kork.test.mimicker.Mimicker
 import com.netflix.spinnaker.moniker.Moniker
@@ -73,6 +74,7 @@ class PrepareTitusDeployActionSpec extends Specification {
     mimicker.text().word(),
     mimicker.text().word(),
     [],
+    Permissions.EMPTY,
     mimicker.text().word(),
     mimicker.random().trueOrFalse(),
     mimicker.random().trueOrFalse(),

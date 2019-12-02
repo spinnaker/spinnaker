@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.titus.client.model.disruption.SelfManag
 import com.netflix.spinnaker.clouddriver.titus.client.model.disruption.UnhealthyTasksLimit
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.UpsertJobDisruptionBudgetDescription
+import com.netflix.spinnaker.fiat.model.resources.Permissions
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -40,7 +41,7 @@ class UpsertDisruptionBudgetOperationSpec extends Specification {
   }
 
   NetflixTitusCredentials testCredentials = new NetflixTitusCredentials(
-      'test', 'test', 'test', [new TitusRegion('us-east-1', 'test', 'http://foo', false, false, "blah", "blah", 7104, [])], 'test', 'test', 'test', 'test', false, '', 'mainvpc', [], "", false, false, false
+      'test', 'test', 'test', [new TitusRegion('us-east-1', 'test', 'http://foo', false, false, "blah", "blah", 7104, [])], 'test', 'test', 'test', 'test', false, '', 'mainvpc', [], Permissions.EMPTY, "", false, false, false
   )
 
   DisruptionBudget disruptionBudget = new DisruptionBudget(
