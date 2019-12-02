@@ -4,6 +4,8 @@ const angular = require('angular');
 import _ from 'lodash';
 
 import { CONFIRMATION_MODAL_SERVICE, SECURITY_GROUP_READER, FirewallLabels } from '@spinnaker/core';
+import { AZURE_SECURITYGROUP_SECURITYGROUP_WRITE_SERVICE } from '../securityGroup.write.service';
+import { AZURE_SECURITYGROUP_CLONE_CLONESECURITYGROUP_CONTROLLER } from '../clone/cloneSecurityGroup.controller';
 
 export const AZURE_SECURITYGROUP_DETAILS_SECURITYGROUPDETAIL_CONTROLLER =
   'spinnaker.azure.securityGroup.azure.details.controller';
@@ -12,9 +14,9 @@ angular
   .module(AZURE_SECURITYGROUP_DETAILS_SECURITYGROUPDETAIL_CONTROLLER, [
     require('@uirouter/angularjs').default,
     SECURITY_GROUP_READER,
-    require('../securityGroup.write.service').name,
+    AZURE_SECURITYGROUP_SECURITYGROUP_WRITE_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
-    require('../clone/cloneSecurityGroup.controller').name,
+    AZURE_SECURITYGROUP_CLONE_CLONESECURITYGROUP_CONTROLLER,
   ])
   .controller('azureSecurityGroupDetailsCtrl', [
     '$scope',

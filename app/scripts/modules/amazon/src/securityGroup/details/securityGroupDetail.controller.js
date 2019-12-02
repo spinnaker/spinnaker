@@ -14,6 +14,7 @@ import {
 } from '@spinnaker/core';
 
 import { VpcReader } from '../../vpc/VpcReader';
+import { AMAZON_SECURITYGROUP_CLONE_CLONESECURITYGROUP_CONTROLLER } from '../clone/cloneSecurityGroup.controller';
 
 export const AMAZON_SECURITYGROUP_DETAILS_SECURITYGROUPDETAIL_CONTROLLER =
   'spinnaker.amazon.securityGroup.details.controller';
@@ -23,7 +24,7 @@ angular
     require('@uirouter/angularjs').default,
     SECURITY_GROUP_READER,
     CONFIRMATION_MODAL_SERVICE,
-    require('../clone/cloneSecurityGroup.controller').name,
+    AMAZON_SECURITYGROUP_CLONE_CLONESECURITYGROUP_CONTROLLER,
     MANAGED_RESOURCE_DETAILS_INDICATOR,
   ])
   .controller('awsSecurityGroupDetailsCtrl', [

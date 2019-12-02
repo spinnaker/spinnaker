@@ -9,6 +9,8 @@ import { STEP_POLICY_ACTION } from './step/stepPolicyAction.component';
 import { ScalingPolicyWriter } from '../ScalingPolicyWriter';
 
 import './upsertScalingPolicy.modal.less';
+import { AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_SIMPLE_SIMPLEPOLICYACTION_COMPONENT } from './simple/simplePolicyAction.component';
+import { AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_ALARM_ALARMCONFIGURER_COMPONENT } from './alarm/alarmConfigurer.component';
 
 export const AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_UPSERTSCALINGPOLICY_CONTROLLER =
   'spinnaker.amazon.serverGroup.details.scalingPolicy.upsertScalingPolicy.controller';
@@ -16,9 +18,9 @@ export const name = AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_UPSERTSCALIN
 angular
   .module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_UPSERTSCALINGPOLICY_CONTROLLER, [
     'n3-line-chart',
-    require('./simple/simplePolicyAction.component').name,
+    AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_SIMPLE_SIMPLEPOLICYACTION_COMPONENT,
     STEP_POLICY_ACTION,
-    require('./alarm/alarmConfigurer.component').name,
+    AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_ALARM_ALARMCONFIGURER_COMPONENT,
   ])
   .controller('awsUpsertScalingPolicyCtrl', [
     '$uibModalInstance',

@@ -3,6 +3,8 @@
 const angular = require('angular');
 
 import { CONFIRMATION_MODAL_SERVICE, SETTINGS } from '@spinnaker/core';
+import { GOOGLE_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_WRITE_SERVICE } from './../../../autoscalingPolicy/autoscalingPolicy.write.service';
+import { GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_MODAL_UPSERTAUTOSCALINGPOLICY_MODAL_CONTROLLER } from './modal/upsertAutoscalingPolicy.modal.controller';
 
 export const GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_DIRECTIVE =
   'spinnaker.gce.instance.details.scalingPolicy.directive';
@@ -11,8 +13,8 @@ angular
   .module(GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_DIRECTIVE, [
     CONFIRMATION_MODAL_SERVICE,
     require('angular-ui-bootstrap'),
-    require('./../../../autoscalingPolicy/autoscalingPolicy.write.service').name,
-    require('./modal/upsertAutoscalingPolicy.modal.controller').name,
+    GOOGLE_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_WRITE_SERVICE,
+    GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_MODAL_UPSERTAUTOSCALINGPOLICY_MODAL_CONTROLLER,
   ])
   .component('gceAutoscalingPolicy', {
     bindings: {

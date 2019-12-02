@@ -7,14 +7,17 @@ import { Registry } from 'core/registry';
 import { STAGE_COMMON_MODULE } from '../common/stage.common.module';
 
 import './deployStage.less';
+import { CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYSTAGE } from './deployStage';
+import { CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYSTAGE_TRANSFORMER } from './deployStage.transformer';
+import { CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYEXECUTIONDETAILS_CONTROLLER } from './deployExecutionDetails.controller';
 
 export const CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYSTAGE_MODULE = 'spinnaker.core.pipeline.stage.deploy';
 export const name = CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYSTAGE_MODULE; // for backwards compatibility
 angular
   .module(CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYSTAGE_MODULE, [
-    require('./deployStage').name,
-    require('./deployStage.transformer').name,
-    require('./deployExecutionDetails.controller').name,
+    CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYSTAGE,
+    CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYSTAGE_TRANSFORMER,
+    CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYEXECUTIONDETAILS_CONTROLLER,
     CLUSTER_NAME_FILTER,
     STAGE_COMMON_MODULE,
   ])

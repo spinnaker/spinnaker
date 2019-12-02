@@ -5,6 +5,7 @@ import { get } from 'lodash';
 const angular = require('angular');
 
 import { OVERRIDE_REGISTRY } from 'core/overrideRegistry/override.registry';
+import { CORE_APPLICATION_MODAL_EDITAPPLICATION_CONTROLLER_MODAL } from '../modal/editApplication.controller.modal';
 import { SETTINGS } from 'core/config/settings';
 
 export const CORE_APPLICATION_CONFIG_APPLICATIONATTRIBUTES_DIRECTIVE =
@@ -12,7 +13,7 @@ export const CORE_APPLICATION_CONFIG_APPLICATIONATTRIBUTES_DIRECTIVE =
 export const name = CORE_APPLICATION_CONFIG_APPLICATIONATTRIBUTES_DIRECTIVE; // for backwards compatibility
 angular
   .module(CORE_APPLICATION_CONFIG_APPLICATIONATTRIBUTES_DIRECTIVE, [
-    require('../modal/editApplication.controller.modal').name,
+    CORE_APPLICATION_MODAL_EDITAPPLICATION_CONTROLLER_MODAL,
     OVERRIDE_REGISTRY,
   ])
   .directive('applicationAttributes', [

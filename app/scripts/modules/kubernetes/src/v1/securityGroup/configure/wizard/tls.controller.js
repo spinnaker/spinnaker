@@ -1,4 +1,5 @@
-'use strict';
+import { KUBERNETES_V1_SECURITYGROUP_TRANSFORMER } from '../../transformer';
+('use strict');
 
 const angular = require('angular');
 
@@ -6,7 +7,7 @@ export const KUBERNETES_V1_SECURITYGROUP_CONFIGURE_WIZARD_TLS_CONTROLLER =
   'spinnaker.securityGroup.configure.kubernetes.tls';
 export const name = KUBERNETES_V1_SECURITYGROUP_CONFIGURE_WIZARD_TLS_CONTROLLER; // for backwards compatibility
 angular
-  .module(KUBERNETES_V1_SECURITYGROUP_CONFIGURE_WIZARD_TLS_CONTROLLER, [require('../../transformer').name])
+  .module(KUBERNETES_V1_SECURITYGROUP_CONFIGURE_WIZARD_TLS_CONTROLLER, [KUBERNETES_V1_SECURITYGROUP_TRANSFORMER])
   .controller('kubernetesSecurityGroupTLSController', [
     '$scope',
     'kubernetesSecurityGroupTransformer',

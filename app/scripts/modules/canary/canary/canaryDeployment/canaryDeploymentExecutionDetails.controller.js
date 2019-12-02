@@ -3,6 +3,7 @@
 const angular = require('angular');
 
 import { ClusterState, UrlBuilder } from '@spinnaker/core';
+import { CANARY_CANARY_CANARYDEPLOYMENT_CANARYDEPLOYMENTHISTORY_SERVICE } from './canaryDeploymentHistory.service';
 
 export const CANARY_CANARY_CANARYDEPLOYMENT_CANARYDEPLOYMENTEXECUTIONDETAILS_CONTROLLER =
   'spinnaker.canary.canaryDeployment.details.controller';
@@ -10,7 +11,7 @@ export const name = CANARY_CANARY_CANARYDEPLOYMENT_CANARYDEPLOYMENTEXECUTIONDETA
 angular
   .module(CANARY_CANARY_CANARYDEPLOYMENT_CANARYDEPLOYMENTEXECUTIONDETAILS_CONTROLLER, [
     require('@uirouter/angularjs').default,
-    require('./canaryDeploymentHistory.service').name,
+    CANARY_CANARY_CANARYDEPLOYMENT_CANARYDEPLOYMENTHISTORY_SERVICE,
   ])
   .controller('CanaryDeploymentExecutionDetailsCtrl', [
     '$scope',

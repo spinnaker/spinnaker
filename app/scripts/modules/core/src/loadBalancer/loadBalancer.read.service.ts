@@ -3,6 +3,7 @@ import { IPromise, IQService, module } from 'angular';
 import { API } from 'core/api/ApiService';
 import { IComponentName, NameUtils } from 'core/naming';
 import { ILoadBalancer, ILoadBalancerSourceData } from 'core/domain';
+import { CORE_LOADBALANCER_LOADBALANCER_TRANSFORMER } from './loadBalancer.transformer';
 
 export interface ILoadBalancersByAccount {
   name: string;
@@ -62,7 +63,7 @@ export class LoadBalancerReader {
 
 export const LOAD_BALANCER_READ_SERVICE = 'spinnaker.core.loadBalancer.read.service';
 
-module(LOAD_BALANCER_READ_SERVICE, [require('./loadBalancer.transformer').name]).service(
+module(LOAD_BALANCER_READ_SERVICE, [CORE_LOADBALANCER_LOADBALANCER_TRANSFORMER]).service(
   'loadBalancerReader',
   LoadBalancerReader,
 );

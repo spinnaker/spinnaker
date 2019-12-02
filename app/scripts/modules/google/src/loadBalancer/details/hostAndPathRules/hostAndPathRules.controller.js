@@ -1,4 +1,5 @@
-'use strict';
+import { GOOGLE_LOADBALANCER_DETAILS_HOSTANDPATHRULES_HOSTANDPATHRULES_SERVICE } from './hostAndPathRules.service';
+('use strict');
 
 const angular = require('angular');
 
@@ -7,7 +8,7 @@ export const GOOGLE_LOADBALANCER_DETAILS_HOSTANDPATHRULES_HOSTANDPATHRULES_CONTR
 export const name = GOOGLE_LOADBALANCER_DETAILS_HOSTANDPATHRULES_HOSTANDPATHRULES_CONTROLLER; // for backwards compatibility
 angular
   .module(GOOGLE_LOADBALANCER_DETAILS_HOSTANDPATHRULES_HOSTANDPATHRULES_CONTROLLER, [
-    require('./hostAndPathRules.service').name,
+    GOOGLE_LOADBALANCER_DETAILS_HOSTANDPATHRULES_HOSTANDPATHRULES_SERVICE,
   ])
   .controller('gceHostAndPathRulesCtrl', [
     'hostRules',

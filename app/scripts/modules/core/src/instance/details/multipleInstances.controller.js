@@ -3,6 +3,7 @@
 import { CONFIRMATION_MODAL_SERVICE } from 'core/confirmationModal/confirmationModal.service';
 import { INSTANCE_WRITE_SERVICE } from 'core/instance/instance.write.service';
 import { ClusterState } from 'core/state';
+import { CORE_INSTANCE_DETAILS_MULTIPLEINSTANCESERVERGROUP_DIRECTIVE } from './multipleInstanceServerGroup.directive';
 
 const angular = require('angular');
 
@@ -14,7 +15,7 @@ angular
     require('@uirouter/angularjs').default,
     INSTANCE_WRITE_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
-    require('./multipleInstanceServerGroup.directive').name,
+    CORE_INSTANCE_DETAILS_MULTIPLEINSTANCESERVERGROUP_DIRECTIVE,
   ])
   .controller('MultipleInstancesCtrl', [
     '$scope',

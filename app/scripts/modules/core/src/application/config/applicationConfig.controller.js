@@ -6,6 +6,10 @@ import { TRAFFIC_GUARD_CONFIG_COMPONENT } from './trafficGuard/trafficGuardConfi
 import { SETTINGS } from 'core/config/settings';
 import { ApplicationWriter } from 'core/application/service/ApplicationWriter';
 import { DELETE_APPLICATION_SECTION } from './deleteApplicationSection.module';
+import { CORE_APPLICATION_CONFIG_APPLICATIONATTRIBUTES_DIRECTIVE } from './applicationAttributes.directive';
+import { CORE_APPLICATION_CONFIG_APPLICATIONNOTIFICATIONS_DIRECTIVE } from './applicationNotifications.directive';
+import { CORE_APPLICATION_CONFIG_APPLICATIONSNAPSHOTSECTION_COMPONENT } from './applicationSnapshotSection.component';
+import { CORE_APPLICATION_CONFIG_LINKS_APPLICATIONLINKS_COMPONENT } from './links/applicationLinks.component';
 
 const angular = require('angular');
 
@@ -14,14 +18,14 @@ export const name = CORE_APPLICATION_CONFIG_APPLICATIONCONFIG_CONTROLLER; // for
 angular
   .module(CORE_APPLICATION_CONFIG_APPLICATIONCONFIG_CONTROLLER, [
     require('@uirouter/angularjs').default,
-    require('./applicationAttributes.directive').name,
-    require('./applicationNotifications.directive').name,
-    require('./applicationSnapshotSection.component').name,
+    CORE_APPLICATION_CONFIG_APPLICATIONATTRIBUTES_DIRECTIVE,
+    CORE_APPLICATION_CONFIG_APPLICATIONNOTIFICATIONS_DIRECTIVE,
+    CORE_APPLICATION_CONFIG_APPLICATIONSNAPSHOTSECTION_COMPONENT,
     DELETE_APPLICATION_SECTION,
     APPLICATION_DATA_SOURCE_EDITOR,
     CHAOS_MONKEY_CONFIG_COMPONENT,
     TRAFFIC_GUARD_CONFIG_COMPONENT,
-    require('./links/applicationLinks.component').name,
+    CORE_APPLICATION_CONFIG_LINKS_APPLICATIONLINKS_COMPONENT,
   ])
   .controller('ApplicationConfigController', [
     '$state',

@@ -4,6 +4,9 @@ const angular = require('angular');
 import _ from 'lodash';
 
 import { FirewallLabels, INSTANCE_TYPE_SERVICE, ModalWizard, TaskMonitor } from '@spinnaker/core';
+import { GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCEBUILDER_GCE_SERVICE } from 'google/instance/custom/customInstanceBuilder.gce.service';
+import { GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_HIDDENMETADATAKEYS_VALUE } from './hiddenMetadataKeys.value';
+import { GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGMANAGER_SERVICE } from './securityGroups/tagManager.service';
 
 export const GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_GCE_CONTROLLER =
   'spinnaker.serverGroup.configure.gce.cloneServerGroup';
@@ -11,10 +14,10 @@ export const name = GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_GCE_CON
 angular
   .module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_GCE_CONTROLLER, [
     require('@uirouter/angularjs').default,
-    require('google/instance/custom/customInstanceBuilder.gce.service').name,
+    GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCEBUILDER_GCE_SERVICE,
     INSTANCE_TYPE_SERVICE,
-    require('./hiddenMetadataKeys.value').name,
-    require('./securityGroups/tagManager.service').name,
+    GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_HIDDENMETADATAKEYS_VALUE,
+    GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGMANAGER_SERVICE,
   ])
   .controller('gceCloneServerGroupCtrl', [
     '$scope',

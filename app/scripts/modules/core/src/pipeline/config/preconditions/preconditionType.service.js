@@ -1,4 +1,5 @@
-'use strict';
+import { CORE_PIPELINE_CONFIG_PRECONDITIONS_PRECONDITIONTYPECONFIG_PROVIDER } from './preconditionTypeConfig.provider';
+('use strict');
 
 const angular = require('angular');
 
@@ -7,7 +8,7 @@ export const CORE_PIPELINE_CONFIG_PRECONDITIONS_PRECONDITIONTYPE_SERVICE =
 export const name = CORE_PIPELINE_CONFIG_PRECONDITIONS_PRECONDITIONTYPE_SERVICE; // for backwards compatibility
 angular
   .module(CORE_PIPELINE_CONFIG_PRECONDITIONS_PRECONDITIONTYPE_SERVICE, [
-    require('./preconditionTypeConfig.provider').name,
+    CORE_PIPELINE_CONFIG_PRECONDITIONS_PRECONDITIONTYPECONFIG_PROVIDER,
   ])
   .factory('preconditionTypeService', [
     'preconditionTypeConfig',

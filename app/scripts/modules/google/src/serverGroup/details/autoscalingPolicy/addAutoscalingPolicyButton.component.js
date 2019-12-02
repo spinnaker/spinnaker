@@ -1,4 +1,5 @@
-'use strict';
+import { GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_MODAL_UPSERTAUTOSCALINGPOLICY_MODAL_CONTROLLER } from './modal/upsertAutoscalingPolicy.modal.controller';
+('use strict');
 
 const angular = require('angular');
 
@@ -8,7 +9,7 @@ export const name = GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_ADDAUTOSCALINGP
 angular
   .module(GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_ADDAUTOSCALINGPOLICYBUTTON_COMPONENT, [
     require('angular-ui-bootstrap'),
-    require('./modal/upsertAutoscalingPolicy.modal.controller').name,
+    GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_MODAL_UPSERTAUTOSCALINGPOLICY_MODAL_CONTROLLER,
   ])
   .component('gceAddAutoscalingPolicyButton', {
     bindings: {

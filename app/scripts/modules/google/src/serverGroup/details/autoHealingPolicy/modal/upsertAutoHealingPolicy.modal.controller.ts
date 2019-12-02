@@ -9,6 +9,7 @@ import { GCE_HEALTH_CHECK_READER, GceHealthCheckReader } from 'google/healthChec
 import { getHealthCheckOptions, IGceHealthCheckOption } from 'google/healthCheck/healthCheckUtils';
 
 import './upsertAutoHealingPolicy.modal.less';
+import { GOOGLE_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_WRITE_SERVICE } from 'google/autoscalingPolicy/autoscalingPolicy.write.service';
 
 class GceUpsertAutoHealingPolicyModalCtrl implements IController {
   public autoHealingPolicy: IGceAutoHealingPolicy;
@@ -80,5 +81,5 @@ class GceUpsertAutoHealingPolicyModalCtrl implements IController {
 export const GCE_UPSERT_AUTOHEALING_POLICY_MODAL_CTRL = 'spinnaker.gce.upsertAutoHealingPolicy.modal.controller';
 module(GCE_UPSERT_AUTOHEALING_POLICY_MODAL_CTRL, [
   GCE_HEALTH_CHECK_READER,
-  require('google/autoscalingPolicy/autoscalingPolicy.write.service').name,
+  GOOGLE_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_WRITE_SERVICE,
 ]).controller('gceUpsertAutoHealingPolicyModalCtrl', GceUpsertAutoHealingPolicyModalCtrl);

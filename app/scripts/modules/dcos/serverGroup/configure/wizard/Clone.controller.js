@@ -3,13 +3,14 @@
 const angular = require('angular');
 
 import { ModalWizard, SERVER_GROUP_WRITER, TaskMonitor } from '@spinnaker/core';
+import { DCOS_SERVERGROUP_CONFIGURE_CONFIGURATION_SERVICE } from '../configuration.service';
 
 export const DCOS_SERVERGROUP_CONFIGURE_WIZARD_CLONE_CONTROLLER = 'spinnaker.dcos.serverGroup.configure.clone';
 export const name = DCOS_SERVERGROUP_CONFIGURE_WIZARD_CLONE_CONTROLLER; // for backwards compatibility
 angular
   .module(DCOS_SERVERGROUP_CONFIGURE_WIZARD_CLONE_CONTROLLER, [
     SERVER_GROUP_WRITER,
-    require('../configuration.service').name,
+    DCOS_SERVERGROUP_CONFIGURE_CONFIGURATION_SERVICE,
   ])
   .controller('dcosCloneServerGroupController', [
     '$scope',

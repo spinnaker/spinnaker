@@ -6,19 +6,26 @@ import { AccountService, PipelineConfigService } from '@spinnaker/core';
 
 import { KUBERNETES_LIFECYCLE_HOOK_CONFIGURER } from 'kubernetes/v1/container/lifecycleHook.component';
 import { KUBERNETES_CONTAINER_ENVIRONMENT_FROM } from 'kubernetes/v1/container/environmentFrom.component';
+import { KUBERNETES_V1_CONTAINER_COMMANDS_COMPONENT } from 'kubernetes/v1/container/commands.component';
+import { KUBERNETES_V1_CONTAINER_ARGUMENTS_COMPONENT } from 'kubernetes/v1/container/arguments.component';
+import { KUBERNETES_V1_CONTAINER_ENVIRONMENTVARIABLES_COMPONENT } from 'kubernetes/v1/container/environmentVariables.component';
+import { KUBERNETES_V1_CONTAINER_VOLUMES_COMPONENT } from 'kubernetes/v1/container/volumes.component';
+import { KUBERNETES_V1_CONTAINER_PORTS_COMPONENT } from 'kubernetes/v1/container/ports.component';
+import { KUBERNETES_V1_CONTAINER_RESOURCES_COMPONENT } from 'kubernetes/v1/container/resources.component';
+import { KUBERNETES_V1_CONTAINER_PROBE_DIRECTIVE } from 'kubernetes/v1/container/probe.directive';
 
 export const KUBERNETES_V1_PIPELINE_STAGES_RUNJOB_CONFIGUREJOB_CONTROLLER =
   'spinnaker.kubernetes.pipeline.stage.runJobStage.configure';
 export const name = KUBERNETES_V1_PIPELINE_STAGES_RUNJOB_CONFIGUREJOB_CONTROLLER; // for backwards compatibility
 angular
   .module(KUBERNETES_V1_PIPELINE_STAGES_RUNJOB_CONFIGUREJOB_CONTROLLER, [
-    require('kubernetes/v1/container/commands.component').name,
-    require('kubernetes/v1/container/arguments.component').name,
-    require('kubernetes/v1/container/environmentVariables.component').name,
-    require('kubernetes/v1/container/volumes.component').name,
-    require('kubernetes/v1/container/ports.component').name,
-    require('kubernetes/v1/container/resources.component').name,
-    require('kubernetes/v1/container/probe.directive').name,
+    KUBERNETES_V1_CONTAINER_COMMANDS_COMPONENT,
+    KUBERNETES_V1_CONTAINER_ARGUMENTS_COMPONENT,
+    KUBERNETES_V1_CONTAINER_ENVIRONMENTVARIABLES_COMPONENT,
+    KUBERNETES_V1_CONTAINER_VOLUMES_COMPONENT,
+    KUBERNETES_V1_CONTAINER_PORTS_COMPONENT,
+    KUBERNETES_V1_CONTAINER_RESOURCES_COMPONENT,
+    KUBERNETES_V1_CONTAINER_PROBE_DIRECTIVE,
     KUBERNETES_LIFECYCLE_HOOK_CONFIGURER,
     KUBERNETES_CONTAINER_ENVIRONMENT_FROM,
   ])

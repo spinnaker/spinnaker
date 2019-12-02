@@ -4,13 +4,14 @@ const angular = require('angular');
 import _ from 'lodash';
 
 import { AccountService, NameUtils, Registry, StageConstants } from '@spinnaker/core';
+import { TITUS_PIPELINE_STAGES_CLONESERVERGROUP_CLONESERVERGROUPEXECUTIONDETAILS_CONTROLLER } from './cloneServerGroupExecutionDetails.controller';
 
 export const TITUS_PIPELINE_STAGES_CLONESERVERGROUP_TITUSCLONESERVERGROUPSTAGE =
   'spinnaker.titus.pipeline.stage.cloneServerGroupStage';
 export const name = TITUS_PIPELINE_STAGES_CLONESERVERGROUP_TITUSCLONESERVERGROUPSTAGE; // for backwards compatibility
 angular
   .module(TITUS_PIPELINE_STAGES_CLONESERVERGROUP_TITUSCLONESERVERGROUPSTAGE, [
-    require('./cloneServerGroupExecutionDetails.controller').name,
+    TITUS_PIPELINE_STAGES_CLONESERVERGROUP_CLONESERVERGROUPEXECUTIONDETAILS_CONTROLLER,
   ])
   .config(function() {
     Registry.pipeline.registerStage({

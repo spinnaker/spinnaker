@@ -6,6 +6,24 @@ import './helpContents/oracleHelpContents';
 import { ORACLE_LOAD_BALANCER_TRANSFORMER } from 'oracle/loadBalancer/loadBalancer.transformer';
 import { ORACLE_LOAD_BALANCER_CREATE_CONTROLLER } from 'oracle/loadBalancer/configure/createLoadBalancer.controller';
 import { ORACLE_LOAD_BALANCER_DETAIL_CONTROLLER } from 'oracle/loadBalancer/details/loadBalancerDetail.controller';
+import { ORACLE_PIPELINE_STAGES_BAKE_OCIBAKESTAGE } from './pipeline/stages/bake/ociBakeStage';
+import { ORACLE_PIPELINE_STAGES_DESTROYASG_DESTROYASGSTAGE } from './pipeline/stages/destroyAsg/destroyAsgStage';
+import { ORACLE_PIPELINE_STAGES_DISABLEASG_DISABLEASGSTAGE } from './pipeline/stages/disableAsg/disableAsgStage';
+import { ORACLE_PIPELINE_STAGES_FINDAMI_FINDAMISTAGE } from './pipeline/stages/findAmi/findAmiStage';
+import { ORACLE_PIPELINE_STAGES_FINDIMAGEFROMTAGS_ORACLEFINDIMAGEFROMTAGSSTAGE } from './pipeline/stages/findImageFromTags/oracleFindImageFromTagsStage';
+import { ORACLE_PIPELINE_STAGES_RESIZEASG_RESIZEASGSTAGE } from './pipeline/stages/resizeAsg/resizeAsgStage';
+import { ORACLE_PIPELINE_STAGES_SCALEDOWNCLUSTER_SCALEDOWNCLUSTERSTAGE } from './pipeline/stages/scaleDownCluster/scaleDownClusterStage';
+import { ORACLE_PIPELINE_STAGES_SHRINKCLUSTER_SHRINKCLUSTERSTAGE } from './pipeline/stages/shrinkCluster/shrinkClusterStage';
+import { ORACLE_SERVERGROUP_SERVERGROUP_TRANSFORMER } from './serverGroup/serverGroup.transformer';
+import { ORACLE_SERVERGROUP_CONFIGURE_SERVERGROUP_CONFIGURE_MODULE } from './serverGroup/configure/serverGroup.configure.module';
+import { ORACLE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_CONTROLLER } from './serverGroup/details/serverGroupDetails.controller';
+import { ORACLE_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE } from './serverGroup/configure/serverGroupCommandBuilder.service';
+import { ORACLE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_CONTROLLER } from './serverGroup/configure/wizard/cloneServerGroup.controller';
+import { ORACLE_IMAGE_IMAGE_READER } from './image/image.reader';
+import { ORACLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER } from './instance/details/instance.details.controller';
+import { ORACLE_SECURITYGROUP_SECURITYGROUP_READER } from './securityGroup/securityGroup.reader';
+import { ORACLE_SECURITYGROUP_SECURITYGROUP_TRANSFORMER } from './securityGroup/securityGroup.transformer';
+import { ORACLE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUP_CONTROLLER } from './securityGroup/configure/createSecurityGroup.controller';
 
 const templates = require.context('./', true, /\.html$/);
 templates.keys().forEach(function(key) {
@@ -15,14 +33,14 @@ templates.keys().forEach(function(key) {
 export const ORACLE_MODULE = 'spinnaker.oracle';
 module(ORACLE_MODULE, [
   // Pipeline
-  require('./pipeline/stages/bake/ociBakeStage').name,
-  require('./pipeline/stages/destroyAsg/destroyAsgStage').name,
-  require('./pipeline/stages/disableAsg/disableAsgStage').name,
-  require('./pipeline/stages/findAmi/findAmiStage').name,
-  require('./pipeline/stages/findImageFromTags/oracleFindImageFromTagsStage').name,
-  require('./pipeline/stages/resizeAsg/resizeAsgStage').name,
-  require('./pipeline/stages/scaleDownCluster/scaleDownClusterStage').name,
-  require('./pipeline/stages/shrinkCluster/shrinkClusterStage').name,
+  ORACLE_PIPELINE_STAGES_BAKE_OCIBAKESTAGE,
+  ORACLE_PIPELINE_STAGES_DESTROYASG_DESTROYASGSTAGE,
+  ORACLE_PIPELINE_STAGES_DISABLEASG_DISABLEASGSTAGE,
+  ORACLE_PIPELINE_STAGES_FINDAMI_FINDAMISTAGE,
+  ORACLE_PIPELINE_STAGES_FINDIMAGEFROMTAGS_ORACLEFINDIMAGEFROMTAGSSTAGE,
+  ORACLE_PIPELINE_STAGES_RESIZEASG_RESIZEASGSTAGE,
+  ORACLE_PIPELINE_STAGES_SCALEDOWNCLUSTER_SCALEDOWNCLUSTERSTAGE,
+  ORACLE_PIPELINE_STAGES_SHRINKCLUSTER_SHRINKCLUSTERSTAGE,
 
   // Load Balancers
   ORACLE_LOAD_BALANCER_TRANSFORMER,
@@ -30,19 +48,19 @@ module(ORACLE_MODULE, [
   ORACLE_LOAD_BALANCER_CREATE_CONTROLLER,
 
   // Server Groups
-  require('./serverGroup/serverGroup.transformer').name,
-  require('./serverGroup/configure/serverGroup.configure.module').name,
-  require('./serverGroup/details/serverGroupDetails.controller').name,
-  require('./serverGroup/configure/serverGroupCommandBuilder.service').name,
-  require('./serverGroup/configure/wizard/cloneServerGroup.controller').name,
+  ORACLE_SERVERGROUP_SERVERGROUP_TRANSFORMER,
+  ORACLE_SERVERGROUP_CONFIGURE_SERVERGROUP_CONFIGURE_MODULE,
+  ORACLE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_CONTROLLER,
+  ORACLE_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE,
+  ORACLE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_CONTROLLER,
   // Images
-  require('./image/image.reader').name,
+  ORACLE_IMAGE_IMAGE_READER,
   // Instances
-  require('./instance/details/instance.details.controller').name,
+  ORACLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER,
   // Firewalls
-  require('./securityGroup/securityGroup.reader').name,
-  require('./securityGroup/securityGroup.transformer').name,
-  require('./securityGroup/configure/createSecurityGroup.controller').name,
+  ORACLE_SECURITYGROUP_SECURITYGROUP_READER,
+  ORACLE_SECURITYGROUP_SECURITYGROUP_TRANSFORMER,
+  ORACLE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUP_CONTROLLER,
 ]).config(function() {
   CloudProviderRegistry.registerProvider('oracle', {
     name: 'Oracle',

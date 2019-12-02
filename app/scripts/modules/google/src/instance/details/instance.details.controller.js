@@ -13,6 +13,7 @@ import {
 } from '@spinnaker/core';
 
 import { GCE_HTTP_LOAD_BALANCER_UTILS } from 'google/loadBalancer/httpLoadBalancerUtils.service';
+import { GOOGLE_COMMON_XPNNAMING_GCE_SERVICE } from 'google/common/xpnNaming.gce.service';
 
 export const GOOGLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER = 'spinnaker.instance.detail.gce.controller';
 export const name = GOOGLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER; // for backwards compatibility
@@ -20,7 +21,7 @@ angular
   .module(GOOGLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     require('@uirouter/angularjs').default,
     require('angular-ui-bootstrap'),
-    require('google/common/xpnNaming.gce.service').name,
+    GOOGLE_COMMON_XPNNAMING_GCE_SERVICE,
     INSTANCE_WRITE_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
     GCE_HTTP_LOAD_BALANCER_UTILS,

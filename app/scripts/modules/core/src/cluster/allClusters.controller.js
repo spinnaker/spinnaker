@@ -13,17 +13,19 @@ import { CLUSTER_FILTER } from './filter/clusterFilter.component';
 import { FILTER_TAGS_COMPONENT } from '../filterModel/filterTags.component';
 
 import './rollups.less';
+import { CORE_ACCOUNT_ACCOUNT_MODULE } from '../account/account.module';
+import { CORE_UTILS_WAYPOINTS_WAYPOINTCONTAINER_DIRECTIVE } from '../utils/waypoints/waypointContainer.directive';
 
 export const CORE_CLUSTER_ALLCLUSTERS_CONTROLLER = 'spinnaker.core.cluster.allClusters.controller';
 export const name = CORE_CLUSTER_ALLCLUSTERS_CONTROLLER; // for backwards compatibility
 angular
   .module(CORE_CLUSTER_ALLCLUSTERS_CONTROLLER, [
     CLUSTER_FILTER,
-    require('../account/account.module').name,
+    CORE_ACCOUNT_ACCOUNT_MODULE,
     SKIN_SELECTION_SERVICE,
     SERVER_GROUP_COMMAND_BUILDER_SERVICE,
     FILTER_TAGS_COMPONENT,
-    require('../utils/waypoints/waypointContainer.directive').name,
+    CORE_UTILS_WAYPOINTS_WAYPOINTCONTAINER_DIRECTIVE,
     INSIGHT_FILTER_COMPONENT,
     require('angular-ui-bootstrap'),
   ])

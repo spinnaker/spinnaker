@@ -10,6 +10,8 @@ import {
   SERVER_GROUP_WRITER,
   ServerGroupTemplates,
 } from '@spinnaker/core';
+import { KUBERNETES_V1_SERVERGROUP_CONFIGURE_CONFIGURE_KUBERNETES_MODULE } from '../configure/configure.kubernetes.module';
+import { KUBERNETES_V1_SERVERGROUP_PARAMSMIXIN } from '../paramsMixin';
 
 export const KUBERNETES_V1_SERVERGROUP_DETAILS_DETAILS_CONTROLLER =
   'spinnaker.serverGroup.details.kubernetes.controller';
@@ -17,10 +19,10 @@ export const name = KUBERNETES_V1_SERVERGROUP_DETAILS_DETAILS_CONTROLLER; // for
 angular
   .module(KUBERNETES_V1_SERVERGROUP_DETAILS_DETAILS_CONTROLLER, [
     require('@uirouter/angularjs').default,
-    require('../configure/configure.kubernetes.module').name,
+    KUBERNETES_V1_SERVERGROUP_CONFIGURE_CONFIGURE_KUBERNETES_MODULE,
     CONFIRMATION_MODAL_SERVICE,
     SERVER_GROUP_WRITER,
-    require('../paramsMixin').name,
+    KUBERNETES_V1_SERVERGROUP_PARAMSMIXIN,
   ])
   .controller('kubernetesServerGroupDetailsController', [
     '$scope',

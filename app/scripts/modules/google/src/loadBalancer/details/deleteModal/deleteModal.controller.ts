@@ -7,6 +7,7 @@ import {
   GCE_HTTP_LOAD_BALANCER_UTILS,
   GceHttpLoadBalancerUtils,
 } from 'google/loadBalancer/httpLoadBalancerUtils.service';
+import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_HTTPLOADBALANCER_WRITE_SERVICE } from '../../configure/http/httpLoadBalancer.write.service';
 
 class Verification {
   public verified = false;
@@ -98,6 +99,6 @@ class DeleteLoadBalancerModalController implements IController {
 export const DELETE_MODAL_CONTROLLER = 'spinnaker.gce.loadBalancer.deleteModal.controller';
 module(DELETE_MODAL_CONTROLLER, [
   require('angular-ui-bootstrap'),
-  require('../../configure/http/httpLoadBalancer.write.service').name,
+  GOOGLE_LOADBALANCER_CONFIGURE_HTTP_HTTPLOADBALANCER_WRITE_SERVICE,
   GCE_HTTP_LOAD_BALANCER_UTILS,
 ]).controller('gceLoadBalancerDeleteModalCtrl', DeleteLoadBalancerModalController);

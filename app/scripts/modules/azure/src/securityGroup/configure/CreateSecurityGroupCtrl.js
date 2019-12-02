@@ -4,13 +4,14 @@ const angular = require('angular');
 const _ = require('lodash');
 
 import { AccountService, FirewallLabels, NetworkReader, TaskMonitor } from '@spinnaker/core';
+import { AZURE_SECURITYGROUP_SECURITYGROUP_WRITE_SERVICE } from '../securityGroup.write.service';
 
 export const AZURE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUPCTRL = 'spinnaker.azure.securityGroup.create.controller';
 export const name = AZURE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUPCTRL; // for backwards compatibility
 angular
   .module(AZURE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUPCTRL, [
     require('@uirouter/angularjs').default,
-    require('../securityGroup.write.service').name,
+    AZURE_SECURITYGROUP_SECURITYGROUP_WRITE_SERVICE,
   ])
 
   .controller('azureCreateSecurityGroupCtrl', [

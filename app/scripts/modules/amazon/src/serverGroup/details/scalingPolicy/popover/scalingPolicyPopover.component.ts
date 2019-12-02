@@ -1,4 +1,5 @@
 import { IComponentOptions, module } from 'angular';
+import { AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_CHART_METRICALARMCHART_COMPONENT } from '../chart/metricAlarmChart.component';
 
 const scalingPolicyPopover: IComponentOptions = {
   bindings: {
@@ -23,7 +24,7 @@ const scalingPolicyPopover: IComponentOptions = {
 };
 
 export const SCALING_POLICY_POPOVER = 'spinnaker.amazon.serverGroup.details.scalingPolicy.popover.component';
-module(SCALING_POLICY_POPOVER, [require('../chart/metricAlarmChart.component').name]).component(
+module(SCALING_POLICY_POPOVER, [AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_CHART_METRICALARMCHART_COMPONENT]).component(
   'awsScalingPolicyPopover',
   scalingPolicyPopover,
 );

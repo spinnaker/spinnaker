@@ -1,6 +1,7 @@
 'use strict';
 
 import _ from 'lodash';
+import { GOOGLE_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_WRITE_SERVICE } from '../../../autoscalingPolicy/autoscalingPolicy.write.service';
 
 const angular = require('angular');
 
@@ -9,7 +10,7 @@ export const GOOGLE_SERVERGROUP_DETAILS_RESIZE_RESIZEAUTOSCALINGPOLICY_COMPONENT
 export const name = GOOGLE_SERVERGROUP_DETAILS_RESIZE_RESIZEAUTOSCALINGPOLICY_COMPONENT; // for backwards compatibility
 angular
   .module(GOOGLE_SERVERGROUP_DETAILS_RESIZE_RESIZEAUTOSCALINGPOLICY_COMPONENT, [
-    require('../../../autoscalingPolicy/autoscalingPolicy.write.service').name,
+    GOOGLE_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_WRITE_SERVICE,
   ])
   .component('gceResizeAutoscalingPolicy', {
     bindings: {

@@ -3,13 +3,14 @@
 const angular = require('angular');
 
 import { AccountService, LOAD_BALANCER_READ_SERVICE, LoadBalancerWriter, TaskMonitor } from '@spinnaker/core';
+import { DCOS_LOADBALANCER_TRANSFORMER } from '../../transformer';
 
 export const DCOS_LOADBALANCER_CONFIGURE_WIZARD_UPSERT_CONTROLLER = 'spinnaker.dcos.loadBalancer.create.controller';
 export const name = DCOS_LOADBALANCER_CONFIGURE_WIZARD_UPSERT_CONTROLLER; // for backwards compatibility
 angular
   .module(DCOS_LOADBALANCER_CONFIGURE_WIZARD_UPSERT_CONTROLLER, [
     LOAD_BALANCER_READ_SERVICE,
-    require('../../transformer').name,
+    DCOS_LOADBALANCER_TRANSFORMER,
   ])
   .controller('dcosUpsertLoadBalancerController', [
     '$scope',

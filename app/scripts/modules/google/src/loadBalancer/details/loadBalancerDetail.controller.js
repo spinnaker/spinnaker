@@ -10,6 +10,10 @@ import { GCE_BACKEND_SERVICE_DETAILS_COMPONENT } from './backendService/backendS
 import { SESSION_AFFINITY_FILTER } from './backendService/sessionAffinity.filter';
 
 import { DELETE_MODAL_CONTROLLER } from './deleteModal/deleteModal.controller';
+import { GOOGLE_COMMON_XPNNAMING_GCE_SERVICE } from 'google/common/xpnNaming.gce.service';
+import { GOOGLE_LOADBALANCER_DETAILS_HOSTANDPATHRULES_HOSTANDPATHRULESBUTTON_COMPONENT } from './hostAndPathRules/hostAndPathRulesButton.component';
+import { GOOGLE_LOADBALANCER_DETAILS_LOADBALANCERTYPE_LOADBALANCERTYPE_COMPONENT } from './loadBalancerType/loadBalancerType.component';
+import { GOOGLE_LOADBALANCER_DETAILS_HEALTHCHECK_HEALTHCHECK_COMPONENT } from './healthCheck/healthCheck.component';
 
 export const GOOGLE_LOADBALANCER_DETAILS_LOADBALANCERDETAIL_CONTROLLER =
   'spinnaker.loadBalancer.gce.details.controller';
@@ -18,11 +22,11 @@ angular
   .module(GOOGLE_LOADBALANCER_DETAILS_LOADBALANCERDETAIL_CONTROLLER, [
     require('@uirouter/angularjs').default,
     LOAD_BALANCER_READ_SERVICE,
-    require('google/common/xpnNaming.gce.service').name,
-    require('./hostAndPathRules/hostAndPathRulesButton.component').name,
-    require('./loadBalancerType/loadBalancerType.component').name,
+    GOOGLE_COMMON_XPNNAMING_GCE_SERVICE,
+    GOOGLE_LOADBALANCER_DETAILS_HOSTANDPATHRULES_HOSTANDPATHRULESBUTTON_COMPONENT,
+    GOOGLE_LOADBALANCER_DETAILS_LOADBALANCERTYPE_LOADBALANCERTYPE_COMPONENT,
     GCE_HTTP_LOAD_BALANCER_UTILS,
-    require('./healthCheck/healthCheck.component').name,
+    GOOGLE_LOADBALANCER_DETAILS_HEALTHCHECK_HEALTHCHECK_COMPONENT,
     GCE_BACKEND_SERVICE_DETAILS_COMPONENT,
     DELETE_MODAL_CONTROLLER,
     SESSION_AFFINITY_FILTER,

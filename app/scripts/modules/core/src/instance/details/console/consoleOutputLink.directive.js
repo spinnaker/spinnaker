@@ -5,13 +5,14 @@ const angular = require('angular');
 import { InstanceTemplates } from 'core/instance/templates';
 
 import './consoleOutput.modal.less';
+import { CORE_INSTANCE_DETAILS_CONSOLE_CONSOLEOUTPUT_MODAL_CONTROLLER } from './consoleOutput.modal.controller';
 
 export const CORE_INSTANCE_DETAILS_CONSOLE_CONSOLEOUTPUTLINK_DIRECTIVE = 'spinnaker.core.instance.details.console.link';
 export const name = CORE_INSTANCE_DETAILS_CONSOLE_CONSOLEOUTPUTLINK_DIRECTIVE; // for backwards compatibility
 angular
   .module(CORE_INSTANCE_DETAILS_CONSOLE_CONSOLEOUTPUTLINK_DIRECTIVE, [
     require('angular-ui-bootstrap'),
-    require('./consoleOutput.modal.controller').name,
+    CORE_INSTANCE_DETAILS_CONSOLE_CONSOLEOUTPUT_MODAL_CONTROLLER,
   ])
   .directive('consoleOutputLink', function() {
     return {

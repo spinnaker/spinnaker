@@ -9,6 +9,7 @@ import { TaskReader } from 'core/task/task.read.service';
 import { VALIDATE_APPLICATION_NAME } from './validation/validateApplicationName.directive';
 import { CHAOS_MONKEY_NEW_APPLICATION_CONFIG_COMPONENT } from 'core/chaosMonkey/chaosMonkeyNewApplicationConfig.component';
 import { SETTINGS } from 'core/config/settings';
+import { CORE_APPLICATION_MODAL_APPLICATIONPROVIDERFIELDS_COMPONENT } from './applicationProviderFields.component';
 
 const angular = require('angular');
 
@@ -20,7 +21,7 @@ angular
     require('@uirouter/angularjs').default,
     APPLICATION_NAME_VALIDATION_MESSAGES,
     VALIDATE_APPLICATION_NAME,
-    require('./applicationProviderFields.component').name,
+    CORE_APPLICATION_MODAL_APPLICATIONPROVIDERFIELDS_COMPONENT,
     CHAOS_MONKEY_NEW_APPLICATION_CONFIG_COMPONENT,
   ])
   .controller('CreateApplicationModalCtrl', [

@@ -3,15 +3,18 @@
 const angular = require('angular');
 
 import { TaskMonitor } from '@spinnaker/core';
+import { GOOGLE_SERVERGROUP_DETAILS_RESIZE_RESIZECAPACITY_COMPONENT } from './resizeCapacity.component';
+import { GOOGLE_SERVERGROUP_DETAILS_RESIZE_RESIZEAUTOSCALINGPOLICY_COMPONENT } from './resizeAutoscalingPolicy.component';
+import { GOOGLE_COMMON_FOOTER_DIRECTIVE } from '../../../common/footer.directive';
 
 export const GOOGLE_SERVERGROUP_DETAILS_RESIZE_RESIZESERVERGROUP_CONTROLLER =
   'spinnaker.google.serverGroup.details.resize.controller';
 export const name = GOOGLE_SERVERGROUP_DETAILS_RESIZE_RESIZESERVERGROUP_CONTROLLER; // for backwards compatibility
 angular
   .module(GOOGLE_SERVERGROUP_DETAILS_RESIZE_RESIZESERVERGROUP_CONTROLLER, [
-    require('./resizeCapacity.component').name,
-    require('./resizeAutoscalingPolicy.component').name,
-    require('../../../common/footer.directive').name,
+    GOOGLE_SERVERGROUP_DETAILS_RESIZE_RESIZECAPACITY_COMPONENT,
+    GOOGLE_SERVERGROUP_DETAILS_RESIZE_RESIZEAUTOSCALINGPOLICY_COMPONENT,
+    GOOGLE_COMMON_FOOTER_DIRECTIVE,
   ])
   .controller('gceResizeServerGroupCtrl', [
     '$scope',

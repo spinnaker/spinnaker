@@ -7,10 +7,11 @@ import { SEARCH_INFRASTRUCTURE_V2_CONTROLLER } from './infrastructureSearchV2.co
 import { SEARCH_RESULT_COMPONENT } from './searchResult.component';
 
 import './infrastructure.less';
+import { CORE_SEARCH_INFRASTRUCTURE_INFRASTRUCTURE_CONTROLLER } from './infrastructure.controller';
 
 export const SEARCH_INFRASTRUCTURE = 'spinnaker.search.infrastructure';
 module(SEARCH_INFRASTRUCTURE, [
-  require('./infrastructure.controller').name,
+  CORE_SEARCH_INFRASTRUCTURE_INFRASTRUCTURE_CONTROLLER,
   PROJECT_SUMMARY_POD_COMPONENT,
   RECENTLY_VIEWED_ITEMS_COMPONENT,
   SEARCH_COMPONENT,

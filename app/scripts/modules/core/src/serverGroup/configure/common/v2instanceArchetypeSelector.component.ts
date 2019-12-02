@@ -5,6 +5,8 @@ import { CloudProviderRegistry } from 'core/cloudProvider';
 import { ModalWizard } from 'core/modal/wizard/ModalWizard';
 import { InstanceTypeService, IInstanceTypeCategory } from 'core/instance';
 import { IServerGroupCommand } from './serverGroupCommandBuilder.service';
+import { CORE_SERVERGROUP_CONFIGURE_COMMON_COSTFACTOR } from './costFactor';
+import { CORE_PRESENTATION_ISVISIBLE_ISVISIBLE_DIRECTIVE } from 'core/presentation/isVisible/isVisible.directive';
 
 class V2InstanceArchetypeSelectorController implements IComponentController {
   private command: IServerGroupCommand;
@@ -102,6 +104,6 @@ export const v2InstanceArchetypeSelector: IComponentOptions = {
 
 export const V2_INSTANCE_ARCHETYPE_SELECTOR = 'spinnaker.core.serverGroup.configure.common.v2instanceArchetypeSelector';
 module(V2_INSTANCE_ARCHETYPE_SELECTOR, [
-  require('./costFactor').name,
-  require('core/presentation/isVisible/isVisible.directive').name,
+  CORE_SERVERGROUP_CONFIGURE_COMMON_COSTFACTOR,
+  CORE_PRESENTATION_ISVISIBLE_ISVISIBLE_DIRECTIVE,
 ]).component('v2InstanceArchetypeSelector', v2InstanceArchetypeSelector);

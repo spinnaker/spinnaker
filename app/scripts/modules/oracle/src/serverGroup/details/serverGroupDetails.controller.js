@@ -10,6 +10,9 @@ import {
   SERVER_GROUP_WRITER,
   SubnetReader,
 } from '@spinnaker/core';
+import { ORACLE_IMAGE_IMAGE_READER } from '../../image/image.reader';
+import { ORACLE_SERVERGROUP_DETAILS_RESIZE_RESIZESERVERGROUP_CONTROLLER } from './resize/resizeServerGroup.controller';
+import { ORACLE_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER } from './rollback/rollbackServerGroup.controller';
 
 export const ORACLE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_CONTROLLER =
   'spinnaker.oracle.serverGroup.details.controller';
@@ -19,9 +22,9 @@ angular
     require('@uirouter/angularjs').default,
     CONFIRMATION_MODAL_SERVICE,
     SERVER_GROUP_WRITER,
-    require('../../image/image.reader').name,
-    require('./resize/resizeServerGroup.controller').name,
-    require('./rollback/rollbackServerGroup.controller').name,
+    ORACLE_IMAGE_IMAGE_READER,
+    ORACLE_SERVERGROUP_DETAILS_RESIZE_RESIZESERVERGROUP_CONTROLLER,
+    ORACLE_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER,
   ])
   .controller('oracleServerGroupDetailsCtrl', [
     '$scope',

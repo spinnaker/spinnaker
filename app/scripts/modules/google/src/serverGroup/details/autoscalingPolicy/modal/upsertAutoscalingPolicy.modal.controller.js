@@ -5,15 +5,18 @@ const angular = require('angular');
 import { TaskMonitor } from '@spinnaker/core';
 
 import './upsertAutoscalingPolicy.modal.less';
+import { GOOGLE_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_WRITE_SERVICE } from 'google/autoscalingPolicy/autoscalingPolicy.write.service';
+import { GOOGLE_AUTOSCALINGPOLICY_COMPONENTS_BASICSETTINGS_BASICSETTINGS_COMPONENT } from 'google/autoscalingPolicy/components/basicSettings/basicSettings.component';
+import { GOOGLE_AUTOSCALINGPOLICY_COMPONENTS_METRICSETTINGS_METRICSETTINGS_COMPONENT } from 'google/autoscalingPolicy/components/metricSettings/metricSettings.component';
 
 export const GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_MODAL_UPSERTAUTOSCALINGPOLICY_MODAL_CONTROLLER =
   'spinnaker.deck.gce.upsertAutoscalingPolicy.modal.controller';
 export const name = GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_MODAL_UPSERTAUTOSCALINGPOLICY_MODAL_CONTROLLER; // for backwards compatibility
 angular
   .module(GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_MODAL_UPSERTAUTOSCALINGPOLICY_MODAL_CONTROLLER, [
-    require('google/autoscalingPolicy/autoscalingPolicy.write.service').name,
-    require('google/autoscalingPolicy/components/basicSettings/basicSettings.component').name,
-    require('google/autoscalingPolicy/components/metricSettings/metricSettings.component').name,
+    GOOGLE_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_WRITE_SERVICE,
+    GOOGLE_AUTOSCALINGPOLICY_COMPONENTS_BASICSETTINGS_BASICSETTINGS_COMPONENT,
+    GOOGLE_AUTOSCALINGPOLICY_COMPONENTS_METRICSETTINGS_METRICSETTINGS_COMPONENT,
   ])
   .controller('gceUpsertAutoscalingPolicyModalCtrl', [
     'policy',

@@ -3,6 +3,7 @@
 const angular = require('angular');
 
 import { SERVER_GROUP_WRITER, TaskMonitor } from '@spinnaker/core';
+import { GOOGLE_COMMON_FOOTER_DIRECTIVE } from '../../../common/footer.directive';
 
 export const GOOGLE_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER =
   'spinnaker.google.serverGroup.details.rollback.controller';
@@ -10,7 +11,7 @@ export const name = GOOGLE_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONT
 angular
   .module(GOOGLE_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [
     SERVER_GROUP_WRITER,
-    require('../../../common/footer.directive').name,
+    GOOGLE_COMMON_FOOTER_DIRECTIVE,
   ])
   .controller('gceRollbackServerGroupCtrl', [
     '$scope',

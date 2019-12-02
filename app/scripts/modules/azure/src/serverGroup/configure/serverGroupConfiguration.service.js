@@ -9,17 +9,19 @@ import {
   LOAD_BALANCER_READ_SERVICE,
   SECURITY_GROUP_READER,
 } from '@spinnaker/core';
+import { AZURE_IMAGE_IMAGE_READER } from '../../image/image.reader';
+import { AZURE_INSTANCE_AZUREINSTANCETYPE_SERVICE } from '../../instance/azureInstanceType.service';
 
 export const AZURE_SERVERGROUP_CONFIGURE_SERVERGROUPCONFIGURATION_SERVICE =
   'spinnaker.azure.serverGroup.configure.service';
 export const name = AZURE_SERVERGROUP_CONFIGURE_SERVERGROUPCONFIGURATION_SERVICE; // for backwards compatibility
 angular
   .module(AZURE_SERVERGROUP_CONFIGURE_SERVERGROUPCONFIGURATION_SERVICE, [
-    require('../../image/image.reader').name,
+    AZURE_IMAGE_IMAGE_READER,
     LOAD_BALANCER_READ_SERVICE,
     SECURITY_GROUP_READER,
     CACHE_INITIALIZER_SERVICE,
-    require('../../instance/azureInstanceType.service').name,
+    AZURE_INSTANCE_AZUREINSTANCETYPE_SERVICE,
   ])
   .factory('azureServerGroupConfigurationService', [
     '$q',

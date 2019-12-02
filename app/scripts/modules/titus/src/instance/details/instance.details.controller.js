@@ -14,6 +14,7 @@ import {
   RecentHistoryService,
   SETTINGS,
 } from '@spinnaker/core';
+import { TITUS_SECURITYGROUP_SECURITYGROUP_READ_SERVICE } from '../../securityGroup/securityGroup.read.service';
 
 export const TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER = 'spinnaker.instance.detail.titus.controller';
 export const name = TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER; // for backwards compatibility
@@ -23,7 +24,7 @@ angular
     require('angular-ui-bootstrap'),
     INSTANCE_WRITE_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
-    require('../../securityGroup/securityGroup.read.service').name,
+    TITUS_SECURITYGROUP_SECURITYGROUP_READ_SERVICE,
   ])
   .controller('titusInstanceDetailsCtrl', [
     '$scope',

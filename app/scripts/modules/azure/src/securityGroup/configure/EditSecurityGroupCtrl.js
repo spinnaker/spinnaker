@@ -10,6 +10,7 @@ import {
   SECURITY_GROUP_READER,
   TaskMonitor,
 } from '@spinnaker/core';
+import { AZURE_SECURITYGROUP_SECURITYGROUP_WRITE_SERVICE } from '../securityGroup.write.service';
 
 export const AZURE_SECURITYGROUP_CONFIGURE_EDITSECURITYGROUPCTRL =
   'spinnaker.azure.securityGroup.azure.edit.controller';
@@ -19,7 +20,7 @@ angular
     require('@uirouter/angularjs').default,
     CACHE_INITIALIZER_SERVICE,
     SECURITY_GROUP_READER,
-    require('../securityGroup.write.service').name,
+    AZURE_SECURITYGROUP_SECURITYGROUP_WRITE_SERVICE,
   ])
   .controller('azureEditSecurityGroupCtrl', [
     '$scope',

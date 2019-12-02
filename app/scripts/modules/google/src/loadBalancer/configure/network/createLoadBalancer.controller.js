@@ -3,6 +3,8 @@
 const angular = require('angular');
 
 import { AccountService, LoadBalancerWriter, TaskMonitor, ModalWizard } from '@spinnaker/core';
+import { GOOGLE_LOADBALANCER_LOADBALANCER_TRANSFORMER } from '../../loadBalancer.transformer';
+import { GOOGLE_GCEREGIONSELECTFIELD_DIRECTIVE } from '../../../gceRegionSelectField.directive';
 
 export const GOOGLE_LOADBALANCER_CONFIGURE_NETWORK_CREATELOADBALANCER_CONTROLLER =
   'spinnaker.loadBalancer.gce.create.controller';
@@ -10,8 +12,8 @@ export const name = GOOGLE_LOADBALANCER_CONFIGURE_NETWORK_CREATELOADBALANCER_CON
 angular
   .module(GOOGLE_LOADBALANCER_CONFIGURE_NETWORK_CREATELOADBALANCER_CONTROLLER, [
     require('@uirouter/angularjs').default,
-    require('../../loadBalancer.transformer').name,
-    require('../../../gceRegionSelectField.directive').name,
+    GOOGLE_LOADBALANCER_LOADBALANCER_TRANSFORMER,
+    GOOGLE_GCEREGIONSELECTFIELD_DIRECTIVE,
   ])
   .controller('gceCreateLoadBalancerCtrl', [
     '$scope',

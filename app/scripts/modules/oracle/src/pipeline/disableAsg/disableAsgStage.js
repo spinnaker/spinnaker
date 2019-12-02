@@ -3,13 +3,12 @@
 let angular = require('angular');
 
 import { AccountService, Registry, StageConstants } from '@spinnaker/core';
+import { CORE_APPLICATION_MODAL_PLATFORMHEALTHOVERRIDE_DIRECTIVE } from 'core/application/modal/platformHealthOverride.directive';
 
 export const ORACLE_PIPELINE_DISABLEASG_DISABLEASGSTAGE = 'spinnaker.oracle.pipeline.stage.disableAsgStage';
 export const name = ORACLE_PIPELINE_DISABLEASG_DISABLEASGSTAGE; // for backwards compatibility
 angular
-  .module(ORACLE_PIPELINE_DISABLEASG_DISABLEASGSTAGE, [
-    require('core/application/modal/platformHealthOverride.directive').name,
-  ])
+  .module(ORACLE_PIPELINE_DISABLEASG_DISABLEASGSTAGE, [CORE_APPLICATION_MODAL_PLATFORMHEALTHOVERRIDE_DIRECTIVE])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'disableServerGroup',

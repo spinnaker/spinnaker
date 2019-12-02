@@ -5,6 +5,13 @@ import _ from 'lodash';
 import { Registry } from '@spinnaker/core';
 
 import { KUBERNETES_IMAGE_ID_FILTER } from 'kubernetes/v1/presentation/imageId.filter';
+import { KUBERNETES_V1_CONTAINER_COMMANDS_COMPONENT } from 'kubernetes/v1/container/commands.component';
+import { KUBERNETES_V1_CONTAINER_ARGUMENTS_COMPONENT } from 'kubernetes/v1/container/arguments.component';
+import { KUBERNETES_V1_CONTAINER_ENVIRONMENTVARIABLES_COMPONENT } from 'kubernetes/v1/container/environmentVariables.component';
+import { KUBERNETES_V1_CONTAINER_VOLUMES_COMPONENT } from 'kubernetes/v1/container/volumes.component';
+import { KUBERNETES_V1_IMAGE_IMAGE_READER } from 'kubernetes/v1/image/image.reader';
+import { KUBERNETES_V1_PIPELINE_STAGES_RUNJOB_RUNJOBEXECUTIONDETAILS_CONTROLLER } from './runJobExecutionDetails.controller';
+import { KUBERNETES_V1_PIPELINE_STAGES_RUNJOB_CONFIGUREJOB_CONTROLLER } from './configureJob.controller';
 
 const angular = require('angular');
 
@@ -12,13 +19,13 @@ export const KUBERNETES_V1_PIPELINE_STAGES_RUNJOB_RUNJOBSTAGE = 'spinnaker.kuber
 export const name = KUBERNETES_V1_PIPELINE_STAGES_RUNJOB_RUNJOBSTAGE; // for backwards compatibility
 angular
   .module(KUBERNETES_V1_PIPELINE_STAGES_RUNJOB_RUNJOBSTAGE, [
-    require('kubernetes/v1/container/commands.component').name,
-    require('kubernetes/v1/container/arguments.component').name,
-    require('kubernetes/v1/container/environmentVariables.component').name,
-    require('kubernetes/v1/container/volumes.component').name,
-    require('kubernetes/v1/image/image.reader').name,
-    require('./runJobExecutionDetails.controller').name,
-    require('./configureJob.controller').name,
+    KUBERNETES_V1_CONTAINER_COMMANDS_COMPONENT,
+    KUBERNETES_V1_CONTAINER_ARGUMENTS_COMPONENT,
+    KUBERNETES_V1_CONTAINER_ENVIRONMENTVARIABLES_COMPONENT,
+    KUBERNETES_V1_CONTAINER_VOLUMES_COMPONENT,
+    KUBERNETES_V1_IMAGE_IMAGE_READER,
+    KUBERNETES_V1_PIPELINE_STAGES_RUNJOB_RUNJOBEXECUTIONDETAILS_CONTROLLER,
+    KUBERNETES_V1_PIPELINE_STAGES_RUNJOB_CONFIGUREJOB_CONTROLLER,
     KUBERNETES_IMAGE_ID_FILTER,
   ])
   .config(function() {

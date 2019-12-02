@@ -5,6 +5,8 @@ import { INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider } from 'core/n
 import { ProjectHeader } from 'core/projects/ProjectHeader';
 import { IProject } from '../domain/IProject';
 import { ProjectReader } from './service/ProjectReader';
+import { CORE_PROJECTS_PROJECTS_CONTROLLER } from './projects.controller';
+import { CORE_PROJECTS_DASHBOARD_DASHBOARD_CONTROLLER } from './dashboard/dashboard.controller';
 
 export interface IProjectStateParms extends StateParams {
   project: string;
@@ -12,8 +14,8 @@ export interface IProjectStateParms extends StateParams {
 
 export const PROJECTS_STATES_CONFIG = 'spinnaker.core.projects.state.config';
 module(PROJECTS_STATES_CONFIG, [
-  require('./projects.controller').name,
-  require('./dashboard/dashboard.controller').name,
+  CORE_PROJECTS_PROJECTS_CONTROLLER,
+  CORE_PROJECTS_DASHBOARD_DASHBOARD_CONTROLLER,
   APPLICATION_STATE_PROVIDER,
   STATE_CONFIG_PROVIDER,
 ]).config([

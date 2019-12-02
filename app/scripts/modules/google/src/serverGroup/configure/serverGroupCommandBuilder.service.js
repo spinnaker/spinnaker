@@ -6,6 +6,9 @@ import _ from 'lodash';
 import { AccountService, ExpectedArtifactService, INSTANCE_TYPE_SERVICE } from '@spinnaker/core';
 import { GCEProviderSettings } from 'google/gce.settings';
 import { parseHealthCheckUrl } from 'google/healthCheck/healthCheckUtils';
+import { GOOGLE_COMMON_XPNNAMING_GCE_SERVICE } from 'google/common/xpnNaming.gce.service';
+import { GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCEBUILDER_GCE_SERVICE } from './../../instance/custom/customInstanceBuilder.gce.service';
+import { GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_HIDDENMETADATAKEYS_VALUE } from './wizard/hiddenMetadataKeys.value';
 
 export const GOOGLE_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE =
   'spinnaker.gce.serverGroupCommandBuilder.service';
@@ -13,9 +16,9 @@ export const name = GOOGLE_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVI
 angular
   .module(GOOGLE_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE, [
     INSTANCE_TYPE_SERVICE,
-    require('google/common/xpnNaming.gce.service').name,
-    require('./../../instance/custom/customInstanceBuilder.gce.service').name,
-    require('./wizard/hiddenMetadataKeys.value').name,
+    GOOGLE_COMMON_XPNNAMING_GCE_SERVICE,
+    GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCEBUILDER_GCE_SERVICE,
+    GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_HIDDENMETADATAKEYS_VALUE,
   ])
   .factory('gceServerGroupCommandBuilder', [
     '$q',

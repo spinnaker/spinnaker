@@ -3,15 +3,18 @@
 const angular = require('angular');
 
 import { InfrastructureCaches } from '@spinnaker/core';
+import { GOOGLE_SERVERGROUP_CONFIGURE_SERVERGROUPCONFIGURATION_SERVICE } from '../../serverGroupConfiguration.service';
+import { GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGSELECTORGENERATOR_COMPONENT } from './tagSelectorGenerator.component';
+import { GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGMANAGER_SERVICE } from './tagManager.service';
 
 export const GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_SECURITYGROUPSELECTOR_DIRECTIVE =
   'spinnaker.google.serverGroup.configure.wizard.securityGroups.selector.directive';
 export const name = GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_SECURITYGROUPSELECTOR_DIRECTIVE; // for backwards compatibility
 angular
   .module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_SECURITYGROUPSELECTOR_DIRECTIVE, [
-    require('../../serverGroupConfiguration.service').name,
-    require('./tagSelectorGenerator.component').name,
-    require('./tagManager.service').name,
+    GOOGLE_SERVERGROUP_CONFIGURE_SERVERGROUPCONFIGURATION_SERVICE,
+    GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGSELECTORGENERATOR_COMPONENT,
+    GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGMANAGER_SERVICE,
   ])
   .directive('gceServerGroupSecurityGroupSelector', function() {
     return {

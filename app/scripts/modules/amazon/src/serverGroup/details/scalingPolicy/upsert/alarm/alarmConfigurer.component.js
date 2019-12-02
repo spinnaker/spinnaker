@@ -5,13 +5,14 @@ const angular = require('angular');
 import { Subject } from 'rxjs';
 
 import { METRIC_SELECTOR_COMPONENT } from './metricSelector.component';
+import { AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_ALARM_DIMENSIONSEDITOR_COMPONENT } from './dimensionsEditor.component';
 
 export const AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_ALARM_ALARMCONFIGURER_COMPONENT =
   'spinnaker.amazon.serverGroup.details.scalingPolicy.alarm.configurer';
 export const name = AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_ALARM_ALARMCONFIGURER_COMPONENT; // for backwards compatibility
 angular
   .module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_ALARM_ALARMCONFIGURER_COMPONENT, [
-    require('./dimensionsEditor.component').name,
+    AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_ALARM_DIMENSIONSEDITOR_COMPONENT,
     METRIC_SELECTOR_COMPONENT,
   ])
   .component('awsAlarmConfigurer', {

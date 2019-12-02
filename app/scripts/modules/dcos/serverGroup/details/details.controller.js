@@ -10,15 +10,17 @@ import {
   SERVER_GROUP_WRITER,
   ServerGroupTemplates,
 } from '@spinnaker/core';
+import { DCOS_SERVERGROUP_CONFIGURE_CONFIGURE_DCOS_MODULE } from '../configure/configure.dcos.module';
+import { DCOS_SERVERGROUP_PARAMSMIXIN } from '../paramsMixin';
 
 export const DCOS_SERVERGROUP_DETAILS_DETAILS_CONTROLLER = 'spinnaker.dcos.serverGroup.details.controller';
 export const name = DCOS_SERVERGROUP_DETAILS_DETAILS_CONTROLLER; // for backwards compatibility
 angular
   .module(DCOS_SERVERGROUP_DETAILS_DETAILS_CONTROLLER, [
-    require('../configure/configure.dcos.module').name,
+    DCOS_SERVERGROUP_CONFIGURE_CONFIGURE_DCOS_MODULE,
     CONFIRMATION_MODAL_SERVICE,
     SERVER_GROUP_WRITER,
-    require('../paramsMixin').name,
+    DCOS_SERVERGROUP_PARAMSMIXIN,
   ])
   .controller('dcosServerGroupDetailsController', [
     '$scope',

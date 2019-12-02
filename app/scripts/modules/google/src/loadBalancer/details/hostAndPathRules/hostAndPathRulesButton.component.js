@@ -1,4 +1,5 @@
-'use strict';
+import { GOOGLE_LOADBALANCER_DETAILS_HOSTANDPATHRULES_HOSTANDPATHRULES_CONTROLLER } from './hostAndPathRules.controller';
+('use strict');
 
 const angular = require('angular');
 
@@ -8,7 +9,7 @@ export const name = GOOGLE_LOADBALANCER_DETAILS_HOSTANDPATHRULES_HOSTANDPATHRULE
 angular
   .module(GOOGLE_LOADBALANCER_DETAILS_HOSTANDPATHRULES_HOSTANDPATHRULESBUTTON_COMPONENT, [
     require('angular-ui-bootstrap'),
-    require('./hostAndPathRules.controller').name,
+    GOOGLE_LOADBALANCER_DETAILS_HOSTANDPATHRULES_HOSTANDPATHRULES_CONTROLLER,
   ])
   .component('gceHostAndPathRulesButton', {
     bindings: {

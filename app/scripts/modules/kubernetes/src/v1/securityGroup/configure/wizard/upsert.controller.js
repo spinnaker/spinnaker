@@ -10,6 +10,8 @@ import {
   SecurityGroupWriter,
   TaskMonitor,
 } from '@spinnaker/core';
+import { KUBERNETES_V1_NAMESPACE_SELECTFIELD_DIRECTIVE } from '../../../namespace/selectField.directive';
+import { KUBERNETES_V1_SECURITYGROUP_TRANSFORMER } from '../../transformer';
 
 export const KUBERNETES_V1_SECURITYGROUP_CONFIGURE_WIZARD_UPSERT_CONTROLLER =
   'spinnaker.securityGroup.kubernetes.create.controller';
@@ -19,8 +21,8 @@ angular
     require('@uirouter/angularjs').default,
     LOAD_BALANCER_READ_SERVICE,
     SECURITY_GROUP_READER,
-    require('../../../namespace/selectField.directive').name,
-    require('../../transformer').name,
+    KUBERNETES_V1_NAMESPACE_SELECTFIELD_DIRECTIVE,
+    KUBERNETES_V1_SECURITYGROUP_TRANSFORMER,
   ])
   .controller('kubernetesUpsertSecurityGroupController', [
     '$q',

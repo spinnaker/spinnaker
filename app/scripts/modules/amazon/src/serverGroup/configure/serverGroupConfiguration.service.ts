@@ -50,6 +50,7 @@ import {
 } from 'amazon/domain';
 import { KeyPairsReader } from 'amazon/keyPairs';
 import { AutoScalingProcessService } from '../details/scalingProcesses/AutoScalingProcessService';
+import { AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE } from 'amazon/instance/awsInstanceType.service';
 
 export type IBlockDeviceMappingSource = 'source' | 'ami' | 'default';
 
@@ -618,7 +619,7 @@ export class AwsServerGroupConfigurationService {
 export const AWS_SERVER_GROUP_CONFIGURATION_SERVICE = 'spinnaker.amazon.serverGroup.configure.service';
 module(AWS_SERVER_GROUP_CONFIGURATION_SERVICE, [
   SECURITY_GROUP_READER,
-  require('amazon/instance/awsInstanceType.service').name,
+  AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE,
   LOAD_BALANCER_READ_SERVICE,
   CACHE_INITIALIZER_SERVICE,
   SERVER_GROUP_COMMAND_REGISTRY_PROVIDER,

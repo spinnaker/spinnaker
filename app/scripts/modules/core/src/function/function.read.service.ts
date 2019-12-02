@@ -2,6 +2,7 @@ import { IPromise, IQService, module } from 'angular';
 
 import { API } from 'core/api/ApiService';
 import { IFunctionSourceData, IFunction } from 'core/domain';
+import { CORE_FUNCTION_FUNCTION_TRANSFORMER } from './function.transformer';
 
 export interface IFunctionByAccount {
   name: string;
@@ -59,4 +60,4 @@ export class FunctionReader {
 
 export const FUNCTION_READ_SERVICE = 'spinnaker.core.function.read.service';
 
-module(FUNCTION_READ_SERVICE, [require('./function.transformer').name]).service('functionReader', FunctionReader);
+module(FUNCTION_READ_SERVICE, [CORE_FUNCTION_FUNCTION_TRANSFORMER]).service('functionReader', FunctionReader);

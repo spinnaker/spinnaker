@@ -5,13 +5,14 @@ const angular = require('angular');
 import { AccountService, CONFIRMATION_MODAL_SERVICE, TaskExecutor } from '@spinnaker/core';
 
 import './scalingPolicySummary.component.less';
+import { TITUS_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_UPSERTSCALINGPOLICY_CONTROLLER } from './upsert/upsertScalingPolicy.controller';
 
 export const TITUS_SERVERGROUP_DETAILS_SCALINGPOLICY_ALARMBASEDSUMMARY_COMPONENT =
   'spinnaker.titus.serverGroup.details.scalingPolicy.alarmBasedSummary.component';
 export const name = TITUS_SERVERGROUP_DETAILS_SCALINGPOLICY_ALARMBASEDSUMMARY_COMPONENT; // for backwards compatibility
 angular
   .module(TITUS_SERVERGROUP_DETAILS_SCALINGPOLICY_ALARMBASEDSUMMARY_COMPONENT, [
-    require('./upsert/upsertScalingPolicy.controller').name,
+    TITUS_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_UPSERTSCALINGPOLICY_CONTROLLER,
     CONFIRMATION_MODAL_SERVICE,
   ])
   .component('titusAlarmBasedSummary', {

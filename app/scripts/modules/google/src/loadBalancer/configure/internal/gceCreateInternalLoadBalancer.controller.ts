@@ -21,6 +21,7 @@ import {
   GceCommonLoadBalancerCommandBuilder,
 } from '../common/commonLoadBalancerCommandBuilder.service';
 import { GCE_HEALTH_CHECK_SELECTOR_COMPONENT } from '../common/healthCheck.component';
+import { GOOGLE_COMMON_XPNNAMING_GCE_SERVICE } from 'google/common/xpnNaming.gce.service';
 
 class ViewState {
   constructor(public sessionAffinity: string) {}
@@ -273,5 +274,5 @@ export const GCE_INTERNAL_LOAD_BALANCER_CTRL = 'spinnaker.gce.internalLoadBalanc
 module(GCE_INTERNAL_LOAD_BALANCER_CTRL, [
   GCE_HEALTH_CHECK_SELECTOR_COMPONENT,
   GCE_COMMON_LOAD_BALANCER_COMMAND_BUILDER,
-  require('google/common/xpnNaming.gce.service').name,
+  GOOGLE_COMMON_XPNNAMING_GCE_SERVICE,
 ]).controller('gceInternalLoadBalancerCtrl', InternalLoadBalancerCtrl);

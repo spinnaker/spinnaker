@@ -14,6 +14,40 @@ import { GceImageReader } from './image';
 import './help/gce.help';
 
 import './logo/gce.logo.less';
+import { GOOGLE_SERVERGROUP_DETAILS_SERVERGROUP_DETAILS_GCE_MODULE } from './serverGroup/details/serverGroup.details.gce.module';
+import { GOOGLE_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE } from './serverGroup/configure/serverGroupCommandBuilder.service';
+import { GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_GCE_CONTROLLER } from './serverGroup/configure/wizard/cloneServerGroup.gce.controller';
+import { GOOGLE_SERVERGROUP_CONFIGURE_SERVERGROUP_CONFIGURE_GCE_MODULE } from './serverGroup/configure/serverGroup.configure.gce.module';
+import { GOOGLE_SERVERGROUP_SERVERGROUP_TRANSFORMER } from './serverGroup/serverGroup.transformer';
+import { GOOGLE_PIPELINE_STAGES_BAKE_GCEBAKESTAGE } from './pipeline/stages/bake/gceBakeStage';
+import { GOOGLE_PIPELINE_STAGES_CLONESERVERGROUP_GCECLONESERVERGROUPSTAGE } from './pipeline/stages/cloneServerGroup/gceCloneServerGroupStage';
+import { GOOGLE_PIPELINE_STAGES_DESTROYASG_GCEDESTROYASGSTAGE } from './pipeline/stages/destroyAsg/gceDestroyAsgStage';
+import { GOOGLE_PIPELINE_STAGES_DISABLEASG_GCEDISABLEASGSTAGE } from './pipeline/stages/disableAsg/gceDisableAsgStage';
+import { GOOGLE_PIPELINE_STAGES_DISABLECLUSTER_GCEDISABLECLUSTERSTAGE } from './pipeline/stages/disableCluster/gceDisableClusterStage';
+import { GOOGLE_PIPELINE_STAGES_ENABLEASG_GCEENABLEASGSTAGE } from './pipeline/stages/enableAsg/gceEnableAsgStage';
+import { GOOGLE_PIPELINE_STAGES_FINDAMI_GCEFINDAMISTAGE } from './pipeline/stages/findAmi/gceFindAmiStage';
+import { GOOGLE_PIPELINE_STAGES_FINDIMAGEFROMTAGS_GCEFINDIMAGEFROMTAGSSTAGE } from './pipeline/stages/findImageFromTags/gceFindImageFromTagsStage';
+import { GOOGLE_PIPELINE_STAGES_RESIZEASG_GCERESIZEASGSTAGE } from './pipeline/stages/resizeAsg/gceResizeAsgStage';
+import { GOOGLE_PIPELINE_STAGES_SCALEDOWNCLUSTER_GCESCALEDOWNCLUSTERSTAGE } from './pipeline/stages/scaleDownCluster/gceScaleDownClusterStage';
+import { GOOGLE_PIPELINE_STAGES_SHRINKCLUSTER_GCESHRINKCLUSTERSTAGE } from './pipeline/stages/shrinkCluster/gceShrinkClusterStage';
+import { GOOGLE_PIPELINE_STAGES_TAGIMAGE_GCETAGIMAGESTAGE } from './pipeline/stages/tagImage/gceTagImageStage';
+import { GOOGLE_INSTANCE_GCEINSTANCETYPE_SERVICE } from './instance/gceInstanceType.service';
+import { GOOGLE_INSTANCE_GCEMULTIINSTANCETASK_TRANSFORMER } from './instance/gceMultiInstanceTask.transformer';
+import { GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCE_FILTER } from './instance/custom/customInstance.filter';
+import { GOOGLE_LOADBALANCER_LOADBALANCER_TRANSFORMER } from './loadBalancer/loadBalancer.transformer';
+import { GOOGLE_LOADBALANCER_DETAILS_LOADBALANCERDETAIL_CONTROLLER } from './loadBalancer/details/loadBalancerDetail.controller';
+import { GOOGLE_LOADBALANCER_CONFIGURE_NETWORK_CREATELOADBALANCER_CONTROLLER } from './loadBalancer/configure/network/createLoadBalancer.controller';
+import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_CREATEHTTPLOADBALANCER_CONTROLLER } from './loadBalancer/configure/http/createHttpLoadBalancer.controller';
+import { GOOGLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER } from './instance/details/instance.details.controller';
+import { GOOGLE_SECURITYGROUP_DETAILS_SECURITYGROUPDETAIL_CONTROLLER } from './securityGroup/details/securityGroupDetail.controller';
+import { GOOGLE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUP_CONTROLLER } from './securityGroup/configure/createSecurityGroup.controller';
+import { GOOGLE_SECURITYGROUP_CONFIGURE_EDITSECURITYGROUP_CONTROLLER } from './securityGroup/configure/editSecurityGroup.controller';
+import { GOOGLE_SECURITYGROUP_SECURITYGROUP_TRANSFORMER } from './securityGroup/securityGroup.transformer';
+import { GOOGLE_SECURITYGROUP_SECURITYGROUP_READER } from './securityGroup/securityGroup.reader';
+import { GOOGLE_SUBNET_SUBNET_RENDERER } from './subnet/subnet.renderer';
+import { GOOGLE_VALIDATION_APPLICATIONNAME_VALIDATOR } from './validation/applicationName.validator';
+import { GOOGLE_CACHE_CACHECONFIGURER_SERVICE } from './cache/cacheConfigurer.service';
+import { GOOGLE_COMMON_XPNNAMING_GCE_SERVICE } from './common/xpnNaming.gce.service';
 
 // load all templates into the $templateCache
 const templates = require.context('./', true, /\.html$/);
@@ -31,40 +65,40 @@ module(GOOGLE_MODULE, [
   IAP_INTERCEPTOR,
   GCE_SERVER_GROUP_DISK_DESCRIPTIONS,
   GCE_SCALE_DOWN_CONTROLS,
-  require('./serverGroup/details/serverGroup.details.gce.module').name,
-  require('./serverGroup/configure/serverGroupCommandBuilder.service').name,
-  require('./serverGroup/configure/wizard/cloneServerGroup.gce.controller').name,
-  require('./serverGroup/configure/serverGroup.configure.gce.module').name,
-  require('./serverGroup/serverGroup.transformer').name,
-  require('./pipeline/stages/bake/gceBakeStage').name,
-  require('./pipeline/stages/cloneServerGroup/gceCloneServerGroupStage').name,
-  require('./pipeline/stages/destroyAsg/gceDestroyAsgStage').name,
-  require('./pipeline/stages/disableAsg/gceDisableAsgStage').name,
-  require('./pipeline/stages/disableCluster/gceDisableClusterStage').name,
-  require('./pipeline/stages/enableAsg/gceEnableAsgStage').name,
-  require('./pipeline/stages/findAmi/gceFindAmiStage').name,
-  require('./pipeline/stages/findImageFromTags/gceFindImageFromTagsStage').name,
-  require('./pipeline/stages/resizeAsg/gceResizeAsgStage').name,
-  require('./pipeline/stages/scaleDownCluster/gceScaleDownClusterStage').name,
-  require('./pipeline/stages/shrinkCluster/gceShrinkClusterStage').name,
-  require('./pipeline/stages/tagImage/gceTagImageStage').name,
-  require('./instance/gceInstanceType.service').name,
-  require('./instance/gceMultiInstanceTask.transformer').name,
-  require('./instance/custom/customInstance.filter').name,
-  require('./loadBalancer/loadBalancer.transformer').name,
-  require('./loadBalancer/details/loadBalancerDetail.controller').name,
-  require('./loadBalancer/configure/network/createLoadBalancer.controller').name,
-  require('./loadBalancer/configure/http/createHttpLoadBalancer.controller').name,
-  require('./instance/details/instance.details.controller').name,
-  require('./securityGroup/details/securityGroupDetail.controller').name,
-  require('./securityGroup/configure/createSecurityGroup.controller').name,
-  require('./securityGroup/configure/editSecurityGroup.controller').name,
-  require('./securityGroup/securityGroup.transformer').name,
-  require('./securityGroup/securityGroup.reader').name,
-  require('./subnet/subnet.renderer').name,
-  require('./validation/applicationName.validator').name,
-  require('./cache/cacheConfigurer.service').name,
-  require('./common/xpnNaming.gce.service').name,
+  GOOGLE_SERVERGROUP_DETAILS_SERVERGROUP_DETAILS_GCE_MODULE,
+  GOOGLE_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE,
+  GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_GCE_CONTROLLER,
+  GOOGLE_SERVERGROUP_CONFIGURE_SERVERGROUP_CONFIGURE_GCE_MODULE,
+  GOOGLE_SERVERGROUP_SERVERGROUP_TRANSFORMER,
+  GOOGLE_PIPELINE_STAGES_BAKE_GCEBAKESTAGE,
+  GOOGLE_PIPELINE_STAGES_CLONESERVERGROUP_GCECLONESERVERGROUPSTAGE,
+  GOOGLE_PIPELINE_STAGES_DESTROYASG_GCEDESTROYASGSTAGE,
+  GOOGLE_PIPELINE_STAGES_DISABLEASG_GCEDISABLEASGSTAGE,
+  GOOGLE_PIPELINE_STAGES_DISABLECLUSTER_GCEDISABLECLUSTERSTAGE,
+  GOOGLE_PIPELINE_STAGES_ENABLEASG_GCEENABLEASGSTAGE,
+  GOOGLE_PIPELINE_STAGES_FINDAMI_GCEFINDAMISTAGE,
+  GOOGLE_PIPELINE_STAGES_FINDIMAGEFROMTAGS_GCEFINDIMAGEFROMTAGSSTAGE,
+  GOOGLE_PIPELINE_STAGES_RESIZEASG_GCERESIZEASGSTAGE,
+  GOOGLE_PIPELINE_STAGES_SCALEDOWNCLUSTER_GCESCALEDOWNCLUSTERSTAGE,
+  GOOGLE_PIPELINE_STAGES_SHRINKCLUSTER_GCESHRINKCLUSTERSTAGE,
+  GOOGLE_PIPELINE_STAGES_TAGIMAGE_GCETAGIMAGESTAGE,
+  GOOGLE_INSTANCE_GCEINSTANCETYPE_SERVICE,
+  GOOGLE_INSTANCE_GCEMULTIINSTANCETASK_TRANSFORMER,
+  GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCE_FILTER,
+  GOOGLE_LOADBALANCER_LOADBALANCER_TRANSFORMER,
+  GOOGLE_LOADBALANCER_DETAILS_LOADBALANCERDETAIL_CONTROLLER,
+  GOOGLE_LOADBALANCER_CONFIGURE_NETWORK_CREATELOADBALANCER_CONTROLLER,
+  GOOGLE_LOADBALANCER_CONFIGURE_HTTP_CREATEHTTPLOADBALANCER_CONTROLLER,
+  GOOGLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER,
+  GOOGLE_SECURITYGROUP_DETAILS_SECURITYGROUPDETAIL_CONTROLLER,
+  GOOGLE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUP_CONTROLLER,
+  GOOGLE_SECURITYGROUP_CONFIGURE_EDITSECURITYGROUP_CONTROLLER,
+  GOOGLE_SECURITYGROUP_SECURITYGROUP_TRANSFORMER,
+  GOOGLE_SECURITYGROUP_SECURITYGROUP_READER,
+  GOOGLE_SUBNET_SUBNET_RENDERER,
+  GOOGLE_VALIDATION_APPLICATIONNAME_VALIDATOR,
+  GOOGLE_CACHE_CACHECONFIGURER_SERVICE,
+  GOOGLE_COMMON_XPNNAMING_GCE_SERVICE,
 ]).config(() => {
   CloudProviderRegistry.registerProvider('gce', {
     name: 'Google',

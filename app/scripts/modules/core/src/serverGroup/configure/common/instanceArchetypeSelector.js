@@ -1,4 +1,7 @@
-'use strict';
+import { CORE_SERVERGROUP_CONFIGURE_COMMON_COSTFACTOR } from './costFactor';
+import { CORE_PRESENTATION_ISVISIBLE_ISVISIBLE_DIRECTIVE } from '../../../presentation/isVisible/isVisible.directive';
+import { CORE_SERVERGROUP_CONFIGURE_COMMON_DIRTYINSTANCETYPENOTIFICATION_COMPONENT } from './dirtyInstanceTypeNotification.component';
+('use strict');
 
 const angular = require('angular');
 
@@ -7,9 +10,9 @@ export const CORE_SERVERGROUP_CONFIGURE_COMMON_INSTANCEARCHETYPESELECTOR =
 export const name = CORE_SERVERGROUP_CONFIGURE_COMMON_INSTANCEARCHETYPESELECTOR; // for backwards compatibility
 angular
   .module(CORE_SERVERGROUP_CONFIGURE_COMMON_INSTANCEARCHETYPESELECTOR, [
-    require('./costFactor').name,
-    require('../../../presentation/isVisible/isVisible.directive').name,
-    require('./dirtyInstanceTypeNotification.component').name,
+    CORE_SERVERGROUP_CONFIGURE_COMMON_COSTFACTOR,
+    CORE_PRESENTATION_ISVISIBLE_ISVISIBLE_DIRECTIVE,
+    CORE_SERVERGROUP_CONFIGURE_COMMON_DIRTYINSTANCETYPENOTIFICATION_COMPONENT,
   ])
   .directive('instanceArchetypeSelector', function() {
     return {

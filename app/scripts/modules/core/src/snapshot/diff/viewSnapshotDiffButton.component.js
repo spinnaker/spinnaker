@@ -4,13 +4,14 @@ import _ from 'lodash';
 
 import { AccountService } from 'core/account/AccountService';
 import { CloudProviderRegistry } from 'core/cloudProvider';
+import { CORE_SNAPSHOT_DIFF_SNAPSHOTDIFF_MODAL_CONTROLLER } from './snapshotDiff.modal.controller';
 
 const angular = require('angular');
 
 export const CORE_SNAPSHOT_DIFF_VIEWSNAPSHOTDIFFBUTTON_COMPONENT = 'spinnaker.deck.core.viewSnapshotDiff.component';
 export const name = CORE_SNAPSHOT_DIFF_VIEWSNAPSHOTDIFFBUTTON_COMPONENT; // for backwards compatibility
 angular
-  .module(CORE_SNAPSHOT_DIFF_VIEWSNAPSHOTDIFFBUTTON_COMPONENT, [require('./snapshotDiff.modal.controller').name])
+  .module(CORE_SNAPSHOT_DIFF_VIEWSNAPSHOTDIFFBUTTON_COMPONENT, [CORE_SNAPSHOT_DIFF_SNAPSHOTDIFF_MODAL_CONTROLLER])
   .component('viewSnapshotDiffButton', {
     bindings: {
       application: '=',

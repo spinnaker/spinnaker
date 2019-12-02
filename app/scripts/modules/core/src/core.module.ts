@@ -70,6 +70,17 @@ import { WHATS_NEW_MODULE } from './whatsNew/whatsNew.module';
 import { WIDGETS_MODULE } from './widgets/widgets.module';
 
 import * as State from './state';
+import { CORE_FORMS_FORMS_MODULE } from './forms/forms.module';
+import { CORE_INSTANCE_INSTANCE_MODULE } from './instance/instance.module';
+import { CORE_MODAL_MODAL_MODULE } from './modal/modal.module';
+import { CORE_NOTIFICATION_NOTIFICATIONS_MODULE } from './notification/notifications.module';
+import { CORE_PRESENTATION_PRESENTATION_MODULE } from './presentation/presentation.module';
+import { CORE_PROJECTS_PROJECTS_MODULE } from './projects/projects.module';
+import { CORE_SEARCH_SEARCH_MODULE } from './search/search.module';
+import { CORE_SECURITYGROUP_SECURITYGROUP_MODULE } from './securityGroup/securityGroup.module';
+import { CORE_TASK_TASK_MODULE } from './task/task.module';
+import { CORE_UTILS_UTILS_MODULE } from './utils/utils.module';
+import { CORE_VALIDATION_VALIDATION_MODULE } from './validation/validation.module';
 
 // load all templates into the $templateCache
 const templates = require.context('./', true, /\.html$/);
@@ -106,13 +117,13 @@ module(CORE_MODULE, [
   ENTITY_TAGS_MODULE,
 
   FIREWALL_LABEL_COMPONENT,
-  require('./forms/forms.module').name,
+  CORE_FORMS_FORMS_MODULE,
 
   HEALTH_COUNTS_MODULE,
   HELP_MODULE,
 
   INSIGHT_MODULE,
-  require('./instance/instance.module').name,
+  CORE_INSTANCE_INSTANCE_MODULE,
   INTERCEPTOR_MODULE,
 
   LABEL_FILTER_COMPONENT,
@@ -120,38 +131,38 @@ module(CORE_MODULE, [
   FUNCTION_MODULE,
   MANAGED_RESOURCE_CONFIG,
   MANAGED_RESOURCES_DATA_SOURCE,
-  require('./modal/modal.module').name,
+  CORE_MODAL_MODAL_MODULE,
 
   NETWORK_INTERCEPTOR,
 
-  require('./notification/notifications.module').name,
+  CORE_NOTIFICATION_NOTIFICATIONS_MODULE,
 
   PAGE_TITLE_MODULE,
   PAGER_DUTY_MODULE,
   PIPELINE_TEMPLATE_MODULE,
   PIPELINE_MODULE,
-  require('./presentation/presentation.module').name,
-  require('./projects/projects.module').name,
+  CORE_PRESENTATION_PRESENTATION_MODULE,
+  CORE_PROJECTS_PROJECTS_MODULE,
 
   RECENT_HISTORY_SERVICE,
   REGION_MODULE,
 
-  require('./search/search.module').name,
-  require('./securityGroup/securityGroup.module').name,
+  CORE_SEARCH_SEARCH_MODULE,
+  CORE_SECURITYGROUP_SECURITYGROUP_MODULE,
   SERVERGROUP_MODULE,
   SERVER_GROUP_MANAGER_MODULE,
   SLACK_COMPONENT,
   STYLEGUIDE_MODULE,
   SUBNET_MODULE,
 
-  require('./task/task.module').name,
+  CORE_TASK_TASK_MODULE,
 
-  require('./utils/utils.module').name,
+  CORE_UTILS_UTILS_MODULE,
 
   WHATS_NEW_MODULE,
   WIDGETS_MODULE,
 
-  require('./validation/validation.module').name,
+  CORE_VALIDATION_VALIDATION_MODULE,
 ]).run(() => {
   // initialize all the stateful services
   State.initialize();

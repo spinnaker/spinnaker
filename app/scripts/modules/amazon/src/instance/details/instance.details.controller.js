@@ -14,6 +14,7 @@ import {
 } from '@spinnaker/core';
 
 import { AMAZON_INSTANCE_WRITE_SERVICE } from 'amazon/instance/amazon.instance.write.service';
+import { AMAZON_VPC_VPCTAG_DIRECTIVE } from '../../vpc/vpcTag.directive';
 
 export const AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER = 'spinnaker.amazon.instance.details.controller';
 export const name = AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER; // for backwards compatibility
@@ -22,7 +23,7 @@ angular
     require('@uirouter/angularjs').default,
     require('angular-ui-bootstrap'),
     AMAZON_INSTANCE_WRITE_SERVICE,
-    require('../../vpc/vpcTag.directive').name,
+    AMAZON_VPC_VPCTAG_DIRECTIVE,
     CONFIRMATION_MODAL_SERVICE,
   ])
   .controller('awsInstanceDetailsCtrl', [

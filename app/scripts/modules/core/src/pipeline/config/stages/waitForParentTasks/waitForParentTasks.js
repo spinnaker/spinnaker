@@ -3,13 +3,14 @@
 const angular = require('angular');
 
 import { Registry } from 'core/registry';
+import { CORE_PIPELINE_CONFIG_STAGES_WAITFORPARENTTASKS_WAITFORPARENTTASKS_TRANSFORMER } from './waitForParentTasks.transformer';
 
 export const CORE_PIPELINE_CONFIG_STAGES_WAITFORPARENTTASKS_WAITFORPARENTTASKS =
   'spinnaker.core.pipeline.stage.waitForParentTasks';
 export const name = CORE_PIPELINE_CONFIG_STAGES_WAITFORPARENTTASKS_WAITFORPARENTTASKS; // for backwards compatibility
 angular
   .module(CORE_PIPELINE_CONFIG_STAGES_WAITFORPARENTTASKS_WAITFORPARENTTASKS, [
-    require('./waitForParentTasks.transformer').name,
+    CORE_PIPELINE_CONFIG_STAGES_WAITFORPARENTTASKS_WAITFORPARENTTASKS_TRANSFORMER,
   ])
   .config(function() {
     Registry.pipeline.registerStage({

@@ -3,12 +3,15 @@
 const angular = require('angular');
 
 import './regionFilter.component.less';
+import { CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_SERVICE } from './regionFilter.service';
 
 export const CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_COMPONENT =
   'spinnaker.deck.projects.dashboard.regionFilter.component';
 export const name = CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_COMPONENT; // for backwards compatibility
 angular
-  .module(CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_COMPONENT, [require('./regionFilter.service').name])
+  .module(CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_COMPONENT, [
+    CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_SERVICE,
+  ])
   .component('regionFilter', {
     bindings: {
       regionFilter: '=',

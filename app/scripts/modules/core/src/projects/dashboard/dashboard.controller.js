@@ -11,16 +11,19 @@ import { PROJECT_PIPELINE_COMPONENT } from './pipeline/projectPipeline.component
 import { ProjectReader } from '../service/ProjectReader';
 
 import './dashboard.less';
+import { CORE_PROJECTS_DASHBOARD_CLUSTER_PROJECTCLUSTER_DIRECTIVE } from './cluster/projectCluster.directive';
+import { CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_COMPONENT } from './regionFilter/regionFilter.component';
+import { CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_SERVICE } from './regionFilter/regionFilter.service';
 
 export const CORE_PROJECTS_DASHBOARD_DASHBOARD_CONTROLLER = 'spinnaker.core.projects.dashboard.controller';
 export const name = CORE_PROJECTS_DASHBOARD_DASHBOARD_CONTROLLER; // for backwards compatibility
 angular
   .module(CORE_PROJECTS_DASHBOARD_DASHBOARD_CONTROLLER, [
-    require('./cluster/projectCluster.directive').name,
+    CORE_PROJECTS_DASHBOARD_CLUSTER_PROJECTCLUSTER_DIRECTIVE,
     PROJECT_PIPELINE_COMPONENT,
     EXECUTION_SERVICE,
-    require('./regionFilter/regionFilter.component').name,
-    require('./regionFilter/regionFilter.service').name,
+    CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_COMPONENT,
+    CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_SERVICE,
   ])
   .controller('ProjectDashboardCtrl', [
     '$scope',

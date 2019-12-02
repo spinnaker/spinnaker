@@ -5,11 +5,12 @@ const angular = require('angular');
 import { AccountService, AuthenticationService, Registry, SETTINGS } from '@spinnaker/core';
 
 import { CanaryExecutionLabel } from '../canary/CanaryExecutionLabel';
+import { CANARY_CANARY_CANARYEXECUTIONSUMMARY_CONTROLLER } from '../canary/canaryExecutionSummary.controller';
 
 export const CANARY_ACATASK_ACATASKSTAGE = 'spinnaker.canary.acaTaskStage';
 export const name = CANARY_ACATASK_ACATASKSTAGE; // for backwards compatibility
 angular
-  .module(CANARY_ACATASK_ACATASKSTAGE, [require('../canary/canaryExecutionSummary.controller').name])
+  .module(CANARY_ACATASK_ACATASKSTAGE, [CANARY_CANARY_CANARYEXECUTIONSUMMARY_CONTROLLER])
   .config(function() {
     if (SETTINGS.feature.canary) {
       Registry.pipeline.registerStage({

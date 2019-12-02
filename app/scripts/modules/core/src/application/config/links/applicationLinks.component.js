@@ -7,13 +7,14 @@ import { SETTINGS } from 'core/config/settings';
 import { CONFIG_SECTION_FOOTER } from '../footer/configSectionFooter.component';
 
 import './applicationLinks.component.less';
+import { CORE_APPLICATION_CONFIG_LINKS_EDITLINKS_MODAL_CONTROLLER } from './editLinks.modal.controller';
 
 export const CORE_APPLICATION_CONFIG_LINKS_APPLICATIONLINKS_COMPONENT =
   'spinnaker.core.application.config.applicationLinks.component';
 export const name = CORE_APPLICATION_CONFIG_LINKS_APPLICATIONLINKS_COMPONENT; // for backwards compatibility
 angular
   .module(CORE_APPLICATION_CONFIG_LINKS_APPLICATIONLINKS_COMPONENT, [
-    require('./editLinks.modal.controller').name,
+    CORE_APPLICATION_CONFIG_LINKS_EDITLINKS_MODAL_CONTROLLER,
     require('angular-ui-bootstrap'),
     CONFIG_SECTION_FOOTER,
   ])

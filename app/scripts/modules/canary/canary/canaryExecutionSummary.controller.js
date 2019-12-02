@@ -3,14 +3,16 @@
 const angular = require('angular');
 
 import { Registry } from '@spinnaker/core';
+import { CANARY_CANARY_ACTIONS_GENERATESCORE_CONTROLLER } from './actions/generateScore.controller';
+import { CANARY_CANARY_ACTIONS_ENDCANARY_CONTROLLER } from './actions/endCanary.controller';
 
 export const CANARY_CANARY_CANARYEXECUTIONSUMMARY_CONTROLLER = 'spinnaker.canary.summary.controller';
 export const name = CANARY_CANARY_CANARYEXECUTIONSUMMARY_CONTROLLER; // for backwards compatibility
 angular
   .module(CANARY_CANARY_CANARYEXECUTIONSUMMARY_CONTROLLER, [
     require('@uirouter/angularjs').default,
-    require('./actions/generateScore.controller').name,
-    require('./actions/endCanary.controller').name,
+    CANARY_CANARY_ACTIONS_GENERATESCORE_CONTROLLER,
+    CANARY_CANARY_ACTIONS_ENDCANARY_CONTROLLER,
   ])
   .controller('CanaryExecutionSummaryCtrl', [
     '$scope',

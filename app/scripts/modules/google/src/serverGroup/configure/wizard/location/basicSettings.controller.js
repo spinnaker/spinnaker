@@ -13,6 +13,9 @@ import {
 } from '@spinnaker/core';
 
 import { GceImageReader } from 'google/image';
+import { GOOGLE_GCEREGIONSELECTFIELD_DIRECTIVE } from '../../../../gceRegionSelectField.directive';
+import { GOOGLE_GCENETWORKSELECTFIELD_DIRECTIVE } from '../../../../gceNetworkSelectField.directive';
+import { GOOGLE_SUBNET_SUBNETSELECTFIELD_DIRECTIVE } from '../../../../subnet/subnetSelectField.directive';
 
 export const GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_LOCATION_BASICSETTINGS_CONTROLLER =
   'spinnaker.google.serverGroup.configure.wizard.basicSettings.controller';
@@ -22,9 +25,9 @@ angular
     require('@uirouter/angularjs').default,
     require('angular-ui-bootstrap'),
     IMAGE_READER,
-    require('../../../../gceRegionSelectField.directive').name,
-    require('../../../../gceNetworkSelectField.directive').name,
-    require('../../../../subnet/subnetSelectField.directive').name,
+    GOOGLE_GCEREGIONSELECTFIELD_DIRECTIVE,
+    GOOGLE_GCENETWORKSELECTFIELD_DIRECTIVE,
+    GOOGLE_SUBNET_SUBNETSELECTFIELD_DIRECTIVE,
   ])
   .controller('gceServerGroupBasicSettingsCtrl', [
     '$scope',

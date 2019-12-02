@@ -4,6 +4,8 @@ const angular = require('angular');
 import _ from 'lodash';
 
 import { GCE_HTTP_LOAD_BALANCER_UTILS } from 'google/loadBalancer/httpLoadBalancerUtils.service';
+import { GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_LOADBALANCERS_ELSEVENOPTIONS_ELSEVENOPTIONSGENERATOR_COMPONENT } from './elSevenOptions/elSevenOptionsGenerator.component';
+import { GOOGLE_SERVERGROUP_CONFIGURE_SERVERGROUPCONFIGURATION_SERVICE } from '../../serverGroupConfiguration.service';
 
 export const GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_LOADBALANCERS_LOADBALANCERSELECTOR_DIRECTIVE =
   'spinnaker.google.serverGroup.configure.wizard.loadBalancers.selector.directive';
@@ -11,8 +13,8 @@ export const name = GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_LOADBALANCERS_LOADBALANC
 angular
   .module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_LOADBALANCERS_LOADBALANCERSELECTOR_DIRECTIVE, [
     GCE_HTTP_LOAD_BALANCER_UTILS,
-    require('./elSevenOptions/elSevenOptionsGenerator.component').name,
-    require('../../serverGroupConfiguration.service').name,
+    GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_LOADBALANCERS_ELSEVENOPTIONS_ELSEVENOPTIONSGENERATOR_COMPONENT,
+    GOOGLE_SERVERGROUP_CONFIGURE_SERVERGROUPCONFIGURATION_SERVICE,
   ])
   .directive('gceServerGroupLoadBalancerSelector', function() {
     return {

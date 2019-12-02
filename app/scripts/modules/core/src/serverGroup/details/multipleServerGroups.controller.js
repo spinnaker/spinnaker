@@ -6,6 +6,7 @@ import { PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider/providerService.de
 import { CONFIRMATION_MODAL_SERVICE } from 'core/confirmationModal/confirmationModal.service';
 import { SERVER_GROUP_WRITER } from 'core/serverGroup/serverGroupWriter.service';
 import { ClusterState } from 'core/state';
+import { CORE_SERVERGROUP_DETAILS_MULTIPLESERVERGROUP_COMPONENT } from './multipleServerGroup.component';
 
 export const CORE_SERVERGROUP_DETAILS_MULTIPLESERVERGROUPS_CONTROLLER =
   'spinnaker.core.serverGroup.details.multipleServerGroups.controller';
@@ -16,7 +17,7 @@ angular
     SERVER_GROUP_WRITER,
     CONFIRMATION_MODAL_SERVICE,
     PROVIDER_SERVICE_DELEGATE,
-    require('./multipleServerGroup.component').name,
+    CORE_SERVERGROUP_DETAILS_MULTIPLESERVERGROUP_COMPONENT,
   ])
   .controller('MultipleServerGroupsCtrl', [
     '$scope',

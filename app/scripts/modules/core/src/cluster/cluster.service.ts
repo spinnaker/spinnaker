@@ -12,6 +12,7 @@ import { ProviderServiceDelegate } from 'core/cloudProvider';
 import { SETTINGS } from 'core/config/settings';
 
 import { taskMatcher } from './task.matcher';
+import { CORE_SERVERGROUP_SERVERGROUP_TRANSFORMER } from '../serverGroup/serverGroup.transformer';
 
 export class ClusterService {
   public static $inject = ['$q', 'serverGroupTransformer', 'providerServiceDelegate'];
@@ -317,7 +318,4 @@ export class ClusterService {
 }
 
 export const CLUSTER_SERVICE = 'spinnaker.core.cluster.service';
-module(CLUSTER_SERVICE, [require('../serverGroup/serverGroup.transformer').name]).service(
-  'clusterService',
-  ClusterService,
-);
+module(CLUSTER_SERVICE, [CORE_SERVERGROUP_SERVERGROUP_TRANSFORMER]).service('clusterService', ClusterService);

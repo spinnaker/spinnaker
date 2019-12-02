@@ -12,12 +12,14 @@ import {
   ILabelFilter,
   ILabelsMap,
 } from 'core/cluster/filter/labelFilterUtils';
+import { CORE_CLUSTER_FILTER_COLLAPSIBLEFILTERSECTION_DIRECTIVE } from './collapsibleFilterSection.directive';
+import { CORE_CLUSTER_FILTER_CLUSTERDEPENDENTFILTERHELPER_SERVICE } from './clusterDependentFilterHelper.service';
 
 export const CLUSTER_FILTER = 'spinnaker.core.cluster.filter.component';
 
 const ngmodule = module(CLUSTER_FILTER, [
-  require('./collapsibleFilterSection.directive').name,
-  require('./clusterDependentFilterHelper.service').name,
+  CORE_CLUSTER_FILTER_COLLAPSIBLEFILTERSECTION_DIRECTIVE,
+  CORE_CLUSTER_FILTER_CLUSTERDEPENDENTFILTERHELPER_SERVICE,
 ]);
 
 class ClusterFilterCtrl {

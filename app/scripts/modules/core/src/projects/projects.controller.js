@@ -7,6 +7,7 @@ import { ViewStateCache } from 'core/cache';
 
 import { ConfigureProjectModal } from './configure';
 import { ProjectReader } from './service/ProjectReader';
+import { CORE_PRESENTATION_SORTTOGGLE_SORTTOGGLE_DIRECTIVE } from '../presentation/sortToggle/sorttoggle.directive';
 
 export const CORE_PROJECTS_PROJECTS_CONTROLLER = 'spinnaker.projects.controller';
 export const name = CORE_PROJECTS_PROJECTS_CONTROLLER; // for backwards compatibility
@@ -14,7 +15,7 @@ angular
   .module(CORE_PROJECTS_PROJECTS_CONTROLLER, [
     require('@uirouter/angularjs').default,
     ANY_FIELD_FILTER,
-    require('../presentation/sortToggle/sorttoggle.directive').name,
+    CORE_PRESENTATION_SORTTOGGLE_SORTTOGGLE_DIRECTIVE,
     INSIGHT_MENU_DIRECTIVE,
   ])
   .controller('ProjectsCtrl', [

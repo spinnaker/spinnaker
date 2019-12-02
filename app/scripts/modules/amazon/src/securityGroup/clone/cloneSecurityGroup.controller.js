@@ -4,13 +4,14 @@ const angular = require('angular');
 import _ from 'lodash';
 
 import { AccountService, FirewallLabels } from '@spinnaker/core';
+import { AMAZON_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER } from '../configure/configSecurityGroup.mixin.controller';
 
 export const AMAZON_SECURITYGROUP_CLONE_CLONESECURITYGROUP_CONTROLLER =
   'spinnaker.amazon.securityGroup.clone.controller';
 export const name = AMAZON_SECURITYGROUP_CLONE_CLONESECURITYGROUP_CONTROLLER; // for backwards compatibility
 angular
   .module(AMAZON_SECURITYGROUP_CLONE_CLONESECURITYGROUP_CONTROLLER, [
-    require('../configure/configSecurityGroup.mixin.controller').name,
+    AMAZON_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER,
   ])
   .controller('awsCloneSecurityGroupController', [
     '$scope',

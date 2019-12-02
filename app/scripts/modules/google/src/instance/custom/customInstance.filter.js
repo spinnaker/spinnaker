@@ -1,13 +1,14 @@
 'use strict';
 
 import _ from 'lodash';
+import { GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCEBUILDER_GCE_SERVICE } from './customInstanceBuilder.gce.service';
 
 const angular = require('angular');
 
 export const GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCE_FILTER = 'spinnaker.gce.customInstance.filter';
 export const name = GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCE_FILTER; // for backwards compatibility
 angular
-  .module(GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCE_FILTER, [require('./customInstanceBuilder.gce.service').name])
+  .module(GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCE_FILTER, [GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCEBUILDER_GCE_SERVICE])
   .filter('customInstanceFilter', [
     'gceCustomInstanceBuilderService',
     function(gceCustomInstanceBuilderService) {

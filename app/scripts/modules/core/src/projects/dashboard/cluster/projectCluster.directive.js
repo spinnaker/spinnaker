@@ -10,6 +10,7 @@ import { ClusterState } from 'core/state';
 import { TIME_FORMATTERS } from 'core/utils/timeFormatters';
 
 import './projectCluster.less';
+import { CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_SERVICE } from '../regionFilter/regionFilter.service';
 
 export const CORE_PROJECTS_DASHBOARD_CLUSTER_PROJECTCLUSTER_DIRECTIVE =
   'spinnaker.core.projects.dashboard.clusters.projectCluster.directive';
@@ -18,7 +19,7 @@ angular
   .module(CORE_PROJECTS_DASHBOARD_CLUSTER_PROJECTCLUSTER_DIRECTIVE, [
     TIME_FORMATTERS,
     HEALTH_COUNTS_COMPONENT,
-    require('../regionFilter/regionFilter.service').name,
+    CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_SERVICE,
   ])
   .directive('projectCluster', function() {
     return {

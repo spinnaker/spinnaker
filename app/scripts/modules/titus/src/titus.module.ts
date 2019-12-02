@@ -14,6 +14,22 @@ import './pipeline/stages/runJob/titusRunJobStage';
 import { TitusCloneServerGroupModal } from './serverGroup/configure/wizard/TitusCloneServerGroupModal';
 
 import './logo/titus.logo.less';
+import { TITUS_SECURITYGROUP_SECURITYGROUP_READ_SERVICE } from './securityGroup/securityGroup.read.service';
+import { TITUS_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_TITUS_CONTROLLER } from './serverGroup/details/serverGroupDetails.titus.controller';
+import { TITUS_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER } from './serverGroup/configure/ServerGroupCommandBuilder';
+import { TITUS_SERVERGROUP_CONFIGURE_SERVERGROUP_CONFIGURE_TITUS_MODULE } from './serverGroup/configure/serverGroup.configure.titus.module';
+import { TITUS_SERVERGROUP_SERVERGROUP_TRANSFORMER } from './serverGroup/serverGroup.transformer';
+import { TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER } from './instance/details/instance.details.controller';
+import { TITUS_PIPELINE_STAGES_FINDAMI_TITUSFINDAMISTAGE } from './pipeline/stages/findAmi/titusFindAmiStage';
+import { TITUS_PIPELINE_STAGES_ENABLEASG_TITUSENABLEASGSTAGE } from './pipeline/stages/enableAsg/titusEnableAsgStage';
+import { TITUS_PIPELINE_STAGES_DISABLEASG_TITUSDISABLEASGSTAGE } from './pipeline/stages/disableAsg/titusDisableAsgStage';
+import { TITUS_PIPELINE_STAGES_DESTROYASG_TITUSDESTROYASGSTAGE } from './pipeline/stages/destroyAsg/titusDestroyAsgStage';
+import { TITUS_PIPELINE_STAGES_RESIZEASG_TITUSRESIZEASGSTAGE } from './pipeline/stages/resizeAsg/titusResizeAsgStage';
+import { TITUS_PIPELINE_STAGES_CLONESERVERGROUP_TITUSCLONESERVERGROUPSTAGE } from './pipeline/stages/cloneServerGroup/titusCloneServerGroupStage';
+import { TITUS_PIPELINE_STAGES_BAKE_TITUSBAKESTAGE } from './pipeline/stages/bake/titusBakeStage';
+import { TITUS_PIPELINE_STAGES_DISABLECLUSTER_TITUSDISABLECLUSTERSTAGE } from './pipeline/stages/disableCluster/titusDisableClusterStage';
+import { TITUS_PIPELINE_STAGES_SHRINKCLUSTER_TITUSSHRINKCLUSTERSTAGE } from './pipeline/stages/shrinkCluster/titusShrinkClusterStage';
+import { TITUS_PIPELINE_STAGES_SCALEDOWNCLUSTER_TITUSSCALEDOWNCLUSTERSTAGE } from './pipeline/stages/scaleDownCluster/titusScaleDownClusterStage';
 
 // load all templates into the $templateCache
 const templates = require.context('./', true, /\.html$/);
@@ -24,22 +40,22 @@ templates.keys().forEach(function(key) {
 export const TITUS_MODULE = 'spinnaker.titus';
 module(TITUS_MODULE, [
   TITUS_REACT_MODULE,
-  require('./securityGroup/securityGroup.read.service').name,
-  require('./serverGroup/details/serverGroupDetails.titus.controller').name,
-  require('./serverGroup/configure/ServerGroupCommandBuilder').name,
-  require('./serverGroup/configure/serverGroup.configure.titus.module').name,
-  require('./serverGroup/serverGroup.transformer').name,
-  require('./instance/details/instance.details.controller').name,
-  require('./pipeline/stages/findAmi/titusFindAmiStage').name,
-  require('./pipeline/stages/enableAsg/titusEnableAsgStage').name,
-  require('./pipeline/stages/disableAsg/titusDisableAsgStage').name,
-  require('./pipeline/stages/destroyAsg/titusDestroyAsgStage').name,
-  require('./pipeline/stages/resizeAsg/titusResizeAsgStage').name,
-  require('./pipeline/stages/cloneServerGroup/titusCloneServerGroupStage').name,
-  require('./pipeline/stages/bake/titusBakeStage').name,
-  require('./pipeline/stages/disableCluster/titusDisableClusterStage').name,
-  require('./pipeline/stages/shrinkCluster/titusShrinkClusterStage').name,
-  require('./pipeline/stages/scaleDownCluster/titusScaleDownClusterStage').name,
+  TITUS_SECURITYGROUP_SECURITYGROUP_READ_SERVICE,
+  TITUS_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_TITUS_CONTROLLER,
+  TITUS_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER,
+  TITUS_SERVERGROUP_CONFIGURE_SERVERGROUP_CONFIGURE_TITUS_MODULE,
+  TITUS_SERVERGROUP_SERVERGROUP_TRANSFORMER,
+  TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER,
+  TITUS_PIPELINE_STAGES_FINDAMI_TITUSFINDAMISTAGE,
+  TITUS_PIPELINE_STAGES_ENABLEASG_TITUSENABLEASGSTAGE,
+  TITUS_PIPELINE_STAGES_DISABLEASG_TITUSDISABLEASGSTAGE,
+  TITUS_PIPELINE_STAGES_DESTROYASG_TITUSDESTROYASGSTAGE,
+  TITUS_PIPELINE_STAGES_RESIZEASG_TITUSRESIZEASGSTAGE,
+  TITUS_PIPELINE_STAGES_CLONESERVERGROUP_TITUSCLONESERVERGROUPSTAGE,
+  TITUS_PIPELINE_STAGES_BAKE_TITUSBAKESTAGE,
+  TITUS_PIPELINE_STAGES_DISABLECLUSTER_TITUSDISABLECLUSTERSTAGE,
+  TITUS_PIPELINE_STAGES_SHRINKCLUSTER_TITUSSHRINKCLUSTERSTAGE,
+  TITUS_PIPELINE_STAGES_SCALEDOWNCLUSTER_TITUSSCALEDOWNCLUSTERSTAGE,
   TITUS_SERVERGROUP_DETAILS_CAPACITYDETAILSSECTION,
   TITUS_SERVERGROUP_DETAILS_LAUNCHCONFIGSECTION,
   TITUS_MIGRATION_CONFIG_COMPONENT,

@@ -3,6 +3,8 @@
 const angular = require('angular');
 
 import { AccountService, LoadBalancerWriter, TaskMonitor } from '@spinnaker/core';
+import { KUBERNETES_V1_NAMESPACE_SELECTFIELD_DIRECTIVE } from '../../../namespace/selectField.directive';
+import { KUBERNETES_V1_LOADBALANCER_TRANSFORMER } from '../../transformer';
 
 export const KUBERNETES_V1_LOADBALANCER_CONFIGURE_WIZARD_UPSERT_CONTROLLER =
   'spinnaker.loadBalancer.kubernetes.create.controller';
@@ -10,8 +12,8 @@ export const name = KUBERNETES_V1_LOADBALANCER_CONFIGURE_WIZARD_UPSERT_CONTROLLE
 angular
   .module(KUBERNETES_V1_LOADBALANCER_CONFIGURE_WIZARD_UPSERT_CONTROLLER, [
     require('@uirouter/angularjs').default,
-    require('../../../namespace/selectField.directive').name,
-    require('../../transformer').name,
+    KUBERNETES_V1_NAMESPACE_SELECTFIELD_DIRECTIVE,
+    KUBERNETES_V1_LOADBALANCER_TRANSFORMER,
   ])
   .controller('kubernetesUpsertLoadBalancerController', [
     '$scope',

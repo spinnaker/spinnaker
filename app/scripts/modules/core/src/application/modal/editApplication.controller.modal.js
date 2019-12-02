@@ -6,6 +6,7 @@ import { AccountService } from 'core/account/AccountService';
 import { ApplicationWriter } from 'core/application/service/ApplicationWriter';
 import { TaskReader } from 'core/task/task.read.service';
 import { SETTINGS } from 'core/config/settings';
+import { CORE_APPLICATION_MODAL_APPLICATIONPROVIDERFIELDS_COMPONENT } from './applicationProviderFields.component';
 
 const angular = require('angular');
 
@@ -13,7 +14,7 @@ export const CORE_APPLICATION_MODAL_EDITAPPLICATION_CONTROLLER_MODAL = 'spinnake
 export const name = CORE_APPLICATION_MODAL_EDITAPPLICATION_CONTROLLER_MODAL; // for backwards compatibility
 angular
   .module(CORE_APPLICATION_MODAL_EDITAPPLICATION_CONTROLLER_MODAL, [
-    require('./applicationProviderFields.component').name,
+    CORE_APPLICATION_MODAL_APPLICATIONPROVIDERFIELDS_COMPONENT,
   ])
   .controller('EditApplicationController', [
     '$scope',

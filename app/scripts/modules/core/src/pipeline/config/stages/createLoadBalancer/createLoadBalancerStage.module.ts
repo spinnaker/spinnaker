@@ -1,10 +1,11 @@
 import { module } from 'angular';
 
 import { CREATE_LOAD_BALANCER_EXECUTION_DETAILS_CTRL } from './createLoadBalancerExecutionDetails.controller';
+import { CORE_PIPELINE_CONFIG_STAGES_CREATELOADBALANCER_CREATELOADBALANCERSTAGE } from './createLoadBalancerStage';
 
 export const CREATE_LOAD_BALANCER_STAGE = 'spinnaker.core.pipeline.stage.createLoadBalancer';
 
 module(CREATE_LOAD_BALANCER_STAGE, [
-  require('./createLoadBalancerStage').name,
+  CORE_PIPELINE_CONFIG_STAGES_CREATELOADBALANCER_CREATELOADBALANCERSTAGE,
   CREATE_LOAD_BALANCER_EXECUTION_DETAILS_CTRL,
 ]);

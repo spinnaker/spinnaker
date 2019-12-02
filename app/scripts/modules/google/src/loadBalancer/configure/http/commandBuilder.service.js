@@ -12,19 +12,21 @@ import { GCE_HTTP_LOAD_BALANCER_UTILS } from 'google/loadBalancer/httpLoadBalanc
 import { GCEProviderSettings } from 'google/gce.settings';
 import { sessionAffinityModelToViewMap } from '../common/sessionAffinityNameMaps';
 import { HttpLoadBalancerTemplate, ListenerTemplate } from './templates';
+import { GOOGLE_BACKENDSERVICE_BACKENDSERVICE_READER } from '../../../backendService/backendService.reader';
+import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_TRANSFORMER_SERVICE } from './transformer.service';
 
 export const GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE =
   'spinnaker.deck.gce.httpLoadBalancer.backing.service';
 export const name = GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE; // for backwards compatibility
 angular
   .module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE, [
-    require('../../../backendService/backendService.reader').name,
+    GOOGLE_BACKENDSERVICE_BACKENDSERVICE_READER,
     GCE_CERTIFICATE_READER,
     LOAD_BALANCER_READ_SERVICE,
     GCE_HTTP_LOAD_BALANCER_UTILS,
     GCE_ADDRESS_READER,
     GCE_HEALTH_CHECK_READER,
-    require('./transformer.service').name,
+    GOOGLE_LOADBALANCER_CONFIGURE_HTTP_TRANSFORMER_SERVICE,
   ])
   .factory('gceHttpLoadBalancerCommandBuilder', [
     '$q',

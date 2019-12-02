@@ -8,6 +8,15 @@ import { GCE_CACHE_REFRESH } from 'google/cache/cacheRefresh.component';
 import { BackendServiceTemplate, HealthCheckTemplate, HostRuleTemplate, ListenerTemplate } from './templates';
 
 import './httpLoadBalancerWizard.component.less';
+import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_BACKENDSERVICE_BACKENDSERVICE_COMPONENT } from './backendService/backendService.component';
+import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_BASICSETTINGS_BASICSETTINGS_COMPONENT } from './basicSettings/basicSettings.component';
+import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE } from './commandBuilder.service';
+import { GOOGLE_LOADBALANCER_DETAILS_HOSTANDPATHRULES_HOSTANDPATHRULESBUTTON_COMPONENT } from '../../details/hostAndPathRules/hostAndPathRulesButton.component';
+import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_HEALTHCHECK_HEALTHCHECK_COMPONENT } from './healthCheck/healthCheck.component';
+import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_HOSTRULE_HOSTRULE_COMPONENT } from './hostRule/hostRule.component';
+import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_HTTPLOADBALANCER_WRITE_SERVICE } from './httpLoadBalancer.write.service';
+import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_LISTENERS_LISTENER_COMPONENT } from './listeners/listener.component';
+import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_TRANSFORMER_SERVICE } from './transformer.service';
 
 export const GOOGLE_LOADBALANCER_CONFIGURE_HTTP_CREATEHTTPLOADBALANCER_CONTROLLER =
   'spinnaker.deck.gce.loadBalancer.createHttp.controller';
@@ -16,16 +25,16 @@ angular
   .module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_CREATEHTTPLOADBALANCER_CONTROLLER, [
     require('angular-ui-bootstrap'),
     require('@uirouter/angularjs').default,
-    require('./backendService/backendService.component').name,
-    require('./basicSettings/basicSettings.component').name,
+    GOOGLE_LOADBALANCER_CONFIGURE_HTTP_BACKENDSERVICE_BACKENDSERVICE_COMPONENT,
+    GOOGLE_LOADBALANCER_CONFIGURE_HTTP_BASICSETTINGS_BASICSETTINGS_COMPONENT,
     GCE_CACHE_REFRESH,
-    require('./commandBuilder.service').name,
-    require('../../details/hostAndPathRules/hostAndPathRulesButton.component').name,
-    require('./healthCheck/healthCheck.component').name,
-    require('./hostRule/hostRule.component').name,
-    require('./httpLoadBalancer.write.service').name,
-    require('./listeners/listener.component').name,
-    require('./transformer.service').name,
+    GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE,
+    GOOGLE_LOADBALANCER_DETAILS_HOSTANDPATHRULES_HOSTANDPATHRULESBUTTON_COMPONENT,
+    GOOGLE_LOADBALANCER_CONFIGURE_HTTP_HEALTHCHECK_HEALTHCHECK_COMPONENT,
+    GOOGLE_LOADBALANCER_CONFIGURE_HTTP_HOSTRULE_HOSTRULE_COMPONENT,
+    GOOGLE_LOADBALANCER_CONFIGURE_HTTP_HTTPLOADBALANCER_WRITE_SERVICE,
+    GOOGLE_LOADBALANCER_CONFIGURE_HTTP_LISTENERS_LISTENER_COMPONENT,
+    GOOGLE_LOADBALANCER_CONFIGURE_HTTP_TRANSFORMER_SERVICE,
   ])
   .controller('gceCreateHttpLoadBalancerCtrl', [
     '$scope',

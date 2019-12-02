@@ -12,6 +12,36 @@ import { KubernetesSecurityGroupReader } from 'kubernetes/shared/securityGroup/s
 import 'kubernetes/shared/validation/applicationName.validator';
 import 'kubernetes/shared/help/kubernetes.help';
 import 'kubernetes/shared/logo/kubernetes.logo.less';
+import { KUBERNETES_V1_AUTOSCALER_AUTOSCALER_WRITE_SERVICE } from './autoscaler/autoscaler.write.service';
+import { KUBERNETES_V1_CLUSTER_CLUSTER_KUBERNETES_MODULE } from './cluster/cluster.kubernetes.module';
+import { KUBERNETES_V1_CONTAINER_CONFIGURER_DIRECTIVE } from './container/configurer.directive';
+import { KUBERNETES_V1_CONTAINER_PROBE_DIRECTIVE } from './container/probe.directive';
+import { KUBERNETES_V1_EVENT_EVENT_DIRECTIVE } from './event/event.directive';
+import { KUBERNETES_V1_INSTANCE_DETAILS_DETAILS_KUBERNETES_MODULE } from './instance/details/details.kubernetes.module';
+import { KUBERNETES_V1_LOADBALANCER_CONFIGURE_CONFIGURE_KUBERNETES_MODULE } from './loadBalancer/configure/configure.kubernetes.module';
+import { KUBERNETES_V1_LOADBALANCER_DETAILS_DETAILS_KUBERNETES_MODULE } from './loadBalancer/details/details.kubernetes.module';
+import { KUBERNETES_V1_LOADBALANCER_TRANSFORMER } from './loadBalancer/transformer';
+import { KUBERNETES_V1_NAMESPACE_MULTISELECTFIELD_COMPONENT } from './namespace/multiSelectField.component';
+import { KUBERNETES_V1_NAMESPACE_SELECTFIELD_DIRECTIVE } from './namespace/selectField.directive';
+import { KUBERNETES_V1_PIPELINE_STAGES_DESTROYASG_KUBERNETESDESTROYASGSTAGE } from './pipeline/stages/destroyAsg/kubernetesDestroyAsgStage';
+import { KUBERNETES_V1_PIPELINE_STAGES_DISABLEASG_KUBERNETESDISABLEASGSTAGE } from './pipeline/stages/disableAsg/kubernetesDisableAsgStage';
+import { KUBERNETES_V1_PIPELINE_STAGES_DISABLECLUSTER_KUBERNETESDISABLECLUSTERSTAGE } from './pipeline/stages/disableCluster/kubernetesDisableClusterStage';
+import { KUBERNETES_V1_PIPELINE_STAGES_ENABLEASG_KUBERNETESENABLEASGSTAGE } from './pipeline/stages/enableAsg/kubernetesEnableAsgStage';
+import { KUBERNETES_V1_PIPELINE_STAGES_FINDAMI_KUBERNETESFINDAMISTAGE } from './pipeline/stages/findAmi/kubernetesFindAmiStage';
+import { KUBERNETES_V1_PIPELINE_STAGES_RESIZEASG_RESIZESTAGE } from './pipeline/stages/resizeAsg/resizeStage';
+import { KUBERNETES_V1_PIPELINE_STAGES_RUNJOB_RUNJOBSTAGE } from './pipeline/stages/runJob/runJobStage';
+import { KUBERNETES_V1_PIPELINE_STAGES_SCALEDOWNCLUSTER_SCALEDOWNCLUSTERSTAGE } from './pipeline/stages/scaleDownCluster/scaleDownClusterStage';
+import { KUBERNETES_V1_PIPELINE_STAGES_SHRINKCLUSTER_SHRINKCLUSTERSTAGE } from './pipeline/stages/shrinkCluster/shrinkClusterStage';
+import { KUBERNETES_V1_PROXY_UI_SERVICE } from './proxy/ui.service';
+import { KUBERNETES_V1_SEARCH_RESULTFORMATTER } from './search/resultFormatter';
+import { KUBERNETES_V1_SECURITYGROUP_CONFIGURE_CONFIGURE_KUBERNETES_MODULE } from './securityGroup/configure/configure.kubernetes.module';
+import { KUBERNETES_V1_SECURITYGROUP_DETAILS_DETAILS_KUBERNETES_MODULE } from './securityGroup/details/details.kubernetes.module';
+import { KUBERNETES_V1_SECURITYGROUP_TRANSFORMER } from './securityGroup/transformer';
+import { KUBERNETES_V1_SERVERGROUP_CONFIGURE_COMMANDBUILDER } from './serverGroup/configure/CommandBuilder';
+import { KUBERNETES_V1_SERVERGROUP_CONFIGURE_CONFIGURE_KUBERNETES_MODULE } from './serverGroup/configure/configure.kubernetes.module';
+import { KUBERNETES_V1_SERVERGROUP_DETAILS_DETAILS_KUBERNETES_MODULE } from './serverGroup/details/details.kubernetes.module';
+import { KUBERNETES_V1_SERVERGROUP_PARAMSMIXIN } from './serverGroup/paramsMixin';
+import { KUBERNETES_V1_SERVERGROUP_TRANSFORMER } from './serverGroup/transformer';
 
 // load all templates into the $templateCache
 const templates = require.context('kubernetes', true, /\.html$/);
@@ -21,39 +51,39 @@ templates.keys().forEach(function(key) {
 
 export const KUBERNETES_V1_MODULE = 'spinnaker.kubernetes.v1';
 module(KUBERNETES_V1_MODULE, [
-  require('./autoscaler/autoscaler.write.service').name,
-  require('./cluster/cluster.kubernetes.module').name,
-  require('./container/configurer.directive').name,
-  require('./container/probe.directive').name,
-  require('./event/event.directive').name,
-  require('./instance/details/details.kubernetes.module').name,
+  KUBERNETES_V1_AUTOSCALER_AUTOSCALER_WRITE_SERVICE,
+  KUBERNETES_V1_CLUSTER_CLUSTER_KUBERNETES_MODULE,
+  KUBERNETES_V1_CONTAINER_CONFIGURER_DIRECTIVE,
+  KUBERNETES_V1_CONTAINER_PROBE_DIRECTIVE,
+  KUBERNETES_V1_EVENT_EVENT_DIRECTIVE,
+  KUBERNETES_V1_INSTANCE_DETAILS_DETAILS_KUBERNETES_MODULE,
   KUBERNETES_KEY_VALUE_DETAILS,
   KUBERNETES_SECURITY_CONTEXT_SELECTOR,
-  require('./loadBalancer/configure/configure.kubernetes.module').name,
-  require('./loadBalancer/details/details.kubernetes.module').name,
-  require('./loadBalancer/transformer').name,
-  require('./namespace/multiSelectField.component').name,
-  require('./namespace/selectField.directive').name,
-  require('./pipeline/stages/destroyAsg/kubernetesDestroyAsgStage').name,
-  require('./pipeline/stages/disableAsg/kubernetesDisableAsgStage').name,
-  require('./pipeline/stages/disableCluster/kubernetesDisableClusterStage').name,
-  require('./pipeline/stages/enableAsg/kubernetesEnableAsgStage').name,
-  require('./pipeline/stages/findAmi/kubernetesFindAmiStage').name,
-  require('./pipeline/stages/resizeAsg/resizeStage').name,
-  require('./pipeline/stages/runJob/runJobStage').name,
-  require('./pipeline/stages/scaleDownCluster/scaleDownClusterStage').name,
-  require('./pipeline/stages/shrinkCluster/shrinkClusterStage').name,
-  require('./proxy/ui.service').name,
-  require('./search/resultFormatter').name,
-  require('./securityGroup/configure/configure.kubernetes.module').name,
-  require('./securityGroup/details/details.kubernetes.module').name,
-  require('./securityGroup/transformer').name,
-  require('./serverGroup/configure/CommandBuilder').name,
-  require('./serverGroup/configure/configure.kubernetes.module').name,
-  require('./serverGroup/details/details.kubernetes.module').name,
+  KUBERNETES_V1_LOADBALANCER_CONFIGURE_CONFIGURE_KUBERNETES_MODULE,
+  KUBERNETES_V1_LOADBALANCER_DETAILS_DETAILS_KUBERNETES_MODULE,
+  KUBERNETES_V1_LOADBALANCER_TRANSFORMER,
+  KUBERNETES_V1_NAMESPACE_MULTISELECTFIELD_COMPONENT,
+  KUBERNETES_V1_NAMESPACE_SELECTFIELD_DIRECTIVE,
+  KUBERNETES_V1_PIPELINE_STAGES_DESTROYASG_KUBERNETESDESTROYASGSTAGE,
+  KUBERNETES_V1_PIPELINE_STAGES_DISABLEASG_KUBERNETESDISABLEASGSTAGE,
+  KUBERNETES_V1_PIPELINE_STAGES_DISABLECLUSTER_KUBERNETESDISABLECLUSTERSTAGE,
+  KUBERNETES_V1_PIPELINE_STAGES_ENABLEASG_KUBERNETESENABLEASGSTAGE,
+  KUBERNETES_V1_PIPELINE_STAGES_FINDAMI_KUBERNETESFINDAMISTAGE,
+  KUBERNETES_V1_PIPELINE_STAGES_RESIZEASG_RESIZESTAGE,
+  KUBERNETES_V1_PIPELINE_STAGES_RUNJOB_RUNJOBSTAGE,
+  KUBERNETES_V1_PIPELINE_STAGES_SCALEDOWNCLUSTER_SCALEDOWNCLUSTERSTAGE,
+  KUBERNETES_V1_PIPELINE_STAGES_SHRINKCLUSTER_SHRINKCLUSTERSTAGE,
+  KUBERNETES_V1_PROXY_UI_SERVICE,
+  KUBERNETES_V1_SEARCH_RESULTFORMATTER,
+  KUBERNETES_V1_SECURITYGROUP_CONFIGURE_CONFIGURE_KUBERNETES_MODULE,
+  KUBERNETES_V1_SECURITYGROUP_DETAILS_DETAILS_KUBERNETES_MODULE,
+  KUBERNETES_V1_SECURITYGROUP_TRANSFORMER,
+  KUBERNETES_V1_SERVERGROUP_CONFIGURE_COMMANDBUILDER,
+  KUBERNETES_V1_SERVERGROUP_CONFIGURE_CONFIGURE_KUBERNETES_MODULE,
+  KUBERNETES_V1_SERVERGROUP_DETAILS_DETAILS_KUBERNETES_MODULE,
   KUBERNETES_SERVERGROUP_ARTIFACTEXTRACTOR,
-  require('./serverGroup/paramsMixin').name,
-  require('./serverGroup/transformer').name,
+  KUBERNETES_V1_SERVERGROUP_PARAMSMIXIN,
+  KUBERNETES_V1_SERVERGROUP_TRANSFORMER,
   KUBERNETES_TOLERATIONS,
 ]).config(() => {
   CloudProviderRegistry.registerProvider('kubernetes', {

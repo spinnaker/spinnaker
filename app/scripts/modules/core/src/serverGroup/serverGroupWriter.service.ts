@@ -6,6 +6,7 @@ import { FirewallLabels } from 'core/securityGroup/label';
 import { IServerGroupCommand } from './configure/common/serverGroupCommandBuilder.service';
 import { IMoniker, NameUtils } from 'core/naming';
 import { IJob, TaskExecutor } from 'core/task/taskExecutor';
+import { CORE_SERVERGROUP_SERVERGROUP_TRANSFORMER } from './serverGroup.transformer';
 
 export interface ICapacity {
   desired: number | string;
@@ -214,7 +215,4 @@ export class ServerGroupWriter {
 }
 
 export const SERVER_GROUP_WRITER = 'spinnaker.core.serverGroup.write.service';
-module(SERVER_GROUP_WRITER, [require('./serverGroup.transformer').name]).service(
-  'serverGroupWriter',
-  ServerGroupWriter,
-);
+module(SERVER_GROUP_WRITER, [CORE_SERVERGROUP_SERVERGROUP_TRANSFORMER]).service('serverGroupWriter', ServerGroupWriter);

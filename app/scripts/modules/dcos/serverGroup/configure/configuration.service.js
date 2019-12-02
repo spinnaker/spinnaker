@@ -3,6 +3,7 @@
 import _ from 'lodash';
 
 import { AccountService } from '@spinnaker/core';
+import { DCOS_IMAGE_IMAGE_READER } from '../../image/image.reader';
 
 const angular = require('angular');
 
@@ -10,7 +11,7 @@ export const DCOS_SERVERGROUP_CONFIGURE_CONFIGURATION_SERVICE =
   'spinnaker.dcos.serverGroup.configure.configuration.service';
 export const name = DCOS_SERVERGROUP_CONFIGURE_CONFIGURATION_SERVICE; // for backwards compatibility
 angular
-  .module(DCOS_SERVERGROUP_CONFIGURE_CONFIGURATION_SERVICE, [require('../../image/image.reader').name])
+  .module(DCOS_SERVERGROUP_CONFIGURE_CONFIGURATION_SERVICE, [DCOS_IMAGE_IMAGE_READER])
   .factory('dcosServerGroupConfigurationService', [
     '$q',
     'dcosImageReader',

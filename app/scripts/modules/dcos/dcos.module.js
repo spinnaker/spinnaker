@@ -5,6 +5,25 @@ const angular = require('angular');
 import { CloudProviderRegistry } from '@spinnaker/core';
 import { DCOS_KEY_VALUE_DETAILS } from './common/keyValueDetails.component';
 import './help/dcos.help';
+import { DCOS_INSTANCE_DETAILS_DETAILS_DCOS_MODULE } from './instance/details/details.dcos.module';
+import { DCOS_LOADBALANCER_CONFIGURE_CONFIGURE_DCOS_MODULE } from './loadBalancer/configure/configure.dcos.module';
+import { DCOS_LOADBALANCER_DETAILS_DETAILS_DCOS_MODULE } from './loadBalancer/details/details.dcos.module';
+import { DCOS_LOADBALANCER_TRANSFORMER } from './loadBalancer/transformer';
+import { DCOS_PIPELINE_STAGES_DESTROYASG_DCOSDESTROYASGSTAGE } from './pipeline/stages/destroyAsg/dcosDestroyAsgStage';
+import { DCOS_PIPELINE_STAGES_DISABLEASG_DCOSDISABLEASGSTAGE } from './pipeline/stages/disableAsg/dcosDisableAsgStage';
+import { DCOS_PIPELINE_STAGES_DISABLECLUSTER_DCOSDISABLECLUSTERSTAGE } from './pipeline/stages/disableCluster/dcosDisableClusterStage';
+import { DCOS_PIPELINE_STAGES_FINDAMI_DCOSFINDAMISTAGE } from './pipeline/stages/findAmi/dcosFindAmiStage';
+import { DCOS_PIPELINE_STAGES_RESIZEASG_DCOSRESIZEASGSTAGE } from './pipeline/stages/resizeAsg/dcosResizeAsgStage';
+import { DCOS_PIPELINE_STAGES_RUNJOB_RUNJOBSTAGE } from './pipeline/stages/runJob/runJobStage';
+import { DCOS_PIPELINE_STAGES_SCALEDOWNCLUSTER_DCOSSCALEDOWNCLUSTERSTAGE } from './pipeline/stages/scaleDownCluster/dcosScaleDownClusterStage';
+import { DCOS_PIPELINE_STAGES_SHRINKCLUSTER_DCOSSHRINKCLUSTERSTAGE } from './pipeline/stages/shrinkCluster/dcosShrinkClusterStage';
+import { DCOS_PROXY_UI_SERVICE } from './proxy/ui.service';
+import { DCOS_SERVERGROUP_CONFIGURE_COMMANDBUILDER } from './serverGroup/configure/CommandBuilder';
+import { DCOS_SERVERGROUP_CONFIGURE_CONFIGURE_DCOS_MODULE } from './serverGroup/configure/configure.dcos.module';
+import { DCOS_SERVERGROUP_DETAILS_DETAILS_DCOS_MODULE } from './serverGroup/details/details.dcos.module';
+import { DCOS_SERVERGROUP_TRANSFORMER } from './serverGroup/transformer';
+import { DCOS_VALIDATION_APPLICATIONNAME_VALIDATOR } from './validation/applicationName.validator';
+import { DCOS_COMMON_SELECTFIELD_DIRECTIVE } from './common/selectField.directive';
 
 require('./logo/dcos.logo.less');
 
@@ -19,25 +38,25 @@ export const name = DCOS_DCOS_MODULE; // for backwards compatibility
 angular
   .module(DCOS_DCOS_MODULE, [
     DCOS_KEY_VALUE_DETAILS,
-    require('./instance/details/details.dcos.module').name,
-    require('./loadBalancer/configure/configure.dcos.module').name,
-    require('./loadBalancer/details/details.dcos.module').name,
-    require('./loadBalancer/transformer').name,
-    require('./pipeline/stages/destroyAsg/dcosDestroyAsgStage').name,
-    require('./pipeline/stages/disableAsg/dcosDisableAsgStage').name,
-    require('./pipeline/stages/disableCluster/dcosDisableClusterStage').name,
-    require('./pipeline/stages/findAmi/dcosFindAmiStage').name,
-    require('./pipeline/stages/resizeAsg/dcosResizeAsgStage').name,
-    require('./pipeline/stages/runJob/runJobStage').name,
-    require('./pipeline/stages/scaleDownCluster/dcosScaleDownClusterStage').name,
-    require('./pipeline/stages/shrinkCluster/dcosShrinkClusterStage').name,
-    require('./proxy/ui.service').name,
-    require('./serverGroup/configure/CommandBuilder').name,
-    require('./serverGroup/configure/configure.dcos.module').name,
-    require('./serverGroup/details/details.dcos.module').name,
-    require('./serverGroup/transformer').name,
-    require('./validation/applicationName.validator').name,
-    require('./common/selectField.directive').name,
+    DCOS_INSTANCE_DETAILS_DETAILS_DCOS_MODULE,
+    DCOS_LOADBALANCER_CONFIGURE_CONFIGURE_DCOS_MODULE,
+    DCOS_LOADBALANCER_DETAILS_DETAILS_DCOS_MODULE,
+    DCOS_LOADBALANCER_TRANSFORMER,
+    DCOS_PIPELINE_STAGES_DESTROYASG_DCOSDESTROYASGSTAGE,
+    DCOS_PIPELINE_STAGES_DISABLEASG_DCOSDISABLEASGSTAGE,
+    DCOS_PIPELINE_STAGES_DISABLECLUSTER_DCOSDISABLECLUSTERSTAGE,
+    DCOS_PIPELINE_STAGES_FINDAMI_DCOSFINDAMISTAGE,
+    DCOS_PIPELINE_STAGES_RESIZEASG_DCOSRESIZEASGSTAGE,
+    DCOS_PIPELINE_STAGES_RUNJOB_RUNJOBSTAGE,
+    DCOS_PIPELINE_STAGES_SCALEDOWNCLUSTER_DCOSSCALEDOWNCLUSTERSTAGE,
+    DCOS_PIPELINE_STAGES_SHRINKCLUSTER_DCOSSHRINKCLUSTERSTAGE,
+    DCOS_PROXY_UI_SERVICE,
+    DCOS_SERVERGROUP_CONFIGURE_COMMANDBUILDER,
+    DCOS_SERVERGROUP_CONFIGURE_CONFIGURE_DCOS_MODULE,
+    DCOS_SERVERGROUP_DETAILS_DETAILS_DCOS_MODULE,
+    DCOS_SERVERGROUP_TRANSFORMER,
+    DCOS_VALIDATION_APPLICATIONNAME_VALIDATOR,
+    DCOS_COMMON_SELECTFIELD_DIRECTIVE,
   ])
   .config(function() {
     CloudProviderRegistry.registerProvider('dcos', {

@@ -3,13 +3,12 @@
 const angular = require('angular');
 
 import { AccountService, Registry, StageConstants } from '@spinnaker/core';
+import { CORE_APPLICATION_MODAL_PLATFORMHEALTHOVERRIDE_DIRECTIVE } from 'core/application/modal/platformHealthOverride.directive';
 
 export const ORACLE_PIPELINE_STAGES_RESIZEASG_RESIZEASGSTAGE = 'spinnaker.oracle.pipeline.stage.resizeAsgStage';
 export const name = ORACLE_PIPELINE_STAGES_RESIZEASG_RESIZEASGSTAGE; // for backwards compatibility
 angular
-  .module(ORACLE_PIPELINE_STAGES_RESIZEASG_RESIZEASGSTAGE, [
-    require('core/application/modal/platformHealthOverride.directive').name,
-  ])
+  .module(ORACLE_PIPELINE_STAGES_RESIZEASG_RESIZEASGSTAGE, [CORE_APPLICATION_MODAL_PLATFORMHEALTHOVERRIDE_DIRECTIVE])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'resizeServerGroup',

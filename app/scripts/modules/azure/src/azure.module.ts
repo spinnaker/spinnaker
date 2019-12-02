@@ -4,6 +4,26 @@ import { CloudProviderRegistry, DeploymentStrategyRegistry } from '@spinnaker/co
 
 import './help/azure.help';
 import './logo/azure.logo.less';
+import { AZURE_PIPELINE_STAGES_DESTROYASG_AZUREDESTROYASGSTAGE } from './pipeline/stages/destroyAsg/azureDestroyAsgStage';
+import { AZURE_PIPELINE_STAGES_ENABLEASG_AZUREENABLEASGSTAGE } from './pipeline/stages/enableAsg/azureEnableAsgStage';
+import { AZURE_PIPELINE_STAGES_DISABLEASG_AZUREDISABLEASGSTAGE } from './pipeline/stages/disableAsg/azureDisableAsgStage';
+import { AZURE_PIPELINE_STAGES_BAKE_AZUREBAKESTAGE } from './pipeline/stages/bake/azureBakeStage';
+import { AZURE_SERVERGROUP_DETAILS_SERVERGROUP_DETAILS_MODULE } from './serverGroup/details/serverGroup.details.module';
+import { AZURE_SERVERGROUP_SERVERGROUP_TRANSFORMER } from './serverGroup/serverGroup.transformer';
+import { AZURE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_AZURE_CONTROLLER } from './serverGroup/configure/wizard/CloneServerGroup.azure.controller';
+import { AZURE_SERVERGROUP_CONFIGURE_SERVERGROUP_CONFIGURE_AZURE_MODULE } from './serverGroup/configure/serverGroup.configure.azure.module';
+import { AZURE_INSTANCE_AZUREINSTANCETYPE_SERVICE } from './instance/azureInstanceType.service';
+import { AZURE_LOADBALANCER_LOADBALANCER_TRANSFORMER } from './loadBalancer/loadBalancer.transformer';
+import { AZURE_LOADBALANCER_DETAILS_LOADBALANCERDETAIL_CONTROLLER } from './loadBalancer/details/loadBalancerDetail.controller';
+import { AZURE_LOADBALANCER_CONFIGURE_CREATELOADBALANCER_CONTROLLER } from './loadBalancer/configure/createLoadBalancer.controller';
+import { AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER } from './instance/details/instance.details.controller';
+import { AZURE_SECURITYGROUP_DETAILS_SECURITYGROUPDETAIL_CONTROLLER } from './securityGroup/details/securityGroupDetail.controller';
+import { AZURE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUPCTRL } from './securityGroup/configure/CreateSecurityGroupCtrl';
+import { AZURE_SECURITYGROUP_CONFIGURE_EDITSECURITYGROUPCTRL } from './securityGroup/configure/EditSecurityGroupCtrl';
+import { AZURE_SECURITYGROUP_SECURITYGROUP_TRANSFORMER } from './securityGroup/securityGroup.transformer';
+import { AZURE_SECURITYGROUP_SECURITYGROUP_READER } from './securityGroup/securityGroup.reader';
+import { AZURE_IMAGE_IMAGE_READER } from './image/image.reader';
+import { AZURE_VALIDATION_APPLICATIONNAME_VALIDATOR } from './validation/applicationName.validator';
 
 // load all templates into the $templateCache
 const templates = require.context('./', true, /\.html$/);
@@ -13,26 +33,26 @@ templates.keys().forEach(function(key) {
 
 export const AZURE_MODULE = 'spinnaker.azure';
 module(AZURE_MODULE, [
-  require('./pipeline/stages/destroyAsg/azureDestroyAsgStage').name,
-  require('./pipeline/stages/enableAsg/azureEnableAsgStage').name,
-  require('./pipeline/stages/disableAsg/azureDisableAsgStage').name,
-  require('./pipeline/stages/bake/azureBakeStage').name,
-  require('./serverGroup/details/serverGroup.details.module').name,
-  require('./serverGroup/serverGroup.transformer').name,
-  require('./serverGroup/configure/wizard/CloneServerGroup.azure.controller').name,
-  require('./serverGroup/configure/serverGroup.configure.azure.module').name,
-  require('./instance/azureInstanceType.service').name,
-  require('./loadBalancer/loadBalancer.transformer').name,
-  require('./loadBalancer/details/loadBalancerDetail.controller').name,
-  require('./loadBalancer/configure/createLoadBalancer.controller').name,
-  require('./instance/details/instance.details.controller').name,
-  require('./securityGroup/details/securityGroupDetail.controller').name,
-  require('./securityGroup/configure/CreateSecurityGroupCtrl').name,
-  require('./securityGroup/configure/EditSecurityGroupCtrl').name,
-  require('./securityGroup/securityGroup.transformer').name,
-  require('./securityGroup/securityGroup.reader').name,
-  require('./image/image.reader').name,
-  require('./validation/applicationName.validator').name,
+  AZURE_PIPELINE_STAGES_DESTROYASG_AZUREDESTROYASGSTAGE,
+  AZURE_PIPELINE_STAGES_ENABLEASG_AZUREENABLEASGSTAGE,
+  AZURE_PIPELINE_STAGES_DISABLEASG_AZUREDISABLEASGSTAGE,
+  AZURE_PIPELINE_STAGES_BAKE_AZUREBAKESTAGE,
+  AZURE_SERVERGROUP_DETAILS_SERVERGROUP_DETAILS_MODULE,
+  AZURE_SERVERGROUP_SERVERGROUP_TRANSFORMER,
+  AZURE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_AZURE_CONTROLLER,
+  AZURE_SERVERGROUP_CONFIGURE_SERVERGROUP_CONFIGURE_AZURE_MODULE,
+  AZURE_INSTANCE_AZUREINSTANCETYPE_SERVICE,
+  AZURE_LOADBALANCER_LOADBALANCER_TRANSFORMER,
+  AZURE_LOADBALANCER_DETAILS_LOADBALANCERDETAIL_CONTROLLER,
+  AZURE_LOADBALANCER_CONFIGURE_CREATELOADBALANCER_CONTROLLER,
+  AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER,
+  AZURE_SECURITYGROUP_DETAILS_SECURITYGROUPDETAIL_CONTROLLER,
+  AZURE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUPCTRL,
+  AZURE_SECURITYGROUP_CONFIGURE_EDITSECURITYGROUPCTRL,
+  AZURE_SECURITYGROUP_SECURITYGROUP_TRANSFORMER,
+  AZURE_SECURITYGROUP_SECURITYGROUP_READER,
+  AZURE_IMAGE_IMAGE_READER,
+  AZURE_VALIDATION_APPLICATIONNAME_VALIDATOR,
 ]).config(function() {
   CloudProviderRegistry.registerProvider('azure', {
     name: 'Azure',

@@ -3,6 +3,7 @@
 const angular = require('angular');
 
 import { FirewallLabels, SERVER_GROUP_WRITER, TaskMonitor, ModalWizard } from '@spinnaker/core';
+import { KUBERNETES_V1_SERVERGROUP_CONFIGURE_CONFIGURATION_SERVICE } from '../configuration.service';
 
 export const KUBERNETES_V1_SERVERGROUP_CONFIGURE_WIZARD_CLONE_CONTROLLER =
   'spinnaker.serverGroup.configure.kubernetes.clone';
@@ -11,7 +12,7 @@ angular
   .module(KUBERNETES_V1_SERVERGROUP_CONFIGURE_WIZARD_CLONE_CONTROLLER, [
     require('@uirouter/angularjs').default,
     SERVER_GROUP_WRITER,
-    require('../configuration.service').name,
+    KUBERNETES_V1_SERVERGROUP_CONFIGURE_CONFIGURATION_SERVICE,
   ])
   .controller('kubernetesCloneServerGroupController', [
     '$scope',

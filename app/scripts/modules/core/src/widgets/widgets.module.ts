@@ -3,16 +3,22 @@ import { module } from 'angular';
 import { SPINNER_WRAPPER } from './Spinner';
 import { NOTIFIER_COMPONENT } from './notifier/notifier.component';
 import { ACCOUNT_REGION_CLUSTER_SELECTOR_WRAPPER } from './accountRegionClusterSelectorWrapper.component';
+import { CORE_WIDGETS_ACCOUNTNAMESPACECLUSTERSELECTOR_COMPONENT } from './accountNamespaceClusterSelector.component';
+import { CORE_WIDGETS_ACCOUNTREGIONCLUSTERSELECTOR_COMPONENT } from './accountRegionClusterSelector.component';
+import { CORE_WIDGETS_SCOPECLUSTERSELECTOR_DIRECTIVE } from './scopeClusterSelector.directive';
+import { CORE_WIDGETS_SPELTEXT_SPELTEXT_DECORATOR } from './spelText/spelText.decorator';
+import { CORE_WIDGETS_SPELTEXT_SPELSELECT_COMPONENT } from './spelText/spelSelect.component';
+import { CORE_WIDGETS_ACTIONICONS_ACTIONICONS_COMPONENT } from './actionIcons/actionIcons.component';
 
 export const WIDGETS_MODULE = 'spinnaker.core.widgets';
 module(WIDGETS_MODULE, [
-  require('./accountNamespaceClusterSelector.component').name,
-  require('./accountRegionClusterSelector.component').name,
+  CORE_WIDGETS_ACCOUNTNAMESPACECLUSTERSELECTOR_COMPONENT,
+  CORE_WIDGETS_ACCOUNTREGIONCLUSTERSELECTOR_COMPONENT,
   ACCOUNT_REGION_CLUSTER_SELECTOR_WRAPPER,
-  require('./scopeClusterSelector.directive').name,
+  CORE_WIDGETS_SCOPECLUSTERSELECTOR_DIRECTIVE,
   NOTIFIER_COMPONENT,
-  require('./spelText/spelText.decorator').name,
-  require('./spelText/spelSelect.component').name,
-  require('./actionIcons/actionIcons.component').name,
+  CORE_WIDGETS_SPELTEXT_SPELTEXT_DECORATOR,
+  CORE_WIDGETS_SPELTEXT_SPELSELECT_COMPONENT,
+  CORE_WIDGETS_ACTIONICONS_ACTIONICONS_COMPONENT,
   SPINNER_WRAPPER,
 ]);
