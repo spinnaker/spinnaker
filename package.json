@@ -151,7 +151,6 @@
     "eslint": "^5.13.0",
     "eslint-config-prettier": "^4.0.0",
     "eslint-loader": "^2.1.2",
-    "exports-loader": "^0.7.0",
     "expose-loader": "^0.7.5",
     "file-loader": "3.0.1",
     "fork-ts-checker-webpack-plugin": "0.5.2",

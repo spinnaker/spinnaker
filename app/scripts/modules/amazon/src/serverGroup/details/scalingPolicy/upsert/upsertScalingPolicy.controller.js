@@ -2,6 +2,7 @@
 
 const angular = require('angular');
 
+import 'n3-charts/build/LineChart';
 import { TaskMonitor } from '@spinnaker/core';
 
 import { STEP_POLICY_ACTION } from './step/stepPolicyAction.component';
@@ -11,7 +12,7 @@ import './upsertScalingPolicy.modal.less';
 
 module.exports = angular
   .module('spinnaker.amazon.serverGroup.details.scalingPolicy.upsertScalingPolicy.controller', [
-    require('exports-loader?"n3-line-chart"!n3-charts/build/LineChart'),
+    'n3-line-chart',
     require('./simple/simplePolicyAction.component').name,
     STEP_POLICY_ACTION,
     require('./alarm/alarmConfigurer.component').name,

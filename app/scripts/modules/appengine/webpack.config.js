@@ -122,9 +122,5 @@ module.exports = {
     ],
   },
   plugins: [new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true })],
-  externals: [
-    '@spinnaker/core',
-    'exports-loader?"n3-line-chart"!n3-charts/build/LineChart.js',
-    nodeExternals({ modulesDir: '../../../../node_modules' }),
-  ],
+  externals: ['@spinnaker/core', nodeExternals({ modulesDir: '../../../../node_modules' })],
 };

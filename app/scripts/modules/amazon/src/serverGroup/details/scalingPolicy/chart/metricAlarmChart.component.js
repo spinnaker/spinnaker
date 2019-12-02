@@ -8,16 +8,12 @@ import 'd3';
 
 import { CloudMetricsReader } from '@spinnaker/core';
 
-// TODO: Remove LineChartHack, replace require with commented out one once
-// https://github.com/n3-charts/line-chart/issues/512 is resolved
-// require('style!n3-charts/build/LineChart.css');
+import 'n3-charts/build/LineChart';
 import './LineChartHack.css';
 import './metricAlarmChart.component.less';
 
 module.exports = angular
-  .module('spinnaker.amazon.serverGroup.details.scalingPolicy.metricAlarmChart.component', [
-    require('exports-loader?"n3-line-chart"!n3-charts/build/LineChart'),
-  ])
+  .module('spinnaker.amazon.serverGroup.details.scalingPolicy.metricAlarmChart.component', ['n3-line-chart'])
   .component('metricAlarmChart', {
     bindings: {
       alarm: '=',
