@@ -10,6 +10,17 @@ pull_request_rules:
         strict: smart
       label:
         add: ["auto merged"]
+  - name: Automatically merge PRs from maintainers on CI success and review
+    conditions:
+    - status-success=continuous-integration/travis-ci/pr
+    - "label=ready to merge"
+    - "author=@oss-approvers"
+    actions:
+      merge:
+        method: squash
+        strict: smart
+      label:
+        add: ["auto merged"]
   - name: Automatically merge kork autobump PRs on CI success
     conditions:
       - status-success=continuous-integration/travis-ci/pr
