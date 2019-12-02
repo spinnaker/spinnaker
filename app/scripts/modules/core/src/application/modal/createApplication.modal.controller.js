@@ -129,5 +129,8 @@ module.exports = angular
         }
         this.createApplicationForTests();
       };
+
+      // Enables setting the attributes as a callback in react components
+      this.setAttribute = (name, value) => (this.application[name] = value);
     },
   ]);

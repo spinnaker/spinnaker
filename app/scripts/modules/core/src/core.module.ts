@@ -59,6 +59,7 @@ import { REACT_MODULE } from './reactShims';
 import { REGION_MODULE } from './region/region.module';
 import { SERVERGROUP_MODULE } from './serverGroup/serverGroup.module';
 import { SERVER_GROUP_MANAGER_MODULE } from './serverGroupManager/serverGroupManager.module';
+import { SLACK_COMPONENT } from './slack';
 import { STYLEGUIDE_MODULE } from './styleguide/styleguide.module';
 import { SUBNET_MODULE } from './subnet/subnet.module';
 
@@ -139,6 +140,7 @@ module(CORE_MODULE, [
   require('./securityGroup/securityGroup.module').name,
   SERVERGROUP_MODULE,
   SERVER_GROUP_MANAGER_MODULE,
+  SLACK_COMPONENT,
   STYLEGUIDE_MODULE,
   SUBNET_MODULE,
 

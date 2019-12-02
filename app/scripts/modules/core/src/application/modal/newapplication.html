@@ -129,6 +129,13 @@
         <pager-duty-select-field component="newAppModal.application"></pager-duty-select-field>
       </render-if-feature>
 
+      <render-if-feature feature="slack">
+        <slack-channel-selector
+          channel="newAppModal.application.slackChannel"
+          callback="newAppModal.setAttribute"
+        ></slack-channel-selector>
+      </render-if-feature>
+
       <div class="form-group row">
         <div class="col-sm-3 sm-label-right">Description</div>
         <div class="col-sm-9">

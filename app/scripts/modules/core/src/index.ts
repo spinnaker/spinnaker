@@ -77,6 +77,7 @@ export * from './serverGroup';
 export * from './serverGroupManager';
 export * from './serviceAccount';
 export * from './services';
+export * from './slack';
 export * from './state';
 export * from './storage';
 export * from './subnet';

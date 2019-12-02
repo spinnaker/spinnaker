@@ -177,6 +177,7 @@ window.spinnakerSettings = {
     pipelines: true,
     pipelineTemplates: pipelineTemplatesEnabled,
     roscoMode: true,
+    slack: false,
     snapshots: false,
     travis: travisEnabled,
     versionedProviders: true,

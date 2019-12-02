@@ -11,6 +11,16 @@
       <pager-duty-tag api-key="vm.application.attributes.pdApiKey"></pager-duty-tag>
     </dd>
   </render-if-feature>
+  <render-if-feature feature="slack">
+    <dt ng-if="vm.application.attributes.slackChannel && vm.application.attributes.slackChannel.name">Slack Channel</dt>
+    <dd ng-if="vm.application.attributes.slackChannel && vm.application.attributes.slackChannel.name">
+      <a
+        target="_blank"
+        href="https://netflix.slack.com/app_redirect?channel={{vm.application.attributes.slackChannel.name}}"
+        >#{{vm.application.attributes.slackChannel.name}}</a
+      >
+    </dd>
+  </render-if-feature>
   <dt ng-if="vm.application.attributes.repoType">Source Repo Type</dt>
   <dd ng-if="vm.application.attributes.repoType">{{vm.application.attributes.repoType}}</dd>
   <dt ng-if="vm.application.attributes.repoProjectKey">Source Repo Project</dt>
