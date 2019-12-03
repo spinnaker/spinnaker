@@ -1,12 +1,19 @@
 'use strict';
 
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+const { TypedCssModulesPlugin } = require('typed-css-modules-webpack-plugin');
+
 const prodWebpackConfig = require('./webpack.config')();
 const webpackConfig = {
   mode: 'development',
   module: prodWebpackConfig.module,
   resolve: prodWebpackConfig.resolve,
-  plugins: [new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true, tslint: true })],
+  plugins: [
+    new TypedCssModulesPlugin({
+      globPattern: '**/*.module.css',
+    }),
+    new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true, tslint: true }),
+  ],
 };
 
 module.exports = function(config) {

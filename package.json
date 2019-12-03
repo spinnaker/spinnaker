@@ -199,7 +199,7 @@
     "tslint-loader": "^3.6.0",
     "tslint-react": "^3.6.0",
     "typed-css-modules": "^0.6.3",
-    "typed-css-modules-loader": "^0.0.18",
+    "typed-css-modules-webpack-plugin": "^0.1.2",
     "typescript": "~3.4.0",
     "url-loader": "1.1.2",
     "wait-on": "^3.2.0",
