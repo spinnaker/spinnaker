@@ -93,3 +93,73 @@ databaseChangeLog:
             oldColumnName: json
             newColumnName: attributes
             columnDataType: longtext
+
+  # work around for https://liquibase.jira.com/browse/CORE-2111 to get the new uid column
+  # in the first position, since it's going to be the primary key
+  - changeSet:
+      id: mysql-envconstraint-add-uid
+      author: asher
+      changes:
+        - sql:
+            dbms: mysql
+            sql: alter table `environment_artifact_constraint` add column `uid` char(26) not null first
+
+  - changeSet:
+      id: envconstraint-add-uid
+      author: asher
+      changes:
+        - dropPrimaryKey:
+            tableName: environment_artifact_constraint
+            constraintName: constraint_pk
+            dropIndex: true
+        - renameColumn:
+            tableName: environment_artifact_constraint
+            columnDataType: varchar(255)
+            oldColumnName: constraint_type
+            newColumnName: type
+        - addPrimaryKey:
+            tableName: environment_artifact_constraint
+            constraintName: constraint_pk
+            columnNames: uid
+        - addUniqueConstraint:
+            tableName: environment_artifact_constraint
+            constraintName: constraint_pk
+            columnNames: environment_uid, type, artifact_version
+
+  - changeSet:
+      id: create-current-constraint-table
+      author: asher
+      changes:
+        - createTable:
+            tableName: current_constraint
+            columns:
+              - column:
+                  name: application
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: environment_uid
+                  type: char(26)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: type
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: constraint_uid
+                  type: char(26)
+                  constraints:
+                    nullable: false
+        - addPrimaryKey:
+            tableName: current_constraint
+            constraintName: current_constraint_pk
+            columnNames: application, environment_uid, type
+        - createIndex:
+            tableName: current_constraint
+            indexName: current_constraint_uid_idx
+            columns:
+              - column:
+                  name: constraint_uid

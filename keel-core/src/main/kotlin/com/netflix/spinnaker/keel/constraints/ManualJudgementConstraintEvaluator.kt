@@ -37,7 +37,7 @@ class ManualJudgementConstraintEvaluator(
         deliveryConfigName = deliveryConfig.name,
         environmentName = targetEnvironment.name,
         artifactVersion = version,
-        constraintType = constraint.type,
+        type = constraint.type,
         status = ConstraintStatus.PENDING
       )
         .also {

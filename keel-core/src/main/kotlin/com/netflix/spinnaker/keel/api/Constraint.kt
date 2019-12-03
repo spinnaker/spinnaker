@@ -57,7 +57,6 @@ data class TimeWindowConstraint(
 }
 
 data class ManualJudgementConstraint(
-  // TODO: process timeouts
   val timeout: Duration = Duration.ofDays(7)
 ) : StatefulConstraint("manual-judgement")
 

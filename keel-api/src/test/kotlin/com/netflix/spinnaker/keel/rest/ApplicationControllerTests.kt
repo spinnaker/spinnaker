@@ -55,8 +55,13 @@ internal class ApplicationControllerTests {
     mvc
       .perform(request)
       .andExpect(status().isOk)
-      .andExpect(content().string(
-        """{"hasManagedResources":true}"""
+      .andExpect(content().json(
+        """
+          {
+            "hasManagedResources":true,
+            "hasDeliveryConfig":false
+          }
+        """.trimIndent()
       ))
 
     request = get("/application/${res.application}?includeDetails=true")
@@ -64,8 +69,15 @@ internal class ApplicationControllerTests {
     mvc
       .perform(request)
       .andExpect(status().isOk)
-      .andExpect(content().string(
-        """{"hasManagedResources":true,"resources":[{"id":"${res.id}","kind":"${res.kind}","status":"CREATED"}]}"""
+      .andExpect(content().json(
+        """
+          |{
+          |"hasManagedResources":true,
+          |"resources":[{"id":"${res.id}","kind":"${res.kind}","status":"CREATED"}],
+          |"hasDeliveryConfig":false,
+          |"currentEnvironmentConstraints":[]
+          |}
+        """.trimMargin()
       ))
   }
 }

@@ -19,8 +19,8 @@ class InMemoryDeliveryConfigRepository(
 
   private val configs = mutableMapOf<String, DeliveryConfig>()
   private val constraints = mutableMapOf<String, ConstraintState>()
+  private val applicationConstraintMapper = mutableMapOf<String, Set<String>>()
   private val lastCheckTimes = mutableMapOf<String, Instant>()
-
   override fun deleteByApplication(application: String): Int {
     val size = configs.count { it.value.application == application }
 
@@ -59,8 +59,21 @@ class InMemoryDeliveryConfigRepository(
       .firstOrNull { it.resourceIds.contains(resourceId) }
 
   override fun storeConstraintState(state: ConstraintState) {
-    constraints["${state.deliveryConfigName}:${state.environmentName}:${state.artifactVersion}:" +
-      state.constraintType] = state
+    val config = get(state.deliveryConfigName)
+    val stateId = "${state.deliveryConfigName}:${state.environmentName}:${state.artifactVersion}:" +
+      state.type
+
+    constraints[stateId] = state
+    applicationConstraintMapper
+      .getOrPut(config.application, { mutableSetOf() })
+      .plus(stateId)
+  }
+
+  override fun constraintStateFor(application: String): List<ConstraintState> {
+    return applicationConstraintMapper[application]
+      ?.map {
+        constraints[it] ?: error("Missing constraint state for $application ($it)")
+      } ?: emptyList()
   }
 
   override fun getConstraintState(
@@ -94,6 +107,10 @@ class InMemoryDeliveryConfigRepository(
         }
       }
       .map { name -> configs[name] ?: error("No delivery config named $name") }
+  }
+
+  override fun hasDeliveryConfig(application: String): Boolean {
+    return configs.values.any { it.application == application }
   }
 
   fun dropAll() {

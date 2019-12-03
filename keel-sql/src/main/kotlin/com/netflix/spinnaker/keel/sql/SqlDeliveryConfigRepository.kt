@@ -14,6 +14,7 @@ import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigName
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.CURRENT_CONSTRAINT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_ARTIFACT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG_ARTIFACT
@@ -26,8 +27,10 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import org.jooq.DSLContext
+import org.jooq.impl.DSL
 import org.jooq.impl.DSL.inline
 import org.jooq.impl.DSL.select
+import org.jooq.impl.DSL.sql
 import org.jooq.util.mysql.MySQLDSL
 import java.time.Clock
 import java.time.Duration
@@ -225,25 +228,52 @@ class SqlDeliveryConfigRepository(
 
   override fun storeConstraintState(state: ConstraintState) {
     environmentUidByName(state.deliveryConfigName, state.environmentName)
-      ?.also {
-        jooq
-          .insertInto(ENVIRONMENT_ARTIFACT_CONSTRAINT)
-          .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.ENVIRONMENT_UID, it)
-          .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_VERSION, state.artifactVersion)
-          .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.CONSTRAINT_TYPE, state.constraintType)
-          .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.CREATED_AT, state.createdAt.toLocal())
-          .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.STATUS, state.status.toString())
-          .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_BY, state.judgedBy)
-          .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_AT, state.judgedAt?.toLocal())
-          .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.COMMENT, state.comment)
-          .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.ATTRIBUTES, mapper.writeValueAsString(state.attributes))
-          .onDuplicateKeyUpdate()
-          .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.STATUS, MySQLDSL.values(ENVIRONMENT_ARTIFACT_CONSTRAINT.STATUS))
-          .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_BY, MySQLDSL.values(ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_BY))
-          .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_AT, MySQLDSL.values(ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_AT))
-          .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.COMMENT, MySQLDSL.values(ENVIRONMENT_ARTIFACT_CONSTRAINT.COMMENT))
-          .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.ATTRIBUTES, MySQLDSL.values(ENVIRONMENT_ARTIFACT_CONSTRAINT.ATTRIBUTES))
-          .execute()
+      ?.also { envUid ->
+        val uid = jooq
+          .select(ENVIRONMENT_ARTIFACT_CONSTRAINT.UID)
+          .from(ENVIRONMENT_ARTIFACT_CONSTRAINT)
+          .where(
+            ENVIRONMENT_ARTIFACT_CONSTRAINT.ENVIRONMENT_UID.eq(envUid),
+            ENVIRONMENT_ARTIFACT_CONSTRAINT.TYPE.eq(state.type),
+            ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_VERSION.eq(state.artifactVersion)
+          )
+          .fetchOne(ENVIRONMENT_ARTIFACT_CONSTRAINT.UID)
+          ?: randomUID().toString()
+
+        val application = applicationByDeliveryConfigName(state.deliveryConfigName)
+
+        jooq.transaction { config ->
+          val txn = DSL.using(config)
+          txn
+            .insertInto(ENVIRONMENT_ARTIFACT_CONSTRAINT)
+            .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.UID, uid)
+            .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.ENVIRONMENT_UID, envUid)
+            .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_VERSION, state.artifactVersion)
+            .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.TYPE, state.type)
+            .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.CREATED_AT, state.createdAt.toLocal())
+            .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.STATUS, state.status.toString())
+            .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_BY, state.judgedBy)
+            .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_AT, state.judgedAt?.toLocal())
+            .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.COMMENT, state.comment)
+            .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.ATTRIBUTES, mapper.writeValueAsString(state.attributes))
+            .onDuplicateKeyUpdate()
+            .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.STATUS, MySQLDSL.values(ENVIRONMENT_ARTIFACT_CONSTRAINT.STATUS))
+            .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_BY, MySQLDSL.values(ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_BY))
+            .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_AT, MySQLDSL.values(ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_AT))
+            .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.COMMENT, MySQLDSL.values(ENVIRONMENT_ARTIFACT_CONSTRAINT.COMMENT))
+            .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.ATTRIBUTES, MySQLDSL.values(ENVIRONMENT_ARTIFACT_CONSTRAINT.ATTRIBUTES))
+            .execute()
+
+          txn
+            .insertInto(CURRENT_CONSTRAINT)
+            .set(CURRENT_CONSTRAINT.APPLICATION, application)
+            .set(CURRENT_CONSTRAINT.ENVIRONMENT_UID, envUid)
+            .set(CURRENT_CONSTRAINT.TYPE, state.type)
+            .set(CURRENT_CONSTRAINT.CONSTRAINT_UID, uid)
+            .onDuplicateKeyUpdate()
+            .set(CURRENT_CONSTRAINT.CONSTRAINT_UID, MySQLDSL.values(CURRENT_CONSTRAINT.CONSTRAINT_UID))
+            .execute()
+        }
       }
   }
 
@@ -260,7 +290,7 @@ class SqlDeliveryConfigRepository(
         inline(deliveryConfigName).`as`("deliveryConfigName"),
         inline(environmentName).`as`("environmentName"),
         ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_VERSION,
-        ENVIRONMENT_ARTIFACT_CONSTRAINT.CONSTRAINT_TYPE,
+        ENVIRONMENT_ARTIFACT_CONSTRAINT.TYPE,
         ENVIRONMENT_ARTIFACT_CONSTRAINT.STATUS,
         ENVIRONMENT_ARTIFACT_CONSTRAINT.CREATED_AT,
         ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_BY,
@@ -272,7 +302,7 @@ class SqlDeliveryConfigRepository(
       .where(
         ENVIRONMENT_ARTIFACT_CONSTRAINT.ENVIRONMENT_UID.eq(environmentUID),
         ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_VERSION.eq(artifactVersion),
-        ENVIRONMENT_ARTIFACT_CONSTRAINT.CONSTRAINT_TYPE.eq(type)
+        ENVIRONMENT_ARTIFACT_CONSTRAINT.TYPE.eq(type)
       )
       .fetchOne { (deliveryConfigName,
                     environmentName,
@@ -302,6 +332,74 @@ class SqlDeliveryConfigRepository(
       }
   }
 
+  override fun constraintStateFor(application: String): List<ConstraintState> {
+    val environmentNames = mutableMapOf<String, String>()
+    val deliveryConfigsByEnv = mutableMapOf<String, String>()
+    val constraintResult = jooq
+      .select(
+        ENVIRONMENT_ARTIFACT_CONSTRAINT.UID,
+        ENVIRONMENT_ARTIFACT_CONSTRAINT.ENVIRONMENT_UID,
+        ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_VERSION,
+        ENVIRONMENT_ARTIFACT_CONSTRAINT.TYPE,
+        ENVIRONMENT_ARTIFACT_CONSTRAINT.CREATED_AT,
+        ENVIRONMENT_ARTIFACT_CONSTRAINT.STATUS,
+        ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_AT,
+        ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_BY,
+        ENVIRONMENT_ARTIFACT_CONSTRAINT.COMMENT,
+        ENVIRONMENT_ARTIFACT_CONSTRAINT.ATTRIBUTES
+      )
+      .from(CURRENT_CONSTRAINT)
+      .innerJoin(ENVIRONMENT_ARTIFACT_CONSTRAINT)
+      .on(CURRENT_CONSTRAINT.CONSTRAINT_UID.eq(ENVIRONMENT_ARTIFACT_CONSTRAINT.UID))
+      .fetch()
+
+    if (constraintResult.isEmpty()) {
+      return emptyList()
+    }
+
+    jooq
+      .select(
+        CURRENT_CONSTRAINT.ENVIRONMENT_UID,
+        ENVIRONMENT.NAME,
+        DELIVERY_CONFIG.NAME)
+      .from(CURRENT_CONSTRAINT)
+      .innerJoin(ENVIRONMENT)
+      .on(ENVIRONMENT.UID.eq(CURRENT_CONSTRAINT.ENVIRONMENT_UID))
+      .innerJoin(DELIVERY_CONFIG)
+      .on(DELIVERY_CONFIG.UID.eq(ENVIRONMENT.UID))
+      .where(CURRENT_CONSTRAINT.APPLICATION.eq(application))
+      .fetch { (envId, envName, dcName) ->
+        environmentNames[envId] = envName
+        deliveryConfigsByEnv[envId] = dcName
+      }
+
+    return constraintResult.map { (envId,
+                                    artifactVersion,
+                                    type,
+                                    status,
+                                    createdAt,
+                                    judgedBy,
+                                    judgedAt,
+                                    comment,
+                                    attributes) ->
+      ConstraintState(
+        deliveryConfigsByEnv[envId] ?: error("Environment id $envId does not belong to a delivery-config"),
+        environmentNames[envId] ?: error("Invalid environment id $envId"),
+        artifactVersion,
+        type,
+        ConstraintStatus.valueOf(status),
+        createdAt.toInstant(ZoneOffset.UTC),
+        judgedBy,
+        when (judgedAt) {
+          null -> null
+          else -> judgedAt.toInstant(ZoneOffset.UTC)
+        },
+        comment,
+        mapper.readValue(attributes)
+      )
+    }
+  }
+
   override fun constraintStateFor(
     deliveryConfigName: String,
     environmentName: String,
@@ -314,7 +412,7 @@ class SqlDeliveryConfigRepository(
         inline(deliveryConfigName).`as`("deliveryConfigName"),
         inline(environmentName).`as`("environmentName"),
         ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_VERSION,
-        ENVIRONMENT_ARTIFACT_CONSTRAINT.CONSTRAINT_TYPE,
+        ENVIRONMENT_ARTIFACT_CONSTRAINT.TYPE,
         ENVIRONMENT_ARTIFACT_CONSTRAINT.STATUS,
         ENVIRONMENT_ARTIFACT_CONSTRAINT.CREATED_AT,
         ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_BY,
@@ -403,6 +501,15 @@ class SqlDeliveryConfigRepository(
     }
   }
 
+  override fun hasDeliveryConfig(application: String): Boolean {
+    return jooq
+      .selectCount()
+      .from(DELIVERY_CONFIG)
+      .where(DELIVERY_CONFIG.APPLICATION.eq(application))
+      .fetchOne()
+      .value1() > 0
+  }
+
   private fun environmentUidByName(deliveryConfigName: String, environmentName: String): String? =
     jooq
       .select(ENVIRONMENT.UID)
@@ -414,6 +521,14 @@ class SqlDeliveryConfigRepository(
       )
       .fetchOne(ENVIRONMENT.UID)
       ?: null
+
+  private fun applicationByDeliveryConfigName(name: String): String =
+    jooq
+      .select(DELIVERY_CONFIG.APPLICATION)
+      .from(DELIVERY_CONFIG)
+      .where(DELIVERY_CONFIG.NAME.eq(name))
+      .fetchOne(DELIVERY_CONFIG.APPLICATION)
+      ?: throw NoSuchDeliveryConfigName(name)
 
   private fun Instant.toLocal() = atZone(clock.zone).toLocalDateTime()
 }
