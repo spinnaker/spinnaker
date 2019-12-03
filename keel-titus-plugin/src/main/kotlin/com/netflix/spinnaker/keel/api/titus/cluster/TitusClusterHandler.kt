@@ -23,6 +23,10 @@ import com.netflix.spinnaker.keel.api.ClusterDependencies
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.id
+import com.netflix.spinnaker.keel.api.Exportable
+import com.netflix.spinnaker.keel.api.SimpleLocations
+import com.netflix.spinnaker.keel.api.SubmittedResource
+import com.netflix.spinnaker.keel.api.SimpleRegionSpec
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.api.titus.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.titus.SPINNAKER_TITUS_API_V1
@@ -30,9 +34,12 @@ import com.netflix.spinnaker.keel.api.titus.exceptions.RegistryNotFoundException
 import com.netflix.spinnaker.keel.api.titus.exceptions.TitusAccountConfigurationException
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
+import com.netflix.spinnaker.keel.clouddriver.ResourceNotFound
+import com.netflix.spinnaker.keel.clouddriver.model.Resources
 import com.netflix.spinnaker.keel.clouddriver.model.TitusActiveServerGroup
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.events.Task
+import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.plugin.TaskLauncher
 import com.netflix.spinnaker.keel.plugin.Resolver
@@ -112,6 +119,48 @@ class TitusClusterHandler(
         }
         .map { it.await() }
     }
+
+  override suspend fun export(exportable: Exportable): SubmittedResource<TitusClusterSpec> {
+    // TODO[GY] : remove unchanged/default fields from response (across all export responses)
+    val serverGroups = cloudDriverService.getServerGroups(
+      exportable.account,
+      exportable.moniker,
+      exportable.regions,
+      exportable.serviceAccount
+    ).byRegion()
+
+    if (serverGroups.isEmpty()) {
+      throw ResourceNotFound("Could not find cluster: ${exportable.moniker.name} " +
+        "in account: ${exportable.account} for export")
+    }
+
+    val base = serverGroups.values.first()
+
+    val locations = SimpleLocations(
+      account = exportable.account,
+      regions = (serverGroups.keys.map {
+        SimpleRegionSpec(it)
+      }).toSet())
+
+    val spec = TitusClusterSpec(
+      moniker = exportable.moniker,
+      locations = locations,
+      _defaults = base.exportSpec(),
+      overrides = mutableMapOf()
+    )
+
+    spec.generateOverrides(
+      serverGroups
+        .filter { it.value.location.region != base.location.region }
+    )
+
+    return SubmittedResource(
+      apiVersion = supportedKind.apiVersion,
+      kind = supportedKind.kind,
+      spec = spec,
+      metadata = mapOf("serviceAccount" to exportable.serviceAccount)
+    )
+  }
 
   private fun ResourceDiff<TitusServerGroup>.resizeServerGroupJob(): Map<String, Any?> {
     val current = requireNotNull(current) {
@@ -208,17 +257,72 @@ class TitusClusterHandler(
         ResourceDiff(desired, current?.get(region))
       }
 
+  private fun TitusClusterSpec.generateOverrides(serverGroups: Map<String, TitusServerGroup>) =
+    serverGroups.forEach { (region, serverGroup) ->
+      var newSpec = TitusServerGroupSpec()
+      val workingSpec = serverGroup.exportSpec()
+      val diff = ResourceDiff(workingSpec, defaults)
+      if (diff.hasChanges()) {
+        if ("capacity" in diff.affectedRootPropertyNames) {
+          newSpec = newSpec.copy(capacity = workingSpec.capacity)
+        }
+        if ("capacityGroup" in diff.affectedRootPropertyNames) {
+          newSpec = newSpec.copy(capacityGroup = workingSpec.capacityGroup)
+        }
+        if ("constraints" in diff.affectedRootPropertyNames) {
+          newSpec = newSpec.copy(constraints = workingSpec.constraints)
+        }
+        if ("container" in diff.affectedRootPropertyNames) {
+          newSpec = newSpec.copy(container = workingSpec.container)
+        }
+        if ("dependencies" in diff.affectedRootPropertyNames) {
+          newSpec = newSpec.copy(dependencies = workingSpec.dependencies)
+        }
+        if ("entryPoint" in diff.affectedRootPropertyNames) {
+          newSpec = newSpec.copy(entryPoint = workingSpec.entryPoint)
+        }
+        if ("env" in diff.affectedRootPropertyNames) {
+          newSpec = newSpec.copy(env = workingSpec.env)
+        }
+        if ("iamProfile" in diff.affectedRootPropertyNames) {
+          newSpec = newSpec.copy(iamProfile = workingSpec.iamProfile)
+        }
+        if ("migrationPolicy" in diff.affectedRootPropertyNames) {
+          newSpec = newSpec.copy(migrationPolicy = workingSpec.migrationPolicy)
+        }
+        if ("resources" in diff.affectedRootPropertyNames) {
+          newSpec = newSpec.copy(resources = workingSpec.resources)
+        }
+        if ("tags" in diff.affectedRootPropertyNames) {
+          newSpec = newSpec.copy(tags = workingSpec.tags)
+        }
+        (overrides as MutableMap)[region] = newSpec
+      }
+    }
+
   private suspend fun CloudDriverService.getServerGroups(resource: Resource<TitusClusterSpec>): Iterable<TitusServerGroup> =
+    getServerGroups(resource.spec.locations.account,
+      resource.spec.moniker,
+      resource.spec.locations.regions.map { it.name }.toSet(),
+      resource.serviceAccount
+    )
+
+  private suspend fun CloudDriverService.getServerGroups(
+    account: String,
+    moniker: Moniker,
+    regions: Set<String>,
+    serviceAccount: String
+  ): Iterable<TitusServerGroup> =
     coroutineScope {
-      resource.spec.locations.regions.map {
+      regions.map {
         async {
           try {
             titusActiveServerGroup(
-              resource.serviceAccount,
-              resource.spec.moniker.app,
-              resource.spec.locations.account,
-              resource.spec.moniker.name,
-              it.name,
+              serviceAccount,
+              moniker.app,
+              account,
+              moniker.name,
+              it,
               CLOUD_PROVIDER
             )
               .toTitusServerGroup()
@@ -289,4 +393,28 @@ class TitusClusterHandler(
 
   private fun Instant.iso() =
     atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ISO_DATE_TIME)
+
+  private fun TitusServerGroup.exportSpec() =
+    TitusServerGroupSpec(
+      capacity = capacity,
+      capacityGroup = capacityGroup,
+      constraints = constraints,
+      container = container,
+      dependencies = dependencies,
+      entryPoint = entryPoint,
+      env = env,
+      iamProfile = iamProfile,
+      migrationPolicy = migrationPolicy,
+      resources = resources.exportSpec(),
+      tags = tags
+    )
+
+  private fun Resources.exportSpec() =
+    ResourcesSpec(
+      cpu = cpu,
+      disk = disk,
+      gpu = gpu,
+      memory = memory,
+      networkMbps = networkMbps
+    )
 }

@@ -40,7 +40,6 @@ data class TitusClusterSpec(
   override val moniker: Moniker,
   val deployWith: ClusterDeployStrategy = RedBlack(),
   override val locations: SimpleLocations,
-  val container: Container,
   private val _defaults: TitusServerGroupSpec,
   val overrides: Map<String, TitusServerGroupSpec> = emptyMap()
 ) : Monikered, Locatable<SimpleLocations> {
@@ -72,7 +71,6 @@ data class TitusClusterSpec(
     moniker,
     deployWith,
     locations,
-    container,
     TitusServerGroupSpec(
       capacity = capacity,
       capacityGroup = capacityGroup,
@@ -168,7 +166,7 @@ fun TitusClusterSpec.resolve(): Set<TitusServerGroup> =
       capacity = resolveCapacity(it.name),
       capacityGroup = resolveCapacityGroup(it.name),
       constraints = resolveConstraints(it.name),
-      container = container,
+      container = defaults.container ?: error("Container not specified or resolved"),
       dependencies = resolveDependencies(it.name),
       entryPoint = resolveEntryPoint(it.name),
       env = resolveEnv(it.name),
