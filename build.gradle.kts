@@ -16,8 +16,8 @@ buildscript {
 }
 
 plugins {
-  id("nebula.kotlin") version "1.3.60" apply false
-  id("org.jetbrains.kotlin.plugin.allopen") version "1.3.60" apply false
+  id("nebula.kotlin") version "1.3.61" apply false
+  id("org.jetbrains.kotlin.plugin.allopen") version "1.3.61" apply false
 }
 
 allprojects {
