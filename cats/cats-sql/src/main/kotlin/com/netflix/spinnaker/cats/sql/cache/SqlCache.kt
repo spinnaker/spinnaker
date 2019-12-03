@@ -117,15 +117,15 @@ class SqlCache(
     authoritative: Boolean,
     cleanup: Boolean
   ) {
-    if (
-      type.isEmpty() ||
-      items.isNullOrEmpty() ||
-      items.none { it.id != "_ALL_" }
-    ) {
+    if (type.isEmpty()) {
       return
     }
 
     createTables(type)
+
+    if (items.isNullOrEmpty() || items.none { it.id != "_ALL_" }) {
+      return
+    }
 
     var agent: String? = agentHint
 
