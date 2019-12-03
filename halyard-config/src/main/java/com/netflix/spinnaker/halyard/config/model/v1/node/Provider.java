@@ -97,6 +97,7 @@ public abstract class Provider<A extends Account> extends Node implements Clonea
     DCOS("dcos"),
     DOCKERREGISTRY("dockerRegistry"),
     GOOGLE("google", "gce"),
+    HUAWEICLOUD("huaweicloud"),
     KUBERNETES("kubernetes"),
     ORACLE("oracle"),
     ORACLEBMCS("oraclebmcs"); // obsolete, replaced by ORACLE
