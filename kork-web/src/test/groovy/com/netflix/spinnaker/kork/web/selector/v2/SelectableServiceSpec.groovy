@@ -114,7 +114,7 @@ class SelectableServiceSpec extends Specification {
         baseUrl: "http://bakery.com",
         priority: 2,
         config: [logLevel: "INFO"],
-        parameters: [new Parameter("authenticatedUser", ["regex:^[e...z].+@netflix.com\$"])]
+        parameters: [new Parameter("authenticatedUser", ["regex:^(?:[e...z]|[1-9]).+@netflix.com\$"])]
       ),
       new BaseUrl(
         baseUrl: "http://altBakeryService.com",

@@ -322,7 +322,7 @@ public class SelectableService<T> {
 
         for (Object v : values) {
           if (v instanceof String && ((String) v).startsWith("regex:")) {
-            final String regex = ((String) v).split(":")[1];
+            final String regex = ((String) v).substring(((String) v).indexOf(":") + 1);
             if (other.getValues().stream().anyMatch(i -> ((String) i).matches(regex))) {
               return true;
             }
