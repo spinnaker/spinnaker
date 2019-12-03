@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { has, get } from 'lodash';
 
 import {

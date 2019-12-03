@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { IArtifact, IExpectedArtifact } from 'core/domain';
 import { Artifact } from 'core/pipeline/status/Artifact';

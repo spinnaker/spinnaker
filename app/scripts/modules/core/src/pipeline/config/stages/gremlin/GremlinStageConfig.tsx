@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { API } from 'core/api/ApiService';
 import { IStageConfigProps, StageConfigField } from 'core/pipeline';

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { FormikFormField, TextInput, Validators } from 'core/presentation';
 import { INotificationTypeCustomConfig } from 'core/domain';
 

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { difference, flatten, uniq } from 'lodash';
 
 import { ValidationMessage, IWizardPageComponent } from '@spinnaker/core';

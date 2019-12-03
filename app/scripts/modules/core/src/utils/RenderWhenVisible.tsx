@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 export interface IRenderWhenVisibleProps {
   // not valid without a container in px (IntersectionObserver doesn't do so good with null root but non-null rootMargin)

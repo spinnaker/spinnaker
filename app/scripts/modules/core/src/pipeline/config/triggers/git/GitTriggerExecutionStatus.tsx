@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { IExecutionTriggerStatusComponentProps, IGitTrigger } from 'core/domain';
 import { Overridable } from 'core/overrideRegistry';

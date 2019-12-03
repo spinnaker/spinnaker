@@ -1,5 +1,5 @@
-import * as React from 'react';
-import * as ReactDOM from 'react-dom';
+import React from 'react';
+import ReactDOM from 'react-dom';
 import { CSSTransition } from 'react-transition-group';
 
 const { useMemo } = React;
@@ -7,7 +7,7 @@ const { useMemo } = React;
 import { useEventListener, useContainerClassNames, useLatestCallback } from 'core/presentation';
 
 import { ModalContext } from './ModalContext';
-import * as styles from './Modal.module.css';
+import styles from './Modal.module.css';
 
 export interface IModalProps {
   isOpen: boolean;

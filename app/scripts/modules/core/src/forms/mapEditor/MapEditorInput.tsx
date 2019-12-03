@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { defaults, isNil, isFunction, isString } from 'lodash';
 
 import { IPipeline } from 'core/domain';

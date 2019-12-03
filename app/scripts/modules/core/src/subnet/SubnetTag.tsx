@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { SubnetReader } from 'core/subnet/subnet.read.service';
 
 export interface ISubnetTagProps {

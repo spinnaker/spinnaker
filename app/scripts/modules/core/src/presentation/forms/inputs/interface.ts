@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { FieldProps } from 'formik';
 import { IValidationCategory, IValidator } from '../validation';

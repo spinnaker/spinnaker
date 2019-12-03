@@ -1,5 +1,5 @@
-import * as React from 'react';
-import * as classNames from 'classnames';
+import React from 'react';
+import classNames from 'classnames';
 
 import { Application } from 'core/application';
 import { IClusterSubgroup } from 'core/cluster';

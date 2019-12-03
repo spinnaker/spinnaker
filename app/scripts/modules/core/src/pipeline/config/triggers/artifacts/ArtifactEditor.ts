@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { IArtifactEditorProps, IArtifactEditorState } from 'core/domain';
 import { cloneDeep } from 'lodash';
 

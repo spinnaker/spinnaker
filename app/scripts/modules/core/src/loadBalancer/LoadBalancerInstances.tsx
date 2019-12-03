@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { flatten, map } from 'lodash';
 import { Subscription } from 'rxjs';
 

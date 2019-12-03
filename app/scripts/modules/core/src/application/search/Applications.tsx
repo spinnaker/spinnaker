@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { isEqual } from 'lodash';
 import { SelectCallback } from 'react-bootstrap';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';

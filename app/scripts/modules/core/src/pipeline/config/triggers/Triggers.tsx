@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { Application } from 'core/application';
 import { IPipeline } from 'core/domain';

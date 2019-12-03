@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { CheckboxInput } from 'core/presentation';
 import { ITriggerTemplateComponentProps } from 'core/pipeline/manualExecution/TriggerTemplate';

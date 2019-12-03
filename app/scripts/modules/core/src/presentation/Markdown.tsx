@@ -1,6 +1,6 @@
-import * as React from 'react';
+import React from 'react';
 import { HtmlRenderer, Parser } from 'commonmark';
-import * as DOMPurify from 'dompurify';
+import DOMPurify from 'dompurify';
 import './Markdown.less';
 
 export interface IMarkdownProps {

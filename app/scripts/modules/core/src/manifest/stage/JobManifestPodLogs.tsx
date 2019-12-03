@@ -1,6 +1,6 @@
-import * as React from 'react';
+import React from 'react';
 import { Modal, Button } from 'react-bootstrap';
-import * as classNames from 'classnames';
+import classNames from 'classnames';
 import { bindAll } from 'lodash';
 
 import { InstanceReader, IInstanceConsoleOutput, IInstanceMultiOutputLog } from 'core/instance/InstanceReader';

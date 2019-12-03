@@ -6,7 +6,7 @@ import {
   successMessage,
   warningMessage,
 } from 'core/presentation/forms/validation/categories';
-import * as React from 'react';
+import React from 'react';
 
 import { mount } from 'enzyme';
 import { IValidationData, useValidationData } from './useValidationData';

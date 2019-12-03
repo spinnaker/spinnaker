@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { FormikErrors, FormikProps } from 'formik';
 
 import { IProject } from 'core/domain';

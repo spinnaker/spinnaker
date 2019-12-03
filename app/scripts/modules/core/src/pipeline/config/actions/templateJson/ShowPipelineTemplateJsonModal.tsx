@@ -1,6 +1,6 @@
-import * as React from 'react';
+import React from 'react';
 import { IPromise } from 'angular';
-import * as classnames from 'classnames';
+import classNames from 'classnames';
 
 import { Spinner } from 'core/widgets/spinners/Spinner';
 import { IModalComponentProps, JsonEditor } from 'core/presentation';
@@ -174,8 +174,8 @@ interface IShowPipelineTemplateJsonModalButtons {
 
 const ShowPipelineTemplateJsonModalButtons = (props: IShowPipelineTemplateJsonModalButtons) => {
   const { onClose, onSave } = props;
-  const closeClasses = classnames({ btn: true, 'btn-primary': !onSave });
-  const saveClasses = classnames({ btn: true, 'btn-primary': true });
+  const closeClasses = classNames({ btn: true, 'btn-primary': !onSave });
+  const saveClasses = classNames({ btn: true, 'btn-primary': true });
   return (
     <>
       <button className={closeClasses} onClick={onClose}>

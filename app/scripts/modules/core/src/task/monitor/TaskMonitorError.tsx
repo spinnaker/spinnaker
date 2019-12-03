@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { Markdown } from 'core/presentation';
 import { ReactInjector } from 'core/reactShims';
 import { module } from 'angular';

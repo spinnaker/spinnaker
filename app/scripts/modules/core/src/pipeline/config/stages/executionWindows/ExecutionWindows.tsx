@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { extend, get, isEqual } from 'lodash';
 import { Option } from 'react-select';
 import { format } from 'date-fns';

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { IVariableError } from './inputs/variableInput.service';
 
 export interface IVariableErrorProps {

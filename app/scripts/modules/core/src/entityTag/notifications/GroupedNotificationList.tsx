@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { groupBy } from 'lodash';
 
 import { EntityName } from './EntityName';

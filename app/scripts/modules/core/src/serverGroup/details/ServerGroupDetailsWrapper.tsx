@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { $q, $templateCache } from 'ngimport';
 import { Observable } from 'rxjs';
 

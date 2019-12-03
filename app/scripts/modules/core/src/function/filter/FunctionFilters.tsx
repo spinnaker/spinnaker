@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { chain, compact, debounce, uniq, map } from 'lodash';
 import { $rootScope } from 'ngimport';
 import { Subscription } from 'rxjs';

@@ -1,10 +1,9 @@
-import * as React from 'react';
+import React from 'react';
 
 import { IWizardPageComponent, FormikFormField, FormValidator, MapEditorInput } from '@spinnaker/core';
 import { FormikProps } from 'formik';
 import { IAmazonFunctionUpsertCommand } from 'amazon/index';
 import { IAmazonFunction } from 'amazon/domain';
-import * as _ from 'lodash';
 import { awsTagsValidator } from 'amazon/aws.validators';
 
 export interface IFunctionTagsProps {

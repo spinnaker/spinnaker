@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { CloudProviderLogo } from 'core/cloudProvider';
 import { IStage } from 'core/domain';

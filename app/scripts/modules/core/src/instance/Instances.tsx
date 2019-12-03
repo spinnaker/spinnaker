@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { Transition } from '@uirouter/core';
 import { UIRouterConsumer, UIRouterReact, UIViewConsumer, UIViewAddress } from '@uirouter/react';
 import { Subscription } from 'rxjs';

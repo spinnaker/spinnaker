@@ -1,5 +1,5 @@
-import * as React from 'react';
-import * as DOMPurify from 'dompurify';
+import React from 'react';
+import DOMPurify from 'dompurify';
 import { UISref } from '@uirouter/react';
 import SearchApi from 'js-worker-search';
 import { groupBy } from 'lodash';

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { isString } from 'lodash';
 
 import { HelpField } from 'core/help/HelpField';

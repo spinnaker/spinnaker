@@ -4,7 +4,7 @@ import { SETTINGS } from 'core/config/settings';
 import { ISearchResult } from 'core/search/search.service';
 import { ISearchResultSet } from 'core/search/infrastructure/infrastructureSearch.service';
 import { SearchResult } from 'core/search/infrastructure/SearchResult';
-import * as React from 'react';
+import React from 'react';
 
 export interface IGlobalSearchResultsProps {
   categories: ISearchResultSet[];

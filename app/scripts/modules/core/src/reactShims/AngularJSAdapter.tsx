@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { IScope, element } from 'angular';
 import { $compile, $controller, $templateRequest } from 'ngimport';
 

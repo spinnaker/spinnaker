@@ -1,5 +1,5 @@
 import { MenuTitle } from 'core/application/nav/MenuTitle';
-import * as React from 'react';
+import React from 'react';
 import { UIRouterContext } from '@uirouter/react-hybrid';
 import { UISref, UISrefActive } from '@uirouter/react';
 import { Subscription } from 'rxjs';

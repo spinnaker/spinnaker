@@ -1,5 +1,5 @@
 import { mock } from 'angular';
-import * as React from 'react';
+import React from 'react';
 import { mount, ReactWrapper } from 'enzyme';
 
 import { REACT_MODULE } from 'core/reactShims/react.module';

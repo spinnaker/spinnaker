@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { shallow, ShallowWrapper } from 'enzyme';
 
 import { StageConfigField } from '@spinnaker/core';

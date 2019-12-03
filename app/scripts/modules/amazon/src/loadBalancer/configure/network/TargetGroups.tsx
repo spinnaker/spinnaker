@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { filter, flatten, groupBy, set, uniq } from 'lodash';
 import { FormikErrors, FormikProps } from 'formik';
 import { Observable, Subject } from 'rxjs';

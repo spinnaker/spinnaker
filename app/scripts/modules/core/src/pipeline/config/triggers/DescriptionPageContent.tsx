@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { IPipeline } from 'core/domain';
 import { FormField, TextAreaInput } from 'core/presentation';

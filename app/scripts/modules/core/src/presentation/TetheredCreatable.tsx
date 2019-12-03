@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { Creatable } from 'react-select';
 import TetherComponent from 'react-tether';
 

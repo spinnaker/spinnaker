@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { Subject, Observable } from 'rxjs';
 
 import { Overridable, IOverridableProps } from 'core/overrideRegistry';

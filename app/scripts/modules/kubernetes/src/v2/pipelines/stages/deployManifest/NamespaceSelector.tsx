@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import Select, { Creatable, Option } from 'react-select';
 import { get, find, map } from 'lodash';
 import { IAccountDetails } from '@spinnaker/core';

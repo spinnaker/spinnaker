@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import * as React from 'react';
+import React from 'react';
 import { react2angular } from 'react2angular';
 import { isEmpty } from 'lodash';
 

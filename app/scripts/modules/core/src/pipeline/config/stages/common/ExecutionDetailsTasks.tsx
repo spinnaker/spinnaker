@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps } from './ExecutionDetailsSection';
 import { ExecutionStepDetails } from './ExecutionStepDetails';

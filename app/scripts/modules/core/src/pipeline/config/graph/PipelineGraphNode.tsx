@@ -1,7 +1,7 @@
-import * as React from 'react';
-import * as ReactGA from 'react-ga';
-import * as DOMPurify from 'dompurify';
-import * as classNames from 'classnames';
+import React from 'react';
+import ReactGA from 'react-ga';
+import DOMPurify from 'dompurify';
+import classNames from 'classnames';
 import { get } from 'lodash';
 
 import { IExecutionStageSummary } from 'core/domain';

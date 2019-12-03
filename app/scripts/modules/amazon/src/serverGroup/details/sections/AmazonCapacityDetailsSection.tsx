@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { CollapsibleSection, NgReact, Overridable, ICapacity, CapacityDetailsSection } from '@spinnaker/core';
 

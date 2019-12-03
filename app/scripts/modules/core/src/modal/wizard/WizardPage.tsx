@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { isFunction, isEqual } from 'lodash';
 
 import { IWizardModalApi } from './WizardModal';

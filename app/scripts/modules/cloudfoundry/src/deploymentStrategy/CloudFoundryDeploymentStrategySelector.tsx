@@ -1,5 +1,5 @@
-import * as React from 'react';
-import * as DOMPurify from 'dompurify';
+import React from 'react';
+import DOMPurify from 'dompurify';
 import Select, { Option } from 'react-select';
 import { defaultsDeep, unset } from 'lodash';
 

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import Select, { Option } from 'react-select';
 import { IPipelineTemplate } from 'core/pipeline/config/templates/PipelineTemplateReader';
 

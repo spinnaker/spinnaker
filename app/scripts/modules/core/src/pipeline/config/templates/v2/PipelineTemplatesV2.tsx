@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { Modal } from 'react-bootstrap';
 import { DateTime } from 'luxon';
 import { get, memoize } from 'lodash';

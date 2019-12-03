@@ -1,8 +1,8 @@
-import * as React from 'react';
+import React from 'react';
 import { isEqual } from 'lodash';
 const angular = require('angular');
 import { react2angular } from 'react2angular';
-import * as prettyMilliseconds from 'pretty-ms';
+import prettyMilliseconds from 'pretty-ms';
 
 import { IServerGroupDetailsSectionProps, HelpField } from '@spinnaker/core';
 import { TitusReactInjector } from 'titus/reactShims';

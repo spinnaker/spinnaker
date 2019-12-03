@@ -1,5 +1,5 @@
-import * as React from 'react';
-import * as Select from 'react-select';
+import React from 'react';
+import { Option } from 'react-select';
 import { ReactSelectInput, useLatestPromise } from '@spinnaker/core';
 
 import { ISlackChannel, SlackReader } from './SlackReader';
@@ -21,7 +21,7 @@ export default function SlackChannelSelector({ channel, callback }: ISlackChanne
   const channels = fetchChannels.result;
   const isLoading = fetchChannels.status === 'PENDING';
 
-  const onInputChange = (evt: Select.Option<ISlackChannel>) => {
+  const onInputChange = (evt: Option<ISlackChannel>) => {
     const newChannel = evt ? evt.target.value : null;
     callback('slackChannel', newChannel || {});
     setSelectedChannel(newChannel);

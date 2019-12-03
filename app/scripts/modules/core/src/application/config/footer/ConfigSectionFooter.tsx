@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { Spinner } from 'core/widgets/spinners/Spinner';
 
 export interface IConfigSectionFooterProps {

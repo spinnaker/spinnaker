@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { get } from 'lodash';
 import { UISref } from '@uirouter/react';
 import { UIRouterContext } from '@uirouter/react-hybrid';

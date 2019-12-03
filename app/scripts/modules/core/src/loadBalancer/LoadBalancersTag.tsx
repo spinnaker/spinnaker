@@ -1,5 +1,5 @@
-import * as React from 'react';
-import * as ReactGA from 'react-ga';
+import React from 'react';
+import ReactGA from 'react-ga';
 import { sortBy } from 'lodash';
 
 import { ILoadBalancer } from 'core/domain';

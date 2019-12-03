@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { cloneDeep, isNil } from 'lodash';
 
 import { ArtifactTypePatterns } from 'core/artifact';

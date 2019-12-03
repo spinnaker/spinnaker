@@ -1,4 +1,4 @@
-import * as spel2js from 'spel2js';
+import spel2js from 'spel2js';
 
 const literalExpression = (literalString: string) =>
   spel2js.SpelExpressionEvaluator.compile(`'${literalString.replace(/'/g, "''")}'`);

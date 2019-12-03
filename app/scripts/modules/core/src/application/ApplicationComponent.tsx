@@ -1,5 +1,5 @@
 import { ApplicationHeader } from 'core/application/nav/ApplicationHeader';
-import * as React from 'react';
+import React from 'react';
 import { UIView } from '@uirouter/react';
 
 import { Application } from 'core/application';

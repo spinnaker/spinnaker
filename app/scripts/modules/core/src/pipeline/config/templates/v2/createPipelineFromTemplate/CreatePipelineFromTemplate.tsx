@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { Button, Modal } from 'react-bootstrap';
 import { Option } from 'react-select';
 import { Observable, Subject } from 'rxjs';

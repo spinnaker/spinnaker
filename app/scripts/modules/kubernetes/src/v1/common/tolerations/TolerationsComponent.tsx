@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { cloneDeep } from 'lodash';
 import Select, { Option } from 'react-select';
 import { Button } from 'react-bootstrap';

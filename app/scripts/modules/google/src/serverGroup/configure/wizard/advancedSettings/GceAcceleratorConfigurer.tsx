@@ -1,7 +1,7 @@
 import { module } from 'angular';
 
 import { get, isEmpty } from 'lodash';
-import * as React from 'react';
+import React from 'react';
 import Select, { Option } from 'react-select';
 import { react2angular } from 'react2angular';
 

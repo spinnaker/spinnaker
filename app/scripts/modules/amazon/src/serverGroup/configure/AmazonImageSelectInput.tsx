@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { IPromise } from 'angular';
 import { $q } from 'ngimport';
 import { ReactSelectProps, HandlerRendererResult, MenuRendererProps, Option, OptionValues } from 'react-select';

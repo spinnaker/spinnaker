@@ -1,6 +1,6 @@
-import * as React from 'react';
+import React from 'react';
 import { get } from 'lodash';
-import * as ReactGA from 'react-ga';
+import ReactGA from 'react-ga';
 import { Subscription } from 'rxjs';
 import { UISref } from '@uirouter/react';
 

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { IExpectedArtifact, IStage, IPipeline } from 'core/domain';
 import { ExpectedArtifactModal, ArtifactTypePatterns } from 'core/artifact';

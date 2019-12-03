@@ -1,5 +1,5 @@
-import * as DOMPurify from 'dompurify';
-import * as React from 'react';
+import DOMPurify from 'dompurify';
+import React from 'react';
 import { cloneDeep, map, set, split } from 'lodash';
 import Select, { Creatable, Option } from 'react-select';
 

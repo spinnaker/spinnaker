@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { Application, ApplicationWriter } from 'core/application';
 import { ReactInjector } from 'core/reactShims';

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { IFormikStageConfigInjectedProps, StageConfigField } from 'core/pipeline';
 import { StageArtifactSelectorDelegate, ArtifactTypePatterns, excludeAllTypesExcept } from 'core/artifact';

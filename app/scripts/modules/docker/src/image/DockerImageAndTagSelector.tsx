@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import Select, { Option } from 'react-select';
 import { groupBy, reduce, trim, uniq } from 'lodash';
 

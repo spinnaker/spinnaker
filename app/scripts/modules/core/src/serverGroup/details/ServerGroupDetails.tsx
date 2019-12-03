@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { UISref } from '@uirouter/react';
 import { Subject } from 'rxjs';
 

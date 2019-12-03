@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { IScope } from 'angular';
 import { DropdownButton, MenuItem } from 'react-bootstrap';
 import { StateService } from '@uirouter/core';

@@ -1,4 +1,4 @@
-import * as angular from 'angular';
+import angular from 'angular';
 
 // Improve errors/stack traces related to:
 // `Error: [ng:areq] Argument 'module' is not a function, got undefined`

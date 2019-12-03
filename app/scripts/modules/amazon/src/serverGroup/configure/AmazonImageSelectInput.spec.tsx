@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { mock, IHttpBackendService } from 'angular';
 import { ShallowWrapper, ReactWrapper, shallow, mount } from 'enzyme';
 

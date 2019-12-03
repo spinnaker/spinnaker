@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { BaseBuildTriggerTemplate } from '../baseBuild/BaseBuildTriggerTemplate';
 import { BuildServiceType } from 'core/ci';

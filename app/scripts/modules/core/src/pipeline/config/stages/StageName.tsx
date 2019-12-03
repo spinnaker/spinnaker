@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as React from 'react';
+import React from 'react';
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
 

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { IRegion } from 'core/account/AccountService';
 import { IFormInputProps } from '../presentation';

@@ -1,5 +1,5 @@
 import { RenderOutputFile } from 'core/presentation/RenderOutputFile';
-import * as React from 'react';
+import React from 'react';
 import { get } from 'lodash';
 
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps, StageFailureMessage } from 'core/pipeline';

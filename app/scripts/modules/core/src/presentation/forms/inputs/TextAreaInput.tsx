@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { orEmptyString, validationClassName } from './utils';
 import { IFormInputProps, OmitControlledInputPropsFrom } from './interface';

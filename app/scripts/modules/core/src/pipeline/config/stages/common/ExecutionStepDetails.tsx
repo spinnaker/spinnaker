@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { IExecutionStage } from 'core/domain';
 import { StatusGlyph } from 'core/task/StatusGlyph';

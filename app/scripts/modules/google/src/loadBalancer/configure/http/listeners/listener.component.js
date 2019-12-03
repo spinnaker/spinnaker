@@ -1,6 +1,6 @@
 'use strict';
 
-import * as _ from 'lodash';
+import _ from 'lodash';
 import { GCE_ADDRESS_SELECTOR } from 'google/loadBalancer/configure/common/addressSelector.component';
 const angular = require('angular');
 

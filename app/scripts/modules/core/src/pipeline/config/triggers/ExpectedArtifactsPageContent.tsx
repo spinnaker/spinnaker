@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { ArtifactReferenceService } from 'core/artifact/ArtifactReferenceService';
 import { ExpectedArtifactService } from 'core/artifact/expectedArtifact.service';

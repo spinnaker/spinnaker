@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { Modal } from 'react-bootstrap';
 import { Field, FieldProps, Form, Formik } from 'formik';
 import { IPromise } from 'angular';

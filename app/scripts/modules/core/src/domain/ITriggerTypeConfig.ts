@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { IStageOrTriggerTypeConfig } from './IStageOrTriggerTypeConfig';
 import { ITrigger } from './ITrigger';
 import { IAuthentication } from './IAuthentication';

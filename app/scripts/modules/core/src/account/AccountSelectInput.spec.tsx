@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { ShallowWrapper, shallow } from 'enzyme';
 import { IScope, mock } from 'angular';
 import { AccountService, IAccountDetails } from './AccountService';

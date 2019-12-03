@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { Field } from 'formik';
 import Select, { Option } from 'react-select';
 

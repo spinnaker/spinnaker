@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { CurrentCapacity, DesiredCapacity, ReactModal, Application, Overridable } from '@spinnaker/core';
 import { ITitusServerGroup } from 'titus/domain';

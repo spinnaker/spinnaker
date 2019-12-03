@@ -1,5 +1,5 @@
 import { UIRouterContext } from '@uirouter/react-hybrid';
-import * as React from 'react';
+import React from 'react';
 import { AutoSizer, CellMeasurer, CellMeasurerCache, List, ListRowProps } from 'react-virtualized';
 import { Subscription } from 'rxjs';
 

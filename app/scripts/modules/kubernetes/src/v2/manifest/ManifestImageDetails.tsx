@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { has, sortBy } from 'lodash';
 
 import { HelpField } from '@spinnaker/core';

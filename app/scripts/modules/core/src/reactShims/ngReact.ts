@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { angular2react } from 'angular2react';
 import IInjectorService = angular.auto.IInjectorService;
 

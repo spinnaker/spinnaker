@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { FormikFormField, IWizardPageComponent, TextInput, FormValidator } from '@spinnaker/core';
 import { FormikProps, FormikErrors } from 'formik';

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { Application, DeployInitializer, ITemplateSelectionText } from '@spinnaker/core';
 

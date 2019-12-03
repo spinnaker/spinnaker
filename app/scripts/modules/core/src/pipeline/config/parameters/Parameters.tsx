@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { arrayMove, SortableContainer, SortableContainerProps, SortableElement, SortEnd } from 'react-sortable-hoc';
 
 import { IParameter } from 'core/domain';

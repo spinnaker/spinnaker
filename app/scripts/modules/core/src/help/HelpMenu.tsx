@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { Dropdown, MenuItem, Glyphicon } from 'react-bootstrap';
 import { UISref } from '@uirouter/react';
 

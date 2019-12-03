@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { errorMessage, FormikFormField, ReactSelectInput, useLatestPromise } from 'core/presentation';
 

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { countBy } from 'lodash';
 import { FieldArray } from 'formik';
 
@@ -32,7 +32,8 @@ export interface IEvaluatedVariable {
 }
 
 const variableNameValidator: IValidator = (val: string, label: string) =>
-  !val.match(/^[a-zA-Z_][a-zA-Z0-9_]+$/) && errorMessage(`${label} should consist only of letters, numbers, or underscore`);
+  !val.match(/^[a-zA-Z_][a-zA-Z0-9_]+$/) &&
+  errorMessage(`${label} should consist only of letters, numbers, or underscore`);
 
 const duplicateKeyValidatorFactory = (variables: IEvaluatedVariable[] = []) => {
   const keyCounts = countBy(variables.map(x => x.key), x => x);

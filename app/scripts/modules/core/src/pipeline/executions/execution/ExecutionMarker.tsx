@@ -1,5 +1,5 @@
-import * as React from 'react';
-import * as ReactGA from 'react-ga';
+import React from 'react';
+import ReactGA from 'react-ga';
 
 import { IExecution, IExecutionStageSummary } from 'core/domain';
 import { OrchestratedItemRunningTime } from './OrchestratedItemRunningTime';

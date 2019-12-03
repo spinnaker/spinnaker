@@ -1,5 +1,5 @@
 import { useIsMountedRef } from 'core/presentation';
-import * as React from 'react';
+import React from 'react';
 import { IValidator } from '../../validation';
 import { IFormInputValidation } from '../interface';
 

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { IFormInputProps, IFormInputValidation } from '../inputs';
 import { ILayoutProps } from '../layouts';

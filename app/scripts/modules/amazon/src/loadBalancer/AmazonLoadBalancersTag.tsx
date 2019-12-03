@@ -1,8 +1,8 @@
 // This is all mercilessly copied from LoadBalancersTag.tsx. This should be cleaned up at some point
 // Probably when we convert clusters view to React.
 
-import * as React from 'react';
-import * as ReactGA from 'react-ga';
+import React from 'react';
+import ReactGA from 'react-ga';
 import { sortBy } from 'lodash';
 
 import {

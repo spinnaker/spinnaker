@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { IDeploymentStrategyAdditionalFieldsProps, HelpField } from '@spinnaker/core';
 import { IRollingPushCommand } from './rollingPush.strategy';

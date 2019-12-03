@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { $q } from 'ngimport';
 import { flatten, isEqual, map, uniq, xor } from 'lodash';
 import Select, { Option } from 'react-select';

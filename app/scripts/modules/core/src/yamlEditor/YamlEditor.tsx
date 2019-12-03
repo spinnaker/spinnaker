@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import AceEditor, { Annotation } from 'react-ace';
 import { $log } from 'ngimport';
 import { loadAll, YAMLException } from 'js-yaml';

@@ -1,6 +1,6 @@
-import * as React from 'react';
-import * as ReactGA from 'react-ga';
-import * as DOMPurify from 'dompurify';
+import React from 'react';
+import ReactGA from 'react-ga';
+import DOMPurify from 'dompurify';
 import { isUndefined } from 'lodash';
 
 import { HelpContentsRegistry, HelpTextExpandedContext } from 'core/help';

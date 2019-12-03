@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { IManifest, ReactInjector, AccountService } from '@spinnaker/core';
 import { get, trim } from 'lodash';
 

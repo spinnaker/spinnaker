@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { isUndefined } from 'lodash';
 import { ValidationMessage } from '../validation';
 import { IFormInputValidation } from '../inputs';

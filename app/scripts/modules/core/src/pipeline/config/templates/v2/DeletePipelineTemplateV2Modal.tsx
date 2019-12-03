@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { Modal } from 'react-bootstrap';
 import { get } from 'lodash';
 import { IPipelineTemplateV2 } from 'core/domain/IPipelineTemplateV2';

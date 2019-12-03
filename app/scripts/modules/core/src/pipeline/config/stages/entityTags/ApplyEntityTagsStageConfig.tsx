@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { SETTINGS } from 'core/config';
 import { IEntityRef, IEntityTag, IStage } from 'core/domain';

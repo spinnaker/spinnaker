@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { FieldArray, FormikErrors, FormikProps, getIn } from 'formik';
 import { chain, get, isEqual } from 'lodash';
 

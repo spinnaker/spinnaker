@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { IPipelineTemplatePlanError } from 'core/pipeline/config/templates/PipelineTemplateReader';
 

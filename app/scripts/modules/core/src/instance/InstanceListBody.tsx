@@ -1,7 +1,7 @@
-import * as React from 'react';
+import React from 'react';
 import { Subject } from 'rxjs';
 import { isEqual } from 'lodash';
-import * as classNames from 'classnames';
+import classNames from 'classnames';
 
 import { IServerGroup, IInstance, ILoadBalancerHealth } from 'core/domain';
 import { ReactInjector } from 'core/reactShims';

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { Modal, ModalFooter } from 'react-bootstrap';
 import { Form, Formik } from 'formik';
 

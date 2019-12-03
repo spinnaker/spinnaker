@@ -1,5 +1,5 @@
 import { module } from 'angular';
-import * as DOMPurify from 'dompurify';
+import DOMPurify from 'dompurify';
 import { IModalService, IModalSettings } from 'angular-ui-bootstrap';
 
 export interface IConfirmationModalParams {

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { capitalize, get } from 'lodash';
 
 import { IExecutionDetailsSectionProps, ExecutionDetailsSection } from 'core/pipeline';

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { useInternalValidator } from 'core/presentation';
 import { composeValidators, IValidator, Validators } from '../validation';
 import { IFormInputProps, OmitControlledInputPropsFrom } from './interface';

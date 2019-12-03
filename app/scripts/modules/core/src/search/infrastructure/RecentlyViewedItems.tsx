@@ -1,7 +1,7 @@
 import { IPromise } from 'angular';
-import * as React from 'react';
+import React from 'react';
 import { Observable, Subject } from 'rxjs';
-import * as ReactGA from 'react-ga';
+import ReactGA from 'react-ga';
 
 import { IRecentHistoryEntry, RecentHistoryService } from 'core/history';
 import { ReactInjector } from 'core/reactShims';

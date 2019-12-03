@@ -1,5 +1,5 @@
 import { IController, IComponentOptions, IScope, ITimeoutService, module } from 'angular';
-import * as Clipboard from 'clipboard';
+import Clipboard from 'clipboard';
 
 import './copyToClipboard.component.less';
 

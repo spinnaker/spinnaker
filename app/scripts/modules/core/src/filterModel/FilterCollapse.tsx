@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { $rootScope } from 'ngimport';
 
 import { ReactInjector } from 'core/reactShims';

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { chain, find, sortBy } from 'lodash';
 import { UISref } from '@uirouter/react';
 

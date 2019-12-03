@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { IExecutionMarkerIconProps } from '../common/ExecutionMarkerIcon';
 
 export class GroupMarkerIcon extends React.Component<IExecutionMarkerIconProps> {

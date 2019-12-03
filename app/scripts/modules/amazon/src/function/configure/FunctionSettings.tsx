@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { FormikFormField, IWizardPageComponent, TextInput, NumberInput, HelpField } from '@spinnaker/core';
 import { FormikProps } from 'formik';
 import { IAmazonFunctionUpsertCommand } from 'amazon/index';

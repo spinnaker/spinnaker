@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { AccountService, Application, IServerGroup, ModalInjector } from '@spinnaker/core';
 

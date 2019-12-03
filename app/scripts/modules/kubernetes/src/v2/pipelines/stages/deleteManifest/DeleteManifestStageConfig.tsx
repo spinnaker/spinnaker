@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { defaults } from 'lodash';
 
 import { Application, IStage, IStageConfigProps } from '@spinnaker/core';

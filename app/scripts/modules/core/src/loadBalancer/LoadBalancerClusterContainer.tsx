@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { isEqual, orderBy } from 'lodash';
 
 import { ILoadBalancer, IServerGroup } from 'core/domain';

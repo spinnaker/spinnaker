@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { DAYS_OF_WEEK } from './daysOfWeek';
 
 export interface IExecutionWindowDayPickerConfigProps {

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { HoverablePopover } from 'core/presentation';
 import { IEntityTags } from 'core/domain';

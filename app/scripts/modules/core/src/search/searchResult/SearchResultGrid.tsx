@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { kebabCase } from 'lodash';
 
 import { Spinner } from 'core/widgets';

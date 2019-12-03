@@ -1,9 +1,9 @@
-import * as React from 'react';
+import React from 'react';
 
 const { useContext } = React;
 
 import { ModalContext } from './ModalContext';
-import * as styles from './ModalHeader.module.css';
+import styles from './ModalHeader.module.css';
 
 export interface IModalHeaderProps {
   children?: React.ReactNode;

@@ -1,5 +1,5 @@
 import { mock, IQService, IScope } from 'angular';
-import * as React from 'react';
+import React from 'react';
 import { shallow } from 'enzyme';
 
 import { CreatePipelineModal, ICreatePipelineModalProps } from './CreatePipelineModal';

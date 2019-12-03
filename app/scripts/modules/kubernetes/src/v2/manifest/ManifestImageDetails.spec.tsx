@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { mount } from 'enzyme';
 import { load } from 'js-yaml';
 import { ManifestImageDetails } from 'kubernetes/v2/manifest/ManifestImageDetails';

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { FieldArray, getIn } from 'formik';
 
 import { FormikFormField, HelpField, TextInput } from '@spinnaker/core';

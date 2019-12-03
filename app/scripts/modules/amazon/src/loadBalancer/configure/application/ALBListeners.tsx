@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { $q } from 'ngimport';
 import { SortableContainer, SortableElement, SortableHandle, arrayMove, SortEnd } from 'react-sortable-hoc';
 import { difference, flatten, get, some, uniq } from 'lodash';

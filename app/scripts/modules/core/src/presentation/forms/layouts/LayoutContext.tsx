@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { ILayoutProps } from './interface';
 import { StandardFieldLayout } from './StandardFieldLayout';
 

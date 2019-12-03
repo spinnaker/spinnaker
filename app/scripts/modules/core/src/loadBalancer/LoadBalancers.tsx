@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { Debounce } from 'lodash-decorators';
 import { Subscription } from 'rxjs';
 

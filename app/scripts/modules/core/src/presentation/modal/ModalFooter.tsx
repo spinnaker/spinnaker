@@ -1,6 +1,6 @@
-import * as React from 'react';
+import React from 'react';
 
-import * as styles from './ModalFooter.module.css';
+import styles from './ModalFooter.module.css';
 
 export interface IModalFooterProps {
   primaryActions?: React.ReactNode;

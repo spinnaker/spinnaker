@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { isFunction, throttle } from 'lodash';
 
 import { ReactInjector } from 'core/reactShims';

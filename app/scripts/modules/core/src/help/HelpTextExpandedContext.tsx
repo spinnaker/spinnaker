@@ -1,3 +1,3 @@
-import * as React from 'react';
+import React from 'react';
 
 export const HelpTextExpandedContext = React.createContext(false);

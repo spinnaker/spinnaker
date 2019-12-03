@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { IStage } from 'core/domain';
 import { HelpField } from 'core/help';

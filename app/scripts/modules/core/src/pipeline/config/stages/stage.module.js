@@ -1,8 +1,8 @@
 'use strict';
 
 const angular = require('angular');
-import * as React from 'react';
-import * as ReactDOM from 'react-dom';
+import React from 'react';
+import ReactDOM from 'react-dom';
 import { defaultsDeep, extend } from 'lodash';
 
 import { AccountService } from 'core/account/AccountService';

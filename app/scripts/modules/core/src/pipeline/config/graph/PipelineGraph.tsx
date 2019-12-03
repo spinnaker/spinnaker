@@ -1,7 +1,7 @@
-import * as React from 'react';
-import * as DOMPurify from 'dompurify';
-import * as $ from 'jquery';
-import * as classNames from 'classnames';
+import React from 'react';
+import DOMPurify from 'dompurify';
+import $ from 'jquery';
+import classNames from 'classnames';
 import { Debounce, Throttle } from 'lodash-decorators';
 import { clone, find, flatten, forOwn, groupBy, max, maxBy, sortBy, sum, sumBy, uniq } from 'lodash';
 import { Subscription } from 'rxjs';

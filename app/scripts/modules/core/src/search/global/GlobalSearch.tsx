@@ -1,9 +1,9 @@
-import * as React from 'react';
+import React from 'react';
 import { UIRouterContext } from '@uirouter/react-hybrid';
 
 import { Debounce } from 'lodash-decorators';
 import { flatten } from 'lodash';
-import * as ReactGA from 'react-ga';
+import ReactGA from 'react-ga';
 import { Observable, Subject } from 'rxjs';
 
 import { ISearchResultSet } from 'core/search/infrastructure/infrastructureSearch.service';

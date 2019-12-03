@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { CloudProviderRegistry } from 'core/cloudProvider';
 import { OverrideRegistry } from 'core/overrideRegistry';

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { get, isEmpty } from 'lodash';
 
 import { StageFailureMessage, IExecutionDetailsSectionProps, ExecutionDetailsSection } from 'core/pipeline';

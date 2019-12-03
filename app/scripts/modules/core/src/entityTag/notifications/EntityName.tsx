@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { IEntityTags } from 'core/domain';
 import { AccountTag } from 'core/account';

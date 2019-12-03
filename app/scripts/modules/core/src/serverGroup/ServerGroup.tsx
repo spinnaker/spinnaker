@@ -1,7 +1,7 @@
-import * as React from 'react';
-import * as ReactGA from 'react-ga';
+import React from 'react';
+import ReactGA from 'react-ga';
 import { has } from 'lodash';
-import * as classNames from 'classnames';
+import classNames from 'classnames';
 import { Subscription } from 'rxjs';
 import { $interpolate } from 'ngimport';
 

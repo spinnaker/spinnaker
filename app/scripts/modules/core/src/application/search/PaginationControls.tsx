@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { SelectCallback, Pagination } from 'react-bootstrap';
 import { createUltimatePagination, ITEM_TYPES } from 'react-ultimate-pagination';
 export interface IPaginationControlsProps {

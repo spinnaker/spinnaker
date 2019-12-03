@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { INotification, IPipeline } from 'core/domain';
 import { NotificationsList } from 'core/notification';

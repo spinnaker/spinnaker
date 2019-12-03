@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 export function ServerGroupStageContext(props: { serverGroups: { [region: string]: string[] } }) {
   if (!props.serverGroups) {

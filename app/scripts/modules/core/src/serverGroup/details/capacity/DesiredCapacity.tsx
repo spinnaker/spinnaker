@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { ICapacity } from '../../serverGroupWriter.service';
 
 export function DesiredCapacity(props: { capacity: ICapacity; simpleMode: boolean }) {

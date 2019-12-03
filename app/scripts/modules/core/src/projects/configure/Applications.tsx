@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { FormikErrors, getIn, FormikProps } from 'formik';
 import { isEqual } from 'lodash';
 

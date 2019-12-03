@@ -1,5 +1,5 @@
-import * as React from 'react';
-import * as ReactGA from 'react-ga';
+import React from 'react';
+import ReactGA from 'react-ga';
 
 import { Key } from 'core/widgets/Keys';
 import { DeleteType, ITag, Tag } from './Tag';

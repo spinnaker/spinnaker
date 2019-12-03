@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 import { HealthCheckTemplate } from '../templates';
-import * as _ from 'lodash';
+import _ from 'lodash';
 
 module.exports = angular
   .module('spinnaker.deck.httpLoadBalancer.healthCheck.component', [])

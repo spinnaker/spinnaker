@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { IStageConfigProps, FormikStageConfig, IContextualValidator } from 'core/pipeline';
 import { FormikFormField, TextInput, TextAreaInput, CheckboxInput, FormValidator } from 'core/presentation';

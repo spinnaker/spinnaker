@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { capitalize, get, isEmpty, map } from 'lodash';
 import { Option } from 'react-select';
 

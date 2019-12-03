@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { keyBy, truncate } from 'lodash';
 import memoizeOne from 'memoize-one';
 

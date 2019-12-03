@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { IStageConfigProps, StageConfigField } from 'core/pipeline';
 import { IArtifact, IExpectedArtifact, StageArtifactSelector } from '@spinnaker/core';

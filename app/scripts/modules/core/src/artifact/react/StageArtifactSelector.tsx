@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { module } from 'angular';
 import Select from 'react-select';
 import { react2angular } from 'react2angular';

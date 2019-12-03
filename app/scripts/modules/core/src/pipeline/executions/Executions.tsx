@@ -1,8 +1,8 @@
 import { IPromise } from 'angular';
 import { CreatePipelineButton } from 'core/pipeline/create/CreatePipelineButton';
 import { IScheduler } from 'core/scheduler/SchedulerFactory';
-import * as React from 'react';
-import * as ReactGA from 'react-ga';
+import React from 'react';
+import ReactGA from 'react-ga';
 import { get } from 'lodash';
 import { $q } from 'ngimport';
 import { Subscription } from 'rxjs';

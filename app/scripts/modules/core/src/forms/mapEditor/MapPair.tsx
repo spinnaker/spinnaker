@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { ValidationMessage } from 'core/presentation';
 import { IPipeline } from '../../domain';
 import { SpelText } from '../../widgets';

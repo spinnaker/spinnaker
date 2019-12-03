@@ -1,5 +1,5 @@
-import * as React from 'react';
-import * as DOMPurify from 'dompurify';
+import React from 'react';
+import DOMPurify from 'dompurify';
 import { Subscription } from 'rxjs';
 
 import { INotifier, NotifierService } from 'core/widgets';

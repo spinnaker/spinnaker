@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import Select, { Creatable, Option } from 'react-select';
 import { intersection, uniq, without, cloneDeep, compact } from 'lodash';
 import { Button } from 'react-bootstrap';

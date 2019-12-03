@@ -1,5 +1,5 @@
 import { cloneDeep } from 'lodash';
-import * as React from 'react';
+import React from 'react';
 import Select, { Option } from 'react-select';
 
 import { ArtifactTypePatterns } from 'core/artifact';

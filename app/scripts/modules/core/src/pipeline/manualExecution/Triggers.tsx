@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { Observable, Subject } from 'rxjs';
 import Select, { Option } from 'react-select';
 import { clone, head } from 'lodash';

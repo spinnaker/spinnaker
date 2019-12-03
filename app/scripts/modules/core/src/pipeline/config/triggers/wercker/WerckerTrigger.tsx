@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { uniq } from 'lodash';
 import { FormikProps } from 'formik';
 

@@ -1,4 +1,4 @@
-import * as ReactGA from 'react-ga';
+import ReactGA from 'react-ga';
 
 import { SETTINGS } from 'core/config/settings';
 

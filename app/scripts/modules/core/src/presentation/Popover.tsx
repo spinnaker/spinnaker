@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { OverlayTrigger, Popover as BSPopover } from 'react-bootstrap';
 
 import { Placement, Markdown } from 'core/presentation';

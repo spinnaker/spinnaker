@@ -1,5 +1,5 @@
 import { cloneDeep } from 'lodash';
-import * as React from 'react';
+import React from 'react';
 
 import { ArtifactTypePatterns } from 'core/artifact';
 import { IArtifactEditorProps, IArtifactKindConfig } from 'core/domain';

@@ -1,7 +1,7 @@
 import { module } from 'angular';
 
 import { chain } from 'lodash';
-import * as React from 'react';
+import React from 'react';
 import { Async, AutocompleteResult, Option } from 'react-select';
 import { react2angular } from 'react2angular';
 

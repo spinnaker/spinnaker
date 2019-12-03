@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { IFormInputProps, ReactSelectInput, useLatestPromise } from 'core/presentation';
 import { ServiceAccountReader } from 'core/serviceAccount';

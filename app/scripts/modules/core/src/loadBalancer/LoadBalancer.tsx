@@ -1,6 +1,6 @@
-import * as React from 'react';
+import React from 'react';
 import { UISref, UISrefActive } from '@uirouter/react';
-import * as classNames from 'classnames';
+import classNames from 'classnames';
 
 import { Application } from 'core/application/application.model';
 import { CloudProviderRegistry } from 'core/cloudProvider';

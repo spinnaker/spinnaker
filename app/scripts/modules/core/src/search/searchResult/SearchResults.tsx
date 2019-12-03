@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
 import { SearchResultType } from './searchResultType';

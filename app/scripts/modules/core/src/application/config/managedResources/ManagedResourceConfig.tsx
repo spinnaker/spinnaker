@@ -1,8 +1,8 @@
-import * as React from 'react';
+import React from 'react';
 import { module } from 'angular';
 import { react2angular } from 'react2angular';
-import * as ReactGA from 'react-ga';
-import * as classNames from 'classnames';
+import ReactGA from 'react-ga';
+import classNames from 'classnames';
 
 import { NgReact } from 'core/reactShims';
 import { Application } from 'core/application';

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { IExecutionDetailsSectionProps, StageFailureMessage } from 'core/pipeline';
 import { IStage } from 'core/domain';

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application/application.model';

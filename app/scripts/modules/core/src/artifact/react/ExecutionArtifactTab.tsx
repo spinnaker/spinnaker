@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { get, has } from 'lodash';
 
 import { IExpectedArtifact, IExecution } from 'core/domain';

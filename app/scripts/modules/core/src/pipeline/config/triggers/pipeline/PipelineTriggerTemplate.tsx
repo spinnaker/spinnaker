@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { get, has } from 'lodash';
 import { Option } from 'react-select';
 import { IPromise } from 'angular';

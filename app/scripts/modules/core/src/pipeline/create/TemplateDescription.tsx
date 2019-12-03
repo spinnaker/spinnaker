@@ -1,5 +1,5 @@
-import * as React from 'react';
-import * as classNames from 'classnames';
+import React from 'react';
+import classNames from 'classnames';
 
 import { IPipelineTemplate } from 'core/pipeline/config/templates/PipelineTemplateReader';
 import { IPipelineTemplateV2 } from 'core/domain/IPipelineTemplateV2';

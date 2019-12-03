@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { StageConfigField } from 'core/pipeline';
 import { CheckboxInput, TextInput } from 'core/presentation';

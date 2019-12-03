@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import AceEditor, { AceEditorProps, Annotation } from 'react-ace';
 
 import 'brace/mode/json';

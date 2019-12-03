@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { FormikProps, FormikErrors } from 'formik';
 
 import { IStage, IPipeline, ITrigger } from 'core/domain';

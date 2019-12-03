@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { OverlayTrigger, Tooltip as BSTooltip } from 'react-bootstrap';
 
 import { Markdown } from './Markdown';

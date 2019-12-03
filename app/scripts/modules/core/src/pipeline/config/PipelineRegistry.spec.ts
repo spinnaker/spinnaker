@@ -1,6 +1,6 @@
 import { mock } from 'angular';
 import { map } from 'lodash';
-import * as React from 'react';
+import React from 'react';
 
 import { IStage, ITriggerTypeConfig, IStageTypeConfig } from 'core/domain';
 import { IRegion } from 'core/account/AccountService';

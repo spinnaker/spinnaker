@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { chain, xor } from 'lodash';
 import { $q } from 'ngimport';
 

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { IArtifact } from 'core/domain';
 import { ArtifactIconService } from 'core/artifact';

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { FormikProps } from 'formik';
 
 import { AccountSelectInput, Application, HelpField, IAccount } from '@spinnaker/core';

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { IEntityTags, IEntityTag } from 'core/domain';
 import { Placement } from 'core/presentation';

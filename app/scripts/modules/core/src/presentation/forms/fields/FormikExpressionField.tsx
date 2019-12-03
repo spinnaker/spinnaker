@@ -1,6 +1,6 @@
 import { ICommonFormFieldProps } from 'core/presentation/forms/fields/interface';
 import { firstDefined } from 'core/utils';
-import * as React from 'react';
+import React from 'react';
 
 import { FormikFormField, IFormikFormFieldProps } from './FormikFormField';
 import { ExpressionError, ExpressionInput, ExpressionPreview, IExpressionChange, ISpelError } from '../inputs';

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { DateTime } from 'luxon';
 
 import { SETTINGS } from 'core/config/settings';

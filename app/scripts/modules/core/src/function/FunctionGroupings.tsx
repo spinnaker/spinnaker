@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { Application } from '@spinnaker/core';
 import { IFunctionGroup } from 'core/domain';
 import { FunctionPod } from './FunctionPod';

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { mount } from 'enzyme';
 import { IValidator } from '../../../forms/validation';
 import { IFormInputProps, IFormInputValidation } from '../interface';

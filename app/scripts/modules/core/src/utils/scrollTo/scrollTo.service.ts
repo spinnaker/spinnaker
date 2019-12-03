@@ -1,6 +1,6 @@
 import { $timeout } from 'ngimport';
 
-import * as $ from 'jquery';
+import $ from 'jquery';
 
 export class ScrollToService {
   public static toDomId(id: string) {

@@ -1,5 +1,5 @@
-import * as React from 'react';
-import * as ReactGA from 'react-ga';
+import React from 'react';
+import ReactGA from 'react-ga';
 import { get } from 'lodash';
 import { Dropdown } from 'react-bootstrap';
 

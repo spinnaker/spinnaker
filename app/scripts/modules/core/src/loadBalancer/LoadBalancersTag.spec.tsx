@@ -1,5 +1,5 @@
 import { mock, IQService, IScope } from 'angular';
-import * as React from 'react';
+import React from 'react';
 import { ReactWrapper, mount } from 'enzyme';
 
 import { Application } from 'core/application/application.model';

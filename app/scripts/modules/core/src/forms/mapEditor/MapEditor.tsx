@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { IPipeline } from 'core/domain';
 import { isString } from 'lodash';
 import { IMapPair, MapPair } from './MapPair';

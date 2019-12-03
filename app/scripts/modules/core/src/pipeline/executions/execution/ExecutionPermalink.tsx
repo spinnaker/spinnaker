@@ -1,7 +1,7 @@
 import { CopyToClipboard } from 'core/utils';
 import { ReactInjector } from 'core/reactShims';
-import * as React from 'react';
-import * as ReactGA from 'react-ga';
+import React from 'react';
+import ReactGA from 'react-ga';
 
 export interface IExecutionPermalinkProps {
   standalone: boolean;

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { extend } from 'lodash';
 
 import { IParameter, IPipeline } from 'core/domain';

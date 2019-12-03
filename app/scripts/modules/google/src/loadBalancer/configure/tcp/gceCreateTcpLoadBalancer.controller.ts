@@ -1,7 +1,7 @@
 import { module, IScope } from 'angular';
 import { IModalInstanceService } from 'angular-ui-bootstrap';
 import { StateService } from '@uirouter/angularjs';
-import * as _ from 'lodash';
+import _ from 'lodash';
 
 import {
   AccountService,

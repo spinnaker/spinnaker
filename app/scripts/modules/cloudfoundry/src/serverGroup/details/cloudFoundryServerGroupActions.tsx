@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { Dropdown, Tooltip } from 'react-bootstrap';
 import { filter, find, get, orderBy } from 'lodash';

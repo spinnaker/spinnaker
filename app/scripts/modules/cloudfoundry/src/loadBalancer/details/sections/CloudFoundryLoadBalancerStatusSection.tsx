@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { CollapsibleSection, HealthCounts } from '@spinnaker/core';
 

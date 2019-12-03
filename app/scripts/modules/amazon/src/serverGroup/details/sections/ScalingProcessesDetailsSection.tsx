@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { IScalingProcess } from 'amazon/domain';
 import { CollapsibleSection, HelpField, ModalInjector, timestamp, Tooltip } from '@spinnaker/core';
 import { AutoScalingProcessService } from '../scalingProcesses/AutoScalingProcessService';

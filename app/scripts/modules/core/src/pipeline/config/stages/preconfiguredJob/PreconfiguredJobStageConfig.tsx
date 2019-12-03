@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { set } from 'lodash';
 
 import { IStageConfigProps, StageConfigField } from 'core/pipeline';

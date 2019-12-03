@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { find, get } from 'lodash';
 
 import { AccountTag } from 'core/account';

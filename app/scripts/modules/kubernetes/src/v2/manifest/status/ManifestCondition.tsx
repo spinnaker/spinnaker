@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { relativeTime } from '@spinnaker/core';
 import { DateTime } from 'luxon';
 

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { filter } from 'lodash';
 
 import { IPipeline } from 'core/domain/IPipeline';

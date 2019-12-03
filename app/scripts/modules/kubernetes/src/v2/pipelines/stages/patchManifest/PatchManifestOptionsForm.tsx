@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { CheckboxInput, StageConfigField } from '@spinnaker/core';
 import Select, { Option } from 'react-select';
 

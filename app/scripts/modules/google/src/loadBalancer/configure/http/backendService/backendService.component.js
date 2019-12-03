@@ -1,7 +1,7 @@
 'use strict';
 
 const angular = require('angular');
-import * as _ from 'lodash';
+import _ from 'lodash';
 import { BackendServiceTemplate } from '../templates';
 
 module.exports = angular

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { module, IPromise } from 'angular';
 import { concat, uniq } from 'lodash';
 import { react2angular } from 'react2angular';

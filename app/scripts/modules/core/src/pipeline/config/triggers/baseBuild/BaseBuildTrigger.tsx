@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { FormikProps } from 'formik';
 
 import { BuildServiceType, IgorService } from 'core/ci/igor.service';

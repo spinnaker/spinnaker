@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { Observable, Subject } from 'rxjs';
 
 import { Application, ApplicationDataSource, IFetchStatus } from 'core/application';

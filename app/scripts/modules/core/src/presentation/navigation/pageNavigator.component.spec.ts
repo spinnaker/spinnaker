@@ -1,4 +1,4 @@
-import * as $ from 'jquery';
+import $ from 'jquery';
 import { mock } from 'angular';
 
 import { PAGE_NAVIGATOR_COMPONENT } from './pageNavigator.component';

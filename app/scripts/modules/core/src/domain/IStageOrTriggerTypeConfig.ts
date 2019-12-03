@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { ITriggerTemplateComponentProps } from '../pipeline/manualExecution/TriggerTemplate';
 import { IValidatorConfig } from '../pipeline/config/validation/PipelineConfigValidator';

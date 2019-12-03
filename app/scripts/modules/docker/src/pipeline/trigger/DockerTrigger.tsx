@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { IDockerTrigger, Registry, IExecutionTriggerStatusComponentProps } from '@spinnaker/core';
 
 import { DockerTriggerTemplate } from './DockerTriggerTemplate';

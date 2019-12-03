@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { clone, set } from 'lodash';
 
 import { IExpectedArtifact, IPipeline } from 'core/domain';

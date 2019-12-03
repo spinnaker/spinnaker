@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { startCase } from 'lodash';
 import { ICapacity } from '@spinnaker/core';
 

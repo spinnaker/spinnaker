@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { Observable, Subject } from 'rxjs';
 
@@ -19,7 +19,7 @@ import { ICloudFoundryCreateServerGroupCommand } from 'cloudfoundry/serverGroup/
 import { FormikAccountRegionClusterSelector } from 'cloudfoundry/presentation';
 
 import 'cloudfoundry/common/cloudFoundry.less';
-import * as DOMPurify from 'dompurify';
+import DOMPurify from 'dompurify';
 
 export interface ICloudFoundryCloneSettingsProps {
   formik: FormikProps<ICloudFoundryCreateServerGroupCommand>;

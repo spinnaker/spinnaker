@@ -1,7 +1,7 @@
 import { module } from 'angular';
 
 import { get, last } from 'lodash';
-import * as React from 'react';
+import React from 'react';
 import { react2angular } from 'react2angular';
 
 import { Application } from '@spinnaker/core';

@@ -1,5 +1,5 @@
 import { FirewallLabels } from 'core/securityGroup/label';
-import * as React from 'react';
+import React from 'react';
 
 import {
   AccountCell,

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { mock, noop, IScope } from 'angular';
 import { mount, shallow } from 'enzyme';
 

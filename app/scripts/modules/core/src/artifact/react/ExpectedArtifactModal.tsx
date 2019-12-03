@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { AccountService, IArtifactAccount } from 'core/account';
 import { ExpectedArtifactService } from 'core/artifact';

@@ -1,4 +1,9 @@
-import * as Validators from './targetGroupValidators';
+import {
+  isNameInUse,
+  isNameLong,
+  isValidHealthCheckInterval,
+  isValidTimeout,
+} from 'amazon/loadBalancer/configure/common/targetGroupValidators';
 
 const mockTargetGroup = {
   attributes: {
@@ -52,7 +57,7 @@ describe('Target Group validators', () => {
           'us-east-1': [mockTargetGroup.name],
         },
       };
-      const actual = Validators.isNameInUse(existingGroups, 'test', 'us-east-1')(mockTargetGroup.name);
+      const actual = isNameInUse(existingGroups, 'test', 'us-east-1')(mockTargetGroup.name);
       expect(actual).toBeTruthy();
     });
 
@@ -62,68 +67,68 @@ describe('Target Group validators', () => {
           'us-east-1': ['targetgroup2'],
         },
       };
-      const actual = Validators.isNameInUse(existingGroups, 'test', 'us-east-1')(mockTargetGroup.name);
+      const actual = isNameInUse(existingGroups, 'test', 'us-east-1')(mockTargetGroup.name);
       expect(actual).toEqual(null);
     });
   });
 
   describe('of name length', () => {
     it('returns an error if the inputted name >32 additional characters (this is prepended to the application name)', () => {
-      const actual = Validators.isNameLong('application'.length)(`applicationwithareallylongname`);
+      const actual = isNameLong('application'.length)(`applicationwithareallylongname`);
       expect(actual).toBeTruthy();
     });
 
     it('returns null if the name is < 32', () => {
-      const actual = Validators.isNameLong('app'.length)('appwithshortname');
+      const actual = isNameLong('app'.length)('appwithshortname');
       expect(actual).toEqual(null);
     });
   });
 
   describe('of health check timeout constraints', () => {
     it('should have a 6s timeout', () => {
-      const actual = Validators.isValidTimeout(httpTargetGroup)('8');
+      const actual = isValidTimeout(httpTargetGroup)('8');
       expect(actual).toBeTruthy();
     });
 
     it('should be 6s and is valid', () => {
-      const actual = Validators.isValidTimeout(httpTargetGroup)('6');
+      const actual = isValidTimeout(httpTargetGroup)('6');
       expect(actual).toEqual(null);
     });
 
     it('should have a 10s timeout', () => {
-      const actual = Validators.isValidTimeout(httpsTargetGroup)('9');
+      const actual = isValidTimeout(httpsTargetGroup)('9');
       expect(actual).toBeTruthy();
     });
 
     it('should be 10s and is valid', () => {
-      const actual = Validators.isValidTimeout(httpsTargetGroup)('10');
+      const actual = isValidTimeout(httpsTargetGroup)('10');
       expect(actual).toEqual(null);
     });
 
     it('should not have a timeout constraint', () => {
-      const actual = Validators.isValidTimeout(mockTargetGroup)('10');
+      const actual = isValidTimeout(mockTargetGroup)('10');
       expect(actual).toEqual(null);
     });
   });
 
   describe('of health check interval', () => {
     it('TCPs can have a 10s interval', () => {
-      const actual = Validators.isValidHealthCheckInterval(tcpTargetGroup)('10');
+      const actual = isValidHealthCheckInterval(tcpTargetGroup)('10');
       expect(actual).toEqual(null);
     });
 
     it('TCPs can have a 30s interval', () => {
-      const actual = Validators.isValidHealthCheckInterval(tcpTargetGroup)('30');
+      const actual = isValidHealthCheckInterval(tcpTargetGroup)('30');
       expect(actual).toEqual(null);
     });
 
     it('returns an error when it fails TCP rules', () => {
-      const actual = Validators.isValidHealthCheckInterval(tcpTargetGroup)('20');
+      const actual = isValidHealthCheckInterval(tcpTargetGroup)('20');
       expect(actual).toBeTruthy();
     });
 
     it('is not a TCP protocol target group', () => {
-      const actual = Validators.isValidHealthCheckInterval(mockTargetGroup)('20');
+      const actual = isValidHealthCheckInterval(mockTargetGroup)('20');
       expect(actual).toEqual(null);
     });
   });

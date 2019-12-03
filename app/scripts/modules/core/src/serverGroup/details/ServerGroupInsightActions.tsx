@@ -1,5 +1,5 @@
-import * as React from 'react';
-import * as ReactGA from 'react-ga';
+import React from 'react';
+import ReactGA from 'react-ga';
 import { Dropdown } from 'react-bootstrap';
 
 import { IServerGroup } from 'core/domain';

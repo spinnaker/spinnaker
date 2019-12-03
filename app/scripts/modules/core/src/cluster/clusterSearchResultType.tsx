@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { uniqBy } from 'lodash';
 import { Observable } from 'rxjs';
 

@@ -1,6 +1,6 @@
-import * as React from 'react';
+import React from 'react';
 import { Observable, Subject } from 'rxjs';
-import * as classNames from 'classnames';
+import classNames from 'classnames';
 
 import { capitalize, isEmpty, filter, flatten, get } from 'lodash';
 

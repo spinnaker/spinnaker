@@ -1,4 +1,4 @@
-import * as DOMPurify from 'dompurify';
+import DOMPurify from 'dompurify';
 
 export function domPurifyOpenLinksInNewWindow() {
   // Add a hook to make all DOMPurify'd links open a new window

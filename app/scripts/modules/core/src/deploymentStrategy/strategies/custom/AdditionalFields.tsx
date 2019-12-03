@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { IDeploymentStrategyAdditionalFieldsProps } from 'core/deploymentStrategy/deploymentStrategy.registry';
 import { PipelineSelector } from '../PipelineSelector';

@@ -1,6 +1,6 @@
-import * as React from 'react';
+import React from 'react';
 import { Modal, ModalProps } from 'react-bootstrap';
-import * as ReactDOM from 'react-dom';
+import ReactDOM from 'react-dom';
 
 /** The Modal content Component will be passed these two props */
 export interface IModalComponentProps {

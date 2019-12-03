@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { Option } from 'react-select';
 
 import { INotificationTypeConfig } from 'core/domain';

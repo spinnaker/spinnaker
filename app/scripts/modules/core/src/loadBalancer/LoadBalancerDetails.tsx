@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { Overridable, IOverridableProps } from 'core/overrideRegistry';
 
 export interface ILoadBalancerDetailsProps extends IOverridableProps {}

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import Select, { Option, OptionValues, ReactSelectProps } from 'react-select';
 import VirtualizedSelect from 'react-virtualized-select';
 import { isNil } from 'lodash';

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import Select, { Creatable, Option } from 'react-select';
 import { IPromise } from 'angular';
 import { Observable, Subject } from 'rxjs';

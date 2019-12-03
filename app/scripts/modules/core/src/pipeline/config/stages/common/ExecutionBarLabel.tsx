@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 
 import { IExecutionStageLabelProps } from 'core/domain';

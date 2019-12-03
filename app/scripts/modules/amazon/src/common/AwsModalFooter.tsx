@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { ModalFooter } from 'react-bootstrap';
 
 import { AccountService, UserVerification, IAccountDetails } from '@spinnaker/core';

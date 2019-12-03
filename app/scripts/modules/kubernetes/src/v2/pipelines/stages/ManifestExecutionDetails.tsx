@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps, StageFailureMessage } from '@spinnaker/core';
 import {

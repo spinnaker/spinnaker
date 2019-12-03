@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { cloneDeep, get } from 'lodash';
 import { FormikErrors, FormikValues } from 'formik';
 import { IPromise } from 'angular';

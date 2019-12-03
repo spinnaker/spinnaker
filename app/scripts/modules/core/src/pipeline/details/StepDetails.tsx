@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { Application } from 'core/application';
 import { IExecution, IExecutionDetailsSection, IExecutionStage, IStageTypeConfig } from 'core/domain';

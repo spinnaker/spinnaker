@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { Button, Modal } from 'react-bootstrap';
 import Select, { Option } from 'react-select';
 import { Debounce } from 'lodash-decorators';

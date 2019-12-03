@@ -1,5 +1,5 @@
-import * as React from 'react';
-import * as ReactGA from 'react-ga';
+import React from 'react';
+import ReactGA from 'react-ga';
 
 import { IExecution } from 'core/domain';
 import { ReactInjector } from 'core/reactShims';

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { cloneDeep, head } from 'lodash';
 import { IArtifactAccount } from 'core/account';
 import { ArtifactAccountSelector } from 'core/artifact';

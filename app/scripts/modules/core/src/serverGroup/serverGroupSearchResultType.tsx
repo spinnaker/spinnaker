@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { Observable, Subject, BehaviorSubject } from 'rxjs';
 
 import { API } from 'core/api';
