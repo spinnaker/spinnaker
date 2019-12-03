@@ -2,7 +2,8 @@
   "buildOnSave": false,
   "compileOnSave": true,
   "compilerOptions": {
-    "allowJs": false,
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
     "baseUrl": "app/scripts/modules",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
