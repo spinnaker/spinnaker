@@ -49,7 +49,8 @@ internal object SqlStorageServiceTests : JUnit5Minutests {
       jooq,
       Clock.systemDefaultZone(),
       SqlRetryProperties(),
-      1
+      1,
+      "default"
     )
     context("For ${jooqConfig.dialect}") {
       context("Application") {

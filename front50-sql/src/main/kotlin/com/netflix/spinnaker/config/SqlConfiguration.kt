@@ -23,6 +23,8 @@ import com.netflix.spinnaker.front50.model.SqlStorageService
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import com.netflix.spinnaker.kork.sql.config.SqlProperties
 import org.jooq.DSLContext
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -47,6 +49,26 @@ class SqlConfiguration : CommonStorageServiceDAOConfig() {
       jooq,
       Clock.systemDefaultZone(),
       sqlProperties.retries,
-      1000
+      1000,
+      if (sqlProperties.connectionPools.keys.size > 1)
+        sqlProperties.connectionPools.filter { it.value.default }.keys.first() else sqlProperties.connectionPools.keys.first()
+    )
+
+  @Bean
+  @ConditionalOnBean(name = ["secondaryJooq"])
+  fun secondarySqlStorageService(
+    objectMapper: ObjectMapper,
+    registry: Registry,
+    @Qualifier("secondaryJooq") jooq: DSLContext,
+    sqlProperties: SqlProperties
+  ): SqlStorageService =
+    SqlStorageService(
+      objectMapper,
+      registry,
+      jooq,
+      Clock.systemDefaultZone(),
+      sqlProperties.retries,
+      1000,
+      sqlProperties.connectionPools.filter { !it.value.default }.keys.first()
     )
 }

@@ -26,6 +26,9 @@ dependencies {
   testImplementation "org.testcontainers:postgresql"
   testImplementation "org.postgresql:postgresql"
 
+  // Only used for Initializing Datasource. For actual CRUD, test containers preferred.
+  testImplementation "com.h2database:h2"
+
 }
 
 test {

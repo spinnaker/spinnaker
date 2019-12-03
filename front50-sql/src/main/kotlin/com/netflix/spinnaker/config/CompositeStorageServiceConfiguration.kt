@@ -25,50 +25,61 @@ import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Primary
 
 @Configuration
 @EnableConfigurationProperties(StorageServiceMigratorConfigurationProperties::class)
-class CompositeStorageServiceConfiguration() {
+class CompositeStorageServiceConfiguration(
+  private val storageServices: List<StorageService>,
+  private val applicationContext: ApplicationContext,
+  private val properties: StorageServiceMigratorConfigurationProperties,
+  private val dynamicConfigService: DynamicConfigService,
+  private val registry: Registry
+) {
   @Bean
   @Primary
   @ConditionalOnProperty("spinnaker.migration.compositeStorageService.enabled")
-  fun compositeStorageService(
-    dynamicConfigService: DynamicConfigService,
-    registry: Registry,
-    properties: StorageServiceMigratorConfigurationProperties,
-    storageServices: List<StorageService>
-  ) =
+  fun compositeStorageService() =
     CompositeStorageService(
       dynamicConfigService,
       registry,
-      storageServices.first { it.javaClass.canonicalName.equals(properties.primaryClass) },
-      storageServices.first { it.javaClass.canonicalName.equals(properties.previousClass) }
+      findStorageService(properties.primaryClass, properties.primaryName),
+      findStorageService(properties.previousClass, properties.previousName)
     )
 
   @Bean
   @ConditionalOnProperty("spinnaker.migration.compositeStorageService.enabled")
   fun storageServiceMigrator(
-    dynamicConfigService: DynamicConfigService,
-    registry: Registry,
-    properties: StorageServiceMigratorConfigurationProperties,
-    storageServices: List<StorageService>,
     entityTagsDAO: EntityTagsDAO
   ) =
     StorageServiceMigrator(
       dynamicConfigService,
       registry,
-      storageServices.first { it.javaClass.canonicalName.equals(properties.primaryClass) },
-      storageServices.first { it.javaClass.canonicalName.equals(properties.previousClass) },
+      findStorageService(properties.primaryClass, properties.primaryName),
+      findStorageService(properties.previousClass, properties.previousName),
       entityTagsDAO
     )
+
+  private fun findStorageService(
+    className: String?,
+    beanName: String?
+  ): StorageService {
+    return if (className != null && className.isNotBlank()) {
+      storageServices.first { it.javaClass.canonicalName == className }
+    } else {
+      applicationContext.getBean(beanName) as StorageService
+    }
+  }
 }
 
 @ConfigurationProperties("spinnaker.migration")
 data class StorageServiceMigratorConfigurationProperties(
   var primaryClass: String? = null,
   var previousClass: String? = null,
+  var primaryName: String? = null,
+  var previousName: String? = null,
   var writeOnly: Boolean = false
 )
