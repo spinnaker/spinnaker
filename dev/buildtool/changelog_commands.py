@@ -454,7 +454,7 @@ class PublishChangelogCommand(RepositoryCommandProcessor):
     if repository.name != SPINNAKER_GITHUB_IO_REPOSITORY_NAME:
       raise_and_log_error(UnexpectedError('Got "%s"' % repository.name))
 
-    timestamp = '{:%Y-%m-%d %H:%M:%S %Z}'.format(datetime.datetime.now())
+    timestamp = '{:%Y-%m-%d %H:%M:%S +0000}'.format(datetime.datetime.utcnow())
     version = self.options.spinnaker_version
     changelog_filename = '{version}-changelog.md'.format(version=version)
     target_path = os.path.join(repository.git_dir,
