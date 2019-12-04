@@ -39,39 +39,38 @@ class PubsubEventHandlerSpec extends Specification implements RetrofitStubs {
   def fiatPermissionEvaluator = Mock(FiatPermissionEvaluator)
 
   @Shared
-  def goodArtifacts = [new Artifact(name: 'myArtifact', type: 'artifactType')]
+  def goodArtifact = Artifact.builder().name('myArtifact').type('artifactType').build()
+  def badArtifact = Artifact.builder().name('myBadArtifact').type('artifactType').build()
+
+  @Shared
+  def goodArtifacts = [goodArtifact]
 
   @Shared
   def badExpectedArtifacts = [
-    new ExpectedArtifact(
-      matchArtifact: new Artifact(
-        name: 'myBadArtifact',
-        type: 'artifactType',
-      ),
-      id: 'badId'
-    )
+    ExpectedArtifact.builder()
+      .matchArtifact(badArtifact)
+      .id('badId')
+      .build()
   ]
 
   @Shared
   def goodExpectedArtifacts = [
-    new ExpectedArtifact(
-      matchArtifact: new Artifact(
-        name: 'myArtifact',
-        type: 'artifactType',
-      ),
-      id: 'goodId'
-    )
+    ExpectedArtifact.builder()
+      .matchArtifact(goodArtifact)
+      .id('goodId')
+      .build()
   ]
 
   @Shared
   def goodRegexExpectedArtifacts = [
-    new ExpectedArtifact(
-      matchArtifact: new Artifact(
-        name: 'myArtifact',
-        type: 'artifact.*',
-      ),
-      id: 'goodId'
-    )
+    ExpectedArtifact.builder()
+      .matchArtifact(
+        Artifact.builder()
+        .name('myArtifact')
+        .type('artifact.*')
+        .build())
+      .id('goodId')
+      .build()
   ]
 
   @Subject

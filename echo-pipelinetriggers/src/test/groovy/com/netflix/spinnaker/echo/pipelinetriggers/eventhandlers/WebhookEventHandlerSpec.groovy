@@ -33,13 +33,14 @@ class WebhookEventHandlerSpec extends Specification implements RetrofitStubs {
 
   @Shared
   def goodExpectedArtifacts = [
-      new ExpectedArtifact(
-          matchArtifact: new Artifact(
-              name: 'myArtifact',
-              type: 'artifactType',
-          ),
-          id: 'goodId'
-      )
+      ExpectedArtifact.builder()
+        .matchArtifact(
+          Artifact.builder()
+            .name('myArtifact')
+            .type('artifactType')
+            .build())
+        .id('goodId')
+        .build()
   ]
 
   @Subject

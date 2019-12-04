@@ -37,18 +37,18 @@ class ManualEventHandlerSpec extends Specification implements RetrofitStubs {
   def artifactInfoService = Mock(ArtifactInfoService)
   def pipelineCache = Mock(PipelineCache)
 
-  Artifact artifact = new Artifact(
-    "deb",
-    false,
-    "my-package",
-    "v1.1.1",
-    "https://artifactory/my-package/",
-    "https://artifactory/my-package/",
-    [:],
-    "account",
-    "provenance",
-    "123456"
-  )
+  Artifact artifact = Artifact.builder()
+    .type("deb")
+    .customKind(false)
+    .name("my-package")
+    .version("v1.1.1")
+    .location("https://artifactory/my-package/")
+    .reference("https://artifactory/my-package/")
+    .metadata([:])
+    .artifactAccount("account")
+    .provenance("provenance")
+    .uuid("123456")
+    .build()
 
   @Subject
   def eventHandler = new ManualEventHandler(

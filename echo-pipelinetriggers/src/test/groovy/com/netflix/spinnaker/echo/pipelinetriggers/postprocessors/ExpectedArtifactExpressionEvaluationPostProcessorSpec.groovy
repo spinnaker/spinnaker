@@ -23,14 +23,15 @@ class ExpectedArtifactExpressionEvaluationPostProcessorSpec extends Specificatio
 
   def 'evaluates expressions in expected artifacts'() {
     given:
-    def artifact = new ExpectedArtifact(
-      matchArtifact: new Artifact(
-        name: '''group:artifact:${trigger['buildNumber']}''',
-        version: '''${trigger['buildNumber']}''',
-        type: 'maven/file',
-      ),
-      id: 'goodId'
-    )
+    def artifact = ExpectedArtifact.builder()
+      .matchArtifact(
+        Artifact.builder()
+          .name('''group:artifact:${trigger['buildNumber']}''')
+          .version('''${trigger['buildNumber']}''')
+          .type('maven/file')
+          .build())
+      .id('goodId')
+      .build()
 
     def inputPipeline = createPipelineWith([artifact], trigger).withTrigger(trigger)
 
@@ -45,13 +46,14 @@ class ExpectedArtifactExpressionEvaluationPostProcessorSpec extends Specificatio
 
   def 'unevaluable expressions are left in place'() { // they may be evaluated later in a stage with more context
     given:
-    def artifact = new ExpectedArtifact(
-      matchArtifact: new Artifact(
-        name: '''group:artifact:${#stage('deploy')['version']}''',
-        type: 'maven/file',
-      ),
-      id: 'goodId'
-    )
+    def artifact = ExpectedArtifact.builder()
+      .matchArtifact(
+        Artifact.builder()
+          .name('''group:artifact:${#stage('deploy')['version']}''')
+          .type('maven/file')
+          .build())
+        .id('goodId')
+        .build()
 
     def inputPipeline = createPipelineWith([artifact], trigger).withTrigger(trigger)
 
