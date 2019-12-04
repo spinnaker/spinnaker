@@ -44,6 +44,19 @@ class SqlDeliveryConfigRepository(
 
   private val mapper = configuredObjectMapper()
 
+  override fun getByApplication(application: String): Collection<DeliveryConfig> =
+    jooq
+      .select(
+        DELIVERY_CONFIG.UID,
+        DELIVERY_CONFIG.NAME,
+        DELIVERY_CONFIG.APPLICATION
+      )
+      .from(DELIVERY_CONFIG)
+      .where(DELIVERY_CONFIG.APPLICATION.eq(application))
+      .fetch { (uid, name, application) ->
+        DeliveryConfig(name, application).attachDependents(uid)
+      }
+
   override fun deleteByApplication(application: String): Int {
 
     val deliveryConfigUIDs = getUIDsByApplication(application)
@@ -163,37 +176,40 @@ class SqlDeliveryConfigRepository(
         uid to DeliveryConfig(name, application)
       }
       ?.let { (uid, deliveryConfig) ->
-        jooq
-          .select(DELIVERY_ARTIFACT.NAME, DELIVERY_ARTIFACT.TYPE, DELIVERY_ARTIFACT.DETAILS)
-          .from(DELIVERY_ARTIFACT, DELIVERY_CONFIG_ARTIFACT)
-          .where(DELIVERY_CONFIG_ARTIFACT.ARTIFACT_UID.eq(DELIVERY_ARTIFACT.UID))
-          .and(DELIVERY_CONFIG_ARTIFACT.DELIVERY_CONFIG_UID.eq(uid))
-          .fetch { (name, type, details) ->
-            mapToArtifact(name, ArtifactType.valueOf(type), details)
-          }
-          .toSet()
-          .let { artifacts ->
-            jooq
-              .select(ENVIRONMENT.UID, ENVIRONMENT.NAME, ENVIRONMENT.CONSTRAINTS, ENVIRONMENT.NOTIFICATIONS)
-              .from(ENVIRONMENT)
-              .where(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(uid))
-              .fetch { (environmentUid, name, constraintsJson, notificationsJson) ->
-                Environment(
-                  name = name,
-                  resources = resourcesForEnvironment(environmentUid),
-                  constraints = mapper.readValue(constraintsJson),
-                  notifications = mapper.readValue(notificationsJson ?: "[]")
-                )
-              }
-              .let { environments ->
-                deliveryConfig.copy(
-                  artifacts = artifacts,
-                  environments = environments.toSet()
-                )
-              }
-          }
+        deliveryConfig.attachDependents(uid)
       }
       ?: throw NoSuchDeliveryConfigName(name)
+
+  private fun DeliveryConfig.attachDependents(uid: String): DeliveryConfig =
+    jooq
+      .select(DELIVERY_ARTIFACT.NAME, DELIVERY_ARTIFACT.TYPE, DELIVERY_ARTIFACT.DETAILS)
+      .from(DELIVERY_ARTIFACT, DELIVERY_CONFIG_ARTIFACT)
+      .where(DELIVERY_CONFIG_ARTIFACT.ARTIFACT_UID.eq(DELIVERY_ARTIFACT.UID))
+      .and(DELIVERY_CONFIG_ARTIFACT.DELIVERY_CONFIG_UID.eq(uid))
+      .fetch { (name, type, details) ->
+        mapToArtifact(name, ArtifactType.valueOf(type), details)
+      }
+      .toSet()
+      .let { artifacts ->
+        jooq
+          .select(ENVIRONMENT.UID, ENVIRONMENT.NAME, ENVIRONMENT.CONSTRAINTS, ENVIRONMENT.NOTIFICATIONS)
+          .from(ENVIRONMENT)
+          .where(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(uid))
+          .fetch { (environmentUid, name, constraintsJson, notificationsJson) ->
+            Environment(
+              name = name,
+              resources = resourcesForEnvironment(environmentUid),
+              constraints = mapper.readValue(constraintsJson),
+              notifications = mapper.readValue(notificationsJson ?: "[]")
+            )
+          }
+          .let { environments ->
+            copy(
+              artifacts = artifacts,
+              environments = environments.toSet()
+            )
+          }
+  }
 
   override fun environmentFor(resourceId: ResourceId): Environment? =
     jooq

@@ -21,8 +21,10 @@ import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.failed
+import strikt.assertions.first
 import strikt.assertions.hasSize
 import strikt.assertions.isA
+import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.succeeded
@@ -59,6 +61,10 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
 
     fun getByName() = expectCatching {
       repository.get(deliveryConfig.name)
+    }
+
+    fun getByApplication() = expectCatching {
+      repository.getByApplication(deliveryConfig.application)
     }
 
     fun delete() {
@@ -125,6 +131,12 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
           .failed()
           .isA<NoSuchDeliveryConfigException>()
       }
+
+      test("retrieving config by application returns an empty list") {
+        getByApplication()
+          .succeeded()
+          .isEmpty()
+      }
     }
 
     context("storing a delivery config with no artifacts or environments") {
@@ -139,6 +151,15 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
             get { name }.isEqualTo(deliveryConfig.name)
             get { application }.isEqualTo(deliveryConfig.application)
           }
+      }
+
+      test("the config can be retrieved by application") {
+        getByApplication()
+          .succeeded()
+          .hasSize(1)
+          .first()
+          .get(DeliveryConfig::name)
+          .isEqualTo(deliveryConfig.name)
       }
     }
 
@@ -192,15 +213,30 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
             }
         }
 
-        test("artifacts are attached") {
+        test("artifacts are attached when retrieved by name") {
           getByName()
             .succeeded()
             .get { artifacts }.isEqualTo(deliveryConfig.artifacts)
         }
 
-        test("environments are attached") {
+        test("artifacts are attached when retrieved by application") {
+          getByApplication()
+            .succeeded()
+            .first()
+            .get { artifacts }.isEqualTo(deliveryConfig.artifacts)
+        }
+
+        test("environments are attached when retrieved by name") {
           getByName()
             .succeeded()
+            .get { environments }
+            .isEqualTo(deliveryConfig.environments)
+        }
+
+        test("environments are attached when retrieved by application") {
+          getByApplication()
+            .succeeded()
+            .first()
             .get { environments }
             .isEqualTo(deliveryConfig.environments)
         }

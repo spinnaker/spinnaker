@@ -41,6 +41,12 @@ interface DeliveryConfigRepository : PeriodicallyCheckedRepository<DeliveryConfi
   fun deliveryConfigFor(resourceId: ResourceId): DeliveryConfig?
 
   /**
+   * @return All [DeliveryConfig] instances associated with [application], or an empty collection if
+   * there are none.
+   */
+  fun getByApplication(application: String): Collection<DeliveryConfig>
+
+  /**
    * Delete the [DeliveryConfig] persisted for an application. This does not delete the underlying
    * resources.
    *
