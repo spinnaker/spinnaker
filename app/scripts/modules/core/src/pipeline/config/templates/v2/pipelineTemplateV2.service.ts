@@ -1,6 +1,6 @@
 import { hri as HumanReadableIds } from 'human-readable-ids';
 
-import { IPipeline, IPipelineTemplateConfigV2, IPipelineTemplateV2, ITemplateInheritable } from 'core/domain';
+import { IPipeline, IPipelineTemplateConfigV2, IPipelineTemplateV2 } from 'core/domain';
 import { PipelineJSONService } from 'core/pipeline/config/services/pipelineJSON.service';
 import { UUIDGenerator } from 'core/utils';
 import { SETTINGS } from 'core/config';
@@ -68,9 +68,7 @@ export class PipelineTemplateV2Service {
     PipelineTemplateV2Service.inheritedKeys.forEach(key => {
       if (Array.isArray(pipelineConfig[key])) {
         const configCollection = pipelineConfig[key];
-        pipelineConfig[key] = (configCollection as ITemplateInheritable[]).filter(
-          item => !item.inherited,
-        ) as typeof configCollection;
+        pipelineConfig[key] = (configCollection as any[]).filter(item => !item.inherited);
       }
     });
     return pipelineConfig;

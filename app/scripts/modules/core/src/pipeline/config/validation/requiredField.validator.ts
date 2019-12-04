@@ -3,11 +3,6 @@ import { BaseRequiredFieldValidator, IRequiredField } from './baseRequiredField.
 import { PipelineConfigValidator } from './PipelineConfigValidator';
 import { IBaseRequiredFieldValidationConfig } from 'core/pipeline/config/validation/baseRequiredField.validator';
 
-export interface IRequiredField {
-  fieldName: string;
-  fieldLabel?: string;
-}
-
 export type IRequiredFieldValidationConfig = IBaseRequiredFieldValidationConfig & IRequiredField;
 
 export class RequiredFieldValidator extends BaseRequiredFieldValidator {

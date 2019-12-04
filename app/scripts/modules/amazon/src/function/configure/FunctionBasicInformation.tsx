@@ -139,7 +139,7 @@ export class FunctionBasicInformation extends React.Component<IFunctionProps, IF
     const { accounts, regions } = this.state;
     const className = classNames({
       well: true,
-      'alert-danger': errors.functionName,
+      'alert-danger': !!errors.functionName,
       'alert-info': !errors.functionName,
     });
     return (

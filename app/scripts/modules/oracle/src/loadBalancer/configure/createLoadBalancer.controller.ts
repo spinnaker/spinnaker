@@ -36,7 +36,7 @@ import {
 export class OracleLoadBalancerController implements IController {
   public oracle = 'oracle';
   public shapes: string[] = ['100Mbps', '400Mbps', '8000Mbps']; // TODO desagar use listShapes to get this from clouddriver later
-  public loadBalancingPolicies: string[] = Object.keys(LoadBalancingPolicy).map(k => LoadBalancingPolicy[k as any]);
+  public loadBalancingPolicies: string[] = Object.keys(LoadBalancingPolicy).map(k => (LoadBalancingPolicy as any)[k]);
   public pages: { [key: string]: any } = {
     properties: require('./createLoadBalancerProperties.html'),
     listeners: require('./listeners.html'),

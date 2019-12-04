@@ -25,7 +25,7 @@ export const singleFieldArtifactEditor = (
             value={this.props.artifact[fieldKey] || ''}
             onChange={(value: string) => {
               const clone = cloneDeep(this.props.artifact);
-              clone[fieldKey] = value;
+              (clone[fieldKey] as any) = value;
               clone.type = type;
               this.props.onChange(clone);
             }}

@@ -4,6 +4,9 @@
     "ecmaVersion": 8,
     "sourceType": "module"
   },
+  "rules": {
+    "no-prototype-builtins": "off"
+  },
   "plugins": ["@typescript-eslint"],
   "extends": [
     "eslint:recommended",
@@ -16,11 +19,11 @@
     "browser": true,
     "node": true,
     "es6": true,
-    "jasmine": true,
+    "jasmine": true
   },
   "globals": {
     "angular": true,
     "$": true,
-    "_": true,
+    "_": true
   }
 }

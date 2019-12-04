@@ -27,7 +27,7 @@ export class ResolvedArtifactList extends React.Component<IResolvedArtifactListP
         set.add(rea.defaultArtifact.reference);
       }
       return set;
-    }, new Set());
+    }, new Set<string>());
 
     const decoratedArtifacts = artifacts.filter(({ name, reference, type }) => (name || reference) && type);
     const decoratedExpectedArtifacts = resolvedExpectedArtifacts

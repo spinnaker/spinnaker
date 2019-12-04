@@ -22,7 +22,7 @@ export class FilterModelService {
     filterModel.clearFilters = () => {
       filterModelConfig.forEach(function(property) {
         if (!property.displayOption) {
-          filterModel.sortFilter[property.model] = property.clearValue;
+          (filterModel.sortFilter[property.model] as any) = property.clearValue;
         }
       });
     };
@@ -235,7 +235,7 @@ export class FilterModelService {
           label,
           value: translator[modelVal as string] || modelVal,
           clear() {
-            model.sortFilter[key] = clearValue;
+            (model.sortFilter[key] as any) = clearValue;
             model.applyParamsToUrl();
           },
         });

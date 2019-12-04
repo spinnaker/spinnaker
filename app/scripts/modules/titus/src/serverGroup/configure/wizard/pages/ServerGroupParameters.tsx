@@ -134,9 +134,8 @@ export class ServerGroupParameters extends React.Component<IServerGroupParameter
                 setFieldValue(
                   'serviceJobProcesses',
                   union(processesList, Object.keys(values.serviceJobProcesses)).reduce(
-                    (processes: ITitusServiceJobProcesses, process: string) =>
-                      set(processes, process, e.target.value.includes(process)),
-                    {},
+                    (processes, process: string) => set(processes, process, !!e.target.value.includes(process)),
+                    {} as ITitusServiceJobProcesses,
                   ),
                 )
               }

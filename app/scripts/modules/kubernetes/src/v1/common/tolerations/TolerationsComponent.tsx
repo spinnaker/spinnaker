@@ -52,7 +52,7 @@ export class KubernetesTolerations extends React.Component<IKubernetesToleration
   private handleChange(index: number, tolerationProperty: keyof IToleration): (event: any) => void {
     return (event: any) => {
       const tolerations = cloneDeep(this.props.tolerations);
-      tolerations[index][tolerationProperty] = event.target.value;
+      (tolerations[index][tolerationProperty] as any) = event.target.value;
       this.props.onTolerationChange(tolerations);
     };
   }

@@ -34,8 +34,8 @@ export function getHealthCheckOptions(healthChecks: IGceHealthCheck[]): IGceHeal
 }
 
 export function getDuplicateHealthCheckNames(healthChecks: IGceHealthCheck[]): Set<string> {
-  const allNames = new Set();
-  const duplicateNames = new Set();
+  const allNames = new Set<string>();
+  const duplicateNames = new Set<string>();
   healthChecks.forEach(hc => {
     if (allNames.has(hc.name)) {
       duplicateNames.add(hc.name);

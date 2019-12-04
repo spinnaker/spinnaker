@@ -273,7 +273,7 @@ export class LoadBalancerLocation extends React.Component<ILoadBalancerLocationP
     const className = classNames({
       'col-md-12': true,
       well: true,
-      'alert-danger': errors.name,
+      'alert-danger': !!errors.name,
       'alert-info': !errors.name,
     });
 

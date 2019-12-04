@@ -106,7 +106,7 @@ class HelmEditor extends React.Component<IArtifactEditorProps, IHelmArtifactEdit
 
   private onChange = (e: Option, field: keyof IArtifact) => {
     const clone = cloneDeep(this.props.artifact);
-    clone[field] = e.value.toString();
+    (clone[field] as any) = e.value.toString();
     this.props.onChange(clone);
   };
 

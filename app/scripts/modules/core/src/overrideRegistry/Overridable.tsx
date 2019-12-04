@@ -34,7 +34,7 @@ export interface IOverridableProps {
  * <MyCmp accountId={accountId} />
  */
 export function Overridable(key: string) {
-  return function<P extends IOverridableProps, T extends React.ComponentClass<P>>(targetComponent: T): T {
+  return function<P, T extends React.ComponentClass<P>>(targetComponent: T): T {
     return overridableComponent(targetComponent, key);
   };
 }
