@@ -50,6 +50,7 @@ public class LambdaFunctionTask extends AbstractCloudProviderAwareTask implement
     String cloudProvider = getCloudProvider(stage);
 
     Map<String, Object> task = new HashMap<>(stage.getContext());
+    task.put("appName", stage.getExecution().getApplication());
 
     String operationName = (String) task.get("operation");
     if (StringUtils.isBlank(operationName)) {
