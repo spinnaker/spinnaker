@@ -27,7 +27,6 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.dcos.DCOSProvider
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.ecs.EcsProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleProvider;
-import com.netflix.spinnaker.halyard.config.model.v1.providers.huaweicloud.HuaweiCloudProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.oracle.OracleBMCSProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.oracle.OracleProvider;
@@ -50,7 +49,6 @@ public class Providers extends Node implements Cloneable {
   DCOSProvider dcos = new DCOSProvider();
   DockerRegistryProvider dockerRegistry = new DockerRegistryProvider();
   GoogleProvider google = new GoogleProvider();
-  HuaweiCloudProvider huaweicloud = new HuaweiCloudProvider();
   KubernetesProvider kubernetes = new KubernetesProvider();
 
   @JsonProperty(access = Access.WRITE_ONLY)
