@@ -286,7 +286,7 @@ class CFRollingRedBlackStrategyTest {
     List<Object> targetPercentageList = Stream.of(50, 75, 100).collect(Collectors.toList());
     context.put("manifest", manifest);
     context.put("targetPercentages", targetPercentageList);
-    Artifact boundArtifactForStage = new Artifact();
+    Artifact boundArtifactForStage = Artifact.builder().build();
     Map<String, Object> application = new HashMap<>();
     application.put("instances", "4");
     application.put("memory", "64M");
@@ -325,7 +325,7 @@ class CFRollingRedBlackStrategyTest {
     assertThat(deployServerGroupStage.getContext().get("capacity")).isEqualTo(zeroCapacity);
     assertThat(deployServerGroupStage.getContext().get("manifest")).isEqualTo(expectedManifest);
     verify(artifactResolver)
-        .getBoundArtifactForStage(deployServerGroupStage, artifactId, new Artifact());
+        .getBoundArtifactForStage(deployServerGroupStage, artifactId, Artifact.builder().build());
     verify(oortService).fetchArtifact(boundArtifactForStage);
   }
 
@@ -352,7 +352,7 @@ class CFRollingRedBlackStrategyTest {
         new ResizeStrategy.Capacity(initialSourceCapacity.getMax(), 0, 0);
 
     Stage deployServerGroupStage = new Stage(new Execution(PIPELINE, "unit"), "type", context);
-    Artifact boundArtifactForStage = new Artifact();
+    Artifact boundArtifactForStage = Artifact.builder().build();
     Map<String, Object> application = new HashMap<>();
     application.put("instances", "4");
     application.put("memory", "64M");
@@ -402,7 +402,7 @@ class CFRollingRedBlackStrategyTest {
     assertThat(deployServerGroupStage.getContext().get("capacity")).isEqualTo(zeroCapacity);
     assertThat(deployServerGroupStage.getContext().get("manifest")).isEqualTo(expectedManifest);
     verify(artifactResolver)
-        .getBoundArtifactForStage(deployServerGroupStage, artifactId, new Artifact());
+        .getBoundArtifactForStage(deployServerGroupStage, artifactId, Artifact.builder().build());
     verify(oortService).fetchArtifact(boundArtifactForStage);
   }
 

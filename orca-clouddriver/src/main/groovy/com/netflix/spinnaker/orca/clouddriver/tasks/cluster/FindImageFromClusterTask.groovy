@@ -257,7 +257,7 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
     }.flatten()
 
     List<Artifact> artifacts = imageSummaries.collect { placement, summaries ->
-      Artifact artifact = new Artifact()
+      Artifact artifact = Artifact.builder().build()
       summaries.findResults { summary ->
         if (config.imageNamePattern && !(summary.imageName ==~ config.imageNamePattern)) {
           return null
@@ -282,12 +282,14 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
           log.error("Unable to merge server group image/build info (summary: ${summary})", e)
         }
 
-        artifact.metadata = metadata
-        artifact.name = summary.imageName
-        artifact.location = location
-        artifact.type = "${cloudProvider}/image"
-        artifact.reference = "${summary.imageId}"
-        artifact.uuid = UUID.randomUUID().toString()
+        artifact = Artifact.builder()
+          .metadata(metadata)
+          .name(summary.imageName)
+          .location(location)
+          .type("${cloudProvider}/image")
+          .reference("${cloudProvider}/image")
+          .uuid(UUID.randomUUID().toString())
+          .build()
       }
       return artifact
     }.flatten()

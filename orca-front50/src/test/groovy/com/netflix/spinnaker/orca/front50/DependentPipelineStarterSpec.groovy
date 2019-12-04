@@ -182,10 +182,7 @@ class DependentPipelineStarterSpec extends Specification {
                             ]
                           ]]
     ];
-    Artifact testArtifact = new Artifact(
-      type: "gcs/object",
-      name: "gs://test/file.yaml"
-    )
+    Artifact testArtifact = Artifact.builder().type("gcs/object").name("gs://test/file.yaml").build()
     def parentPipeline = pipeline {
       name = "parent"
       trigger = new DefaultTrigger("webhook", null, "test", [:], [testArtifact]);
@@ -244,10 +241,7 @@ class DependentPipelineStarterSpec extends Specification {
                             ]
                           ]]
     ];
-    Artifact testArtifact = new Artifact(
-      type: "gcs/object",
-      name: "gs://test/file.yaml"
-    )
+    Artifact testArtifact = Artifact.builder().type("gcs/object").name("gs://test/file.yaml").build()
     def parentPipeline = pipeline {
       name = "parent"
       trigger = new DefaultTrigger("webhook", null, "test")
@@ -316,14 +310,8 @@ class DependentPipelineStarterSpec extends Specification {
                             ]
                           ]]
     ]
-    Artifact testArtifact1 = new Artifact(
-      type: "gcs/object",
-      name: "gs://test/file.yaml"
-    )
-    Artifact testArtifact2 = new Artifact(
-      type: "docker/image",
-      name: "gcr.io/project/image"
-    )
+    Artifact testArtifact1 = Artifact.builder().type("gcs/object").name("gs://test/file.yaml").build()
+    Artifact testArtifact2 = Artifact.builder().type("docker/image").name("gcr.io/project/image").build()
     def parentPipeline = pipeline {
       name = "parent"
       trigger = new DefaultTrigger("webhook", null, "test", [:], [testArtifact1, testArtifact2])
@@ -511,16 +499,14 @@ class DependentPipelineStarterSpec extends Specification {
     def priorExecution = pipeline {
       id = "01DCKTEZPRCMFV1H35EDFC62RG"
       trigger = new DefaultTrigger("manual", null, "user@acme.com", [:], [
-        new Artifact([
-          customKind: false,
-          metadata: [
-            fileName: "wait.0.1.yml",
-          ],
-          name: "wait",
-          reference: "https://artifactory.acme.com/spinnaker-pac/wait.0.1.yml",
-          type: "spinnaker-pac",
-          version: "0.1"
-        ])
+        Artifact.builder()
+        .customKind(false)
+        .metadata([fileName: "wait.0.1.yml"])
+        .name("wait")
+        .reference("https://artifactory.acme.com/spinnaker-pac/wait.0.1.yml")
+        .type("spinnaker-pac")
+        .version("spinnaker-pac")
+        .build()
       ])
     }
     def parentPipeline = pipeline {
@@ -649,12 +635,12 @@ class DependentPipelineStarterSpec extends Specification {
 
     ], PipelineTemplate)
 
-    Artifact testArtifact = new Artifact(
-      type: "http/file",
-      name: "artifact-name",
-      customKind: true,
-      reference: "a-reference"
-    )
+    Artifact testArtifact = Artifact.builder()
+      .type("http/file")
+      .name("artifact-name")
+      .customKind(true)
+      .reference("a-reference")
+      .build()
     def parentPipeline = pipeline {
       name = "parent"
       trigger = new DefaultTrigger("webhook", null, "test", [:], [testArtifact])

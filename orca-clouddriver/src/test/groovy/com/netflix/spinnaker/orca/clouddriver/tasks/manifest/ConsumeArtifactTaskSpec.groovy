@@ -33,7 +33,7 @@ class ConsumeArtifactTaskSpec extends Specification {
 
   def oortService = Mock(OortService)
   def artifactResolver = Stub(ArtifactResolver) {
-    getBoundArtifactForId(*_) >> new Artifact()
+    getBoundArtifactForId(*_) >> Artifact.builder().build()
   }
 
   @Subject

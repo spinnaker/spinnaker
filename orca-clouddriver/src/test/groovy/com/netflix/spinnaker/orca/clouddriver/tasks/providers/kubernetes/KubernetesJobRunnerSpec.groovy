@@ -140,7 +140,7 @@ class KubernetesJobRunnerSpec extends Specification {
       )
     }
     1 * artifactResolver.getBoundArtifactForStage(_, _, _) >> {
-      return new Artifact()
+      return Artifact.builder().build()
     }
     op.manifest == manifest
     op.requiredArtifacts == []

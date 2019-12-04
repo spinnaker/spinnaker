@@ -99,15 +99,14 @@ public class FindImageFromTagsTask extends AbstractCloudProviderAwareTask implem
       // This is either all or nothing
     }
 
-    Artifact artifact = new Artifact();
-    artifact.setName(imageDetails.getImageName());
-    artifact.setReference(imageDetails.getImageId());
-    artifact.setLocation(imageDetails.getRegion());
-    artifact.setType(cloudProvider + "/image");
-    artifact.setMetadata(metadata);
-    artifact.setUuid(UUID.randomUUID().toString());
-
-    return artifact;
+    return Artifact.builder()
+        .name(imageDetails.getImageName())
+        .reference(imageDetails.getImageId())
+        .location(imageDetails.getRegion())
+        .type(cloudProvider + "/image")
+        .metadata(metadata)
+        .uuid(UUID.randomUUID().toString())
+        .build();
   }
 
   @Override

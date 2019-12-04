@@ -79,7 +79,7 @@ class CompletedBakeTaskSpec extends Specification {
     region = "us-west-1"
     bakeId = "b-5af233wjj78mwt2f420wt8ey3w"
     ami = "ami-280c3b6d"
-    artifact = new Artifact(reference: ami)
+    artifact = Artifact.builder().reference(ami).build()
   }
 
   def "fails if the bake is not found"() {

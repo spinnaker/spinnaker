@@ -47,7 +47,7 @@ class GetPipelinesFromArtifactTaskSpec extends Specification {
     def result = task.execute(new Stage(Execution.newPipeline("orca"), "whatever", context))
 
     then:
-    1 * artifactResolver.getBoundArtifactForStage(_, '123', _) >> new Artifact().builder().type('http/file')
+    1 * artifactResolver.getBoundArtifactForStage(_, '123', _) >> Artifact.builder().type('http/file')
       .reference('url1').build()
     1 * oortService.fetchArtifact(_) >> new Response("url1", 200, "reason1", [],
       new TypedString(pipelineJson))
@@ -66,7 +66,7 @@ class GetPipelinesFromArtifactTaskSpec extends Specification {
     def result = task.execute(new Stage(Execution.newPipeline("orca"), "whatever", context))
 
     then:
-    1 * artifactResolver.getBoundArtifactForStage(_, '123', _) >> new Artifact().builder().type('http/file')
+    1 * artifactResolver.getBoundArtifactForStage(_, '123', _) >> Artifact.builder().type('http/file')
       .reference('url1').build()
     1 * oortService.fetchArtifact(_) >> new Response("url1", 200, "reason1", [],
       new TypedString(pipelineJson))

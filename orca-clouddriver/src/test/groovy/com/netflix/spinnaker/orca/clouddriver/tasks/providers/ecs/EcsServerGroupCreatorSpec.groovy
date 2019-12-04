@@ -140,7 +140,7 @@ class EcsServerGroupCreatorSpec extends Specification {
     def taskDefArtifact = [
       artifactId: testArtifactId
     ]
-    Artifact resolvedArtifact = new Artifact().builder().type('s3/object').name('s3://testfile.json').build()
+    Artifact resolvedArtifact = Artifact.builder().type('s3/object').name('s3://testfile.json').build()
     mockResolver.getBoundArtifactForStage(stage, testArtifactId, null) >> resolvedArtifact
     // define container mappings inputs
     def (testReg,testRepo,testTag) = ["myregistry.io","myrepo","latest"]

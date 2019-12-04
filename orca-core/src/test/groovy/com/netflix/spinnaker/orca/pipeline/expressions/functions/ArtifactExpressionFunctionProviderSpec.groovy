@@ -31,12 +31,12 @@ import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 class ArtifactExpressionFunctionProviderSpec extends Specification {
   @Shared
   def pipeline1 = pipeline {
-    def matchArtifact1 = new Artifact(type: "docker/image", "name": "artifact1")
-    def boundArtifact = new Artifact(type: "docker/image", "name": "artifact1", "reference": "artifact1")
+    def matchArtifact1 = Artifact.builder().type("docker/image").name("artifact1").build()
+    def boundArtifact = Artifact.builder().type("docker/image").name("artifact1").reference("artifact1").build()
 
     trigger = new DefaultTrigger("manual", "artifact1")
     trigger.resolvedExpectedArtifacts = [
-      new ExpectedArtifact(matchArtifact: matchArtifact1, boundArtifact: boundArtifact),
+      ExpectedArtifact.builder().matchArtifact(matchArtifact1).boundArtifact(boundArtifact).build()
     ]
   }
 

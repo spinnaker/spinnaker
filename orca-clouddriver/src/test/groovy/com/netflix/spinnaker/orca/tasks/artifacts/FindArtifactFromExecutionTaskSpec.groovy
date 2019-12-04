@@ -30,8 +30,8 @@ import spock.lang.Subject
 class FindArtifactFromExecutionTaskSpec extends Specification {
   def PIPELINE = "my pipeline"
   def EXECUTION_CRITERIA = new ExecutionRepository.ExecutionCriteria().setStatuses(Collections.singletonList("SUCCEEDED"))
-  def ARTIFACT_A = new Artifact(type: "kubernetes/replicaSet")
-  def ARTIFACT_B = new Artifact(type: "kubernetes/configMap")
+  def ARTIFACT_A = Artifact.builder().type("kubernetes/replicaSet").build()
+  def ARTIFACT_B = Artifact.builder().type("kubernetes/configMap").build()
 
   ArtifactResolver artifactResolver = Mock(ArtifactResolver)
   Execution execution = Mock(Execution)
@@ -41,7 +41,7 @@ class FindArtifactFromExecutionTaskSpec extends Specification {
 
   def "finds a single artifact"() {
     given:
-    def expectedArtifacts = [new ExpectedArtifact(matchArtifact: ARTIFACT_A)]
+    def expectedArtifacts = [ExpectedArtifact.builder().matchArtifact(ARTIFACT_A).build()]
     def pipelineArtifacts = [ARTIFACT_A, ARTIFACT_B]
     Set resolvedArtifacts = [ARTIFACT_A]
     def stage = new Stage(execution, "findArtifactFromExecution", [
@@ -64,7 +64,7 @@ class FindArtifactFromExecutionTaskSpec extends Specification {
 
   def "finds multiple artifacts"() {
     given:
-    def expectedArtifacts = [new ExpectedArtifact(matchArtifact: ARTIFACT_A), new ExpectedArtifact(matchArtifact: ARTIFACT_B)]
+    def expectedArtifacts = [ExpectedArtifact.builder().matchArtifact(ARTIFACT_A).build(), ExpectedArtifact.builder().matchArtifact(ARTIFACT_B).build()]
     def pipelineArtifacts = [ARTIFACT_A, ARTIFACT_B]
     Set resolvedArtifacts = [ARTIFACT_A, ARTIFACT_B]
     def stage = new Stage(execution, "findArtifactFromExecution", [

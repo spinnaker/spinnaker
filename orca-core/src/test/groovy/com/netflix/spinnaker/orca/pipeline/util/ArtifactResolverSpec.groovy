@@ -100,14 +100,14 @@ class ArtifactResolverSpec extends Specification {
         name = "upstream stage"
         type = "stage1"
         refId = "1"
-        outputs.artifacts = [new Artifact(type: "1")]
+        outputs.artifacts = [Artifact.builder().type("1").build()]
       }
       stage {
         name = "upstream stage"
         type = "stage2"
         refId = "2"
         requisiteStageRefIds = ["1"]
-        outputs.artifacts = [new Artifact(type: "2"), new Artifact(type: "extra")]
+        outputs.artifacts = [Artifact.builder().type("2").build(), Artifact.builder().type("extra").build()]
       }
       stage {
         name = "desired"
@@ -132,14 +132,14 @@ class ArtifactResolverSpec extends Specification {
         name = "upstream stage"
         type = "stage1"
         refId = "1"
-        outputs.artifacts = [new Artifact(type: "1")]
+        outputs.artifacts = [Artifact.builder().type("1").build()]
       }
       stage {
         name = "upstream stage"
         type = "stage2"
         refId = "2"
         requisiteStageRefIds = ["1"]
-        outputs.artifacts = [new Artifact(type: "2")]
+        outputs.artifacts = [Artifact.builder().type("2").build()]
       }
       stage {
         name = "desired"
@@ -155,14 +155,14 @@ class ArtifactResolverSpec extends Specification {
         name = "upstream stage"
         type = "stage1"
         refId = "1"
-        outputs.artifacts = [new Artifact(type: "1")]
+        outputs.artifacts = [Artifact.builder().type("1").build()]
       }
       stage {
         name = "desired"
         requisiteStageRefIds = ["1"]
       }
     }
-    execution.trigger = new DefaultTrigger("webhook", null, "user", [:], [new Artifact(type: "trigger")])
+    execution.trigger = new DefaultTrigger("webhook", null, "user", [:], [Artifact.builder().type("trigger").build()])
 
     def desired = execution.getStages().find { it.name == "desired" }
     def artifactResolver = makeArtifactResolver()
@@ -204,8 +204,8 @@ class ArtifactResolverSpec extends Specification {
         type = "stage1"
         refId = "1"
         outputs.resolvedExpectedArtifacts = [
-          new ExpectedArtifact(id: "1", boundArtifact: new Artifact(type: "correct")),
-          new ExpectedArtifact(id: "2", boundArtifact: new Artifact(type: "incorrect"))
+          ExpectedArtifact.builder().id("1").boundArtifact(Artifact.builder().type("correct").build()).build(),
+          ExpectedArtifact.builder().id("2").boundArtifact(Artifact.builder().type("incorrect").build()).build()
         ]
       }
       stage {
@@ -226,6 +226,10 @@ class ArtifactResolverSpec extends Specification {
   }
 
   def "should find a bound artifact from a trigger"() {
+    given:
+    def correctArtifact = Artifact.builder().type("correct").build()
+    def incorrectArtifact = Artifact.builder().type("incorrect").build()
+
     when:
     def execution = pipeline {
       stage {
@@ -233,7 +237,7 @@ class ArtifactResolverSpec extends Specification {
         type = "stage1"
         refId = "1"
         outputs.resolvedExpectedArtifacts = [
-          new ExpectedArtifact(id: "2", boundArtifact: new Artifact(type: "incorrect"))
+          ExpectedArtifact.builder().id("2").boundArtifact(incorrectArtifact).build()
         ]
       }
       stage {
@@ -244,7 +248,7 @@ class ArtifactResolverSpec extends Specification {
       }
     }
     execution.trigger = new DefaultTrigger("webhook")
-    execution.trigger.resolvedExpectedArtifacts = [new ExpectedArtifact(id: "1", boundArtifact: new Artifact(type: "correct"))]
+    execution.trigger.resolvedExpectedArtifacts = [ExpectedArtifact.builder().id("1").boundArtifact(correctArtifact).build()]
 
     def desired = execution.getStages().find { it.name == "desired" }
     def artifactResolver = makeArtifactResolver()
@@ -259,32 +263,34 @@ class ArtifactResolverSpec extends Specification {
   def "should find a matching artifact for #expected"() {
     when:
     def artifactResolver = makeArtifactResolver()
+    def expected = ExpectedArtifact.builder().matchArtifact(matchArtifact).build()
     def artifact = artifactResolver.resolveSingleArtifact(expected, existing, null, true)
 
     then:
     artifact == desired
 
     where:
-    expected                                                                            | existing                                                                                             || desired
-    new ExpectedArtifact(matchArtifact: new Artifact(type: "docker/image"))             | [new Artifact(type: "docker/image"), new Artifact(type: "amazon/ami")]                               || new Artifact(type: "docker/image")
-    new ExpectedArtifact(matchArtifact: new Artifact(type: "docker/.*"))                | [new Artifact(type: "docker/image"), new Artifact(type: "amazon/ami")]                               || new Artifact(type: "docker/image")
-    new ExpectedArtifact(matchArtifact: new Artifact(type: "docker/.*", name: "image")) | [new Artifact(type: "docker/image", name: "bad"), new Artifact(type: "docker/image", name: "image")] || new Artifact(type: "docker/image", name: "image")
+    matchArtifact                                              | existing                                                                                                                     || desired
+    Artifact.builder().type("docker/image").build()            | [Artifact.builder().type("docker/image").build(), Artifact.builder().type("amazon/ami").build()]                             || Artifact.builder().type("docker/image").build()
+    Artifact.builder().type("docker/.*").build()               | [Artifact.builder().type("docker/image").build(), Artifact.builder().type("amazon/ami").build()]                             || Artifact.builder().type("docker/image").build()
+    Artifact.builder().type("docker/.*").name("image").build() | [Artifact.builder().type("docker/image").name("bad").build(), Artifact.builder().type("docker/image").name("image").build()] || Artifact.builder().type("docker/image").name("image").build()
   }
 
   @Unroll
   def "should fail find a matching artifact for #expected"() {
     when:
     def artifactResolver = makeArtifactResolver()
+    def expected = ExpectedArtifact.builder().matchArtifact(matchArtifact).build()
     def artifact = artifactResolver.resolveSingleArtifact(expected, existing, null, true)
 
     then:
     artifact == null
 
     where:
-    expected                                                                           | existing
-    new ExpectedArtifact(matchArtifact: new Artifact(type: "image/image"))             | [new Artifact(type: "docker/image"), new Artifact(type: "amazon/ami")]
-    new ExpectedArtifact(matchArtifact: new Artifact(type: "flocker/.*"))              | [new Artifact(type: "docker/image"), new Artifact(type: "amazon/ami")]
-    new ExpectedArtifact(matchArtifact: new Artifact(type: "docker/.*", name: "none")) | [new Artifact(type: "docker/image", name: "bad"), new Artifact(type: "docker/image", name: "image")]
+    matchArtifact                                             | existing
+    Artifact.builder().type("image/image").build()            | [Artifact.builder().type("docker/image").build(), Artifact.builder().type("amazon/ami").build()]
+    Artifact.builder().type("flocker/.*").build()             | [Artifact.builder().type("docker/image").build(), Artifact.builder().type("amazon/ami").build()]
+    Artifact.builder().type("docker/.*").name("none").build() | [Artifact.builder().type("docker/image").name("bad").build(), Artifact.builder().type("docker/image").name("image").build()]
   }
 
   def "should find all artifacts from an execution, in reverse order"() {
@@ -292,19 +298,19 @@ class ArtifactResolverSpec extends Specification {
     def execution = pipeline {
       stage {
         refId = "1"
-        outputs.artifacts = [new Artifact(type: "1")]
+        outputs.artifacts = [Artifact.builder().type("1").build()]
       }
       stage {
         refId = "2"
         requisiteStageRefIds = ["1"]
-        outputs.artifacts = [new Artifact(type: "2")]
+        outputs.artifacts = [Artifact.builder().type("2").build()]
       }
       stage {
         // This stage does not emit an artifact
         requisiteStageRefIds = ["2"]
       }
     }
-    execution.trigger = new DefaultTrigger("webhook", null, "user", [:], [new Artifact(type: "trigger")])
+    execution.trigger = new DefaultTrigger("webhook", null, "user", [:], [Artifact.builder().type("trigger").build()])
 
     def artifactResolver = makeArtifactResolver()
 
@@ -321,19 +327,19 @@ class ArtifactResolverSpec extends Specification {
       status: ExecutionStatus.SUCCEEDED
       stage {
         refId = "1"
-        outputs.artifacts = [new Artifact(type: "1")]
+        outputs.artifacts = [Artifact.builder().type("1").build()]
       }
       stage {
         refId = "2"
         requisiteStageRefIds = ["1"]
-        outputs.artifacts = [new Artifact(type: "2")]
+        outputs.artifacts = [Artifact.builder().type("2").build()]
       }
       stage {
         // This stage does not emit an artifacts
         requisiteStageRefIds = ["2"]
       }
     }
-    execution.trigger = new DefaultTrigger("webhook", null, "user", [:], [new Artifact(type: "trigger")])
+    execution.trigger = new DefaultTrigger("webhook", null, "user", [:], [Artifact.builder().type("trigger").build()])
 
     def executionCriteria = new ExecutionRepository.ExecutionCriteria()
     executionCriteria.setStatuses(ExecutionStatus.SUCCEEDED)
@@ -366,19 +372,19 @@ class ArtifactResolverSpec extends Specification {
       id: pipelineId
       stage {
         refId = "1"
-        outputs.artifacts = [new Artifact(type: "1")]
+        outputs.artifacts = [Artifact.builder().type("1").build()]
       }
       stage {
         refId = "2"
         requisiteStageRefIds = ["1"]
-        outputs.artifacts = [new Artifact(type: "2")]
+        outputs.artifacts = [Artifact.builder().type("2").build()]
       }
       stage {
         // This stage does not emit an artifacts
         requisiteStageRefIds = ["2"]
       }
     }
-    execution.trigger = new DefaultTrigger("webhook", null, "user", [:], [new Artifact(type: "trigger")])
+    execution.trigger = new DefaultTrigger("webhook", null, "user", [:], [Artifact.builder().type("trigger").build()])
 
     def executionRepositoryStub = Stub(ExecutionRepository) {
       // only a call to retrievePipelinesForPipelineConfigId() with these argument values is expected
@@ -394,22 +400,66 @@ class ArtifactResolverSpec extends Specification {
     artifacts.size == 2
     artifacts*.type == ["1", "trigger"]
   }
+
   @Unroll
-  def "should resolve expected artifacts from pipeline for #expectedArtifacts using #available and prior #prior"() {
+  def "should resolve expected artifacts from pipeline for default #defaultArtifact, available #available, and prior #prior"() {
+    given:
+    def matchArtifact = Artifact.builder().type("docker/.*").build()
     when:
     def artifactResolver = makeArtifactResolver()
-    def bound = artifactResolver.resolveExpectedArtifacts(expectedArtifacts, available, prior, true)
+    def expectedArtifact = ExpectedArtifact.builder()
+      .matchArtifact(matchArtifact)
+      .defaultArtifact(defaultArtifact)
+      .useDefaultArtifact(defaultArtifact != null)
+      .usePriorArtifact(usePriorArtifact)
+      .build()
+    def bound = artifactResolver.resolveExpectedArtifacts([expectedArtifact], available, prior, true)
 
     then:
     bound.size() == expectedBound.size()
     bound.findAll({ a -> expectedBound.contains(a) }).size() == bound.size()
 
     where:
-    expectedArtifacts                                                                                                                                                                                                                                   | available                                                   | prior                                || expectedBound
-    [new ExpectedArtifact(matchArtifact: new Artifact(type: "docker/.*"))]                                                                                                                                                                              | [new Artifact(type: "docker/image")]                        | null                                 || [new Artifact(type: "docker/image")]
-    [new ExpectedArtifact(matchArtifact: new Artifact(type: "docker/.*"), useDefaultArtifact: true, defaultArtifact: new Artifact(type: "google/image"))]                                                                                               | [new Artifact(type: "bad")]                                 | null                                 || [new Artifact(type: "google/image")]
-    [new ExpectedArtifact(matchArtifact: new Artifact(type: "docker/.*"), usePriorArtifact: true)]                                                                                                                                                      | [new Artifact(type: "bad")]                                 | [new Artifact(type: "docker/image")] || [new Artifact(type: "docker/image")]
-    [new ExpectedArtifact(matchArtifact: new Artifact(type: "google/.*"), usePriorArtifact: true), new ExpectedArtifact(matchArtifact: new Artifact(type: "docker/.*"), useDefaultArtifact: true, defaultArtifact: new Artifact(type: "docker/image"))] | [new Artifact(type: "bad"), new Artifact(type: "more bad")] | [new Artifact(type: "google/image")] || [new Artifact(type: "docker/image"), new Artifact(type: "google/image")]
+    defaultArtifact                                 | usePriorArtifact | available                                         | prior                                             || expectedBound
+    null                                            | false            | [Artifact.builder().type("docker/image").build()] | null                                              || [Artifact.builder().type("docker/image").build()]
+    Artifact.builder().type("google/image").build() | false            | [Artifact.builder().type("bad").build()]          | null                                              || [Artifact.builder().type("google/image").build()]
+    null                                            | true             | [Artifact.builder().type("bad").build()]          | [Artifact.builder().type("docker/image").build()] || [Artifact.builder().type("docker/image").build()]
+  }
+
+  def "can resolve both a prior artifact and a default artifact from the same pipeline"() {
+    given:
+    def dockerArtifact = Artifact.builder().type("docker/image").build()
+    def gceImage = Artifact.builder().type("google/image").build()
+    def expectedArtifacts = [
+      ExpectedArtifact.builder()
+        .matchArtifact(Artifact.builder().type("google/.*").build())
+        .usePriorArtifact(true)
+        .build(),
+      ExpectedArtifact.builder()
+        .matchArtifact(Artifact.builder().type("docker/.*").build())
+        .useDefaultArtifact(true)
+        .defaultArtifact(dockerArtifact)
+        .build()
+    ]
+    def availableArtifacts = [
+      Artifact.builder().type("bad").build(),
+      Artifact.builder().type("more bad").build()
+    ]
+    def priorArtifacts = [
+      gceImage
+    ]
+    def expectedBound = [
+      dockerArtifact,
+      gceImage
+    ]
+
+    when:
+    def artifactResolver = makeArtifactResolver()
+    def bound = artifactResolver.resolveExpectedArtifacts(expectedArtifacts, availableArtifacts, priorArtifacts, true)
+
+    then:
+    bound.size() == expectedBound.size()
+    bound.findAll({ a -> expectedBound.contains(a) }).size() == bound.size()
   }
 
   def "resolveArtifacts sets the bound artifact on an expected artifact"() {

@@ -106,7 +106,7 @@ class DeployCloudFormationTaskSpec extends Specification {
     def result = deployCloudFormationTask.execute(stage)
 
     then:
-    (_..1) * artifactResolver.getBoundArtifactForStage(stage, 'id', null) >> new Artifact()
+    (_..1) * artifactResolver.getBoundArtifactForStage(stage, 'id', null) >> Artifact.builder().build()
     (_..1) * oortService.fetchArtifact(_) >> new Response("url", 200, "reason", Collections.emptyList(), template)
     thrown(expectedException)
 
@@ -141,7 +141,7 @@ class DeployCloudFormationTaskSpec extends Specification {
     def result = deployCloudFormationTask.execute(stage)
 
     then:
-    1 * artifactResolver.getBoundArtifactForStage(stage, stackArtifactId, _) >> new Artifact()
+    1 * artifactResolver.getBoundArtifactForStage(stage, stackArtifactId, _) >> Artifact.builder().build()
     1 * oortService.fetchArtifact(_) >> new Response("url", 200, "reason", Collections.emptyList(), new TypedString(template))
     1 * katoService.requestOperations("aws", {
       it.get(0).get("deployCloudFormation").containsKey("templateBody")

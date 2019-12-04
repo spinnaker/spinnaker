@@ -1107,7 +1107,7 @@ class CreateBakeTaskSpec extends Specification {
     def bakeResult = task.bakeFromContext(stage, selectedBakeryService)
 
     then:
-    2 * task.artifactResolver.getBoundArtifactForId(stage, _) >> new Artifact()
+    2 * task.artifactResolver.getBoundArtifactForId(stage, _) >> Artifact.builder().build()
     1 * task.artifactResolver.getAllArtifacts(_) >> []
     bakeResult.getPackageArtifacts().size() == 2
   }
@@ -1135,7 +1135,7 @@ class CreateBakeTaskSpec extends Specification {
     def bakeResult = task.bakeFromContext(stage, selectedBakeryService)
 
     then:
-    0 * task.artifactResolver.getBoundArtifactForId(*_) >> new Artifact()
+    0 * task.artifactResolver.getBoundArtifactForId(*_) >> Artifact.builder().build()
     1 * task.artifactResolver.getAllArtifacts(_) >> []
     bakeResult.getPackageArtifacts().size() == 0
   }
@@ -1164,7 +1164,7 @@ class CreateBakeTaskSpec extends Specification {
 
     then:
     noExceptionThrown()
-    2 * task.artifactResolver.getBoundArtifactForId(stage, _) >> new Artifact()
+    2 * task.artifactResolver.getBoundArtifactForId(stage, _) >> Artifact.builder().build()
     1 * task.artifactResolver.getAllArtifacts(_) >> []
     bakeResult.getPackageArtifacts().size() == 2
   }
