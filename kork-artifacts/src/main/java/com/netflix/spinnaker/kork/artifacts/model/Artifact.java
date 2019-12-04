@@ -21,15 +21,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.HashMap;
 import java.util.Map;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
 @JsonIgnoreProperties("kind")
 public class Artifact {
   @JsonProperty("type")
@@ -61,6 +57,37 @@ public class Artifact {
 
   @JsonProperty("uuid")
   private String uuid;
+
+  // Deprecated as consumers should be using a builder; in the future this constructor will be
+  // removed from the public API
+  @Deprecated
+  public Artifact(
+      String type,
+      boolean customKind,
+      String name,
+      String version,
+      String location,
+      String reference,
+      Map<String, Object> metadata,
+      String artifactAccount,
+      String provenance,
+      String uuid) {
+    this.type = type;
+    this.customKind = customKind;
+    this.name = name;
+    this.version = version;
+    this.location = location;
+    this.reference = reference;
+    this.metadata = metadata;
+    this.artifactAccount = artifactAccount;
+    this.provenance = provenance;
+    this.uuid = uuid;
+  }
+
+  // Deprecated as consumers should be using a builder; in the future this constructor will be
+  // removed from the public API
+  @Deprecated
+  public Artifact() {}
 
   // Add extra, unknown data to the metadata map:
   @JsonAnySetter
