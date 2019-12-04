@@ -53,16 +53,17 @@ public class TestArtifactService implements ArtifactService {
     if (!name.equals("test") && !version.equals("v0.4.0")) {
       throw new NotFoundException("Artifact not found");
     }
-    return new Artifact(
-        "deb",
-        false,
-        "test",
-        "v0.4.0",
-        "artifactory//test/v0.4.0",
-        "artifactory//test/v0.4.0",
-        Collections.emptyMap(),
-        "testAccount",
-        "jenkins//test/v0.4.0",
-        "1234");
+    return Artifact.builder()
+        .type("deb")
+        .customKind(false)
+        .name("test")
+        .version("v0.4.0")
+        .location("artifactory//test/v0.4.0")
+        .reference("artifactory//test/v0.4.0")
+        .metadata(Collections.emptyMap())
+        .artifactAccount("testAccount")
+        .provenance("jenkins//test/v0.4.0")
+        .uuid("1234")
+        .build();
   }
 }
