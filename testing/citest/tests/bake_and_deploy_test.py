@@ -340,7 +340,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
         'type': 'bake',
         'name': 'Bake',
         'user': '[anonymous]',
-        'baseOs': 'trusty',
+        'baseOs': 'xenial' if providerType == 'gce' else 'trusty',
         'baseLabel': 'release',
         'cloudProvider': providerType,
         'cloudProviderType': providerType,

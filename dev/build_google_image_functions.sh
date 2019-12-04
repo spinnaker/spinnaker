@@ -45,7 +45,7 @@ function create_cleaner_instance() {
       --scopes storage-rw \
       --boot-disk-type pd-ssd \
       --boot-disk-size 20GB \
-      --image-family ubuntu-1404-lts \
+      --image-family ubuntu-1604-lts \
       --image-project ubuntu-os-cloud
 }
 
