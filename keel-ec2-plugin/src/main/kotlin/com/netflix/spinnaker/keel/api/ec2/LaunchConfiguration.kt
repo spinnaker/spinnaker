@@ -22,16 +22,16 @@ data class LaunchConfiguration(
   val appVersion: String?,
   val baseImageVersion: String?,
   val instanceType: String,
-  val ebsOptimized: Boolean = false,
+  val ebsOptimized: Boolean = DEFAULT_EBS_OPTIMIZED,
   val iamRole: String,
   val keyPair: String,
-  val instanceMonitoring: Boolean = false,
+  val instanceMonitoring: Boolean = DEFAULT_INSTANCE_MONITORING,
   val ramdiskId: String? = null
 ) {
   companion object {
-    // TODO (lpollo): make these configurable?
-    fun defaultKeyPairTemplateFor(account: String) = "nf-keypair-$account-{{region}}"
-    fun defaultKeyPairFor(account: String, region: String) = "nf-keypair-$account-$region"
+    const val DEFAULT_EBS_OPTIMIZED = false
+    const val DEFAULT_INSTANCE_MONITORING = false
+    // TODO (lpollo): make configurable, or resolve via LaunchConfigurationResolver
     fun defaultIamRoleFor(application: String) = "${application}InstanceProfile"
   }
 }

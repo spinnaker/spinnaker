@@ -130,7 +130,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         instanceType = "r4.8xlarge",
         ebsOptimized = false,
         iamRole = LaunchConfiguration.defaultIamRoleFor("keel"),
-        keyPair = LaunchConfiguration.defaultKeyPairFor("test", "us-west-2"),
+        keyPair = "nf-keypair-test-fake",
         instanceMonitoring = false
       ),
       capacity = Capacity(1, 6, 4),
@@ -224,7 +224,8 @@ internal class ClusterHandlerTests : JUnit5Minutests {
 
     before {
       with(cloudDriverCache) {
-        every { defaultKeyPairForAccount("test") } returns LaunchConfiguration.defaultKeyPairTemplateFor("test")
+        every { defaultKeyPairForAccount("test") } returns "nf-keypair-test-{{region}}"
+
         every { networkBy(vpcWest.id) } returns vpcWest
         every { subnetBy(subnet1West.id) } returns subnet1West
         every { subnetBy(subnet2West.id) } returns subnet2West
