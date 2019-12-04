@@ -128,8 +128,7 @@ class IvyArtifactCredentialsTest {
     Path cache = tempDir.resolve("cache");
     Files.createDirectories(cache);
 
-    Artifact artifact = new Artifact();
-    artifact.setReference("com.test:app:1.0");
+    Artifact artifact = Artifact.builder().reference("com.test:app:1.0").build();
 
     assertThat(new IvyArtifactCredentials(account, () -> cache).download(artifact))
         .hasSameContentAs(new ByteArrayInputStream("contents".getBytes(Charsets.UTF_8)));

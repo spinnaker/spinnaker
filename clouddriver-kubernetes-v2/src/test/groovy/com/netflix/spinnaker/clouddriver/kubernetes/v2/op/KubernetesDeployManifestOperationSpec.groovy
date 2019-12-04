@@ -101,7 +101,7 @@ spec:
         isVersioned() >> true
         getVersionedConverter() >> Mock(KubernetesVersionedArtifactConverter) {
           getDeployedName(_) >> "$NAME-$VERSION"
-          toArtifact(_, _, _) >> new Artifact()
+          toArtifact(_, _, _) >> Artifact.builder().build()
         }
       }
       get(KubernetesKind.SERVICE) >> Mock(KubernetesResourceProperties) {

@@ -176,8 +176,7 @@ class MavenArtifactCredentialsTest {
     MavenArtifactAccount account = new MavenArtifactAccount();
     account.setRepositoryUrl(server.baseUrl());
 
-    Artifact artifact = new Artifact();
-    artifact.setReference("com.test:app:" + version);
+    Artifact artifact = Artifact.builder().reference("com.test:app:" + version).build();
 
     assertThat(new MavenArtifactCredentials(account, new OkHttpClient()).download(artifact))
         .hasSameContentAs(

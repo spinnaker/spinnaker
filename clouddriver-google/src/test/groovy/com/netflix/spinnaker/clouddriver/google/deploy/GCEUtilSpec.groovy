@@ -242,7 +242,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy
     credentials.compute >> compute
     credentials.project >> PROJECT_NAME
     def executor = GroovyMock(GoogleExecutorTraits)
-    def artifact = new Artifact()
+    def artifact = Artifact.builder().build()
     GroovySpy(GCEUtil, global: true)
 
     when:

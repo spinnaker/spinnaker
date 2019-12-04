@@ -88,8 +88,8 @@ class KubernetesVersionedArtifactConverterSpec extends Specification {
     def version1 = "v001"
     def version2 = "v002"
 
-    def artifact1 = new Artifact(version: version1, metadata: [lastAppliedConfiguration: manifest1])
-    def artifact2 = new Artifact(version: version2, metadata: [lastAppliedConfiguration: manifest2])
+    def artifact1 = Artifact.builder().version(version1).metadata([lastAppliedConfiguration: manifest1]).build()
+    def artifact2 = Artifact.builder().version(version2).metadata([lastAppliedConfiguration: manifest2]).build()
     def artifacts = [artifact1, artifact2]
 
     def artifactProvider = Mock(KubernetesV2ArtifactProvider)
