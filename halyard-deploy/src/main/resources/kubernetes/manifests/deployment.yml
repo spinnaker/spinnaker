@@ -31,10 +31,10 @@ spec:
   {% endif %}
   template:
     metadata:
-      annotations: {
-      {% for key, value in podAnnotations.items() %}
-              "{{ key }}" : "{{ value }}"{% if not loop.last %}, {% endif %}
-      {% endfor %}}
+      annotations:
+        {% for key, value in podAnnotations.items() %}
+        "{{ key }}": "{{ value }}"
+        {% endfor %}
       labels:
         app: spin
         cluster: spin-{{ name }}
@@ -43,6 +43,6 @@ spec:
         app.kubernetes.io/part-of: spinnaker
         app.kubernetes.io/version: {{ version }}
         {% for key, value in podLabels.items() %}
-        "{{ key }}" : "{{ value }}"{% if not loop.last %}, {% endif %}
+        "{{ key }}": "{{ value }}"
         {% endfor %}
     spec: {{ podSpec }}

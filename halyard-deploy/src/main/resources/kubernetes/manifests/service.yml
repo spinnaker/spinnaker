@@ -7,7 +7,7 @@ metadata:
     app: spin
     cluster: spin-{{ name }}
     {% for key, value in serviceLabels.items() %}
-    "{{ key }}" : "{{ value }}"{% if not loop.last %}, {% endif %}
+    "{{ key }}": "{{ value }}"
     {% endfor %}
 spec:
   selector:
