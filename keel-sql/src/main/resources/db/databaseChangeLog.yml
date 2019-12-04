@@ -44,3 +44,9 @@ databaseChangeLog:
   - include:
       file: changelog/20191123-rename-resource-check-pending-event.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20191125-create-unhappy-veto-table.yml
+      relativeToChangelogFile: true
+  - include:
+      file: changelog/20191202-create-diff-fingerprint-table.yml
+      relativeToChangelogFile: true

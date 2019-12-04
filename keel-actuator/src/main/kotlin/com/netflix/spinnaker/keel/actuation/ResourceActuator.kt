@@ -8,13 +8,15 @@ import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceActuationPaused
 import com.netflix.spinnaker.keel.events.ResourceActuationResumed
-import com.netflix.spinnaker.keel.events.ResourceCheckUnresolvable
+import com.netflix.spinnaker.keel.events.ResourceActuationVetoed
 import com.netflix.spinnaker.keel.events.ResourceCheckError
+import com.netflix.spinnaker.keel.events.ResourceCheckUnresolvable
 import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
 import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
 import com.netflix.spinnaker.keel.events.ResourceMissing
 import com.netflix.spinnaker.keel.events.ResourceValid
 import com.netflix.spinnaker.keel.events.Task
+import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.plugin.CannotResolveCurrentState
 import com.netflix.spinnaker.keel.plugin.CannotResolveDesiredState
@@ -22,6 +24,7 @@ import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.supporting
 import com.netflix.spinnaker.keel.telemetry.ResourceCheckSkipped
 import com.netflix.spinnaker.keel.veto.VetoEnforcer
+import com.netflix.spinnaker.keel.veto.VetoResponse
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.slf4j.LoggerFactory
@@ -32,6 +35,7 @@ import java.time.Clock
 @Component
 class ResourceActuator(
   private val resourceRepository: ResourceRepository,
+  private val diffFingerprintRepository: DiffFingerprintRepository,
   private val handlers: List<ResourceHandler<*, *>>,
   private val vetoEnforcer: VetoEnforcer,
   private val publisher: ApplicationEventPublisher,
@@ -41,45 +45,43 @@ class ResourceActuator(
 
   suspend fun <T : ResourceSpec> checkResource(resource: Resource<T>) {
     val id = resource.id
-    val response = vetoEnforcer.canCheck(id)
-    if (!response.allowed) {
-      log.debug("Skipping actuation for resource {} because it was vetoed: {}", id, response.message)
-      publisher.publishEvent(ResourceCheckSkipped(resource.apiVersion, resource.kind, id))
-      publisher.publishEvent(
-        ResourceActuationPaused(
-          resource.apiVersion,
-          resource.kind,
-          id.value,
-          id.application,
-          response.message,
-          clock.instant()))
-      return
-    }
-
     val plugin = handlers.supporting(resource.apiVersion, resource.kind)
+
+    // todo eb: extract "application veto" as its own concept, and check before generating the diff.
 
     if (plugin.actuationInProgress(resource)) {
       log.debug("Actuation for resource {} is already running, skipping checks", id)
-      publisher.publishEvent(ResourceCheckSkipped(resource.apiVersion, resource.kind, id))
+      publisher.publishEvent(ResourceCheckSkipped(resource.apiVersion, resource.kind, id, "ActuationInProgress"))
       return
-    }
-
-    log.debug("Checking resource {}", id)
-
-    if (resourceRepository.lastEvent(id) is ResourceActuationPaused) {
-      log.info("Actuation for resource {} resuming", id)
-      publisher.publishEvent(
-        ResourceActuationResumed(
-          resource.apiVersion,
-          resource.kind,
-          id.value,
-          id.application,
-          clock.instant()))
     }
 
     try {
       val (desired, current) = plugin.resolve(resource)
       val diff = ResourceDiff(desired, current)
+      if (diff.hasChanges()) {
+        diffFingerprintRepository.store(id, diff)
+      }
+
+      val response = vetoEnforcer.canCheck(resource)
+      if (!response.allowed) {
+        log.debug("Skipping actuation for resource {} because it was vetoed: {}", id, response.message)
+        publisher.publishEvent(ResourceCheckSkipped(resource.apiVersion, resource.kind, id, response.vetoName))
+        publishVetoedEvent(response, resource)
+        return
+      }
+
+      log.debug("Checking resource {}", id)
+
+      if (resourceRepository.lastEvent(id) is ResourceActuationPaused) {
+        log.info("Actuation for resource {} resuming", id)
+        publisher.publishEvent(
+          ResourceActuationResumed(
+            resource.apiVersion,
+            resource.kind,
+            resource.id.value,
+            resource.spec.application,
+            clock.instant()))
+      }
 
       when {
         current == null -> {
@@ -140,6 +142,33 @@ class ResourceActuator(
         }
       }
       desired.await() to current.await()
+    }
+
+  /**
+   * We want a specific status for specific types of vetos. This function publishes the
+   * right event based on which veto said no.
+   */
+  private fun publishVetoedEvent(response: VetoResponse, resource: Resource<*>) =
+    when {
+      response.vetoName == "ApplicationVeto" -> publisher.publishEvent(
+        ResourceActuationPaused(
+          resource.apiVersion,
+          resource.kind,
+          resource.id.value,
+          resource.spec.application,
+          response.message,
+          clock.instant()))
+      response.vetoName == "UnhappyVeto" -> {
+        // don't publish an event, we want the status to stay as "unhappy" for clarity
+      }
+      else -> publisher.publishEvent(
+        ResourceActuationVetoed(
+          resource.apiVersion,
+          resource.kind,
+          resource.id.value,
+          resource.spec.application,
+          response.message,
+          clock.instant()))
     }
 
   // These extensions get round the fact tht we don't know the spec type of the resource from

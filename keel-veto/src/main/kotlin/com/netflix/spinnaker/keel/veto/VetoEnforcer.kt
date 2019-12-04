@@ -18,7 +18,7 @@
 
 package com.netflix.spinnaker.keel.veto
 
-import com.netflix.spinnaker.keel.api.ResourceId
+import com.netflix.spinnaker.keel.api.Resource
 import org.springframework.stereotype.Component
 
 /**
@@ -32,13 +32,13 @@ class VetoEnforcer(
   val vetos: List<Veto>
 ) {
 
-  fun canCheck(id: ResourceId): VetoResponse {
+  fun canCheck(resource: Resource<*>): VetoResponse {
     vetos.forEach { veto ->
-      val response = veto.check(id)
+      val response = veto.check(resource)
       if (!response.allowed) {
         return response
       }
     }
-    return VetoResponse(allowed = true)
+    return VetoResponse(allowed = true, vetoName = "all")
   }
 }

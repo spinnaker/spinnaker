@@ -34,14 +34,16 @@ interface Veto {
   fun name(): String = javaClass.simpleName
 
   /**
-   * Check whether the resource (identified by name) can be checked according to this veto
-   */
-  fun check(id: ResourceId): VetoResponse
-
-  /**
    * Check whether the resource can be checked according to this veto
    */
   fun check(resource: Resource<*>): VetoResponse
+
+  /**
+   * Check whether the resource can be checked according to this veto,
+   * by id and application. Application is not always calculable from the resourceId,
+   * so it needs to be passed in
+   */
+  fun check(resourceId: ResourceId, application: String): VetoResponse
 
   /**
    * The message format a veto accepts
@@ -57,9 +59,21 @@ interface Veto {
    * What's currently being vetoed
    */
   fun currentRejections(): List<String>
+
+  /**
+   * What's currently being vetoed for an app
+   */
+  fun currentRejectionsByApp(application: String): List<ResourceId>
+
+  fun allowedResponse(): VetoResponse =
+    VetoResponse(allowed = true, vetoName = name())
+
+  fun deniedResponse(message: String): VetoResponse =
+    VetoResponse(allowed = false, vetoName = name(), message = message)
 }
 
 data class VetoResponse(
   val allowed: Boolean,
+  val vetoName: String,
   val message: String? = null
 )

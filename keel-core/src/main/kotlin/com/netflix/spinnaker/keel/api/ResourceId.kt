@@ -20,12 +20,12 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer
 import com.netflix.spinnaker.keel.serialization.ResourceIdDeserializer
 
+/**
+ * Note: You cannot reliably parse the application name from the resource id.
+ * The application is a property on the resource spec.
+ */
 @JsonSerialize(using = ToStringSerializer::class)
 @JsonDeserialize(using = ResourceIdDeserializer::class)
 data class ResourceId(val value: String) {
   override fun toString(): String = value
-
-  // Resource names (the last token in a ResourceId) follow the Moniker format (<app>-<stack>-<detail>)
-  val application: String
-    get() = value.split(":").last().split("-").first()
 }

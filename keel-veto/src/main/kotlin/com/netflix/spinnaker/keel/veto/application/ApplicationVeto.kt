@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.persistence.ApplicationVetoRepository
-import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.veto.Veto
 import com.netflix.spinnaker.keel.veto.VetoResponse
@@ -37,16 +36,12 @@ class ApplicationVeto(
 ) : Veto {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  override fun check(id: ResourceId): VetoResponse {
-    return try {
-      check(resourceRepository.get(id))
-    } catch (e: NoSuchResourceException) {
-      checkApplication(id.application)
-    }
-  }
-
   override fun check(resource: Resource<*>): VetoResponse {
     return checkApplication(resource.spec.application)
+  }
+
+  override fun check(resourceId: ResourceId, application: String): VetoResponse {
+    return checkApplication(application)
   }
 
   override fun messageFormat() =
@@ -73,11 +68,14 @@ class ApplicationVeto(
     return applicationVetoRepository.getAll().toList()
   }
 
+  override fun currentRejectionsByApp(application: String): List<ResourceId> =
+    resourceRepository.getByApplication(application).map { ResourceId(it) }
+
   private fun checkApplication(application: String): VetoResponse {
     if (applicationVetoRepository.appVetoed(application)) {
-      return VetoResponse(allowed = false, message = "Application $application has been opted out.")
+      return deniedResponse("Application $application has been opted out.")
     }
-    return VetoResponse(allowed = true)
+    return allowedResponse()
   }
 }
 

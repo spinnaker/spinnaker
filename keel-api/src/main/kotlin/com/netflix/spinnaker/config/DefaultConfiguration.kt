@@ -9,10 +9,12 @@ import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.persistence.ApplicationVetoRepository
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
+import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryApplicationVetoRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
+import com.netflix.spinnaker.keel.persistence.memory.InMemoryDiffFingerprintRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.supporting
@@ -63,6 +65,10 @@ class DefaultConfiguration {
   @Bean
   @ConditionalOnMissingBean
   fun applicationVetoRepository(): ApplicationVetoRepository = InMemoryApplicationVetoRepository()
+
+  @Bean
+  @ConditionalOnMissingBean
+  fun diffFingerprintRepository(clock: Clock): DiffFingerprintRepository = InMemoryDiffFingerprintRepository(clock)
 
   @Bean
   @ConditionalOnMissingBean(ResourceHandler::class)

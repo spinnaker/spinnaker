@@ -7,15 +7,16 @@ import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceActuationPaused
 import com.netflix.spinnaker.keel.events.ResourceActuationResumed
-import com.netflix.spinnaker.keel.events.ResourceCheckUnresolvable
 import com.netflix.spinnaker.keel.events.ResourceCheckError
 import com.netflix.spinnaker.keel.events.ResourceCheckResult
+import com.netflix.spinnaker.keel.events.ResourceCheckUnresolvable
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
 import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
 import com.netflix.spinnaker.keel.events.ResourceMissing
 import com.netflix.spinnaker.keel.events.ResourceValid
 import com.netflix.spinnaker.keel.events.Task
+import com.netflix.spinnaker.keel.persistence.memory.InMemoryDiffFingerprintRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.plugin.CannotResolveCurrentState
 import com.netflix.spinnaker.keel.plugin.CannotResolveDesiredState
@@ -48,12 +49,13 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
   class Fixture {
     val resourceRepository = InMemoryResourceRepository()
+    val diffFingerprintRepository = InMemoryDiffFingerprintRepository()
     val plugin1 = mockk<ResourceHandler<DummyResourceSpec, DummyResource>>(relaxUnitFun = true)
     val plugin2 = mockk<ResourceHandler<DummyResourceSpec, DummyResource>>(relaxUnitFun = true)
     val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
     val veto = mockk<Veto>()
     val vetoEnforcer = VetoEnforcer(listOf(veto))
-    val subject = ResourceActuator(resourceRepository, listOf(plugin1, plugin2), vetoEnforcer, publisher, Clock.systemDefaultZone())
+    val subject = ResourceActuator(resourceRepository, diffFingerprintRepository, listOf(plugin1, plugin2), vetoEnforcer, publisher, Clock.systemDefaultZone())
   }
 
   fun tests() = rootContext<Fixture> {
@@ -84,7 +86,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
       context("the resource check is not vetoed") {
         before {
-          every { veto.check(resource.id) } returns VetoResponse(true)
+          every { veto.check(resource) } returns VetoResponse(true, "all")
         }
 
         context("the plugin is already actuating this resource") {
@@ -108,7 +110,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
           }
 
           test("a telemetry event is published") {
-            verify { publisher.publishEvent(ResourceCheckSkipped(resource)) }
+            verify { publisher.publishEvent(ResourceCheckSkipped(resource.apiVersion, resource.kind, resource.id, "ActuationInProgress")) }
           }
         }
 
@@ -319,7 +321,10 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
       context("the resource check is vetoed") {
         before {
-          every { veto.check(resource.id) } returns VetoResponse(false)
+          every { veto.check(resource) } returns VetoResponse(false, "ApplicationVeto")
+          coEvery { plugin1.desired(resource) } returns DummyResource(resource.spec)
+          coEvery { plugin1.current(resource) } returns DummyResource(resource.spec)
+          coEvery { plugin1.actuationInProgress(resource) } returns false
 
           runBlocking {
             subject.checkResource(resource)
@@ -327,14 +332,14 @@ internal class ResourceActuatorTests : JUnit5Minutests {
         }
 
         test("resource checking is skipped and actuation is paused") {
-          verify { publisher.publishEvent(ResourceCheckSkipped(resource)) }
+          verify { publisher.publishEvent(ResourceCheckSkipped(resource.apiVersion, resource.kind, resource.id, "ApplicationVeto")) }
           verify { publisher.publishEvent(ofType<ResourceActuationPaused>()) }
         }
       }
 
       context("actuation was paused and veto is removed") {
         before {
-          every { veto.check(resource.id) } returns VetoResponse(true)
+          every { veto.check(resource) } returns VetoResponse(true, "all")
           coEvery { plugin1.actuationInProgress(resource) } returns false
           coEvery { plugin1.desired(resource) } returns DummyResource(resource.spec)
           coEvery { plugin1.current(resource) } returns DummyResource(resource.spec)

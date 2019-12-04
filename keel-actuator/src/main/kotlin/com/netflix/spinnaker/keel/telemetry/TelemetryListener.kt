@@ -45,7 +45,8 @@ class TelemetryListener(
       listOf(
         BasicTag("resourceId", event.id.value),
         BasicTag("apiVersion", event.apiVersion.toString()),
-        BasicTag("resourceKind", event.kind)
+        BasicTag("resourceKind", event.kind),
+        BasicTag("skipper", event.skipper)
       )
     ).safeIncrement()
   }

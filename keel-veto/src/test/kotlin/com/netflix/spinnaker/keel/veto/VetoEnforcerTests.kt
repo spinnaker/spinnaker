@@ -17,10 +17,10 @@
  */
 package com.netflix.spinnaker.keel.veto
 
-import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryApplicationVetoRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
+import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.keel.veto.application.ApplicationVeto
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -30,7 +30,7 @@ import strikt.assertions.isTrue
 
 class VetoEnforcerTests : JUnit5Minutests {
 
-  val appName = "myapp"
+  val r = resource()
 
   internal class Fixture {
     val applicationVetoRepository = InMemoryApplicationVetoRepository()
@@ -48,19 +48,19 @@ class VetoEnforcerTests : JUnit5Minutests {
       }
 
       test("no vetos means it's allowed") {
-        val response = subject.canCheck(ResourceId(appName))
+        val response = subject.canCheck(r)
         expectThat(response.allowed).isTrue()
       }
 
       test("when we have one deny we deny overall") {
         applicationVeto.passMessage(
           mapOf(
-            "application" to appName,
+            "application" to r.spec.application,
             "optedOut" to true
           )
         )
 
-        val response = subject.canCheck(ResourceId(appName))
+        val response = subject.canCheck(r)
         expectThat(response.allowed).isFalse()
       }
     }

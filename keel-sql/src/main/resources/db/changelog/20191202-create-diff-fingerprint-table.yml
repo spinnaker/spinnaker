@@ -1,0 +1,48 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-diff-fingerprint-table
+      author: emjburns
+      changes:
+        - createTable:
+            tableName: diff_fingerprint
+            columns:
+              - column:
+                  name: resource_id
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: first_detection_time
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: count
+                  type: int
+                  defaultValue: 1
+                  constraints:
+                    nullable: false
+              - column:
+                  name: hash
+                  type: char(40)
+                  constraints:
+                    nullable: false
+        - modifySql:
+            dbms: mysql
+            append:
+              value: " engine innodb"
+      rollback:
+        - dropTable:
+            tableName: diff_fingerprint
+  - changeSet:
+      id: create-diff-fingerprint-constraint-indicies
+      author: emjburns
+      changes:
+        - addPrimaryKey:
+            tableName: diff_fingerprint
+            constraintName: diff_fingerprint_pk
+            columnNames: resource_id
+      rollback:
+        - dropPrimaryKey:
+            constraintName: diff_fingerprint_pk
+            tableName: diff_fingerprint

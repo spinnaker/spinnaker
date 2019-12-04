@@ -66,6 +66,15 @@ class VetoController(
     return veto.currentRejections()
   }
 
+  @GetMapping(
+    path = ["/application/{application}/rejections"],
+    produces = [MediaType.APPLICATION_JSON_VALUE]
+  )
+  fun getVetoRejectionsByApp(@PathVariable application: String): List<String> =
+    vetos.map { veto ->
+      veto.currentRejectionsByApp(application)
+    }.flatten().map { it.value }.toList()
+
   @PostMapping(
     path = ["/{name}"],
     produces = [MediaType.APPLICATION_JSON_VALUE]

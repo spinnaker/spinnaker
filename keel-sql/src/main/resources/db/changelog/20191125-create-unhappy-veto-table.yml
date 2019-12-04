@@ -1,0 +1,55 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-unhappy-veto-table
+      author: emjburns
+      changes:
+        - createTable:
+            tableName: unhappy_veto
+            columns:
+              - column:
+                  name: resource_id
+                  type: varchar(255)
+                  constraints:
+                    - nullable: false
+              - column:
+                  name: application
+                  type: varchar(255)
+                  constraints:
+                    - nullable: false
+              - column:
+                  name: recheck_time
+                  type: bigint
+                  constraints:
+                    - nullable: false
+        - modifySql:
+            dbms: mysql
+            append:
+              value: " engine innodb"
+      rollback:
+        - dropTable:
+            tableName: unhappy_veto
+  - changeSet:
+      id: create-unhappy-veto-constraint-indicies
+      author: emjburns
+      changes:
+        - addPrimaryKey:
+            tableName: unhappy_veto
+            constraintName: unhappy_veto_pk
+            columnNames: resource_id
+        - createIndex:
+            tableName: unhappy_veto
+            indexName: unhappy_veto_idx
+            columns:
+              - column:
+                  name: application
+              - column:
+                  name: resource_id
+              - column:
+                  name: recheck_time
+      rollback:
+        - dropPrimaryKey:
+            constraintName: unhappy_veto_pk
+            tableName: unhappy_veto
+        - dropIndex:
+            indexName: unhappy_veto_idx
+            tableName: unhappy_veto

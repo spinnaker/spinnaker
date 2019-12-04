@@ -28,24 +28,25 @@ import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceActuationPaused
 import com.netflix.spinnaker.keel.events.ResourceActuationResumed
-import com.netflix.spinnaker.keel.events.ResourceCheckUnresolvable
+import com.netflix.spinnaker.keel.events.ResourceActuationVetoed
 import com.netflix.spinnaker.keel.events.ResourceCheckError
+import com.netflix.spinnaker.keel.events.ResourceCheckUnresolvable
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
 import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
 import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.events.ResourceMissing
-import com.netflix.spinnaker.keel.persistence.ResourceStatus.HAPPY
-import com.netflix.spinnaker.keel.persistence.ResourceStatus.UNHAPPY
-import com.netflix.spinnaker.keel.persistence.ResourceStatus.DIFF
+import com.netflix.spinnaker.keel.events.ResourceValid
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.ACTUATING
-import com.netflix.spinnaker.keel.persistence.ResourceStatus.ERROR
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.CREATED
+import com.netflix.spinnaker.keel.persistence.ResourceStatus.DIFF
+import com.netflix.spinnaker.keel.persistence.ResourceStatus.ERROR
+import com.netflix.spinnaker.keel.persistence.ResourceStatus.HAPPY
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.PAUSED
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.RESUMED
+import com.netflix.spinnaker.keel.persistence.ResourceStatus.UNHAPPY
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.UNKNOWN
-import com.netflix.spinnaker.keel.events.ResourceValid
-
+import com.netflix.spinnaker.keel.persistence.ResourceStatus.VETOED
 import java.time.Duration
 
 data class ResourceHeader(
@@ -143,6 +144,7 @@ interface ResourceRepository : PeriodicallyCheckedRepository<Resource<out Resour
       history.isError() -> ERROR
       history.isCreated() -> CREATED
       history.isPaused() -> PAUSED
+      history.isVetoed() -> VETOED
       history.isResumed() -> RESUMED
       else -> UNKNOWN
     }
@@ -170,6 +172,10 @@ interface ResourceRepository : PeriodicallyCheckedRepository<Resource<out Resour
 
   private fun List<ResourceEvent>.isPaused(): Boolean {
     return first() is ResourceActuationPaused
+  }
+
+  private fun List<ResourceEvent>.isVetoed(): Boolean {
+    return first() is ResourceActuationVetoed
   }
 
   private fun List<ResourceEvent>.isResumed(): Boolean {
@@ -225,5 +231,5 @@ class NoSuchResourceId(id: ResourceId) : NoSuchResourceException("No resource wi
 class NoSuchApplication(application: String) : NoSuchResourceException("No resource with application name $application exists in the repository")
 
 enum class ResourceStatus {
-  HAPPY, ACTUATING, UNHAPPY, CREATED, DIFF, ERROR, PAUSED, RESUMED, UNKNOWN
+  HAPPY, ACTUATING, UNHAPPY, CREATED, DIFF, ERROR, PAUSED, VETOED, RESUMED, UNKNOWN
 }
