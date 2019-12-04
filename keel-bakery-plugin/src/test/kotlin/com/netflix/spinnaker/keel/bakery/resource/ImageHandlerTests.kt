@@ -243,22 +243,21 @@ internal class ImageHandlerTests : JUnit5Minutests {
     context("baking a new AMI") {
       before {
         coEvery { igorService.getArtifact("keel", "0.161.0-h63.24d0843") } returns
-          Artifact(
-            "DEB",
-            false,
-            "keel",
-            "0.161.0-h63.24d0843",
-            "rocket",
-            "debian-local:pool/k/keel/keel_0.160.0-h62.02c0fbf_all.deb",
-            mapOf(
-              "repoKey" to "stash/spkr/keel-nflx",
-              "rocketMessageId" to "84c1ecca-7f76-482e-9952-226fb2c4c410",
-              "releaseStatus" to "FINAL"
-            ),
-            null,
-            "https://spinnaker.builds.test.netflix.net/job/SPINNAKER-rocket-package-keel/62",
-            null
-          )
+          Artifact.builder()
+            .type("DEB")
+            .customKind(false)
+            .name("keel")
+            .version("0.161.0-h63.24d0843")
+            .location("rocket")
+            .reference("debian-local:pool/k/keel/keel_0.160.0-h62.02c0fbf_all.deb")
+            .metadata(
+                mapOf(
+                "repoKey" to "stash/spkr/keel-nflx",
+                "rocketMessageId" to "84c1ecca-7f76-482e-9952-226fb2c4c410",
+                "releaseStatus" to "FINAL"
+              ))
+            .provenance("https://spinnaker.builds.test.netflix.net/job/SPINNAKER-rocket-package-keel/62")
+            .build()
       }
 
       test("artifact is attached to the trigger") {

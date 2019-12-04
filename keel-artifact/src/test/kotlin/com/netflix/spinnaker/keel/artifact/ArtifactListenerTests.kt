@@ -19,18 +19,15 @@ import io.mockk.verify
 import org.springframework.context.ApplicationEventPublisher
 
 internal class ArtifactListenerTests : JUnit5Minutests {
-  val korkArtifact = Artifact(
-    "DEB",
-    false,
-    "fnord",
-    "0.156.0-h58.f67fe09",
-    null,
-    "debian-local:pool/f/fnord/fnord_0.156.0-h58.f67fe09_all.deb",
-    mapOf("releaseStatus" to FINAL),
-    null,
-    "https://my.jenkins.master/jobs/fnord-release/58",
-    null
-  )
+  val korkArtifact = Artifact.builder()
+    .type("DEB")
+    .customKind(false)
+    .name("fnord")
+    .version("0.156.0-h58.f67fe09")
+    .reference("debian-local:pool/f/fnord/fnord_0.156.0-h58.f67fe09_all.deb")
+    .metadata(mapOf("releaseStatus" to FINAL))
+    .provenance("https://my.jenkins.master/jobs/fnord-release/58")
+    .build()
 
   data class ArtifactFixture(
     val event: ArtifactEvent,
@@ -194,18 +191,15 @@ internal class ArtifactListenerTests : JUnit5Minutests {
     }
   }
 
-  val newerKorkArtifact = Artifact(
-    "DEB",
-    false,
-    "fnord",
-    "0.161.0-h61.116f116",
-    null,
-    "debian-local:pool/f/fnord/fnord_0.161.0-h61.116f116_all.deb",
-    mapOf("releaseStatus" to FINAL),
-    null,
-    "https://my.jenkins.master/jobs/fnord-release/60",
-    null
-  )
+  val newerKorkArtifact = Artifact.builder()
+    .type("DEB")
+    .customKind(false)
+    .name("fnord")
+    .version("0.161.0-h61.116f116")
+    .reference("debian-local:pool/f/fnord/fnord_0.161.0-h61.116f116_all.deb")
+    .metadata(mapOf("releaseStatus" to FINAL))
+    .provenance("https://my.jenkins.master/jobs/fnord-release/60")
+    .build()
 
   data class SyncArtifactsFixture(
     val artifact: DeliveryArtifact,
