@@ -27,18 +27,17 @@ class CloudProviderBakeHandlerSpec extends Specification implements TestDefaults
 
   void 'we should create a fully decorated artifact if all base data is present'() {
     setup:
-      def expectedArtifact = new Artifact (
-        name: SOME_BAKE_RECIPE.name,
-        version: null,
-        location: SOME_REGION,
-        type: "${SOME_CLOUD_PROVIDER}/image",
-        reference: SOME_BAKE_DETAILS.ami,
-        metadata: [
+      def expectedArtifact = Artifact.builder()
+        .name(SOME_BAKE_RECIPE.name)
+        .version(null)
+        .location(SOME_REGION)
+        .type("${SOME_CLOUD_PROVIDER}/image")
+        .reference(SOME_BAKE_DETAILS.ami)
+        .metadata([
           build_info_url: SOME_BAKE_REQUEST.build_info_url,
-          build_number: SOME_BAKE_REQUEST.build_number
-        ],
-        uuid: SOME_BAKE_DETAILS.id
-      )
+          build_number: SOME_BAKE_REQUEST.build_number])
+        .uuid(SOME_BAKE_DETAILS.id)
+        .build()
 
       @Subject
       CloudProviderBakeHandler bakeHandler = Spy(CloudProviderBakeHandler)

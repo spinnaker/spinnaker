@@ -219,10 +219,11 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
       }
 
       if (foundAmisCreated && line =~ AMI_EXTRACTOR) {
-        Artifact a = new Artifact()
-        a.type = AMI_TYPE
-        a.location = line.split(": ").first()
-        a.reference = line.split(": ").last()
+        Artifact a = Artifact.builder()
+          .type(AMI_TYPE)
+          .location(line.split(": ").first())
+          .reference(line.split(": ").last())
+          .build()
         artifacts.add(a)
       }
     }

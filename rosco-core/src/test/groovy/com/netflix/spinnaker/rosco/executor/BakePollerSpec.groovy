@@ -143,16 +143,15 @@ class BakePollerSpec extends Specification implements TestDefaults {
       def jobExecutorMock = Mock(JobExecutor)
       def bakeRequest = new BakeRequest(build_info_url: SOME_BUILD_INFO_URL)
       def bakeRecipe = new BakeRecipe(name: SOME_BAKE_RECIPE_NAME, version: SOME_APP_VERSION_STR, command: [])
-      def bakedArtifact = new Artifact(
-        name: bakeRecipe.name,
-        version: bakeRecipe.version,
-        type: "${DOCKER_CLOUD_PROVIDER}/image",
-        reference: AMI_ID,
-        metadata: [
+      def bakedArtifact = Artifact.builder()
+        .name(bakeRecipe.name)
+        .version(bakeRecipe.version)
+        .type("${DOCKER_CLOUD_PROVIDER}/image")
+        .reference(AMI_ID)
+        .metadata([
           build_info_url: bakeRequest.build_info_url,
-          build_number: bakeRequest.build_number
-        ]
-      )
+          build_number: bakeRequest.build_number])
+        .build()
       def bakeDetails = new Bake(id: JOB_ID, ami: AMI_ID, image_name: IMAGE_NAME, artifact: bakedArtifact)
       def decoratedBakeDetails = new Bake(id: JOB_ID, ami: AMI_ID, image_name: IMAGE_NAME, artifact: bakedArtifact)
 

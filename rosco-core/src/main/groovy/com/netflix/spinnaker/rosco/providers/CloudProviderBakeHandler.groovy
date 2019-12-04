@@ -122,17 +122,16 @@ abstract class CloudProviderBakeHandler {
    * but it could be useful to override this method for specific providers.
    */
   def Artifact produceArtifactDecorationFrom(BakeRequest bakeRequest, BakeRecipe bakeRecipe, Bake bakeDetails, String cloudProvider, String region) {
-    Artifact bakedArtifact = new Artifact(
-      name: bakeRecipe?.name,
-      type: "${cloudProvider}/image",
-      location: region,
-      reference: getArtifactReference(bakeRequest, bakeDetails),
-      metadata: [
+    Artifact bakedArtifact = Artifact.builder()
+      .name(bakeRecipe?.name)
+      .type("${cloudProvider}/image")
+      .location(region)
+      .reference(getArtifactReference(bakeRequest, bakeDetails))
+      .metadata([
         build_info_url: bakeRequest?.build_info_url,
-        build_number: bakeRequest?.build_number
-      ],
-      uuid: bakeDetails.id
-    )
+        build_number: bakeRequest?.build_number])
+      .uuid(bakeDetails.id)
+      .build()
 
     return bakedArtifact
   }
