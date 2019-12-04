@@ -2,7 +2,7 @@ import { IPromise } from 'angular';
 import { $q } from 'ngimport';
 
 import { API } from 'core/api/ApiService';
-import { IBuild, IJobConfig } from 'core/domain';
+import { IBuild, IJobConfig, IGcbTrigger } from 'core/domain';
 
 export enum BuildServiceType {
   Jenkins = 'jenkins',
@@ -61,6 +61,13 @@ export class IgorService {
   public static getGcbAccounts(): IPromise<string[]> {
     return API.one('gcb')
       .one('accounts')
+      .get();
+  }
+
+  public static getGcbTriggers(account: string): IPromise<IGcbTrigger[]> {
+    return API.one('gcb')
+      .one('triggers')
+      .one(account)
       .get();
   }
 }

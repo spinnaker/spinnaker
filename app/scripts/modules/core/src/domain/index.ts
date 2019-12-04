@@ -20,6 +20,9 @@ export * from './IExecutionStage';
 export * from './IExecutionTrigger';
 export * from './IExpectedArtifact';
 export * from './IFunction';
+
+export * from './IGcbTrigger';
+
 export * from './IHealth';
 
 export * from './IInstance';
