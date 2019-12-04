@@ -8,7 +8,6 @@ dependencies {
   implementation(project(":keel-plugin"))
   implementation(project(":keel-clouddriver"))
   implementation(project(":keel-igor"))
-  implementation(project(":keel-mahe"))
   implementation(project(":keel-orca"))
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
   implementation("com.netflix.spinnaker.kork:kork-security")

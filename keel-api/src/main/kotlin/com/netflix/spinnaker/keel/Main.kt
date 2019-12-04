@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.keel
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.keel.bakery.BaseImageCache
 import com.netflix.spinnaker.keel.info.InstanceIdSupplier
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
@@ -67,6 +68,9 @@ class KeelApplication {
   @Autowired
   lateinit var deliveryConfigRepository: DeliveryConfigRepository
 
+  @Autowired(required = false)
+  var baseImageCache: BaseImageCache? = null
+
   @Autowired
   lateinit var instanceIdSupplier: InstanceIdSupplier
 
@@ -91,10 +95,11 @@ class KeelApplication {
       ArtifactRepository::class to artifactRepository.javaClass,
       ResourceRepository::class to resourceRepository.javaClass,
       DeliveryConfigRepository::class to deliveryConfigRepository.javaClass,
+      BaseImageCache::class to baseImageCache?.javaClass,
       InstanceIdSupplier::class to instanceIdSupplier.javaClass
     )
       .forEach { (type, implementation) ->
-        log.info("{} implementation: {}", type.simpleName, implementation.simpleName)
+        log.info("{} implementation: {}", type.simpleName, implementation?.simpleName)
       }
 
     log.info("Using plugins: {}", plugins.joinToString { it.name })

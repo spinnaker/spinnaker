@@ -27,7 +27,6 @@ include(
   "keel-eureka",
   "keel-front50",
   "keel-igor",
-  "keel-mahe",
   "keel-orca",
   "keel-plugin",
   "keel-retrofit",
