@@ -202,7 +202,7 @@ def copy_dir(options, source, target):
         '{instance}:{target}'.format(instance=options.instance,
                                      target=target)])
     try_until_ready(command)
-  
+
 def copy_custom_file(options, source, target):
     command = ' '.join([
         'gcloud compute copy-files',
@@ -325,7 +325,7 @@ def create_instance(options):
                '--project', get_project(options),
                '--zone', get_zone(options),
                '--machine-type', options.machine_type,
-               '--image-family', 'ubuntu-1404-lts',
+               '--image-family', 'ubuntu-1604-lts',
                '--image-project', 'ubuntu-os-cloud',
                '--scopes', options.scopes,
                '--boot-disk-size={size}'.format(size=options.disk_size),
@@ -367,7 +367,7 @@ if __name__ == '__main__':
     check_args(options)
     create_instance(options)
 
-       
+
     make_remote_directories(options)
     if options.copy_personal_files:
       copy_personal_files(options)

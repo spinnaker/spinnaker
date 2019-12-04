@@ -1346,7 +1346,7 @@ class GoogleValidateBomDeployer(GenericVmValidateBomDeployer):
         parser, 'deploy_google_machine_type', defaults, 'n1-standard-4',
         help='Google machine type if --deploy_hal_platform is "gce".')
     add_parser_argument(
-        parser, 'deploy_google_image_family', defaults, 'ubuntu-1404-lts',
+        parser, 'deploy_google_image_family', defaults, 'ubuntu-1604-lts',
         help='Google image family to deploy if --deploy_hal_platform is "gce".')
     add_parser_argument(
         parser, 'deploy_google_image_project', defaults, 'ubuntu-os-cloud',
