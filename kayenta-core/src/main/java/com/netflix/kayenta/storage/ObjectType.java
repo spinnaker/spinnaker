@@ -41,7 +41,7 @@ public enum ObjectType {
       "standalone_canary_archive",
       "standalone_canary_archive.json");
 
-  @Getter final TypeReference typeReference;
+  @Getter final TypeReference<?> typeReference;
 
   @Getter final String group;
 
