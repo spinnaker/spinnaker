@@ -113,6 +113,10 @@ interface OrcaService {
   Map evaluateExpressionForExecutionAtStage(@Path("id") String executionId, @Path("stageId") String stageId, @Query("expression") String pipelineExpression)
 
   @Headers("Accept: application/json")
+  @POST("/pipelines/{id}/evaluateVariables")
+  Map evaluateVariables(@Path("id") String id, @Query("requisiteStageRefIds") String requisiteStageRefIds, @Query("spelVersion") String spelVersionOverride, @Body List<Map<String, String>> expressions)
+
+  @Headers("Accept: application/json")
   @GET("/webhooks/preconfigured")
   List preconfiguredWebhooks()
 

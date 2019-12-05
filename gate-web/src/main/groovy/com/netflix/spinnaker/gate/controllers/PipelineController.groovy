@@ -31,6 +31,9 @@ import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
 import io.swagger.annotations.ApiOperation
+import io.swagger.annotations.ApiParam
+import io.swagger.annotations.Example
+import io.swagger.annotations.ExampleProperty
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
@@ -280,6 +283,29 @@ class PipelineController {
     } catch (RetrofitError e) {
       if (e.response?.status == 404) {
         throw new NotFoundException("Pipeline not found (id: ${id})")
+      }
+    }
+  }
+
+  @ApiOperation(value = "Evaluate variables same as Evaluate Variables stage using the provided execution as context", response = HashMap.class)
+  @PostMapping(value = "{id}/evaluateVariables", consumes = "application/json")
+  Map evaluateVariables(@ApiParam(value = "Execution id to run against", required = true)
+                        @RequestParam("executionId") String executionId,
+                        @ApiParam(value = "Comma separated list of requisite stage IDs for the evaluation stage", required = false)
+                        @RequestParam(value = "requisiteStageRefIds", defaultValue = "") String requisiteStageRefIds,
+                        @ApiParam(value = "Version of SpEL evaluation logic to use (v3 or v4)", required = false)
+                        @RequestParam(value = "spelVersion", defaultValue = "") String spelVersionOverride,
+                        @ApiParam(value = "List of variables/expressions to evaluate",
+                          required = true,
+                          examples = @Example(value =
+                            @ExampleProperty(mediaType = "application/json", value = '[{"key":"a","value":"1"},{"key":"b","value":"2"},{"key":"sum","value":"${a+b}"}]')
+                        ))
+                        @RequestBody List<Map<String, String>> expressions) {
+    try {
+      return pipelineService.evaluateVariables(executionId, requisiteStageRefIds, spelVersionOverride, expressions)
+    } catch (RetrofitError e) {
+      if (e.response?.status == 404) {
+        throw new NotFoundException("Pipeline not found (id: ${executionId})")
       }
     }
   }
