@@ -29,7 +29,6 @@ import com.netflix.spinnaker.keel.api.SimpleRegionSpec
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.titus.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.titus.SPINNAKER_TITUS_API_V1
-import com.netflix.spinnaker.keel.api.titus.cluster.Container
 import com.netflix.spinnaker.keel.api.titus.cluster.TitusClusterHandler
 import com.netflix.spinnaker.keel.api.titus.cluster.TitusClusterSpec
 import com.netflix.spinnaker.keel.api.titus.cluster.TitusServerGroup
@@ -40,20 +39,27 @@ import com.netflix.spinnaker.keel.api.titus.cluster.resolve
 import com.netflix.spinnaker.keel.api.titus.cluster.resolveCapacity
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
+import com.netflix.spinnaker.keel.clouddriver.model.DockerImage
 import com.netflix.spinnaker.keel.clouddriver.model.Placement
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.ServiceJobProcesses
 import com.netflix.spinnaker.keel.clouddriver.model.TitusActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.TitusActiveServerGroupImage
 import com.netflix.spinnaker.keel.diff.ResourceDiff
+import com.netflix.spinnaker.keel.docker.ContainerWithDigest
+import com.netflix.spinnaker.keel.docker.ContainerWithVersionedTag
+import com.netflix.spinnaker.keel.docker.TagVersionStrategy.BRANCH_JOB_COMMIT_BY_JOB
+import com.netflix.spinnaker.keel.docker.TagVersionStrategy.INCREASING_TAG
+import com.netflix.spinnaker.keel.docker.TagVersionStrategy.SEMVER_JOB_COMMIT_BY_SEMVER
+import com.netflix.spinnaker.keel.docker.TagVersionStrategy.SEMVER_TAG
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.parseMoniker
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
-import com.netflix.spinnaker.keel.plugin.TaskLauncher
 import com.netflix.spinnaker.keel.plugin.Resolver
+import com.netflix.spinnaker.keel.plugin.TaskLauncher
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -72,6 +78,7 @@ import org.springframework.context.ApplicationEventPublisher
 import retrofit2.HttpException
 import retrofit2.Response
 import strikt.api.Assertion
+import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.containsKey
@@ -113,15 +120,15 @@ class TitusClusterHandlerTests : JUnit5Minutests {
       regions = setOf(SimpleRegionSpec("us-east-1"), SimpleRegionSpec("us-west-2"))
     ),
     _defaults = TitusServerGroupSpec(
+      container = ContainerWithDigest(
+        organization = "spinnaker",
+        image = "keel",
+        digest = "sha:1111"
+      ),
       capacity = Capacity(1, 6, 4),
       dependencies = ClusterDependencies(
         loadBalancerNames = setOf("keel-test-frontend"),
         securityGroupNames = setOf(sg1West.name)
-      ),
-      container = Container(
-        organization = "spinnaker",
-        image = "keel",
-        digest = "sha:1111"
       )
     )
   )
@@ -145,6 +152,21 @@ class TitusClusterHandlerTests : JUnit5Minutests {
     moniker = spec.moniker,
     regions = spec.locations.regions.map { it.name }.toSet(),
     kind = "cluster"
+  )
+
+  val images = listOf(
+    DockerImage(
+      account = "testregistry",
+      repository = "emburns/spin-titus-demo",
+      tag = "1",
+      digest = "sha:2222"
+    ),
+    DockerImage(
+      account = "testregistry",
+      repository = "emburns/spin-titus-demo",
+      tag = "2",
+      digest = "sha:3333"
+    )
   )
 
   private fun TitusServerGroup.toClouddriverResponse(
@@ -230,7 +252,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
           .containsKey("us-west-2")
       }
 
-      test("annealing a diff creates a new server group") {
+      test("resolving diff a diff creates a new server group") {
         runBlocking {
           upsert(resource, ResourceDiff(serverGroups.byRegion(), emptyMap()))
         }
@@ -285,7 +307,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
           modified.byRegion()
         )
 
-        test("annealing resizes the current server group") {
+        test("resolving diff resizes the current server group") {
           runBlocking {
             upsert(resource, diff)
           }
@@ -320,7 +342,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
           modified.byRegion()
         )
 
-        test("annealing clones the current server group") {
+        test("resolving diff clones the current server group") {
           runBlocking {
             upsert(resource, diff)
           }
@@ -329,7 +351,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
           coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
 
           expectThat(slot.captured.job.first()) {
-            get("type").isEqualTo("upsertServerGroup")
+            get("type").isEqualTo("createServerGroup")
             get("source").isEqualTo(
               mapOf(
                 "account" to activeServerGroupResponseWest.placement.account,
@@ -419,14 +441,14 @@ class TitusClusterHandlerTests : JUnit5Minutests {
           }
         }
 
-        test("annealing launches one task per server group") {
+        test("resolving diff launches one task per server group") {
           val tasks = mutableListOf<OrchestrationRequest>()
           coVerify { orcaService.orchestrate(any(), capture(tasks)) }
 
           expectThat(tasks)
             .hasSize(2)
             .map { it.job.first()["type"] }
-            .containsExactlyInAnyOrder("upsertServerGroup", "resizeServerGroup")
+            .containsExactlyInAnyOrder("createServerGroup", "resizeServerGroup")
         }
 
         test("each task has a distinct correlation id") {
@@ -443,6 +465,8 @@ class TitusClusterHandlerTests : JUnit5Minutests {
         before {
           coEvery { cloudDriverService.titusActiveServerGroup("us-east-1") } returns activeServerGroupResponseEast
           coEvery { cloudDriverService.titusActiveServerGroup("us-west-2") } returns activeServerGroupResponseWest
+          coEvery { cloudDriverService.findDockerImages("testregistry", spec.defaults.container.repository()) } returns images
+          coEvery { cloudDriverService.getAccountInformation(titusAccount) } returns mapOf("registry" to "testregistry")
         }
 
         derivedContext<SubmittedResource<TitusClusterSpec>>("exported titus cluster spec") {
@@ -474,6 +498,8 @@ class TitusClusterHandlerTests : JUnit5Minutests {
               .withDifferentEntryPoint()
               .withDifferentEnv()
               .withDoubleCapacity()
+          coEvery { cloudDriverService.findDockerImages("testregistry", spec.defaults.container.repository()) } returns images
+          coEvery { cloudDriverService.getAccountInformation(titusAccount) } returns mapOf("registry" to "testregistry")
         }
         derivedContext<SubmittedResource<TitusClusterSpec>>("exported titus cluster spec") {
           deriveFixture {
@@ -483,7 +509,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
           }
 
           test("has overrides matching differences in the server groups") {
-            val defaults = TitusServerGroupSpec()
+            val defaults = TitusServerGroupSpec(spec.defaults.container)
             val overrideDiff = ResourceDiff(spec.overrides["us-west-2"]!!, defaults)
             expectThat(resource.kind)
               .isEqualTo("cluster")
@@ -505,6 +531,56 @@ class TitusClusterHandlerTests : JUnit5Minutests {
         }
       }
       // TODO: test for defaults omitted from export
+    }
+
+    context("figuring out tagging strategy") {
+      val image = DockerImage(
+        account = "testregistry",
+        repository = "emburns/spin-titus-demo",
+        tag = "12",
+        digest = "sha:1111"
+      )
+      test("number") {
+        expectThat(findTagVersioningStrategy(image)).isEqualTo(INCREASING_TAG)
+      }
+      test("semver with v") {
+        expectThat(findTagVersioningStrategy(image.copy(tag = "v1.12.3-rc.1"))).isEqualTo(SEMVER_TAG)
+      }
+      test("semver without v") {
+        expectThat(findTagVersioningStrategy(image.copy(tag = "1.12.3-rc.1"))).isEqualTo(SEMVER_TAG)
+      }
+      test("branch-job-commit") {
+        expectThat(findTagVersioningStrategy(image.copy(tag = "master-h3.2317144"))).isEqualTo(BRANCH_JOB_COMMIT_BY_JOB)
+      }
+      test("semver-job-commit parses to semver version") {
+        expectThat(findTagVersioningStrategy(image.copy(tag = "v1.12.3-rc.1-h1196.49b8dc5"))).isEqualTo(SEMVER_JOB_COMMIT_BY_SEMVER)
+      }
+    }
+
+    context("generate container") {
+      val container = ContainerWithDigest(
+        organization = "emburns",
+        image = "spin-titus-demo",
+        digest = "sha:1111"
+      )
+
+      before {
+        coEvery { cloudDriverService.findDockerImages("testregistry", container.repository()) } returns images
+        coEvery { cloudDriverService.getAccountInformation(titusAccount) } returns mapOf("registry" to "testregistry")
+      }
+
+      test("no sha match does not generate an artifact strategy") {
+        expectThat(generateContainer(container, titusAccount)).isEqualTo(container)
+      }
+
+      test("sha match generates a container with a strategy") {
+        val generatedContainer = generateContainer(
+          container = container.copy(digest = "sha:2222"),
+          account = titusAccount)
+        expect {
+          that(generatedContainer).isA<ContainerWithVersionedTag>().get { tagVersionStrategy }.isEqualTo(INCREASING_TAG)
+        }
+      }
     }
   }
 

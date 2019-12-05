@@ -4,6 +4,7 @@ import com.netflix.spinnaker.igor.ArtifactService
 import com.netflix.spinnaker.keel.api.ArtifactStatus.FINAL
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
+import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.events.ArtifactEvent
 import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
@@ -34,9 +35,10 @@ internal class ArtifactListenerTests : JUnit5Minutests {
     val artifact: DeliveryArtifact,
     val repository: ArtifactRepository = mockk(relaxUnitFun = true),
     val artifactService: ArtifactService = mockk(relaxUnitFun = true),
+    val clouddriverService: CloudDriverService = mockk(relaxUnitFun = true),
     val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
   ) {
-    val listener: ArtifactListener = ArtifactListener(repository, artifactService, publisher)
+    val listener: ArtifactListener = ArtifactListener(repository, artifactService, clouddriverService, publisher)
   }
 
   fun artifactEventTests() = rootContext<ArtifactFixture> {
@@ -46,6 +48,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
           artifacts = listOf(korkArtifact),
           details = emptyMap()
         ),
+
         artifact = DeliveryArtifact(
           name = "fnord",
           type = DEB
@@ -113,9 +116,10 @@ internal class ArtifactListenerTests : JUnit5Minutests {
     val artifact: DeliveryArtifact,
     val repository: ArtifactRepository = mockk(relaxUnitFun = true),
     val artifactService: ArtifactService = mockk(relaxUnitFun = true),
+    val clouddriverService: CloudDriverService = mockk(relaxUnitFun = true),
     val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
   ) {
-    val listener: ArtifactListener = ArtifactListener(repository, artifactService, publisher)
+    val listener: ArtifactListener = ArtifactListener(repository, artifactService, clouddriverService, publisher)
   }
 
   fun artifactRegisteredEventTests() = rootContext<RegisteredFixture> {
@@ -205,9 +209,10 @@ internal class ArtifactListenerTests : JUnit5Minutests {
     val artifact: DeliveryArtifact,
     val repository: ArtifactRepository = mockk(relaxUnitFun = true),
     val artifactService: ArtifactService = mockk(relaxUnitFun = true),
+    val clouddriverService: CloudDriverService = mockk(relaxUnitFun = true),
     val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
   ) {
-    val listener: ArtifactListener = ArtifactListener(repository, artifactService, publisher)
+    val listener: ArtifactListener = ArtifactListener(repository, artifactService, clouddriverService, publisher)
   }
 
   fun syncArtifactsFixture() = rootContext<SyncArtifactsFixture> {

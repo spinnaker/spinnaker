@@ -23,6 +23,7 @@ include(
   "keel-clouddriver",
   "keel-core",
   "keel-core-test",
+  "keel-docker",
   "keel-ec2-plugin",
   "keel-eureka",
   "keel-front50",

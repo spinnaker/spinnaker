@@ -30,7 +30,6 @@ import com.netflix.spinnaker.keel.api.titus.cluster.TitusClusterSpec
 import com.netflix.spinnaker.keel.bakery.api.ImageSpec
 import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
-import dev.minutest.experimental.minus
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectCatching
@@ -126,6 +125,20 @@ class ConvertExampleFilesTest : JUnit5Minutests {
     context("simple titus cluster") {
       mapper.registerSubtypes(NamedType(TitusClusterSpec::class.java, "cluster"))
       val file = this.javaClass.getResource("/examples/simple-titus-cluster-example.yml").readText()
+
+      test("yml can be parsed") {
+        expectCatching {
+          mapper.readValue<SubmittedResource<*>>(file)
+        }
+          .succeeded()
+          .get { spec }
+          .isA<TitusClusterSpec>()
+      }
+    }
+
+    context("titus cluster with artifact") {
+      mapper.registerSubtypes(NamedType(TitusClusterSpec::class.java, "cluster"))
+      val file = this.javaClass.getResource("/examples/titus-cluster-with-artifact-example.yml").readText()
 
       test("yml can be parsed") {
         expectCatching {

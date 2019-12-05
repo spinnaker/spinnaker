@@ -19,6 +19,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel
 import com.netflix.spinnaker.keel.clouddriver.model.ClassicLoadBalancerModel
 import com.netflix.spinnaker.keel.clouddriver.model.Credential
+import com.netflix.spinnaker.keel.clouddriver.model.DockerImage
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel
@@ -136,6 +137,22 @@ interface CloudDriverService {
     @Query("q") name: String,
     @Header("X-SPINNAKER-USER") serviceAccount: String = DEFAULT_SERVICE_ACCOUNT
   ): List<NamedImage>
+
+  @GET("/dockerRegistry/images/find")
+  suspend fun findDockerImages(
+    @Query("account") account: String? = null,
+    @Query("repository") repository: String? = null,
+    @Query("tag") tag: String? = null,
+    @Query("q") q: String? = null,
+    @Header("X-SPINNAKER-USER") serviceAccount: String = DEFAULT_SERVICE_ACCOUNT
+  ): List<DockerImage>
+
+  @GET("/dockerRegistry/images/tags")
+  suspend fun findDockerTagsForImage(
+    @Query("account") account: String,
+    @Query("repository") repository: String,
+    @Header("X-SPINNAKER-USER") serviceAccount: String = DEFAULT_SERVICE_ACCOUNT
+  ): List<String>
 
   @GET("/tags/{entityId}")
   suspend fun getTagsForEntity(

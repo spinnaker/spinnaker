@@ -35,6 +35,7 @@ interface ArtifactRepository {
    * @return the latest version of [artifact] approved for use in [targetEnvironment],
    * optionally filtering by status if provided.
    */
+  // todo eb: move artifact sorting to artifact https://github.com/spinnaker/keel/issues/619
   fun latestVersionApprovedIn(
     deliveryConfig: DeliveryConfig,
     artifact: DeliveryArtifact,

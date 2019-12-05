@@ -20,13 +20,13 @@ package com.netflix.spinnaker.keel.api.titus.cluster
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.Capacity
 import com.netflix.spinnaker.keel.api.ClusterDependencies
+import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
-import com.netflix.spinnaker.keel.api.id
-import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.SimpleLocations
-import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
+import com.netflix.spinnaker.keel.api.SubmittedResource
+import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.api.titus.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.titus.SPINNAKER_TITUS_API_V1
@@ -35,16 +35,26 @@ import com.netflix.spinnaker.keel.api.titus.exceptions.TitusAccountConfiguration
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ResourceNotFound
+import com.netflix.spinnaker.keel.clouddriver.model.DockerImage
 import com.netflix.spinnaker.keel.clouddriver.model.Resources
 import com.netflix.spinnaker.keel.clouddriver.model.TitusActiveServerGroup
 import com.netflix.spinnaker.keel.diff.ResourceDiff
+import com.netflix.spinnaker.keel.docker.Container
+import com.netflix.spinnaker.keel.docker.ContainerWithDigest
+import com.netflix.spinnaker.keel.docker.ContainerWithVersionedTag
+import com.netflix.spinnaker.keel.docker.TagVersionStrategy
+import com.netflix.spinnaker.keel.docker.TagVersionStrategy.BRANCH_JOB_COMMIT_BY_JOB
+import com.netflix.spinnaker.keel.docker.TagVersionStrategy.INCREASING_TAG
+import com.netflix.spinnaker.keel.docker.TagVersionStrategy.SEMVER_JOB_COMMIT_BY_SEMVER
+import com.netflix.spinnaker.keel.docker.TagVersionStrategy.SEMVER_TAG
+import com.netflix.spinnaker.keel.docker.isSemver
 import com.netflix.spinnaker.keel.events.Task
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.orca.OrcaService
-import com.netflix.spinnaker.keel.plugin.TaskLauncher
 import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.SupportedKind
+import com.netflix.spinnaker.keel.plugin.TaskLauncher
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -162,6 +172,39 @@ class TitusClusterHandler(
     )
   }
 
+  fun generateContainer(container: ContainerWithDigest, account: String): Container {
+    val images = runBlocking {
+      cloudDriverService.findDockerImages(
+        account = getRegistryForTitusAccount(account),
+        repository = container.repository()
+      )
+    }
+
+    val image = images.find { it.digest == container.digest } ?: return container
+    val tagVersionStrategy = findTagVersioningStrategy(image) ?: return container
+    return ContainerWithVersionedTag(
+      organization = container.organization,
+      image = container.image,
+      tagVersionStrategy = tagVersionStrategy
+    )
+  }
+
+  fun findTagVersioningStrategy(image: DockerImage): TagVersionStrategy? {
+    if (image.tag.toIntOrNull() != null) {
+      return INCREASING_TAG
+    }
+    if (Regex(SEMVER_JOB_COMMIT_BY_SEMVER.regex).find(image.tag) != null) {
+      return SEMVER_JOB_COMMIT_BY_SEMVER
+    }
+    if (Regex(BRANCH_JOB_COMMIT_BY_JOB.regex).find(image.tag) != null) {
+      return BRANCH_JOB_COMMIT_BY_JOB
+    }
+    if (isSemver(image.tag)) {
+      return SEMVER_TAG
+    }
+    return null
+  }
+
   private fun ResourceDiff<TitusServerGroup>.resizeServerGroupJob(): Map<String, Any?> {
     val current = requireNotNull(current) {
       "Current server group must not be null when generating a resize job"
@@ -225,7 +268,7 @@ class TitusClusterHandler(
           "cluster" to moniker.name
         ),
         "reason" to "Diff detected at ${clock.instant().iso()}",
-        "type" to if (current == null) "createServerGroup" else "upsertServerGroup",
+        "type" to "createServerGroup",
         "cloudProvider" to CLOUD_PROVIDER,
         "securityGroups" to securityGroupIds(),
         "loadBalancers" to dependencies.loadBalancerNames,
@@ -259,7 +302,7 @@ class TitusClusterHandler(
 
   private fun TitusClusterSpec.generateOverrides(serverGroups: Map<String, TitusServerGroup>) =
     serverGroups.forEach { (region, serverGroup) ->
-      var newSpec = TitusServerGroupSpec()
+      var newSpec = TitusServerGroupSpec(defaults.container)
       val workingSpec = serverGroup.exportSpec()
       val diff = ResourceDiff(workingSpec, defaults)
       if (diff.hasChanges()) {
@@ -272,7 +315,8 @@ class TitusClusterHandler(
         if ("constraints" in diff.affectedRootPropertyNames) {
           newSpec = newSpec.copy(constraints = workingSpec.constraints)
         }
-        if ("container" in diff.affectedRootPropertyNames) {
+        if ("container" in diff.affectedRootPropertyNames && defaults.container is ContainerWithDigest) {
+          // only allow overrides in container if it has a digest and not a versioning strategy
           newSpec = newSpec.copy(container = workingSpec.container)
         }
         if ("dependencies" in diff.affectedRootPropertyNames) {
@@ -347,7 +391,7 @@ class TitusClusterHandler(
         region = region
       ),
       capacity = capacity,
-      container = Container(
+      container = ContainerWithDigest(
         organization = image.dockerImageName.split("/").first(),
         image = image.dockerImageName.split("/").last(),
         digest = image.dockerImageDigest
@@ -399,7 +443,7 @@ class TitusClusterHandler(
       capacity = capacity,
       capacityGroup = capacityGroup,
       constraints = constraints,
-      container = container,
+      container = generateContainer(container, location.account),
       dependencies = dependencies,
       entryPoint = entryPoint,
       env = env,

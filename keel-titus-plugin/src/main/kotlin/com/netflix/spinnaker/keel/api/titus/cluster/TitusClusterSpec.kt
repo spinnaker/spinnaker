@@ -27,9 +27,12 @@ import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.RedBlack
 import com.netflix.spinnaker.keel.api.SimpleLocations
+import com.netflix.spinnaker.keel.api.titus.exceptions.ErrorResolvingContainerException
 import com.netflix.spinnaker.keel.clouddriver.model.Constraints
 import com.netflix.spinnaker.keel.clouddriver.model.MigrationPolicy
 import com.netflix.spinnaker.keel.clouddriver.model.Resources
+import com.netflix.spinnaker.keel.docker.Container
+import com.netflix.spinnaker.keel.docker.ContainerWithDigest
 import com.netflix.spinnaker.keel.model.Moniker
 
 /**
@@ -88,17 +91,11 @@ data class TitusClusterSpec(
   )
 }
 
-data class Container(
-  val organization: String,
-  val image: String,
-  val digest: String
-)
-
 data class TitusServerGroupSpec(
+  val container: Container,
   val capacity: Capacity? = null,
   val capacityGroup: String? = null,
   val constraints: Constraints? = null,
-  val container: Container? = null,
   val dependencies: ClusterDependencies? = null,
   val entryPoint: String? = null,
   val env: Map<String, String>? = null,
@@ -145,6 +142,16 @@ internal fun TitusClusterSpec.resolveCapacityGroup(region: String) =
 internal fun TitusClusterSpec.resolveConstraints(region: String) =
   overrides[region]?.constraints ?: defaults.constraints ?: Constraints()
 
+internal fun resolveContainer(container: Container): ContainerWithDigest {
+  if (container is ContainerWithDigest) {
+    return container
+  } else {
+    // The spec container should be replaced with a resolved container by now.
+    // If not, something is wrong.
+    throw ErrorResolvingContainerException(container)
+  }
+}
+
 internal fun TitusClusterSpec.resolveMigrationPolicy(region: String) =
   overrides[region]?.migrationPolicy ?: defaults.migrationPolicy ?: MigrationPolicy()
 
@@ -166,7 +173,7 @@ fun TitusClusterSpec.resolve(): Set<TitusServerGroup> =
       capacity = resolveCapacity(it.name),
       capacityGroup = resolveCapacityGroup(it.name),
       constraints = resolveConstraints(it.name),
-      container = defaults.container ?: error("Container not specified or resolved"),
+      container = resolveContainer(defaults.container),
       dependencies = resolveDependencies(it.name),
       entryPoint = resolveEntryPoint(it.name),
       env = resolveEnv(it.name),

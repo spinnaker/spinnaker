@@ -8,6 +8,7 @@ dependencies {
   implementation(project(":keel-clouddriver"))
   implementation(project(":keel-orca"))
   implementation(project(":keel-retrofit"))
+  implementation(project(":keel-docker"))
   implementation("com.netflix.spinnaker.kork:kork-core")
   implementation("com.netflix.spinnaker.kork:kork-web")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")

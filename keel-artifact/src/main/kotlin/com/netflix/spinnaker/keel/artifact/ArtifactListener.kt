@@ -2,10 +2,12 @@ package com.netflix.spinnaker.keel.artifact
 
 import com.netflix.spinnaker.igor.ArtifactService
 import com.netflix.spinnaker.keel.api.ArtifactStatus
+import com.netflix.spinnaker.keel.api.ArtifactStatus.RELEASE
 import com.netflix.spinnaker.keel.api.ArtifactType
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.ArtifactType.DOCKER
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
+import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.events.ArtifactEvent
 import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.events.ArtifactSyncEvent
@@ -25,6 +27,7 @@ import org.springframework.stereotype.Component
 class ArtifactListener(
   private val artifactRepository: ArtifactRepository,
   private val artifactService: ArtifactService,
+  private val clouddriverService: CloudDriverService,
   private val publisher: ApplicationEventPublisher
 ) {
   @EventListener(ArtifactEvent::class)
@@ -45,7 +48,7 @@ class ArtifactListener(
             }
             DOCKER -> {
               version = "${korkArtifact.name}:${korkArtifact.version}"
-              status = ArtifactStatus.FINAL // todo eb: should we default? should we re-think status? should status be null?
+              status = RELEASE // todo eb: should we default? should we re-think status? should status be null?
             }
             else -> throw UnsupportedArtifactTypeException(korkArtifact.type)
           }
@@ -70,8 +73,11 @@ class ArtifactListener(
       artifactRepository.register(artifact)
     }
 
-    if (artifact.type == DEB && artifactRepository.versions(artifact).isEmpty()) {
-      storeLatestDebVersion(artifact, event.statuses)
+    if (artifactRepository.versions(artifact).isEmpty()) {
+      when (artifact.type) {
+        DEB -> storeLatestDebVersion(artifact, event.statuses)
+        DOCKER -> storeLatestDockerVersion(artifact)
+      }
     }
   }
 
@@ -87,6 +93,7 @@ class ArtifactListener(
    * For each registered debian artifact, get the last version, and persist if it's newer than what we have.
    */
   // todo eb: should we fetch more than one version?
+  // todo eb: do this for docker images also
   @Scheduled(initialDelay = 60000, fixedDelayString = "\${keel.artifact-refresh.frequency:PT6H}")
   fun syncDebArtifactVersions() =
     runBlocking {
@@ -127,6 +134,21 @@ class ArtifactListener(
           val status = debStatus(artifactService.getArtifact(artifact.name, firstVersion))
           log.debug("Storing latest version {} ({}) for registered artifact {}", version, status, artifact)
           artifactRepository.store(artifact, version, status)
+        }
+    }
+
+  /**
+   * Grabs the latest tag and stores it.
+   * todo eb: calculate latest based on versioning strategy
+   */
+  protected fun storeLatestDockerVersion(artifact: DeliveryArtifact) =
+    runBlocking {
+      clouddriverService
+        .findDockerTagsForImage("*", artifact.name)
+        .firstOrNull()
+        ?.let { firstVersion ->
+          log.debug("Storing latest version {} for registered artifact {}", firstVersion, artifact)
+          artifactRepository.store(artifact, firstVersion, RELEASE)
         }
     }
 
