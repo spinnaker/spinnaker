@@ -16,10 +16,26 @@
 
 package com.netflix.spinnaker.clouddriver.model;
 
+import com.netflix.spinnaker.clouddriver.documentation.Empty;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
 
 public interface FunctionProvider {
   Collection<? extends Function> getAllFunctions();
 
   Function getFunction(String account, String region, String functionName);
+
+  /**
+   * Returns all functions related to an application based on one of the following criteria: - the
+   * load balancer name follows the Frigga naming conventions for load balancers (i.e., the load
+   * balancer name starts with the application name, followed by a hyphen)
+   *
+   * @param applicationName the name of the application
+   * @return a collection of functions.
+   */
+  @Empty
+  default Set<? extends Function> getApplicationFunctions(String applicationName) {
+    return Collections.emptySet();
+  }
 }

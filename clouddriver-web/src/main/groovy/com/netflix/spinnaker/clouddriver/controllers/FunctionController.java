@@ -27,11 +27,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PostAuthorize;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class FunctionController {
@@ -67,5 +64,17 @@ public class FunctionController {
         throw new NotFoundException(functionName + "does not exist");
       }
     }
+  }
+
+  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
+  @PostAuthorize("@authorizationSupport.filterForAccounts(returnObject)")
+  @RequestMapping(value = "/applications/{application}/functions", method = RequestMethod.GET)
+  List<Function> list(@PathVariable String application) {
+    List<Function> appFunctions =
+        functionProviders.stream()
+            .map(functionProvider -> functionProvider.getApplicationFunctions(application))
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
+    return appFunctions;
   }
 }

@@ -51,8 +51,8 @@ public class UpdateLambdaCodeAtomicOperation
         new UpdateFunctionCodeRequest()
             .withFunctionName(lambdaFunction.getFunctionArn())
             .withPublish(description.getPublish())
-            .withS3Bucket(description.getS3Bucket())
-            .withS3Key(description.getS3Key());
+            .withS3Bucket(description.getS3bucket())
+            .withS3Key(description.getS3key());
 
     UpdateFunctionCodeResult result = client.updateFunctionCode(request);
     updateTaskStatus("Finished Updating of AWS Lambda Function Code Operation...");

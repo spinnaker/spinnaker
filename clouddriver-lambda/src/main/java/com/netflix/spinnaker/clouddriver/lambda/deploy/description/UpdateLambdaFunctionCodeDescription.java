@@ -24,7 +24,7 @@ import lombok.EqualsAndHashCode;
 public class UpdateLambdaFunctionCodeDescription extends AbstractLambdaFunctionDescription {
   String functionName;
 
-  String s3Bucket;
-  String s3Key;
+  String s3bucket;
+  String s3key;
   Boolean publish;
 }

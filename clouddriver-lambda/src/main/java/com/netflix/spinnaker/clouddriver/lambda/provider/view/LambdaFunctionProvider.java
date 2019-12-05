@@ -16,23 +16,31 @@
 
 package com.netflix.spinnaker.clouddriver.lambda.provider.view;
 
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.APPLICATIONS;
+import static com.netflix.spinnaker.clouddriver.lambda.cache.Keys.Namespace.LAMBDA_FUNCTIONS;
+
 import com.netflix.spinnaker.cats.cache.Cache;
+import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.lambda.cache.Keys;
 import com.netflix.spinnaker.clouddriver.lambda.cache.client.LambdaCacheClient;
 import com.netflix.spinnaker.clouddriver.model.Function;
 import com.netflix.spinnaker.clouddriver.model.FunctionProvider;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class LambdaFunctionProvider implements FunctionProvider {
   private LambdaCacheClient awsLambdaCacheClient;
+  private final Cache cacheView;
 
   @Autowired
   public LambdaFunctionProvider(Cache cacheView) {
     this.awsLambdaCacheClient = new LambdaCacheClient(cacheView);
+    this.cacheView = cacheView;
   }
 
   @Override
@@ -43,5 +51,28 @@ public class LambdaFunctionProvider implements FunctionProvider {
   public Function getFunction(String account, String region, String functionName) {
     String key = Keys.getLambdaFunctionKey(account, region, functionName);
     return awsLambdaCacheClient.get(key);
+  }
+
+  public Set<Function> getApplicationFunctions(String applicationName) {
+
+    CacheData application =
+        cacheView.get(
+            APPLICATIONS.ns,
+            com.netflix.spinnaker.clouddriver.aws.data.Keys.getApplicationKey(applicationName));
+
+    Set<Function> appFunctions = new HashSet<>();
+    if (null != application && null != application.getRelationships()) {
+      Collection<String> functionRel = application.getRelationships().get(LAMBDA_FUNCTIONS.ns);
+      if (null != functionRel && !functionRel.isEmpty()) {
+        functionRel.forEach(
+            functionKey -> {
+              Function function = awsLambdaCacheClient.get(functionKey);
+              if (null != function) {
+                appFunctions.add(function);
+              }
+            });
+      }
+    }
+    return appFunctions;
   }
 }

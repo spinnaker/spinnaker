@@ -46,7 +46,8 @@ public interface OnDemandAgent {
     Job,
     TargetGroup,
     CloudFormation,
-    Manifest;
+    Manifest,
+    Function;
 
     static OnDemandType fromString(String s) {
       return Arrays.stream(values())

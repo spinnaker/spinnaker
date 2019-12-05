@@ -42,24 +42,31 @@ class LoadBalancerV2UpsertHandler {
   private static String modifyTargetGroupAttributes(AmazonElasticLoadBalancing loadBalancing, LoadBalancer loadBalancer, TargetGroup targetGroup, UpsertAmazonLoadBalancerV2Description.Attributes attributes, DeployDefaults deployDefaults) {
     def targetGroupAttributes = []
     if (attributes) {
-      Integer deregistrationDelay = [attributes.deregistrationDelay, deployDefaults?.loadBalancing?.deregistrationDelayDefault].findResult(Closure.IDENTITY)
-      if (deregistrationDelay != null) {
-        targetGroupAttributes.add(new TargetGroupAttribute(key: "deregistration_delay.timeout_seconds", value: deregistrationDelay.toString()))
-      }
-      if (loadBalancer.type == 'application') {
-        if (attributes.stickinessEnabled != null) {
-          targetGroupAttributes.add(new TargetGroupAttribute(key: "stickiness.enabled", value: attributes.stickinessEnabled.toString()))
+      if (TargetTypeEnum.Lambda.toString().equalsIgnoreCase(targetGroup.getTargetType()))
+      {
+        if (attributes.multiValueHeadersEnabled != null) {
+          targetGroupAttributes.add(new TargetGroupAttribute(key: "lambda.multi_value_headers.enabled", value: attributes.multiValueHeadersEnabled))
         }
-        if (attributes.stickinessType != null) {
-          targetGroupAttributes.add(new TargetGroupAttribute(key: "stickiness.type", value: attributes.stickinessType))
+      } else {
+        Integer deregistrationDelay = [attributes.deregistrationDelay, deployDefaults?.loadBalancing?.deregistrationDelayDefault].findResult(Closure.IDENTITY)
+        if (deregistrationDelay != null) {
+          targetGroupAttributes.add(new TargetGroupAttribute(key: "deregistration_delay.timeout_seconds", value: deregistrationDelay.toString()))
         }
-        if (attributes.stickinessDuration != null) {
-          targetGroupAttributes.add(new TargetGroupAttribute(key: "stickiness.lb_cookie.duration_seconds", value: attributes.stickinessDuration.toString()))
+        if (loadBalancer.type == 'application') {
+          if (attributes.stickinessEnabled != null) {
+            targetGroupAttributes.add(new TargetGroupAttribute(key: "stickiness.enabled", value: attributes.stickinessEnabled.toString()))
+          }
+          if (attributes.stickinessType != null) {
+            targetGroupAttributes.add(new TargetGroupAttribute(key: "stickiness.type", value: attributes.stickinessType))
+          }
+          if (attributes.stickinessDuration != null) {
+            targetGroupAttributes.add(new TargetGroupAttribute(key: "stickiness.lb_cookie.duration_seconds", value: attributes.stickinessDuration.toString()))
+          }
         }
-      }
-      if(loadBalancer.type == 'network' ){
-        if(attributes.proxyProtocolV2 != null){
-          targetGroupAttributes.add(new TargetGroupAttribute(key: "proxy_protocol_v2.enabled", value: attributes.proxyProtocolV2))
+        if (loadBalancer.type == 'network' ) {
+          if(attributes.proxyProtocolV2 != null) {
+            targetGroupAttributes.add(new TargetGroupAttribute(key: "proxy_protocol_v2.enabled", value: attributes.proxyProtocolV2))
+          }
         }
       }
     }
@@ -84,9 +91,23 @@ class LoadBalancerV2UpsertHandler {
     targetGroupsToCreate.each { targetGroup ->
       TargetGroup createdTargetGroup
       try {
+        String status = "Target group created in ${loadBalancerName} (${targetGroup.name}:${targetGroup.port}:${targetGroup.protocol})."
+        CreateTargetGroupRequest createTargetGroupRequest = new CreateTargetGroupRequest();
+        if (TargetTypeEnum.Lambda.toString().equalsIgnoreCase(targetGroup.targetType)) {
 
-        CreateTargetGroupRequest createTargetGroupRequest = new CreateTargetGroupRequest()
-          .withProtocol(targetGroup.protocol)
+          createTargetGroupRequest.withName(targetGroup.name)
+            .withHealthCheckIntervalSeconds(targetGroup.healthCheckInterval)
+            .withHealthCheckTimeoutSeconds(targetGroup.healthCheckTimeout)
+            .withHealthyThresholdCount(targetGroup.healthyThreshold)
+            .withUnhealthyThresholdCount(targetGroup.unhealthyThreshold)
+            .withTargetType(targetGroup.targetType)
+            .withMatcher(new Matcher().withHttpCode(targetGroup.healthCheckMatcher))
+            .withHealthCheckPath(targetGroup.healthCheckPath)
+
+          status = "Lambda Target group created in ${loadBalancerName} (${targetGroup.name})."
+
+        } else {
+          createTargetGroupRequest.withProtocol(targetGroup.protocol)
           .withPort(targetGroup.port)
           .withName(targetGroup.name)
           .withVpcId(loadBalancer.vpcId)
@@ -97,22 +118,23 @@ class LoadBalancerV2UpsertHandler {
           .withUnhealthyThresholdCount(targetGroup.unhealthyThreshold)
           .withTargetType(targetGroup.targetType)
 
-        if (targetGroup.healthCheckProtocol in [ProtocolEnum.HTTP, ProtocolEnum.HTTPS]) {
-          createTargetGroupRequest
-            .withHealthCheckPath(targetGroup.healthCheckPath)
+          if (targetGroup.healthCheckProtocol in [ProtocolEnum.HTTP, ProtocolEnum.HTTPS]) {
+            createTargetGroupRequest
+              .withHealthCheckPath(targetGroup.healthCheckPath)
 
-          // HTTP(s) health checks for TCP does not support custom matchers and timeouts. Also, health thresholds must be equal.
-          if (targetGroup.protocol == ProtocolEnum.TCP) {
-            createTargetGroupRequest.withUnhealthyThresholdCount(createTargetGroupRequest.getHealthyThresholdCount())
-          } else {
-            createTargetGroupRequest.withMatcher(new Matcher().withHttpCode(targetGroup.healthCheckMatcher))
-              .withHealthCheckTimeoutSeconds(targetGroup.healthCheckTimeout)
+            // HTTP(s) health checks for TCP does not support custom matchers and timeouts. Also, health thresholds must be equal.
+            if (targetGroup.protocol == ProtocolEnum.TCP) {
+              createTargetGroupRequest.withUnhealthyThresholdCount(createTargetGroupRequest.getHealthyThresholdCount())
+            } else {
+              createTargetGroupRequest.withMatcher(new Matcher().withHttpCode(targetGroup.healthCheckMatcher))
+                .withHealthCheckTimeoutSeconds(targetGroup.healthCheckTimeout)
+            }
           }
         }
-
         CreateTargetGroupResult createTargetGroupResult = loadBalancing.createTargetGroup( createTargetGroupRequest )
-        task.updateStatus BASE_PHASE, "Target group created in ${loadBalancerName} (${targetGroup.name}:${targetGroup.port}:${targetGroup.protocol})."
+        task.updateStatus BASE_PHASE, status
         createdTargetGroup = createTargetGroupResult.getTargetGroups().get(0)
+
       } catch (AmazonServiceException e) {
         String exceptionMessage = "Failed to create target group ${targetGroup.name} for ${loadBalancerName} - reason: ${e.errorMessage}."
         task.updateStatus BASE_PHASE, exceptionMessage
