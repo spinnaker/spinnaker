@@ -73,6 +73,25 @@ class ExtensionBeanDefinitionRegistryPostProcessorTest : JUnit5Minutests {
         verify(exactly = 1) { beanFactory.registerSingleton(eq("testSpringPluginFooExtension"), any<FooExtension>()) }
         verify(exactly = 1) { applicationEventPublisher.publishEvent(any<ExtensionLoaded>()) }
       }
+
+      test("unsafe plugin extensions are treated like system extensions") {
+        every { pluginDescriptor.unsafe } returns true
+        every { pluginManager.getExtensionClassNames(null) } returns setOf(
+          FooExtension::class.java.name
+        )
+        every { pluginManager.startedPlugins } returns listOf(pluginWrapper)
+        every { pluginManager.getExtensionClassNames(eq("testSpringPlugin")) } returns setOf(
+          FooExtension::class.java.name
+        )
+
+        val beanFactory: ConfigurableListableBeanFactory = mockk(relaxed = true)
+
+        subject.postProcessBeanFactory(beanFactory)
+
+        verify(exactly = 1) { extensionFactory.create(eq(FooExtension::class.java)) }
+        verify(exactly = 1) { beanFactory.registerSingleton(eq("fooExtensionSystemExtension"), any<FooExtension>()) }
+        verify(exactly = 1) { applicationEventPublisher.publishEvent(any<ExtensionLoaded>()) }
+      }
     }
   }
 
@@ -81,15 +100,17 @@ class ExtensionBeanDefinitionRegistryPostProcessorTest : JUnit5Minutests {
     val pluginWrapper: PluginWrapper = mockk(relaxed = true)
     val extensionFactory: ExtensionFactory = mockk(relaxed = true)
     val applicationEventPublisher: ApplicationEventPublisher = mockk(relaxed = true)
+    val pluginDescriptor: SpinnakerPluginDescriptor = mockk(relaxed = true)
 
     val subject = ExtensionBeanDefinitionRegistryPostProcessor(pluginManager, applicationEventPublisher)
 
     init {
       every { extensionFactory.create(eq(FooExtension::class.java)) } returns FooExtension()
+      every { pluginDescriptor.unsafe } returns false
       every { pluginWrapper.pluginClassLoader } returns javaClass.classLoader
       every { pluginWrapper.plugin } returns TestSpringPlugin(pluginWrapper)
       every { pluginWrapper.pluginId } returns "testSpringPlugin"
-      every { pluginWrapper.descriptor } returns mockk<SpinnakerPluginDescriptor>()
+      every { pluginWrapper.descriptor } returns pluginDescriptor
       every { pluginManager.extensionFactory } returns extensionFactory
     }
   }

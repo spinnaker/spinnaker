@@ -64,6 +64,7 @@ class ExtensionBeanDefinitionRegistryPostProcessor(
 
     log.debug("Creating plugin extensions")
     pluginManager.startedPlugins.forEach { plugin ->
+      if (plugin.isUnsafe()) return@forEach
       log.debug("Creating extensions for plugin '{}'", plugin.pluginId)
       pluginManager.getExtensionClassNames(plugin.pluginId).forEach {
         log.debug("Creating extension '{}' for plugin '{}'", it, plugin.pluginId)

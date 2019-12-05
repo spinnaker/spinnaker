@@ -19,6 +19,7 @@ import com.netflix.spinnaker.kork.plugins.SpinnakerPluginDescriptor
 import org.pf4j.PluginClassLoader
 import org.pf4j.PluginManager
 import java.net.URL
+import java.net.URLClassLoader
 import java.util.Enumeration
 
 /**
@@ -39,4 +40,10 @@ class UnsafePluginClassLoader(
   override fun loadClass(name: String?): Class<*> = parent.loadClass(name)
   override fun getResource(name: String?): URL? = parent.getResource(name)
   override fun getResources(name: String?): Enumeration<URL> = parent.getResources(name)
+
+  override fun addURL(url: URL?) {
+    val method = URLClassLoader::class.java.getDeclaredMethod("addURL", URL::class.java)
+    method.isAccessible = true
+    method.invoke(parent, url)
+  }
 }
