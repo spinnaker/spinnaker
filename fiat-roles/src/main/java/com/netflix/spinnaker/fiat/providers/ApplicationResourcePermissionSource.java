@@ -27,12 +27,12 @@ import java.util.List;
 import java.util.Map;
 import javax.annotation.Nonnull;
 
-public final class Front50ApplicationResourcePermissionSource
+public final class ApplicationResourcePermissionSource
     implements ResourcePermissionSource<Application> {
 
   private final Authorization executeFallback;
 
-  public Front50ApplicationResourcePermissionSource(Authorization executeFallback) {
+  public ApplicationResourcePermissionSource(Authorization executeFallback) {
     this.executeFallback = executeFallback;
   }
 

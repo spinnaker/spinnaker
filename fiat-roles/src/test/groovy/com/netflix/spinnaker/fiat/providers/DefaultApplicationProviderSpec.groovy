@@ -34,7 +34,7 @@ class DefaultApplicationProviderSpec extends Specification {
 
   ClouddriverService clouddriverService = Mock(ClouddriverService)
   Front50Service front50Service = Mock(Front50Service)
-  ResourcePermissionProvider<Application> defaultProvider = new AggregatingResourcePermissionProvider<>([new Front50ApplicationResourcePermissionSource(Authorization.READ)])
+  ResourcePermissionProvider<Application> defaultProvider = new AggregatingResourcePermissionProvider<>([new ApplicationResourcePermissionSource(Authorization.READ)])
 
   @Subject DefaultApplicationResourceProvider provider
 
@@ -114,7 +114,7 @@ class DefaultApplicationProviderSpec extends Specification {
   def "should add fallback execute permissions based on executeFallback value" () {
     setup:
     def app = new Application().setName("app")
-    def provider = new AggregatingResourcePermissionProvider([new Front50ApplicationResourcePermissionSource(fallback)])
+    def provider = new AggregatingResourcePermissionProvider([new ApplicationResourcePermissionSource(fallback)])
 
     when:
     app.setPermissions(makePerms(givenPermissions))

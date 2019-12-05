@@ -20,11 +20,11 @@ import com.netflix.spinnaker.fiat.model.resources.Account;
 import com.netflix.spinnaker.fiat.model.resources.Application;
 import com.netflix.spinnaker.fiat.model.resources.BuildService;
 import com.netflix.spinnaker.fiat.providers.*;
-import java.util.List;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 
 @Configuration
 class DefaultResourcePermissionConfig {
@@ -33,6 +33,7 @@ class DefaultResourcePermissionConfig {
   @ConditionalOnProperty(
       value = "auth.permissions.source.account.resource.enabled",
       matchIfMissing = true)
+  @Order
   ResourcePermissionSource<Account> accountResourcePermissionSource() {
     return new AccessControlledResourcePermissionSource<>();
   }
@@ -48,26 +49,13 @@ class DefaultResourcePermissionConfig {
   }
 
   @Bean
-  @ConditionalOnProperty(value = "auth.permissions.provider.account", havingValue = "aggregate")
-  public ResourcePermissionProvider<Account> aggregateAccountPermissionProvider(
-      List<ResourcePermissionSource<Account>> sources) {
-    return new AggregatingResourcePermissionProvider<>(sources);
-  }
-
-  @Bean
-  @ConditionalOnProperty("auth.permissions.source.application.prefix.enabled")
-  @ConfigurationProperties("auth.permissions.source.application.prefix")
-  ResourcePermissionSource<Application> applicationPrefixResourcePermissionSource() {
-    return new ResourcePrefixPermissionSource<Application>();
-  }
-
-  @Bean
   @ConditionalOnProperty(
-      value = "auth.permissions.source.application.front50.enabled",
+      value = "auth.permissions.source.application.resource.enabled",
       matchIfMissing = true)
-  ResourcePermissionSource<Application> front50ResourcePermissionSource(
+  @Order
+  ResourcePermissionSource<Application> applicationResourcePermissionSource(
       FiatServerConfigurationProperties fiatServerConfigurationProperties) {
-    return new Front50ApplicationResourcePermissionSource(
+    return new ApplicationResourcePermissionSource(
         fiatServerConfigurationProperties.getExecuteFallback());
   }
 
@@ -77,21 +65,15 @@ class DefaultResourcePermissionConfig {
       havingValue = "default",
       matchIfMissing = true)
   public ResourcePermissionProvider<Application> defaultApplicationPermissionProvider(
-      ResourcePermissionSource<Application> front50ResourcePermissionSource) {
-    return new DefaultResourcePermissionProvider<>(front50ResourcePermissionSource);
-  }
-
-  @Bean
-  @ConditionalOnProperty(value = "auth.permissions.provider.application", havingValue = "aggregate")
-  public ResourcePermissionProvider<Application> aggregateApplicationPermissionProvider(
-      List<ResourcePermissionSource<Application>> sources) {
-    return new AggregatingResourcePermissionProvider<>(sources);
+      ResourcePermissionSource<Application> applicationResourcePermissionSource) {
+    return new DefaultResourcePermissionProvider<>(applicationResourcePermissionSource);
   }
 
   @Bean
   @ConditionalOnProperty(
       value = "auth.permissions.source.build-service.resource.enabled",
       matchIfMissing = true)
+  @Order
   ResourcePermissionSource<BuildService> buildServiceResourcePermissionSource() {
     return new AccessControlledResourcePermissionSource<>();
   }
@@ -107,11 +89,9 @@ class DefaultResourcePermissionConfig {
   }
 
   @Bean
-  @ConditionalOnProperty(
-      value = "auth.permissions.provider.build-service",
-      havingValue = "aggregate")
-  public ResourcePermissionProvider<BuildService> aggregateBuildServicePermissionProvider(
-      List<ResourcePermissionSource<BuildService>> sources) {
-    return new AggregatingResourcePermissionProvider<>(sources);
+  @ConditionalOnProperty("auth.permissions.source.application.prefix.enabled")
+  @ConfigurationProperties("auth.permissions.source.application.prefix")
+  ResourcePermissionSource<Application> applicationPrefixResourcePermissionSource() {
+    return new ResourcePrefixPermissionSource<Application>();
   }
 }
