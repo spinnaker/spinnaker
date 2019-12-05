@@ -29,6 +29,7 @@ import com.netflix.spinnaker.kork.web.exceptions.ValidationException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.access.prepost.PostAuthorize
 import org.springframework.security.access.prepost.PostFilter
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
@@ -97,6 +98,13 @@ class PipelineController {
   Collection<Pipeline> getHistory(@PathVariable String id,
                                   @RequestParam(value = "limit", defaultValue = "20") int limit) {
     return pipelineDAO.history(id, limit)
+  }
+
+  @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
+  @PostAuthorize("hasPermission(returnObject.application, 'APPLICATION', 'READ')")
+  @RequestMapping(value = '{id:.+}/get', method = RequestMethod.GET)
+  Pipeline get(@PathVariable String id) {
+    return pipelineDAO.findById(id)
   }
 
   @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission() and hasPermission(#pipeline.application, 'APPLICATION', 'WRITE') and @authorizationSupport.hasRunAsUserPermission(#pipeline)")
