@@ -18,8 +18,15 @@ package com.netflix.spinnaker.front50.model.pipeline;
 import com.netflix.spinnaker.front50.model.ItemDAO;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public interface PipelineTemplateDAO extends ItemDAO<PipelineTemplate> {
 
-  Collection<PipelineTemplate> getPipelineTemplatesByScope(List<String> scope);
+  default Collection<PipelineTemplate> getPipelineTemplatesByScope(List<String> scope) {
+    if (scope == null || scope.isEmpty()) {
+      return all();
+    }
+
+    return all().stream().filter(pt -> pt.containsAnyScope(scope)).collect(Collectors.toList());
+  }
 }

@@ -20,9 +20,6 @@ import com.netflix.spinnaker.front50.model.ObjectKeyLoader;
 import com.netflix.spinnaker.front50.model.ObjectType;
 import com.netflix.spinnaker.front50.model.StorageService;
 import com.netflix.spinnaker.front50.model.StorageServiceSupport;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
 import org.springframework.util.Assert;
 import rx.Scheduler;
 
@@ -44,14 +41,6 @@ public class DefaultPipelineTemplateDAO extends StorageServiceSupport<PipelineTe
         refreshIntervalMs,
         shouldWarmCache,
         registry);
-  }
-
-  @Override
-  public Collection<PipelineTemplate> getPipelineTemplatesByScope(List<String> scope) {
-    if (scope == null || scope.isEmpty()) {
-      return all();
-    }
-    return all().stream().filter(pt -> pt.containsAnyScope(scope)).collect(Collectors.toList());
   }
 
   @Override

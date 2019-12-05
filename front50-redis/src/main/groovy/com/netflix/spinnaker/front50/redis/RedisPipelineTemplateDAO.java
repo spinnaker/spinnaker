@@ -21,7 +21,6 @@ import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplate;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplateDAO;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Spliterators;
 import java.util.stream.Collectors;
@@ -36,11 +35,6 @@ public class RedisPipelineTemplateDAO implements PipelineTemplateDAO {
   static final String BOOK_KEEPING_KEY = "com.netflix.spinnaker:front50:pipelineTemplates";
 
   RedisTemplate<String, PipelineTemplate> redisTemplate;
-
-  @Override
-  public Collection<PipelineTemplate> getPipelineTemplatesByScope(List<String> scope) {
-    return all().stream().filter(it -> it.containsAnyScope(scope)).collect(Collectors.toList());
-  }
 
   @Override
   public PipelineTemplate findById(String id) throws NotFoundException {
