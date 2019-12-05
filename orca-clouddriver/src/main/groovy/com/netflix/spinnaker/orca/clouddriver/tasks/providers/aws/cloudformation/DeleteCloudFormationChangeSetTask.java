@@ -66,6 +66,7 @@ public class DeleteCloudFormationChangeSetTask extends AbstractCloudProviderAwar
       task.put("stackName", stackName);
       task.put("changeSetName", changeSetName);
       task.put("region", region);
+      task.put("credentials", getCredentials(stage));
 
       Map<String, Map> operation =
           new ImmutableMap.Builder<String, Map>().put(TASK_NAME, task).build();

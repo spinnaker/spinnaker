@@ -58,7 +58,12 @@ class DeleteCloudFormationChangeSetTaskSpec extends Specification {
 
     then:
     1 * katoService.requestOperations("aws", {
-      it.get(0).get("deleteCloudFormationChangeSet") != null
+      def task = it.get(0).get("deleteCloudFormationChangeSet")
+      task != null
+      task.get("stackName").equals(context.get("stackName"))
+      task.get("changeSetName").equals(context.get("changeSetName"))
+      task.get("region").equals(context.get("regions")[0])
+      task.get("credentials").equals(context.get("credentials"))
     }) >> Observable.just(taskId)
     result.getStatus() == ExecutionStatus.SUCCEEDED
 
