@@ -8,6 +8,10 @@ import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.DockerArtifact
 import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.PromotionStatus.CURRENT
+import com.netflix.spinnaker.keel.api.PromotionStatus.DEPLOYING
+import com.netflix.spinnaker.keel.api.PromotionStatus.PENDING
+import com.netflix.spinnaker.keel.api.PromotionStatus.PREVIOUS
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expect
@@ -15,10 +19,12 @@ import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.containsExactly
+import strikt.assertions.get
 import strikt.assertions.hasSize
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
+import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.isTrue
 import strikt.assertions.succeeded
@@ -167,6 +173,21 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
               .isFalse()
           }
         }
+
+        test("the artifact version is pending in the environment") {
+          val environment1Versions = subject
+            .versionsByEnvironment(manifest)
+            .first { it.name == environment1.name }
+            .artifacts
+            .first { DeliveryArtifact(it.name, it.type) == artifact1 }
+            .versions
+          expectThat(environment1Versions) {
+            get(PENDING).isNotNull().containsExactly(version1, version2, version3)
+            get(CURRENT).isNotNull().isEmpty()
+            get(DEPLOYING).isNotNull().isEmpty()
+            get(PREVIOUS).isNotNull().isEmpty()
+          }
+        }
       }
 
       context("a version has been promoted to an environment") {
@@ -182,6 +203,21 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
         test("the version is not considered successfully deployed yet") {
           expectThat(subject.wasSuccessfullyDeployedTo(manifest, artifact1, version1, environment1.name))
             .isFalse()
+        }
+
+        test("the version is deploying in the environment") {
+          val environment1Versions = subject
+            .versionsByEnvironment(manifest)
+            .first { it.name == environment1.name }
+            .artifacts
+            .first { DeliveryArtifact(it.name, it.type) == artifact1 }
+            .versions
+          expectThat(environment1Versions) {
+            get(PENDING).isNotNull().containsExactly(version2, version3)
+            get(CURRENT).isNotNull().isEmpty()
+            get(DEPLOYING).isNotNull().containsExactly(version1)
+            get(PREVIOUS).isNotNull().isEmpty()
+          }
         }
 
         test("promoting the same version again returns false") {
@@ -210,6 +246,21 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
               .isTrue()
           }
 
+          test("the version is current in the environment") {
+            val environment1Versions = subject
+              .versionsByEnvironment(manifest)
+              .first { it.name == environment1.name }
+              .artifacts
+              .first { DeliveryArtifact(it.name, it.type) == artifact1 }
+              .versions
+            expectThat(environment1Versions) {
+              get(PENDING).isNotNull().containsExactly(version2, version3)
+              get(CURRENT).isNotNull().containsExactly(version1)
+              get(DEPLOYING).isNotNull().isEmpty()
+              get(PREVIOUS).isNotNull().isEmpty()
+            }
+          }
+
           context("a new version is promoted to the same environment") {
             before {
               subject.approveVersionFor(manifest, artifact1, version2, environment1.name)
@@ -225,6 +276,21 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
                 .isFalse()
             }
 
+            test("the new version is deploying in the environment") {
+              val environment1Versions = subject
+                .versionsByEnvironment(manifest)
+                .first { it.name == environment1.name }
+                .artifacts
+                .first { DeliveryArtifact(it.name, it.type) == artifact1 }
+                .versions
+              expectThat(environment1Versions) {
+                get(PENDING).isNotNull().containsExactly(version3)
+                get(CURRENT).isNotNull().containsExactly(version1)
+                get(DEPLOYING).isNotNull().containsExactly(version2)
+                get(PREVIOUS).isNotNull().isEmpty()
+              }
+            }
+
             context("the new version is marked as successfully deployed") {
               before {
                 subject.markAsSuccessfullyDeployedTo(manifest, artifact1, version2, environment1.name)
@@ -238,6 +304,21 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
               test("the new version is also considered successfully deployed") {
                 expectThat(subject.wasSuccessfullyDeployedTo(manifest, artifact1, version2, environment1.name))
                   .isTrue()
+              }
+
+              test("the new version is current in the environment") {
+                val environment1Versions = subject
+                  .versionsByEnvironment(manifest)
+                  .first { it.name == environment1.name }
+                  .artifacts
+                  .first { DeliveryArtifact(it.name, it.type) == artifact1 }
+                  .versions
+                expectThat(environment1Versions) {
+                  get(PENDING).isNotNull().containsExactly(version3)
+                  get(CURRENT).isNotNull().containsExactly(version2)
+                  get(DEPLOYING).isNotNull().isEmpty()
+                  get(PREVIOUS).isNotNull().isEmpty(version1)
+                }
               }
             }
           }

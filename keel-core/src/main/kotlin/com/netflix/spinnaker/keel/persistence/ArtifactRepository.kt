@@ -4,6 +4,9 @@ import com.netflix.spinnaker.keel.api.ArtifactStatus
 import com.netflix.spinnaker.keel.api.ArtifactType
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.EnvironmentArtifactsSummary
+import org.slf4j.LoggerFactory
+import org.springframework.util.comparator.NullSafeComparator
 
 interface ArtifactRepository {
 
@@ -96,6 +99,11 @@ interface ArtifactRepository {
     version: String,
     targetEnvironment: String
   )
+
+  /**
+   * Fetches the status of artifact versions in the environments of [deliveryConfig].
+   */
+  fun versionsByEnvironment(deliveryConfig: DeliveryConfig): List<EnvironmentArtifactsSummary>
 }
 
 class NoSuchArtifactException(name: String, type: ArtifactType) :

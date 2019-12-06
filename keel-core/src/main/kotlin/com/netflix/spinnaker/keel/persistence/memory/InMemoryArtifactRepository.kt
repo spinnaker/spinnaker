@@ -4,6 +4,7 @@ import com.netflix.spinnaker.keel.api.ArtifactStatus
 import com.netflix.spinnaker.keel.api.ArtifactType
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.EnvironmentArtifactsSummary
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
 import org.slf4j.Logger
@@ -136,6 +137,10 @@ class InMemoryArtifactRepository : ArtifactRepository {
     } else {
       list.add(version)
     }
+  }
+
+  override fun versionsByEnvironment(deliveryConfig: DeliveryConfig): List<EnvironmentArtifactsSummary> {
+    TODO("not implemented")
   }
 
   fun dropAll() {

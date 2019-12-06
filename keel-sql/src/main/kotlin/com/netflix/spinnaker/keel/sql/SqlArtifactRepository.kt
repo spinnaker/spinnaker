@@ -9,6 +9,7 @@ import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.DockerArtifact
 import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.EnvironmentArtifactsSummary
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
@@ -214,6 +215,13 @@ class SqlArtifactRepository(
       .onDuplicateKeyUpdate()
       .set(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT, currentTimestamp())
       .execute()
+  }
+
+  override fun versionsByEnvironment(deliveryConfig: DeliveryConfig): List<EnvironmentArtifactsSummary> {
+    deliveryConfig.environments.map { environment ->
+      deliveryConfig.artifacts.map { }
+      EnvironmentArtifactsSummary(environment.name)
+    }
   }
 
   private fun DeliveryConfig.environmentNamed(name: String): Environment =
