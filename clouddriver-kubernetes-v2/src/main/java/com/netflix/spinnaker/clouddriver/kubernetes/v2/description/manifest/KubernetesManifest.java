@@ -225,6 +225,10 @@ public class KubernetesManifest extends HashMap<String, Object> {
       return Optional.empty();
     }
 
+    if (!(spec.get("template") instanceof Map)) {
+      return Optional.empty();
+    }
+
     Map<String, Object> template = (Map<String, Object>) spec.get("template");
     if (!template.containsKey("metadata")) {
       return Optional.empty();
@@ -252,6 +256,10 @@ public class KubernetesManifest extends HashMap<String, Object> {
 
     Map<String, Object> spec = (Map<String, Object>) get("spec");
     if (!spec.containsKey("template")) {
+      return Optional.empty();
+    }
+
+    if (!(spec.get("template") instanceof Map)) {
       return Optional.empty();
     }
 

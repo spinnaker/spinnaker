@@ -36,6 +36,9 @@ class KubernetesManifestSpec extends Specification {
   def API_VERSION = KubernetesApiVersion.EXTENSIONS_V1BETA1
   def KEY = "hi"
   def VALUE = "there"
+  def CRD_NAME = "default-custom1"
+  def CRD_KIND = "Custom1"
+  def CRD_API_VERSION = "test.example/v1alpha1"
 
   String basicManifestSource() {
     def sourceJson = KubernetesManifest.class.getResource("manifest.json").getText("utf-8")
@@ -158,5 +161,18 @@ class KubernetesManifestSpec extends Specification {
 
     then:
     manifest.getApiVersion() == KubernetesApiVersion.NETWORKING_K8S_IO_V1
+  }
+
+  void "correctly handles a crd with custom cases"() {
+    when:
+    def sourceJson = KubernetesManifest.class.getResource("crd-manifest-spec.json").getText("utf-8")
+    def testPayload =  gsonObj.fromJson(sourceJson, Object)
+    KubernetesManifest manifest = objectToManifest(testPayload)
+
+    then:
+    manifest.getName() == CRD_NAME
+    manifest.getKindName() == CRD_KIND
+    manifest.getApiVersion().toString() == CRD_API_VERSION
+    manifest.getSpecTemplateAnnotations() == Optional.empty()
   }
 }
