@@ -32,6 +32,8 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.cloudfoundry.Clou
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dcos.DCOSProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.ecs.EcsProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.huaweicloud.HuaweiCloudAccount;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.huaweicloud.HuaweiCloudProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.security.UiSecurity;
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
@@ -201,6 +203,23 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
     CloudFoundryProvider cloudFoundryProvider =
         deploymentConfiguration.getProviders().getCloudfoundry();
     bindings.put("cloudfoundry.default.account", cloudFoundryProvider.getPrimaryAccount());
+
+    // Configure HuaweiCloud
+    HuaweiCloudProvider huaweiCloudProvider =
+        deploymentConfiguration.getProviders().getHuaweicloud();
+    bindings.put("huaweicloud.default.account", huaweiCloudProvider.getPrimaryAccount());
+    if (huaweiCloudProvider.getPrimaryAccount() != null) {
+      HuaweiCloudAccount huaweiCloudAccount =
+          (HuaweiCloudAccount)
+              accountService.getProviderAccount(
+                  deploymentConfiguration.getName(),
+                  "huaweicloud",
+                  huaweiCloudProvider.getPrimaryAccount());
+      List<String> regionList = huaweiCloudAccount.getRegions();
+      if (!regionList.isEmpty()) {
+        bindings.put("huaweicloud.default.region", regionList.get(0));
+      }
+    }
 
     // Configure notifications
     bindings.put("notifications.enabled", notifications.isEnabled() + "");
