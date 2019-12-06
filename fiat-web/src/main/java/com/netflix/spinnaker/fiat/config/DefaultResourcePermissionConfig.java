@@ -53,10 +53,8 @@ class DefaultResourcePermissionConfig {
       value = "auth.permissions.source.application.resource.enabled",
       matchIfMissing = true)
   @Order
-  ResourcePermissionSource<Application> applicationResourcePermissionSource(
-      FiatServerConfigurationProperties fiatServerConfigurationProperties) {
-    return new ApplicationResourcePermissionSource(
-        fiatServerConfigurationProperties.getExecuteFallback());
+  ResourcePermissionSource<Application> applicationResourcePermissionSource() {
+    return new ApplicationResourcePermissionSource();
   }
 
   @Bean

@@ -30,12 +30,6 @@ import javax.annotation.Nonnull;
 public final class ApplicationResourcePermissionSource
     implements ResourcePermissionSource<Application> {
 
-  private final Authorization executeFallback;
-
-  public ApplicationResourcePermissionSource(Authorization executeFallback) {
-    this.executeFallback = executeFallback;
-  }
-
   @Override
   @Nonnull
   public Permissions getPermissions(@Nonnull Application resource) {
@@ -46,12 +40,6 @@ public final class ApplicationResourcePermissionSource
 
     Map<Authorization, List<String>> authorizations =
         Arrays.stream(Authorization.values()).collect(toMap(identity(), storedPermissions::get));
-
-    // If the execute permission wasn't set, copy the permissions from whatever is specified in the
-    // config's executeFallback flag
-    if (authorizations.get(Authorization.EXECUTE).isEmpty()) {
-      authorizations.put(Authorization.EXECUTE, authorizations.get(executeFallback));
-    }
 
     // CREATE permissions are not allowed on the resource level.
     authorizations.remove(Authorization.CREATE);

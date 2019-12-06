@@ -20,6 +20,8 @@ import com.netflix.spinnaker.fiat.model.Authorization
 import com.netflix.spinnaker.fiat.model.resources.Application
 import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.fiat.model.resources.Role
+import com.netflix.spinnaker.fiat.permissions.DefaultFallbackPermissionsResolver
+import com.netflix.spinnaker.fiat.permissions.FallbackPermissionsResolver
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service
 import org.apache.commons.collections4.CollectionUtils
@@ -34,7 +36,8 @@ class DefaultApplicationProviderSpec extends Specification {
 
   ClouddriverService clouddriverService = Mock(ClouddriverService)
   Front50Service front50Service = Mock(Front50Service)
-  ResourcePermissionProvider<Application> defaultProvider = new AggregatingResourcePermissionProvider<>([new ApplicationResourcePermissionSource(Authorization.READ)])
+  ResourcePermissionProvider<Application> defaultProvider = new AggregatingResourcePermissionProvider<>([new ApplicationResourcePermissionSource()])
+  FallbackPermissionsResolver fallbackPermissionsResolver = new DefaultFallbackPermissionsResolver(Authorization.EXECUTE, Authorization.READ)
 
   @Subject DefaultApplicationResourceProvider provider
 
@@ -59,7 +62,7 @@ class DefaultApplicationProviderSpec extends Specification {
       ]
     }
 
-    provider = new DefaultApplicationResourceProvider(front50Service, clouddriverService, defaultProvider, allowAccessToUnknownApplications)
+    provider = new DefaultApplicationResourceProvider(front50Service, clouddriverService, defaultProvider, fallbackPermissionsResolver, allowAccessToUnknownApplications)
 
     when:
     def restrictedResult = provider.getAllRestricted([new Role(role)] as Set<Role>, false)
@@ -92,7 +95,7 @@ class DefaultApplicationProviderSpec extends Specification {
     when:
     app.setPermissions(makePerms(givenPermissions))
     provider = new DefaultApplicationResourceProvider(
-        front50Service, clouddriverService, defaultProvider, allowAccessToUnknownApplications)
+        front50Service, clouddriverService, defaultProvider, fallbackPermissionsResolver, allowAccessToUnknownApplications)
     def resultApps = provider.getAll()
 
     then:
@@ -114,11 +117,11 @@ class DefaultApplicationProviderSpec extends Specification {
   def "should add fallback execute permissions based on executeFallback value" () {
     setup:
     def app = new Application().setName("app")
-    def provider = new AggregatingResourcePermissionProvider([new ApplicationResourcePermissionSource(fallback)])
+    FallbackPermissionsResolver fallbackResolver = new DefaultFallbackPermissionsResolver(Authorization.EXECUTE, fallback)
 
     when:
     app.setPermissions(makePerms(givenPermissions))
-    provider = new DefaultApplicationResourceProvider(front50Service, clouddriverService, provider, false)
+    provider = new DefaultApplicationResourceProvider(front50Service, clouddriverService, defaultProvider, fallbackResolver, false)
     def resultApps = provider.getAll()
 
     then:

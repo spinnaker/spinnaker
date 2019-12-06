@@ -2,9 +2,12 @@ package com.netflix.spinnaker.fiat.config;
 
 import com.google.common.collect.ImmutableList;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.fiat.model.Authorization;
 import com.netflix.spinnaker.fiat.model.resources.Application;
 import com.netflix.spinnaker.fiat.model.resources.Role;
+import com.netflix.spinnaker.fiat.permissions.DefaultFallbackPermissionsResolver;
 import com.netflix.spinnaker.fiat.permissions.ExternalUser;
+import com.netflix.spinnaker.fiat.permissions.FallbackPermissionsResolver;
 import com.netflix.spinnaker.fiat.providers.DefaultApplicationResourceProvider;
 import com.netflix.spinnaker.fiat.providers.ResourcePermissionProvider;
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService;
@@ -74,12 +77,21 @@ public class FiatConfig extends WebMvcConfigurerAdapter {
       Front50Service front50Service,
       ClouddriverService clouddriverService,
       ResourcePermissionProvider<Application> permissionProvider,
+      FallbackPermissionsResolver executeFallbackPermissionsResolver,
       FiatServerConfigurationProperties properties) {
     return new DefaultApplicationResourceProvider(
         front50Service,
         clouddriverService,
         permissionProvider,
+        executeFallbackPermissionsResolver,
         properties.isAllowAccessToUnknownApplications());
+  }
+
+  @Bean
+  DefaultFallbackPermissionsResolver executeFallbackPermissionsResolver(
+      FiatServerConfigurationProperties properties) {
+    return new DefaultFallbackPermissionsResolver(
+        Authorization.EXECUTE, properties.getExecuteFallback());
   }
 
   /**

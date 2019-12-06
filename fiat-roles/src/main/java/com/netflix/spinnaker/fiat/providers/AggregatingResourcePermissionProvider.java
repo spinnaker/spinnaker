@@ -24,7 +24,7 @@ import javax.annotation.Nonnull;
 
 /**
  * AggregatingResourcePermissionProvider additively combines permissions from all
- * ResourcePermissionSources to build a resulting Permission object.
+ * ResourcePermissionSources to build a resulting Permissions object.
  *
  * @param <T> the type of Resource for this AggregatingResourcePermissionProvider
  */

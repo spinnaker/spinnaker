@@ -22,7 +22,9 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Streams;
 import com.netflix.spinnaker.fiat.model.resources.Application;
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.fiat.model.resources.Role;
+import com.netflix.spinnaker.fiat.permissions.FallbackPermissionsResolver;
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService;
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service;
 import java.util.Collections;
@@ -38,6 +40,7 @@ public class DefaultApplicationResourceProvider extends BaseResourceProvider<App
   private final Front50Service front50Service;
   private final ClouddriverService clouddriverService;
   private final ResourcePermissionProvider<Application> permissionProvider;
+  private final FallbackPermissionsResolver executeFallbackPermissionsResolver;
 
   private final boolean allowAccessToUnknownApplications;
 
@@ -45,10 +48,12 @@ public class DefaultApplicationResourceProvider extends BaseResourceProvider<App
       Front50Service front50Service,
       ClouddriverService clouddriverService,
       ResourcePermissionProvider<Application> permissionProvider,
+      FallbackPermissionsResolver executeFallbackPermissionsResolver,
       boolean allowAccessToUnknownApplications) {
     this.front50Service = front50Service;
     this.clouddriverService = clouddriverService;
     this.permissionProvider = permissionProvider;
+    this.executeFallbackPermissionsResolver = executeFallbackPermissionsResolver;
     this.allowAccessToUnknownApplications = allowAccessToUnknownApplications;
   }
 
@@ -79,8 +84,15 @@ public class DefaultApplicationResourceProvider extends BaseResourceProvider<App
               .collect(toImmutableList());
 
       applications.forEach(
-          application ->
-              application.setPermissions(permissionProvider.getPermissions(application)));
+          application -> {
+            Permissions permissions = permissionProvider.getPermissions(application);
+
+            // Check to see if we need to fallback permissions to the configured fallback
+            application.setPermissions(
+                executeFallbackPermissionsResolver.shouldResolve(permissions)
+                    ? executeFallbackPermissionsResolver.resolve(permissions)
+                    : permissions);
+          });
 
       if (allowAccessToUnknownApplications) {
         // no need to include applications w/o explicit permissions if we're allowing access to
