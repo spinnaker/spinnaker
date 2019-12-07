@@ -34,7 +34,7 @@ module.exports = angular.module('spinnaker.titus.serverGroup.transformer', []).f
         alarms: [
           {
             namespace: 'NFLX/EPIC',
-            metricName: 'CPUUtilization',
+            metricName: '',
             threshold: 50,
             statistic: 'Average',
             comparisonOperator: 'GreaterThanThreshold',
@@ -62,7 +62,7 @@ module.exports = angular.module('spinnaker.titus.serverGroup.transformer', []).f
           disableScaleIn: false,
           customizedMetricSpecification: {
             namespace: 'NFLX/EPIC',
-            metricName: 'CPUUtilization',
+            metricName: '',
             dimensions: [{ name: 'AutoScalingGroupName', value: serverGroup.name }],
           },
           scaleInCooldown: 300,
