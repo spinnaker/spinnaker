@@ -11,6 +11,7 @@ export * from './SpanDropdownTrigger';
 export * from './TetheredCreatable';
 export * from './TetheredSelect';
 export * from './Tooltip';
+export * from './text';
 export * from './WatchValue';
 export * from './collapsibleSection/CollapsibleSection';
 export * from './details/Details';
