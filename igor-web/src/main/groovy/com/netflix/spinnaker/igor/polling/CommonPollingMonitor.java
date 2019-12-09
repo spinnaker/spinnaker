@@ -144,7 +144,7 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
       // Lock duration of the full poll interval; if the work is completed ahead of that time, it'll
       // be released.
       // If anything, this will mean builds are polled more often, rather than less.
-      final String lockName = format("%s.%s", getName(), ctx.partitionName);
+      final String lockName = getLockName(getName(), ctx.partitionName);
       lockService
           .get()
           .acquire(lockName, Duration.ofSeconds(getPollInterval()), () -> internalPollSingle(ctx));
@@ -152,6 +152,23 @@ public abstract class CommonPollingMonitor<I extends DeltaItem, T extends Pollin
       log.warn("****LOCKING NOT ENABLED***, not recommended running on more than one node.");
       internalPollSingle(ctx);
     }
+  }
+
+  /**
+   * Method to construct a lockName and sanitise it to remove special characters as per kork
+   * validation
+   *
+   * @param name
+   * @param partition
+   * @return
+   */
+  protected String getLockName(String name, String partition) {
+
+    String lockName = format("%s.%s", name, partition);
+    if (!lockName.matches("^[a-zA-Z0-9.-]+$")) {
+      return lockName.replaceAll("[^a-zA-Z0-9.-]", "");
+    }
+    return lockName;
   }
 
   protected void internalPollSingle(PollContext ctx) {
