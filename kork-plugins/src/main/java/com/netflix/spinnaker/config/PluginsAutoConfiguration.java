@@ -49,10 +49,15 @@ public class PluginsAutoConfiguration {
   @Bean
   public static SpinnakerPluginManager pluginManager(
       PluginStatusProvider pluginStatusProvider,
-      PluginsConfigurationProperties properties,
+      Environment environment,
       ConfigResolver configResolver) {
     return new SpinnakerPluginManager(
-        pluginStatusProvider, configResolver, Paths.get(properties.rootPath));
+        pluginStatusProvider,
+        configResolver,
+        Paths.get(
+            environment.getProperty(
+                PluginsConfigurationProperties.ROOT_PATH_CONFIG,
+                PluginsConfigurationProperties.DEFAULT_ROOT_PATH)));
   }
 
   @Bean

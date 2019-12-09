@@ -22,13 +22,31 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  *
  * @see PluginsAutoConfiguration
  */
-@ConfigurationProperties("spinnaker.plugins")
+@ConfigurationProperties(PluginsConfigurationProperties.CONFIG_NAMESPACE)
 public class PluginsConfigurationProperties {
+  public static final String CONFIG_NAMESPACE = "spinnaker.plugins";
+  public static final String DEFAULT_ROOT_PATH = "plugins";
 
   /**
    * The root filepath to the directory containing all plugins.
    *
    * <p>If an absolute path is not provided, the path will be calculated relative to the executable.
    */
-  public String rootPath = "plugins";
+  // Note that this property is not bound at PluginManager initialization time,
+  // but is retained here for documentation purposes. Later consumers of this property
+  // will see the correctly bound value that was used when initializing the plugin subsystem.
+  private String rootPath = DEFAULT_ROOT_PATH;
+
+  // If for some reason we change the associated property name ensure this constant
+  // is updated to match. This is the actual value we will read from the environment
+  // at init time.
+  public static final String ROOT_PATH_CONFIG = CONFIG_NAMESPACE + ".root-path";
+
+  public String getRootPath() {
+    return rootPath;
+  }
+
+  public void setRootPath(String rootPath) {
+    this.rootPath = rootPath;
+  }
 }
