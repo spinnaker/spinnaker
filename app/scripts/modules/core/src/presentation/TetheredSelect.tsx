@@ -1,6 +1,6 @@
 import * as React from 'react';
 import Select from 'react-select';
-import * as TetherComponent from 'react-tether';
+import TetherComponent from 'react-tether';
 
 /* from https://github.com/JedWatson/react-select/issues/810#issuecomment-250274937 **/
 export class TetheredSelect extends Select {
@@ -22,18 +22,11 @@ export class TetheredSelect extends Select {
     const selectWidth = (this as any).wrapper ? (this as any).wrapper.offsetWidth : null;
 
     return (
-      // @ts-ignore - type definitions don't expose renderOuter...
       <TetherComponent
         classes={{ element: 'layer-high' }}
         attachment="top left"
         targetAttachment="top left"
-        constraints={[
-          {
-            to: 'window',
-            attachment: 'together',
-            pin: ['top'],
-          },
-        ]}
+        constraints={[{ to: 'window', attachment: 'together', pin: ['top'] }]}
       >
         {/* Apply position:static to our menu so that its parent will get the correct dimensions and we can tether the parent */}
         <div />

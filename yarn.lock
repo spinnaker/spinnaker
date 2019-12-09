@@ -528,14 +528,6 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react-tether@^0.5.3":
-  version "0.5.3"
-  resolved "https://registry.yarnpkg.com/@types/react-tether/-/react-tether-0.5.3.tgz#48ba31358cc0cfadbd05864065ae1bd1b7174529"
-  integrity sha512-Qq7xCsi8Uuq8wgjAkS3vpJdvE9u3u5jMTafEqhYmt1IHve1wDJlhpDhfwZJm182f6D9YJSQ2aCd3ncLtdWgTQw==
-  dependencies:
-    "@types/react" "*"
-    "@types/tether" "*"
-
 "@types/react-transition-group@^4.2.3":
   version "4.2.3"
   resolved "https://registry.yarnpkg.com/@types/react-transition-group/-/react-transition-group-4.2.3.tgz#4924133f7268694058e415bf7aea2d4c21131470"
@@ -608,10 +600,10 @@
   resolved "https://registry.yarnpkg.com/@types/tapable/-/tapable-0.2.3.tgz#0888b0f20cc7e58e1c22a1888b4e963eefaa810a"
   integrity sha1-CIiw8gzH5Y4cIqGIi06WPu+qgQo=
 
-"@types/tether@*":
-  version "1.4.3"
-  resolved "https://registry.yarnpkg.com/@types/tether/-/tether-1.4.3.tgz#bbcb46a35dfbeeaaf60d60afaba3d872b6e1ebf5"
-  integrity sha512-q92yZeRwHuLL6s+HF5PAmrR0K0pFTQ3hT1ppM0ZRyj9XLziKR/qyhQcOitVO0UliClC02uQsAm4zBj08b6Pu/Q==
+"@types/tether@^1.4.4":
+  version "1.4.4"
+  resolved "https://registry.yarnpkg.com/@types/tether/-/tether-1.4.4.tgz#0fde1ccbd2f1fad74f8f465fe6227ff3b7bff634"
+  integrity sha512-6qhsFJVMuMqaQRVyQVi3zUBLfKYyryktL0ZP0Z3zegzeQ7WKm0PZNCdl3JsaitJbzqaoQ9qsFKMfaj5MiMfcSQ==
 
 "@types/tough-cookie@*":
   version "2.3.4"
@@ -10488,6 +10480,14 @@ react-tether@^0.6.1:
     prop-types "^15.5.8"
     tether "^1.4.3"
 
+react-tether@^1.0.5:
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/react-tether/-/react-tether-1.0.5.tgz#6d106e0039b1aa0e14d1266925486cd9cff2d217"
+  integrity sha512-dehXHK82Xx0aXZldYiGR6dzlIAruAvnDvtp5O6AyT1EC1TTMYem/kIXNHsyjFNEA1hhhL7c98GmP6ANYVbq+GQ==
+  dependencies:
+    prop-types "^15.6.2"
+    tether "^1.4.5"
+
 react-tooltip@^3.10.0:
   version "3.10.0"
   resolved "https://registry.yarnpkg.com/react-tooltip/-/react-tooltip-3.10.0.tgz#268b5ef519fd8a1369288d1f086f42c90d5da7ef"
@@ -12307,6 +12307,11 @@ tether@^1.4.3:
   version "1.4.4"
   resolved "https://registry.yarnpkg.com/tether/-/tether-1.4.4.tgz#9dc6eb2b3e601da2098fd264e7f7a8b264de1125"
   integrity sha512-bagKeRRo3vEynHnO3GB7/jB3Q4YIf0mN7gXM/nR0wZvNHkPrwmZemg1w0C32JZP0prHZUwxGwoX5CdA7tuIDEw==
+
+tether@^1.4.5:
+  version "1.4.7"
+  resolved "https://registry.yarnpkg.com/tether/-/tether-1.4.7.tgz#d56a818590d8fe72e387f77a67f93ab96d8e1fb2"
+  integrity sha512-Z0J1aExjoFU8pybVkQAo/vD2wfSO63r+XOPfWQMC5qtf1bI7IWqNk4MiyBcgvvnY8kqnY06dVdvwTK2S3PU/Fw==
 
 text-hex@1.0.x:
   version "1.0.0"
