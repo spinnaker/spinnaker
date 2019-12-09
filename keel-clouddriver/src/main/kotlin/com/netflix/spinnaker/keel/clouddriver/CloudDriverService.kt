@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.keel.clouddriver
 
+import com.netflix.spinnaker.keel.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel
 import com.netflix.spinnaker.keel.clouddriver.model.ClassicLoadBalancerModel
@@ -32,8 +33,6 @@ import retrofit2.http.Header
 import retrofit2.http.Path
 import retrofit2.http.Query
 import retrofit2.http.QueryMap
-
-const val DEFAULT_SERVICE_ACCOUNT = "keel@spinnaker.io"
 
 interface CloudDriverService {
 

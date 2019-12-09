@@ -33,4 +33,13 @@ dependencies {
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
   implementation("org.springframework:spring-context")
   implementation("org.springframework.boot:spring-boot-autoconfigure")
+
+  testImplementation(project(":keel-test"))
+  testImplementation(project (":keel-core-test"))
+  testImplementation("io.strikt:strikt-jackson")
+  testImplementation("dev.minutest:minutest")
+
+  testImplementation("org.assertj:assertj-core")
+  testImplementation("org.junit.jupiter:junit-jupiter-api")
+  testImplementation("org.junit.jupiter:junit-jupiter-params")
 }

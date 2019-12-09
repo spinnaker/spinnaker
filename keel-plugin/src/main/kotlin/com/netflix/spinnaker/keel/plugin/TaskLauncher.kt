@@ -30,10 +30,12 @@ import com.netflix.spinnaker.keel.model.toEchoNotification
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Component
 
 /**
  * Wraps [OrcaService] to make it easier to launch tasks in a standard way.
  */
+@Component
 class TaskLauncher(
   private val orcaService: OrcaService,
   private val deliveryConfigRepository: DeliveryConfigRepository

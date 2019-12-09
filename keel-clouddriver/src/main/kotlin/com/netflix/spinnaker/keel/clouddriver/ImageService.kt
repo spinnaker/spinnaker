@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.keel.clouddriver
 
 import com.netflix.frigga.ami.AppVersion
+import com.netflix.spinnaker.keel.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.clouddriver.model.Image
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImageComparator

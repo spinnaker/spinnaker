@@ -17,7 +17,8 @@ import java.time.zone.ZoneRulesException
 @JsonSubTypes(
   Type(value = DependsOnConstraint::class, name = "depends-on"),
   Type(value = TimeWindowConstraint::class, name = "allowed-times"),
-  Type(value = ManualJudgementConstraint::class, name = "manual-judgement")
+  Type(value = ManualJudgementConstraint::class, name = "manual-judgement"),
+  Type(value = PipelineConstraint::class, name = "pipeline")
 )
 abstract class Constraint(val type: String)
 
@@ -59,6 +60,14 @@ data class TimeWindowConstraint(
 data class ManualJudgementConstraint(
   val timeout: Duration = Duration.ofDays(7)
 ) : StatefulConstraint("manual-judgement")
+
+data class PipelineConstraint(
+  val serviceAccount: String = "anonymous",
+  val timeout: Duration = Duration.ofHours(2),
+  val pipelineId: String,
+  val retries: Int = 0,
+  val parameters: Map<String, Any?> = emptyMap()
+) : StatefulConstraint("pipeline")
 
 data class TimeWindow(
   val days: String? = null,

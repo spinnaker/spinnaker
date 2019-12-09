@@ -6,16 +6,15 @@ import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.ManualJudgementConstraint
-import com.netflix.spinnaker.keel.constraints.ConstraintEvaluator.Companion.getConstraintForEnvironment
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import org.springframework.stereotype.Component
 import java.time.Clock
 
 @Component
 class ManualJudgementConstraintEvaluator(
-  private val deliveryConfigRepository: DeliveryConfigRepository,
+  override val deliveryConfigRepository: DeliveryConfigRepository,
   private val clock: Clock
-) : ConstraintEvaluator<ManualJudgementConstraint> {
+) : StatefulConstraintEvaluator<ManualJudgementConstraint>() {
 
   override val constraintType = ManualJudgementConstraint::class.java
 
@@ -23,28 +22,10 @@ class ManualJudgementConstraintEvaluator(
     artifact: DeliveryArtifact,
     version: String,
     deliveryConfig: DeliveryConfig,
-    targetEnvironment: Environment
+    targetEnvironment: Environment,
+    constraint: ManualJudgementConstraint,
+    state: ConstraintState
   ): Boolean {
-    val constraint = getConstraintForEnvironment(deliveryConfig, targetEnvironment.name, constraintType)
-
-    val state = deliveryConfigRepository
-      .getConstraintState(
-        deliveryConfig.name,
-        targetEnvironment.name,
-        version,
-        constraint.type)
-      ?: ConstraintState(
-        deliveryConfigName = deliveryConfig.name,
-        environmentName = targetEnvironment.name,
-        artifactVersion = version,
-        type = constraint.type,
-        status = ConstraintStatus.PENDING
-      )
-        .also {
-          deliveryConfigRepository.storeConstraintState(it)
-          // TODO: Emit an event here, requesting a manual judgement
-        }
-
     if (state.failed()) {
       return false
     }
@@ -62,6 +43,6 @@ class ManualJudgementConstraintEvaluator(
       return false
     }
 
-    return state.canPromote()
+    return state.passed()
   }
 }

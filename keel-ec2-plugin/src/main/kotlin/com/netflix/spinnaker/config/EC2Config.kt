@@ -24,7 +24,6 @@ import com.netflix.spinnaker.keel.ec2.resource.ClassicLoadBalancerHandler
 import com.netflix.spinnaker.keel.ec2.resource.ClusterHandler
 import com.netflix.spinnaker.keel.ec2.resource.SecurityGroupHandler
 import com.netflix.spinnaker.keel.orca.OrcaService
-import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.plugin.TaskLauncher
 import com.netflix.spinnaker.keel.plugin.Resolver
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -36,13 +35,6 @@ import java.time.Clock
 @Configuration
 @ConditionalOnProperty("keel.plugins.ec2.enabled")
 class EC2Config {
-
-  @Bean
-  fun taskLauncher(
-    orcaService: OrcaService,
-    deliveryConfigRepository: DeliveryConfigRepository
-  ): TaskLauncher =
-    TaskLauncher(orcaService, deliveryConfigRepository)
 
   @Bean
   fun clusterHandler(

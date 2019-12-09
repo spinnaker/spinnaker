@@ -1,5 +1,7 @@
 package com.netflix.spinnaker.keel.api
 
+const val DEFAULT_SERVICE_ACCOUNT = "keel@spinnaker.io"
+
 data class DeliveryConfig(
   val name: String,
   val application: String,

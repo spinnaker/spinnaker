@@ -30,10 +30,22 @@ interface OrcaService {
 
   @POST("/ops")
   @Headers("Content-Type: application/context+json")
-  suspend fun orchestrate(@Header("X-SPINNAKER-USER") serviceAccount: String, @Body request: OrchestrationRequest): TaskRefResponse
+  suspend fun orchestrate(@Header("X-SPINNAKER-USER") serviceAccount: String, @Body request: OrchestrationRequest):
+    TaskRefResponse
+
+  @POST("/orchestrate/{pipelineConfigId}")
+  @Headers("Content-Type: application/context+json")
+  suspend fun triggerPipeline(
+    @Header("X-SPINNAKER-USER") serviceAccount: String,
+    @Path("pipelineConfigId") pipelineConfigId: String,
+    @Body trigger: Map<String, Any?>
+  ): TaskRefResponse
 
   @GET("/tasks/{id}")
-  suspend fun getTask(@Path("id") id: String): TaskDetailResponse
+  suspend fun getTask(@Path("id") id: String): ExecutionDetailResponse
+
+  @GET("/pipelines/{id}")
+  suspend fun getPipelineExecution(@Path("id") id: String): ExecutionDetailResponse
 
   @GET("/executions/correlated/{correlationId}")
   suspend fun getCorrelatedExecutions(@Path("correlationId") correlationId: String): List<String>
@@ -45,7 +57,7 @@ data class TaskRefResponse(
   val taskId by lazy { ref.substringAfterLast("/") }
 }
 
-data class TaskDetailResponse(
+data class ExecutionDetailResponse(
   val id: String,
   val name: String,
   val application: String,
