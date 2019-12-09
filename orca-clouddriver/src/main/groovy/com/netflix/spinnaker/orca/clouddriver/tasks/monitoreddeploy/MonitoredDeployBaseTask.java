@@ -22,6 +22,7 @@ import com.netflix.spinnaker.config.DeploymentMonitorDefinition;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
+import com.netflix.spinnaker.orca.clouddriver.pipeline.monitoreddeploy.NotifyDeployCompletedStage;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.MonitoredDeployStageData;
 import com.netflix.spinnaker.orca.deploymentmonitor.DeploymentMonitorServiceProvider;
 import com.netflix.spinnaker.orca.deploymentmonitor.models.DeploymentStep;
@@ -186,6 +187,22 @@ public class MonitoredDeployBaseTask implements RetryableTask {
             .context("deployMonitorHttpRetryCount", ++currentRetryCount)
             .build();
       }
+    }
+
+    // Don't let failures in NotifyDeployComplete cause rollback
+    if (stage.getType().equalsIgnoreCase(NotifyDeployCompletedStage.PIPELINE_CONFIG_TYPE)) {
+      log.warn(
+          "Failed to get valid response for {} from deployment monitor {}, ignoring failure",
+          getClass().getSimpleName(),
+          monitorDefinition,
+          e);
+
+      String userMessage =
+          String.format(
+              "Failed to get a valid response from deployment monitor %s, proceeding anyway to avoid unnecessary rollback",
+              monitorDefinition.getName());
+
+      return buildTaskResult(TaskResult.builder(ExecutionStatus.FAILED_CONTINUE), userMessage);
     }
 
     if (shouldFailOnError(stage, monitorDefinition)) {

@@ -128,15 +128,9 @@ inline fun <reified O> Stage.mapTo(): O = mapTo(O::class.java)
 fun Stage.shouldFailPipeline(): Boolean =
   context["failPipeline"] in listOf(null, true)
 
-fun Stage.shouldContinueOnFailure(): Boolean =
-  context["continuePipeline"] == true
-
-fun Stage.setContinueOnFailure(continueOnFailure: Boolean) =
-  context.put("continuePipeline", continueOnFailure)
-
 fun Stage.failureStatus(default: ExecutionStatus = TERMINAL) =
   when {
-    shouldContinueOnFailure() -> FAILED_CONTINUE
+    continuePipelineOnFailure -> FAILED_CONTINUE
     shouldFailPipeline() -> default
     else -> STOPPED
   }

@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.kayenta.pipeline
 
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.DisableClusterStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ShrinkClusterStage
-import com.netflix.spinnaker.orca.ext.setContinueOnFailure
 import com.netflix.spinnaker.orca.kayenta.model.ServerGroupSpec
 import com.netflix.spinnaker.orca.kayenta.model.cluster
 import com.netflix.spinnaker.orca.kayenta.model.deployments
@@ -47,7 +46,7 @@ class CleanupCanaryClustersStage : StageDefinitionBuilder {
           it.context.putAll(pair.control.toContext)
           it.context["remainingEnabledServerGroups"] = 0
           // Even if disabling fails, move on to shrink below which will have another go at destroying the server group
-          it.setContinueOnFailure(true)
+          it.continuePipelineOnFailure = true
         },
         graph.add {
           it.type = DisableClusterStage.STAGE_TYPE
@@ -55,7 +54,7 @@ class CleanupCanaryClustersStage : StageDefinitionBuilder {
           it.context.putAll(pair.experiment.toContext)
           it.context["remainingEnabledServerGroups"] = 0
           // Even if disabling fails, move on to shrink below which will have another go at destroying the server group
-          it.setContinueOnFailure(true)
+          it.continuePipelineOnFailure = true
         }
       )
     }
@@ -82,7 +81,7 @@ class CleanupCanaryClustersStage : StageDefinitionBuilder {
         it.context.putAll(pair.control.toContext)
         it.context["allowDeleteActive"] = true
         it.context["shrinkToSize"] = 0
-        it.setContinueOnFailure(true)
+        it.continuePipelineOnFailure = true
       }
 
       // destroy experiment cluster
@@ -92,7 +91,7 @@ class CleanupCanaryClustersStage : StageDefinitionBuilder {
         it.context.putAll(pair.experiment.toContext)
         it.context["allowDeleteActive"] = true
         it.context["shrinkToSize"] = 0
-        it.setContinueOnFailure(true)
+        it.continuePipelineOnFailure = true
       }
     }
   }

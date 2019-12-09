@@ -278,9 +278,10 @@ class MonitoredDeployStrategy implements Strategy {
       def scaleDown = baseContext + [
         allowScaleDownActive         : false,
         remainingFullSizeServerGroups: 1,
-        preferLargerOverNewer        : false
+        preferLargerOverNewer        : false,
+
       ]
-      stages << newStage(
+      Stage scaleDownStage = newStage(
         stage.execution,
         ScaleDownClusterStage.PIPELINE_CONFIG_TYPE,
         "scaleDown",
@@ -288,6 +289,10 @@ class MonitoredDeployStrategy implements Strategy {
         stage,
         SyntheticStageOwner.STAGE_AFTER
       )
+
+      scaleDownStage.setAllowSiblingStagesToContinueOnFailure(true)
+      scaleDownStage.setContinuePipelineOnFailure(true)
+      stages << scaleDownStage
     }
 
     // Only unpin if we have a source ASG and we didn't scale it down
@@ -317,7 +322,7 @@ class MonitoredDeployStrategy implements Strategy {
         allowDeleteActive    : false,
         retainLargerOverNewer: false
       ]
-      stages << newStage(
+      Stage shrinkClusterStage = newStage(
         stage.execution,
         ShrinkClusterStage.STAGE_TYPE,
         "shrinkCluster",
@@ -325,10 +330,14 @@ class MonitoredDeployStrategy implements Strategy {
         stage,
         SyntheticStageOwner.STAGE_AFTER
       )
+
+      shrinkClusterStage.setAllowSiblingStagesToContinueOnFailure(true)
+      shrinkClusterStage.setContinuePipelineOnFailure(true)
+      stages << shrinkClusterStage
     }
 
     if (stageData.deploymentMonitor?.id) {
-      stages << newStage(
+      Stage notifyDeployCompletedStage = newStage(
         stage.execution,
         NotifyDeployCompletedStage.PIPELINE_CONFIG_TYPE,
         "Notify monitored deploy complete",
@@ -336,6 +345,10 @@ class MonitoredDeployStrategy implements Strategy {
         stage,
         SyntheticStageOwner.STAGE_AFTER
       )
+
+      notifyDeployCompletedStage.setAllowSiblingStagesToContinueOnFailure(true)
+      notifyDeployCompletedStage.setContinuePipelineOnFailure(true)
+      stages << notifyDeployCompletedStage
     }
 
     return stages

@@ -803,6 +803,17 @@ public class Stage implements Serializable {
     context.put("allowSiblingStagesToContinueOnFailure", propagateFailuresToParent);
   }
 
+  @JsonIgnore
+  public void setContinuePipelineOnFailure(boolean continuePipeline) {
+    context.put("continuePipeline", continuePipeline);
+  }
+
+  @JsonIgnore
+  public boolean getContinuePipelineOnFailure() {
+    StageContext context = (StageContext) getContext();
+    return (boolean) context.getCurrentOnly("continuePipeline", false);
+  }
+
   public static class LastModifiedDetails implements Serializable {
     private String user;
 

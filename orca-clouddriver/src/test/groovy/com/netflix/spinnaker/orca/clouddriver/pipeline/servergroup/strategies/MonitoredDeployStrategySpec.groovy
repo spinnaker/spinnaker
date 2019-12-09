@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies
 
 import com.netflix.spinnaker.config.DeploymentMonitorDefinition
+import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ScaleDownClusterStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.ShrinkClusterStage
 import com.netflix.spinnaker.orca.deploymentmonitor.DeploymentMonitorServiceProvider
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.netflix.spinnaker.moniker.Moniker
@@ -107,6 +109,28 @@ class MonitoredDeployStrategySpec extends Specification {
     afterStages[6].context.scalePct == 100
     afterStages[7].type == DisableServerGroupStage.PIPELINE_CONFIG_TYPE
     afterStages[7].context.desiredPercentage == 100
+
+    when: 'scale down is requested'
+    stage.context.scaleDown = true
+    afterStages = strategy.composeAfterStages(stage)
+    stage.context.scaleDown = false
+
+    then: 'adds a scale down stage'
+    afterStages.size() == 11
+    afterStages[9].type == ScaleDownClusterStage.PIPELINE_CONFIG_TYPE
+    afterStages[9].allowSiblingStagesToContinueOnFailure == true
+    afterStages[9].continuePipelineOnFailure == true
+
+    when: 'shrink is requested'
+    stage.context.maxRemainingAsgs = 2
+    afterStages = strategy.composeAfterStages(stage)
+    stage.context.remove("maxRemainingAsgs")
+
+    then: 'adds a scale shrink stage'
+    afterStages.size() == 12
+    afterStages[10].type == ShrinkClusterStage.STAGE_TYPE
+    afterStages[10].allowSiblingStagesToContinueOnFailure == true
+    afterStages[10].continuePipelineOnFailure == true
 
     when: 'no deployment monitor specified'
     stage.context.remove("deploymentMonitor")
