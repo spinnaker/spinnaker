@@ -32,16 +32,17 @@ public class SecretAwarePropertySource extends EnumerablePropertySource<Enumerab
   public Object getProperty(String name) {
     Object o = source.getProperty(name);
     if (o instanceof String && EncryptedSecret.isEncryptedSecret((String) o)) {
+      String propertyValue = (String) o;
       if (secretManager == null) {
         throw new SecretException("No secret manager to decrypt value of " + name);
       }
       String lName = name.toLowerCase();
       if (isSamlFile(lName)) {
-        return "file:" + secretManager.decryptAsFile((String) o).toString();
-      } else if (isFile(lName) || EncryptedSecret.isEncryptedFile(lName)) {
-        return secretManager.decryptAsFile((String) o).toString();
+        return "file:" + secretManager.decryptAsFile(propertyValue).toString();
+      } else if (isFile(lName) || EncryptedSecret.isEncryptedFile(propertyValue)) {
+        return secretManager.decryptAsFile(propertyValue).toString();
       } else {
-        return secretManager.decrypt((String) o);
+        return secretManager.decrypt(propertyValue);
       }
     }
     return o;

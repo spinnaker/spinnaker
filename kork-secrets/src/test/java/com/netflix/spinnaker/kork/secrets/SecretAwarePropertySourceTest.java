@@ -42,6 +42,7 @@ public class SecretAwarePropertySourceTest {
 
     testValues.put("testSecretFile", "encrypted:noop!k:testValue");
     testValues.put("testSecretPath", "encrypted:noop!k:testValue");
+    testValues.put("testSecretCert", "encryptedFile:noop!k:testValue");
     testValues.put("testSecretString", "encrypted:noop!k:testValue");
     testValues.put("testNotSoSecret", "unencrypted");
 
@@ -69,6 +70,13 @@ public class SecretAwarePropertySourceTest {
   @Test
   public void secretPathShouldGetDecryptedAsFile() {
     secretAwarePropertySource.getProperty("testSecretPath");
+    verify(secretManager, never()).decrypt(any());
+    verify(secretManager, times(1)).decryptAsFile(any());
+  }
+
+  @Test
+  public void secretFileInPropertyValueShouldGetDecryptedAsFile() {
+    secretAwarePropertySource.getProperty("testSecretCert");
     verify(secretManager, never()).decrypt(any());
     verify(secretManager, times(1)).decryptAsFile(any());
   }
