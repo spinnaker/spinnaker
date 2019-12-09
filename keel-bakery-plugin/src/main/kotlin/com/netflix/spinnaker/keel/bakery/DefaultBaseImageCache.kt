@@ -10,7 +10,7 @@ class DefaultBaseImageCache(
     baseImages[os]?.get(label.name.toLowerCase()) ?: throw UnknownBaseImage(os, label)
 }
 
-@ConfigurationProperties("keel.plugins.bakery.base-images")
+@ConfigurationProperties(prefix = "keel.plugins.bakery")
 class BaseImageCacheProperties {
   var baseImages: Map<String, Map<String, String>> = emptyMap()
 }
