@@ -22,7 +22,6 @@ import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.test.resource
-import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.coEvery
@@ -241,25 +240,6 @@ internal class ImageHandlerTests : JUnit5Minutests {
     }
 
     context("baking a new AMI") {
-      before {
-        coEvery { igorService.getArtifact("keel", "0.161.0-h63.24d0843") } returns
-          Artifact.builder()
-            .type("DEB")
-            .customKind(false)
-            .name("keel")
-            .version("0.161.0-h63.24d0843")
-            .location("rocket")
-            .reference("debian-local:pool/k/keel/keel_0.160.0-h62.02c0fbf_all.deb")
-            .metadata(
-                mapOf(
-                "repoKey" to "stash/spkr/keel-nflx",
-                "rocketMessageId" to "84c1ecca-7f76-482e-9952-226fb2c4c410",
-                "releaseStatus" to "FINAL"
-              ))
-            .provenance("https://spinnaker.builds.test.netflix.net/job/SPINNAKER-rocket-package-keel/62")
-            .build()
-      }
-
       test("artifact is attached to the trigger") {
         val request = slot<OrchestrationRequest>()
         coEvery { orcaService.orchestrate("keel@spinnaker", capture(request)) } returns randomTaskRef()
@@ -272,7 +252,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
           .hasSize(1)
       }
 
-      test("the full debian name is specified when we create a bake task") {
+      test("the full debian name is specified based on naming convention when we create a bake task") {
         val request = slot<OrchestrationRequest>()
         coEvery { orcaService.orchestrate("keel@spinnaker", capture(request)) } returns randomTaskRef()
 
@@ -281,7 +261,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
         }
 
         expectThat(request.captured.job.first())
-          .hasEntry("package", "keel_0.160.0-h62.02c0fbf_all.deb")
+          .hasEntry("package", "keel_0.161.0-h63.24d0843_all.deb")
       }
     }
   }

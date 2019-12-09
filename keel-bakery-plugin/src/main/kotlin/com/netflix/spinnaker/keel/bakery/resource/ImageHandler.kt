@@ -30,6 +30,7 @@ import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
 import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.SupportedKind
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import kotlinx.coroutines.runBlocking
 import org.springframework.context.ApplicationEventPublisher
 
@@ -104,7 +105,16 @@ class ImageHandler(
     val appVersion = AppVersion.parseName(resourceDiff.desired.appVersion)
     val packageName = appVersion.packageName
     val version = resourceDiff.desired.appVersion.substringAfter("$packageName-")
-    val artifact = igorService.getArtifact(packageName, version)
+    val artifact = Artifact.builder()
+      .type("DEB")
+      .customKind(false)
+      .name(resource.spec.artifactName)
+      .version(version)
+      .location("rocket")
+      .reference("/${packageName}_${version}_all.deb")
+      .metadata(mapOf())
+      .provenance("n/a")
+      .build()
 
     log.info("baking new image for {}", resource.spec.artifactName)
     val description = "Bake ${resourceDiff.desired.appVersion}"
