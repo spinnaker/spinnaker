@@ -7,6 +7,7 @@ dependencies {
   annotationProcessor "org.projectlombok:lombok"
   testAnnotationProcessor "org.projectlombok:lombok"
 
+  implementation "com.netflix.spinnaker.kork:kork-exceptions"
   implementation "com.netflix.frigga:frigga"
   implementation "com.netflix.spectator:spectator-api"
   implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"
@@ -19,4 +20,5 @@ dependencies {
   implementation "org.codehaus.groovy:groovy-all"
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation 'org.apache.commons:commons-lang3'
 }
