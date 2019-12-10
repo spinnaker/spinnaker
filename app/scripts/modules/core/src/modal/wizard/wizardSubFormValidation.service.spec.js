@@ -1,9 +1,9 @@
 'use strict';
 
+import * as angular from 'angular';
 import { ModalWizard } from './ModalWizard';
 
 describe('Service: wizardSubFormValidation', function() {
-  import * as angular from 'angular';
   let wizardSubFormValidation, $rootScope, $compile;
 
   beforeEach(window.module(require('./wizardSubFormValidation.service').name));

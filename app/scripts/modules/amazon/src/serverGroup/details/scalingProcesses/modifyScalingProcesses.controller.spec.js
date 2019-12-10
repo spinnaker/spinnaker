@@ -1,10 +1,9 @@
 'use strict';
 
+import * as angular from 'angular';
 import { TaskExecutor } from '@spinnaker/core';
 
 describe('Controller: modifyScalingProcesses', function() {
-  import * as angular from 'angular';
-
   beforeEach(window.module(require('./modifyScalingProcesses.controller').name));
 
   beforeEach(

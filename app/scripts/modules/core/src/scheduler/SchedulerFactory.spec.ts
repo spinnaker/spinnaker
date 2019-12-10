@@ -1,9 +1,8 @@
+import * as angular from 'angular';
 import { ITimeoutService, mock } from 'angular';
 import { SchedulerFactory } from './SchedulerFactory';
 
 describe('scheduler', function() {
-  import * as angular from 'angular';
-
   let $timeout: ITimeoutService;
 
   beforeEach(function() {
