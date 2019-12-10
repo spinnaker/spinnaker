@@ -62,7 +62,9 @@ public class SlackController {
     return slackChannelsCache.get();
   }
 
-  @Scheduled(fixedDelay = 300000L)
+  @Scheduled(
+      fixedDelayString = "${slack.channel-refresh-interval-millis:1200000}",
+      initialDelayString = "${random.int(600000)}")
   void refreshSlack() {
     try {
       log.info("Refreshing Slack channels list");
@@ -71,7 +73,7 @@ public class SlackController {
       slackChannelsCache.set(channels);
     } catch (Exception e) {
       registry.counter("slack.channels.errors").increment();
-      log.error("Unable to refresh Slack service list", e);
+      log.error("Unable to refresh Slack channels list", e);
     }
   }
 
