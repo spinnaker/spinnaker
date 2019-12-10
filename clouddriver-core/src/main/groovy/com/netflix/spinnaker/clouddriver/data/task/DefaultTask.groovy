@@ -104,8 +104,8 @@ public class DefaultTask implements Task {
   }
 
   @Override
-  List<SagaId> getSagaIds() {
-    return sagaIdentifiers.toList()
+  Set<SagaId> getSagaIds() {
+    return sagaIdentifiers.toSet()
   }
 
   @Override

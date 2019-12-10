@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.clouddriver.data.task;
 
 import java.util.List;
+import java.util.Set;
 import javax.annotation.Nonnull;
 
 /**
@@ -81,9 +82,9 @@ public interface Task {
   /** Returns true if any Sagas have been associated with this Task. */
   boolean hasSagaIds();
 
-  /** A list of Sagas associated with this Task, if any. */
+  /** A set of Sagas associated with this Task, if any. */
   @Nonnull
-  List<SagaId> getSagaIds();
+  Set<SagaId> getSagaIds();
 
   /** Returns true if the Task is retryable (in the case of a failure) */
   default boolean isRetryable() {

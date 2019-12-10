@@ -35,7 +35,7 @@ class JedisTask implements Task {
   final long startTimeMs
   final String ownerId
   final String requestId
-  final List<SagaId> sagaIds
+  final Set<SagaId> sagaIds
 
   @JsonIgnore
   final boolean previousRedis

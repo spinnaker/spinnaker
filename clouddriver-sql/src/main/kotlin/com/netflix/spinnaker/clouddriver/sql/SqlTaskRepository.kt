@@ -53,7 +53,7 @@ class SqlTaskRepository(
   }
 
   override fun create(phase: String, status: String, clientRequestId: String): Task {
-    var task = SqlTask(ulid.nextULID(), ClouddriverHostname.ID, clientRequestId, clock.millis(), mutableListOf(), this)
+    var task = SqlTask(ulid.nextULID(), ClouddriverHostname.ID, clientRequestId, clock.millis(), mutableSetOf(), this)
     val historyId = ulid.nextULID()
 
     withPool(POOL_NAME) {

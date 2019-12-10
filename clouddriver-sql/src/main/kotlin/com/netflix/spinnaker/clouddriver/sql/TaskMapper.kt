@@ -35,7 +35,7 @@ class TaskMapper(
   companion object {
     private val log = LoggerFactory.getLogger(TaskMapper::class.java)
 
-    private val SAGA_IDS_TYPE = object : TypeReference<List<SagaId>>() {}
+    private val SAGA_IDS_TYPE = object : TypeReference<Set<SagaId>>() {}
   }
 
   fun map(rs: ResultSet): Collection<Task> {
@@ -90,9 +90,9 @@ class TaskMapper(
     }
   }
 
-  private fun sagaIds(sagaIdsValue: String?): MutableList<SagaId> {
+  private fun sagaIds(sagaIdsValue: String?): MutableSet<SagaId> {
     if (sagaIdsValue == null) {
-      return mutableListOf()
+      return mutableSetOf()
     }
     return mapper.readValue(sagaIdsValue, SAGA_IDS_TYPE)
   }

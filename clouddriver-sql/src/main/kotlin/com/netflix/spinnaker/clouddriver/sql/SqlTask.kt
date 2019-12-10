@@ -32,7 +32,7 @@ class SqlTask(
   @JsonIgnore internal val ownerId: String,
   @JsonIgnore internal val requestId: String,
   @JsonIgnore internal val startTimeMs: Long,
-  private val sagaIds: MutableList<SagaId>,
+  private val sagaIds: MutableSet<SagaId>,
   private val repository: SqlTaskRepository
 ) : Task {
 
@@ -105,7 +105,7 @@ class SqlTask(
     log.debug("Added sagaId with name={} and id={} to task={}", sagaId.name, sagaId.id, id)
   }
 
-  override fun getSagaIds(): MutableList<SagaId> {
+  override fun getSagaIds(): MutableSet<SagaId> {
     return sagaIds
   }
 
