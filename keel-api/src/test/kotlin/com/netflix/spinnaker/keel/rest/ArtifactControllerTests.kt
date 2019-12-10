@@ -2,8 +2,7 @@ package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.api.ArtifactStatus.FINAL
-import com.netflix.spinnaker.keel.api.ArtifactType.DEB
-import com.netflix.spinnaker.keel.api.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
@@ -40,7 +39,7 @@ internal class ArtifactControllerTests {
 
   @Test
   fun `can get the versions of an artifact`() {
-    val artifact = DeliveryArtifact("fnord", DEB)
+    val artifact = DebianArtifact("fnord")
     with(artifactRepository) {
       register(artifact)
       store(artifact, "fnord-1.0.0-41595c4", FINAL)

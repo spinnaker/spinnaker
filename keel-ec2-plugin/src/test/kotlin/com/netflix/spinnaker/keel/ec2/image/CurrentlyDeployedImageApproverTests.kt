@@ -17,11 +17,11 @@
  */
 package com.netflix.spinnaker.keel.ec2.image
 
-import com.netflix.spinnaker.keel.api.ArtifactType
-import com.netflix.spinnaker.keel.api.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
+import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
@@ -31,7 +31,6 @@ import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
 import com.netflix.spinnaker.keel.model.Moniker
-import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
@@ -64,10 +63,7 @@ internal class CurrentlyDeployedImageApproverTests : JUnit5Minutests {
       mapOf("ap-south-1" to listOf(imageId))
     )
 
-    val artifact = DeliveryArtifact(
-      name = "fnord",
-      type = ArtifactType.DEB
-    )
+    val artifact = DebianArtifact(name = "fnord")
 
     val nonArtifactCluster = resource(
       apiVersion = SPINNAKER_EC2_API_V1,

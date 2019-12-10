@@ -5,7 +5,6 @@ import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.ArtifactType
 import com.netflix.spinnaker.keel.api.ConstraintState
 import com.netflix.spinnaker.keel.api.ConstraintStatus
-import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
@@ -21,8 +20,8 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG_A
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG_LAST_CHECKED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_CONSTRAINT
-import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_RESOURCE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_VERSIONS
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_RESOURCE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
@@ -30,7 +29,6 @@ import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.inline
 import org.jooq.impl.DSL.select
-import org.jooq.impl.DSL.sql
 import org.jooq.util.mysql.MySQLDSL
 import java.time.Clock
 import java.time.Duration
@@ -166,12 +164,12 @@ class SqlDeliveryConfigRepository(
       }
       ?.let { (uid, deliveryConfig) ->
         jooq
-          .select(DELIVERY_ARTIFACT.NAME, DELIVERY_ARTIFACT.TYPE)
+          .select(DELIVERY_ARTIFACT.NAME, DELIVERY_ARTIFACT.TYPE, DELIVERY_ARTIFACT.DETAILS)
           .from(DELIVERY_ARTIFACT, DELIVERY_CONFIG_ARTIFACT)
           .where(DELIVERY_CONFIG_ARTIFACT.ARTIFACT_UID.eq(DELIVERY_ARTIFACT.UID))
           .and(DELIVERY_CONFIG_ARTIFACT.DELIVERY_CONFIG_UID.eq(uid))
-          .fetch { (name, type) ->
-            DeliveryArtifact(name, ArtifactType.valueOf(type))
+          .fetch { (name, type, details) ->
+            mapToArtifact(name, ArtifactType.valueOf(type), details)
           }
           .toSet()
           .let { artifacts ->

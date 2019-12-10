@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.actuation
 
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
-import com.netflix.spinnaker.keel.api.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
@@ -189,10 +189,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
             SubmittedDeliveryConfig(
               name = "keel-manifest",
               application = "keel",
-              artifacts = setOf(DeliveryArtifact(
-                name = "keel",
-                type = DEB
-              )),
+              artifacts = setOf(DebianArtifact(name = "keel")),
               environments = setOf(
                 SubmittedEnvironment(
                   name = "test",
@@ -226,7 +223,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
 
         test("artifacts are persisted") {
           expectThat(artifactRepository.isRegistered("keel", DEB)).isTrue()
-          verify { publisher.publishEvent(ArtifactRegisteredEvent(DeliveryArtifact("keel", DEB))) }
+          verify { publisher.publishEvent(ArtifactRegisteredEvent(DebianArtifact("keel"))) }
         }
 
         test("individual resources are persisted") {
@@ -242,12 +239,10 @@ internal class ResourcePersisterTests : JUnit5Minutests {
 
       context("a delivery config with existing artifacts and resources is persisted") {
         before {
-          val artifact = DeliveryArtifact(
-            name = "keel",
-            type = DEB
-          ).also {
-            artifactRepository.register(it)
-          }
+          val artifact = DebianArtifact(name = "keel")
+            .also {
+              artifactRepository.register(it)
+            }
 
           val resource1 = SubmittedResource(
             apiVersion = SPINNAKER_API_V1.subApi("test"),

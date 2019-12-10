@@ -1,10 +1,9 @@
 package com.netflix.spinnaker.keel.api.ec2
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.Capacity
 import com.netflix.spinnaker.keel.api.ClusterDependencies
-import com.netflix.spinnaker.keel.api.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.HealthSpec
@@ -120,7 +119,7 @@ object Fixture {
       app = "fnord",
       stack = "test"
     ),
-    imageProvider = ArtifactImageProvider(DeliveryArtifact("fnord", DEB)),
+    imageProvider = ArtifactImageProvider(DebianArtifact("fnord")),
     locations = SubnetAwareLocations(
       account = "test",
       vpc = "vpc0",

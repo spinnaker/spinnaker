@@ -27,6 +27,10 @@ import com.netflix.spinnaker.keel.api.RedBlack
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
 import com.netflix.spinnaker.keel.api.SubmittedResource
+import com.netflix.spinnaker.keel.api.TagVersionStrategy.BRANCH_JOB_COMMIT_BY_JOB
+import com.netflix.spinnaker.keel.api.TagVersionStrategy.INCREASING_TAG
+import com.netflix.spinnaker.keel.api.TagVersionStrategy.SEMVER_JOB_COMMIT_BY_SEMVER
+import com.netflix.spinnaker.keel.api.TagVersionStrategy.SEMVER_TAG
 import com.netflix.spinnaker.keel.api.titus.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.titus.SPINNAKER_TITUS_API_V1
 import com.netflix.spinnaker.keel.api.titus.cluster.TitusClusterHandler
@@ -48,10 +52,6 @@ import com.netflix.spinnaker.keel.clouddriver.model.TitusActiveServerGroupImage
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.docker.ContainerWithDigest
 import com.netflix.spinnaker.keel.docker.ContainerWithVersionedTag
-import com.netflix.spinnaker.keel.docker.TagVersionStrategy.BRANCH_JOB_COMMIT_BY_JOB
-import com.netflix.spinnaker.keel.docker.TagVersionStrategy.INCREASING_TAG
-import com.netflix.spinnaker.keel.docker.TagVersionStrategy.SEMVER_JOB_COMMIT_BY_SEMVER
-import com.netflix.spinnaker.keel.docker.TagVersionStrategy.SEMVER_TAG
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.parseMoniker

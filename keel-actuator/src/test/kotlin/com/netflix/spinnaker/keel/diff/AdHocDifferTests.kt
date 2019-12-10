@@ -17,8 +17,7 @@
  */
 package com.netflix.spinnaker.keel.diff
 
-import com.netflix.spinnaker.keel.api.ArtifactType
-import com.netflix.spinnaker.keel.api.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.SubmittedDeliveryConfig
@@ -58,10 +57,7 @@ class AdHocDifferTests : JUnit5Minutests {
     val deliveryConfig = SubmittedDeliveryConfig(
       name = "keel-manifest",
       application = "keel",
-      artifacts = setOf(DeliveryArtifact(
-        name = "keel",
-        type = ArtifactType.DEB
-      )),
+      artifacts = setOf(DebianArtifact(name = "keel")),
       environments = setOf(
         SubmittedEnvironment(
           name = "test",

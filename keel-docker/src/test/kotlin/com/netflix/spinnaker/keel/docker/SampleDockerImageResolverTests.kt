@@ -17,13 +17,12 @@
  */
 package com.netflix.spinnaker.keel.docker
 
-import com.netflix.spinnaker.keel.api.ArtifactStatus.FINAL
-import com.netflix.spinnaker.keel.api.ArtifactType.DOCKER
-import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.DockerArtifact
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.docker.TagVersionStrategy.SEMVER_TAG
+import com.netflix.spinnaker.keel.api.TagVersionStrategy.SEMVER_TAG
+import com.netflix.spinnaker.keel.exceptions.NoDockerImageSatisfiesConstraints
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
 import dev.minutest.junit.JUnit5Minutests
@@ -61,10 +60,7 @@ class SampleDockerImageResolverTests : JUnit5Minutests {
       "serviceAccount" to "keel@spinnaker"
     ))
 
-  private val artifact = DeliveryArtifact(
-    name = "spkr/keeldemo",
-    type = DOCKER
-  )
+  private val artifact = DockerArtifact(name = "spkr/keeldemo", tagVersionStrategy = SEMVER_TAG)
 
   private val env = Environment(
     name = "test",
@@ -108,12 +104,12 @@ class SampleDockerImageResolverTests : JUnit5Minutests {
       }
 
       test("no versions approved yet") {
-        artifactRepo.store(artifact, "v0.0.1", FINAL)
+        artifactRepo.store(artifact, "v0.0.1", null)
         expectThrows<NoDockerImageSatisfiesConstraints> { this.invoke(resource) }
       }
 
       test("there is a version approved") {
-        artifactRepo.store(artifact, "v0.0.1", FINAL)
+        artifactRepo.store(artifact, "v0.0.1", null)
         artifactRepo.approveVersionFor(deliveryConfig, artifact, "v0.0.1", env.name)
 
         val resolvedResource = this.invoke(resource)

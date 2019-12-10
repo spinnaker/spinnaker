@@ -3,7 +3,10 @@ package com.netflix.spinnaker.keel.artifact
 import com.netflix.spinnaker.igor.ArtifactService
 import com.netflix.spinnaker.keel.api.ArtifactStatus.FINAL
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
+import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.DockerArtifact
+import com.netflix.spinnaker.keel.api.TagVersionStrategy.BRANCH_JOB_COMMIT_BY_JOB
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.events.ArtifactEvent
 import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
@@ -20,7 +23,7 @@ import io.mockk.verify
 import org.springframework.context.ApplicationEventPublisher
 
 internal class ArtifactListenerTests : JUnit5Minutests {
-  val korkArtifact = Artifact.builder()
+  val korkDeb = Artifact.builder()
     .type("DEB")
     .customKind(false)
     .name("fnord")
@@ -29,6 +32,9 @@ internal class ArtifactListenerTests : JUnit5Minutests {
     .metadata(mapOf("releaseStatus" to FINAL))
     .provenance("https://my.jenkins.master/jobs/fnord-release/58")
     .build()
+
+  val deb = DebianArtifact(name = "fnord")
+  val docker = DockerArtifact(name = "fnord/myimage", tagVersionStrategy = BRANCH_JOB_COMMIT_BY_JOB)
 
   data class ArtifactFixture(
     val event: ArtifactEvent,
@@ -45,14 +51,10 @@ internal class ArtifactListenerTests : JUnit5Minutests {
     fixture {
       ArtifactFixture(
         event = ArtifactEvent(
-          artifacts = listOf(korkArtifact),
+          artifacts = listOf(korkDeb),
           details = emptyMap()
         ),
-
-        artifact = DeliveryArtifact(
-          name = "fnord",
-          type = DEB
-        )
+        artifact = DebianArtifact(name = "fnord")
       )
     }
 
@@ -76,6 +78,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
     context("the artifact is registered with versions") {
       before {
         every { repository.isRegistered(artifact.name, artifact.type) } returns true
+        every { repository.get(artifact.name, artifact.type) } returns artifact
         every { repository.versions(artifact) } returns listOf("0.227.0-h141.bd97556")
       }
 
@@ -126,21 +129,16 @@ internal class ArtifactListenerTests : JUnit5Minutests {
     fixture {
       RegisteredFixture(
         event = ArtifactRegisteredEvent(
-          DeliveryArtifact(
-            name = "fnord",
-            type = DEB
-          )
+          DebianArtifact(name = "fnord")
         ),
-        artifact = DeliveryArtifact(
-          name = "fnord",
-          type = DEB
-        )
+        artifact = DebianArtifact(name = "fnord")
       )
     }
 
     context("artifact is already registered") {
       before {
         every { repository.isRegistered("fnord", DEB) } returns true
+        every { repository.get(artifact.name, artifact.type) } returns artifact
         every { repository.versions(any()) } returns listOf("0.227.0-h141.bd97556")
         listener.onArtifactRegisteredEvent(event)
       }
@@ -166,14 +164,14 @@ internal class ArtifactListenerTests : JUnit5Minutests {
               "0.225.0-h139.f5c2ec7",
               "0.224.0-h138.0320b6c"
             )
-          coEvery { artifactService.getArtifact("fnord", "0.227.0-h141.bd97556") } returns korkArtifact
+          coEvery { artifactService.getArtifact("fnord", "0.227.0-h141.bd97556") } returns korkDeb
 
           listener.onArtifactRegisteredEvent(event)
         }
 
         test("the newest version is saved") {
           verify(exactly = 1) {
-            repository.store(DeliveryArtifact("fnord", DEB), "fnord-0.227.0-h141.bd97556", FINAL)
+            repository.store(DebianArtifact("fnord"), "fnord-0.227.0-h141.bd97556", FINAL)
           }
         }
       }
@@ -195,7 +193,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
     }
   }
 
-  val newerKorkArtifact = Artifact.builder()
+  val newerKorkDeb: Artifact = Artifact.builder()
     .type("DEB")
     .customKind(false)
     .name("fnord")
@@ -206,7 +204,8 @@ internal class ArtifactListenerTests : JUnit5Minutests {
     .build()
 
   data class SyncArtifactsFixture(
-    val artifact: DeliveryArtifact,
+    val debArtifact: DeliveryArtifact,
+    val dockerArtifact: DockerArtifact,
     val repository: ArtifactRepository = mockk(relaxUnitFun = true),
     val artifactService: ArtifactService = mockk(relaxUnitFun = true),
     val clouddriverService: CloudDriverService = mockk(relaxUnitFun = true),
@@ -218,66 +217,76 @@ internal class ArtifactListenerTests : JUnit5Minutests {
   fun syncArtifactsFixture() = rootContext<SyncArtifactsFixture> {
     fixture {
       SyncArtifactsFixture(
-        artifact = DeliveryArtifact(
-          name = "fnord",
-          type = DEB
-        )
+        debArtifact = deb,
+        dockerArtifact = docker
       )
     }
 
     context("we don't have any versions of an artifact") {
       before {
-        every { repository.getAll(DEB) } returns listOf(artifact)
-        every { repository.versions(artifact) } returns listOf()
-        coEvery { artifactService.getVersions(artifact.name) } returns listOf("0.161.0-h61.116f116", "0.160.0-h60.f67f671")
-        coEvery { artifactService.getArtifact(artifact.name, "0.161.0-h61.116f116") } returns newerKorkArtifact
-        every { repository.store(artifact, "${artifact.name}-0.161.0-h61.116f116", FINAL) } returns true
+        every { repository.getAll() } returns listOf(debArtifact, dockerArtifact)
+        every { repository.versions(debArtifact) } returns listOf()
+        every { repository.versions(dockerArtifact) } returns listOf()
+        coEvery { artifactService.getVersions(debArtifact.name) } returns listOf("0.161.0-h61.116f116", "0.160.0-h60.f67f671")
+        coEvery { clouddriverService.findDockerTagsForImage("*", dockerArtifact.name) } returns listOf("master-h5.blahblah")
+        coEvery { artifactService.getArtifact(debArtifact.name, "0.161.0-h61.116f116") } returns newerKorkDeb
+        every { repository.store(debArtifact, "${debArtifact.name}-0.161.0-h61.116f116", FINAL) } returns true
+        every { repository.store(dockerArtifact, "master-h5.blahblah", null) } returns true
       }
 
       test("new version is stored") {
-        listener.syncDebArtifactVersions()
-        verify { repository.store(artifact, "${artifact.name}-0.161.0-h61.116f116", FINAL) }
+        listener.syncArtifactVersions()
+        verify { repository.store(debArtifact, "${debArtifact.name}-0.161.0-h61.116f116", FINAL) }
+        verify { repository.store(dockerArtifact, "master-h5.blahblah", null) }
       }
     }
 
     context("there is one artifact with one version stored") {
       before {
-        every { repository.getAll(DEB) } returns listOf(artifact)
-        every { repository.versions(artifact) } returns listOf("${artifact.name}-0.156.0-h58.f67fe09")
+        every { repository.getAll() } returns listOf(debArtifact, dockerArtifact)
+        every { repository.versions(debArtifact) } returns listOf("${debArtifact.name}-0.156.0-h58.f67fe09")
+        every { repository.versions(dockerArtifact) } returns listOf("master-h5.blahblah")
       }
 
       context("a new version") {
         before {
-          coEvery { artifactService.getVersions(artifact.name) } returns listOf("0.161.0-h61.116f116", "0.160.0-h60.f67f671")
-          coEvery { artifactService.getArtifact(artifact.name, "0.161.0-h61.116f116") } returns newerKorkArtifact
-          every { repository.store(artifact, "${artifact.name}-0.161.0-h61.116f116", FINAL) } returns true
+          coEvery { artifactService.getVersions(debArtifact.name) } returns listOf("0.161.0-h61.116f116", "0.160.0-h60.f67f671")
+          coEvery { clouddriverService.findDockerTagsForImage("*", dockerArtifact.name) } returns listOf("master-h6.hehehe")
+          coEvery { artifactService.getArtifact(debArtifact.name, "0.161.0-h61.116f116") } returns newerKorkDeb
+          every { repository.store(debArtifact, "${debArtifact.name}-0.161.0-h61.116f116", FINAL) } returns true
+          every { repository.store(dockerArtifact, "master-h6.hehehe", null) } returns true
         }
 
         test("new version stored") {
-          listener.syncDebArtifactVersions()
-          verify { repository.store(artifact, "${artifact.name}-0.161.0-h61.116f116", FINAL) }
+          listener.syncArtifactVersions()
+          verify { repository.store(debArtifact, "${debArtifact.name}-0.161.0-h61.116f116", FINAL) }
+          verify { repository.store(dockerArtifact, "master-h6.hehehe", null) }
         }
       }
 
       context("no new version") {
         before {
-          coEvery { artifactService.getVersions(artifact.name) } returns listOf("0.156.0-h58.f67fe09")
+          coEvery { artifactService.getVersions(debArtifact.name) } returns listOf("0.156.0-h58.f67fe09")
+          coEvery { clouddriverService.findDockerTagsForImage("*", dockerArtifact.name) } returns listOf("master-h5.blahblah")
         }
 
         test("store not called") {
-          listener.syncDebArtifactVersions()
-          verify(exactly = 0) { repository.store(artifact, any(), FINAL) }
+          listener.syncArtifactVersions()
+          verify(exactly = 0) { repository.store(debArtifact, any(), FINAL) }
+          verify(exactly = 0) { repository.store(dockerArtifact, any(), FINAL) }
         }
       }
 
       context("no version information ") {
         before {
-          coEvery { artifactService.getVersions(artifact.name) } returns listOf()
+          coEvery { artifactService.getVersions(debArtifact.name) } returns listOf()
+          coEvery { clouddriverService.findDockerTagsForImage("*", dockerArtifact.name) } returns listOf()
         }
 
         test("store not called") {
-          listener.syncDebArtifactVersions()
-          verify(exactly = 0) { repository.store(artifact, any(), FINAL) }
+          listener.syncArtifactVersions()
+          verify(exactly = 0) { repository.store(debArtifact, any(), FINAL) }
+          verify(exactly = 0) { repository.store(dockerArtifact, any(), FINAL) }
         }
       }
     }

@@ -10,6 +10,7 @@ import java.time.Clock
 internal object SqlDeliveryConfigRepositoryTests : DeliveryConfigRepositoryTests<SqlDeliveryConfigRepository, SqlResourceRepository, SqlArtifactRepository>() {
   private val testDatabase = initTestDatabase()
   private val jooq = testDatabase.context
+  private val objectmapper = configuredObjectMapper()
 
   override fun createDeliveryConfigRepository(resourceTypeIdentifier: ResourceTypeIdentifier): SqlDeliveryConfigRepository =
     SqlDeliveryConfigRepository(jooq, Clock.systemDefaultZone(), DummyResourceTypeIdentifier)
@@ -18,7 +19,7 @@ internal object SqlDeliveryConfigRepositoryTests : DeliveryConfigRepositoryTests
     SqlResourceRepository(jooq, Clock.systemDefaultZone(), DummyResourceTypeIdentifier, configuredObjectMapper())
 
   override fun createArtifactRepository(): SqlArtifactRepository =
-    SqlArtifactRepository(jooq, Clock.systemDefaultZone())
+    SqlArtifactRepository(jooq, Clock.systemDefaultZone(), objectmapper)
 
   override fun flush() {
     cleanupDb(jooq)

@@ -15,19 +15,13 @@
  * limitations under the License.
  *
  */
-package com.netflix.spinnaker.keel.docker
+package com.netflix.spinnaker.exceptions
 
-import com.netflix.spinnaker.keel.api.ResourceCurrentlyUnresolvable
+import com.netflix.spinnaker.keel.api.ArtifactType
 
-/**
- * The regex provided produced too many capture groups.
- */
-class InvalidRegexException(
-  val regex: String,
-  val tag: String
-) : ResourceCurrentlyUnresolvable("The provided regex ($regex) produced did not produce one capture group on tag $tag")
-
-class NoDockerImageSatisfiesConstraints(
-  val artifactName: String,
-  val environment: String
-) : ResourceCurrentlyUnresolvable("No docker image found for artifact $artifactName in $environment")
+class ArtifactParsingException(
+  val name: String,
+  val type: ArtifactType,
+  val json: String,
+  val e: Exception?
+) : RuntimeException("Unable to construct a delivery artifact from entry with name $name, type ${type.value()}, and json $json", e)

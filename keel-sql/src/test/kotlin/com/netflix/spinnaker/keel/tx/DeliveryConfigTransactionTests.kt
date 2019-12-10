@@ -3,7 +3,7 @@ package com.netflix.spinnaker.keel.tx
 import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.actuation.ResourcePersister
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
-import com.netflix.spinnaker.keel.api.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.SubmittedDeliveryConfig
@@ -77,10 +77,7 @@ internal class DeliveryConfigTransactionTests : JUnit5Minutests {
     val submittedManifest = SubmittedDeliveryConfig(
       name = "keel-manifest",
       application = "keel",
-      artifacts = setOf(DeliveryArtifact(
-        name = "keel",
-        type = DEB
-      )),
+      artifacts = setOf(DebianArtifact(name = "keel")),
       environments = setOf(
         SubmittedEnvironment(
           name = "test",

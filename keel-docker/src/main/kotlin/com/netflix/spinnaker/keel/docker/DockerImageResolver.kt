@@ -17,14 +17,15 @@
  */
 package com.netflix.spinnaker.keel.docker
 
-import com.netflix.spinnaker.keel.api.ArtifactStatus
-import com.netflix.spinnaker.keel.api.ArtifactType.DOCKER
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.DockerArtifact
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
+import com.netflix.spinnaker.keel.api.TagComparator
 import com.netflix.spinnaker.keel.api.id
+import com.netflix.spinnaker.keel.exceptions.NoDockerImageSatisfiesConstraints
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.plugin.Resolver
@@ -65,17 +66,18 @@ abstract class DockerImageResolver<T : ResourceSpec>(
   abstract fun getDigest(account: String, organization: String, image: String, tag: String): String
 
   override fun invoke(resource: Resource<T>): Resource<T> {
-    val container = getContainerFromSpec(resource)
+    var container = getContainerFromSpec(resource)
     if (container is ContainerWithDigest) {
       return resource
     }
+    container = container as ContainerWithVersionedTag
     val account = getAccountFromSpec(resource)
     val deliveryConfig = deliveryConfigRepository.deliveryConfigFor(resource.id)
     val environment = deliveryConfigRepository.environmentFor(resource.id)
     val tag: String = if (deliveryConfig != null && environment != null) {
       findTagGivenDeliveryConfig(deliveryConfig, environment, container.toArtifact())
     } else {
-      findTagGivenStrategy(account, container as ContainerWithVersionedTag)
+      findTagGivenStrategy(account, container)
     }
 
     val newContainer = getContainer(account, container, tag)
@@ -86,8 +88,7 @@ abstract class DockerImageResolver<T : ResourceSpec>(
     artifactRepository.latestVersionApprovedIn(
       deliveryConfig,
       artifact,
-      environment.name,
-      enumValues<ArtifactStatus>().toList()
+      environment.name
     ) ?: throw NoDockerImageSatisfiesConstraints(artifact.name, environment.name)
 
   fun findTagGivenStrategy(
@@ -95,7 +96,7 @@ abstract class DockerImageResolver<T : ResourceSpec>(
     container: ContainerWithVersionedTag
   ): String {
     val tags = getTags(account, container.organization, container.image)
-    return DockerComparator.sort(tags, container.tagVersionStrategy, container.captureGroupRegex).first()
+    return tags.sortedWith(TagComparator(container.tagVersionStrategy, container.captureGroupRegex)).first()
   }
 
   fun getContainer(
@@ -111,6 +112,6 @@ abstract class DockerImageResolver<T : ResourceSpec>(
     )
   }
 
-  private fun Container.toArtifact() =
-    DeliveryArtifact(repository(), DOCKER)
+  private fun ContainerWithVersionedTag.toArtifact() =
+    DockerArtifact(repository(), tagVersionStrategy, captureGroupRegex)
 }

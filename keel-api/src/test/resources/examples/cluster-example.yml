@@ -11,7 +11,7 @@ spec:
   imageProvider:
     deliveryArtifact:
       name: keeldemo
-      type: DEB
+      type: deb
   locations:
     account: test
     vpc: vpc0

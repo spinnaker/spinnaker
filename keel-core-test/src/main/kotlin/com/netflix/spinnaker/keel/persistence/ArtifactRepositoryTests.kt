@@ -4,8 +4,9 @@ import com.netflix.spinnaker.keel.api.ArtifactStatus.FINAL
 import com.netflix.spinnaker.keel.api.ArtifactStatus.SNAPSHOT
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.ArtifactType.DOCKER
-import com.netflix.spinnaker.keel.api.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.DockerArtifact
 import com.netflix.spinnaker.keel.api.Environment
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -32,9 +33,9 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
   data class Fixture<T : ArtifactRepository>(
     val subject: T
   ) {
-    val artifact1 = DeliveryArtifact("foo", DEB)
-    val artifact2 = DeliveryArtifact("bar", DEB)
-    val artifact3 = DeliveryArtifact("baz", DOCKER)
+    val artifact1 = DebianArtifact("foo")
+    val artifact2 = DebianArtifact("bar")
+    val artifact3 = DockerArtifact("baz")
     val environment1 = Environment("test")
     val environment2 = Environment("staging")
     val manifest = DeliveryConfig(
@@ -63,7 +64,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
         expectThat(subject.isRegistered(artifact1.name, artifact1.type)).isFalse()
       }
 
-      test("registering a new version throws an exception") {
+      test("storing a new version throws an exception") {
         expectThrows<NoSuchArtifactException> {
           subject.store(artifact1, version1, SNAPSHOT)
         }

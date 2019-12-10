@@ -1,0 +1,18 @@
+databaseChangeLog:
+  - changeSet:
+      id: update-artifact-table
+      author: emjburns
+      changes:
+        - addColumn:
+            tableName: delivery_artifact
+            columns:
+              - column:
+                  name: details
+                  type: longtext
+                  value: "{}"
+                  constraints:
+                    nullable: false
+      rollback:
+        - dropColumn:
+            tableName: delivery_artifact
+            columnName: details

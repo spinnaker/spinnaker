@@ -1,8 +1,7 @@
 package com.netflix.spinnaker.keel.constraints
 
-import com.netflix.spinnaker.keel.api.ArtifactType
 import com.netflix.spinnaker.keel.api.ConstraintStatus
-import com.netflix.spinnaker.keel.api.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.PipelineConstraint
@@ -40,7 +39,7 @@ internal class PipelineConstraintEvaluatorTests : JUnit5Minutests {
   ) {
     val type = "pipeline"
     val orcaService: OrcaService = mockk()
-    val artifact = DeliveryArtifact("fnord", ArtifactType.DEB)
+    val artifact = DebianArtifact("fnord")
     val version = "1.1"
     val environment = Environment(
       name = "prod",

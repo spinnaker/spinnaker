@@ -77,7 +77,7 @@ class ArtifactController(
     @PathVariable name: String,
     @PathVariable type: ArtifactType
   ): List<String> =
-    artifactRepository.versions(DeliveryArtifact(name, type))
+    artifactRepository.versions(name, type)
 
   @ExceptionHandler(NoSuchArtifactException::class)
   @ResponseStatus(NOT_FOUND)

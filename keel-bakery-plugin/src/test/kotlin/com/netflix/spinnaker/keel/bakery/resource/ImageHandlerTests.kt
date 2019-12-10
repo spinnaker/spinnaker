@@ -3,8 +3,7 @@ package com.netflix.spinnaker.keel.bakery.resource
 import com.netflix.spinnaker.igor.ArtifactService
 import com.netflix.spinnaker.keel.api.ArtifactStatus.FINAL
 import com.netflix.spinnaker.keel.api.ArtifactStatus.SNAPSHOT
-import com.netflix.spinnaker.keel.api.ArtifactType.DEB
-import com.netflix.spinnaker.keel.api.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.NoKnownArtifactVersions
 import com.netflix.spinnaker.keel.bakery.BaseImageCache
 import com.netflix.spinnaker.keel.bakery.UnknownBaseImage
@@ -87,7 +86,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
     context("resolving desired and current state") {
       context("clouddriver has an image for the base AMI") {
         before {
-          val artifact = DeliveryArtifact("keel", DEB)
+          val artifact = DebianArtifact("keel")
           artifactRepository.register(artifact)
           artifactRepository.store(artifact, image.appVersion, FINAL)
 
@@ -156,7 +155,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
 
       context("there are no known versions of the artifact") {
         before {
-          val artifact = DeliveryArtifact("keel", DEB)
+          val artifact = DebianArtifact("keel")
           artifactRepository.register(artifact)
           every {
             baseImageCache.getBaseImage(resource.spec.baseOs, resource.spec.baseLabel)
@@ -173,7 +172,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
 
       context("there is only a version with the wrong status") {
         before {
-          val artifact = DeliveryArtifact("keel", DEB)
+          val artifact = DebianArtifact("keel")
           artifactRepository.register(artifact)
           artifactRepository.store(artifact, image.appVersion, FINAL)
           every {
@@ -191,7 +190,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
 
       context("there is no cached base image") {
         before {
-          val artifact = DeliveryArtifact("keel", DEB)
+          val artifact = DebianArtifact("keel")
           artifactRepository.register(artifact)
           artifactRepository.store(artifact, image.appVersion, FINAL)
 
@@ -207,7 +206,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
 
       context("clouddriver can't find the base AMI") {
         before {
-          val artifact = DeliveryArtifact("keel", DEB)
+          val artifact = DebianArtifact("keel")
           artifactRepository.register(artifact)
           artifactRepository.store(artifact, image.appVersion, FINAL)
 

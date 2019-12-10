@@ -26,6 +26,11 @@ import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
 import com.netflix.spinnaker.keel.api.SubmittedResource
+import com.netflix.spinnaker.keel.api.TagVersionStrategy
+import com.netflix.spinnaker.keel.api.TagVersionStrategy.BRANCH_JOB_COMMIT_BY_JOB
+import com.netflix.spinnaker.keel.api.TagVersionStrategy.INCREASING_TAG
+import com.netflix.spinnaker.keel.api.TagVersionStrategy.SEMVER_JOB_COMMIT_BY_SEMVER
+import com.netflix.spinnaker.keel.api.TagVersionStrategy.SEMVER_TAG
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.api.titus.CLOUD_PROVIDER
@@ -42,12 +47,6 @@ import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.docker.Container
 import com.netflix.spinnaker.keel.docker.ContainerWithDigest
 import com.netflix.spinnaker.keel.docker.ContainerWithVersionedTag
-import com.netflix.spinnaker.keel.docker.TagVersionStrategy
-import com.netflix.spinnaker.keel.docker.TagVersionStrategy.BRANCH_JOB_COMMIT_BY_JOB
-import com.netflix.spinnaker.keel.docker.TagVersionStrategy.INCREASING_TAG
-import com.netflix.spinnaker.keel.docker.TagVersionStrategy.SEMVER_JOB_COMMIT_BY_SEMVER
-import com.netflix.spinnaker.keel.docker.TagVersionStrategy.SEMVER_TAG
-import com.netflix.spinnaker.keel.docker.isSemver
 import com.netflix.spinnaker.keel.events.Task
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.orca.OrcaService
@@ -59,6 +58,7 @@ import com.netflix.spinnaker.keel.retrofit.isNotFound
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
+import net.swiftzer.semver.SemVer
 import org.springframework.context.ApplicationEventPublisher
 import retrofit2.HttpException
 import java.time.Clock
@@ -204,6 +204,14 @@ class TitusClusterHandler(
     }
     return null
   }
+
+  private fun isSemver(input: String) =
+    try {
+      SemVer.parse(input.removePrefix("v"))
+      true
+    } catch (e: IllegalArgumentException) {
+      false
+    }
 
   private fun ResourceDiff<TitusServerGroup>.resizeServerGroupJob(): Map<String, Any?> {
     val current = requireNotNull(current) {

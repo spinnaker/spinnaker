@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.keel.constraints
 
-import com.netflix.spinnaker.keel.api.ArtifactType
-import com.netflix.spinnaker.keel.api.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.TimeWindow
@@ -17,7 +16,6 @@ import strikt.assertions.failed
 import strikt.assertions.isA
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
-import java.lang.IllegalArgumentException
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
@@ -36,7 +34,7 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
     val clock: Clock,
     val constraint: TimeWindowConstraint
   ) {
-    val artifact = DeliveryArtifact("fnord", ArtifactType.DEB)
+    val artifact = DebianArtifact("fnord")
     val environment = Environment(
       name = "prod",
       constraints = setOf(constraint)

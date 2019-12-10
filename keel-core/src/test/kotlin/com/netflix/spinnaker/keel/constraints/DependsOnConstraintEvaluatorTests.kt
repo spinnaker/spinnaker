@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.keel.constraints
 
-import com.netflix.spinnaker.keel.api.ArtifactType.DEB
-import com.netflix.spinnaker.keel.api.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.api.Environment
@@ -22,7 +21,7 @@ import strikt.assertions.isTrue
 internal class DependsOnConstraintEvaluatorTests : JUnit5Minutests {
 
   object Fixture {
-    val artifact = DeliveryArtifact("fnord", DEB)
+    val artifact = DebianArtifact("fnord")
     val constrainedEnvironment = Environment(
       name = "staging",
       constraints = setOf(

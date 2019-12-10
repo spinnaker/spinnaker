@@ -70,7 +70,7 @@ class ImageService(
   suspend fun getLatestNamedImage(packageName: String, account: String, region: String? = null): NamedImage? =
     cloudDriverService.namedImages(DEFAULT_SERVICE_ACCOUNT, packageName, account, region)
       .sortedWith(NamedImageComparator)
-      .lastOrNull {
+      .firstOrNull {
         AppVersion.parseName(it.appVersion).packageName == packageName
       }
 
@@ -88,7 +88,7 @@ class ImageService(
       region = region
     )
       .sortedWith(NamedImageComparator)
-      .lastOrNull {
+      .firstOrNull {
         AppVersion.parseName(it.appVersion).run {
           packageName == appVersion.packageName && version == appVersion.version && commit == appVersion.commit
         }
@@ -105,7 +105,7 @@ class ImageService(
       account = account
     )
       .sortedWith(NamedImageComparator)
-      .findLast { namedImage ->
+      .find { namedImage ->
         val curAppVersion = AppVersion.parseName(namedImage.appVersion)
         curAppVersion.packageName == appVersion.packageName &&
           curAppVersion.version == appVersion.version &&
@@ -126,7 +126,7 @@ class ImageService(
       account = account
     )
       .sortedWith(NamedImageComparator)
-      .findLast {
+      .find {
         val curAppVersion = AppVersion.parseName(it.appVersion)
         curAppVersion.packageName == packageName &&
           it.accounts.contains(account) &&
@@ -140,7 +140,7 @@ class ImageService(
       .filter {
         AppVersion.parseName(it.appVersion).packageName == packageName
       }
-      .lastOrNull { namedImage ->
+      .firstOrNull { namedImage ->
         val allTags = getAllTags(namedImage)
         amiMatches(allTags, buildHost, buildName, buildNumber)
       }

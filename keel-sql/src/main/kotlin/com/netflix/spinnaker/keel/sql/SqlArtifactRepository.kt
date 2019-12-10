@@ -1,9 +1,12 @@
 package com.netflix.spinnaker.keel.sql
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.ArtifactStatus
 import com.netflix.spinnaker.keel.api.ArtifactType
+import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.DockerArtifact
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
@@ -13,7 +16,6 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_ARTIFACT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_VERSIONS
-import com.netflix.spinnaker.keel.persistence.sortAppVersion
 import org.jooq.DSLContext
 import org.jooq.Record1
 import org.jooq.Select
@@ -24,21 +26,52 @@ import java.time.Instant
 
 class SqlArtifactRepository(
   private val jooq: DSLContext,
-  private val clock: Clock
+  private val clock: Clock,
+  private val objectMapper: ObjectMapper
 ) : ArtifactRepository {
   override fun register(artifact: DeliveryArtifact) {
     jooq.insertInto(DELIVERY_ARTIFACT)
       .set(DELIVERY_ARTIFACT.UID, randomUID().toString())
       .set(DELIVERY_ARTIFACT.NAME, artifact.name)
       .set(DELIVERY_ARTIFACT.TYPE, artifact.type.name)
-      .onDuplicateKeyIgnore()
+      .set(DELIVERY_ARTIFACT.DETAILS, artifact.detailsAsJson())
+      .onDuplicateKeyUpdate()
+      .set(DELIVERY_ARTIFACT.DETAILS, artifact.detailsAsJson())
       .execute()
-      .also { count ->
-        if (count == 0) log.warn("Duplicate artifact registered: {}", artifact)
-      }
   }
 
-  override fun store(artifact: DeliveryArtifact, version: String, status: ArtifactStatus): Boolean {
+  private fun DeliveryArtifact.detailsAsJson() =
+    when (this) {
+      is DockerArtifact -> detailsAsJson()
+      is DebianArtifact -> detailsAsJson()
+      else -> "{}" // there are only two types of artifacts, but kotlin can't infer this here.
+    }
+
+  private fun DockerArtifact.detailsAsJson() =
+    objectMapper.writeValueAsString(
+      mapOf(
+        "tagVersionStrategy" to tagVersionStrategy,
+        "captureGroupRegex" to captureGroupRegex)
+    )
+
+  private fun DebianArtifact.detailsAsJson() =
+    objectMapper.writeValueAsString(
+      mapOf("statuses" to statuses)
+    )
+
+  override fun get(name: String, type: ArtifactType): DeliveryArtifact {
+    return jooq
+      .select(DELIVERY_ARTIFACT.DETAILS)
+      .from(DELIVERY_ARTIFACT)
+      .where(DELIVERY_ARTIFACT.NAME.eq(name))
+      .and(DELIVERY_ARTIFACT.TYPE.eq(type.name))
+      .fetchOne()
+      ?.let { (details) ->
+        mapToArtifact(name, type, details)
+      } ?: throw NoSuchArtifactException(name, type)
+  }
+
+  override fun store(artifact: DeliveryArtifact, version: String, status: ArtifactStatus?): Boolean {
     val uid = jooq.select(DELIVERY_ARTIFACT.UID)
       .from(DELIVERY_ARTIFACT)
       .where(DELIVERY_ARTIFACT.NAME.eq(artifact.name))
@@ -49,7 +82,7 @@ class SqlArtifactRepository(
     return jooq.insertInto(DELIVERY_ARTIFACT_VERSION)
       .set(DELIVERY_ARTIFACT_VERSION.DELIVERY_ARTIFACT_UID, uid.value1())
       .set(DELIVERY_ARTIFACT_VERSION.VERSION, version)
-      .set(DELIVERY_ARTIFACT_VERSION.STATUS, status.toString())
+      .set(DELIVERY_ARTIFACT_VERSION.STATUS, status?.toString())
       .onDuplicateKeyIgnore()
       .execute() == 1
   }
@@ -64,15 +97,17 @@ class SqlArtifactRepository(
 
   override fun getAll(type: ArtifactType?): List<DeliveryArtifact> =
     jooq
-      .select(DELIVERY_ARTIFACT.NAME, DELIVERY_ARTIFACT.TYPE)
+      .select(DELIVERY_ARTIFACT.NAME, DELIVERY_ARTIFACT.TYPE, DELIVERY_ARTIFACT.DETAILS)
       .from(DELIVERY_ARTIFACT)
       .apply { if (type != null) where(DELIVERY_ARTIFACT.TYPE.eq(type.toString())) }
-      .fetch { (name, type) ->
-        DeliveryArtifact(name, ArtifactType.valueOf(type))
+      .fetch { (name, storedType, details) ->
+        mapToArtifact(name, ArtifactType.valueOf(storedType), details)
       }
 
+  override fun versions(name: String, type: ArtifactType, statuses: List<ArtifactStatus>): List<String> =
+    versions(get(name, type), statuses)
+
   override fun versions(artifact: DeliveryArtifact, statuses: List<ArtifactStatus>): List<String> {
-    val status = statuses.map { it.toString() }
     return if (isRegistered(artifact.name, artifact.type)) {
       jooq
         .select(DELIVERY_ARTIFACT_VERSION.VERSION)
@@ -80,10 +115,10 @@ class SqlArtifactRepository(
         .where(DELIVERY_ARTIFACT.UID.eq(DELIVERY_ARTIFACT_VERSION.DELIVERY_ARTIFACT_UID))
         .and(DELIVERY_ARTIFACT.NAME.eq(artifact.name))
         .and(DELIVERY_ARTIFACT.TYPE.eq(artifact.type.name))
-        .and(DELIVERY_ARTIFACT_VERSION.STATUS.`in`(*status.toTypedArray()))
+        .apply { if (statuses.isNotEmpty()) and(DELIVERY_ARTIFACT_VERSION.STATUS.`in`(*statuses.map { it.toString() }.toTypedArray())) }
         .fetch()
         .getValues(DELIVERY_ARTIFACT_VERSION.VERSION)
-        .sortAppVersion()
+        .sortedWith(artifact.versioningStrategy.comparator)
     } else {
       throw NoSuchArtifactException(artifact)
     }
@@ -95,7 +130,6 @@ class SqlArtifactRepository(
     targetEnvironment: String,
     statuses: List<ArtifactStatus>
   ): String? {
-    val status = statuses.map { it.toString() }
     val environment = deliveryConfig.environmentNamed(targetEnvironment)
     val envUid = deliveryConfig.getUidFor(environment)
     val artifactId = artifact.uid
@@ -107,7 +141,7 @@ class SqlArtifactRepository(
       .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(envUid))
       .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(DELIVERY_ARTIFACT_VERSION.VERSION))
       .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifactId))
-      .and(DELIVERY_ARTIFACT_VERSION.STATUS.`in`(*status.toTypedArray()))
+      .apply { if (statuses.isNotEmpty()) and(DELIVERY_ARTIFACT_VERSION.STATUS.`in`(*statuses.map { it.toString() }.toTypedArray())) }
       .orderBy(ENVIRONMENT_ARTIFACT_VERSIONS.APPROVED_AT.desc())
       .limit(1)
       .fetchOne(0, String::class.java)

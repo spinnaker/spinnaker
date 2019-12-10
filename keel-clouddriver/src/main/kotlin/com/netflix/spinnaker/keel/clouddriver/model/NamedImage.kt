@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.clouddriver.model
 
-import com.netflix.spinnaker.keel.persistence.VERSION_COMPARATOR
+import com.netflix.spinnaker.keel.api.DEBIAN_VERSION_COMPARATOR
 import java.time.Instant
 import java.time.Period
 
@@ -14,9 +14,9 @@ data class NamedImage(
 
 object NamedImageComparator : Comparator<NamedImage> {
   override fun compare(a: NamedImage, b: NamedImage): Int {
-    val byAppVersion = VERSION_COMPARATOR.compare(a.appVersion, b.appVersion)
+    val byAppVersion = DEBIAN_VERSION_COMPARATOR.compare(a.appVersion, b.appVersion)
     return if (byAppVersion == 0) {
-      a.creationDate.compareTo(b.creationDate)
+      b.creationDate.compareTo(a.creationDate)
     } else {
       return byAppVersion
     }

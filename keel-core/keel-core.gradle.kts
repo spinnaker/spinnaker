@@ -30,9 +30,10 @@ dependencies {
   api("org.springframework.boot:spring-boot-autoconfigure")
   api("com.netflix.frigga:frigga")
   api("com.netflix.spinnaker.kork:kork-core")
+  api("net.swiftzer.semver:semver:1.1.0")
 
   testImplementation(project(":keel-test"))
-  testImplementation(project (":keel-core-test"))
+  testImplementation(project(":keel-core-test"))
   testImplementation("io.strikt:strikt-jackson")
   testImplementation("dev.minutest:minutest")
 

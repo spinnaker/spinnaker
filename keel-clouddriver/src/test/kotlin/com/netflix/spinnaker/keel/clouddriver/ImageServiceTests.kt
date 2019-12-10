@@ -149,7 +149,7 @@ class ImageServiceTests : JUnit5Minutests {
       imageName = "my-package-0.0.1_rc.99-h100",
       attributes = mapOf(
         "virtualizationType" to "hvm",
-        "creationDate" to "2018-10-31T13:09:54.000Z"
+        "creationDate" to "2018-11-01T13:09:54.000Z"
       ),
       tagsByImageId = mapOf(
         "ami-003" to mapOf(
@@ -192,7 +192,7 @@ class ImageServiceTests : JUnit5Minutests {
     // Excludes image4 which is for a different package
     val newestImage = listOf(image1, image2, image3, image5, image6)
       .sortedWith(NamedImageComparator)
-      .last()
+      .first()
   }
 
   fun tests() = rootContext<Fixture> {
@@ -205,11 +205,12 @@ class ImageServiceTests : JUnit5Minutests {
 
       test("finds correct image") {
         val sortedImages = listOf(image2, image3, image1, image5, image6).sortedWith(NamedImageComparator)
-        expectThat(sortedImages.last()) {
+        expectThat(sortedImages.first()) {
           get { imageName }.isEqualTo("my-package-0.0.1_rc.99-h100")
         }
       }
 
+      // todo eb: is this backwards now
       test("images are sorted by appversion, then creation date") {
         val sortedImages = listOf(image2, image3, image1, image5, image6).sortedWith(NamedImageComparator)
         val first = sortedImages[0]
@@ -217,9 +218,9 @@ class ImageServiceTests : JUnit5Minutests {
         expectThat(first.imageName)
           .isEqualTo(second.imageName)
         expectThat(first.creationDate)
-          .isEqualTo(Instant.parse("2018-10-25T13:08:58.000Z"))
+          .isEqualTo(Instant.parse("2018-11-01T13:09:54.000Z"))
         expectThat(second.creationDate)
-          .isEqualTo(Instant.parse("2019-11-25T13:08:59.000Z"))
+          .isEqualTo(Instant.parse("2018-10-31T13:09:54.000Z"))
       }
     }
 

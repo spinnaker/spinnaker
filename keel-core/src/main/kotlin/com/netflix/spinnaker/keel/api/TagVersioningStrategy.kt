@@ -15,17 +15,20 @@
  * limitations under the License.
  *
  */
-package com.netflix.spinnaker.keel.docker
+package com.netflix.spinnaker.keel.api
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.netflix.spinnaker.keel.docker.SortType.INCREASING
-import com.netflix.spinnaker.keel.docker.SortType.SEMVER
+import com.netflix.spinnaker.keel.api.SortType.INCREASING
+import com.netflix.spinnaker.keel.api.SortType.SEMVER
 
+/**
+ * Different options for versioning for tags
+ */
 enum class TagVersionStrategy(val regex: String, val sortType: SortType) {
   @JsonProperty("increasing-tag")
-  INCREASING_TAG("""^.*$""", INCREASING),
+  INCREASING_TAG("""(^.*$)""", INCREASING),
   @JsonProperty("semver-tag")
-  SEMVER_TAG("""^.*$""", SEMVER),
+  SEMVER_TAG("""(^.*$)""", SEMVER),
   @JsonProperty("branch-job-commit-by-job")
   BRANCH_JOB_COMMIT_BY_JOB("""^master-h(\d+).*$""", INCREASING), // popular netflix strategy
   @JsonProperty("semver-job-commit-by-job")

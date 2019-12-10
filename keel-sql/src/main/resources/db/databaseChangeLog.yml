@@ -56,3 +56,6 @@ databaseChangeLog:
   - include:
       file: changelog/20191205-create-paused-table.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20191206-update-artifact-table.yml
+      relativeToChangelogFile: true

@@ -3,11 +3,10 @@ package com.netflix.spinnaker.keel.rest
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.actuation.ResourcePersister
-import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.ConstraintState
-import com.netflix.spinnaker.keel.api.ConstraintStatus.PENDING
 import com.netflix.spinnaker.keel.api.ConstraintStatus.PASS
-import com.netflix.spinnaker.keel.api.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.ConstraintStatus.PENDING
+import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.SubmittedDeliveryConfig
@@ -83,10 +82,7 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
           SubmittedDeliveryConfig(
             name = "keel-manifest",
             application = "keel",
-            artifacts = setOf(DeliveryArtifact(
-              name = "keel",
-              type = DEB
-            )),
+            artifacts = setOf(DebianArtifact(name = "keel")),
             environments = setOf(
               SubmittedEnvironment(
                 name = "test",
@@ -139,7 +135,7 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
         |application: keel
         |artifacts:
         |- name: keel
-        |  type: DEB
+        |  type: deb
         |environments:
         |- name: test
         |  resources:
@@ -176,7 +172,7 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
         |  "artifacts": [
         |    {
         |      "name": "keel",
-        |      "type": "DEB"
+        |      "type": "deb"
         |    }
         |  ],
         |  "environments": [

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.igor.ArtifactService
 import com.netflix.spinnaker.keel.api.ArtifactStatus
-import com.netflix.spinnaker.keel.api.ArtifactType.DEB
+import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.NoKnownArtifactVersions
 import com.netflix.spinnaker.keel.api.Resource
@@ -51,7 +51,7 @@ class ImageHandler(
 
   override suspend fun toResolvedType(resource: Resource<ImageSpec>): Image =
     with(resource) {
-      val artifact = DeliveryArtifact(spec.artifactName, DEB)
+      val artifact = DebianArtifact(spec.artifactName)
       val latestVersion = artifact.findLatestVersion(resource.spec.artifactStatuses)
       val baseImage = baseImageCache.getBaseImage(spec.baseOs, spec.baseLabel)
       val baseAmi = findBaseAmi(baseImage, resource.serviceAccount)
@@ -83,7 +83,7 @@ class ImageHandler(
     } catch (e: NoSuchArtifactException) {
       if (!artifactRepository.isRegistered(name, type)) {
         // we clearly care about this artifact, let's register it.
-        publisher.publishEvent(ArtifactRegisteredEvent(this, statuses))
+        publisher.publishEvent(ArtifactRegisteredEvent(this))
       }
     }
 
