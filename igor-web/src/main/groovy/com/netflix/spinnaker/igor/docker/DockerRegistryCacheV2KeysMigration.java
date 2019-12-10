@@ -37,9 +37,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.MultiKeyCommands;
 import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.ScanResult;
+import redis.clients.jedis.commands.MultiKeyCommands;
 import redis.clients.jedis.exceptions.JedisException;
 import rx.Scheduler;
 import rx.schedulers.Schedulers;
@@ -205,7 +205,7 @@ public class DockerRegistryCacheV2KeysMigration {
       try {
         result = jedis.scan(cursor, params);
         numMigrated += oldKeysCallback.apply(result.getResult());
-        cursor = result.getStringCursor();
+        cursor = result.getCursor();
         failures = 0;
       } catch (JedisException e) {
         failures++;
