@@ -30,6 +30,9 @@ public class Problem {
      */
     NONE,
 
+    /** Indicates no problem at all, just information that should be shared with the user. */
+    INFO,
+
     /**
      * Indicates the deployment of Spinnaker is going against our preferred/recommended practices.
      * For example: using an unauthenticated docker registry.

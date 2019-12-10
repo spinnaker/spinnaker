@@ -31,7 +31,11 @@ public class Telemetry extends Node {
     return "telemetry";
   }
 
+  @ValidForSpinnakerVersion(
+      lowerBound = "1.18.0",
+      tooLowMessage = "Telemetry is not available prior to this release.")
   private Boolean enabled = false;
+
   private String endpoint = DEFAULT_TELEMETRY_ENDPOINT;
   private String instanceId = new ULID().nextULID();
   private String spinnakerVersion;

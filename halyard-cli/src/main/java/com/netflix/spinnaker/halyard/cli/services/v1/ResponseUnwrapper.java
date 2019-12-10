@@ -235,6 +235,9 @@ public class ResponseUnwrapper {
         List<String> options = problem.getOptions();
 
         switch (severity) {
+          case INFO:
+            AnsiUi.info(message);
+            break;
           case FATAL:
           case ERROR:
             AnsiUi.error(message);

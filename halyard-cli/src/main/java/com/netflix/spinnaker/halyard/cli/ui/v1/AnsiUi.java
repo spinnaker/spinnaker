@@ -37,13 +37,27 @@ public class AnsiUi {
     AnsiParagraphBuilder builder =
         new AnsiParagraphBuilder().setIndentFirstLine(false).setIndentWidth(2);
 
-    builder.addSnippet("Problems in ");
+    builder.addSnippet("Validation in ");
 
     builder.addSnippet(message).addStyle(AnsiStyle.BOLD);
 
     builder.addSnippet(":");
 
     AnsiPrinter.err.println(builder.toString());
+  }
+
+  public static void info(String message) {
+    AnsiParagraphBuilder builder =
+        new AnsiParagraphBuilder().setIndentFirstLine(false).setIndentWidth(2);
+
+    builder
+        .addSnippet("- INFO ")
+        .setForegroundColor(AnsiForegroundColor.GREEN)
+        .addStyle(AnsiStyle.BOLD);
+
+    builder.addSnippet(message);
+
+    AnsiPrinter.out.println(builder.toString());
   }
 
   public static void warning(String message) {
