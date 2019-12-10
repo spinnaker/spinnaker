@@ -13,7 +13,7 @@ import { KUBERNETES_V1_IMAGE_IMAGE_READER } from 'kubernetes/v1/image/image.read
 import { KUBERNETES_V1_PIPELINE_STAGES_RUNJOB_RUNJOBEXECUTIONDETAILS_CONTROLLER } from './runJobExecutionDetails.controller';
 import { KUBERNETES_V1_PIPELINE_STAGES_RUNJOB_CONFIGUREJOB_CONTROLLER } from './configureJob.controller';
 
-const angular = require('angular');
+import * as angular from 'angular';
 
 export const KUBERNETES_V1_PIPELINE_STAGES_RUNJOB_RUNJOBSTAGE = 'spinnaker.kubernetes.pipeline.stage.runJobStage';
 export const name = KUBERNETES_V1_PIPELINE_STAGES_RUNJOB_RUNJOBSTAGE; // for backwards compatibility

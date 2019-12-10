@@ -4,11 +4,11 @@ import _ from 'lodash';
 
 import { GCEProviderSettings } from '../gce.settings';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const GOOGLE_LOADBALANCER_LOADBALANCER_TRANSFORMER = 'spinnaker.gce.loadBalancer.transformer';
 export const name = GOOGLE_LOADBALANCER_LOADBALANCER_TRANSFORMER; // for backwards compatibility
-angular.module(GOOGLE_LOADBALANCER_LOADBALANCER_TRANSFORMER, []).factory('gceLoadBalancerTransformer', [
+module(GOOGLE_LOADBALANCER_LOADBALANCER_TRANSFORMER, []).factory('gceLoadBalancerTransformer', [
   '$q',
   function($q) {
     function updateHealthCounts(container) {

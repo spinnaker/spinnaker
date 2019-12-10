@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 import { get } from 'lodash';
 import { SERVER_GROUP_WRITER, TaskMonitor } from '@spinnaker/core';
@@ -8,9 +8,9 @@ import { SERVER_GROUP_WRITER, TaskMonitor } from '@spinnaker/core';
 export const AMAZON_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER =
   'spinnaker.amazon.serverGroup.details.rollback.controller';
 export const name = AMAZON_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER; // for backwards compatibility
-angular
-  .module(AMAZON_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [SERVER_GROUP_WRITER])
-  .controller('awsRollbackServerGroupCtrl', [
+module(AMAZON_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [SERVER_GROUP_WRITER]).controller(
+  'awsRollbackServerGroupCtrl',
+  [
     '$scope',
     '$uibModalInstance',
     'serverGroupWriter',
@@ -141,4 +141,5 @@ angular
         return serverGroup.isDisabled ? 'Disabled Server Groups' : 'Enabled Server Groups';
       };
     },
-  ]);
+  ],
+);

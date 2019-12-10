@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 import { AccountService } from 'core/account/AccountService';
 import { AppListExtractor } from 'core/application/listExtractor/AppListExtractor';
 import { isNil, first } from 'lodash';
@@ -8,8 +8,7 @@ import { isNil, first } from 'lodash';
 export const CORE_PIPELINE_CONFIG_PRECONDITIONS_SELECTOR_PRECONDITIONSELECTOR_DIRECTIVE =
   'spinnaker.core.pipeline.config.preconditions.selector';
 export const name = CORE_PIPELINE_CONFIG_PRECONDITIONS_SELECTOR_PRECONDITIONSELECTOR_DIRECTIVE; // for backwards compatibility
-angular
-  .module(CORE_PIPELINE_CONFIG_PRECONDITIONS_SELECTOR_PRECONDITIONSELECTOR_DIRECTIVE, [])
+module(CORE_PIPELINE_CONFIG_PRECONDITIONS_SELECTOR_PRECONDITIONSELECTOR_DIRECTIVE, [])
   .directive('preconditionSelector', function() {
     return {
       restrict: 'E',

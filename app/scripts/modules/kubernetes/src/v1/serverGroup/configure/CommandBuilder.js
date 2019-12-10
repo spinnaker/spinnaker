@@ -1,14 +1,14 @@
 import { KUBERNETES_V1_CLUSTER_CLUSTER_KUBERNETES_MODULE } from '../../cluster/cluster.kubernetes.module';
 ('use strict');
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const KUBERNETES_V1_SERVERGROUP_CONFIGURE_COMMANDBUILDER =
   'spinnaker.kubernetes.serverGroupCommandBuilder.service';
 export const name = KUBERNETES_V1_SERVERGROUP_CONFIGURE_COMMANDBUILDER; // for backwards compatibility
-angular
-  .module(KUBERNETES_V1_SERVERGROUP_CONFIGURE_COMMANDBUILDER, [KUBERNETES_V1_CLUSTER_CLUSTER_KUBERNETES_MODULE])
-  .factory('kubernetesServerGroupCommandBuilder', [
+module(KUBERNETES_V1_SERVERGROUP_CONFIGURE_COMMANDBUILDER, [KUBERNETES_V1_CLUSTER_CLUSTER_KUBERNETES_MODULE]).factory(
+  'kubernetesServerGroupCommandBuilder',
+  [
     '$q',
     'kubernetesClusterCommandBuilder',
     function($q, kubernetesClusterCommandBuilder) {
@@ -53,4 +53,5 @@ angular
         buildServerGroupCommandFromPipeline: buildServerGroupCommandFromPipeline,
       };
     },
-  ]);
+  ],
+);

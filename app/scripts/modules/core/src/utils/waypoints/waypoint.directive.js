@@ -1,10 +1,10 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const CORE_UTILS_WAYPOINTS_WAYPOINT_DIRECTIVE = 'spinnaker.core.utils.waypoints.directive';
 export const name = CORE_UTILS_WAYPOINTS_WAYPOINT_DIRECTIVE; // for backwards compatibility
-angular.module(CORE_UTILS_WAYPOINTS_WAYPOINT_DIRECTIVE, []).directive('waypoint', function() {
+module(CORE_UTILS_WAYPOINTS_WAYPOINT_DIRECTIVE, []).directive('waypoint', function() {
   return {
     restrict: 'A',
     link: {

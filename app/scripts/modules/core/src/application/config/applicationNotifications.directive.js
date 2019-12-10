@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import * as angular from 'angular';
 
 import { OVERRIDE_REGISTRY } from 'core/overrideRegistry/override.registry';
 

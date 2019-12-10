@@ -1,14 +1,13 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 import { AccountService, Registry } from '@spinnaker/core';
 
 export const KUBERNETES_V1_PIPELINE_STAGES_DISABLECLUSTER_KUBERNETESDISABLECLUSTERSTAGE =
   'spinnaker.kubernetes.pipeline.stage.disableClusterStage';
 export const name = KUBERNETES_V1_PIPELINE_STAGES_DISABLECLUSTER_KUBERNETESDISABLECLUSTERSTAGE; // for backwards compatibility
-angular
-  .module(KUBERNETES_V1_PIPELINE_STAGES_DISABLECLUSTER_KUBERNETESDISABLECLUSTERSTAGE, [])
+module(KUBERNETES_V1_PIPELINE_STAGES_DISABLECLUSTER_KUBERNETESDISABLECLUSTERSTAGE, [])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'disableCluster',

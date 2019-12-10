@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 import { SETTINGS } from '@spinnaker/core';
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
@@ -8,9 +8,9 @@ import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 export const AZURE_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER =
   'spinnaker.azure.pipeline.stage.bake.executionDetails.controller';
 export const name = AZURE_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER; // for backwards compatibility
-angular
-  .module(AZURE_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER, [UIROUTER_ANGULARJS])
-  .controller('azureBakeExecutionDetailsCtrl', [
+module(AZURE_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER, [UIROUTER_ANGULARJS]).controller(
+  'azureBakeExecutionDetailsCtrl',
+  [
     '$scope',
     '$stateParams',
     'executionDetailsSectionService',
@@ -36,4 +36,5 @@ angular
 
       $scope.$on('$stateChangeSuccess', initialize);
     },
-  ]);
+  ],
+);

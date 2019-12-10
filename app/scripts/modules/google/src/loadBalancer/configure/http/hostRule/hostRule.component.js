@@ -1,34 +1,32 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 import { PathRuleTemplate } from '../templates';
 import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_PATHRULE_PATHRULE_COMPONENT } from '../pathRule/pathRule.component';
 
 export const GOOGLE_LOADBALANCER_CONFIGURE_HTTP_HOSTRULE_HOSTRULE_COMPONENT =
   'spinnaker.deck.gce.httpLoadBalancer.hostRule.component';
 export const name = GOOGLE_LOADBALANCER_CONFIGURE_HTTP_HOSTRULE_HOSTRULE_COMPONENT; // for backwards compatibility
-angular
-  .module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_HOSTRULE_HOSTRULE_COMPONENT, [
-    GOOGLE_LOADBALANCER_CONFIGURE_HTTP_PATHRULE_PATHRULE_COMPONENT,
-  ])
-  .component('gceHostRule', {
-    bindings: {
-      hostRule: '=',
-      index: '=',
-      command: '=',
-      deleteHostRule: '&',
-    },
-    templateUrl: require('./hostRule.component.html'),
-    controller: function() {
-      this.loadBalancer = this.command.loadBalancer;
-      const pathRules = this.hostRule.pathMatcher.pathRules;
+module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_HOSTRULE_HOSTRULE_COMPONENT, [
+  GOOGLE_LOADBALANCER_CONFIGURE_HTTP_PATHRULE_PATHRULE_COMPONENT,
+]).component('gceHostRule', {
+  bindings: {
+    hostRule: '=',
+    index: '=',
+    command: '=',
+    deleteHostRule: '&',
+  },
+  templateUrl: require('./hostRule.component.html'),
+  controller: function() {
+    this.loadBalancer = this.command.loadBalancer;
+    const pathRules = this.hostRule.pathMatcher.pathRules;
 
-      this.addPathRule = () => {
-        pathRules.push(new PathRuleTemplate());
-      };
+    this.addPathRule = () => {
+      pathRules.push(new PathRuleTemplate());
+    };
 
-      this.deletePathRule = index => {
-        pathRules.splice(index, 1);
-      };
-    },
-  });
+    this.deletePathRule = index => {
+      pathRules.splice(index, 1);
+    };
+  },
+});

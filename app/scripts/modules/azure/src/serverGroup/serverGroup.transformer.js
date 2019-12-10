@@ -1,11 +1,11 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 const _ = require('lodash');
 
 export const AZURE_SERVERGROUP_SERVERGROUP_TRANSFORMER = 'spinnaker.azure.serverGroup.transformer';
 export const name = AZURE_SERVERGROUP_SERVERGROUP_TRANSFORMER; // for backwards compatibility
-angular.module(AZURE_SERVERGROUP_SERVERGROUP_TRANSFORMER, []).factory('azureServerGroupTransformer', function() {
+module(AZURE_SERVERGROUP_SERVERGROUP_TRANSFORMER, []).factory('azureServerGroupTransformer', function() {
   function normalizeServerGroup(serverGroup) {
     return serverGroup;
   }

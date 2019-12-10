@@ -1,13 +1,12 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 import { ServerGroupTemplates } from '@spinnaker/core';
 
 export const KUBERNETES_V1_EVENT_EVENT_DIRECTIVE = 'spinnaker.kubernetes.event.event.directive';
 export const name = KUBERNETES_V1_EVENT_EVENT_DIRECTIVE; // for backwards compatibility
-angular
-  .module(KUBERNETES_V1_EVENT_EVENT_DIRECTIVE, [])
+module(KUBERNETES_V1_EVENT_EVENT_DIRECTIVE, [])
   .directive('kubernetesEvent', function() {
     return {
       restrict: 'E',

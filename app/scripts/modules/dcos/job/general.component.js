@@ -1,10 +1,10 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const DCOS_JOB_GENERAL_COMPONENT = 'spinnaker.dcos.general.component';
 export const name = DCOS_JOB_GENERAL_COMPONENT; // for backwards compatibility
-angular.module(DCOS_JOB_GENERAL_COMPONENT, []).component('dcosGeneral', {
+module(DCOS_JOB_GENERAL_COMPONENT, []).component('dcosGeneral', {
   bindings: {
     general: '=',
   },

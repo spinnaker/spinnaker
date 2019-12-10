@@ -5,7 +5,7 @@ import { AZURE_SERVERGROUP_CONFIGURE_WIZARD_BASICSETTINGS_IMAGE_REGIONAL_FILTER 
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 
-const angular = require('angular');
+import * as angular from 'angular';
 
 export const AZURE_SERVERGROUP_CONFIGURE_WIZARD_BASICSETTINGS_SERVERGROUPBASICSETTINGS_CONTROLLER =
   'spinnaker.azure.serverGroup.configure.basicSettings';

@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import * as angular from 'angular';
 
 export const CORE_NAVIGATION_STATEACTIVE_DIRECTIVE = 'spinnaker.core.navigation.stateActive.directive';
 export const name = CORE_NAVIGATION_STATEACTIVE_DIRECTIVE; // for backwards compatibility

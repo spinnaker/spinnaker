@@ -2,7 +2,7 @@
 
 import _ from 'lodash';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 import { AccountService, Registry } from '@spinnaker/core';
 
@@ -13,14 +13,13 @@ import { DCOS_JOB_LABELS_COMPONENT } from 'dcos/job/labels.component';
 
 export const DCOS_PIPELINE_STAGES_RUNJOB_RUNJOBSTAGE = 'spinnaker.dcos.pipeline.stage.runJobStage';
 export const name = DCOS_PIPELINE_STAGES_RUNJOB_RUNJOBSTAGE; // for backwards compatibility
-angular
-  .module(DCOS_PIPELINE_STAGES_RUNJOB_RUNJOBSTAGE, [
-    DCOS_JOB_GENERAL_COMPONENT,
-    //TODO Add back when scheduled jobs are supported better by Spinnaker
-    //require('dcos/job/schedule.component').name,
-    DCOS_JOB_LABELS_COMPONENT,
-    DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT,
-  ])
+module(DCOS_PIPELINE_STAGES_RUNJOB_RUNJOBSTAGE, [
+  DCOS_JOB_GENERAL_COMPONENT,
+  //TODO Add back when scheduled jobs are supported better by Spinnaker
+  //require('dcos/job/schedule.component').name,
+  DCOS_JOB_LABELS_COMPONENT,
+  DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT,
+])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'runJob',

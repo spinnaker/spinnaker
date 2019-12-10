@@ -1,10 +1,10 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const KUBERNETES_V1_SEARCH_RESULTFORMATTER = 'spinnaker.kubernetes.search.formatter';
 export const name = KUBERNETES_V1_SEARCH_RESULTFORMATTER; // for backwards compatibility
-angular.module(KUBERNETES_V1_SEARCH_RESULTFORMATTER, []).factory('kubernetesSearchResultFormatter', [
+module(KUBERNETES_V1_SEARCH_RESULTFORMATTER, []).factory('kubernetesSearchResultFormatter', [
   '$q',
   function($q) {
     return {

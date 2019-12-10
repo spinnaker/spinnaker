@@ -1,13 +1,13 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const AZURE_SERVERGROUP_CONFIGURE_WIZARD_LOADBALANCERS_SERVERGROUPLOADBALANCERSSELECTOR_DIRECTIVE =
   'spinnaker.azure.serverGroup.configure.loadBalancer.directive';
 export const name = AZURE_SERVERGROUP_CONFIGURE_WIZARD_LOADBALANCERS_SERVERGROUPLOADBALANCERSSELECTOR_DIRECTIVE; // for backwards compatibility
-angular
-  .module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_LOADBALANCERS_SERVERGROUPLOADBALANCERSSELECTOR_DIRECTIVE, [])
-  .directive('azureServerGroupLoadBalancersSelector', [
+module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_LOADBALANCERS_SERVERGROUPLOADBALANCERSSELECTOR_DIRECTIVE, []).directive(
+  'azureServerGroupLoadBalancersSelector',
+  [
     'azureServerGroupConfigurationService',
     function() {
       return {
@@ -18,4 +18,5 @@ angular
         templateUrl: require('./serverGroupLoadBalancersSelector.directive.html'),
       };
     },
-  ]);
+  ],
+);

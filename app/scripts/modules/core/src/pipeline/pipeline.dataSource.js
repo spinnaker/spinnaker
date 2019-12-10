@@ -1,4 +1,4 @@
-const angular = require('angular');
+import { module } from 'angular';
 
 import { ApplicationDataSourceRegistry } from 'core/application/service/ApplicationDataSourceRegistry';
 import { DELIVERY_KEY } from 'core/application/nav/defaultCategories';
@@ -10,7 +10,7 @@ import { CLUSTER_SERVICE } from 'core/cluster/cluster.service';
 
 export const CORE_PIPELINE_PIPELINE_DATASOURCE = 'spinnaker.core.pipeline.dataSource';
 export const name = CORE_PIPELINE_PIPELINE_DATASOURCE; // for backwards compatibility
-angular.module(CORE_PIPELINE_PIPELINE_DATASOURCE, [EXECUTION_SERVICE, CLUSTER_SERVICE]).run([
+module(CORE_PIPELINE_PIPELINE_DATASOURCE, [EXECUTION_SERVICE, CLUSTER_SERVICE]).run([
   '$q',
   'executionService',
   'clusterService',

@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import * as angular from 'angular';
 
 import { ModalWizard, SERVER_GROUP_WRITER, TaskMonitor } from '@spinnaker/core';
 import { DCOS_SERVERGROUP_CONFIGURE_CONFIGURATION_SERVICE } from '../configuration.service';

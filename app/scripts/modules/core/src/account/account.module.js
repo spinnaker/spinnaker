@@ -6,11 +6,11 @@ import { ACCOUNT_SELECT_COMPONENT } from './accountSelectField.component';
 import { CORE_ACCOUNT_PROVIDERTOGGLES_DIRECTIVE } from './providerToggles.directive';
 import { CORE_ACCOUNT_COLLAPSIBLEACCOUNTTAG_DIRECTIVE } from './collapsibleAccountTag.directive';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const CORE_ACCOUNT_ACCOUNT_MODULE = 'spinnaker.core.account';
 export const name = CORE_ACCOUNT_ACCOUNT_MODULE; // for backwards compatibility
-angular.module(CORE_ACCOUNT_ACCOUNT_MODULE, [
+module(CORE_ACCOUNT_ACCOUNT_MODULE, [
   CORE_ACCOUNT_PROVIDERTOGGLES_DIRECTIVE,
   ACCOUNT_SELECT_COMPONENT,
   CORE_ACCOUNT_COLLAPSIBLEACCOUNTTAG_DIRECTIVE,

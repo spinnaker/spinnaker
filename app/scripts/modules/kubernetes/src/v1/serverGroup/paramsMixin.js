@@ -1,10 +1,10 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const KUBERNETES_V1_SERVERGROUP_PARAMSMIXIN = 'spinnaker.kubernetes.serverGroup.paramsMixin';
 export const name = KUBERNETES_V1_SERVERGROUP_PARAMSMIXIN; // for backwards compatibility
-angular.module(KUBERNETES_V1_SERVERGROUP_PARAMSMIXIN, []).factory('kubernetesServerGroupParamsMixin', function() {
+module(KUBERNETES_V1_SERVERGROUP_PARAMSMIXIN, []).factory('kubernetesServerGroupParamsMixin', function() {
   function destroyServerGroup(serverGroup) {
     return {
       namespace: serverGroup.region || serverGroup.namespace,

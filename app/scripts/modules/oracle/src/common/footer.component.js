@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import * as angular from 'angular';
 
 export const ORACLE_COMMON_FOOTER_COMPONENT = 'spinnaker.oracle.footer.component';
 export const name = ORACLE_COMMON_FOOTER_COMPONENT; // for backwards compatibility

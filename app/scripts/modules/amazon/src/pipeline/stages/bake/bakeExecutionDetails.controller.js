@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 import { get } from 'lodash';
 
 import { SETTINGS } from '@spinnaker/core';
@@ -9,9 +9,9 @@ import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 export const AMAZON_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER =
   'spinnaker.amazon.pipeline.stage.bake.executionDetails.controller';
 export const name = AMAZON_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER; // for backwards compatibility
-angular
-  .module(AMAZON_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER, [UIROUTER_ANGULARJS])
-  .controller('awsBakeExecutionDetailsCtrl', [
+module(AMAZON_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER, [UIROUTER_ANGULARJS]).controller(
+  'awsBakeExecutionDetailsCtrl',
+  [
     '$scope',
     '$stateParams',
     'executionDetailsSectionService',
@@ -39,4 +39,5 @@ angular
 
       $scope.$on('$stateChangeSuccess', initialize);
     },
-  ]);
+  ],
+);

@@ -2,11 +2,11 @@
 
 import _ from 'lodash';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const KUBERNETES_V1_SERVERGROUP_TRANSFORMER = 'spinnaker.kubernetes.serverGroup.transformer';
 export const name = KUBERNETES_V1_SERVERGROUP_TRANSFORMER; // for backwards compatibility
-angular.module(KUBERNETES_V1_SERVERGROUP_TRANSFORMER, []).factory('kubernetesServerGroupTransformer', [
+module(KUBERNETES_V1_SERVERGROUP_TRANSFORMER, []).factory('kubernetesServerGroupTransformer', [
   '$q',
   function($q) {
     function normalizeServerGroup(serverGroup) {

@@ -11,13 +11,13 @@ import {
   ServerGroupTemplates,
 } from '@spinnaker/core';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const DCOS_INSTANCE_DETAILS_DETAILS_CONTROLLER = 'spinnaker.dcos.instance.details.controller';
 export const name = DCOS_INSTANCE_DETAILS_DETAILS_CONTROLLER; // for backwards compatibility
-angular
-  .module(DCOS_INSTANCE_DETAILS_DETAILS_CONTROLLER, [INSTANCE_WRITE_SERVICE, CONFIRMATION_MODAL_SERVICE])
-  .controller('dcosInstanceDetailsController', [
+module(DCOS_INSTANCE_DETAILS_DETAILS_CONTROLLER, [INSTANCE_WRITE_SERVICE, CONFIRMATION_MODAL_SERVICE]).controller(
+  'dcosInstanceDetailsController',
+  [
     '$scope',
     '$state',
     '$uibModal',
@@ -224,4 +224,5 @@ angular
 
       $scope.account = instance.account;
     },
-  ]);
+  ],
+);

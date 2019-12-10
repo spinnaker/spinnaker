@@ -1,13 +1,12 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 
 export const AMAZON_PIPELINE_STAGES_DISABLEASG_AWSDISABLEASGSTAGE = 'spinnaker.amazon.pipeline.stage.disableAsgStage';
 export const name = AMAZON_PIPELINE_STAGES_DISABLEASG_AWSDISABLEASGSTAGE; // for backwards compatibility
-angular
-  .module(AMAZON_PIPELINE_STAGES_DISABLEASG_AWSDISABLEASGSTAGE, [])
+module(AMAZON_PIPELINE_STAGES_DISABLEASG_AWSDISABLEASGSTAGE, [])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'disableServerGroup',

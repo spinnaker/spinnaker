@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 /***
  * Directive to allow optionally setting autofocus behavior of form elements
@@ -12,7 +12,7 @@ const angular = require('angular');
  */
 export const CORE_FORMS_AUTOFOCUS_AUTOFOCUS_DIRECTIVE = 'spinnaker.core.forms.autoFocus.directive';
 export const name = CORE_FORMS_AUTOFOCUS_AUTOFOCUS_DIRECTIVE; // for backwards compatibility
-angular.module(CORE_FORMS_AUTOFOCUS_AUTOFOCUS_DIRECTIVE, []).directive('autoFocus', [
+module(CORE_FORMS_AUTOFOCUS_AUTOFOCUS_DIRECTIVE, []).directive('autoFocus', [
   '$timeout',
   function($timeout) {
     return {

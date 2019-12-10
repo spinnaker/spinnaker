@@ -6,7 +6,7 @@ import { ViewStateCache } from 'core/cache';
 
 import { ReactModal } from 'core/presentation';
 
-const angular = require('angular');
+import * as angular from 'angular';
 
 import { OVERRIDE_REGISTRY } from 'core/overrideRegistry/override.registry';
 import { PIPELINE_CONFIG_ACTIONS } from 'core/pipeline/config/actions/pipelineConfigActions.module';

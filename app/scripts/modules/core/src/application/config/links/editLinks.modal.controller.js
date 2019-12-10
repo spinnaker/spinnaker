@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import * as angular from 'angular';
 
 export const CORE_APPLICATION_CONFIG_LINKS_EDITLINKS_MODAL_CONTROLLER =
   'spinnaker.core.application.config.links.editJson';

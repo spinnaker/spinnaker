@@ -1,10 +1,10 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const KUBERNETES_V1_CONTAINER_COMMANDS_COMPONENT = 'spinnaker.deck.kubernetes.container.commands.component';
 export const name = KUBERNETES_V1_CONTAINER_COMMANDS_COMPONENT; // for backwards compatibility
-angular.module(KUBERNETES_V1_CONTAINER_COMMANDS_COMPONENT, []).component('kubernetesContainerCommands', {
+module(KUBERNETES_V1_CONTAINER_COMMANDS_COMPONENT, []).component('kubernetesContainerCommands', {
   bindings: {
     commands: '=',
   },

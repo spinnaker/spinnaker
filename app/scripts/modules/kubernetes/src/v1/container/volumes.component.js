@@ -1,10 +1,10 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const KUBERNETES_V1_CONTAINER_VOLUMES_COMPONENT = 'spinnaker.deck.kubernetes.volumes.component';
 export const name = KUBERNETES_V1_CONTAINER_VOLUMES_COMPONENT; // for backwards compatibility
-angular.module(KUBERNETES_V1_CONTAINER_VOLUMES_COMPONENT, []).component('kubernetesContainerVolumes', {
+module(KUBERNETES_V1_CONTAINER_VOLUMES_COMPONENT, []).component('kubernetesContainerVolumes', {
   bindings: {
     volumeSources: '=',
     volumeMounts: '=',

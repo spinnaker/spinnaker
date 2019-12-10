@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 import _ from 'lodash';
 
 import { CollapsibleSectionStateCache } from 'core/cache';
@@ -15,12 +15,11 @@ import { CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_SERVICE } from '../re
 export const CORE_PROJECTS_DASHBOARD_CLUSTER_PROJECTCLUSTER_DIRECTIVE =
   'spinnaker.core.projects.dashboard.clusters.projectCluster.directive';
 export const name = CORE_PROJECTS_DASHBOARD_CLUSTER_PROJECTCLUSTER_DIRECTIVE; // for backwards compatibility
-angular
-  .module(CORE_PROJECTS_DASHBOARD_CLUSTER_PROJECTCLUSTER_DIRECTIVE, [
-    TIME_FORMATTERS,
-    HEALTH_COUNTS_COMPONENT,
-    CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_SERVICE,
-  ])
+module(CORE_PROJECTS_DASHBOARD_CLUSTER_PROJECTCLUSTER_DIRECTIVE, [
+  TIME_FORMATTERS,
+  HEALTH_COUNTS_COMPONENT,
+  CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_SERVICE,
+])
   .directive('projectCluster', function() {
     return {
       restrict: 'E',

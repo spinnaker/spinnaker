@@ -1,13 +1,12 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 
 export const AMAZON_PIPELINE_STAGES_MODIFYSCALINGPROCESS_MODIFYSCALINGPROCESSSTAGE =
   'spinnaker.amazon.pipeline.stage.modifyScalingProcessStage';
 export const name = AMAZON_PIPELINE_STAGES_MODIFYSCALINGPROCESS_MODIFYSCALINGPROCESSSTAGE; // for backwards compatibility
-angular
-  .module(AMAZON_PIPELINE_STAGES_MODIFYSCALINGPROCESS_MODIFYSCALINGPROCESSSTAGE, [])
+module(AMAZON_PIPELINE_STAGES_MODIFYSCALINGPROCESS_MODIFYSCALINGPROCESSSTAGE, [])
   .config(function() {
     Registry.pipeline.registerStage({
       label: 'Modify Scaling Process',

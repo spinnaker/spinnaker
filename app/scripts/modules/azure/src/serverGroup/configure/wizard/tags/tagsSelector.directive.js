@@ -1,13 +1,12 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 const Utility = require('../../../../utility').default;
 
 export const AZURE_SERVERGROUP_CONFIGURE_WIZARD_TAGS_TAGSSELECTOR_DIRECTIVE =
   'spinnaker.azure.serverGroup.configure.wizard.tags.directive';
 export const name = AZURE_SERVERGROUP_CONFIGURE_WIZARD_TAGS_TAGSSELECTOR_DIRECTIVE; // for backwards compatibility
-angular
-  .module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_TAGS_TAGSSELECTOR_DIRECTIVE, [])
+module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_TAGS_TAGSSELECTOR_DIRECTIVE, [])
   .directive('azureTagsSelector', function() {
     return {
       restrict: 'E',

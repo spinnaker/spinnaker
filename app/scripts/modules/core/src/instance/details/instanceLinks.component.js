@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 import _ from 'lodash';
 
 import { SETTINGS } from 'core/config/settings';
@@ -9,7 +9,7 @@ import './instanceLinks.component.less';
 
 export const CORE_INSTANCE_DETAILS_INSTANCELINKS_COMPONENT = 'spinnaker.core.instance.details.instanceLinks';
 export const name = CORE_INSTANCE_DETAILS_INSTANCELINKS_COMPONENT; // for backwards compatibility
-angular.module(CORE_INSTANCE_DETAILS_INSTANCELINKS_COMPONENT, []).component('instanceLinks', {
+module(CORE_INSTANCE_DETAILS_INSTANCELINKS_COMPONENT, []).component('instanceLinks', {
   bindings: {
     address: '=',
     application: '=',

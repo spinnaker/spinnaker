@@ -8,11 +8,11 @@ import { PipelineTemplateReader } from './templates/PipelineTemplateReader';
 import { PipelineTemplateV2Service } from 'core/pipeline';
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const CORE_PIPELINE_CONFIG_PIPELINECONFIG_CONTROLLER = 'spinnaker.core.pipeline.config.controller';
 export const name = CORE_PIPELINE_CONFIG_PIPELINECONFIG_CONTROLLER; // for backwards compatibility
-angular.module(CORE_PIPELINE_CONFIG_PIPELINECONFIG_CONTROLLER, [UIROUTER_ANGULARJS]).controller('PipelineConfigCtrl', [
+module(CORE_PIPELINE_CONFIG_PIPELINECONFIG_CONTROLLER, [UIROUTER_ANGULARJS]).controller('PipelineConfigCtrl', [
   '$scope',
   '$state',
   '$stateParams',

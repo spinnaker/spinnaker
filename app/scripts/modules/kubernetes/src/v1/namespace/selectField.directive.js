@@ -1,10 +1,10 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const KUBERNETES_V1_NAMESPACE_SELECTFIELD_DIRECTIVE = 'spinnaker.kubernetes.namespace.selectField.directive';
 export const name = KUBERNETES_V1_NAMESPACE_SELECTFIELD_DIRECTIVE; // for backwards compatibility
-angular.module(KUBERNETES_V1_NAMESPACE_SELECTFIELD_DIRECTIVE, []).directive('namespaceSelectField', function() {
+module(KUBERNETES_V1_NAMESPACE_SELECTFIELD_DIRECTIVE, []).directive('namespaceSelectField', function() {
   return {
     restrict: 'E',
     templateUrl: require('./selectField.directive.html'),

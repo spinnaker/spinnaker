@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import * as angular from 'angular';
 
 export const CORE_PIPELINE_CONFIG_HEALTH_STAGEPLATFORMHEALTHOVERRIDE_DIRECTIVE =
   'spinnaker.core.pipeline.config.health.stagePlatformHealthOverride.directive';

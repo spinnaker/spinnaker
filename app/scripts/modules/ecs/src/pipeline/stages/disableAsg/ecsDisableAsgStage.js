@@ -1,13 +1,12 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 import { AccountService, PipelineTemplates, Registry, StageConstants } from '@spinnaker/core';
 
 export const ECS_PIPELINE_STAGES_DISABLEASG_ECSDISABLEASGSTAGE = 'spinnaker.ecs.pipeline.stage.disableAsgStage';
 export const name = ECS_PIPELINE_STAGES_DISABLEASG_ECSDISABLEASGSTAGE; // for backwards compatibility
-angular
-  .module(ECS_PIPELINE_STAGES_DISABLEASG_ECSDISABLEASGSTAGE, [])
+module(ECS_PIPELINE_STAGES_DISABLEASG_ECSDISABLEASGSTAGE, [])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'disableServerGroup',

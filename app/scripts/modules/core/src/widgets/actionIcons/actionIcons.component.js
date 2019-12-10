@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import * as angular from 'angular';
 
 export const CORE_WIDGETS_ACTIONICONS_ACTIONICONS_COMPONENT = 'spinnaker.core.actionIcons.component';
 export const name = CORE_WIDGETS_ACTIONICONS_ACTIONICONS_COMPONENT; // for backwards compatibility

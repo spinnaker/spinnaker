@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import * as angular from 'angular';
 
 export const CORE_FORMS_VALIDATEONSUBMIT_VALIDATEONSUBMIT_DIRECTIVE = 'spinnaker.core.forms.validateOnSubmit.directive';
 export const name = CORE_FORMS_VALIDATEONSUBMIT_VALIDATEONSUBMIT_DIRECTIVE; // for backwards compatibility

@@ -1,12 +1,12 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 import { API, RetryService } from '@spinnaker/core';
 
 export const KUBERNETES_V1_IMAGE_IMAGE_READER = 'spinnaker.kubernetes.image.reader';
 export const name = KUBERNETES_V1_IMAGE_IMAGE_READER; // for backwards compatibility
-angular.module(KUBERNETES_V1_IMAGE_IMAGE_READER, []).factory('kubernetesImageReader', function() {
+module(KUBERNETES_V1_IMAGE_IMAGE_READER, []).factory('kubernetesImageReader', function() {
   function findImages(params) {
     return RetryService.buildRetrySequence(
       () => API.all('images/find').getList(params),

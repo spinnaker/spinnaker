@@ -2,203 +2,201 @@
 
 import _ from 'lodash';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 import { FirewallLabels } from '@spinnaker/core';
 
 export const GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGMANAGER_SERVICE =
   'spinnaker.deck.gce.tagManager.service';
 export const name = GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGMANAGER_SERVICE; // for backwards compatibility
-angular
-  .module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGMANAGER_SERVICE, [])
-  .factory('gceTagManager', function() {
-    const resetKeys = ['command', 'securityGroups', 'securityGroupObjectsKeyedByTag', 'securityGroupObjectsKeyedById'];
+module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGMANAGER_SERVICE, []).factory('gceTagManager', function() {
+  const resetKeys = ['command', 'securityGroups', 'securityGroupObjectsKeyedByTag', 'securityGroupObjectsKeyedById'];
 
-    this.reset = () => {
-      resetKeys.forEach(key => delete this[key]);
-    };
+  this.reset = () => {
+    resetKeys.forEach(key => delete this[key]);
+  };
 
-    this.register = command => {
-      this.command = command;
-      const { credentials, backingData } = command;
-      if (backingData.securityGroups[credentials] !== undefined) {
-        this.securityGroupObjects = _.cloneDeep(backingData.securityGroups[credentials].gce.global);
+  this.register = command => {
+    this.command = command;
+    const { credentials, backingData } = command;
+    if (backingData.securityGroups[credentials] !== undefined) {
+      this.securityGroupObjects = _.cloneDeep(backingData.securityGroups[credentials].gce.global);
 
-        initializeSecurityGroupObjects(this.securityGroupObjects, command.tags);
+      initializeSecurityGroupObjects(this.securityGroupObjects, command.tags);
 
-        const { byTag, bySecurityGroupId } = groupSecurityGroupObjects(this.securityGroupObjects);
-        this.securityGroupObjectsKeyedByTag = byTag;
-        this.securityGroupObjectsKeyedById = bySecurityGroupId;
-      }
+      const { byTag, bySecurityGroupId } = groupSecurityGroupObjects(this.securityGroupObjects);
+      this.securityGroupObjectsKeyedByTag = byTag;
+      this.securityGroupObjectsKeyedById = bySecurityGroupId;
+    }
 
-      if (!command.securityGroups) {
-        command.securityGroups = this.inferSecurityGroupIdsFromTags(command.tags);
-      }
-    };
+    if (!command.securityGroups) {
+      command.securityGroups = this.inferSecurityGroupIdsFromTags(command.tags);
+    }
+  };
 
-    this.inferSecurityGroupIdsFromTags = (commandTags = []) => {
-      return _.chain(commandTags)
-        .map(t => this.securityGroupObjectsKeyedByTag[t.value])
-        .flatten()
-        .compact()
-        .filter(sg => sg.network === this.command.network)
-        .map('id')
-        .uniq()
-        .value();
-    };
+  this.inferSecurityGroupIdsFromTags = (commandTags = []) => {
+    return _.chain(commandTags)
+      .map(t => this.securityGroupObjectsKeyedByTag[t.value])
+      .flatten()
+      .compact()
+      .filter(sg => sg.network === this.command.network)
+      .map('id')
+      .uniq()
+      .value();
+  };
 
-    const initializeSecurityGroupObjects = (securityGroupObjects, commandTags = []) => {
-      securityGroupObjects.forEach(sg => {
-        // Raw target tags look like '[tag-a, tag-b]'.
-        const rawTags = sg.targetTags;
-        sg.tagsArray = rawTags ? rawTags.substring(1, rawTags.length - 1).split(', ') : [];
+  const initializeSecurityGroupObjects = (securityGroupObjects, commandTags = []) => {
+    securityGroupObjects.forEach(sg => {
+      // Raw target tags look like '[tag-a, tag-b]'.
+      const rawTags = sg.targetTags;
+      sg.tagsArray = rawTags ? rawTags.substring(1, rawTags.length - 1).split(', ') : [];
 
-        sg.selectedTags = commandTags ? _.intersection(commandTags.map(t => t.value), sg.tagsArray) : [];
-      });
-    };
+      sg.selectedTags = commandTags ? _.intersection(commandTags.map(t => t.value), sg.tagsArray) : [];
+    });
+  };
 
-    const groupSecurityGroupObjects = securityGroupObjects => {
-      return securityGroupObjects.reduce(
-        (groupings, sg) => {
-          const { bySecurityGroupId } = groupings;
-          bySecurityGroupId[sg.id] = sg;
+  const groupSecurityGroupObjects = securityGroupObjects => {
+    return securityGroupObjects.reduce(
+      (groupings, sg) => {
+        const { bySecurityGroupId } = groupings;
+        bySecurityGroupId[sg.id] = sg;
 
-          return sg.tagsArray.reduce((groupings, tag) => {
-            const { byTag } = groupings;
-            if (!byTag[tag]) {
-              byTag[tag] = [];
-            }
-            byTag[tag].push(sg);
+        return sg.tagsArray.reduce((groupings, tag) => {
+          const { byTag } = groupings;
+          if (!byTag[tag]) {
+            byTag[tag] = [];
+          }
+          byTag[tag].push(sg);
 
-            return groupings;
-          }, groupings);
-        },
-        { byTag: {}, bySecurityGroupId: {} },
+          return groupings;
+        }, groupings);
+      },
+      { byTag: {}, bySecurityGroupId: {} },
+    );
+  };
+
+  this.inferSelectedSecurityGroupFromTag = _.debounce(tagName => {
+    let securityGroupObjectsWithTag = this.securityGroupObjectsKeyedByTag[tagName],
+      c = this.command;
+
+    if (securityGroupObjectsWithTag) {
+      securityGroupObjectsWithTag = _.filter(securityGroupObjectsWithTag, sg => sg.network === this.command.network);
+    }
+
+    if (securityGroupObjectsWithTag) {
+      updateSelectedTagsOnSecurityGroupObjects(securityGroupObjectsWithTag, tagName);
+      c.securityGroups = _.map(
+        updateSelectedSecurityGroups(getSecurityGroupObjectsFromIds(c.securityGroups), securityGroupObjectsWithTag),
+        'id',
       );
-    };
+    }
 
-    this.inferSelectedSecurityGroupFromTag = _.debounce(tagName => {
-      let securityGroupObjectsWithTag = this.securityGroupObjectsKeyedByTag[tagName],
-        c = this.command;
+    // If you pause while typing "tag-a," but you really want to add "tag-abc,"
+    // make sure you remove "tag-a".
+    this.updateSelectedTags();
+  }, 100);
 
-      if (securityGroupObjectsWithTag) {
-        securityGroupObjectsWithTag = _.filter(securityGroupObjectsWithTag, sg => sg.network === this.command.network);
+  this.updateSelectedTags = () => {
+    const c = this.command,
+      tags = c.tags.map(t => t.value);
+
+    getSecurityGroupObjectsFromIds(c.securityGroups).forEach(sg => {
+      if (sg.selectedTags) {
+        sg.selectedTags = _.intersection(sg.selectedTags, tags);
       }
 
-      if (securityGroupObjectsWithTag) {
-        updateSelectedTagsOnSecurityGroupObjects(securityGroupObjectsWithTag, tagName);
-        c.securityGroups = _.map(
-          updateSelectedSecurityGroups(getSecurityGroupObjectsFromIds(c.securityGroups), securityGroupObjectsWithTag),
-          'id',
-        );
+      if (!_.get(sg, 'selectedTags.length')) {
+        c.securityGroups = _.without(c.securityGroups, sg.id);
       }
+    });
+  };
 
-      // If you pause while typing "tag-a," but you really want to add "tag-abc,"
-      // make sure you remove "tag-a".
-      this.updateSelectedTags();
-    }, 100);
+  this.addTag = tagName => {
+    let c = this.command,
+      tags = c.tags,
+      securityGroupObjectsWithTag = this.securityGroupObjectsKeyedByTag[tagName];
 
-    this.updateSelectedTags = () => {
-      const c = this.command,
-        tags = c.tags.map(t => t.value);
+    if (securityGroupObjectsWithTag) {
+      securityGroupObjectsWithTag = _.filter(securityGroupObjectsWithTag, sg => sg.network === this.command.network);
+    }
 
-      getSecurityGroupObjectsFromIds(c.securityGroups).forEach(sg => {
-        if (sg.selectedTags) {
-          sg.selectedTags = _.intersection(sg.selectedTags, tags);
-        }
+    if (!_.includes(tags.map(t => t.value), tagName)) {
+      tags.push({ value: tagName });
+    }
 
-        if (!_.get(sg, 'selectedTags.length')) {
-          c.securityGroups = _.without(c.securityGroups, sg.id);
-        }
-      });
-    };
+    if (securityGroupObjectsWithTag) {
+      updateSelectedTagsOnSecurityGroupObjects(securityGroupObjectsWithTag, tagName);
+      c.securityGroups = _.map(
+        updateSelectedSecurityGroups(getSecurityGroupObjectsFromIds(c.securityGroups), securityGroupObjectsWithTag),
+        'id',
+      );
+    }
+  };
 
-    this.addTag = tagName => {
-      let c = this.command,
-        tags = c.tags,
-        securityGroupObjectsWithTag = this.securityGroupObjectsKeyedByTag[tagName];
+  const getSecurityGroupObjectsFromIds = ids => ids.map(id => this.securityGroupObjectsKeyedById[id]);
 
-      if (securityGroupObjectsWithTag) {
-        securityGroupObjectsWithTag = _.filter(securityGroupObjectsWithTag, sg => sg.network === this.command.network);
-      }
-
-      if (!_.includes(tags.map(t => t.value), tagName)) {
-        tags.push({ value: tagName });
-      }
-
-      if (securityGroupObjectsWithTag) {
-        updateSelectedTagsOnSecurityGroupObjects(securityGroupObjectsWithTag, tagName);
-        c.securityGroups = _.map(
-          updateSelectedSecurityGroups(getSecurityGroupObjectsFromIds(c.securityGroups), securityGroupObjectsWithTag),
-          'id',
-        );
-      }
-    };
-
-    const getSecurityGroupObjectsFromIds = ids => ids.map(id => this.securityGroupObjectsKeyedById[id]);
-
-    const updateSelectedTagsOnSecurityGroupObjects = (securityGroupObjects, newTag) => {
-      securityGroupObjects.forEach(sg => {
-        sg.selectedTags = _.chain(sg.selectedTags || [])
-          .concat([newTag])
-          .uniq()
-          .value();
-      });
-    };
-
-    const updateSelectedSecurityGroups = (oldGroups, newGroups) => {
-      return _.chain(oldGroups)
-        .concat(newGroups)
+  const updateSelectedTagsOnSecurityGroupObjects = (securityGroupObjects, newTag) => {
+    securityGroupObjects.forEach(sg => {
+      sg.selectedTags = _.chain(sg.selectedTags || [])
+        .concat([newTag])
         .uniq()
         .value();
-    };
+    });
+  };
 
-    this.removeTag = tagName => {
-      const c = this.command,
-        securityGroupIds = c.securityGroups || [],
-        securityGroupObjects = getSecurityGroupObjectsFromIds(securityGroupIds);
+  const updateSelectedSecurityGroups = (oldGroups, newGroups) => {
+    return _.chain(oldGroups)
+      .concat(newGroups)
+      .uniq()
+      .value();
+  };
 
-      securityGroupObjects.forEach(sg => {
-        if (sg.selectedTags) {
-          sg.selectedTags = sg.selectedTags.filter(tag => tag !== tagName);
-        }
-      });
+  this.removeTag = tagName => {
+    const c = this.command,
+      securityGroupIds = c.securityGroups || [],
+      securityGroupObjects = getSecurityGroupObjectsFromIds(securityGroupIds);
 
-      c.tags = c.tags.filter(tag => tag.value !== tagName);
-    };
-
-    this.removeSecurityGroup = securityGroupId => {
-      const securityGroupObject = this.securityGroupObjectsKeyedById[securityGroupId],
-        tagsToRemove = securityGroupObject.selectedTags,
-        c = this.command;
-
-      getSecurityGroupObjectsFromIds(c.securityGroups).forEach(sg => {
-        if (sg.selectedTags) {
-          sg.selectedTags = _.difference(sg.selectedTags, tagsToRemove);
-        }
-      });
-
-      securityGroupObject.selectedTags = [];
-      c.tags = _.chain(c.tags)
-        .map(t => t.value)
-        .difference(tagsToRemove)
-        .map(t => ({ value: t }))
-        .value();
-    };
-
-    this.getToolTipContent = tagName => {
-      const groups = _.get(this, ['securityGroupObjectsKeyedByTag', tagName]),
-        groupIds = groups ? groups.filter(sg => sg.network === this.command.network).map(sg => sg.id) : [];
-
-      return `This tag associates this server group with ${
-        groupIds.length > 1 ? FirewallLabels.get('firewalls') : FirewallLabels.get('firewall')
+    securityGroupObjects.forEach(sg => {
+      if (sg.selectedTags) {
+        sg.selectedTags = sg.selectedTags.filter(tag => tag !== tagName);
       }
+    });
+
+    c.tags = c.tags.filter(tag => tag.value !== tagName);
+  };
+
+  this.removeSecurityGroup = securityGroupId => {
+    const securityGroupObject = this.securityGroupObjectsKeyedById[securityGroupId],
+      tagsToRemove = securityGroupObject.selectedTags,
+      c = this.command;
+
+    getSecurityGroupObjectsFromIds(c.securityGroups).forEach(sg => {
+      if (sg.selectedTags) {
+        sg.selectedTags = _.difference(sg.selectedTags, tagsToRemove);
+      }
+    });
+
+    securityGroupObject.selectedTags = [];
+    c.tags = _.chain(c.tags)
+      .map(t => t.value)
+      .difference(tagsToRemove)
+      .map(t => ({ value: t }))
+      .value();
+  };
+
+  this.getToolTipContent = tagName => {
+    const groups = _.get(this, ['securityGroupObjectsKeyedByTag', tagName]),
+      groupIds = groups ? groups.filter(sg => sg.network === this.command.network).map(sg => sg.id) : [];
+
+    return `This tag associates this server group with ${
+      groupIds.length > 1 ? FirewallLabels.get('firewalls') : FirewallLabels.get('firewall')
+    }
               <em>${groupIds.join(', ')}</em>.`;
-    };
+  };
 
-    this.showToolTip = tagName => {
-      return !!_.get(this, ['securityGroupObjectsKeyedByTag', tagName]);
-    };
+  this.showToolTip = tagName => {
+    return !!_.get(this, ['securityGroupObjectsKeyedByTag', tagName]);
+  };
 
-    return this;
-  });
+  return this;
+});

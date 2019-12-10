@@ -1,15 +1,15 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 import { SERVER_GROUP_WRITER, TaskMonitor } from '@spinnaker/core';
 
 export const ECS_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER =
   'spinnaker.ecs.serverGroup.details.rollback.controller';
 export const name = ECS_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER; // for backwards compatibility
-angular
-  .module(ECS_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [SERVER_GROUP_WRITER])
-  .controller('ecsRollbackServerGroupCtrl', [
+module(ECS_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [SERVER_GROUP_WRITER]).controller(
+  'ecsRollbackServerGroupCtrl',
+  [
     '$scope',
     '$uibModalInstance',
     'serverGroupWriter',
@@ -93,4 +93,5 @@ angular
         return serverGroup.isDisabled ? 'Disabled Server Groups' : 'Enabled Server Groups';
       };
     },
-  ]);
+  ],
+);

@@ -1,13 +1,12 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 
 export const AZURE_PIPELINE_STAGES_ENABLEASG_AZUREENABLEASGSTAGE = 'spinnaker.azure.pipeline.stage.enableAsgStage';
 export const name = AZURE_PIPELINE_STAGES_ENABLEASG_AZUREENABLEASGSTAGE; // for backwards compatibility
-angular
-  .module(AZURE_PIPELINE_STAGES_ENABLEASG_AZUREENABLEASGSTAGE, [])
+module(AZURE_PIPELINE_STAGES_ENABLEASG_AZUREENABLEASGSTAGE, [])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'enableServerGroup',

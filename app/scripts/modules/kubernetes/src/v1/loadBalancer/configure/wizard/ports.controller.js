@@ -1,13 +1,13 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const KUBERNETES_V1_LOADBALANCER_CONFIGURE_WIZARD_PORTS_CONTROLLER =
   'spinnaker.loadBalancer.configure.kubernetes.ports';
 export const name = KUBERNETES_V1_LOADBALANCER_CONFIGURE_WIZARD_PORTS_CONTROLLER; // for backwards compatibility
-angular
-  .module(KUBERNETES_V1_LOADBALANCER_CONFIGURE_WIZARD_PORTS_CONTROLLER, [])
-  .controller('kubernetesLoadBalancerPortsController', [
+module(KUBERNETES_V1_LOADBALANCER_CONFIGURE_WIZARD_PORTS_CONTROLLER, []).controller(
+  'kubernetesLoadBalancerPortsController',
+  [
     '$scope',
     function($scope) {
       this.addPort = function() {
@@ -21,4 +21,5 @@ angular
       this.protocols = ['TCP', 'UDP'];
       this.maxPort = 65535;
     },
-  ]);
+  ],
+);

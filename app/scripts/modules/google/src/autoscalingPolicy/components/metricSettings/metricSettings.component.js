@@ -2,14 +2,14 @@
 
 import _ from 'lodash';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const GOOGLE_AUTOSCALINGPOLICY_COMPONENTS_METRICSETTINGS_METRICSETTINGS_COMPONENT =
   'spinnaker.deck.gce.autoscalingPolicy.metricSettings.component';
 export const name = GOOGLE_AUTOSCALINGPOLICY_COMPONENTS_METRICSETTINGS_METRICSETTINGS_COMPONENT; // for backwards compatibility
-angular
-  .module(GOOGLE_AUTOSCALINGPOLICY_COMPONENTS_METRICSETTINGS_METRICSETTINGS_COMPONENT, [])
-  .component('gceAutoscalingPolicyMetricSettings', {
+module(GOOGLE_AUTOSCALINGPOLICY_COMPONENTS_METRICSETTINGS_METRICSETTINGS_COMPONENT, []).component(
+  'gceAutoscalingPolicyMetricSettings',
+  {
     bindings: {
       policy: '=',
       showNoMetricsWarning: '=',
@@ -84,4 +84,5 @@ angular
         return _.isEqual(value, {}) || _.isUndefined(value);
       }
     },
-  });
+  },
+);

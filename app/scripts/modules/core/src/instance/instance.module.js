@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 import { INSTANCE_STATES } from './instance.states';
 import './instanceSearchResultType';
@@ -12,7 +12,7 @@ import { CORE_INSTANCE_DETAILS_INSTANCELINKS_COMPONENT } from './details/instanc
 
 export const CORE_INSTANCE_INSTANCE_MODULE = 'spinnaker.core.instance';
 export const name = CORE_INSTANCE_INSTANCE_MODULE; // for backwards compatibility
-angular.module(CORE_INSTANCE_INSTANCE_MODULE, [
+module(CORE_INSTANCE_INSTANCE_MODULE, [
   CORE_INSTANCE_DETAILS_CONSOLE_CONSOLEOUTPUTLINK_DIRECTIVE,
   CORE_INSTANCE_LOADBALANCER_INSTANCELOADBALANCERHEALTH_DIRECTIVE,
   CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER,

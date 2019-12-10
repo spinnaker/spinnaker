@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import * as angular from 'angular';
 
 export const GOOGLE_COMMON_FOOTER_DIRECTIVE = 'spinnaker.google.footer.directive';
 export const name = GOOGLE_COMMON_FOOTER_DIRECTIVE; // for backwards compatibility

@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 import _ from 'lodash';
 
 import { AccountService, AppListExtractor, NameUtils, Registry, StageConstants } from '@spinnaker/core';
@@ -8,8 +8,7 @@ import { AccountService, AppListExtractor, NameUtils, Registry, StageConstants }
 export const AMAZON_PIPELINE_STAGES_CLONESERVERGROUP_AWSCLONESERVERGROUPSTAGE =
   'spinnaker.amazon.pipeline.stage.cloneServerGroupStage';
 export const name = AMAZON_PIPELINE_STAGES_CLONESERVERGROUP_AWSCLONESERVERGROUPSTAGE; // for backwards compatibility
-angular
-  .module(AMAZON_PIPELINE_STAGES_CLONESERVERGROUP_AWSCLONESERVERGROUPSTAGE, [])
+module(AMAZON_PIPELINE_STAGES_CLONESERVERGROUP_AWSCLONESERVERGROUPSTAGE, [])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'cloneServerGroup',

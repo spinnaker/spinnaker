@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import * as angular from 'angular';
 
 export const GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_ZONES_REGIONALSELECTOR_DIRECTIVE =
   'spinnaker.google.serverGroup.configure.wizard.capacity.regional.directive';

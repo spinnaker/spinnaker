@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import * as angular from 'angular';
 import { chain, filter, find, has, isEmpty } from 'lodash';
 import { FirewallLabels } from '@spinnaker/core';
 

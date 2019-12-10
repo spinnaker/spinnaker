@@ -1,12 +1,11 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 import { AccountService } from 'core/account/AccountService';
 
 export const CORE_ACCOUNT_PROVIDERTOGGLES_DIRECTIVE = 'spinnaker.core.account.providerToggle.directive';
 export const name = CORE_ACCOUNT_PROVIDERTOGGLES_DIRECTIVE; // for backwards compatibility
-angular
-  .module(CORE_ACCOUNT_PROVIDERTOGGLES_DIRECTIVE, [])
+module(CORE_ACCOUNT_PROVIDERTOGGLES_DIRECTIVE, [])
   .directive('ifMultipleProviders', function() {
     return {
       restrict: 'A',

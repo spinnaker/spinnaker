@@ -1,10 +1,10 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const CORE_MODAL_MODALOVERLAY_DIRECTIVE = 'spinnaker.core.modal.modalOverlay.directive';
 export const name = CORE_MODAL_MODALOVERLAY_DIRECTIVE; // for backwards compatibility
-angular.module(CORE_MODAL_MODALOVERLAY_DIRECTIVE, []).directive('modalOverlay', [
+module(CORE_MODAL_MODALOVERLAY_DIRECTIVE, []).directive('modalOverlay', [
   '$timeout',
   function($timeout) {
     return {

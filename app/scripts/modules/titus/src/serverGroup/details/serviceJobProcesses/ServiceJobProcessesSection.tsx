@@ -1,5 +1,5 @@
 import React from 'react';
-const angular = require('angular');
+import { module } from 'angular';
 import { react2angular } from 'react2angular';
 
 import {
@@ -130,6 +130,7 @@ export class ServiceJobProcessesSection extends React.Component<ITitusServerGrou
 
 export const SERVICE_JOB_PROCESSES_DETAILS_SECTION = 'spinnaker.titus.servicejobprocesses.section';
 
-angular
-  .module(SERVICE_JOB_PROCESSES_DETAILS_SECTION, [])
-  .component('titusServiceJobProcessesSection', react2angular(ServiceJobProcessesSection, ['serverGroup', 'app']));
+module(SERVICE_JOB_PROCESSES_DETAILS_SECTION, []).component(
+  'titusServiceJobProcessesSection',
+  react2angular(ServiceJobProcessesSection, ['serverGroup', 'app']),
+);

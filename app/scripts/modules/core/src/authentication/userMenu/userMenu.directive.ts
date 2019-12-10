@@ -1,4 +1,4 @@
-const angular = require('angular');
+import { module } from 'angular';
 
 import { AuthenticationInitializer } from '../AuthenticationInitializer';
 import { AuthenticationService } from '../AuthenticationService';
@@ -6,7 +6,7 @@ import { SETTINGS } from 'core/config/settings';
 
 export const AUTHENTICATION_USER_MENU = 'spinnaker.core.authentication.userMenu.directive';
 
-const ngmodule = angular.module(AUTHENTICATION_USER_MENU, []);
+const ngmodule = module(AUTHENTICATION_USER_MENU, []);
 
 ngmodule.directive('userMenu', function() {
   return {

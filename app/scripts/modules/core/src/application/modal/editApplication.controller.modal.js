@@ -8,7 +8,7 @@ import { TaskReader } from 'core/task/task.read.service';
 import { SETTINGS } from 'core/config/settings';
 import { CORE_APPLICATION_MODAL_APPLICATIONPROVIDERFIELDS_COMPONENT } from './applicationProviderFields.component';
 
-const angular = require('angular');
+import * as angular from 'angular';
 
 export const CORE_APPLICATION_MODAL_EDITAPPLICATION_CONTROLLER_MODAL = 'spinnaker.editApplication.modal.controller';
 export const name = CORE_APPLICATION_MODAL_EDITAPPLICATION_CONTROLLER_MODAL; // for backwards compatibility

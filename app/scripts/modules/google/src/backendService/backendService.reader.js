@@ -1,12 +1,12 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 import { API, InfrastructureCaches } from '@spinnaker/core';
 
 export const GOOGLE_BACKENDSERVICE_BACKENDSERVICE_READER = 'spinnaker.deck.gce.backendService.reader.service';
 export const name = GOOGLE_BACKENDSERVICE_BACKENDSERVICE_READER; // for backwards compatibility
-angular.module(GOOGLE_BACKENDSERVICE_BACKENDSERVICE_READER, []).factory('gceBackendServiceReader', function() {
+module(GOOGLE_BACKENDSERVICE_BACKENDSERVICE_READER, []).factory('gceBackendServiceReader', function() {
   function listBackendServices(kind) {
     if (kind) {
       return listBackendServices().then(([services]) => {

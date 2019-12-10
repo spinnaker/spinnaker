@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 import { CloudProviderRegistry } from 'core/cloudProvider';
 
@@ -8,7 +8,7 @@ import './cloudProviderLogo.less';
 
 export const CORE_CLOUDPROVIDER_CLOUDPROVIDERLABEL_DIRECTIVE = 'spinnaker.core.cloudProviderLabel.directive';
 export const name = CORE_CLOUDPROVIDER_CLOUDPROVIDERLABEL_DIRECTIVE; // for backwards compatibility
-angular.module(CORE_CLOUDPROVIDER_CLOUDPROVIDERLABEL_DIRECTIVE, []).directive('cloudProviderLabel', function() {
+module(CORE_CLOUDPROVIDER_CLOUDPROVIDERLABEL_DIRECTIVE, []).directive('cloudProviderLabel', function() {
   return {
     restrict: 'E',
     template: '<span ng-bind="providerLabel"></span>',

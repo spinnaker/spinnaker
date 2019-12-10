@@ -1,10 +1,10 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const KUBERNETES_V1_CONTAINER_PORTS_COMPONENT = 'spinnaker.kubernetes.container.ports.component';
 export const name = KUBERNETES_V1_CONTAINER_PORTS_COMPONENT; // for backwards compatibility
-angular.module(KUBERNETES_V1_CONTAINER_PORTS_COMPONENT, []).component('kubernetesContainerPorts', {
+module(KUBERNETES_V1_CONTAINER_PORTS_COMPONENT, []).component('kubernetesContainerPorts', {
   bindings: {
     ports: '=',
   },

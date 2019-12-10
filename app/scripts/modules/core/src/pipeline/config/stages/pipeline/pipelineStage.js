@@ -2,7 +2,7 @@
 
 import { pickBy } from 'lodash';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 import { ApplicationReader } from 'core/application/service/ApplicationReader';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
@@ -15,8 +15,7 @@ import { SETTINGS } from 'core/config';
 
 export const CORE_PIPELINE_CONFIG_STAGES_PIPELINE_PIPELINESTAGE = 'spinnaker.core.pipeline.stage.pipelineStage';
 export const name = CORE_PIPELINE_CONFIG_STAGES_PIPELINE_PIPELINESTAGE; // for backwards compatibility
-angular
-  .module(CORE_PIPELINE_CONFIG_STAGES_PIPELINE_PIPELINESTAGE, [])
+module(CORE_PIPELINE_CONFIG_STAGES_PIPELINE_PIPELINESTAGE, [])
   .config(function() {
     Registry.pipeline.registerStage({
       label: 'Pipeline',

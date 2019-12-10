@@ -1,12 +1,12 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 import { API } from '@spinnaker/core';
 
 export const ORACLE_IMAGE_IMAGE_READER = 'spinnaker.oracle.image.reader';
 export const name = ORACLE_IMAGE_IMAGE_READER; // for backwards compatibility
-angular.module(ORACLE_IMAGE_IMAGE_READER, []).factory('oracleImageReader', function() {
+module(ORACLE_IMAGE_IMAGE_READER, []).factory('oracleImageReader', function() {
   function findImages(params) {
     return API.one('images/find')
       .withParams(params)

@@ -3,7 +3,7 @@
 import { TaskExecutor } from '@spinnaker/core';
 
 describe('Controller: modifyScalingProcesses', function() {
-  const angular = require('angular');
+  import * as angular from 'angular';
 
   beforeEach(window.module(require('./modifyScalingProcesses.controller').name));
 

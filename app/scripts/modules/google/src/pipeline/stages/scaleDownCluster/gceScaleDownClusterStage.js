@@ -1,14 +1,13 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 import { AccountService, Registry } from '@spinnaker/core';
 
 export const GOOGLE_PIPELINE_STAGES_SCALEDOWNCLUSTER_GCESCALEDOWNCLUSTERSTAGE =
   'spinnaker.gce.pipeline.stage..scaleDownClusterStage';
 export const name = GOOGLE_PIPELINE_STAGES_SCALEDOWNCLUSTER_GCESCALEDOWNCLUSTERSTAGE; // for backwards compatibility
-angular
-  .module(GOOGLE_PIPELINE_STAGES_SCALEDOWNCLUSTER_GCESCALEDOWNCLUSTERSTAGE, [])
+module(GOOGLE_PIPELINE_STAGES_SCALEDOWNCLUSTER_GCESCALEDOWNCLUSTERSTAGE, [])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'scaleDownCluster',

@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import * as angular from 'angular';
 
 import { FirewallLabels, SERVER_GROUP_WRITER, TaskMonitor, ModalWizard } from '@spinnaker/core';
 import { KUBERNETES_V1_SERVERGROUP_CONFIGURE_CONFIGURATION_SERVICE } from '../configuration.service';

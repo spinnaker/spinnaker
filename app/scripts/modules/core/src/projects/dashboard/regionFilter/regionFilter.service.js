@@ -3,39 +3,37 @@
 import _ from 'lodash';
 import { FilterModelService } from 'core/filterModel';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_SERVICE =
   'spinnaker.deck.projects.dashboard.regionFilter.service';
 export const name = CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_SERVICE; // for backwards compatibility
-angular
-  .module(CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_SERVICE, [])
-  .factory('regionFilterService', function() {
-    let callbacks = [];
+module(CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_SERVICE, []).factory('regionFilterService', function() {
+  let callbacks = [];
 
-    let filterModelConfig = [{ model: 'region', param: 'reg', type: 'trueKeyObject' }];
-    FilterModelService.configureFilterModel(this, filterModelConfig);
+  let filterModelConfig = [{ model: 'region', param: 'reg', type: 'trueKeyObject' }];
+  FilterModelService.configureFilterModel(this, filterModelConfig);
 
-    this.registerCallback = cb => callbacks.push(cb);
+  this.registerCallback = cb => callbacks.push(cb);
 
-    this.deregisterCallback = cb => (callbacks = _.without(callbacks, cb));
+  this.deregisterCallback = cb => (callbacks = _.without(callbacks, cb));
 
-    this.runCallbacks = () => callbacks.forEach(cb => cb(this.sortFilter.region));
+  this.runCallbacks = () => callbacks.forEach(cb => cb(this.sortFilter.region));
 
-    this.toggleRegion = region => {
-      let path = `sortFilter.region[${region}]`;
-      _.set(this, path, !_.get(this, path));
-      this.applyParamsToUrl();
-      this.runCallbacks();
-    };
+  this.toggleRegion = region => {
+    let path = `sortFilter.region[${region}]`;
+    _.set(this, path, !_.get(this, path));
+    this.applyParamsToUrl();
+    this.runCallbacks();
+  };
 
-    this.clearFilter = () => {
-      _.forEach(this.sortFilter.region, (val, key) => delete this.sortFilter.region[key]);
-      this.applyParamsToUrl();
-      this.runCallbacks();
-    };
+  this.clearFilter = () => {
+    _.forEach(this.sortFilter.region, (val, key) => delete this.sortFilter.region[key]);
+    this.applyParamsToUrl();
+    this.runCallbacks();
+  };
 
-    this.activate();
+  this.activate();
 
-    return this;
-  });
+  return this;
+});

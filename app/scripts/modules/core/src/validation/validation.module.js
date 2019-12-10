@@ -3,11 +3,11 @@ import { CORE_VALIDATION_TRIGGERVALIDATION_DIRECTIVE } from './triggerValidation
 import { CORE_VALIDATION_VALIDATIONERROR_DIRECTIVE } from './validationError.directive';
 ('use strict');
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const CORE_VALIDATION_VALIDATION_MODULE = 'spinnaker.core.validation';
 export const name = CORE_VALIDATION_VALIDATION_MODULE; // for backwards compatibility
-angular.module(CORE_VALIDATION_VALIDATION_MODULE, [
+module(CORE_VALIDATION_VALIDATION_MODULE, [
   CORE_VALIDATION_VALIDATEUNIQUE_DIRECTIVE,
   CORE_VALIDATION_TRIGGERVALIDATION_DIRECTIVE,
   CORE_VALIDATION_VALIDATIONERROR_DIRECTIVE,

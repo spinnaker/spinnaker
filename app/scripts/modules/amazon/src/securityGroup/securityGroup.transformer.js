@@ -1,13 +1,13 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 import { groupBy } from 'lodash';
 
 import { VpcReader } from '../vpc/VpcReader';
 
 export const AMAZON_SECURITYGROUP_SECURITYGROUP_TRANSFORMER = 'spinnaker.amazon.securityGroup.transformer';
 export const name = AMAZON_SECURITYGROUP_SECURITYGROUP_TRANSFORMER; // for backwards compatibility
-angular.module(AMAZON_SECURITYGROUP_SECURITYGROUP_TRANSFORMER, []).factory('awsSecurityGroupTransformer', function() {
+module(AMAZON_SECURITYGROUP_SECURITYGROUP_TRANSFORMER, []).factory('awsSecurityGroupTransformer', function() {
   function normalizeSecurityGroup(securityGroup) {
     return VpcReader.listVpcs().then(addVpcNameToSecurityGroup(securityGroup));
   }

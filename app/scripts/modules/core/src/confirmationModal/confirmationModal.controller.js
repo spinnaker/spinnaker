@@ -1,15 +1,15 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 import { TaskMonitor } from 'core/task/monitor/TaskMonitor';
 import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 
 export const CORE_CONFIRMATIONMODAL_CONFIRMATIONMODAL_CONTROLLER = 'spinnaker.core.confirmationModal.controller';
 export const name = CORE_CONFIRMATIONMODAL_CONFIRMATIONMODAL_CONTROLLER; // for backwards compatibility
-angular
-  .module(CORE_CONFIRMATIONMODAL_CONFIRMATIONMODAL_CONTROLLER, [ANGULAR_UI_BOOTSTRAP])
-  .controller('ConfirmationModalCtrl', [
+module(CORE_CONFIRMATIONMODAL_CONFIRMATIONMODAL_CONTROLLER, [ANGULAR_UI_BOOTSTRAP]).controller(
+  'ConfirmationModalCtrl',
+  [
     '$scope',
     '$uibModalInstance',
     'params',
@@ -82,4 +82,5 @@ angular
 
       this.cancel = () => $uibModalInstance.dismiss({ source: 'footer' });
     },
-  ]);
+  ],
+);

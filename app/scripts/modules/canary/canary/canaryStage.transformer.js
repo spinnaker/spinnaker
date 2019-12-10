@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 import _ from 'lodash';
 import { $log } from 'ngimport';
 
@@ -8,7 +8,7 @@ import { OrchestratedItemTransformer } from '@spinnaker/core';
 
 export const CANARY_CANARY_CANARYSTAGE_TRANSFORMER = 'spinnaker.canary.transformer';
 export const name = CANARY_CANARY_CANARYSTAGE_TRANSFORMER; // for backwards compatibility
-angular.module(CANARY_CANARY_CANARYSTAGE_TRANSFORMER, []).service('canaryStageTransformer', function() {
+module(CANARY_CANARY_CANARYSTAGE_TRANSFORMER, []).service('canaryStageTransformer', function() {
   // adds "canary" or "baseline" to the deploy stage name when converting it to a task
   function getDeployTaskName(stage) {
     if (stage.context.freeFormDetails) {

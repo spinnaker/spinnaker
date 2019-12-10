@@ -1,15 +1,15 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 import _ from 'lodash';
 import { BackendServiceTemplate } from '../templates';
 
 export const GOOGLE_LOADBALANCER_CONFIGURE_HTTP_BACKENDSERVICE_BACKENDSERVICE_COMPONENT =
   'spinnaker.deck.gce.httpLoadBalancer.backendService.component';
 export const name = GOOGLE_LOADBALANCER_CONFIGURE_HTTP_BACKENDSERVICE_BACKENDSERVICE_COMPONENT; // for backwards compatibility
-angular
-  .module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_BACKENDSERVICE_BACKENDSERVICE_COMPONENT, [])
-  .component('gceHttpLoadBalancerBackendServiceSelector', {
+module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_BACKENDSERVICE_BACKENDSERVICE_COMPONENT, []).component(
+  'gceHttpLoadBalancerBackendServiceSelector',
+  {
     bindings: {
       deleteService: '&',
       backendService: '=',
@@ -66,4 +66,5 @@ angular
         this.loadBalancer.backendServices[this.index] = this.backendService = toAssign;
       };
     },
-  });
+  },
+);

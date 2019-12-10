@@ -3,7 +3,7 @@
 import _ from 'lodash';
 import { ModalWizard } from './ModalWizard';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 /**
  * Propagates standard Angular form validation to ModalWizard.
@@ -11,7 +11,7 @@ const angular = require('angular');
 
 export const CORE_MODAL_WIZARD_WIZARDSUBFORMVALIDATION_SERVICE = 'spinnaker.core.modalWizard.subFormValidation.service';
 export const name = CORE_MODAL_WIZARD_WIZARDSUBFORMVALIDATION_SERVICE; // for backwards compatibility
-angular.module(CORE_MODAL_WIZARD_WIZARDSUBFORMVALIDATION_SERVICE, []).factory('wizardSubFormValidation', function() {
+module(CORE_MODAL_WIZARD_WIZARDSUBFORMVALIDATION_SERVICE, []).factory('wizardSubFormValidation', function() {
   let validatorRegistry = {};
 
   function buildWatchString(form, subForm, formKey) {

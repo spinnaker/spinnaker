@@ -1,15 +1,15 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 import { FirewallLabels, InfrastructureCaches } from '@spinnaker/core';
 
 export const AZURE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUP_SERVERGROUPSECURITYGROUPSSELECTOR_DIRECTIVE =
   'spinnaker.azure.serverGroup.configure.securityGroupSelector.directive';
 export const name = AZURE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUP_SERVERGROUPSECURITYGROUPSSELECTOR_DIRECTIVE; // for backwards compatibility
-angular
-  .module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUP_SERVERGROUPSECURITYGROUPSSELECTOR_DIRECTIVE, [])
-  .directive('azureServerGroupSecurityGroupsSelector', [
+module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUP_SERVERGROUPSECURITYGROUPSSELECTOR_DIRECTIVE, []).directive(
+  'azureServerGroupSecurityGroupsSelector',
+  [
     'azureServerGroupConfigurationService',
     function(azureServerGroupConfigurationService) {
       return {
@@ -34,4 +34,5 @@ angular
         },
       };
     },
-  ]);
+  ],
+);

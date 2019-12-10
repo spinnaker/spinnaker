@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import * as angular from 'angular';
 require('./advancedSettings.directive.html');
 
 describe('Directive: GCE Group Advanced Settings Selector', function() {

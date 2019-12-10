@@ -1,38 +1,36 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 import { SETTINGS } from '@spinnaker/core';
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export const CANARY_CANARY_CANARYEXECUTIONDETAILS_CONTROLLER = 'spinnaker.canary.details.controller';
 export const name = CANARY_CANARY_CANARYEXECUTIONDETAILS_CONTROLLER; // for backwards compatibility
-angular
-  .module(CANARY_CANARY_CANARYEXECUTIONDETAILS_CONTROLLER, [UIROUTER_ANGULARJS])
-  .controller('CanaryExecutionDetailsCtrl', [
-    '$scope',
-    '$stateParams',
-    'executionDetailsSectionService',
-    function($scope, $stateParams, executionDetailsSectionService) {
-      $scope.configSections = ['canarySummary', 'canaryConfig', 'taskStatus'];
+module(CANARY_CANARY_CANARYEXECUTIONDETAILS_CONTROLLER, [UIROUTER_ANGULARJS]).controller('CanaryExecutionDetailsCtrl', [
+  '$scope',
+  '$stateParams',
+  'executionDetailsSectionService',
+  function($scope, $stateParams, executionDetailsSectionService) {
+    $scope.configSections = ['canarySummary', 'canaryConfig', 'taskStatus'];
 
-      $scope.configUrl = SETTINGS.canaryConfig ? SETTINGS.canaryConfig.analysisConfigUrl : null;
+    $scope.configUrl = SETTINGS.canaryConfig ? SETTINGS.canaryConfig.analysisConfigUrl : null;
 
-      let initialized = () => {
-        $scope.detailsSection = $stateParams.details;
-        $scope.canary = $scope.stage.context.canary;
+    let initialized = () => {
+      $scope.detailsSection = $stateParams.details;
+      $scope.canary = $scope.stage.context.canary;
 
-        if ($scope.canary) {
-          $scope.canaryConfig = $scope.canary.canaryConfig;
-          $scope.baseline = $scope.stage.context.baseline;
-          $scope.canaryDeployments = $scope.canary.canaryDeployments;
-        }
-      };
+      if ($scope.canary) {
+        $scope.canaryConfig = $scope.canary.canaryConfig;
+        $scope.baseline = $scope.stage.context.baseline;
+        $scope.canaryDeployments = $scope.canary.canaryDeployments;
+      }
+    };
 
-      let initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
+    let initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
 
-      initialize();
+    initialize();
 
-      $scope.$on('$stateChangeSuccess', initialize);
-    },
-  ]);
+    $scope.$on('$stateChangeSuccess', initialize);
+  },
+]);

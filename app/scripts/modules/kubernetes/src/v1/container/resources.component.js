@@ -1,10 +1,10 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const KUBERNETES_V1_CONTAINER_RESOURCES_COMPONENT = 'spinnaker.deck.kubernetes.container.resources.component';
 export const name = KUBERNETES_V1_CONTAINER_RESOURCES_COMPONENT; // for backwards compatibility
-angular.module(KUBERNETES_V1_CONTAINER_RESOURCES_COMPONENT, []).component('kubernetesContainerResources', {
+module(KUBERNETES_V1_CONTAINER_RESOURCES_COMPONENT, []).component('kubernetesContainerResources', {
   bindings: {
     container: '=',
   },

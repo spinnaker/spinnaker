@@ -1,6 +1,6 @@
 import { IController, module } from 'angular';
 
-const angular = require('angular');
+import * as angular from 'angular';
 
 import {
   Application,

@@ -4,11 +4,11 @@ import _ from 'lodash';
 
 import { KubernetesProviderSettings } from '../../kubernetes.settings';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const KUBERNETES_V1_LOADBALANCER_TRANSFORMER = 'spinnaker.kubernetes.loadBalancer.transformer';
 export const name = KUBERNETES_V1_LOADBALANCER_TRANSFORMER; // for backwards compatibility
-angular.module(KUBERNETES_V1_LOADBALANCER_TRANSFORMER, []).factory('kubernetesLoadBalancerTransformer', [
+module(KUBERNETES_V1_LOADBALANCER_TRANSFORMER, []).factory('kubernetesLoadBalancerTransformer', [
   '$q',
   function($q) {
     function normalizeLoadBalancer(loadBalancer) {

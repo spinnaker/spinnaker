@@ -2,14 +2,14 @@
 
 import _ from 'lodash';
 import { GCE_ADDRESS_SELECTOR } from 'google/loadBalancer/configure/common/addressSelector.component';
-const angular = require('angular');
+import { module } from 'angular';
 
 export const GOOGLE_LOADBALANCER_CONFIGURE_HTTP_LISTENERS_LISTENER_COMPONENT =
   'spinnaker.deck.gce.httpLoadBalancer.listener.component';
 export const name = GOOGLE_LOADBALANCER_CONFIGURE_HTTP_LISTENERS_LISTENER_COMPONENT; // for backwards compatibility
-angular
-  .module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_LISTENERS_LISTENER_COMPONENT, [GCE_ADDRESS_SELECTOR])
-  .component('gceListener', {
+module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_LISTENERS_LISTENER_COMPONENT, [GCE_ADDRESS_SELECTOR]).component(
+  'gceListener',
+  {
     bindings: {
       command: '=',
       listener: '=',
@@ -59,4 +59,5 @@ angular
         }
       };
     },
-  });
+  },
+);

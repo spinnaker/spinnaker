@@ -2,7 +2,7 @@
 
 import _ from 'lodash';
 
-const angular = require('angular');
+import * as angular from 'angular';
 
 import { FirewallLabels } from 'core/securityGroup/label';
 import { SEARCH_RANK_FILTER } from '../searchRank.filter';

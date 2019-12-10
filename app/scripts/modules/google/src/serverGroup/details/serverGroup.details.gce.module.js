@@ -5,11 +5,11 @@ import { GCE_AUTOHEALING_POLICY_DETAILS } from './autoHealingPolicy/autoHealingP
 import { GCE_UPSERT_AUTOHEALING_POLICY_MODAL_CTRL } from './autoHealingPolicy/modal/upsertAutoHealingPolicy.modal.controller';
 import { GOOGLE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_GCE_CONTROLLER } from './serverGroupDetails.gce.controller';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const GOOGLE_SERVERGROUP_DETAILS_SERVERGROUP_DETAILS_GCE_MODULE = 'spinnaker.serverGroup.details.gce';
 export const name = GOOGLE_SERVERGROUP_DETAILS_SERVERGROUP_DETAILS_GCE_MODULE; // for backwards compatibility
-angular.module(GOOGLE_SERVERGROUP_DETAILS_SERVERGROUP_DETAILS_GCE_MODULE, [
+module(GOOGLE_SERVERGROUP_DETAILS_SERVERGROUP_DETAILS_GCE_MODULE, [
   GOOGLE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_GCE_CONTROLLER,
   GCE_ADD_AUTOHEALING_POLICY_BUTTON,
   GCE_UPSERT_AUTOHEALING_POLICY_MODAL_CTRL,

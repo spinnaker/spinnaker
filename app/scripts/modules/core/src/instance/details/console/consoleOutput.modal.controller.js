@@ -2,12 +2,12 @@
 
 import { InstanceReader } from 'core/instance/InstanceReader';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const CORE_INSTANCE_DETAILS_CONSOLE_CONSOLEOUTPUT_MODAL_CONTROLLER =
   'spinnaker.core.instance.details.console.controller';
 export const name = CORE_INSTANCE_DETAILS_CONSOLE_CONSOLEOUTPUT_MODAL_CONTROLLER; // for backwards compatibility
-angular.module(CORE_INSTANCE_DETAILS_CONSOLE_CONSOLEOUTPUT_MODAL_CONTROLLER, []).controller('ConsoleOutputCtrl', [
+module(CORE_INSTANCE_DETAILS_CONSOLE_CONSOLEOUTPUT_MODAL_CONTROLLER, []).controller('ConsoleOutputCtrl', [
   '$scope',
   '$uibModalInstance',
   'instance',

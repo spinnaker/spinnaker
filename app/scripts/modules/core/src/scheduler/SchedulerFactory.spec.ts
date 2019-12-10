@@ -2,7 +2,7 @@ import { ITimeoutService, mock } from 'angular';
 import { SchedulerFactory } from './SchedulerFactory';
 
 describe('scheduler', function() {
-  const angular = require('angular');
+  import * as angular from 'angular';
 
   let $timeout: ITimeoutService;
 

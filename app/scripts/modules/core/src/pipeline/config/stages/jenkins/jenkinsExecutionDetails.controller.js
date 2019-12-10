@@ -1,14 +1,14 @@
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 ('use strict');
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const CORE_PIPELINE_CONFIG_STAGES_JENKINS_JENKINSEXECUTIONDETAILS_CONTROLLER =
   'spinnaker.core.pipeline.stage.jenkins.executionDetails.controller';
 export const name = CORE_PIPELINE_CONFIG_STAGES_JENKINS_JENKINSEXECUTIONDETAILS_CONTROLLER; // for backwards compatibility
-angular
-  .module(CORE_PIPELINE_CONFIG_STAGES_JENKINS_JENKINSEXECUTIONDETAILS_CONTROLLER, [UIROUTER_ANGULARJS])
-  .controller('JenkinsExecutionDetailsCtrl', [
+module(CORE_PIPELINE_CONFIG_STAGES_JENKINS_JENKINSEXECUTIONDETAILS_CONTROLLER, [UIROUTER_ANGULARJS]).controller(
+  'JenkinsExecutionDetailsCtrl',
+  [
     '$scope',
     '$stateParams',
     'executionDetailsSectionService',
@@ -49,4 +49,5 @@ angular
 
       $scope.$on('$stateChangeSuccess', initialize);
     },
-  ]);
+  ],
+);

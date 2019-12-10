@@ -1,10 +1,10 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const KUBERNETES_V1_CONTAINER_ARGUMENTS_COMPONENT = 'spinnaker.deck.kubernetes.arguments.component';
 export const name = KUBERNETES_V1_CONTAINER_ARGUMENTS_COMPONENT; // for backwards compatibility
-angular.module(KUBERNETES_V1_CONTAINER_ARGUMENTS_COMPONENT, []).component('kubernetesContainerArguments', {
+module(KUBERNETES_V1_CONTAINER_ARGUMENTS_COMPONENT, []).component('kubernetesContainerArguments', {
   bindings: {
     args: '=',
   },

@@ -2,7 +2,7 @@
 
 import { CONFIRMATION_MODAL_SERVICE, LoadBalancerWriter, ServerGroupTemplates } from '@spinnaker/core';
 
-const angular = require('angular');
+import * as angular from 'angular';
 
 export const DCOS_LOADBALANCER_DETAILS_DETAILS_CONTROLLER = 'spinnaker.dcos.loadBalancer.details.controller';
 export const name = DCOS_LOADBALANCER_DETAILS_DETAILS_CONTROLLER; // for backwards compatibility

@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import * as angular from 'angular';
 const _ = require('lodash');
 
 import { NameUtils } from '@spinnaker/core';

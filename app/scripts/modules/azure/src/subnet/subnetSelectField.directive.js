@@ -1,10 +1,10 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const AZURE_SUBNET_SUBNETSELECTFIELD_DIRECTIVE = 'spinnaker.azure.subnet.subnetSelectField.directive';
 export const name = AZURE_SUBNET_SUBNETSELECTFIELD_DIRECTIVE; // for backwards compatibility
-angular.module(AZURE_SUBNET_SUBNETSELECTFIELD_DIRECTIVE, []).directive('azureSubnetSelectField', function() {
+module(AZURE_SUBNET_SUBNETSELECTFIELD_DIRECTIVE, []).directive('azureSubnetSelectField', function() {
   return {
     restrict: 'E',
     templateUrl: require('./subnetSelectField.directive.html'),

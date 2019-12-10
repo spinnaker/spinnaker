@@ -1,10 +1,10 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const DCOS_JOB_LABELS_COMPONENT = 'spinnaker.dcos.labels.component';
 export const name = DCOS_JOB_LABELS_COMPONENT; // for backwards compatibility
-angular.module(DCOS_JOB_LABELS_COMPONENT, []).component('dcosLabels', {
+module(DCOS_JOB_LABELS_COMPONENT, []).component('dcosLabels', {
   bindings: {
     labels: '=',
   },

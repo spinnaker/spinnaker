@@ -3,7 +3,7 @@
 import { CACHE_INITIALIZER_SERVICE } from 'core/cache/cacheInitializer.service';
 
 describe('Directives: regionSelectField', function() {
-  const angular = require('angular');
+  import * as angular from 'angular';
 
   beforeEach(function() {
     window.module(require('./regionSelectField.directive').name, CACHE_INITIALIZER_SERVICE, function($provide) {

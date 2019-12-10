@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 import _ from 'lodash';
 
 import { NameUtils } from '@spinnaker/core';
@@ -9,9 +9,9 @@ import { sessionAffinityModelToViewMap, sessionAffinityViewToModelMap } from '..
 
 export const GOOGLE_LOADBALANCER_CONFIGURE_HTTP_TRANSFORMER_SERVICE = 'spinnaker.gce.deck.httpLoadBalancer.transformer';
 export const name = GOOGLE_LOADBALANCER_CONFIGURE_HTTP_TRANSFORMER_SERVICE; // for backwards compatibility
-angular
-  .module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_TRANSFORMER_SERVICE, [])
-  .factory('gceHttpLoadBalancerTransformer', function() {
+module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_TRANSFORMER_SERVICE, []).factory(
+  'gceHttpLoadBalancerTransformer',
+  function() {
     // SERIALIZE
 
     const keysToOmit = ['backendServices', 'healthChecks', 'listeners', 'stack', 'detail'];
@@ -173,4 +173,5 @@ angular
     }
 
     return { serialize, deserialize };
-  });
+  },
+);

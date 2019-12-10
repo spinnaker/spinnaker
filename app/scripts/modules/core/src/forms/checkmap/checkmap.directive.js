@@ -2,7 +2,7 @@
 
 import _ from 'lodash';
 
-const angular = require('angular');
+import * as angular from 'angular';
 
 export const CORE_FORMS_CHECKMAP_CHECKMAP_DIRECTIVE = 'spinnaker.core.forms.checkmap.checkmap.directive';
 export const name = CORE_FORMS_CHECKMAP_CHECKMAP_DIRECTIVE; // for backwards compatibility

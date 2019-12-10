@@ -3,14 +3,14 @@ import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 ('use strict');
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const KUBERNETES_V1_PIPELINE_STAGES_RUNJOB_RUNJOBEXECUTIONDETAILS_CONTROLLER =
   'spinnaker.kubernetes.pipeline.stage.disableCluster.runJobExecutionDetails.controller';
 export const name = KUBERNETES_V1_PIPELINE_STAGES_RUNJOB_RUNJOBEXECUTIONDETAILS_CONTROLLER; // for backwards compatibility
-angular
-  .module(KUBERNETES_V1_PIPELINE_STAGES_RUNJOB_RUNJOBEXECUTIONDETAILS_CONTROLLER, [UIROUTER_ANGULARJS])
-  .controller('kubernetesRunJobExecutionDetailsCtrl', [
+module(KUBERNETES_V1_PIPELINE_STAGES_RUNJOB_RUNJOBEXECUTIONDETAILS_CONTROLLER, [UIROUTER_ANGULARJS]).controller(
+  'kubernetesRunJobExecutionDetailsCtrl',
+  [
     '$scope',
     '$stateParams',
     'executionService',
@@ -58,4 +58,5 @@ angular
         }
       };
     },
-  ]);
+  ],
+);

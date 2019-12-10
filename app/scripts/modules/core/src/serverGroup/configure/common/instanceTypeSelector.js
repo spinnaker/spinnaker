@@ -1,14 +1,13 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 import './instanceTypeSelector.directive.less';
 
 export const CORE_SERVERGROUP_CONFIGURE_COMMON_INSTANCETYPESELECTOR =
   'spinnaker.core.serverGroup.configure.common.instanceTypeSelector';
 export const name = CORE_SERVERGROUP_CONFIGURE_COMMON_INSTANCETYPESELECTOR; // for backwards compatibility
-angular
-  .module(CORE_SERVERGROUP_CONFIGURE_COMMON_INSTANCETYPESELECTOR, [])
+module(CORE_SERVERGROUP_CONFIGURE_COMMON_INSTANCETYPESELECTOR, [])
   .directive('instanceTypeSelector', function() {
     return {
       restrict: 'E',

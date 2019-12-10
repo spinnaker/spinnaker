@@ -1,13 +1,12 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 import { Observable, Subject } from 'rxjs';
 
 export const ECS_SERVERGROUP_CONFIGURE_WIZARD_CONTAINER_CONTAINER_COMPONENT =
   'spinnaker.ecs.serverGroup.configure.wizard.container.component';
 export const name = ECS_SERVERGROUP_CONFIGURE_WIZARD_CONTAINER_CONTAINER_COMPONENT; // for backwards compatibility
-angular
-  .module(ECS_SERVERGROUP_CONFIGURE_WIZARD_CONTAINER_CONTAINER_COMPONENT, [])
+module(ECS_SERVERGROUP_CONFIGURE_WIZARD_CONTAINER_CONTAINER_COMPONENT, [])
   .component('ecsServerGroupContainer', {
     bindings: {
       command: '=',

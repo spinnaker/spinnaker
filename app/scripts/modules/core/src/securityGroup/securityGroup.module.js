@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 import { SECURITY_GROUP_STATES } from './securityGroup.states';
 import { SECURITY_GROUP_FILTER } from './filter/securityGroup.filter.component';
@@ -9,7 +9,7 @@ import './securityGroupSearchResultType';
 
 export const CORE_SECURITYGROUP_SECURITYGROUP_MODULE = 'spinnaker.core.securityGroup';
 export const name = CORE_SECURITYGROUP_SECURITYGROUP_MODULE; // for backwards compatibility
-angular.module(CORE_SECURITYGROUP_SECURITYGROUP_MODULE, [
+module(CORE_SECURITYGROUP_SECURITYGROUP_MODULE, [
   SECURITY_GROUP_FILTER,
   SECURITY_GROUP_DATA_SOURCE,
   SECURITY_GROUP_STATES,

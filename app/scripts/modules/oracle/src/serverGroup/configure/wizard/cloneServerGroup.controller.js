@@ -1,15 +1,15 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 import { FirewallLabels, ModalWizard, TaskMonitor } from '@spinnaker/core';
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export const ORACLE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_CONTROLLER =
   'spinnaker.oracle.serverGroup.configure.cloneServerGroup';
 export const name = ORACLE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_CONTROLLER; // for backwards compatibility
-angular
-  .module(ORACLE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_CONTROLLER, [UIROUTER_ANGULARJS])
-  .controller('oracleCloneServerGroupCtrl', [
+module(ORACLE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_CONTROLLER, [UIROUTER_ANGULARJS]).controller(
+  'oracleCloneServerGroupCtrl',
+  [
     '$scope',
     '$uibModalInstance',
     '$q',
@@ -104,4 +104,5 @@ angular
         configureCommand();
       };
     },
-  ]);
+  ],
+);

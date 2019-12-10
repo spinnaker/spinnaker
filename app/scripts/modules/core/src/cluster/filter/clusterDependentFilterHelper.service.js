@@ -2,14 +2,14 @@
 
 import _ from 'lodash';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const CORE_CLUSTER_FILTER_CLUSTERDEPENDENTFILTERHELPER_SERVICE =
   'spinnaker.deck.core.cluster.dependentFilterHelper.service';
 export const name = CORE_CLUSTER_FILTER_CLUSTERDEPENDENTFILTERHELPER_SERVICE; // for backwards compatibility
-angular
-  .module(CORE_CLUSTER_FILTER_CLUSTERDEPENDENTFILTERHELPER_SERVICE, [])
-  .factory('clusterDependentFilterHelper', function() {
+module(CORE_CLUSTER_FILTER_CLUSTERDEPENDENTFILTERHELPER_SERVICE, []).factory(
+  'clusterDependentFilterHelper',
+  function() {
     let poolValueCoordinates = [
       { filterField: 'providerType', on: 'serverGroup', localField: 'type' },
       { filterField: 'account', on: 'serverGroup', localField: 'account' },
@@ -53,4 +53,5 @@ angular
     }
 
     return { poolBuilder };
-  });
+  },
+);

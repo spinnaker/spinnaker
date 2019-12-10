@@ -1,14 +1,13 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 import { AccountService } from 'core/account/AccountService';
 import { CloudProviderRegistry } from 'core/cloudProvider';
 
 export const CORE_CLOUDPROVIDER_PROVIDERSELECTION_PROVIDERSELECTOR_DIRECTIVE = 'spinnaker.providerSelection.directive';
 export const name = CORE_CLOUDPROVIDER_PROVIDERSELECTION_PROVIDERSELECTOR_DIRECTIVE; // for backwards compatibility
-angular
-  .module(CORE_CLOUDPROVIDER_PROVIDERSELECTION_PROVIDERSELECTOR_DIRECTIVE, [])
+module(CORE_CLOUDPROVIDER_PROVIDERSELECTION_PROVIDERSELECTOR_DIRECTIVE, [])
   .directive('providerSelector', [
     '$q',
     function($q) {

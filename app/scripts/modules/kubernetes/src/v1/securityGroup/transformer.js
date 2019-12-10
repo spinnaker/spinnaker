@@ -1,12 +1,12 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 import { KubernetesProviderSettings } from '../../kubernetes.settings';
 
 export const KUBERNETES_V1_SECURITYGROUP_TRANSFORMER = 'spinnaker.kubernetes.securityGroup.transformer';
 export const name = KUBERNETES_V1_SECURITYGROUP_TRANSFORMER; // for backwards compatibility
-angular.module(KUBERNETES_V1_SECURITYGROUP_TRANSFORMER, []).factory('kubernetesSecurityGroupTransformer', [
+module(KUBERNETES_V1_SECURITYGROUP_TRANSFORMER, []).factory('kubernetesSecurityGroupTransformer', [
   '$q',
   function($q) {
     function normalizeSecurityGroup(securityGroup) {

@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 import { CREATE_PIPELINE_COMPONENT } from './createPipeline.component';
 import { PIPELINE_GRAPH_COMPONENT } from './graph/pipeline.graph.component';
@@ -26,7 +26,7 @@ import { CORE_PIPELINE_CONFIG_HEALTH_STAGEPLATFORMHEALTHOVERRIDE_DIRECTIVE } fro
 
 export const CORE_PIPELINE_CONFIG_PIPELINECONFIG_MODULE = 'spinnaker.core.pipeline.config';
 export const name = CORE_PIPELINE_CONFIG_PIPELINECONFIG_MODULE; // for backwards compatibility
-angular.module(CORE_PIPELINE_CONFIG_PIPELINECONFIG_MODULE, [
+module(CORE_PIPELINE_CONFIG_PIPELINECONFIG_MODULE, [
   CREATE_PIPELINE_COMPONENT,
   PIPELINE_GRAPH_COMPONENT,
   CORE_PIPELINE_CONFIG_STAGES_STAGE_MODULE,

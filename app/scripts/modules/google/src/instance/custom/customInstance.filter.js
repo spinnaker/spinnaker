@@ -3,13 +3,13 @@
 import _ from 'lodash';
 import { GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCEBUILDER_GCE_SERVICE } from './customInstanceBuilder.gce.service';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCE_FILTER = 'spinnaker.gce.customInstance.filter';
 export const name = GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCE_FILTER; // for backwards compatibility
-angular
-  .module(GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCE_FILTER, [GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCEBUILDER_GCE_SERVICE])
-  .filter('customInstanceFilter', [
+module(GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCE_FILTER, [GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCEBUILDER_GCE_SERVICE]).filter(
+  'customInstanceFilter',
+  [
     'gceCustomInstanceBuilderService',
     function(gceCustomInstanceBuilderService) {
       return function(instanceTypeString) {
@@ -20,4 +20,5 @@ angular
         return instanceTypeString;
       };
     },
-  ]);
+  ],
+);

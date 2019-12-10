@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import * as angular from 'angular';
 
 export const CORE_FORMS_CHECKLIST_CHECKLIST_DIRECTIVE = 'spinnaker.core.forms.checklist.checklist.directive';
 export const name = CORE_FORMS_CHECKLIST_CHECKLIST_DIRECTIVE; // for backwards compatibility

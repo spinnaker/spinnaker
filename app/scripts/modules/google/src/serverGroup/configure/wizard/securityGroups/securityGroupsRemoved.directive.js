@@ -1,12 +1,11 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_SECURITYGROUPSREMOVED_DIRECTIVE =
   'spinnaker.google.serverGroup.configure.wizard.securityGroups.removed.directive';
 export const name = GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_SECURITYGROUPSREMOVED_DIRECTIVE; // for backwards compatibility
-angular
-  .module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_SECURITYGROUPSREMOVED_DIRECTIVE, [])
+module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_SECURITYGROUPSREMOVED_DIRECTIVE, [])
   .directive('gceServerGroupSecurityGroupsRemoved', function() {
     return {
       restrict: 'E',

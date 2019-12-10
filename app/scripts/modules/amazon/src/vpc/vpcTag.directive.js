@@ -1,12 +1,12 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 import { VpcReader } from '../vpc/VpcReader';
 
 export const AMAZON_VPC_VPCTAG_DIRECTIVE = 'spinnaker.amazon.vpc.tag.directive';
 export const name = AMAZON_VPC_VPCTAG_DIRECTIVE; // for backwards compatibility
-angular.module(AMAZON_VPC_VPCTAG_DIRECTIVE, []).directive('vpcTag', function() {
+module(AMAZON_VPC_VPCTAG_DIRECTIVE, []).directive('vpcTag', function() {
   return {
     restrict: 'E',
     scope: {

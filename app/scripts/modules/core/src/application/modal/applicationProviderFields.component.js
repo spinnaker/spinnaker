@@ -4,13 +4,12 @@ import _ from 'lodash';
 import { CloudProviderRegistry } from 'core/cloudProvider';
 import { SETTINGS } from 'core/config/settings';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const CORE_APPLICATION_MODAL_APPLICATIONPROVIDERFIELDS_COMPONENT =
   'spinnaker.core.application.modal.applicationProviderFields.directive';
 export const name = CORE_APPLICATION_MODAL_APPLICATIONPROVIDERFIELDS_COMPONENT; // for backwards compatibility
-angular
-  .module(CORE_APPLICATION_MODAL_APPLICATIONPROVIDERFIELDS_COMPONENT, [])
+module(CORE_APPLICATION_MODAL_APPLICATIONPROVIDERFIELDS_COMPONENT, [])
   .component('applicationProviderFields', {
     templateUrl: require('./applicationProviderFields.component.html'),
     bindings: {

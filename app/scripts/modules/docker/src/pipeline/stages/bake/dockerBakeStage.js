@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 import _ from 'lodash';
 
 import { AuthenticationService, BakeExecutionLabel, BakeryReader, Registry } from '@spinnaker/core';
@@ -13,8 +13,7 @@ import { DOCKER_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER } from './b
  */
 export const DOCKER_PIPELINE_STAGES_BAKE_DOCKERBAKESTAGE = 'spinnaker.docker.pipeline.stage.bakeStage';
 export const name = DOCKER_PIPELINE_STAGES_BAKE_DOCKERBAKESTAGE; // for backwards compatibility
-angular
-  .module(DOCKER_PIPELINE_STAGES_BAKE_DOCKERBAKESTAGE, [DOCKER_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER])
+module(DOCKER_PIPELINE_STAGES_BAKE_DOCKERBAKESTAGE, [DOCKER_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'bake',

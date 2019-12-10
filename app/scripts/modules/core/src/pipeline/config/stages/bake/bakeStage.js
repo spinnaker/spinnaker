@@ -4,12 +4,11 @@ import { ManualExecutionBake } from './ManualExecutionBake';
 import { Registry } from 'core/registry';
 import { CORE_PIPELINE_CONFIG_STAGES_BAKE_BAKESTAGE_TRANSFORMER } from './bakeStage.transformer';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const CORE_PIPELINE_CONFIG_STAGES_BAKE_BAKESTAGE = 'spinnaker.core.pipeline.stage.bakeStage';
 export const name = CORE_PIPELINE_CONFIG_STAGES_BAKE_BAKESTAGE; // for backwards compatibility
-angular
-  .module(CORE_PIPELINE_CONFIG_STAGES_BAKE_BAKESTAGE, [CORE_PIPELINE_CONFIG_STAGES_BAKE_BAKESTAGE_TRANSFORMER])
+module(CORE_PIPELINE_CONFIG_STAGES_BAKE_BAKESTAGE, [CORE_PIPELINE_CONFIG_STAGES_BAKE_BAKESTAGE_TRANSFORMER])
   .config(function() {
     Registry.pipeline.registerStage({
       useBaseProvider: true,

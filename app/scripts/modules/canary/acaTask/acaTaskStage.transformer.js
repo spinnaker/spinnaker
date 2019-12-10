@@ -1,13 +1,13 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 import _ from 'lodash';
 
 import { OrchestratedItemTransformer } from '@spinnaker/core';
 
 export const CANARY_ACATASK_ACATASKSTAGE_TRANSFORMER = 'spinnaker.canary.acaTask.transformer';
 export const name = CANARY_ACATASK_ACATASKSTAGE_TRANSFORMER; // for backwards compatibility
-angular.module(CANARY_ACATASK_ACATASKSTAGE_TRANSFORMER, []).service('acaTaskTransformer', function() {
+module(CANARY_ACATASK_ACATASKSTAGE_TRANSFORMER, []).service('acaTaskTransformer', function() {
   function getException(stage) {
     return stage && stage.isFailed ? stage.failureMessage : null;
   }

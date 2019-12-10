@@ -1,11 +1,11 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 import { AccountService } from 'core/account/AccountService';
 
 export const CORE_ACCOUNT_COLLAPSIBLEACCOUNTTAG_DIRECTIVE = 'spinnaker.core.account.collapsibleAccountTag.directive';
 export const name = CORE_ACCOUNT_COLLAPSIBLEACCOUNTTAG_DIRECTIVE; // for backwards compatibility
-angular.module(CORE_ACCOUNT_COLLAPSIBLEACCOUNTTAG_DIRECTIVE, []).directive('collapsibleAccountTag', function() {
+module(CORE_ACCOUNT_COLLAPSIBLEACCOUNTTAG_DIRECTIVE, []).directive('collapsibleAccountTag', function() {
   return {
     restrict: 'E',
     templateUrl: require('./collapsibleAccountTag.directive.html'),

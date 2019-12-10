@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import * as angular from 'angular';
 import { Observable, Subject } from 'rxjs';
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';

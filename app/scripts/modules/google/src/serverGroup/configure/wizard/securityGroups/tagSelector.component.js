@@ -1,32 +1,30 @@
 import { GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGMANAGER_SERVICE } from './tagManager.service';
 ('use strict');
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGSELECTOR_COMPONENT =
   'spinnaker.deck.gce.tagSelector.component';
 export const name = GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGSELECTOR_COMPONENT; // for backwards compatibility
-angular
-  .module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGSELECTOR_COMPONENT, [
-    GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGMANAGER_SERVICE,
-  ])
-  .component('gceTagSelector', {
-    bindings: {
-      command: '=',
-      securityGroupId: '=',
-    },
-    templateUrl: require('./tagSelector.component.html'),
-    controller: [
-      '$scope',
-      'gceTagManager',
-      function($scope, gceTagManager) {
-        this.securityGroup = gceTagManager.securityGroupObjectsKeyedById[this.securityGroupId];
-        this.onSelect = gceTagManager.addTag;
-        this.onRemove = gceTagManager.removeTag;
+module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGSELECTOR_COMPONENT, [
+  GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGMANAGER_SERVICE,
+]).component('gceTagSelector', {
+  bindings: {
+    command: '=',
+    securityGroupId: '=',
+  },
+  templateUrl: require('./tagSelector.component.html'),
+  controller: [
+    '$scope',
+    'gceTagManager',
+    function($scope, gceTagManager) {
+      this.securityGroup = gceTagManager.securityGroupObjectsKeyedById[this.securityGroupId];
+      this.onSelect = gceTagManager.addTag;
+      this.onRemove = gceTagManager.removeTag;
 
-        $scope.$on('uis:select', function(event) {
-          event.preventDefault();
-        });
-      },
-    ],
-  });
+      $scope.$on('uis:select', function(event) {
+        event.preventDefault();
+      });
+    },
+  ],
+});

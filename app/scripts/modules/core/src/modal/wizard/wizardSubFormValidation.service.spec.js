@@ -3,7 +3,7 @@
 import { ModalWizard } from './ModalWizard';
 
 describe('Service: wizardSubFormValidation', function() {
-  const angular = require('angular');
+  import * as angular from 'angular';
   let wizardSubFormValidation, $rootScope, $compile;
 
   beforeEach(window.module(require('./wizardSubFormValidation.service').name));

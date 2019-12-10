@@ -1,15 +1,15 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 import { ModalWizard } from '@spinnaker/core';
 
 export const AZURE_SERVERGROUP_CONFIGURE_WIZARD_NETWORKSETTINGS_SERVERGROUPNETWORKSETTINGS_CONTROLLER =
   'spinnaker.azure.serverGroup.configure.networkSettings.controller';
 export const name = AZURE_SERVERGROUP_CONFIGURE_WIZARD_NETWORKSETTINGS_SERVERGROUPNETWORKSETTINGS_CONTROLLER; // for backwards compatibility
-angular
-  .module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_NETWORKSETTINGS_SERVERGROUPNETWORKSETTINGS_CONTROLLER, [])
-  .controller('azureServerGroupNetworkSettingsCtrl', [
+module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_NETWORKSETTINGS_SERVERGROUPNETWORKSETTINGS_CONTROLLER, []).controller(
+  'azureServerGroupNetworkSettingsCtrl',
+  [
     '$scope',
     function($scope) {
       ModalWizard.markClean('network-settings');
@@ -40,4 +40,5 @@ angular
         }
       };
     },
-  ]);
+  ],
+);

@@ -9,11 +9,11 @@ import { CORE_UTILS_INFINITESCROLL_DIRECTIVE } from './infiniteScroll.directive'
 import { CORE_UTILS_WAYPOINTS_WAYPOINT_DIRECTIVE } from './waypoints/waypoint.directive';
 import { CORE_UTILS_WAYPOINTS_WAYPOINTCONTAINER_DIRECTIVE } from './waypoints/waypointContainer.directive';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const CORE_UTILS_UTILS_MODULE = 'spinnaker.utils';
 export const name = CORE_UTILS_UTILS_MODULE; // for backwards compatibility
-angular.module(CORE_UTILS_UTILS_MODULE, [
+module(CORE_UTILS_UTILS_MODULE, [
   COPY_TO_CLIPBOARD_COMPONENT,
   TIME_FORMATTERS,
   SELECT_ON_DOUBLE_CLICK_DIRECTIVE,

@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import * as angular from 'angular';
 import { AccountService, Registry } from '@spinnaker/core';
 
 export const DCOS_PIPELINE_STAGES_FINDAMI_DCOSFINDAMISTAGE = 'spinnaker.dcos.pipeline.stage.findAmiStage';

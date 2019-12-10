@@ -1,6 +1,6 @@
 import React from 'react';
 import { isEqual } from 'lodash';
-const angular = require('angular');
+import { module } from 'angular';
 import { react2angular } from 'react2angular';
 import prettyMilliseconds from 'pretty-ms';
 
@@ -223,6 +223,7 @@ export class DisruptionBudgetSection extends React.Component<IDisruptionBudgetSe
 
 export const DISRUPTION_BUDGET_DETAILS_SECTION = 'spinnaker.titus.disruptionbudget.section';
 
-angular
-  .module(DISRUPTION_BUDGET_DETAILS_SECTION, [])
-  .component('titusDisruptionBudgetSection', react2angular(DisruptionBudgetSection, ['serverGroup', 'app']));
+module(DISRUPTION_BUDGET_DETAILS_SECTION, []).component(
+  'titusDisruptionBudgetSection',
+  react2angular(DisruptionBudgetSection, ['serverGroup', 'app']),
+);

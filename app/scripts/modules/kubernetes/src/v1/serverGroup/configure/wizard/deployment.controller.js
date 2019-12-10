@@ -1,15 +1,15 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 import { NameUtils } from '@spinnaker/core';
 
 export const KUBERNETES_V1_SERVERGROUP_CONFIGURE_WIZARD_DEPLOYMENT_CONTROLLER =
   'spinnaker.serverGroup.configure.kubernetes.deployment';
 export const name = KUBERNETES_V1_SERVERGROUP_CONFIGURE_WIZARD_DEPLOYMENT_CONTROLLER; // for backwards compatibility
-angular
-  .module(KUBERNETES_V1_SERVERGROUP_CONFIGURE_WIZARD_DEPLOYMENT_CONTROLLER, [])
-  .controller('kubernetesServerGroupDeploymentController', [
+module(KUBERNETES_V1_SERVERGROUP_CONFIGURE_WIZARD_DEPLOYMENT_CONTROLLER, []).controller(
+  'kubernetesServerGroupDeploymentController',
+  [
     '$scope',
     function($scope) {
       this.strategyTypes = ['RollingUpdate', 'Recreate'];
@@ -59,4 +59,5 @@ angular
         }
       };
     },
-  ]);
+  ],
+);

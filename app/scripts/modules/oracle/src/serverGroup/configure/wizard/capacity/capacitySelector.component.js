@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import * as angular from 'angular';
 
 export const ORACLE_SERVERGROUP_CONFIGURE_WIZARD_CAPACITY_CAPACITYSELECTOR_COMPONENT =
   'spinnaker.oracle.serverGroup.configure.wizard.capacity.selector.component';

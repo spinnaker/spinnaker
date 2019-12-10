@@ -1,7 +1,7 @@
-const angular = require('angular');
+import { module } from 'angular';
 
 import { STYLEGUIDE_STATES } from './styleguide.states';
 
-angular.module('spinnaker.core.styleguide', [STYLEGUIDE_STATES]);
+module('spinnaker.core.styleguide', [STYLEGUIDE_STATES]);
 
 export const STYLEGUIDE_MODULE = 'spinnaker.core.styleguide';

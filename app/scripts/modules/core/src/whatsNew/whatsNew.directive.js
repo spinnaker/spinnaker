@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 import { HtmlRenderer, Parser } from 'commonmark';
 
@@ -12,7 +12,7 @@ import './whatsNew.less';
 
 export const CORE_WHATSNEW_WHATSNEW_DIRECTIVE = 'spinnaker.core.whatsNew.directive';
 export const name = CORE_WHATSNEW_WHATSNEW_DIRECTIVE; // for backwards compatibility
-angular.module(CORE_WHATSNEW_WHATSNEW_DIRECTIVE, [TIME_FORMATTERS]).directive('whatsNew', function() {
+module(CORE_WHATSNEW_WHATSNEW_DIRECTIVE, [TIME_FORMATTERS]).directive('whatsNew', function() {
   return {
     restrict: 'E',
     replace: true,

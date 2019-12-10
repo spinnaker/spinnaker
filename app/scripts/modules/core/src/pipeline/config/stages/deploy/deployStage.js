@@ -7,7 +7,7 @@ import { Registry } from 'core/registry';
 import { SERVER_GROUP_COMMAND_BUILDER_SERVICE } from 'core/serverGroup/configure/common/serverGroupCommandBuilder.service';
 import { StageConstants } from 'core/pipeline/config/stages/stageConstants';
 
-const angular = require('angular');
+import * as angular from 'angular';
 
 export const CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYSTAGE = 'spinnaker.core.pipeline.stage.deployStage';
 export const name = CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYSTAGE; // for backwards compatibility

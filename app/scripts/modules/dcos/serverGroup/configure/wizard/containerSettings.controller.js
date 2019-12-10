@@ -1,14 +1,14 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 import { Observable, Subject } from 'rxjs';
 
 export const DCOS_SERVERGROUP_CONFIGURE_WIZARD_CONTAINERSETTINGS_CONTROLLER =
   'spinnaker.dcos.serverGroup.configure.containerSettings';
 export const name = DCOS_SERVERGROUP_CONFIGURE_WIZARD_CONTAINERSETTINGS_CONTROLLER; // for backwards compatibility
-angular
-  .module(DCOS_SERVERGROUP_CONFIGURE_WIZARD_CONTAINERSETTINGS_CONTROLLER, [])
-  .controller('dcosServerGroupContainerSettingsController', [
+module(DCOS_SERVERGROUP_CONFIGURE_WIZARD_CONTAINERSETTINGS_CONTROLLER, []).controller(
+  'dcosServerGroupContainerSettingsController',
+  [
     '$scope',
     'dcosServerGroupConfigurationService',
     function($scope, dcosServerGroupConfigurationService) {
@@ -60,4 +60,5 @@ angular
         $scope.command.docker.parameters.splice(index, 1);
       };
     },
-  ]);
+  ],
+);

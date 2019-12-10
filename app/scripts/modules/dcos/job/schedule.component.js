@@ -1,10 +1,10 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const DCOS_JOB_SCHEDULE_COMPONENT = 'spinnaker.dcos.schedule.component';
 export const name = DCOS_JOB_SCHEDULE_COMPONENT; // for backwards compatibility
-angular.module(DCOS_JOB_SCHEDULE_COMPONENT, []).component('dcosSchedule', {
+module(DCOS_JOB_SCHEDULE_COMPONENT, []).component('dcosSchedule', {
   bindings: {
     schedule: '=',
   },

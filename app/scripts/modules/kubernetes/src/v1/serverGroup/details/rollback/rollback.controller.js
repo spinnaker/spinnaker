@@ -1,15 +1,15 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 import { SERVER_GROUP_WRITER, TaskMonitor } from '@spinnaker/core';
 
 export const KUBERNETES_V1_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACK_CONTROLLER =
   'spinnaker.kubernetes.serverGroup.details.rollback.controller';
 export const name = KUBERNETES_V1_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACK_CONTROLLER; // for backwards compatibility
-angular
-  .module(KUBERNETES_V1_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACK_CONTROLLER, [SERVER_GROUP_WRITER])
-  .controller('kubernetesRollbackServerGroupController', [
+module(KUBERNETES_V1_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACK_CONTROLLER, [SERVER_GROUP_WRITER]).controller(
+  'kubernetesRollbackServerGroupController',
+  [
     '$scope',
     '$uibModalInstance',
     'serverGroupWriter',
@@ -65,4 +65,5 @@ angular
         $uibModalInstance.dismiss();
       };
     },
-  ]);
+  ],
+);

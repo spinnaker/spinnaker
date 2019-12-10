@@ -1,10 +1,10 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const DCOS_SERVERGROUP_PARAMSMIXIN = 'spinnaker.dcos.serverGroup.paramsMixin';
 export const name = DCOS_SERVERGROUP_PARAMSMIXIN; // for backwards compatibility
-angular.module(DCOS_SERVERGROUP_PARAMSMIXIN, []).factory('dcosServerGroupParamsMixin', function() {
+module(DCOS_SERVERGROUP_PARAMSMIXIN, []).factory('dcosServerGroupParamsMixin', function() {
   function destroyServerGroup(serverGroup) {
     return {
       dcosCluster: serverGroup.dcosCluster,

@@ -1,10 +1,10 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const CORE_SERVERGROUP_CONFIGURE_COMMON_COSTFACTOR = 'spinnaker.core.serverGroup.configure.common.costFactor';
 export const name = CORE_SERVERGROUP_CONFIGURE_COMMON_COSTFACTOR; // for backwards compatibility
-angular.module(CORE_SERVERGROUP_CONFIGURE_COMMON_COSTFACTOR, []).directive('costFactor', function() {
+module(CORE_SERVERGROUP_CONFIGURE_COMMON_COSTFACTOR, []).directive('costFactor', function() {
   return {
     restrict: 'E',
     scope: {

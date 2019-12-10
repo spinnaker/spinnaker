@@ -1,13 +1,13 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 import { SETTINGS } from '@spinnaker/core';
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export const CANARY_CANARY_ACTIONS_ENDCANARY_CONTROLLER = 'spinnaker.canary.actions.override.result.controller';
 export const name = CANARY_CANARY_ACTIONS_ENDCANARY_CONTROLLER; // for backwards compatibility
-angular.module(CANARY_CANARY_ACTIONS_ENDCANARY_CONTROLLER, [UIROUTER_ANGULARJS]).controller('EndCanaryCtrl', [
+module(CANARY_CANARY_ACTIONS_ENDCANARY_CONTROLLER, [UIROUTER_ANGULARJS]).controller('EndCanaryCtrl', [
   '$scope',
   '$http',
   '$uibModalInstance',

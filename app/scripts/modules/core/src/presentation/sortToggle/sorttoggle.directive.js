@@ -1,10 +1,10 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const CORE_PRESENTATION_SORTTOGGLE_SORTTOGGLE_DIRECTIVE = 'spinnaker.core.presentation.sortToggle.directive';
 export const name = CORE_PRESENTATION_SORTTOGGLE_SORTTOGGLE_DIRECTIVE; // for backwards compatibility
-angular.module(CORE_PRESENTATION_SORTTOGGLE_SORTTOGGLE_DIRECTIVE, []).directive('sortToggle', function() {
+module(CORE_PRESENTATION_SORTTOGGLE_SORTTOGGLE_DIRECTIVE, []).directive('sortToggle', function() {
   return {
     templateUrl: require('./sorttoggle.directive.html'),
     scope: {

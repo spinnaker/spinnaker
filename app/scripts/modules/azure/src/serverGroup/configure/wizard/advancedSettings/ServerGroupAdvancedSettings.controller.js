@@ -1,13 +1,13 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const AZURE_SERVERGROUP_CONFIGURE_WIZARD_ADVANCEDSETTINGS_SERVERGROUPADVANCEDSETTINGS_CONTROLLER =
   'spinnaker.azure.serverGroup.configure.advancedSetting.controller';
 export const name = AZURE_SERVERGROUP_CONFIGURE_WIZARD_ADVANCEDSETTINGS_SERVERGROUPADVANCEDSETTINGS_CONTROLLER; // for backwards compatibility
-angular
-  .module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_ADVANCEDSETTINGS_SERVERGROUPADVANCEDSETTINGS_CONTROLLER, [])
-  .controller('azureServerGroupAdvancedSettingsCtrl', [
+module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_ADVANCEDSETTINGS_SERVERGROUPADVANCEDSETTINGS_CONTROLLER, []).controller(
+  'azureServerGroupAdvancedSettingsCtrl',
+  [
     '$scope',
     'modalWizardService',
     function($scope, modalWizardService) {
@@ -21,4 +21,5 @@ angular
         }
       });
     },
-  ]);
+  ],
+);

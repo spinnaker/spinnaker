@@ -1,10 +1,10 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const CORE_VALIDATION_VALIDATEUNIQUE_DIRECTIVE = 'spinnaker.core.validation.unique.directive';
 export const name = CORE_VALIDATION_VALIDATEUNIQUE_DIRECTIVE; // for backwards compatibility
-angular.module(CORE_VALIDATION_VALIDATEUNIQUE_DIRECTIVE, []).directive('validateUnique', function() {
+module(CORE_VALIDATION_VALIDATEUNIQUE_DIRECTIVE, []).directive('validateUnique', function() {
   return {
     restrict: 'A',
     require: 'ngModel',

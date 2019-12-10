@@ -1,13 +1,13 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const DCOS_SERVERGROUP_CONFIGURE_WIZARD_HEALTHCHECKS_CONTROLLER =
   'spinnaker.dcos.serverGroup.configure.healthChecks';
 export const name = DCOS_SERVERGROUP_CONFIGURE_WIZARD_HEALTHCHECKS_CONTROLLER; // for backwards compatibility
-angular
-  .module(DCOS_SERVERGROUP_CONFIGURE_WIZARD_HEALTHCHECKS_CONTROLLER, [])
-  .controller('dcosServerGroupHealthChecksController', [
+module(DCOS_SERVERGROUP_CONFIGURE_WIZARD_HEALTHCHECKS_CONTROLLER, []).controller(
+  'dcosServerGroupHealthChecksController',
+  [
     '$scope',
     function($scope) {
       var HTTP_PROTOCOL = 'HTTP';
@@ -81,4 +81,5 @@ angular
         $scope.command.healthChecks.splice(index, 1);
       };
     },
-  ]);
+  ],
+);

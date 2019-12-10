@@ -2,7 +2,7 @@ import { GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGSELECTOR_COMPONEN
 import { GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGMANAGER_SERVICE } from './tagManager.service';
 ('use strict');
 
-const angular = require('angular');
+import * as angular from 'angular';
 
 export const GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGSELECTORGENERATOR_COMPONENT =
   'spinnaker.deck.gce.tagSelectorGenerator.component';

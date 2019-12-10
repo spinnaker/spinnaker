@@ -2,14 +2,14 @@
 
 import _ from 'lodash';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const KUBERNETES_V1_CONTAINER_ENVIRONMENTVARIABLES_COMPONENT =
   'spinnaker.deck.kubernetes.environmentVariables.component';
 export const name = KUBERNETES_V1_CONTAINER_ENVIRONMENTVARIABLES_COMPONENT; // for backwards compatibility
-angular
-  .module(KUBERNETES_V1_CONTAINER_ENVIRONMENTVARIABLES_COMPONENT, [])
-  .component('kubernetesContainerEnvironmentVariables', {
+module(KUBERNETES_V1_CONTAINER_ENVIRONMENTVARIABLES_COMPONENT, []).component(
+  'kubernetesContainerEnvironmentVariables',
+  {
     bindings: {
       envVars: '=',
     },
@@ -86,4 +86,5 @@ angular
         return (source && source.optional == null) || source.optional;
       };
     },
-  });
+  },
+);

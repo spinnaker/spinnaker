@@ -3,7 +3,7 @@
 import _ from 'lodash';
 import { GOOGLE_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_WRITE_SERVICE } from '../../../autoscalingPolicy/autoscalingPolicy.write.service';
 
-const angular = require('angular');
+import * as angular from 'angular';
 
 export const GOOGLE_SERVERGROUP_DETAILS_RESIZE_RESIZEAUTOSCALINGPOLICY_COMPONENT =
   'spinnaker.deck.gce.serverGroup.details.resizeAutoscalingPolicy.component';

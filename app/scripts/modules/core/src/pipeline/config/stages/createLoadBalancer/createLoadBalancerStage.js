@@ -4,7 +4,7 @@ import { CloudProviderRegistry, ProviderSelectionService } from 'core/cloudProvi
 import { Registry } from 'core/registry';
 import { SETTINGS } from 'core/config/settings';
 
-const angular = require('angular');
+import * as angular from 'angular';
 
 export const CORE_PIPELINE_CONFIG_STAGES_CREATELOADBALANCER_CREATELOADBALANCERSTAGE =
   'spinnaker.core.pipeline.stage.createLoadBalancerStage';

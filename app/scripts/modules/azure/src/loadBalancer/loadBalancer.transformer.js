@@ -4,11 +4,11 @@ import _ from 'lodash';
 
 import { AzureProviderSettings } from '../azure.settings';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const AZURE_LOADBALANCER_LOADBALANCER_TRANSFORMER = 'spinnaker.azure.loadBalancer.transformer';
 export const name = AZURE_LOADBALANCER_LOADBALANCER_TRANSFORMER; // for backwards compatibility
-angular.module(AZURE_LOADBALANCER_LOADBALANCER_TRANSFORMER, []).factory('azureLoadBalancerTransformer', [
+module(AZURE_LOADBALANCER_LOADBALANCER_TRANSFORMER, []).factory('azureLoadBalancerTransformer', [
   '$q',
   function($q) {
     function normalizeLoadBalancer(loadBalancer) {

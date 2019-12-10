@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import * as angular from 'angular';
 
 export const DCOS_SERVERGROUP_CONFIGURE_WIZARD_BASICSETTINGS_CONTROLLER =
   'spinnaker.dcos.serverGroup.configure.basicSettings';

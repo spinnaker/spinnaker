@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import * as angular from 'angular';
 
 export const CORE_WIDGETS_SCOPECLUSTERSELECTOR_DIRECTIVE = 'spinnaker.widget.clusterSelector.directive';
 export const name = CORE_WIDGETS_SCOPECLUSTERSELECTOR_DIRECTIVE; // for backwards compatibility

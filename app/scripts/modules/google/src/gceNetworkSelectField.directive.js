@@ -1,10 +1,10 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const GOOGLE_GCENETWORKSELECTFIELD_DIRECTIVE = 'spinnaker.google.networkSelectField.directive';
 export const name = GOOGLE_GCENETWORKSELECTFIELD_DIRECTIVE; // for backwards compatibility
-angular.module(GOOGLE_GCENETWORKSELECTFIELD_DIRECTIVE, []).directive('gceNetworkSelectField', function() {
+module(GOOGLE_GCENETWORKSELECTFIELD_DIRECTIVE, []).directive('gceNetworkSelectField', function() {
   return {
     restrict: 'E',
     templateUrl: require('./networkSelectField.directive.html'),

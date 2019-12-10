@@ -3,7 +3,7 @@
 import { ApplicationModelBuilder, ModalWizard } from '@spinnaker/core';
 
 describe('Controller: gceCreateLoadBalancerCtrl', function() {
-  const angular = require('angular');
+  import * as angular from 'angular';
 
   // load the controller's module
   beforeEach(function() {

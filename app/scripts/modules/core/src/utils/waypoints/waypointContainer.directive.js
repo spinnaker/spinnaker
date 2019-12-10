@@ -2,11 +2,11 @@
 
 import { WaypointService } from './waypoint.service';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const CORE_UTILS_WAYPOINTS_WAYPOINTCONTAINER_DIRECTIVE = 'spinnaker.core.utils.waypoints.container.directive';
 export const name = CORE_UTILS_WAYPOINTS_WAYPOINTCONTAINER_DIRECTIVE; // for backwards compatibility
-angular.module(CORE_UTILS_WAYPOINTS_WAYPOINTCONTAINER_DIRECTIVE, []).directive('waypointContainer', function() {
+module(CORE_UTILS_WAYPOINTS_WAYPOINTCONTAINER_DIRECTIVE, []).directive('waypointContainer', function() {
   return {
     restrict: 'A',
     scope: {

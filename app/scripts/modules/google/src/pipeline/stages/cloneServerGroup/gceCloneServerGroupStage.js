@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 import _ from 'lodash';
 
 import { AccountService, NameUtils, Registry, StageConstants } from '@spinnaker/core';
@@ -8,8 +8,7 @@ import { AccountService, NameUtils, Registry, StageConstants } from '@spinnaker/
 export const GOOGLE_PIPELINE_STAGES_CLONESERVERGROUP_GCECLONESERVERGROUPSTAGE =
   'spinnaker.gce.pipeline.stage..cloneServerGroupStage';
 export const name = GOOGLE_PIPELINE_STAGES_CLONESERVERGROUP_GCECLONESERVERGROUPSTAGE; // for backwards compatibility
-angular
-  .module(GOOGLE_PIPELINE_STAGES_CLONESERVERGROUP_GCECLONESERVERGROUPSTAGE, [])
+module(GOOGLE_PIPELINE_STAGES_CLONESERVERGROUP_GCECLONESERVERGROUPSTAGE, [])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'cloneServerGroup',

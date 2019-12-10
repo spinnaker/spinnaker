@@ -1,6 +1,6 @@
 'use strict';
 
-const angular = require('angular');
+import * as angular from 'angular';
 
 import { AccountService, InfrastructureCaches } from '@spinnaker/core';
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';

@@ -1,11 +1,10 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const CORE_SERVERGROUP_POD_RUNNINGTASKSTAG_DIRECTIVE = 'spinnaker.core.serverGroup.display.tasks.tag';
 export const name = CORE_SERVERGROUP_POD_RUNNINGTASKSTAG_DIRECTIVE; // for backwards compatibility
-angular
-  .module(CORE_SERVERGROUP_POD_RUNNINGTASKSTAG_DIRECTIVE, [])
+module(CORE_SERVERGROUP_POD_RUNNINGTASKSTAG_DIRECTIVE, [])
   .directive('runningTasksTag', function() {
     return {
       restrict: 'E',

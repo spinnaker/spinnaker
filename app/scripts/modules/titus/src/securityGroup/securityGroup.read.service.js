@@ -1,10 +1,10 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const TITUS_SECURITYGROUP_SECURITYGROUP_READ_SERVICE = 'spinnaker.titus.securityGroup.reader';
 export const name = TITUS_SECURITYGROUP_SECURITYGROUP_READ_SERVICE; // for backwards compatibility
-angular.module(TITUS_SECURITYGROUP_SECURITYGROUP_READ_SERVICE, []).factory('titusSecurityGroupReader', function() {
+module(TITUS_SECURITYGROUP_SECURITYGROUP_READ_SERVICE, []).factory('titusSecurityGroupReader', function() {
   function resolveIndexedSecurityGroup(indexedSecurityGroups, container, securityGroupId) {
     // TODO: this is bad, but this method is not async and making it async is going to be non-trivial
     let account = container.account

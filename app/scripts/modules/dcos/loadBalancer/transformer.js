@@ -2,14 +2,14 @@
 
 import _ from 'lodash';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 import { AccountService } from '@spinnaker/core';
 import { DcosProviderSettings } from '../dcos.settings';
 
 export const DCOS_LOADBALANCER_TRANSFORMER = 'spinnaker.dcos.loadBalancer.transformer';
 export const name = DCOS_LOADBALANCER_TRANSFORMER; // for backwards compatibility
-angular.module(DCOS_LOADBALANCER_TRANSFORMER, []).factory('dcosLoadBalancerTransformer', [
+module(DCOS_LOADBALANCER_TRANSFORMER, []).factory('dcosLoadBalancerTransformer', [
   '$q',
   function($q) {
     function normalizeLoadBalancer(loadBalancer) {

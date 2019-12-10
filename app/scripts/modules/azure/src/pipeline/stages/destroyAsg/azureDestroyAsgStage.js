@@ -1,13 +1,12 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 
 export const AZURE_PIPELINE_STAGES_DESTROYASG_AZUREDESTROYASGSTAGE = 'spinnaker.azure.pipeline.stage.destroyAsgStage';
 export const name = AZURE_PIPELINE_STAGES_DESTROYASG_AZUREDESTROYASGSTAGE; // for backwards compatibility
-angular
-  .module(AZURE_PIPELINE_STAGES_DESTROYASG_AZUREDESTROYASGSTAGE, [])
+module(AZURE_PIPELINE_STAGES_DESTROYASG_AZUREDESTROYASGSTAGE, [])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'destroyServerGroup',

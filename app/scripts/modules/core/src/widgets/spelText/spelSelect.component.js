@@ -1,10 +1,10 @@
 'use strict';
 
-const angular = require('angular');
+import { module } from 'angular';
 
 export const CORE_WIDGETS_SPELTEXT_SPELSELECT_COMPONENT = 'spinnaker.widgets.spelSelect.component';
 export const name = CORE_WIDGETS_SPELTEXT_SPELSELECT_COMPONENT; // for backwards compatibility
-angular.module(CORE_WIDGETS_SPELTEXT_SPELSELECT_COMPONENT, []).component('spelSelect', {
+module(CORE_WIDGETS_SPELTEXT_SPELSELECT_COMPONENT, []).component('spelSelect', {
   template: `
       <div class="navbar-form" style="padding: 0 ;">
         <div class="button-input" ng-class="{select: $ctrl.selectActive, text: $ctrl.textActive, focus: $ctrl.isGlowing}">
