@@ -89,7 +89,9 @@ module.exports = angular
 
         if (rollbackType === 'PREVIOUS_IMAGE') {
           // no need to validate when using an explicit image
-          return true;
+          // return true;
+          // KLUDGE: temporarily disabling previous image rollbacks for titus because they do not work properly
+          return false;
         }
 
         return command.rollbackContext.restoreServerGroupName !== undefined;

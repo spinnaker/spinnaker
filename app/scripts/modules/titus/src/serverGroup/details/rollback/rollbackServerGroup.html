@@ -128,6 +128,16 @@
             This rollback will affect server groups in {{ serverGroup.account }} ({{ serverGroup.region }}).
           </p>
         </div>
+        <div class="col-sm-12">
+          <div class="alert alert-warning">
+            Rolling back to a server group that is no longer deployed is currently not available for Titus. <br />
+            Please clone the server group with the previous image instead. <br />
+            <span class="small">
+              <strong>Image</strong>: {{ previousServerGroup.imageName}}
+              <span ng-if="previousServerGroup.imageId">({{ previousServerGroup.imageId }})</span><br />
+            </span>
+          </div>
+        </div>
       </div>
     </div>
     <aws-footer
