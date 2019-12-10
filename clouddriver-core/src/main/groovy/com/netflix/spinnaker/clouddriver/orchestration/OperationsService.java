@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -208,7 +209,7 @@ public class OperationsService {
         .collect(Collectors.toList());
   }
 
-  public List<AtomicOperation> collectAtomicOperationsFromSagas(List<SagaId> sagaIds) {
+  public List<AtomicOperation> collectAtomicOperationsFromSagas(Set<SagaId> sagaIds) {
     if (!sagaRepository.isPresent()) {
       return Collections.emptyList();
     }
