@@ -83,6 +83,7 @@ import { CORE_UTILS_UTILS_MODULE } from './utils/utils.module';
 import { CORE_VALIDATION_VALIDATION_MODULE } from './validation/validation.module';
 import ANGULAR_MESSAGES from 'angular-messages';
 import ANGULAR_SANITIZE from 'angular-sanitize';
+import { angularSpinner } from 'angular-spinner';
 import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 import UI_SELECT from 'ui-select';
 
@@ -100,9 +101,9 @@ module(CORE_MODULE, [
   UI_ROUTER_STATE_EVENTS_SHIM,
   UI_ROUTER_REACT_HYBRID,
   REACT_MODULE, // must precede modules which register states
-  ANGULAR_UI_BOOTSTRAP,
+  ANGULAR_UI_BOOTSTRAP as any,
   UI_SELECT,
-  require('angular-spinner').angularSpinner.name,
+  angularSpinner.name,
 
   ANALYTICS_MODULE,
   APPLICATION_MODULE,

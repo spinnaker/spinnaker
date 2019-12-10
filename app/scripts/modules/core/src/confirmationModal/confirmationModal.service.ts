@@ -1,8 +1,7 @@
 import { module } from 'angular';
 import DOMPurify from 'dompurify';
-import { IModalService, IModalSettings } from 'angular-ui-bootstrap';
+import ANGULAR_UI_BOOTSTRAP, { IModalService, IModalSettings } from 'angular-ui-bootstrap';
 import { CORE_CONFIRMATIONMODAL_CONFIRMATIONMODAL_CONTROLLER } from './confirmationModal.controller';
-import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 
 export interface IConfirmationModalParams {
   account?: string;
@@ -69,7 +68,7 @@ export class ConfirmationModalService {
 }
 
 export const CONFIRMATION_MODAL_SERVICE = 'spinnaker.core.confirmationModal.service';
-module(CONFIRMATION_MODAL_SERVICE, [ANGULAR_UI_BOOTSTRAP, CORE_CONFIRMATIONMODAL_CONFIRMATIONMODAL_CONTROLLER]).service(
-  'confirmationModalService',
-  ConfirmationModalService,
-);
+module(CONFIRMATION_MODAL_SERVICE, [
+  ANGULAR_UI_BOOTSTRAP as any,
+  CORE_CONFIRMATIONMODAL_CONFIRMATIONMODAL_CONTROLLER,
+]).service('confirmationModalService', ConfirmationModalService);
