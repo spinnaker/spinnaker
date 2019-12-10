@@ -17,6 +17,7 @@ package com.netflix.spinnaker.kork.plugins
 
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import com.netflix.spinnaker.kork.plugins.events.ExtensionLoaded
+import com.netflix.spinnaker.kork.plugins.update.PluginUpdateService
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory
 import org.springframework.beans.factory.support.BeanDefinitionRegistry
@@ -30,6 +31,7 @@ import org.springframework.context.ApplicationEventPublisher
  */
 class ExtensionBeanDefinitionRegistryPostProcessor(
   private val pluginManager: SpinnakerPluginManager,
+  private val updateManagerService: PluginUpdateService,
   private val applicationEventPublisher: ApplicationEventPublisher
 ) : BeanDefinitionRegistryPostProcessor {
 
@@ -39,7 +41,9 @@ class ExtensionBeanDefinitionRegistryPostProcessor(
     val start = System.currentTimeMillis()
     log.debug("Preparing plugins")
     pluginManager.loadPlugins()
+    updateManagerService.checkForUpdates()
     pluginManager.startPlugins()
+
     log.debug("Finished preparing plugins in {}ms", System.currentTimeMillis() - start)
   }
 

@@ -9,6 +9,7 @@ dependencies {
   implementation project(":kork-plugins-spring-api")
 
   implementation "org.pf4j:pf4j"
+  implementation "org.pf4j:pf4j-update"
 
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation("com.google.guava:guava")

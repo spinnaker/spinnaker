@@ -15,6 +15,8 @@
  */
 package com.netflix.spinnaker.config;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -48,5 +50,11 @@ public class PluginsConfigurationProperties {
 
   public void setRootPath(String rootPath) {
     this.rootPath = rootPath;
+  }
+
+  public Map<String, PluginRepositoryProperties> repositories = new HashMap<>();
+
+  public static class PluginRepositoryProperties {
+    public String url;
   }
 }
