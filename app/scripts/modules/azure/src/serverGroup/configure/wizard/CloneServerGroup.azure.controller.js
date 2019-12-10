@@ -5,6 +5,7 @@ const angular = require('angular');
 import { SERVER_GROUP_WRITER, TaskMonitor, ModalWizard, FirewallLabels } from '@spinnaker/core';
 import { AZURE_SERVERGROUP_CONFIGURE_SERVERGROUPCONFIGURATION_SERVICE } from '../serverGroupConfiguration.service';
 import { AZURE_SERVERGROUP_SERVERGROUP_TRANSFORMER } from '../../serverGroup.transformer';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 const Utility = require('../../../utility').default;
 
@@ -13,7 +14,7 @@ export const AZURE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_AZURE_CONTROLLE
 export const name = AZURE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_AZURE_CONTROLLER; // for backwards compatibility
 angular
   .module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_AZURE_CONTROLLER, [
-    require('@uirouter/angularjs').default,
+    UIROUTER_ANGULARJS,
     AZURE_SERVERGROUP_CONFIGURE_SERVERGROUPCONFIGURATION_SERVICE,
     AZURE_SERVERGROUP_SERVERGROUP_TRANSFORMER,
     SERVER_GROUP_WRITER,

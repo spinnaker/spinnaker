@@ -2,14 +2,16 @@
 
 const angular = require('angular');
 import { Observable, Subject } from 'rxjs';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
+import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 
 export const KUBERNETES_V1_SERVERGROUP_CONFIGURE_WIZARD_BASICSETTINGS_CONTROLLER =
   'spinnaker.serverGroup.configure.kubernetes.basicSettings';
 export const name = KUBERNETES_V1_SERVERGROUP_CONFIGURE_WIZARD_BASICSETTINGS_CONTROLLER; // for backwards compatibility
 angular
   .module(KUBERNETES_V1_SERVERGROUP_CONFIGURE_WIZARD_BASICSETTINGS_CONTROLLER, [
-    require('@uirouter/angularjs').default,
-    require('angular-ui-bootstrap'),
+    UIROUTER_ANGULARJS,
+    ANGULAR_UI_BOOTSTRAP,
   ])
   .controller('kubernetesServerGroupBasicSettingsController', [
     '$scope',

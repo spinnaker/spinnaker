@@ -12,13 +12,14 @@ import {
 } from '@spinnaker/core';
 import { KUBERNETES_V1_SERVERGROUP_CONFIGURE_CONFIGURE_KUBERNETES_MODULE } from '../configure/configure.kubernetes.module';
 import { KUBERNETES_V1_SERVERGROUP_PARAMSMIXIN } from '../paramsMixin';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export const KUBERNETES_V1_SERVERGROUP_DETAILS_DETAILS_CONTROLLER =
   'spinnaker.serverGroup.details.kubernetes.controller';
 export const name = KUBERNETES_V1_SERVERGROUP_DETAILS_DETAILS_CONTROLLER; // for backwards compatibility
 angular
   .module(KUBERNETES_V1_SERVERGROUP_DETAILS_DETAILS_CONTROLLER, [
-    require('@uirouter/angularjs').default,
+    UIROUTER_ANGULARJS,
     KUBERNETES_V1_SERVERGROUP_CONFIGURE_CONFIGURE_KUBERNETES_MODULE,
     CONFIRMATION_MODAL_SERVICE,
     SERVER_GROUP_WRITER,

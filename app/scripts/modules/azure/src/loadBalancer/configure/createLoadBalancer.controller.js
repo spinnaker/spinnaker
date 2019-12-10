@@ -5,13 +5,14 @@ import _ from 'lodash';
 
 import { AccountService, LoadBalancerWriter, NameUtils, NetworkReader, TaskMonitor } from '@spinnaker/core';
 import { AZURE_LOADBALANCER_LOADBALANCER_TRANSFORMER } from '../loadBalancer.transformer';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export const AZURE_LOADBALANCER_CONFIGURE_CREATELOADBALANCER_CONTROLLER =
   'spinnaker.azure.loadBalancer.create.controller';
 export const name = AZURE_LOADBALANCER_CONFIGURE_CREATELOADBALANCER_CONTROLLER; // for backwards compatibility
 angular
   .module(AZURE_LOADBALANCER_CONFIGURE_CREATELOADBALANCER_CONTROLLER, [
-    require('@uirouter/angularjs').default,
+    UIROUTER_ANGULARJS,
     AZURE_LOADBALANCER_LOADBALANCER_TRANSFORMER,
   ])
   .controller('azureCreateLoadBalancerCtrl', [

@@ -11,13 +11,14 @@ import {
   TaskMonitor,
 } from '@spinnaker/core';
 import { AZURE_SECURITYGROUP_SECURITYGROUP_WRITE_SERVICE } from '../securityGroup.write.service';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export const AZURE_SECURITYGROUP_CONFIGURE_EDITSECURITYGROUPCTRL =
   'spinnaker.azure.securityGroup.azure.edit.controller';
 export const name = AZURE_SECURITYGROUP_CONFIGURE_EDITSECURITYGROUPCTRL; // for backwards compatibility
 angular
   .module(AZURE_SECURITYGROUP_CONFIGURE_EDITSECURITYGROUPCTRL, [
-    require('@uirouter/angularjs').default,
+    UIROUTER_ANGULARJS,
     CACHE_INITIALIZER_SERVICE,
     SECURITY_GROUP_READER,
     AZURE_SECURITYGROUP_SECURITYGROUP_WRITE_SERVICE,

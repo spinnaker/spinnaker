@@ -11,13 +11,15 @@ import {
   RecentHistoryService,
   ServerGroupTemplates,
 } from '@spinnaker/core';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
+import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 
 export const KUBERNETES_V1_INSTANCE_DETAILS_DETAILS_CONTROLLER = 'spinnaker.instance.detail.kubernetes.controller';
 export const name = KUBERNETES_V1_INSTANCE_DETAILS_DETAILS_CONTROLLER; // for backwards compatibility
 angular
   .module(KUBERNETES_V1_INSTANCE_DETAILS_DETAILS_CONTROLLER, [
-    require('@uirouter/angularjs').default,
-    require('angular-ui-bootstrap'),
+    UIROUTER_ANGULARJS,
+    ANGULAR_UI_BOOTSTRAP,
     INSTANCE_WRITE_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
   ])

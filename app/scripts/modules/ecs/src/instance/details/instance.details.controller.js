@@ -11,13 +11,15 @@ import {
   RecentHistoryService,
   SETTINGS,
 } from '@spinnaker/core';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
+import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 
 export const ECS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER = 'spinnaker.ecs.instance.details.controller';
 export const name = ECS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER; // for backwards compatibility
 angular
   .module(ECS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
-    require('@uirouter/angularjs').default,
-    require('angular-ui-bootstrap'),
+    UIROUTER_ANGULARJS,
+    ANGULAR_UI_BOOTSTRAP,
     CONFIRMATION_MODAL_SERVICE,
   ])
   .controller('ecsInstanceDetailsCtrl', [

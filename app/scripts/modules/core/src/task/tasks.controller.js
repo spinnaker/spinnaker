@@ -10,12 +10,13 @@ import { DISPLAYABLE_TASKS_FILTER } from './displayableTasks.filter';
 import { SETTINGS } from 'core/config/settings';
 import { TaskWriter } from './task.write.service';
 import { CORE_TASK_TASKPROGRESSBAR_DIRECTIVE } from './taskProgressBar.directive';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export const CORE_TASK_TASKS_CONTROLLER = 'spinnaker.core.task.controller';
 export const name = CORE_TASK_TASKS_CONTROLLER; // for backwards compatibility
 angular
   .module(CORE_TASK_TASKS_CONTROLLER, [
-    require('@uirouter/angularjs').default,
+    UIROUTER_ANGULARJS,
     CORE_TASK_TASKPROGRESSBAR_DIRECTIVE,
     CONFIRMATION_MODAL_SERVICE,
     DISPLAYABLE_TASKS_FILTER,

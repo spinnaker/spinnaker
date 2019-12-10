@@ -26,13 +26,14 @@ import { TitusCloneServerGroupModal } from '../configure/wizard/TitusCloneServer
 import { TITUS_SECURITY_GROUPS_DETAILS } from './titusSecurityGroups.component';
 import { TITUS_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER } from '../configure/ServerGroupCommandBuilder';
 import { TITUS_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER } from './rollback/rollbackServerGroup.controller';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export const TITUS_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_TITUS_CONTROLLER =
   'spinnaker.serverGroup.details.titus.controller';
 export const name = TITUS_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_TITUS_CONTROLLER; // for backwards compatibility
 angular
   .module(TITUS_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_TITUS_CONTROLLER, [
-    require('@uirouter/angularjs').default,
+    UIROUTER_ANGULARJS,
     TITUS_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER,
     CONFIRMATION_MODAL_SERVICE,
     DISRUPTION_BUDGET_DETAILS_SECTION,

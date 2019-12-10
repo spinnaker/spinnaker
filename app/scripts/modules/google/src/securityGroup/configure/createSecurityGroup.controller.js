@@ -3,12 +3,13 @@
 const angular = require('angular');
 
 import { AccountService, InfrastructureCaches } from '@spinnaker/core';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export const GOOGLE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUP_CONTROLLER =
   'spinnaker.gce.securityGroup.create.controller';
 export const name = GOOGLE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUP_CONTROLLER; // for backwards compatibility
 angular
-  .module(GOOGLE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUP_CONTROLLER, [require('@uirouter/angularjs').default])
+  .module(GOOGLE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUP_CONTROLLER, [UIROUTER_ANGULARJS])
   .controller('gceCreateSecurityGroupCtrl', [
     '$scope',
     '$uibModalInstance',

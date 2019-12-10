@@ -10,6 +10,7 @@ import { VALIDATE_APPLICATION_NAME } from './validation/validateApplicationName.
 import { CHAOS_MONKEY_NEW_APPLICATION_CONFIG_COMPONENT } from 'core/chaosMonkey/chaosMonkeyNewApplicationConfig.component';
 import { SETTINGS } from 'core/config/settings';
 import { CORE_APPLICATION_MODAL_APPLICATIONPROVIDERFIELDS_COMPONENT } from './applicationProviderFields.component';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 const angular = require('angular');
 
@@ -18,7 +19,7 @@ export const CORE_APPLICATION_MODAL_CREATEAPPLICATION_MODAL_CONTROLLER =
 export const name = CORE_APPLICATION_MODAL_CREATEAPPLICATION_MODAL_CONTROLLER; // for backwards compatibility
 angular
   .module(CORE_APPLICATION_MODAL_CREATEAPPLICATION_MODAL_CONTROLLER, [
-    require('@uirouter/angularjs').default,
+    UIROUTER_ANGULARJS,
     APPLICATION_NAME_VALIDATION_MESSAGES,
     VALIDATE_APPLICATION_NAME,
     CORE_APPLICATION_MODAL_APPLICATIONPROVIDERFIELDS_COMPONENT,

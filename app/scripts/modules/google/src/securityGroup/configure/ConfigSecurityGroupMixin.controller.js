@@ -15,13 +15,14 @@ import {
 import { GCE_SECURITY_GROUP_HELP_TEXT_SERVICE } from '../securityGroupHelpText.service';
 
 import './securityGroup.configure.less';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export const GOOGLE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUPMIXIN_CONTROLLER =
   'spinnaker.google.securityGroup.baseConfig.controller';
 export const name = GOOGLE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUPMIXIN_CONTROLLER; // for backwards compatibility
 angular
   .module(GOOGLE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUPMIXIN_CONTROLLER, [
-    require('@uirouter/angularjs').default,
+    UIROUTER_ANGULARJS,
     SECURITY_GROUP_READER,
     GCE_SECURITY_GROUP_HELP_TEXT_SERVICE,
   ])

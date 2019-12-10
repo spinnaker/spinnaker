@@ -4,11 +4,12 @@ const angular = require('angular');
 import _ from 'lodash';
 
 import { InfrastructureCaches, TaskExecutor, FirewallLabels } from '@spinnaker/core';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export const AZURE_SECURITYGROUP_SECURITYGROUP_WRITE_SERVICE = 'spinnaker.azure.securityGroup.write.service';
 export const name = AZURE_SECURITYGROUP_SECURITYGROUP_WRITE_SERVICE; // for backwards compatibility
 angular
-  .module(AZURE_SECURITYGROUP_SECURITYGROUP_WRITE_SERVICE, [require('@uirouter/angularjs').default])
+  .module(AZURE_SECURITYGROUP_SECURITYGROUP_WRITE_SERVICE, [UIROUTER_ANGULARJS])
   .factory('azureSecurityGroupWriter', function() {
     function upsertSecurityGroup(securityGroup, application, descriptor, params = {}) {
       params.securityGroupName = securityGroup.name;

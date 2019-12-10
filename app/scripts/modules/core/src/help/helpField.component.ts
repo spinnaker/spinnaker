@@ -1,6 +1,7 @@
 import { IController, IComponentOptions, IPromise, ITimeoutService, module } from 'angular';
 
 import { HelpContentsRegistry } from './helpContents.registry';
+import ANGULARTICS from 'angulartics';
 
 export interface IHelpFieldContents {
   content: string;
@@ -131,6 +132,6 @@ export const helpFieldWrapperComponent: IComponentOptions = {
 };
 
 export const HELP_FIELD_COMPONENT = 'spinnaker.core.help.helpField.component';
-module(HELP_FIELD_COMPONENT, [require('angulartics')])
+module(HELP_FIELD_COMPONENT, [ANGULARTICS])
   .component('helpField', helpFieldComponent)
   .component('helpFieldWrapper', helpFieldWrapperComponent);

@@ -6,15 +6,13 @@ import _ from 'lodash';
 import { CONFIRMATION_MODAL_SERVICE, LoadBalancerWriter, ServerGroupTemplates } from '@spinnaker/core';
 
 import { KubernetesProviderSettings } from 'kubernetes/kubernetes.settings';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export const KUBERNETES_V1_LOADBALANCER_DETAILS_DETAILS_CONTROLLER =
   'spinnaker.loadBalancer.kubernetes.details.controller';
 export const name = KUBERNETES_V1_LOADBALANCER_DETAILS_DETAILS_CONTROLLER; // for backwards compatibility
 angular
-  .module(KUBERNETES_V1_LOADBALANCER_DETAILS_DETAILS_CONTROLLER, [
-    require('@uirouter/angularjs').default,
-    CONFIRMATION_MODAL_SERVICE,
-  ])
+  .module(KUBERNETES_V1_LOADBALANCER_DETAILS_DETAILS_CONTROLLER, [UIROUTER_ANGULARJS, CONFIRMATION_MODAL_SERVICE])
   .controller('kubernetesLoadBalancerDetailsController', [
     '$interpolate',
     '$scope',

@@ -16,14 +16,16 @@ import { GceImageReader } from 'google/image';
 import { GOOGLE_GCEREGIONSELECTFIELD_DIRECTIVE } from '../../../../gceRegionSelectField.directive';
 import { GOOGLE_GCENETWORKSELECTFIELD_DIRECTIVE } from '../../../../gceNetworkSelectField.directive';
 import { GOOGLE_SUBNET_SUBNETSELECTFIELD_DIRECTIVE } from '../../../../subnet/subnetSelectField.directive';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
+import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 
 export const GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_LOCATION_BASICSETTINGS_CONTROLLER =
   'spinnaker.google.serverGroup.configure.wizard.basicSettings.controller';
 export const name = GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_LOCATION_BASICSETTINGS_CONTROLLER; // for backwards compatibility
 angular
   .module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_LOCATION_BASICSETTINGS_CONTROLLER, [
-    require('@uirouter/angularjs').default,
-    require('angular-ui-bootstrap'),
+    UIROUTER_ANGULARJS,
+    ANGULAR_UI_BOOTSTRAP,
     IMAGE_READER,
     GOOGLE_GCEREGIONSELECTFIELD_DIRECTIVE,
     GOOGLE_GCENETWORKSELECTFIELD_DIRECTIVE,

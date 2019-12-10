@@ -15,13 +15,14 @@ import {
 
 import { VpcReader } from '../../vpc/VpcReader';
 import { AMAZON_SECURITYGROUP_CLONE_CLONESECURITYGROUP_CONTROLLER } from '../clone/cloneSecurityGroup.controller';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export const AMAZON_SECURITYGROUP_DETAILS_SECURITYGROUPDETAIL_CONTROLLER =
   'spinnaker.amazon.securityGroup.details.controller';
 export const name = AMAZON_SECURITYGROUP_DETAILS_SECURITYGROUPDETAIL_CONTROLLER; // for backwards compatibility
 angular
   .module(AMAZON_SECURITYGROUP_DETAILS_SECURITYGROUPDETAIL_CONTROLLER, [
-    require('@uirouter/angularjs').default,
+    UIROUTER_ANGULARJS,
     SECURITY_GROUP_READER,
     CONFIRMATION_MODAL_SERVICE,
     AMAZON_SECURITYGROUP_CLONE_CLONESECURITYGROUP_CONTROLLER,

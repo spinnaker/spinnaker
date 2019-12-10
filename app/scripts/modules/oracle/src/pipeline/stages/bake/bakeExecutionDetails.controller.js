@@ -1,6 +1,7 @@
 'use strict';
 
 import { EXECUTION_DETAILS_SECTION_SERVICE, SETTINGS } from '@spinnaker/core';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 const angular = require('angular');
 
@@ -10,7 +11,7 @@ export const name = ORACLE_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER;
 angular
   .module(ORACLE_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER, [
     EXECUTION_DETAILS_SECTION_SERVICE,
-    require('@uirouter/angularjs').default,
+    UIROUTER_ANGULARJS,
   ])
   .controller('oracleBakeExecutionDetailsCtrl', [
     '$log',

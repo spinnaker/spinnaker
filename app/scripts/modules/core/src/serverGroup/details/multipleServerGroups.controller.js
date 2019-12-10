@@ -7,13 +7,14 @@ import { CONFIRMATION_MODAL_SERVICE } from 'core/confirmationModal/confirmationM
 import { SERVER_GROUP_WRITER } from 'core/serverGroup/serverGroupWriter.service';
 import { ClusterState } from 'core/state';
 import { CORE_SERVERGROUP_DETAILS_MULTIPLESERVERGROUP_COMPONENT } from './multipleServerGroup.component';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export const CORE_SERVERGROUP_DETAILS_MULTIPLESERVERGROUPS_CONTROLLER =
   'spinnaker.core.serverGroup.details.multipleServerGroups.controller';
 export const name = CORE_SERVERGROUP_DETAILS_MULTIPLESERVERGROUPS_CONTROLLER; // for backwards compatibility
 angular
   .module(CORE_SERVERGROUP_DETAILS_MULTIPLESERVERGROUPS_CONTROLLER, [
-    require('@uirouter/angularjs').default,
+    UIROUTER_ANGULARJS,
     SERVER_GROUP_WRITER,
     CONFIRMATION_MODAL_SERVICE,
     PROVIDER_SERVICE_DELEGATE,

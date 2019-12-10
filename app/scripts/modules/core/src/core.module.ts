@@ -81,6 +81,10 @@ import { CORE_SECURITYGROUP_SECURITYGROUP_MODULE } from './securityGroup/securit
 import { CORE_TASK_TASK_MODULE } from './task/task.module';
 import { CORE_UTILS_UTILS_MODULE } from './utils/utils.module';
 import { CORE_VALIDATION_VALIDATION_MODULE } from './validation/validation.module';
+import ANGULAR_MESSAGES from 'angular-messages';
+import ANGULAR_SANITIZE from 'angular-sanitize';
+import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
+import UI_SELECT from 'ui-select';
 
 // load all templates into the $templateCache
 const templates = require.context('./', true, /\.html$/);
@@ -90,14 +94,14 @@ templates.keys().forEach(function(key) {
 
 export const CORE_MODULE = 'spinnaker.core';
 module(CORE_MODULE, [
-  require('angular-messages'),
-  require('angular-sanitize'),
+  ANGULAR_MESSAGES,
+  ANGULAR_SANITIZE,
   UI_ROUTER,
   UI_ROUTER_STATE_EVENTS_SHIM,
   UI_ROUTER_REACT_HYBRID,
   REACT_MODULE, // must precede modules which register states
-  require('angular-ui-bootstrap'),
-  require('ui-select'),
+  ANGULAR_UI_BOOTSTRAP,
+  UI_SELECT,
   require('angular-spinner').angularSpinner.name,
 
   ANALYTICS_MODULE,

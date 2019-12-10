@@ -10,6 +10,7 @@ import { ServerGroupReader } from 'core/serverGroup/serverGroupReader.service';
 import { UrlBuilder } from 'core/navigation';
 import { ClusterState } from 'core/state';
 import { HelpContentsRegistry } from 'core/help';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 let angular = require('angular');
 
@@ -18,7 +19,7 @@ export const CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYEXECUTIONDETAILS_CONTROLLE
 export const name = CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYEXECUTIONDETAILS_CONTROLLER; // for backwards compatibility
 angular
   .module(CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYEXECUTIONDETAILS_CONTROLLER, [
-    require('@uirouter/angularjs').default,
+    UIROUTER_ANGULARJS,
     EXECUTION_DETAILS_SECTION_SERVICE,
   ])
   .controller('DeployExecutionDetailsCtrl', [

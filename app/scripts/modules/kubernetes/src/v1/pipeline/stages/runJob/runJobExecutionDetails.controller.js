@@ -1,4 +1,5 @@
 import { get } from 'lodash';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 ('use strict');
 
@@ -8,9 +9,7 @@ export const KUBERNETES_V1_PIPELINE_STAGES_RUNJOB_RUNJOBEXECUTIONDETAILS_CONTROL
   'spinnaker.kubernetes.pipeline.stage.disableCluster.runJobExecutionDetails.controller';
 export const name = KUBERNETES_V1_PIPELINE_STAGES_RUNJOB_RUNJOBEXECUTIONDETAILS_CONTROLLER; // for backwards compatibility
 angular
-  .module(KUBERNETES_V1_PIPELINE_STAGES_RUNJOB_RUNJOBEXECUTIONDETAILS_CONTROLLER, [
-    require('@uirouter/angularjs').default,
-  ])
+  .module(KUBERNETES_V1_PIPELINE_STAGES_RUNJOB_RUNJOBEXECUTIONDETAILS_CONTROLLER, [UIROUTER_ANGULARJS])
   .controller('kubernetesRunJobExecutionDetailsCtrl', [
     '$scope',
     '$stateParams',

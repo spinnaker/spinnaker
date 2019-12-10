@@ -4,11 +4,12 @@ const angular = require('angular');
 import _ from 'lodash';
 
 import { SecurityGroupWriter, TaskMonitor, FirewallLabels } from '@spinnaker/core';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export const AMAZON_SECURITYGROUP_CONFIGURE_EDITSECURITYGROUPCTRL = 'spinnaker.amazon.securityGroup.edit.controller';
 export const name = AMAZON_SECURITYGROUP_CONFIGURE_EDITSECURITYGROUPCTRL; // for backwards compatibility
 angular
-  .module(AMAZON_SECURITYGROUP_CONFIGURE_EDITSECURITYGROUPCTRL, [require('@uirouter/angularjs').default])
+  .module(AMAZON_SECURITYGROUP_CONFIGURE_EDITSECURITYGROUPCTRL, [UIROUTER_ANGULARJS])
   .controller('awsEditSecurityGroupCtrl', [
     '$scope',
     '$uibModalInstance',

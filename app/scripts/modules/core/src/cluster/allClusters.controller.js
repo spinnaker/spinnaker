@@ -15,6 +15,7 @@ import { FILTER_TAGS_COMPONENT } from '../filterModel/filterTags.component';
 import './rollups.less';
 import { CORE_ACCOUNT_ACCOUNT_MODULE } from '../account/account.module';
 import { CORE_UTILS_WAYPOINTS_WAYPOINTCONTAINER_DIRECTIVE } from '../utils/waypoints/waypointContainer.directive';
+import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 
 export const CORE_CLUSTER_ALLCLUSTERS_CONTROLLER = 'spinnaker.core.cluster.allClusters.controller';
 export const name = CORE_CLUSTER_ALLCLUSTERS_CONTROLLER; // for backwards compatibility
@@ -27,7 +28,7 @@ angular
     FILTER_TAGS_COMPONENT,
     CORE_UTILS_WAYPOINTS_WAYPOINTCONTAINER_DIRECTIVE,
     INSIGHT_FILTER_COMPONENT,
-    require('angular-ui-bootstrap'),
+    ANGULAR_UI_BOOTSTRAP,
   ])
   .controller('AllClustersCtrl', [
     '$scope',

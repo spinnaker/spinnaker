@@ -13,6 +13,7 @@ import {
 
 import { AzureRollbackServerGroupModal } from './rollback/RollbackServerGroupModal';
 import { AZURE_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE } from '../configure/serverGroupCommandBuilder.service';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 require('../configure/serverGroup.configure.azure.module');
 
@@ -21,7 +22,7 @@ export const AZURE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_AZURE_CONTROLLER =
 export const name = AZURE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_AZURE_CONTROLLER; // for backwards compatibility
 angular
   .module(AZURE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_AZURE_CONTROLLER, [
-    require('@uirouter/angularjs').default,
+    UIROUTER_ANGULARJS,
     AZURE_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
     SERVER_GROUP_WRITER,

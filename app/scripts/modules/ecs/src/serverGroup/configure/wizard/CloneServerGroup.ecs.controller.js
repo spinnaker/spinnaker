@@ -15,13 +15,14 @@ import { ECS_SERVER_GROUP_CONFIGURATION_SERVICE } from '../serverGroupConfigurat
 import { ECS_CLUSTER_READ_SERVICE } from '../../../ecsCluster/ecsCluster.read.service';
 import { IAM_ROLE_READ_SERVICE } from '../../../iamRoles/iamRole.read.service';
 import { ECS_SECRET_READ_SERVICE } from '../../../secrets/secret.read.service';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export const ECS_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_ECS_CONTROLLER =
   'spinnaker.ecs.cloneServerGroup.controller';
 export const name = ECS_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_ECS_CONTROLLER; // for backwards compatibility
 angular
   .module(ECS_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_ECS_CONTROLLER, [
-    require('@uirouter/angularjs').default,
+    UIROUTER_ANGULARJS,
     ECS_SERVER_GROUP_CONFIGURATION_SERVICE,
     SERVER_GROUP_WRITER,
     OVERRIDE_REGISTRY,

@@ -8,6 +8,7 @@ import {
 } from 'core/pipeline/details/executionDetailsSection.service';
 
 import { BaseExecutionDetailsCtrl, IExecutionDetailsScope } from '../common/baseExecutionDetails.controller';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export class CreateLoadBalancerDetailsCtrl extends BaseExecutionDetailsCtrl {
   public static $inject = ['$scope', '$stateParams', 'executionDetailsSectionService'];
@@ -59,7 +60,7 @@ export class CreateLoadBalancerDetailsCtrl extends BaseExecutionDetailsCtrl {
 
 export const CREATE_LOAD_BALANCER_EXECUTION_DETAILS_CTRL =
   'spinnaker.core.pipeline.stage.createLoadBalancer.executionDetails.controller';
-module(CREATE_LOAD_BALANCER_EXECUTION_DETAILS_CTRL, [
-  require('@uirouter/angularjs').default,
-  EXECUTION_DETAILS_SECTION_SERVICE,
-]).controller('createLoadBalancerExecutionDetailsCtrl', CreateLoadBalancerDetailsCtrl);
+module(CREATE_LOAD_BALANCER_EXECUTION_DETAILS_CTRL, [UIROUTER_ANGULARJS, EXECUTION_DETAILS_SECTION_SERVICE]).controller(
+  'createLoadBalancerExecutionDetailsCtrl',
+  CreateLoadBalancerDetailsCtrl,
+);

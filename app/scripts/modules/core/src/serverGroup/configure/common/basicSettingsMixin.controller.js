@@ -4,6 +4,8 @@ import _ from 'lodash';
 
 import { IMAGE_READER } from 'core/image/image.reader';
 import { NameUtils } from 'core/naming';
+import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 const angular = require('angular');
 
@@ -12,8 +14,8 @@ export const CORE_SERVERGROUP_CONFIGURE_COMMON_BASICSETTINGSMIXIN_CONTROLLER =
 export const name = CORE_SERVERGROUP_CONFIGURE_COMMON_BASICSETTINGSMIXIN_CONTROLLER; // for backwards compatibility
 angular
   .module(CORE_SERVERGROUP_CONFIGURE_COMMON_BASICSETTINGSMIXIN_CONTROLLER, [
-    require('angular-ui-bootstrap'),
-    require('@uirouter/angularjs').default,
+    ANGULAR_UI_BOOTSTRAP,
+    UIROUTER_ANGULARJS,
     IMAGE_READER,
   ])
   .controller('BasicSettingsMixin', [

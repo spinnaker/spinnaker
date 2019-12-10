@@ -4,14 +4,13 @@ const angular = require('angular');
 import _ from 'lodash';
 
 import { ClusterState, UrlBuilder } from '@spinnaker/core';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export const TITUS_PIPELINE_STAGES_CLONESERVERGROUP_CLONESERVERGROUPEXECUTIONDETAILS_CONTROLLER =
   'spinnaker.titus.pipeline.stage.cloneServerGroup.executionDetails.controller';
 export const name = TITUS_PIPELINE_STAGES_CLONESERVERGROUP_CLONESERVERGROUPEXECUTIONDETAILS_CONTROLLER; // for backwards compatibility
 angular
-  .module(TITUS_PIPELINE_STAGES_CLONESERVERGROUP_CLONESERVERGROUPEXECUTIONDETAILS_CONTROLLER, [
-    require('@uirouter/angularjs').default,
-  ])
+  .module(TITUS_PIPELINE_STAGES_CLONESERVERGROUP_CLONESERVERGROUPEXECUTIONDETAILS_CONTROLLER, [UIROUTER_ANGULARJS])
   .controller('titusCloneServerGroupExecutionDetailsCtrl', [
     '$scope',
     '$stateParams',

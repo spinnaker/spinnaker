@@ -10,13 +10,14 @@ import {
   SECURITY_GROUP_READER,
   FirewallLabels,
 } from '@spinnaker/core';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export const AZURE_LOADBALANCER_DETAILS_LOADBALANCERDETAIL_CONTROLLER =
   'spinnaker.azure.loadBalancer.details.controller';
 export const name = AZURE_LOADBALANCER_DETAILS_LOADBALANCERDETAIL_CONTROLLER; // for backwards compatibility
 angular
   .module(AZURE_LOADBALANCER_DETAILS_LOADBALANCERDETAIL_CONTROLLER, [
-    require('@uirouter/angularjs').default,
+    UIROUTER_ANGULARJS,
     SECURITY_GROUP_READER,
     LOAD_BALANCER_READ_SERVICE,
     CONFIRMATION_MODAL_SERVICE,

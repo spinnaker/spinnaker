@@ -3,11 +3,12 @@
 const angular = require('angular');
 
 import { SETTINGS } from '@spinnaker/core';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export const CANARY_CANARY_CANARYEXECUTIONDETAILS_CONTROLLER = 'spinnaker.canary.details.controller';
 export const name = CANARY_CANARY_CANARYEXECUTIONDETAILS_CONTROLLER; // for backwards compatibility
 angular
-  .module(CANARY_CANARY_CANARYEXECUTIONDETAILS_CONTROLLER, [require('@uirouter/angularjs').default])
+  .module(CANARY_CANARY_CANARYEXECUTIONDETAILS_CONTROLLER, [UIROUTER_ANGULARJS])
   .controller('CanaryExecutionDetailsCtrl', [
     '$scope',
     '$stateParams',

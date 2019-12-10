@@ -32,6 +32,8 @@ import {
   ORACLE_LOAD_BALANCER_TRANSFORMER,
   OracleLoadBalancerTransformer,
 } from 'oracle/loadBalancer/loadBalancer.transformer';
+import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export class OracleLoadBalancerController implements IController {
   public oracle = 'oracle';
@@ -497,7 +499,7 @@ export class OracleLoadBalancerController implements IController {
 
 export const ORACLE_LOAD_BALANCER_CREATE_CONTROLLER = 'spinnaker.oracle.loadBalancer.create.controller';
 module(ORACLE_LOAD_BALANCER_CREATE_CONTROLLER, [
-  require('angular-ui-bootstrap'),
-  require('@uirouter/angularjs').default,
+  ANGULAR_UI_BOOTSTRAP,
+  UIROUTER_ANGULARJS,
   ORACLE_LOAD_BALANCER_TRANSFORMER,
 ]).controller('oracleCreateLoadBalancerCtrl', OracleLoadBalancerController);

@@ -13,13 +13,14 @@ import {
 import { ORACLE_IMAGE_IMAGE_READER } from '../../image/image.reader';
 import { ORACLE_SERVERGROUP_DETAILS_RESIZE_RESIZESERVERGROUP_CONTROLLER } from './resize/resizeServerGroup.controller';
 import { ORACLE_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER } from './rollback/rollbackServerGroup.controller';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export const ORACLE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_CONTROLLER =
   'spinnaker.oracle.serverGroup.details.controller';
 export const name = ORACLE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_CONTROLLER; // for backwards compatibility
 angular
   .module(ORACLE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_CONTROLLER, [
-    require('@uirouter/angularjs').default,
+    UIROUTER_ANGULARJS,
     CONFIRMATION_MODAL_SERVICE,
     SERVER_GROUP_WRITER,
     ORACLE_IMAGE_IMAGE_READER,

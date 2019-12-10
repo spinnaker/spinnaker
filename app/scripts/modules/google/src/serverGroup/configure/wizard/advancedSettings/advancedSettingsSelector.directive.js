@@ -1,4 +1,5 @@
 import { GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGMANAGER_SERVICE } from '../securityGroups/tagManager.service';
+import UI_SELECT from 'ui-select';
 ('use strict');
 
 const angular = require('angular');
@@ -8,7 +9,7 @@ export const GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_ADVANCEDSETTINGS_ADVANCEDSETTIN
 export const name = GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_ADVANCEDSETTINGS_ADVANCEDSETTINGSSELECTOR_DIRECTIVE; // for backwards compatibility
 angular
   .module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_ADVANCEDSETTINGS_ADVANCEDSETTINGSSELECTOR_DIRECTIVE, [
-    require('ui-select'),
+    UI_SELECT,
     GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGMANAGER_SERVICE,
   ])
   .directive('gceServerGroupAdvancedSettingsSelector', function() {

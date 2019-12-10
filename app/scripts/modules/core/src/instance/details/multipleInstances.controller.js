@@ -4,6 +4,7 @@ import { CONFIRMATION_MODAL_SERVICE } from 'core/confirmationModal/confirmationM
 import { INSTANCE_WRITE_SERVICE } from 'core/instance/instance.write.service';
 import { ClusterState } from 'core/state';
 import { CORE_INSTANCE_DETAILS_MULTIPLEINSTANCESERVERGROUP_DIRECTIVE } from './multipleInstanceServerGroup.directive';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 const angular = require('angular');
 
@@ -12,7 +13,7 @@ export const CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER =
 export const name = CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER; // for backwards compatibility
 angular
   .module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
-    require('@uirouter/angularjs').default,
+    UIROUTER_ANGULARJS,
     INSTANCE_WRITE_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
     CORE_INSTANCE_DETAILS_MULTIPLEINSTANCESERVERGROUP_DIRECTIVE,

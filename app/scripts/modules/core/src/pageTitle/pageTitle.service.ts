@@ -1,5 +1,6 @@
 import { module, IScope } from 'angular';
 import { TransitionService, Rejection, RejectType, StateParams } from '@uirouter/core';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export interface IMainConfig {
   field: string;
@@ -136,6 +137,6 @@ export class PageTitleService {
 
 export const PAGE_TITLE_SERVICE = 'spinnaker.core.pageTitle.service';
 
-module(PAGE_TITLE_SERVICE, [require('@uirouter/angularjs').default])
+module(PAGE_TITLE_SERVICE, [UIROUTER_ANGULARJS])
   .service('pageTitleService', PageTitleService)
   .run(['pageTitleService', (pageTitleService: PageTitleService) => pageTitleService]);

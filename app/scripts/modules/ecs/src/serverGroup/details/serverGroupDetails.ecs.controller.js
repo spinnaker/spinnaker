@@ -18,12 +18,13 @@ import {
 import { ECS_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE } from '../configure/serverGroupCommandBuilder.service';
 import { ECS_SERVERGROUP_DETAILS_RESIZE_RESIZESERVERGROUP_CONTROLLER } from './resize/resizeServerGroup.controller';
 import { ECS_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER } from './rollback/rollbackServerGroup.controller';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export const ECS_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_ECS_CONTROLLER = 'spinnaker.ecs.serverGroup.details.controller';
 export const name = ECS_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_ECS_CONTROLLER; // for backwards compatibility
 angular
   .module(ECS_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_ECS_CONTROLLER, [
-    require('@uirouter/angularjs').default,
+    UIROUTER_ANGULARJS,
     ECS_SERVER_GROUP_TRANSFORMER,
     CONFIRMATION_MODAL_SERVICE,
     OVERRIDE_REGISTRY,

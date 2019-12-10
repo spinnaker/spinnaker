@@ -17,6 +17,8 @@ import { IModalService } from 'angular-ui-bootstrap';
 import { IOracleLoadBalancer, ILoadBalancerDetails } from 'oracle/domain/IOracleLoadBalancer';
 import { sortBy } from 'lodash';
 import { OracleLoadBalancerController } from 'oracle/loadBalancer/configure/createLoadBalancer.controller';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
+import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 
 export class OracleLoadBalancerDetailController implements IController {
   public static $inject = [
@@ -167,7 +169,7 @@ export class OracleLoadBalancerDetailController implements IController {
 }
 
 export const ORACLE_LOAD_BALANCER_DETAIL_CONTROLLER = 'spinnaker.oracle.loadBalancerDetail.controller';
-module(ORACLE_LOAD_BALANCER_DETAIL_CONTROLLER, [
-  require('@uirouter/angularjs').default,
-  require('angular-ui-bootstrap'),
-]).controller('oracleLoadBalancerDetailCtrl', OracleLoadBalancerDetailController);
+module(ORACLE_LOAD_BALANCER_DETAIL_CONTROLLER, [UIROUTER_ANGULARJS, ANGULAR_UI_BOOTSTRAP]).controller(
+  'oracleLoadBalancerDetailCtrl',
+  OracleLoadBalancerDetailController,
+);

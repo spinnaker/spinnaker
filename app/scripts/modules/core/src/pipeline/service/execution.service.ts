@@ -16,6 +16,7 @@ import { ExecutionState } from 'core/state';
 import { IRetryablePromise, retryablePromise } from 'core/utils/retryablePromise';
 import { ReactInjector } from 'core/reactShims';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export class ExecutionService {
   public get activeStatuses(): string[] {
@@ -562,7 +563,7 @@ export class ExecutionService {
 }
 
 export const EXECUTION_SERVICE = 'spinnaker.core.pipeline.executions.service';
-module(EXECUTION_SERVICE, [require('@uirouter/angularjs').default]).factory('executionService', [
+module(EXECUTION_SERVICE, [UIROUTER_ANGULARJS]).factory('executionService', [
   '$http',
   '$q',
   '$state',

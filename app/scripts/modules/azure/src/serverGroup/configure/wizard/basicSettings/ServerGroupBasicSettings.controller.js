@@ -2,6 +2,8 @@
 
 import { IMAGE_READER, ModalWizard } from '@spinnaker/core';
 import { AZURE_SERVERGROUP_CONFIGURE_WIZARD_BASICSETTINGS_IMAGE_REGIONAL_FILTER } from './image.regional.filter';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
+import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 
 const angular = require('angular');
 
@@ -10,8 +12,8 @@ export const AZURE_SERVERGROUP_CONFIGURE_WIZARD_BASICSETTINGS_SERVERGROUPBASICSE
 export const name = AZURE_SERVERGROUP_CONFIGURE_WIZARD_BASICSETTINGS_SERVERGROUPBASICSETTINGS_CONTROLLER; // for backwards compatibility
 angular
   .module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_BASICSETTINGS_SERVERGROUPBASICSETTINGS_CONTROLLER, [
-    require('@uirouter/angularjs').default,
-    require('angular-ui-bootstrap'),
+    UIROUTER_ANGULARJS,
+    ANGULAR_UI_BOOTSTRAP,
     AZURE_SERVERGROUP_CONFIGURE_WIZARD_BASICSETTINGS_IMAGE_REGIONAL_FILTER,
     IMAGE_READER,
   ])

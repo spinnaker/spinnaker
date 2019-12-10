@@ -3,14 +3,12 @@
 const angular = require('angular');
 
 import { InstanceReader, INSTANCE_WRITE_SERVICE } from '@spinnaker/core';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export const ORACLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER = 'spinnaker.oracle.instance.details.controller';
 export const name = ORACLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER; // for backwards compatibility
 angular
-  .module(ORACLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
-    require('@uirouter/angularjs').default,
-    INSTANCE_WRITE_SERVICE,
-  ])
+  .module(ORACLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [UIROUTER_ANGULARJS, INSTANCE_WRITE_SERVICE])
   .controller('oracleInstanceDetailsCtrl', [
     '$scope',
     '$q',

@@ -15,13 +15,15 @@ import {
   SETTINGS,
 } from '@spinnaker/core';
 import { TITUS_SECURITYGROUP_SECURITYGROUP_READ_SERVICE } from '../../securityGroup/securityGroup.read.service';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
+import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 
 export const TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER = 'spinnaker.instance.detail.titus.controller';
 export const name = TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER; // for backwards compatibility
 angular
   .module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
-    require('@uirouter/angularjs').default,
-    require('angular-ui-bootstrap'),
+    UIROUTER_ANGULARJS,
+    ANGULAR_UI_BOOTSTRAP,
     INSTANCE_WRITE_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
     TITUS_SECURITYGROUP_SECURITYGROUP_READ_SERVICE,

@@ -15,13 +15,15 @@ import {
 
 import { AMAZON_INSTANCE_WRITE_SERVICE } from 'amazon/instance/amazon.instance.write.service';
 import { AMAZON_VPC_VPCTAG_DIRECTIVE } from '../../vpc/vpcTag.directive';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
+import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 
 export const AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER = 'spinnaker.amazon.instance.details.controller';
 export const name = AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER; // for backwards compatibility
 angular
   .module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
-    require('@uirouter/angularjs').default,
-    require('angular-ui-bootstrap'),
+    UIROUTER_ANGULARJS,
+    ANGULAR_UI_BOOTSTRAP,
     AMAZON_INSTANCE_WRITE_SERVICE,
     AMAZON_VPC_VPCTAG_DIRECTIVE,
     CONFIRMATION_MODAL_SERVICE,

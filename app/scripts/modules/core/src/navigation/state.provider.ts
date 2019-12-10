@@ -13,6 +13,7 @@ import { IFilterConfig } from '../filterModel/IFilterModel';
 
 import './navigation.less';
 import { ReactViewDeclaration, ParamTypeDefinition } from '@uirouter/react';
+import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 // Typescript kludge to widen interfaces so INestedState can support both react and angular views
 export interface IReactHybridIntermediate extends Ng1StateDeclaration {
@@ -166,7 +167,7 @@ export const sortKeyParamType: ParamTypeDefinition = {
 };
 
 export const STATE_CONFIG_PROVIDER = 'spinnaker.core.navigation.state.config.provider';
-module(STATE_CONFIG_PROVIDER, [require('@uirouter/angularjs').default, STATE_HELPER])
+module(STATE_CONFIG_PROVIDER, [UIROUTER_ANGULARJS, STATE_HELPER])
   .provider('stateConfig', StateConfigProvider)
   .config([
     '$urlRouterProvider',
