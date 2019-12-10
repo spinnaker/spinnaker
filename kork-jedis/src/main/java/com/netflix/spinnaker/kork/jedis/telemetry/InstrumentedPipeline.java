@@ -20,16 +20,16 @@ import static com.netflix.spinnaker.kork.jedis.telemetry.TelemetryHelper.*;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.histogram.PercentileDistributionSummary;
 import com.netflix.spectator.api.histogram.PercentileTimer;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import redis.clients.jedis.*;
-import redis.clients.jedis.params.geo.GeoRadiusParam;
-import redis.clients.jedis.params.sortedset.ZAddParams;
-import redis.clients.jedis.params.sortedset.ZIncrByParams;
+import redis.clients.jedis.params.GeoRadiusParam;
+import redis.clients.jedis.params.SetParams;
+import redis.clients.jedis.params.ZAddParams;
+import redis.clients.jedis.params.ZIncrByParams;
 
 public class InstrumentedPipeline extends Pipeline {
 
@@ -149,7 +149,7 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  public void close() throws IOException {
+  public void close() {
     super.close();
     delegated.close();
   }
@@ -949,7 +949,7 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  public Response<Long> getrange(byte[] key, long startOffset, long endOffset) {
+  public Response<byte[]> getrange(byte[] key, long startOffset, long endOffset) {
     String command = "getrange";
     return instrumented(command, () -> delegated.getrange(key, startOffset, endOffset));
   }
@@ -1132,22 +1132,6 @@ public class InstrumentedPipeline extends Pipeline {
   public Response<byte[]> lindex(byte[] key, long index) {
     String command = "lindex";
     return instrumented(command, () -> delegated.lindex(key, index));
-  }
-
-  @Override
-  public Response<Long> linsert(
-      String key, BinaryClient.LIST_POSITION where, String pivot, String value) {
-    String command = "linsert";
-    return instrumented(
-        command, payloadSize(value), () -> delegated.linsert(key, where, pivot, value));
-  }
-
-  @Override
-  public Response<Long> linsert(
-      byte[] key, BinaryClient.LIST_POSITION where, byte[] pivot, byte[] value) {
-    String command = "linsert";
-    return instrumented(
-        command, payloadSize(value), () -> delegated.linsert(key, where, pivot, value));
   }
 
   @Override
@@ -2125,7 +2109,7 @@ public class InstrumentedPipeline extends Pipeline {
 
   @Override
   public Response<String> migrate(
-      byte[] host, int port, byte[] key, int destinationDb, int timeout) {
+      String host, int port, byte[] key, int destinationDb, int timeout) {
     String command = "migrate";
     return instrumented(command, () -> delegated.migrate(host, port, key, destinationDb, timeout));
   }
@@ -2164,20 +2148,6 @@ public class InstrumentedPipeline extends Pipeline {
   public Response<Long> objectIdletime(byte[] key) {
     String command = "objectIdletime";
     return instrumented(command, () -> delegated.objectIdletime(key));
-  }
-
-  @Override
-  @Deprecated
-  public Response<Long> pexpire(String key, int milliseconds) {
-    String command = "pexpire";
-    return instrumented(command, () -> delegated.pexpire(key, milliseconds));
-  }
-
-  @Override
-  @Deprecated
-  public Response<Long> pexpire(byte[] key, int milliseconds) {
-    String command = "pexpire";
-    return instrumented(command, () -> delegated.pexpire(key, milliseconds));
   }
 
   @Override
@@ -2241,22 +2211,6 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  @Deprecated
-  public Response<String> psetex(String key, int milliseconds, String value) {
-    String command = "psetex";
-    return instrumented(
-        command, payloadSize(value), () -> delegated.psetex(key, milliseconds, value));
-  }
-
-  @Override
-  @Deprecated
-  public Response<String> psetex(byte[] key, int milliseconds, byte[] value) {
-    String command = "psetex";
-    return instrumented(
-        command, payloadSize(value), () -> delegated.psetex(key, milliseconds, value));
-  }
-
-  @Override
   public Response<String> psetex(String key, long milliseconds, String value) {
     String command = "psetex";
     return instrumented(
@@ -2271,29 +2225,15 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  public Response<String> set(String key, String value, String nxxx) {
+  public Response<String> set(String key, String value, SetParams params) {
     String command = "set";
-    return instrumented(command, payloadSize(value), () -> delegated.set(key, value, nxxx));
+    return instrumented(command, payloadSize(value), () -> delegated.set(key, value, params));
   }
 
   @Override
-  public Response<String> set(byte[] key, byte[] value, byte[] nxxx) {
+  public Response<String> set(byte[] key, byte[] value, SetParams params) {
     String command = "set";
-    return instrumented(command, payloadSize(value), () -> delegated.set(key, value, nxxx));
-  }
-
-  @Override
-  public Response<String> set(String key, String value, String nxxx, String expx, int time) {
-    String command = "set";
-    return instrumented(
-        command, payloadSize(value), () -> delegated.set(key, value, nxxx, expx, time));
-  }
-
-  @Override
-  public Response<String> set(byte[] key, byte[] value, byte[] nxxx, byte[] expx, int time) {
-    String command = "set";
-    return instrumented(
-        command, payloadSize(value), () -> delegated.set(key, value, nxxx, expx, time));
+    return instrumented(command, payloadSize(value), () -> delegated.set(key, value, params));
   }
 
   @Override
@@ -2309,20 +2249,20 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  public Response<String> eval(String script) {
+  public Response<Object> eval(String script) {
     String command = "eval";
     return instrumented(command, payloadSize(script), () -> delegated.eval(script));
   }
 
   @Override
-  public Response<String> eval(String script, List<String> keys, List<String> args) {
+  public Response<Object> eval(String script, List<String> keys, List<String> args) {
     String command = "eval";
     return instrumented(
         command, payloadSize(script) + payloadSize(args), () -> delegated.eval(script, keys, args));
   }
 
   @Override
-  public Response<String> eval(String script, int numKeys, String... args) {
+  public Response<Object> eval(String script, int numKeys, String... args) {
     String command = "eval";
     return instrumented(
         command,
@@ -2331,19 +2271,19 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  public Response<String> evalsha(String script) {
+  public Response<Object> evalsha(String script) {
     String command = "evalsha";
     return instrumented(command, payloadSize(script), () -> delegated.evalsha(script));
   }
 
   @Override
-  public Response<String> evalsha(String sha1, List<String> keys, List<String> args) {
+  public Response<Object> evalsha(String sha1, List<String> keys, List<String> args) {
     String command = "evalsha";
     return instrumented(command, payloadSize(args), () -> delegated.evalsha(sha1, keys, args));
   }
 
   @Override
-  public Response<String> evalsha(String sha1, int numKeys, String... args) {
+  public Response<Object> evalsha(String sha1, int numKeys, String... args) {
     String command = "evalsha";
     return instrumented(command, payloadSize(args), () -> delegated.evalsha(sha1, numKeys, args));
   }

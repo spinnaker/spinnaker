@@ -6,7 +6,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
-import redis.clients.util.Pool;
+import redis.clients.jedis.util.Pool;
 import redis.embedded.RedisServer;
 
 public class EmbeddedRedis {

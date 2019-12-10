@@ -17,7 +17,13 @@ package com.netflix.spinnaker.kork.jedis;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
-import redis.clients.jedis.*;
+import redis.clients.jedis.Pipeline;
+import redis.clients.jedis.Transaction;
+import redis.clients.jedis.commands.BinaryJedisCommands;
+import redis.clients.jedis.commands.JedisCommands;
+import redis.clients.jedis.commands.MultiKeyCommands;
+import redis.clients.jedis.commands.RedisPipeline;
+import redis.clients.jedis.commands.ScriptingCommands;
 
 /**
  * Offers a functional interface over either a vanilla Jedis or Dynomite client.
