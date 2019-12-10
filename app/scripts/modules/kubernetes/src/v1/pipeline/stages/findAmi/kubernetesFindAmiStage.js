@@ -4,8 +4,11 @@ const angular = require('angular');
 
 import { AccountService, Registry } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.kubernetes.pipeline.stage.findAmiStage', [])
+export const KUBERNETES_V1_PIPELINE_STAGES_FINDAMI_KUBERNETESFINDAMISTAGE =
+  'spinnaker.kubernetes.pipeline.stage.findAmiStage';
+export const name = KUBERNETES_V1_PIPELINE_STAGES_FINDAMI_KUBERNETESFINDAMISTAGE; // for backwards compatibility
+angular
+  .module(KUBERNETES_V1_PIPELINE_STAGES_FINDAMI_KUBERNETESFINDAMISTAGE, [])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'findImage',

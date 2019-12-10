@@ -7,7 +7,9 @@ import { SETTINGS } from 'core/config/settings';
 
 import './instanceLinks.component.less';
 
-module.exports = angular.module('spinnaker.core.instance.details.instanceLinks', []).component('instanceLinks', {
+export const CORE_INSTANCE_DETAILS_INSTANCELINKS_COMPONENT = 'spinnaker.core.instance.details.instanceLinks';
+export const name = CORE_INSTANCE_DETAILS_INSTANCELINKS_COMPONENT; // for backwards compatibility
+angular.module(CORE_INSTANCE_DETAILS_INSTANCELINKS_COMPONENT, []).component('instanceLinks', {
   bindings: {
     address: '=',
     application: '=',

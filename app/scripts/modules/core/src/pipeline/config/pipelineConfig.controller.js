@@ -9,8 +9,10 @@ import { PipelineTemplateV2Service } from 'core/pipeline';
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.core.pipeline.config.controller', [require('@uirouter/angularjs').default])
+export const CORE_PIPELINE_CONFIG_PIPELINECONFIG_CONTROLLER = 'spinnaker.core.pipeline.config.controller';
+export const name = CORE_PIPELINE_CONFIG_PIPELINECONFIG_CONTROLLER; // for backwards compatibility
+angular
+  .module(CORE_PIPELINE_CONFIG_PIPELINECONFIG_CONTROLLER, [require('@uirouter/angularjs').default])
   .controller('PipelineConfigCtrl', [
     '$scope',
     '$state',

@@ -8,8 +8,11 @@ import { AccountService, INSTANCE_TYPE_SERVICE, NameUtils, SubnetReader } from '
 import { AWSProviderSettings } from 'amazon/aws.settings';
 import { AWS_SERVER_GROUP_CONFIGURATION_SERVICE } from 'amazon/serverGroup/configure/serverGroupConfiguration.service';
 
-module.exports = angular
-  .module('spinnaker.amazon.serverGroupCommandBuilder.service', [
+export const AMAZON_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE =
+  'spinnaker.amazon.serverGroupCommandBuilder.service';
+export const name = AMAZON_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE; // for backwards compatibility
+angular
+  .module(AMAZON_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE, [
     INSTANCE_TYPE_SERVICE,
     AWS_SERVER_GROUP_CONFIGURATION_SERVICE,
   ])

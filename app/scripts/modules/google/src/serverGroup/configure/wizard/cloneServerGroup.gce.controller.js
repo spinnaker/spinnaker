@@ -5,8 +5,11 @@ import _ from 'lodash';
 
 import { FirewallLabels, INSTANCE_TYPE_SERVICE, ModalWizard, TaskMonitor } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.serverGroup.configure.gce.cloneServerGroup', [
+export const GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_GCE_CONTROLLER =
+  'spinnaker.serverGroup.configure.gce.cloneServerGroup';
+export const name = GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_GCE_CONTROLLER; // for backwards compatibility
+angular
+  .module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_GCE_CONTROLLER, [
     require('@uirouter/angularjs').default,
     require('google/instance/custom/customInstanceBuilder.gce.service').name,
     INSTANCE_TYPE_SERVICE,

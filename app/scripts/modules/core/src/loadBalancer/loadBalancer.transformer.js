@@ -7,8 +7,10 @@ import { chain, flow } from 'lodash';
 import { AccountService } from 'core/account/AccountService';
 import { PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider/providerService.delegate';
 
-module.exports = angular
-  .module('spinnaker.core.loadBalancer.transformer', [PROVIDER_SERVICE_DELEGATE])
+export const CORE_LOADBALANCER_LOADBALANCER_TRANSFORMER = 'spinnaker.core.loadBalancer.transformer';
+export const name = CORE_LOADBALANCER_LOADBALANCER_TRANSFORMER; // for backwards compatibility
+angular
+  .module(CORE_LOADBALANCER_LOADBALANCER_TRANSFORMER, [PROVIDER_SERVICE_DELEGATE])
   .factory('loadBalancerTransformer', [
     'providerServiceDelegate',
     function(providerServiceDelegate) {

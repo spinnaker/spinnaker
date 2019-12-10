@@ -12,8 +12,11 @@ import {
   ServerGroupTemplates,
 } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.securityGroup.kubernetes.details.controller', [
+export const KUBERNETES_V1_SECURITYGROUP_DETAILS_DETAILS_CONTROLLER =
+  'spinnaker.securityGroup.kubernetes.details.controller';
+export const name = KUBERNETES_V1_SECURITYGROUP_DETAILS_DETAILS_CONTROLLER; // for backwards compatibility
+angular
+  .module(KUBERNETES_V1_SECURITYGROUP_DETAILS_DETAILS_CONTROLLER, [
     require('@uirouter/angularjs').default,
     SECURITY_GROUP_READER,
     CONFIRMATION_MODAL_SERVICE,

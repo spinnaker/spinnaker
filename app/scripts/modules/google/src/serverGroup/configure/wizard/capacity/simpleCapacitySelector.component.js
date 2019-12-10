@@ -2,8 +2,11 @@
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.google.serverGroup.configure.wizard.simpleCapacity.selector.component', [])
+export const GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_CAPACITY_SIMPLECAPACITYSELECTOR_COMPONENT =
+  'spinnaker.google.serverGroup.configure.wizard.simpleCapacity.selector.component';
+export const name = GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_CAPACITY_SIMPLECAPACITYSELECTOR_COMPONENT; // for backwards compatibility
+angular
+  .module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_CAPACITY_SIMPLECAPACITYSELECTOR_COMPONENT, [])
   .component('gceServerGroupSimpleCapacitySelector', {
     templateUrl: require('./simpleCapacitySelector.component.html'),
     bindings: {

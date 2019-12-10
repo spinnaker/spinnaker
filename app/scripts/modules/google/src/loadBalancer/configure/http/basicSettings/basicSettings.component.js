@@ -4,8 +4,11 @@ import _ from 'lodash';
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.deck.gce.httpLoadBalancer.basicSettings.component', [])
+export const GOOGLE_LOADBALANCER_CONFIGURE_HTTP_BASICSETTINGS_BASICSETTINGS_COMPONENT =
+  'spinnaker.deck.gce.httpLoadBalancer.basicSettings.component';
+export const name = GOOGLE_LOADBALANCER_CONFIGURE_HTTP_BASICSETTINGS_BASICSETTINGS_COMPONENT; // for backwards compatibility
+angular
+  .module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_BASICSETTINGS_BASICSETTINGS_COMPONENT, [])
   .component('gceHttpLoadBalancerBasicSettings', {
     bindings: {
       command: '=',

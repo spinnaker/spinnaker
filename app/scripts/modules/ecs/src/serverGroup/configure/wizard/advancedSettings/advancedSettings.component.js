@@ -2,8 +2,11 @@
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.ecs.serverGroup.configure.wizard.advancedSettings.component', [])
+export const ECS_SERVERGROUP_CONFIGURE_WIZARD_ADVANCEDSETTINGS_ADVANCEDSETTINGS_COMPONENT =
+  'spinnaker.ecs.serverGroup.configure.wizard.advancedSettings.component';
+export const name = ECS_SERVERGROUP_CONFIGURE_WIZARD_ADVANCEDSETTINGS_ADVANCEDSETTINGS_COMPONENT; // for backwards compatibility
+angular
+  .module(ECS_SERVERGROUP_CONFIGURE_WIZARD_ADVANCEDSETTINGS_ADVANCEDSETTINGS_COMPONENT, [])
   .component('ecsServerGroupAdvancedSettings', {
     bindings: {
       command: '=',

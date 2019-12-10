@@ -4,8 +4,10 @@ const angular = require('angular');
 
 import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.titus.pipeline.stage.resizeAsgStage', [])
+export const TITUS_PIPELINE_STAGES_RESIZEASG_TITUSRESIZEASGSTAGE = 'spinnaker.titus.pipeline.stage.resizeAsgStage';
+export const name = TITUS_PIPELINE_STAGES_RESIZEASG_TITUSRESIZEASGSTAGE; // for backwards compatibility
+angular
+  .module(TITUS_PIPELINE_STAGES_RESIZEASG_TITUSRESIZEASGSTAGE, [])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'resizeServerGroup',

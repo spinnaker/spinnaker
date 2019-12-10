@@ -5,8 +5,13 @@ const angular = require('angular');
 import { InfrastructureCaches, LOAD_BALANCER_READ_SERVICE, NetworkReader, ModalWizard } from '@spinnaker/core';
 import Utility from '../../../../utility';
 
-module.exports = angular
-  .module('spinnaker.azure.serverGroup.configure.loadBalancer.controller', [LOAD_BALANCER_READ_SERVICE])
+export const AZURE_SERVERGROUP_CONFIGURE_WIZARD_LOADBALANCERS_SERVERGROUPLOADBALANCERS_CONTROLLER =
+  'spinnaker.azure.serverGroup.configure.loadBalancer.controller';
+export const name = AZURE_SERVERGROUP_CONFIGURE_WIZARD_LOADBALANCERS_SERVERGROUPLOADBALANCERS_CONTROLLER; // for backwards compatibility
+angular
+  .module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_LOADBALANCERS_SERVERGROUPLOADBALANCERS_CONTROLLER, [
+    LOAD_BALANCER_READ_SERVICE,
+  ])
   .controller('azureServerGroupLoadBalancersCtrl', [
     '$scope',
     'loadBalancerReader',

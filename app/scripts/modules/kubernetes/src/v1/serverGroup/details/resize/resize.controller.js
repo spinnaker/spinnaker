@@ -5,8 +5,11 @@ import { get, set } from 'lodash';
 
 import { SERVER_GROUP_WRITER, TaskMonitor } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.kubernetes.serverGroup.details.resize.controller', [SERVER_GROUP_WRITER])
+export const KUBERNETES_V1_SERVERGROUP_DETAILS_RESIZE_RESIZE_CONTROLLER =
+  'spinnaker.kubernetes.serverGroup.details.resize.controller';
+export const name = KUBERNETES_V1_SERVERGROUP_DETAILS_RESIZE_RESIZE_CONTROLLER; // for backwards compatibility
+angular
+  .module(KUBERNETES_V1_SERVERGROUP_DETAILS_RESIZE_RESIZE_CONTROLLER, [SERVER_GROUP_WRITER])
   .controller('kubernetesResizeServerGroupController', [
     '$scope',
     '$uibModalInstance',

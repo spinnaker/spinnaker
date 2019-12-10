@@ -5,8 +5,11 @@ import _ from 'lodash';
 
 import { AccountService, CACHE_INITIALIZER_SERVICE, LOAD_BALANCER_READ_SERVICE } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.serverGroup.configure.kubernetes.configuration.service', [
+export const KUBERNETES_V1_SERVERGROUP_CONFIGURE_CONFIGURATION_SERVICE =
+  'spinnaker.serverGroup.configure.kubernetes.configuration.service';
+export const name = KUBERNETES_V1_SERVERGROUP_CONFIGURE_CONFIGURATION_SERVICE; // for backwards compatibility
+angular
+  .module(KUBERNETES_V1_SERVERGROUP_CONFIGURE_CONFIGURATION_SERVICE, [
     CACHE_INITIALIZER_SERVICE,
     LOAD_BALANCER_READ_SERVICE,
     require('../../image/image.reader').name,

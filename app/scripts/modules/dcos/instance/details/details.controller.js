@@ -13,8 +13,10 @@ import {
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.dcos.instance.details.controller', [INSTANCE_WRITE_SERVICE, CONFIRMATION_MODAL_SERVICE])
+export const DCOS_INSTANCE_DETAILS_DETAILS_CONTROLLER = 'spinnaker.dcos.instance.details.controller';
+export const name = DCOS_INSTANCE_DETAILS_DETAILS_CONTROLLER; // for backwards compatibility
+angular
+  .module(DCOS_INSTANCE_DETAILS_DETAILS_CONTROLLER, [INSTANCE_WRITE_SERVICE, CONFIRMATION_MODAL_SERVICE])
   .controller('dcosInstanceDetailsController', [
     '$scope',
     '$state',

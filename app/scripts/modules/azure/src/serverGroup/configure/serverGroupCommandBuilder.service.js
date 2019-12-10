@@ -5,8 +5,11 @@ const _ = require('lodash');
 
 import { NameUtils } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.azure.serverGroupCommandBuilder.service', [
+export const AZURE_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE =
+  'spinnaker.azure.serverGroupCommandBuilder.service';
+export const name = AZURE_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE; // for backwards compatibility
+angular
+  .module(AZURE_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE, [
     require('../../image/image.reader').name,
     require('../serverGroup.transformer').name,
   ])

@@ -2,8 +2,11 @@
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.deck.gce.serverGroup.configure.advancedCapacitySelector.component', [])
+export const GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_CAPACITY_ADVANCEDCAPACITYSELECTOR_COMPONENT =
+  'spinnaker.deck.gce.serverGroup.configure.advancedCapacitySelector.component';
+export const name = GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_CAPACITY_ADVANCEDCAPACITYSELECTOR_COMPONENT; // for backwards compatibility
+angular
+  .module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_CAPACITY_ADVANCEDCAPACITYSELECTOR_COMPONENT, [])
   .component('gceServerGroupAdvancedCapacitySelector', {
     bindings: {
       command: '=',

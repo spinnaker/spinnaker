@@ -12,8 +12,10 @@ import {
   ServerGroupTemplates,
 } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.instance.detail.kubernetes.controller', [
+export const KUBERNETES_V1_INSTANCE_DETAILS_DETAILS_CONTROLLER = 'spinnaker.instance.detail.kubernetes.controller';
+export const name = KUBERNETES_V1_INSTANCE_DETAILS_DETAILS_CONTROLLER; // for backwards compatibility
+angular
+  .module(KUBERNETES_V1_INSTANCE_DETAILS_DETAILS_CONTROLLER, [
     require('@uirouter/angularjs').default,
     require('angular-ui-bootstrap'),
     INSTANCE_WRITE_SERVICE,

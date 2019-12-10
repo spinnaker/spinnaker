@@ -6,8 +6,11 @@ import { SETTINGS } from 'core/config/settings';
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.core.application.modal.applicationProviderFields.directive', [])
+export const CORE_APPLICATION_MODAL_APPLICATIONPROVIDERFIELDS_COMPONENT =
+  'spinnaker.core.application.modal.applicationProviderFields.directive';
+export const name = CORE_APPLICATION_MODAL_APPLICATIONPROVIDERFIELDS_COMPONENT; // for backwards compatibility
+angular
+  .module(CORE_APPLICATION_MODAL_APPLICATIONPROVIDERFIELDS_COMPONENT, [])
   .component('applicationProviderFields', {
     templateUrl: require('./applicationProviderFields.component.html'),
     bindings: {

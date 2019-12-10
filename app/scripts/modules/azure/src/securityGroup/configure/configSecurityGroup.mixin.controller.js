@@ -11,8 +11,11 @@ import {
   TaskMonitor,
 } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.azure.securityGroup.baseConfig.controller', [
+export const AZURE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER =
+  'spinnaker.azure.securityGroup.baseConfig.controller';
+export const name = AZURE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER; // for backwards compatibility
+angular
+  .module(AZURE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
     require('@uirouter/angularjs').default,
     SECURITY_GROUP_READER,
   ])

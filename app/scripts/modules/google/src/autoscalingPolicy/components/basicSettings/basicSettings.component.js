@@ -2,8 +2,11 @@
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.deck.gce.autoscalingPolicy.basicSettings.component', [])
+export const GOOGLE_AUTOSCALINGPOLICY_COMPONENTS_BASICSETTINGS_BASICSETTINGS_COMPONENT =
+  'spinnaker.deck.gce.autoscalingPolicy.basicSettings.component';
+export const name = GOOGLE_AUTOSCALINGPOLICY_COMPONENTS_BASICSETTINGS_BASICSETTINGS_COMPONENT; // for backwards compatibility
+angular
+  .module(GOOGLE_AUTOSCALINGPOLICY_COMPONENTS_BASICSETTINGS_BASICSETTINGS_COMPONENT, [])
   .component('gceAutoscalingPolicyBasicSettings', {
     bindings: {
       policy: '=',

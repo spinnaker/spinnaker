@@ -7,8 +7,11 @@ import { CONFIRMATION_MODAL_SERVICE, LoadBalancerWriter, ServerGroupTemplates } 
 
 import { KubernetesProviderSettings } from 'kubernetes/kubernetes.settings';
 
-module.exports = angular
-  .module('spinnaker.loadBalancer.kubernetes.details.controller', [
+export const KUBERNETES_V1_LOADBALANCER_DETAILS_DETAILS_CONTROLLER =
+  'spinnaker.loadBalancer.kubernetes.details.controller';
+export const name = KUBERNETES_V1_LOADBALANCER_DETAILS_DETAILS_CONTROLLER; // for backwards compatibility
+angular
+  .module(KUBERNETES_V1_LOADBALANCER_DETAILS_DETAILS_CONTROLLER, [
     require('@uirouter/angularjs').default,
     CONFIRMATION_MODAL_SERVICE,
   ])

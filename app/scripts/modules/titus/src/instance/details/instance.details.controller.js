@@ -15,8 +15,10 @@ import {
   SETTINGS,
 } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.instance.detail.titus.controller', [
+export const TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER = 'spinnaker.instance.detail.titus.controller';
+export const name = TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER; // for backwards compatibility
+angular
+  .module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     require('@uirouter/angularjs').default,
     require('angular-ui-bootstrap'),
     INSTANCE_WRITE_SERVICE,

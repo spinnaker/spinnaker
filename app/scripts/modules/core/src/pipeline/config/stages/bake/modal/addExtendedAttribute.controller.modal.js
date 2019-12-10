@@ -2,8 +2,11 @@
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.core.pipeline.stage.bake.modal.addExtendedAttribute', [])
+export const CORE_PIPELINE_CONFIG_STAGES_BAKE_MODAL_ADDEXTENDEDATTRIBUTE_CONTROLLER_MODAL =
+  'spinnaker.core.pipeline.stage.bake.modal.addExtendedAttribute';
+export const name = CORE_PIPELINE_CONFIG_STAGES_BAKE_MODAL_ADDEXTENDEDATTRIBUTE_CONTROLLER_MODAL; // for backwards compatibility
+angular
+  .module(CORE_PIPELINE_CONFIG_STAGES_BAKE_MODAL_ADDEXTENDEDATTRIBUTE_CONTROLLER_MODAL, [])
   .controller('bakeStageAddExtendedAttributeController', [
     '$scope',
     '$uibModalInstance',

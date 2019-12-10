@@ -2,8 +2,10 @@
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.dcos.serverGroup.configure.optional', [])
+export const DCOS_SERVERGROUP_CONFIGURE_WIZARD_OPTIONAL_CONTROLLER = 'spinnaker.dcos.serverGroup.configure.optional';
+export const name = DCOS_SERVERGROUP_CONFIGURE_WIZARD_OPTIONAL_CONTROLLER; // for backwards compatibility
+angular
+  .module(DCOS_SERVERGROUP_CONFIGURE_WIZARD_OPTIONAL_CONTROLLER, [])
   .controller('dcosServerGroupOptionalController', [
     '$scope',
     function($scope) {

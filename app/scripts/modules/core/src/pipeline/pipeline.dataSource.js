@@ -8,7 +8,9 @@ import { PipelineConfigService } from 'core/pipeline/config/services/PipelineCon
 import { SETTINGS } from 'core/config/settings';
 import { CLUSTER_SERVICE } from 'core/cluster/cluster.service';
 
-module.exports = angular.module('spinnaker.core.pipeline.dataSource', [EXECUTION_SERVICE, CLUSTER_SERVICE]).run([
+export const CORE_PIPELINE_PIPELINE_DATASOURCE = 'spinnaker.core.pipeline.dataSource';
+export const name = CORE_PIPELINE_PIPELINE_DATASOURCE; // for backwards compatibility
+angular.module(CORE_PIPELINE_PIPELINE_DATASOURCE, [EXECUTION_SERVICE, CLUSTER_SERVICE]).run([
   '$q',
   'executionService',
   'clusterService',

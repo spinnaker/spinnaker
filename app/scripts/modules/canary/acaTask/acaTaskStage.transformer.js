@@ -5,7 +5,9 @@ import _ from 'lodash';
 
 import { OrchestratedItemTransformer } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.canary.acaTask.transformer', []).service('acaTaskTransformer', function() {
+export const CANARY_ACATASK_ACATASKSTAGE_TRANSFORMER = 'spinnaker.canary.acaTask.transformer';
+export const name = CANARY_ACATASK_ACATASKSTAGE_TRANSFORMER; // for backwards compatibility
+angular.module(CANARY_ACATASK_ACATASKSTAGE_TRANSFORMER, []).service('acaTaskTransformer', function() {
   function getException(stage) {
     return stage && stage.isFailed ? stage.failureMessage : null;
   }

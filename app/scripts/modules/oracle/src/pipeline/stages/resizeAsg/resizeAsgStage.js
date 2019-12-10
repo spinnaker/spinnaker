@@ -4,8 +4,10 @@ const angular = require('angular');
 
 import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.oracle.pipeline.stage.resizeAsgStage', [
+export const ORACLE_PIPELINE_STAGES_RESIZEASG_RESIZEASGSTAGE = 'spinnaker.oracle.pipeline.stage.resizeAsgStage';
+export const name = ORACLE_PIPELINE_STAGES_RESIZEASG_RESIZEASGSTAGE; // for backwards compatibility
+angular
+  .module(ORACLE_PIPELINE_STAGES_RESIZEASG_RESIZEASGSTAGE, [
     require('core/application/modal/platformHealthOverride.directive').name,
   ])
   .config(function() {

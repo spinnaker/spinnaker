@@ -6,8 +6,10 @@ import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 
 import './resizeStage.less';
 
-module.exports = angular
-  .module('spinnaker.kubernetes.pipeline.stage.resizeStage', [])
+export const KUBERNETES_V1_PIPELINE_STAGES_RESIZEASG_RESIZESTAGE = 'spinnaker.kubernetes.pipeline.stage.resizeStage';
+export const name = KUBERNETES_V1_PIPELINE_STAGES_RESIZEASG_RESIZESTAGE; // for backwards compatibility
+angular
+  .module(KUBERNETES_V1_PIPELINE_STAGES_RESIZEASG_RESIZESTAGE, [])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'resizeServerGroup',

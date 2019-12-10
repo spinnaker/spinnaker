@@ -5,8 +5,11 @@ import { get } from 'lodash';
 
 import { SETTINGS } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.amazon.pipeline.stage.bake.executionDetails.controller', [require('@uirouter/angularjs').default])
+export const AMAZON_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER =
+  'spinnaker.amazon.pipeline.stage.bake.executionDetails.controller';
+export const name = AMAZON_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER; // for backwards compatibility
+angular
+  .module(AMAZON_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER, [require('@uirouter/angularjs').default])
   .controller('awsBakeExecutionDetailsCtrl', [
     '$scope',
     '$stateParams',

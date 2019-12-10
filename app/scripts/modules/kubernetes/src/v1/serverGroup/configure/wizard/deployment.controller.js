@@ -4,8 +4,11 @@ const angular = require('angular');
 
 import { NameUtils } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.serverGroup.configure.kubernetes.deployment', [])
+export const KUBERNETES_V1_SERVERGROUP_CONFIGURE_WIZARD_DEPLOYMENT_CONTROLLER =
+  'spinnaker.serverGroup.configure.kubernetes.deployment';
+export const name = KUBERNETES_V1_SERVERGROUP_CONFIGURE_WIZARD_DEPLOYMENT_CONTROLLER; // for backwards compatibility
+angular
+  .module(KUBERNETES_V1_SERVERGROUP_CONFIGURE_WIZARD_DEPLOYMENT_CONTROLLER, [])
   .controller('kubernetesServerGroupDeploymentController', [
     '$scope',
     function($scope) {

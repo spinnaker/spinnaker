@@ -4,8 +4,11 @@ const angular = require('angular');
 
 import { AccountService, Registry } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.ecs.pipeline.stage.scaleDownClusterStage', [])
+export const ECS_PIPELINE_STAGES_SCALEDOWNCLUSTER_ECSSCALEDOWNCLUSTERSTAGE =
+  'spinnaker.ecs.pipeline.stage.scaleDownClusterStage';
+export const name = ECS_PIPELINE_STAGES_SCALEDOWNCLUSTER_ECSSCALEDOWNCLUSTERSTAGE; // for backwards compatibility
+angular
+  .module(ECS_PIPELINE_STAGES_SCALEDOWNCLUSTER_ECSSCALEDOWNCLUSTERSTAGE, [])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'scaleDownCluster',

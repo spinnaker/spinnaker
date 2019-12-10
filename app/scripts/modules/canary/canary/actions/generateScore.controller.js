@@ -4,8 +4,10 @@ const angular = require('angular');
 
 import { SETTINGS } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.canary.actions.generate.score.controller', [require('@uirouter/angularjs').default])
+export const CANARY_CANARY_ACTIONS_GENERATESCORE_CONTROLLER = 'spinnaker.canary.actions.generate.score.controller';
+export const name = CANARY_CANARY_ACTIONS_GENERATESCORE_CONTROLLER; // for backwards compatibility
+angular
+  .module(CANARY_CANARY_ACTIONS_GENERATESCORE_CONTROLLER, [require('@uirouter/angularjs').default])
   .controller('GenerateScoreCtrl', [
     '$scope',
     '$http',

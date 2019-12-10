@@ -15,8 +15,11 @@ import { AzureRollbackServerGroupModal } from './rollback/RollbackServerGroupMod
 
 require('../configure/serverGroup.configure.azure.module');
 
-module.exports = angular
-  .module('spinnaker.azure.serverGroup.details.controller', [
+export const AZURE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_AZURE_CONTROLLER =
+  'spinnaker.azure.serverGroup.details.controller';
+export const name = AZURE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_AZURE_CONTROLLER; // for backwards compatibility
+angular
+  .module(AZURE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_AZURE_CONTROLLER, [
     require('@uirouter/angularjs').default,
     require('../configure/serverGroupCommandBuilder.service').name,
     CONFIRMATION_MODAL_SERVICE,

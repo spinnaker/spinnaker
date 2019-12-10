@@ -10,7 +10,9 @@ import { GCE_DISK_CONFIGURER } from './wizard/advancedSettings/diskConfigurer.co
 import { GCE_ACCELERATOR_CONFIGURER } from './wizard/advancedSettings/GceAcceleratorConfigurer';
 import { GCE_IMAGE_SELECT } from '../../image/ImageSelect';
 
-module.exports = angular.module('spinnaker.serverGroup.configure.gce', [
+export const GOOGLE_SERVERGROUP_CONFIGURE_SERVERGROUP_CONFIGURE_GCE_MODULE = 'spinnaker.serverGroup.configure.gce';
+export const name = GOOGLE_SERVERGROUP_CONFIGURE_SERVERGROUP_CONFIGURE_GCE_MODULE; // for backwards compatibility
+angular.module(GOOGLE_SERVERGROUP_CONFIGURE_SERVERGROUP_CONFIGURE_GCE_MODULE, [
   require('../../autoscalingPolicy/components/basicSettings/basicSettings.component').name,
   require('../../autoscalingPolicy/components/metricSettings/metricSettings.component').name,
   GCE_LOAD_BALANCING_POLICY_SELECTOR,

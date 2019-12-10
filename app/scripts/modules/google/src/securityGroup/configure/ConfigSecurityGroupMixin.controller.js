@@ -16,8 +16,11 @@ import { GCE_SECURITY_GROUP_HELP_TEXT_SERVICE } from '../securityGroupHelpText.s
 
 import './securityGroup.configure.less';
 
-module.exports = angular
-  .module('spinnaker.google.securityGroup.baseConfig.controller', [
+export const GOOGLE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUPMIXIN_CONTROLLER =
+  'spinnaker.google.securityGroup.baseConfig.controller';
+export const name = GOOGLE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUPMIXIN_CONTROLLER; // for backwards compatibility
+angular
+  .module(GOOGLE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUPMIXIN_CONTROLLER, [
     require('@uirouter/angularjs').default,
     SECURITY_GROUP_READER,
     GCE_SECURITY_GROUP_HELP_TEXT_SERVICE,

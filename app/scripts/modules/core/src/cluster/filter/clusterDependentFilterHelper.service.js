@@ -4,8 +4,11 @@ import _ from 'lodash';
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.deck.core.cluster.dependentFilterHelper.service', [])
+export const CORE_CLUSTER_FILTER_CLUSTERDEPENDENTFILTERHELPER_SERVICE =
+  'spinnaker.deck.core.cluster.dependentFilterHelper.service';
+export const name = CORE_CLUSTER_FILTER_CLUSTERDEPENDENTFILTERHELPER_SERVICE; // for backwards compatibility
+angular
+  .module(CORE_CLUSTER_FILTER_CLUSTERDEPENDENTFILTERHELPER_SERVICE, [])
   .factory('clusterDependentFilterHelper', function() {
     let poolValueCoordinates = [
       { filterField: 'providerType', on: 'serverGroup', localField: 'type' },

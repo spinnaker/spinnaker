@@ -5,8 +5,10 @@ const angular = require('angular');
 import { PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider/providerService.delegate';
 import { AccountService } from 'core/account/AccountService';
 
-module.exports = angular
-  .module('spinnaker.core.serverGroup.transformer', [PROVIDER_SERVICE_DELEGATE])
+export const CORE_SERVERGROUP_SERVERGROUP_TRANSFORMER = 'spinnaker.core.serverGroup.transformer';
+export const name = CORE_SERVERGROUP_SERVERGROUP_TRANSFORMER; // for backwards compatibility
+angular
+  .module(CORE_SERVERGROUP_SERVERGROUP_TRANSFORMER, [PROVIDER_SERVICE_DELEGATE])
   .factory('serverGroupTransformer', [
     'providerServiceDelegate',
     '$q',

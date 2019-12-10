@@ -12,8 +12,11 @@ import 'n3-charts/build/LineChart';
 import './LineChartHack.css';
 import './metricAlarmChart.component.less';
 
-module.exports = angular
-  .module('spinnaker.amazon.serverGroup.details.scalingPolicy.metricAlarmChart.component', ['n3-line-chart'])
+export const AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_CHART_METRICALARMCHART_COMPONENT =
+  'spinnaker.amazon.serverGroup.details.scalingPolicy.metricAlarmChart.component';
+export const name = AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_CHART_METRICALARMCHART_COMPONENT; // for backwards compatibility
+angular
+  .module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_CHART_METRICALARMCHART_COMPONENT, ['n3-line-chart'])
   .component('metricAlarmChart', {
     bindings: {
       alarm: '=',

@@ -4,8 +4,10 @@ const angular = require('angular');
 
 import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.gce.pipeline.stage..enableAsgStage', [])
+export const GOOGLE_PIPELINE_STAGES_ENABLEASG_GCEENABLEASGSTAGE = 'spinnaker.gce.pipeline.stage..enableAsgStage';
+export const name = GOOGLE_PIPELINE_STAGES_ENABLEASG_GCEENABLEASGSTAGE; // for backwards compatibility
+angular
+  .module(GOOGLE_PIPELINE_STAGES_ENABLEASG_GCEENABLEASGSTAGE, [])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'enableServerGroup',

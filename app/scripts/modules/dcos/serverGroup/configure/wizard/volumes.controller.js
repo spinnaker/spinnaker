@@ -2,8 +2,10 @@
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.dcos.serverGroup.configure.volumes', [])
+export const DCOS_SERVERGROUP_CONFIGURE_WIZARD_VOLUMES_CONTROLLER = 'spinnaker.dcos.serverGroup.configure.volumes';
+export const name = DCOS_SERVERGROUP_CONFIGURE_WIZARD_VOLUMES_CONTROLLER; // for backwards compatibility
+angular
+  .module(DCOS_SERVERGROUP_CONFIGURE_WIZARD_VOLUMES_CONTROLLER, [])
   .controller('dcosServerGroupVolumesController', [
     '$scope',
     function($scope) {

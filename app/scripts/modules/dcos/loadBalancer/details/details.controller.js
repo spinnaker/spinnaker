@@ -4,8 +4,10 @@ import { CONFIRMATION_MODAL_SERVICE, LoadBalancerWriter, ServerGroupTemplates } 
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.dcos.loadBalancer.details.controller', [CONFIRMATION_MODAL_SERVICE])
+export const DCOS_LOADBALANCER_DETAILS_DETAILS_CONTROLLER = 'spinnaker.dcos.loadBalancer.details.controller';
+export const name = DCOS_LOADBALANCER_DETAILS_DETAILS_CONTROLLER; // for backwards compatibility
+angular
+  .module(DCOS_LOADBALANCER_DETAILS_DETAILS_CONTROLLER, [CONFIRMATION_MODAL_SERVICE])
   .controller('dcosLoadBalancerDetailsController', [
     '$scope',
     '$state',

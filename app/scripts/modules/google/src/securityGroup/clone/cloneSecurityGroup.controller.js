@@ -5,8 +5,11 @@ import _ from 'lodash';
 
 import { AccountService, FirewallLabels } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.google.securityGroup.clone.controller', [
+export const GOOGLE_SECURITYGROUP_CLONE_CLONESECURITYGROUP_CONTROLLER =
+  'spinnaker.google.securityGroup.clone.controller';
+export const name = GOOGLE_SECURITYGROUP_CLONE_CLONESECURITYGROUP_CONTROLLER; // for backwards compatibility
+angular
+  .module(GOOGLE_SECURITYGROUP_CLONE_CLONESECURITYGROUP_CONTROLLER, [
     require('../configure/ConfigSecurityGroupMixin.controller').name,
   ])
   .controller('gceCloneSecurityGroupController', [

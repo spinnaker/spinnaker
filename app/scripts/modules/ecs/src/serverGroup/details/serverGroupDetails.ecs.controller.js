@@ -16,8 +16,10 @@ import {
   SubnetReader,
 } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.ecs.serverGroup.details.controller', [
+export const ECS_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_ECS_CONTROLLER = 'spinnaker.ecs.serverGroup.details.controller';
+export const name = ECS_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_ECS_CONTROLLER; // for backwards compatibility
+angular
+  .module(ECS_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_ECS_CONTROLLER, [
     require('@uirouter/angularjs').default,
     ECS_SERVER_GROUP_TRANSFORMER,
     CONFIRMATION_MODAL_SERVICE,

@@ -4,8 +4,11 @@ const angular = require('angular');
 
 import { TaskExecutor, TaskMonitor } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.amazon.serverGroup.editAsgAdvancedSettings.modal.controller', [
+export const AMAZON_SERVERGROUP_DETAILS_ADVANCEDSETTINGS_EDITASGADVANCEDSETTINGS_MODAL_CONTROLLER =
+  'spinnaker.amazon.serverGroup.editAsgAdvancedSettings.modal.controller';
+export const name = AMAZON_SERVERGROUP_DETAILS_ADVANCEDSETTINGS_EDITASGADVANCEDSETTINGS_MODAL_CONTROLLER; // for backwards compatibility
+angular
+  .module(AMAZON_SERVERGROUP_DETAILS_ADVANCEDSETTINGS_EDITASGADVANCEDSETTINGS_MODAL_CONTROLLER, [
     require('../../configure/serverGroupCommandBuilder.service').name,
   ])
   .controller('EditAsgAdvancedSettingsCtrl', [

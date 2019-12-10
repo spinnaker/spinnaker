@@ -2,10 +2,11 @@
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.kubernetes.serverGroupCommandBuilder.service', [
-    require('../../cluster/cluster.kubernetes.module').name,
-  ])
+export const KUBERNETES_V1_SERVERGROUP_CONFIGURE_COMMANDBUILDER =
+  'spinnaker.kubernetes.serverGroupCommandBuilder.service';
+export const name = KUBERNETES_V1_SERVERGROUP_CONFIGURE_COMMANDBUILDER; // for backwards compatibility
+angular
+  .module(KUBERNETES_V1_SERVERGROUP_CONFIGURE_COMMANDBUILDER, [require('../../cluster/cluster.kubernetes.module').name])
   .factory('kubernetesServerGroupCommandBuilder', [
     '$q',
     'kubernetesClusterCommandBuilder',

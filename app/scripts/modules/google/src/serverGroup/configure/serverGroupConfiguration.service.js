@@ -20,8 +20,11 @@ import { LOAD_BALANCER_SET_TRANSFORMER } from 'google/loadBalancer/loadBalancer.
 import { GceImageReader } from 'google/image';
 import { GceAcceleratorService } from 'google/serverGroup/configure/wizard/advancedSettings/gceAccelerator.service';
 
-module.exports = angular
-  .module('spinnaker.serverGroup.configure.gce.configuration.service', [
+export const GOOGLE_SERVERGROUP_CONFIGURE_SERVERGROUPCONFIGURATION_SERVICE =
+  'spinnaker.serverGroup.configure.gce.configuration.service';
+export const name = GOOGLE_SERVERGROUP_CONFIGURE_SERVERGROUPCONFIGURATION_SERVICE; // for backwards compatibility
+angular
+  .module(GOOGLE_SERVERGROUP_CONFIGURE_SERVERGROUPCONFIGURATION_SERVICE, [
     LOAD_BALANCER_SET_TRANSFORMER,
     SECURITY_GROUP_READER,
     CACHE_INITIALIZER_SERVICE,

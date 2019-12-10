@@ -4,8 +4,10 @@ const angular = require('angular');
 
 import { AccountService, Registry } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.oracle.pipeline.stage.findAmiStage', [])
+export const ORACLE_PIPELINE_STAGES_FINDAMI_FINDAMISTAGE = 'spinnaker.oracle.pipeline.stage.findAmiStage';
+export const name = ORACLE_PIPELINE_STAGES_FINDAMI_FINDAMISTAGE; // for backwards compatibility
+angular
+  .module(ORACLE_PIPELINE_STAGES_FINDAMI_FINDAMISTAGE, [])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'findImage',

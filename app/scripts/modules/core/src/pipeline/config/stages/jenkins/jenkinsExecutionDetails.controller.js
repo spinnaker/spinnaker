@@ -2,8 +2,13 @@
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.core.pipeline.stage.jenkins.executionDetails.controller', [require('@uirouter/angularjs').default])
+export const CORE_PIPELINE_CONFIG_STAGES_JENKINS_JENKINSEXECUTIONDETAILS_CONTROLLER =
+  'spinnaker.core.pipeline.stage.jenkins.executionDetails.controller';
+export const name = CORE_PIPELINE_CONFIG_STAGES_JENKINS_JENKINSEXECUTIONDETAILS_CONTROLLER; // for backwards compatibility
+angular
+  .module(CORE_PIPELINE_CONFIG_STAGES_JENKINS_JENKINSEXECUTIONDETAILS_CONTROLLER, [
+    require('@uirouter/angularjs').default,
+  ])
   .controller('JenkinsExecutionDetailsCtrl', [
     '$scope',
     '$stateParams',

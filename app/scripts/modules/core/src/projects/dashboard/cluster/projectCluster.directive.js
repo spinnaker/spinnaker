@@ -11,8 +11,11 @@ import { TIME_FORMATTERS } from 'core/utils/timeFormatters';
 
 import './projectCluster.less';
 
-module.exports = angular
-  .module('spinnaker.core.projects.dashboard.clusters.projectCluster.directive', [
+export const CORE_PROJECTS_DASHBOARD_CLUSTER_PROJECTCLUSTER_DIRECTIVE =
+  'spinnaker.core.projects.dashboard.clusters.projectCluster.directive';
+export const name = CORE_PROJECTS_DASHBOARD_CLUSTER_PROJECTCLUSTER_DIRECTIVE; // for backwards compatibility
+angular
+  .module(CORE_PROJECTS_DASHBOARD_CLUSTER_PROJECTCLUSTER_DIRECTIVE, [
     TIME_FORMATTERS,
     HEALTH_COUNTS_COMPONENT,
     require('../regionFilter/regionFilter.service').name,

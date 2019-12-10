@@ -7,8 +7,11 @@ import { AccountService, ExpectedArtifactService, INSTANCE_TYPE_SERVICE } from '
 import { GCEProviderSettings } from 'google/gce.settings';
 import { parseHealthCheckUrl } from 'google/healthCheck/healthCheckUtils';
 
-module.exports = angular
-  .module('spinnaker.gce.serverGroupCommandBuilder.service', [
+export const GOOGLE_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE =
+  'spinnaker.gce.serverGroupCommandBuilder.service';
+export const name = GOOGLE_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE; // for backwards compatibility
+angular
+  .module(GOOGLE_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE, [
     INSTANCE_TYPE_SERVICE,
     require('google/common/xpnNaming.gce.service').name,
     require('./../../instance/custom/customInstanceBuilder.gce.service').name,

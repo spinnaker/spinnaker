@@ -18,8 +18,11 @@ import {
 import { AWSProviderSettings } from 'amazon/aws.settings';
 import { VpcReader } from 'amazon/vpc/VpcReader';
 
-module.exports = angular
-  .module('spinnaker.amazon.securityGroup.baseConfig.controller', [
+export const AMAZON_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER =
+  'spinnaker.amazon.securityGroup.baseConfig.controller';
+export const name = AMAZON_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER; // for backwards compatibility
+angular
+  .module(AMAZON_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
     require('@uirouter/angularjs').default,
     SECURITY_GROUP_READER,
   ])

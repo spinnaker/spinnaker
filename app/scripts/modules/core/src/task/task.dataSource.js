@@ -4,7 +4,9 @@ import { CLUSTER_SERVICE } from 'core/cluster/cluster.service';
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.task.dataSource', [CLUSTER_SERVICE]).run([
+export const CORE_TASK_TASK_DATASOURCE = 'spinnaker.core.task.dataSource';
+export const name = CORE_TASK_TASK_DATASOURCE; // for backwards compatibility
+angular.module(CORE_TASK_TASK_DATASOURCE, [CLUSTER_SERVICE]).run([
   '$q',
   'clusterService',
   function($q, clusterService) {

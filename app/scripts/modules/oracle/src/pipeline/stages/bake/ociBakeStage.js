@@ -4,8 +4,10 @@ const angular = require('angular');
 
 import { AccountService, AuthenticationService, BakeryReader, Registry, PipelineTemplates } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.oracle.pipeline.stage.bakeStage', [require('./bakeExecutionDetails.controller').name])
+export const ORACLE_PIPELINE_STAGES_BAKE_OCIBAKESTAGE = 'spinnaker.oracle.pipeline.stage.bakeStage';
+export const name = ORACLE_PIPELINE_STAGES_BAKE_OCIBAKESTAGE; // for backwards compatibility
+angular
+  .module(ORACLE_PIPELINE_STAGES_BAKE_OCIBAKESTAGE, [require('./bakeExecutionDetails.controller').name])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'bake',

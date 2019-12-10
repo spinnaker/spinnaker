@@ -2,8 +2,13 @@
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.deck.gce.loadBalancer.hostAndPathRules.controller', [require('./hostAndPathRules.service').name])
+export const GOOGLE_LOADBALANCER_DETAILS_HOSTANDPATHRULES_HOSTANDPATHRULES_CONTROLLER =
+  'spinnaker.deck.gce.loadBalancer.hostAndPathRules.controller';
+export const name = GOOGLE_LOADBALANCER_DETAILS_HOSTANDPATHRULES_HOSTANDPATHRULES_CONTROLLER; // for backwards compatibility
+angular
+  .module(GOOGLE_LOADBALANCER_DETAILS_HOSTANDPATHRULES_HOSTANDPATHRULES_CONTROLLER, [
+    require('./hostAndPathRules.service').name,
+  ])
   .controller('gceHostAndPathRulesCtrl', [
     'hostRules',
     'defaultService',

@@ -2,8 +2,11 @@
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.google.serverGroup.configure.wizard.advancedSettings.selector.directive', [
+export const GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_ADVANCEDSETTINGS_ADVANCEDSETTINGSSELECTOR_DIRECTIVE =
+  'spinnaker.google.serverGroup.configure.wizard.advancedSettings.selector.directive';
+export const name = GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_ADVANCEDSETTINGS_ADVANCEDSETTINGSSELECTOR_DIRECTIVE; // for backwards compatibility
+angular
+  .module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_ADVANCEDSETTINGS_ADVANCEDSETTINGSSELECTOR_DIRECTIVE, [
     require('ui-select'),
     require('../securityGroups/tagManager.service').name,
   ])

@@ -3,8 +3,11 @@
 const angular = require('angular');
 import { Observable, Subject } from 'rxjs';
 
-module.exports = angular
-  .module('spinnaker.serverGroup.configure.kubernetes.basicSettings', [
+export const KUBERNETES_V1_SERVERGROUP_CONFIGURE_WIZARD_BASICSETTINGS_CONTROLLER =
+  'spinnaker.serverGroup.configure.kubernetes.basicSettings';
+export const name = KUBERNETES_V1_SERVERGROUP_CONFIGURE_WIZARD_BASICSETTINGS_CONTROLLER; // for backwards compatibility
+angular
+  .module(KUBERNETES_V1_SERVERGROUP_CONFIGURE_WIZARD_BASICSETTINGS_CONTROLLER, [
     require('@uirouter/angularjs').default,
     require('angular-ui-bootstrap'),
   ])

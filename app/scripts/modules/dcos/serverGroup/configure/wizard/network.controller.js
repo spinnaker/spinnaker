@@ -2,8 +2,10 @@
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.dcos.serverGroup.configure.network', [])
+export const DCOS_SERVERGROUP_CONFIGURE_WIZARD_NETWORK_CONTROLLER = 'spinnaker.dcos.serverGroup.configure.network';
+export const name = DCOS_SERVERGROUP_CONFIGURE_WIZARD_NETWORK_CONTROLLER; // for backwards compatibility
+angular
+  .module(DCOS_SERVERGROUP_CONFIGURE_WIZARD_NETWORK_CONTROLLER, [])
   .controller('dcosServerGroupNetworkController', [
     '$scope',
     function($scope) {

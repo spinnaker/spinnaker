@@ -6,8 +6,11 @@ import { TaskMonitor } from '@spinnaker/core';
 
 import './upsertAutoscalingPolicy.modal.less';
 
-module.exports = angular
-  .module('spinnaker.deck.gce.upsertAutoscalingPolicy.modal.controller', [
+export const GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_MODAL_UPSERTAUTOSCALINGPOLICY_MODAL_CONTROLLER =
+  'spinnaker.deck.gce.upsertAutoscalingPolicy.modal.controller';
+export const name = GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_MODAL_UPSERTAUTOSCALINGPOLICY_MODAL_CONTROLLER; // for backwards compatibility
+angular
+  .module(GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_MODAL_UPSERTAUTOSCALINGPOLICY_MODAL_CONTROLLER, [
     require('google/autoscalingPolicy/autoscalingPolicy.write.service').name,
     require('google/autoscalingPolicy/components/basicSettings/basicSettings.component').name,
     require('google/autoscalingPolicy/components/metricSettings/metricSettings.component').name,

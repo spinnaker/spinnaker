@@ -2,8 +2,11 @@
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.dcos.serverGroup.configure.basicSettings', [])
+export const DCOS_SERVERGROUP_CONFIGURE_WIZARD_BASICSETTINGS_CONTROLLER =
+  'spinnaker.dcos.serverGroup.configure.basicSettings';
+export const name = DCOS_SERVERGROUP_CONFIGURE_WIZARD_BASICSETTINGS_CONTROLLER; // for backwards compatibility
+angular
+  .module(DCOS_SERVERGROUP_CONFIGURE_WIZARD_BASICSETTINGS_CONTROLLER, [])
   .controller('dcosServerGroupBasicSettingsController', [
     '$scope',
     '$controller',

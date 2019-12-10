@@ -2,8 +2,11 @@
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.dcos.serverGroup.configure.environmentVariables', [])
+export const DCOS_SERVERGROUP_CONFIGURE_WIZARD_ENVIRONMENTVARIABLES_CONTROLLER =
+  'spinnaker.dcos.serverGroup.configure.environmentVariables';
+export const name = DCOS_SERVERGROUP_CONFIGURE_WIZARD_ENVIRONMENTVARIABLES_CONTROLLER; // for backwards compatibility
+angular
+  .module(DCOS_SERVERGROUP_CONFIGURE_WIZARD_ENVIRONMENTVARIABLES_CONTROLLER, [])
   .controller('dcosServerGroupEnvironmentVariablesController', [
     '$scope',
     function($scope) {

@@ -12,8 +12,10 @@ import {
   RecentHistoryService,
 } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.azure.instance.detail.controller', [
+export const AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER = 'spinnaker.azure.instance.detail.controller';
+export const name = AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER; // for backwards compatibility
+angular
+  .module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     require('@uirouter/angularjs').default,
     require('angular-ui-bootstrap'),
     INSTANCE_WRITE_SERVICE,

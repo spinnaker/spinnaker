@@ -4,8 +4,11 @@ const angular = require('angular');
 
 import { CACHE_INITIALIZER_SERVICE, FirewallLabels } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.amazon.securityGroup.create.controller', [
+export const AMAZON_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUPCTRL =
+  'spinnaker.amazon.securityGroup.create.controller';
+export const name = AMAZON_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUPCTRL; // for backwards compatibility
+angular
+  .module(AMAZON_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUPCTRL, [
     require('@uirouter/angularjs').default,
     CACHE_INITIALIZER_SERVICE,
   ])

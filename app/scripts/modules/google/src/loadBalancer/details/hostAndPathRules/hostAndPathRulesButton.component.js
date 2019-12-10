@@ -2,8 +2,11 @@
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.deck.gce.loadBalancer.hostAndPathRulesButton.component', [
+export const GOOGLE_LOADBALANCER_DETAILS_HOSTANDPATHRULES_HOSTANDPATHRULESBUTTON_COMPONENT =
+  'spinnaker.deck.gce.loadBalancer.hostAndPathRulesButton.component';
+export const name = GOOGLE_LOADBALANCER_DETAILS_HOSTANDPATHRULES_HOSTANDPATHRULESBUTTON_COMPONENT; // for backwards compatibility
+angular
+  .module(GOOGLE_LOADBALANCER_DETAILS_HOSTANDPATHRULES_HOSTANDPATHRULESBUTTON_COMPONENT, [
     require('angular-ui-bootstrap'),
     require('./hostAndPathRules.controller').name,
   ])

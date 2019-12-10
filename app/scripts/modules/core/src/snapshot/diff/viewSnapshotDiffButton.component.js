@@ -7,8 +7,10 @@ import { CloudProviderRegistry } from 'core/cloudProvider';
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.deck.core.viewSnapshotDiff.component', [require('./snapshotDiff.modal.controller').name])
+export const CORE_SNAPSHOT_DIFF_VIEWSNAPSHOTDIFFBUTTON_COMPONENT = 'spinnaker.deck.core.viewSnapshotDiff.component';
+export const name = CORE_SNAPSHOT_DIFF_VIEWSNAPSHOTDIFFBUTTON_COMPONENT; // for backwards compatibility
+angular
+  .module(CORE_SNAPSHOT_DIFF_VIEWSNAPSHOTDIFFBUTTON_COMPONENT, [require('./snapshotDiff.modal.controller').name])
   .component('viewSnapshotDiffButton', {
     bindings: {
       application: '=',

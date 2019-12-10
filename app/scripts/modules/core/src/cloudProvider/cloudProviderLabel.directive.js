@@ -6,20 +6,20 @@ import { CloudProviderRegistry } from 'core/cloudProvider';
 
 import './cloudProviderLogo.less';
 
-module.exports = angular
-  .module('spinnaker.core.cloudProviderLabel.directive', [])
-  .directive('cloudProviderLabel', function() {
-    return {
-      restrict: 'E',
-      template: '<span ng-bind="providerLabel"></span>',
-      scope: {
-        provider: '=',
-      },
-      link: function(scope) {
-        function setProviderLabel() {
-          scope.providerLabel = CloudProviderRegistry.getValue(scope.provider, 'name') || scope.provider;
-        }
-        scope.$watch('provider', setProviderLabel);
-      },
-    };
-  });
+export const CORE_CLOUDPROVIDER_CLOUDPROVIDERLABEL_DIRECTIVE = 'spinnaker.core.cloudProviderLabel.directive';
+export const name = CORE_CLOUDPROVIDER_CLOUDPROVIDERLABEL_DIRECTIVE; // for backwards compatibility
+angular.module(CORE_CLOUDPROVIDER_CLOUDPROVIDERLABEL_DIRECTIVE, []).directive('cloudProviderLabel', function() {
+  return {
+    restrict: 'E',
+    template: '<span ng-bind="providerLabel"></span>',
+    scope: {
+      provider: '=',
+    },
+    link: function(scope) {
+      function setProviderLabel() {
+        scope.providerLabel = CloudProviderRegistry.getValue(scope.provider, 'name') || scope.provider;
+      }
+      scope.$watch('provider', setProviderLabel);
+    },
+  };
+});

@@ -5,8 +5,11 @@ import _ from 'lodash';
 
 import { AccountService, NameUtils, Registry, StageConstants } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.titus.pipeline.stage.cloneServerGroupStage', [
+export const TITUS_PIPELINE_STAGES_CLONESERVERGROUP_TITUSCLONESERVERGROUPSTAGE =
+  'spinnaker.titus.pipeline.stage.cloneServerGroupStage';
+export const name = TITUS_PIPELINE_STAGES_CLONESERVERGROUP_TITUSCLONESERVERGROUPSTAGE; // for backwards compatibility
+angular
+  .module(TITUS_PIPELINE_STAGES_CLONESERVERGROUP_TITUSCLONESERVERGROUPSTAGE, [
     require('./cloneServerGroupExecutionDetails.controller').name,
   ])
   .config(function() {

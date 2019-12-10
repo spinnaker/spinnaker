@@ -2,4 +2,6 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.dcos.loadBalancer.details', [require('./details.controller').name]);
+export const DCOS_LOADBALANCER_DETAILS_DETAILS_DCOS_MODULE = 'spinnaker.dcos.loadBalancer.details';
+export const name = DCOS_LOADBALANCER_DETAILS_DETAILS_DCOS_MODULE; // for backwards compatibility
+angular.module(DCOS_LOADBALANCER_DETAILS_DETAILS_DCOS_MODULE, [require('./details.controller').name]);

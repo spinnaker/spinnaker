@@ -5,8 +5,10 @@ import { Registry } from 'core/registry';
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.core.pipeline.stage.bakeStage', [require('./bakeStage.transformer').name])
+export const CORE_PIPELINE_CONFIG_STAGES_BAKE_BAKESTAGE = 'spinnaker.core.pipeline.stage.bakeStage';
+export const name = CORE_PIPELINE_CONFIG_STAGES_BAKE_BAKESTAGE; // for backwards compatibility
+angular
+  .module(CORE_PIPELINE_CONFIG_STAGES_BAKE_BAKESTAGE, [require('./bakeStage.transformer').name])
   .config(function() {
     Registry.pipeline.registerStage({
       useBaseProvider: true,

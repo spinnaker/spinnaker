@@ -10,8 +10,10 @@ import { DISPLAYABLE_TASKS_FILTER } from './displayableTasks.filter';
 import { SETTINGS } from 'core/config/settings';
 import { TaskWriter } from './task.write.service';
 
-module.exports = angular
-  .module('spinnaker.core.task.controller', [
+export const CORE_TASK_TASKS_CONTROLLER = 'spinnaker.core.task.controller';
+export const name = CORE_TASK_TASKS_CONTROLLER; // for backwards compatibility
+angular
+  .module(CORE_TASK_TASKS_CONTROLLER, [
     require('@uirouter/angularjs').default,
     require('./taskProgressBar.directive').name,
     CONFIRMATION_MODAL_SERVICE,

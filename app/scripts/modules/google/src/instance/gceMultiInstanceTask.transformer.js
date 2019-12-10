@@ -2,8 +2,11 @@
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.google.instance.multiInstance.task.transformer', [])
+export const GOOGLE_INSTANCE_GCEMULTIINSTANCETASK_TRANSFORMER =
+  'spinnaker.google.instance.multiInstance.task.transformer';
+export const name = GOOGLE_INSTANCE_GCEMULTIINSTANCETASK_TRANSFORMER; // for backwards compatibility
+angular
+  .module(GOOGLE_INSTANCE_GCEMULTIINSTANCETASK_TRANSFORMER, [])
   .factory('gceMultiInstanceTaskTransformer', function() {
     // custom transformers for specific tasks,
     // e.g. "rebootInstances" needs an empty "interestingHealthProviderNames" array

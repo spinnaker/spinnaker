@@ -4,8 +4,10 @@ const angular = require('angular');
 
 import { AccountService, StageConstants, Registry } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.dcos.pipeline.stage.destroyAsgStage', [])
+export const DCOS_PIPELINE_STAGES_DESTROYASG_DCOSDESTROYASGSTAGE = 'spinnaker.dcos.pipeline.stage.destroyAsgStage';
+export const name = DCOS_PIPELINE_STAGES_DESTROYASG_DCOSDESTROYASGSTAGE; // for backwards compatibility
+angular
+  .module(DCOS_PIPELINE_STAGES_DESTROYASG_DCOSDESTROYASGSTAGE, [])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'destroyServerGroup',

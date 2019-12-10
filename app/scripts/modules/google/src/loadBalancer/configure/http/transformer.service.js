@@ -7,8 +7,10 @@ import { NameUtils } from '@spinnaker/core';
 
 import { sessionAffinityModelToViewMap, sessionAffinityViewToModelMap } from '../common/sessionAffinityNameMaps';
 
-module.exports = angular
-  .module('spinnaker.gce.deck.httpLoadBalancer.transformer', [])
+export const GOOGLE_LOADBALANCER_CONFIGURE_HTTP_TRANSFORMER_SERVICE = 'spinnaker.gce.deck.httpLoadBalancer.transformer';
+export const name = GOOGLE_LOADBALANCER_CONFIGURE_HTTP_TRANSFORMER_SERVICE; // for backwards compatibility
+angular
+  .module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_TRANSFORMER_SERVICE, [])
   .factory('gceHttpLoadBalancerTransformer', function() {
     // SERIALIZE
 

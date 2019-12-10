@@ -1,7 +1,9 @@
 const angular = require('angular');
 
-module.exports = angular
-  .module('cluster.test.data', [])
+export const CORE_CLUSTER_FILTER_MOCKAPPLICATIONDATA = 'cluster.test.data';
+export const name = CORE_CLUSTER_FILTER_MOCKAPPLICATIONDATA; // for backwards compatibility
+angular
+  .module(CORE_CLUSTER_FILTER_MOCKAPPLICATIONDATA, [])
   .value('applicationJSON', {
     clusters: [
       { name: 'in-eu-east-2-only', account: 'prod', region: 'eu-east-2', category: 'serverGroup' },

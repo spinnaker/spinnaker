@@ -14,8 +14,11 @@ import {
 
 import { GCE_SECURITY_GROUP_HELP_TEXT_SERVICE } from '../securityGroupHelpText.service';
 
-module.exports = angular
-  .module('spinnaker.securityGroup.gce.details.controller', [
+export const GOOGLE_SECURITYGROUP_DETAILS_SECURITYGROUPDETAIL_CONTROLLER =
+  'spinnaker.securityGroup.gce.details.controller';
+export const name = GOOGLE_SECURITYGROUP_DETAILS_SECURITYGROUPDETAIL_CONTROLLER; // for backwards compatibility
+angular
+  .module(GOOGLE_SECURITYGROUP_DETAILS_SECURITYGROUPDETAIL_CONTROLLER, [
     require('@uirouter/angularjs').default,
     SECURITY_GROUP_READER,
     CONFIRMATION_MODAL_SERVICE,

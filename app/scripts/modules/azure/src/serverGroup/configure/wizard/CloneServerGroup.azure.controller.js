@@ -6,8 +6,11 @@ import { SERVER_GROUP_WRITER, TaskMonitor, ModalWizard, FirewallLabels } from '@
 
 const Utility = require('../../../utility').default;
 
-module.exports = angular
-  .module('spinnaker.azure.cloneServerGroup.controller', [
+export const AZURE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_AZURE_CONTROLLER =
+  'spinnaker.azure.cloneServerGroup.controller';
+export const name = AZURE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_AZURE_CONTROLLER; // for backwards compatibility
+angular
+  .module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_AZURE_CONTROLLER, [
     require('@uirouter/angularjs').default,
     require('../serverGroupConfiguration.service').name,
     require('../../serverGroup.transformer').name,

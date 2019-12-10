@@ -11,8 +11,11 @@ import {
   SubnetReader,
 } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.oracle.serverGroup.details.controller', [
+export const ORACLE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_CONTROLLER =
+  'spinnaker.oracle.serverGroup.details.controller';
+export const name = ORACLE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_CONTROLLER; // for backwards compatibility
+angular
+  .module(ORACLE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_CONTROLLER, [
     require('@uirouter/angularjs').default,
     CONFIRMATION_MODAL_SERVICE,
     SERVER_GROUP_WRITER,

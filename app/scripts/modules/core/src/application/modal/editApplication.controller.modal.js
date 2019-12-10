@@ -9,8 +9,12 @@ import { SETTINGS } from 'core/config/settings';
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.editApplication.modal.controller', [require('./applicationProviderFields.component').name])
+export const CORE_APPLICATION_MODAL_EDITAPPLICATION_CONTROLLER_MODAL = 'spinnaker.editApplication.modal.controller';
+export const name = CORE_APPLICATION_MODAL_EDITAPPLICATION_CONTROLLER_MODAL; // for backwards compatibility
+angular
+  .module(CORE_APPLICATION_MODAL_EDITAPPLICATION_CONTROLLER_MODAL, [
+    require('./applicationProviderFields.component').name,
+  ])
   .controller('EditApplicationController', [
     '$scope',
     '$window',

@@ -10,8 +10,11 @@ import {
   SECURITY_GROUP_READER,
 } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.azure.serverGroup.configure.service', [
+export const AZURE_SERVERGROUP_CONFIGURE_SERVERGROUPCONFIGURATION_SERVICE =
+  'spinnaker.azure.serverGroup.configure.service';
+export const name = AZURE_SERVERGROUP_CONFIGURE_SERVERGROUPCONFIGURATION_SERVICE; // for backwards compatibility
+angular
+  .module(AZURE_SERVERGROUP_CONFIGURE_SERVERGROUPCONFIGURATION_SERVICE, [
     require('../../image/image.reader').name,
     LOAD_BALANCER_READ_SERVICE,
     SECURITY_GROUP_READER,

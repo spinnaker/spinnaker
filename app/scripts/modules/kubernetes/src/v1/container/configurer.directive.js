@@ -5,8 +5,10 @@ const angular = require('angular');
 import { KUBERNETES_LIFECYCLE_HOOK_CONFIGURER } from './lifecycleHook.component';
 import { KUBERNETES_CONTAINER_ENVIRONMENT_FROM } from './environmentFrom.component';
 
-module.exports = angular
-  .module('spinnaker.kubernetes.container.configurer.directive', [
+export const KUBERNETES_V1_CONTAINER_CONFIGURER_DIRECTIVE = 'spinnaker.kubernetes.container.configurer.directive';
+export const name = KUBERNETES_V1_CONTAINER_CONFIGURER_DIRECTIVE; // for backwards compatibility
+angular
+  .module(KUBERNETES_V1_CONTAINER_CONFIGURER_DIRECTIVE, [
     KUBERNETES_LIFECYCLE_HOOK_CONFIGURER,
     KUBERNETES_CONTAINER_ENVIRONMENT_FROM,
   ])

@@ -4,8 +4,11 @@ const angular = require('angular');
 
 import { InfrastructureCaches } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.google.serverGroup.configure.wizard.securityGroups.selector.directive', [
+export const GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_SECURITYGROUPSELECTOR_DIRECTIVE =
+  'spinnaker.google.serverGroup.configure.wizard.securityGroups.selector.directive';
+export const name = GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_SECURITYGROUPSELECTOR_DIRECTIVE; // for backwards compatibility
+angular
+  .module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_SECURITYGROUPSELECTOR_DIRECTIVE, [
     require('../../serverGroupConfiguration.service').name,
     require('./tagSelectorGenerator.component').name,
     require('./tagManager.service').name,

@@ -4,8 +4,10 @@ const angular = require('angular');
 
 import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.amazon.pipeline.stage.enableAsgStage', [])
+export const AMAZON_PIPELINE_STAGES_ENABLEASG_AWSENABLEASGSTAGE = 'spinnaker.amazon.pipeline.stage.enableAsgStage';
+export const name = AMAZON_PIPELINE_STAGES_ENABLEASG_AWSENABLEASGSTAGE; // for backwards compatibility
+angular
+  .module(AMAZON_PIPELINE_STAGES_ENABLEASG_AWSENABLEASGSTAGE, [])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'enableServerGroup',

@@ -9,8 +9,10 @@ import { AWSProviderSettings } from 'amazon/aws.settings';
 
 import { PipelineTemplates, BakeExecutionLabel, BakeryReader, Registry, SETTINGS } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.amazon.pipeline.stage.bakeStage', [require('./bakeExecutionDetails.controller').name])
+export const AMAZON_PIPELINE_STAGES_BAKE_AWSBAKESTAGE = 'spinnaker.amazon.pipeline.stage.bakeStage';
+export const name = AMAZON_PIPELINE_STAGES_BAKE_AWSBAKESTAGE; // for backwards compatibility
+angular
+  .module(AMAZON_PIPELINE_STAGES_BAKE_AWSBAKESTAGE, [require('./bakeExecutionDetails.controller').name])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'bake',

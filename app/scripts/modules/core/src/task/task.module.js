@@ -8,7 +8,9 @@ import { TASK_STATES } from './task.states';
 
 import './tasks.less';
 
-module.exports = angular.module('spinnaker.core.task', [
+export const CORE_TASK_TASK_MODULE = 'spinnaker.core.task';
+export const name = CORE_TASK_TASK_MODULE; // for backwards compatibility
+angular.module(CORE_TASK_TASK_MODULE, [
   require('./verification/userVerification.directive').name,
   require('./modal/reason.directive').name,
   require('./monitor/taskMonitor.module').name,

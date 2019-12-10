@@ -8,8 +8,10 @@ import { SUBMIT_BUTTON_COMPONENT } from './buttons/submitButton.component';
 
 import './modals.less';
 
-module.exports = angular
-  .module('spinnaker.core.modal', [
+export const CORE_MODAL_MODAL_MODULE = 'spinnaker.core.modal';
+export const name = CORE_MODAL_MODAL_MODULE; // for backwards compatibility
+angular
+  .module(CORE_MODAL_MODAL_MODULE, [
     require('./modalOverlay.directive').name,
     require('./modalPage.directive').name,
     require('./wizard/wizardSubFormValidation.service').name,

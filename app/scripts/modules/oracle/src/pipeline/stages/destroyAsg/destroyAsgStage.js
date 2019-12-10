@@ -4,8 +4,10 @@ const angular = require('angular');
 
 import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.oracle.pipeline.stage.destroyAsgStage', [])
+export const ORACLE_PIPELINE_STAGES_DESTROYASG_DESTROYASGSTAGE = 'spinnaker.oracle.pipeline.stage.destroyAsgStage';
+export const name = ORACLE_PIPELINE_STAGES_DESTROYASG_DESTROYASGSTAGE; // for backwards compatibility
+angular
+  .module(ORACLE_PIPELINE_STAGES_DESTROYASG_DESTROYASGSTAGE, [])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'destroyServerGroup',

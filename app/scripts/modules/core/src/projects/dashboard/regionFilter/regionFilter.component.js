@@ -4,8 +4,11 @@ const angular = require('angular');
 
 import './regionFilter.component.less';
 
-module.exports = angular
-  .module('spinnaker.deck.projects.dashboard.regionFilter.component', [require('./regionFilter.service').name])
+export const CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_COMPONENT =
+  'spinnaker.deck.projects.dashboard.regionFilter.component';
+export const name = CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_COMPONENT; // for backwards compatibility
+angular
+  .module(CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_COMPONENT, [require('./regionFilter.service').name])
   .component('regionFilter', {
     bindings: {
       regionFilter: '=',

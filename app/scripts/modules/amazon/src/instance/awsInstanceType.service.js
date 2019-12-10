@@ -7,7 +7,9 @@ import { API } from '@spinnaker/core';
 
 import { AWSProviderSettings } from 'amazon/aws.settings';
 
-module.exports = angular.module('spinnaker.amazon.instanceType.service', []).factory('awsInstanceTypeService', [
+export const AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE = 'spinnaker.amazon.instanceType.service';
+export const name = AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE; // for backwards compatibility
+angular.module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeService', [
   '$http',
   '$q',
   function($http, $q) {

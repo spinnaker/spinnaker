@@ -2,8 +2,11 @@
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.azure.serverGroup.configure.loadBalancer.directive', [])
+export const AZURE_SERVERGROUP_CONFIGURE_WIZARD_LOADBALANCERS_SERVERGROUPLOADBALANCERSSELECTOR_DIRECTIVE =
+  'spinnaker.azure.serverGroup.configure.loadBalancer.directive';
+export const name = AZURE_SERVERGROUP_CONFIGURE_WIZARD_LOADBALANCERS_SERVERGROUPLOADBALANCERSSELECTOR_DIRECTIVE; // for backwards compatibility
+angular
+  .module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_LOADBALANCERS_SERVERGROUPLOADBALANCERSSELECTOR_DIRECTIVE, [])
   .directive('azureServerGroupLoadBalancersSelector', [
     'azureServerGroupConfigurationService',
     function() {

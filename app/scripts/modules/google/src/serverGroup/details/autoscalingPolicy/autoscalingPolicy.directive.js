@@ -4,8 +4,11 @@ const angular = require('angular');
 
 import { CONFIRMATION_MODAL_SERVICE, SETTINGS } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.gce.instance.details.scalingPolicy.directive', [
+export const GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_DIRECTIVE =
+  'spinnaker.gce.instance.details.scalingPolicy.directive';
+export const name = GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_DIRECTIVE; // for backwards compatibility
+angular
+  .module(GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_DIRECTIVE, [
     CONFIRMATION_MODAL_SERVICE,
     require('angular-ui-bootstrap'),
     require('./../../../autoscalingPolicy/autoscalingPolicy.write.service').name,

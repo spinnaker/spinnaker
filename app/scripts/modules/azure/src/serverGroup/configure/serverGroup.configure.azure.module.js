@@ -2,7 +2,9 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.azure.serverGroup.configure', [
+export const AZURE_SERVERGROUP_CONFIGURE_SERVERGROUP_CONFIGURE_AZURE_MODULE = 'spinnaker.azure.serverGroup.configure';
+export const name = AZURE_SERVERGROUP_CONFIGURE_SERVERGROUP_CONFIGURE_AZURE_MODULE; // for backwards compatibility
+angular.module(AZURE_SERVERGROUP_CONFIGURE_SERVERGROUP_CONFIGURE_AZURE_MODULE, [
   require('./wizard/basicSettings/ServerGroupBasicSettings.controller').name,
   require('./wizard/loadBalancers/ServerGroupLoadBalancers.controller').name,
   require('./wizard/ServerGroupInstanceArchetype.controller').name,

@@ -4,8 +4,11 @@ const angular = require('angular');
 import { HealthCheckTemplate } from '../templates';
 import _ from 'lodash';
 
-module.exports = angular
-  .module('spinnaker.deck.httpLoadBalancer.healthCheck.component', [])
+export const GOOGLE_LOADBALANCER_CONFIGURE_HTTP_HEALTHCHECK_HEALTHCHECK_COMPONENT =
+  'spinnaker.deck.httpLoadBalancer.healthCheck.component';
+export const name = GOOGLE_LOADBALANCER_CONFIGURE_HTTP_HEALTHCHECK_HEALTHCHECK_COMPONENT; // for backwards compatibility
+angular
+  .module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_HEALTHCHECK_HEALTHCHECK_COMPONENT, [])
   .component('gceHttpLoadBalancerHealthCheck', {
     bindings: {
       command: '=',

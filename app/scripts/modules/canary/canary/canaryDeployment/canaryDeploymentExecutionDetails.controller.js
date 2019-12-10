@@ -4,8 +4,11 @@ const angular = require('angular');
 
 import { ClusterState, UrlBuilder } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.canary.canaryDeployment.details.controller', [
+export const CANARY_CANARY_CANARYDEPLOYMENT_CANARYDEPLOYMENTEXECUTIONDETAILS_CONTROLLER =
+  'spinnaker.canary.canaryDeployment.details.controller';
+export const name = CANARY_CANARY_CANARYDEPLOYMENT_CANARYDEPLOYMENTEXECUTIONDETAILS_CONTROLLER; // for backwards compatibility
+angular
+  .module(CANARY_CANARY_CANARYDEPLOYMENT_CANARYDEPLOYMENTEXECUTIONDETAILS_CONTROLLER, [
     require('@uirouter/angularjs').default,
     require('./canaryDeploymentHistory.service').name,
   ])

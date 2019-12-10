@@ -2,7 +2,9 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.dcos.labels.component', []).component('dcosLabels', {
+export const DCOS_JOB_LABELS_COMPONENT = 'spinnaker.dcos.labels.component';
+export const name = DCOS_JOB_LABELS_COMPONENT; // for backwards compatibility
+angular.module(DCOS_JOB_LABELS_COMPONENT, []).component('dcosLabels', {
   bindings: {
     labels: '=',
   },

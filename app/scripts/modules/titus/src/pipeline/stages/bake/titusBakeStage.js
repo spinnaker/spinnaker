@@ -4,8 +4,10 @@ const angular = require('angular');
 
 import { AuthenticationService, Registry } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.titus.pipeline.stage.titusBakeStage', [require('./bakeExecutionDetails.controller').name])
+export const TITUS_PIPELINE_STAGES_BAKE_TITUSBAKESTAGE = 'spinnaker.titus.pipeline.stage.titusBakeStage';
+export const name = TITUS_PIPELINE_STAGES_BAKE_TITUSBAKESTAGE; // for backwards compatibility
+angular
+  .module(TITUS_PIPELINE_STAGES_BAKE_TITUSBAKESTAGE, [require('./bakeExecutionDetails.controller').name])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'bake',

@@ -5,8 +5,11 @@ import _ from 'lodash';
 
 import { SECURITY_GROUP_READER, SERVER_GROUP_WRITER, TaskMonitor, FirewallLabels } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.amazon.serverGroup.details.securityGroup.editSecurityGroups.modal.controller', [
+export const AMAZON_SERVERGROUP_DETAILS_SECURITYGROUP_EDITSECURITYGROUPS_MODAL_CONTROLLER =
+  'spinnaker.amazon.serverGroup.details.securityGroup.editSecurityGroups.modal.controller';
+export const name = AMAZON_SERVERGROUP_DETAILS_SECURITYGROUP_EDITSECURITYGROUPS_MODAL_CONTROLLER; // for backwards compatibility
+angular
+  .module(AMAZON_SERVERGROUP_DETAILS_SECURITYGROUP_EDITSECURITYGROUPS_MODAL_CONTROLLER, [
     SERVER_GROUP_WRITER,
     SECURITY_GROUP_READER,
   ])

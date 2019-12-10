@@ -4,8 +4,10 @@ import _ from 'lodash';
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.gce.customInstance.filter', [require('./customInstanceBuilder.gce.service').name])
+export const GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCE_FILTER = 'spinnaker.gce.customInstance.filter';
+export const name = GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCE_FILTER; // for backwards compatibility
+angular
+  .module(GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCE_FILTER, [require('./customInstanceBuilder.gce.service').name])
   .filter('customInstanceFilter', [
     'gceCustomInstanceBuilderService',
     function(gceCustomInstanceBuilderService) {

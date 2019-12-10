@@ -18,8 +18,10 @@ import { ClusterState } from 'core/state';
 import { SearchService } from '../search.service';
 import { ConfigureProjectModal } from 'core/projects';
 
-module.exports = angular
-  .module('spinnaker.search.infrastructure.controller', [
+export const CORE_SEARCH_INFRASTRUCTURE_INFRASTRUCTURE_CONTROLLER = 'spinnaker.search.infrastructure.controller';
+export const name = CORE_SEARCH_INFRASTRUCTURE_INFRASTRUCTURE_CONTROLLER; // for backwards compatibility
+angular
+  .module(CORE_SEARCH_INFRASTRUCTURE_INFRASTRUCTURE_CONTROLLER, [
     INFRASTRUCTURE_SEARCH_SERVICE,
     SEARCH_RESULT_COMPONENT,
     PAGE_TITLE_SERVICE,

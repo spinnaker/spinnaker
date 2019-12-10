@@ -4,8 +4,11 @@ const angular = require('angular');
 
 import { SETTINGS } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.gce.pipeline.stage.bake.executionDetails.controller', [require('@uirouter/angularjs').default])
+export const GOOGLE_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER =
+  'spinnaker.gce.pipeline.stage.bake.executionDetails.controller';
+export const name = GOOGLE_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER; // for backwards compatibility
+angular
+  .module(GOOGLE_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER, [require('@uirouter/angularjs').default])
   .controller('gceBakeExecutionDetailsCtrl', [
     '$scope',
     '$stateParams',

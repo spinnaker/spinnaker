@@ -13,8 +13,11 @@ import { HelpContentsRegistry } from 'core/help';
 
 let angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.core.pipeline.stage.deploy.details.controller', [
+export const CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYEXECUTIONDETAILS_CONTROLLER =
+  'spinnaker.core.pipeline.stage.deploy.details.controller';
+export const name = CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYEXECUTIONDETAILS_CONTROLLER; // for backwards compatibility
+angular
+  .module(CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYEXECUTIONDETAILS_CONTROLLER, [
     require('@uirouter/angularjs').default,
     EXECUTION_DETAILS_SECTION_SERVICE,
   ])

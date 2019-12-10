@@ -6,8 +6,11 @@ import { HELP_FIELD_COMPONENT } from 'core/help/helpField.component';
 
 import './stageConfigField.directive.less';
 
-module.exports = angular
-  .module('spinnaker.core.pipeline.config.stages.common.stageField.directive', [HELP_FIELD_COMPONENT])
+export const CORE_PIPELINE_CONFIG_STAGES_COMMON_STAGECONFIGFIELD_STAGECONFIGFIELD_DIRECTIVE =
+  'spinnaker.core.pipeline.config.stages.common.stageField.directive';
+export const name = CORE_PIPELINE_CONFIG_STAGES_COMMON_STAGECONFIGFIELD_STAGECONFIGFIELD_DIRECTIVE; // for backwards compatibility
+angular
+  .module(CORE_PIPELINE_CONFIG_STAGES_COMMON_STAGECONFIGFIELD_STAGECONFIGFIELD_DIRECTIVE, [HELP_FIELD_COMPONENT])
   .directive('stageConfigField', function() {
     return {
       restrict: 'E',

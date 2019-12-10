@@ -4,8 +4,10 @@ let angular = require('angular');
 
 import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.oracle.pipeline.stage.disableAsgStage', [
+export const ORACLE_PIPELINE_DISABLEASG_DISABLEASGSTAGE = 'spinnaker.oracle.pipeline.stage.disableAsgStage';
+export const name = ORACLE_PIPELINE_DISABLEASG_DISABLEASGSTAGE; // for backwards compatibility
+angular
+  .module(ORACLE_PIPELINE_DISABLEASG_DISABLEASGSTAGE, [
     require('core/application/modal/platformHealthOverride.directive').name,
   ])
   .config(function() {

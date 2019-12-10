@@ -7,8 +7,11 @@ const angular = require('angular');
 import { AccountService } from 'core/account/AccountService';
 import { AppListExtractor } from 'core/application/listExtractor/AppListExtractor';
 
-module.exports = angular
-  .module('spinnaker.core.accountNamespaceClusterSelector.directive', [])
+export const CORE_WIDGETS_ACCOUNTNAMESPACECLUSTERSELECTOR_COMPONENT =
+  'spinnaker.core.accountNamespaceClusterSelector.directive';
+export const name = CORE_WIDGETS_ACCOUNTNAMESPACECLUSTERSELECTOR_COMPONENT; // for backwards compatibility
+angular
+  .module(CORE_WIDGETS_ACCOUNTNAMESPACECLUSTERSELECTOR_COMPONENT, [])
   .directive('accountNamespaceClusterSelector', function() {
     return {
       restrict: 'E',

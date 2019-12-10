@@ -9,8 +9,11 @@ import { BackendServiceTemplate, HealthCheckTemplate, HostRuleTemplate, Listener
 
 import './httpLoadBalancerWizard.component.less';
 
-module.exports = angular
-  .module('spinnaker.deck.gce.loadBalancer.createHttp.controller', [
+export const GOOGLE_LOADBALANCER_CONFIGURE_HTTP_CREATEHTTPLOADBALANCER_CONTROLLER =
+  'spinnaker.deck.gce.loadBalancer.createHttp.controller';
+export const name = GOOGLE_LOADBALANCER_CONFIGURE_HTTP_CREATEHTTPLOADBALANCER_CONTROLLER; // for backwards compatibility
+angular
+  .module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_CREATEHTTPLOADBALANCER_CONTROLLER, [
     require('angular-ui-bootstrap'),
     require('@uirouter/angularjs').default,
     require('./backendService/backendService.component').name,

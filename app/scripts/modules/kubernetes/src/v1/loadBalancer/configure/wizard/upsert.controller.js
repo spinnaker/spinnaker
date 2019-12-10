@@ -4,8 +4,11 @@ const angular = require('angular');
 
 import { AccountService, LoadBalancerWriter, TaskMonitor } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.loadBalancer.kubernetes.create.controller', [
+export const KUBERNETES_V1_LOADBALANCER_CONFIGURE_WIZARD_UPSERT_CONTROLLER =
+  'spinnaker.loadBalancer.kubernetes.create.controller';
+export const name = KUBERNETES_V1_LOADBALANCER_CONFIGURE_WIZARD_UPSERT_CONTROLLER; // for backwards compatibility
+angular
+  .module(KUBERNETES_V1_LOADBALANCER_CONFIGURE_WIZARD_UPSERT_CONTROLLER, [
     require('@uirouter/angularjs').default,
     require('../../../namespace/selectField.directive').name,
     require('../../transformer').name,

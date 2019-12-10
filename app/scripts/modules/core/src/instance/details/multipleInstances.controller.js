@@ -6,8 +6,11 @@ import { ClusterState } from 'core/state';
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.core.instance.details.multipleInstances.controller', [
+export const CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER =
+  'spinnaker.core.instance.details.multipleInstances.controller';
+export const name = CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER; // for backwards compatibility
+angular
+  .module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
     require('@uirouter/angularjs').default,
     INSTANCE_WRITE_SERVICE,
     CONFIRMATION_MODAL_SERVICE,

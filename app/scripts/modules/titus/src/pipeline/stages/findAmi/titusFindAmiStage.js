@@ -4,8 +4,10 @@ const angular = require('angular');
 
 import { AccountService, Registry } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.titus.pipeline.stage.findAmiStage', [])
+export const TITUS_PIPELINE_STAGES_FINDAMI_TITUSFINDAMISTAGE = 'spinnaker.titus.pipeline.stage.findAmiStage';
+export const name = TITUS_PIPELINE_STAGES_FINDAMI_TITUSFINDAMISTAGE; // for backwards compatibility
+angular
+  .module(TITUS_PIPELINE_STAGES_FINDAMI_TITUSFINDAMISTAGE, [])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'findImage',

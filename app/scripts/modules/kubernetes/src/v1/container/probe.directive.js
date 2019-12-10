@@ -2,8 +2,10 @@
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.kubernetes.container.probe.directive', [])
+export const KUBERNETES_V1_CONTAINER_PROBE_DIRECTIVE = 'spinnaker.kubernetes.container.probe.directive';
+export const name = KUBERNETES_V1_CONTAINER_PROBE_DIRECTIVE; // for backwards compatibility
+angular
+  .module(KUBERNETES_V1_CONTAINER_PROBE_DIRECTIVE, [])
   .directive('kubernetesContainerProbe', function() {
     return {
       restrict: 'E',

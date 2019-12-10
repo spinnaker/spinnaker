@@ -5,8 +5,10 @@ import _ from 'lodash';
 
 import { SecurityGroupWriter, TaskMonitor, FirewallLabels } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.amazon.securityGroup.edit.controller', [require('@uirouter/angularjs').default])
+export const AMAZON_SECURITYGROUP_CONFIGURE_EDITSECURITYGROUPCTRL = 'spinnaker.amazon.securityGroup.edit.controller';
+export const name = AMAZON_SECURITYGROUP_CONFIGURE_EDITSECURITYGROUPCTRL; // for backwards compatibility
+angular
+  .module(AMAZON_SECURITYGROUP_CONFIGURE_EDITSECURITYGROUPCTRL, [require('@uirouter/angularjs').default])
   .controller('awsEditSecurityGroupCtrl', [
     '$scope',
     '$uibModalInstance',

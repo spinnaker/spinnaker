@@ -5,16 +5,16 @@ import { SpelAutocompleteService } from './SpelAutocompleteService';
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.core.widget.spelAutocomplete', [EXECUTION_SERVICE])
-  .factory('spelAutocomplete', [
-    '$q',
-    'executionService',
-    ($q, executionService) => {
-      const autocomplete = new SpelAutocompleteService($q, executionService);
-      return {
-        textcompleteConfig: autocomplete.textcompleteConfig,
-        addPipelineInfo: pipelineConfig => autocomplete.addPipelineInfo(pipelineConfig),
-      };
-    },
-  ]);
+export const CORE_WIDGETS_SPELTEXT_SPELAUTOCOMPLETE_SERVICE = 'spinnaker.core.widget.spelAutocomplete';
+export const name = CORE_WIDGETS_SPELTEXT_SPELAUTOCOMPLETE_SERVICE; // for backwards compatibility
+angular.module(CORE_WIDGETS_SPELTEXT_SPELAUTOCOMPLETE_SERVICE, [EXECUTION_SERVICE]).factory('spelAutocomplete', [
+  '$q',
+  'executionService',
+  ($q, executionService) => {
+    const autocomplete = new SpelAutocompleteService($q, executionService);
+    return {
+      textcompleteConfig: autocomplete.textcompleteConfig,
+      addPipelineInfo: pipelineConfig => autocomplete.addPipelineInfo(pipelineConfig),
+    };
+  },
+]);

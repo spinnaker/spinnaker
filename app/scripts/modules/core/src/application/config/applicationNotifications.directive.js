@@ -4,8 +4,11 @@ const angular = require('angular');
 
 import { OVERRIDE_REGISTRY } from 'core/overrideRegistry/override.registry';
 
-module.exports = angular
-  .module('spinnaker.core.application.config.notifications.directive', [OVERRIDE_REGISTRY])
+export const CORE_APPLICATION_CONFIG_APPLICATIONNOTIFICATIONS_DIRECTIVE =
+  'spinnaker.core.application.config.notifications.directive';
+export const name = CORE_APPLICATION_CONFIG_APPLICATIONNOTIFICATIONS_DIRECTIVE; // for backwards compatibility
+angular
+  .module(CORE_APPLICATION_CONFIG_APPLICATIONNOTIFICATIONS_DIRECTIVE, [OVERRIDE_REGISTRY])
   .directive('applicationNotifications', [
     'overrideRegistry',
     function(overrideRegistry) {

@@ -13,8 +13,11 @@ import {
 
 import { VpcReader } from '@spinnaker/amazon';
 
-module.exports = angular
-  .module('spinnaker.ecs.securityGroup.details.controller', [
+export const ECS_SECURITYGROUP_DETAILS_SECURITYGROUPDETAIL_CONTROLLER =
+  'spinnaker.ecs.securityGroup.details.controller';
+export const name = ECS_SECURITYGROUP_DETAILS_SECURITYGROUPDETAIL_CONTROLLER; // for backwards compatibility
+angular
+  .module(ECS_SECURITYGROUP_DETAILS_SECURITYGROUPDETAIL_CONTROLLER, [
     require('@uirouter/angularjs').default,
     SECURITY_GROUP_READER,
     MANAGED_RESOURCE_DETAILS_INDICATOR,

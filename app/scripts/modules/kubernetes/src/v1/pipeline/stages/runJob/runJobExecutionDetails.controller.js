@@ -4,8 +4,11 @@ import { get } from 'lodash';
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.kubernetes.pipeline.stage.disableCluster.runJobExecutionDetails.controller', [
+export const KUBERNETES_V1_PIPELINE_STAGES_RUNJOB_RUNJOBEXECUTIONDETAILS_CONTROLLER =
+  'spinnaker.kubernetes.pipeline.stage.disableCluster.runJobExecutionDetails.controller';
+export const name = KUBERNETES_V1_PIPELINE_STAGES_RUNJOB_RUNJOBEXECUTIONDETAILS_CONTROLLER; // for backwards compatibility
+angular
+  .module(KUBERNETES_V1_PIPELINE_STAGES_RUNJOB_RUNJOBEXECUTIONDETAILS_CONTROLLER, [
     require('@uirouter/angularjs').default,
   ])
   .controller('kubernetesRunJobExecutionDetailsCtrl', [

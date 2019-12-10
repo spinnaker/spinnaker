@@ -5,8 +5,11 @@ const angular = require('angular');
 import { CONFIRMATION_MODAL_SERVICE } from 'core/confirmationModal/confirmationModal.service';
 import { SnapshotWriter } from 'core/snapshot/SnapshotWriter';
 
-module.exports = angular
-  .module('spinnaker.core.application.config.serialize.component', [
+export const CORE_APPLICATION_CONFIG_APPLICATIONSNAPSHOTSECTION_COMPONENT =
+  'spinnaker.core.application.config.serialize.component';
+export const name = CORE_APPLICATION_CONFIG_APPLICATIONSNAPSHOTSECTION_COMPONENT; // for backwards compatibility
+angular
+  .module(CORE_APPLICATION_CONFIG_APPLICATIONSNAPSHOTSECTION_COMPONENT, [
     require('@uirouter/angularjs').default,
     CONFIRMATION_MODAL_SERVICE,
     require('core/snapshot/diff/viewSnapshotDiffButton.component').name,

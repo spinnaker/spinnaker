@@ -4,8 +4,11 @@ import _ from 'lodash';
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.core.pipeline.stage.deploy.transformer', [])
+export const CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYSTAGE_TRANSFORMER =
+  'spinnaker.core.pipeline.stage.deploy.transformer';
+export const name = CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYSTAGE_TRANSFORMER; // for backwards compatibility
+angular
+  .module(CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYSTAGE_TRANSFORMER, [])
   .service('deployStageTransformer', function() {
     /**
      * Removes rollingPush, modifyAsgLaunchConfiguration stages, adding them as tasks to the parent deploy stage,

@@ -5,8 +5,10 @@ const angular = require('angular');
 import { GCE_ADDRESS_READER } from 'google/address/address.reader';
 import { GCE_HEALTH_CHECK_READER } from '../healthCheck/healthCheck.read.service';
 
-module.exports = angular
-  .module('spinnaker.gce.cache.initializer', [
+export const GOOGLE_CACHE_CACHECONFIGURER_SERVICE = 'spinnaker.gce.cache.initializer';
+export const name = GOOGLE_CACHE_CACHECONFIGURER_SERVICE; // for backwards compatibility
+angular
+  .module(GOOGLE_CACHE_CACHECONFIGURER_SERVICE, [
     require('../backendService/backendService.reader').name,
     GCE_ADDRESS_READER,
     GCE_HEALTH_CHECK_READER,

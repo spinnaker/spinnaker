@@ -4,8 +4,11 @@ const angular = require('angular');
 
 import { FirewallLabels, InfrastructureCaches, SecurityGroupWriter, TaskMonitor } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.google.securityGroup.edit.controller', [require('@uirouter/angularjs').default])
+export const GOOGLE_SECURITYGROUP_CONFIGURE_EDITSECURITYGROUP_CONTROLLER =
+  'spinnaker.google.securityGroup.edit.controller';
+export const name = GOOGLE_SECURITYGROUP_CONFIGURE_EDITSECURITYGROUP_CONTROLLER; // for backwards compatibility
+angular
+  .module(GOOGLE_SECURITYGROUP_CONFIGURE_EDITSECURITYGROUP_CONTROLLER, [require('@uirouter/angularjs').default])
   .controller('gceEditSecurityGroupCtrl', [
     '$scope',
     '$uibModalInstance',

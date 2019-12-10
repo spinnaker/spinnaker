@@ -4,8 +4,11 @@ const angular = require('angular');
 
 import { AccountService, Registry } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.gce.pipeline.stage..shrinkClusterStage', [])
+export const GOOGLE_PIPELINE_STAGES_SHRINKCLUSTER_GCESHRINKCLUSTERSTAGE =
+  'spinnaker.gce.pipeline.stage..shrinkClusterStage';
+export const name = GOOGLE_PIPELINE_STAGES_SHRINKCLUSTER_GCESHRINKCLUSTERSTAGE; // for backwards compatibility
+angular
+  .module(GOOGLE_PIPELINE_STAGES_SHRINKCLUSTER_GCESHRINKCLUSTERSTAGE, [])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'shrinkCluster',

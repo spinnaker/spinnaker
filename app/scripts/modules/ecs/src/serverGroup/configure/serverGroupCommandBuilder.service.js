@@ -7,8 +7,11 @@ import { AccountService, INSTANCE_TYPE_SERVICE } from '@spinnaker/core';
 
 import { ECS_SERVER_GROUP_CONFIGURATION_SERVICE } from './serverGroupConfiguration.service';
 
-module.exports = angular
-  .module('spinnaker.ecs.serverGroupCommandBuilder.service', [
+export const ECS_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE =
+  'spinnaker.ecs.serverGroupCommandBuilder.service';
+export const name = ECS_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE; // for backwards compatibility
+angular
+  .module(ECS_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE, [
     INSTANCE_TYPE_SERVICE,
     ECS_SERVER_GROUP_CONFIGURATION_SERVICE,
   ])

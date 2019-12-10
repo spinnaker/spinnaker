@@ -4,8 +4,11 @@ const angular = require('angular');
 import _ from 'lodash';
 import { BackendServiceTemplate } from '../templates';
 
-module.exports = angular
-  .module('spinnaker.deck.gce.httpLoadBalancer.backendService.component', [])
+export const GOOGLE_LOADBALANCER_CONFIGURE_HTTP_BACKENDSERVICE_BACKENDSERVICE_COMPONENT =
+  'spinnaker.deck.gce.httpLoadBalancer.backendService.component';
+export const name = GOOGLE_LOADBALANCER_CONFIGURE_HTTP_BACKENDSERVICE_BACKENDSERVICE_COMPONENT; // for backwards compatibility
+angular
+  .module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_BACKENDSERVICE_BACKENDSERVICE_COMPONENT, [])
   .component('gceHttpLoadBalancerBackendServiceSelector', {
     bindings: {
       deleteService: '&',

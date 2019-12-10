@@ -4,8 +4,10 @@ import { ApplicationNameValidator } from '@spinnaker/core';
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.dcos.validation.applicationName', [])
+export const DCOS_VALIDATION_APPLICATIONNAME_VALIDATOR = 'spinnaker.dcos.validation.applicationName';
+export const name = DCOS_VALIDATION_APPLICATIONNAME_VALIDATOR; // for backwards compatibility
+angular
+  .module(DCOS_VALIDATION_APPLICATIONNAME_VALIDATOR, [])
   .factory('dcosApplicationNameValidator', function() {
     function validateSpecialCharacters(name, errors) {
       let pattern = /^[a-z0-9]+$/;

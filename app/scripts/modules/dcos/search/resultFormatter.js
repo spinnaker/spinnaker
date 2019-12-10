@@ -2,7 +2,9 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.dcos.search.formatter', []).factory('dcosSearchResultFormatter', [
+export const DCOS_SEARCH_RESULTFORMATTER = 'spinnaker.dcos.search.formatter';
+export const name = DCOS_SEARCH_RESULTFORMATTER; // for backwards compatibility
+angular.module(DCOS_SEARCH_RESULTFORMATTER, []).factory('dcosSearchResultFormatter', [
   '$q',
   function($q) {
     return {

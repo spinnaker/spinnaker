@@ -4,8 +4,10 @@ const angular = require('angular');
 
 import { TaskMonitor } from 'core/task/monitor/TaskMonitor';
 
-module.exports = angular
-  .module('spinnaker.core.confirmationModal.controller', [require('angular-ui-bootstrap')])
+export const CORE_CONFIRMATIONMODAL_CONFIRMATIONMODAL_CONTROLLER = 'spinnaker.core.confirmationModal.controller';
+export const name = CORE_CONFIRMATIONMODAL_CONFIRMATIONMODAL_CONTROLLER; // for backwards compatibility
+angular
+  .module(CORE_CONFIRMATIONMODAL_CONFIRMATIONMODAL_CONTROLLER, [require('angular-ui-bootstrap')])
   .controller('ConfirmationModalCtrl', [
     '$scope',
     '$uibModalInstance',

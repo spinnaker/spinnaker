@@ -2,8 +2,11 @@
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.ecs.serverGroup.configure.wizard.horizontalScaling.component', [])
+export const ECS_SERVERGROUP_CONFIGURE_WIZARD_HORIZONTALSCALING_HORIZONTALSCALING_COMPONENT =
+  'spinnaker.ecs.serverGroup.configure.wizard.horizontalScaling.component';
+export const name = ECS_SERVERGROUP_CONFIGURE_WIZARD_HORIZONTALSCALING_HORIZONTALSCALING_COMPONENT; // for backwards compatibility
+angular
+  .module(ECS_SERVERGROUP_CONFIGURE_WIZARD_HORIZONTALSCALING_HORIZONTALSCALING_COMPONENT, [])
   .component('ecsServerGroupHorizontalScaling', {
     bindings: {
       command: '=',

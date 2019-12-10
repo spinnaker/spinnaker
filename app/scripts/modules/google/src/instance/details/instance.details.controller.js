@@ -14,8 +14,10 @@ import {
 
 import { GCE_HTTP_LOAD_BALANCER_UTILS } from 'google/loadBalancer/httpLoadBalancerUtils.service';
 
-module.exports = angular
-  .module('spinnaker.instance.detail.gce.controller', [
+export const GOOGLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER = 'spinnaker.instance.detail.gce.controller';
+export const name = GOOGLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER; // for backwards compatibility
+angular
+  .module(GOOGLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     require('@uirouter/angularjs').default,
     require('angular-ui-bootstrap'),
     require('google/common/xpnNaming.gce.service').name,

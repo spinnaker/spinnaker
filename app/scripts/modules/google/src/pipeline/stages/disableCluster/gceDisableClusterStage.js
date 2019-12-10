@@ -4,8 +4,11 @@ const angular = require('angular');
 
 import { AccountService, Registry } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.gce.pipeline.stage..disableClusterStage', [])
+export const GOOGLE_PIPELINE_STAGES_DISABLECLUSTER_GCEDISABLECLUSTERSTAGE =
+  'spinnaker.gce.pipeline.stage..disableClusterStage';
+export const name = GOOGLE_PIPELINE_STAGES_DISABLECLUSTER_GCEDISABLECLUSTERSTAGE; // for backwards compatibility
+angular
+  .module(GOOGLE_PIPELINE_STAGES_DISABLECLUSTER_GCEDISABLECLUSTERSTAGE, [])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'disableCluster',

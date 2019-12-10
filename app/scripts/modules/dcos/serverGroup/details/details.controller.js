@@ -11,8 +11,10 @@ import {
   ServerGroupTemplates,
 } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.dcos.serverGroup.details.controller', [
+export const DCOS_SERVERGROUP_DETAILS_DETAILS_CONTROLLER = 'spinnaker.dcos.serverGroup.details.controller';
+export const name = DCOS_SERVERGROUP_DETAILS_DETAILS_CONTROLLER; // for backwards compatibility
+angular
+  .module(DCOS_SERVERGROUP_DETAILS_DETAILS_CONTROLLER, [
     require('../configure/configure.dcos.module').name,
     CONFIRMATION_MODAL_SERVICE,
     SERVER_GROUP_WRITER,

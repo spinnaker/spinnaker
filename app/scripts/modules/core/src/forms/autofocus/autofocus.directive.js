@@ -10,7 +10,9 @@ const angular = require('angular');
  *   <input autofocus/> will focus in the vast majority of browsers (not Angular - this is just HTML)
  *
  */
-module.exports = angular.module('spinnaker.core.forms.autoFocus.directive', []).directive('autoFocus', [
+export const CORE_FORMS_AUTOFOCUS_AUTOFOCUS_DIRECTIVE = 'spinnaker.core.forms.autoFocus.directive';
+export const name = CORE_FORMS_AUTOFOCUS_AUTOFOCUS_DIRECTIVE; // for backwards compatibility
+angular.module(CORE_FORMS_AUTOFOCUS_AUTOFOCUS_DIRECTIVE, []).directive('autoFocus', [
   '$timeout',
   function($timeout) {
     return {

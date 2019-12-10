@@ -4,7 +4,9 @@ const angular = require('angular');
 
 import { API } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.oracle.image.reader', []).factory('oracleImageReader', function() {
+export const ORACLE_IMAGE_IMAGE_READER = 'spinnaker.oracle.image.reader';
+export const name = ORACLE_IMAGE_IMAGE_READER; // for backwards compatibility
+angular.module(ORACLE_IMAGE_IMAGE_READER, []).factory('oracleImageReader', function() {
   function findImages(params) {
     return API.one('images/find')
       .withParams(params)

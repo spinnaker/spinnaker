@@ -4,8 +4,11 @@ const angular = require('angular');
 
 import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.kubernetes.pipeline.stage.enableAsgStage', [])
+export const KUBERNETES_V1_PIPELINE_STAGES_ENABLEASG_KUBERNETESENABLEASGSTAGE =
+  'spinnaker.kubernetes.pipeline.stage.enableAsgStage';
+export const name = KUBERNETES_V1_PIPELINE_STAGES_ENABLEASG_KUBERNETESENABLEASGSTAGE; // for backwards compatibility
+angular
+  .module(KUBERNETES_V1_PIPELINE_STAGES_ENABLEASG_KUBERNETESENABLEASGSTAGE, [])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'enableServerGroup',

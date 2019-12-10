@@ -2,8 +2,11 @@
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.deck.gce.tagSelectorGenerator.component', [
+export const GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGSELECTORGENERATOR_COMPONENT =
+  'spinnaker.deck.gce.tagSelectorGenerator.component';
+export const name = GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGSELECTORGENERATOR_COMPONENT; // for backwards compatibility
+angular
+  .module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGSELECTORGENERATOR_COMPONENT, [
     require('./tagSelector.component').name,
     require('./tagManager.service').name,
   ])

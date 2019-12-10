@@ -4,8 +4,11 @@ import _ from 'lodash';
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.deck.gce.serverGroup.details.resizeAutoscalingPolicy.component', [
+export const GOOGLE_SERVERGROUP_DETAILS_RESIZE_RESIZEAUTOSCALINGPOLICY_COMPONENT =
+  'spinnaker.deck.gce.serverGroup.details.resizeAutoscalingPolicy.component';
+export const name = GOOGLE_SERVERGROUP_DETAILS_RESIZE_RESIZEAUTOSCALINGPOLICY_COMPONENT; // for backwards compatibility
+angular
+  .module(GOOGLE_SERVERGROUP_DETAILS_RESIZE_RESIZEAUTOSCALINGPOLICY_COMPONENT, [
     require('../../../autoscalingPolicy/autoscalingPolicy.write.service').name,
   ])
   .component('gceResizeAutoscalingPolicy', {

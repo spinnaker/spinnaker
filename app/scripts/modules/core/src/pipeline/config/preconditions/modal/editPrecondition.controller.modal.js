@@ -4,8 +4,11 @@ const angular = require('angular');
 
 require('./editPrecondition.html');
 
-module.exports = angular
-  .module('spinnaker.core.pipeline.config.preconditions.modal.controller', [])
+export const CORE_PIPELINE_CONFIG_PRECONDITIONS_MODAL_EDITPRECONDITION_CONTROLLER_MODAL =
+  'spinnaker.core.pipeline.config.preconditions.modal.controller';
+export const name = CORE_PIPELINE_CONFIG_PRECONDITIONS_MODAL_EDITPRECONDITION_CONTROLLER_MODAL; // for backwards compatibility
+angular
+  .module(CORE_PIPELINE_CONFIG_PRECONDITIONS_MODAL_EDITPRECONDITION_CONTROLLER_MODAL, [])
   .controller('EditPreconditionController', [
     '$scope',
     '$uibModalInstance',

@@ -2,8 +2,11 @@
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.azure.serverGroup.configure.wizard.capacity.zone.directive', [])
+export const AZURE_SERVERGROUP_CONFIGURE_WIZARD_ZONES_ZONESELECTOR_DIRECTIVE =
+  'spinnaker.azure.serverGroup.configure.wizard.capacity.zone.directive';
+export const name = AZURE_SERVERGROUP_CONFIGURE_WIZARD_ZONES_ZONESELECTOR_DIRECTIVE; // for backwards compatibility
+angular
+  .module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_ZONES_ZONESELECTOR_DIRECTIVE, [])
   .directive('azureZoneSelector', function() {
     return {
       restrict: 'E',

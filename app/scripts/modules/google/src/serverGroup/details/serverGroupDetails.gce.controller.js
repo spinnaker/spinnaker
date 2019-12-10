@@ -18,8 +18,11 @@ require('../configure/serverGroup.configure.gce.module');
 
 import './serverGroupDetails.less';
 
-module.exports = angular
-  .module('spinnaker.serverGroup.details.gce.controller', [
+export const GOOGLE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_GCE_CONTROLLER =
+  'spinnaker.serverGroup.details.gce.controller';
+export const name = GOOGLE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_GCE_CONTROLLER; // for backwards compatibility
+angular
+  .module(GOOGLE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_GCE_CONTROLLER, [
     require('@uirouter/angularjs').default,
     require('../configure/serverGroupCommandBuilder.service').name,
     CONFIRMATION_MODAL_SERVICE,

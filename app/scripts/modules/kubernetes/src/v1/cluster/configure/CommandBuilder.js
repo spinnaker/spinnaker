@@ -7,8 +7,10 @@ import { AccountService, ExpectedArtifactService } from '@spinnaker/core';
 
 import { KubernetesProviderSettings } from '../../../kubernetes.settings';
 
-module.exports = angular
-  .module('spinnaker.kubernetes.clusterCommandBuilder.service', [])
+export const KUBERNETES_V1_CLUSTER_CONFIGURE_COMMANDBUILDER = 'spinnaker.kubernetes.clusterCommandBuilder.service';
+export const name = KUBERNETES_V1_CLUSTER_CONFIGURE_COMMANDBUILDER; // for backwards compatibility
+angular
+  .module(KUBERNETES_V1_CLUSTER_CONFIGURE_COMMANDBUILDER, [])
   .factory('kubernetesClusterCommandBuilder', function() {
     function attemptToSetValidAccount(application, defaultAccount, command) {
       return AccountService.listAccounts('kubernetes', 'v1').then(function(kubernetesAccounts) {

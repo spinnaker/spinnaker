@@ -15,8 +15,10 @@ import {
 
 import { AMAZON_INSTANCE_WRITE_SERVICE } from 'amazon/instance/amazon.instance.write.service';
 
-module.exports = angular
-  .module('spinnaker.amazon.instance.details.controller', [
+export const AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER = 'spinnaker.amazon.instance.details.controller';
+export const name = AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER; // for backwards compatibility
+angular
+  .module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     require('@uirouter/angularjs').default,
     require('angular-ui-bootstrap'),
     AMAZON_INSTANCE_WRITE_SERVICE,

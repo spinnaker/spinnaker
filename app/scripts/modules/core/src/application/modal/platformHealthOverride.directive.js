@@ -4,8 +4,11 @@ import _ from 'lodash';
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.application.platformHealthOverrideCheckbox.directive', [])
+export const CORE_APPLICATION_MODAL_PLATFORMHEALTHOVERRIDE_DIRECTIVE =
+  'spinnaker.application.platformHealthOverrideCheckbox.directive';
+export const name = CORE_APPLICATION_MODAL_PLATFORMHEALTHOVERRIDE_DIRECTIVE; // for backwards compatibility
+angular
+  .module(CORE_APPLICATION_MODAL_PLATFORMHEALTHOVERRIDE_DIRECTIVE, [])
   .directive('platformHealthOverride', function() {
     return {
       restrict: 'E',

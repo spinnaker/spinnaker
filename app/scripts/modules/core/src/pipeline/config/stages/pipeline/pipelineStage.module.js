@@ -2,4 +2,6 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.pipeline', [require('./pipelineStage').name]);
+export const CORE_PIPELINE_CONFIG_STAGES_PIPELINE_PIPELINESTAGE_MODULE = 'spinnaker.core.pipeline.stage.pipeline';
+export const name = CORE_PIPELINE_CONFIG_STAGES_PIPELINE_PIPELINESTAGE_MODULE; // for backwards compatibility
+angular.module(CORE_PIPELINE_CONFIG_STAGES_PIPELINE_PIPELINESTAGE_MODULE, [require('./pipelineStage').name]);

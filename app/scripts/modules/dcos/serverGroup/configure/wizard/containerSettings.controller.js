@@ -3,8 +3,11 @@
 const angular = require('angular');
 import { Observable, Subject } from 'rxjs';
 
-module.exports = angular
-  .module('spinnaker.dcos.serverGroup.configure.containerSettings', [])
+export const DCOS_SERVERGROUP_CONFIGURE_WIZARD_CONTAINERSETTINGS_CONTROLLER =
+  'spinnaker.dcos.serverGroup.configure.containerSettings';
+export const name = DCOS_SERVERGROUP_CONFIGURE_WIZARD_CONTAINERSETTINGS_CONTROLLER; // for backwards compatibility
+angular
+  .module(DCOS_SERVERGROUP_CONFIGURE_WIZARD_CONTAINERSETTINGS_CONTROLLER, [])
   .controller('dcosServerGroupContainerSettingsController', [
     '$scope',
     'dcosServerGroupConfigurationService',

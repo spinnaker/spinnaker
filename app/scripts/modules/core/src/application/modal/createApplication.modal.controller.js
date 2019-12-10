@@ -12,8 +12,11 @@ import { SETTINGS } from 'core/config/settings';
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.application.create.modal.controller', [
+export const CORE_APPLICATION_MODAL_CREATEAPPLICATION_MODAL_CONTROLLER =
+  'spinnaker.application.create.modal.controller';
+export const name = CORE_APPLICATION_MODAL_CREATEAPPLICATION_MODAL_CONTROLLER; // for backwards compatibility
+angular
+  .module(CORE_APPLICATION_MODAL_CREATEAPPLICATION_MODAL_CONTROLLER, [
     require('@uirouter/angularjs').default,
     APPLICATION_NAME_VALIDATION_MESSAGES,
     VALIDATE_APPLICATION_NAME,

@@ -10,8 +10,11 @@ import { ScalingPolicyWriter } from '../ScalingPolicyWriter';
 
 import './upsertScalingPolicy.modal.less';
 
-module.exports = angular
-  .module('spinnaker.amazon.serverGroup.details.scalingPolicy.upsertScalingPolicy.controller', [
+export const AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_UPSERTSCALINGPOLICY_CONTROLLER =
+  'spinnaker.amazon.serverGroup.details.scalingPolicy.upsertScalingPolicy.controller';
+export const name = AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_UPSERTSCALINGPOLICY_CONTROLLER; // for backwards compatibility
+angular
+  .module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_UPSERTSCALINGPOLICY_CONTROLLER, [
     'n3-line-chart',
     require('./simple/simplePolicyAction.component').name,
     STEP_POLICY_ACTION,

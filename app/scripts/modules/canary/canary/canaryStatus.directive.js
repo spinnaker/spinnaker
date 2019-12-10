@@ -2,7 +2,9 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.canary.status.directive', []).directive('canaryStatus', function() {
+export const CANARY_CANARY_CANARYSTATUS_DIRECTIVE = 'spinnaker.canary.status.directive';
+export const name = CANARY_CANARY_CANARYSTATUS_DIRECTIVE; // for backwards compatibility
+angular.module(CANARY_CANARY_CANARYSTATUS_DIRECTIVE, []).directive('canaryStatus', function() {
   return {
     restrict: 'E',
     scope: {

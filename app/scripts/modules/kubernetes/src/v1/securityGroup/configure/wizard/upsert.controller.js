@@ -11,8 +11,11 @@ import {
   TaskMonitor,
 } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.securityGroup.kubernetes.create.controller', [
+export const KUBERNETES_V1_SECURITYGROUP_CONFIGURE_WIZARD_UPSERT_CONTROLLER =
+  'spinnaker.securityGroup.kubernetes.create.controller';
+export const name = KUBERNETES_V1_SECURITYGROUP_CONFIGURE_WIZARD_UPSERT_CONTROLLER; // for backwards compatibility
+angular
+  .module(KUBERNETES_V1_SECURITYGROUP_CONFIGURE_WIZARD_UPSERT_CONTROLLER, [
     require('@uirouter/angularjs').default,
     LOAD_BALANCER_READ_SERVICE,
     SECURITY_GROUP_READER,

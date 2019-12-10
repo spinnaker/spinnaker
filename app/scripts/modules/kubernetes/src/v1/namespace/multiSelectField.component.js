@@ -5,8 +5,10 @@ import _ from 'lodash';
 
 import { AccountService, AppListExtractor } from '@spinnaker/core';
 
-module.exports = angular
-  .module('kubernetes.namespace.multiSelectField.component', [])
+export const KUBERNETES_V1_NAMESPACE_MULTISELECTFIELD_COMPONENT = 'kubernetes.namespace.multiSelectField.component';
+export const name = KUBERNETES_V1_NAMESPACE_MULTISELECTFIELD_COMPONENT; // for backwards compatibility
+angular
+  .module(KUBERNETES_V1_NAMESPACE_MULTISELECTFIELD_COMPONENT, [])
   .directive('namespaceMultiSelectField', function() {
     return {
       restrict: 'E',

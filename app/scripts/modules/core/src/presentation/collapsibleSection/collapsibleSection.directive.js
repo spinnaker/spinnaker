@@ -4,8 +4,11 @@ const angular = require('angular');
 
 import { CollapsibleSectionStateCache } from 'core/cache';
 
-module.exports = angular
-  .module('spinnaker.core.presentation.collapsibleSection.directive', [])
+export const CORE_PRESENTATION_COLLAPSIBLESECTION_COLLAPSIBLESECTION_DIRECTIVE =
+  'spinnaker.core.presentation.collapsibleSection.directive';
+export const name = CORE_PRESENTATION_COLLAPSIBLESECTION_COLLAPSIBLESECTION_DIRECTIVE; // for backwards compatibility
+angular
+  .module(CORE_PRESENTATION_COLLAPSIBLESECTION_COLLAPSIBLESECTION_DIRECTIVE, [])
   .directive('collapsibleSection', function() {
     return {
       restrict: 'E',

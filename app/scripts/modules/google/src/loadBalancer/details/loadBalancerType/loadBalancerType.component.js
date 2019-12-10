@@ -4,8 +4,11 @@ import _ from 'lodash';
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.deck.gce.loadBalancer.loadBalancerType', [])
+export const GOOGLE_LOADBALANCER_DETAILS_LOADBALANCERTYPE_LOADBALANCERTYPE_COMPONENT =
+  'spinnaker.deck.gce.loadBalancer.loadBalancerType';
+export const name = GOOGLE_LOADBALANCER_DETAILS_LOADBALANCERTYPE_LOADBALANCERTYPE_COMPONENT; // for backwards compatibility
+angular
+  .module(GOOGLE_LOADBALANCER_DETAILS_LOADBALANCERTYPE_LOADBALANCERTYPE_COMPONENT, [])
   .component('gceLoadBalancerType', {
     template: '<span>{{ $ctrl.type }}</span>',
     bindings: {

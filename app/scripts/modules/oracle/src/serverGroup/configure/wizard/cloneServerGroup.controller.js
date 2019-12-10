@@ -3,8 +3,11 @@
 const angular = require('angular');
 import { FirewallLabels, ModalWizard, TaskMonitor } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.oracle.serverGroup.configure.cloneServerGroup', [require('@uirouter/angularjs').default])
+export const ORACLE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_CONTROLLER =
+  'spinnaker.oracle.serverGroup.configure.cloneServerGroup';
+export const name = ORACLE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_CONTROLLER; // for backwards compatibility
+angular
+  .module(ORACLE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_CONTROLLER, [require('@uirouter/angularjs').default])
   .controller('oracleCloneServerGroupCtrl', [
     '$scope',
     '$uibModalInstance',

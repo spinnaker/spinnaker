@@ -4,8 +4,10 @@ const angular = require('angular');
 
 import { ClusterState, SETTINGS } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.canary.acaTask.details.controller', [
+export const CANARY_ACATASK_ACATASKEXECUTIONDETAILS_CONTROLLER = 'spinnaker.canary.acaTask.details.controller';
+export const name = CANARY_ACATASK_ACATASKEXECUTIONDETAILS_CONTROLLER; // for backwards compatibility
+angular
+  .module(CANARY_ACATASK_ACATASKEXECUTIONDETAILS_CONTROLLER, [
     require('@uirouter/angularjs').default,
     require('../canary/canaryDeployment/canaryDeploymentHistory.service').name,
   ])

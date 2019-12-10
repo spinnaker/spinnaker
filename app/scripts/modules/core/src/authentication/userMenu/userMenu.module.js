@@ -6,4 +6,6 @@ import './userMenu.less';
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.authentication.userMenu', [AUTHENTICATION_USER_MENU]);
+export const CORE_AUTHENTICATION_USERMENU_USERMENU_MODULE = 'spinnaker.core.authentication.userMenu';
+export const name = CORE_AUTHENTICATION_USERMENU_USERMENU_MODULE; // for backwards compatibility
+angular.module(CORE_AUTHENTICATION_USERMENU_USERMENU_MODULE, [AUTHENTICATION_USER_MENU]);

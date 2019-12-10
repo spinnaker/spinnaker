@@ -2,8 +2,11 @@
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.core.serverGroup.configure.common.instanceArchetypeSelector', [
+export const CORE_SERVERGROUP_CONFIGURE_COMMON_INSTANCEARCHETYPESELECTOR =
+  'spinnaker.core.serverGroup.configure.common.instanceArchetypeSelector';
+export const name = CORE_SERVERGROUP_CONFIGURE_COMMON_INSTANCEARCHETYPESELECTOR; // for backwards compatibility
+angular
+  .module(CORE_SERVERGROUP_CONFIGURE_COMMON_INSTANCEARCHETYPESELECTOR, [
     require('./costFactor').name,
     require('../../../presentation/isVisible/isVisible.directive').name,
     require('./dirtyInstanceTypeNotification.component').name,

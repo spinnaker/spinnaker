@@ -2,8 +2,11 @@
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.core.pipeline.config.preconditions.config', [])
+export const CORE_PIPELINE_CONFIG_PRECONDITIONS_PRECONDITIONTYPECONFIG_PROVIDER =
+  'spinnaker.core.pipeline.config.preconditions.config';
+export const name = CORE_PIPELINE_CONFIG_PRECONDITIONS_PRECONDITIONTYPECONFIG_PROVIDER; // for backwards compatibility
+angular
+  .module(CORE_PIPELINE_CONFIG_PRECONDITIONS_PRECONDITIONTYPECONFIG_PROVIDER, [])
   .provider('preconditionTypeConfig', function() {
     var preconditionTypes = [];
 

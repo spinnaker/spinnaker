@@ -4,8 +4,11 @@ const angular = require('angular');
 
 import { SERVER_GROUP_WRITER, TaskMonitor } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.oracle.serverGroup.details.rollback.controller', [
+export const ORACLE_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER =
+  'spinnaker.oracle.serverGroup.details.rollback.controller';
+export const name = ORACLE_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER; // for backwards compatibility
+angular
+  .module(ORACLE_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [
     SERVER_GROUP_WRITER,
     require('oracle/common/footer.component').name,
   ])

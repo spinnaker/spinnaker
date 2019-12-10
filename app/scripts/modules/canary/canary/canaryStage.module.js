@@ -7,8 +7,10 @@ import { Registry } from '@spinnaker/core';
 import { CANARY_SCORE_COMPONENT } from './canaryScore.component';
 import { CANARY_SCORES_CONFIG_COMPONENT } from './canaryScores.component';
 
-module.exports = angular
-  .module('spinnaker.canary.stage', [
+export const CANARY_CANARY_CANARYSTAGE_MODULE = 'spinnaker.canary.stage';
+export const name = CANARY_CANARY_CANARYSTAGE_MODULE; // for backwards compatibility
+angular
+  .module(CANARY_CANARY_CANARYSTAGE_MODULE, [
     require('./canaryStage').name,
     require('./canaryExecutionDetails.controller').name,
     require('./canaryExecutionSummary.controller').name,

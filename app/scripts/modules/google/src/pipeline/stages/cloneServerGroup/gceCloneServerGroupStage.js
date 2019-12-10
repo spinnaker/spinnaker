@@ -5,8 +5,11 @@ import _ from 'lodash';
 
 import { AccountService, NameUtils, Registry, StageConstants } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.gce.pipeline.stage..cloneServerGroupStage', [])
+export const GOOGLE_PIPELINE_STAGES_CLONESERVERGROUP_GCECLONESERVERGROUPSTAGE =
+  'spinnaker.gce.pipeline.stage..cloneServerGroupStage';
+export const name = GOOGLE_PIPELINE_STAGES_CLONESERVERGROUP_GCECLONESERVERGROUPSTAGE; // for backwards compatibility
+angular
+  .module(GOOGLE_PIPELINE_STAGES_CLONESERVERGROUP_GCECLONESERVERGROUPSTAGE, [])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'cloneServerGroup',

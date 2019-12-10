@@ -5,8 +5,11 @@ import _ from 'lodash';
 
 import { GCE_HTTP_LOAD_BALANCER_UTILS } from 'google/loadBalancer/httpLoadBalancerUtils.service';
 
-module.exports = angular
-  .module('spinnaker.google.serverGroup.configure.wizard.loadBalancers.selector.directive', [
+export const GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_LOADBALANCERS_LOADBALANCERSELECTOR_DIRECTIVE =
+  'spinnaker.google.serverGroup.configure.wizard.loadBalancers.selector.directive';
+export const name = GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_LOADBALANCERS_LOADBALANCERSELECTOR_DIRECTIVE; // for backwards compatibility
+angular
+  .module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_LOADBALANCERS_LOADBALANCERSELECTOR_DIRECTIVE, [
     GCE_HTTP_LOAD_BALANCER_UTILS,
     require('./elSevenOptions/elSevenOptionsGenerator.component').name,
     require('../../serverGroupConfiguration.service').name,

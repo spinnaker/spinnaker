@@ -2,7 +2,9 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.forms.checklist.checklist.directive', []).directive('checklist', () => {
+export const CORE_FORMS_CHECKLIST_CHECKLIST_DIRECTIVE = 'spinnaker.core.forms.checklist.checklist.directive';
+export const name = CORE_FORMS_CHECKLIST_CHECKLIST_DIRECTIVE; // for backwards compatibility
+angular.module(CORE_FORMS_CHECKLIST_CHECKLIST_DIRECTIVE, []).directive('checklist', () => {
   return {
     restrict: 'E',
     templateUrl: require('./checklist.directive.html'),

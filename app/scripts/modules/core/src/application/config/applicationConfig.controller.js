@@ -9,8 +9,10 @@ import { DELETE_APPLICATION_SECTION } from './deleteApplicationSection.module';
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.core.application.config.controller', [
+export const CORE_APPLICATION_CONFIG_APPLICATIONCONFIG_CONTROLLER = 'spinnaker.core.application.config.controller';
+export const name = CORE_APPLICATION_CONFIG_APPLICATIONCONFIG_CONTROLLER; // for backwards compatibility
+angular
+  .module(CORE_APPLICATION_CONFIG_APPLICATIONCONFIG_CONTROLLER, [
     require('@uirouter/angularjs').default,
     require('./applicationAttributes.directive').name,
     require('./applicationNotifications.directive').name,

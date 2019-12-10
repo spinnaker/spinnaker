@@ -9,8 +9,11 @@ import { ScalingPolicyWriter } from './ScalingPolicyWriter';
 
 import './scalingPolicySummary.component.less';
 
-module.exports = angular
-  .module('spinnaker.amazon.serverGroup.details.scalingPolicy.alarmBasedSummary.component', [
+export const AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_ALARMBASEDSUMMARY_COMPONENT =
+  'spinnaker.amazon.serverGroup.details.scalingPolicy.alarmBasedSummary.component';
+export const name = AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_ALARMBASEDSUMMARY_COMPONENT; // for backwards compatibility
+angular
+  .module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_ALARMBASEDSUMMARY_COMPONENT, [
     require('./upsert/upsertScalingPolicy.controller').name,
     SCALING_POLICY_POPOVER,
     CONFIRMATION_MODAL_SERVICE,

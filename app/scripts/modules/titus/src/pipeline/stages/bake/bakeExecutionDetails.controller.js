@@ -4,8 +4,11 @@ const angular = require('angular');
 
 import { SETTINGS } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.titus.pipeline.stage.bake.executionDetails.controller', [require('@uirouter/angularjs').default])
+export const TITUS_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER =
+  'spinnaker.titus.pipeline.stage.bake.executionDetails.controller';
+export const name = TITUS_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER; // for backwards compatibility
+angular
+  .module(TITUS_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER, [require('@uirouter/angularjs').default])
   .controller('titusBakeExecutionDetailsCtrl', [
     '$scope',
     '$stateParams',

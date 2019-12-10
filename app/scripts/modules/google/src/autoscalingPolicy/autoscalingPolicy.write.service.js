@@ -4,8 +4,11 @@ const angular = require('angular');
 
 import { TaskExecutor } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.gce.serverGroup.details.scalingPolicy.write.service', [])
+export const GOOGLE_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_WRITE_SERVICE =
+  'spinnaker.gce.serverGroup.details.scalingPolicy.write.service';
+export const name = GOOGLE_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_WRITE_SERVICE; // for backwards compatibility
+angular
+  .module(GOOGLE_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_WRITE_SERVICE, [])
   .factory('gceAutoscalingPolicyWriter', function() {
     function upsertAutoscalingPolicy(application, serverGroup, policy, params = {}) {
       const job = {

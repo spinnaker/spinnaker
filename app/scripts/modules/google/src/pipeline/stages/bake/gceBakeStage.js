@@ -14,8 +14,10 @@ import {
   SETTINGS,
 } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.gce.pipeline.stage..bakeStage', [require('./bakeExecutionDetails.controller').name])
+export const GOOGLE_PIPELINE_STAGES_BAKE_GCEBAKESTAGE = 'spinnaker.gce.pipeline.stage..bakeStage';
+export const name = GOOGLE_PIPELINE_STAGES_BAKE_GCEBAKESTAGE; // for backwards compatibility
+angular
+  .module(GOOGLE_PIPELINE_STAGES_BAKE_GCEBAKESTAGE, [require('./bakeExecutionDetails.controller').name])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'bake',

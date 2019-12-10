@@ -12,8 +12,10 @@ import { SnapshotWriter } from '../SnapshotWriter';
 
 import './snapshotDiff.modal.less';
 
-module.exports = angular
-  .module('spinnaker.deck.core.snapshot.diff.modal.controller', [
+export const CORE_SNAPSHOT_DIFF_SNAPSHOTDIFF_MODAL_CONTROLLER = 'spinnaker.deck.core.snapshot.diff.modal.controller';
+export const name = CORE_SNAPSHOT_DIFF_SNAPSHOTDIFF_MODAL_CONTROLLER; // for backwards compatibility
+angular
+  .module(CORE_SNAPSHOT_DIFF_SNAPSHOTDIFF_MODAL_CONTROLLER, [
     CONFIRMATION_MODAL_SERVICE,
     DIFF_SUMMARY_COMPONENT,
     DIFF_VIEW_COMPONENT,

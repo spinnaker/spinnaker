@@ -4,66 +4,66 @@ const angular = require('angular');
 
 import { KubernetesProviderSettings } from '../../kubernetes.settings';
 
-module.exports = angular
-  .module('spinnaker.kubernetes.securityGroup.transformer', [])
-  .factory('kubernetesSecurityGroupTransformer', [
-    '$q',
-    function($q) {
-      function normalizeSecurityGroup(securityGroup) {
-        return $q.when(securityGroup); // no-op
-      }
+export const KUBERNETES_V1_SECURITYGROUP_TRANSFORMER = 'spinnaker.kubernetes.securityGroup.transformer';
+export const name = KUBERNETES_V1_SECURITYGROUP_TRANSFORMER; // for backwards compatibility
+angular.module(KUBERNETES_V1_SECURITYGROUP_TRANSFORMER, []).factory('kubernetesSecurityGroupTransformer', [
+  '$q',
+  function($q) {
+    function normalizeSecurityGroup(securityGroup) {
+      return $q.when(securityGroup); // no-op
+    }
 
-      function constructNewSecurityGroupTemplate() {
-        return {
-          provider: 'kubernetes',
-          stack: '',
-          detail: '',
-          account: KubernetesProviderSettings.defaults.account,
-          namespace: KubernetesProviderSettings.defaults.namespace,
-          ingress: {
-            serviceName: '',
-            port: null,
-          },
-
-          rules: [],
-          tls: [],
-        };
-      }
-
-      function constructNewIngressRule() {
-        return {
-          host: '',
-          value: {
-            http: {
-              paths: [],
-            },
-          },
-        };
-      }
-
-      function constructNewIngressPath() {
-        return {
-          path: '/',
-          ingress: {
-            serviceName: '',
-            port: null,
-          },
-        };
-      }
-
-      function constructNewIngressTLS() {
-        return {
-          hosts: [],
-          secretName: '',
-        };
-      }
-
+    function constructNewSecurityGroupTemplate() {
       return {
-        normalizeSecurityGroup: normalizeSecurityGroup,
-        constructNewSecurityGroupTemplate: constructNewSecurityGroupTemplate,
-        constructNewIngressRule: constructNewIngressRule,
-        constructNewIngressPath: constructNewIngressPath,
-        constructNewIngressTLS: constructNewIngressTLS,
+        provider: 'kubernetes',
+        stack: '',
+        detail: '',
+        account: KubernetesProviderSettings.defaults.account,
+        namespace: KubernetesProviderSettings.defaults.namespace,
+        ingress: {
+          serviceName: '',
+          port: null,
+        },
+
+        rules: [],
+        tls: [],
       };
-    },
-  ]);
+    }
+
+    function constructNewIngressRule() {
+      return {
+        host: '',
+        value: {
+          http: {
+            paths: [],
+          },
+        },
+      };
+    }
+
+    function constructNewIngressPath() {
+      return {
+        path: '/',
+        ingress: {
+          serviceName: '',
+          port: null,
+        },
+      };
+    }
+
+    function constructNewIngressTLS() {
+      return {
+        hosts: [],
+        secretName: '',
+      };
+    }
+
+    return {
+      normalizeSecurityGroup: normalizeSecurityGroup,
+      constructNewSecurityGroupTemplate: constructNewSecurityGroupTemplate,
+      constructNewIngressRule: constructNewIngressRule,
+      constructNewIngressPath: constructNewIngressPath,
+      constructNewIngressTLS: constructNewIngressTLS,
+    };
+  },
+]);

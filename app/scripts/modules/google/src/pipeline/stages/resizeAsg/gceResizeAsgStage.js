@@ -4,8 +4,10 @@ const angular = require('angular');
 
 import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.gce.pipeline.stage..resizeAsgStage', [])
+export const GOOGLE_PIPELINE_STAGES_RESIZEASG_GCERESIZEASGSTAGE = 'spinnaker.gce.pipeline.stage..resizeAsgStage';
+export const name = GOOGLE_PIPELINE_STAGES_RESIZEASG_GCERESIZEASGSTAGE; // for backwards compatibility
+angular
+  .module(GOOGLE_PIPELINE_STAGES_RESIZEASG_GCERESIZEASGSTAGE, [])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'resizeServerGroup',

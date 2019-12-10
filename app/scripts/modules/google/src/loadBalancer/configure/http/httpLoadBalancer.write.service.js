@@ -4,8 +4,11 @@ const angular = require('angular');
 
 import { InfrastructureCaches, TaskExecutor } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.deck.gce.httpLoadBalancer.write.service', [])
+export const GOOGLE_LOADBALANCER_CONFIGURE_HTTP_HTTPLOADBALANCER_WRITE_SERVICE =
+  'spinnaker.deck.gce.httpLoadBalancer.write.service';
+export const name = GOOGLE_LOADBALANCER_CONFIGURE_HTTP_HTTPLOADBALANCER_WRITE_SERVICE; // for backwards compatibility
+angular
+  .module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_HTTPLOADBALANCER_WRITE_SERVICE, [])
   .factory('gceHttpLoadBalancerWriter', function() {
     function upsertLoadBalancers(loadBalancers, application, descriptor) {
       loadBalancers.forEach(lb => {

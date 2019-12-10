@@ -4,8 +4,11 @@ const angular = require('angular');
 
 import { BakeryReader, Registry } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.oracle.pipeline.stage.findImageFromTagsStage', [])
+export const ORACLE_PIPELINE_STAGES_FINDIMAGEFROMTAGS_ORACLEFINDIMAGEFROMTAGSSTAGE =
+  'spinnaker.oracle.pipeline.stage.findImageFromTagsStage';
+export const name = ORACLE_PIPELINE_STAGES_FINDIMAGEFROMTAGS_ORACLEFINDIMAGEFROMTAGSSTAGE; // for backwards compatibility
+angular
+  .module(ORACLE_PIPELINE_STAGES_FINDIMAGEFROMTAGS_ORACLEFINDIMAGEFROMTAGSSTAGE, [])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'findImageFromTags',

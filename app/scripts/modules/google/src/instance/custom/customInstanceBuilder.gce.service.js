@@ -4,8 +4,11 @@ import _ from 'lodash';
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.serverGroup.customInstanceBuilder.gce.service', [])
+export const GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCEBUILDER_GCE_SERVICE =
+  'spinnaker.serverGroup.customInstanceBuilder.gce.service';
+export const name = GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCEBUILDER_GCE_SERVICE; // for backwards compatibility
+angular
+  .module(GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCEBUILDER_GCE_SERVICE, [])
   .factory('gceCustomInstanceBuilderService', function() {
     function vCpuCountForLocationIsValid(vCpuCount, location, locationToInstanceTypesMap) {
       const max = locationToInstanceTypesMap[location].vCpuMax;

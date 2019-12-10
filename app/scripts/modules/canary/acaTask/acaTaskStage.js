@@ -6,8 +6,10 @@ import { AccountService, AuthenticationService, Registry, SETTINGS } from '@spin
 
 import { CanaryExecutionLabel } from '../canary/CanaryExecutionLabel';
 
-module.exports = angular
-  .module('spinnaker.canary.acaTaskStage', [require('../canary/canaryExecutionSummary.controller').name])
+export const CANARY_ACATASK_ACATASKSTAGE = 'spinnaker.canary.acaTaskStage';
+export const name = CANARY_ACATASK_ACATASKSTAGE; // for backwards compatibility
+angular
+  .module(CANARY_ACATASK_ACATASKSTAGE, [require('../canary/canaryExecutionSummary.controller').name])
   .config(function() {
     if (SETTINGS.feature.canary) {
       Registry.pipeline.registerStage({

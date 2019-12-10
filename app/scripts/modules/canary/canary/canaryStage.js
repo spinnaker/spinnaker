@@ -18,11 +18,10 @@ import {
 import { CanaryExecutionLabel } from './CanaryExecutionLabel';
 import { CANARY_ANALYSIS_NAME_SELECTOR_COMPONENT } from './canaryAnalysisNameSelector.component';
 
-module.exports = angular
-  .module('spinnaker.canary.canaryStage', [
-    SERVER_GROUP_COMMAND_BUILDER_SERVICE,
-    CANARY_ANALYSIS_NAME_SELECTOR_COMPONENT,
-  ])
+export const CANARY_CANARY_CANARYSTAGE = 'spinnaker.canary.canaryStage';
+export const name = CANARY_CANARY_CANARYSTAGE; // for backwards compatibility
+angular
+  .module(CANARY_CANARY_CANARYSTAGE, [SERVER_GROUP_COMMAND_BUILDER_SERVICE, CANARY_ANALYSIS_NAME_SELECTOR_COMPONENT])
   .config(function() {
     function isExpression(value) {
       return isString(value) && value.includes('${');

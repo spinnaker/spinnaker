@@ -5,8 +5,11 @@ import { AccountService } from 'core/account/AccountService';
 import { AppListExtractor } from 'core/application/listExtractor/AppListExtractor';
 import { isNil, first } from 'lodash';
 
-module.exports = angular
-  .module('spinnaker.core.pipeline.config.preconditions.selector', [])
+export const CORE_PIPELINE_CONFIG_PRECONDITIONS_SELECTOR_PRECONDITIONSELECTOR_DIRECTIVE =
+  'spinnaker.core.pipeline.config.preconditions.selector';
+export const name = CORE_PIPELINE_CONFIG_PRECONDITIONS_SELECTOR_PRECONDITIONSELECTOR_DIRECTIVE; // for backwards compatibility
+angular
+  .module(CORE_PIPELINE_CONFIG_PRECONDITIONS_SELECTOR_PRECONDITIONSELECTOR_DIRECTIVE, [])
   .directive('preconditionSelector', function() {
     return {
       restrict: 'E',

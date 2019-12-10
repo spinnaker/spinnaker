@@ -2,8 +2,13 @@
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.deck.gce.elSevenOptionsGenerator.component', [require('./backendServiceSelector.component').name])
+export const GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_LOADBALANCERS_ELSEVENOPTIONS_ELSEVENOPTIONSGENERATOR_COMPONENT =
+  'spinnaker.deck.gce.elSevenOptionsGenerator.component';
+export const name = GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_LOADBALANCERS_ELSEVENOPTIONS_ELSEVENOPTIONSGENERATOR_COMPONENT; // for backwards compatibility
+angular
+  .module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_LOADBALANCERS_ELSEVENOPTIONS_ELSEVENOPTIONSGENERATOR_COMPONENT, [
+    require('./backendServiceSelector.component').name,
+  ])
   .directive('gceElSevenOptionsGenerator', [
     '$compile',
     function($compile) {

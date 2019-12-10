@@ -7,8 +7,11 @@ import { NameUtils } from 'core/naming';
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.core.serverGroup.basicSettings.controller', [
+export const CORE_SERVERGROUP_CONFIGURE_COMMON_BASICSETTINGSMIXIN_CONTROLLER =
+  'spinnaker.core.serverGroup.basicSettings.controller';
+export const name = CORE_SERVERGROUP_CONFIGURE_COMMON_BASICSETTINGSMIXIN_CONTROLLER; // for backwards compatibility
+angular
+  .module(CORE_SERVERGROUP_CONFIGURE_COMMON_BASICSETTINGSMIXIN_CONTROLLER, [
     require('angular-ui-bootstrap'),
     require('@uirouter/angularjs').default,
     IMAGE_READER,

@@ -4,8 +4,10 @@ const angular = require('angular');
 
 import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.dcos.pipeline.stage.disableAsgStage', [])
+export const DCOS_PIPELINE_STAGES_DISABLEASG_DCOSDISABLEASGSTAGE = 'spinnaker.dcos.pipeline.stage.disableAsgStage';
+export const name = DCOS_PIPELINE_STAGES_DISABLEASG_DCOSDISABLEASGSTAGE; // for backwards compatibility
+angular
+  .module(DCOS_PIPELINE_STAGES_DISABLEASG_DCOSDISABLEASGSTAGE, [])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'disableServerGroup',

@@ -9,8 +9,10 @@ import { StageConstants } from 'core/pipeline/config/stages/stageConstants';
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.core.pipeline.stage.deployStage', [SERVER_GROUP_COMMAND_BUILDER_SERVICE, CLUSTER_SERVICE])
+export const CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYSTAGE = 'spinnaker.core.pipeline.stage.deployStage';
+export const name = CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYSTAGE; // for backwards compatibility
+angular
+  .module(CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYSTAGE, [SERVER_GROUP_COMMAND_BUILDER_SERVICE, CLUSTER_SERVICE])
   .config([
     'clusterServiceProvider',
     function(clusterServiceProvider) {

@@ -5,8 +5,11 @@ import _ from 'lodash';
 
 import { CONFIRMATION_MODAL_SERVICE, SECURITY_GROUP_READER, FirewallLabels } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.azure.securityGroup.azure.details.controller', [
+export const AZURE_SECURITYGROUP_DETAILS_SECURITYGROUPDETAIL_CONTROLLER =
+  'spinnaker.azure.securityGroup.azure.details.controller';
+export const name = AZURE_SECURITYGROUP_DETAILS_SECURITYGROUPDETAIL_CONTROLLER; // for backwards compatibility
+angular
+  .module(AZURE_SECURITYGROUP_DETAILS_SECURITYGROUPDETAIL_CONTROLLER, [
     require('@uirouter/angularjs').default,
     SECURITY_GROUP_READER,
     require('../securityGroup.write.service').name,

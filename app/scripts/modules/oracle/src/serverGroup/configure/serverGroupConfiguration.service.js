@@ -6,8 +6,11 @@ import _ from 'lodash';
 import { AccountService, NetworkReader, SECURITY_GROUP_READER, SubnetReader } from '@spinnaker/core';
 import { OracleProviderSettings } from '../../oracle.settings';
 
-module.exports = angular
-  .module('spinnaker.oracle.serverGroup.configure.configuration.service', [SECURITY_GROUP_READER])
+export const ORACLE_SERVERGROUP_CONFIGURE_SERVERGROUPCONFIGURATION_SERVICE =
+  'spinnaker.oracle.serverGroup.configure.configuration.service';
+export const name = ORACLE_SERVERGROUP_CONFIGURE_SERVERGROUPCONFIGURATION_SERVICE; // for backwards compatibility
+angular
+  .module(ORACLE_SERVERGROUP_CONFIGURE_SERVERGROUPCONFIGURATION_SERVICE, [SECURITY_GROUP_READER])
   .factory('oracleServerGroupConfigurationService', [
     '$q',
     'oracleImageReader',

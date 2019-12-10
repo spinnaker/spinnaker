@@ -4,8 +4,11 @@ const angular = require('angular');
 
 import { TaskMonitor } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.oracle.serverGroup.details.resize.controller', [
+export const ORACLE_SERVERGROUP_DETAILS_RESIZE_RESIZESERVERGROUP_CONTROLLER =
+  'spinnaker.oracle.serverGroup.details.resize.controller';
+export const name = ORACLE_SERVERGROUP_DETAILS_RESIZE_RESIZESERVERGROUP_CONTROLLER; // for backwards compatibility
+angular
+  .module(ORACLE_SERVERGROUP_DETAILS_RESIZE_RESIZESERVERGROUP_CONTROLLER, [
     require('./resizeCapacity.component').name,
     require('oracle/common/footer.component').name,
   ])

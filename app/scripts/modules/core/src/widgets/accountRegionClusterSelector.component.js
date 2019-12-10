@@ -7,8 +7,11 @@ const angular = require('angular');
 import { AccountService } from 'core/account/AccountService';
 import { AppListExtractor } from 'core/application/listExtractor/AppListExtractor';
 
-module.exports = angular
-  .module('spinnaker.core.accountRegionClusterSelector.directive', [])
+export const CORE_WIDGETS_ACCOUNTREGIONCLUSTERSELECTOR_COMPONENT =
+  'spinnaker.core.accountRegionClusterSelector.directive';
+export const name = CORE_WIDGETS_ACCOUNTREGIONCLUSTERSELECTOR_COMPONENT; // for backwards compatibility
+angular
+  .module(CORE_WIDGETS_ACCOUNTREGIONCLUSTERSELECTOR_COMPONENT, [])
   .directive('accountRegionClusterSelector', function() {
     return {
       restrict: 'E',

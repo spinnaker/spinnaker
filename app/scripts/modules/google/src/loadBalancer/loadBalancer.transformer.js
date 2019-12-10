@@ -6,7 +6,9 @@ import { GCEProviderSettings } from '../gce.settings';
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.gce.loadBalancer.transformer', []).factory('gceLoadBalancerTransformer', [
+export const GOOGLE_LOADBALANCER_LOADBALANCER_TRANSFORMER = 'spinnaker.gce.loadBalancer.transformer';
+export const name = GOOGLE_LOADBALANCER_LOADBALANCER_TRANSFORMER; // for backwards compatibility
+angular.module(GOOGLE_LOADBALANCER_LOADBALANCER_TRANSFORMER, []).factory('gceLoadBalancerTransformer', [
   '$q',
   function($q) {
     function updateHealthCounts(container) {

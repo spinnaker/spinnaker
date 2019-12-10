@@ -4,8 +4,11 @@ const angular = require('angular');
 
 import { AccountService, Registry } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.kubernetes.pipeline.stage.shrinkClusterStage', [])
+export const KUBERNETES_V1_PIPELINE_STAGES_SHRINKCLUSTER_SHRINKCLUSTERSTAGE =
+  'spinnaker.kubernetes.pipeline.stage.shrinkClusterStage';
+export const name = KUBERNETES_V1_PIPELINE_STAGES_SHRINKCLUSTER_SHRINKCLUSTERSTAGE; // for backwards compatibility
+angular
+  .module(KUBERNETES_V1_PIPELINE_STAGES_SHRINKCLUSTER_SHRINKCLUSTERSTAGE, [])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'shrinkCluster',

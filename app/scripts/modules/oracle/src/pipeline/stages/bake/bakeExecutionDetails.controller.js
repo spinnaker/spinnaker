@@ -4,8 +4,11 @@ import { EXECUTION_DETAILS_SECTION_SERVICE, SETTINGS } from '@spinnaker/core';
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.oracle.pipeline.stage.bake.executionDetails.controller', [
+export const ORACLE_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER =
+  'spinnaker.oracle.pipeline.stage.bake.executionDetails.controller';
+export const name = ORACLE_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER; // for backwards compatibility
+angular
+  .module(ORACLE_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER, [
     EXECUTION_DETAILS_SECTION_SERVICE,
     require('@uirouter/angularjs').default,
   ])

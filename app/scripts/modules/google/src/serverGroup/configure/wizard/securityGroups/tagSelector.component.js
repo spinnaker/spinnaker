@@ -2,8 +2,13 @@
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.deck.gce.tagSelector.component', [require('./tagManager.service').name])
+export const GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGSELECTOR_COMPONENT =
+  'spinnaker.deck.gce.tagSelector.component';
+export const name = GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGSELECTOR_COMPONENT; // for backwards compatibility
+angular
+  .module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGSELECTOR_COMPONENT, [
+    require('./tagManager.service').name,
+  ])
   .component('gceTagSelector', {
     bindings: {
       command: '=',

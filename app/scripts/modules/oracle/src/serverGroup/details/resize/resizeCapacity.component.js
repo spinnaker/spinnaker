@@ -5,8 +5,11 @@ import _ from 'lodash';
 
 import { SERVER_GROUP_WRITER } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.oracle.serverGroup.details.resize.capacity.component', [SERVER_GROUP_WRITER])
+export const ORACLE_SERVERGROUP_DETAILS_RESIZE_RESIZECAPACITY_COMPONENT =
+  'spinnaker.oracle.serverGroup.details.resize.capacity.component';
+export const name = ORACLE_SERVERGROUP_DETAILS_RESIZE_RESIZECAPACITY_COMPONENT; // for backwards compatibility
+angular
+  .module(ORACLE_SERVERGROUP_DETAILS_RESIZE_RESIZECAPACITY_COMPONENT, [SERVER_GROUP_WRITER])
   .component('oracleResizeCapacity', {
     bindings: {
       command: '=',

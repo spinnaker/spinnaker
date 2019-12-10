@@ -5,8 +5,11 @@ import _ from 'lodash';
 
 import { SERVER_GROUP_WRITER } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.google.serverGroup.details.resize.capacity.component', [SERVER_GROUP_WRITER])
+export const GOOGLE_SERVERGROUP_DETAILS_RESIZE_RESIZECAPACITY_COMPONENT =
+  'spinnaker.google.serverGroup.details.resize.capacity.component';
+export const name = GOOGLE_SERVERGROUP_DETAILS_RESIZE_RESIZECAPACITY_COMPONENT; // for backwards compatibility
+angular
+  .module(GOOGLE_SERVERGROUP_DETAILS_RESIZE_RESIZECAPACITY_COMPONENT, [SERVER_GROUP_WRITER])
   .component('gceResizeCapacity', {
     bindings: {
       command: '=',

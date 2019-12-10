@@ -5,7 +5,9 @@ import { KUBERNETES_SERVER_GROUP_CONTAINER_DETAIL } from './containerDetail.comp
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.serverGroup.details.kubernetes', [
+export const KUBERNETES_V1_SERVERGROUP_DETAILS_DETAILS_KUBERNETES_MODULE = 'spinnaker.serverGroup.details.kubernetes';
+export const name = KUBERNETES_V1_SERVERGROUP_DETAILS_DETAILS_KUBERNETES_MODULE; // for backwards compatibility
+angular.module(KUBERNETES_V1_SERVERGROUP_DETAILS_DETAILS_KUBERNETES_MODULE, [
   require('./details.controller').name,
   require('./resize/resize.controller').name,
   require('./rollback/rollback.controller').name,

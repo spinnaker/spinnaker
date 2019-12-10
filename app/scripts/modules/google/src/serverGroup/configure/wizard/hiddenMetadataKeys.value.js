@@ -2,8 +2,11 @@
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.deck.gce.serverGroup.hiddenMetadataKeys.value', [])
+export const GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_HIDDENMETADATAKEYS_VALUE =
+  'spinnaker.deck.gce.serverGroup.hiddenMetadataKeys.value';
+export const name = GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_HIDDENMETADATAKEYS_VALUE; // for backwards compatibility
+angular
+  .module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_HIDDENMETADATAKEYS_VALUE, [])
   .value('gceServerGroupHiddenMetadataKeys', [
     'load-balancer-names',
     'global-load-balancer-names',

@@ -7,8 +7,11 @@ import { AccountService, PipelineConfigService } from '@spinnaker/core';
 import { KUBERNETES_LIFECYCLE_HOOK_CONFIGURER } from 'kubernetes/v1/container/lifecycleHook.component';
 import { KUBERNETES_CONTAINER_ENVIRONMENT_FROM } from 'kubernetes/v1/container/environmentFrom.component';
 
-module.exports = angular
-  .module('spinnaker.kubernetes.pipeline.stage.runJobStage.configure', [
+export const KUBERNETES_V1_PIPELINE_STAGES_RUNJOB_CONFIGUREJOB_CONTROLLER =
+  'spinnaker.kubernetes.pipeline.stage.runJobStage.configure';
+export const name = KUBERNETES_V1_PIPELINE_STAGES_RUNJOB_CONFIGUREJOB_CONTROLLER; // for backwards compatibility
+angular
+  .module(KUBERNETES_V1_PIPELINE_STAGES_RUNJOB_CONFIGUREJOB_CONTROLLER, [
     require('kubernetes/v1/container/commands.component').name,
     require('kubernetes/v1/container/arguments.component').name,
     require('kubernetes/v1/container/environmentVariables.component').name,

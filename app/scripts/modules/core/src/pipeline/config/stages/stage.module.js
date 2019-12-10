@@ -20,8 +20,10 @@ import { PRODUCES_ARTIFACTS_REACT } from './producesArtifacts/ProducesArtifacts'
 import { OVERRRIDE_FAILURE } from './overrideFailure/overrideFailure.module';
 import { OVERRIDE_TIMEOUT_COMPONENT } from './overrideTimeout/overrideTimeout.module';
 
-module.exports = angular
-  .module('spinnaker.core.pipeline.config.stage', [
+export const CORE_PIPELINE_CONFIG_STAGES_STAGE_MODULE = 'spinnaker.core.pipeline.config.stage';
+export const name = CORE_PIPELINE_CONFIG_STAGES_STAGE_MODULE; // for backwards compatibility
+angular
+  .module(CORE_PIPELINE_CONFIG_STAGES_STAGE_MODULE, [
     PRODUCES_ARTIFACTS_REACT,
     BASE_EXECUTION_DETAILS_CTRL,
     STAGE_NAME,

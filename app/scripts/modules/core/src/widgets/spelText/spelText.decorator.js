@@ -64,7 +64,9 @@ function decorateFn($delegate, spelAutocomplete) {
   return $delegate;
 }
 
-module.exports = angular.module('spinnaker.core.widget.spelText', [require('./spelAutocomplete.service').name]).config([
+export const CORE_WIDGETS_SPELTEXT_SPELTEXT_DECORATOR = 'spinnaker.core.widget.spelText';
+export const name = CORE_WIDGETS_SPELTEXT_SPELTEXT_DECORATOR; // for backwards compatibility
+angular.module(CORE_WIDGETS_SPELTEXT_SPELTEXT_DECORATOR, [require('./spelAutocomplete.service').name]).config([
   '$provide',
   function($provide) {
     $provide.decorator('inputDirective', decorateFn);

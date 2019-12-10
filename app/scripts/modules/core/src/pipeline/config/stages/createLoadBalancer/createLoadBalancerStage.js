@@ -6,8 +6,11 @@ import { SETTINGS } from 'core/config/settings';
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.core.pipeline.stage.createLoadBalancerStage', [])
+export const CORE_PIPELINE_CONFIG_STAGES_CREATELOADBALANCER_CREATELOADBALANCERSTAGE =
+  'spinnaker.core.pipeline.stage.createLoadBalancerStage';
+export const name = CORE_PIPELINE_CONFIG_STAGES_CREATELOADBALANCER_CREATELOADBALANCERSTAGE; // for backwards compatibility
+angular
+  .module(CORE_PIPELINE_CONFIG_STAGES_CREATELOADBALANCER_CREATELOADBALANCERSTAGE, [])
   .config(function() {
     // Register this stage only if infrastructure stages are enabled in settings.js
     if (SETTINGS.feature.infrastructureStages) {

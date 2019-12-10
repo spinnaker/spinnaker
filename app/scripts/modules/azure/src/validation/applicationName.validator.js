@@ -4,8 +4,10 @@ const angular = require('angular');
 
 import { ApplicationNameValidator } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.azure.validation.applicationName', [])
+export const AZURE_VALIDATION_APPLICATIONNAME_VALIDATOR = 'spinnaker.azure.validation.applicationName';
+export const name = AZURE_VALIDATION_APPLICATIONNAME_VALIDATOR; // for backwards compatibility
+angular
+  .module(AZURE_VALIDATION_APPLICATIONNAME_VALIDATOR, [])
   .factory('azureApplicationNameValidator', function() {
     function validateSpecialCharacters(name, errors) {
       const pattern = /^([a-zA-Z][a-zA-Z0-9]*)?$/;

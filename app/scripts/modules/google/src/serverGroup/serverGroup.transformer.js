@@ -5,8 +5,10 @@ import { GCE_HTTP_LOAD_BALANCER_UTILS } from 'google/loadBalancer/httpLoadBalanc
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.gce.serverGroup.transformer', [GCE_HTTP_LOAD_BALANCER_UTILS])
+export const GOOGLE_SERVERGROUP_SERVERGROUP_TRANSFORMER = 'spinnaker.gce.serverGroup.transformer';
+export const name = GOOGLE_SERVERGROUP_SERVERGROUP_TRANSFORMER; // for backwards compatibility
+angular
+  .module(GOOGLE_SERVERGROUP_SERVERGROUP_TRANSFORMER, [GCE_HTTP_LOAD_BALANCER_UTILS])
   .factory('gceServerGroupTransformer', [
     'gceHttpLoadBalancerUtils',
     function(gceHttpLoadBalancerUtils) {

@@ -4,8 +4,11 @@ const angular = require('angular');
 
 import { IMAGE_READER } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.oracle.serverGroup.configure.wizard.basicSettings.controller', [
+export const ORACLE_SERVERGROUP_CONFIGURE_WIZARD_BASICSETTINGS_BASICSETTINGS_CONTROLLER =
+  'spinnaker.oracle.serverGroup.configure.wizard.basicSettings.controller';
+export const name = ORACLE_SERVERGROUP_CONFIGURE_WIZARD_BASICSETTINGS_BASICSETTINGS_CONTROLLER; // for backwards compatibility
+angular
+  .module(ORACLE_SERVERGROUP_CONFIGURE_WIZARD_BASICSETTINGS_BASICSETTINGS_CONTROLLER, [
     require('@uirouter/angularjs').default,
     require('angular-ui-bootstrap'),
     IMAGE_READER,

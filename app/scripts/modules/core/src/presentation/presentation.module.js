@@ -15,8 +15,10 @@ import './details.less';
 import './main.less';
 import './navPopover.less';
 
-module.exports = angular
-  .module('spinnaker.core.presentation', [
+export const CORE_PRESENTATION_PRESENTATION_MODULE = 'spinnaker.core.presentation';
+export const name = CORE_PRESENTATION_PRESENTATION_MODULE; // for backwards compatibility
+angular
+  .module(CORE_PRESENTATION_PRESENTATION_MODULE, [
     ANY_FIELD_FILTER,
     AUTO_SCROLL_DIRECTIVE,
     PAGE_NAVIGATOR_COMPONENT,

@@ -4,8 +4,11 @@ const angular = require('angular');
 
 import { AccountService, LoadBalancerWriter, TaskMonitor, ModalWizard } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.loadBalancer.gce.create.controller', [
+export const GOOGLE_LOADBALANCER_CONFIGURE_NETWORK_CREATELOADBALANCER_CONTROLLER =
+  'spinnaker.loadBalancer.gce.create.controller';
+export const name = GOOGLE_LOADBALANCER_CONFIGURE_NETWORK_CREATELOADBALANCER_CONTROLLER; // for backwards compatibility
+angular
+  .module(GOOGLE_LOADBALANCER_CONFIGURE_NETWORK_CREATELOADBALANCER_CONTROLLER, [
     require('@uirouter/angularjs').default,
     require('../../loadBalancer.transformer').name,
     require('../../../gceRegionSelectField.directive').name,

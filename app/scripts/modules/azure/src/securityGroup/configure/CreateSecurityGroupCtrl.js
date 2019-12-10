@@ -5,8 +5,10 @@ const _ = require('lodash');
 
 import { AccountService, FirewallLabels, NetworkReader, TaskMonitor } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.azure.securityGroup.create.controller', [
+export const AZURE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUPCTRL = 'spinnaker.azure.securityGroup.create.controller';
+export const name = AZURE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUPCTRL; // for backwards compatibility
+angular
+  .module(AZURE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUPCTRL, [
     require('@uirouter/angularjs').default,
     require('../securityGroup.write.service').name,
   ])

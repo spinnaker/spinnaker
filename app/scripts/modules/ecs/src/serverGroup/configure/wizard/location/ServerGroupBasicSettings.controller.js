@@ -4,8 +4,11 @@ const angular = require('angular');
 
 import { ModalWizard } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.ecs.serverGroup.configure.basicSettings', [
+export const ECS_SERVERGROUP_CONFIGURE_WIZARD_LOCATION_SERVERGROUPBASICSETTINGS_CONTROLLER =
+  'spinnaker.ecs.serverGroup.configure.basicSettings';
+export const name = ECS_SERVERGROUP_CONFIGURE_WIZARD_LOCATION_SERVERGROUPBASICSETTINGS_CONTROLLER; // for backwards compatibility
+angular
+  .module(ECS_SERVERGROUP_CONFIGURE_WIZARD_LOCATION_SERVERGROUPBASICSETTINGS_CONTROLLER, [
     require('@uirouter/angularjs').default,
     require('angular-ui-bootstrap'),
   ])

@@ -12,8 +12,10 @@ import {
   SETTINGS,
 } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.ecs.instance.details.controller', [
+export const ECS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER = 'spinnaker.ecs.instance.details.controller';
+export const name = ECS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER; // for backwards compatibility
+angular
+  .module(ECS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     require('@uirouter/angularjs').default,
     require('angular-ui-bootstrap'),
     CONFIRMATION_MODAL_SERVICE,

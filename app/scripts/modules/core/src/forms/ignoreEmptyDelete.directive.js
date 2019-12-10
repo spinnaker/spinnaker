@@ -2,7 +2,9 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.utils.ignoreEmptyDelete.directive', [require('ui-select')]).config([
+export const CORE_FORMS_IGNOREEMPTYDELETE_DIRECTIVE = 'spinnaker.core.utils.ignoreEmptyDelete.directive';
+export const name = CORE_FORMS_IGNOREEMPTYDELETE_DIRECTIVE; // for backwards compatibility
+angular.module(CORE_FORMS_IGNOREEMPTYDELETE_DIRECTIVE, [require('ui-select')]).config([
   '$provide',
   function($provide) {
     $provide.decorator('uiSelectMultipleDirective', [

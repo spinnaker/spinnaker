@@ -13,8 +13,11 @@ import { GCEProviderSettings } from 'google/gce.settings';
 import { sessionAffinityModelToViewMap } from '../common/sessionAffinityNameMaps';
 import { HttpLoadBalancerTemplate, ListenerTemplate } from './templates';
 
-module.exports = angular
-  .module('spinnaker.deck.gce.httpLoadBalancer.backing.service', [
+export const GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE =
+  'spinnaker.deck.gce.httpLoadBalancer.backing.service';
+export const name = GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE; // for backwards compatibility
+angular
+  .module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE, [
     require('../../../backendService/backendService.reader').name,
     GCE_CERTIFICATE_READER,
     LOAD_BALANCER_READ_SERVICE,

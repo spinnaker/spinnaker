@@ -4,8 +4,11 @@ const angular = require('angular');
 
 import { AccountService, Registry } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.amazon.pipeline.stage.disableClusterStage', [])
+export const AMAZON_PIPELINE_STAGES_DISABLECLUSTER_AWSDISABLECLUSTERSTAGE =
+  'spinnaker.amazon.pipeline.stage.disableClusterStage';
+export const name = AMAZON_PIPELINE_STAGES_DISABLECLUSTER_AWSDISABLECLUSTERSTAGE; // for backwards compatibility
+angular
+  .module(AMAZON_PIPELINE_STAGES_DISABLECLUSTER_AWSDISABLECLUSTERSTAGE, [])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'disableCluster',

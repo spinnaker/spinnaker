@@ -6,8 +6,10 @@ import { InstanceTemplates } from 'core/instance/templates';
 
 import './consoleOutput.modal.less';
 
-module.exports = angular
-  .module('spinnaker.core.instance.details.console.link', [
+export const CORE_INSTANCE_DETAILS_CONSOLE_CONSOLEOUTPUTLINK_DIRECTIVE = 'spinnaker.core.instance.details.console.link';
+export const name = CORE_INSTANCE_DETAILS_CONSOLE_CONSOLEOUTPUTLINK_DIRECTIVE; // for backwards compatibility
+angular
+  .module(CORE_INSTANCE_DETAILS_CONSOLE_CONSOLEOUTPUTLINK_DIRECTIVE, [
     require('angular-ui-bootstrap'),
     require('./consoleOutput.modal.controller').name,
   ])

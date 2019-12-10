@@ -2,14 +2,14 @@
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.oracle.securityGroup.reader', [])
-  .factory('oracleSecurityGroupReader', function() {
-    function resolveIndexedSecurityGroup(indexedSecurityGroups, container, securityGroupId) {
-      return indexedSecurityGroups[container.account][container.region][securityGroupId];
-    }
+export const ORACLE_SECURITYGROUP_SECURITYGROUP_READER = 'spinnaker.oracle.securityGroup.reader';
+export const name = ORACLE_SECURITYGROUP_SECURITYGROUP_READER; // for backwards compatibility
+angular.module(ORACLE_SECURITYGROUP_SECURITYGROUP_READER, []).factory('oracleSecurityGroupReader', function() {
+  function resolveIndexedSecurityGroup(indexedSecurityGroups, container, securityGroupId) {
+    return indexedSecurityGroups[container.account][container.region][securityGroupId];
+  }
 
-    return {
-      resolveIndexedSecurityGroup: resolveIndexedSecurityGroup,
-    };
-  });
+  return {
+    resolveIndexedSecurityGroup: resolveIndexedSecurityGroup,
+  };
+});

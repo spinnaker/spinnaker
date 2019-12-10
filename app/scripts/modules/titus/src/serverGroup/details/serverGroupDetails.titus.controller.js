@@ -25,8 +25,11 @@ import { SCALING_POLICY_MODULE } from './scalingPolicy/scalingPolicy.module';
 import { TitusCloneServerGroupModal } from '../configure/wizard/TitusCloneServerGroupModal';
 import { TITUS_SECURITY_GROUPS_DETAILS } from './titusSecurityGroups.component';
 
-module.exports = angular
-  .module('spinnaker.serverGroup.details.titus.controller', [
+export const TITUS_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_TITUS_CONTROLLER =
+  'spinnaker.serverGroup.details.titus.controller';
+export const name = TITUS_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_TITUS_CONTROLLER; // for backwards compatibility
+angular
+  .module(TITUS_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_TITUS_CONTROLLER, [
     require('@uirouter/angularjs').default,
     require('../configure/ServerGroupCommandBuilder').name,
     CONFIRMATION_MODAL_SERVICE,

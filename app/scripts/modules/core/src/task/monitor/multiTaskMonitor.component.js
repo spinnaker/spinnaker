@@ -4,7 +4,9 @@ const angular = require('angular');
 
 import './multiTaskMonitor.component.less';
 
-module.exports = angular.module('spinnaker.core.task.monitor.multiTaskMonitor', []).component('multiTaskMonitor', {
+export const CORE_TASK_MONITOR_MULTITASKMONITOR_COMPONENT = 'spinnaker.core.task.monitor.multiTaskMonitor';
+export const name = CORE_TASK_MONITOR_MULTITASKMONITOR_COMPONENT; // for backwards compatibility
+angular.module(CORE_TASK_MONITOR_MULTITASKMONITOR_COMPONENT, []).component('multiTaskMonitor', {
   bindings: {
     monitors: '=',
     title: '=',

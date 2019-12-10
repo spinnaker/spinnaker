@@ -2,8 +2,11 @@
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.azure.serverGroup.configure.wizard.capacity.selector.directive', [])
+export const AZURE_SERVERGROUP_CONFIGURE_WIZARD_CAPACITY_CAPACITYSELECTOR_DIRECTIVE =
+  'spinnaker.azure.serverGroup.configure.wizard.capacity.selector.directive';
+export const name = AZURE_SERVERGROUP_CONFIGURE_WIZARD_CAPACITY_CAPACITYSELECTOR_DIRECTIVE; // for backwards compatibility
+angular
+  .module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_CAPACITY_CAPACITYSELECTOR_DIRECTIVE, [])
   .directive('azureServerGroupCapacitySelector', function() {
     return {
       restrict: 'E',

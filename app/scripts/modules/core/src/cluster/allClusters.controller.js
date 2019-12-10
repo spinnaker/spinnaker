@@ -14,8 +14,10 @@ import { FILTER_TAGS_COMPONENT } from '../filterModel/filterTags.component';
 
 import './rollups.less';
 
-module.exports = angular
-  .module('spinnaker.core.cluster.allClusters.controller', [
+export const CORE_CLUSTER_ALLCLUSTERS_CONTROLLER = 'spinnaker.core.cluster.allClusters.controller';
+export const name = CORE_CLUSTER_ALLCLUSTERS_CONTROLLER; // for backwards compatibility
+angular
+  .module(CORE_CLUSTER_ALLCLUSTERS_CONTROLLER, [
     CLUSTER_FILTER,
     require('../account/account.module').name,
     SKIN_SELECTION_SERVICE,

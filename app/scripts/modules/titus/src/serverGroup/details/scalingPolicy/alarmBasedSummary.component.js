@@ -6,8 +6,11 @@ import { AccountService, CONFIRMATION_MODAL_SERVICE, TaskExecutor } from '@spinn
 
 import './scalingPolicySummary.component.less';
 
-module.exports = angular
-  .module('spinnaker.titus.serverGroup.details.scalingPolicy.alarmBasedSummary.component', [
+export const TITUS_SERVERGROUP_DETAILS_SCALINGPOLICY_ALARMBASEDSUMMARY_COMPONENT =
+  'spinnaker.titus.serverGroup.details.scalingPolicy.alarmBasedSummary.component';
+export const name = TITUS_SERVERGROUP_DETAILS_SCALINGPOLICY_ALARMBASEDSUMMARY_COMPONENT; // for backwards compatibility
+angular
+  .module(TITUS_SERVERGROUP_DETAILS_SCALINGPOLICY_ALARMBASEDSUMMARY_COMPONENT, [
     require('./upsert/upsertScalingPolicy.controller').name,
     CONFIRMATION_MODAL_SERVICE,
   ])

@@ -4,8 +4,11 @@ const angular = require('angular');
 
 import { SERVER_GROUP_WRITER, TaskMonitor } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.ecs.serverGroup.details.rollback.controller', [SERVER_GROUP_WRITER])
+export const ECS_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER =
+  'spinnaker.ecs.serverGroup.details.rollback.controller';
+export const name = ECS_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER; // for backwards compatibility
+angular
+  .module(ECS_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [SERVER_GROUP_WRITER])
   .controller('ecsRollbackServerGroupCtrl', [
     '$scope',
     '$uibModalInstance',

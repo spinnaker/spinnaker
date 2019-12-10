@@ -5,8 +5,11 @@ const angular = require('angular');
 import { get } from 'lodash';
 import { SERVER_GROUP_WRITER, TaskMonitor } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.titus.serverGroup.details.rollback.controller', [SERVER_GROUP_WRITER])
+export const TITUS_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER =
+  'spinnaker.titus.serverGroup.details.rollback.controller';
+export const name = TITUS_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER; // for backwards compatibility
+angular
+  .module(TITUS_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [SERVER_GROUP_WRITER])
   .controller('titusRollbackServerGroupCtrl', [
     '$scope',
     '$uibModalInstance',

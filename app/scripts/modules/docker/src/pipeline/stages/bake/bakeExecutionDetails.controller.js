@@ -4,8 +4,11 @@ const angular = require('angular');
 
 import { SETTINGS } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.docker.pipeline.stage.bake.executionDetails.controller', [require('@uirouter/angularjs').default])
+export const DOCKER_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER =
+  'spinnaker.docker.pipeline.stage.bake.executionDetails.controller';
+export const name = DOCKER_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER; // for backwards compatibility
+angular
+  .module(DOCKER_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER, [require('@uirouter/angularjs').default])
   .controller('dockerBakeExecutionDetailsCtrl', [
     '$scope',
     '$stateParams',

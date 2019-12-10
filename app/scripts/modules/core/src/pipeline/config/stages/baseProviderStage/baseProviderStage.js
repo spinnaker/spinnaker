@@ -10,8 +10,11 @@ import { Registry } from 'core/registry';
 import { SETTINGS } from 'core/config/settings';
 import { StageConfigWrapper } from 'core/pipeline/config/stages/StageConfigWrapper';
 
-module.exports = angular
-  .module('spinnaker.core.pipeline.stage.baseProviderStage', [])
+export const CORE_PIPELINE_CONFIG_STAGES_BASEPROVIDERSTAGE_BASEPROVIDERSTAGE =
+  'spinnaker.core.pipeline.stage.baseProviderStage';
+export const name = CORE_PIPELINE_CONFIG_STAGES_BASEPROVIDERSTAGE_BASEPROVIDERSTAGE; // for backwards compatibility
+angular
+  .module(CORE_PIPELINE_CONFIG_STAGES_BASEPROVIDERSTAGE_BASEPROVIDERSTAGE, [])
   .controller('BaseProviderStageCtrl', [
     '$scope',
     'stage',

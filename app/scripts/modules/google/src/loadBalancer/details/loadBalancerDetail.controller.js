@@ -11,8 +11,11 @@ import { SESSION_AFFINITY_FILTER } from './backendService/sessionAffinity.filter
 
 import { DELETE_MODAL_CONTROLLER } from './deleteModal/deleteModal.controller';
 
-module.exports = angular
-  .module('spinnaker.loadBalancer.gce.details.controller', [
+export const GOOGLE_LOADBALANCER_DETAILS_LOADBALANCERDETAIL_CONTROLLER =
+  'spinnaker.loadBalancer.gce.details.controller';
+export const name = GOOGLE_LOADBALANCER_DETAILS_LOADBALANCERDETAIL_CONTROLLER; // for backwards compatibility
+angular
+  .module(GOOGLE_LOADBALANCER_DETAILS_LOADBALANCERDETAIL_CONTROLLER, [
     require('@uirouter/angularjs').default,
     LOAD_BALANCER_READ_SERVICE,
     require('google/common/xpnNaming.gce.service').name,

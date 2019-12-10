@@ -8,7 +8,9 @@ import { UIB_MODAL_REJECTIONS } from './uibModalRejections';
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.utils', [
+export const CORE_UTILS_UTILS_MODULE = 'spinnaker.utils';
+export const name = CORE_UTILS_UTILS_MODULE; // for backwards compatibility
+angular.module(CORE_UTILS_UTILS_MODULE, [
   COPY_TO_CLIPBOARD_COMPONENT,
   TIME_FORMATTERS,
   SELECT_ON_DOUBLE_CLICK_DIRECTIVE,

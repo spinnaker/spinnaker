@@ -12,8 +12,10 @@ import { ProjectReader } from '../service/ProjectReader';
 
 import './dashboard.less';
 
-module.exports = angular
-  .module('spinnaker.core.projects.dashboard.controller', [
+export const CORE_PROJECTS_DASHBOARD_DASHBOARD_CONTROLLER = 'spinnaker.core.projects.dashboard.controller';
+export const name = CORE_PROJECTS_DASHBOARD_DASHBOARD_CONTROLLER; // for backwards compatibility
+angular
+  .module(CORE_PROJECTS_DASHBOARD_DASHBOARD_CONTROLLER, [
     require('./cluster/projectCluster.directive').name,
     PROJECT_PIPELINE_COMPONENT,
     EXECUTION_SERVICE,

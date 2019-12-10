@@ -2,8 +2,11 @@
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.loadBalancer.configure.kubernetes.ports', [])
+export const KUBERNETES_V1_LOADBALANCER_CONFIGURE_WIZARD_PORTS_CONTROLLER =
+  'spinnaker.loadBalancer.configure.kubernetes.ports';
+export const name = KUBERNETES_V1_LOADBALANCER_CONFIGURE_WIZARD_PORTS_CONTROLLER; // for backwards compatibility
+angular
+  .module(KUBERNETES_V1_LOADBALANCER_CONFIGURE_WIZARD_PORTS_CONTROLLER, [])
   .controller('kubernetesLoadBalancerPortsController', [
     '$scope',
     function($scope) {

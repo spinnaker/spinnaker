@@ -4,8 +4,10 @@ const angular = require('angular');
 
 import { AccountService, Registry, PipelineConfigService, StageConstants } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.gce.pipeline.stage..tagImageStage', [])
+export const GOOGLE_PIPELINE_STAGES_TAGIMAGE_GCETAGIMAGESTAGE = 'spinnaker.gce.pipeline.stage..tagImageStage';
+export const name = GOOGLE_PIPELINE_STAGES_TAGIMAGE_GCETAGIMAGESTAGE; // for backwards compatibility
+angular
+  .module(GOOGLE_PIPELINE_STAGES_TAGIMAGE_GCETAGIMAGESTAGE, [])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'upsertImageTags',

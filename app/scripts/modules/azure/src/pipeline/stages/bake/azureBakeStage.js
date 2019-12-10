@@ -12,8 +12,10 @@ import {
   SETTINGS,
 } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.azure.pipeline.stage.bakeStage', [require('./bakeExecutionDetails.controller').name])
+export const AZURE_PIPELINE_STAGES_BAKE_AZUREBAKESTAGE = 'spinnaker.azure.pipeline.stage.bakeStage';
+export const name = AZURE_PIPELINE_STAGES_BAKE_AZUREBAKESTAGE; // for backwards compatibility
+angular
+  .module(AZURE_PIPELINE_STAGES_BAKE_AZUREBAKESTAGE, [require('./bakeExecutionDetails.controller').name])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'bake',

@@ -11,4 +11,6 @@ import { NOTIFICATION_LIST } from './notificationList.module';
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.notifications', [NOTIFICATION_LIST]);
+export const CORE_NOTIFICATION_NOTIFICATIONS_MODULE = 'spinnaker.core.notifications';
+export const name = CORE_NOTIFICATION_NOTIFICATIONS_MODULE; // for backwards compatibility
+angular.module(CORE_NOTIFICATION_NOTIFICATIONS_MODULE, [NOTIFICATION_LIST]);

@@ -5,8 +5,11 @@ import { FilterModelService } from 'core/filterModel';
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.deck.projects.dashboard.regionFilter.service', [])
+export const CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_SERVICE =
+  'spinnaker.deck.projects.dashboard.regionFilter.service';
+export const name = CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_SERVICE; // for backwards compatibility
+angular
+  .module(CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_SERVICE, [])
   .factory('regionFilterService', function() {
     let callbacks = [];
 

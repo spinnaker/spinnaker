@@ -9,8 +9,10 @@ import { AccountService, Registry } from '@spinnaker/core';
 import { DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT } from './dockerImageAndTagSelector.component';
 import { DcosProviderSettings } from '../../../dcos.settings';
 
-module.exports = angular
-  .module('spinnaker.dcos.pipeline.stage.runJobStage', [
+export const DCOS_PIPELINE_STAGES_RUNJOB_RUNJOBSTAGE = 'spinnaker.dcos.pipeline.stage.runJobStage';
+export const name = DCOS_PIPELINE_STAGES_RUNJOB_RUNJOBSTAGE; // for backwards compatibility
+angular
+  .module(DCOS_PIPELINE_STAGES_RUNJOB_RUNJOBSTAGE, [
     require('dcos/job/general.component').name,
     //TODO Add back when scheduled jobs are supported better by Spinnaker
     //require('dcos/job/schedule.component').name,

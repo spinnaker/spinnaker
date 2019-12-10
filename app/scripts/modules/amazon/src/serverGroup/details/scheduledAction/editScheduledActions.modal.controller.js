@@ -4,8 +4,11 @@ const angular = require('angular');
 
 import { TaskExecutor, TaskMonitor } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.amazon.serverGroup.details.scheduledActions.editScheduledActions.modal.controller', [])
+export const AMAZON_SERVERGROUP_DETAILS_SCHEDULEDACTION_EDITSCHEDULEDACTIONS_MODAL_CONTROLLER =
+  'spinnaker.amazon.serverGroup.details.scheduledActions.editScheduledActions.modal.controller';
+export const name = AMAZON_SERVERGROUP_DETAILS_SCHEDULEDACTION_EDITSCHEDULEDACTIONS_MODAL_CONTROLLER; // for backwards compatibility
+angular
+  .module(AMAZON_SERVERGROUP_DETAILS_SCHEDULEDACTION_EDITSCHEDULEDACTIONS_MODAL_CONTROLLER, [])
   .controller('EditScheduledActionsCtrl', [
     '$scope',
     '$uibModalInstance',

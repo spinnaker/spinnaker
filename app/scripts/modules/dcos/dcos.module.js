@@ -14,8 +14,10 @@ templates.keys().forEach(function(key) {
   templates(key);
 });
 
-module.exports = angular
-  .module('spinnaker.dcos', [
+export const DCOS_DCOS_MODULE = 'spinnaker.dcos';
+export const name = DCOS_DCOS_MODULE; // for backwards compatibility
+angular
+  .module(DCOS_DCOS_MODULE, [
     DCOS_KEY_VALUE_DETAILS,
     require('./instance/details/details.dcos.module').name,
     require('./loadBalancer/configure/configure.dcos.module').name,

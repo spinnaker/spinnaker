@@ -8,8 +8,11 @@ import { Observable, Subject } from 'rxjs';
 
 import './dimensionsEditor.component.less';
 
-module.exports = angular
-  .module('spinnaker.amazon.serverGroup.details.scalingPolicy.dimensionEditor', [])
+export const AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_ALARM_DIMENSIONSEDITOR_COMPONENT =
+  'spinnaker.amazon.serverGroup.details.scalingPolicy.dimensionEditor';
+export const name = AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_ALARM_DIMENSIONSEDITOR_COMPONENT; // for backwards compatibility
+angular
+  .module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_ALARM_DIMENSIONSEDITOR_COMPONENT, [])
   .component('dimensionsEditor', {
     bindings: {
       alarm: '=',

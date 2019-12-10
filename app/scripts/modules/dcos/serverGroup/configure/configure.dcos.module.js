@@ -2,7 +2,9 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.dcos.serverGroup.configure', [
+export const DCOS_SERVERGROUP_CONFIGURE_CONFIGURE_DCOS_MODULE = 'spinnaker.dcos.serverGroup.configure';
+export const name = DCOS_SERVERGROUP_CONFIGURE_CONFIGURE_DCOS_MODULE; // for backwards compatibility
+angular.module(DCOS_SERVERGROUP_CONFIGURE_CONFIGURE_DCOS_MODULE, [
   require('./configuration.service').name,
   require('./CommandBuilder').name,
   require('./wizard/basicSettings.controller').name,

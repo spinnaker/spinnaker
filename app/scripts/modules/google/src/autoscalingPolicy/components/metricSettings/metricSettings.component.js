@@ -4,8 +4,11 @@ import _ from 'lodash';
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.deck.gce.autoscalingPolicy.metricSettings.component', [])
+export const GOOGLE_AUTOSCALINGPOLICY_COMPONENTS_METRICSETTINGS_METRICSETTINGS_COMPONENT =
+  'spinnaker.deck.gce.autoscalingPolicy.metricSettings.component';
+export const name = GOOGLE_AUTOSCALINGPOLICY_COMPONENTS_METRICSETTINGS_METRICSETTINGS_COMPONENT; // for backwards compatibility
+angular
+  .module(GOOGLE_AUTOSCALINGPOLICY_COMPONENTS_METRICSETTINGS_METRICSETTINGS_COMPONENT, [])
   .component('gceAutoscalingPolicyMetricSettings', {
     bindings: {
       policy: '=',

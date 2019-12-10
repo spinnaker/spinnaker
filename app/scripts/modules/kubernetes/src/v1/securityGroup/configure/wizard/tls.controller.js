@@ -2,8 +2,11 @@
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.securityGroup.configure.kubernetes.tls', [require('../../transformer').name])
+export const KUBERNETES_V1_SECURITYGROUP_CONFIGURE_WIZARD_TLS_CONTROLLER =
+  'spinnaker.securityGroup.configure.kubernetes.tls';
+export const name = KUBERNETES_V1_SECURITYGROUP_CONFIGURE_WIZARD_TLS_CONTROLLER; // for backwards compatibility
+angular
+  .module(KUBERNETES_V1_SECURITYGROUP_CONFIGURE_WIZARD_TLS_CONTROLLER, [require('../../transformer').name])
   .controller('kubernetesSecurityGroupTLSController', [
     '$scope',
     'kubernetesSecurityGroupTransformer',

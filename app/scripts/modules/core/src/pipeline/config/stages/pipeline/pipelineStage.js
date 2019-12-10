@@ -13,8 +13,10 @@ import { PipelineParametersExecutionDetails } from './PipelineParametersExecutio
 import { PipelineTemplateReader, PipelineTemplateV2Service } from 'core/pipeline';
 import { SETTINGS } from 'core/config';
 
-module.exports = angular
-  .module('spinnaker.core.pipeline.stage.pipelineStage', [])
+export const CORE_PIPELINE_CONFIG_STAGES_PIPELINE_PIPELINESTAGE = 'spinnaker.core.pipeline.stage.pipelineStage';
+export const name = CORE_PIPELINE_CONFIG_STAGES_PIPELINE_PIPELINESTAGE; // for backwards compatibility
+angular
+  .module(CORE_PIPELINE_CONFIG_STAGES_PIPELINE_PIPELINESTAGE, [])
   .config(function() {
     Registry.pipeline.registerStage({
       label: 'Pipeline',

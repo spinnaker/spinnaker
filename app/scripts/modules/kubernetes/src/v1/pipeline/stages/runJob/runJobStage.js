@@ -8,8 +8,10 @@ import { KUBERNETES_IMAGE_ID_FILTER } from 'kubernetes/v1/presentation/imageId.f
 
 const angular = require('angular');
 
-module.exports = angular
-  .module('spinnaker.kubernetes.pipeline.stage.runJobStage', [
+export const KUBERNETES_V1_PIPELINE_STAGES_RUNJOB_RUNJOBSTAGE = 'spinnaker.kubernetes.pipeline.stage.runJobStage';
+export const name = KUBERNETES_V1_PIPELINE_STAGES_RUNJOB_RUNJOBSTAGE; // for backwards compatibility
+angular
+  .module(KUBERNETES_V1_PIPELINE_STAGES_RUNJOB_RUNJOBSTAGE, [
     require('kubernetes/v1/container/commands.component').name,
     require('kubernetes/v1/container/arguments.component').name,
     require('kubernetes/v1/container/environmentVariables.component').name,

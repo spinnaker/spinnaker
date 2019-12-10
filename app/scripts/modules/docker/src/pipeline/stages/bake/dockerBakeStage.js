@@ -10,8 +10,10 @@ import { AuthenticationService, BakeExecutionLabel, BakeryReader, Registry } fro
   Without this stage, programmatically-created pipelines with Docker bake stages would not render
   execution details.
  */
-module.exports = angular
-  .module('spinnaker.docker.pipeline.stage.bakeStage', [require('./bakeExecutionDetails.controller').name])
+export const DOCKER_PIPELINE_STAGES_BAKE_DOCKERBAKESTAGE = 'spinnaker.docker.pipeline.stage.bakeStage';
+export const name = DOCKER_PIPELINE_STAGES_BAKE_DOCKERBAKESTAGE; // for backwards compatibility
+angular
+  .module(DOCKER_PIPELINE_STAGES_BAKE_DOCKERBAKESTAGE, [require('./bakeExecutionDetails.controller').name])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'bake',

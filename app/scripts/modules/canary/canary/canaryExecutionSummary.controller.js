@@ -4,8 +4,10 @@ const angular = require('angular');
 
 import { Registry } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.canary.summary.controller', [
+export const CANARY_CANARY_CANARYEXECUTIONSUMMARY_CONTROLLER = 'spinnaker.canary.summary.controller';
+export const name = CANARY_CANARY_CANARYEXECUTIONSUMMARY_CONTROLLER; // for backwards compatibility
+angular
+  .module(CANARY_CANARY_CANARYEXECUTIONSUMMARY_CONTROLLER, [
     require('@uirouter/angularjs').default,
     require('./actions/generateScore.controller').name,
     require('./actions/endCanary.controller').name,

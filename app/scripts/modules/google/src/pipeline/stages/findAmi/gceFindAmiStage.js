@@ -4,8 +4,10 @@ const angular = require('angular');
 
 import { AccountService, Registry } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.gce.pipeline.stage..findAmiStage', [])
+export const GOOGLE_PIPELINE_STAGES_FINDAMI_GCEFINDAMISTAGE = 'spinnaker.gce.pipeline.stage..findAmiStage';
+export const name = GOOGLE_PIPELINE_STAGES_FINDAMI_GCEFINDAMISTAGE; // for backwards compatibility
+angular
+  .module(GOOGLE_PIPELINE_STAGES_FINDAMI_GCEFINDAMISTAGE, [])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'findImage',

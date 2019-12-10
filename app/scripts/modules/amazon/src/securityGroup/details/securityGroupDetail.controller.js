@@ -15,8 +15,11 @@ import {
 
 import { VpcReader } from '../../vpc/VpcReader';
 
-module.exports = angular
-  .module('spinnaker.amazon.securityGroup.details.controller', [
+export const AMAZON_SECURITYGROUP_DETAILS_SECURITYGROUPDETAIL_CONTROLLER =
+  'spinnaker.amazon.securityGroup.details.controller';
+export const name = AMAZON_SECURITYGROUP_DETAILS_SECURITYGROUPDETAIL_CONTROLLER; // for backwards compatibility
+angular
+  .module(AMAZON_SECURITYGROUP_DETAILS_SECURITYGROUPDETAIL_CONTROLLER, [
     require('@uirouter/angularjs').default,
     SECURITY_GROUP_READER,
     CONFIRMATION_MODAL_SERVICE,

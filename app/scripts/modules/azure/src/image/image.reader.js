@@ -4,7 +4,9 @@ const angular = require('angular');
 
 import { API } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.azure.image.reader', []).factory('azureImageReader', function() {
+export const AZURE_IMAGE_IMAGE_READER = 'spinnaker.azure.image.reader';
+export const name = AZURE_IMAGE_IMAGE_READER; // for backwards compatibility
+angular.module(AZURE_IMAGE_IMAGE_READER, []).factory('azureImageReader', function() {
   function findImages(params) {
     return API.one('images/find')
       .get(params)

@@ -4,8 +4,11 @@ const angular = require('angular');
 
 import { AccountService, Registry } from '@spinnaker/core';
 
-module.exports = angular
-  .module('spinnaker.titus.pipeline.stage.disableClusterStage', [])
+export const TITUS_PIPELINE_STAGES_DISABLECLUSTER_TITUSDISABLECLUSTERSTAGE =
+  'spinnaker.titus.pipeline.stage.disableClusterStage';
+export const name = TITUS_PIPELINE_STAGES_DISABLECLUSTER_TITUSDISABLECLUSTERSTAGE; // for backwards compatibility
+angular
+  .module(TITUS_PIPELINE_STAGES_DISABLECLUSTER_TITUSDISABLECLUSTERSTAGE, [])
   .config(function() {
     Registry.pipeline.registerStage({
       provides: 'disableCluster',
