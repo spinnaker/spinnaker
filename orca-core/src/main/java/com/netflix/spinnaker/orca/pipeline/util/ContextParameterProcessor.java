@@ -130,7 +130,9 @@ public class ContextParameterProcessor {
     }
 
     if (summary.getFailureCount() > 0) {
-      result.put(PipelineExpressionEvaluator.SUMMARY, summary.getExpressionResult());
+      result.put(
+          PipelineExpressionEvaluator.SUMMARY,
+          mapper.convertValue(summary.getExpressionResult(), Map.class));
     }
 
     return result;
@@ -146,9 +148,25 @@ public class ContextParameterProcessor {
    */
   public StageContext buildExecutionContext(Stage stage) {
     Map<String, Object> augmentedContext = new HashMap<>(stage.getContext());
+    Execution execution = stage.getExecution();
 
-    if (stage.getExecution().getType() == PIPELINE) {
-      augmentedContext.putAll(buildExecutionContext(stage.getExecution()));
+    if (execution.getType() == PIPELINE) {
+      augmentedContext.putAll(buildExecutionContext(execution));
+
+      // MPTv2 uses templateVariables which used to be expanded at pipeline creation time.
+      // With SpEL V4 we don't preprocess the whole pipeline anymore, hence we append
+      // "templateVariables" to the SpEL
+      // evaluation context here so that those vars can be processed and expanded when the stage
+      // runs
+      SpelEvaluatorVersion spelEvaluatorVersion =
+          getEffectiveSpelVersionToUse((String) execution.getSpelEvaluator());
+
+      if (SpelEvaluatorVersion.V4.equals(spelEvaluatorVersion)) {
+        Map templatedVariables = execution.getTemplateVariables();
+        if (templatedVariables != null && !templatedVariables.isEmpty()) {
+          augmentedContext.put("templateVariables", templatedVariables);
+        }
+      }
     }
 
     return new StageContext(stage, augmentedContext);

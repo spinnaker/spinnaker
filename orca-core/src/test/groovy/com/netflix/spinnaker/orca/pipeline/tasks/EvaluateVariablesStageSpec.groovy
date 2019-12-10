@@ -35,10 +35,10 @@ class EvaluateVariablesStageSpec extends Specification {
     setup:
     def summary = new ExpressionEvaluationSummary()
     def correctVars = [
-      [key: "a", value: 10, sourceValue: "{1+2+3+4}"],
-      [key: "b", value: 24, sourceValue: "{1*2*3*4}"],
-      [key: "product", value: 240, sourceValue: "{a * b}"],
-      [key: "nonworking", value: 'this one should fail: ${a * c}', sourceValue: 'this one should fail: {a * c}']
+      [key: "a", value: 10, sourceValue: "{1+2+3+4}", description: null],
+      [key: "b", value: 24, sourceValue: "{1*2*3*4}", description: null],
+      [key: "product", value: 240, sourceValue: "{a * b}", description: "product of a(10) and b(24)"],
+      [key: "nonworking", value: 'this one should fail: ${a * c}', sourceValue: 'this one should fail: {a * c}', description: null]
     ]
 
     def stage = stage {
@@ -47,7 +47,7 @@ class EvaluateVariablesStageSpec extends Specification {
       context["variables"] = [
         [key: "a", value: '${1+2+3+4}'],
         [key: "b", value: '${1*2*3*4}'],
-        [key: "product", value: '${a * b}'],
+        [key: "product", value: '${a * b}', description: 'product of a(${a}) and b(${b})'],
         [key: "nonworking", value: 'this one should fail: ${a * c}']
       ]
     }
@@ -58,7 +58,7 @@ class EvaluateVariablesStageSpec extends Specification {
     then:
     shouldContinue == false
     stage.context.variables == correctVars
-    summary.totalEvaluated == correctVars.size()
+    summary.totalEvaluated == 5
     summary.failureCount == 1
   }
 }

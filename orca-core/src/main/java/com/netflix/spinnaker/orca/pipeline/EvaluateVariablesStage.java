@@ -66,6 +66,7 @@ public class EvaluateVariablesStage implements StageDefinitionBuilder {
       if (var.getValue() instanceof String) {
         var.saveSourceExpression();
         varSourceToEval.put("var", var.getValue());
+        varSourceToEval.put("description", var.getDescription());
 
         Map<String, Object> evaluatedVar =
             contextParameterProcessor.process(varSourceToEval, augmentedContext, true, summary);
@@ -78,6 +79,7 @@ public class EvaluateVariablesStage implements StageDefinitionBuilder {
         boolean evaluationSucceeded = summary.getFailureCount() == lastFailedCount;
         if (evaluationSucceeded) {
           var.setValue(evaluatedVar.get("var"));
+          var.setDescription((String) evaluatedVar.get("description"));
           augmentedContext.put(var.key, var.value);
         } else {
           lastFailedCount = summary.getFailureCount();
@@ -90,7 +92,11 @@ public class EvaluateVariablesStage implements StageDefinitionBuilder {
     stage.getContext().putAll(evaluatedContext);
 
     if (summary.getFailureCount() > 0) {
-      stage.getContext().put(PipelineExpressionEvaluator.SUMMARY, summary.getExpressionResult());
+      stage
+          .getContext()
+          .put(
+              PipelineExpressionEvaluator.SUMMARY,
+              mapper.convertValue(summary.getExpressionResult(), Map.class));
     }
 
     return false;
@@ -111,14 +117,17 @@ public class EvaluateVariablesStage implements StageDefinitionBuilder {
   }
 
   public static class Variable {
-    /** Variable name */
+    /** Variable name: NOT processed by SpEL */
     private String key;
 
-    /** Variable evaluated value */
+    /** Variable evaluated value (processed by SpEL) */
     private Object value;
 
-    /** Variable original value */
+    /** Variable original value: NOT processed by SpEL */
     private Object sourceExpression;
+
+    /** Variable description (for end-user only, processed by SpEL) */
+    private String description;
 
     public Variable() {}
 
@@ -134,6 +143,10 @@ public class EvaluateVariablesStage implements StageDefinitionBuilder {
       this.sourceExpression = value;
     }
 
+    public void setDescription(String description) {
+      this.description = description;
+    }
+
     public String getKey() {
       return key;
     }
@@ -144,6 +157,10 @@ public class EvaluateVariablesStage implements StageDefinitionBuilder {
 
     public Object getSourceValue() {
       return sourceExpression;
+    }
+
+    public String getDescription() {
+      return description;
     }
 
     public void saveSourceExpression() {

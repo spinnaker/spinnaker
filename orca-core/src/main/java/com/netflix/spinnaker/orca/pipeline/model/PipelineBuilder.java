@@ -137,5 +137,11 @@ public class PipelineBuilder {
     return this;
   }
 
+  public PipelineBuilder withTemplateVariables(Map<String, Object> templateVariables) {
+    pipeline.setTemplateVariables(templateVariables);
+
+    return this;
+  }
+
   private final Execution pipeline;
 }

@@ -214,6 +214,7 @@ public class ExecutionLauncher {
                 ? null
                 : objectMapper.convertValue(config.get("source"), Execution.PipelineSource.class))
         .withSpelEvaluator(getString(config, "spelEvaluator"))
+        .withTemplateVariables((Map<String, Object>) config.get("templateVariables"))
         .build();
   }
 

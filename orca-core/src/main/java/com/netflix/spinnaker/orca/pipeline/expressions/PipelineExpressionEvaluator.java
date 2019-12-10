@@ -43,7 +43,7 @@ public class PipelineExpressionEvaluator {
         "v4",
         "Evaluates expressions at stage start; supports sequential evaluation of variables in Evaluate Variables stage",
         true),
-    V3("v3", "Evaluates expressions as soon as possible, not recommended", true, true),
+    V3("v3", "Evaluates expressions as soon as possible, not recommended", true, false),
     V2("v2", "DO NOT USE", true, true);
 
     SpelEvaluatorVersion(String key, String description, boolean supported) {

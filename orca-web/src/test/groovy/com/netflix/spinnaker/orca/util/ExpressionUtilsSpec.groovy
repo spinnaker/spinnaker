@@ -43,17 +43,17 @@ class ExpressionUtilsSpec extends Specification {
     when:
     def result = utils.evaluateVariables(execution, ['1', '2'], 'v4',
       [
-        [key: 'var1', value: '${varFromStage1}'],
-        [key: 'var2', value: '${varFromStage2}'],
+        [key: 'var1', value: '${varFromStage1}', description: 'nothing here'],
+        [key: 'var2', value: '${varFromStage2}', description: 'should be ${varFromStage2}'],
         [key: 'sum', value: '${var1 + var2}']
       ])
 
     then:
     result.size() == 2
     result.result == [
-      [key: 'var1', value: 100, sourceValue: '{varFromStage1}'],
-      [key: 'var2', value: 200, sourceValue: '{varFromStage2}'],
-      [key: 'sum', value: 300, sourceValue: '{var1 + var2}']
+      [key: 'var1', value: 100, sourceValue: '{varFromStage1}', description: 'nothing here'],
+      [key: 'var2', value: 200, sourceValue: '{varFromStage2}', description: 'should be 200'],
+      [key: 'sum', value: 300, sourceValue: '{var1 + var2}', description: null]
     ]
   }
 
@@ -71,9 +71,9 @@ class ExpressionUtilsSpec extends Specification {
     then:
     result.size() == 2
     result.result == [
-      [key: 'var1', value: 100, sourceValue: '{varFromStage1}'],
-      [key: 'var2', value: '${varFromStage2}', sourceValue: '{varFromStage2}'],
-      [key: 'sum', value: '${var1 + var2}', sourceValue: '{var1 + var2}']
+      [key: 'var1', value: 100, sourceValue: '{varFromStage1}', description: null],
+      [key: 'var2', value: '${varFromStage2}', sourceValue: '{varFromStage2}', description: null],
+      [key: 'sum', value: '${var1 + var2}', sourceValue: '{var1 + var2}', description: null]
     ]
     result.detail.size() == 2
     result.detail.containsKey('varFromStage2')
