@@ -98,7 +98,8 @@
     "source-map": "^0.4.4",
     "source-sans-pro": "^2.0.10",
     "spel2js": "^0.2.6",
-    "ui-select": "^0.19.6"
+    "ui-select": "^0.19.6",
+    "webpack-dev-middleware": "^3.7.2"
   },
   "devDependencies": {
     "@types/angular": "1.6.26",
