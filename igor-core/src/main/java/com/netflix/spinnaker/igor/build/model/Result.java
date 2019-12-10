@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2016 Schibsted ASA.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.netflix.spinnaker.igor.build.model;
 
-rootProject.name='igor'
-
-include 'igor-bom',
-  'igor-core',
-  'igor-monitor-artifactory',
-  'igor-web'
-
-def setBuildFile(project) {
-    project.buildFileName = "${project.name}.gradle"
-    project.children.each {
-        setBuildFile(it)
-    }
-}
-
-rootProject.children.each {
-    setBuildFile it
+public enum Result {
+  SUCCESS,
+  UNSTABLE,
+  BUILDING,
+  ABORTED,
+  FAILURE,
+  NOT_BUILT;
 }

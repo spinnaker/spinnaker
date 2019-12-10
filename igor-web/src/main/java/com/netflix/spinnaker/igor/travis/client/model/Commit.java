@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.igor.build.model.GenericGitRevision;
 import java.time.Instant;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.simpleframework.xml.Default;
 import org.simpleframework.xml.Root;
 

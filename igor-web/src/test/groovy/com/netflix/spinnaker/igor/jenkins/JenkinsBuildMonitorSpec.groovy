@@ -22,7 +22,6 @@ import com.netflix.spinnaker.igor.config.JenkinsProperties
 import com.netflix.spinnaker.igor.history.EchoService
 import com.netflix.spinnaker.igor.history.model.Event
 import com.netflix.spinnaker.igor.jenkins.client.model.Build
-import com.netflix.spinnaker.igor.jenkins.client.model.BuildsList
 import com.netflix.spinnaker.igor.jenkins.client.model.Project
 import com.netflix.spinnaker.igor.jenkins.client.model.ProjectsList
 import com.netflix.spinnaker.igor.jenkins.service.JenkinsService

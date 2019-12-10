@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2019 Pivotal, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,20 +14,15 @@
  * limitations under the License.
  */
 
-rootProject.name='igor'
+package com.netflix.spinnaker.igor.config;
 
-include 'igor-bom',
-  'igor-core',
-  'igor-monitor-artifactory',
-  'igor-web'
+import com.netflix.spinnaker.igor.artifactory.model.ArtifactorySearch;
+import java.util.List;
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-def setBuildFile(project) {
-    project.buildFileName = "${project.name}.gradle"
-    project.children.each {
-        setBuildFile(it)
-    }
-}
-
-rootProject.children.each {
-    setBuildFile it
+@Data
+@ConfigurationProperties(prefix = "artifactory")
+public class ArtifactoryProperties {
+  private List<ArtifactorySearch> searches;
 }

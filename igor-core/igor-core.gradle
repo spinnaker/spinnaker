@@ -1,0 +1,10 @@
+dependencies {
+  implementation "com.netflix.spinnaker.kork:kork-artifacts"
+  implementation "com.netflix.spinnaker.kork:kork-core"
+
+  // TODO(rz): Get rid of this dependency!
+  implementation "io.reactivex:rxjava"
+
+  // TODO(rz): Get rid of this dependency!
+  implementation "com.squareup.retrofit:retrofit"
+}

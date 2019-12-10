@@ -14,7 +14,11 @@ test {
   useJUnitPlatform()
 }
 
+
 dependencies {
+    implementation project(":igor-core")
+    implementation project(":igor-monitor-artifactory")
+
     implementation platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
     compileOnly "org.projectlombok:lombok"
     annotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
@@ -73,12 +77,10 @@ dependencies {
 
     implementation "io.reactivex:rxjava"
     implementation "com.netflix.eureka:eureka-client"
-    implementation "net.logstash.logback:logstash-logback-encoder"
     implementation "io.github.resilience4j:resilience4j-retry"
 
     implementation "io.projectreactor:reactor-core"
     implementation "com.google.code.gson:gson"
-    implementation "org.jfrog.artifactory.client:artifactory-java-client-services:2.8.1"
 
     testImplementation "com.squareup.okhttp:mockwebserver"
     testImplementation "com.netflix.spinnaker.kork:kork-jedis-test"

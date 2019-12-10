@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Schibsted ASA.
+ * Copyright 2018 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.netflix.spinnaker.igor.polling;
 
-package com.netflix.spinnaker.igor.history.model
+import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent;
+import org.springframework.context.ApplicationListener;
 
-import com.netflix.spinnaker.igor.build.model.GenericProject
+public interface PollingMonitor extends ApplicationListener<RemoteStatusChangedEvent> {
+  void onApplicationEvent(RemoteStatusChangedEvent event);
 
-/**
- * TODO(rz): Cannot move to kork-core due to Jenkins dependency
- */
-class GenericBuildContent {
-    GenericProject project
-    String master
-    String type
+  String getName();
+
+  boolean isInService();
+
+  Long getLastPoll();
+
+  int getPollInterval();
+
+  boolean isPollingEnabled();
 }
