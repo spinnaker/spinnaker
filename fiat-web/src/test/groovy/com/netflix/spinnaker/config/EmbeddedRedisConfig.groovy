@@ -23,7 +23,7 @@ import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import redis.clients.jedis.Jedis
-import redis.clients.util.Pool
+import redis.clients.jedis.util.Pool
 
 @Configuration
 class EmbeddedRedisConfig {

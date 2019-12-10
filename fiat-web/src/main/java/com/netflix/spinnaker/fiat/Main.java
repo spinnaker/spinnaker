@@ -20,7 +20,7 @@ import com.netflix.spinnaker.config.ErrorConfiguration;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import org.springframework.boot.actuate.autoconfigure.ldap.LdapHealthIndicatorAutoConfiguration;
+import org.springframework.boot.actuate.autoconfigure.ldap.LdapHealthContributorAutoConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -42,7 +42,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
       GsonAutoConfiguration.class,
       // Disable LDAP health check until we pull in the fix to
       // https://github.com/spring-projects/spring-ldap/issues/473
-      LdapHealthIndicatorAutoConfiguration.class
+      LdapHealthContributorAutoConfiguration.class
     })
 public class Main extends SpringBootServletInitializer {
 
