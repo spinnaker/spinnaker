@@ -1,35 +1,7 @@
 import { IPromise } from 'angular';
 
 import { API } from 'core/api';
-import { IMoniker } from 'core/naming';
-
-export enum ManagedResourceStatus {
-  ACTUATING = 'ACTUATING',
-  CREATED = 'CREATED',
-  DIFF = 'DIFF',
-  ERROR = 'ERROR',
-  HAPPY = 'HAPPY',
-  PAUSED = 'PAUSED',
-  RESUMED = 'RESUMED',
-  UNHAPPY = 'UNHAPPY',
-  UNKNOWN = 'UNKNOWN',
-}
-
-export interface IManagedResourceSummary {
-  id: string;
-  kind: string;
-  status: ManagedResourceStatus;
-  moniker: IMoniker;
-  locations: {
-    account: string;
-    regions: Array<{ name: string }>;
-  };
-}
-
-export interface IManagedApplicationSummary {
-  hasManagedResources: boolean;
-  resources: IManagedResourceSummary[];
-}
+import { IManagedApplicationSummary } from 'core/domain';
 
 export const getResourceKindForLoadBalancerType = (type: string) => {
   switch (type) {

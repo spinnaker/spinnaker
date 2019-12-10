@@ -2,10 +2,10 @@ import { IEntityTags } from './IEntityTags';
 import { IExecution } from './IExecution';
 import { IInstance } from './IInstance';
 import { IInstanceCounts } from './IInstanceCounts';
+import { IManagedResource } from './IManagedEntity';
 import { ITask } from './ITask';
 import { IMoniker } from 'core/naming';
 import { ICapacity } from 'core/serverGroup';
-import { IManagedResourceSummary } from 'core/managed';
 
 // remnant from legacy code
 export interface IAsg {
@@ -15,7 +15,7 @@ export interface IAsg {
   tags?: any[];
 }
 
-export interface IServerGroup {
+export interface IServerGroup extends IManagedResource {
   account: string;
   app?: string;
   asg?: IAsg;
@@ -35,11 +35,9 @@ export interface IServerGroup {
   instances: IInstance[];
   instanceType?: string;
   isDisabled?: boolean;
-  isManaged?: boolean;
   labels?: { [key: string]: string };
   launchConfig?: any;
   loadBalancers?: string[];
-  managedResourceSummary?: IManagedResourceSummary;
   moniker?: IMoniker;
   name: string;
   namespace?: string;

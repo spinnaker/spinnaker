@@ -4,12 +4,11 @@ import { $log } from 'ngimport';
 import { Subject } from 'rxjs';
 
 import { Application } from 'core/application/application.model';
-import { ICluster, IEntityTags, IInstance, IServerGroup } from 'core/domain';
+import { ICluster, IEntityTags, IInstance, IManagedResourceSummary, IServerGroup } from 'core/domain';
 import { ClusterState } from 'core/state';
 import { FilterModelService, ISortFilter } from 'core/filterModel';
 import { ReactInjector } from 'core/reactShims';
 import { ILabelFilter, trueKeyObjectToLabelFilters } from 'core/cluster/filter/labelFilterUtils';
-import { IManagedResourceSummary } from 'core/managed';
 
 export interface IParentGrouping {
   subgroups: IClusterSubgroup[] | IServerGroupSubgroup[];

@@ -4,7 +4,7 @@ import classNames from 'classnames';
 import { UISref } from '@uirouter/react';
 
 import { HoverablePopover } from 'core/presentation';
-import { IManagedResourceSummary, ManagedResourceStatus } from 'core/managed';
+import { IManagedResourceSummary, ManagedResourceStatus } from 'core/domain';
 
 import './ManagedResourceStatusIndicator.less';
 

@@ -1,9 +1,8 @@
-import { ILoadBalancer } from 'core/domain/ILoadBalancer';
-import { IServerGroup } from 'core/domain/IServerGroup';
-import { IMoniker } from 'core/naming';
-import { IManagedResourceSummary } from 'core/managed';
-
 import { IEntityTags } from './IEntityTags';
+import { ILoadBalancer } from './ILoadBalancer';
+import { IServerGroup } from './IServerGroup';
+import { IManagedResource } from './IManagedEntity';
+import { IMoniker } from 'core/naming';
 
 export interface ILoadBalancerUsage {
   name: string;
@@ -22,7 +21,7 @@ export interface IUsages {
   serverGroups: IServerGroupUsage[];
 }
 
-export interface ISecurityGroup {
+export interface ISecurityGroup extends IManagedResource {
   account?: string;
   accountId?: string;
   accountName?: string;
@@ -33,9 +32,7 @@ export interface ISecurityGroup {
   entityTags?: IEntityTags;
   id?: string;
   inferredName?: boolean;
-  isManaged?: boolean;
   moniker?: IMoniker;
-  managedResourceSummary?: IManagedResourceSummary;
   name?: string;
   provider?: string;
   region?: string;
@@ -47,11 +44,9 @@ export interface ISecurityGroup {
   vpcName?: string;
 }
 
-export interface ISecurityGroupGroup {
+export interface ISecurityGroupGroup extends IManagedResource {
   heading: string;
-  isManaged?: boolean;
   loadBalancers?: ILoadBalancer[];
-  managedResourceSummary?: IManagedResourceSummary;
   searchField?: string;
   securityGroup?: ISecurityGroup;
   serverGroups?: IServerGroup[];

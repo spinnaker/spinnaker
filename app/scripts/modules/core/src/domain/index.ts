@@ -36,6 +36,7 @@ export * from '../widgets/Keys';
 export * from './ILoadBalancer';
 export * from './ILoadBalancerIncompatibility';
 
+export * from './IManagedEntity';
 export * from './IManifest';
 
 export * from './INotification';

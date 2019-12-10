@@ -4,7 +4,8 @@ import { noop } from 'core/utils';
 import { SETTINGS } from 'core/config/settings';
 import { ApplicationDataSourceRegistry } from 'core/application/service/ApplicationDataSourceRegistry';
 import { Application } from 'core/application';
-import { ManagedReader, IManagedApplicationSummary } from './ManagedReader';
+import { IManagedApplicationSummary } from 'core/domain';
+import { ManagedReader } from './ManagedReader';
 import {
   addManagedResourceMetadataToServerGroups,
   addManagedResourceMetadataToLoadBalancers,

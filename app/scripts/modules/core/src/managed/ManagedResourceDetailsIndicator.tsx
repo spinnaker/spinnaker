@@ -5,7 +5,7 @@ import { Dropdown } from 'react-bootstrap';
 import { SETTINGS } from 'core/config/settings';
 import { HoverablePopover } from 'core/presentation';
 
-import { IManagedResourceSummary } from './ManagedReader';
+import { IManagedResourceSummary } from 'core/domain';
 
 import './ManagedResourceDetailsIndicator.css';
 
