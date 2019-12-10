@@ -15,18 +15,16 @@
  * limitations under the License.
  *
  */
-package com.netflix.spinnaker.keel.persistence
+package com.netflix.spinnaker.keel.persistence.memory
 
-/**
- * Stores which applications have opted out of resource checking
- */
-interface ApplicationVetoRepository {
+import com.netflix.spinnaker.keel.persistence.PausedRepositoryTests
 
-  fun appVetoed(application: String): Boolean
+class InMemoryPausedRepositoryTests : PausedRepositoryTests<InMemoryPausedRepository>() {
+  override fun factory(): InMemoryPausedRepository {
+    return InMemoryPausedRepository()
+  }
 
-  fun optOut(application: String)
-
-  fun optIn(application: String)
-
-  fun getAll(): Set<String>
+  override fun InMemoryPausedRepository.flush() {
+    flush()
+  }
 }

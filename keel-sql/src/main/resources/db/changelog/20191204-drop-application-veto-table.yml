@@ -1,0 +1,21 @@
+databaseChangeLog:
+  - changeSet:
+      id: drop-application-veto-table
+      author: emjburns
+      changes:
+        - dropTable:
+            tableName: application_veto
+      rollback:
+        - createTable:
+            tableName: application_veto
+            columns:
+              - column:
+                  name: application_name
+                  type: varchar(255)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - modifySql:
+                  dbms: mysql
+                  append:
+                    value: " engine innodb"

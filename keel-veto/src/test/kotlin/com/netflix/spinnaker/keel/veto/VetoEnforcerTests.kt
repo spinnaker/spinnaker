@@ -17,11 +17,7 @@
  */
 package com.netflix.spinnaker.keel.veto
 
-import com.netflix.spinnaker.keel.persistence.memory.InMemoryApplicationVetoRepository
-import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
-import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.test.resource
-import com.netflix.spinnaker.keel.veto.application.ApplicationVeto
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectThat
@@ -32,36 +28,38 @@ class VetoEnforcerTests : JUnit5Minutests {
 
   val r = resource()
 
-  internal class Fixture {
-    val applicationVetoRepository = InMemoryApplicationVetoRepository()
-    private val resourceRepository = InMemoryResourceRepository()
-    val applicationVeto = ApplicationVeto(applicationVetoRepository, resourceRepository, configuredObjectMapper())
-    val subject = VetoEnforcer(listOf(applicationVeto))
+  internal class Fixture(
+    val veto: DummyVeto
+  ) {
+    val subject = VetoEnforcer(listOf(veto))
   }
 
-  fun tests() = rootContext<Fixture> {
-    fixture { Fixture() }
+  fun allowTests() = rootContext<Fixture> {
+    fixture {
+      Fixture(
+        DummyVeto(true)
+      )
+    }
 
-    context("enforcing things") {
-      after {
-        applicationVetoRepository.flush()
-      }
-
-      test("no vetos means it's allowed") {
+    context("always allow veto") {
+      test("resource gets checked") {
         val response = subject.canCheck(r)
         expectThat(response.allowed).isTrue()
       }
+    }
 
-      test("when we have one deny we deny overall") {
-        applicationVeto.passMessage(
-          mapOf(
-            "application" to r.spec.application,
-            "optedOut" to true
-          )
+    fun denyTests() = rootContext<Fixture> {
+      fixture {
+        Fixture(
+          DummyVeto(false)
         )
+      }
 
-        val response = subject.canCheck(r)
-        expectThat(response.allowed).isFalse()
+      context("always deny veto") {
+        test("when we have one deny we deny overall") {
+          val response = subject.canCheck(r)
+          expectThat(response.allowed).isFalse()
+        }
       }
     }
   }

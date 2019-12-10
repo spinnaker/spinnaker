@@ -17,19 +17,18 @@
  */
 package com.netflix.spinnaker.keel.sql
 
-import com.netflix.spinnaker.keel.persistence.ApplicationVetoRepositoryTests
+import com.netflix.spinnaker.keel.persistence.PausedRepositoryTests
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import org.junit.jupiter.api.AfterAll
 
-internal object SqlApplicationVetoRepositoryTests : ApplicationVetoRepositoryTests<SqlApplicationVetoRepository>() {
+internal object SqlPausedRepositoryTests : PausedRepositoryTests<SqlPausedRepository>() {
   private val testDatabase = initTestDatabase()
   private val jooq = testDatabase.context
 
-  override fun factory(): SqlApplicationVetoRepository {
-    return SqlApplicationVetoRepository(jooq)
-  }
+  override fun factory(): SqlPausedRepository =
+    SqlPausedRepository(jooq)
 
-  override fun flush() {
+  override fun SqlPausedRepository.flush() {
     SqlTestUtil.cleanupDb(jooq)
   }
 

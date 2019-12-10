@@ -1,0 +1,37 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-paused-table
+      author: emjburns
+      changes:
+        - createTable:
+            tableName: paused
+            columns:
+              - column:
+                  name: scope
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - modifySql:
+                  dbms: mysql
+                  append:
+                    value: " engine innodb"
+      rollback:
+        - dropTable:
+            tableName: application_veto
+  - changeSet:
+      id: create-paused-indicies
+      author: emjburns
+      changes:
+        - addPrimaryKey:
+            tableName: paused
+            constraintName: paused_pk
+            columnNames: scope, name
+      rollback:
+        - dropPrimaryKey:
+            constraintName: paused_pk
+            tableName: paused

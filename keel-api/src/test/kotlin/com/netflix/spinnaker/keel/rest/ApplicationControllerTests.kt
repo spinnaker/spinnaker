@@ -4,7 +4,7 @@ import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.events.ResourceCreated
-import com.netflix.spinnaker.keel.persistence.memory.InMemoryApplicationVetoRepository
+import com.netflix.spinnaker.keel.pause.ResourcePauser
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.test.resource
@@ -36,12 +36,11 @@ internal class ApplicationControllerTests {
   lateinit var resourceRepository: InMemoryResourceRepository
 
   @Autowired
-  lateinit var applicationVetoRepository: InMemoryApplicationVetoRepository
+  lateinit var resourcePauser: ResourcePauser
 
   @AfterEach
   fun clearRepository() {
     resourceRepository.dropAll()
-    applicationVetoRepository.flush()
   }
 
   @Test

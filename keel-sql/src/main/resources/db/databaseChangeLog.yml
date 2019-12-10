@@ -50,3 +50,9 @@ databaseChangeLog:
   - include:
       file: changelog/20191202-create-diff-fingerprint-table.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20191204-drop-application-veto-table.yml
+      relativeToChangelogFile: true
+  - include:
+      file: changelog/20191205-create-paused-table.yml
+      relativeToChangelogFile: true

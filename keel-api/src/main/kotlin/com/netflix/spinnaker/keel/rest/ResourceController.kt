@@ -22,6 +22,7 @@ import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.diff.AdHocDiffer
 import com.netflix.spinnaker.keel.diff.DiffResult
 import com.netflix.spinnaker.keel.exceptions.FailedNormalizationException
+import com.netflix.spinnaker.keel.pause.ResourcePauser
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceStatus
@@ -50,6 +51,7 @@ import org.springframework.web.bind.annotation.RestController
 class ResourceController(
   private val resourceRepository: ResourceRepository,
   private val resourcePersister: ResourcePersister,
+  private val resourcePauser: ResourcePauser,
   private val adHocDiffer: AdHocDiffer
 ) {
 
@@ -70,6 +72,22 @@ class ResourceController(
   )
   fun getStatus(@PathVariable("id") id: ResourceId): ResourceStatus {
     return resourceRepository.getStatus(id)
+  }
+
+  @PostMapping(
+    path = ["/{id}/pause"],
+    produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
+  )
+  fun pauseResource(@PathVariable("id") id: ResourceId) {
+    resourcePauser.pauseResource(id)
+  }
+
+  @DeleteMapping(
+    path = ["/{id}/pause"],
+    produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
+  )
+  fun resumeResource(@PathVariable("id") id: ResourceId) {
+    resourcePauser.resumeResource(id)
   }
 
   @PostMapping(

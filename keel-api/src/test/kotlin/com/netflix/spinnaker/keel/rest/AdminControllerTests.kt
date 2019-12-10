@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.rest
 import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.application
+import com.netflix.spinnaker.keel.pause.ResourcePauser
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
@@ -34,6 +35,9 @@ internal class AdminControllerTests {
 
   @Autowired
   lateinit var resourceRepository: InMemoryResourceRepository
+
+  @Autowired
+  lateinit var resourcePauser: ResourcePauser
 
   @AfterEach
   fun clearRepositories() {
