@@ -117,6 +117,16 @@ export class SecurityGroupReader {
     }
   }
 
+  private static sortUsages(securityGroup: ISecurityGroup): void {
+    if (!securityGroup.usages) {
+      return;
+    }
+    // reverse sort - it's gross but keeps versions mostly sorted in the chronological order
+    securityGroup.usages.serverGroups.sort((a, b) => b.name.localeCompare(a.name));
+    // reverse sort - gross but what we are doing now and consistent with the server groups
+    securityGroup.usages.loadBalancers.sort((a, b) => b.name.localeCompare(a.name));
+  }
+
   private resolve(index: any, container: ISecurityGroup, securityGroupId: string): any {
     return this.providerServiceDelegate
       .getDelegate<any>(container.provider || container.type || container.cloudProvider, 'securityGroup.reader')
@@ -146,6 +156,7 @@ export class SecurityGroupReader {
           }
         });
       }
+      securityGroups.forEach(SecurityGroupReader.sortUsages);
     });
 
     return { notFoundCaught, securityGroups };
@@ -195,6 +206,7 @@ export class SecurityGroupReader {
           }
         });
       }
+      securityGroups.forEach(SecurityGroupReader.sortUsages);
     });
 
     return { notFoundCaught, securityGroups };

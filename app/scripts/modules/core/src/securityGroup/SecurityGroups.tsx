@@ -1,0 +1,157 @@
+import * as React from 'react';
+
+import { Application } from 'core/application/application.model';
+import { FilterTags, IFilterTag } from 'core/filterModel/FilterTags';
+import { ISecurityGroupGroup } from 'core/domain';
+import { SecurityGroupState } from 'core/state';
+import { Spinner } from 'core/widgets/spinners/Spinner';
+import { ReactInjector } from 'core/reactShims';
+import { ISortFilter } from 'core/filterModel';
+import { SETTINGS } from 'core/config';
+
+import { FirewallLabels } from './label/FirewallLabels';
+import { SecurityGroupPod } from './SecurityGroupPod';
+import { CreateSecurityGroupButton } from './CreateSecurityGroupButton';
+
+const { useEffect, useState } = React;
+
+export interface ISecurityGroupsProps {
+  app: Application;
+}
+
+interface IFilterModel {
+  groups: ISecurityGroupGroup[];
+  tags: IFilterTag[];
+}
+
+const Groupings = ({ groups, app }: { groups: ISecurityGroupGroup[]; app: Application }) => (
+  <div>
+    {groups.map(group => (
+      <div key={group.heading} className="rollup">
+        {group.subgroups &&
+          group.subgroups.map(subgroup => (
+            <SecurityGroupPod
+              key={subgroup.heading}
+              grouping={subgroup}
+              application={app}
+              parentHeading={group.heading}
+            />
+          ))}
+      </div>
+    ))}
+    {groups.length === 0 && (
+      <div>
+        <h4 className="text-center">No {FirewallLabels.get('firewalls')} match the filters you've selected.</h4>
+      </div>
+    )}
+  </div>
+);
+
+const Filters = () => {
+  const toggleParam = (event: any): void => {
+    const { checked } = event.target;
+    const name: keyof ISortFilter = event.target.name;
+    (SecurityGroupState.filterModel.asFilterModel.sortFilter[name as keyof ISortFilter] as any) = !!checked;
+    SecurityGroupState.filterModel.asFilterModel.applyParamsToUrl();
+  };
+
+  // The way these "hideX" stateParams work is extra confusing and we should never do this inverse-boolean thing again
+  return (
+    <div className="col-lg-8 col-md-10">
+      <div className="form-inline clearfix filters">
+        <div className="form-group">
+          <label className="checkbox"> Show </label>
+          <div className="checkbox">
+            <label>
+              <input
+                type="checkbox"
+                name="showServerGroups"
+                checked={ReactInjector.$stateParams.hideServerGroups === true}
+                onChange={toggleParam}
+              />{' '}
+              Server Groups
+            </label>
+          </div>
+          <div className="checkbox">
+            <label>
+              <input
+                type="checkbox"
+                name="showLoadBalancers"
+                checked={ReactInjector.$stateParams.hideLoadBalancers === true}
+                onChange={toggleParam}
+              />{' '}
+              Load Balancers
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const SecurityGroups = ({ app }: ISecurityGroupsProps) => {
+  const [filterModel, setFilterModel] = useState<IFilterModel>({ groups: [], tags: [] });
+  const [initialized, setInitialized] = useState(false);
+
+  const groupsUpdated = () => {
+    setFilterModel({
+      groups: SecurityGroupState.filterModel.asFilterModel.groups,
+      tags: SecurityGroupState.filterModel.asFilterModel.tags,
+    });
+  };
+
+  const updateSecurityGroupGroups = () => {
+    SecurityGroupState.filterModel.asFilterModel.applyParamsToUrl();
+    // If we are using managed resources, wait until they are ready before updating security groups.
+    // Otherwise, the managed resource fields will not be present on the security group groupings and we'll lose the
+    // badges on the group headers
+    const waiter = SETTINGS.feature.managedResources ? app.managedResources.ready() : Promise.resolve();
+    waiter.then(() => SecurityGroupState.filterService.updateSecurityGroups(app));
+  };
+
+  const clearFilters = () => {
+    SecurityGroupState.filterService.clearFilters();
+    updateSecurityGroupGroups();
+  };
+
+  useEffect(() => {
+    const groupsUpdatedListener = SecurityGroupState.filterService.groupsUpdatedStream.subscribe(groupsUpdated);
+    const dataSource = app.getDataSource('securityGroups');
+    const securityGroupsRefreshUnsubscribe = dataSource.onRefresh(null, updateSecurityGroupGroups);
+    dataSource.ready().then(() => {
+      updateSecurityGroupGroups();
+      setInitialized(true);
+    });
+    app.setActiveState(app.securityGroups);
+    SecurityGroupState.filterModel.asFilterModel.activate();
+
+    return () => {
+      groupsUpdatedListener.unsubscribe();
+      securityGroupsRefreshUnsubscribe();
+    };
+  }, [app]);
+
+  const groupings = initialized ? (
+    <Groupings groups={filterModel.groups} app={app} />
+  ) : (
+    <div>
+      <Spinner size="medium" />
+    </div>
+  );
+
+  return (
+    <div className="main-content">
+      <div className="header row header-clusters">
+        <Filters />
+        <div className="col-lg-4 col-md-2">
+          <div className="application-actions">
+            <CreateSecurityGroupButton app={app} />
+          </div>
+        </div>
+        <FilterTags tags={filterModel.tags} tagCleared={updateSecurityGroupGroups} clearFilters={clearFilters} />
+      </div>
+
+      <div className="content">{groupings}</div>
+    </div>
+  );
+};

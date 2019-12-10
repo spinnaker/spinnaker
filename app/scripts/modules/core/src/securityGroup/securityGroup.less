@@ -6,3 +6,22 @@
     }
   }
 }
+
+.security-group-pod {
+  .rollup-details {
+    .disabled {
+      opacity: 0.4;
+      &:active,
+      &:hover {
+        opacity: 0.7;
+      }
+    }
+  }
+  .highlightable-header {
+    border: 1px solid transparent;
+    &.active {
+      border-color: var(--color-accent-g1);
+      background-color: var(--color-accent-g3);
+    }
+  }
+}
