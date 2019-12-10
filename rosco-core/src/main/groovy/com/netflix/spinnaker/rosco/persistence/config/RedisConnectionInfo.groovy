@@ -18,7 +18,7 @@ package com.netflix.spinnaker.rosco.persistence.config
 
 import groovy.transform.ToString
 import redis.clients.jedis.Protocol
-import redis.clients.util.JedisURIHelper
+import redis.clients.jedis.util.JedisURIHelper
 
 @ToString(includeNames = true)
 class RedisConnectionInfo {
