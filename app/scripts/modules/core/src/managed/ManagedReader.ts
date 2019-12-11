@@ -1,7 +1,7 @@
 import { IPromise } from 'angular';
 
 import { API } from 'core/api';
-import { IManagedApplicationSummary } from 'core/domain';
+import { IManagedApplicationSummary, ManagedResourceStatus } from 'core/domain';
 
 export const getResourceKindForLoadBalancerType = (type: string) => {
   switch (type) {
@@ -19,14 +19,17 @@ export class ManagedReader {
     return API.one('managed')
       .one('application', app)
       .withParams({ includeDetails: true })
-      .get();
-  }
+      .get()
+      .then((response: IManagedApplicationSummary) => {
+        // Individual resources don't update their status when an application is paused/resumed,
+        // so for now let's swap to a PAUSED status and keep things simpler in downstream components.
+        if (!response.applicationPaused) {
+          return response;
+        }
 
-  public static getApplicationVetos(): IPromise<string[]> {
-    return API.one('managed')
-      .all('vetos')
-      .one('ApplicationVeto')
-      .all('rejections')
-      .get();
+        response.resources.forEach(resource => (resource.status = ManagedResourceStatus.PAUSED));
+
+        return response;
+      });
   }
 }

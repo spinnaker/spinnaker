@@ -24,6 +24,7 @@ export interface IManagedResourceSummary {
 }
 
 export interface IManagedApplicationSummary {
+  applicationPaused: boolean;
   hasManagedResources: boolean;
   resources: IManagedResourceSummary[];
 }

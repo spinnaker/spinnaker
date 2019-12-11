@@ -39,7 +39,7 @@ module(MANAGED_RESOURCES_DATA_SOURCE, []).run([
       loader: loadManagedResources,
       onLoad: addManagedResources,
       afterLoad: addManagedMetadataToResources,
-      defaultData: { hasManagedResources: false, resources: [] },
+      defaultData: { applicationPaused: false, hasManagedResources: false, resources: [] },
     });
   },
 ]);
