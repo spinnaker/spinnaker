@@ -36,7 +36,8 @@ include(
   "keel-sql",
   "keel-test",
   "keel-titus-plugin",
-  "keel-veto"
+  "keel-veto",
+  "keel-web"
 )
 
 rootProject.name = "keel"

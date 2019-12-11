@@ -38,7 +38,7 @@ dependencies {
   testImplementation(project(":keel-spring-test-support"))
   testImplementation(project(":keel-test"))
   testImplementation(project(":keel-core-test"))
-  testImplementation(project(":keel-api")) {
+  testImplementation(project(":keel-web")) {
     // avoid circular dependency which breaks Liquibase
     exclude(module = "keel-sql")
   }

@@ -76,4 +76,4 @@ subprojects {
   }
 }
 
-defaultTasks(":keel-api:run")
+defaultTasks(":keel-web:run")
