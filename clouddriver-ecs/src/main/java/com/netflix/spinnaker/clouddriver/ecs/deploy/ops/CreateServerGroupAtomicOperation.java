@@ -49,6 +49,7 @@ import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.identitymanagement.model.GetRoleRequest;
 import com.amazonaws.services.identitymanagement.model.GetRoleResult;
 import com.amazonaws.services.identitymanagement.model.Role;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.artifacts.ArtifactDownloader;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials;
@@ -98,6 +99,9 @@ public class CreateServerGroupAtomicOperation
   protected static final String DOCKER_LABEL_KEY_STACK = "spinnaker.stack";
   protected static final String DOCKER_LABEL_KEY_DETAIL = "spinnaker.detail";
 
+  protected ObjectMapper mapper =
+      new ObjectMapper().enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+
   @Autowired EcsCloudMetricService ecsCloudMetricService;
   @Autowired IamPolicyReader iamPolicyReader;
 
@@ -106,8 +110,6 @@ public class CreateServerGroupAtomicOperation
   @Autowired SecurityGroupSelector securityGroupSelector;
 
   @Autowired ArtifactDownloader artifactDownloader;
-
-  @Autowired ObjectMapper mapper;
 
   public CreateServerGroupAtomicOperation(CreateServerGroupDescription description) {
     super(description, "CREATE_ECS_SERVER_GROUP");
