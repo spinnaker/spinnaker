@@ -69,6 +69,12 @@ public interface KeelService {
   @DELETE("/application/{application}/pause")
   Response resumeApplication(@Path("application") String application);
 
+  @POST("/resources/{name}/pause")
+  Response pauseResource(@Path("name") String name);
+
+  @DELETE("/resources/{name}/pause")
+  Response resumeResource(@Path("name") String name);
+
   @GET("/export/{cloudProvider}/{account}/{type}/{name}")
   Resource exportResource(
       @Path("cloudProvider") String cloudProvider,

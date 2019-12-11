@@ -89,6 +89,18 @@ public class ManagedController {
     return keelService.deleteResource(resourceId);
   }
 
+  @ApiOperation(value = "Pause management of a resource")
+  @PostMapping(path = "/resources/{resourceId}/pause")
+  void pauseResource(@PathVariable("resourceId") String resourceId) {
+    keelService.pauseResource(resourceId);
+  }
+
+  @ApiOperation(value = "Resume management of a resource")
+  @DeleteMapping(path = "/resources/{resourceId}/pause")
+  void resumeResource(@PathVariable("resourceId") String resourceId) {
+    keelService.resumeResource(resourceId);
+  }
+
   @ApiOperation(
       value = "Generate a keel resource definition for a deployed cloud resource",
       response = Resource.class)
