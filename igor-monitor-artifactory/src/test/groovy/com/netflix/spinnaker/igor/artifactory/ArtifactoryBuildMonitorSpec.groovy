@@ -18,8 +18,7 @@ package com.netflix.spinnaker.igor.artifactory
 
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
-import com.netflix.spinnaker.igor.artifactory.ArtifactoryBuildMonitor
-import com.netflix.spinnaker.igor.artifactory.ArtifactoryCache
+import com.netflix.spinnaker.igor.artifactory.model.ArtifactoryRepositoryType
 import com.netflix.spinnaker.igor.artifactory.model.ArtifactorySearch
 import com.netflix.spinnaker.igor.config.ArtifactoryProperties
 import com.netflix.spinnaker.igor.history.EchoService
@@ -50,6 +49,7 @@ class ArtifactoryBuildMonitorSpec extends Specification {
         new ArtifactorySearch(
           baseUrl: url,
           repo: 'libs-releases-local',
+          repoType: ArtifactoryRepositoryType.MAVEN
         )
       ])
     )

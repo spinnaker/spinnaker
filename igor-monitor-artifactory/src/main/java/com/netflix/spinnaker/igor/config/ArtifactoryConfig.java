@@ -16,11 +16,20 @@
 
 package com.netflix.spinnaker.igor.config;
 
+import com.netflix.spinnaker.igor.artifactory.ArtifactoryRepositoryTypeConverter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.ConfigurationPropertiesBinding;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ConditionalOnProperty("artifactory.enabled")
 @EnableConfigurationProperties(ArtifactoryProperties.class)
-public class ArtifactoryConfig {}
+public class ArtifactoryConfig {
+  @Bean
+  @ConfigurationPropertiesBinding
+  public ArtifactoryRepositoryTypeConverter artifactoryRepositoryTypeConverter() {
+    return new ArtifactoryRepositoryTypeConverter();
+  }
+}

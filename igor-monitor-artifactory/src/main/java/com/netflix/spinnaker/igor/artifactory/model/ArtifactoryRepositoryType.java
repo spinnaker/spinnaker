@@ -17,5 +17,18 @@
 package com.netflix.spinnaker.igor.artifactory.model;
 
 public enum ArtifactoryRepositoryType {
-  Maven,
+  MAVEN("Maven", ".pom"),
+  HELM("HELM", ".tgz");
+
+  private final String repoTypeString;
+  private final String artifactExtension;
+
+  ArtifactoryRepositoryType(String repoTypeString, String extension) {
+    this.repoTypeString = repoTypeString;
+    this.artifactExtension = extension;
+  }
+
+  public String getArtifactExtension() {
+    return artifactExtension;
+  }
 }

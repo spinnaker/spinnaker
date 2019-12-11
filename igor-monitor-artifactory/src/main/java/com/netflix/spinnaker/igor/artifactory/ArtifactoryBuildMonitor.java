@@ -135,8 +135,9 @@ public class ArtifactoryBuildMonitor
                           ? ""
                           : search.getGroupId().replace('.', '/') + "/")
                       + "*\"},"
-                      + "\"name\": {\"$match\":\""
-                      + "*.pom\"}"
+                      + "\"name\": {\"$match\":\"*"
+                      + search.getArtifactExtension()
+                      + "\"}"
                       + "}).include(\"path\",\"repo\",\"name\", \"artifact.module.build\")";
 
               ArtifactoryRequest aqlRequest =
