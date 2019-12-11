@@ -5,7 +5,7 @@ import com.netflix.spinnaker.keel.persistence.ArtifactRepositoryTests
 import java.time.Clock
 
 class InMemoryArtifactRepositoryTests : ArtifactRepositoryTests<InMemoryArtifactRepository>() {
-  override fun factory() = InMemoryArtifactRepository()
+  override fun factory(clock: Clock) = InMemoryArtifactRepository()
 
   override fun InMemoryArtifactRepository.flush() {
     dropAll()

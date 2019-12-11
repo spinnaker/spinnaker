@@ -5,8 +5,6 @@ import com.netflix.spinnaker.keel.api.ArtifactType
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.EnvironmentArtifactsSummary
-import org.slf4j.LoggerFactory
-import org.springframework.util.comparator.NullSafeComparator
 
 interface ArtifactRepository {
 

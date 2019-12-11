@@ -12,6 +12,7 @@ import com.netflix.spinnaker.keel.api.PromotionStatus.CURRENT
 import com.netflix.spinnaker.keel.api.PromotionStatus.DEPLOYING
 import com.netflix.spinnaker.keel.api.PromotionStatus.PENDING
 import com.netflix.spinnaker.keel.api.PromotionStatus.PREVIOUS
+import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expect
@@ -19,6 +20,7 @@ import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.containsExactly
+import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.get
 import strikt.assertions.hasSize
 import strikt.assertions.isEmpty
@@ -28,9 +30,13 @@ import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.isTrue
 import strikt.assertions.succeeded
+import java.time.Clock
+import java.time.Duration
 
 abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests {
-  abstract fun factory(): T
+  abstract fun factory(clock: Clock): T
+
+  val clock = MutableClock()
 
   open fun Fixture<T>.persist() {}
 
@@ -59,7 +65,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
   }
 
   fun tests() = rootContext<Fixture<T>> {
-    fixture { Fixture(factory()) }
+    fixture { Fixture(factory(clock)) }
 
     after {
       subject.flush()
@@ -179,10 +185,10 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
             .versionsByEnvironment(manifest)
             .first { it.name == environment1.name }
             .artifacts
-            .first { DeliveryArtifact(it.name, it.type) == artifact1 }
+            .first { it.name == artifact1.name && it.type == artifact1.type }
             .versions
           expectThat(environment1Versions) {
-            get(PENDING).isNotNull().containsExactly(version1, version2, version3)
+            get(PENDING).isNotNull().containsExactlyInAnyOrder(version1, version2, version3)
             get(CURRENT).isNotNull().isEmpty()
             get(DEPLOYING).isNotNull().isEmpty()
             get(PREVIOUS).isNotNull().isEmpty()
@@ -192,6 +198,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
 
       context("a version has been promoted to an environment") {
         before {
+          clock.incrementBy(Duration.ofHours(1))
           subject.approveVersionFor(manifest, artifact1, version1, environment1.name)
         }
 
@@ -210,10 +217,10 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
             .versionsByEnvironment(manifest)
             .first { it.name == environment1.name }
             .artifacts
-            .first { DeliveryArtifact(it.name, it.type) == artifact1 }
+            .first { it.name == artifact1.name && it.type == artifact1.type }
             .versions
           expectThat(environment1Versions) {
-            get(PENDING).isNotNull().containsExactly(version2, version3)
+            get(PENDING).isNotNull().containsExactlyInAnyOrder(version2, version3)
             get(CURRENT).isNotNull().isEmpty()
             get(DEPLOYING).isNotNull().containsExactly(version1)
             get(PREVIOUS).isNotNull().isEmpty()
@@ -222,6 +229,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
 
         test("promoting the same version again returns false") {
           expectCatching {
+            clock.incrementBy(Duration.ofHours(1))
             subject.approveVersionFor(manifest, artifact1, version1, environment1.name)
           }
             .succeeded()
@@ -230,6 +238,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
 
         test("promoting a new version returns true") {
           expectCatching {
+            clock.incrementBy(Duration.ofHours(1))
             subject.approveVersionFor(manifest, artifact1, version2, environment1.name)
           }
             .succeeded()
@@ -251,10 +260,10 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
               .versionsByEnvironment(manifest)
               .first { it.name == environment1.name }
               .artifacts
-              .first { DeliveryArtifact(it.name, it.type) == artifact1 }
+              .first { it.name == artifact1.name && it.type == artifact1.type }
               .versions
             expectThat(environment1Versions) {
-              get(PENDING).isNotNull().containsExactly(version2, version3)
+              get(PENDING).isNotNull().containsExactlyInAnyOrder(version2, version3)
               get(CURRENT).isNotNull().containsExactly(version1)
               get(DEPLOYING).isNotNull().isEmpty()
               get(PREVIOUS).isNotNull().isEmpty()
@@ -263,6 +272,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
 
           context("a new version is promoted to the same environment") {
             before {
+              clock.incrementBy(Duration.ofHours(1))
               subject.approveVersionFor(manifest, artifact1, version2, environment1.name)
             }
 
@@ -281,7 +291,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
                 .versionsByEnvironment(manifest)
                 .first { it.name == environment1.name }
                 .artifacts
-                .first { DeliveryArtifact(it.name, it.type) == artifact1 }
+                .first { it.name == artifact1.name && it.type == artifact1.type }
                 .versions
               expectThat(environment1Versions) {
                 get(PENDING).isNotNull().containsExactly(version3)
@@ -311,13 +321,13 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
                   .versionsByEnvironment(manifest)
                   .first { it.name == environment1.name }
                   .artifacts
-                  .first { DeliveryArtifact(it.name, it.type) == artifact1 }
+                  .first { it.name == artifact1.name && it.type == artifact1.type }
                   .versions
                 expectThat(environment1Versions) {
                   get(PENDING).isNotNull().containsExactly(version3)
                   get(CURRENT).isNotNull().containsExactly(version2)
                   get(DEPLOYING).isNotNull().isEmpty()
-                  get(PREVIOUS).isNotNull().isEmpty(version1)
+                  get(PREVIOUS).isNotNull().containsExactly(version1)
                 }
               }
             }
@@ -326,6 +336,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
 
         context("a version of a different artifact is promoted to the environment") {
           before {
+            clock.incrementBy(Duration.ofHours(1))
             subject.approveVersionFor(manifest, artifact2, version3, environment1.name)
           }
 
@@ -342,6 +353,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
 
         context("a different version of the same artifact is promoted to another environment") {
           before {
+            clock.incrementBy(Duration.ofHours(1))
             subject.approveVersionFor(manifest, artifact1, version2, environment2.name)
           }
 

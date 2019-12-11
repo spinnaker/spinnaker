@@ -3,13 +3,20 @@ package com.netflix.spinnaker.keel.sql
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.ArtifactStatus
 import com.netflix.spinnaker.keel.api.ArtifactType
+import com.netflix.spinnaker.keel.api.PromotionStatus
+import java.time.LocalDateTime
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DebianArtifact
+import com.netflix.spinnaker.keel.api.ArtifactVersions
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.DockerArtifact
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.EnvironmentArtifactsSummary
+import com.netflix.spinnaker.keel.api.PromotionStatus.PREVIOUS
+import com.netflix.spinnaker.keel.api.PromotionStatus.CURRENT
+import com.netflix.spinnaker.keel.api.PromotionStatus.DEPLOYING
+import com.netflix.spinnaker.keel.api.PromotionStatus.PENDING
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
@@ -23,7 +30,9 @@ import java.time.Instant
 import org.jooq.DSLContext
 import org.jooq.Record1
 import org.jooq.Select
+import org.jooq.impl.DSL.castNull
 import org.jooq.impl.DSL.select
+import org.jooq.impl.DSL.selectOne
 import org.slf4j.LoggerFactory
 
 class SqlArtifactRepository(
@@ -218,10 +227,110 @@ class SqlArtifactRepository(
   }
 
   override fun versionsByEnvironment(deliveryConfig: DeliveryConfig): List<EnvironmentArtifactsSummary> {
-    deliveryConfig.environments.map { environment ->
-      deliveryConfig.artifacts.map { }
-      EnvironmentArtifactsSummary(environment.name)
+    return deliveryConfig.environments.map { environment ->
+      val artifactVersions = deliveryConfig.artifacts.map { artifact ->
+        //          select e.name, eav.artifact_version, eav.approved_at, eav.deployed_at
+//          from environment_artifact_versions eav, delivery_artifact da, environment e, delivery_config dc
+//          where da.uid = eav.artifact_uid
+//          and da.name = 'keel'
+//          and da.type = 'DEB'
+//          and e.uid = eav.environment_uid
+//          and e.delivery_config_uid = dc.uid
+//          and dc.name = 'keel-manifest'
+//          union
+//          select e.name, dav.version, null, null
+//          from delivery_artifact_version dav, delivery_artifact da, environment e, delivery_config dc
+//          where da.uid = dav.delivery_artifact_uid
+//          and da.name = 'keel'
+//          and da.type = 'DEB'
+//          and e.delivery_config_uid = dc.uid
+//          and dc.name = 'keel-manifest'
+//          and not exists (
+//          select 1 from environment_artifact_versions eav
+//          where eav.artifact_version = dav.version
+//          and eav.environment_uid = e.uid
+//        )
+        val rawResults = jooq
+          .select(
+            ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION,
+            ENVIRONMENT_ARTIFACT_VERSIONS.APPROVED_AT,
+            ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT
+          )
+          .from(
+            ENVIRONMENT_ARTIFACT_VERSIONS,
+            DELIVERY_ARTIFACT,
+            ENVIRONMENT,
+            DELIVERY_CONFIG
+          )
+          .where(DELIVERY_ARTIFACT.UID.eq(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID))
+          .and(DELIVERY_ARTIFACT.NAME.eq(artifact.name))
+          .and(DELIVERY_ARTIFACT.TYPE.eq(artifact.type.name))
+          .and(ENVIRONMENT.UID.eq(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID))
+          .and(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(DELIVERY_CONFIG.UID))
+          .and(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
+          .and(ENVIRONMENT.NAME.eq(environment.name))
+          .unionAll(
+            select(
+              DELIVERY_ARTIFACT_VERSION.VERSION,
+              castNull(LocalDateTime::class.java),
+              castNull(LocalDateTime::class.java)
+            )
+              .from(
+                DELIVERY_ARTIFACT_VERSION,
+                DELIVERY_ARTIFACT,
+                ENVIRONMENT,
+                DELIVERY_CONFIG
+              )
+              .where(DELIVERY_ARTIFACT.UID.eq(DELIVERY_ARTIFACT_VERSION.DELIVERY_ARTIFACT_UID))
+              .and(DELIVERY_ARTIFACT.NAME.eq(artifact.name))
+              .and(DELIVERY_ARTIFACT.TYPE.eq(artifact.type.name))
+              .and(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(DELIVERY_CONFIG.UID))
+              .and(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
+              .and(ENVIRONMENT.NAME.eq(environment.name))
+              .andNotExists(
+                selectOne()
+                  .from(ENVIRONMENT_ARTIFACT_VERSIONS)
+                  .where(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(DELIVERY_ARTIFACT_VERSION.VERSION))
+                  .and(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(ENVIRONMENT.UID))
+              )
+          )
+          .fetch()
+        val turnt = rawResults.map { (version, approvedAt, deployedAt) ->
+          ArtifactVersionResult(version, approvedAt, deployedAt)
+        }
+        val grouped = turnt.groupBy { it.promotionStatus }
+        val withCurrent = grouped.toMutableMap().apply {
+          get(PREVIOUS)
+            ?.maxBy { checkNotNull(it.deployedAt) }
+            ?.let {
+              put(CURRENT, listOf(it))
+              put(PREVIOUS, getValue(PREVIOUS) - it)
+            }
+        }
+        val extracted = withCurrent
+          .mapValues { it.value.map { it.version } }
+        val versions = extracted.toMutableMap().apply {
+          PromotionStatus.values().forEach {
+            putIfAbsent(it, emptyList())
+          }
+        }
+        ArtifactVersions(artifact.name, artifact.type, versions)
+      }
+      EnvironmentArtifactsSummary(environment.name, artifactVersions)
     }
+  }
+
+  private data class ArtifactVersionResult(
+    val version: String,
+    val approvedAt: LocalDateTime?,
+    val deployedAt: LocalDateTime?
+  ) {
+    val promotionStatus: PromotionStatus
+      get() = when {
+        approvedAt != null && deployedAt != null -> PREVIOUS
+        approvedAt != null && deployedAt == null -> DEPLOYING
+        else -> PENDING
+      }
   }
 
   private fun DeliveryConfig.environmentNamed(name: String): Environment =

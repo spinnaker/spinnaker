@@ -17,8 +17,8 @@ class SqlArtifactRepositoryTests : ArtifactRepositoryTests<SqlArtifactRepository
     DummyResourceTypeIdentifier
   )
 
-  override fun factory(): SqlArtifactRepository =
-    SqlArtifactRepository(jooq, Clock.systemDefaultZone(), objectmapper)
+  override fun factory(clock: Clock): SqlArtifactRepository =
+    SqlArtifactRepository(jooq, clock, objectmapper)
 
   override fun SqlArtifactRepository.flush() {
     cleanupDb(jooq)
