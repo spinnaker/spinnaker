@@ -63,11 +63,11 @@ public interface KeelService {
   Map getApplicationDetails(
       @Path("application") String application, @Query("includeDetails") Boolean includeDetails);
 
-  @POST("/vetos/{name}")
-  Response passVetoMessage(@Path("name") String name, @Body Map<String, Object> message);
+  @POST("/application/{application}/pause")
+  Response pauseApplication(@Path("application") String application, @Body Map requestBody);
 
-  @GET("/vetos/{name}/rejections")
-  List<String> getVetoRejections(@Path("name") String name);
+  @DELETE("/application/{application}/pause")
+  Response resumeApplication(@Path("application") String application);
 
   @GET("/export/{cloudProvider}/{account}/{type}/{name}")
   Resource exportResource(

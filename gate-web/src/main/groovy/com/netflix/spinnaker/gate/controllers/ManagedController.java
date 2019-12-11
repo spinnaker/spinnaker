@@ -9,6 +9,7 @@ import com.netflix.spinnaker.kork.manageddelivery.model.Resource;
 import groovy.util.logging.Slf4j;
 import io.swagger.annotations.ApiOperation;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -135,17 +136,16 @@ public class ManagedController {
     return keelService.getApplicationDetails(application, includeDetails);
   }
 
-  @ApiOperation(value = "Pass a message to a veto plugin", response = Map.class)
-  @PostMapping(path = "/vetos/{name}")
-  void passVetoMessage(
-      @PathVariable("name") String name, @RequestBody Map<String, Object> message) {
-    keelService.passVetoMessage(name, message);
+  @ApiOperation(value = "Pause management of an entire application")
+  @PostMapping(path = "/application/{application}/pause")
+  void pauseApplication(@PathVariable("application") String application) {
+    keelService.pauseApplication(application, Collections.emptyMap());
   }
 
-  @ApiOperation(value = "Get everything a specific veto plugin will reject", response = List.class)
-  @GetMapping(path = "/vetos/{name}/rejections")
-  List<String> getVetoRejections(@PathVariable("name") String name) {
-    return keelService.getVetoRejections(name);
+  @ApiOperation(value = "Resume management of an entire application")
+  @DeleteMapping(path = "/application/{application}/pause")
+  void resumeApplication(@PathVariable("application") String application) {
+    keelService.resumeApplication(application);
   }
 
   @ExceptionHandler
