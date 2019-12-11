@@ -71,6 +71,8 @@ public class Pipeline {
 
   @JsonProperty Object template;
 
+  @JsonProperty Map<String, Object> templateVariables;
+
   @JsonProperty List<Map<String, Object>> stages;
 
   @JsonProperty List<Map<String, Object>> notifications;
