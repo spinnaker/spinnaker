@@ -249,7 +249,8 @@ public class CloudFoundryServerGroupCachingAgent extends AbstractCloudFoundryCac
     String key = Keys.getServerGroupKey(account, serverGroup.getName(), serverGroup.getRegion());
     CacheData sgCacheData = onDemandCacheDataToKeep.get(key);
     if (sgCacheData != null && (long) sgCacheData.getAttributes().get("cacheTime") > start) {
-      Map<String, Collection<CacheData>> cacheResults = getCacheResultsFromCacheData(sgCacheData);
+      Map<String, Collection<ResourceCacheData>> cacheResults =
+          getCacheResultsFromCacheData(sgCacheData);
       onDemandCacheDataToKeep.remove(key);
       return cacheResults.get(SERVER_GROUPS.getNs()).stream().findFirst().orElse(null);
     } else {

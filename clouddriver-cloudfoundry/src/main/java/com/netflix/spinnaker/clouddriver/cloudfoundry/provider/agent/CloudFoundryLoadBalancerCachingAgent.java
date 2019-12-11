@@ -106,7 +106,8 @@ public class CloudFoundryLoadBalancerCachingAgent extends AbstractCloudFoundryCa
     String key = Keys.getLoadBalancerKey(account, cloudFoundryLoadBalancer);
     CacheData lbCacheData = onDemandCacheDataToKeep.get(key);
     if (lbCacheData != null && (long) lbCacheData.getAttributes().get("cacheTime") > start) {
-      Map<String, Collection<CacheData>> cacheResults = getCacheResultsFromCacheData(lbCacheData);
+      Map<String, Collection<ResourceCacheData>> cacheResults =
+          getCacheResultsFromCacheData(lbCacheData);
       onDemandCacheDataToKeep.remove(key);
       return cacheResults.get(LOAD_BALANCERS.getNs()).stream().findFirst().orElse(null);
     } else {

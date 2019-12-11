@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.security.config.SecurityConfig
 import com.netflix.spinnaker.kork.boot.DefaultPropertiesBuilder
 import com.netflix.spinnaker.kork.configserver.ConfigServerBootstrap
-import org.springframework.boot.actuate.autoconfigure.elasticsearch.ElasticSearchJestHealthIndicatorAutoConfiguration
+import org.springframework.boot.actuate.autoconfigure.elasticsearch.ElasticSearchJestHealthContributorAutoConfiguration
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration
 import org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchAutoConfiguration
@@ -56,7 +56,7 @@ import java.security.Security
   GsonAutoConfiguration,
   DataSourceAutoConfiguration,
   ElasticsearchAutoConfiguration,
-  ElasticSearchJestHealthIndicatorAutoConfiguration,
+  ElasticSearchJestHealthContributorAutoConfiguration,
   JestAutoConfiguration
 ])
 @EnableScheduling

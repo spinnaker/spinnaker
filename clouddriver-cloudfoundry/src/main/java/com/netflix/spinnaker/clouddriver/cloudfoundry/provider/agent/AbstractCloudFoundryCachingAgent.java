@@ -100,7 +100,7 @@ abstract class AbstractCloudFoundryCachingAgent
         "resource", cacheViewMapper.convertValue(o, new TypeReference<Map<String, Object>>() {}));
   }
 
-  Map<String, Collection<CacheData>> getCacheResultsFromCacheData(CacheData cacheData) {
+  Map<String, Collection<ResourceCacheData>> getCacheResultsFromCacheData(CacheData cacheData) {
     try {
       return cacheViewMapper.readValue(
           cacheData.getAttributes().get("cacheResults").toString(),

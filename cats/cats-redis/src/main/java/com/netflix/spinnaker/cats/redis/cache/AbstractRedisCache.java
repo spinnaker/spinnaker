@@ -196,7 +196,7 @@ public abstract class AbstractRedisCache implements WriteableCache {
           while (true) {
             final ScanResult<String> scanResult = client.sscan(setKey, cursor, scanParams);
             matches.addAll(scanResult.getResult());
-            cursor = scanResult.getStringCursor();
+            cursor = scanResult.getCursor();
             if ("0".equals(cursor)) {
               return matches;
             }
@@ -234,7 +234,7 @@ public abstract class AbstractRedisCache implements WriteableCache {
     return String.join(":", prefix, type, "members");
   }
 
-  protected TypeReference getRelationshipsTypeReference() {
+  protected TypeReference<? extends Collection<String>> getRelationshipsTypeReference() {
     return options.isTreatRelationshipsAsSet() ? RELATIONSHIPS_SET : RELATIONSHIPS_LIST;
   }
 }

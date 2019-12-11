@@ -173,7 +173,7 @@ public class CleanupPendingOnDemandCachesAgent implements RunnableAgent, CustomS
           while (true) {
             final ScanResult<String> scanResult = client.sscan(setKey, cursor, scanParams);
             matches.addAll(scanResult.getResult());
-            cursor = scanResult.getStringCursor();
+            cursor = scanResult.getCursor();
             if ("0".equals(cursor)) {
               return matches;
             }
