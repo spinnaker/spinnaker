@@ -24,6 +24,7 @@ dependencies {
   implementation "com.netflix.spectator:spectator-api"
   implementation "com.netflix.spinnaker.kork:kork-core"
   implementation "com.netflix.spinnaker.kork:kork-security"
+  implementation "com.netflix.spinnaker.kork:kork-telemetry"
   implementation "com.netflix.spinnaker.kork:kork-web"
   implementation "com.squareup.retrofit:retrofit"
   implementation "com.squareup.retrofit:converter-jackson"

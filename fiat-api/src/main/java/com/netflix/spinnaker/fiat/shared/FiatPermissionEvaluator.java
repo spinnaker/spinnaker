@@ -26,11 +26,13 @@ import com.netflix.spinnaker.fiat.model.resources.Account;
 import com.netflix.spinnaker.fiat.model.resources.Authorizable;
 import com.netflix.spinnaker.fiat.model.resources.ResourceType;
 import com.netflix.spinnaker.kork.exceptions.IntegrationException;
+import com.netflix.spinnaker.kork.telemetry.caffeine.CaffeineStatsCounter;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import com.netflix.spinnaker.security.User;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -137,7 +139,7 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
             .maximumSize(configProps.getCache().getMaxEntries())
             .expireAfterWrite(
                 configProps.getCache().getExpiresAfterWriteSeconds(), TimeUnit.SECONDS)
-            .recordStats()
+            .recordStats(() -> new CaffeineStatsCounter(registry, "fiat.permissionsCache"))
             .build();
 
     this.getPermissionCounterId = registry.createId("fiat.getPermission");
@@ -394,7 +396,24 @@ public class FiatPermissionEvaluator implements PermissionEvaluator {
 
     switch (resourceType) {
       case ACCOUNT:
-        return containsAuth.apply(permission.getAccounts());
+        boolean authorized = containsAuth.apply(permission.getAccounts());
+
+        // Todo(jonsie): Debug transitory access denied issue, remove when not necessary
+        if (!authorized) {
+          Map<String, Set<Authorization>> accounts =
+              permission.getAccounts().stream()
+                  .collect(
+                      Collectors.toMap(Account.View::getName, Account.View::getAuthorizations));
+
+          log.debug(
+              "Authorization={} denied to account={} for user permission={}, found={}",
+              authorization.toString(),
+              resourceName,
+              permission.getName(),
+              accounts.toString());
+        }
+
+        return authorized;
       case APPLICATION:
         boolean applicationHasPermissions =
             permission.getApplications().stream()
