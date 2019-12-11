@@ -71,7 +71,7 @@ public class StageContext extends ForwardingMap<String, Object> {
    * @param defaultValue default value to return if key is not present
    * @return value or null if not present
    */
-  Object getCurrentOnly(@Nullable Object key, Object defaultValue) {
+  public Object getCurrentOnly(@Nullable Object key, Object defaultValue) {
     return super.getOrDefault(key, defaultValue);
   }
   /*

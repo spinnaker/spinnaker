@@ -26,6 +26,7 @@ import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.pipeline.model.StageContext;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.tasks.artifacts.BindProducedArtifactsTask;
 import org.slf4j.Logger;
@@ -46,7 +47,10 @@ public class PipelineStage implements StageDefinitionBuilder, CancellableStage {
 
   @Override
   public void taskGraph(Stage stage, TaskNode.Builder builder) {
-    builder.withTask("startPipeline", StartPipelineTask.class);
+    // only start the pipeline if no execution ID already exists
+    if (stage.getContext().get("executionId") == null) {
+      builder.withTask("startPipeline", StartPipelineTask.class);
+    }
 
     if (!stage
         .getContext()
@@ -64,9 +68,19 @@ public class PipelineStage implements StageDefinitionBuilder, CancellableStage {
 
   @Override
   public void prepareStageForRestart(Stage stage) {
-    stage.getContext().remove("status");
-    stage.getContext().remove("executionName");
-    stage.getContext().remove("executionId");
+    StageContext context = (StageContext) stage.getContext();
+
+    context.remove("status");
+
+    boolean skipPipelineRestart = (boolean) context.getCurrentOnly("_skipPipelineRestart", false);
+    if (!skipPipelineRestart) {
+      stage.getContext().remove("executionName");
+      stage.getContext().remove("executionId");
+    } else {
+      // Keep the execution details in case the inner pipeline got restarted
+      // Clear the skip restart flag
+      stage.getContext().remove("_skipPipelineRestart");
+    }
   }
 
   @Override
