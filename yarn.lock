@@ -44,6 +44,9 @@
   dependencies:
     tinyqueue "^1.1.0"
 
+"@spinnaker/eslint-plugin@./packages/eslint-plugin":
+  version "1.0.5"
+
 "@spinnaker/kayenta@0.0.88":
   version "0.0.88"
   resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-0.0.88.tgz#6a8f33dd9d704d0e35673626441c737aa2517832"

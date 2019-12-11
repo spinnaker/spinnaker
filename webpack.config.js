@@ -17,6 +17,7 @@ function configure(env, webpackOpts) {
   const WEBPACK_MODE = (webpackOpts && webpackOpts.mode) || 'development';
   const IS_PRODUCTION = WEBPACK_MODE === 'production';
 
+  // eslint-disable-next-line no-console
   console.log('Webpack mode: ' + WEBPACK_MODE);
 
   const config = {
@@ -130,7 +131,7 @@ function configure(env, webpackOpts) {
             { loader: 'cache-loader', options: { cacheIdentifier: CACHE_INVALIDATE } },
             { loader: 'thread-loader', options: { workers: THREADS } },
             { loader: 'ts-loader', options: { happyPackMode: true } },
-            { loader: 'tslint-loader' },
+            { loader: 'eslint-loader' },
           ],
           exclude: /node_modules/,
         },

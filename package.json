@@ -18,7 +18,7 @@
   "scripts": {
     "clean": "rimraf .awcache .cache-loader build node_modules transpiled",
     "build": "NODE_OPTIONS=--max_old_space_size=8192 webpack --bail --progress --mode=production",
-    "eslint": "eslint -c .eslintrc app/scripts/modules",
+    "eslint": "eslint --ext js,jsx,ts,tsx -c .eslintrc.js app/scripts/modules",
     "start": "sh ./start.sh",
     "start-dev-server": "webpack-dev-server --progress --mode=development",
     "test": "karma start",
@@ -102,6 +102,7 @@
     "webpack-dev-middleware": "^3.7.2"
   },
   "devDependencies": {
+    "@spinnaker/eslint-plugin": "./packages/eslint-plugin",
     "@types/angular": "1.6.26",
     "@types/angular-mocks": "1.5.10",
     "@types/angular-ui-bootstrap": "^0.13.41",
