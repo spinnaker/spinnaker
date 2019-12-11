@@ -2,9 +2,15 @@ package com.netflix.spinnaker.keel.persistence.memory
 
 import com.netflix.spinnaker.keel.api.ArtifactStatus
 import com.netflix.spinnaker.keel.api.ArtifactType
+import com.netflix.spinnaker.keel.api.ArtifactVersions
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.EnvironmentArtifactsSummary
+import com.netflix.spinnaker.keel.api.PromotionStatus
+import com.netflix.spinnaker.keel.api.PromotionStatus.CURRENT
+import com.netflix.spinnaker.keel.api.PromotionStatus.DEPLOYING
+import com.netflix.spinnaker.keel.api.PromotionStatus.PENDING
+import com.netflix.spinnaker.keel.api.PromotionStatus.PREVIOUS
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
 import org.slf4j.Logger
@@ -34,7 +40,8 @@ class InMemoryArtifactRepository : ArtifactRepository {
   }
 
   override fun get(name: String, type: ArtifactType): DeliveryArtifact =
-    artifacts.keys.find { it.name == name && it.type == type } ?: throw NoSuchArtifactException(name, type)
+    artifacts.keys.find { it.name == name && it.type == type }
+      ?: throw NoSuchArtifactException(name, type)
 
   override fun store(artifact: DeliveryArtifact, version: String, status: ArtifactStatus?): Boolean {
     if (!artifacts.containsKey(artifact)) {
@@ -139,9 +146,35 @@ class InMemoryArtifactRepository : ArtifactRepository {
     }
   }
 
-  override fun versionsByEnvironment(deliveryConfig: DeliveryConfig): List<EnvironmentArtifactsSummary> {
-    TODO("not implemented")
-  }
+  override fun versionsByEnvironment(deliveryConfig: DeliveryConfig): List<EnvironmentArtifactsSummary> =
+    deliveryConfig
+      .environments
+      .map { environment ->
+        val artifactVersions = deliveryConfig
+          .artifacts
+          .map { artifact ->
+            val key = Key(artifact, deliveryConfig, environment.name)
+            val versions = artifacts
+              .getValue(artifact)
+              .map { it.version }
+              .groupBy {
+                when (it) {
+                  deployedVersions.getOrDefault(key, emptyList<String>()).lastOrNull() -> CURRENT
+                  in deployedVersions.getOrDefault(key, emptyList<String>()) -> PREVIOUS
+                  in approvedVersions.getOrDefault(key, emptyList<String>()) -> DEPLOYING
+                  else -> PENDING
+                }
+              }
+              .toMutableMap()
+              .apply {
+                PromotionStatus.values().forEach {
+                  putIfAbsent(it, emptyList())
+                }
+              }
+            ArtifactVersions(artifact.name, artifact.type, versions)
+          }
+        EnvironmentArtifactsSummary(environment.name, artifactVersions)
+      }
 
   fun dropAll() {
     artifacts.clear()
