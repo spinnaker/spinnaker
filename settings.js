@@ -234,6 +234,9 @@ window.spinnakerSettings = {
   pagerDuty: {
     required: false,
   },
+  slack: {
+    baseUrl: 'https://slack.com',
+  },
   pubsubProviders: ['google'], // TODO(joonlim): Add amazon once it is confirmed that amazon pub/sub works.
   searchVersion: 1,
   triggerTypes: [

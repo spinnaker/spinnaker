@@ -118,6 +118,9 @@ export interface ISpinnakerSettings {
     defaultSubject?: string;
     required?: boolean;
   };
+  slack?: {
+    baseUrl: string;
+  };
   pollSchedule: number;
   providers?: {
     [key: string]: IProviderSettings; // allows custom providers not typed in here (good for testing too)

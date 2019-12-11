@@ -14,9 +14,7 @@
   <render-if-feature feature="slack">
     <dt ng-if="vm.application.attributes.slackChannel && vm.application.attributes.slackChannel.name">Slack Channel</dt>
     <dd ng-if="vm.application.attributes.slackChannel && vm.application.attributes.slackChannel.name">
-      <a
-        target="_blank"
-        href="https://netflix.slack.com/app_redirect?channel={{vm.application.attributes.slackChannel.name}}"
+      <a target="_blank" href="{{vm.slackBaseUrl}}/app_redirect?channel={{vm.application.attributes.slackChannel.id}}"
         >#{{vm.application.attributes.slackChannel.name}}</a
       >
     </dd>

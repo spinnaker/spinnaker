@@ -5,6 +5,7 @@ import { get } from 'lodash';
 const angular = require('angular');
 
 import { OVERRIDE_REGISTRY } from 'core/overrideRegistry/override.registry';
+import { SETTINGS } from 'core/config/settings';
 
 module.exports = angular
   .module('spinnaker.core.application.config.attributes.directive', [
@@ -106,5 +107,7 @@ module.exports = angular
           })
           .catch(() => {});
       };
+
+      this.slackBaseUrl = SETTINGS.slack.baseUrl;
     },
   ]);
