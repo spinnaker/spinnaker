@@ -42,6 +42,7 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
     TaskRepository.threadLocalTask.set(Mock(Task))
   }
 
+  @Unroll
   void "should build a CreateStackRequest if stack doesn't exist and submit through aws client"() {
     given:
     def amazonClientProvider = Mock(AmazonClientProvider)
@@ -54,7 +55,7 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
           stackName: "stackTest",
           region: "eu-west-1",
           templateBody: '{"key":"value"}',
-          roleARN: "arn:aws:iam::123456789012:role/test",
+          roleARN: roleARN,
           parameters: [ key: "value"],
           tags: [ key: "value" ],
           capabilities: ["cap1", "cap2"],
@@ -74,15 +75,23 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
     1 * amazonCloudFormation.createStack(_) >> { CreateStackRequest request ->
       assert request.getStackName() == "stackTest"
       assert request.getTemplateBody() == '{"key":"value"}'
-      assert request.getRoleARN() == "arn:aws:iam::123456789012:role/test"
+      assert request.getRoleARN() == expectedRoleARN
       assert request.getParameters() == [ new Parameter().withParameterKey("key").withParameterValue("value") ]
       assert request.getTags() == [ new Tag().withKey("key").withValue("value") ]
       assert request.getCapabilities() == ["cap1", "cap2"]
       createStackResult
     }
     1 * createStackResult.getStackId() >> stackId
+
+    where:
+    roleARN                              || expectedRoleARN
+    "arn:aws:iam:123456789012:role/test" || "arn:aws:iam:123456789012:role/test"
+    ""                                   || null
+    "    "                               || null
+    null                                 || null
   }
 
+  @Unroll
   void "should build an UpdateStackRequest if stack exists and submit through aws client"() {
     given:
     def amazonClientProvider = Mock(AmazonClientProvider)
@@ -95,7 +104,7 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
           stackName: "stackTest",
           region: "eu-west-1",
           templateBody: '{"key":"value"}',
-          roleARN: "arn:aws:iam::123456789012:role/test",
+          roleARN: roleARN,
           parameters: [ key: "value" ],
           tags: [ key: "value" ],
           capabilities: ["cap1", "cap2"],
@@ -117,13 +126,20 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
     1 * amazonCloudFormation.updateStack(_) >> { UpdateStackRequest request ->
       assert request.getStackName() == "stackTest"
       assert request.getTemplateBody() == '{"key":"value"}'
-      assert request.getRoleARN() == "arn:aws:iam::123456789012:role/test"
+      assert request.getRoleARN() == expectedRoleARN
       assert request.getParameters() == [ new Parameter().withParameterKey("key").withParameterValue("value") ]
       assert request.getTags() == [ new Tag().withKey("key").withValue("value") ]
       assert request.getCapabilities() == ["cap1", "cap2"]
       updateStackRequest
     }
     1 * updateStackRequest.getStackId() >> stackId
+
+    where:
+    roleARN                              || expectedRoleARN
+    "arn:aws:iam:123456789012:role/test" || "arn:aws:iam:123456789012:role/test"
+    ""                                   || null
+    "    "                               || null
+    null                                 || null
   }
 
   @Unroll
@@ -139,7 +155,7 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
           stackName: "stackTest",
           region: "eu-west-1",
           templateBody: 'key: "value"',
-          roleARN: "arn:aws:iam::123456789012:role/test",
+          roleARN: roleARN,
           parameters: [ key: "value" ],
           tags: [ key: "value" ],
           capabilities: ["cap1", "cap2"],
@@ -167,7 +183,7 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
     1* amazonCloudFormation.createChangeSet(_) >> { CreateChangeSetRequest request ->
       assert request.getStackName() == "stackTest"
       assert request.getTemplateBody() == 'key: "value"'
-      assert request.getRoleARN() == "arn:aws:iam::123456789012:role/test"
+      assert request.getRoleARN() == expectedRoleARN
       assert request.getParameters() == [ new Parameter().withParameterKey("key").withParameterValue("value") ]
       assert request.getTags() == [ new Tag().withKey("key").withValue("value") ]
       assert request.getCapabilities() == ["cap1", "cap2"]
@@ -178,8 +194,11 @@ class DeployCloudFormationAtomicOperationSpec extends Specification {
     1 * createChangeSetResult.getStackId() >> stackId
 
     where:
-    existingStack || changeSetType
-    true          || ChangeSetType.UPDATE.toString()
-    false         || ChangeSetType.CREATE.toString()
+    roleARN                              | expectedRoleARN                      | existingStack || changeSetType
+    "arn:aws:iam:123456789012:role/test" | "arn:aws:iam:123456789012:role/test" | true          || ChangeSetType.UPDATE.toString()
+    ""                                   | null                                 | true          || ChangeSetType.UPDATE.toString()
+    "   "                                | null                                 | true          || ChangeSetType.UPDATE.toString()
+    "arn:aws:iam:123456789012:role/test" | "arn:aws:iam:123456789012:role/test" | true          || ChangeSetType.UPDATE.toString()
+    "arn:aws:iam:123456789012:role/test" | "arn:aws:iam:123456789012:role/test" | false         || ChangeSetType.CREATE.toString()
   }
 }

@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.util.StringUtils;
 
 @Slf4j
 public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map> {
@@ -125,10 +126,12 @@ public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map>
         new CreateStackRequest()
             .withStackName(description.getStackName())
             .withParameters(parameters)
-            .withRoleARN(roleARN)
             .withTags(tags)
             .withTemplateBody(template)
             .withCapabilities(capabilities);
+    if (StringUtils.hasText(roleARN)) {
+      createStackRequest.setRoleARN(roleARN);
+    }
     task.updateStatus(BASE_PHASE, "Uploading CloudFormation Stack");
     CreateStackResult createStackResult = amazonCloudFormation.createStack(createStackRequest);
     return createStackResult.getStackId();
@@ -147,10 +150,12 @@ public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map>
         new UpdateStackRequest()
             .withStackName(description.getStackName())
             .withParameters(parameters)
-            .withRoleARN(roleARN)
             .withTags(tags)
             .withTemplateBody(template)
             .withCapabilities(capabilities);
+    if (StringUtils.hasText(roleARN)) {
+      updateStackRequest.setRoleARN(roleARN);
+    }
     task.updateStatus(BASE_PHASE, "Uploading CloudFormation Stack");
     try {
       UpdateStackResult updateStackResult = amazonCloudFormation.updateStack(updateStackRequest);
@@ -176,11 +181,13 @@ public class DeployCloudFormationAtomicOperation implements AtomicOperation<Map>
             .withStackName(description.getStackName())
             .withChangeSetName(description.getChangeSetName())
             .withParameters(parameters)
-            .withRoleARN(roleARN)
             .withTags(tags)
             .withTemplateBody(template)
             .withCapabilities(capabilities)
             .withChangeSetType(changeSetType);
+    if (StringUtils.hasText(roleARN)) {
+      createChangeSetRequest.setRoleARN(roleARN);
+    }
     task.updateStatus(BASE_PHASE, "Uploading CloudFormation ChangeSet");
     try {
       CreateChangeSetResult createChangeSetResult =
