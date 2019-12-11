@@ -1,9 +1,10 @@
 module.exports = {
   rules: {
-    'component-literal': require('./rules/component-literal'),
-    strictdi: require('./rules/strictdi'),
-    'no-ng-module-export': require('./rules/no-ng-module-export'),
-    'no-require-angularjs-deps': require('./rules/no-require-angularjs-deps'),
+    'ng-no-component-class': require('./rules/ng-no-component-class'),
+    'ng-no-module-export': require('./rules/ng-no-module-export'),
+    'ng-no-require-angularjs': require('./rules/ng-no-require-angularjs'),
+    'ng-no-require-module-deps': require('./rules/ng-no-require-module-deps'),
+    'ng-strictdi': require('./rules/ng-strictdi'),
   },
   configs: {
     base: require('./base.config.js'),
