@@ -40,6 +40,7 @@ describe('<Executions/>', () => {
         'app',
         { key: 'executions', lazy: true, defaultData: [] },
         { key: 'pipelineConfigs', lazy: true, defaultData: [] },
+        { key: 'runningExecutions', lazy: true, defaultData: [] },
       );
     }),
   );
