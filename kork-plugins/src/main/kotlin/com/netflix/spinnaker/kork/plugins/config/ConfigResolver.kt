@@ -32,7 +32,6 @@ interface ConfigResolver {
 }
 
 sealed class ConfigCoordinates(
-  val extensionNamespace: String,
   val extensionId: String
 )
 
@@ -40,16 +39,13 @@ sealed class ConfigCoordinates(
  * Config coordinates for a plugin's extension.
  */
 class PluginConfigCoordinates(
-  val pluginNamespace: String,
   val pluginId: String,
-  extensionNamespace: String,
   extensionId: String
-) : ConfigCoordinates(extensionNamespace, extensionId)
+) : ConfigCoordinates(extensionId)
 
 /**
  * Config coordinates for a system extension.
  */
 class SystemExtensionConfigCoordinates(
-  extensionNamespace: String,
   extensionId: String
-) : ConfigCoordinates(extensionNamespace, extensionId)
+) : ConfigCoordinates(extensionId)

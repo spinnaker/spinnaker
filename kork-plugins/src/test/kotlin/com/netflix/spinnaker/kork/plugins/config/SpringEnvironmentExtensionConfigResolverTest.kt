@@ -40,7 +40,7 @@ class SpringEnvironmentExtensionConfigResolverTest : JUnit5Minutests {
       every { environment.getProperty(any(), eq(TestExtensionConfig::class.java)) } returns TestExtensionConfig()
 
       expectThat(subject.resolve(
-        PluginConfigCoordinates("netflix", "sweet-plugin", "netflix", "foo"),
+        PluginConfigCoordinates("netflix.sweet-plugin", "netflix.foo"),
         TestExtensionConfig::class.java
       ))
         .isA<TestExtensionConfig>()
@@ -57,7 +57,7 @@ class SpringEnvironmentExtensionConfigResolverTest : JUnit5Minutests {
       every { environment.getProperty(any(), eq(TestExtensionConfig::class.java)) } returns TestExtensionConfig()
 
       expectThat(subject.resolve(
-        PluginConfigCoordinates("netflix", "very-important", "orca", "stage"),
+        PluginConfigCoordinates("netflix.very-important", "orca.stage"),
         TestExtensionConfig::class.java
       ))
         .isA<TestExtensionConfig>()
@@ -73,7 +73,7 @@ class SpringEnvironmentExtensionConfigResolverTest : JUnit5Minutests {
       every { environment.getProperty(any(), eq(TestExtensionConfig::class.java)) } returns TestExtensionConfig()
 
       expectThat(subject.resolve(
-        SystemExtensionConfigCoordinates("netflix", "bar"),
+        SystemExtensionConfigCoordinates("netflix.bar"),
         TestExtensionConfig::class.java
       ))
         .isA<TestExtensionConfig>()

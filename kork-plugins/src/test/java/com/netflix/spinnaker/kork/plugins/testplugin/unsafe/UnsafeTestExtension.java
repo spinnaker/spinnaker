@@ -22,7 +22,7 @@ import org.pf4j.Extension;
 
 /** An unsafe (in codebase) implementation of TestExtension. */
 @Extension
-@SpinnakerExtension(namespace = "spinnaker", id = "unsafe-test-extension")
+@SpinnakerExtension(id = "spinnaker.unsafe-test-extension")
 public class UnsafeTestExtension implements TestExtension {
   @Override
   public String getTestValue() {

@@ -66,9 +66,7 @@ class SpringExtensionFactory(
     val coordinates = pluginWrapper.getCoordinates()
 
     loadConfig(extension, PluginConfigCoordinates(
-      coordinates.namespace,
       coordinates.id,
-      annot.namespace,
       annot.id
     ))
 
@@ -85,7 +83,6 @@ class SpringExtensionFactory(
     }
 
     loadConfig(extension, SystemExtensionConfigCoordinates(
-      annot.namespace,
       annot.id
     ))
 
@@ -170,10 +167,9 @@ class SpringExtensionFactory(
   }
 
   private fun PluginWrapper.getCoordinates(): PluginCoordinates =
-    (descriptor as SpinnakerPluginDescriptor).let { PluginCoordinates(it.namespace, it.pluginName) }
+    (descriptor as SpinnakerPluginDescriptor).let { PluginCoordinates(it.pluginId) }
 
   private inner class PluginCoordinates(
-    val namespace: String,
     val id: String
   )
 }

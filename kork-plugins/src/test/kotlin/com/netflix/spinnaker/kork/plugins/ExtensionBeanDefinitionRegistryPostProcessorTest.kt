@@ -117,7 +117,7 @@ class ExtensionBeanDefinitionRegistryPostProcessorTest : JUnit5Minutests {
     }
   }
 
-  @SpinnakerExtension(namespace = "netflix", id = "foo")
+  @SpinnakerExtension(id = "netflix.foo")
   private class FooExtension : ExampleExtensionPoint, ConfigurableExtension<FooExtension.FooExtensionConfig> {
     lateinit var config: FooExtensionConfig
 

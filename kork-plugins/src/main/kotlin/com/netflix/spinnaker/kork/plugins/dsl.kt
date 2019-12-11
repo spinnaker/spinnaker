@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.kork.plugins
 
+import org.pf4j.PluginDescriptor
 import org.pf4j.PluginWrapper
 
 /**
@@ -28,4 +29,11 @@ internal fun PluginWrapper.isUnsafe(): Boolean {
       false
     }
   }
+}
+
+/**
+ * Validates a [PluginDescriptor] according to additional Spinnaker conventions.
+ */
+internal fun PluginDescriptor.validate() {
+  CanonicalPluginIdValidator.validate(this)
 }

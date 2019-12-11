@@ -26,7 +26,7 @@ internal class TestSpringPlugin(wrapper: PluginWrapper) : SpringPlugin(wrapper) 
     applicationContext.register(TestSpringPluginConfiguration::class.java)
   }
 
-  @SpinnakerExtension(namespace = "kork", id = "test")
+  @SpinnakerExtension(id = "kork.test")
   class TestExtension {
     @Autowired
     lateinit var myConfig: MyObject

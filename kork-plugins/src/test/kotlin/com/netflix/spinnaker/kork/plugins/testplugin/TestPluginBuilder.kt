@@ -172,7 +172,7 @@ class TestPluginBuilder(
     import org.pf4j.Extension;
 
     @Extension
-    @SpinnakerExtension(namespace = "spinnaker", id = "${name.toLowerCase()}-test-extension")
+    @SpinnakerExtension(id = "spinnaker.${name.toLowerCase()}-test-extension")
     public class ${name}TestExtension implements TestExtension {
       @Override
       public String getTestValue() {
@@ -192,6 +192,5 @@ class TestPluginBuilder(
     plugin.requires=*
     plugin.license=Apache 2.0
     plugin.unsafe=false
-    plugin.namespace=spinnaker
     """.trimIndent()
 }

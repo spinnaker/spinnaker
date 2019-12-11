@@ -20,20 +20,9 @@ import org.pf4j.PluginDescriptor
 /**
  * Decorates the default [PluginDescriptor] with additional Spinnaker-specific metadata.
  *
- * @param namespace The plugin namespace. This should be the name of your org (github username, org, etc).
  * @param unsafe If set to true, a plugin will be created using the parent application ClassLoader.
  */
 class SpinnakerPluginDescriptor(
   private val baseDescriptor: PluginDescriptor,
-  val namespace: String,
-  val unsafe: Boolean = false,
-  val pluginName: String = baseDescriptor.pluginId
-) : PluginDescriptor by baseDescriptor {
-  override fun getPluginId(): String {
-    if (namespace == "undefined") {
-      return baseDescriptor.pluginId
-    } else {
-      return "$namespace.${baseDescriptor.pluginId}"
-    }
-  }
-}
+  val unsafe: Boolean = false
+) : PluginDescriptor by baseDescriptor

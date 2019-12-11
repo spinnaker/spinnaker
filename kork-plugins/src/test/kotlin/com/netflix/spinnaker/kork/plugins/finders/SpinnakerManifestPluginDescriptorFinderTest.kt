@@ -42,11 +42,10 @@ class SpinnakerManifestPluginDescriptorFinderTest : JUnit5Minutests {
     test("unsafe property is decorated into plugin descriptor") {
       val descriptorFinder = SpinnakerManifestPluginDescriptorFinder()
 
-      expectThat(descriptorFinder.find(pluginsPath.resolve("test-plugin-1")))
+      expectThat(descriptorFinder.find(pluginsPath.resolve("pf4j.test-plugin-1")))
         .isA<SpinnakerPluginDescriptor>()
         .and {
           get { pluginId }.isEqualTo("pf4j.test-plugin-1")
-          get { pluginName }.isEqualTo("test-plugin-1")
           get { unsafe }.isTrue()
         }
     }
@@ -54,21 +53,20 @@ class SpinnakerManifestPluginDescriptorFinderTest : JUnit5Minutests {
 
   private class Fixture(val pluginsPath: Path) {
     init {
-      val pluginPath = Files.createDirectories(pluginsPath.resolve("test-plugin-1"))
+      val pluginPath = Files.createDirectories(pluginsPath.resolve("pf4j.test-plugin-1"))
       storeManifestToPath(getPlugin1Manifest(), pluginPath)
     }
 
     private fun getPlugin1Manifest(): Manifest {
       return PluginJar.createManifest(mapOf(
-        ManifestPluginDescriptorFinder.PLUGIN_ID to "test-plugin-1",
+        ManifestPluginDescriptorFinder.PLUGIN_ID to "pf4j.test-plugin-1",
         ManifestPluginDescriptorFinder.PLUGIN_CLASS to TestPlugin::class.java.name,
         ManifestPluginDescriptorFinder.PLUGIN_VERSION to "0.0.1",
         ManifestPluginDescriptorFinder.PLUGIN_DESCRIPTION to "Test Plugin 1",
         ManifestPluginDescriptorFinder.PLUGIN_PROVIDER to "Decebal Suiu",
-        ManifestPluginDescriptorFinder.PLUGIN_DEPENDENCIES to "test-plugin-2,test-plugin-3@~1.0",
+        ManifestPluginDescriptorFinder.PLUGIN_DEPENDENCIES to "foo.test-plugin-2,foo.test-plugin-3@~1.0",
         ManifestPluginDescriptorFinder.PLUGIN_REQUIRES to "*",
         ManifestPluginDescriptorFinder.PLUGIN_LICENSE to "Apache-2.0",
-        SpinnakerManifestPluginDescriptorFinder.PLUGIN_NAMESPACE to "pf4j",
         SpinnakerManifestPluginDescriptorFinder.PLUGIN_UNSAFE to "true"
       ))
     }

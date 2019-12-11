@@ -60,7 +60,7 @@ class SpringExtensionFactoryTest : JUnit5Minutests {
     context("plugin extensions") {
       test("without config") {
         every { pluginManager.whichPlugin(any()) } returns pluginWrapper
-        every { pluginWrapper.descriptor } returns createPluginDescriptor("pluginz", "bestone")
+        every { pluginWrapper.descriptor } returns createPluginDescriptor("pluginz.bestone")
 
         expectThat(subject.create(MyPlugin.NoConfigExtension::class.java))
           .isA<MyPlugin.NoConfigExtension>()
@@ -68,7 +68,7 @@ class SpringExtensionFactoryTest : JUnit5Minutests {
 
       test("with config") {
         every { pluginManager.whichPlugin(any()) } returns pluginWrapper
-        every { pluginWrapper.descriptor } returns createPluginDescriptor("pluginz", "bestone")
+        every { pluginWrapper.descriptor } returns createPluginDescriptor("pluginz.bestone")
 
         val config = MyPlugin.ConfiguredExtension.TheConfig()
         every { configResolver.resolve(any(), any<Class<MyPlugin.ConfiguredExtension.TheConfig>>()) } returns config
@@ -93,18 +93,18 @@ class SpringExtensionFactoryTest : JUnit5Minutests {
     val pluginWrapper: PluginWrapper = mockk(relaxed = true)
   }
 
-  private fun createPluginDescriptor(namespace: String, pluginId: String): SpinnakerPluginDescriptor {
+  private fun createPluginDescriptor(pluginId: String): SpinnakerPluginDescriptor {
     val descriptor: PluginDescriptor = mockk(relaxed = true)
     every { descriptor.pluginId } returns pluginId
-    return SpinnakerPluginDescriptor(descriptor, namespace)
+    return SpinnakerPluginDescriptor(descriptor)
   }
 
   interface TheExtensionPoint : ExtensionPoint
 
-  @SpinnakerExtension(namespace = "kork", id = "noconfig")
+  @SpinnakerExtension(id = "kork.noconfig")
   class NoConfigSystemExtension : TheExtensionPoint
 
-  @SpinnakerExtension(namespace = "kork", id = "configured")
+  @SpinnakerExtension(id = "kork.configured")
   class ConfiguredSystemExtension : TheExtensionPoint, ConfigurableExtension<ConfiguredSystemExtension.TheConfig> {
     lateinit var config: Any
     override fun setConfiguration(configuration: TheConfig) {
@@ -119,10 +119,10 @@ class SpringExtensionFactoryTest : JUnit5Minutests {
 
   class MyPlugin(wrapper: PluginWrapper) : Plugin(wrapper) {
 
-    @SpinnakerExtension(namespace = "plugin", id = "noconfig")
+    @SpinnakerExtension(id = "plugin.noconfig")
     class NoConfigExtension : TheExtensionPoint
 
-    @SpinnakerExtension(namespace = "plugin", id = "configured")
+    @SpinnakerExtension(id = "plugin.configured")
     class ConfiguredExtension : TheExtensionPoint, ConfigurableExtension<ConfiguredExtension.TheConfig> {
       lateinit var config: Any
       override fun setConfiguration(configuration: TheConfig) {

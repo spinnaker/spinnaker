@@ -35,12 +35,6 @@ import org.pf4j.Extension;
 @Target(ElementType.TYPE)
 @Documented
 public @interface SpinnakerExtension {
-  /**
-   * The namespace of the extension. Generally speaking, this would be your organization, e.g.
-   * "netflix".
-   */
-  String namespace();
-
-  /** The unique id of the extension within the namespace. */
+  /** The unique canonical id of the extension. */
   String id();
 }

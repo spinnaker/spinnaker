@@ -63,7 +63,7 @@ class PluginSystemTest : JUnit5Minutests {
           val testPluginWrapper = PluginWrapper(
             pluginManager,
             DefaultPluginDescriptor(
-              "TestPlugin",
+              "Armory.TestPlugin",
               "desc",
               "TestPlugin.java",
               "1.0.0",
@@ -77,7 +77,7 @@ class PluginSystemTest : JUnit5Minutests {
           testPluginWrapper.pluginState = PluginState.DISABLED
           pluginManager.setPlugins(listOf(testPluginWrapper))
 
-          pluginManager.enablePlugin("TestPlugin")
+          pluginManager.enablePlugin("Armory.TestPlugin")
         }
       }
     }

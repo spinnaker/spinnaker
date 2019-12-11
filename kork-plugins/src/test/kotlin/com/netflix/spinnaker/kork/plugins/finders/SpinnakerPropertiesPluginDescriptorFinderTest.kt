@@ -44,11 +44,10 @@ class SpinnakerPropertiesPluginDescriptorFinderTest : JUnit5Minutests {
     test("unsafe property is decorated into plugin descriptor") {
       val descriptorFinder = SpinnakerPropertiesPluginDescriptorFinder()
 
-      expectThat(descriptorFinder.find(pluginsPath.resolve("test-plugin-1")))
+      expectThat(descriptorFinder.find(pluginsPath.resolve("pf4j.test-plugin-1")))
         .isA<SpinnakerPluginDescriptor>()
         .and {
           get { pluginId }.isEqualTo("pf4j.test-plugin-1")
-          get { pluginName }.isEqualTo("test-plugin-1")
           get { unsafe }.isTrue()
         }
     }
@@ -57,21 +56,20 @@ class SpinnakerPropertiesPluginDescriptorFinderTest : JUnit5Minutests {
   private class Fixture(val pluginsPath: Path) {
 
     init {
-      val pluginPath = Files.createDirectory(pluginsPath.resolve("test-plugin-1"))
+      val pluginPath = Files.createDirectory(pluginsPath.resolve("pf4j.test-plugin-1"))
       storePropertiesToPath(getPlugin1Properties(), pluginPath)
     }
 
     private fun getPlugin1Properties(): Properties {
       return PluginZip.createProperties(mapOf(
-        PropertiesPluginDescriptorFinder.PLUGIN_ID to "test-plugin-1",
+        PropertiesPluginDescriptorFinder.PLUGIN_ID to "pf4j.test-plugin-1",
         PropertiesPluginDescriptorFinder.PLUGIN_CLASS to TestPlugin::class.java.name,
         PropertiesPluginDescriptorFinder.PLUGIN_VERSION to "0.0.1",
         PropertiesPluginDescriptorFinder.PLUGIN_DESCRIPTION to "Test Plugin 1",
         PropertiesPluginDescriptorFinder.PLUGIN_PROVIDER to "Decebal Suiu",
-        PropertiesPluginDescriptorFinder.PLUGIN_DEPENDENCIES to "test-plugin-2,test-plugin-3@~1.0",
+        PropertiesPluginDescriptorFinder.PLUGIN_DEPENDENCIES to "foo.test-plugin-2,foo.test-plugin-3@~1.0",
         PropertiesPluginDescriptorFinder.PLUGIN_REQUIRES to ">=1",
         PropertiesPluginDescriptorFinder.PLUGIN_LICENSE to "Apache-2.0",
-        SpinnakerPropertiesPluginDescriptorFinder.PLUGIN_NAMESPACE to "pf4j",
         SpinnakerPropertiesPluginDescriptorFinder.PLUGIN_UNSAFE to "true"
       ))
     }
