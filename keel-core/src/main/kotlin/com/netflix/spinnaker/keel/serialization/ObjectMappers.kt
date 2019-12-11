@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS
 import com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_WITH_ZONE_ID
 import com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATE_KEYS_AS_TIMESTAMPS
+import com.fasterxml.jackson.databind.SerializationFeature.WRITE_DURATIONS_AS_TIMESTAMPS
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
@@ -49,6 +50,7 @@ private fun ObjectMapper.configureSaneDateTimeRepresentation(): ObjectMapper =
     .setSerializationInclusion(NON_NULL)
     .enable(WRITE_DATES_WITH_ZONE_ID)
     .enable(WRITE_DATE_KEYS_AS_TIMESTAMPS)
+    .disable(WRITE_DURATIONS_AS_TIMESTAMPS)
     .apply {
       dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZZ").apply {
         timeZone = TimeZone.getDefault()
