@@ -4,6 +4,7 @@ module.exports = {
   extends: ['eslint:recommended', 'prettier', 'prettier/@typescript-eslint', 'plugin:@typescript-eslint/recommended'],
   rules: {
     '@spinnaker/strictdi': 2,
+    '@spinnaker/no-ng-module-export': 2,
     indent: 'off',
     'member-ordering': 'off',
     'no-console': ['error', { allow: ['warn', 'error'] }],
