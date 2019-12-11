@@ -54,12 +54,23 @@ const rule = function(context) {
       const fix = fixer => {
         if (name && type === 'tsclass') {
           return fixer.insertTextBefore(node, `public static $inject = [${injectStrings}];\n  `);
+        } else if (name && type === 'class') {
+          // find class node
+          let classNode = node;
+          while (classNode.type !== 'ClassDeclaration' && classNode.parent) {
+            classNode = classNode.parent;
+          }
+          return fixer.insertTextAfter(classNode, `\n${name}.$inject = [${injectStrings}];`);
         } else if (name) {
           return fixer.insertTextAfter(node, `\n${name}.$inject = [${injectStrings}];`);
         } else {
           return [fixer.insertTextBefore(node, `[${injectStrings}, `), fixer.insertTextAfter(node, `]`)];
         }
       };
+
+      // let program = node;
+      // while(program.parent) {program = program.parent}
+      // console.log(context.getSourceCode().getText(program));
 
       context.report({ node, message, fix });
     } else if (diCount !== paramCount) {

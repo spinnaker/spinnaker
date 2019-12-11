@@ -5,6 +5,7 @@ const findParentNodeByType = (node, type) =>
   !node ? null : node.type === type ? node : findParentNodeByType(node.parent, type);
 /**
  * Use object literal when declaring AngularJS components
+ * Do not use new ComponentClass()
  *
  * @version 0.1.0
  * @category conventions
