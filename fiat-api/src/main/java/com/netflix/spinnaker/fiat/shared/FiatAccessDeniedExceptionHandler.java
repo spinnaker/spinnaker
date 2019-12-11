@@ -17,6 +17,9 @@
 package com.netflix.spinnaker.fiat.shared;
 
 import java.io.IOException;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.StringJoiner;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -40,10 +43,13 @@ public class FiatAccessDeniedExceptionHandler {
       throws IOException {
     storeException(request, response, e);
 
+    Map<String, String> headers = requestHeaders(request);
+
     log.error(
-        "Encountered exception while processing request {}:{}",
+        "Encountered exception while processing request {}:{} with headers={}",
         request.getMethod(),
         request.getRequestURI(),
+        headers.toString(),
         e);
 
     String errorMessage =
@@ -71,6 +77,20 @@ public class FiatAccessDeniedExceptionHandler {
     }
 
     return sj.toString();
+  }
+
+  private Map<String, String> requestHeaders(HttpServletRequest request) {
+    Map<String, String> headers = new HashMap<>();
+
+    if (request.getHeaderNames() != null) {
+      for (Enumeration<String> h = request.getHeaderNames(); h.hasMoreElements(); ) {
+        String headerName = h.nextElement();
+        String headerValue = request.getHeader(headerName);
+        headers.put(headerName, headerValue);
+      }
+    }
+
+    return headers;
   }
 
   private void storeException(
