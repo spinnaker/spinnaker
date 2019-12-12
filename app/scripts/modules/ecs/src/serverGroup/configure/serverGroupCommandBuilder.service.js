@@ -97,12 +97,12 @@ angular
 
       function buildNewServerGroupCommand(application, defaults) {
         defaults = defaults || {};
-        var credentialsLoader = AccountService.getCredentialsKeyedByAccount('ecs');
+        let credentialsLoader = AccountService.getCredentialsKeyedByAccount('ecs');
 
-        var defaultCredentials = defaults.account || application.defaultCredentials.ecs;
-        var defaultRegion = defaults.region || application.defaultRegions.ecs;
+        let defaultCredentials = defaults.account || application.defaultCredentials.ecs;
+        let defaultRegion = defaults.region || application.defaultRegions.ecs;
 
-        var preferredZonesLoader = AccountService.getAvailabilityZonesForAccountAndRegion(
+        let preferredZonesLoader = AccountService.getAvailabilityZonesForAccountAndRegion(
           'ecs',
           defaultCredentials,
           defaultRegion,
@@ -114,14 +114,14 @@ angular
             credentialsKeyedByAccount: credentialsLoader,
           })
           .then(function(asyncData) {
-            var availabilityZones = asyncData.preferredZones;
+            let availabilityZones = asyncData.preferredZones;
 
-            var defaultIamRole = 'None (No IAM role)';
+            let defaultIamRole = 'None (No IAM role)';
             defaultIamRole = defaultIamRole.replace('{{application}}', application.name);
 
-            var defaultImageCredentials = 'None (No registry credentials)';
+            let defaultImageCredentials = 'None (No registry credentials)';
 
-            var command = {
+            let command = {
               application: application.name,
               credentials: defaultCredentials,
               region: defaultRegion,
@@ -173,16 +173,16 @@ angular
       }
 
       function buildServerGroupCommandFromPipeline(application, originalCluster, current, pipeline) {
-        var pipelineCluster = _.cloneDeep(originalCluster);
-        var region = Object.keys(pipelineCluster.availabilityZones)[0];
+        let pipelineCluster = _.cloneDeep(originalCluster);
+        let region = Object.keys(pipelineCluster.availabilityZones)[0];
         // var instanceTypeCategoryLoader = instanceTypeService.getCategoryForInstanceType('ecs', pipelineCluster.instanceType);
-        var commandOptions = { account: pipelineCluster.account, region: region };
-        var asyncLoader = $q.all({ command: buildNewServerGroupCommand(application, commandOptions) });
+        let commandOptions = { account: pipelineCluster.account, region: region };
+        let asyncLoader = $q.all({ command: buildNewServerGroupCommand(application, commandOptions) });
 
         return asyncLoader.then(function(asyncData) {
-          var command = asyncData.command;
-          var zones = pipelineCluster.availabilityZones[region];
-          var usePreferredZones = zones.join(',') === command.availabilityZones.join(',');
+          let command = asyncData.command;
+          let zones = pipelineCluster.availabilityZones[region];
+          let usePreferredZones = zones.join(',') === command.availabilityZones.join(',');
 
           let contextImages = findUpstreamImages(current, pipeline.stages) || [];
           contextImages = contextImages.concat(findTriggerImages(pipeline.triggers));
@@ -191,7 +191,7 @@ angular
             command.docker.image = reconcileUpstreamImages(command.docker.image, contextImages);
           }
 
-          var viewState = {
+          let viewState = {
             instanceProfile: asyncData.instanceProfile,
             disableImageSelection: true,
             useSimpleCapacity:
@@ -208,7 +208,7 @@ angular
             currentStage: current,
           };
 
-          var viewOverrides = {
+          let viewOverrides = {
             region: region,
             credentials: pipelineCluster.account,
             availabilityZones: pipelineCluster.availabilityZones[region],
@@ -243,7 +243,7 @@ angular
       }
 
       function buildUpdateServerGroupCommand(serverGroup) {
-        var command = {
+        let command = {
           type: 'modifyAsg',
           asgs: [{ asgName: serverGroup.name, region: serverGroup.region }],
           healthCheckType: serverGroup.asg.healthCheckType,
@@ -254,13 +254,13 @@ angular
       }
 
       function buildServerGroupCommandFromExisting(application, serverGroup, mode = 'clone') {
-        var commandOptions = { account: serverGroup.account, region: serverGroup.region };
-        var asyncLoader = $q.all({ command: buildNewServerGroupCommand(application, commandOptions) });
+        let commandOptions = { account: serverGroup.account, region: serverGroup.region };
+        let asyncLoader = $q.all({ command: buildNewServerGroupCommand(application, commandOptions) });
 
         // do NOT copy: deployment strategy. DO copy: account, region, cluster name, stack
         // TODO: query for & pull in ECS-specific data that would be useful, e.g, network mode, launch type
         return asyncLoader.then(function(asyncData) {
-          var command = asyncData.command;
+          let command = asyncData.command;
 
           command.credentials = serverGroup.account;
           command.app = serverGroup.moniker.app;

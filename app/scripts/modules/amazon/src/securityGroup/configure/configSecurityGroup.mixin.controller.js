@@ -34,7 +34,8 @@ module(AMAZON_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
   'securityGroupReader',
   'cacheInitializer',
   function($scope, $state, $uibModalInstance, application, securityGroup, securityGroupReader, cacheInitializer) {
-    var ctrl = this;
+    let allSecurityGroups;
+    let ctrl = this;
 
     $scope.state = {
       submitting: false,
@@ -62,7 +63,7 @@ module(AMAZON_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
         return;
       }
       $uibModalInstance.close();
-      var newStateParams = {
+      let newStateParams = {
         name: $scope.securityGroup.name,
         accountId: getAccount(),
         region: $scope.securityGroup.regions[0],
@@ -124,14 +125,14 @@ module(AMAZON_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
     };
 
     ctrl.regionUpdated = function() {
-      var account = getAccount(),
+      let account = getAccount(),
         regions = $scope.securityGroup.regions || [];
       VpcReader.listVpcs().then(function(vpcs) {
-        var vpcsByName = _.groupBy(vpcs.filter(vpc => vpc.account === account), 'label');
+        let vpcsByName = _.groupBy(vpcs.filter(vpc => vpc.account === account), 'label');
         $scope.allVpcs = vpcs;
-        var available = [];
+        let available = [];
         _.forOwn(vpcsByName, function(vpcsToTest, label) {
-          var foundInAllRegions = regions.every(region => {
+          let foundInAllRegions = regions.every(region => {
             return vpcsToTest.some(test => test.region === region && test.account === account);
           });
           if (foundInAllRegions) {
@@ -185,7 +186,7 @@ module(AMAZON_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
     };
 
     this.vpcUpdated = function() {
-      var account = getAccount(),
+      let account = getAccount(),
         regions = $scope.securityGroup.regions;
       if (account && regions.length) {
         configureFilteredSecurityGroups();
@@ -196,20 +197,20 @@ module(AMAZON_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
     };
 
     function configureFilteredSecurityGroups() {
-      var vpcId = $scope.securityGroup.vpcId || null;
-      var account = getAccount();
-      var regions = $scope.securityGroup.regions || [];
-      var existingSecurityGroupNames = [];
-      var availableSecurityGroups = [];
+      let vpcId = $scope.securityGroup.vpcId || null;
+      let account = getAccount();
+      let regions = $scope.securityGroup.regions || [];
+      let existingSecurityGroupNames = [];
+      let availableSecurityGroups = [];
 
       regions.forEach(function(region) {
-        var regionalVpcId = null;
+        let regionalVpcId = null;
         if (vpcId) {
-          var baseVpc = _.find($scope.allVpcs, { id: vpcId });
+          let baseVpc = _.find($scope.allVpcs, { id: vpcId });
           regionalVpcId = _.find($scope.allVpcs, { account: account, region: region, name: baseVpc.name }).id;
         }
 
-        var regionalGroupNames = _.get(allSecurityGroups, [account, 'aws', region].join('.'), [])
+        let regionalGroupNames = _.get(allSecurityGroups, [account, 'aws', region].join('.'), [])
           .filter(sg => sg.vpcId === regionalVpcId)
           .map(sg => sg.name);
 
@@ -234,27 +235,27 @@ module(AMAZON_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
       });
     };
 
-      function clearInvalidSecurityGroups() {
-        var removed = $scope.state.removedRules,
-          securityGroup = $scope.securityGroup;
-        $scope.securityGroup.securityGroupIngress = (securityGroup.securityGroupIngress || []).filter(rule => {
-          if (
-            rule.accountName &&
-            rule.vpcId &&
-            (rule.accountName !== securityGroup.accountName || rule.vpcId !== securityGroup.vpcId)
-          ) {
-            return true;
-          }
-          if (rule.name && !$scope.availableSecurityGroups.includes(rule.name) && !removed.includes(rule.name)) {
-            removed.push(rule.name);
-            return false;
-          }
+    function clearInvalidSecurityGroups() {
+      let removed = $scope.state.removedRules,
+        securityGroup = $scope.securityGroup;
+      $scope.securityGroup.securityGroupIngress = (securityGroup.securityGroupIngress || []).filter(rule => {
+        if (
+          rule.accountName &&
+          rule.vpcId &&
+          (rule.accountName !== securityGroup.accountName || rule.vpcId !== securityGroup.vpcId)
+        ) {
           return true;
-        });
-        if (removed.length) {
-          ModalWizard.markDirty('Ingress');
         }
+        if (rule.name && !$scope.availableSecurityGroups.includes(rule.name) && !removed.includes(rule.name)) {
+          removed.push(rule.name);
+          return false;
+        }
+        return true;
+      });
+      if (removed.length) {
+        ModalWizard.markDirty('Ingress');
       }
+    }
 
     ctrl.refreshSecurityGroups = function() {
       $scope.state.refreshingSecurityGroups = true;
@@ -271,7 +272,7 @@ module(AMAZON_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
       $scope.state.refreshTime = InfrastructureCaches.get('securityGroups').getStats().ageMax;
     }
 
-    var allSecurityGroups = {};
+    allSecurityGroups = {};
 
     $scope.allSecurityGroupsUpdated = new Subject();
     $scope.coordinatesChanged = new Subject();
@@ -280,11 +281,11 @@ module(AMAZON_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
       return securityGroupReader.getAllSecurityGroups().then(function(securityGroups) {
         setSecurityGroupRefreshTime();
         allSecurityGroups = securityGroups;
-        var account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
-        var region = $scope.securityGroup.regions[0];
-        var vpcId = $scope.securityGroup.vpcId || null;
+        let account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
+        let region = $scope.securityGroup.regions[0];
+        let vpcId = $scope.securityGroup.vpcId || null;
 
-        var availableGroups;
+        let availableGroups;
         if (account && region) {
           availableGroups = _.filter(securityGroups[account].aws[region], { vpcId: vpcId });
         } else {
@@ -300,6 +301,9 @@ module(AMAZON_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
     ctrl.cancel = function() {
       $uibModalInstance.dismiss();
     };
+
+    let classicPattern = /^[\x20-\x7F]+$/;
+    let vpcPattern = /^[a-zA-Z0-9\s._\-:/()#,@[\]+=&;{}!$*]+$/;
 
     ctrl.getCurrentNamePattern = function() {
       return $scope.securityGroup.vpcId ? vpcPattern : classicPattern;
@@ -335,8 +339,5 @@ module(AMAZON_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
       ModalWizard.markClean('Ingress');
       ModalWizard.markComplete('Ingress');
     };
-
-    var classicPattern = /^[\x20-\x7F]+$/;
-    var vpcPattern = /^[a-zA-Z0-9\s._\-:/()#,@[\]+=&;{}!$*]+$/;
   },
 ]);

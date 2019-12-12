@@ -28,7 +28,7 @@ module(CORE_SERVERGROUP_CONFIGURE_COMMON_INSTANCEARCHETYPESELECTOR, [
     '$scope',
     'instanceTypeService',
     function($scope, instanceTypeService) {
-      var controller = this;
+      let controller = this;
       instanceTypeService.getCategories($scope.command.selectedProvider).then(function(categories) {
         $scope.instanceProfiles = categories;
         if ($scope.instanceProfiles.length % 3 === 0) {

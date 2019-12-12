@@ -102,7 +102,7 @@ angular
           size: 'lg',
           resolve: {
             securityGroup: function() {
-              var securityGroup = angular.copy($scope.securityGroup.description);
+              let securityGroup = angular.copy($scope.securityGroup.description);
               securityGroup.account = $scope.securityGroup.accountName;
               securityGroup.edit = true;
               return securityGroup;
@@ -115,12 +115,12 @@ angular
       };
 
       this.deleteSecurityGroup = function deleteSecurityGroup() {
-        var taskMonitor = {
+        let taskMonitor = {
           application: application,
           title: 'Deleting ' + securityGroup.name,
         };
 
-        var submitMethod = function() {
+        let submitMethod = function() {
           return SecurityGroupWriter.deleteSecurityGroup(securityGroup, application, {
             cloudProvider: $scope.securityGroup.type,
             securityGroupName: securityGroup.name,

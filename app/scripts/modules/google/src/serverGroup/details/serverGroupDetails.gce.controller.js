@@ -493,7 +493,7 @@ angular
         if (this.serverGroup && this.serverGroup.buildInfo && this.serverGroup.buildInfo.buildInfoUrl) {
           return this.serverGroup.buildInfo.buildInfoUrl;
         } else if (this.serverGroup && this.serverGroup.buildInfo && this.serverGroup.buildInfo.jenkins) {
-          var jenkins = this.serverGroup.buildInfo.jenkins;
+          let jenkins = this.serverGroup.buildInfo.jenkins;
           return jenkins.host + 'job/' + jenkins.name + '/' + jenkins.number;
         }
         return null;

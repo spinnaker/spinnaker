@@ -30,10 +30,10 @@ module(CORE_PIPELINE_CONFIG_PRECONDITIONS_PRECONDITIONLIST_DIRECTIVE, [])
     '$scope',
     '$uibModal',
     function($scope, $uibModal) {
-      var vm = this;
+      let vm = this;
 
       vm.editPrecondition = function(precondition, strategy) {
-        var modalInstance = $uibModal.open({
+        let modalInstance = $uibModal.open({
           templateUrl: require('./modal/editPrecondition.html'),
           controller: 'EditPreconditionController',
           controllerAs: 'editPrecondition',
@@ -80,7 +80,7 @@ module(CORE_PIPELINE_CONFIG_PRECONDITIONS_PRECONDITIONLIST_DIRECTIVE, [])
       };
 
       vm.renderContext = function(precondition) {
-        var renderedContext = '';
+        let renderedContext = '';
         _.forEach(precondition.context, function(value, key) {
           renderedContext += '<strong>' + key + ': </strong>' + value + '<br/>';
         });

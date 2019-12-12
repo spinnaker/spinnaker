@@ -23,7 +23,7 @@ module(CORE_CLOUDPROVIDER_PROVIDERSELECTION_PROVIDERSELECTOR_DIRECTIVE, [])
         templateUrl: require('./providerSelector.html'),
         link: function(scope) {
           scope.initialized = false;
-          var getProviderList = scope.providers ? $q.when(scope.providers.sort()) : AccountService.listProviders();
+          let getProviderList = scope.providers ? $q.when(scope.providers.sort()) : AccountService.listProviders();
           getProviderList.then(function(providers) {
             scope.initialized = true;
             if (!providers.length) {

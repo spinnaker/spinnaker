@@ -21,7 +21,7 @@ module(CORE_SERVERGROUP_CONFIGURE_COMMON_COSTFACTOR, []).directive('costFactor',
       }
       function applyFactors() {
         if (!scope.range) {
-          var usage = getUsage(scope.factor);
+          let usage = getUsage(scope.factor);
           scope.used = usage.used;
           scope.unused = usage.unused;
         } else {

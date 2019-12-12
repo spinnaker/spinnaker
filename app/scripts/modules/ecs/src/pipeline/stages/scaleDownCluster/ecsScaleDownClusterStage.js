@@ -31,7 +31,7 @@ module(ECS_PIPELINE_STAGES_SCALEDOWNCLUSTER_ECSSCALEDOWNCLUSTERSTAGE, [])
   .controller('ecsScaleDownClusterStageCtrl', [
     '$scope',
     function($scope) {
-      var ctrl = this;
+      let ctrl = this;
 
       let stage = $scope.stage;
 

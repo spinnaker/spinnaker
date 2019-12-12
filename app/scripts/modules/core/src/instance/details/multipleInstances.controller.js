@@ -39,7 +39,7 @@ module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
 
     let confirm = (submitMethod, verbs, body) => {
       let descriptor = getDescriptor();
-      var taskMonitor = {
+      let taskMonitor = {
         application: app,
         title: verbs.presentContinuous + ' ' + descriptor,
       };
@@ -96,7 +96,7 @@ module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
     let allDiscoveryHealthsMatch = state => {
       return this.selectedGroups.every(group => {
         return group.instances.every(instance => {
-          var discoveryHealth = instance.health.filter(function(health) {
+          let discoveryHealth = instance.health.filter(function(health) {
             return health.type === 'Discovery';
           });
           return discoveryHealth.length ? discoveryHealth[0].state === state : false;

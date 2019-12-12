@@ -23,7 +23,7 @@ module(CORE_PROJECTS_PROJECTS_CONTROLLER, [
   '$log',
   '$filter',
   function($scope, $uibModal, $log, $filter) {
-    var projectsViewStateCache =
+    let projectsViewStateCache =
       ViewStateCache.get('projects') || ViewStateCache.createCache('projects', { version: 1 });
 
     function cacheViewState() {
@@ -51,7 +51,7 @@ module(CORE_PROJECTS_PROJECTS_CONTROLLER, [
     ];
 
     this.filterProjects = function filterProjects() {
-      var filtered = $filter('anyFieldFilter')($scope.projects, {
+      let filtered = $filter('anyFieldFilter')($scope.projects, {
           name: $scope.viewState.projectFilter,
           email: $scope.viewState.projectFilter,
         }),
@@ -61,7 +61,7 @@ module(CORE_PROJECTS_PROJECTS_CONTROLLER, [
     };
 
     this.resultPage = function resultPage() {
-      var pagination = $scope.pagination,
+      let pagination = $scope.pagination,
         allFiltered = $scope.filteredProjects,
         start = (pagination.currentPage - 1) * pagination.itemsPerPage,
         end = pagination.currentPage * pagination.itemsPerPage;
@@ -85,7 +85,7 @@ module(CORE_PROJECTS_PROJECTS_CONTROLLER, [
       };
     };
 
-    var ctrl = this;
+    let ctrl = this;
 
     ProjectReader.listProjects().then(function(projects) {
       $scope.projects = projects;

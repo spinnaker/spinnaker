@@ -15,13 +15,13 @@ angular.module(TITUS_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER, []).factor
     function buildNewServerGroupCommand(application, defaults) {
       defaults = defaults || {};
 
-      var defaultCredentials = defaults.account || TitusProviderSettings.defaults.account;
-      var defaultRegion = defaults.region || TitusProviderSettings.defaults.region;
-      var defaultZone = defaults.zone || TitusProviderSettings.defaults.zone;
-      var defaultIamProfile = TitusProviderSettings.defaults.iamProfile || '{{application}}InstanceProfile';
+      let defaultCredentials = defaults.account || TitusProviderSettings.defaults.account;
+      let defaultRegion = defaults.region || TitusProviderSettings.defaults.region;
+      let defaultZone = defaults.zone || TitusProviderSettings.defaults.zone;
+      let defaultIamProfile = TitusProviderSettings.defaults.iamProfile || '{{application}}InstanceProfile';
       defaultIamProfile = defaultIamProfile.replace('{{application}}', application.name);
 
-      var command = {
+      let command = {
         application: application.name,
         credentials: defaultCredentials,
         region: defaultRegion,
@@ -85,9 +85,9 @@ angular.module(TITUS_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER, []).factor
     function buildServerGroupCommandFromExisting(application, serverGroup, mode) {
       mode = mode || 'clone';
 
-      var serverGroupName = NameUtils.parseServerGroupName(serverGroup.name);
+      let serverGroupName = NameUtils.parseServerGroupName(serverGroup.name);
 
-      var command = {
+      let command = {
         application: application.name,
         disruptionBudget: serverGroup.disruptionBudget,
         strategy: '',
@@ -166,16 +166,16 @@ angular.module(TITUS_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER, []).factor
     }
 
     function buildServerGroupCommandFromPipeline(application, originalCluster) {
-      var pipelineCluster = _.cloneDeep(originalCluster);
-      var commandOptions = {
+      let pipelineCluster = _.cloneDeep(originalCluster);
+      let commandOptions = {
         account: pipelineCluster.account,
         imageId: pipelineCluster.imageId,
         region: pipelineCluster.region,
       };
-      var asyncLoader = $q.all({ command: buildNewServerGroupCommand(application, commandOptions) });
+      let asyncLoader = $q.all({ command: buildNewServerGroupCommand(application, commandOptions) });
 
       return asyncLoader.then(function(asyncData) {
-        var command = asyncData.command;
+        let command = asyncData.command;
 
         command.constraints = {
           hard:
@@ -192,21 +192,21 @@ angular.module(TITUS_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER, []).factor
         delete pipelineCluster.hardConstraints;
         delete pipelineCluster.softConstraints;
 
-        var viewState = {
+        let viewState = {
           disableImageSelection: true,
           useSimpleCapacity: originalCluster.capacity.min === originalCluster.capacity.max,
           mode: 'editPipeline',
           submitButtonLabel: 'Done',
         };
 
-        var viewOverrides = {
+        let viewOverrides = {
           region: pipelineCluster.region,
           credentials: pipelineCluster.account,
           viewState: viewState,
         };
 
         pipelineCluster.strategy = pipelineCluster.strategy || '';
-        var extendedCommand = angular.extend({}, command, pipelineCluster, viewOverrides);
+        let extendedCommand = angular.extend({}, command, pipelineCluster, viewOverrides);
         return extendedCommand;
       });
     }

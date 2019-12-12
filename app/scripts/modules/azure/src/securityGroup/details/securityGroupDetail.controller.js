@@ -106,7 +106,7 @@ angular
           controller: 'azureCloneSecurityGroupController as ctrl',
           resolve: {
             securityGroup: function() {
-              var securityGroup = angular.copy($scope.securityGroup);
+              let securityGroup = angular.copy($scope.securityGroup);
               if (securityGroup.region) {
                 securityGroup.regions = [securityGroup.region];
               }
@@ -120,12 +120,12 @@ angular
       };
 
       this.deleteSecurityGroup = function deleteSecurityGroup() {
-        var taskMonitor = {
+        let taskMonitor = {
           application: application,
           title: 'Deleting ' + securityGroup.name,
         };
 
-        var submitMethod = function() {
+        let submitMethod = function() {
           $scope.securityGroup.type = 'deleteSecurityGroup';
           return azureSecurityGroupWriter.deleteSecurityGroup(securityGroup, application, {
             cloudProvider: 'azure',

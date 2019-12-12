@@ -26,7 +26,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_BASEPROVIDERSTAGE_BASEPROVIDERSTAGE, []).cont
     $scope.viewState = $scope.viewState || {};
     $scope.viewState.loading = true;
 
-    var stageProviders = Registry.pipeline.getProvidersFor(stage.type);
+    let stageProviders = Registry.pipeline.getProvidersFor(stage.type);
 
     if (dockerBakeEnabled) {
       stageProviders.push({ cloudProvider: 'docker' });

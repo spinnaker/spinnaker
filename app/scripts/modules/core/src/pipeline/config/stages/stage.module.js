@@ -60,7 +60,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_STAGE_MODULE, [
     '$controller',
     '$templateCache',
     function($scope, $element, $compile, $controller, $templateCache) {
-      var lastStageScope, reactComponentMounted;
+      let lastStageScope, reactComponentMounted;
 
       $scope.options = {
         stageTypes: [],
@@ -83,7 +83,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_STAGE_MODULE, [
       }
 
       $scope.groupDependencyOptions = function(stage) {
-        var requisiteStageRefIds = $scope.stage.requisiteStageRefIds || [];
+        let requisiteStageRefIds = $scope.stage.requisiteStageRefIds || [];
         return stage.available
           ? 'Available'
           : requisiteStageRefIds.includes(stage.refId)
@@ -112,7 +112,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_STAGE_MODULE, [
       };
 
       $scope.updateAvailableDependencyStages = function() {
-        var availableDependencyStages = PipelineConfigService.getDependencyCandidateStages(
+        let availableDependencyStages = PipelineConfigService.getDependencyCandidateStages(
           $scope.pipeline,
           $scope.stage,
         );
@@ -179,7 +179,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_STAGE_MODULE, [
         }
 
         $scope.updateAvailableDependencyStages();
-        var type = $scope.stage.type,
+        let type = $scope.stage.type,
           stageScope = $scope.$new();
 
         // clear existing contents
@@ -261,8 +261,8 @@ module(CORE_PIPELINE_CONFIG_STAGES_STAGE_MODULE, [
 
       function applyConfigController(config, stageScope) {
         if (config.controller) {
-          var ctrl = config.controller.split(' as ');
-          var controller = $controller(ctrl[0], {
+          let ctrl = config.controller.split(' as ');
+          let controller = $controller(ctrl[0], {
             $scope: stageScope,
             stage: $scope.stage,
             viewState: $scope.viewState,
@@ -279,7 +279,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_STAGE_MODULE, [
       function updateStageName(config, oldVal) {
         // apply a default name if the type changes and the user has not specified a name
         if (oldVal) {
-          var oldConfig = getConfig({ type: oldVal });
+          let oldConfig = getConfig({ type: oldVal });
           if (oldConfig && $scope.stage.name === oldConfig.label) {
             $scope.stage.name = config.label;
           }
@@ -319,7 +319,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_STAGE_MODULE, [
     '$stateParams',
     'confirmationModalService',
     function($scope, $stateParams, confirmationModalService) {
-      var restartStage = function() {
+      let restartStage = function() {
         return API.one('pipelines')
           .one($stateParams.executionId)
           .one('stages', $scope.stage.id)

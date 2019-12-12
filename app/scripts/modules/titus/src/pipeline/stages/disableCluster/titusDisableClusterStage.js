@@ -29,7 +29,7 @@ module(TITUS_PIPELINE_STAGES_DISABLECLUSTER_TITUSDISABLECLUSTERSTAGE, [])
   .controller('titusDisableClusterStageCtrl', [
     '$scope',
     function($scope) {
-      var ctrl = this;
+      let ctrl = this;
 
       let stage = $scope.stage;
 

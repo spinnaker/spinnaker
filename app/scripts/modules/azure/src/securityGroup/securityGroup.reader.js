@@ -7,7 +7,7 @@ export const name = AZURE_SECURITYGROUP_SECURITYGROUP_READER; // for backwards c
 module(AZURE_SECURITYGROUP_SECURITYGROUP_READER, []).factory('azureSecurityGroupReader', function() {
   function resolveIndexedSecurityGroup(indexedSecurityGroups, container, securityGroupId) {
     //hack to get around securityGroupId not matching id in indexedSecurityGroups.
-    var temp = securityGroupId.split('/');
+    let temp = securityGroupId.split('/');
     return indexedSecurityGroups[container.account][container.region][temp[temp.length - 1]];
   }
 

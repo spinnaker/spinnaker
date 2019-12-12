@@ -31,7 +31,7 @@ module(AZURE_PIPELINE_STAGES_DESTROYASG_AZUREDESTROYASGSTAGE, [])
   .controller('azureDestroyAsgStageCtrl', [
     '$scope',
     function($scope) {
-      var ctrl = this;
+      let ctrl = this;
 
       let stage = $scope.stage;
 

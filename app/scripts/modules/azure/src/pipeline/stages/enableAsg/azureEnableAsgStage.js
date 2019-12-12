@@ -25,7 +25,7 @@ module(AZURE_PIPELINE_STAGES_ENABLEASG_AZUREENABLEASGSTAGE, [])
   .controller('azureEnableAsgStageCtrl', [
     '$scope',
     function($scope) {
-      var ctrl = this;
+      let ctrl = this;
 
       let stage = $scope.stage;
 

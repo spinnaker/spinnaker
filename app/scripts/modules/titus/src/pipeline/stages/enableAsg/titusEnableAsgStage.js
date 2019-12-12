@@ -25,7 +25,7 @@ module(TITUS_PIPELINE_STAGES_ENABLEASG_TITUSENABLEASGSTAGE, [])
   .controller('titusEnableAsgStageCtrl', [
     '$scope',
     function($scope) {
-      var ctrl = this;
+      let ctrl = this;
 
       let stage = $scope.stage;
 

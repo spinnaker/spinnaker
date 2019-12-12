@@ -50,7 +50,7 @@ angular
       $uibModal,
       $state,
     ) {
-      var search = infrastructureSearchService.getSearcher();
+      let search = infrastructureSearchService.getSearcher();
 
       $scope.firewallsLabel = FirewallLabels.get('firewalls');
 
@@ -70,7 +70,7 @@ angular
       }
 
       $scope.pageSize = SearchService.DEFAULT_PAGE_SIZE;
-      var autoNavigate = false;
+      let autoNavigate = false;
 
       if (angular.isDefined($location.search().q)) {
         $scope.query = $location.search().q;

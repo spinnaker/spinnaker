@@ -12,7 +12,7 @@ angular
     '$uibModalInstance',
     'extendedAttribute',
     function($scope, $uibModalInstance, extendedAttribute) {
-      var vm = this;
+      let vm = this;
       $scope.extendedAttribute = angular.copy(extendedAttribute);
 
       vm.submit = function() {

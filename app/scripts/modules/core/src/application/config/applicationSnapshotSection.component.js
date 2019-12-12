@@ -28,11 +28,11 @@ module(CORE_APPLICATION_CONFIG_APPLICATIONSNAPSHOTSECTION_COMPONENT, [
       }
 
       this.takeSnapshot = () => {
-        var submitMethod = () => {
+        let submitMethod = () => {
           return SnapshotWriter.takeSnapshot(this.application.attributes);
         };
 
-        var taskMonitor = {
+        let taskMonitor = {
           application: this.application,
           title: 'Taking snapshot of ' + this.application.name,
           hasKatoTask: true,

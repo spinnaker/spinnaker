@@ -34,7 +34,7 @@ module(ECS_PIPELINE_STAGES_RESIZEASG_ECSRESIZEASGSTAGE, [])
   .controller('ecsResizeAsgStageCtrl', [
     '$scope',
     function($scope) {
-      var ctrl = this;
+      let ctrl = this;
 
       let stage = $scope.stage;
 

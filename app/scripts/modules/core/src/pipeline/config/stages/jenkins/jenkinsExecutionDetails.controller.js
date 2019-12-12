@@ -21,7 +21,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_JENKINS_JENKINSEXECUTIONDETAILS_CONTROLLER, [
       };
 
       function getFailureMessage() {
-        var failureMessage = $scope.stage.failureMessage,
+        let failureMessage = $scope.stage.failureMessage,
           context = $scope.stage.context || {},
           buildInfo = context.buildInfo || {},
           testResults = buildInfo && buildInfo.testResults && buildInfo.testResults.length ? buildInfo.testResults : [],

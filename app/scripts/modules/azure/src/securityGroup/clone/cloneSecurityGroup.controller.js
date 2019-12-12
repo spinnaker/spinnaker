@@ -21,7 +21,7 @@ module(AZURE_SECURITYGROUP_CLONE_CLONESECURITYGROUP_CONTROLLER, [
   'securityGroup',
   'application',
   function($scope, $uibModalInstance, $controller, $state, azureSecurityGroupWriter, securityGroup, application) {
-    var ctrl = this;
+    let ctrl = this;
 
     $scope.firewallLabel = FirewallLabels.get('Firewall');
 
@@ -31,7 +31,7 @@ module(AZURE_SECURITYGROUP_CLONE_CLONESECURITYGROUP_CONTROLLER, [
     };
 
     securityGroup.securityRules = _.map(securityGroup.securityRules, function(rule) {
-      var temp = rule.destinationPortRange.split('-');
+      let temp = rule.destinationPortRange.split('-');
       rule.startPort = Number(temp[0]);
       rule.endPort = Number(temp[1]);
       return rule;
@@ -50,7 +50,7 @@ module(AZURE_SECURITYGROUP_CLONE_CLONESECURITYGROUP_CONTROLLER, [
     };
 
     ctrl.updateName = function() {
-      var securityGroup = $scope.securityGroup,
+      let securityGroup = $scope.securityGroup,
         name = application.name;
       if (securityGroup.detail) {
         name += '-' + securityGroup.detail;
@@ -99,7 +99,7 @@ module(AZURE_SECURITYGROUP_CLONE_CLONESECURITYGROUP_CONTROLLER, [
         return;
       }
       $uibModalInstance.close();
-      var newStateParams = {
+      let newStateParams = {
         name: $scope.securityGroup.name,
         accountId: $scope.securityGroup.credentials || $scope.securityGroup.accountName,
         region: $scope.securityGroup.region,
@@ -132,7 +132,7 @@ module(AZURE_SECURITYGROUP_CLONE_CLONESECURITYGROUP_CONTROLLER, [
       swapRules(ruleset, index, index + 1);
     };
     function swapRules(ruleset, a, b) {
-      var temp, priorityA, priorityB;
+      let temp, priorityA, priorityB;
       temp = ruleset[b];
       priorityA = ruleset[a].priority;
       priorityB = ruleset[b].priority;

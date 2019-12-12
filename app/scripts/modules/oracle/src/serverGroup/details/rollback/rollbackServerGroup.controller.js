@@ -39,7 +39,7 @@ module(ORACLE_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [
     }
 
     this.isValid = function() {
-      var command = $scope.command;
+      let command = $scope.command;
       if (!$scope.verification.verified) {
         return false;
       }
@@ -59,7 +59,7 @@ module(ORACLE_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [
         return;
       }
 
-      var submitMethod = function() {
+      let submitMethod = function() {
         return serverGroupWriter.rollbackServerGroup(serverGroup, application, $scope.command);
       };
 

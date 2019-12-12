@@ -35,7 +35,7 @@ module(DOCKER_PIPELINE_STAGES_BAKE_DOCKERBAKESTAGE, [DOCKER_PIPELINE_STAGES_BAKE
     '$scope',
     '$q',
     function($scope, $q) {
-      var stage = $scope.stage;
+      let stage = $scope.stage;
 
       stage.region = 'global';
 

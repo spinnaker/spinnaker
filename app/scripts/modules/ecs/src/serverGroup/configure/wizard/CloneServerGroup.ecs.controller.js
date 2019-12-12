@@ -122,13 +122,13 @@ module(ECS_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_ECS_CONTROLLER, [
       if (cloneStage && cloneStage.context['deploy.server.groups']) {
         let newServerGroupName = cloneStage.context['deploy.server.groups'][$scope.command.region];
         if (newServerGroupName) {
-          var newStateParams = {
+          let newStateParams = {
             serverGroup: newServerGroupName,
             accountId: $scope.command.credentials,
             region: $scope.command.region,
             provider: 'ecs',
           };
-          var transitionTo = '^.^.^.clusters.serverGroup';
+          let transitionTo = '^.^.^.clusters.serverGroup';
           if ($state.includes('**.clusters.serverGroup')) {
             // clone via details, all view
             transitionTo = '^.serverGroup';

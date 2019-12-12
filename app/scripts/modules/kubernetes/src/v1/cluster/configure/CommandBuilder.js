@@ -12,8 +12,8 @@ export const name = KUBERNETES_V1_CLUSTER_CONFIGURE_COMMANDBUILDER; // for backw
 module(KUBERNETES_V1_CLUSTER_CONFIGURE_COMMANDBUILDER, []).factory('kubernetesClusterCommandBuilder', function() {
   function attemptToSetValidAccount(application, defaultAccount, command) {
     return AccountService.listAccounts('kubernetes', 'v1').then(function(kubernetesAccounts) {
-      var kubernetesAccountNames = _.map(kubernetesAccounts, 'name');
-      var firstKubernetesAccount = null;
+      let kubernetesAccountNames = _.map(kubernetesAccounts, 'name');
+      let firstKubernetesAccount = null;
 
       if (application.accounts.length) {
         firstKubernetesAccount = _.find(application.accounts, function(applicationAccount) {
@@ -23,7 +23,7 @@ module(KUBERNETES_V1_CLUSTER_CONFIGURE_COMMANDBUILDER, []).factory('kubernetesCl
         firstKubernetesAccount = kubernetesAccountNames[0];
       }
 
-      var defaultAccountIsValid = defaultAccount && kubernetesAccountNames.includes(defaultAccount);
+      let defaultAccountIsValid = defaultAccount && kubernetesAccountNames.includes(defaultAccount);
 
       command.account = defaultAccountIsValid
         ? defaultAccount
@@ -38,9 +38,9 @@ module(KUBERNETES_V1_CLUSTER_CONFIGURE_COMMANDBUILDER, []).factory('kubernetesCl
   }
 
   function buildNewClusterCommand(application, defaults = {}) {
-    var defaultAccount = defaults.account || KubernetesProviderSettings.defaults.account;
+    let defaultAccount = defaults.account || KubernetesProviderSettings.defaults.account;
 
-    var command = {
+    let command = {
       account: defaultAccount,
       application: application.name,
       strategy: '',
@@ -93,7 +93,7 @@ module(KUBERNETES_V1_CLUSTER_CONFIGURE_COMMANDBUILDER, []).factory('kubernetesCl
   function buildClusterCommandFromExisting(application, existing, mode) {
     mode = mode || 'clone';
 
-    var command = _.cloneDeep(existing.deployDescription);
+    let command = _.cloneDeep(existing.deployDescription);
 
     command.groupByRegistry = groupByRegistry;
     command.cloudProvider = 'kubernetes';

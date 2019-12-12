@@ -12,7 +12,7 @@ module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_SERVERGROUPINSTANCEARCHETYPE_CONTROLLE
     'instanceTypeService',
     'modalWizardService',
     function($scope, instanceTypeService, modalWizardService) {
-      var wizard = modalWizardService.getWizard();
+      let wizard = modalWizardService.getWizard();
 
       $scope.$watch('command.viewState.instanceProfile', function() {
         if (!$scope.command.viewState.instanceProfile || $scope.command.viewState.instanceProfile === 'custom') {

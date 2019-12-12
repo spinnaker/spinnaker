@@ -58,6 +58,13 @@ angular
     'overrideRegistry',
     '$location',
     function($scope, $uibModal, $timeout, $window, $q, $state, executionService, overrideRegistry, $location) {
+      const ctrl = this;
+      const markDirty = () => {
+        if (!$scope.viewState.original) {
+          setOriginal($scope.pipeline);
+        }
+        this.setViewState({ isDirty: $scope.viewState.original !== angular.toJson($scope.pipeline) });
+      };
       // For standard pipelines, a 'renderablePipeline' is just the pipeline config.
       // For both v1 and v2 templated pipelines, a 'renderablePipeline' is the pipeline template plan, and '$scope.pipeline' is the template config.
       $scope.renderablePipeline = $scope.plan || $scope.pipeline;
@@ -75,7 +82,7 @@ angular
         })
         .finally(() => this.setViewState({ loadingHistory: false }));
 
-      var configViewStateCache = ViewStateCache.get('pipelineConfig');
+      let configViewStateCache = ViewStateCache.get('pipelineConfig');
 
       function buildCacheKey() {
         return PipelineConfigService.buildViewStateCacheKey($scope.application.name, $scope.pipeline.id);
@@ -136,7 +143,6 @@ angular
           .catch(() => {});
       };
 
-      var ctrl = this;
       $scope.stageSortOptions = {
         axis: 'x',
         delay: 150,
@@ -146,21 +152,21 @@ angular
           ui.placeholder.width(ui.helper.width()).height(ui.helper.height());
         },
         update: (e, ui) => {
-          var itemScope = ui.item.scope(),
+          let itemScope = ui.item.scope(),
             currentPage = $scope.viewState.stageIndex,
             startingPagePosition = itemScope.$index,
             isCurrentPage = currentPage === startingPagePosition;
 
           $timeout(() => {
             itemScope = ui.item.scope(); // this is terrible but provides a hook for mocking in tests
-            var newPagePosition = itemScope.$index;
+            let newPagePosition = itemScope.$index;
             if (isCurrentPage) {
               ctrl.navigateToStage(newPagePosition);
             } else {
-              var wasBefore = startingPagePosition < currentPage,
+              let wasBefore = startingPagePosition < currentPage,
                 isBefore = newPagePosition <= currentPage;
               if (wasBefore !== isBefore) {
-                var newCurrentPage = isBefore ? currentPage + 1 : currentPage - 1;
+                let newCurrentPage = isBefore ? currentPage + 1 : currentPage - 1;
                 ctrl.navigateToStage(newCurrentPage);
               }
             }
@@ -306,7 +312,7 @@ angular
       };
 
       this.removeStage = stage => {
-        var stageIndex = $scope.renderablePipeline.stages.indexOf(stage);
+        let stageIndex = $scope.renderablePipeline.stages.indexOf(stage);
         $scope.renderablePipeline.stages.splice(stageIndex, 1);
         $scope.renderablePipeline.stages.forEach(test => {
           if (stage.refId && test.requisiteStageRefIds) {
@@ -393,7 +399,7 @@ angular
       };
 
       this.getErrorMessage = errorMsg => {
-        var msg = 'There was an error saving your pipeline';
+        let msg = 'There was an error saving your pipeline';
         if (_.isString(errorMsg)) {
           msg += ': ' + errorMsg;
         }
@@ -445,7 +451,7 @@ angular
 
           // if we were looking at a stage that no longer exists, move to the last stage
           if ($scope.viewState.section === 'stage') {
-            var lastStage = $scope.renderablePipeline.stages.length - 1;
+            let lastStage = $scope.renderablePipeline.stages.length - 1;
             if ($scope.viewState.stageIndex > lastStage) {
               this.setViewState({ stageIndex: lastStage });
             }
@@ -456,13 +462,6 @@ angular
           $scope.viewState.revertCount++;
           $scope.$broadcast('pipeline-reverted');
         });
-      };
-
-      var markDirty = () => {
-        if (!$scope.viewState.original) {
-          setOriginal($scope.pipeline);
-        }
-        this.setViewState({ isDirty: $scope.viewState.original !== angular.toJson($scope.pipeline) });
       };
 
       // Poor bridge to update dirty flag when React stage field is updated
@@ -485,7 +484,7 @@ angular
 
       const warningMessage = 'You have unsaved changes.\nAre you sure you want to navigate away from this page?';
 
-      var confirmPageLeave = $scope.$on('$stateChangeStart', event => {
+      let confirmPageLeave = $scope.$on('$stateChangeStart', event => {
         if ($scope.viewState.isDirty) {
           if (!$window.confirm(warningMessage)) {
             event.preventDefault();

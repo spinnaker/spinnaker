@@ -21,7 +21,7 @@ angular
   })
   .controller('azureServerGroupAdvancedSettingsSelectorCtrl', function() {
     this.addDataDisk = () => {
-      var newDataDisks = angular.copy(this.command.dataDisks);
+      let newDataDisks = angular.copy(this.command.dataDisks);
       this.command.dataDisks = newDataDisks.concat([
         {
           lun: 0,
@@ -36,7 +36,7 @@ angular
     };
 
     this.removeDataDisk = index => {
-      var newDataDisks = angular.copy(this.command.dataDisks);
+      let newDataDisks = angular.copy(this.command.dataDisks);
       newDataDisks.splice(index, 1);
       this.command.dataDisks = newDataDisks;
     };

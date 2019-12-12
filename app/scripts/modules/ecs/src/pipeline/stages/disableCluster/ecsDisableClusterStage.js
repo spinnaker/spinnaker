@@ -28,7 +28,7 @@ module(ECS_PIPELINE_STAGES_DISABLECLUSTER_ECSDISABLECLUSTERSTAGE, [])
   .controller('ecsDisableClusterStageCtrl', [
     '$scope',
     function($scope) {
-      var ctrl = this;
+      let ctrl = this;
 
       let stage = $scope.stage;
 

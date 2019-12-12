@@ -70,7 +70,7 @@ module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_UPSERTSCALINGPOLICY_CONTR
     }
 
     this.initialize = () => {
-      var command = createCommand();
+      let command = createCommand();
 
       initializeAlarm(command, policy);
 
@@ -204,7 +204,7 @@ module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_UPSERTSCALINGPOLICY_CONTR
 
     this.save = () => {
       let command = prepareCommandForSubmit();
-      var submitMethod = () => ScalingPolicyWriter.upsertScalingPolicy(application, command);
+      let submitMethod = () => ScalingPolicyWriter.upsertScalingPolicy(application, command);
 
       this.taskMonitor.submit(submitMethod);
     };

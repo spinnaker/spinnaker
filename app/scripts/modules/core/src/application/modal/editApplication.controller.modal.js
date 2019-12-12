@@ -23,7 +23,7 @@ angular
     '$uibModalInstance',
     'application',
     function($scope, $window, $state, $uibModalInstance, application) {
-      var vm = this;
+      let vm = this;
       this.data = {
         gitSources: SETTINGS.gitSources || ['stash', 'github', 'bitbucket', 'gitlab'],
       };
@@ -42,7 +42,7 @@ angular
       }
 
       function extractErrorMsg(error) {
-        var exceptions = _.chain(error.variables)
+        let exceptions = _.chain(error.variables)
           .filter({ key: 'exception' })
           .head()
           .value().value.details.errors;

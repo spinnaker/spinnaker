@@ -79,7 +79,7 @@ module(ECS_PIPELINE_STAGES_CLONESERVERGROUP_ECSCLONESERVERGROUPSTAGE, [])
 
       this.toggleSuspendedProcess = process => {
         stage.suspendedProcesses = stage.suspendedProcesses || [];
-        var processIndex = stage.suspendedProcesses.indexOf(process);
+        let processIndex = stage.suspendedProcesses.indexOf(process);
         if (processIndex === -1) {
           stage.suspendedProcesses.push(process);
         } else {

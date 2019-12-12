@@ -53,7 +53,7 @@ module(CORE_PIPELINE_CONFIG_PRECONDITIONS_SELECTOR_PRECONDITIONSELECTOR_DIRECTIV
       };
 
       this.getPreconditionContextTemplateUrl = function() {
-        var preconditionConfig = preconditionTypeService.getPreconditionType($scope.precondition.type);
+        let preconditionConfig = preconditionTypeService.getPreconditionType($scope.precondition.type);
         return preconditionConfig ? preconditionConfig.contextTemplateUrl : '';
       };
 

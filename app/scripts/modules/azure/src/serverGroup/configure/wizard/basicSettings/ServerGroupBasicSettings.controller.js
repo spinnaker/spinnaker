@@ -51,7 +51,7 @@ angular
 
       this.stackPattern = {
         test: function(stack) {
-          var pattern = $scope.command.viewState.templatingEnabled ? /^([a-zA-Z0-9]*(\${.+})*)*$/ : /^[a-zA-Z0-9]*$/;
+          let pattern = $scope.command.viewState.templatingEnabled ? /^([a-zA-Z0-9]*(\${.+})*)*$/ : /^[a-zA-Z0-9]*$/;
 
           return pattern.test(stack);
         },
@@ -59,7 +59,7 @@ angular
 
       this.detailPattern = {
         test: function(detail) {
-          var pattern = $scope.command.viewState.templatingEnabled ? /^([a-zA-Z0-9-]*(\${.+})*)*$/ : /^[a-zA-Z0-9-]*$/;
+          let pattern = $scope.command.viewState.templatingEnabled ? /^([a-zA-Z0-9-]*(\${.+})*)*$/ : /^[a-zA-Z0-9-]*$/;
 
           return pattern.test(detail);
         },

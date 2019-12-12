@@ -43,7 +43,7 @@ angular
       }
 
       this.isValid = function() {
-        var command = $scope.command;
+        let command = $scope.command;
         if (!$scope.verification.verified) {
           return false;
         }
@@ -62,12 +62,12 @@ angular
         if (!this.isValid()) {
           return;
         }
-        var capacity = { min: $scope.command.min, max: $scope.command.max, desired: $scope.command.desired };
+        let capacity = { min: $scope.command.min, max: $scope.command.max, desired: $scope.command.desired };
         if (!$scope.command.advancedMode) {
           capacity = { min: $scope.command.newSize, max: $scope.command.newSize, desired: $scope.command.newSize };
         }
 
-        var submitMethod = function() {
+        let submitMethod = function() {
           return serverGroupWriter.resizeServerGroup(serverGroup, application, {
             capacity: capacity,
             interestingHealthProviderNames: $scope.command.interestingHealthProviderNames,

@@ -17,7 +17,7 @@ angular
     'application',
     'upstreamStages',
     function($scope, $uibModalInstance, precondition, strategy, application, upstreamStages) {
-      var vm = this;
+      let vm = this;
 
       vm.strategy = strategy;
       vm.application = application;

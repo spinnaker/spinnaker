@@ -35,7 +35,7 @@ module(KUBERNETES_V1_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACK_CONTROLLER, [SERVER_G
       }
 
       this.isValid = function() {
-        var command = $scope.command;
+        let command = $scope.command;
         if (!$scope.verification.verified) {
           return false;
         }
@@ -54,7 +54,7 @@ module(KUBERNETES_V1_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACK_CONTROLLER, [SERVER_G
           return;
         }
 
-        var submitMethod = function() {
+        let submitMethod = function() {
           return serverGroupWriter.rollbackServerGroup(serverGroup, application, $scope.command);
         };
 

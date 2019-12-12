@@ -18,10 +18,10 @@ module(CORE_PRESENTATION_SORTTOGGLE_SORTTOGGLE_DIRECTIVE, []).directive('sortTog
     controller: [
       '$scope',
       function($scope) {
-        var ctrl = this;
+        let ctrl = this;
 
         this.isSortKey = function(key) {
-          var field = $scope.sortModel.key;
+          let field = $scope.sortModel.key;
           return field === key || field === '-' + key;
         };
 
@@ -31,7 +31,7 @@ module(CORE_PRESENTATION_SORTTOGGLE_SORTTOGGLE_DIRECTIVE, []).directive('sortTog
 
         this.setSortKey = function(key, $event) {
           $event.preventDefault();
-          var predicate = ctrl.isSortKey(key) && ctrl.isReverse() ? '' : '-';
+          let predicate = ctrl.isSortKey(key) && ctrl.isReverse() ? '' : '-';
           $scope.sortModel.key = predicate + key;
           if ($scope.onChange) {
             $scope.onChange();

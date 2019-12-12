@@ -68,7 +68,7 @@ module(ECS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       }
 
       instance.health = instance.health || [];
-      var displayableMetrics = instance.health.filter(function(metric) {
+      let displayableMetrics = instance.health.filter(function(metric) {
         return metric.type !== 'Ecs' || metric.state !== 'Unknown';
       });
 
@@ -79,7 +79,7 @@ module(ECS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       // backfill details where applicable
       if (latest.health) {
         displayableMetrics.forEach(function(metric) {
-          var detailsMatch = latest.health.filter(function(latestHealth) {
+          let detailsMatch = latest.health.filter(function(latestHealth) {
             return latestHealth.type === metric.type;
           });
           if (detailsMatch.length) {
@@ -91,8 +91,8 @@ module(ECS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     }
 
     function retrieveInstance() {
-      var extraData = {};
-      var instanceSummary, loadBalancers, targetGroup, account, region, vpcId;
+      let extraData = {};
+      let instanceSummary, loadBalancers, targetGroup, account, region, vpcId;
       if (!app.serverGroups) {
         // standalone instance
         instanceSummary = {};
@@ -203,7 +203,7 @@ module(ECS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
           $scope.instance.loadBalancers = loadBalancers;
           $scope.instance.targetGroup = targetGroup;
           if ($scope.instance.networkInterfaces) {
-            var permanentNetworkInterfaces = $scope.instance.networkInterfaces.filter(
+            let permanentNetworkInterfaces = $scope.instance.networkInterfaces.filter(
               f => f.attachment.deleteOnTermination === false,
             );
             if (permanentNetworkInterfaces.length) {
@@ -240,18 +240,18 @@ module(ECS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     }
 
     this.canRegisterWithDiscovery = function() {
-      var instance = $scope.instance;
+      let instance = $scope.instance;
       let healthMetrics = instance.health || [];
-      var discoveryHealth = healthMetrics.filter(function(health) {
+      let discoveryHealth = healthMetrics.filter(function(health) {
         return health.type === 'Discovery';
       });
       return discoveryHealth.length ? discoveryHealth[0].state === 'OutOfService' : false;
     };
 
     this.terminateInstance = function terminateInstance() {
-      var instance = $scope.instance;
+      let instance = $scope.instance;
 
-      var taskMonitor = {
+      let taskMonitor = {
         application: app,
         title: 'Terminating ' + instance.instanceId,
         onTaskComplete: function() {
@@ -261,7 +261,7 @@ module(ECS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         },
       };
 
-      var submitMethod = function() {
+      let submitMethod = function() {
         return instanceWriter.terminateInstance(instance, app, defaultRequestParams);
       };
 
@@ -276,9 +276,9 @@ module(ECS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     };
 
     this.terminateInstanceAndShrinkServerGroup = function terminateInstanceAndShrinkServerGroup() {
-      var instance = $scope.instance;
+      let instance = $scope.instance;
 
-      var taskMonitor = {
+      let taskMonitor = {
         application: app,
         title: 'Terminating ' + instance.instanceId + ' and shrinking server group',
         onTaskComplete: function() {
@@ -288,7 +288,7 @@ module(ECS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         },
       };
 
-      var submitMethod = function() {
+      let submitMethod = function() {
         return instanceWriter.terminateInstanceAndShrinkServerGroup(instance, app, defaultRequestParams);
       };
 
@@ -303,14 +303,14 @@ module(ECS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     };
 
     this.enableInstanceInDiscovery = function enableInstanceInDiscovery() {
-      var instance = $scope.instance;
+      let instance = $scope.instance;
 
-      var taskMonitor = {
+      let taskMonitor = {
         application: app,
         title: 'Enabling ' + instance.instanceId + ' in discovery',
       };
 
-      var submitMethod = function() {
+      let submitMethod = function() {
         return instanceWriter.enableInstanceInDiscovery(instance, app, defaultRequestParams);
       };
 
@@ -324,14 +324,14 @@ module(ECS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     };
 
     this.disableInstanceInDiscovery = function disableInstanceInDiscovery() {
-      var instance = $scope.instance;
+      let instance = $scope.instance;
 
-      var taskMonitor = {
+      let taskMonitor = {
         application: app,
         title: 'Disabling ' + instance.instanceId + ' in discovery',
       };
 
-      var submitMethod = function() {
+      let submitMethod = function() {
         return instanceWriter.disableInstanceInDiscovery(instance, app, defaultRequestParams);
       };
 
@@ -346,7 +346,7 @@ module(ECS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     };
 
     this.hasHealthState = function hasHealthState(healthProviderType, state) {
-      var instance = $scope.instance,
+      let instance = $scope.instance,
         healthMetrics = instance.health || [];
       return healthMetrics.some(function(health) {
         return health.type === healthProviderType && health.state === state;

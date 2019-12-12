@@ -28,7 +28,7 @@ angular
         return this.isDirty();
       };
 
-      var currentlyEnabled = _.chain($scope.command)
+      let currentlyEnabled = _.chain($scope.command)
           .filter({ enabled: true })
           .map('name')
           .value(),
@@ -38,7 +38,7 @@ angular
           .value();
 
       this.isDirty = function() {
-        var enabledSelections = _.chain($scope.command)
+        let enabledSelections = _.chain($scope.command)
             .filter({ enabled: true })
             .map('name')
             .value(),
@@ -60,7 +60,7 @@ angular
       });
 
       this.submit = function() {
-        var enabledSelections = _.chain($scope.command)
+        let enabledSelections = _.chain($scope.command)
             .filter({ enabled: true })
             .map('name')
             .value(),
@@ -71,7 +71,7 @@ angular
           toEnable = _.intersection(currentlySuspended, enabledSelections),
           toSuspend = _.intersection(currentlyEnabled, suspendedSelections);
 
-        var job = [];
+        let job = [];
         if (toEnable.length) {
           job.push({
             type: 'modifyScalingProcess',
@@ -97,7 +97,7 @@ angular
           });
         }
 
-        var submitMethod = function() {
+        let submitMethod = function() {
           return TaskExecutor.executeTask({
             job: job,
             application: application,

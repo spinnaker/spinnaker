@@ -33,7 +33,7 @@ module(AMAZON_PIPELINE_STAGES_RESIZEASG_AWSRESIZEASGSTAGE, [])
   .controller('awsResizeAsgStageCtrl', [
     '$scope',
     function($scope) {
-      var ctrl = this;
+      let ctrl = this;
 
       let stage = $scope.stage;
 

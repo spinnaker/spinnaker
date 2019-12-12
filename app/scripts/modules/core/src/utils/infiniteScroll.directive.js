@@ -19,7 +19,7 @@ angular.module(CORE_UTILS_INFINITESCROLL_DIRECTIVE, []).directive('infiniteScrol
   function($rootScope, $window, $timeout) {
     return {
       link: function(scope, elem, attrs) {
-        var checkWhenEnabled, handler, scrollDistance, scrollEnabled;
+        let checkWhenEnabled, handler, scrollDistance, scrollEnabled;
         $window = angular.element($window);
         elem.css('overflow-y', 'auto');
         elem.css('overflow-x', 'hidden');
@@ -45,7 +45,7 @@ angular.module(CORE_UTILS_INFINITESCROLL_DIRECTIVE, []).directive('infiniteScrol
           elem.animate({ scrollTop: '0' });
         });
         handler = function() {
-          var container, elementBottom, remaining, shouldScroll, containerBottom;
+          let container, elementBottom, remaining, shouldScroll, containerBottom;
           container = $(elem.children()[0]);
           elementBottom = elem.offset().top + elem.height();
           containerBottom = container.offset().top + container.height();

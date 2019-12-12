@@ -33,7 +33,7 @@ module(KUBERNETES_V1_PIPELINE_STAGES_RESIZEASG_RESIZESTAGE, [])
   .controller('kubernetesResizeStageController', [
     '$scope',
     function($scope) {
-      var ctrl = this;
+      let ctrl = this;
 
       let stage = $scope.stage;
 

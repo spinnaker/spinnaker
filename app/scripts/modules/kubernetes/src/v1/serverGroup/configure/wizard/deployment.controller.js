@@ -15,14 +15,14 @@ module(KUBERNETES_V1_SERVERGROUP_CONFIGURE_WIZARD_DEPLOYMENT_CONTROLLER, []).con
       this.strategyTypes = ['RollingUpdate', 'Recreate'];
 
       this.deploymentConfigWarning = function() {
-        var command = $scope.command;
-        var name = NameUtils.getClusterName($scope.application.name, command.stack, command.freeFormDetails);
-        var clusters = $scope.application.clusters;
+        let command = $scope.command;
+        let name = NameUtils.getClusterName($scope.application.name, command.stack, command.freeFormDetails);
+        let clusters = $scope.application.clusters;
         if (!clusters) {
           return undefined;
         }
 
-        var cluster = clusters.find(cluster => cluster.name === name && cluster.account === command.account);
+        let cluster = clusters.find(cluster => cluster.name === name && cluster.account === command.account);
         if (!cluster) {
           // In the case where there is no cluster, it doesn't matter if a
           // deployment is used or not since it's the first server group in the
@@ -30,16 +30,16 @@ module(KUBERNETES_V1_SERVERGROUP_CONFIGURE_WIZARD_DEPLOYMENT_CONTROLLER, []).con
           return undefined;
         }
 
-        var serverGroups = cluster.serverGroups.filter(serverGroup => serverGroup.region === command.namespace);
+        let serverGroups = cluster.serverGroups.filter(serverGroup => serverGroup.region === command.namespace);
         if (!serverGroups) {
           // Again, this will be the first deployed server group that can decide
           // whether or not to depend on a deployment.
           return undefined;
         }
 
-        var managedByDeployment = serverGroups.find(serverGroup => serverGroup.buildInfo.createdBy);
+        let managedByDeployment = serverGroups.find(serverGroup => serverGroup.buildInfo.createdBy);
 
-        var deploymentEnabled = command.deployment && command.deployment.enabled;
+        let deploymentEnabled = command.deployment && command.deployment.enabled;
         if (managedByDeployment && !deploymentEnabled) {
           return (
             'The cluster ' +

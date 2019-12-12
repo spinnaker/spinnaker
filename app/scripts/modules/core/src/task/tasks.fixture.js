@@ -1,4 +1,4 @@
-var TasksFixture = {};
+let TasksFixture = {};
 TasksFixture.initialSnapshot = [
   {
     id: 1,

@@ -46,13 +46,13 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       }
 
       instance.health = instance.health || [];
-      var displayableMetrics = instance.health.filter(function(metric) {
+      let displayableMetrics = instance.health.filter(function(metric) {
         return metric.type !== 'Azure' || metric.state !== 'Unknown';
       });
       // backfill details where applicable
       if (latest.health) {
         displayableMetrics.forEach(function(metric) {
-          var detailsMatch = latest.health.filter(function(latestHealth) {
+          let detailsMatch = latest.health.filter(function(latestHealth) {
             return latestHealth.type === metric.type;
           });
           if (detailsMatch.length) {
@@ -64,8 +64,8 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     }
 
     function retrieveInstance() {
-      var extraData = {};
-      var instanceSummary, loadBalancers, account, region, vpcId;
+      let extraData = {};
+      let instanceSummary, loadBalancers, account, region, vpcId;
       if (!app.serverGroups) {
         // standalone instance
         instanceSummary = {};
@@ -137,11 +137,11 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
             $scope.instance.region = region;
             $scope.instance.vpcId = vpcId;
             $scope.instance.loadBalancers = loadBalancers;
-            var discoveryMetric = _.find($scope.healthMetrics, function(metric) {
+            let discoveryMetric = _.find($scope.healthMetrics, function(metric) {
               return metric.type === 'Discovery';
             });
             if (discoveryMetric && discoveryMetric.vipAddress) {
-              var vipList = discoveryMetric.vipAddress;
+              let vipList = discoveryMetric.vipAddress;
               $scope.instance.vipAddress = vipList.includes(',') ? vipList.split(',') : [vipList];
             }
             $scope.baseIpAddress = details.publicDnsName || details.privateIpAddress;
@@ -170,31 +170,31 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     };
 
     this.canRegisterWithLoadBalancer = function() {
-      var instance = $scope.instance;
+      let instance = $scope.instance;
       if (!instance.loadBalancers || !instance.loadBalancers.length) {
         return false;
       }
-      var outOfService = instance.health.some(function(health) {
+      let outOfService = instance.health.some(function(health) {
         return health.type === 'LoadBalancer' && health.state === 'OutOfService';
       });
-      var hasLoadBalancerHealth = instance.health.some(function(health) {
+      let hasLoadBalancerHealth = instance.health.some(function(health) {
         return health.type === 'LoadBalancer';
       });
       return outOfService || !hasLoadBalancerHealth;
     };
 
     this.canRegisterWithDiscovery = function() {
-      var instance = $scope.instance;
-      var discoveryHealth = instance.health.filter(function(health) {
+      let instance = $scope.instance;
+      let discoveryHealth = instance.health.filter(function(health) {
         return health.type === 'Discovery';
       });
       return discoveryHealth.length ? discoveryHealth[0].state === 'OutOfService' : false;
     };
 
     this.terminateInstance = function terminateInstance() {
-      var instance = $scope.instance;
+      let instance = $scope.instance;
 
-      var taskMonitor = {
+      let taskMonitor = {
         application: app,
         title: 'Terminating ' + instance.instanceId,
         onTaskComplete: function() {
@@ -204,7 +204,7 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         },
       };
 
-      var submitMethod = function() {
+      let submitMethod = function() {
         return instanceWriter.terminateInstance(instance, app);
       };
 
@@ -219,9 +219,9 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     };
 
     this.terminateInstanceAndShrinkServerGroup = function terminateInstanceAndShrinkServerGroup() {
-      var instance = $scope.instance;
+      let instance = $scope.instance;
 
-      var taskMonitor = {
+      let taskMonitor = {
         application: app,
         title: 'Terminating ' + instance.instanceId + ' and shrinking server group',
         onTaskComplete: function() {
@@ -231,7 +231,7 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         },
       };
 
-      var submitMethod = function() {
+      let submitMethod = function() {
         return instanceWriter.terminateInstanceAndShrinkServerGroup(instance, app);
       };
 
@@ -246,14 +246,14 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     };
 
     this.rebootInstance = function rebootInstance() {
-      var instance = $scope.instance;
+      let instance = $scope.instance;
 
-      var taskMonitor = {
+      let taskMonitor = {
         application: app,
         title: 'Rebooting ' + instance.instanceId,
       };
 
-      var submitMethod = function() {
+      let submitMethod = function() {
         return instanceWriter.rebootInstance(instance, app);
       };
 
@@ -268,15 +268,15 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     };
 
     this.registerInstanceWithLoadBalancer = function registerInstanceWithLoadBalancer() {
-      var instance = $scope.instance;
-      var loadBalancerNames = instance.loadBalancers.join(' and ');
+      let instance = $scope.instance;
+      let loadBalancerNames = instance.loadBalancers.join(' and ');
 
-      var taskMonitor = {
+      let taskMonitor = {
         application: app,
         title: 'Registering ' + instance.instanceId + ' with ' + loadBalancerNames,
       };
 
-      var submitMethod = function() {
+      let submitMethod = function() {
         return instanceWriter.registerInstanceWithLoadBalancer(instance, app);
       };
 
@@ -290,15 +290,15 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     };
 
     this.deregisterInstanceFromLoadBalancer = function deregisterInstanceFromLoadBalancer() {
-      var instance = $scope.instance;
-      var loadBalancerNames = instance.loadBalancers.join(' and ');
+      let instance = $scope.instance;
+      let loadBalancerNames = instance.loadBalancers.join(' and ');
 
-      var taskMonitor = {
+      let taskMonitor = {
         application: app,
         title: 'Deregistering ' + instance.instanceId + ' from ' + loadBalancerNames,
       };
 
-      var submitMethod = function() {
+      let submitMethod = function() {
         return instanceWriter.deregisterInstanceFromLoadBalancer(instance, app);
       };
 
@@ -313,14 +313,14 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     };
 
     this.enableInstanceInDiscovery = function enableInstanceInDiscovery() {
-      var instance = $scope.instance;
+      let instance = $scope.instance;
 
-      var taskMonitor = {
+      let taskMonitor = {
         application: app,
         title: 'Enabling ' + instance.instanceId + ' in discovery',
       };
 
-      var submitMethod = function() {
+      let submitMethod = function() {
         return instanceWriter.enableInstanceInDiscovery(instance, app);
       };
 
@@ -334,14 +334,14 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     };
 
     this.disableInstanceInDiscovery = function disableInstanceInDiscovery() {
-      var instance = $scope.instance;
+      let instance = $scope.instance;
 
-      var taskMonitor = {
+      let taskMonitor = {
         application: app,
         title: 'Disabling ' + instance.instanceId + ' in discovery',
       };
 
-      var submitMethod = function() {
+      let submitMethod = function() {
         return instanceWriter.disableInstanceInDiscovery(instance, app);
       };
 
@@ -369,7 +369,7 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     };
 
     this.hasHealthState = function hasHealthState(healthProviderType, state) {
-      var instance = $scope.instance;
+      let instance = $scope.instance;
       return instance.health.some(function(health) {
         return health.type === healthProviderType && health.state === state;
       });

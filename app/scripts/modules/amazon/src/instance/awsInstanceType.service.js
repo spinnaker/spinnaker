@@ -13,7 +13,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
   '$http',
   '$q',
   function($http, $q) {
-    var m5 = {
+    let m5 = {
       type: 'm5',
       description:
         'm5 instances provide a balance of compute, memory, and network resources. They are a good choice for most applications.',
@@ -45,7 +45,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
       ],
     };
 
-    var t2gp = {
+    let t2gp = {
       type: 't2',
       description:
         't2 instances are a good choice for workloads that don’t use the full CPU often or consistently, but occasionally need to burst (e.g. web servers, developer environments and small databases).',
@@ -69,7 +69,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
       ],
     };
 
-    var t2 = {
+    let t2 = {
       type: 't2',
       description:
         't2 instances are a good choice for workloads that don’t use the full CPU often or consistently, but occasionally need to burst (e.g. web servers, developer environments and small databases).',
@@ -101,7 +101,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
       ],
     };
 
-    var r5 = {
+    let r5 = {
       type: 'r5',
       description:
         'r5 instances are optimized for memory-intensive applications and have the lowest cost per GiB of RAM among Amazon EC2 instance types.',
@@ -141,7 +141,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
       ],
     };
 
-    var defaultCategories = [
+    let defaultCategories = [
       {
         type: 'general',
         label: 'General Purpose',
@@ -182,7 +182,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
       return $q.when(categories);
     }
 
-    var getAllTypesByRegion = function getAllTypesByRegion() {
+    let getAllTypesByRegion = function getAllTypesByRegion() {
       return API.one('instanceTypes')
         .get()
         .then(function(types) {
@@ -204,7 +204,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
     let instanceClassOrder = ['xlarge', 'large', 'medium', 'small', 'micro', 'nano'];
 
     function sortTypesByFamilyAndSize(o1, o2) {
-      var type1 = o1.split('.'),
+      let type1 = o1.split('.'),
         type2 = o2.split('.');
 
       let [family1, class1 = ''] = type1;
@@ -248,7 +248,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
 
     function getAvailableTypesForRegions(availableRegions, selectedRegions) {
       selectedRegions = selectedRegions || [];
-      var availableTypes = [];
+      let availableTypes = [];
 
       // prime the list of available types
       if (selectedRegions && selectedRegions.length) {

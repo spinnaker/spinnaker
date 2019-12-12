@@ -19,7 +19,7 @@ module(AZURE_SECURITYGROUP_SECURITYGROUP_WRITE_SERVICE, [UIROUTER_ANGULARJS]).fa
         return _.isUndefined(value) ? other : value;
       });
 
-      var operation = TaskExecutor.executeTask({
+      let operation = TaskExecutor.executeTask({
         job: [params],
         application: application,
         description: `${descriptor} ${FirewallLabels.get('Firewall')}: ${name}`,
@@ -38,7 +38,7 @@ module(AZURE_SECURITYGROUP_SECURITYGROUP_WRITE_SERVICE, [UIROUTER_ANGULARJS]).fa
       //params.cloudProvider = securityGroup.providerType;
       params.appName = application.name;
 
-      var operation = TaskExecutor.executeTask({
+      let operation = TaskExecutor.executeTask({
         job: [params],
         application: application,
         description: `Delete ${FirewallLabels.get('Firewalls')}: ${securityGroup.name}`,

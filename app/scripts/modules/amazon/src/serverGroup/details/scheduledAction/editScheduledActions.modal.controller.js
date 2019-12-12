@@ -44,7 +44,7 @@ module(AMAZON_SERVERGROUP_DETAILS_SCHEDULEDACTION_EDITSCHEDULEDACTIONS_MODAL_CON
       });
 
       this.submit = () => {
-        var job = [
+        let job = [
           {
             type: 'upsertAsgScheduledActions',
             asgs: [{ asgName: serverGroup.name, region: serverGroup.region }],
@@ -53,7 +53,7 @@ module(AMAZON_SERVERGROUP_DETAILS_SCHEDULEDACTION_EDITSCHEDULEDACTIONS_MODAL_CON
           },
         ];
 
-        var submitMethod = function() {
+        let submitMethod = function() {
           return TaskExecutor.executeTask({
             job: job,
             application: application,

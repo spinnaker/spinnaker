@@ -68,7 +68,7 @@ module(CORE_APPLICATION_MODAL_CREATEAPPLICATION_MODAL_CONTROLLER, [
       this.state.submitting = false;
     };
 
-    var navigateTimeout = null;
+    let navigateTimeout = null;
 
     let routeToApplication = () => {
       navigateTimeout = $timeout(() => {

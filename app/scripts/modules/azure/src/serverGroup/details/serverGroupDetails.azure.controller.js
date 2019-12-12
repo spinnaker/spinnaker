@@ -57,7 +57,7 @@ angular
       this.application = app;
 
       function extractServerGroupSummary() {
-        var summary = _.find(app.serverGroups.data, function(toCheck) {
+        let summary = _.find(app.serverGroups.data, function(toCheck) {
           return (
             toCheck.name === serverGroup.name &&
             toCheck.account === serverGroup.accountId &&
@@ -83,7 +83,7 @@ angular
       }
 
       function retrieveServerGroup() {
-        var summary = extractServerGroupSummary();
+        let summary = extractServerGroupSummary();
         return ServerGroupReader.getServerGroup(
           app.name,
           serverGroup.accountId,
@@ -101,9 +101,9 @@ angular
             $scope.image = details.image ? details.image : undefined;
 
             if (details.image && details.image.description) {
-              var tags = details.image.description.split(', ');
+              let tags = details.image.description.split(', ');
               tags.forEach(function(tag) {
-                var keyVal = tag.split('=');
+                let keyVal = tag.split('=');
                 if (keyVal.length === 2 && keyVal[0] === 'ancestor_name') {
                   details.image.baseImage = keyVal[1];
                 }
@@ -148,18 +148,18 @@ angular
       });
 
       this.destroyServerGroup = function destroyServerGroup() {
-        var serverGroup = $scope.serverGroup;
+        let serverGroup = $scope.serverGroup;
 
-        var taskMonitor = {
+        let taskMonitor = {
           application: app,
           title: 'Destroying ' + serverGroup.name,
         };
 
-        var submitMethod = function() {
+        let submitMethod = function() {
           return serverGroupWriter.destroyServerGroup(serverGroup, app);
         };
 
-        var stateParams = {
+        let stateParams = {
           name: serverGroup.name,
           accountId: serverGroup.account,
           region: serverGroup.region,
@@ -184,9 +184,9 @@ angular
       };
 
       this.disableServerGroup = function disableServerGroup() {
-        var serverGroup = $scope.serverGroup;
+        let serverGroup = $scope.serverGroup;
 
-        var taskMonitor = {
+        let taskMonitor = {
           application: app,
           title: 'Disabling ' + serverGroup.name,
         };
@@ -207,14 +207,14 @@ angular
       };
 
       this.enableServerGroup = function enableServerGroup() {
-        var serverGroup = $scope.serverGroup;
+        let serverGroup = $scope.serverGroup;
 
-        var taskMonitor = {
+        let taskMonitor = {
           application: app,
           title: 'Enabling ' + serverGroup.name,
         };
 
-        var submitMethod = params => {
+        let submitMethod = params => {
           return serverGroupWriter.enableServerGroup(
             serverGroup,
             app,
@@ -234,7 +234,7 @@ angular
       };
 
       this.rollbackServerGroup = () => {
-        var serverGroup = $scope.serverGroup;
+        let serverGroup = $scope.serverGroup;
         const cluster = _.find(app.clusters, { name: serverGroup.cluster, account: serverGroup.account });
         const disabledServerGroups = _.filter(cluster.serverGroups, { isDisabled: true, region: serverGroup.region });
         AzureRollbackServerGroupModal.show({ application: app, serverGroup, disabledServerGroups });

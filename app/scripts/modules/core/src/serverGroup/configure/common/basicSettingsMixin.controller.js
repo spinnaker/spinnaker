@@ -23,13 +23,13 @@ module(CORE_SERVERGROUP_CONFIGURE_COMMON_BASICSETTINGSMIXIN_CONTROLLER, [
   '$state',
   function($scope, imageReader, $uibModalStack, $state) {
     this.createsNewCluster = function() {
-      var name = this.getNamePreview();
+      let name = this.getNamePreview();
       $scope.latestServerGroup = this.getLatestServerGroup();
       return !_.find($scope.application.clusters, { name: name });
     };
 
     this.getNamePreview = function() {
-      var command = $scope.command;
+      let command = $scope.command;
       if (!command) {
         return '';
       }
@@ -37,9 +37,9 @@ module(CORE_SERVERGROUP_CONFIGURE_COMMON_BASICSETTINGSMIXIN_CONTROLLER, [
     };
 
     this.getLatestServerGroup = function() {
-      var command = $scope.command;
-      var cluster = NameUtils.getClusterName($scope.application.name, command.stack, command.freeFormDetails);
-      var inCluster = $scope.application.serverGroups.data
+      let command = $scope.command;
+      let cluster = NameUtils.getClusterName($scope.application.name, command.stack, command.freeFormDetails);
+      let inCluster = $scope.application.serverGroups.data
         .filter(function(serverGroup) {
           return (
             serverGroup.cluster === cluster &&
@@ -54,14 +54,14 @@ module(CORE_SERVERGROUP_CONFIGURE_COMMON_BASICSETTINGSMIXIN_CONTROLLER, [
     };
 
     this.showPreviewAsWarning = function() {
-      var mode = $scope.command.viewState.mode,
+      let mode = $scope.command.viewState.mode,
         createsNewCluster = this.createsNewCluster();
 
       return (mode === 'create' && !createsNewCluster) || (mode !== 'create' && createsNewCluster);
     };
 
     this.navigateToLatestServerGroup = function() {
-      var latest = $scope.latestServerGroup,
+      let latest = $scope.latestServerGroup,
         params = {
           provider: $scope.command.selectedProvider,
           accountId: latest.account,
@@ -79,7 +79,7 @@ module(CORE_SERVERGROUP_CONFIGURE_COMMON_BASICSETTINGSMIXIN_CONTROLLER, [
 
     this.stackPattern = {
       test: function(stack) {
-        var pattern = $scope.command.viewState.templatingEnabled
+        let pattern = $scope.command.viewState.templatingEnabled
           ? /^([a-zA-Z_0-9._${}]*(\${.+})*)*$/
           : /^[a-zA-Z_0-9._${}]*$/;
 
@@ -89,7 +89,7 @@ module(CORE_SERVERGROUP_CONFIGURE_COMMON_BASICSETTINGSMIXIN_CONTROLLER, [
 
     this.detailPattern = {
       test: function(detail) {
-        var pattern = $scope.command.viewState.templatingEnabled
+        let pattern = $scope.command.viewState.templatingEnabled
           ? /^([a-zA-Z_0-9._${}-]*(\${.+})*)*$/
           : /^[a-zA-Z_0-9._${}-]*$/;
 

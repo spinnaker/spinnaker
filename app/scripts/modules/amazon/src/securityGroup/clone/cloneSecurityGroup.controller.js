@@ -20,7 +20,7 @@ angular
     'securityGroup',
     'application',
     function($scope, $uibModalInstance, $controller, securityGroup, application) {
-      var vm = this;
+      let vm = this;
 
       vm.firewallLabel = FirewallLabels.get('Firewall');
 

@@ -39,7 +39,7 @@ angular
         );
       }
 
-      var imageSearchResultsStream = new Subject();
+      let imageSearchResultsStream = new Subject();
 
       imageSearchResultsStream
         .debounceTime(250)

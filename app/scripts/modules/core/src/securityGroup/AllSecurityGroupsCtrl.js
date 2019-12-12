@@ -87,7 +87,7 @@ module(CORE_SECURITYGROUP_ALLSECURITYGROUPSCTRL, [
         .then(selectedProvider => {
           skinSelectionService.selectSkin(selectedProvider).then(selectedVersion => {
             let provider = CloudProviderRegistry.getValue(selectedProvider, 'securityGroup', selectedVersion);
-            var defaultCredentials =
+            let defaultCredentials =
                 app.defaultCredentials[selectedProvider] || SETTINGS.providers[selectedProvider].defaults.account,
               defaultRegion =
                 app.defaultRegions[selectedProvider] || SETTINGS.providers[selectedProvider].defaults.region;

@@ -19,6 +19,7 @@ module(TITUS_PIPELINE_STAGES_CLONESERVERGROUP_CLONESERVERGROUPEXECUTIONDETAILS_C
     $scope.configSections = ['cloneServerGroupConfig', 'taskStatus'];
 
     let initialized = () => {
+      const resultObjects = context['kato.tasks'][0].resultObjects;
       $scope.detailsSection = $stateParams.details;
 
       let context = $scope.stage.context || {},
@@ -47,7 +48,6 @@ module(TITUS_PIPELINE_STAGES_CLONESERVERGROUP_CLONESERVERGROUPEXECUTIONDETAILS_C
       }
 
       if (context && context['kato.tasks'] && context['kato.tasks'].length) {
-        var resultObjects = context['kato.tasks'][0].resultObjects;
         if (resultObjects && resultObjects.length) {
           addDeployedArtifacts('serverGroupNames');
         }

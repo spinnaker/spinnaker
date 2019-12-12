@@ -50,7 +50,7 @@ module(KUBERNETES_V1_SERVERGROUP_DETAILS_RESIZE_RESIZE_CONTROLLER, [SERVER_GROUP
       }
 
       this.isValid = function() {
-        var command = $scope.command;
+        let command = $scope.command;
         return $scope.verification.verified && command.capacity !== null && command.capacity.desired !== null;
       };
 
@@ -75,8 +75,8 @@ module(KUBERNETES_V1_SERVERGROUP_DETAILS_RESIZE_RESIZE_CONTROLLER, [SERVER_GROUP
           };
         }
 
-        var submitMethod = function() {
-          var payload = {
+        let submitMethod = function() {
+          let payload = {
             capacity: capacity,
             scalingPolicy: hasAutoscaler ? $scope.command.scalingPolicy : null,
             serverGroupName: serverGroup.name,

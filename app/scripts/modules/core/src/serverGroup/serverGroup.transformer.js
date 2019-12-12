@@ -36,7 +36,7 @@ module(CORE_SERVERGROUP_SERVERGROUP_TRANSFORMER, [PROVIDER_SERVICE_DELEGATE]).fa
     }
 
     function convertServerGroupCommandToDeployConfiguration(base) {
-      var service = providerServiceDelegate.getDelegate(base.selectedProvider, 'serverGroup.transformer');
+      let service = providerServiceDelegate.getDelegate(base.selectedProvider, 'serverGroup.transformer');
       return service ? service.convertServerGroupCommandToDeployConfiguration(base) : null;
     }
 

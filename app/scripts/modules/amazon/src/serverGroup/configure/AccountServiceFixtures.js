@@ -1,4 +1,4 @@
-var AccountServiceFixture = {};
+let AccountServiceFixture = {};
 AccountServiceFixture.credentialsKeyedByAccount = {
   test: {
     regions: [

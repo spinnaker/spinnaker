@@ -56,17 +56,18 @@ angular
       evaluateSections();
 
       let initialized = () => {
+        const resultObjects = context['kato.tasks'][0].resultObjects;
         evaluateSections();
         $scope.detailsSection = $stateParams.details;
 
-        var context = $scope.stage.context || {},
+        let context = $scope.stage.context || {},
           results = [];
 
         function addDeployedArtifacts(key) {
-          var deployedArtifacts = _.find(resultObjects, key);
+          let deployedArtifacts = _.find(resultObjects, key);
           if (deployedArtifacts) {
             _.forEach(deployedArtifacts[key], function(serverGroupName, region) {
-              var result = {
+              let result = {
                 type: 'serverGroups',
                 application: context.application,
                 serverGroup: serverGroupName,
@@ -83,7 +84,6 @@ angular
         }
 
         if (context && context['kato.tasks'] && context['kato.tasks'].length) {
-          var resultObjects = context['kato.tasks'][0].resultObjects;
           if (resultObjects && resultObjects.length) {
             results = [];
             addDeployedArtifacts('serverGroupNameByRegion');

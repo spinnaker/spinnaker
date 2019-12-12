@@ -72,7 +72,7 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       }
 
       instance.health = instance.health || [];
-      var displayableMetrics = instance.health.filter(function(metric) {
+      let displayableMetrics = instance.health.filter(function(metric) {
         return metric.state !== 'Unknown';
       });
 
@@ -83,7 +83,7 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       // backfill details where applicable
       if (latest.health) {
         displayableMetrics.forEach(function(metric) {
-          var detailsMatch = latest.health.filter(function(latestHealth) {
+          let detailsMatch = latest.health.filter(function(latestHealth) {
             return latestHealth.type === metric.type;
           });
           if (detailsMatch.length) {
@@ -95,8 +95,8 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     }
 
     const retrieveInstance = () => {
-      var extraData = {};
-      var instanceSummary, loadBalancers, account, region, vpcId;
+      let extraData = {};
+      let instanceSummary, loadBalancers, account, region, vpcId;
       app.serverGroups.data.some(function(serverGroup) {
         return serverGroup.instances.some(function(possibleInstance) {
           if (possibleInstance.id === instance.instanceId) {
@@ -162,16 +162,16 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
 
     this.canRegisterWithDiscovery = function() {
       let healthMetrics = $scope.instance.health || [];
-      var discoveryHealth = healthMetrics.filter(function(health) {
+      let discoveryHealth = healthMetrics.filter(function(health) {
         return health.type === 'Discovery';
       });
       return discoveryHealth.length ? discoveryHealth[0].state === 'OutOfService' : false;
     };
 
     this.terminateInstance = function terminateInstance() {
-      var instance = $scope.instance;
+      let instance = $scope.instance;
       instance.instanceId = instance.id;
-      var taskMonitor = {
+      let taskMonitor = {
         application: app,
         title: 'Terminating ' + instance.instanceId,
         onTaskComplete: function() {
@@ -181,7 +181,7 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         },
       };
 
-      var submitMethod = function() {
+      let submitMethod = function() {
         let params = { cloudProvider: 'titus' };
         if (instance.serverGroup) {
           params.serverGroupName = instance.serverGroup;
@@ -200,9 +200,9 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     };
 
     this.terminateInstanceAndShrinkServerGroup = function terminateInstanceAndShrinkServerGroup() {
-      var instance = $scope.instance;
+      let instance = $scope.instance;
 
-      var taskMonitor = {
+      let taskMonitor = {
         application: app,
         title: 'Terminating ' + instance.instanceId + ' and shrinking server group',
         onTaskComplete: function() {
@@ -212,7 +212,7 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         },
       };
 
-      var submitMethod = function() {
+      let submitMethod = function() {
         return instanceWriter.terminateInstancesAndShrinkServerGroups(
           [
             {
@@ -247,15 +247,15 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     };
 
     this.enableInstanceInDiscovery = function enableInstanceInDiscovery() {
-      var instance = $scope.instance;
+      let instance = $scope.instance;
       instance.instanceId = instance.id;
 
-      var taskMonitor = {
+      let taskMonitor = {
         application: app,
         title: 'Enabling ' + instance.instanceId + ' in discovery',
       };
 
-      var submitMethod = function() {
+      let submitMethod = function() {
         return instanceWriter.enableInstanceInDiscovery(instance, app);
       };
 
@@ -269,15 +269,15 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     };
 
     this.disableInstanceInDiscovery = function disableInstanceInDiscovery() {
-      var instance = $scope.instance;
+      let instance = $scope.instance;
       instance.instanceId = instance.id;
 
-      var taskMonitor = {
+      let taskMonitor = {
         application: app,
         title: 'Disabling ' + instance.instanceId + ' in discovery',
       };
 
-      var submitMethod = function() {
+      let submitMethod = function() {
         return instanceWriter.disableInstanceInDiscovery(instance, app);
       };
 

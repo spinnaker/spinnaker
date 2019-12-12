@@ -25,7 +25,7 @@ module(AZURE_LOADBALANCER_LOADBALANCER_TRANSFORMER, []).factory('azureLoadBalanc
           serverGroup.detachedInstances = [];
         }
       });
-      var activeServerGroups = _.filter(loadBalancer.serverGroups, { isDisabled: false });
+      let activeServerGroups = _.filter(loadBalancer.serverGroups, { isDisabled: false });
       loadBalancer.provider = loadBalancer.type;
       loadBalancer.instances = _.chain(activeServerGroups)
         .map('instances')
@@ -39,7 +39,7 @@ module(AZURE_LOADBALANCER_LOADBALANCER_TRANSFORMER, []).factory('azureLoadBalanc
     }
 
     function convertLoadBalancerForEditing(loadBalancer) {
-      var toEdit = {
+      let toEdit = {
         region: loadBalancer.region,
         credentials: loadBalancer.account,
         name: loadBalancer.name,
@@ -52,7 +52,7 @@ module(AZURE_LOADBALANCER_LOADBALANCER_TRANSFORMER, []).factory('azureLoadBalanc
       };
 
       if (loadBalancer.elb) {
-        var elb = loadBalancer.elb;
+        let elb = loadBalancer.elb;
 
         toEdit.securityGroups = elb.securityGroups;
         toEdit.vnet = elb.vnet;
@@ -70,7 +70,7 @@ module(AZURE_LOADBALANCER_LOADBALANCER_TRANSFORMER, []).factory('azureLoadBalanc
     }
 
     function constructNewLoadBalancerTemplate(application) {
-      var defaultCredentials = application.defaultCredentials.azure || AzureProviderSettings.defaults.account,
+      let defaultCredentials = application.defaultCredentials.azure || AzureProviderSettings.defaults.account,
         defaultRegion = application.defaultRegions.azure || AzureProviderSettings.defaults.region;
       return {
         stack: '',

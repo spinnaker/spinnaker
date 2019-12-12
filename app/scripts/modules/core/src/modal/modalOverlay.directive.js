@@ -11,7 +11,7 @@ module(CORE_MODAL_MODALOVERLAY_DIRECTIVE, []).directive('modalOverlay', [
       restrict: 'A',
       link: function(scope, elem) {
         $timeout(function() {
-          var $uibModal = elem.closest('.modal-content'),
+          let $uibModal = elem.closest('.modal-content'),
             modalHeight = $uibModal.outerHeight();
 
           if (modalHeight < 450) {

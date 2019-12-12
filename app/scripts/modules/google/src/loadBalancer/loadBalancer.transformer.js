@@ -92,7 +92,7 @@ module(GOOGLE_LOADBALANCER_LOADBALANCER_TRANSFORMER, []).factory('gceLoadBalance
       };
 
       if (loadBalancer.elb) {
-        var elb = loadBalancer.elb;
+        let elb = loadBalancer.elb;
 
         toEdit.vpcId = elb.vpcid;
 
@@ -113,7 +113,7 @@ module(GOOGLE_LOADBALANCER_LOADBALANCER_TRANSFORMER, []).factory('gceLoadBalance
           toEdit.healthyThreshold = elb.healthCheck.healthyThreshold;
           toEdit.unhealthyThreshold = elb.healthCheck.unhealthyThreshold;
 
-          var healthCheck = loadBalancer.elb.healthCheck.target;
+          let healthCheck = loadBalancer.elb.healthCheck.target;
           const protocolIndex = healthCheck.indexOf(':'),
             pathIndex = healthCheck.indexOf('/');
 

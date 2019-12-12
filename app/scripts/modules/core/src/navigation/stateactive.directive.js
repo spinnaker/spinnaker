@@ -13,7 +13,7 @@ angular.module(CORE_NAVIGATION_STATEACTIVE_DIRECTIVE, []).directive('stateActive
       '$attrs',
       '$state',
       function($scope, $element, $attrs, $state) {
-        var element = angular.element($element[0]);
+        let element = angular.element($element[0]);
 
         $scope.$on('$stateChangeSuccess', function() {
           if ($state.includes($attrs.stateActive)) {

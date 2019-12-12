@@ -25,7 +25,7 @@ module(AMAZON_PIPELINE_STAGES_ENABLEASG_AWSENABLEASGSTAGE, [])
   .controller('awsEnableAsgStageCtrl', [
     '$scope',
     function($scope) {
-      var ctrl = this;
+      let ctrl = this;
 
       let stage = $scope.stage;
 

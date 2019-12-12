@@ -37,7 +37,8 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
     modalWizardService,
     cacheInitializer,
   ) {
-    var ctrl = this;
+    let allSecurityGroups;
+    let ctrl = this;
 
     $scope.isNew = true;
 
@@ -61,7 +62,7 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
         return;
       }
       $uibModalInstance.close();
-      var newStateParams = {
+      let newStateParams = {
         name: $scope.securityGroup.name,
         accountId: $scope.securityGroup.credentials || $scope.securityGroup.accountName,
         region: $scope.securityGroup.regions[0],
@@ -101,7 +102,7 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
     }
 
     ctrl.accountUpdated = function() {
-      var account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
+      let account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
       AccountService.getRegionsForAccount(account).then(function(regions) {
         $scope.regions = _.map(regions, 'name');
         clearSecurityGroups();
@@ -123,7 +124,7 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
     ctrl.regionUpdated = function() {};
 
     this.vpcUpdated = function() {
-      var account = $scope.securityGroup.credentials || $scope.securityGroup.accountName,
+      let account = $scope.securityGroup.credentials || $scope.securityGroup.accountName,
         regions = $scope.securityGroup.regions;
       if (account && regions && regions.length) {
         configureFilteredSecurityGroups();
@@ -133,20 +134,20 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
     };
 
     function configureFilteredSecurityGroups() {
-      var vpcId = $scope.securityGroup.vpcId || null;
-      var account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
-      var regions = $scope.securityGroup.regions || [];
-      var existingSecurityGroupNames = [];
-      var availableSecurityGroups = [];
+      let vpcId = $scope.securityGroup.vpcId || null;
+      let account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
+      let regions = $scope.securityGroup.regions || [];
+      let existingSecurityGroupNames = [];
+      let availableSecurityGroups = [];
 
       regions.forEach(function(region) {
-        var regionalVpcId = null;
+        let regionalVpcId = null;
         if (vpcId) {
-          var baseVpc = _.find($scope.allVpcs, { id: vpcId });
+          let baseVpc = _.find($scope.allVpcs, { id: vpcId });
           regionalVpcId = _.find($scope.allVpcs, { account: account, region: region, name: baseVpc.name }).id;
         }
 
-        var regionalSecurityGroups = _.filter(allSecurityGroups[account].azure[region], { vpcId: regionalVpcId }),
+        let regionalSecurityGroups = _.filter(allSecurityGroups[account].azure[region], { vpcId: regionalVpcId }),
           regionalGroupNames = _.map(regionalSecurityGroups, 'name');
 
         existingSecurityGroupNames = _.uniq(existingSecurityGroupNames.concat(regionalGroupNames));
@@ -170,7 +171,7 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
     };
 
     function clearInvalidSecurityGroups() {
-      var removed = $scope.state.removedRules;
+      let removed = $scope.state.removedRules;
       $scope.securityGroup.securityGroupIngress = $scope.securityGroup.securityGroupIngress.filter(function(rule) {
         if (rule.name && !$scope.availableSecurityGroups.includes(rule.name) && !removed.includes(rule.name)) {
           removed.push(rule.name);
@@ -193,16 +194,16 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
       });
     };
 
-    var allSecurityGroups = {};
+    allSecurityGroups = {};
 
     ctrl.initializeSecurityGroups = function() {
       return securityGroupReader.getAllSecurityGroups().then(function(securityGroups) {
         allSecurityGroups = securityGroups;
-        var account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
-        var region = $scope.securityGroup.regions[0];
-        var vpcId = $scope.securityGroup.vpcId || null;
+        let account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
+        let region = $scope.securityGroup.regions[0];
+        let vpcId = $scope.securityGroup.vpcId || null;
 
-        var availableGroups;
+        let availableGroups;
         if (account && region) {
           availableGroups = _.filter(securityGroups[account].azure[region], { vpcId: vpcId });
         } else {
@@ -217,12 +218,15 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
       $uibModalInstance.dismiss();
     };
 
+    let classicPattern = /^[\x20-\x7F]+$/;
+    let vpcPattern = /^[a-zA-Z0-9\s._\-:/()#,@[\]+=&;{}!$*]+$/;
+
     ctrl.getCurrentNamePattern = function() {
       return $scope.securityGroup.vpcId ? vpcPattern : classicPattern;
     };
 
     ctrl.updateName = function() {
-      var securityGroup = $scope.securityGroup,
+      let securityGroup = $scope.securityGroup,
         name = application.name;
       if (securityGroup.detail) {
         name += '-' + securityGroup.detail;
@@ -254,8 +258,5 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
       modalWizardService.getWizard().markClean('Ingress');
       modalWizardService.getWizard().markComplete('Ingress');
     };
-
-    var classicPattern = /^[\x20-\x7F]+$/;
-    var vpcPattern = /^[a-zA-Z0-9\s._\-:/()#,@[\]+=&;{}!$*]+$/;
   },
 ]);

@@ -61,7 +61,7 @@ angular
         })[0];
 
         if ($scope.loadBalancer) {
-          var detailsLoader = loadBalancerReader.getLoadBalancerDetails(
+          let detailsLoader = loadBalancerReader.getLoadBalancerDetails(
             $scope.loadBalancer.provider,
             loadBalancer.accountId,
             loadBalancer.region,
@@ -70,9 +70,9 @@ angular
 
           return detailsLoader.then(function(details) {
             $scope.state.loading = false;
-            var securityGroups = [];
+            let securityGroups = [];
 
-            var filtered = details.filter(function(test) {
+            let filtered = details.filter(function(test) {
               return test.name === loadBalancer.name;
             });
 
@@ -83,7 +83,7 @@ angular
 
               if ($scope.loadBalancer.elb.securityGroups) {
                 $scope.loadBalancer.elb.securityGroups.forEach(function(securityGroupId) {
-                  var match = securityGroupReader.getApplicationSecurityGroup(
+                  let match = securityGroupReader.getApplicationSecurityGroup(
                     app,
                     loadBalancer.accountId,
                     loadBalancer.region,
@@ -154,7 +154,7 @@ angular
           return;
         }
 
-        var taskMonitor = {
+        let taskMonitor = {
           application: app,
           title: 'Deleting ' + loadBalancer.name,
         };

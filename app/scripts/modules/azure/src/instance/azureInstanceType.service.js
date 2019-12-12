@@ -9,7 +9,7 @@ module(AZURE_INSTANCE_AZUREINSTANCETYPE_SERVICE, []).factory('azureInstanceTypeS
   '$http',
   '$q',
   function($http, $q) {
-    var B = {
+    let B = {
       type: 'B-series',
       description:
         'The B-series burstable VMs are ideal for workloads that do not need the full performance of the CPU continuously, like web servers, small databases and development and test environments.',
@@ -94,7 +94,7 @@ module(AZURE_INSTANCE_AZUREINSTANCETYPE_SERVICE, []).factory('azureInstanceTypeS
       ],
     };
 
-    var DSV3 = {
+    let DSV3 = {
       type: 'Dsv3-series',
       description:
         'The Dsv3-series sizes offer a combination of vCPU, memory, and temporary storage for most production workloads.',
@@ -168,7 +168,7 @@ module(AZURE_INSTANCE_AZUREINSTANCETYPE_SERVICE, []).factory('azureInstanceTypeS
       ],
     };
 
-    var DV3 = {
+    let DV3 = {
       type: 'Dv3-series',
       description:
         'The Dv3-series sizes offer a combination of vCPU, memory, and temporary storage for most production workloads.',
@@ -242,7 +242,7 @@ module(AZURE_INSTANCE_AZUREINSTANCETYPE_SERVICE, []).factory('azureInstanceTypeS
       ],
     };
 
-    var DSV2 = {
+    let DSV2 = {
       type: 'DSv2-series',
       description: '',
       instanceTypes: [
@@ -359,7 +359,7 @@ module(AZURE_INSTANCE_AZUREINSTANCETYPE_SERVICE, []).factory('azureInstanceTypeS
       ],
     };
 
-    var DV2 = {
+    let DV2 = {
       type: 'Dv2-series',
       description: '',
       instanceTypes: [
@@ -476,7 +476,7 @@ module(AZURE_INSTANCE_AZUREINSTANCETYPE_SERVICE, []).factory('azureInstanceTypeS
       ],
     };
 
-    var AV2 = {
+    let AV2 = {
       type: 'Av2-series',
       description: '',
       instanceTypes: [
@@ -560,7 +560,7 @@ module(AZURE_INSTANCE_AZUREINSTANCETYPE_SERVICE, []).factory('azureInstanceTypeS
       ],
     };
 
-    var DC = {
+    let DC = {
       type: 'DC-series',
       description: '',
       instanceTypes: [
@@ -589,7 +589,7 @@ module(AZURE_INSTANCE_AZUREINSTANCETYPE_SERVICE, []).factory('azureInstanceTypeS
       ],
     };
 
-    var FSV2 = {
+    let FSV2 = {
       type: 'Fsv2-series',
       description: '',
       instanceTypes: [
@@ -645,7 +645,7 @@ module(AZURE_INSTANCE_AZUREINSTANCETYPE_SERVICE, []).factory('azureInstanceTypeS
       ],
     };
 
-    var FS = {
+    let FS = {
       type: 'Fs-series',
       description: '',
       instanceTypes: [
@@ -687,7 +687,7 @@ module(AZURE_INSTANCE_AZUREINSTANCETYPE_SERVICE, []).factory('azureInstanceTypeS
       ],
     };
 
-    var F = {
+    let F = {
       type: 'F-series',
       description: '',
       instanceTypes: [
@@ -729,7 +729,7 @@ module(AZURE_INSTANCE_AZUREINSTANCETYPE_SERVICE, []).factory('azureInstanceTypeS
       ],
     };
 
-    var categories = [
+    let categories = [
       {
         type: 'general',
         label: 'General Purpose',
@@ -763,7 +763,7 @@ module(AZURE_INSTANCE_AZUREINSTANCETYPE_SERVICE, []).factory('azureInstanceTypeS
     }
 
     function buildStats(category) {
-      var stats = {
+      let stats = {
         cpu: {
           min: Number.MAX_VALUE,
           max: -Number.MAX_VALUE,
@@ -782,7 +782,7 @@ module(AZURE_INSTANCE_AZUREINSTANCETYPE_SERVICE, []).factory('azureInstanceTypeS
       if (category.families && category.families.length) {
         category.families.forEach(function(family) {
           stats.families.push(family.type);
-          var cpuMin = _.minBy(family.instanceTypes, 'cpu').cpu || Number.MAX_VALUE,
+          let cpuMin = _.minBy(family.instanceTypes, 'cpu').cpu || Number.MAX_VALUE,
             cpuMax = _.maxBy(family.instanceTypes, 'cpu').cpu || -Number.MAX_VALUE,
             memoryMin = _.minBy(family.instanceTypes, 'memory').memory || Number.MAX_VALUE,
             memoryMax = _.maxBy(family.instanceTypes, 'memory').memory || -Number.MAX_VALUE,
@@ -813,7 +813,7 @@ module(AZURE_INSTANCE_AZUREINSTANCETYPE_SERVICE, []).factory('azureInstanceTypeS
       return $q.when(categories);
     }
 
-    var getAllTypesByRegion = function getAllTypesByRegion() {
+    let getAllTypesByRegion = function getAllTypesByRegion() {
       return getCategories();
     };
 

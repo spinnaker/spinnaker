@@ -80,9 +80,9 @@ angular
         if (cluster.region) {
           return cluster.region;
         }
-        var availabilityZones = cluster.availabilityZones;
+        let availabilityZones = cluster.availabilityZones;
         if (availabilityZones) {
-          var regions = Object.keys(availabilityZones);
+          let regions = Object.keys(availabilityZones);
           if (regions && regions.length) {
             return regions[0];
           }

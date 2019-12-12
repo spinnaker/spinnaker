@@ -72,7 +72,7 @@ angular
             // If we search for *nginx* and *nginx:1.11.1*, we might get two copies of nginx:1.11.1.
             backingData.allImages = _.uniqWith(backingData.allImages, _.isEqual);
 
-            var accountMap = _.fromPairs(
+            let accountMap = _.fromPairs(
               _.map(backingData.accounts, function(account) {
                 return [account.name, AccountService.getAccountDetails(account.name)];
               }),
@@ -157,13 +157,13 @@ angular
       }
 
       function configureLoadBalancers(command) {
-        var results = { dirty: {} };
-        var current = command.loadBalancers;
-        var newLoadBalancers = getLoadBalancerNames(command);
+        let results = { dirty: {} };
+        let current = command.loadBalancers;
+        let newLoadBalancers = getLoadBalancerNames(command);
 
         if (current && command.loadBalancers) {
-          var matched = _.intersection(newLoadBalancers, command.loadBalancers);
-          var removed = _.xor(matched, current);
+          let matched = _.intersection(newLoadBalancers, command.loadBalancers);
+          let removed = _.xor(matched, current);
           command.loadBalancers = matched;
           if (removed.length) {
             results.dirty.loadBalancers = removed;
@@ -200,7 +200,7 @@ angular
       }
 
       function configureContainers(command) {
-        var result = { dirty: {} };
+        let result = { dirty: {} };
         angular.extend(result.dirty, configureImages(command).dirty);
         command.backingData.filtered.containers = _.map(
           command.backingData.filtered.images,
@@ -222,13 +222,13 @@ angular
       }
 
       function configureSecurityGroups(command) {
-        var result = { dirty: {} };
+        let result = { dirty: {} };
         command.backingData.filtered.securityGroups = command.backingData.securityGroups;
         return result;
       }
 
       function configureNamespaces(command) {
-        var result = { dirty: {} };
+        let result = { dirty: {} };
         command.backingData.filtered.namespaces = command.backingData.account.namespaces;
         if (!_.includes(command.backingData.filtered.namespaces, command.namespace)) {
           command.namespace = null;
@@ -240,13 +240,13 @@ angular
       }
 
       function configureDockerRegistries(command) {
-        var result = { dirty: {} };
+        let result = { dirty: {} };
         command.backingData.filtered.dockerRegistries = command.backingData.account.dockerRegistries;
         return result;
       }
 
       function configureAccount(command) {
-        var result = { dirty: {} };
+        let result = { dirty: {} };
         command.backingData.account = command.backingData.accountMap[command.account];
         if (command.backingData.account) {
           angular.extend(result.dirty, configureDockerRegistries(command).dirty);
@@ -257,11 +257,11 @@ angular
       }
 
       function configureImages(command) {
-        var result = { dirty: {} };
+        let result = { dirty: {} };
         if (!command.namespace) {
           command.backingData.filtered.images = [];
         } else {
-          var accounts = _.map(
+          let accounts = _.map(
             _.filter(command.backingData.account.dockerRegistries, function(registry) {
               return _.includes(registry.namespaces, command.namespace);
             }),
@@ -279,7 +279,7 @@ angular
 
       function attachEventHandlers(command) {
         command.namespaceChanged = function namespaceChanged() {
-          var result = { dirty: {} };
+          let result = { dirty: {} };
           angular.extend(result.dirty, configureNamespaces(command).dirty);
           command.viewState.dirty = command.viewState.dirty || {};
           angular.extend(command.viewState.dirty, result.dirty);
@@ -287,7 +287,7 @@ angular
         };
 
         command.accountChanged = function accountChanged() {
-          var result = { dirty: {} };
+          let result = { dirty: {} };
           angular.extend(result.dirty, configureAccount(command).dirty);
           command.viewState.dirty = command.viewState.dirty || {};
           angular.extend(command.viewState.dirty, result.dirty);

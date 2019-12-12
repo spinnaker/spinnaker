@@ -78,7 +78,7 @@ angular
       };
 
       function extractServerGroupSummary() {
-        var summary = _.find(application.serverGroups.data, function(toCheck) {
+        let summary = _.find(application.serverGroups.data, function(toCheck) {
           return (
             toCheck.name === serverGroup.name &&
             toCheck.account === serverGroup.accountId &&
@@ -89,7 +89,7 @@ angular
       }
 
       function retrieveServerGroup() {
-        var summary = extractServerGroupSummary();
+        let summary = extractServerGroupSummary();
         return ServerGroupReader.getServerGroup(
           application.name,
           serverGroup.accountId,
@@ -108,7 +108,7 @@ angular
           angular.extend(details, summary);
 
           $scope.serverGroup = details;
-          var labels = $scope.serverGroup.labels;
+          let labels = $scope.serverGroup.labels;
           delete labels['name'];
           delete labels['source'];
           delete labels['spinnakerAccount'];
@@ -222,14 +222,14 @@ angular
       };
 
       this.destroyServerGroup = function destroyServerGroup() {
-        var serverGroup = $scope.serverGroup;
+        let serverGroup = $scope.serverGroup;
 
-        var taskMonitor = {
+        let taskMonitor = {
           application: application,
           title: 'Destroying ' + serverGroup.name,
         };
 
-        var submitMethod = function() {
+        let submitMethod = function() {
           return serverGroupWriter.destroyServerGroup(serverGroup, application, {
             cloudProvider: 'titus',
             serverGroupName: serverGroup.name,
@@ -237,13 +237,13 @@ angular
           });
         };
 
-        var stateParams = {
+        let stateParams = {
           name: serverGroup.name,
           accountId: serverGroup.account,
           region: serverGroup.region,
         };
 
-        var confirmationModalParams = {
+        let confirmationModalParams = {
           header: 'Really destroy ' + serverGroup.name + '?',
           buttonText: 'Destroy ' + serverGroup.name,
           account: serverGroup.account,
@@ -264,14 +264,14 @@ angular
       };
 
       this.disableServerGroup = function disableServerGroup() {
-        var serverGroup = $scope.serverGroup;
+        let serverGroup = $scope.serverGroup;
 
-        var taskMonitor = {
+        let taskMonitor = {
           application: application,
           title: 'Disabling ' + serverGroup.name,
         };
 
-        var submitMethod = function() {
+        let submitMethod = function() {
           return serverGroupWriter.disableServerGroup(serverGroup, application, {
             cloudProvider: 'titus',
             serverGroupName: serverGroup.name,
@@ -280,7 +280,7 @@ angular
           });
         };
 
-        var confirmationModalParams = {
+        let confirmationModalParams = {
           header: 'Really disable ' + serverGroup.name + '?',
           buttonText: 'Disable ' + serverGroup.name,
           account: serverGroup.account,
@@ -325,14 +325,14 @@ angular
       };
 
       this.showEnableServerGroupModal = () => {
-        var serverGroup = $scope.serverGroup;
+        let serverGroup = $scope.serverGroup;
 
-        var taskMonitor = {
+        let taskMonitor = {
           application: application,
           title: 'Enabling ' + serverGroup.name,
         };
 
-        var submitMethod = function() {
+        let submitMethod = function() {
           return serverGroupWriter.enableServerGroup(serverGroup, application, {
             cloudProvider: 'titus',
             serverGroupName: serverGroup.name,
@@ -341,7 +341,7 @@ angular
           });
         };
 
-        var confirmationModalParams = {
+        let confirmationModalParams = {
           header: 'Really enable ' + serverGroup.name + '?',
           buttonText: 'Enable ' + serverGroup.name,
           account: serverGroup.account,
@@ -424,7 +424,7 @@ angular
             serverGroup: () => serverGroup,
             previousServerGroup: () => previousServerGroup,
             disabledServerGroups: () => {
-              var cluster = _.find(application.clusters, { name: serverGroup.cluster, account: serverGroup.account });
+              let cluster = _.find(application.clusters, { name: serverGroup.cluster, account: serverGroup.account });
               return _.filter(cluster.serverGroups, { isDisabled: true, region: serverGroup.region });
             },
             allServerGroups: () => allServerGroups,

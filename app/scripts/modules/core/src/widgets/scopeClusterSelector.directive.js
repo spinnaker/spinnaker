@@ -17,7 +17,7 @@ angular.module(CORE_WIDGETS_SCOPECLUSTERSELECTOR_DIRECTIVE, []).directive('clust
     },
     controllerAs: 'vm',
     controller: function controller() {
-      var vm = this;
+      let vm = this;
 
       vm.toggled = vm.toggled || angular.noop;
       vm.onChange = vm.onChange || angular.noop;

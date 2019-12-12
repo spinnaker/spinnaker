@@ -34,9 +34,9 @@ module(AMAZON_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [SERV
       $scope.allServerGroups = allServerGroups.sort((a, b) => b.name.localeCompare(a.name));
       $scope.verification = {};
 
-      var desired = serverGroup.capacity.desired;
+      let desired = serverGroup.capacity.desired;
 
-      var rollbackType = 'EXPLICIT';
+      let rollbackType = 'EXPLICIT';
 
       if (allServerGroups.length === 0 && serverGroup.entityTags) {
         const previousServerGroup = get(serverGroup, 'entityTags.creationMetadata.value.previousServerGroup');
@@ -58,8 +58,9 @@ module(AMAZON_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [SERV
         }
       }
 
+      let healthyPercent;
       if (desired < 10) {
-        var healthyPercent = 100;
+        healthyPercent = 100;
       } else if (desired < 20) {
         // accept 1 instance in an unknown state during rollback
         healthyPercent = 90;
@@ -90,7 +91,7 @@ module(AMAZON_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [SERV
       }
 
       this.isValid = function() {
-        var command = $scope.command;
+        let command = $scope.command;
         if (!$scope.verification.verified) {
           return false;
         }
@@ -114,7 +115,7 @@ module(AMAZON_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [SERV
           return;
         }
 
-        var submitMethod = function() {
+        let submitMethod = function() {
           return serverGroupWriter.rollbackServerGroup(serverGroup, application, $scope.command);
         };
 

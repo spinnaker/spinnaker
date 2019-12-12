@@ -44,7 +44,7 @@ module(KUBERNETES_V1_SECURITYGROUP_CONFIGURE_WIZARD_UPSERT_CONTROLLER, [
     securityGroupReader,
     loadBalancerReader,
   ) {
-    var ctrl = this;
+    let ctrl = this;
     $scope.firewallLabel = FirewallLabels.get('Firewall');
     $scope.firewallLabelLc = FirewallLabels.get('firewall');
 
@@ -71,7 +71,7 @@ module(KUBERNETES_V1_SECURITYGROUP_CONFIGURE_WIZARD_UPSERT_CONTROLLER, [
         return;
       }
       $uibModalInstance.close();
-      var newStateParams = {
+      let newStateParams = {
         name: $scope.securityGroup.name,
         accountId: $scope.securityGroup.account,
         namespace: $scope.securityGroup.namespace,
@@ -96,7 +96,7 @@ module(KUBERNETES_V1_SECURITYGROUP_CONFIGURE_WIZARD_UPSERT_CONTROLLER, [
       onTaskComplete: onTaskComplete,
     });
 
-    var allSecurityGroupNames = {};
+    let allSecurityGroupNames = {};
 
     function getLoadBalancerNames(loadBalancers) {
       return _.chain(loadBalancers)
@@ -125,7 +125,7 @@ module(KUBERNETES_V1_SECURITYGROUP_CONFIGURE_WIZARD_UPSERT_CONTROLLER, [
           $scope.accounts = backingData.accounts;
           $scope.state.accountsLoaded = true;
 
-          var accountNames = _.map($scope.accounts, 'name');
+          let accountNames = _.map($scope.accounts, 'name');
           if (accountNames.length && !accountNames.includes($scope.securityGroup.account)) {
             $scope.securityGroup.account = accountNames[0];
           }
@@ -136,19 +136,19 @@ module(KUBERNETES_V1_SECURITYGROUP_CONFIGURE_WIZARD_UPSERT_CONTROLLER, [
 
     function initializeSecurityGroupNames() {
       securityGroupReader.loadSecurityGroups('kubernetes').then(function(securityGroups) {
-        for (var account in securityGroups) {
+        for (let account in securityGroups) {
           if (!allSecurityGroupNames[account]) {
             allSecurityGroupNames[account] = {};
           }
 
           let securityGroupsByAccount = securityGroups[account];
-          for (var namespace in securityGroupsByAccount) {
+          for (let namespace in securityGroupsByAccount) {
             if (!allSecurityGroupNames[account][namespace]) {
               allSecurityGroupNames[account][namespace] = [];
             }
 
             let securityGroupsByNamespace = securityGroupsByAccount[namespace];
-            for (var found in securityGroupsByNamespace) {
+            for (let found in securityGroupsByNamespace) {
               allSecurityGroupNames[account][namespace].push(found);
             }
           }
@@ -160,7 +160,7 @@ module(KUBERNETES_V1_SECURITYGROUP_CONFIGURE_WIZARD_UPSERT_CONTROLLER, [
     }
 
     function updateSecurityGroupNames() {
-      var account = $scope.securityGroup.account;
+      let account = $scope.securityGroup.account;
 
       if (allSecurityGroupNames[account]) {
         $scope.existingSecurityGroupNames = _.flatten(_.map(allSecurityGroupNames[account]));
@@ -183,8 +183,8 @@ module(KUBERNETES_V1_SECURITYGROUP_CONFIGURE_WIZARD_UPSERT_CONTROLLER, [
     };
 
     this.getName = function() {
-      var securityGroup = $scope.securityGroup;
-      var securityGroupName = [application.name, securityGroup.stack || '', securityGroup.detail || ''].join('-');
+      let securityGroup = $scope.securityGroup;
+      let securityGroupName = [application.name, securityGroup.stack || '', securityGroup.detail || ''].join('-');
       return _.trimEnd(securityGroupName, '-');
     };
 
@@ -204,7 +204,7 @@ module(KUBERNETES_V1_SECURITYGROUP_CONFIGURE_WIZARD_UPSERT_CONTROLLER, [
     };
 
     this.submit = function() {
-      var descriptor = $scope.isNew ? 'Create' : 'Update';
+      let descriptor = $scope.isNew ? 'Create' : 'Update';
 
       this.updateName();
       $scope.taskMonitor.submit(function() {

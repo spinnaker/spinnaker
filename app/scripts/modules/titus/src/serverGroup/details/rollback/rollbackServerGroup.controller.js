@@ -34,9 +34,9 @@ module(TITUS_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [SERVE
       $scope.allServerGroups = allServerGroups.sort((a, b) => b.name.localeCompare(a.name));
       $scope.verification = {};
 
-      var desired = serverGroup.capacity.desired;
+      let desired = serverGroup.capacity.desired;
 
-      var rollbackType = 'EXPLICIT';
+      let rollbackType = 'EXPLICIT';
 
       if (allServerGroups.length === 0 && serverGroup.entityTags) {
         const previousServerGroup = get(serverGroup, 'entityTags.creationMetadata.value.previousServerGroup');
@@ -53,8 +53,9 @@ module(TITUS_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [SERVE
         }
       }
 
+      let healthyPercent;
       if (desired < 10) {
-        var healthyPercent = 100;
+        healthyPercent = 100;
       } else if (desired < 20) {
         // accept 1 instance in an unknown state during rollback
         healthyPercent = 90;
@@ -85,7 +86,7 @@ module(TITUS_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [SERVE
       }
 
       this.isValid = function() {
-        var command = $scope.command;
+        let command = $scope.command;
         if (!$scope.verification.verified) {
           return false;
         }
@@ -111,7 +112,7 @@ module(TITUS_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [SERVE
           return;
         }
 
-        var submitMethod = function() {
+        let submitMethod = function() {
           return serverGroupWriter.rollbackServerGroup(serverGroup, application, $scope.command);
         };
 
@@ -131,7 +132,7 @@ module(TITUS_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [SERVE
           return serverGroup.name;
         }
 
-        var imageName = serverGroup.buildInfo.images[0];
+        let imageName = serverGroup.buildInfo.images[0];
         if (imageName.indexOf('/') > 0) {
           imageName = imageName.substring(imageName.indexOf('/') + 1);
         }

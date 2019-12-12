@@ -15,7 +15,7 @@ module(CORE_CLUSTER_FILTER_COLLAPSIBLEFILTERSECTION_DIRECTIVE, []).directive('fi
     },
     templateUrl: require('./collapsibleFilterSection.html'),
     link: function(scope) {
-      var expanded = scope.expanded === 'true';
+      let expanded = scope.expanded === 'true';
       scope.state = { expanded: expanded };
       scope.getIconStyle = function() {
         return scope.state.expanded

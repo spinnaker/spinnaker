@@ -34,7 +34,7 @@ module(TITUS_PIPELINE_STAGES_RESIZEASG_TITUSRESIZEASGSTAGE, [])
   .controller('titusResizeAsgStageCtrl', [
     '$scope',
     function($scope) {
-      var ctrl = this;
+      let ctrl = this;
 
       let stage = $scope.stage;
 

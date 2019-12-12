@@ -85,7 +85,7 @@ module(AMAZON_PIPELINE_STAGES_MODIFYSCALINGPROCESS_MODIFYSCALINGPROCESSSTAGE, []
         if (!stage.processes) {
           stage.processes = [];
         }
-        var idx = stage.processes.indexOf(process);
+        let idx = stage.processes.indexOf(process);
         if (idx > -1) {
           stage.processes.splice(idx, 1);
         } else {

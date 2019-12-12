@@ -14,7 +14,7 @@ module(AMAZON_SECURITYGROUP_SECURITYGROUP_TRANSFORMER, []).factory('awsSecurityG
 
   function addVpcNameToSecurityGroup(securityGroup) {
     return function(vpcs) {
-      var matches = vpcs.filter(function(test) {
+      let matches = vpcs.filter(function(test) {
         return test.id === securityGroup.vpcId;
       });
       securityGroup.vpcName = matches.length ? matches[0].name : '';

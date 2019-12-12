@@ -19,7 +19,7 @@ module(AZURE_SERVERGROUP_SERVERGROUP_TRANSFORMER, []).factory('azureServerGroupT
     if (Array.isArray(command.customScriptsSettings.fileUris)) {
       configuration.customScriptsSettings.fileUris = command.customScriptsSettings.fileUris;
     } else {
-      var fileUrisTemp = command.customScriptsSettings.fileUris;
+      let fileUrisTemp = command.customScriptsSettings.fileUris;
       if (fileUrisTemp.includes(',')) {
         configuration.customScriptsSettings.fileUris = fileUrisTemp.split(',');
       } else if (fileUrisTemp.includes(';')) {
@@ -35,7 +35,7 @@ module(AZURE_SERVERGROUP_SERVERGROUP_TRANSFORMER, []).factory('azureServerGroupT
   }
 
   function convertServerGroupCommandToDeployConfiguration(command) {
-    var tempImage;
+    let tempImage;
 
     if (command.viewState.mode === 'editPipeline' || command.viewState.mode === 'createPipeline') {
       tempImage = {
@@ -53,7 +53,7 @@ module(AZURE_SERVERGROUP_SERVERGROUP_TRANSFORMER, []).factory('azureServerGroupT
       tempImage = command.selectedImage;
     }
 
-    var configuration = {
+    let configuration = {
       name: command.application,
       cloudProvider: command.selectedProvider,
       application: command.application,

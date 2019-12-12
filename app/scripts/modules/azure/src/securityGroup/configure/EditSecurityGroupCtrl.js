@@ -85,7 +85,7 @@ module(AZURE_SECURITYGROUP_CONFIGURE_EDITSECURITYGROUPCTRL, [
 
     function initializeSecurityGroups() {
       return securityGroupReader.getAllSecurityGroups().then(function(securityGroups) {
-        var account = securityGroup.accountName,
+        let account = securityGroup.accountName,
           region = securityGroup.region,
           availableGroups = _.filter(securityGroups[account].azure[region], {
             /*vpcId: vpcId*/
@@ -118,7 +118,7 @@ module(AZURE_SECURITYGROUP_CONFIGURE_EDITSECURITYGROUPCTRL, [
         return;
       }
       $uibModalInstance.close();
-      var newStateParams = {
+      let newStateParams = {
         name: $scope.securityGroup.name,
         accountId: $scope.securityGroup.credentials || $scope.securityGroup.accountName,
         region: $scope.securityGroup.region,
@@ -138,7 +138,7 @@ module(AZURE_SECURITYGROUP_CONFIGURE_EDITSECURITYGROUPCTRL, [
 
     this.portUpdated = function(ruleset, index) {
       if (!_.isEmpty(ruleset[index].sourceIPCIDRRanges)) {
-        var ruleRanges = ruleset[index].destPortRanges.split(',');
+        let ruleRanges = ruleset[index].destPortRanges.split(',');
         if (ruleRanges.length > 1) {
           ruleset[index].destinationPortRanges = [];
           ruleRanges.forEach(v => ruleset[index].destinationPortRanges.push(v));
@@ -156,7 +156,7 @@ module(AZURE_SECURITYGROUP_CONFIGURE_EDITSECURITYGROUPCTRL, [
 
     this.sourceIPCIDRUpdated = function(ruleset, index) {
       if (!_.isEmpty(ruleset[index].sourceIPCIDRRanges)) {
-        var ruleRanges = ruleset[index].sourceIPCIDRRanges.split(',');
+        let ruleRanges = ruleset[index].sourceIPCIDRRanges.split(',');
         if (ruleRanges.length > 1) {
           ruleset[index].sourceAddressPrefixes = [];
           ruleRanges.forEach(v => ruleset[index].sourceAddressPrefixes.push(v));
@@ -186,7 +186,7 @@ module(AZURE_SECURITYGROUP_CONFIGURE_EDITSECURITYGROUPCTRL, [
     };
 
     function swapRules(ruleset, a, b) {
-      var temp, priorityA, priorityB;
+      let temp, priorityA, priorityB;
       temp = ruleset[b];
       priorityA = ruleset[a].priority;
       priorityB = ruleset[b].priority;

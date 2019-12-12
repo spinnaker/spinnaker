@@ -101,7 +101,7 @@ angular
       }
 
       function initializeWizardState() {
-        var mode = serverGroupCommand.viewState.mode;
+        let mode = serverGroupCommand.viewState.mode;
         if (mode === 'clone' || mode === 'editPipeline') {
           ModalWizard.markComplete('location');
           ModalWizard.markComplete('deployment');

@@ -102,7 +102,7 @@ module(AZURE_PIPELINE_STAGES_BAKE_AZUREBAKESTAGE, [AZURE_PIPELINE_STAGES_BAKE_BA
       }
 
       this.baseOsChanged = () => {
-        var selectedOption = _.find($scope.baseOsOptions, { id: $scope.stage.baseOs });
+        let selectedOption = _.find($scope.baseOsOptions, { id: $scope.stage.baseOs });
         $scope.stage.osType = selectedOption.osType;
       };
 

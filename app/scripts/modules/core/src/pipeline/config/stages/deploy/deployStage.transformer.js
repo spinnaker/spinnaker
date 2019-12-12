@@ -13,7 +13,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYSTAGE_TRANSFORMER, []).service('
    * then overriding the status and endTime fields for the deploy stage
    */
   function transformRollingPushes(execution) {
-    var stagesToRemove = [];
+    let stagesToRemove = [];
     execution.stages.forEach(function(stage) {
       if (
         stage.type === 'deploy' &&
@@ -21,11 +21,11 @@ module(CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYSTAGE_TRANSFORMER, []).service('
         stage.context.strategy === 'rollingpush' &&
         stage.context.source
       ) {
-        var modifyLaunchConfigurationStage = _.find(execution.stages, {
+        let modifyLaunchConfigurationStage = _.find(execution.stages, {
           type: 'modifyAsgLaunchConfiguration',
           parentStageId: stage.id,
         });
-        var rollingPushStage = _.find(execution.stages, {
+        let rollingPushStage = _.find(execution.stages, {
           type: 'rollingPush',
           parentStageId: stage.id,
         });

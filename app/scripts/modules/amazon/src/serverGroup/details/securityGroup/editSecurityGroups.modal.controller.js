@@ -76,7 +76,7 @@ module(AMAZON_SERVERGROUP_DETAILS_SECURITYGROUP_EDITSECURITYGROUPS_MODAL_CONTROL
     });
 
     this.submit = () => {
-      var submitMethod = () => {
+      let submitMethod = () => {
         this.state.submitting = true;
         return serverGroupWriter.updateSecurityGroups(serverGroup, this.command.securityGroups, application);
       };

@@ -21,7 +21,7 @@ module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_LOADBALANCERS_SERVERGROUPLOADBALANCERS
         .getLoadBalancerDetails('azure', $scope.command.credentials, $scope.command.region, item)
         .then(function(LBs) {
           if (LBs && LBs.length === 1) {
-            var selectedLoadBalancer = LBs[0];
+            let selectedLoadBalancer = LBs[0];
             let attachedVnet = $scope.command.selectedVnet;
             $scope.command.selectedVnet = null;
             $scope.command.selectedVnetSubnets = [];
@@ -43,7 +43,7 @@ module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_LOADBALANCERS_SERVERGROUPLOADBALANCERS
                   ) {
                     $scope.command.selectedVnet = selectedVnet;
                     selectedVnet.subnets.map(function(subnet) {
-                      var addSubnet = true;
+                      let addSubnet = true;
                       if (subnet.devices) {
                         subnet.devices.map(function(device) {
                           // only add subnets that are not assigned to an ApplicationGateway

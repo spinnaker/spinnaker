@@ -66,7 +66,7 @@ angular
 
       let extractServerGroupSummary = () => {
         return app.ready().then(() => {
-          var summary = find(app.serverGroups.data, toCheck => {
+          let summary = find(app.serverGroups.data, toCheck => {
             return (
               toCheck.name === serverGroup.name &&
               toCheck.account === serverGroup.accountId &&
@@ -120,12 +120,12 @@ angular
               if (!isEmpty(this.serverGroup)) {
                 this.image = details.image ? details.image : undefined;
 
-                var vpc = this.serverGroup.asg ? this.serverGroup.asg.vpczoneIdentifier : '';
+                let vpc = this.serverGroup.asg ? this.serverGroup.asg.vpczoneIdentifier : '';
 
                 if (vpc !== '') {
-                  var subnetId = vpc.split(',')[0];
+                  let subnetId = vpc.split(',')[0];
                   SubnetReader.listSubnets().then(subnets => {
-                    var subnet = chain(subnets)
+                    let subnet = chain(subnets)
                       .find({ id: subnetId })
                       .value();
                     this.serverGroup.subnetType = subnet.purpose;
@@ -133,9 +133,9 @@ angular
                 }
 
                 if (details.image && details.image.description) {
-                  var tags = details.image.description.split(', ');
+                  let tags = details.image.description.split(', ');
                   tags.forEach(tag => {
-                    var keyVal = tag.split('=');
+                    let keyVal = tag.split('=');
                     if (keyVal.length === 2 && keyVal[0] === 'ancestor_name') {
                       details.image.baseImage = keyVal[1];
                     }
@@ -143,7 +143,7 @@ angular
                 }
 
                 if (details.image && details.image.tags) {
-                  var baseAmiVersionTag = details.image.tags.find(tag => tag.key === 'base_ami_version');
+                  let baseAmiVersionTag = details.image.tags.find(tag => tag.key === 'base_ami_version');
                   if (baseAmiVersionTag) {
                     details.baseAmiVersion = baseAmiVersionTag.value;
                   }
@@ -187,22 +187,22 @@ angular
       });
 
       this.destroyServerGroup = () => {
-        var serverGroup = this.serverGroup;
+        let serverGroup = this.serverGroup;
 
-        var taskMonitor = {
+        let taskMonitor = {
           application: app,
           title: 'Destroying ' + serverGroup.name,
         };
 
-        var submitMethod = params => serverGroupWriter.destroyServerGroup(serverGroup, app, params);
+        let submitMethod = params => serverGroupWriter.destroyServerGroup(serverGroup, app, params);
 
-        var stateParams = {
+        let stateParams = {
           name: serverGroup.name,
           accountId: serverGroup.account,
           region: serverGroup.region,
         };
 
-        var confirmationModalParams = {
+        let confirmationModalParams = {
           header: 'Really destroy ' + serverGroup.name + '?',
           buttonText: 'Destroy ' + serverGroup.name,
           account: serverGroup.account,
@@ -229,18 +229,18 @@ angular
       };
 
       this.disableServerGroup = () => {
-        var serverGroup = this.serverGroup;
+        let serverGroup = this.serverGroup;
 
-        var taskMonitor = {
+        let taskMonitor = {
           application: app,
           title: 'Disabling ' + serverGroup.name,
         };
 
-        var submitMethod = params => {
+        let submitMethod = params => {
           return serverGroupWriter.disableServerGroup(serverGroup, app, params);
         };
 
-        var confirmationModalParams = {
+        let confirmationModalParams = {
           header: 'Really disable ' + serverGroup.name + '?',
           buttonText: 'Disable ' + serverGroup.name,
           account: serverGroup.account,
@@ -262,18 +262,18 @@ angular
       };
 
       this.enableServerGroup = () => {
-        var serverGroup = this.serverGroup;
+        let serverGroup = this.serverGroup;
 
-        var taskMonitor = {
+        let taskMonitor = {
           application: app,
           title: 'Enabling ' + serverGroup.name,
         };
 
-        var submitMethod = params => {
+        let submitMethod = params => {
           return serverGroupWriter.enableServerGroup(serverGroup, app, params);
         };
 
-        var confirmationModalParams = {
+        let confirmationModalParams = {
           header: 'Really enable ' + serverGroup.name + '?',
           buttonText: 'Enable ' + serverGroup.name,
           account: serverGroup.account,
@@ -301,7 +301,7 @@ angular
           resolve: {
             serverGroup: () => this.serverGroup,
             disabledServerGroups: () => {
-              var cluster = find(app.clusters, { name: this.serverGroup.cluster, account: this.serverGroup.account });
+              let cluster = find(app.clusters, { name: this.serverGroup.cluster, account: this.serverGroup.account });
               return filter(cluster.serverGroups, { isDisabled: true, region: this.serverGroup.region });
             },
             allServerGroups: () =>
@@ -348,7 +348,7 @@ angular
         if (has(this, 'serverGroup.buildInfo.buildInfoUrl')) {
           return this.serverGroup.buildInfo.buildInfoUrl;
         } else if (has(this, 'serverGroup.buildInfo.jenkins')) {
-          var jenkins = this.serverGroup.buildInfo.jenkins;
+          let jenkins = this.serverGroup.buildInfo.jenkins;
           return jenkins.host + 'job/' + jenkins.name + '/' + jenkins.number;
         }
         return null;

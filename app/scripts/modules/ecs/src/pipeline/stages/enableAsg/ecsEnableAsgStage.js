@@ -25,7 +25,7 @@ module(ECS_PIPELINE_STAGES_ENABLEASG_ECSENABLEASGSTAGE, [])
   .controller('ecsEnableAsgStageCtrl', [
     '$scope',
     function($scope) {
-      var ctrl = this;
+      let ctrl = this;
 
       let stage = $scope.stage;
 

@@ -23,14 +23,14 @@ angular
     function($q, instanceTypeService, awsServerGroupConfigurationService) {
       function buildNewServerGroupCommand(application, defaults) {
         defaults = defaults || {};
-        var credentialsLoader = AccountService.getCredentialsKeyedByAccount('aws');
+        let credentialsLoader = AccountService.getCredentialsKeyedByAccount('aws');
 
-        var defaultCredentials =
+        let defaultCredentials =
           defaults.account || application.defaultCredentials.aws || AWSProviderSettings.defaults.account;
-        var defaultRegion = defaults.region || application.defaultRegions.aws || AWSProviderSettings.defaults.region;
-        var defaultSubnet = defaults.subnet || AWSProviderSettings.defaults.subnetType || '';
+        let defaultRegion = defaults.region || application.defaultRegions.aws || AWSProviderSettings.defaults.region;
+        let defaultSubnet = defaults.subnet || AWSProviderSettings.defaults.subnetType || '';
 
-        var preferredZonesLoader = AccountService.getAvailabilityZonesForAccountAndRegion(
+        let preferredZonesLoader = AccountService.getAvailabilityZonesForAccountAndRegion(
           'aws',
           defaultCredentials,
           defaultRegion,
@@ -42,18 +42,18 @@ angular
             credentialsKeyedByAccount: credentialsLoader,
           })
           .then(function(asyncData) {
-            var availabilityZones = asyncData.preferredZones;
+            let availabilityZones = asyncData.preferredZones;
 
-            var credentials = asyncData.credentialsKeyedByAccount[defaultCredentials];
-            var keyPair = credentials ? credentials.defaultKeyPair : null;
-            var applicationAwsSettings = _.get(application, 'attributes.providerSettings.aws', {});
+            let credentials = asyncData.credentialsKeyedByAccount[defaultCredentials];
+            let keyPair = credentials ? credentials.defaultKeyPair : null;
+            let applicationAwsSettings = _.get(application, 'attributes.providerSettings.aws', {});
 
-            var defaultIamRole = AWSProviderSettings.defaults.iamRole || 'BaseIAMRole';
+            let defaultIamRole = AWSProviderSettings.defaults.iamRole || 'BaseIAMRole';
             defaultIamRole = defaultIamRole.replace('{{application}}', application.name);
 
-            var useAmiBlockDeviceMappings = applicationAwsSettings.useAmiBlockDeviceMappings || false;
+            let useAmiBlockDeviceMappings = applicationAwsSettings.useAmiBlockDeviceMappings || false;
 
-            var command = {
+            let command = {
               application: application.name,
               credentials: defaultCredentials,
               region: defaultRegion,
@@ -110,24 +110,24 @@ angular
       }
 
       function buildServerGroupCommandFromPipeline(application, originalCluster) {
-        var pipelineCluster = _.cloneDeep(originalCluster);
-        var region = Object.keys(pipelineCluster.availabilityZones)[0];
-        var instanceTypeCategoryLoader = instanceTypeService.getCategoryForInstanceType(
+        let pipelineCluster = _.cloneDeep(originalCluster);
+        let region = Object.keys(pipelineCluster.availabilityZones)[0];
+        let instanceTypeCategoryLoader = instanceTypeService.getCategoryForInstanceType(
           'aws',
           pipelineCluster.instanceType,
         );
-        var commandOptions = { account: pipelineCluster.account, region: region };
-        var asyncLoader = $q.all({
+        let commandOptions = { account: pipelineCluster.account, region: region };
+        let asyncLoader = $q.all({
           command: buildNewServerGroupCommand(application, commandOptions),
           instanceProfile: instanceTypeCategoryLoader,
         });
 
         return asyncLoader.then(function(asyncData) {
-          var command = asyncData.command;
-          var zones = pipelineCluster.availabilityZones[region];
-          var usePreferredZones = zones.join(',') === command.availabilityZones.join(',');
+          let command = asyncData.command;
+          let zones = pipelineCluster.availabilityZones[region];
+          let usePreferredZones = zones.join(',') === command.availabilityZones.join(',');
 
-          var viewState = {
+          let viewState = {
             instanceProfile: asyncData.instanceProfile,
             disableImageSelection: true,
             useSimpleCapacity:
@@ -141,7 +141,7 @@ angular
             dirty: {},
           };
 
-          var viewOverrides = {
+          let viewOverrides = {
             region: region,
             credentials: pipelineCluster.account,
             availabilityZones: pipelineCluster.availabilityZones[region],
@@ -177,7 +177,7 @@ angular
       }
 
       function buildUpdateServerGroupCommand(serverGroup) {
-        var command = {
+        let command = {
           type: 'modifyAsg',
           asgs: [{ asgName: serverGroup.name, region: serverGroup.region }],
           cooldown: serverGroup.asg.defaultCooldown,
@@ -192,34 +192,34 @@ angular
       }
 
       function buildServerGroupCommandFromExisting(application, serverGroup, mode = 'clone') {
-        var preferredZonesLoader = AccountService.getPreferredZonesByAccount('aws');
-        var subnetsLoader = SubnetReader.listSubnets();
+        let preferredZonesLoader = AccountService.getPreferredZonesByAccount('aws');
+        let subnetsLoader = SubnetReader.listSubnets();
 
-        var serverGroupName = NameUtils.parseServerGroupName(serverGroup.asg.autoScalingGroupName);
+        let serverGroupName = NameUtils.parseServerGroupName(serverGroup.asg.autoScalingGroupName);
 
-        var instanceType = serverGroup.launchConfig ? serverGroup.launchConfig.instanceType : null;
-        var instanceTypeCategoryLoader = instanceTypeService.getCategoryForInstanceType('aws', instanceType);
+        let instanceType = serverGroup.launchConfig ? serverGroup.launchConfig.instanceType : null;
+        let instanceTypeCategoryLoader = instanceTypeService.getCategoryForInstanceType('aws', instanceType);
 
-        var asyncLoader = $q.all({
+        let asyncLoader = $q.all({
           preferredZones: preferredZonesLoader,
           subnets: subnetsLoader,
           instanceProfile: instanceTypeCategoryLoader,
         });
 
         return asyncLoader.then(function(asyncData) {
-          var zones = serverGroup.asg.availabilityZones.sort();
-          var usePreferredZones = false;
-          var preferredZonesForAccount = asyncData.preferredZones[serverGroup.account];
+          let zones = serverGroup.asg.availabilityZones.sort();
+          let usePreferredZones = false;
+          let preferredZonesForAccount = asyncData.preferredZones[serverGroup.account];
           if (preferredZonesForAccount) {
-            var preferredZones = preferredZonesForAccount[serverGroup.region].sort();
+            let preferredZones = preferredZonesForAccount[serverGroup.region].sort();
             usePreferredZones = zones.join(',') === preferredZones.join(',');
           }
 
           // These processes should never be copied over, as the affect launching instances and enabling traffic
           let enabledProcesses = ['Launch', 'Terminate', 'AddToLoadBalancer'];
 
-          var applicationAwsSettings = _.get(application, 'attributes.providerSettings.aws', {});
-          var useAmiBlockDeviceMappings = applicationAwsSettings.useAmiBlockDeviceMappings || false;
+          let applicationAwsSettings = _.get(application, 'attributes.providerSettings.aws', {});
+          let useAmiBlockDeviceMappings = applicationAwsSettings.useAmiBlockDeviceMappings || false;
 
           const existingTags = {};
           // These tags are applied by Clouddriver (if configured to do so), regardless of what the user might enter
@@ -233,7 +233,7 @@ angular
               });
           }
 
-          var command = {
+          let command = {
             application: application.name,
             strategy: '',
             stack: serverGroupName.stack,
@@ -294,10 +294,10 @@ angular
             command.suspendedProcesses = [];
           }
 
-          var vpcZoneIdentifier = serverGroup.asg.vpczoneIdentifier;
+          let vpcZoneIdentifier = serverGroup.asg.vpczoneIdentifier;
           if (vpcZoneIdentifier !== '') {
-            var subnetId = vpcZoneIdentifier.split(',')[0];
-            var subnet = _.chain(asyncData.subnets)
+            let subnetId = vpcZoneIdentifier.split(',')[0];
+            let subnet = _.chain(asyncData.subnets)
               .find({ id: subnetId })
               .value();
             command.subnetType = subnet.purpose;
