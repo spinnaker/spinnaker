@@ -32,9 +32,9 @@ module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_CHART_METRICALARMCHART_COMPONENT
       '$filter',
       function($filter) {
         // converts alarm into parameters used to retrieve statistic data
-        let getFilterParameters = () => {
-          let alarm = this.alarm;
-          let base = {
+        const getFilterParameters = () => {
+          const alarm = this.alarm;
+          const base = {
             namespace: alarm.namespace,
             statistics: alarm.statistic,
             period: alarm.period,
@@ -45,11 +45,11 @@ module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_CHART_METRICALARMCHART_COMPONENT
           }, base);
         };
 
-        let initializeStatistics = () => {
-          let start = new Date(new Date().getTime() - 24 * 60 * 60 * 1000);
-          let end = new Date();
-          let threshold = this.alarm.threshold || 0;
-          let topline = this.alarm.comparisonOperator.indexOf('Less') === 0 ? threshold * 3 : threshold * 1.02;
+        const initializeStatistics = () => {
+          const start = new Date(new Date().getTime() - 24 * 60 * 60 * 1000);
+          const end = new Date();
+          const threshold = this.alarm.threshold || 0;
+          const topline = this.alarm.comparisonOperator.indexOf('Less') === 0 ? threshold * 3 : threshold * 1.02;
 
           /**
            * Draw four lines:
@@ -70,7 +70,7 @@ module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_CHART_METRICALARMCHART_COMPONENT
         };
 
         // forces tooltips to render with the same time format we use throughout the application
-        let tooltipHook = rows => {
+        const tooltipHook = rows => {
           if (!rows) {
             return null;
           }
@@ -87,7 +87,7 @@ module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_CHART_METRICALARMCHART_COMPONENT
           };
         };
 
-        let updateChartData = () => {
+        const updateChartData = () => {
           CloudMetricsReader.getMetricStatistics(
             this.serverGroup.type,
             this.serverGroup.account,
@@ -116,11 +116,11 @@ module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_CHART_METRICALARMCHART_COMPONENT
             });
         };
 
-        let configureChart = () => {
-          let statKey = _.camelCase(this.alarm.statistic);
+        const configureChart = () => {
+          const statKey = _.camelCase(this.alarm.statistic);
           initializeStatistics(statKey);
 
-          let ticks = this.ticks || { x: 6, y: 3 };
+          const ticks = this.ticks || { x: 6, y: 3 };
 
           this.chartOptions = {
             margin: this.margins || { top: 5, left: 5 },

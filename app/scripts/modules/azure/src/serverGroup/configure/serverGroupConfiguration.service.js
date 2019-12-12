@@ -38,11 +38,11 @@ angular
       loadBalancerReader,
       azureInstanceTypeService,
     ) {
-      let dataDiskTypes = ['Standard_LRS', 'StandardSSD_LRS', 'Premium_LRS'];
-      let dataDiskCachingTypes = ['None', 'ReadOnly', 'ReadWrite'];
+      const dataDiskTypes = ['Standard_LRS', 'StandardSSD_LRS', 'Premium_LRS'];
+      const dataDiskCachingTypes = ['None', 'ReadOnly', 'ReadWrite'];
 
-      let healthCheckTypes = ['EC2', 'ELB'];
-      let terminationPolicies = [
+      const healthCheckTypes = ['EC2', 'ELB'];
+      const terminationPolicies = [
         'OldestInstance',
         'NewestInstance',
         'OldestLaunchConfiguration',
@@ -105,7 +105,7 @@ angular
           return result;
         }
 
-        let filtered = azureInstanceTypeService
+        const filtered = azureInstanceTypeService
           .getAvailableTypesForRegions(locationToInstanceTypesMap, locations)
           .map(type => type.name);
 
@@ -119,7 +119,7 @@ angular
       }
 
       function configureImages(command) {
-        let result = {
+        const result = {
           dirty: {},
         };
         let regionalImages = null;
@@ -170,7 +170,7 @@ angular
       }
 
       function getRegionalSecurityGroups(command) {
-        let newSecurityGroups = command.backingData.securityGroups[command.credentials] || {
+        const newSecurityGroups = command.backingData.securityGroups[command.credentials] || {
           azure: {},
         };
         return _.chain(newSecurityGroups[command.region])
@@ -179,14 +179,14 @@ angular
       }
 
       function configureSecurityGroupOptions(command) {
-        let result = {
+        const result = {
           dirty: {},
         };
         let currentOptions;
         if (command.backingData.filtered.securityGroups) {
           currentOptions = command.backingData.filtered.securityGroups;
         }
-        let newRegionalSecurityGroups = getRegionalSecurityGroups(command);
+        const newRegionalSecurityGroups = getRegionalSecurityGroups(command);
         if (command.selectedSecurityGroup) {
           // one has not been previously selected. We are either configuring for the
           //first time or they changed regions or account
@@ -227,15 +227,15 @@ angular
       }
 
       function configureLoadBalancerOptions(command) {
-        let result = {
+        const result = {
           dirty: {},
         };
-        let current = command.loadBalancers;
-        let newLoadBalancers = getLoadBalancerNames(command.backingData.loadBalancers);
+        const current = command.loadBalancers;
+        const newLoadBalancers = getLoadBalancerNames(command.backingData.loadBalancers);
 
         if (current && command.loadBalancers) {
-          let matched = _.intersection(newLoadBalancers, command.loadBalancers);
-          let removed = _.xor(matched, current);
+          const matched = _.intersection(newLoadBalancers, command.loadBalancers);
+          const removed = _.xor(matched, current);
           command.loadBalancers = matched;
           if (removed.length) {
             result.dirty.loadBalancers = removed;
@@ -255,11 +255,11 @@ angular
       }
 
       function configureLoadBalancers(command) {
-        let result = {
+        const result = {
           dirty: {},
         };
-        let temp = command.backingData.loadBalancers;
-        let filterlist = _.filter(temp, function(lb) {
+        const temp = command.backingData.loadBalancers;
+        const filterlist = _.filter(temp, function(lb) {
           return lb.account === command.credentials && lb.region === command.region;
         });
 
@@ -271,7 +271,7 @@ angular
 
       function attachEventHandlers(cmd) {
         cmd.regionChanged = function regionChanged(command, isInit = false) {
-          let result = {
+          const result = {
             dirty: {},
           };
           if (command.region && command.credentials) {
@@ -301,12 +301,12 @@ angular
         };
 
         cmd.credentialsChanged = function credentialsChanged(command, isInit) {
-          let result = {
+          const result = {
             dirty: {},
           };
-          let backingData = command.backingData;
+          const backingData = command.backingData;
           if (command.credentials) {
-            let regionsForAccount = backingData.credentialsKeyedByAccount[command.credentials] || {
+            const regionsForAccount = backingData.credentialsKeyedByAccount[command.credentials] || {
               regions: [],
               defaultKeyPair: null,
             };

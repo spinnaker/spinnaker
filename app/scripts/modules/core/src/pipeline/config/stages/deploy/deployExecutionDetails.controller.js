@@ -12,7 +12,7 @@ import { ClusterState } from 'core/state';
 import { HelpContentsRegistry } from 'core/help';
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
-let angular = require('angular');
+const angular = require('angular');
 
 export const CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYEXECUTIONDETAILS_CONTROLLER =
   'spinnaker.core.pipeline.stage.deploy.details.controller';
@@ -55,19 +55,19 @@ angular
 
       evaluateSections();
 
-      let initialized = () => {
-        const resultObjects = context['kato.tasks'][0].resultObjects;
+      const initialized = () => {
+        const context = $scope.stage.context || {};
+        let resultObjects;
         evaluateSections();
         $scope.detailsSection = $stateParams.details;
 
-        let context = $scope.stage.context || {};
         let results = [];
 
         function addDeployedArtifacts(key) {
-          let deployedArtifacts = _.find(resultObjects, key);
+          const deployedArtifacts = _.find(resultObjects, key);
           if (deployedArtifacts) {
             _.forEach(deployedArtifacts[key], function(serverGroupName, region) {
-              let result = {
+              const result = {
                 type: 'serverGroups',
                 application: context.application,
                 serverGroup: serverGroupName,
@@ -84,6 +84,7 @@ angular
         }
 
         if (context && context['kato.tasks'] && context['kato.tasks'].length) {
+          resultObjects = context['kato.tasks'][0].resultObjects;
           if (resultObjects && resultObjects.length) {
             results = [];
             addDeployedArtifacts('serverGroupNameByRegion');
@@ -173,7 +174,7 @@ angular
 
       this.overrideFiltersForUrl = r => ClusterState.filterService.overrideFiltersForUrl(r);
 
-      let initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
+      const initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
 
       initialize();
 

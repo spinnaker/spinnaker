@@ -31,11 +31,11 @@ module(ORACLE_PIPELINE_STAGES_RESIZEASG_RESIZEASGSTAGE, [CORE_APPLICATION_MODAL_
   .controller('oracleResizeAsgStageCtrl', [
     '$scope',
     function($scope) {
-      let ctrl = this;
+      const ctrl = this;
 
-      let provider = 'oracle';
+      const provider = 'oracle';
 
-      let stage = $scope.stage;
+      const stage = $scope.stage;
 
       $scope.viewState = {
         accountsLoaded: false,

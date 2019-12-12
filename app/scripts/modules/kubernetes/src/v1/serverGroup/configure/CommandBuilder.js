@@ -16,7 +16,7 @@ module(KUBERNETES_V1_SERVERGROUP_CONFIGURE_COMMANDBUILDER, [KUBERNETES_V1_CLUSTE
         if (defaults == null) {
           defaults = {};
         }
-        let command = kubernetesClusterCommandBuilder.buildNewClusterCommand(application, defaults);
+        const command = kubernetesClusterCommandBuilder.buildNewClusterCommand(application, defaults);
         command.targetSize = 1;
 
         return $q.when(command);
@@ -33,7 +33,7 @@ module(KUBERNETES_V1_SERVERGROUP_CONFIGURE_COMMANDBUILDER, [KUBERNETES_V1_CLUSTE
       }
 
       function buildServerGroupCommandFromExisting(application, serverGroup, mode) {
-        let command = kubernetesClusterCommandBuilder.buildClusterCommandFromExisting(application, serverGroup, mode);
+        const command = kubernetesClusterCommandBuilder.buildClusterCommandFromExisting(application, serverGroup, mode);
 
         command.source = {
           serverGroupName: serverGroup.name,

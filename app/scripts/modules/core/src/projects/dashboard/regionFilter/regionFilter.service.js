@@ -11,7 +11,7 @@ export const name = CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_SERVICE; /
 module(CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_SERVICE, []).factory('regionFilterService', function() {
   let callbacks = [];
 
-  let filterModelConfig = [{ model: 'region', param: 'reg', type: 'trueKeyObject' }];
+  const filterModelConfig = [{ model: 'region', param: 'reg', type: 'trueKeyObject' }];
   FilterModelService.configureFilterModel(this, filterModelConfig);
 
   this.registerCallback = cb => callbacks.push(cb);
@@ -21,7 +21,7 @@ module(CORE_PROJECTS_DASHBOARD_REGIONFILTER_REGIONFILTER_SERVICE, []).factory('r
   this.runCallbacks = () => callbacks.forEach(cb => cb(this.sortFilter.region));
 
   this.toggleRegion = region => {
-    let path = `sortFilter.region[${region}]`;
+    const path = `sortFilter.region[${region}]`;
     _.set(this, path, !_.get(this, path));
     this.applyParamsToUrl();
     this.runCallbacks();

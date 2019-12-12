@@ -26,7 +26,7 @@ angular
     $scope => {
       const provider = 'oracle';
 
-      let stage = $scope.stage;
+      const stage = $scope.stage;
 
       $scope.state = {
         accounts: false,

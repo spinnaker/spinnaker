@@ -25,9 +25,9 @@ module(CORE_WHATSNEW_WHATSNEW_DIRECTIVE, [TIME_FORMATTERS]).directive('whatsNew'
         const renderer = new HtmlRenderer();
 
         // single cache, so we will use the cache name as the key, also
-        let cacheId = 'whatsNew';
+        const cacheId = 'whatsNew';
 
-        let whatsNewViewStateCache = ViewStateCache[cacheId] || ViewStateCache.createCache(cacheId, { version: 1 });
+        const whatsNewViewStateCache = ViewStateCache[cacheId] || ViewStateCache.createCache(cacheId, { version: 1 });
 
         $scope.viewState = whatsNewViewStateCache.get(cacheId) || {
           updateLastViewed: null,

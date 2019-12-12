@@ -23,7 +23,7 @@ angular
       function configureCommand(application, command, query = '') {
         // this ensures we get the images we need when cloning or copying a server group template.
         const containers = command.containers.concat(command.initContainers || []);
-        let queries = containers
+        const queries = containers
           .filter(c => {
             return !c.imageDescription.fromContext && !c.imageDescription.fromArtifact;
           })
@@ -72,7 +72,7 @@ angular
             // If we search for *nginx* and *nginx:1.11.1*, we might get two copies of nginx:1.11.1.
             backingData.allImages = _.uniqWith(backingData.allImages, _.isEqual);
 
-            let accountMap = _.fromPairs(
+            const accountMap = _.fromPairs(
               _.map(backingData.accounts, function(account) {
                 return [account.name, AccountService.getAccountDetails(account.name)];
               }),
@@ -157,13 +157,13 @@ angular
       }
 
       function configureLoadBalancers(command) {
-        let results = { dirty: {} };
-        let current = command.loadBalancers;
-        let newLoadBalancers = getLoadBalancerNames(command);
+        const results = { dirty: {} };
+        const current = command.loadBalancers;
+        const newLoadBalancers = getLoadBalancerNames(command);
 
         if (current && command.loadBalancers) {
-          let matched = _.intersection(newLoadBalancers, command.loadBalancers);
-          let removed = _.xor(matched, current);
+          const matched = _.intersection(newLoadBalancers, command.loadBalancers);
+          const removed = _.xor(matched, current);
           command.loadBalancers = matched;
           if (removed.length) {
             results.dirty.loadBalancers = removed;
@@ -181,7 +181,7 @@ angular
           if (fromContext || fromTrigger || fromArtifact) {
             validContainers.push(container);
           } else {
-            let matchingContainers = command.backingData.filtered.containers.filter(test => {
+            const matchingContainers = command.backingData.filtered.containers.filter(test => {
               if (container.imageDescription.registry) {
                 return test.imageDescription.imageId === container.imageDescription.imageId;
               } else {
@@ -200,7 +200,7 @@ angular
       }
 
       function configureContainers(command) {
-        let result = { dirty: {} };
+        const result = { dirty: {} };
         angular.extend(result.dirty, configureImages(command).dirty);
         command.backingData.filtered.containers = _.map(
           command.backingData.filtered.images,
@@ -222,13 +222,13 @@ angular
       }
 
       function configureSecurityGroups(command) {
-        let result = { dirty: {} };
+        const result = { dirty: {} };
         command.backingData.filtered.securityGroups = command.backingData.securityGroups;
         return result;
       }
 
       function configureNamespaces(command) {
-        let result = { dirty: {} };
+        const result = { dirty: {} };
         command.backingData.filtered.namespaces = command.backingData.account.namespaces;
         if (!_.includes(command.backingData.filtered.namespaces, command.namespace)) {
           command.namespace = null;
@@ -240,13 +240,13 @@ angular
       }
 
       function configureDockerRegistries(command) {
-        let result = { dirty: {} };
+        const result = { dirty: {} };
         command.backingData.filtered.dockerRegistries = command.backingData.account.dockerRegistries;
         return result;
       }
 
       function configureAccount(command) {
-        let result = { dirty: {} };
+        const result = { dirty: {} };
         command.backingData.account = command.backingData.accountMap[command.account];
         if (command.backingData.account) {
           angular.extend(result.dirty, configureDockerRegistries(command).dirty);
@@ -257,11 +257,11 @@ angular
       }
 
       function configureImages(command) {
-        let result = { dirty: {} };
+        const result = { dirty: {} };
         if (!command.namespace) {
           command.backingData.filtered.images = [];
         } else {
-          let accounts = _.map(
+          const accounts = _.map(
             _.filter(command.backingData.account.dockerRegistries, function(registry) {
               return _.includes(registry.namespaces, command.namespace);
             }),
@@ -279,7 +279,7 @@ angular
 
       function attachEventHandlers(command) {
         command.namespaceChanged = function namespaceChanged() {
-          let result = { dirty: {} };
+          const result = { dirty: {} };
           angular.extend(result.dirty, configureNamespaces(command).dirty);
           command.viewState.dirty = command.viewState.dirty || {};
           angular.extend(command.viewState.dirty, result.dirty);
@@ -287,7 +287,7 @@ angular
         };
 
         command.accountChanged = function accountChanged() {
-          let result = { dirty: {} };
+          const result = { dirty: {} };
           angular.extend(result.dirty, configureAccount(command).dirty);
           command.viewState.dirty = command.viewState.dirty || {};
           angular.extend(command.viewState.dirty, result.dirty);

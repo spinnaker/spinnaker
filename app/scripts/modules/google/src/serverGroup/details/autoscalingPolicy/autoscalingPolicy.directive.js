@@ -32,7 +32,7 @@ module(GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_DIRECTIVE,
       policy.bases = [];
 
       if (policy.cpuUtilization) {
-        let basis = {
+        const basis = {
           description: 'CPU Usage',
           helpKey: 'gce.serverGroup.autoscaling.targetCPUUsage',
         };
@@ -45,7 +45,7 @@ module(GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_DIRECTIVE,
       }
 
       if (policy.loadBalancingUtilization) {
-        let basis = {
+        const basis = {
           description: 'HTTP Load Balancing Usage',
           helpKey: 'gce.serverGroup.autoscaling.targetHTTPLoadBalancingUsage',
         };
@@ -58,7 +58,7 @@ module(GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_DIRECTIVE,
       }
 
       if (policy.customMetricUtilizations) {
-        let basis = {
+        const basis = {
           description: policy.customMetricUtilizations.length > 1 ? 'Monitoring Metrics' : 'Monitoring Metric',
           helpKey: 'gce.serverGroup.autoscaling.targetMetric',
         };

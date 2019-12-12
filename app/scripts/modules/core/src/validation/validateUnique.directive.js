@@ -18,7 +18,7 @@ module(CORE_VALIDATION_VALIDATEUNIQUE_DIRECTIVE, []).directive('validateUnique',
         },
         true,
       );
-      let uniqueValidator = function(value) {
+      const uniqueValidator = function(value) {
         let options = scope.$eval(attr.validateUnique) || [];
         let test = value;
         if (attr.validateIgnoreCase === 'true') {

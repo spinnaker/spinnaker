@@ -30,7 +30,7 @@ module(TITUS_PIPELINE_STAGES_CLONESERVERGROUP_TITUSCLONESERVERGROUPSTAGE, [
   .controller('titusCloneServerGroupStageCtrl', [
     '$scope',
     function($scope) {
-      let stage = $scope.stage;
+      const stage = $scope.stage;
 
       $scope.viewState = {
         accountsLoaded: false,
@@ -61,7 +61,7 @@ module(TITUS_PIPELINE_STAGES_CLONESERVERGROUP_TITUSCLONESERVERGROUPSTAGE, [
 
       this.targetClusterUpdated = () => {
         if (stage.targetCluster) {
-          let clusterName = NameUtils.parseServerGroupName(stage.targetCluster);
+          const clusterName = NameUtils.parseServerGroupName(stage.targetCluster);
           stage.stack = clusterName.stack;
           stage.freeFormDetails = clusterName.freeFormDetails;
         } else {
@@ -82,7 +82,7 @@ module(TITUS_PIPELINE_STAGES_CLONESERVERGROUP_TITUSCLONESERVERGROUPSTAGE, [
 
       this.toggleSuspendedProcess = process => {
         stage.suspendedProcesses = stage.suspendedProcesses || [];
-        let processIndex = stage.suspendedProcesses.indexOf(process);
+        const processIndex = stage.suspendedProcesses.indexOf(process);
         if (processIndex === -1) {
           stage.suspendedProcesses.push(process);
         } else {

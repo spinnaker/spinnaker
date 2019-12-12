@@ -34,9 +34,9 @@ module(ECS_PIPELINE_STAGES_RESIZEASG_ECSRESIZEASGSTAGE, [])
   .controller('ecsResizeAsgStageCtrl', [
     '$scope',
     function($scope) {
-      let ctrl = this;
+      const ctrl = this;
 
-      let stage = $scope.stage;
+      const stage = $scope.stage;
 
       $scope.viewState = {
         accountsLoaded: false,

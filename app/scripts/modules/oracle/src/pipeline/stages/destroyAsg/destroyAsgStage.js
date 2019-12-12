@@ -29,8 +29,8 @@ module(ORACLE_PIPELINE_STAGES_DESTROYASG_DESTROYASGSTAGE, [])
   .controller('oracleDestroyAsgStageCtrl', [
     '$scope',
     function($scope) {
-      let stage = $scope.stage;
-      let provider = 'oracle';
+      const stage = $scope.stage;
+      const provider = 'oracle';
 
       $scope.targets = StageConstants.TARGET_LIST;
       stage.regions = stage.regions || [];

@@ -26,9 +26,9 @@ module(ECS_PIPELINE_STAGES_SHRINKCLUSTER_ECSSHRINKCLUSTERSTAGE, [])
   .controller('ecsShrinkClusterStageCtrl', [
     '$scope',
     function($scope) {
-      let ctrl = this;
+      const ctrl = this;
 
-      let stage = $scope.stage;
+      const stage = $scope.stage;
 
       $scope.state = {
         accounts: false,

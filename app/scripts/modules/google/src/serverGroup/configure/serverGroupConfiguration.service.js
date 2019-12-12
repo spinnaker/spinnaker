@@ -218,12 +218,12 @@ angular
 
       function configureCustomInstanceTypes(command) {
         const c = command;
-        let result = { dirty: {} };
+        const result = { dirty: {} };
         let vCpuCount = _.get(c, 'viewState.customInstance.vCpuCount');
-        let memory = _.get(c, 'viewState.customInstance.memory');
-        let { zone, regional, region } = c;
-        let { locationToInstanceTypesMap } = c.backingData.credentialsKeyedByAccount[c.credentials];
-        let location = regional ? region : zone;
+        const memory = _.get(c, 'viewState.customInstance.memory');
+        const { zone, regional, region } = c;
+        const { locationToInstanceTypesMap } = c.backingData.credentialsKeyedByAccount[c.credentials];
+        const location = regional ? region : zone;
 
         if (!location) {
           return result;

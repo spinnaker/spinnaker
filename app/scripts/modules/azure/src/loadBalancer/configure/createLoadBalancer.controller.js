@@ -32,7 +32,7 @@ module(AZURE_LOADBALANCER_CONFIGURE_CREATELOADBALANCER_CONTROLLER, [
     isNew,
     loadBalancerType,
   ) {
-    let ctrl = this;
+    const ctrl = this;
 
     $scope.regions = [];
 
@@ -58,7 +58,7 @@ module(AZURE_LOADBALANCER_CONFIGURE_CREATELOADBALANCER_CONTROLLER, [
         return;
       }
       $uibModalInstance.close();
-      let newStateParams = {
+      const newStateParams = {
         name: $scope.loadBalancer.name,
         accountId: $scope.loadBalancer.credentials,
         region: $scope.loadBalancer.region,
@@ -96,7 +96,7 @@ module(AZURE_LOADBALANCER_CONFIGURE_CREATELOADBALANCER_CONTROLLER, [
       if (loadBalancer) {
         $scope.loadBalancer = azureLoadBalancerTransformer.convertLoadBalancerForEditing(loadBalancer);
         if (isNew) {
-          let nameParts = NameUtils.parseLoadBalancerName($scope.loadBalancer.name);
+          const nameParts = NameUtils.parseLoadBalancerName($scope.loadBalancer.name);
           $scope.loadBalancer.stack = nameParts.stack;
           $scope.loadBalancer.detail = nameParts.freeFormDetails;
           delete $scope.loadBalancer.name;
@@ -111,8 +111,8 @@ module(AZURE_LOADBALANCER_CONFIGURE_CREATELOADBALANCER_CONTROLLER, [
     }
 
     function updateLoadBalancerNames() {
-      let account = $scope.loadBalancer.credentials;
-      let region = $scope.loadBalancer.region;
+      const account = $scope.loadBalancer.credentials;
+      const region = $scope.loadBalancer.region;
 
       const accountLoadBalancersByRegion = {};
       application
@@ -144,8 +144,8 @@ module(AZURE_LOADBALANCER_CONFIGURE_CREATELOADBALANCER_CONTROLLER, [
     };
 
     this.getName = function() {
-      let elb = $scope.loadBalancer;
-      let elbName = [application.name, elb.stack || '', elb.detail || ''].join('-');
+      const elb = $scope.loadBalancer;
+      const elbName = [application.name, elb.stack || '', elb.detail || ''].join('-');
       return _.trimEnd(elbName, '-');
     };
 
@@ -163,8 +163,8 @@ module(AZURE_LOADBALANCER_CONFIGURE_CREATELOADBALANCER_CONTROLLER, [
     };
 
     this.vnetUpdated = function() {
-      let account = $scope.loadBalancer.credentials;
-      let region = $scope.loadBalancer.region;
+      const account = $scope.loadBalancer.credentials;
+      const region = $scope.loadBalancer.region;
       $scope.loadBalancer.selectedVnet = null;
       $scope.loadBalancer.vnet = null;
       $scope.loadBalancer.vnetResourceGroup = null;
@@ -221,10 +221,10 @@ module(AZURE_LOADBALANCER_CONFIGURE_CREATELOADBALANCER_CONTROLLER, [
     };
 
     this.submit = function() {
-      let descriptor = isNew ? 'Create' : 'Update';
+      const descriptor = isNew ? 'Create' : 'Update';
 
       $scope.taskMonitor.submit(function() {
-        let params = {
+        const params = {
           cloudProvider: 'azure',
           appName: application.name,
           clusterName: $scope.loadBalancer.clusterName,
@@ -241,9 +241,9 @@ module(AZURE_LOADBALANCER_CONFIGURE_CREATELOADBALANCER_CONTROLLER, [
           $scope.loadBalancer.subnet = $scope.loadBalancer.selectedSubnet.name;
         }
 
-        let name = $scope.loadBalancer.clusterName || $scope.loadBalancer.name;
-        let probeName = name + '-probe';
-        let ruleNameBase = name + '-rule';
+        const name = $scope.loadBalancer.clusterName || $scope.loadBalancer.name;
+        const probeName = name + '-probe';
+        const ruleNameBase = name + '-rule';
         $scope.loadBalancer.type = 'upsertLoadBalancer';
         $scope.loadBalancer.loadBalancerType = $scope.loadBalancerType;
         if (!$scope.loadBalancer.vnet && !$scope.loadBalancer.subnetType) {

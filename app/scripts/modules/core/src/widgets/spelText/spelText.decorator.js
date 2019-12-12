@@ -8,15 +8,15 @@ import { CORE_WIDGETS_SPELTEXT_SPELAUTOCOMPLETE_SERVICE } from './spelAutocomple
 
 decorateFn.$inject = ['$delegate', 'spelAutocomplete'];
 function decorateFn($delegate, spelAutocomplete) {
-  let directive = $delegate[0];
+  const directive = $delegate[0];
 
-  let link = directive.link.pre;
+  const link = directive.link.pre;
 
   directive.compile = function() {
     return function(scope, el) {
       link.apply(this, arguments);
 
-      let type = el.attr('type');
+      const type = el.attr('type');
       if (type === 'checkbox' || type === 'radio' || type === 'search' || el.closest('.no-spel').length) {
         return;
       }
@@ -37,9 +37,9 @@ function decorateFn($delegate, spelAutocomplete) {
           return;
         }
 
-        let hasSpelPrefix = evt.target.value.includes('$');
-        let parent = el.parent();
-        let hasLink = parent && parent.nextAll && parent.nextAll('.spelLink');
+        const hasSpelPrefix = evt.target.value.includes('$');
+        const parent = el.parent();
+        const hasLink = parent && parent.nextAll && parent.nextAll('.spelLink');
 
         if (hasSpelPrefix) {
           if (hasLink.length < 1) {

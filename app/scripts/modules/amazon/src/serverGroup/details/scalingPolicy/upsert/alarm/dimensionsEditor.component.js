@@ -28,13 +28,13 @@ module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_ALARM_DIMENSIONSEDITOR_CO
 
       this.fetchDimensionOptions = () => {
         this.viewState.loadingDimensions = true;
-        let filters = { namespace: this.alarm.namespace };
+        const filters = { namespace: this.alarm.namespace };
         return Observable.fromPromise(
           CloudMetricsReader.listMetrics('aws', this.serverGroup.account, this.serverGroup.region, filters),
         );
       };
 
-      let dimensionSubject = new Subject();
+      const dimensionSubject = new Subject();
 
       dimensionSubject.switchMap(this.fetchDimensionOptions).subscribe(results => {
         this.viewState.loadingDimensions = false;

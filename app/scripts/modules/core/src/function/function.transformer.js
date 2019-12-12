@@ -25,7 +25,7 @@ module(CORE_FUNCTION_FUNCTION_TRANSFORMER, [PROVIDER_SERVICE_DELEGATE]).factory(
     }
 
     function normalizeFunctionSet(functions) {
-      let setNormalizers = chain(functions)
+      const setNormalizers = chain(functions)
         .filter(fn => providerServiceDelegate.hasDelegate(fn.provider ? fn.provider : 'aws', 'function.setTransformer'))
         .compact()
         .map(fn => providerServiceDelegate.getDelegate(fn.provider, 'function.setTransformer').normalizeFunctionSet)

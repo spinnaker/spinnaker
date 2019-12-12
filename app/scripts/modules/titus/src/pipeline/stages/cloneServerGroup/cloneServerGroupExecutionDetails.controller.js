@@ -18,20 +18,20 @@ module(TITUS_PIPELINE_STAGES_CLONESERVERGROUP_CLONESERVERGROUPEXECUTIONDETAILS_C
   function($scope, $stateParams, executionDetailsSectionService) {
     $scope.configSections = ['cloneServerGroupConfig', 'taskStatus'];
 
-    let initialized = () => {
+    const initialized = () => {
       const resultObjects = context['kato.tasks'][0].resultObjects;
       $scope.detailsSection = $stateParams.details;
 
-      let context = $scope.stage.context || {};
-      let results = [];
+      const context = $scope.stage.context || {};
+      const results = [];
 
       function addDeployedArtifacts(key) {
-        let deployedArtifacts = _.find(resultObjects, key);
+        const deployedArtifacts = _.find(resultObjects, key);
         if (deployedArtifacts) {
           _.forEach(deployedArtifacts[key], serverGroupNameAndRegion => {
             if (serverGroupNameAndRegion.includes(':')) {
-              let [region, serverGroupName] = serverGroupNameAndRegion.split(':');
-              let result = {
+              const [region, serverGroupName] = serverGroupNameAndRegion.split(':');
+              const result = {
                 type: 'serverGroups',
                 application: context.application,
                 serverGroup: serverGroupName,
@@ -57,7 +57,7 @@ module(TITUS_PIPELINE_STAGES_CLONESERVERGROUP_CLONESERVERGROUPEXECUTIONDETAILS_C
 
     this.overrideFiltersForUrl = r => ClusterState.filterService.overrideFiltersForUrl(r);
 
-    let initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
+    const initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
 
     initialize();
 

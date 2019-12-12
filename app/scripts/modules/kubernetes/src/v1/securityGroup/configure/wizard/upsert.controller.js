@@ -44,7 +44,7 @@ module(KUBERNETES_V1_SECURITYGROUP_CONFIGURE_WIZARD_UPSERT_CONTROLLER, [
     securityGroupReader,
     loadBalancerReader,
   ) {
-    let ctrl = this;
+    const ctrl = this;
     $scope.firewallLabel = FirewallLabels.get('Firewall');
     $scope.firewallLabelLc = FirewallLabels.get('firewall');
 
@@ -71,7 +71,7 @@ module(KUBERNETES_V1_SECURITYGROUP_CONFIGURE_WIZARD_UPSERT_CONTROLLER, [
         return;
       }
       $uibModalInstance.close();
-      let newStateParams = {
+      const newStateParams = {
         name: $scope.securityGroup.name,
         accountId: $scope.securityGroup.account,
         namespace: $scope.securityGroup.namespace,
@@ -96,7 +96,7 @@ module(KUBERNETES_V1_SECURITYGROUP_CONFIGURE_WIZARD_UPSERT_CONTROLLER, [
       onTaskComplete: onTaskComplete,
     });
 
-    let allSecurityGroupNames = {};
+    const allSecurityGroupNames = {};
 
     function getLoadBalancerNames(loadBalancers) {
       return _.chain(loadBalancers)
@@ -125,7 +125,7 @@ module(KUBERNETES_V1_SECURITYGROUP_CONFIGURE_WIZARD_UPSERT_CONTROLLER, [
           $scope.accounts = backingData.accounts;
           $scope.state.accountsLoaded = true;
 
-          let accountNames = _.map($scope.accounts, 'name');
+          const accountNames = _.map($scope.accounts, 'name');
           if (accountNames.length && !accountNames.includes($scope.securityGroup.account)) {
             $scope.securityGroup.account = accountNames[0];
           }
@@ -136,19 +136,19 @@ module(KUBERNETES_V1_SECURITYGROUP_CONFIGURE_WIZARD_UPSERT_CONTROLLER, [
 
     function initializeSecurityGroupNames() {
       securityGroupReader.loadSecurityGroups('kubernetes').then(function(securityGroups) {
-        for (let account in securityGroups) {
+        for (const account in securityGroups) {
           if (!allSecurityGroupNames[account]) {
             allSecurityGroupNames[account] = {};
           }
 
-          let securityGroupsByAccount = securityGroups[account];
-          for (let namespace in securityGroupsByAccount) {
+          const securityGroupsByAccount = securityGroups[account];
+          for (const namespace in securityGroupsByAccount) {
             if (!allSecurityGroupNames[account][namespace]) {
               allSecurityGroupNames[account][namespace] = [];
             }
 
-            let securityGroupsByNamespace = securityGroupsByAccount[namespace];
-            for (let found in securityGroupsByNamespace) {
+            const securityGroupsByNamespace = securityGroupsByAccount[namespace];
+            for (const found in securityGroupsByNamespace) {
               allSecurityGroupNames[account][namespace].push(found);
             }
           }
@@ -160,7 +160,7 @@ module(KUBERNETES_V1_SECURITYGROUP_CONFIGURE_WIZARD_UPSERT_CONTROLLER, [
     }
 
     function updateSecurityGroupNames() {
-      let account = $scope.securityGroup.account;
+      const account = $scope.securityGroup.account;
 
       if (allSecurityGroupNames[account]) {
         $scope.existingSecurityGroupNames = _.flatten(_.map(allSecurityGroupNames[account]));
@@ -183,8 +183,8 @@ module(KUBERNETES_V1_SECURITYGROUP_CONFIGURE_WIZARD_UPSERT_CONTROLLER, [
     };
 
     this.getName = function() {
-      let securityGroup = $scope.securityGroup;
-      let securityGroupName = [application.name, securityGroup.stack || '', securityGroup.detail || ''].join('-');
+      const securityGroup = $scope.securityGroup;
+      const securityGroupName = [application.name, securityGroup.stack || '', securityGroup.detail || ''].join('-');
       return _.trimEnd(securityGroupName, '-');
     };
 
@@ -204,17 +204,17 @@ module(KUBERNETES_V1_SECURITYGROUP_CONFIGURE_WIZARD_UPSERT_CONTROLLER, [
     };
 
     this.submit = function() {
-      let descriptor = $scope.isNew ? 'Create' : 'Update';
+      const descriptor = $scope.isNew ? 'Create' : 'Update';
 
       this.updateName();
       $scope.taskMonitor.submit(function() {
-        let params = {
+        const params = {
           cloudProvider: 'kubernetes',
           region: $scope.securityGroup.namespace,
         };
 
         // Change TLS hosts from string to array for Clouddriver (if it isn't already an array)
-        for (let idx in $scope.securityGroup.tls) {
+        for (const idx in $scope.securityGroup.tls) {
           if (!Array.isArray($scope.securityGroup.tls[idx].hosts)) {
             $scope.securityGroup.tls[idx].hosts = [$scope.securityGroup.tls[idx].hosts];
           }

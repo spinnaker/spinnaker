@@ -28,26 +28,26 @@ angular
         return this.isDirty();
       };
 
-      let currentlyEnabled = _.chain($scope.command)
+      const currentlyEnabled = _.chain($scope.command)
         .filter({ enabled: true })
         .map('name')
         .value();
-      let currentlySuspended = _.chain($scope.command)
+      const currentlySuspended = _.chain($scope.command)
         .filter({ enabled: false })
         .map('name')
         .value();
 
       this.isDirty = function() {
-        let enabledSelections = _.chain($scope.command)
+        const enabledSelections = _.chain($scope.command)
           .filter({ enabled: true })
           .map('name')
           .value();
-        let suspendedSelections = _.chain($scope.command)
+        const suspendedSelections = _.chain($scope.command)
           .filter({ enabled: false })
           .map('name')
           .value();
-        let toEnable = _.intersection(currentlySuspended, enabledSelections);
-        let toSuspend = _.intersection(currentlyEnabled, suspendedSelections);
+        const toEnable = _.intersection(currentlySuspended, enabledSelections);
+        const toSuspend = _.intersection(currentlyEnabled, suspendedSelections);
 
         return !!(toEnable.length || toSuspend.length);
       };
@@ -60,18 +60,18 @@ angular
       });
 
       this.submit = function() {
-        let enabledSelections = _.chain($scope.command)
+        const enabledSelections = _.chain($scope.command)
           .filter({ enabled: true })
           .map('name')
           .value();
-        let suspendedSelections = _.chain($scope.command)
+        const suspendedSelections = _.chain($scope.command)
           .filter({ enabled: false })
           .map('name')
           .value();
-        let toEnable = _.intersection(currentlySuspended, enabledSelections);
-        let toSuspend = _.intersection(currentlyEnabled, suspendedSelections);
+        const toEnable = _.intersection(currentlySuspended, enabledSelections);
+        const toSuspend = _.intersection(currentlyEnabled, suspendedSelections);
 
-        let job = [];
+        const job = [];
         if (toEnable.length) {
           job.push({
             type: 'modifyScalingProcess',
@@ -97,7 +97,7 @@ angular
           });
         }
 
-        let submitMethod = function() {
+        const submitMethod = function() {
           return TaskExecutor.executeTask({
             job: job,
             application: application,

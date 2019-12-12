@@ -34,7 +34,7 @@ module(TITUS_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [SERVE
       $scope.allServerGroups = allServerGroups.sort((a, b) => b.name.localeCompare(a.name));
       $scope.verification = {};
 
-      let desired = serverGroup.capacity.desired;
+      const desired = serverGroup.capacity.desired;
 
       let rollbackType = 'EXPLICIT';
 
@@ -86,7 +86,7 @@ module(TITUS_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [SERVE
       }
 
       this.isValid = function() {
-        let command = $scope.command;
+        const command = $scope.command;
         if (!$scope.verification.verified) {
           return false;
         }
@@ -112,7 +112,7 @@ module(TITUS_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [SERVE
           return;
         }
 
-        let submitMethod = function() {
+        const submitMethod = function() {
           return serverGroupWriter.rollbackServerGroup(serverGroup, application, $scope.command);
         };
 

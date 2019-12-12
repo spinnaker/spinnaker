@@ -204,7 +204,7 @@ angular
 
       const prepareAutoHealingPolicy = () => {
         if (this.serverGroup.autoHealingPolicy) {
-          let autoHealingPolicy = this.serverGroup.autoHealingPolicy;
+          const autoHealingPolicy = this.serverGroup.autoHealingPolicy;
           const healthCheckUrl = autoHealingPolicy.healthCheck;
 
           this.serverGroup.autoHealingPolicyHealthCheck = healthCheckUrl ? _.last(healthCheckUrl.split('/')) : null;
@@ -493,7 +493,7 @@ angular
         if (this.serverGroup && this.serverGroup.buildInfo && this.serverGroup.buildInfo.buildInfoUrl) {
           return this.serverGroup.buildInfo.buildInfoUrl;
         } else if (this.serverGroup && this.serverGroup.buildInfo && this.serverGroup.buildInfo.jenkins) {
-          let jenkins = this.serverGroup.buildInfo.jenkins;
+          const jenkins = this.serverGroup.buildInfo.jenkins;
           return jenkins.host + 'job/' + jenkins.name + '/' + jenkins.number;
         }
         return null;

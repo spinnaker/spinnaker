@@ -65,12 +65,12 @@ module(CORE_PROJECTS_DASHBOARD_DASHBOARD_CONTROLLER, [
       },
     };
 
-    let getClusters = () => {
-      let state = this.state.clusters;
+    const getClusters = () => {
+      const state = this.state.clusters;
       state.error = false;
       state.refreshing = true;
 
-      let clusterCount = _.get(projectConfiguration.config.clusters, 'length');
+      const clusterCount = _.get(projectConfiguration.config.clusters, 'length');
       let clustersPromise;
 
       if (clusterCount > 0) {
@@ -98,8 +98,8 @@ module(CORE_PROJECTS_DASHBOARD_DASHBOARD_CONTROLLER, [
         });
     };
 
-    let getExecutions = () => {
-      let state = this.state.executions;
+    const getExecutions = () => {
+      const state = this.state.executions;
       state.error = false;
       state.refreshing = true;
       return executionService
@@ -120,7 +120,7 @@ module(CORE_PROJECTS_DASHBOARD_DASHBOARD_CONTROLLER, [
         });
     };
 
-    let getAllRegions = clusters => {
+    const getAllRegions = clusters => {
       return _.chain(clusters)
         .map('applications')
         .flatten()
@@ -131,12 +131,12 @@ module(CORE_PROJECTS_DASHBOARD_DASHBOARD_CONTROLLER, [
         .value();
     };
 
-    let clusterScheduler = SchedulerFactory.createScheduler(3 * 60 * 1000);
-    let executionScheduler = SchedulerFactory.createScheduler(3 * 60 * 1000);
+    const clusterScheduler = SchedulerFactory.createScheduler(3 * 60 * 1000);
+    const executionScheduler = SchedulerFactory.createScheduler(3 * 60 * 1000);
 
-    let clusterLoader = clusterScheduler.subscribe(getClusters);
+    const clusterLoader = clusterScheduler.subscribe(getClusters);
 
-    let executionLoader = executionScheduler.subscribe(getExecutions);
+    const executionLoader = executionScheduler.subscribe(getExecutions);
 
     $scope.$on('$destroy', () => {
       clusterScheduler.unsubscribe();

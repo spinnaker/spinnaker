@@ -51,7 +51,7 @@ module(CORE_MODAL_WIZARD_WIZARDSUBFORMVALIDATION_SERVICE, []).factory('wizardSub
       this.state = state;
       this.page = page;
 
-      let watchType = collection ? '$watchCollection' : '$watch';
+      const watchType = collection ? '$watchCollection' : '$watch';
 
       scope[watchType](
         watchString,
@@ -71,7 +71,7 @@ module(CORE_MODAL_WIZARD_WIZARDSUBFORMVALIDATION_SERVICE, []).factory('wizardSub
     }
 
     emitValid() {
-      let pageIsValid = validatorRegistry[this.page].every(v => v.state.valid);
+      const pageIsValid = validatorRegistry[this.page].every(v => v.state.valid);
 
       if (pageIsValid) {
         ModalWizard.markComplete(this.page);

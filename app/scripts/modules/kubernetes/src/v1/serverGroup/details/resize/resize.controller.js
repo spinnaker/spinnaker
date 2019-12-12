@@ -20,7 +20,7 @@ module(KUBERNETES_V1_SERVERGROUP_DETAILS_RESIZE_RESIZE_CONTROLLER, [SERVER_GROUP
     function($scope, $uibModalInstance, serverGroupWriter, application, serverGroup, kubernetesAutoscalerWriter) {
       $scope.serverGroup = serverGroup;
       $scope.currentSize = { desired: serverGroup.replicas };
-      let hasAutoscaler = !!$scope.serverGroup.autoscalerStatus;
+      const hasAutoscaler = !!$scope.serverGroup.autoscalerStatus;
 
       $scope.command = {
         capacity: {
@@ -31,7 +31,7 @@ module(KUBERNETES_V1_SERVERGROUP_DETAILS_RESIZE_RESIZE_CONTROLLER, [SERVER_GROUP
       if (hasAutoscaler) {
         $scope.command.capacity.min = $scope.serverGroup.deployDescription.capacity.min;
         $scope.command.capacity.max = $scope.serverGroup.deployDescription.capacity.max;
-        let cpuUtilizationTarget = get(
+        const cpuUtilizationTarget = get(
           $scope.serverGroup,
           'deployDescription.scalingPolicy.cpuUtilization.target',
           null,
@@ -50,7 +50,7 @@ module(KUBERNETES_V1_SERVERGROUP_DETAILS_RESIZE_RESIZE_CONTROLLER, [SERVER_GROUP
       }
 
       this.isValid = function() {
-        let command = $scope.command;
+        const command = $scope.command;
         return $scope.verification.verified && command.capacity !== null && command.capacity.desired !== null;
       };
 
@@ -75,8 +75,8 @@ module(KUBERNETES_V1_SERVERGROUP_DETAILS_RESIZE_RESIZE_CONTROLLER, [SERVER_GROUP
           };
         }
 
-        let submitMethod = function() {
-          let payload = {
+        const submitMethod = function() {
+          const payload = {
             capacity: capacity,
             scalingPolicy: hasAutoscaler ? $scope.command.scalingPolicy : null,
             serverGroupName: serverGroup.name,

@@ -30,7 +30,7 @@ module(AZURE_PIPELINE_STAGES_DISABLEASG_AZUREDISABLEASGSTAGE, [])
   .controller('azureDisableAsgStageCtrl', [
     '$scope',
     function($scope) {
-      let stage = $scope.stage;
+      const stage = $scope.stage;
 
       $scope.state = {
         accounts: false,

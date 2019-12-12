@@ -63,7 +63,7 @@ angular
               $scope.securityGroup = details;
 
               // Change TLS hosts from array to string for the UI
-              for (let idx in $scope.securityGroup.tls) {
+              for (const idx in $scope.securityGroup.tls) {
                 const tls = $scope.securityGroup.tls[idx];
                 tls.hosts = tls.hosts[0];
               }
@@ -102,7 +102,7 @@ angular
           size: 'lg',
           resolve: {
             securityGroup: function() {
-              let securityGroup = angular.copy($scope.securityGroup.description);
+              const securityGroup = angular.copy($scope.securityGroup.description);
               securityGroup.account = $scope.securityGroup.accountName;
               securityGroup.edit = true;
               return securityGroup;
@@ -115,12 +115,12 @@ angular
       };
 
       this.deleteSecurityGroup = function deleteSecurityGroup() {
-        let taskMonitor = {
+        const taskMonitor = {
           application: application,
           title: 'Deleting ' + securityGroup.name,
         };
 
-        let submitMethod = function() {
+        const submitMethod = function() {
           return SecurityGroupWriter.deleteSecurityGroup(securityGroup, application, {
             cloudProvider: $scope.securityGroup.type,
             securityGroupName: securityGroup.name,

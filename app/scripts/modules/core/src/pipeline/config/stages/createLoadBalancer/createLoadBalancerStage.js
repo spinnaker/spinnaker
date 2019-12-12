@@ -37,7 +37,7 @@ angular
 
       this.addLoadBalancer = function() {
         ProviderSelectionService.selectProvider($scope.application, 'loadBalancer').then(function(selectedProvider) {
-          let config = CloudProviderRegistry.getValue(selectedProvider, 'loadBalancer');
+          const config = CloudProviderRegistry.getValue(selectedProvider, 'loadBalancer');
           $uibModal
             .open({
               templateUrl: config.createLoadBalancerTemplateUrl,
@@ -59,7 +59,7 @@ angular
 
       this.editLoadBalancer = function(loadBalancer, index) {
         ProviderSelectionService.selectProvider($scope.application, 'loadBalancer').then(function(selectedProvider) {
-          let config = CloudProviderRegistry.getValue(selectedProvider, 'loadBalancer');
+          const config = CloudProviderRegistry.getValue(selectedProvider, 'loadBalancer');
           $uibModal
             .open({
               templateUrl: config.createLoadBalancerTemplateUrl,

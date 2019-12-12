@@ -68,7 +68,7 @@ angular
       serverGroupWriter,
       awsServerGroupTransformer,
     ) {
-      let application = app;
+      const application = app;
       this.application = app;
 
       $scope.gateUrl = SETTINGS.gateUrl;
@@ -78,7 +78,7 @@ angular
       };
 
       function extractServerGroupSummary() {
-        let summary = _.find(application.serverGroups.data, function(toCheck) {
+        const summary = _.find(application.serverGroups.data, function(toCheck) {
           return (
             toCheck.name === serverGroup.name &&
             toCheck.account === serverGroup.accountId &&
@@ -89,7 +89,7 @@ angular
       }
 
       function retrieveServerGroup() {
-        let summary = extractServerGroupSummary();
+        const summary = extractServerGroupSummary();
         return ServerGroupReader.getServerGroup(
           application.name,
           serverGroup.accountId,
@@ -108,7 +108,7 @@ angular
           angular.extend(details, summary);
 
           $scope.serverGroup = details;
-          let labels = $scope.serverGroup.labels;
+          const labels = $scope.serverGroup.labels;
           delete labels['name'];
           delete labels['source'];
           delete labels['spinnakerAccount'];
@@ -217,19 +217,19 @@ angular
         }
       });
 
-      let configureEntityTagTargets = () => {
+      const configureEntityTagTargets = () => {
         this.entityTagTargets = ClusterTargetBuilder.buildClusterTargets($scope.serverGroup);
       };
 
       this.destroyServerGroup = function destroyServerGroup() {
-        let serverGroup = $scope.serverGroup;
+        const serverGroup = $scope.serverGroup;
 
-        let taskMonitor = {
+        const taskMonitor = {
           application: application,
           title: 'Destroying ' + serverGroup.name,
         };
 
-        let submitMethod = function() {
+        const submitMethod = function() {
           return serverGroupWriter.destroyServerGroup(serverGroup, application, {
             cloudProvider: 'titus',
             serverGroupName: serverGroup.name,
@@ -237,13 +237,13 @@ angular
           });
         };
 
-        let stateParams = {
+        const stateParams = {
           name: serverGroup.name,
           accountId: serverGroup.account,
           region: serverGroup.region,
         };
 
-        let confirmationModalParams = {
+        const confirmationModalParams = {
           header: 'Really destroy ' + serverGroup.name + '?',
           buttonText: 'Destroy ' + serverGroup.name,
           account: serverGroup.account,
@@ -264,14 +264,14 @@ angular
       };
 
       this.disableServerGroup = function disableServerGroup() {
-        let serverGroup = $scope.serverGroup;
+        const serverGroup = $scope.serverGroup;
 
-        let taskMonitor = {
+        const taskMonitor = {
           application: application,
           title: 'Disabling ' + serverGroup.name,
         };
 
-        let submitMethod = function() {
+        const submitMethod = function() {
           return serverGroupWriter.disableServerGroup(serverGroup, application, {
             cloudProvider: 'titus',
             serverGroupName: serverGroup.name,
@@ -280,7 +280,7 @@ angular
           });
         };
 
-        let confirmationModalParams = {
+        const confirmationModalParams = {
           header: 'Really disable ' + serverGroup.name + '?',
           buttonText: 'Disable ' + serverGroup.name,
           account: serverGroup.account,
@@ -325,14 +325,14 @@ angular
       };
 
       this.showEnableServerGroupModal = () => {
-        let serverGroup = $scope.serverGroup;
+        const serverGroup = $scope.serverGroup;
 
-        let taskMonitor = {
+        const taskMonitor = {
           application: application,
           title: 'Enabling ' + serverGroup.name,
         };
 
-        let submitMethod = function() {
+        const submitMethod = function() {
           return serverGroupWriter.enableServerGroup(serverGroup, application, {
             cloudProvider: 'titus',
             serverGroupName: serverGroup.name,
@@ -341,7 +341,7 @@ angular
           });
         };
 
-        let confirmationModalParams = {
+        const confirmationModalParams = {
           header: 'Really enable ' + serverGroup.name + '?',
           buttonText: 'Enable ' + serverGroup.name,
           account: serverGroup.account,
@@ -364,7 +364,7 @@ angular
       };
 
       this.isRollbackEnabled = function rollbackServerGroup() {
-        let serverGroup = $scope.serverGroup;
+        const serverGroup = $scope.serverGroup;
         if (!serverGroup.isDisabled) {
           // enabled server groups are always a candidate for rollback
           return true;
@@ -424,7 +424,7 @@ angular
             serverGroup: () => serverGroup,
             previousServerGroup: () => previousServerGroup,
             disabledServerGroups: () => {
-              let cluster = _.find(application.clusters, { name: serverGroup.cluster, account: serverGroup.account });
+              const cluster = _.find(application.clusters, { name: serverGroup.cluster, account: serverGroup.account });
               return _.filter(cluster.serverGroups, { isDisabled: true, region: serverGroup.region });
             },
             allServerGroups: () => allServerGroups,

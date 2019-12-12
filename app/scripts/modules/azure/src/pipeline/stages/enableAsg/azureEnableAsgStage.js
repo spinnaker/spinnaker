@@ -25,9 +25,9 @@ module(AZURE_PIPELINE_STAGES_ENABLEASG_AZUREENABLEASGSTAGE, [])
   .controller('azureEnableAsgStageCtrl', [
     '$scope',
     function($scope) {
-      let ctrl = this;
+      const ctrl = this;
 
-      let stage = $scope.stage;
+      const stage = $scope.stage;
 
       $scope.state = {
         accounts: false,

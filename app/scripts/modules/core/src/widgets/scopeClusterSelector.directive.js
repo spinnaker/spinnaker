@@ -17,13 +17,13 @@ angular.module(CORE_WIDGETS_SCOPECLUSTERSELECTOR_DIRECTIVE, []).directive('clust
     },
     controllerAs: 'vm',
     controller: function controller() {
-      let vm = this;
+      const vm = this;
 
       vm.toggled = vm.toggled || angular.noop;
       vm.onChange = vm.onChange || angular.noop;
       vm.required = vm.required || false;
 
-      let selectedNotInClusterList = () => {
+      const selectedNotInClusterList = () => {
         return !(
           angular.isArray(vm.clusters) &&
           vm.clusters.length &&
@@ -31,7 +31,7 @@ angular.module(CORE_WIDGETS_SCOPECLUSTERSELECTOR_DIRECTIVE, []).directive('clust
         );
       };
 
-      let modelIsSet = () => {
+      const modelIsSet = () => {
         return vm.model !== undefined || vm.model !== null || vm.model.trim() !== '';
       };
 

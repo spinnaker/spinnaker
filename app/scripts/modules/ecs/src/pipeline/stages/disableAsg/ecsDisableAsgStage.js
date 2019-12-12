@@ -31,7 +31,7 @@ module(ECS_PIPELINE_STAGES_DISABLEASG_ECSDISABLEASGSTAGE, [])
   .controller('ecsDisableAsgStageCtrl', [
     '$scope',
     function($scope) {
-      let stage = $scope.stage;
+      const stage = $scope.stage;
 
       $scope.state = {
         accounts: false,

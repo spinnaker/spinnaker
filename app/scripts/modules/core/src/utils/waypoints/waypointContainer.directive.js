@@ -15,7 +15,7 @@ module(CORE_UTILS_WAYPOINTS_WAYPOINTCONTAINER_DIRECTIVE, []).directive('waypoint
     },
     link: {
       post: function(scope, elem) {
-        let offset = scope.offsetHeight || 0;
+        const offset = scope.offsetHeight || 0;
         WaypointService.registerWaypointContainer(scope, elem, scope.key, offset);
       },
     },

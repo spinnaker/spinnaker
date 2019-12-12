@@ -40,7 +40,7 @@ module(CORE_SNAPSHOT_DIFF_SNAPSHOTDIFF_MODAL_CONTROLLER, [
       },
     };
 
-    let resetView = () => {
+    const resetView = () => {
       this.state = {
         loading: true,
         error: false,
@@ -50,8 +50,8 @@ module(CORE_SNAPSHOT_DIFF_SNAPSHOTDIFF_MODAL_CONTROLLER, [
       this.version = 0;
     };
 
-    let formatSnapshots = snapshots => {
-      let formatted = snapshots
+    const formatSnapshots = snapshots => {
+      const formatted = snapshots
         .sort((a, b) => b.timestamp - a.timestamp)
         .map((s, index) => {
           return {
@@ -67,7 +67,7 @@ module(CORE_SNAPSHOT_DIFF_SNAPSHOTDIFF_MODAL_CONTROLLER, [
       return formatted;
     };
 
-    let loadSuccess = snapshots => {
+    const loadSuccess = snapshots => {
       this.state.loading = false;
       if (!snapshots.length) {
         return;
@@ -77,7 +77,7 @@ module(CORE_SNAPSHOT_DIFF_SNAPSHOTDIFF_MODAL_CONTROLLER, [
       this.updateDiff();
     };
 
-    let loadError = () => {
+    const loadError = () => {
       this.state.loading = false;
       this.state.error = true;
     };
@@ -92,7 +92,7 @@ module(CORE_SNAPSHOT_DIFF_SNAPSHOTDIFF_MODAL_CONTROLLER, [
     };
 
     this.restoreSnapshot = () => {
-      let submitMethod = () => {
+      const submitMethod = () => {
         return SnapshotWriter.restoreSnapshot(
           application,
           this.selectedAccount,
@@ -100,7 +100,7 @@ module(CORE_SNAPSHOT_DIFF_SNAPSHOTDIFF_MODAL_CONTROLLER, [
         );
       };
 
-      let taskMonitor = {
+      const taskMonitor = {
         application: application,
         title: 'Restoring snapshot of ' + application.name,
         hasKatoTask: true,

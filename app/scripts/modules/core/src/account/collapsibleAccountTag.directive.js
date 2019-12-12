@@ -20,7 +20,7 @@ module(CORE_ACCOUNT_COLLAPSIBLEACCOUNTTAG_DIRECTIVE, []).directive('collapsibleA
       function($scope) {
         this.getIcon = () => (this.state.expanded ? 'down' : 'right');
 
-        let getAccountType = () => {
+        const getAccountType = () => {
           AccountService.challengeDestructiveActions(this.account).then(challenge => {
             this.accountType = challenge ? 'prod' : $scope.account;
           });

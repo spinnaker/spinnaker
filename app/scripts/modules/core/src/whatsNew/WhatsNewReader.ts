@@ -32,9 +32,8 @@ export class WhatsNewReader {
   }
 
   public static getWhatsNewContents(): IPromise<IWhatsNewContents> {
-    let gistId: string, accessToken: string;
-    gistId = SETTINGS.changelog ? SETTINGS.changelog.gistId : null;
-    accessToken = SETTINGS.changelog ? SETTINGS.changelog.accessToken : null;
+    const gistId: string = SETTINGS.changelog ? SETTINGS.changelog.gistId : null;
+    const accessToken: string = SETTINGS.changelog ? SETTINGS.changelog.accessToken : null;
     if (!gistId) {
       return $q.resolve(null);
     }

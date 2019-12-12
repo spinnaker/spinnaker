@@ -48,7 +48,7 @@ module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_UPSERTSCALINGPOLICY_CONTR
     }
 
     function initializeAlarm(command, policy) {
-      let alarm = policy.alarms[0];
+      const alarm = policy.alarms[0];
       command.alarm = {
         name: alarm.alarmName,
         region: serverGroup.region,
@@ -70,7 +70,7 @@ module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_UPSERTSCALINGPOLICY_CONTR
     }
 
     this.initialize = () => {
-      let command = createCommand();
+      const command = createCommand();
 
       initializeAlarm(command, policy);
 
@@ -96,13 +96,13 @@ module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_UPSERTSCALINGPOLICY_CONTR
     };
 
     function initializeStepPolicy(command, policy) {
-      let threshold = command.alarm.threshold;
+      const threshold = command.alarm.threshold;
       command.step = {
         estimatedInstanceWarmup: policy.estimatedInstanceWarmup || command.cooldown || 600,
         metricAggregationType: 'Average',
       };
       command.step.stepAdjustments = policy.stepAdjustments.map(adjustment => {
-        let step = {
+        const step = {
           scalingAdjustment: Math.abs(adjustment.scalingAdjustment),
         };
         if (adjustment.metricIntervalUpperBound !== undefined) {
@@ -123,11 +123,11 @@ module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_UPSERTSCALINGPOLICY_CONTR
     }
 
     this.boundsChanged = () => {
-      let source = this.viewState.comparatorBound === 'min' ? 'metricIntervalLowerBound' : 'metricIntervalUpperBound';
-      let target = source === 'metricIntervalLowerBound' ? 'metricIntervalUpperBound' : 'metricIntervalLowerBound';
+      const source = this.viewState.comparatorBound === 'min' ? 'metricIntervalLowerBound' : 'metricIntervalUpperBound';
+      const target = source === 'metricIntervalLowerBound' ? 'metricIntervalUpperBound' : 'metricIntervalLowerBound';
 
       if (this.command.step) {
-        let steps = this.command.step.stepAdjustments;
+        const steps = this.command.step.stepAdjustments;
         steps.forEach((step, index) => {
           if (steps.length > index + 1) {
             steps[index + 1][target] = step[source];
@@ -139,14 +139,14 @@ module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_UPSERTSCALINGPOLICY_CONTR
     };
 
     this.switchMode = () => {
-      let command = this.command;
-      let cooldownOrWarmup = command.step ? command.step.estimatedInstanceWarmup : command.simple.cooldown;
+      const command = this.command;
+      const cooldownOrWarmup = command.step ? command.step.estimatedInstanceWarmup : command.simple.cooldown;
       if (command.step) {
-        let policy = { cooldown: cooldownOrWarmup };
+        const policy = { cooldown: cooldownOrWarmup };
         delete command.step;
         initializeSimplePolicy(command, policy);
       } else {
-        let stepAdjustments = [
+        const stepAdjustments = [
           {
             scalingAdjustment: command.simple.scalingAdjustment,
           },
@@ -167,8 +167,8 @@ module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_UPSERTSCALINGPOLICY_CONTR
 
     this.action = this.viewState.isNew ? 'Create' : 'Edit';
 
-    let prepareCommandForSubmit = () => {
-      let command = _.cloneDeep(this.command);
+    const prepareCommandForSubmit = () => {
+      const command = _.cloneDeep(this.command);
 
       if (command.adjustmentType !== 'PercentChangeInCapacity') {
         delete command.minAdjustmentMagnitude;
@@ -203,8 +203,8 @@ module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_UPSERTSCALINGPOLICY_CONTR
     });
 
     this.save = () => {
-      let command = prepareCommandForSubmit();
-      let submitMethod = () => ScalingPolicyWriter.upsertScalingPolicy(application, command);
+      const command = prepareCommandForSubmit();
+      const submitMethod = () => ScalingPolicyWriter.upsertScalingPolicy(application, command);
 
       this.taskMonitor.submit(submitMethod);
     };

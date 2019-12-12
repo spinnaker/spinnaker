@@ -86,23 +86,23 @@ angular
 
               // These come back from the global firewall endpoint as '[tag-a, tag-b]'
               if (typeof $scope.securityGroup.targetTags === 'string') {
-                let targetTags = $scope.securityGroup.targetTags;
+                const targetTags = $scope.securityGroup.targetTags;
                 $scope.securityGroup.targetTags = targetTags.substring(1, targetTags.length - 1).split(', ');
               }
               if (typeof $scope.securityGroup.sourceTags === 'string') {
-                let sourceTags = $scope.securityGroup.sourceTags;
+                const sourceTags = $scope.securityGroup.sourceTags;
                 $scope.securityGroup.sourceTags = sourceTags.substring(1, sourceTags.length - 1).split(', ');
               }
 
               // These come back from the global firewall endpoint as '[account-a@project.iam.gserviceaccount.com, account-b@project.iam.gserviceaccount.com]'
               if (typeof $scope.securityGroup.targetServiceAccounts === 'string') {
-                let targetServiceAccounts = $scope.securityGroup.targetServiceAccounts;
+                const targetServiceAccounts = $scope.securityGroup.targetServiceAccounts;
                 $scope.securityGroup.targetServiceAccounts = targetServiceAccounts
                   .substring(1, targetServiceAccounts.length - 1)
                   .split(', ');
               }
               if (typeof $scope.securityGroup.sourceServiceAccounts === 'string') {
-                let sourceServiceAccounts = $scope.securityGroup.sourceServiceAccounts;
+                const sourceServiceAccounts = $scope.securityGroup.sourceServiceAccounts;
                 $scope.securityGroup.sourceServiceAccounts = sourceServiceAccounts
                   .substring(1, sourceServiceAccounts.length - 1)
                   .split(', ');

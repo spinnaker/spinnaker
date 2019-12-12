@@ -73,7 +73,7 @@ module(CORE_CLUSTER_ALLCLUSTERS_CONTROLLER, [
       });
     };
 
-    let updateClusterGroups = () => {
+    const updateClusterGroups = () => {
       if (app.getDataSource('serverGroups').fetchOnDemand) {
         insightFilterStateModel.filtersHidden = true;
       }
@@ -85,7 +85,7 @@ module(CORE_CLUSTER_ALLCLUSTERS_CONTROLLER, [
       }, 50);
     };
 
-    let clusterGroupsUpdated = () => {
+    const clusterGroupsUpdated = () => {
       $scope.$applyAsync(() => {
         $scope.groups = ClusterState.filterModel.groups;
         $scope.tags = ClusterState.filterModel.tags;
@@ -113,7 +113,7 @@ module(CORE_CLUSTER_ALLCLUSTERS_CONTROLLER, [
         .then(function(provider) {
           skinSelectionService.selectSkin(provider).then(function(selected) {
             serverGroupCommandBuilder.buildNewServerGroupCommand(app, provider, null, selected).then(command => {
-              let providerConfig = CloudProviderRegistry.getValue(provider, 'serverGroup', selected);
+              const providerConfig = CloudProviderRegistry.getValue(provider, 'serverGroup', selected);
               const title = 'Create New Server Group';
               const serverGroup = null;
               if (providerConfig.CloneServerGroupModal) {

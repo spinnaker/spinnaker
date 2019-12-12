@@ -1,6 +1,6 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
 import { AccountService, Registry, StageConstants } from '@spinnaker/core';
 import { CORE_APPLICATION_MODAL_PLATFORMHEALTHOVERRIDE_DIRECTIVE } from 'core/application/modal/platformHealthOverride.directive';
@@ -31,9 +31,9 @@ angular
   .controller('oracleDisableAsgStageCtrl', [
     '$scope',
     function($scope) {
-      let stage = $scope.stage;
+      const stage = $scope.stage;
 
-      let provider = 'oracle';
+      const provider = 'oracle';
 
       $scope.state = {
         accounts: false,

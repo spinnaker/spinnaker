@@ -45,12 +45,12 @@ module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_ALARMBASEDSUMMARY_COMPONENT, [
       };
 
       this.deletePolicy = () => {
-        let taskMonitor = {
+        const taskMonitor = {
           application: this.application,
           title: 'Deleting scaling policy ' + this.policy.policyName,
         };
 
-        let submitMethod = () =>
+        const submitMethod = () =>
           ScalingPolicyWriter.deleteScalingPolicy(this.application, this.serverGroup, this.policy);
 
         confirmationModalService.confirm({

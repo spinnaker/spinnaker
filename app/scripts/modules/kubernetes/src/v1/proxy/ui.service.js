@@ -11,7 +11,7 @@ module(KUBERNETES_V1_PROXY_UI_SERVICE, []).factory('kubernetesProxyUiService', [
   function($interpolate) {
     function getHost(accountName) {
       let host = KubernetesProviderSettings.defaults.proxy;
-      let account = KubernetesProviderSettings[accountName];
+      const account = KubernetesProviderSettings[accountName];
 
       if (account && account.proxy) {
         host = account.proxy;
@@ -22,7 +22,7 @@ module(KUBERNETES_V1_PROXY_UI_SERVICE, []).factory('kubernetesProxyUiService', [
 
     function buildLink(accountName, kind, namespace, serverGroupName) {
       let apiPrefix = KubernetesProviderSettings.defaults.apiPrefix;
-      let account = KubernetesProviderSettings[accountName];
+      const account = KubernetesProviderSettings[accountName];
       if (account && account.apiPrefix) {
         apiPrefix = account.apiPrefix;
       }

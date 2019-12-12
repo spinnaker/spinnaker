@@ -21,8 +21,8 @@ module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_LOADBALANCERS_SERVERGROUPLOADBALANCERS
         .getLoadBalancerDetails('azure', $scope.command.credentials, $scope.command.region, item)
         .then(function(LBs) {
           if (LBs && LBs.length === 1) {
-            let selectedLoadBalancer = LBs[0];
-            let attachedVnet = $scope.command.selectedVnet;
+            const selectedLoadBalancer = LBs[0];
+            const attachedVnet = $scope.command.selectedVnet;
             $scope.command.selectedVnet = null;
             $scope.command.selectedVnetSubnets = [];
             $scope.command.allVnets = [];
@@ -74,11 +74,11 @@ module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_LOADBALANCERS_SERVERGROUPLOADBALANCERS
       $scope.command.viewState.networkSettingsConfigured = true;
       ModalWizard.markComplete('load-balancers');
 
-      let loadBalancers = $scope.command.backingData.loadBalancers;
+      const loadBalancers = $scope.command.backingData.loadBalancers;
       let loadBalancerType = null;
 
       if (loadBalancers) {
-        let loadBalancerToFind = loadBalancers.find(lb => lb.name === item);
+        const loadBalancerToFind = loadBalancers.find(lb => lb.name === item);
         if (loadBalancerToFind) {
           loadBalancerType = Utility.getLoadBalancerType(loadBalancerToFind.loadBalancerType).type;
         }

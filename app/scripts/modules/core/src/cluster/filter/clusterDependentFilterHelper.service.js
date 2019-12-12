@@ -10,7 +10,7 @@ export const name = CORE_CLUSTER_FILTER_CLUSTERDEPENDENTFILTERHELPER_SERVICE; //
 module(CORE_CLUSTER_FILTER_CLUSTERDEPENDENTFILTERHELPER_SERVICE, []).factory(
   'clusterDependentFilterHelper',
   function() {
-    let poolValueCoordinates = [
+    const poolValueCoordinates = [
       { filterField: 'providerType', on: 'serverGroup', localField: 'type' },
       { filterField: 'account', on: 'serverGroup', localField: 'account' },
       { filterField: 'region', on: 'serverGroup', localField: 'region' },
@@ -19,9 +19,9 @@ module(CORE_CLUSTER_FILTER_CLUSTERDEPENDENTFILTERHELPER_SERVICE, []).factory(
     ];
 
     function poolBuilder(serverGroups) {
-      let pool = _.chain(serverGroups)
+      const pool = _.chain(serverGroups)
         .map(sg => {
-          let poolUnitTemplate = _.chain(poolValueCoordinates)
+          const poolUnitTemplate = _.chain(poolValueCoordinates)
             .filter({ on: 'serverGroup' })
             .reduce((poolUnitTemplate, coordinate) => {
               poolUnitTemplate[coordinate.filterField] = sg[coordinate.localField];
@@ -29,8 +29,8 @@ module(CORE_CLUSTER_FILTER_CLUSTERDEPENDENTFILTERHELPER_SERVICE, []).factory(
             }, {})
             .value();
 
-          let poolUnits = sg.instances.map(instance => {
-            let poolUnit = _.cloneDeep(poolUnitTemplate);
+          const poolUnits = sg.instances.map(instance => {
+            const poolUnit = _.cloneDeep(poolUnitTemplate);
             return _.chain(poolValueCoordinates)
               .filter({ on: 'instance' })
               .reduce((poolUnit, coordinate) => {

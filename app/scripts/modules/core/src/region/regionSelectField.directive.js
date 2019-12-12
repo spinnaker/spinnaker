@@ -47,7 +47,7 @@ module(CORE_REGION_REGIONSELECTFIELD_DIRECTIVE, [])
       readOnly: '=',
     },
     controller: function() {
-      let vm = this;
+      const vm = this;
       vm.propagate = function(data) {
         vm.component[vm.field] = data;
         vm.onChange();

@@ -13,19 +13,19 @@ module(CORE_MODAL_MODALPAGE_DIRECTIVE, []).directive('modalPage', function() {
         return;
       }
       function getTabbableElements() {
-        let tagSelector = 'a[href],input,select,button,textarea';
+        const tagSelector = 'a[href],input,select,button,textarea';
         return elem
           .find(tagSelector)
           .filter(':visible')
           .not(':disabled');
       }
 
-      let ts = Math.floor(Math.random() * 4294967295);
+      const ts = Math.floor(Math.random() * 4294967295);
       $(document).on('keydown.modalPage-' + ts, function(event) {
         if (event.keyCode === 9) {
-          let $tabbableElements = getTabbableElements();
-          let $firstElem = $tabbableElements[0];
-          let $lastElem = $tabbableElements[$tabbableElements.length - 1];
+          const $tabbableElements = getTabbableElements();
+          const $firstElem = $tabbableElements[0];
+          const $lastElem = $tabbableElements[$tabbableElements.length - 1];
           if ($firstElem === event.target && event.shiftKey) {
             $lastElem.focus();
             return false;

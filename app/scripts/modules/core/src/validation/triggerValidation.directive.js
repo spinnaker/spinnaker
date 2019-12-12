@@ -9,7 +9,7 @@ module(CORE_VALIDATION_TRIGGERVALIDATION_DIRECTIVE, []).directive('triggerValida
     restrict: 'A',
     require: 'ngModel',
     link: function(scope, elem, attr, ctrl) {
-      let watches = attr.triggerValidation.split(',');
+      const watches = attr.triggerValidation.split(',');
       watches.forEach(function(watchValue) {
         scope.$watch(watchValue, function() {
           if (ctrl.$viewValue) {

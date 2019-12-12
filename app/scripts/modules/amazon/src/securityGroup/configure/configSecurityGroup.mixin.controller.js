@@ -35,7 +35,7 @@ module(AMAZON_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
   'cacheInitializer',
   function($scope, $state, $uibModalInstance, application, securityGroup, securityGroupReader, cacheInitializer) {
     let allSecurityGroups;
-    let ctrl = this;
+    const ctrl = this;
 
     $scope.state = {
       submitting: false,
@@ -55,7 +55,7 @@ module(AMAZON_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
       $scope.state.infiniteScroll.currentItems += $scope.state.infiniteScroll.numToAdd;
     };
 
-    let getAccount = () => $scope.securityGroup.accountName || $scope.securityGroup.credentials;
+    const getAccount = () => $scope.securityGroup.accountName || $scope.securityGroup.credentials;
 
     function onApplicationRefresh() {
       // If the user has already closed the modal, do not navigate to the new details view
@@ -63,7 +63,7 @@ module(AMAZON_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
         return;
       }
       $uibModalInstance.close();
-      let newStateParams = {
+      const newStateParams = {
         name: $scope.securityGroup.name,
         accountId: getAccount(),
         region: $scope.securityGroup.regions[0],
@@ -125,14 +125,14 @@ module(AMAZON_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
     };
 
     ctrl.regionUpdated = function() {
-      let account = getAccount();
-      let regions = $scope.securityGroup.regions || [];
+      const account = getAccount();
+      const regions = $scope.securityGroup.regions || [];
       VpcReader.listVpcs().then(function(vpcs) {
-        let vpcsByName = _.groupBy(vpcs.filter(vpc => vpc.account === account), 'label');
+        const vpcsByName = _.groupBy(vpcs.filter(vpc => vpc.account === account), 'label');
         $scope.allVpcs = vpcs;
-        let available = [];
+        const available = [];
         _.forOwn(vpcsByName, function(vpcsToTest, label) {
-          let foundInAllRegions = regions.every(region => {
+          const foundInAllRegions = regions.every(region => {
             return vpcsToTest.some(test => test.region === region && test.account === account);
           });
           if (foundInAllRegions) {
@@ -157,9 +157,9 @@ module(AMAZON_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
     };
 
     this.updateVpcId = available => {
-      let lockoutDate = AWSProviderSettings.classicLaunchLockout;
+      const lockoutDate = AWSProviderSettings.classicLaunchLockout;
       if (!securityGroup.id && lockoutDate) {
-        let createTs = Number(_.get(application, 'attributes.createTs', 0));
+        const createTs = Number(_.get(application, 'attributes.createTs', 0));
         if (createTs >= lockoutDate) {
           $scope.hideClassic = true;
           if (!securityGroup.vpcId && available.length) {
@@ -186,8 +186,8 @@ module(AMAZON_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
     };
 
     this.vpcUpdated = function() {
-      let account = getAccount();
-      let regions = $scope.securityGroup.regions;
+      const account = getAccount();
+      const regions = $scope.securityGroup.regions;
       if (account && regions.length) {
         configureFilteredSecurityGroups();
       } else {
@@ -197,20 +197,20 @@ module(AMAZON_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
     };
 
     function configureFilteredSecurityGroups() {
-      let vpcId = $scope.securityGroup.vpcId || null;
-      let account = getAccount();
-      let regions = $scope.securityGroup.regions || [];
+      const vpcId = $scope.securityGroup.vpcId || null;
+      const account = getAccount();
+      const regions = $scope.securityGroup.regions || [];
       let existingSecurityGroupNames = [];
       let availableSecurityGroups = [];
 
       regions.forEach(function(region) {
         let regionalVpcId = null;
         if (vpcId) {
-          let baseVpc = _.find($scope.allVpcs, { id: vpcId });
+          const baseVpc = _.find($scope.allVpcs, { id: vpcId });
           regionalVpcId = _.find($scope.allVpcs, { account: account, region: region, name: baseVpc.name }).id;
         }
 
-        let regionalGroupNames = _.get(allSecurityGroups, [account, 'aws', region].join('.'), [])
+        const regionalGroupNames = _.get(allSecurityGroups, [account, 'aws', region].join('.'), [])
           .filter(sg => sg.vpcId === regionalVpcId)
           .map(sg => sg.name);
 
@@ -236,8 +236,8 @@ module(AMAZON_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
     };
 
     function clearInvalidSecurityGroups() {
-      let removed = $scope.state.removedRules;
-      let securityGroup = $scope.securityGroup;
+      const removed = $scope.state.removedRules;
+      const securityGroup = $scope.securityGroup;
       $scope.securityGroup.securityGroupIngress = (securityGroup.securityGroupIngress || []).filter(rule => {
         if (
           rule.accountName &&
@@ -281,9 +281,9 @@ module(AMAZON_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
       return securityGroupReader.getAllSecurityGroups().then(function(securityGroups) {
         setSecurityGroupRefreshTime();
         allSecurityGroups = securityGroups;
-        let account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
-        let region = $scope.securityGroup.regions[0];
-        let vpcId = $scope.securityGroup.vpcId || null;
+        const account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
+        const region = $scope.securityGroup.regions[0];
+        const vpcId = $scope.securityGroup.vpcId || null;
 
         let availableGroups;
         if (account && region) {
@@ -302,8 +302,8 @@ module(AMAZON_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
       $uibModalInstance.dismiss();
     };
 
-    let classicPattern = /^[\x20-\x7F]+$/;
-    let vpcPattern = /^[a-zA-Z0-9\s._\-:/()#,@[\]+=&;{}!$*]+$/;
+    const classicPattern = /^[\x20-\x7F]+$/;
+    const vpcPattern = /^[a-zA-Z0-9\s._\-:/()#,@[\]+=&;{}!$*]+$/;
 
     ctrl.getCurrentNamePattern = function() {
       return $scope.securityGroup.vpcId ? vpcPattern : classicPattern;

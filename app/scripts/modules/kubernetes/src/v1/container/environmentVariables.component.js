@@ -77,8 +77,8 @@ module(KUBERNETES_V1_CONTAINER_ENVIRONMENTVARIABLES_COMPONENT, []).component(
       };
 
       this.updateEnvVar = index => {
-        let envVar = this.envVars[index];
-        let sourceType = this.envVarsSourceTypes[index];
+        const envVar = this.envVars[index];
+        const sourceType = this.envVarsSourceTypes[index];
         this.updateSourceTypeMap[sourceType](envVar);
       };
 

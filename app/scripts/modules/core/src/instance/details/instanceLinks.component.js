@@ -32,7 +32,7 @@ module(CORE_INSTANCE_DETAILS_INSTANCELINKS_COMPONENT, []).component('instanceLin
       );
       this.sections.forEach(section => {
         section.links = section.links.map(link => {
-          let port = link.path.indexOf(':') === 0 || !this.port ? '' : ':' + this.port;
+          const port = link.path.indexOf(':') === 0 || !this.port ? '' : ':' + this.port;
           let url = link.path;
           // handle interpolated variables
           if (url.includes('{{')) {

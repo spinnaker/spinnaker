@@ -29,7 +29,7 @@ module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
      * Actions
      */
 
-    let getDescriptor = () => {
+    const getDescriptor = () => {
       let descriptor = this.instancesCount + ' instance';
       if (this.instancesCount > 1) {
         descriptor += 's';
@@ -37,9 +37,9 @@ module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
       return descriptor;
     };
 
-    let confirm = (submitMethod, verbs, body) => {
-      let descriptor = getDescriptor();
-      let taskMonitor = {
+    const confirm = (submitMethod, verbs, body) => {
+      const descriptor = getDescriptor();
+      const taskMonitor = {
         application: app,
         title: verbs.presentContinuous + ' ' + descriptor,
       };
@@ -60,7 +60,7 @@ module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
     };
 
     this.terminateInstances = () => {
-      let submitMethod = () => instanceWriter.terminateInstances(this.selectedGroups, app);
+      const submitMethod = () => instanceWriter.terminateInstances(this.selectedGroups, app);
       confirm(submitMethod, {
         presentContinuous: 'Terminating',
         simplePresent: 'Terminate',
@@ -76,7 +76,7 @@ module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
     };
 
     this.terminateInstancesAndShrinkServerGroups = () => {
-      let submitMethod = () => instanceWriter.terminateInstancesAndShrinkServerGroups(this.selectedGroups, app);
+      const submitMethod = () => instanceWriter.terminateInstancesAndShrinkServerGroups(this.selectedGroups, app);
       confirm(submitMethod, {
         presentContinuous: 'Terminating',
         simplePresent: 'Terminate',
@@ -85,7 +85,7 @@ module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
     };
 
     this.rebootInstances = () => {
-      let submitMethod = () => instanceWriter.rebootInstances(this.selectedGroups, app);
+      const submitMethod = () => instanceWriter.rebootInstances(this.selectedGroups, app);
       confirm(submitMethod, {
         presentContinuous: 'Rebooting',
         simplePresent: 'Reboot',
@@ -93,10 +93,10 @@ module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
       });
     };
 
-    let allDiscoveryHealthsMatch = state => {
+    const allDiscoveryHealthsMatch = state => {
       return this.selectedGroups.every(group => {
         return group.instances.every(instance => {
-          let discoveryHealth = instance.health.filter(function(health) {
+          const discoveryHealth = instance.health.filter(function(health) {
             return health.type === 'Discovery';
           });
           return discoveryHealth.length ? discoveryHealth[0].state === state : false;
@@ -109,7 +109,7 @@ module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
     this.canDeregisterWithDiscovery = () => allDiscoveryHealthsMatch('Up') || allDiscoveryHealthsMatch('Down');
 
     this.registerWithDiscovery = () => {
-      let submitMethod = () => instanceWriter.enableInstancesInDiscovery(this.selectedGroups, app);
+      const submitMethod = () => instanceWriter.enableInstancesInDiscovery(this.selectedGroups, app);
       confirm(submitMethod, {
         presentContinuous: 'Registering',
         simplePresent: 'Register',
@@ -118,7 +118,7 @@ module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
     };
 
     this.deregisterWithDiscovery = () => {
-      let submitMethod = () => instanceWriter.disableInstancesInDiscovery(this.selectedGroups, app);
+      const submitMethod = () => instanceWriter.disableInstancesInDiscovery(this.selectedGroups, app);
       confirm(submitMethod, {
         presentContinuous: 'Deregistering',
         simplePresent: 'Deregister',
@@ -126,11 +126,11 @@ module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
       });
     };
 
-    let getAllLoadBalancers = () => {
+    const getAllLoadBalancers = () => {
       if (!this.selectedGroups.length) {
         return [];
       }
-      let base = this.selectedGroups[0].loadBalancers.sort().join(' ');
+      const base = this.selectedGroups[0].loadBalancers.sort().join(' ');
       if (this.selectedGroups.every(group => group.loadBalancers.sort().join(' ') === base)) {
         return this.selectedGroups[0].loadBalancers;
       }
@@ -147,7 +147,7 @@ module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
     };
 
     this.canDeregisterFromLoadBalancers = () => {
-      let allLoadBalancers = getAllLoadBalancers()
+      const allLoadBalancers = getAllLoadBalancers()
         .sort()
         .join(' ');
       return this.selectedGroups.every(group => {
@@ -167,8 +167,8 @@ module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
     };
 
     this.registerWithLoadBalancers = () => {
-      let allLoadBalancers = getAllLoadBalancers().sort();
-      let submitMethod = () =>
+      const allLoadBalancers = getAllLoadBalancers().sort();
+      const submitMethod = () =>
         instanceWriter.registerInstancesWithLoadBalancer(this.selectedGroups, app, allLoadBalancers);
       confirm(
         submitMethod,
@@ -182,8 +182,8 @@ module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
     };
 
     this.deregisterFromLoadBalancers = () => {
-      let allLoadBalancers = getAllLoadBalancers().sort();
-      let submitMethod = () =>
+      const allLoadBalancers = getAllLoadBalancers().sort();
+      const submitMethod = () =>
         instanceWriter.deregisterInstancesFromLoadBalancer(this.selectedGroups, app, allLoadBalancers);
       confirm(
         submitMethod,
@@ -212,7 +212,7 @@ module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
     }
 
     function getInstanceDetails(group, instanceId) {
-      let serverGroup = getServerGroup(group);
+      const serverGroup = getServerGroup(group);
 
       if (!serverGroup) {
         return null;
@@ -221,8 +221,8 @@ module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
       return serverGroup.instances.find(instance => instance.id === instanceId) || {};
     }
 
-    let makeInstanceModel = (group, instanceId) => {
-      let instance = getInstanceDetails(group, instanceId);
+    const makeInstanceModel = (group, instanceId) => {
+      const instance = getInstanceDetails(group, instanceId);
       return {
         id: instanceId,
         availabilityZone: instance.availabilityZone,
@@ -232,9 +232,9 @@ module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
       };
     };
 
-    let makeServerGroupModel = group => {
-      let parentServerGroup = getServerGroup(group);
-      let loadBalancers = parentServerGroup ? parentServerGroup.loadBalancers : [];
+    const makeServerGroupModel = group => {
+      const parentServerGroup = getServerGroup(group);
+      const loadBalancers = parentServerGroup ? parentServerGroup.loadBalancers : [];
 
       return {
         cloudProvider: group.cloudProvider,
@@ -247,18 +247,18 @@ module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
       };
     };
 
-    let countInstances = () => {
+    const countInstances = () => {
       return ClusterState.multiselectModel.instanceGroups.reduce((acc, group) => acc + group.instanceIds.length, 0);
     };
 
-    let retrieveInstances = () => {
+    const retrieveInstances = () => {
       this.instancesCount = countInstances();
       this.selectedGroups = ClusterState.multiselectModel.instanceGroups
         .filter(group => group.instanceIds.length)
         .map(makeServerGroupModel);
     };
 
-    let multiselectWatcher = ClusterState.multiselectModel.instancesStream.subscribe(retrieveInstances);
+    const multiselectWatcher = ClusterState.multiselectModel.instancesStream.subscribe(retrieveInstances);
     app.serverGroups.onRefresh($scope, retrieveInstances);
 
     retrieveInstances();

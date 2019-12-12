@@ -77,7 +77,7 @@ module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGMANAGER_SERVICE, []
 
   this.inferSelectedSecurityGroupFromTag = _.debounce(tagName => {
     let securityGroupObjectsWithTag = this.securityGroupObjectsKeyedByTag[tagName];
-    let c = this.command;
+    const c = this.command;
 
     if (securityGroupObjectsWithTag) {
       securityGroupObjectsWithTag = _.filter(securityGroupObjectsWithTag, sg => sg.network === this.command.network);
@@ -112,8 +112,8 @@ module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGMANAGER_SERVICE, []
   };
 
   this.addTag = tagName => {
-    let c = this.command;
-    let tags = c.tags;
+    const c = this.command;
+    const tags = c.tags;
     let securityGroupObjectsWithTag = this.securityGroupObjectsKeyedByTag[tagName];
 
     if (securityGroupObjectsWithTag) {

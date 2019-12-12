@@ -20,7 +20,7 @@ module(AZURE_SUBNET_SUBNETSELECTFIELD_DIRECTIVE, []).directive('azureSubnetSelec
     },
     link: function(scope) {
       function setSubnets() {
-        let subnets = scope.subnets || [];
+        const subnets = scope.subnets || [];
         scope.activeSubnets = subnets.filter(function(subnet) {
           return !subnet.deprecated;
         });

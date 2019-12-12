@@ -19,14 +19,14 @@ module(CORE_PIPELINE_CONFIG_STAGES_BASEPROVIDERSTAGE_BASEPROVIDERSTAGE, []).cont
   '$timeout',
   function($scope, stage, $timeout) {
     // Docker Bake is wedged in here because it doesn't really fit our existing cloud provider paradigm
-    let dockerBakeEnabled = SETTINGS.feature.dockerBake && stage.type === 'bake';
+    const dockerBakeEnabled = SETTINGS.feature.dockerBake && stage.type === 'bake';
 
     $scope.stage = stage;
 
     $scope.viewState = $scope.viewState || {};
     $scope.viewState.loading = true;
 
-    let stageProviders = Registry.pipeline.getProvidersFor(stage.type);
+    const stageProviders = Registry.pipeline.getProvidersFor(stage.type);
 
     if (dockerBakeEnabled) {
       stageProviders.push({ cloudProvider: 'docker' });

@@ -30,7 +30,7 @@ module(TITUS_PIPELINE_STAGES_DISABLEASG_TITUSDISABLEASGSTAGE, [])
   .controller('titusDisableAsgStageCtrl', [
     '$scope',
     function($scope) {
-      let stage = $scope.stage;
+      const stage = $scope.stage;
 
       $scope.state = {
         accounts: false,

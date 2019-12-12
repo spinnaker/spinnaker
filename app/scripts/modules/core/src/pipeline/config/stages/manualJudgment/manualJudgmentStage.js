@@ -63,7 +63,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_MANUALJUDGMENT_MANUALJUDGMENTSTAGE, [])
         if (!$scope.stage.judgmentInputs) {
           $scope.stage.judgmentInputs = [];
         }
-        let judgmentInput = {};
+        const judgmentInput = {};
         $scope.stage.judgmentInputs.push(judgmentInput);
       };
 

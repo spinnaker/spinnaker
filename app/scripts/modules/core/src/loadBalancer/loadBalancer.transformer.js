@@ -25,7 +25,7 @@ module(CORE_LOADBALANCER_LOADBALANCER_TRANSFORMER, [PROVIDER_SERVICE_DELEGATE]).
     }
 
     function normalizeLoadBalancerSet(loadBalancers) {
-      let setNormalizers = chain(loadBalancers)
+      const setNormalizers = chain(loadBalancers)
         .filter(lb => providerServiceDelegate.hasDelegate(lb.provider || lb.type, 'loadBalancer.setTransformer'))
         .compact()
         .map(

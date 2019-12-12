@@ -30,7 +30,7 @@ module(AMAZON_PIPELINE_STAGES_DISABLEASG_AWSDISABLEASGSTAGE, [])
   .controller('awsDisableAsgStageCtrl', [
     '$scope',
     function($scope) {
-      let stage = $scope.stage;
+      const stage = $scope.stage;
 
       $scope.state = {
         accounts: false,

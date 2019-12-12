@@ -27,7 +27,7 @@ module(AMAZON_PIPELINE_STAGES_CLONESERVERGROUP_AWSCLONESERVERGROUPSTAGE, [])
   .controller('awsCloneServerGroupStageCtrl', [
     '$scope',
     function($scope) {
-      let stage = $scope.stage;
+      const stage = $scope.stage;
 
       $scope.viewState = {
         accountsLoaded: false,
@@ -68,7 +68,7 @@ module(AMAZON_PIPELINE_STAGES_CLONESERVERGROUP_AWSCLONESERVERGROUPSTAGE, [])
       this.targetClusterUpdated = () => {
         if (stage.targetCluster) {
           const filterByCluster = AppListExtractor.monikerClusterNameFilter(stage.targetCluster);
-          let moniker = _.first(AppListExtractor.getMonikers([$scope.application], filterByCluster));
+          const moniker = _.first(AppListExtractor.getMonikers([$scope.application], filterByCluster));
           if (moniker) {
             stage.stack = moniker.stack;
             stage.freeFormDetails = moniker.detail;
@@ -96,7 +96,7 @@ module(AMAZON_PIPELINE_STAGES_CLONESERVERGROUP_AWSCLONESERVERGROUPSTAGE, [])
 
       this.toggleSuspendedProcess = process => {
         stage.suspendedProcesses = stage.suspendedProcesses || [];
-        let processIndex = stage.suspendedProcesses.indexOf(process);
+        const processIndex = stage.suspendedProcesses.indexOf(process);
         if (processIndex === -1) {
           stage.suspendedProcesses.push(process);
         } else {

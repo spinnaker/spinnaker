@@ -27,7 +27,7 @@ module(CORE_PRESENTATION_COLLAPSIBLESECTION_COLLAPSIBLESECTION_DIRECTIVE, []).di
       },
       templateUrl: require('./collapsibleSection.directive.html'),
       link: function(scope) {
-        let cacheKey = scope.cacheKey || scope.heading;
+        const cacheKey = scope.cacheKey || scope.heading;
         let expanded = true;
         if (cacheKey) {
           expanded = CollapsibleSectionStateCache.isSet(cacheKey)

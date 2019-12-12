@@ -47,7 +47,7 @@ module(GOOGLE_VALIDATION_APPLICATIONNAME_VALIDATOR, [])
               'Google load balancers.',
           );
         } else {
-          let remaining = maxLengthForLoadBalancers - 2 - name.length;
+          const remaining = maxLengthForLoadBalancers - 2 - name.length;
           warnings.push(`If you plan to include a stack or detail field for Google load balancers, you will only
             have ~${remaining} characters to do so.`);
         }
@@ -64,7 +64,7 @@ module(GOOGLE_VALIDATION_APPLICATIONNAME_VALIDATOR, [])
               'Google server groups.',
           );
         } else {
-          let remaining = maxLengthForServerGroups - 2 - name.length;
+          const remaining = maxLengthForServerGroups - 2 - name.length;
           warnings.push(`If you plan to include a stack or detail field for Google server groups, you will only
             have ~${remaining} characters to do so.`);
         }
@@ -78,7 +78,7 @@ module(GOOGLE_VALIDATION_APPLICATIONNAME_VALIDATOR, [])
             )}.`,
           );
         } else {
-          let remaining = maxResourceNameLength - 2 - name.length;
+          const remaining = maxResourceNameLength - 2 - name.length;
           warnings.push(`If you plan to include a stack or detail field for Google ${FirewallLabels.get(
             'firewalls',
           )}, you will only

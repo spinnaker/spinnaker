@@ -33,7 +33,7 @@ module(AMAZON_PIPELINE_STAGES_DESTROYASG_AWSDESTROYASGSTAGE, [])
   .controller('awsDestroyAsgStageCtrl', [
     '$scope',
     function($scope) {
-      let stage = $scope.stage;
+      const stage = $scope.stage;
 
       $scope.state = {
         accounts: false,

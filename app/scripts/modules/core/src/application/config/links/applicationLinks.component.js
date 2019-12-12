@@ -27,7 +27,7 @@ angular
     controller: [
       '$uibModal',
       function($uibModal) {
-        let initialize = () => {
+        const initialize = () => {
           if (this.application.notFound || this.application.hasError) {
             return;
           }
@@ -79,7 +79,7 @@ angular
         };
 
         this.addSection = () => {
-          let section = { title: '', links: [] };
+          const section = { title: '', links: [] };
           this.sections.push(section);
           this.addLink(section);
         };

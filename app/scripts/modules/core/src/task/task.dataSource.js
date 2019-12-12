@@ -10,23 +10,23 @@ angular.module(CORE_TASK_TASK_DATASOURCE, [CLUSTER_SERVICE]).run([
   '$q',
   'clusterService',
   function($q, clusterService) {
-    let addTasks = (application, tasks) => {
+    const addTasks = (application, tasks) => {
       return $q.when(angular.isArray(tasks) ? tasks : []);
     };
 
-    let loadTasks = application => {
+    const loadTasks = application => {
       return TaskReader.getTasks(application.name);
     };
 
-    let loadRunningTasks = application => {
+    const loadRunningTasks = application => {
       return TaskReader.getRunningTasks(application.name);
     };
 
-    let addRunningTasks = (application, data) => {
+    const addRunningTasks = (application, data) => {
       return $q.when(data);
     };
 
-    let runningTasksLoaded = application => {
+    const runningTasksLoaded = application => {
       clusterService.addTasksToServerGroups(application);
       application.getDataSource('serverGroups').dataUpdated();
     };

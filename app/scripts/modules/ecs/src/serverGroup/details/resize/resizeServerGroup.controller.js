@@ -43,7 +43,7 @@ angular
       }
 
       this.isValid = function() {
-        let command = $scope.command;
+        const command = $scope.command;
         if (!$scope.verification.verified) {
           return false;
         }
@@ -67,7 +67,7 @@ angular
           capacity = { min: $scope.command.newSize, max: $scope.command.newSize, desired: $scope.command.newSize };
         }
 
-        let submitMethod = function() {
+        const submitMethod = function() {
           return serverGroupWriter.resizeServerGroup(serverGroup, application, {
             capacity: capacity,
             interestingHealthProviderNames: $scope.command.interestingHealthProviderNames,

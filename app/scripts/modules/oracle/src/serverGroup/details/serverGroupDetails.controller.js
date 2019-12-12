@@ -57,7 +57,7 @@ module(ORACLE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_CONTROLLER, [
     // Fetch data
     /////////////////////////////////////////////////////////
 
-    let retrieveServerGroup = () => {
+    const retrieveServerGroup = () => {
       return ServerGroupReader.getServerGroup(
         app.name,
         serverGroup.accountId,
@@ -73,7 +73,7 @@ module(ORACLE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_CONTROLLER, [
       });
     };
 
-    let retrieveNetwork = () => {
+    const retrieveNetwork = () => {
       NetworkReader.listNetworksByProvider(provider).then(networks => {
         this.serverGroup.network = _.chain(networks)
           .filter({ account: this.serverGroup.account, id: this.serverGroup.launchConfig.vpcId })
@@ -82,13 +82,13 @@ module(ORACLE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_CONTROLLER, [
       });
     };
 
-    let retrieveSubnet = () => {
+    const retrieveSubnet = () => {
       SubnetReader.getSubnetByIdAndProvider(this.serverGroup.launchConfig.subnetId, provider).then(subnet => {
         this.serverGroup.subnet = subnet;
       });
     };
 
-    let retrieveImage = () => {
+    const retrieveImage = () => {
       oracleImageReader
         .getImage(this.serverGroup.launchConfig.imageId, this.serverGroup.region, this.serverGroup.account)
         .then(image => {
@@ -104,17 +104,17 @@ module(ORACLE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_CONTROLLER, [
     ////////////////////////////////////////////////////////////
 
     this.destroyServerGroup = function destroyServerGroup() {
-      let serverGroup = this.serverGroup;
-      let taskMonitor = {
+      const serverGroup = this.serverGroup;
+      const taskMonitor = {
         application: app,
         title: 'Destroying ' + serverGroup.name,
       };
 
-      let submitMethod = function() {
+      const submitMethod = function() {
         return serverGroupWriter.destroyServerGroup(serverGroup, app);
       };
 
-      let stateParams = {
+      const stateParams = {
         name: serverGroup.name,
         account: serverGroup.account,
         region: serverGroup.region,
@@ -157,12 +157,12 @@ module(ORACLE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_CONTROLLER, [
         resolve: {
           serverGroup: () => this.serverGroup,
           disabledServerGroups: () => {
-            let sgSummary = _.find(app.serverGroups.data, {
+            const sgSummary = _.find(app.serverGroups.data, {
               name: this.serverGroup.name,
               account: this.serverGroup.account,
               region: this.serverGroup.region,
             });
-            let cluster = _.find(app.clusters, { name: sgSummary.cluster, account: this.serverGroup.account });
+            const cluster = _.find(app.clusters, { name: sgSummary.cluster, account: this.serverGroup.account });
             return _.filter(cluster.serverGroups, { isDisabled: true, region: this.serverGroup.region });
           },
           application: () => app,
@@ -171,16 +171,16 @@ module(ORACLE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_CONTROLLER, [
     };
 
     this.disableServerGroup = () => {
-      let serverGroup = this.serverGroup;
+      const serverGroup = this.serverGroup;
 
-      let taskMonitor = {
+      const taskMonitor = {
         application: app,
         title: 'Disabling ' + serverGroup.name,
       };
 
-      let submitMethod = params => serverGroupWriter.disableServerGroup(serverGroup, app, params);
+      const submitMethod = params => serverGroupWriter.disableServerGroup(serverGroup, app, params);
 
-      let confirmationModalParams = {
+      const confirmationModalParams = {
         header: 'Really disable ' + serverGroup.name + '?',
         buttonText: 'Disable ' + serverGroup.name,
         account: serverGroup.account,
@@ -201,16 +201,16 @@ module(ORACLE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_CONTROLLER, [
     };
 
     this.enableServerGroup = () => {
-      let serverGroup = this.serverGroup;
+      const serverGroup = this.serverGroup;
 
-      let taskMonitor = {
+      const taskMonitor = {
         application: app,
         title: 'Enabling ' + serverGroup.name,
       };
 
-      let submitMethod = params => serverGroupWriter.enableServerGroup(serverGroup, app, params);
+      const submitMethod = params => serverGroupWriter.enableServerGroup(serverGroup, app, params);
 
-      let confirmationModalParams = {
+      const confirmationModalParams = {
         header: 'Really enable ' + serverGroup.name + '?',
         buttonText: 'Enable ' + serverGroup.name,
         account: serverGroup.account,
@@ -228,7 +228,7 @@ module(ORACLE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_CONTROLLER, [
       confirmationModalService.confirm(confirmationModalParams);
     };
 
-    let cancelLoader = () => {
+    const cancelLoader = () => {
       this.state.loading = false;
     };
 

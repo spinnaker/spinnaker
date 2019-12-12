@@ -21,7 +21,7 @@ module(AZURE_SECURITYGROUP_CLONE_CLONESECURITYGROUP_CONTROLLER, [
   'securityGroup',
   'application',
   function($scope, $uibModalInstance, $controller, $state, azureSecurityGroupWriter, securityGroup, application) {
-    let ctrl = this;
+    const ctrl = this;
 
     $scope.firewallLabel = FirewallLabels.get('Firewall');
 
@@ -31,7 +31,7 @@ module(AZURE_SECURITYGROUP_CLONE_CLONESECURITYGROUP_CONTROLLER, [
     };
 
     securityGroup.securityRules = _.map(securityGroup.securityRules, function(rule) {
-      let temp = rule.destinationPortRange.split('-');
+      const temp = rule.destinationPortRange.split('-');
       rule.startPort = Number(temp[0]);
       rule.endPort = Number(temp[1]);
       return rule;
@@ -50,7 +50,7 @@ module(AZURE_SECURITYGROUP_CLONE_CLONESECURITYGROUP_CONTROLLER, [
     };
 
     ctrl.updateName = function() {
-      let securityGroup = $scope.securityGroup;
+      const securityGroup = $scope.securityGroup;
       let name = application.name;
       if (securityGroup.detail) {
         name += '-' + securityGroup.detail;
@@ -99,7 +99,7 @@ module(AZURE_SECURITYGROUP_CLONE_CLONESECURITYGROUP_CONTROLLER, [
         return;
       }
       $uibModalInstance.close();
-      let newStateParams = {
+      const newStateParams = {
         name: $scope.securityGroup.name,
         accountId: $scope.securityGroup.credentials || $scope.securityGroup.accountName,
         region: $scope.securityGroup.region,
@@ -132,10 +132,9 @@ module(AZURE_SECURITYGROUP_CLONE_CLONESECURITYGROUP_CONTROLLER, [
       swapRules(ruleset, index, index + 1);
     };
     function swapRules(ruleset, a, b) {
-      let temp, priorityA, priorityB;
-      temp = ruleset[b];
-      priorityA = ruleset[a].priority;
-      priorityB = ruleset[b].priority;
+      const temp = ruleset[b];
+      const priorityA = ruleset[a].priority;
+      const priorityB = ruleset[b].priority;
       //swap elements
       ruleset[b] = ruleset[a];
       ruleset[a] = temp;
@@ -146,7 +145,7 @@ module(AZURE_SECURITYGROUP_CLONE_CLONESECURITYGROUP_CONTROLLER, [
 
     ctrl.upsert = function() {
       $scope.taskMonitor.submit(function() {
-        let params = {
+        const params = {
           cloudProvider: 'azure',
           appName: application.name,
           region: $scope.securityGroup.region,

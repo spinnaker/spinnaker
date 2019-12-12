@@ -47,7 +47,7 @@ module(ECS_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [SERVER_
       }
 
       this.isValid = function() {
-        let command = $scope.command;
+        const command = $scope.command;
         if (!$scope.verification.verified) {
           return false;
         }
@@ -66,7 +66,7 @@ module(ECS_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [SERVER_
           return;
         }
 
-        let submitMethod = function() {
+        const submitMethod = function() {
           return serverGroupWriter.rollbackServerGroup(serverGroup, application, $scope.command);
         };
 

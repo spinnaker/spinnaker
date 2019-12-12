@@ -31,10 +31,10 @@ module(CORE_APPLICATION_MODAL_CREATEAPPLICATION_MODAL_CONTROLLER, [
   '$uibModalInstance',
   '$timeout',
   function($scope, $q, $log, $state, $uibModalInstance, $timeout) {
-    let applicationLoader = ApplicationReader.listApplications();
+    const applicationLoader = ApplicationReader.listApplications();
     applicationLoader.then(applications => (this.data.appNameList = _.map(applications, 'name')));
 
-    let providerLoader = AccountService.listProviders();
+    const providerLoader = AccountService.listProviders();
     providerLoader.then(providers => (this.data.cloudProviders = providers));
 
     $q.all([applicationLoader, providerLoader])
@@ -59,18 +59,18 @@ module(CORE_APPLICATION_MODAL_CREATEAPPLICATION_MODAL_CONTROLLER, [
       instancePort: SETTINGS.defaultInstancePort || null,
     };
 
-    let submitting = () => {
+    const submitting = () => {
       this.state.errorMessages = [];
       this.state.submitting = true;
     };
 
-    let goIdle = () => {
+    const goIdle = () => {
       this.state.submitting = false;
     };
 
     let navigateTimeout = null;
 
-    let routeToApplication = () => {
+    const routeToApplication = () => {
       navigateTimeout = $timeout(() => {
         $state.go('home.applications.application.insight.clusters', {
           application: this.application.name,
@@ -80,14 +80,14 @@ module(CORE_APPLICATION_MODAL_CREATEAPPLICATION_MODAL_CONTROLLER, [
 
     $scope.$on('$destroy', () => $timeout.cancel(navigateTimeout));
 
-    let waitUntilApplicationIsCreated = task => {
+    const waitUntilApplicationIsCreated = task => {
       return TaskReader.waitUntilTaskCompletes(task).then(routeToApplication, () => {
         this.state.errorMessages.push('Could not create application: ' + task.failureMessage);
         goIdle();
       });
     };
 
-    let createApplicationFailure = () => {
+    const createApplicationFailure = () => {
       this.state.errorMessages.push('Could not create application');
       goIdle();
     };

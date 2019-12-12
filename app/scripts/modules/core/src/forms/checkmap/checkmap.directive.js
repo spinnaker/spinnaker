@@ -39,7 +39,7 @@ angular.module(CORE_FORMS_CHECKMAP_CHECKMAP_DIRECTIVE, []).directive('checkmap',
       }
 
       function updateSelectedItems() {
-        let newSelectedItems = [];
+        const newSelectedItems = [];
         _.forEach(scope.modelHolder, function(valMap) {
           _.forEach(valMap, function(selected, item) {
             if (selected) {

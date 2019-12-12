@@ -23,7 +23,7 @@ module(CORE_PROJECTS_PROJECTS_CONTROLLER, [
   '$log',
   '$filter',
   function($scope, $uibModal, $log, $filter) {
-    let projectsViewStateCache =
+    const projectsViewStateCache =
       ViewStateCache.get('projects') || ViewStateCache.createCache('projects', { version: 1 });
 
     function cacheViewState() {
@@ -51,20 +51,20 @@ module(CORE_PROJECTS_PROJECTS_CONTROLLER, [
     ];
 
     this.filterProjects = function filterProjects() {
-      let filtered = $filter('anyFieldFilter')($scope.projects, {
+      const filtered = $filter('anyFieldFilter')($scope.projects, {
         name: $scope.viewState.projectFilter,
         email: $scope.viewState.projectFilter,
       });
-      let sorted = $filter('orderBy')(filtered, $scope.viewState.sortModel.key);
+      const sorted = $filter('orderBy')(filtered, $scope.viewState.sortModel.key);
       $scope.filteredProjects = sorted;
       this.resetPaginator();
     };
 
     this.resultPage = function resultPage() {
-      let pagination = $scope.pagination;
-      let allFiltered = $scope.filteredProjects;
-      let start = (pagination.currentPage - 1) * pagination.itemsPerPage;
-      let end = pagination.currentPage * pagination.itemsPerPage;
+      const pagination = $scope.pagination;
+      const allFiltered = $scope.filteredProjects;
+      const start = (pagination.currentPage - 1) * pagination.itemsPerPage;
+      const end = pagination.currentPage * pagination.itemsPerPage;
       if (!allFiltered || !allFiltered.length) {
         return [];
       }
@@ -85,7 +85,7 @@ module(CORE_PROJECTS_PROJECTS_CONTROLLER, [
       };
     };
 
-    let ctrl = this;
+    const ctrl = this;
 
     ProjectReader.listProjects().then(function(projects) {
       $scope.projects = projects;

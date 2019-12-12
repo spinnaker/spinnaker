@@ -23,7 +23,7 @@ module(KUBERNETES_V1_LOADBALANCER_CONFIGURE_WIZARD_UPSERT_CONTROLLER, [
   'isNew',
   'kubernetesLoadBalancerTransformer',
   function($scope, $uibModalInstance, $state, application, loadBalancer, isNew, kubernetesLoadBalancerTransformer) {
-    let ctrl = this;
+    const ctrl = this;
     $scope.isNew = isNew;
 
     $scope.pages = {
@@ -43,7 +43,7 @@ module(KUBERNETES_V1_LOADBALANCER_CONFIGURE_WIZARD_UPSERT_CONTROLLER, [
         return;
       }
       $uibModalInstance.close();
-      let newStateParams = {
+      const newStateParams = {
         name: $scope.loadBalancer.name,
         accountId: $scope.loadBalancer.account,
         region: $scope.loadBalancer.region,
@@ -77,7 +77,7 @@ module(KUBERNETES_V1_LOADBALANCER_CONFIGURE_WIZARD_UPSERT_CONTROLLER, [
         $scope.accounts = accounts;
         $scope.state.accountsLoaded = true;
 
-        let accountNames = _.map($scope.accounts, 'name');
+        const accountNames = _.map($scope.accounts, 'name');
         if (accountNames.length && !accountNames.includes($scope.loadBalancer.account)) {
           $scope.loadBalancer.account = accountNames[0];
         }
@@ -87,8 +87,8 @@ module(KUBERNETES_V1_LOADBALANCER_CONFIGURE_WIZARD_UPSERT_CONTROLLER, [
     }
 
     function updateLoadBalancerNames() {
-      let account = $scope.loadBalancer.credentials;
-      let namespace = $scope.loadBalancer.namespace;
+      const account = $scope.loadBalancer.credentials;
+      const namespace = $scope.loadBalancer.namespace;
 
       const accountLoadBalancersByNamespace = {};
       application
@@ -122,8 +122,8 @@ module(KUBERNETES_V1_LOADBALANCER_CONFIGURE_WIZARD_UPSERT_CONTROLLER, [
     };
 
     this.getName = function() {
-      let loadBalancer = $scope.loadBalancer;
-      let loadBalancerName = [application.name, loadBalancer.stack || '', loadBalancer.detail || ''].join('-');
+      const loadBalancer = $scope.loadBalancer;
+      const loadBalancerName = [application.name, loadBalancer.stack || '', loadBalancer.detail || ''].join('-');
       return _.trimEnd(loadBalancerName, '-');
     };
 
@@ -140,14 +140,14 @@ module(KUBERNETES_V1_LOADBALANCER_CONFIGURE_WIZARD_UPSERT_CONTROLLER, [
     };
 
     this.submit = function() {
-      let descriptor = isNew ? 'Create' : 'Update';
+      const descriptor = isNew ? 'Create' : 'Update';
 
       this.updateName();
       $scope.taskMonitor.submit(function() {
-        let zones = {};
+        const zones = {};
         // TODO(lwander) make generic Q2 2016
         zones[$scope.loadBalancer.namespace] = [$scope.loadBalancer.namespace];
-        let params = {
+        const params = {
           cloudProvider: 'kubernetes',
           availabilityZones: zones,
         };

@@ -28,9 +28,9 @@ module(ECS_PIPELINE_STAGES_DISABLECLUSTER_ECSDISABLECLUSTERSTAGE, [])
   .controller('ecsDisableClusterStageCtrl', [
     '$scope',
     function($scope) {
-      let ctrl = this;
+      const ctrl = this;
 
-      let stage = $scope.stage;
+      const stage = $scope.stage;
 
       $scope.state = {
         accounts: false,

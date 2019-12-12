@@ -24,7 +24,7 @@ angular
   .controller('titusFindAmiStageCtrl', [
     '$scope',
     function($scope) {
-      let stage = $scope.stage;
+      const stage = $scope.stage;
 
       $scope.state = {
         accounts: false,

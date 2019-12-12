@@ -33,9 +33,9 @@ module(AMAZON_PIPELINE_STAGES_RESIZEASG_AWSRESIZEASGSTAGE, [])
   .controller('awsResizeAsgStageCtrl', [
     '$scope',
     function($scope) {
-      let ctrl = this;
+      const ctrl = this;
 
-      let stage = $scope.stage;
+      const stage = $scope.stage;
 
       $scope.viewState = {
         accountsLoaded: false,

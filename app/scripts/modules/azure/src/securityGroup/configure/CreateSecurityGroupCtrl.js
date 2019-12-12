@@ -30,7 +30,7 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUPCTRL, [
 
     $scope.firewallLabel = FirewallLabels.get('Firewall');
 
-    let ctrl = this;
+    const ctrl = this;
     $scope.isNew = true;
     $scope.state = {
       submitting: false,
@@ -55,7 +55,7 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUPCTRL, [
         return;
       }
       $uibModalInstance.close();
-      let newStateParams = {
+      const newStateParams = {
         name: $scope.securityGroup.name,
         accountId: $scope.securityGroup.credentials || $scope.securityGroup.accountName,
         region: $scope.securityGroup.regions[0],
@@ -96,8 +96,8 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUPCTRL, [
     };
 
     this.vnetUpdated = function() {
-      let account = $scope.securityGroup.credentials;
-      let region = $scope.securityGroup.region;
+      const account = $scope.securityGroup.credentials;
+      const region = $scope.securityGroup.region;
       $scope.securityGroup.selectedVnet = null;
       $scope.securityGroup.vnet = null;
       $scope.securityGroup.vnetResourceGroup = null;
@@ -141,7 +141,7 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUPCTRL, [
     };
 
     ctrl.updateName = function() {
-      let securityGroup = $scope.securityGroup;
+      const securityGroup = $scope.securityGroup;
       let name = application.name;
       if (securityGroup.detail) {
         name += '-' + securityGroup.detail;
@@ -152,7 +152,7 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUPCTRL, [
 
     ctrl.upsert = function() {
       $scope.taskMonitor.submit(function() {
-        let params = {
+        const params = {
           cloudProvider: 'azure',
           appName: application.name,
           region: $scope.securityGroup.region,
@@ -195,7 +195,7 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUPCTRL, [
 
     ctrl.portUpdated = function(ruleset, index) {
       if (!_.isEmpty(ruleset[index].destPortRanges)) {
-        let ruleRanges = ruleset[index].destPortRanges.split(',');
+        const ruleRanges = ruleset[index].destPortRanges.split(',');
 
         if (ruleRanges.length > 1) {
           ruleset[index].destinationPortRanges = [];
@@ -214,7 +214,7 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUPCTRL, [
 
     ctrl.sourceIPCIDRUpdated = function(ruleset, index) {
       if (!_.isEmpty(ruleset[index].destPortRanges)) {
-        let ruleRanges = ruleset[index].sourceIPCIDRRanges.split(',');
+        const ruleRanges = ruleset[index].sourceIPCIDRRanges.split(',');
         if (ruleRanges.length > 1) {
           ruleset[index].sourceAddressPrefixes = [];
           ruleRanges.forEach(v => ruleset[index].sourceAddressPrefixes.push(v));
@@ -248,10 +248,9 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUPCTRL, [
     };
 
     function swapRules(ruleset, a, b) {
-      let temp, priorityA, priorityB;
-      temp = ruleset[b];
-      priorityA = ruleset[a].priority;
-      priorityB = ruleset[b].priority;
+      const temp = ruleset[b];
+      const priorityA = ruleset[a].priority;
+      const priorityB = ruleset[b].priority;
       //swap elements
       ruleset[b] = ruleset[a];
       ruleset[a] = temp;

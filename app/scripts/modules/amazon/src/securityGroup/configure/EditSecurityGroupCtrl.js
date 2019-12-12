@@ -54,7 +54,7 @@ angular
         .filter(rule => rule.securityGroup)
         .map(rule =>
           rule.portRanges.map(portRange => {
-            let vpcId = rule.securityGroup.vpcId === securityGroup.vpcId ? null : rule.securityGroup.vpcId;
+            const vpcId = rule.securityGroup.vpcId === securityGroup.vpcId ? null : rule.securityGroup.vpcId;
             return {
               accountName: rule.securityGroup.accountName || rule.securityGroup.accountId,
               accountId: rule.securityGroup.accountId,
@@ -89,8 +89,8 @@ angular
         .value();
 
       this.upsert = function() {
-        let group = $scope.securityGroup;
-        let command = {
+        const group = $scope.securityGroup;
+        const command = {
           credentials: group.accountName,
           name: group.name,
           description: group.description,

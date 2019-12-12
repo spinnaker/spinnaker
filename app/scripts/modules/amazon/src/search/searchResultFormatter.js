@@ -10,7 +10,7 @@ module(AMAZON_SEARCH_SEARCHRESULTFORMATTER, []).factory('awsSearchResultFormatte
   return {
     securityGroups: function(entry) {
       return VpcReader.getVpcName(entry.vpcId).then(function(vpcName) {
-        let region = vpcName ? entry.region + ' - ' + vpcName.toLowerCase() : entry.region;
+        const region = vpcName ? entry.region + ' - ' + vpcName.toLowerCase() : entry.region;
         return entry.name + ' (' + region + ')';
       });
     },

@@ -23,10 +23,10 @@ angular
       function buildNewServerGroupCommand(application, defaults) {
         defaults = defaults || {};
 
-        let imageLoader = azureImageReader.findImages({ provider: 'azure' });
+        const imageLoader = azureImageReader.findImages({ provider: 'azure' });
 
-        let defaultCredentials = defaults.account || application.defaultCredentials.azure;
-        let defaultRegion = defaults.region || application.defaultRegions.azure;
+        const defaultCredentials = defaults.account || application.defaultCredentials.azure;
+        const defaultRegion = defaults.region || application.defaultRegions.azure;
 
         return $q
           .all({
@@ -78,9 +78,9 @@ angular
       function buildServerGroupCommandFromExisting(application, serverGroup, mode) {
         mode = mode || 'clone';
 
-        let serverGroupName = NameUtils.parseServerGroupName(serverGroup.name);
+        const serverGroupName = NameUtils.parseServerGroupName(serverGroup.name);
 
-        let command = {
+        const command = {
           application: application.name,
           strategy: '',
           stack: serverGroupName.stack,
@@ -140,17 +140,17 @@ angular
       }
 
       function buildServerGroupCommandFromPipeline(application, originalCluster) {
-        let pipelineCluster = _.cloneDeep(originalCluster);
-        let region = pipelineCluster.region;
-        let commandOptions = { account: pipelineCluster.account, region: region };
-        let asyncLoader = $q.all({
+        const pipelineCluster = _.cloneDeep(originalCluster);
+        const region = pipelineCluster.region;
+        const commandOptions = { account: pipelineCluster.account, region: region };
+        const asyncLoader = $q.all({
           command: buildNewServerGroupCommand(application, commandOptions),
         });
 
         return asyncLoader.then(function(asyncData) {
-          let command = asyncData.command;
+          const command = asyncData.command;
 
-          let viewState = {
+          const viewState = {
             disableImageSelection: true,
             useSimpleCapacity: true,
             mode: 'editPipeline',
@@ -159,7 +159,7 @@ angular
             instanceTypeDetails: originalCluster.viewState.instanceTypeDetails,
           };
 
-          let viewOverrides = {
+          const viewOverrides = {
             region: region,
             credentials: pipelineCluster.account,
             viewState: viewState,
@@ -170,7 +170,7 @@ angular
 
           pipelineCluster.strategy = pipelineCluster.strategy || '';
 
-          let extendedCommand = angular.extend({}, command, pipelineCluster, viewOverrides);
+          const extendedCommand = angular.extend({}, command, pipelineCluster, viewOverrides);
 
           return extendedCommand;
         });

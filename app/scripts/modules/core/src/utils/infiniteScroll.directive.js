@@ -19,19 +19,19 @@ angular.module(CORE_UTILS_INFINITESCROLL_DIRECTIVE, []).directive('infiniteScrol
   function($rootScope, $window, $timeout) {
     return {
       link: function(scope, elem, attrs) {
-        let checkWhenEnabled, handler, scrollDistance, scrollEnabled;
+        let scrollDistance = 0;
+        let scrollEnabled = true;
+        let checkWhenEnabled = false;
+
         $window = angular.element($window);
         elem.css('overflow-y', 'auto');
         elem.css('overflow-x', 'hidden');
         elem.css('height', 'inherit');
-        scrollDistance = 0;
         if (attrs.infiniteScrollDistance != null) {
           scope.$watch(attrs.infiniteScrollDistance, function(value) {
             return (scrollDistance = parseInt(value, 10));
           });
         }
-        scrollEnabled = true;
-        checkWhenEnabled = false;
         if (attrs.infiniteScrollDisabled != null) {
           scope.$watch(attrs.infiniteScrollDisabled, function(value) {
             scrollEnabled = !value;
@@ -44,13 +44,12 @@ angular.module(CORE_UTILS_INFINITESCROLL_DIRECTIVE, []).directive('infiniteScrol
         $rootScope.$on('refreshStart', function() {
           elem.animate({ scrollTop: '0' });
         });
-        handler = function() {
-          let container, elementBottom, remaining, shouldScroll, containerBottom;
-          container = $(elem.children()[0]);
-          elementBottom = elem.offset().top + elem.height();
-          containerBottom = container.offset().top + container.height();
-          remaining = containerBottom - elementBottom;
-          shouldScroll = remaining <= elem.height() * scrollDistance;
+        const handler = function() {
+          const container = $(elem.children()[0]);
+          const elementBottom = elem.offset().top + elem.height();
+          const containerBottom = container.offset().top + container.height();
+          const remaining = containerBottom - elementBottom;
+          const shouldScroll = remaining <= elem.height() * scrollDistance;
           if (shouldScroll && scrollEnabled) {
             if ($rootScope.$$phase) {
               return scope.$eval(attrs.infiniteScroll);

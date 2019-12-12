@@ -72,7 +72,7 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       }
 
       instance.health = instance.health || [];
-      let displayableMetrics = instance.health.filter(function(metric) {
+      const displayableMetrics = instance.health.filter(function(metric) {
         return metric.state !== 'Unknown';
       });
 
@@ -83,7 +83,7 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       // backfill details where applicable
       if (latest.health) {
         displayableMetrics.forEach(function(metric) {
-          let detailsMatch = latest.health.filter(function(latestHealth) {
+          const detailsMatch = latest.health.filter(function(latestHealth) {
             return latestHealth.type === metric.type;
           });
           if (detailsMatch.length) {
@@ -95,7 +95,7 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     }
 
     const retrieveInstance = () => {
-      let extraData = {};
+      const extraData = {};
       let instanceSummary, loadBalancers, account, region, vpcId;
       app.serverGroups.data.some(function(serverGroup) {
         return serverGroup.instances.some(function(possibleInstance) {
@@ -161,17 +161,17 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     };
 
     this.canRegisterWithDiscovery = function() {
-      let healthMetrics = $scope.instance.health || [];
-      let discoveryHealth = healthMetrics.filter(function(health) {
+      const healthMetrics = $scope.instance.health || [];
+      const discoveryHealth = healthMetrics.filter(function(health) {
         return health.type === 'Discovery';
       });
       return discoveryHealth.length ? discoveryHealth[0].state === 'OutOfService' : false;
     };
 
     this.terminateInstance = function terminateInstance() {
-      let instance = $scope.instance;
+      const instance = $scope.instance;
       instance.instanceId = instance.id;
-      let taskMonitor = {
+      const taskMonitor = {
         application: app,
         title: 'Terminating ' + instance.instanceId,
         onTaskComplete: function() {
@@ -181,8 +181,8 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         },
       };
 
-      let submitMethod = function() {
-        let params = { cloudProvider: 'titus' };
+      const submitMethod = function() {
+        const params = { cloudProvider: 'titus' };
         if (instance.serverGroup) {
           params.serverGroupName = instance.serverGroup;
         }
@@ -200,9 +200,9 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     };
 
     this.terminateInstanceAndShrinkServerGroup = function terminateInstanceAndShrinkServerGroup() {
-      let instance = $scope.instance;
+      const instance = $scope.instance;
 
-      let taskMonitor = {
+      const taskMonitor = {
         application: app,
         title: 'Terminating ' + instance.instanceId + ' and shrinking server group',
         onTaskComplete: function() {
@@ -212,7 +212,7 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         },
       };
 
-      let submitMethod = function() {
+      const submitMethod = function() {
         return instanceWriter.terminateInstancesAndShrinkServerGroups(
           [
             {
@@ -247,15 +247,15 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     };
 
     this.enableInstanceInDiscovery = function enableInstanceInDiscovery() {
-      let instance = $scope.instance;
+      const instance = $scope.instance;
       instance.instanceId = instance.id;
 
-      let taskMonitor = {
+      const taskMonitor = {
         application: app,
         title: 'Enabling ' + instance.instanceId + ' in discovery',
       };
 
-      let submitMethod = function() {
+      const submitMethod = function() {
         return instanceWriter.enableInstanceInDiscovery(instance, app);
       };
 
@@ -269,15 +269,15 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     };
 
     this.disableInstanceInDiscovery = function disableInstanceInDiscovery() {
-      let instance = $scope.instance;
+      const instance = $scope.instance;
       instance.instanceId = instance.id;
 
-      let taskMonitor = {
+      const taskMonitor = {
         application: app,
         title: 'Disabling ' + instance.instanceId + ' in discovery',
       };
 
-      let submitMethod = function() {
+      const submitMethod = function() {
         return instanceWriter.disableInstanceInDiscovery(instance, app);
       };
 
@@ -292,7 +292,7 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     };
 
     this.hasHealthState = function hasHealthState(healthProviderType, state) {
-      let healthMetrics = $scope.instance.health || [];
+      const healthMetrics = $scope.instance.health || [];
       return healthMetrics.some(function(health) {
         return health.type === healthProviderType && health.state === state;
       });
@@ -320,7 +320,7 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       return Object.keys($scope.instance.resources.ports).length > 0;
     };
 
-    let initialize = app.isStandalone ? retrieveInstance() : app.serverGroups.ready().then(retrieveInstance);
+    const initialize = app.isStandalone ? retrieveInstance() : app.serverGroups.ready().then(retrieveInstance);
 
     initialize.then(() => {
       // Two things to look out for here:

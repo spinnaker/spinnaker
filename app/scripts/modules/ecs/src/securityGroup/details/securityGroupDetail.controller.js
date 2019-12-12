@@ -81,7 +81,7 @@ angular
       }
 
       function buildIpRulesModel(details) {
-        let groupedRangeRules = _.groupBy(details.ipRangeRules, rule => rule.range.ip + rule.range.cidr);
+        const groupedRangeRules = _.groupBy(details.ipRangeRules, rule => rule.range.ip + rule.range.cidr);
         return Object.keys(groupedRangeRules)
           .map(addr => {
             return {
@@ -93,7 +93,7 @@ angular
       }
 
       function buildSecurityGroupRulesModel(details) {
-        let groupedRangeRules = _.groupBy(details.securityGroupRules, rule => rule.securityGroup.id);
+        const groupedRangeRules = _.groupBy(details.securityGroupRules, rule => rule.securityGroup.id);
         return Object.keys(groupedRangeRules)
           .map(addr => {
             return {
@@ -105,7 +105,7 @@ angular
       }
 
       function buildRuleModel(groupedRangeRules, addr) {
-        let rules = [];
+        const rules = [];
         groupedRangeRules[addr].forEach(rule => {
           (rule.portRanges || []).forEach(range => {
             if (rule.protocol === '-1' || (range.startPort !== undefined && range.endPort !== undefined)) {

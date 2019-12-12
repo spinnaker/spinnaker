@@ -9,7 +9,7 @@ export const KUBERNETES_V1_AUTOSCALER_AUTOSCALER_WRITE_SERVICE =
 export const name = KUBERNETES_V1_AUTOSCALER_AUTOSCALER_WRITE_SERVICE; // for backwards compatibility
 angular.module(KUBERNETES_V1_AUTOSCALER_AUTOSCALER_WRITE_SERVICE, []).factory('kubernetesAutoscalerWriter', function() {
   function upsertAutoscaler(application, serverGroup, params = {}) {
-    let job = {
+    const job = {
       type: 'upsertScalingPolicy',
       cloudProvider: 'kubernetes',
       credentials: serverGroup.account,

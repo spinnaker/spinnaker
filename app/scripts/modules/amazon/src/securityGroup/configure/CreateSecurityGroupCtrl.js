@@ -24,7 +24,7 @@ angular
         ingress: require('./createSecurityGroupIngress.html'),
       };
 
-      let ctrl = this;
+      const ctrl = this;
 
       ctrl.translate = label => FirewallLabels.get(label);
 

@@ -40,7 +40,7 @@ angular
         this.isParameterized = isString(this.model);
         this.hiddenKeys = this.hiddenKeys || [];
 
-        let modelKeys = () => Object.keys(this.model);
+        const modelKeys = () => Object.keys(this.model);
 
         this.addField = () => {
           this.backingModel.push({ key: '', value: '', checkUnique: modelKeys() });
@@ -58,8 +58,8 @@ angular
           if (this.isParameterized) {
             return;
           }
-          let modelStart = JSON.stringify(this.model);
-          let allKeys = this.backingModel.map(pair => pair.key);
+          const modelStart = JSON.stringify(this.model);
+          const allKeys = this.backingModel.map(pair => pair.key);
           modelKeys().forEach(key => delete this.model[key]);
           this.backingModel.forEach(pair => {
             if (pair.key && (this.allowEmpty || pair.value)) {

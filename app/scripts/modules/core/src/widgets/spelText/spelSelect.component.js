@@ -51,11 +51,11 @@ module(CORE_WIDGETS_SPELTEXT_SPELSELECT_COMPONENT, []).component('spelSelect', {
   },
   transclude: true,
   controller: function() {
-    let ctrl = this;
-    let select = 'select';
-    let textType = 'text';
+    const ctrl = this;
+    const select = 'select';
+    const textType = 'text';
 
-    let setState = inputType => {
+    const setState = inputType => {
       if (inputType == textType) {
         ctrl.expressionActive = true;
         ctrl.selectActive = false;

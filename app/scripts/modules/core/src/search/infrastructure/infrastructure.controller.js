@@ -50,7 +50,7 @@ angular
       $uibModal,
       $state,
     ) {
-      let search = infrastructureSearchService.getSearcher();
+      const search = infrastructureSearchService.getSearcher();
 
       $scope.firewallsLabel = FirewallLabels.get('firewalls');
 
@@ -89,7 +89,7 @@ angular
         }
         $scope.viewState.searching = true;
         search.query(query).then(function(resultSets) {
-          let allResults = _.flatten(resultSets.map(r => r.results));
+          const allResults = _.flatten(resultSets.map(r => r.results));
           if (allResults.length === 1 && autoNavigate) {
             $location.url(allResults[0].href.substring(1));
           } else {

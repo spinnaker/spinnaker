@@ -17,7 +17,8 @@ export class ResolvedArtifactList extends React.Component<IResolvedArtifactListP
   }
 
   public render() {
-    let { artifacts, resolvedExpectedArtifacts, showingExpandedArtifacts } = this.props;
+    let { artifacts, resolvedExpectedArtifacts } = this.props;
+    const { showingExpandedArtifacts } = this.props;
 
     artifacts = artifacts || [];
     resolvedExpectedArtifacts = resolvedExpectedArtifacts || [];

@@ -30,28 +30,28 @@ module(CORE_WIDGETS_ACCOUNTREGIONCLUSTERSELECTOR_COMPONENT, []).directive('accou
     controller: function controller() {
       this.clusterField = this.clusterField || 'cluster';
 
-      let vm = this;
+      const vm = this;
 
       if (vm.showClusterSelect === undefined) {
         vm.showClusterSelect = true;
       }
 
-      let showAllRegions = vm.showAllRegions || false;
+      const showAllRegions = vm.showAllRegions || false;
 
       let isTextInputForClusterFiled;
 
       let regions;
 
-      let setRegionList = () => {
-        let accountFilter = cluster => (cluster ? cluster.account === vm.component.credentials : true);
-        let regionList = AppListExtractor.getRegions([vm.application], accountFilter);
+      const setRegionList = () => {
+        const accountFilter = cluster => (cluster ? cluster.account === vm.component.credentials : true);
+        const regionList = AppListExtractor.getRegions([vm.application], accountFilter);
         vm.regions = showAllRegions ? regions : regionList.length ? regionList : regions;
         (vm.regions || []).sort();
       };
 
-      let setClusterList = () => {
-        let regionField = this.singleRegion ? vm.component.region : vm.component.regions;
-        let clusterFilter = AppListExtractor.clusterFilterForCredentialsAndRegion(
+      const setClusterList = () => {
+        const regionField = this.singleRegion ? vm.component.region : vm.component.regions;
+        const clusterFilter = AppListExtractor.clusterFilterForCredentialsAndRegion(
           vm.component.credentials,
           regionField,
         );
@@ -65,12 +65,12 @@ module(CORE_WIDGETS_ACCOUNTREGIONCLUSTERSELECTOR_COMPONENT, []).directive('accou
         }
       };
 
-      let setToggledState = () => {
+      const setToggledState = () => {
         vm.regions = regions;
         isTextInputForClusterFiled = true;
       };
 
-      let setUnToggledState = () => {
+      const setUnToggledState = () => {
         vm.component[this.clusterField] = undefined;
         isTextInputForClusterFiled = false;
         setRegionList();
@@ -82,7 +82,7 @@ module(CORE_WIDGETS_ACCOUNTREGIONCLUSTERSELECTOR_COMPONENT, []).directive('accou
 
       vm.clusterChanged = clusterName => {
         const filterByCluster = AppListExtractor.monikerClusterNameFilter(clusterName);
-        let clusterMoniker = _.first(_.uniq(AppListExtractor.getMonikers([vm.application], filterByCluster)));
+        const clusterMoniker = _.first(_.uniq(AppListExtractor.getMonikers([vm.application], filterByCluster)));
         if (_.isNil(clusterMoniker)) {
           //remove the moniker from the stage if one doesn't exist.
           vm.component.moniker = undefined;
@@ -102,15 +102,15 @@ module(CORE_WIDGETS_ACCOUNTREGIONCLUSTERSELECTOR_COMPONENT, []).directive('accou
         }
       };
 
-      let init = () => {
+      const init = () => {
         AccountService.getUniqueAttributeForAllAccounts(vm.component.cloudProviderType, 'regions')
           .then(allRegions => {
             regions = allRegions;
 
             // TODO(duftler): Remove this once we finish deprecating the old style regions/zones in clouddriver GCE credentials.
-            let regionObjs = _.filter(regions, region => _.isObject(region));
+            const regionObjs = _.filter(regions, region => _.isObject(region));
             if (regionObjs.length) {
-              let oldStyleRegions = _.chain(regionObjs)
+              const oldStyleRegions = _.chain(regionObjs)
                 .map(regionObj => _.keys(regionObj))
                 .flatten()
                 .value();

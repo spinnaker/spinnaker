@@ -41,7 +41,7 @@ module(CORE_TASK_VERIFICATION_USERVERIFICATION_DIRECTIVE, [])
         $scope.$watch(() => this.account, initialize);
       };
 
-      let initialize = () => {
+      const initialize = () => {
         if (this.verification.toVerify) {
           this.required = true;
           this.verification.verified = false;

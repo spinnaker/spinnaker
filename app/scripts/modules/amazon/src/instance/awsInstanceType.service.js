@@ -13,7 +13,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
   '$http',
   '$q',
   function($http, $q) {
-    let m5 = {
+    const m5 = {
       type: 'm5',
       description:
         'm5 instances provide a balance of compute, memory, and network resources. They are a good choice for most applications.',
@@ -45,7 +45,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
       ],
     };
 
-    let t2gp = {
+    const t2gp = {
       type: 't2',
       description:
         't2 instances are a good choice for workloads that don’t use the full CPU often or consistently, but occasionally need to burst (e.g. web servers, developer environments and small databases).',
@@ -69,7 +69,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
       ],
     };
 
-    let t2 = {
+    const t2 = {
       type: 't2',
       description:
         't2 instances are a good choice for workloads that don’t use the full CPU often or consistently, but occasionally need to burst (e.g. web servers, developer environments and small databases).',
@@ -101,7 +101,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
       ],
     };
 
-    let r5 = {
+    const r5 = {
       type: 'r5',
       description:
         'r5 instances are optimized for memory-intensive applications and have the lowest cost per GiB of RAM among Amazon EC2 instance types.',
@@ -141,7 +141,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
       ],
     };
 
-    let defaultCategories = [
+    const defaultCategories = [
       {
         type: 'general',
         label: 'General Purpose',
@@ -182,7 +182,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
       return $q.when(categories);
     }
 
-    let getAllTypesByRegion = function getAllTypesByRegion() {
+    const getAllTypesByRegion = function getAllTypesByRegion() {
       return API.one('instanceTypes')
         .get()
         .then(function(types) {
@@ -201,14 +201,14 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
         });
     };
 
-    let instanceClassOrder = ['xlarge', 'large', 'medium', 'small', 'micro', 'nano'];
+    const instanceClassOrder = ['xlarge', 'large', 'medium', 'small', 'micro', 'nano'];
 
     function sortTypesByFamilyAndSize(o1, o2) {
-      let type1 = o1.split('.');
-      let type2 = o2.split('.');
+      const type1 = o1.split('.');
+      const type2 = o2.split('.');
 
-      let [family1, class1 = ''] = type1;
-      let [family2, class2 = ''] = type2;
+      const [family1, class1 = ''] = type1;
+      const [family2, class2 = ''] = type2;
 
       if (family1 !== family2) {
         if (family1 > family2) {
@@ -219,16 +219,16 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
         return 0;
       }
 
-      let t1Idx = instanceClassOrder.findIndex(el => class1.endsWith(el));
-      let t2Idx = instanceClassOrder.findIndex(el => class2.endsWith(el));
+      const t1Idx = instanceClassOrder.findIndex(el => class1.endsWith(el));
+      const t2Idx = instanceClassOrder.findIndex(el => class2.endsWith(el));
 
       if (t1Idx === -1 || t2Idx === -1) {
         return 0;
       }
 
       if (t1Idx === 0 && t2Idx === 0) {
-        let size1 = parseInt(class1.replace('xlarge', '')) || 0;
-        let size2 = parseInt(class2.replace('xlarge', '')) || 0;
+        const size1 = parseInt(class1.replace('xlarge', '')) || 0;
+        const size2 = parseInt(class2.replace('xlarge', '')) || 0;
 
         if (size2 < size1) {
           return 1;
@@ -265,7 +265,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
       return availableTypes.sort(sortTypesByFamilyAndSize);
     }
 
-    let families = {
+    const families = {
       paravirtual: ['c1', 'c3', 'hi1', 'hs1', 'm1', 'm2', 'm3', 't1'],
       hvm: ['c3', 'c4', 'd2', 'i2', 'g2', 'm3', 'm4', 'm5', 'p2', 'r3', 'r4', 'r5', 't2', 'x1'],
       vpcOnly: ['c4', 'm4', 'm5', 'r4', 'r5', 't2', 'x1'],
@@ -278,7 +278,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
           // show all instance types
           return true;
         }
-        let [family] = instanceType.split('.');
+        const [family] = instanceType.split('.');
         if (!vpcOnly && families.vpcOnly.includes(family)) {
           return false;
         }
@@ -293,7 +293,7 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
       if (!instanceType) {
         return false;
       }
-      let [family] = instanceType.split('.');
+      const [family] = instanceType.split('.');
       return families.ebsOptimized.includes(family);
     }
 

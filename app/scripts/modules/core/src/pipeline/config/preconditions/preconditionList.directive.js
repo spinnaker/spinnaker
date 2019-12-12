@@ -30,10 +30,10 @@ module(CORE_PIPELINE_CONFIG_PRECONDITIONS_PRECONDITIONLIST_DIRECTIVE, [])
     '$scope',
     '$uibModal',
     function($scope, $uibModal) {
-      let vm = this;
+      const vm = this;
 
       vm.editPrecondition = function(precondition, strategy) {
-        let modalInstance = $uibModal.open({
+        const modalInstance = $uibModal.open({
           templateUrl: require('./modal/editPrecondition.html'),
           controller: 'EditPreconditionController',
           controllerAs: 'editPrecondition',

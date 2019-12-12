@@ -29,7 +29,7 @@ module(ORACLE_PIPELINE_STAGES_DISABLEASG_DISABLEASGSTAGE, [])
   .controller('oracleDisableAsgStageCtrl', [
     '$scope',
     function($scope) {
-      let stage = $scope.stage;
+      const stage = $scope.stage;
 
       const provider = 'oracle';
 

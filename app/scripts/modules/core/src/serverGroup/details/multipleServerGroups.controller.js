@@ -34,7 +34,7 @@ angular
        * Actions
        */
 
-      let getDescriptor = () => {
+      const getDescriptor = () => {
         let descriptor = this.serverGroups.length + ' server group';
         if (this.serverGroups.length > 1) {
           descriptor += 's';
@@ -42,17 +42,17 @@ angular
         return descriptor;
       };
 
-      let confirm = (submitMethodName, verbs) => {
-        let descriptor = getDescriptor();
-        let monitorInterval = this.serverGroups.length * 1000;
-        let taskMonitors = this.serverGroups.map(serverGroup => {
-          let provider = serverGroup.provider || serverGroup.type;
-          let providerParamsMixin = providerServiceDelegate.hasDelegate(provider, 'serverGroup.paramsMixin')
+      const confirm = (submitMethodName, verbs) => {
+        const descriptor = getDescriptor();
+        const monitorInterval = this.serverGroups.length * 1000;
+        const taskMonitors = this.serverGroups.map(serverGroup => {
+          const provider = serverGroup.provider || serverGroup.type;
+          const providerParamsMixin = providerServiceDelegate.hasDelegate(provider, 'serverGroup.paramsMixin')
             ? providerServiceDelegate.getDelegate(provider, 'serverGroup.paramsMixin')
             : {};
 
           let mixinParams = {};
-          let mixinParamsFactory = providerParamsMixin[submitMethodName];
+          const mixinParamsFactory = providerParamsMixin[submitMethodName];
           if (mixinParamsFactory !== undefined) {
             mixinParams = mixinParamsFactory(serverGroup);
           }
@@ -113,10 +113,10 @@ angular
        * View instantiation/synchronization
        */
 
-      let retrieveServerGroups = () => {
+      const retrieveServerGroups = () => {
         this.serverGroups = ClusterState.multiselectModel.serverGroups.map(multiselectGroup => {
-          let group = _.cloneDeep(multiselectGroup);
-          let match = app.serverGroups.data.find(
+          const group = _.cloneDeep(multiselectGroup);
+          const match = app.serverGroups.data.find(
             check => check.name === group.name && check.account === group.account && check.region === group.region,
           );
           if (match) {
@@ -127,7 +127,7 @@ angular
         });
       };
 
-      let multiselectWatcher = ClusterState.multiselectModel.serverGroupsStream.subscribe(retrieveServerGroups);
+      const multiselectWatcher = ClusterState.multiselectModel.serverGroupsStream.subscribe(retrieveServerGroups);
       app.serverGroups.onRefresh($scope, retrieveServerGroups);
 
       retrieveServerGroups();

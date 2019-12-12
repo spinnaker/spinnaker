@@ -15,21 +15,21 @@ module(CORE_PIPELINE_CONFIG_STAGES_JENKINS_JENKINSEXECUTIONDETAILS_CONTROLLER, [
     function($scope, $stateParams, executionDetailsSectionService) {
       $scope.configSections = ['jenkinsConfig', 'taskStatus', 'artifactStatus'];
 
-      let initialized = () => {
+      const initialized = () => {
         $scope.detailsSection = $stateParams.details;
         getFailureMessage();
       };
 
       function getFailureMessage() {
         let failureMessage = $scope.stage.failureMessage;
-        let context = $scope.stage.context || {};
-        let buildInfo = context.buildInfo || {};
-        let testResults =
+        const context = $scope.stage.context || {};
+        const buildInfo = context.buildInfo || {};
+        const testResults =
           buildInfo && buildInfo.testResults && buildInfo.testResults.length ? buildInfo.testResults : [];
-        let failingTests = testResults.filter(function(results) {
+        const failingTests = testResults.filter(function(results) {
           return results.failCount > 0;
         });
-        let failingTestCount = failingTests.reduce(function(acc, results) {
+        const failingTestCount = failingTests.reduce(function(acc, results) {
           return acc + results.failCount;
         }, 0);
 
@@ -44,7 +44,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_JENKINS_JENKINSEXECUTIONDETAILS_CONTROLLER, [
         $scope.failureMessage = failureMessage;
       }
 
-      let initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
+      const initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
 
       initialize();
 

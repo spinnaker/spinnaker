@@ -19,7 +19,7 @@ module(KUBERNETES_V1_LOADBALANCER_TRANSFORMER, []).factory('kubernetesLoadBalanc
     }
 
     function buildInstanceCounts(serverGroups) {
-      let instanceCounts = _.chain(serverGroups)
+      const instanceCounts = _.chain(serverGroups)
         .map('instances')
         .flatten()
         .reduce(

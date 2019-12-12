@@ -8,7 +8,7 @@ export const name = CORE_PIPELINE_CONFIG_PRECONDITIONS_PRECONDITIONTYPECONFIG_PR
 angular
   .module(CORE_PIPELINE_CONFIG_PRECONDITIONS_PRECONDITIONTYPECONFIG_PROVIDER, [])
   .provider('preconditionTypeConfig', function() {
-    let preconditionTypes = [];
+    const preconditionTypes = [];
 
     function registerPreconditionType(config) {
       preconditionTypes.push(config);

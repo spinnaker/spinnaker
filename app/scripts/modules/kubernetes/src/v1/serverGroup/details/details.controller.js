@@ -48,7 +48,7 @@ angular
       confirmationModalService,
       kubernetesProxyUiService,
     ) {
-      let application = (this.application = app);
+      const application = (this.application = app);
 
       $scope.state = {
         loading: true,
@@ -96,7 +96,7 @@ angular
       };
 
       function normalizeDeploymentStatus(serverGroup) {
-        let deploymentStatus = serverGroup.deploymentStatus;
+        const deploymentStatus = serverGroup.deploymentStatus;
 
         if (deploymentStatus !== undefined && deploymentStatus !== null) {
           deploymentStatus.unavailableReplicas |= 0;
@@ -106,7 +106,7 @@ angular
       }
 
       function retrieveServerGroup() {
-        let summary = extractServerGroupSummary();
+        const summary = extractServerGroupSummary();
         return ServerGroupReader.getServerGroup(
           application.name,
           serverGroup.accountId,
@@ -142,21 +142,21 @@ angular
       });
 
       this.destroyServerGroup = () => {
-        let serverGroup = $scope.serverGroup;
+        const serverGroup = $scope.serverGroup;
 
-        let taskMonitor = {
+        const taskMonitor = {
           application: application,
           title: 'Destroying ' + serverGroup.name,
         };
 
-        let submitMethod = params =>
+        const submitMethod = params =>
           serverGroupWriter.destroyServerGroup(
             serverGroup,
             application,
             angular.extend(params, kubernetesServerGroupParamsMixin.destroyServerGroup(serverGroup, application)),
           );
 
-        let stateParams = {
+        const stateParams = {
           name: serverGroup.name,
           accountId: serverGroup.account,
           namespace: serverGroup.namespace,
@@ -182,21 +182,21 @@ angular
       };
 
       this.disableServerGroup = function disableServerGroup() {
-        let serverGroup = $scope.serverGroup;
+        const serverGroup = $scope.serverGroup;
 
-        let taskMonitor = {
+        const taskMonitor = {
           application: application,
           title: 'Disabling ' + serverGroup.name,
         };
 
-        let submitMethod = params =>
+        const submitMethod = params =>
           serverGroupWriter.disableServerGroup(
             serverGroup,
             application,
             angular.extend(params, kubernetesServerGroupParamsMixin.disableServerGroup(serverGroup, application)),
           );
 
-        let confirmationModalParams = {
+        const confirmationModalParams = {
           header: 'Really disable ' + serverGroup.name + '?',
           buttonText: 'Disable ' + serverGroup.name,
           provider: 'kubernetes',
@@ -212,21 +212,21 @@ angular
       };
 
       this.enableServerGroup = function enableServerGroup() {
-        let serverGroup = $scope.serverGroup;
+        const serverGroup = $scope.serverGroup;
 
-        let taskMonitor = {
+        const taskMonitor = {
           application: application,
           title: 'Enabling ' + serverGroup.name,
         };
 
-        let submitMethod = params =>
+        const submitMethod = params =>
           serverGroupWriter.enableServerGroup(
             serverGroup,
             application,
             angular.extend(params, kubernetesServerGroupParamsMixin.enableServerGroup(serverGroup, application)),
           );
 
-        let confirmationModalParams = {
+        const confirmationModalParams = {
           header: 'Really enable ' + serverGroup.name + '?',
           buttonText: 'Enable ' + serverGroup.name,
           provider: 'kubernetes',
@@ -248,7 +248,7 @@ angular
               return $scope.serverGroup;
             },
             disabledServerGroups: function() {
-              let cluster = _.find(app.clusters, {
+              const cluster = _.find(app.clusters, {
                 name: $scope.serverGroup.cluster,
                 account: $scope.serverGroup.account,
               });

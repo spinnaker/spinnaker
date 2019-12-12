@@ -53,14 +53,14 @@ module(CORE_SECURITYGROUP_ALLSECURITYGROUPSCTRL, [
     this.groupingsTemplate = require('./groupings.html');
     this.firewallLabel = FirewallLabels.get('Firewall');
 
-    let updateSecurityGroups = () => {
+    const updateSecurityGroups = () => {
       $scope.$evalAsync(() => {
         SecurityGroupState.filterService.updateSecurityGroups(app);
         groupsUpdated();
       });
     };
 
-    let groupsUpdated = () => {
+    const groupsUpdated = () => {
       $scope.$applyAsync(() => {
         $scope.groups = SecurityGroupState.filterModel.groups;
         $scope.tags = SecurityGroupState.filterModel.tags;
@@ -86,10 +86,10 @@ module(CORE_SECURITYGROUP_ALLSECURITYGROUPSCTRL, [
       ProviderSelectionService.selectProvider(app, 'securityGroup', createSecurityGroupProviderFilterFn)
         .then(selectedProvider => {
           skinSelectionService.selectSkin(selectedProvider).then(selectedVersion => {
-            let provider = CloudProviderRegistry.getValue(selectedProvider, 'securityGroup', selectedVersion);
-            let defaultCredentials =
+            const provider = CloudProviderRegistry.getValue(selectedProvider, 'securityGroup', selectedVersion);
+            const defaultCredentials =
               app.defaultCredentials[selectedProvider] || SETTINGS.providers[selectedProvider].defaults.account;
-            let defaultRegion =
+            const defaultRegion =
               app.defaultRegions[selectedProvider] || SETTINGS.providers[selectedProvider].defaults.region;
             if (provider.CreateSecurityGroupModal) {
               provider.CreateSecurityGroupModal.show({

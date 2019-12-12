@@ -85,9 +85,9 @@ module(AZURE_SECURITYGROUP_CONFIGURE_EDITSECURITYGROUPCTRL, [
 
     function initializeSecurityGroups() {
       return securityGroupReader.getAllSecurityGroups().then(function(securityGroups) {
-        let account = securityGroup.accountName;
-        let region = securityGroup.region;
-        let availableGroups = _.filter(securityGroups[account].azure[region], {
+        const account = securityGroup.accountName;
+        const region = securityGroup.region;
+        const availableGroups = _.filter(securityGroups[account].azure[region], {
           /*vpcId: vpcId*/
         });
         $scope.availableSecurityGroups = _.map(availableGroups, 'name');
@@ -118,7 +118,7 @@ module(AZURE_SECURITYGROUP_CONFIGURE_EDITSECURITYGROUPCTRL, [
         return;
       }
       $uibModalInstance.close();
-      let newStateParams = {
+      const newStateParams = {
         name: $scope.securityGroup.name,
         accountId: $scope.securityGroup.credentials || $scope.securityGroup.accountName,
         region: $scope.securityGroup.region,
@@ -138,7 +138,7 @@ module(AZURE_SECURITYGROUP_CONFIGURE_EDITSECURITYGROUPCTRL, [
 
     this.portUpdated = function(ruleset, index) {
       if (!_.isEmpty(ruleset[index].sourceIPCIDRRanges)) {
-        let ruleRanges = ruleset[index].destPortRanges.split(',');
+        const ruleRanges = ruleset[index].destPortRanges.split(',');
         if (ruleRanges.length > 1) {
           ruleset[index].destinationPortRanges = [];
           ruleRanges.forEach(v => ruleset[index].destinationPortRanges.push(v));
@@ -156,7 +156,7 @@ module(AZURE_SECURITYGROUP_CONFIGURE_EDITSECURITYGROUPCTRL, [
 
     this.sourceIPCIDRUpdated = function(ruleset, index) {
       if (!_.isEmpty(ruleset[index].sourceIPCIDRRanges)) {
-        let ruleRanges = ruleset[index].sourceIPCIDRRanges.split(',');
+        const ruleRanges = ruleset[index].sourceIPCIDRRanges.split(',');
         if (ruleRanges.length > 1) {
           ruleset[index].sourceAddressPrefixes = [];
           ruleRanges.forEach(v => ruleset[index].sourceAddressPrefixes.push(v));
@@ -186,10 +186,9 @@ module(AZURE_SECURITYGROUP_CONFIGURE_EDITSECURITYGROUPCTRL, [
     };
 
     function swapRules(ruleset, a, b) {
-      let temp, priorityA, priorityB;
-      temp = ruleset[b];
-      priorityA = ruleset[a].priority;
-      priorityB = ruleset[b].priority;
+      const temp = ruleset[b];
+      const priorityA = ruleset[a].priority;
+      const priorityB = ruleset[b].priority;
       //swap elements
       ruleset[b] = ruleset[a];
       ruleset[a] = temp;
@@ -202,7 +201,7 @@ module(AZURE_SECURITYGROUP_CONFIGURE_EDITSECURITYGROUPCTRL, [
 
     this.upsert = function() {
       $scope.taskMonitor.submit(function() {
-        let params = {
+        const params = {
           cloudProvider: 'azure',
           appName: application.name,
           region: $scope.securityGroup.region,

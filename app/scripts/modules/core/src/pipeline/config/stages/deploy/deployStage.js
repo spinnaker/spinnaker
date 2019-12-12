@@ -80,9 +80,9 @@ angular
         if (cluster.region) {
           return cluster.region;
         }
-        let availabilityZones = cluster.availabilityZones;
+        const availabilityZones = cluster.availabilityZones;
         if (availabilityZones) {
-          let regions = Object.keys(availabilityZones);
+          const regions = Object.keys(availabilityZones);
           if (regions && regions.length) {
             return regions[0];
           }
@@ -92,7 +92,7 @@ angular
 
       this.hasSubnetDeployments = () => {
         return stage.clusters.some(cluster => {
-          let cloudProvider = cluster.cloudProvider || cluster.provider || cluster.providerType || 'aws';
+          const cloudProvider = cluster.cloudProvider || cluster.provider || cluster.providerType || 'aws';
           return CloudProviderRegistry.hasValue(cloudProvider, 'subnet');
         });
       };
@@ -104,9 +104,9 @@ angular
       };
 
       this.getSubnet = cluster => {
-        let cloudProvider = cluster.cloudProvider || cluster.provider || cluster.providerType || 'aws';
+        const cloudProvider = cluster.cloudProvider || cluster.provider || cluster.providerType || 'aws';
         if (CloudProviderRegistry.hasValue(cloudProvider, 'subnet')) {
-          let subnetRenderer = CloudProviderRegistry.getValue(cloudProvider, 'subnet').renderer;
+          const subnetRenderer = CloudProviderRegistry.getValue(cloudProvider, 'subnet').renderer;
           if ($injector.has(subnetRenderer)) {
             return $injector.get(subnetRenderer).render(cluster);
           } else {
@@ -164,7 +164,7 @@ angular
 
       this.editCluster = function(cluster, index) {
         cluster.provider = cluster.cloudProvider || cluster.providerType || 'aws';
-        let providerConfig = CloudProviderRegistry.getProvider(cluster.provider);
+        const providerConfig = CloudProviderRegistry.getProvider(cluster.provider);
 
         const handleResult = function(command) {
           const stageCluster = serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(command);

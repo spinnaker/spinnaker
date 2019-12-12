@@ -64,7 +64,7 @@ angular
 
       this.application = app;
 
-      let extractServerGroupSummary = () => {
+      const extractServerGroupSummary = () => {
         return app.ready().then(() => {
           let summary = find(app.serverGroups.data, toCheck => {
             return (
@@ -89,18 +89,18 @@ angular
         });
       };
 
-      let autoClose = () => {
+      const autoClose = () => {
         if ($scope.$$destroyed) {
           return;
         }
         $state.go('^', { allowModalToStayOpen: true }, { location: 'replace' });
       };
 
-      let cancelLoader = () => {
+      const cancelLoader = () => {
         this.state.loading = false;
       };
 
-      let retrieveServerGroup = () => {
+      const retrieveServerGroup = () => {
         return extractServerGroupSummary()
           .then(summary => {
             return ServerGroupReader.getServerGroup(
@@ -120,12 +120,12 @@ angular
               if (!isEmpty(this.serverGroup)) {
                 this.image = details.image ? details.image : undefined;
 
-                let vpc = this.serverGroup.asg ? this.serverGroup.asg.vpczoneIdentifier : '';
+                const vpc = this.serverGroup.asg ? this.serverGroup.asg.vpczoneIdentifier : '';
 
                 if (vpc !== '') {
-                  let subnetId = vpc.split(',')[0];
+                  const subnetId = vpc.split(',')[0];
                   SubnetReader.listSubnets().then(subnets => {
-                    let subnet = chain(subnets)
+                    const subnet = chain(subnets)
                       .find({ id: subnetId })
                       .value();
                     this.serverGroup.subnetType = subnet.purpose;
@@ -133,9 +133,9 @@ angular
                 }
 
                 if (details.image && details.image.description) {
-                  let tags = details.image.description.split(', ');
+                  const tags = details.image.description.split(', ');
                   tags.forEach(tag => {
-                    let keyVal = tag.split('=');
+                    const keyVal = tag.split('=');
                     if (keyVal.length === 2 && keyVal[0] === 'ancestor_name') {
                       details.image.baseImage = keyVal[1];
                     }
@@ -143,7 +143,7 @@ angular
                 }
 
                 if (details.image && details.image.tags) {
-                  let baseAmiVersionTag = details.image.tags.find(tag => tag.key === 'base_ami_version');
+                  const baseAmiVersionTag = details.image.tags.find(tag => tag.key === 'base_ami_version');
                   if (baseAmiVersionTag) {
                     details.baseAmiVersion = baseAmiVersionTag.value;
                   }
@@ -187,22 +187,22 @@ angular
       });
 
       this.destroyServerGroup = () => {
-        let serverGroup = this.serverGroup;
+        const serverGroup = this.serverGroup;
 
-        let taskMonitor = {
+        const taskMonitor = {
           application: app,
           title: 'Destroying ' + serverGroup.name,
         };
 
-        let submitMethod = params => serverGroupWriter.destroyServerGroup(serverGroup, app, params);
+        const submitMethod = params => serverGroupWriter.destroyServerGroup(serverGroup, app, params);
 
-        let stateParams = {
+        const stateParams = {
           name: serverGroup.name,
           accountId: serverGroup.account,
           region: serverGroup.region,
         };
 
-        let confirmationModalParams = {
+        const confirmationModalParams = {
           header: 'Really destroy ' + serverGroup.name + '?',
           buttonText: 'Destroy ' + serverGroup.name,
           account: serverGroup.account,
@@ -229,18 +229,18 @@ angular
       };
 
       this.disableServerGroup = () => {
-        let serverGroup = this.serverGroup;
+        const serverGroup = this.serverGroup;
 
-        let taskMonitor = {
+        const taskMonitor = {
           application: app,
           title: 'Disabling ' + serverGroup.name,
         };
 
-        let submitMethod = params => {
+        const submitMethod = params => {
           return serverGroupWriter.disableServerGroup(serverGroup, app, params);
         };
 
-        let confirmationModalParams = {
+        const confirmationModalParams = {
           header: 'Really disable ' + serverGroup.name + '?',
           buttonText: 'Disable ' + serverGroup.name,
           account: serverGroup.account,
@@ -262,18 +262,18 @@ angular
       };
 
       this.enableServerGroup = () => {
-        let serverGroup = this.serverGroup;
+        const serverGroup = this.serverGroup;
 
-        let taskMonitor = {
+        const taskMonitor = {
           application: app,
           title: 'Enabling ' + serverGroup.name,
         };
 
-        let submitMethod = params => {
+        const submitMethod = params => {
           return serverGroupWriter.enableServerGroup(serverGroup, app, params);
         };
 
-        let confirmationModalParams = {
+        const confirmationModalParams = {
           header: 'Really enable ' + serverGroup.name + '?',
           buttonText: 'Enable ' + serverGroup.name,
           account: serverGroup.account,
@@ -301,7 +301,7 @@ angular
           resolve: {
             serverGroup: () => this.serverGroup,
             disabledServerGroups: () => {
-              let cluster = find(app.clusters, { name: this.serverGroup.cluster, account: this.serverGroup.account });
+              const cluster = find(app.clusters, { name: this.serverGroup.cluster, account: this.serverGroup.account });
               return filter(cluster.serverGroups, { isDisabled: true, region: this.serverGroup.region });
             },
             allServerGroups: () =>
@@ -348,7 +348,7 @@ angular
         if (has(this, 'serverGroup.buildInfo.buildInfoUrl')) {
           return this.serverGroup.buildInfo.buildInfoUrl;
         } else if (has(this, 'serverGroup.buildInfo.jenkins')) {
-          let jenkins = this.serverGroup.buildInfo.jenkins;
+          const jenkins = this.serverGroup.buildInfo.jenkins;
           return jenkins.host + 'job/' + jenkins.name + '/' + jenkins.number;
         }
         return null;

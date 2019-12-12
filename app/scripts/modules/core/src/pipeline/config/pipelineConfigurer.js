@@ -82,7 +82,7 @@ angular
         })
         .finally(() => this.setViewState({ loadingHistory: false }));
 
-      let configViewStateCache = ViewStateCache.get('pipelineConfig');
+      const configViewStateCache = ViewStateCache.get('pipelineConfig');
 
       function buildCacheKey() {
         return PipelineConfigService.buildViewStateCacheKey($scope.application.name, $scope.pipeline.id);
@@ -97,13 +97,13 @@ angular
 
       $scope.viewState.loadingHistory = true;
 
-      let setOriginal = pipeline => {
+      const setOriginal = pipeline => {
         $scope.viewState.original = angular.toJson(pipeline);
         $scope.viewState.originalRenderablePipeline = angular.toJson($scope.renderablePipeline);
         this.updatePipeline();
       };
 
-      let getOriginal = () => angular.fromJson($scope.viewState.original);
+      const getOriginal = () => angular.fromJson($scope.viewState.original);
 
       const getOriginalRenderablePipeline = () => angular.fromJson($scope.viewState.originalRenderablePipeline);
 
@@ -153,20 +153,20 @@ angular
         },
         update: (e, ui) => {
           let itemScope = ui.item.scope();
-          let currentPage = $scope.viewState.stageIndex;
-          let startingPagePosition = itemScope.$index;
-          let isCurrentPage = currentPage === startingPagePosition;
+          const currentPage = $scope.viewState.stageIndex;
+          const startingPagePosition = itemScope.$index;
+          const isCurrentPage = currentPage === startingPagePosition;
 
           $timeout(() => {
             itemScope = ui.item.scope(); // this is terrible but provides a hook for mocking in tests
-            let newPagePosition = itemScope.$index;
+            const newPagePosition = itemScope.$index;
             if (isCurrentPage) {
               ctrl.navigateToStage(newPagePosition);
             } else {
-              let wasBefore = startingPagePosition < currentPage;
-              let isBefore = newPagePosition <= currentPage;
+              const wasBefore = startingPagePosition < currentPage;
+              const isBefore = newPagePosition <= currentPage;
               if (wasBefore !== isBefore) {
-                let newCurrentPage = isBefore ? currentPage + 1 : currentPage - 1;
+                const newCurrentPage = isBefore ? currentPage + 1 : currentPage - 1;
                 ctrl.navigateToStage(newCurrentPage);
               }
             }
@@ -222,7 +222,7 @@ angular
 
       function disableToggled(isDisabled) {
         $scope.pipeline.disabled = isDisabled;
-        let original = getOriginal();
+        const original = getOriginal();
         original.disabled = isDisabled;
         setOriginal(original);
       }
@@ -312,7 +312,7 @@ angular
       };
 
       this.removeStage = stage => {
-        let stageIndex = $scope.renderablePipeline.stages.indexOf(stage);
+        const stageIndex = $scope.renderablePipeline.stages.indexOf(stage);
         $scope.renderablePipeline.stages.splice(stageIndex, 1);
         $scope.renderablePipeline.stages.forEach(test => {
           if (stage.refId && test.requisiteStageRefIds) {
@@ -451,7 +451,7 @@ angular
 
           // if we were looking at a stage that no longer exists, move to the last stage
           if ($scope.viewState.section === 'stage') {
-            let lastStage = $scope.renderablePipeline.stages.length - 1;
+            const lastStage = $scope.renderablePipeline.stages.length - 1;
             if ($scope.viewState.stageIndex > lastStage) {
               this.setViewState({ stageIndex: lastStage });
             }
@@ -484,7 +484,7 @@ angular
 
       const warningMessage = 'You have unsaved changes.\nAre you sure you want to navigate away from this page?';
 
-      let confirmPageLeave = $scope.$on('$stateChangeStart', event => {
+      const confirmPageLeave = $scope.$on('$stateChangeStart', event => {
         if ($scope.viewState.isDirty) {
           if (!$window.confirm(warningMessage)) {
             event.preventDefault();

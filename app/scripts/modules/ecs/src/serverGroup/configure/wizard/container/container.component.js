@@ -34,7 +34,7 @@ module(ECS_SERVERGROUP_CONFIGURE_WIZARD_CONTAINER_CONTAINER_COMPONENT, [])
         return Observable.fromPromise(ecsServerGroupConfigurationService.configureCommand(cmd, q));
       }
 
-      let imageSearchResultsStream = new Subject();
+      const imageSearchResultsStream = new Subject();
 
       imageSearchResultsStream
         .debounceTime(250)

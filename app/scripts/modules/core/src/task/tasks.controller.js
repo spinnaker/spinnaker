@@ -31,12 +31,12 @@ module(CORE_TASK_TASKS_CONTROLLER, [
       return;
     }
 
-    let controller = this;
+    const controller = this;
     const application = app;
 
     $scope.$state = $state;
 
-    let tasksViewStateCache = ViewStateCache.get('tasks') || ViewStateCache.createCache('tasks', { version: 1 });
+    const tasksViewStateCache = ViewStateCache.get('tasks') || ViewStateCache.createCache('tasks', { version: 1 });
 
     function cacheViewState() {
       tasksViewStateCache.put(application.name, $scope.viewState);
@@ -53,7 +53,7 @@ module(CORE_TASK_TASKS_CONTROLLER, [
     $scope.filterCountOptions = [10, 20, 30, 50, 100, 200];
 
     function initializeViewState() {
-      let viewState = tasksViewStateCache.get(application.name) || {
+      const viewState = tasksViewStateCache.get(application.name) || {
         taskStateFilter: '',
         expandedTasks: [],
       };
@@ -86,7 +86,7 @@ module(CORE_TASK_TASKS_CONTROLLER, [
     controller.sortedTasks = [];
 
     controller.toggleDetails = function(taskId) {
-      let index = $scope.viewState.expandedTasks.indexOf(taskId);
+      const index = $scope.viewState.expandedTasks.indexOf(taskId);
       if (index === -1) {
         $scope.viewState.expandedTasks.push(taskId);
       } else {
@@ -104,10 +104,10 @@ module(CORE_TASK_TASKS_CONTROLLER, [
     };
 
     controller.sortTasks = function() {
-      let joinedLists = filterRunningTasks().concat(filterNonRunningTasks());
+      const joinedLists = filterRunningTasks().concat(filterNonRunningTasks());
       controller.sortedTasks = joinedLists;
       if ($scope.viewState.nameFilter) {
-        let normalizedSearch = $scope.viewState.nameFilter.toLowerCase();
+        const normalizedSearch = $scope.viewState.nameFilter.toLowerCase();
         controller.sortedTasks = _.filter(joinedLists, function(task) {
           return (
             task.name.toLowerCase().includes(normalizedSearch) ||
@@ -146,10 +146,10 @@ module(CORE_TASK_TASKS_CONTROLLER, [
     }, 300);
 
     controller.cancelTask = function(taskId) {
-      let task = application.tasks.data.filter(function(task) {
+      const task = application.tasks.data.filter(function(task) {
         return task.id === taskId;
       })[0];
-      let submitMethod = function() {
+      const submitMethod = function() {
         // cancelTask() polls aggressively waiting for a sucessful cancellation,
         // which triggers equally aggressive updates to the runningTimeInMs field
         // on the hydrated task object. Because we render that field in templates,
@@ -184,10 +184,10 @@ module(CORE_TASK_TASKS_CONTROLLER, [
     };
 
     controller.resultPage = function resultPage() {
-      let pagination = $scope.pagination;
-      let allFiltered = controller.sortedTasks;
-      let start = (pagination.currentPage - 1) * pagination.itemsPerPage;
-      let end = pagination.currentPage * pagination.itemsPerPage;
+      const pagination = $scope.pagination;
+      const allFiltered = controller.sortedTasks;
+      const start = (pagination.currentPage - 1) * pagination.itemsPerPage;
+      const end = pagination.currentPage * pagination.itemsPerPage;
       if (!allFiltered || !allFiltered.length) {
         return [];
       }
@@ -202,7 +202,7 @@ module(CORE_TASK_TASKS_CONTROLLER, [
 
     controller.getFirstDeployServerGroupName = function(task) {
       if (task.execution && task.execution.stages) {
-        let stage = findStageWithTaskInExecution(task.execution, [
+        const stage = findStageWithTaskInExecution(task.execution, [
           'createCopyLastAsg',
           'createDeploy',
           'cloneServerGroup',
@@ -235,7 +235,7 @@ module(CORE_TASK_TASKS_CONTROLLER, [
     };
 
     controller.getProviderForServerGroupByTask = function(task) {
-      let serverGroupName = controller.getFirstDeployServerGroupName(task);
+      const serverGroupName = controller.getFirstDeployServerGroupName(task);
       return _.chain(application.serverGroups.data)
         .find(function(serverGroup) {
           return serverGroup.name === serverGroupName;
@@ -255,7 +255,7 @@ module(CORE_TASK_TASKS_CONTROLLER, [
     }
 
     function filterRunningTasks() {
-      let running = _.chain(application.tasks.data)
+      const running = _.chain(application.tasks.data)
         .filter(function(task) {
           return task.name && task.isActive;
         })
@@ -265,7 +265,7 @@ module(CORE_TASK_TASKS_CONTROLLER, [
     }
 
     function filterNonRunningTasks() {
-      let notRunning = _.chain(application.tasks.data)
+      const notRunning = _.chain(application.tasks.data)
         .filter(function(task) {
           return task.name && !task.isActive;
         })

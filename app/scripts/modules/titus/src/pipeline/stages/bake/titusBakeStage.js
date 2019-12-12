@@ -21,7 +21,7 @@ module(TITUS_PIPELINE_STAGES_BAKE_TITUSBAKESTAGE, [TITUS_PIPELINE_STAGES_BAKE_BA
   .controller('titusBakeCtrl', [
     '$scope',
     function($scope) {
-      let stage = $scope.stage;
+      const stage = $scope.stage;
 
       if (!stage.user) {
         stage.user = AuthenticationService.getAuthenticatedUser().name;
@@ -76,7 +76,7 @@ module(TITUS_PIPELINE_STAGES_BAKE_TITUSBAKESTAGE, [TITUS_PIPELINE_STAGES_BAKE_BA
           }
         }
 
-        let buildParams = $.param(stage.repository.buildParameters);
+        const buildParams = $.param(stage.repository.buildParameters);
         if (buildParams.length > 0) {
           url += '&' + decodeURIComponent(buildParams);
         }

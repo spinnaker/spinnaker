@@ -34,7 +34,7 @@ module(AMAZON_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [SERV
       $scope.allServerGroups = allServerGroups.sort((a, b) => b.name.localeCompare(a.name));
       $scope.verification = {};
 
-      let desired = serverGroup.capacity.desired;
+      const desired = serverGroup.capacity.desired;
 
       let rollbackType = 'EXPLICIT';
 
@@ -91,7 +91,7 @@ module(AMAZON_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [SERV
       }
 
       this.isValid = function() {
-        let command = $scope.command;
+        const command = $scope.command;
         if (!$scope.verification.verified) {
           return false;
         }
@@ -115,7 +115,7 @@ module(AMAZON_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER, [SERV
           return;
         }
 
-        let submitMethod = function() {
+        const submitMethod = function() {
           return serverGroupWriter.rollbackServerGroup(serverGroup, application, $scope.command);
         };
 

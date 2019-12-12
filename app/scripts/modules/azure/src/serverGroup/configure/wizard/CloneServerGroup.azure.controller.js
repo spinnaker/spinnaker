@@ -93,11 +93,11 @@ module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_AZURE_CONTROLLER, [
       if ($scope.$$destroyed) {
         return;
       }
-      let cloneStage = $scope.taskMonitor.task.execution.stages.find(stage => stage.type === 'cloneServerGroup');
+      const cloneStage = $scope.taskMonitor.task.execution.stages.find(stage => stage.type === 'cloneServerGroup');
       if (cloneStage && cloneStage.context['deploy.server.groups']) {
-        let newServerGroupName = cloneStage.context['deploy.server.groups'][$scope.command.region];
+        const newServerGroupName = cloneStage.context['deploy.server.groups'][$scope.command.region];
         if (newServerGroupName) {
-          let newStateParams = {
+          const newStateParams = {
             serverGroup: newServerGroupName,
             accountId: $scope.command.credentials,
             region: $scope.command.region,
@@ -135,7 +135,7 @@ module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_AZURE_CONTROLLER, [
 
     function configureCommand() {
       azureServerGroupConfigurationService.configureCommand(application, serverGroupCommand).then(function() {
-        let mode = serverGroupCommand.viewState.mode;
+        const mode = serverGroupCommand.viewState.mode;
         if (mode === 'clone' || mode === 'create') {
           serverGroupCommand.viewState.useAllImageSelection = true;
         }
@@ -147,7 +147,7 @@ module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_AZURE_CONTROLLER, [
     }
 
     function initializeWizardState() {
-      let mode = serverGroupCommand.viewState.mode;
+      const mode = serverGroupCommand.viewState.mode;
       if (mode === 'clone' || mode === 'editPipeline') {
         ModalWizard.markComplete('basic-settings');
         ModalWizard.markComplete('load-balancers');
@@ -207,7 +207,7 @@ module(AZURE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_AZURE_CONTROLLER, [
 
     this.toggleSuspendedProcess = function(process) {
       $scope.command.suspendedProcesses = $scope.command.suspendedProcesses || [];
-      let processIndex = $scope.command.suspendedProcesses.indexOf(process);
+      const processIndex = $scope.command.suspendedProcesses.indexOf(process);
       if (processIndex === -1) {
         $scope.command.suspendedProcesses.push(process);
       } else {

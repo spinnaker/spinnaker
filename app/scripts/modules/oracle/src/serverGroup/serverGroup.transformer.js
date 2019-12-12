@@ -9,14 +9,14 @@ export const name = ORACLE_SERVERGROUP_SERVERGROUP_TRANSFORMER; // for backwards
 module(ORACLE_SERVERGROUP_SERVERGROUP_TRANSFORMER, []).factory('oracleServerGroupTransformer', [
   '$q',
   function($q) {
-    let PROVIDER = 'oracle';
+    const PROVIDER = 'oracle';
 
     function normalizeServerGroup(serverGroup) {
       return $q.when(serverGroup);
     }
 
     function convertServerGroupCommandToDeployConfiguration(base) {
-      let command = _.defaults({ backingData: [], viewState: [] }, base);
+      const command = _.defaults({ backingData: [], viewState: [] }, base);
       command.cloudProvider = PROVIDER;
       return command;
     }

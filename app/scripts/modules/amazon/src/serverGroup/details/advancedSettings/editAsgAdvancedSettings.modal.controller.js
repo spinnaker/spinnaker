@@ -29,9 +29,9 @@ module(AMAZON_SERVERGROUP_DETAILS_ADVANCEDSETTINGS_EDITASGADVANCEDSETTINGS_MODAL
     });
 
     this.submit = () => {
-      let job = [$scope.command];
+      const job = [$scope.command];
 
-      let submitMethod = function() {
+      const submitMethod = function() {
         return TaskExecutor.executeTask({
           job: job,
           application: application,

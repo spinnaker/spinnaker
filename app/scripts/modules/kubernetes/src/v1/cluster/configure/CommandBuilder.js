@@ -12,7 +12,7 @@ export const name = KUBERNETES_V1_CLUSTER_CONFIGURE_COMMANDBUILDER; // for backw
 module(KUBERNETES_V1_CLUSTER_CONFIGURE_COMMANDBUILDER, []).factory('kubernetesClusterCommandBuilder', function() {
   function attemptToSetValidAccount(application, defaultAccount, command) {
     return AccountService.listAccounts('kubernetes', 'v1').then(function(kubernetesAccounts) {
-      let kubernetesAccountNames = _.map(kubernetesAccounts, 'name');
+      const kubernetesAccountNames = _.map(kubernetesAccounts, 'name');
       let firstKubernetesAccount = null;
 
       if (application.accounts.length) {
@@ -23,7 +23,7 @@ module(KUBERNETES_V1_CLUSTER_CONFIGURE_COMMANDBUILDER, []).factory('kubernetesCl
         firstKubernetesAccount = kubernetesAccountNames[0];
       }
 
-      let defaultAccountIsValid = defaultAccount && kubernetesAccountNames.includes(defaultAccount);
+      const defaultAccountIsValid = defaultAccount && kubernetesAccountNames.includes(defaultAccount);
 
       command.account = defaultAccountIsValid
         ? defaultAccount
@@ -38,9 +38,9 @@ module(KUBERNETES_V1_CLUSTER_CONFIGURE_COMMANDBUILDER, []).factory('kubernetesCl
   }
 
   function buildNewClusterCommand(application, defaults = {}) {
-    let defaultAccount = defaults.account || KubernetesProviderSettings.defaults.account;
+    const defaultAccount = defaults.account || KubernetesProviderSettings.defaults.account;
 
-    let command = {
+    const command = {
       account: defaultAccount,
       application: application.name,
       strategy: '',
@@ -93,7 +93,7 @@ module(KUBERNETES_V1_CLUSTER_CONFIGURE_COMMANDBUILDER, []).factory('kubernetesCl
   function buildClusterCommandFromExisting(application, existing, mode) {
     mode = mode || 'clone';
 
-    let command = _.cloneDeep(existing.deployDescription);
+    const command = _.cloneDeep(existing.deployDescription);
 
     command.groupByRegistry = groupByRegistry;
     command.cloudProvider = 'kubernetes';
@@ -198,14 +198,14 @@ module(KUBERNETES_V1_CLUSTER_CONFIGURE_COMMANDBUILDER, []).factory('kubernetesCl
       }
     };
 
-    let result = [];
+    const result = [];
     containers.forEach(container => {
-      let imageDescription = container.imageDescription;
-      let imageConfig = getConfig(imageDescription);
+      const imageDescription = container.imageDescription;
+      const imageConfig = getConfig(imageDescription);
       if (imageConfig.skipProcessing) {
         result.push(container);
       } else {
-        let matchingImage = upstreamImages.find(imageConfig.match);
+        const matchingImage = upstreamImages.find(imageConfig.match);
         if (matchingImage) {
           Object.assign(imageDescription, imageConfig.fieldsToCopy(matchingImage));
           result.push(container);
@@ -242,7 +242,7 @@ module(KUBERNETES_V1_CLUSTER_CONFIGURE_COMMANDBUILDER, []).factory('kubernetesCl
       });
     }
     current.requisiteStageRefIds.forEach(function(id) {
-      let next = all.find(stage => stage.refId === id);
+      const next = all.find(stage => stage.refId === id);
       if (next) {
         result = result.concat(findContextImages(next, all, visited));
       }
@@ -269,7 +269,7 @@ module(KUBERNETES_V1_CLUSTER_CONFIGURE_COMMANDBUILDER, []).factory('kubernetesCl
   }
 
   function findArtifactImages(currentStage, pipeline) {
-    let artifactImages = ExpectedArtifactService.getExpectedArtifactsAvailableToStage(currentStage, pipeline)
+    const artifactImages = ExpectedArtifactService.getExpectedArtifactsAvailableToStage(currentStage, pipeline)
       .filter(artifact => artifact.matchArtifact.type === 'docker/image')
       .map(artifact => ({
         fromArtifact: true,
@@ -296,7 +296,7 @@ module(KUBERNETES_V1_CLUSTER_CONFIGURE_COMMANDBUILDER, []).factory('kubernetesCl
   }
 
   function buildClusterCommandFromPipeline(app, originalCommand, current, pipeline) {
-    let command = _.cloneDeep(originalCommand);
+    const command = _.cloneDeep(originalCommand);
     let contextImages = findContextImages(current, pipeline.stages) || [];
     contextImages = contextImages.concat(findTriggerImages(pipeline.triggers));
     contextImages = contextImages.concat(findArtifactImages(current, pipeline));

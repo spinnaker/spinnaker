@@ -19,7 +19,7 @@ module(AZURE_SERVERGROUP_SERVERGROUP_TRANSFORMER, []).factory('azureServerGroupT
     if (Array.isArray(command.customScriptsSettings.fileUris)) {
       configuration.customScriptsSettings.fileUris = command.customScriptsSettings.fileUris;
     } else {
-      let fileUrisTemp = command.customScriptsSettings.fileUris;
+      const fileUrisTemp = command.customScriptsSettings.fileUris;
       if (fileUrisTemp.includes(',')) {
         configuration.customScriptsSettings.fileUris = fileUrisTemp.split(',');
       } else if (fileUrisTemp.includes(';')) {
@@ -53,7 +53,7 @@ module(AZURE_SERVERGROUP_SERVERGROUP_TRANSFORMER, []).factory('azureServerGroupT
       tempImage = command.selectedImage;
     }
 
-    let configuration = {
+    const configuration = {
       name: command.application,
       cloudProvider: command.selectedProvider,
       application: command.application,
@@ -124,7 +124,7 @@ module(AZURE_SERVERGROUP_SERVERGROUP_TRANSFORMER, []).factory('azureServerGroupT
     }
 
     if (command.instanceType) {
-      let vmsku = command.instanceType;
+      const vmsku = command.instanceType;
       configuration.instanceType = command.instanceType;
       configuration.sku.name = vmsku;
       configuration.sku.tier = vmsku.substring(0, vmsku.indexOf('_'));

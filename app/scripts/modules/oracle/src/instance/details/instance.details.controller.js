@@ -18,7 +18,7 @@ module(ORACLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [UIROUTER_ANGULARJS,
     function($scope, $q, instanceWriter, app, instance) {
       $scope.application = app;
 
-      let initialize = app.isStandalone
+      const initialize = app.isStandalone
         ? retrieveInstance()
         : $q.all([app.serverGroups.ready()]).then(retrieveInstance);
 

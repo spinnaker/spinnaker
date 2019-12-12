@@ -77,7 +77,7 @@ module(KUBERNETES_V1_INSTANCE_DETAILS_DETAILS_CONTROLLER, [
     };
 
     function retrieveInstance() {
-      let extraData = {};
+      const extraData = {};
       let instanceSummary, loadBalancers, account, namespace;
       if (!app.serverGroups) {
         // standalone instance
@@ -144,7 +144,7 @@ module(KUBERNETES_V1_INSTANCE_DETAILS_DETAILS_CONTROLLER, [
           $scope.instance.namespace = namespace;
           $scope.instance.region = namespace;
           $scope.instance.loadBalancers = loadBalancers;
-          let pod = $scope.instance.pod;
+          const pod = $scope.instance.pod;
           $scope.instance.dnsPolicy = pod.spec.dnsPolicy;
           $scope.instance.apiVersion = pod.apiVersion;
           $scope.instance.kind = pod.kind;
@@ -187,9 +187,9 @@ module(KUBERNETES_V1_INSTANCE_DETAILS_DETAILS_CONTROLLER, [
     }
 
     this.terminateInstance = function terminateInstance() {
-      let instance = $scope.instance;
+      const instance = $scope.instance;
 
-      let taskMonitor = {
+      const taskMonitor = {
         application: app,
         title: 'Terminating ' + instance.instanceId,
         onTaskComplete: function() {
@@ -199,8 +199,8 @@ module(KUBERNETES_V1_INSTANCE_DETAILS_DETAILS_CONTROLLER, [
         },
       };
 
-      let submitMethod = function() {
-        let params = { cloudProvider: 'kubernetes' };
+      const submitMethod = function() {
+        const params = { cloudProvider: 'kubernetes' };
 
         if (instance.serverGroup) {
           params.managedInstanceGroupName = instance.serverGroup;
@@ -223,15 +223,15 @@ module(KUBERNETES_V1_INSTANCE_DETAILS_DETAILS_CONTROLLER, [
     };
 
     this.registerInstanceWithLoadBalancer = function registerInstanceWithLoadBalancer() {
-      let instance = $scope.instance;
-      let loadBalancerNames = instance.loadBalancers.join(' and ');
+      const instance = $scope.instance;
+      const loadBalancerNames = instance.loadBalancers.join(' and ');
 
-      let taskMonitor = {
+      const taskMonitor = {
         application: app,
         title: 'Registering ' + instance.name + ' with ' + loadBalancerNames,
       };
 
-      let submitMethod = function() {
+      const submitMethod = function() {
         return instanceWriter.registerInstanceWithLoadBalancer(instance, app, {
           interestingHealthProviderNames: ['Kubernetes'],
           namespace: instance.region || instance.namespace,
@@ -248,15 +248,15 @@ module(KUBERNETES_V1_INSTANCE_DETAILS_DETAILS_CONTROLLER, [
     };
 
     this.deregisterInstanceFromLoadBalancer = function deregisterInstanceFromLoadBalancer() {
-      let instance = $scope.instance;
-      let loadBalancerNames = instance.loadBalancers.join(' and ');
+      const instance = $scope.instance;
+      const loadBalancerNames = instance.loadBalancers.join(' and ');
 
-      let taskMonitor = {
+      const taskMonitor = {
         application: app,
         title: 'Deregistering ' + instance.name + ' from ' + loadBalancerNames,
       };
 
-      let submitMethod = function() {
+      const submitMethod = function() {
         return instanceWriter.deregisterInstanceFromLoadBalancer(instance, app, {
           interestingHealthProviderNames: ['Kubernetes'],
           namespace: instance.region || instance.namespace,
@@ -274,7 +274,7 @@ module(KUBERNETES_V1_INSTANCE_DETAILS_DETAILS_CONTROLLER, [
     };
 
     this.canRegisterWithLoadBalancer = function() {
-      let instance = $scope.instance;
+      const instance = $scope.instance;
       if (!instance.loadBalancers || !instance.loadBalancers.length) {
         return false;
       }
@@ -284,7 +284,7 @@ module(KUBERNETES_V1_INSTANCE_DETAILS_DETAILS_CONTROLLER, [
     };
 
     this.canDeregisterFromLoadBalancer = function() {
-      let instance = $scope.instance;
+      const instance = $scope.instance;
       if (!instance.loadBalancers || !instance.loadBalancers.length) {
         return false;
       }
@@ -292,13 +292,13 @@ module(KUBERNETES_V1_INSTANCE_DETAILS_DETAILS_CONTROLLER, [
     };
 
     this.hasHealthState = function hasHealthState(healthProviderType, state) {
-      let instance = $scope.instance;
+      const instance = $scope.instance;
       return instance.health.some(function(health) {
         return health.type === healthProviderType && health.state === state;
       });
     };
 
-    let initialize = app.isStandalone
+    const initialize = app.isStandalone
       ? retrieveInstance()
       : $q.all([app.serverGroups.ready(), app.loadBalancers.ready()]).then(retrieveInstance);
 

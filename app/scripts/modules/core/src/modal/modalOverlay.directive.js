@@ -11,7 +11,7 @@ module(CORE_MODAL_MODALOVERLAY_DIRECTIVE, []).directive('modalOverlay', [
       restrict: 'A',
       link: function(scope, elem) {
         $timeout(function() {
-          let $uibModal = elem.closest('.modal-content');
+          const $uibModal = elem.closest('.modal-content');
           let modalHeight = $uibModal.outerHeight();
 
           if (modalHeight < 450) {
@@ -24,8 +24,8 @@ module(CORE_MODAL_MODALOVERLAY_DIRECTIVE, []).directive('modalOverlay', [
             .height(modalHeight)
             .css({ opacity: 1 });
 
-          let headerHeight = elem.find('.modal-header').outerHeight();
-          let footerHeight = elem.find('.modal-footer').outerHeight();
+          const headerHeight = elem.find('.modal-header').outerHeight();
+          const footerHeight = elem.find('.modal-footer').outerHeight();
           elem.find('.modal-body').css({ height: `calc(100% - ${headerHeight + footerHeight}px)` });
 
           scope.$on('$destroy', function() {

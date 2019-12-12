@@ -251,9 +251,8 @@ export class Application {
     const sources: Array<ApplicationDataSource<any[]>> = this.dataSources.filter(
       ds => ds[field] !== undefined && Array.isArray(ds.data) && ds.providerField !== undefined,
     );
-    const providers = sources.map(ds => ds.data.map(d => d[ds.providerField])).filter(p => p.length > 0);
-    let allProviders: any; // typescript made me do it this way
-    allProviders = union<string[]>(...providers);
+    const providers: string[][] = sources.map(ds => ds.data.map(d => d[ds.providerField])).filter(p => p.length > 0);
+    const allProviders = union(...providers);
     allProviders.forEach((provider: string) => {
       const vals = sources
         .map(ds =>

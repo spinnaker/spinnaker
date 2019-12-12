@@ -18,7 +18,7 @@ module(DOCKER_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER, [UIROUTER_AN
     function($scope, $stateParams, executionDetailsSectionService, $interpolate) {
       $scope.configSections = ['bakeConfig', 'taskStatus'];
 
-      let initialized = () => {
+      const initialized = () => {
         $scope.detailsSection = $stateParams.details;
         $scope.provider = $scope.stage.context.cloudProviderType || 'docker';
         $scope.bakeryDetailUrl = $interpolate(
@@ -26,7 +26,7 @@ module(DOCKER_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER, [UIROUTER_AN
         );
       };
 
-      let initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
+      const initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
 
       initialize();
 

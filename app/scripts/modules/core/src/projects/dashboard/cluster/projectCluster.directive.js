@@ -37,9 +37,9 @@ module(CORE_PROJECTS_DASHBOARD_CLUSTER_PROJECTCLUSTER_DIRECTIVE, [
     '$scope',
     'regionFilterService',
     function($scope, regionFilterService) {
-      let stateCache = CollapsibleSectionStateCache;
+      const stateCache = CollapsibleSectionStateCache;
 
-      let getCacheKey = () => [this.project.name, this.cluster.account, this.cluster.stack].join(':');
+      const getCacheKey = () => [this.project.name, this.cluster.account, this.cluster.stack].join(':');
 
       this.clearFilters = r => ClusterState.filterService.overrideFiltersForUrl(r);
 
@@ -51,12 +51,12 @@ module(CORE_PROJECTS_DASHBOARD_CLUSTER_PROJECTCLUSTER_DIRECTIVE, [
         stateCache.setExpanded(getCacheKey(), this.state.expanded);
       };
 
-      let getMetadata = application => {
-        let stack = this.cluster.stack;
-        let detail = this.cluster.detail;
-        let clusterParam = !stack && !detail ? application.name : null;
-        let stackParam = stack && stack !== '*' ? stack : null;
-        let detailParam = detail && detail !== '*' ? detail : null;
+      const getMetadata = application => {
+        const stack = this.cluster.stack;
+        const detail = this.cluster.detail;
+        const clusterParam = !stack && !detail ? application.name : null;
+        const stackParam = stack && stack !== '*' ? stack : null;
+        const detailParam = detail && detail !== '*' ? detail : null;
 
         return {
           type: 'clusters',
@@ -69,22 +69,22 @@ module(CORE_PROJECTS_DASHBOARD_CLUSTER_PROJECTCLUSTER_DIRECTIVE, [
         };
       };
 
-      let addMetadata = application => {
-        let baseMetadata = getMetadata(application);
+      const addMetadata = application => {
+        const baseMetadata = getMetadata(application);
         application.metadata = baseMetadata;
         application.metadata.href = UrlBuilder.buildFromMetadata(baseMetadata);
         application.clusters.forEach(cluster => {
-          let clusterMetadata = getMetadata(application);
+          const clusterMetadata = getMetadata(application);
           clusterMetadata.region = cluster.region;
           clusterMetadata.href = UrlBuilder.buildFromMetadata(clusterMetadata);
           cluster.metadata = clusterMetadata;
         });
       };
 
-      let getBuildUrl = build => [build.host + 'job', build.job, build.buildNumber, ''].join('/');
+      const getBuildUrl = build => [build.host + 'job', build.job, build.buildNumber, ''].join('/');
 
-      let addApplicationBuild = application => {
-        let allBuilds = _.chain((application.clusters || []).map(cluster => cluster.builds))
+      const addApplicationBuild = application => {
+        const allBuilds = _.chain((application.clusters || []).map(cluster => cluster.builds))
           .flatten()
           .compact()
           .uniqBy(build => build.buildNumber)
@@ -96,9 +96,9 @@ module(CORE_PROJECTS_DASHBOARD_CLUSTER_PROJECTCLUSTER_DIRECTIVE, [
         }
       };
 
-      let applyInconsistentBuildFlag = application => {
+      const applyInconsistentBuildFlag = application => {
         application.clusters.forEach(cluster => {
-          let builds = cluster.builds || [];
+          const builds = cluster.builds || [];
           if (builds.length && (builds.length > 1 || builds[0].buildNumber !== application.build.buildNumber)) {
             application.hasInconsistentBuilds = true;
             cluster.inconsistentBuilds = cluster.builds.filter(
@@ -108,14 +108,14 @@ module(CORE_PROJECTS_DASHBOARD_CLUSTER_PROJECTCLUSTER_DIRECTIVE, [
         });
       };
 
-      let mapClustersToRegions = (cluster, application) => {
+      const mapClustersToRegions = (cluster, application) => {
         application.regions = {};
         cluster.regions.forEach(region => {
           application.regions[region] = _.find(application.clusters, regionCluster => regionCluster.region === region);
         });
       };
 
-      let addRegions = cluster => {
+      const addRegions = cluster => {
         cluster.regions = _.uniq(
           _.flatten(
             cluster.applications.map(application => application.clusters.map(regionCluster => regionCluster.region)),
@@ -123,8 +123,8 @@ module(CORE_PROJECTS_DASHBOARD_CLUSTER_PROJECTCLUSTER_DIRECTIVE, [
         ).sort();
       };
 
-      let setViewRegions = updatedFilter => {
-        let unfilteredRegions = this.cluster.regions;
+      const setViewRegions = updatedFilter => {
+        const unfilteredRegions = this.cluster.regions;
         if (Object.keys(_.filter(updatedFilter)).length) {
           this.regions = unfilteredRegions.filter(region => updatedFilter[region]);
         } else {
@@ -132,7 +132,7 @@ module(CORE_PROJECTS_DASHBOARD_CLUSTER_PROJECTCLUSTER_DIRECTIVE, [
         }
       };
 
-      let setViewInstanceCounts = updatedFilter => {
+      const setViewInstanceCounts = updatedFilter => {
         if (Object.keys(_.filter(updatedFilter)).length) {
           this.instanceCounts = _.chain(this.cluster.applications)
             .map('clusters')
@@ -154,7 +154,7 @@ module(CORE_PROJECTS_DASHBOARD_CLUSTER_PROJECTCLUSTER_DIRECTIVE, [
         }
       };
 
-      let initialize = () => {
+      const initialize = () => {
         this.state = {
           expanded: stateCache.isSet(getCacheKey()) ? stateCache.isExpanded(getCacheKey()) : true,
         };

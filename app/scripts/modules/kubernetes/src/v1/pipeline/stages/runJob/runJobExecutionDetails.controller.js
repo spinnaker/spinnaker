@@ -25,11 +25,11 @@ module(KUBERNETES_V1_PIPELINE_STAGES_RUNJOB_RUNJOBEXECUTIONDETAILS_CONTROLLER, [
         $scope.stage.context.containers = [$scope.stage.context.container];
       }
 
-      let initialized = () => {
+      const initialized = () => {
         $scope.detailsSection = $stateParams.details;
       };
 
-      let initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
+      const initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
 
       initialize();
 

@@ -243,7 +243,8 @@ export class DockerImageAndTagSelector extends React.Component<
       return;
     }
 
-    let { imageId, organization, registry, repository, specifyTagByRegex } = props;
+    const { imageId, specifyTagByRegex } = props;
+    let { organization, registry, repository } = props;
 
     if (props.showRegistry) {
       registry = this.registryMap[props.account];

@@ -46,7 +46,7 @@ module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_ALARM_ALARMCONFIGURER_COM
     this.alarmUpdated = new Subject();
 
     this.thresholdChanged = () => {
-      let source =
+      const source =
         this.modalViewState.comparatorBound === 'max' ? 'metricIntervalLowerBound' : 'metricIntervalUpperBound';
       if (this.command.step) {
         // always set the first step at the alarm threshold
@@ -59,7 +59,7 @@ module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_ALARM_ALARMCONFIGURER_COM
     this.updateChart = () => this.alarmUpdated.next();
 
     this.alarmComparatorChanged = () => {
-      let previousComparatorBound = this.modalViewState.comparatorBound;
+      const previousComparatorBound = this.modalViewState.comparatorBound;
       this.modalViewState.comparatorBound =
         this.command.alarm.comparisonOperator.indexOf('Greater') === 0 ? 'max' : 'min';
       if (

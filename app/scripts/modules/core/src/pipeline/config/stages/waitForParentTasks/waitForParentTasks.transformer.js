@@ -12,11 +12,11 @@ module(CORE_PIPELINE_CONFIG_STAGES_WAITFORPARENTTASKS_WAITFORPARENTTASKS_TRANSFO
       /*
        * Every time you see one, look at its requisite ids, then set it as the child of any that match it
        * */
-      let stagesToInject = [];
+      const stagesToInject = [];
       execution.stages
         .filter(stage => stage.requisiteStageRefIds && stage.requisiteStageRefIds.length > 1)
         .forEach(function(stage) {
-          let waitStages = execution.stages.filter(
+          const waitStages = execution.stages.filter(
             candidate =>
               candidate.type === 'waitForRequisiteCompletion' &&
               candidate.context.requisiteIds &&
@@ -24,8 +24,10 @@ module(CORE_PIPELINE_CONFIG_STAGES_WAITFORPARENTTASKS_WAITFORPARENTTASKS_TRANSFO
               candidate.context.requisiteIds.every(reqId => stage.requisiteStageRefIds.includes(reqId)),
           );
           if (waitStages.length) {
-            let waitStage = waitStages[0];
-            let parentStages = execution.stages.filter(parent => waitStage.context.requisiteIds.includes(parent.refId));
+            const waitStage = waitStages[0];
+            const parentStages = execution.stages.filter(parent =>
+              waitStage.context.requisiteIds.includes(parent.refId),
+            );
             stagesToInject.push({
               parentTasks: parentStages,
               syntheticStageOwner: 'STAGE_BEFORE',

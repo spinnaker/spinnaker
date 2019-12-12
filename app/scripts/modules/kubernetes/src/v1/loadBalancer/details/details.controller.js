@@ -32,13 +32,13 @@ angular
       confirmationModalService,
       kubernetesProxyUiService,
     ) {
-      let application = app;
+      const application = app;
 
       $scope.state = {
         loading: true,
       };
 
-      let extractLoadBalancer = () => {
+      const extractLoadBalancer = () => {
         return application.loadBalancers.ready().then(() => {
           $scope.loadBalancer = application.loadBalancers.data.find(test => {
             return (

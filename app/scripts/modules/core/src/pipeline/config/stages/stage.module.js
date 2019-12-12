@@ -83,7 +83,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_STAGE_MODULE, [
       }
 
       $scope.groupDependencyOptions = function(stage) {
-        let requisiteStageRefIds = $scope.stage.requisiteStageRefIds || [];
+        const requisiteStageRefIds = $scope.stage.requisiteStageRefIds || [];
         return stage.available
           ? 'Available'
           : requisiteStageRefIds.includes(stage.refId)
@@ -112,7 +112,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_STAGE_MODULE, [
       };
 
       $scope.updateAvailableDependencyStages = function() {
-        let availableDependencyStages = PipelineConfigService.getDependencyCandidateStages(
+        const availableDependencyStages = PipelineConfigService.getDependencyCandidateStages(
           $scope.pipeline,
           $scope.stage,
         );
@@ -179,8 +179,8 @@ module(CORE_PIPELINE_CONFIG_STAGES_STAGE_MODULE, [
         }
 
         $scope.updateAvailableDependencyStages();
-        let type = $scope.stage.type;
-        let stageScope = $scope.$new();
+        const type = $scope.stage.type;
+        const stageScope = $scope.$new();
 
         // clear existing contents
         if (reactComponentMounted) {
@@ -201,7 +201,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_STAGE_MODULE, [
         });
 
         if (type && stageDetailsNode) {
-          let config = getConfig($scope.stage);
+          const config = getConfig($scope.stage);
           if (config) {
             $scope.canConfigureNotifications = !$scope.pipeline.strategy && !config.disableNotifications;
             $scope.description = config.description;
@@ -261,8 +261,8 @@ module(CORE_PIPELINE_CONFIG_STAGES_STAGE_MODULE, [
 
       function applyConfigController(config, stageScope) {
         if (config.controller) {
-          let ctrl = config.controller.split(' as ');
-          let controller = $controller(ctrl[0], {
+          const ctrl = config.controller.split(' as ');
+          const controller = $controller(ctrl[0], {
             $scope: stageScope,
             stage: $scope.stage,
             viewState: $scope.viewState,
@@ -279,7 +279,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_STAGE_MODULE, [
       function updateStageName(config, oldVal) {
         // apply a default name if the type changes and the user has not specified a name
         if (oldVal) {
-          let oldConfig = getConfig({ type: oldVal });
+          const oldConfig = getConfig({ type: oldVal });
           if (oldConfig && $scope.stage.name === oldConfig.label) {
             $scope.stage.name = config.label;
           }
@@ -319,7 +319,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_STAGE_MODULE, [
     '$stateParams',
     'confirmationModalService',
     function($scope, $stateParams, confirmationModalService) {
-      let restartStage = function() {
+      const restartStage = function() {
         return API.one('pipelines')
           .one($stateParams.executionId)
           .one('stages', $scope.stage.id)

@@ -20,10 +20,10 @@ module(CORE_APPLICATION_MODAL_APPLICATIONPROVIDERFIELDS_COMPONENT, [])
   })
   .controller('ApplicationProviderFieldsCtrl', function() {
     const templateUrlPath = 'applicationProviderFields.templateUrl';
-    let defaultProviderFields = SETTINGS.providers;
+    const defaultProviderFields = SETTINGS.providers;
 
     this.initializeApplicationField = fieldPath => {
-      let applicationFieldPath = 'providerSettings.' + fieldPath;
+      const applicationFieldPath = 'providerSettings.' + fieldPath;
 
       if (_.has(defaultProviderFields, fieldPath) && !_.has(this.application, applicationFieldPath)) {
         _.set(this.application, applicationFieldPath, _.get(defaultProviderFields, fieldPath));
@@ -32,7 +32,7 @@ module(CORE_APPLICATION_MODAL_APPLICATIONPROVIDERFIELDS_COMPONENT, [])
 
     this.getRelevantProviderFieldsTemplates = () => {
       let candidateProvidersToShow;
-      let appCloudProviders = this.application.cloudProviders;
+      const appCloudProviders = this.application.cloudProviders;
 
       if (appCloudProviders.length === 0) {
         candidateProvidersToShow = this.cloudProviders;

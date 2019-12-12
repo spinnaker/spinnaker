@@ -20,7 +20,7 @@ module(ORACLE_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER, [
   function($log, $scope, $stateParams, executionDetailsSectionService, $interpolate) {
     $scope.configSections = ['bakeConfig', 'taskStatus'];
 
-    let initialized = () => {
+    const initialized = () => {
       $scope.detailsSection = $stateParams.details;
       $scope.provider = $scope.stage.context.cloudProviderType || 'oracle';
       $scope.roscoMode = SETTINGS.feature.roscoMode;
@@ -29,7 +29,7 @@ module(ORACLE_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER, [
       );
     };
 
-    let initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
+    const initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
 
     initialize();
 

@@ -11,7 +11,7 @@ angular.module(CORE_FORMS_VALIDATEONSUBMIT_VALIDATEONSUBMIT_DIRECTIVE, []).direc
     link: function(scope, element, attrs, formCtrl) {
       element.on('submit', function() {
         // Set controls to dirty so that validation formatting is applied
-        let queue = [];
+        const queue = [];
         let invalidCtrl = formCtrl;
         while (invalidCtrl) {
           invalidCtrl.$setDirty();
@@ -31,7 +31,7 @@ angular.module(CORE_FORMS_VALIDATEONSUBMIT_VALIDATEONSUBMIT_DIRECTIVE, []).direc
 
         // Focus the first invalid element
         // NOTE: 'form.$error.required' doesn't list elements in document order, so we can't use that
-        let firstInvalid = element.get(0).querySelector('.form-control.ng-invalid');
+        const firstInvalid = element.get(0).querySelector('.form-control.ng-invalid');
         if (firstInvalid) {
           firstInvalid.focus();
 

@@ -23,13 +23,13 @@ module(CORE_SERVERGROUP_CONFIGURE_COMMON_BASICSETTINGSMIXIN_CONTROLLER, [
   '$state',
   function($scope, imageReader, $uibModalStack, $state) {
     this.createsNewCluster = function() {
-      let name = this.getNamePreview();
+      const name = this.getNamePreview();
       $scope.latestServerGroup = this.getLatestServerGroup();
       return !_.find($scope.application.clusters, { name: name });
     };
 
     this.getNamePreview = function() {
-      let command = $scope.command;
+      const command = $scope.command;
       if (!command) {
         return '';
       }
@@ -37,9 +37,9 @@ module(CORE_SERVERGROUP_CONFIGURE_COMMON_BASICSETTINGSMIXIN_CONTROLLER, [
     };
 
     this.getLatestServerGroup = function() {
-      let command = $scope.command;
-      let cluster = NameUtils.getClusterName($scope.application.name, command.stack, command.freeFormDetails);
-      let inCluster = $scope.application.serverGroups.data
+      const command = $scope.command;
+      const cluster = NameUtils.getClusterName($scope.application.name, command.stack, command.freeFormDetails);
+      const inCluster = $scope.application.serverGroups.data
         .filter(function(serverGroup) {
           return (
             serverGroup.cluster === cluster &&
@@ -54,15 +54,15 @@ module(CORE_SERVERGROUP_CONFIGURE_COMMON_BASICSETTINGSMIXIN_CONTROLLER, [
     };
 
     this.showPreviewAsWarning = function() {
-      let mode = $scope.command.viewState.mode;
-      let createsNewCluster = this.createsNewCluster();
+      const mode = $scope.command.viewState.mode;
+      const createsNewCluster = this.createsNewCluster();
 
       return (mode === 'create' && !createsNewCluster) || (mode !== 'create' && createsNewCluster);
     };
 
     this.navigateToLatestServerGroup = function() {
-      let latest = $scope.latestServerGroup;
-      let params = {
+      const latest = $scope.latestServerGroup;
+      const params = {
         provider: $scope.command.selectedProvider,
         accountId: latest.account,
         region: latest.region,
@@ -79,7 +79,7 @@ module(CORE_SERVERGROUP_CONFIGURE_COMMON_BASICSETTINGSMIXIN_CONTROLLER, [
 
     this.stackPattern = {
       test: function(stack) {
-        let pattern = $scope.command.viewState.templatingEnabled
+        const pattern = $scope.command.viewState.templatingEnabled
           ? /^([a-zA-Z_0-9._${}]*(\${.+})*)*$/
           : /^[a-zA-Z_0-9._${}]*$/;
 
@@ -89,7 +89,7 @@ module(CORE_SERVERGROUP_CONFIGURE_COMMON_BASICSETTINGSMIXIN_CONTROLLER, [
 
     this.detailPattern = {
       test: function(detail) {
-        let pattern = $scope.command.viewState.templatingEnabled
+        const pattern = $scope.command.viewState.templatingEnabled
           ? /^([a-zA-Z_0-9._${}-]*(\${.+})*)*$/
           : /^[a-zA-Z_0-9._${}-]*$/;
 
@@ -97,7 +97,7 @@ module(CORE_SERVERGROUP_CONFIGURE_COMMON_BASICSETTINGSMIXIN_CONTROLLER, [
       },
     };
 
-    let isNotExpressionLanguage = field => {
+    const isNotExpressionLanguage = field => {
       return field && !field.includes('${');
     };
   },

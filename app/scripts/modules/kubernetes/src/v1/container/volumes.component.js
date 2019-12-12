@@ -86,7 +86,7 @@ module(KUBERNETES_V1_CONTAINER_VOLUMES_COMPONENT, []).component('kubernetesConta
     };
 
     this.addVolume = () => {
-      let name = Date.now().toString();
+      const name = Date.now().toString();
       this.volumeMounts.push(this.defaultVolumeMount(name));
       this.volumeSources.push(this.defaultVolumeSource(name));
     };

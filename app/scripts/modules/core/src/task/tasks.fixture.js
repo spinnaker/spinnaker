@@ -1,4 +1,4 @@
-let TasksFixture = {};
+const TasksFixture = {};
 TasksFixture.initialSnapshot = [
   {
     id: 1,

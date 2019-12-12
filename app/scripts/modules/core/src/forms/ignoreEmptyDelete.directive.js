@@ -18,14 +18,14 @@ module(CORE_FORMS_IGNOREEMPTYDELETE_DIRECTIVE, [UI_SELECT]).config([
         // This fix is only nominally better in that it prevents that behavior most of the time.
         // If the user repeatedly presses delete quickly, or holds down delete, all bets are off.
         // Still, it's better than nothing.
-        let directive = $delegate[0];
-        let originalLink = directive.link;
+        const directive = $delegate[0];
+        const originalLink = directive.link;
         directive.compile = function() {
           return function(scope, elem, attrs, ctrls) {
             originalLink.apply(this, arguments);
-            let $select = ctrls[0];
+            const $select = ctrls[0];
             function ignoreDelete(e) {
-              let key = e.which;
+              const key = e.which;
               if (key === 8 || key === 46) {
                 if (!$select.searchInput.val().length) {
                   e.preventDefault();
@@ -38,7 +38,7 @@ module(CORE_FORMS_IGNOREEMPTYDELETE_DIRECTIVE, [UI_SELECT]).config([
                 }
               }
             }
-            let events = 'keydown.ignoreEmptyDelete keyup.ignoreEmptyDelete';
+            const events = 'keydown.ignoreEmptyDelete keyup.ignoreEmptyDelete';
             $select.searchInput.on(events, ignoreDelete);
             if ($select.focusser) {
               $select.focusser.on(events, ignoreDelete);

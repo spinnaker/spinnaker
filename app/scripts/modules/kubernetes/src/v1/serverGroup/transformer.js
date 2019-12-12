@@ -15,7 +15,7 @@ module(KUBERNETES_V1_SERVERGROUP_TRANSFORMER, []).factory('kubernetesServerGroup
 
     function convertServerGroupCommandToDeployConfiguration(base) {
       // use _.defaults to avoid copying the backingData, which is huge and expensive to copy over
-      let command = _.defaults({ backingData: [], viewState: [] }, base);
+      const command = _.defaults({ backingData: [], viewState: [] }, base);
       if (base.viewState.mode !== 'clone') {
         delete command.source;
       }

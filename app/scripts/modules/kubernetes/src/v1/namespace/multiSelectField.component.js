@@ -22,20 +22,20 @@ module(KUBERNETES_V1_NAMESPACE_MULTISELECTFIELD_COMPONENT, []).directive('namesp
     controller: function controller() {
       this.clusterField = this.clusterField || 'cluster';
 
-      let vm = this;
+      const vm = this;
       let isTextInputForClusterFiled;
 
       let namespaces;
 
-      let setNamespaceList = () => {
-        let accountFilter = cluster => (cluster ? cluster.account === vm.component.credentials : true);
-        let namespaceList = AppListExtractor.getRegions([vm.application], accountFilter);
+      const setNamespaceList = () => {
+        const accountFilter = cluster => (cluster ? cluster.account === vm.component.credentials : true);
+        const namespaceList = AppListExtractor.getRegions([vm.application], accountFilter);
         vm.namespaces = namespaceList.length ? namespaceList : namespaces;
       };
 
-      let setClusterList = () => {
-        let namespaceField = vm.component.regionss;
-        let clusterFilter = AppListExtractor.clusterFilterForCredentialsAndRegion(
+      const setClusterList = () => {
+        const namespaceField = vm.component.regionss;
+        const clusterFilter = AppListExtractor.clusterFilterForCredentialsAndRegion(
           vm.component.credentials,
           namespaceField,
         );
@@ -49,12 +49,12 @@ module(KUBERNETES_V1_NAMESPACE_MULTISELECTFIELD_COMPONENT, []).directive('namesp
         }
       };
 
-      let setToggledState = () => {
+      const setToggledState = () => {
         vm.namespaces = namespaces;
         isTextInputForClusterFiled = true;
       };
 
-      let setUnToggledState = () => {
+      const setUnToggledState = () => {
         vm.component[this.clusterField] = undefined;
         isTextInputForClusterFiled = false;
         setNamespaceList();
@@ -70,7 +70,7 @@ module(KUBERNETES_V1_NAMESPACE_MULTISELECTFIELD_COMPONENT, []).directive('namesp
         setClusterList();
       };
 
-      let init = () => {
+      const init = () => {
         AccountService.getUniqueRegionsForAllAccounts(vm.component.cloudProviderType)
           .then(allNamespaces => {
             namespaces = allNamespaces;

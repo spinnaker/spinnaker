@@ -11,7 +11,9 @@ module(CORE_PIPELINE_CONFIG_STAGES_BAKE_BAKESTAGE_TRANSFORMER, []).service('bake
   function propagatePreviouslyBakedFlag(execution) {
     execution.stages.forEach(function(stage) {
       if (stage.type === 'bake' && stage.context) {
-        let childBakeStages = execution.stages.filter(test => test.type === 'bake' && test.parentStageId === stage.id);
+        const childBakeStages = execution.stages.filter(
+          test => test.type === 'bake' && test.parentStageId === stage.id,
+        );
         if (childBakeStages.length) {
           stage.context.allPreviouslyBaked = childBakeStages.every(child => child.context.previouslyBaked);
           stage.context.somePreviouslyBaked =
