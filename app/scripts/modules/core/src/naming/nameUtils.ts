@@ -9,7 +9,7 @@ export interface IComponentName {
 }
 
 export class NameUtils {
-  public static VERSION_PATTERN: RegExp = /(v\d{3})/;
+  public static VERSION_PATTERN = /(v\d{3})/;
 
   public static parseServerGroupName(serverGroupName: string): IComponentName {
     const result: IComponentName = {

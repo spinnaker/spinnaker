@@ -27,7 +27,7 @@ class HelmEditor extends React.Component<IArtifactEditorProps, IHelmArtifactEdit
   };
 
   // taken from https://github.com/semver/semver/issues/232
-  private SEMVER: RegExp = new RegExp(
+  private SEMVER = new RegExp(
     /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(-(0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(\.(0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*)?(\+[0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*)?$/,
   );
 
