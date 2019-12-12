@@ -130,12 +130,13 @@ public class RedisPermissionsRepository implements PermissionsRepository {
 
             for (ResourceType r : ResourceType.values()) {
               String userResourceKey = userKey(userId, r);
-
-              pipeline.del(userResourceKey);
-
               Map<String, String> redisValue = resourceTypeToRedisValue.get(r);
+              String tempKey = UUID.randomUUID().toString();
               if (redisValue != null && !redisValue.isEmpty()) {
-                pipeline.hmset(userResourceKey, redisValue);
+                pipeline.hmset(tempKey, redisValue);
+                pipeline.rename(tempKey, userResourceKey);
+              } else {
+                pipeline.del(userResourceKey);
               }
             }
             pipeline.sync();
