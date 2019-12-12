@@ -27,19 +27,19 @@ class CloudFormationTemplateController implements IController {
   };
 }
 
-class CloudFormationTemplateEntryComponent implements IComponentOptions {
-  public bindings = { command: '<', templateBody: '<' };
-  public controller = CloudFormationTemplateController;
-  public controllerAs = 'ctrl';
-  public template = `
+const cloudFormationTemplateEntryComponent: IComponentOptions = {
+  bindings: { command: '<', templateBody: '<' },
+  controller: CloudFormationTemplateController,
+  controllerAs: 'ctrl',
+  template: `
     <yaml-editor
       value="ctrl.rawTemplateBody"
       on-change="ctrl.handleChange"
-    ></yaml-editor>`;
-}
+    ></yaml-editor>`,
+};
 
 export const CLOUDFORMATION_TEMPLATE_ENTRY = 'spinnaker.amazon.cloudformation.entry.component';
 module(CLOUDFORMATION_TEMPLATE_ENTRY, []).component(
   'cloudFormationTemplateEntry',
-  new CloudFormationTemplateEntryComponent(),
+  cloudFormationTemplateEntryComponent,
 );
