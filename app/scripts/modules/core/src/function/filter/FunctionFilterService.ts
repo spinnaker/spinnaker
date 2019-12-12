@@ -73,8 +73,8 @@ export class FunctionFilterService {
             }, {})
           : {};
       /* Group by functionName:region */
-      const subGroupings = groupBy(group, fn => `${fn.functionName}:${fn.region}`),
-        subGroups: IFunctionGroup[] = [];
+      const subGroupings = groupBy(group, fn => `${fn.functionName}:${fn.region}`);
+      const subGroups: IFunctionGroup[] = [];
 
       forOwn(subGroupings, (subGroup, nameAndRegion) => {
         const [name, region] = nameAndRegion.split(':');

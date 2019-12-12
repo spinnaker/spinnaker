@@ -22,8 +22,8 @@ module(TITUS_PIPELINE_STAGES_CLONESERVERGROUP_CLONESERVERGROUPEXECUTIONDETAILS_C
       const resultObjects = context['kato.tasks'][0].resultObjects;
       $scope.detailsSection = $stateParams.details;
 
-      let context = $scope.stage.context || {},
-        results = [];
+      let context = $scope.stage.context || {};
+      let results = [];
 
       function addDeployedArtifacts(key) {
         let deployedArtifacts = _.find(resultObjects, key);

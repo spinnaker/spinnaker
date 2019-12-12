@@ -152,10 +152,10 @@ angular
           ui.placeholder.width(ui.helper.width()).height(ui.helper.height());
         },
         update: (e, ui) => {
-          let itemScope = ui.item.scope(),
-            currentPage = $scope.viewState.stageIndex,
-            startingPagePosition = itemScope.$index,
-            isCurrentPage = currentPage === startingPagePosition;
+          let itemScope = ui.item.scope();
+          let currentPage = $scope.viewState.stageIndex;
+          let startingPagePosition = itemScope.$index;
+          let isCurrentPage = currentPage === startingPagePosition;
 
           $timeout(() => {
             itemScope = ui.item.scope(); // this is terrible but provides a hook for mocking in tests
@@ -163,8 +163,8 @@ angular
             if (isCurrentPage) {
               ctrl.navigateToStage(newPagePosition);
             } else {
-              let wasBefore = startingPagePosition < currentPage,
-                isBefore = newPagePosition <= currentPage;
+              let wasBefore = startingPagePosition < currentPage;
+              let isBefore = newPagePosition <= currentPage;
               if (wasBefore !== isBefore) {
                 let newCurrentPage = isBefore ? currentPage + 1 : currentPage - 1;
                 ctrl.navigateToStage(newCurrentPage);

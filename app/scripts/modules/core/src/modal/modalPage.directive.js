@@ -23,9 +23,9 @@ module(CORE_MODAL_MODALPAGE_DIRECTIVE, []).directive('modalPage', function() {
       let ts = Math.floor(Math.random() * 4294967295);
       $(document).on('keydown.modalPage-' + ts, function(event) {
         if (event.keyCode === 9) {
-          let $tabbableElements = getTabbableElements(),
-            $firstElem = $tabbableElements[0],
-            $lastElem = $tabbableElements[$tabbableElements.length - 1];
+          let $tabbableElements = getTabbableElements();
+          let $firstElem = $tabbableElements[0];
+          let $lastElem = $tabbableElements[$tabbableElements.length - 1];
           if ($firstElem === event.target && event.shiftKey) {
             $lastElem.focus();
             return false;

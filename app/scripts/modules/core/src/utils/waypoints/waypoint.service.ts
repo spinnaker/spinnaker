@@ -40,12 +40,12 @@ export class WaypointService {
         'scroll.waypointEvents resize.waypointEvents',
         throttle(() => {
           $timeout(() => {
-            const containerRect = element.get(0).getBoundingClientRect(),
-              topThreshold = containerRect.top + registryEntry.offset,
-              waypoints = element.find('[waypoint]'),
-              lastTop = this.waypointRegistry[key].top,
-              newTop = element.get(0).scrollTop,
-              inView: IViewPlacement[] = [];
+            const containerRect = element.get(0).getBoundingClientRect();
+            const topThreshold = containerRect.top + registryEntry.offset;
+            const waypoints = element.find('[waypoint]');
+            const lastTop = this.waypointRegistry[key].top;
+            const newTop = element.get(0).scrollTop;
+            const inView: IViewPlacement[] = [];
             waypoints.each((_index, waypoint) => {
               const waypointRect = waypoint.getBoundingClientRect();
               if (waypointRect.bottom >= topThreshold && waypointRect.top <= containerRect.bottom) {

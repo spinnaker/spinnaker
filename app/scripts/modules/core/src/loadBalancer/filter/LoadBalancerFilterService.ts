@@ -228,8 +228,8 @@ export class LoadBalancerFilterService {
               return acc;
             }, {})
           : {};
-      const subGroupings = groupBy(group, lb => `${lb.name}:${lb.loadBalancerType}`),
-        subGroups: ILoadBalancerGroup[] = [];
+      const subGroupings = groupBy(group, lb => `${lb.name}:${lb.loadBalancerType}`);
+      const subGroups: ILoadBalancerGroup[] = [];
 
       forOwn(subGroupings, (subGroup, nameAndType) => {
         const [name, type] = nameAndType.split(':');

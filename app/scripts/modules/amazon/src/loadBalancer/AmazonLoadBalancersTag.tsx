@@ -146,9 +146,9 @@ export class AmazonLoadBalancersTag extends React.Component<ILoadBalancersTagPro
   public render(): React.ReactElement<AmazonLoadBalancersTag> {
     const { loadBalancers, targetGroups, isLoading } = this.state;
 
-    const targetGroupCount = (targetGroups && targetGroups.length) || 0,
-      loadBalancerCount = (loadBalancers && loadBalancers.length) || 0,
-      totalCount = targetGroupCount + loadBalancerCount;
+    const targetGroupCount = (targetGroups && targetGroups.length) || 0;
+    const loadBalancerCount = (loadBalancers && loadBalancers.length) || 0;
+    const totalCount = targetGroupCount + loadBalancerCount;
 
     if (!totalCount) {
       return isLoading ? <Spinner size="nano" /> : null;

@@ -58,15 +58,15 @@ export class RecentHistoryService {
   }
 
   public static addItem(type: string, state: string, params: any, keyParams: string[] = []) {
-    const items: IRecentHistoryEntry[] = this.getItems(type).slice(0, MAX_ITEMS),
-      existing: IRecentHistoryEntry = this.getExisting(items, params, keyParams),
-      entry = {
-        params,
-        state,
-        accessTime: new Date().getTime(),
-        extraData: {},
-        id: UUIDGenerator.generateUuid(),
-      };
+    const items: IRecentHistoryEntry[] = this.getItems(type).slice(0, MAX_ITEMS);
+    const existing: IRecentHistoryEntry = this.getExisting(items, params, keyParams);
+    const entry = {
+      params,
+      state,
+      accessTime: new Date().getTime(),
+      extraData: {},
+      id: UUIDGenerator.generateUuid(),
+    };
     if (existing) {
       items.splice(items.indexOf(existing), 1);
     }
@@ -78,8 +78,8 @@ export class RecentHistoryService {
   }
 
   public static removeItem(type: string, id: string): void {
-    const items: IRecentHistoryEntry[] = this.getItems(type),
-      existing: IRecentHistoryEntry = items.find(i => i.id === id);
+    const items: IRecentHistoryEntry[] = this.getItems(type);
+    const existing: IRecentHistoryEntry = items.find(i => i.id === id);
 
     if (existing) {
       items.splice(items.indexOf(existing), 1);

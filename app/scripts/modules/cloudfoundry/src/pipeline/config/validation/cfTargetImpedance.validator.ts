@@ -22,8 +22,8 @@ export class CfTargetImpedanceValidator implements IStageOrTriggerValidator {
     validator: ITargetImpedanceValidationConfig,
     _config: IStageOrTriggerTypeConfig,
   ): string {
-    const stagesToTest: IStage[] = PipelineConfigService.getAllUpstreamDependencies(pipeline, stage),
-      regions: string[] = stage.regions || [];
+    const stagesToTest: IStage[] = PipelineConfigService.getAllUpstreamDependencies(pipeline, stage);
+    const regions: string[] = stage.regions || [];
     let allRegionsFound = true;
 
     regions.forEach(region => {

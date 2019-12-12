@@ -87,8 +87,8 @@ module(KUBERNETES_V1_LOADBALANCER_CONFIGURE_WIZARD_UPSERT_CONTROLLER, [
     }
 
     function updateLoadBalancerNames() {
-      let account = $scope.loadBalancer.credentials,
-        namespace = $scope.loadBalancer.namespace;
+      let account = $scope.loadBalancer.credentials;
+      let namespace = $scope.loadBalancer.namespace;
 
       const accountLoadBalancersByNamespace = {};
       application

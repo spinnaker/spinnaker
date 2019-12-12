@@ -50,8 +50,8 @@ module(AZURE_SECURITYGROUP_CLONE_CLONESECURITYGROUP_CONTROLLER, [
     };
 
     ctrl.updateName = function() {
-      let securityGroup = $scope.securityGroup,
-        name = application.name;
+      let securityGroup = $scope.securityGroup;
+      let name = application.name;
       if (securityGroup.detail) {
         name += '-' + securityGroup.detail;
       }

@@ -179,8 +179,8 @@ module(CORE_PIPELINE_CONFIG_STAGES_STAGE_MODULE, [
         }
 
         $scope.updateAvailableDependencyStages();
-        let type = $scope.stage.type,
-          stageScope = $scope.$new();
+        let type = $scope.stage.type;
+        let stageScope = $scope.$new();
 
         // clear existing contents
         if (reactComponentMounted) {

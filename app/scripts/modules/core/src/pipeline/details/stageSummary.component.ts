@@ -93,8 +93,8 @@ export class StageSummaryController implements IController {
   }
 
   public getTopLevelStage(): IExecutionStage {
-    let parentStageId = this.stage.parentStageId,
-      topLevelStage: IExecutionStage = this.stage;
+    let parentStageId = this.stage.parentStageId;
+    let topLevelStage: IExecutionStage = this.stage;
     while (parentStageId) {
       topLevelStage = this.execution.stages.find(stage => stage.id === parentStageId);
       parentStageId = topLevelStage.parentStageId;

@@ -32,8 +32,8 @@ export class AwsFunctionTransformer {
   });
 
   public constructNewAwsFunctionTemplate(application: Application): IAmazonFunctionUpsertCommand {
-    const defaultCredentials = application.defaultCredentials.aws || AWSProviderSettings.defaults.account,
-      defaultRegion = application.defaultRegions.aws || AWSProviderSettings.defaults.region;
+    const defaultCredentials = application.defaultCredentials.aws || AWSProviderSettings.defaults.account;
+    const defaultRegion = application.defaultRegions.aws || AWSProviderSettings.defaults.region;
 
     return {
       role: '',

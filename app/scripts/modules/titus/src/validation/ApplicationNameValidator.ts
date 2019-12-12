@@ -27,8 +27,8 @@ class TitusApplicationNameValidator implements IApplicationNameValidator {
   }
 
   public validate(name = '') {
-    const warnings: string[] = [],
-      errors: string[] = [];
+    const warnings: string[] = [];
+    const errors: string[] = [];
 
     if (name && name.length) {
       this.validateSpecialCharacters(name, errors);

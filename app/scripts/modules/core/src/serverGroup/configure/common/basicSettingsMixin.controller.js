@@ -54,20 +54,20 @@ module(CORE_SERVERGROUP_CONFIGURE_COMMON_BASICSETTINGSMIXIN_CONTROLLER, [
     };
 
     this.showPreviewAsWarning = function() {
-      let mode = $scope.command.viewState.mode,
-        createsNewCluster = this.createsNewCluster();
+      let mode = $scope.command.viewState.mode;
+      let createsNewCluster = this.createsNewCluster();
 
       return (mode === 'create' && !createsNewCluster) || (mode !== 'create' && createsNewCluster);
     };
 
     this.navigateToLatestServerGroup = function() {
-      let latest = $scope.latestServerGroup,
-        params = {
-          provider: $scope.command.selectedProvider,
-          accountId: latest.account,
-          region: latest.region,
-          serverGroup: latest.name,
-        };
+      let latest = $scope.latestServerGroup;
+      let params = {
+        provider: $scope.command.selectedProvider,
+        accountId: latest.account,
+        region: latest.region,
+        serverGroup: latest.name,
+      };
 
       $uibModalStack.dismissAll();
       if ($state.is('home.applications.application.insight.clusters')) {

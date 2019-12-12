@@ -102,8 +102,8 @@ export class PermissionsConfigurer extends React.Component<IPermissionsConfigure
   }
 
   private convertRequiredGroupMembershipToPermissions(): IPermissions {
-    let READ: string[] = [],
-      WRITE: string[] = [];
+    let READ: string[] = [];
+    let WRITE: string[] = [];
     if (this.props.permissions && this.props.permissions.READ) {
       READ = this.props.permissions.READ.slice();
     }

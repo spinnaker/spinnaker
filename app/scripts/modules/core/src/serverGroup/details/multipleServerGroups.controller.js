@@ -43,8 +43,8 @@ angular
       };
 
       let confirm = (submitMethodName, verbs) => {
-        let descriptor = getDescriptor(),
-          monitorInterval = this.serverGroups.length * 1000;
+        let descriptor = getDescriptor();
+        let monitorInterval = this.serverGroups.length * 1000;
         let taskMonitors = this.serverGroups.map(serverGroup => {
           let provider = serverGroup.provider || serverGroup.type;
           let providerParamsMixin = providerServiceDelegate.hasDelegate(provider, 'serverGroup.paramsMixin')

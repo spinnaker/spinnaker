@@ -76,8 +76,8 @@ module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGMANAGER_SERVICE, []
   };
 
   this.inferSelectedSecurityGroupFromTag = _.debounce(tagName => {
-    let securityGroupObjectsWithTag = this.securityGroupObjectsKeyedByTag[tagName],
-      c = this.command;
+    let securityGroupObjectsWithTag = this.securityGroupObjectsKeyedByTag[tagName];
+    let c = this.command;
 
     if (securityGroupObjectsWithTag) {
       securityGroupObjectsWithTag = _.filter(securityGroupObjectsWithTag, sg => sg.network === this.command.network);
@@ -97,8 +97,8 @@ module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGMANAGER_SERVICE, []
   }, 100);
 
   this.updateSelectedTags = () => {
-    const c = this.command,
-      tags = c.tags.map(t => t.value);
+    const c = this.command;
+    const tags = c.tags.map(t => t.value);
 
     getSecurityGroupObjectsFromIds(c.securityGroups).forEach(sg => {
       if (sg.selectedTags) {
@@ -112,9 +112,9 @@ module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGMANAGER_SERVICE, []
   };
 
   this.addTag = tagName => {
-    let c = this.command,
-      tags = c.tags,
-      securityGroupObjectsWithTag = this.securityGroupObjectsKeyedByTag[tagName];
+    let c = this.command;
+    let tags = c.tags;
+    let securityGroupObjectsWithTag = this.securityGroupObjectsKeyedByTag[tagName];
 
     if (securityGroupObjectsWithTag) {
       securityGroupObjectsWithTag = _.filter(securityGroupObjectsWithTag, sg => sg.network === this.command.network);
@@ -152,9 +152,9 @@ module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGMANAGER_SERVICE, []
   };
 
   this.removeTag = tagName => {
-    const c = this.command,
-      securityGroupIds = c.securityGroups || [],
-      securityGroupObjects = getSecurityGroupObjectsFromIds(securityGroupIds);
+    const c = this.command;
+    const securityGroupIds = c.securityGroups || [];
+    const securityGroupObjects = getSecurityGroupObjectsFromIds(securityGroupIds);
 
     securityGroupObjects.forEach(sg => {
       if (sg.selectedTags) {
@@ -166,9 +166,9 @@ module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGMANAGER_SERVICE, []
   };
 
   this.removeSecurityGroup = securityGroupId => {
-    const securityGroupObject = this.securityGroupObjectsKeyedById[securityGroupId],
-      tagsToRemove = securityGroupObject.selectedTags,
-      c = this.command;
+    const securityGroupObject = this.securityGroupObjectsKeyedById[securityGroupId];
+    const tagsToRemove = securityGroupObject.selectedTags;
+    const c = this.command;
 
     getSecurityGroupObjectsFromIds(c.securityGroups).forEach(sg => {
       if (sg.selectedTags) {
@@ -185,8 +185,8 @@ module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGMANAGER_SERVICE, []
   };
 
   this.getToolTipContent = tagName => {
-    const groups = _.get(this, ['securityGroupObjectsKeyedByTag', tagName]),
-      groupIds = groups ? groups.filter(sg => sg.network === this.command.network).map(sg => sg.id) : [];
+    const groups = _.get(this, ['securityGroupObjectsKeyedByTag', tagName]);
+    const groupIds = groups ? groups.filter(sg => sg.network === this.command.network).map(sg => sg.id) : [];
 
     return `This tag associates this server group with ${
       groupIds.length > 1 ? FirewallLabels.get('firewalls') : FirewallLabels.get('firewall')

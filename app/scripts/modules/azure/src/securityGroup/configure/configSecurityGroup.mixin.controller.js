@@ -124,8 +124,8 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
     ctrl.regionUpdated = function() {};
 
     this.vpcUpdated = function() {
-      let account = $scope.securityGroup.credentials || $scope.securityGroup.accountName,
-        regions = $scope.securityGroup.regions;
+      let account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
+      let regions = $scope.securityGroup.regions;
       if (account && regions && regions.length) {
         configureFilteredSecurityGroups();
       } else {
@@ -147,8 +147,8 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
           regionalVpcId = _.find($scope.allVpcs, { account: account, region: region, name: baseVpc.name }).id;
         }
 
-        let regionalSecurityGroups = _.filter(allSecurityGroups[account].azure[region], { vpcId: regionalVpcId }),
-          regionalGroupNames = _.map(regionalSecurityGroups, 'name');
+        let regionalSecurityGroups = _.filter(allSecurityGroups[account].azure[region], { vpcId: regionalVpcId });
+        let regionalGroupNames = _.map(regionalSecurityGroups, 'name');
 
         existingSecurityGroupNames = _.uniq(existingSecurityGroupNames.concat(regionalGroupNames));
 
@@ -226,8 +226,8 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
     };
 
     ctrl.updateName = function() {
-      let securityGroup = $scope.securityGroup,
-        name = application.name;
+      let securityGroup = $scope.securityGroup;
+      let name = application.name;
       if (securityGroup.detail) {
         name += '-' + securityGroup.detail;
       }

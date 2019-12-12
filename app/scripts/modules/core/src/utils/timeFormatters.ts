@@ -52,8 +52,8 @@ export function relativeTime(input: any) {
 
 export function timePickerTime(input: any) {
   if (input && !isNaN(input.hours) && !isNaN(input.minutes)) {
-    const hours = parseInt(input.hours, 10),
-      minutes = parseInt(input.minutes, 10);
+    const hours = parseInt(input.hours, 10);
+    const minutes = parseInt(input.minutes, 10);
 
     let result = '';
     if (hours < 10) {

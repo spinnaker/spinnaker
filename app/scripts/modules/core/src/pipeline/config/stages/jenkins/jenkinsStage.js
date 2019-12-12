@@ -80,8 +80,8 @@ module(CORE_PIPELINE_CONFIG_STAGES_JENKINS_JENKINSSTAGE, [])
 
       function updateJobsList() {
         if ($scope.stage && $scope.stage.master) {
-          let master = $scope.stage.master,
-            job = $scope.stage.job || '';
+          let master = $scope.stage.master;
+          let job = $scope.stage.job || '';
           $scope.viewState.masterIsParameterized = master.includes('${');
           $scope.viewState.jobIsParameterized = job.includes('${');
           if ($scope.viewState.masterIsParameterized || $scope.viewState.jobIsParameterized) {
@@ -105,8 +105,8 @@ module(CORE_PIPELINE_CONFIG_STAGES_JENKINS_JENKINSSTAGE, [])
       }
 
       function updateJobConfig() {
-        let stage = $scope.stage,
-          view = $scope.viewState;
+        let stage = $scope.stage;
+        let view = $scope.viewState;
 
         if (stage && stage.master && stage.job && !view.masterIsParameterized && !view.jobIsParameterized) {
           IgorService.getJobConfig($scope.stage.master, $scope.stage.job).then(config => {

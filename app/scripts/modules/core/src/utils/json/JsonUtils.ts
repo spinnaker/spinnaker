@@ -89,10 +89,10 @@ export class JsonUtils {
     }
     const diffs = this.generateDiff(left, right);
     const diffLines: IDiffDetails[] = [];
-    let additions = 0,
-      removals = 0,
-      unchanged = 0,
-      total = 0;
+    let additions = 0;
+    let removals = 0;
+    let unchanged = 0;
+    let total = 0;
     const changeBlocks: IChangeBlock[] = [];
     diffs.forEach(diff => {
       const lines = diff[1].split('\n');

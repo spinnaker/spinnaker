@@ -60,8 +60,8 @@ export class ManualJudgmentApproval extends React.Component<
   };
 
   public render(): React.ReactElement<ManualJudgmentApproval> {
-    const stage: IExecutionStage = this.props.stage,
-      status: string = stage.status;
+    const stage: IExecutionStage = this.props.stage;
+    const status: string = stage.status;
 
     const options: Option[] = (stage.context.judgmentInputs || []).map((o: { value: string }) => {
       return { value: o.value, label: o.value };

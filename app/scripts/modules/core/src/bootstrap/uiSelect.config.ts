@@ -6,9 +6,9 @@ function uiSelectDecorator($provide: ng.auto.IProvideService) {
   $provide.decorator('uiSelectMultipleDirective', [
     '$delegate',
     function($delegate: any) {
-      const [uiSelect] = $delegate,
-        originalLink = uiSelect.link,
-        SELECT_EVENT_KEY = 'uis:select';
+      const [uiSelect] = $delegate;
+      const originalLink = uiSelect.link;
+      const SELECT_EVENT_KEY = 'uis:select';
 
       uiSelect.link = function(scope: IScope, _element: any, _attrs: any, ctrls: any) {
         originalLink.apply(this, arguments);

@@ -184,10 +184,10 @@ module(CORE_TASK_TASKS_CONTROLLER, [
     };
 
     controller.resultPage = function resultPage() {
-      let pagination = $scope.pagination,
-        allFiltered = controller.sortedTasks,
-        start = (pagination.currentPage - 1) * pagination.itemsPerPage,
-        end = pagination.currentPage * pagination.itemsPerPage;
+      let pagination = $scope.pagination;
+      let allFiltered = controller.sortedTasks;
+      let start = (pagination.currentPage - 1) * pagination.itemsPerPage;
+      let end = pagination.currentPage * pagination.itemsPerPage;
       if (!allFiltered || !allFiltered.length) {
         return [];
       }

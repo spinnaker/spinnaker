@@ -114,8 +114,8 @@ module(GOOGLE_LOADBALANCER_LOADBALANCER_TRANSFORMER, []).factory('gceLoadBalance
           toEdit.unhealthyThreshold = elb.healthCheck.unhealthyThreshold;
 
           let healthCheck = loadBalancer.elb.healthCheck.target;
-          const protocolIndex = healthCheck.indexOf(':'),
-            pathIndex = healthCheck.indexOf('/');
+          const protocolIndex = healthCheck.indexOf(':');
+          const pathIndex = healthCheck.indexOf('/');
 
           if (protocolIndex !== -1 && pathIndex !== -1) {
             toEdit.healthCheckProtocol = healthCheck.substring(0, protocolIndex);

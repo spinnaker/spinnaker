@@ -49,9 +49,9 @@ module(AMAZON_SERVERGROUP_DETAILS_SECURITYGROUP_EDITSECURITYGROUPS_MODAL_CONTROL
     this.isValid = () => this.state.verification.verified;
 
     securityGroupReader.getAllSecurityGroups().then(allGroups => {
-      let account = serverGroup.account,
-        region = serverGroup.region,
-        vpcId = serverGroup.vpcId;
+      let account = serverGroup.account;
+      let region = serverGroup.region;
+      let vpcId = serverGroup.vpcId;
       this.availableSecurityGroups = _.get(allGroups, [account, 'aws', region].join('.'), [])
         .filter(group => group.vpcId === vpcId)
         .sort((a, b) => {

@@ -51,8 +51,8 @@ class PageNavigatorController implements IController {
   }
 
   private handleScroll(): void {
-    const navigatorRect = this.$element.get(0).getBoundingClientRect(),
-      scrollableContainerTop = this.container.get(0).getBoundingClientRect().top;
+    const navigatorRect = this.$element.get(0).getBoundingClientRect();
+    const scrollableContainerTop = this.container.get(0).getBoundingClientRect().top;
 
     const currentPage = PageNavigationState.pages.find(p => {
       const content = this.container.find(`[data-page-content=${p.key}]`);

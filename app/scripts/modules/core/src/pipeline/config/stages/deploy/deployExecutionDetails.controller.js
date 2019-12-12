@@ -60,8 +60,8 @@ angular
         evaluateSections();
         $scope.detailsSection = $stateParams.details;
 
-        let context = $scope.stage.context || {},
-          results = [];
+        let context = $scope.stage.context || {};
+        let results = [];
 
         function addDeployedArtifacts(key) {
           let deployedArtifacts = _.find(resultObjects, key);

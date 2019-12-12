@@ -782,12 +782,12 @@ module(AZURE_INSTANCE_AZUREINSTANCETYPE_SERVICE, []).factory('azureInstanceTypeS
       if (category.families && category.families.length) {
         category.families.forEach(function(family) {
           stats.families.push(family.type);
-          let cpuMin = _.minBy(family.instanceTypes, 'cpu').cpu || Number.MAX_VALUE,
-            cpuMax = _.maxBy(family.instanceTypes, 'cpu').cpu || -Number.MAX_VALUE,
-            memoryMin = _.minBy(family.instanceTypes, 'memory').memory || Number.MAX_VALUE,
-            memoryMax = _.maxBy(family.instanceTypes, 'memory').memory || -Number.MAX_VALUE,
-            storageMin = calculateStorage(_.minBy(family.instanceTypes, calculateStorage)) || Number.MAX_VALUE,
-            storageMax = calculateStorage(_.maxBy(family.instanceTypes, calculateStorage)) || -Number.MAX_VALUE;
+          let cpuMin = _.minBy(family.instanceTypes, 'cpu').cpu || Number.MAX_VALUE;
+          let cpuMax = _.maxBy(family.instanceTypes, 'cpu').cpu || -Number.MAX_VALUE;
+          let memoryMin = _.minBy(family.instanceTypes, 'memory').memory || Number.MAX_VALUE;
+          let memoryMax = _.maxBy(family.instanceTypes, 'memory').memory || -Number.MAX_VALUE;
+          let storageMin = calculateStorage(_.minBy(family.instanceTypes, calculateStorage)) || Number.MAX_VALUE;
+          let storageMax = calculateStorage(_.maxBy(family.instanceTypes, calculateStorage)) || -Number.MAX_VALUE;
 
           stats.cpu.min = Math.min(stats.cpu.min, cpuMin);
           stats.cpu.max = Math.max(stats.cpu.max, cpuMax);

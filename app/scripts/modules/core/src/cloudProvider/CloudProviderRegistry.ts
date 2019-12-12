@@ -80,9 +80,9 @@ export class CloudProviderRegistry {
       );
       return;
     }
-    const config = this.providers.get(cloudProvider, skin),
-      parentKeys = key.split('.'),
-      lastKey = parentKeys.pop();
+    const config = this.providers.get(cloudProvider, skin);
+    const parentKeys = key.split('.');
+    const lastKey = parentKeys.pop();
     let current = config;
 
     parentKeys.forEach(parentKey => {
@@ -103,10 +103,10 @@ export class CloudProviderRegistry {
     if (!key || !this.providers.has(cloudProvider, skin)) {
       return null;
     }
-    const config = this.getProvider(cloudProvider, skin),
-      keyParts = key.split('.');
-    let current = config,
-      notFound = false;
+    const config = this.getProvider(cloudProvider, skin);
+    const keyParts = key.split('.');
+    let current = config;
+    let notFound = false;
 
     keyParts.forEach(keyPart => {
       if (!notFound && current.hasOwnProperty(keyPart)) {

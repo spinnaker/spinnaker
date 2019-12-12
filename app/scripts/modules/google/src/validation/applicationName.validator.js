@@ -88,8 +88,8 @@ module(GOOGLE_VALIDATION_APPLICATIONNAME_VALIDATOR, [])
     }
 
     function validate(name) {
-      const warnings = [],
-        errors = [];
+      const warnings = [];
+      const errors = [];
 
       if (name && name.length) {
         validateSpecialCharacters(name, errors);

@@ -154,8 +154,8 @@ export class DeckCacheFactory {
 
   private static getStats(cache: Cache): IStats {
     const keys = cache.keys();
-    let ageMin = Date.now(),
-      ageMax = 0;
+    let ageMin = Date.now();
+    let ageMax = 0;
 
     keys.forEach((key: string) => {
       const info: ItemInfo = (cache.info(key) || {}) as ItemInfo;

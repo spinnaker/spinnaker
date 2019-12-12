@@ -41,8 +41,8 @@ export class ScalingActivitiesCtrl implements IController {
   }
 
   private groupActivities(activities: IRawScalingActivity[]): void {
-    const grouped: any = _.groupBy(activities, 'cause'),
-      results: IScalingEventSummary[] = [];
+    const grouped: any = _.groupBy(activities, 'cause');
+    const results: IScalingEventSummary[] = [];
 
     _.forOwn(grouped, (group: IRawScalingActivity[]) => {
       if (group.length) {

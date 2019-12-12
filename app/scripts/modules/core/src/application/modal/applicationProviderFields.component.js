@@ -31,8 +31,8 @@ module(CORE_APPLICATION_MODAL_APPLICATIONPROVIDERFIELDS_COMPONENT, [])
     };
 
     this.getRelevantProviderFieldsTemplates = () => {
-      let candidateProvidersToShow,
-        appCloudProviders = this.application.cloudProviders;
+      let candidateProvidersToShow;
+      let appCloudProviders = this.application.cloudProviders;
 
       if (appCloudProviders.length === 0) {
         candidateProvidersToShow = this.cloudProviders;

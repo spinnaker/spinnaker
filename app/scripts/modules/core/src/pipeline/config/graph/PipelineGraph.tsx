@@ -136,8 +136,8 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
     nodes = nodes || this.createNodes(props);
     let allPhasesResolved = true;
     nodes.forEach(node => {
-      let phaseResolvable = true,
-        phase = 0;
+      let phaseResolvable = true;
+      let phase = 0;
       if (!node.parentIds.length) {
         node.phase = phase;
       } else {

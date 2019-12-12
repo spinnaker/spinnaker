@@ -212,9 +212,9 @@ angular
       }
 
       function setInstanceTypeFromCustomChoices() {
-        const c = $scope.command,
-          location = c.regional ? c.region : c.zone,
-          { locationToInstanceTypesMap } = c.backingData.credentialsKeyedByAccount[c.credentials];
+        const c = $scope.command;
+        const location = c.regional ? c.region : c.zone;
+        const { locationToInstanceTypesMap } = c.backingData.credentialsKeyedByAccount[c.credentials];
 
         const customInstanceChoices = [
           _.get(c, 'viewState.customInstance.vCpuCount'),

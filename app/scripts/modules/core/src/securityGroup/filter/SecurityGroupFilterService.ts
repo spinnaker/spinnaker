@@ -122,8 +122,8 @@ export class SecurityGroupFilterService {
     const grouped = groupBy(securityGroups, 'account');
 
     forOwn(grouped, (group, key) => {
-      const subGroupings = groupBy(group, 'name'),
-        subGroups: ISecurityGroupGroup[] = [];
+      const subGroupings = groupBy(group, 'name');
+      const subGroups: ISecurityGroupGroup[] = [];
 
       forOwn(subGroupings, (subGroup, subKey) => {
         const subSubGroups: ISecurityGroupGroup[] = [];

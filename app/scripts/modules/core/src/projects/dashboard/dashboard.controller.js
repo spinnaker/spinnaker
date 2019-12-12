@@ -131,8 +131,8 @@ module(CORE_PROJECTS_DASHBOARD_DASHBOARD_CONTROLLER, [
         .value();
     };
 
-    let clusterScheduler = SchedulerFactory.createScheduler(3 * 60 * 1000),
-      executionScheduler = SchedulerFactory.createScheduler(3 * 60 * 1000);
+    let clusterScheduler = SchedulerFactory.createScheduler(3 * 60 * 1000);
+    let executionScheduler = SchedulerFactory.createScheduler(3 * 60 * 1000);
 
     let clusterLoader = clusterScheduler.subscribe(getClusters);
 

@@ -249,8 +249,8 @@ module(GOOGLE_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUPMIXIN_CONTROLLER, [
     };
 
     ctrl.updateName = function() {
-      let securityGroup = $scope.securityGroup,
-        name = application.name;
+      let securityGroup = $scope.securityGroup;
+      let name = application.name;
       if (securityGroup.detail) {
         name += '-' + securityGroup.detail;
         name = _.trimEnd(name, '-');

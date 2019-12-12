@@ -141,8 +141,8 @@ module(AZURE_SECURITYGROUP_CONFIGURE_CREATESECURITYGROUPCTRL, [
     };
 
     ctrl.updateName = function() {
-      let securityGroup = $scope.securityGroup,
-        name = application.name;
+      let securityGroup = $scope.securityGroup;
+      let name = application.name;
       if (securityGroup.detail) {
         name += '-' + securityGroup.detail;
       }

@@ -149,11 +149,11 @@ export class MetricSelectorController implements IController {
       return;
     }
     if (this.state.selectedMetric) {
-      const selected = this.state.selectedMetric,
-        dimensionsChanged =
-          selected && this.dimensionsToString(alarm.dimensions) !== this.dimensionsToString(selected.dimensions),
-        alarmUpdated =
-          alarm.metricName !== selected.name || alarm.namespace !== selected.namespace || dimensionsChanged;
+      const selected = this.state.selectedMetric;
+      const dimensionsChanged =
+        selected && this.dimensionsToString(alarm.dimensions) !== this.dimensionsToString(selected.dimensions);
+      const alarmUpdated =
+        alarm.metricName !== selected.name || alarm.namespace !== selected.namespace || dimensionsChanged;
       alarm.metricName = selected.name;
       alarm.namespace = selected.namespace;
       if (dimensionsChanged) {

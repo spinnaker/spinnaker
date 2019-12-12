@@ -85,11 +85,11 @@ module(AZURE_SECURITYGROUP_CONFIGURE_EDITSECURITYGROUPCTRL, [
 
     function initializeSecurityGroups() {
       return securityGroupReader.getAllSecurityGroups().then(function(securityGroups) {
-        let account = securityGroup.accountName,
-          region = securityGroup.region,
-          availableGroups = _.filter(securityGroups[account].azure[region], {
-            /*vpcId: vpcId*/
-          });
+        let account = securityGroup.accountName;
+        let region = securityGroup.region;
+        let availableGroups = _.filter(securityGroups[account].azure[region], {
+          /*vpcId: vpcId*/
+        });
         $scope.availableSecurityGroups = _.map(availableGroups, 'name');
       });
     }

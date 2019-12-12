@@ -52,19 +52,19 @@ module(CORE_PROJECTS_PROJECTS_CONTROLLER, [
 
     this.filterProjects = function filterProjects() {
       let filtered = $filter('anyFieldFilter')($scope.projects, {
-          name: $scope.viewState.projectFilter,
-          email: $scope.viewState.projectFilter,
-        }),
-        sorted = $filter('orderBy')(filtered, $scope.viewState.sortModel.key);
+        name: $scope.viewState.projectFilter,
+        email: $scope.viewState.projectFilter,
+      });
+      let sorted = $filter('orderBy')(filtered, $scope.viewState.sortModel.key);
       $scope.filteredProjects = sorted;
       this.resetPaginator();
     };
 
     this.resultPage = function resultPage() {
-      let pagination = $scope.pagination,
-        allFiltered = $scope.filteredProjects,
-        start = (pagination.currentPage - 1) * pagination.itemsPerPage,
-        end = pagination.currentPage * pagination.itemsPerPage;
+      let pagination = $scope.pagination;
+      let allFiltered = $scope.filteredProjects;
+      let start = (pagination.currentPage - 1) * pagination.itemsPerPage;
+      let end = pagination.currentPage * pagination.itemsPerPage;
       if (!allFiltered || !allFiltered.length) {
         return [];
       }

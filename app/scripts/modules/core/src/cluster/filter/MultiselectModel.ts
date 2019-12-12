@@ -99,10 +99,10 @@ export class MultiselectModel {
   }
 
   public getOrCreateInstanceGroup(serverGroup: IServerGroup): IMultiInstanceGroup {
-    const serverGroupName = serverGroup.name,
-      account = serverGroup.account,
-      region = serverGroup.region,
-      cloudProvider = serverGroup.type;
+    const serverGroupName = serverGroup.name;
+    const account = serverGroup.account;
+    const region = serverGroup.region;
+    const cloudProvider = serverGroup.type;
     let result = this.instanceGroups.find(
       instanceGroup =>
         instanceGroup.serverGroup === serverGroupName &&
@@ -165,8 +165,8 @@ export class MultiselectModel {
       return;
     }
     this.deselectAllInstances();
-    const key = this.makeServerGroupKey(serverGroup),
-      selected = this.serverGroups.find(sg => sg.key === key);
+    const key = this.makeServerGroupKey(serverGroup);
+    const selected = this.serverGroups.find(sg => sg.key === key);
     if (selected) {
       this.serverGroups.splice(this.serverGroups.indexOf(selected), 1);
     } else {

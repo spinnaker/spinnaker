@@ -91,9 +91,9 @@ export class WerckerStage implements IController {
   }
 
   private updateAppsList(): void {
-    const master = this.stage.master,
-      job: string = this.stage.job || '',
-      viewState = this.viewState;
+    const master = this.stage.master;
+    const job: string = this.stage.job || '';
+    const viewState = this.viewState;
     viewState.masterIsParameterized = master.includes('${');
     viewState.jobIsParameterized = job.includes('${');
     if (viewState.masterIsParameterized || viewState.jobIsParameterized) {

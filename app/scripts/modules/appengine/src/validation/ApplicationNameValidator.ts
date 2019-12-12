@@ -3,8 +3,8 @@ import { ApplicationNameValidator, IApplicationNameValidator, IValidationResult 
 // See https://cloud.google.com/appengine/docs/admin-api/reference/rest/v1/apps.services.versions#Version
 class AppengineApplicationNameValidator implements IApplicationNameValidator {
   public validate(name = ''): IValidationResult {
-    const warnings: string[] = [],
-      errors: string[] = [];
+    const warnings: string[] = [];
+    const errors: string[] = [];
     if (name.length) {
       this.validateSpecialCharacters(name, errors);
       this.validateLength(name, warnings, errors);

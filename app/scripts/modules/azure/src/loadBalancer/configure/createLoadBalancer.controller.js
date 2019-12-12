@@ -111,8 +111,8 @@ module(AZURE_LOADBALANCER_CONFIGURE_CREATELOADBALANCER_CONTROLLER, [
     }
 
     function updateLoadBalancerNames() {
-      let account = $scope.loadBalancer.credentials,
-        region = $scope.loadBalancer.region;
+      let account = $scope.loadBalancer.credentials;
+      let region = $scope.loadBalancer.region;
 
       const accountLoadBalancersByRegion = {};
       application
@@ -163,8 +163,8 @@ module(AZURE_LOADBALANCER_CONFIGURE_CREATELOADBALANCER_CONTROLLER, [
     };
 
     this.vnetUpdated = function() {
-      let account = $scope.loadBalancer.credentials,
-        region = $scope.loadBalancer.region;
+      let account = $scope.loadBalancer.credentials;
+      let region = $scope.loadBalancer.region;
       $scope.loadBalancer.selectedVnet = null;
       $scope.loadBalancer.vnet = null;
       $scope.loadBalancer.vnetResourceGroup = null;

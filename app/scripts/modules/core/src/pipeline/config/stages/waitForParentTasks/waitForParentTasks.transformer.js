@@ -24,8 +24,8 @@ module(CORE_PIPELINE_CONFIG_STAGES_WAITFORPARENTTASKS_WAITFORPARENTTASKS_TRANSFO
               candidate.context.requisiteIds.every(reqId => stage.requisiteStageRefIds.includes(reqId)),
           );
           if (waitStages.length) {
-            let waitStage = waitStages[0],
-              parentStages = execution.stages.filter(parent => waitStage.context.requisiteIds.includes(parent.refId));
+            let waitStage = waitStages[0];
+            let parentStages = execution.stages.filter(parent => waitStage.context.requisiteIds.includes(parent.refId));
             stagesToInject.push({
               parentTasks: parentStages,
               syntheticStageOwner: 'STAGE_BEFORE',

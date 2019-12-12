@@ -88,9 +88,9 @@ module(CORE_SECURITYGROUP_ALLSECURITYGROUPSCTRL, [
           skinSelectionService.selectSkin(selectedProvider).then(selectedVersion => {
             let provider = CloudProviderRegistry.getValue(selectedProvider, 'securityGroup', selectedVersion);
             let defaultCredentials =
-                app.defaultCredentials[selectedProvider] || SETTINGS.providers[selectedProvider].defaults.account,
-              defaultRegion =
-                app.defaultRegions[selectedProvider] || SETTINGS.providers[selectedProvider].defaults.region;
+              app.defaultCredentials[selectedProvider] || SETTINGS.providers[selectedProvider].defaults.account;
+            let defaultRegion =
+              app.defaultRegions[selectedProvider] || SETTINGS.providers[selectedProvider].defaults.region;
             if (provider.CreateSecurityGroupModal) {
               provider.CreateSecurityGroupModal.show({
                 credentials: defaultCredentials,

@@ -33,15 +33,15 @@ export class HealthCounts extends React.Component<IHealthCountsProps, IHealthCou
   private calculatePercent(container: IInstanceCounts): IHealthCountsState {
     container = container || ({} as IInstanceCounts);
 
-    const up = container.up || 0,
-      down = container.down || 0,
-      succeeded = container.succeeded || 0,
-      failed = container.failed || 0,
-      unknown = container.unknown || 0,
-      starting = container.starting || 0,
-      total = container.total || up + down + unknown + starting + succeeded + failed,
-      percent = total ? Math.floor(((up + succeeded) * 100) / total) : undefined,
-      percentLabel = percent === undefined ? 'n/a' : percent + '%';
+    const up = container.up || 0;
+    const down = container.down || 0;
+    const succeeded = container.succeeded || 0;
+    const failed = container.failed || 0;
+    const unknown = container.unknown || 0;
+    const starting = container.starting || 0;
+    const total = container.total || up + down + unknown + starting + succeeded + failed;
+    const percent = total ? Math.floor(((up + succeeded) * 100) / total) : undefined;
+    const percentLabel = percent === undefined ? 'n/a' : percent + '%';
 
     const statusClass =
       percent === undefined

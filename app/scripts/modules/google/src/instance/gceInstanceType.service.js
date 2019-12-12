@@ -278,8 +278,8 @@ module(GOOGLE_INSTANCE_GCEINSTANCETYPE_SERVICE, []).factory('gceInstanceTypeServ
                   })
                   .filter(disk => !!disk);
 
-                let size = 0,
-                  count = 0;
+                let size = 0;
+                let count = 0;
                 if (diskDefaults.supportsLocalSSD) {
                   count = disks.filter(disk => disk.type === 'local-ssd').length;
                   size = 375;

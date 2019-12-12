@@ -41,14 +41,14 @@ angular
       let dataDiskTypes = ['Standard_LRS', 'StandardSSD_LRS', 'Premium_LRS'];
       let dataDiskCachingTypes = ['None', 'ReadOnly', 'ReadWrite'];
 
-      let healthCheckTypes = ['EC2', 'ELB'],
-        terminationPolicies = [
-          'OldestInstance',
-          'NewestInstance',
-          'OldestLaunchConfiguration',
-          'ClosestToNextInstanceHour',
-          'Default',
-        ];
+      let healthCheckTypes = ['EC2', 'ELB'];
+      let terminationPolicies = [
+        'OldestInstance',
+        'NewestInstance',
+        'OldestLaunchConfiguration',
+        'ClosestToNextInstanceHour',
+        'Default',
+      ];
 
       function configureUpdateCommand(command) {
         command.backingData = {
@@ -97,9 +97,9 @@ angular
           dirty: {},
         };
 
-        const locations = [c.region],
-          { credentialsKeyedByAccount } = c.backingData,
-          { locationToInstanceTypesMap } = credentialsKeyedByAccount[c.credentials];
+        const locations = [c.region];
+        const { credentialsKeyedByAccount } = c.backingData;
+        const { locationToInstanceTypesMap } = credentialsKeyedByAccount[c.credentials];
 
         if (locations.every(l => !l)) {
           return result;

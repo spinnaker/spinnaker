@@ -116,24 +116,24 @@ export const ExecutionWindows = (props: IExecutionWindowsConfigProps) => {
   function getTimelineWindows(w: IWindow[]): ITimelineWindow[] {
     const windows: ITimelineWindow[] = [];
     w.forEach((window: IWindow) => {
-      const start = window.startHour * 60 + window.startMin,
-        end = window.endHour * 60 + window.endMin;
+      const start = window.startHour * 60 + window.startMin;
+      const end = window.endHour * 60 + window.endMin;
 
       // split into two windows
       if (start > end) {
         const firstWindow = {
-            startMin: window.startMin,
-            startHour: window.startHour,
-            endMin: 0,
-            endHour: 24,
-            wrapEnd: true,
-          },
-          secondWindow = {
-            startMin: 0,
-            startHour: 0,
-            endMin: window.endMin,
-            endHour: window.endHour,
-          };
+          startMin: window.startMin,
+          startHour: window.startHour,
+          endMin: 0,
+          endHour: 24,
+          wrapEnd: true,
+        };
+        const secondWindow = {
+          startMin: 0,
+          startHour: 0,
+          endMin: window.endMin,
+          endHour: window.endHour,
+        };
         windows.push(buildTimelineWindow(firstWindow, window));
         windows.push(buildTimelineWindow(secondWindow, window));
       } else {
@@ -160,10 +160,10 @@ export const ExecutionWindows = (props: IExecutionWindowsConfigProps) => {
 
   function getWindowStyle(window: IWindow): any {
     const dayMinutes = 24 * 60;
-    const start = window.startHour * 60 + window.startMin,
-      end = window.endHour * 60 + window.endMin,
-      width = ((end - start) / dayMinutes) * 100,
-      startOffset = (start / dayMinutes) * 100;
+    const start = window.startHour * 60 + window.startMin;
+    const end = window.endHour * 60 + window.endMin;
+    const width = ((end - start) / dayMinutes) * 100;
+    const startOffset = (start / dayMinutes) * 100;
 
     return {
       width: width + '%',

@@ -125,8 +125,8 @@ module(AMAZON_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
     };
 
     ctrl.regionUpdated = function() {
-      let account = getAccount(),
-        regions = $scope.securityGroup.regions || [];
+      let account = getAccount();
+      let regions = $scope.securityGroup.regions || [];
       VpcReader.listVpcs().then(function(vpcs) {
         let vpcsByName = _.groupBy(vpcs.filter(vpc => vpc.account === account), 'label');
         $scope.allVpcs = vpcs;
@@ -186,8 +186,8 @@ module(AMAZON_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
     };
 
     this.vpcUpdated = function() {
-      let account = getAccount(),
-        regions = $scope.securityGroup.regions;
+      let account = getAccount();
+      let regions = $scope.securityGroup.regions;
       if (account && regions.length) {
         configureFilteredSecurityGroups();
       } else {
@@ -236,8 +236,8 @@ module(AMAZON_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
     };
 
     function clearInvalidSecurityGroups() {
-      let removed = $scope.state.removedRules,
-        securityGroup = $scope.securityGroup;
+      let removed = $scope.state.removedRules;
+      let securityGroup = $scope.securityGroup;
       $scope.securityGroup.securityGroupIngress = (securityGroup.securityGroupIngress || []).filter(rule => {
         if (
           rule.accountName &&

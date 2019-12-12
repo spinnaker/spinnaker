@@ -31,11 +31,11 @@ export class WerckerExecutionDetailsCtrl implements IController {
 
   private getFailureMessage(): string {
     let failureMessage = this.stage.failureMessage;
-    const context = this.stage.context || {},
-      buildInfo = context.buildInfo || {},
-      testResults = get(buildInfo, 'testResults', []),
-      failingTests = testResults.filter(results => results.failCount > 0),
-      failingTestCount = failingTests.reduce((acc, results) => acc + results.failCount, 0);
+    const context = this.stage.context || {};
+    const buildInfo = context.buildInfo || {};
+    const testResults = get(buildInfo, 'testResults', []);
+    const failingTests = testResults.filter(results => results.failCount > 0);
+    const failingTestCount = failingTests.reduce((acc, results) => acc + results.failCount, 0);
     if (buildInfo.result === 'FAILURE') {
       failureMessage = 'Build failed.';
     }

@@ -29,25 +29,25 @@ angular
       };
 
       let currentlyEnabled = _.chain($scope.command)
-          .filter({ enabled: true })
-          .map('name')
-          .value(),
-        currentlySuspended = _.chain($scope.command)
-          .filter({ enabled: false })
-          .map('name')
-          .value();
+        .filter({ enabled: true })
+        .map('name')
+        .value();
+      let currentlySuspended = _.chain($scope.command)
+        .filter({ enabled: false })
+        .map('name')
+        .value();
 
       this.isDirty = function() {
         let enabledSelections = _.chain($scope.command)
-            .filter({ enabled: true })
-            .map('name')
-            .value(),
-          suspendedSelections = _.chain($scope.command)
-            .filter({ enabled: false })
-            .map('name')
-            .value(),
-          toEnable = _.intersection(currentlySuspended, enabledSelections),
-          toSuspend = _.intersection(currentlyEnabled, suspendedSelections);
+          .filter({ enabled: true })
+          .map('name')
+          .value();
+        let suspendedSelections = _.chain($scope.command)
+          .filter({ enabled: false })
+          .map('name')
+          .value();
+        let toEnable = _.intersection(currentlySuspended, enabledSelections);
+        let toSuspend = _.intersection(currentlyEnabled, suspendedSelections);
 
         return !!(toEnable.length || toSuspend.length);
       };
@@ -61,15 +61,15 @@ angular
 
       this.submit = function() {
         let enabledSelections = _.chain($scope.command)
-            .filter({ enabled: true })
-            .map('name')
-            .value(),
-          suspendedSelections = _.chain($scope.command)
-            .filter({ enabled: false })
-            .map('name')
-            .value(),
-          toEnable = _.intersection(currentlySuspended, enabledSelections),
-          toSuspend = _.intersection(currentlyEnabled, suspendedSelections);
+          .filter({ enabled: true })
+          .map('name')
+          .value();
+        let suspendedSelections = _.chain($scope.command)
+          .filter({ enabled: false })
+          .map('name')
+          .value();
+        let toEnable = _.intersection(currentlySuspended, enabledSelections);
+        let toSuspend = _.intersection(currentlyEnabled, suspendedSelections);
 
         let job = [];
         if (toEnable.length) {

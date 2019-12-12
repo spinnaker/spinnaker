@@ -96,11 +96,11 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
 
   private instanceSorter = (a1: IInstance, b1: IInstance): number => {
     const { instanceSort = 'launchTime' } = this.state;
-    const filterSplit = instanceSort.split('-'),
-      filterType = filterSplit.length === 1 ? filterSplit[0] : filterSplit[1],
-      reverse = filterSplit.length === 2,
-      a = reverse ? b1 : a1,
-      b = reverse ? a1 : b1;
+    const filterSplit = instanceSort.split('-');
+    const filterType = filterSplit.length === 1 ? filterSplit[0] : filterSplit[1];
+    const reverse = filterSplit.length === 2;
+    const a = reverse ? b1 : a1;
+    const b = reverse ? a1 : b1;
 
     switch (filterType) {
       case 'id':
@@ -114,8 +114,8 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
             : a.launchTime - b.launchTime
           : a.availabilityZone.localeCompare(b.availabilityZone);
       case 'discoveryState': {
-        const aHealth = (a.health || []).filter(health => health.type === 'Discovery'),
-          bHealth = (b.health || []).filter(health => health.type === 'Discovery');
+        const aHealth = (a.health || []).filter(health => health.type === 'Discovery');
+        const bHealth = (b.health || []).filter(health => health.type === 'Discovery');
         if (aHealth.length && !bHealth.length) {
           return -1;
         }
@@ -138,8 +138,8 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
         if (!aHealth2.length && bHealth2.length) {
           return 1;
         }
-        const aHealthStr = aHealth2.map(h => h.loadBalancers.map(l => l.name + ':' + l.state)).join(','),
-          bHealthStr = bHealth2.map(h => h.loadBalancers.map(l => l.name + ':' + l.state)).join(',');
+        const aHealthStr = aHealth2.map(h => h.loadBalancers.map(l => l.name + ':' + l.state)).join(',');
+        const bHealthStr = bHealth2.map(h => h.loadBalancers.map(l => l.name + ':' + l.state)).join(',');
         return aHealthStr === bHealthStr
           ? a.launchTime === b.launchTime
             ? a.id.localeCompare(b.id)

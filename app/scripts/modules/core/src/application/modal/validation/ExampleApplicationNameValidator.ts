@@ -32,8 +32,8 @@ export class ExampleApplicationNameValidator implements IApplicationNameValidato
   }
 
   public validate(name = ''): IValidationResult {
-    const warnings: string[] = [],
-      errors: string[] = [];
+    const warnings: string[] = [];
+    const errors: string[] = [];
     name = name || '';
     if (name === this.WARNING_CONDITION) {
       warnings.push(this.WARNING_MESSAGE);
@@ -85,8 +85,8 @@ export class ExampleApplicationNameValidator2 implements IApplicationNameValidat
   }
 
   public validate(name = ''): IValidationResult {
-    const warnings: string[] = [],
-      errors: string[] = [];
+    const warnings: string[] = [];
+    const errors: string[] = [];
     name = name || '';
     if (name === this.WARNING_CONDITION) {
       warnings.push(this.WARNING_MESSAGE);

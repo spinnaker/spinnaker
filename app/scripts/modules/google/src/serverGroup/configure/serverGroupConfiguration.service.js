@@ -196,9 +196,9 @@ angular
         const c = command;
         const result = { dirty: {} };
 
-        const locations = c.regional ? [c.region] : [c.zone],
-          { credentialsKeyedByAccount } = c.backingData,
-          { locationToInstanceTypesMap } = credentialsKeyedByAccount[c.credentials];
+        const locations = c.regional ? [c.region] : [c.zone];
+        const { credentialsKeyedByAccount } = c.backingData;
+        const { locationToInstanceTypesMap } = credentialsKeyedByAccount[c.credentials];
 
         if (locations.every(l => !l)) {
           return result;
@@ -218,12 +218,12 @@ angular
 
       function configureCustomInstanceTypes(command) {
         const c = command;
-        let result = { dirty: {} },
-          vCpuCount = _.get(c, 'viewState.customInstance.vCpuCount'),
-          memory = _.get(c, 'viewState.customInstance.memory'),
-          { zone, regional, region } = c,
-          { locationToInstanceTypesMap } = c.backingData.credentialsKeyedByAccount[c.credentials],
-          location = regional ? region : zone;
+        let result = { dirty: {} };
+        let vCpuCount = _.get(c, 'viewState.customInstance.vCpuCount');
+        let memory = _.get(c, 'viewState.customInstance.memory');
+        let { zone, regional, region } = c;
+        let { locationToInstanceTypesMap } = c.backingData.credentialsKeyedByAccount[c.credentials];
+        let location = regional ? region : zone;
 
         if (!location) {
           return result;

@@ -63,8 +63,8 @@ class AmazonApplicationNameValidator implements IApplicationNameValidator {
   }
 
   public validate(name = '') {
-    const warnings: string[] = [],
-      errors: string[] = [];
+    const warnings: string[] = [];
+    const errors: string[] = [];
 
     if (name.length) {
       this.validateClassicLock(warnings);

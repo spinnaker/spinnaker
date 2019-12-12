@@ -52,11 +52,11 @@ module(CORE_PROJECTS_DASHBOARD_CLUSTER_PROJECTCLUSTER_DIRECTIVE, [
       };
 
       let getMetadata = application => {
-        let stack = this.cluster.stack,
-          detail = this.cluster.detail,
-          clusterParam = !stack && !detail ? application.name : null,
-          stackParam = stack && stack !== '*' ? stack : null,
-          detailParam = detail && detail !== '*' ? detail : null;
+        let stack = this.cluster.stack;
+        let detail = this.cluster.detail;
+        let clusterParam = !stack && !detail ? application.name : null;
+        let stackParam = stack && stack !== '*' ? stack : null;
+        let detailParam = detail && detail !== '*' ? detail : null;
 
         return {
           type: 'clusters',

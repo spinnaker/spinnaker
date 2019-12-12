@@ -46,10 +46,10 @@ module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_CHART_METRICALARMCHART_COMPONENT
         };
 
         let initializeStatistics = () => {
-          let start = new Date(new Date().getTime() - 24 * 60 * 60 * 1000),
-            end = new Date(),
-            threshold = this.alarm.threshold || 0,
-            topline = this.alarm.comparisonOperator.indexOf('Less') === 0 ? threshold * 3 : threshold * 1.02;
+          let start = new Date(new Date().getTime() - 24 * 60 * 60 * 1000);
+          let end = new Date();
+          let threshold = this.alarm.threshold || 0;
+          let topline = this.alarm.comparisonOperator.indexOf('Less') === 0 ? threshold * 3 : threshold * 1.02;
 
           /**
            * Draw four lines:

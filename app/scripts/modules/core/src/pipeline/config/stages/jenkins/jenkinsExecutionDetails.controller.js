@@ -21,16 +21,17 @@ module(CORE_PIPELINE_CONFIG_STAGES_JENKINS_JENKINSEXECUTIONDETAILS_CONTROLLER, [
       };
 
       function getFailureMessage() {
-        let failureMessage = $scope.stage.failureMessage,
-          context = $scope.stage.context || {},
-          buildInfo = context.buildInfo || {},
-          testResults = buildInfo && buildInfo.testResults && buildInfo.testResults.length ? buildInfo.testResults : [],
-          failingTests = testResults.filter(function(results) {
-            return results.failCount > 0;
-          }),
-          failingTestCount = failingTests.reduce(function(acc, results) {
-            return acc + results.failCount;
-          }, 0);
+        let failureMessage = $scope.stage.failureMessage;
+        let context = $scope.stage.context || {};
+        let buildInfo = context.buildInfo || {};
+        let testResults =
+          buildInfo && buildInfo.testResults && buildInfo.testResults.length ? buildInfo.testResults : [];
+        let failingTests = testResults.filter(function(results) {
+          return results.failCount > 0;
+        });
+        let failingTestCount = failingTests.reduce(function(acc, results) {
+          return acc + results.failCount;
+        }, 0);
 
         if (buildInfo.result === 'FAILURE') {
           failureMessage = 'Build failed.';

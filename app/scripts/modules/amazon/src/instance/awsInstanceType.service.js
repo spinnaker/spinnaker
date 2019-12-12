@@ -204,8 +204,8 @@ module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeServ
     let instanceClassOrder = ['xlarge', 'large', 'medium', 'small', 'micro', 'nano'];
 
     function sortTypesByFamilyAndSize(o1, o2) {
-      let type1 = o1.split('.'),
-        type2 = o2.split('.');
+      let type1 = o1.split('.');
+      let type2 = o2.split('.');
 
       let [family1, class1 = ''] = type1;
       let [family2, class2 = ''] = type2;

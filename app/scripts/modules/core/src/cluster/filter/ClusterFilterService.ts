@@ -70,15 +70,15 @@ export class ClusterFilterService {
     const accountGroupings = groupBy(serverGroups, 'account');
 
     forOwn(accountGroupings, (accountGroup: IServerGroup[], account: string) => {
-      const categoryGroupings = groupBy(accountGroup, 'category'),
-        clusterGroups: IClusterSubgroup[] = [];
+      const categoryGroupings = groupBy(accountGroup, 'category');
+      const clusterGroups: IClusterSubgroup[] = [];
 
       forOwn(categoryGroupings, (categoryGroup: IServerGroup[], category: string) => {
         const clusterGroupings = groupBy(categoryGroup, 'cluster');
 
         forOwn(clusterGroupings, (clusterGroup: IServerGroup[], cluster: string) => {
-          const regionGroupings = groupBy(clusterGroup, 'region'),
-            regionGroups: IServerGroupSubgroup[] = [];
+          const regionGroupings = groupBy(clusterGroup, 'region');
+          const regionGroups: IServerGroupSubgroup[] = [];
 
           forOwn(regionGroupings, (regionGroup: IServerGroup[], region: string) => {
             regionGroups.push({

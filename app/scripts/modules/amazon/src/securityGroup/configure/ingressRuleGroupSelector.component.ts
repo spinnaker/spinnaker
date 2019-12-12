@@ -109,10 +109,10 @@ class IngressRuleSelectorController implements IController {
     regions.forEach(region => {
       let regionalVpcId: string = null;
       if (vpcId) {
-        const baseVpc: IVpc = this.vpcs.find(vpc => vpc.id === vpcId),
-          regionalVpc: IVpc = this.vpcs.find(
-            vpc => vpc.account === account && vpc.region === region && vpc.name === baseVpc.name,
-          );
+        const baseVpc: IVpc = this.vpcs.find(vpc => vpc.id === vpcId);
+        const regionalVpc: IVpc = this.vpcs.find(
+          vpc => vpc.account === account && vpc.region === region && vpc.name === baseVpc.name,
+        );
         regionalVpcId = regionalVpc ? regionalVpc.id : undefined;
       }
 
@@ -152,8 +152,8 @@ class IngressRuleSelectorController implements IController {
         this.rule.name = null;
         return;
       }
-      const baseVpc = filtered.find(vpc => vpc.id === this.rule.vpcId),
-        regionalVpc = filtered.find(vpc => vpc.account === this.rule.accountName && vpc.name === baseVpc.name);
+      const baseVpc = filtered.find(vpc => vpc.id === this.rule.vpcId);
+      const regionalVpc = filtered.find(vpc => vpc.account === this.rule.accountName && vpc.name === baseVpc.name);
       if (regionalVpc) {
         this.rule.vpcId = regionalVpc.id;
       } else {

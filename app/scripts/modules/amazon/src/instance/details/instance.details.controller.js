@@ -254,8 +254,8 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     };
 
     this.canRegisterWithLoadBalancer = function() {
-      let instance = $scope.instance,
-        healthMetrics = instance.health || [];
+      let instance = $scope.instance;
+      let healthMetrics = instance.health || [];
       if (!instance.loadBalancers || !instance.loadBalancers.length) {
         return false;
       }
@@ -276,8 +276,8 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     };
 
     this.canRegisterWithTargetGroup = function() {
-      let instance = $scope.instance,
-        healthMetrics = instance.health || [];
+      let instance = $scope.instance;
+      let healthMetrics = instance.health || [];
       if (!instance.targetGroups || !instance.targetGroups.length) {
         return false;
       }
@@ -515,8 +515,8 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     };
 
     this.hasHealthState = function hasHealthState(healthProviderType, state) {
-      let instance = $scope.instance,
-        healthMetrics = instance.health || [];
+      let instance = $scope.instance;
+      let healthMetrics = instance.health || [];
       return healthMetrics.some(function(health) {
         return health.type === healthProviderType && health.state === state;
       });

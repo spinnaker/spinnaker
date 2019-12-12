@@ -70,8 +70,8 @@ module(AZURE_LOADBALANCER_LOADBALANCER_TRANSFORMER, []).factory('azureLoadBalanc
     }
 
     function constructNewLoadBalancerTemplate(application) {
-      let defaultCredentials = application.defaultCredentials.azure || AzureProviderSettings.defaults.account,
-        defaultRegion = application.defaultRegions.azure || AzureProviderSettings.defaults.region;
+      let defaultCredentials = application.defaultCredentials.azure || AzureProviderSettings.defaults.account;
+      let defaultRegion = application.defaultRegions.azure || AzureProviderSettings.defaults.region;
       return {
         stack: '',
         detail: 'frontend',

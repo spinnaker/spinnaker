@@ -53,8 +53,8 @@ export class ApplicationNameValidator {
     return AccountService.listProviders().then((availableProviders: string[]) => {
       const toCheck = providersToTest && providersToTest.length ? providersToTest : availableProviders;
 
-      const errors: IApplicationNameValidationMessage[] = [],
-        warnings: IApplicationNameValidationMessage[] = [];
+      const errors: IApplicationNameValidationMessage[] = [];
+      const warnings: IApplicationNameValidationMessage[] = [];
       toCheck.forEach((provider: string) => {
         if (this.providerMap.has(provider)) {
           this.providerMap.get(provider).forEach(validator => {

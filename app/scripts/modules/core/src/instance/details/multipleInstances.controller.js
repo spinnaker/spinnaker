@@ -233,8 +233,8 @@ module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
     };
 
     let makeServerGroupModel = group => {
-      let parentServerGroup = getServerGroup(group),
-        loadBalancers = parentServerGroup ? parentServerGroup.loadBalancers : [];
+      let parentServerGroup = getServerGroup(group);
+      let loadBalancers = parentServerGroup ? parentServerGroup.loadBalancers : [];
 
       return {
         cloudProvider: group.cloudProvider,

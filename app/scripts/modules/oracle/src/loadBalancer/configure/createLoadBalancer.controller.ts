@@ -167,8 +167,8 @@ export class OracleLoadBalancerController implements IController {
   }
 
   public updateLoadBalancerNames() {
-    const account = this.$scope.loadBalancerCmd.credentials,
-      region = this.$scope.loadBalancerCmd.region;
+    const account = this.$scope.loadBalancerCmd.credentials;
+    const region = this.$scope.loadBalancerCmd.region;
 
     const accountLoadBalancerNamesByRegion: { [key: string]: string[] } = {};
     this.application

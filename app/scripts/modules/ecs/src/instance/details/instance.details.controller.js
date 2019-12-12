@@ -346,8 +346,8 @@ module(ECS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     };
 
     this.hasHealthState = function hasHealthState(healthProviderType, state) {
-      let instance = $scope.instance,
-        healthMetrics = instance.health || [];
+      let instance = $scope.instance;
+      let healthMetrics = instance.health || [];
       return healthMetrics.some(function(health) {
         return health.type === healthProviderType && health.state === state;
       });

@@ -38,17 +38,17 @@ export class WebhookExecutionDetailsCtrl implements IController {
   }
 
   private getProgressMessage(): string {
-    const context = this.stage.context || {},
-      buildInfo = context.buildInfo || {};
+    const context = this.stage.context || {};
+    const buildInfo = context.buildInfo || {};
     return buildInfo.progressMessage;
   }
 
   private getFailureMessage(): string {
     let failureMessage = this.stage.failureMessage;
-    const context = this.stage.context || {},
-      webhook = context.webhook || {},
-      monitor = webhook.monitor || {},
-      error = monitor.error || webhook.error || null;
+    const context = this.stage.context || {};
+    const webhook = context.webhook || {};
+    const monitor = webhook.monitor || {};
+    const error = monitor.error || webhook.error || null;
 
     if (error) {
       failureMessage = `Webhook failed: ${error}`;
@@ -61,9 +61,9 @@ export class WebhookExecutionDetailsCtrl implements IController {
 
   private getBodyContent(): string {
     // If there was a webhook monitor task get the body from it, otherwise get it from webhook
-    const context = this.stage.context || {},
-      webhook = context.webhook || {},
-      monitor = webhook.monitor || {};
+    const context = this.stage.context || {};
+    const webhook = context.webhook || {};
+    const monitor = webhook.monitor || {};
 
     const body = monitor.body || webhook.body || null;
 
