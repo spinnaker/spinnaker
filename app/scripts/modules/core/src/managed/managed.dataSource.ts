@@ -1,4 +1,4 @@
-import { module, IQService } from 'angular';
+import { IQService, module } from 'angular';
 
 import { noop } from 'core/utils';
 import { SETTINGS } from 'core/config/settings';
@@ -23,7 +23,8 @@ module(MANAGED_RESOURCES_DATA_SOURCE, []).run([
       return ManagedReader.getApplicationSummary(application.name);
     };
 
-    const addManagedResources = (_application: Application, data: IManagedApplicationSummary) => {
+    const addManagedResources = (application: Application, data: IManagedApplicationSummary) => {
+      application.isManagementPaused = data.applicationPaused;
       return $q.when(data);
     };
 

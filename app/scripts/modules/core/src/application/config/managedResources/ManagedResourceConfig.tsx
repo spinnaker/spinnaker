@@ -57,10 +57,10 @@ const getManagementStatus = (paused: boolean) => {
 const ManagedResourceConfig = ({ application }: IManagedResourceConfigProps) => {
   const [pausePending, setPausePending] = useState(false);
   const [pauseFailed, setPauseFailed] = useState(false);
-  const [paused, setPaused] = useState(application.managedResources.data.applicationPaused);
+  const [paused, setPaused] = useState(application.isManagementPaused);
 
   const onRefresh = useLatestCallback(() => {
-    setPaused(application.managedResources.data.applicationPaused);
+    setPaused(application.isManagementPaused);
   });
   useEffect(() => application.managedResources.onRefresh(null, onRefresh), [application]);
 

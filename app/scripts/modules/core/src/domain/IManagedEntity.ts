@@ -16,6 +16,7 @@ export interface IManagedResourceSummary {
   id: string;
   kind: string;
   status: ManagedResourceStatus;
+  isPaused: boolean;
   moniker: IMoniker;
   locations: {
     account: string;

@@ -83,6 +83,11 @@ export class Application {
   public isStandalone = false;
 
   /**
+   * If managed delivery is enabled, indicates whether an entire application is in an explicit paused state
+   */
+  public isManagementPaused = false;
+
+  /**
    * Which data source is the active state
    * @type {ApplicationDataSource}
    */

@@ -24,10 +24,10 @@ export class ManagedReader {
         // Individual resources don't update their status when an application is paused/resumed,
         // so for now let's swap to a PAUSED status and keep things simpler in downstream components.
         if (!response.applicationPaused) {
-          return response;
+          response.resources.forEach(resource => (resource.status = ManagedResourceStatus.PAUSED));
         }
 
-        response.resources.forEach(resource => (resource.status = ManagedResourceStatus.PAUSED));
+        response.resources.forEach(resource => (resource.isPaused = resource.status === ManagedResourceStatus.PAUSED));
 
         return response;
       });
