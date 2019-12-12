@@ -19,6 +19,7 @@ package com.netflix.spinnaker.echo.config;
 import com.netflix.spinnaker.echo.github.GithubService;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,11 +33,12 @@ import retrofit.converter.JacksonConverter;
 @ConditionalOnProperty("github-status.enabled")
 @Slf4j
 public class GithubConfig {
-  static final String GITHUB_STATUS_URL = "https://api.github.com";
+
+  @Value("${github-status.endpoint:'https://api.github.com'}")
+  private String endpoint;
 
   @Bean
   public Endpoint githubEndpoint() {
-    String endpoint = GITHUB_STATUS_URL;
     return Endpoints.newFixedEndpoint(endpoint);
   }
 
