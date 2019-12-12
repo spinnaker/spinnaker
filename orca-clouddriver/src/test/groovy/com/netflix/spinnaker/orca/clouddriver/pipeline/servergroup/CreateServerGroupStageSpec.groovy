@@ -89,8 +89,8 @@ class CreateServerGroupStageSpec extends Specification {
     false                   | "rollingredblack" | ["us-west-1": ["myapplication-stack-v001"]] | false      || [[source: "parent"]]
     true                    | "redblack"        | ["us-west-1": ["myapplication-stack-v001"]] | false      || [[source: "parent"]]      // only rollback if task has failed
     true                    | "highlander"      | ["us-west-1": ["myapplication-stack-v001"]] | false      || [[source: "parent"]]      // highlander is not supported
-    true                    | "rollingredblack" | ["us-west-1": ["myapplication-stack-v001"]] | false      || [expectedRollbackContext([enableAndDisableOnly: true]), [source: "parent"]]
-    true                    | "redblack"        | ["us-west-1": ["myapplication-stack-v001"]] | true       || [expectedRollbackContext([disableOnly: true]), [source: "parent"]]
+    true                    | "rollingredblack" | ["us-west-1": ["myapplication-stack-v001"]] | false      || [expectedRollbackContext([enableAndDisableOnly: true, onlyEnabledServerGroups: true]), [source: "parent"]]
+    true                    | "redblack"        | ["us-west-1": ["myapplication-stack-v001"]] | true       || [expectedRollbackContext([disableOnly: true, onlyEnabledServerGroups:true]), [source: "parent"]]
   }
 
   def "should build DestroyStage when 'rollbackDestroyLatest' is enabled"() {
@@ -127,7 +127,7 @@ class CreateServerGroupStageSpec extends Specification {
     true                    | null              | ["us-west-1": ["myapplication-stack-v001"]] || [expectedDestroyContext()]
     false                   | "rollingredblack" | ["us-west-1": ["myapplication-stack-v001"]] || []
     true                    | "highlander"      | ["us-west-1": ["myapplication-stack-v001"]] || [expectedDestroyContext()] // highlander does not support rollback
-    true                    | "rollingredblack" | ["us-west-1": ["myapplication-stack-v001"]] || [expectedRollbackContext([enableAndDisableOnly: true]), expectedDestroyContext()]
+    true                    | "rollingredblack" | ["us-west-1": ["myapplication-stack-v001"]] || [expectedRollbackContext([enableAndDisableOnly: true, onlyEnabledServerGroups: true]), expectedDestroyContext()]
   }
 
   Map expectedRollbackContext(Map<String, Object> additionalRollbackContext) {

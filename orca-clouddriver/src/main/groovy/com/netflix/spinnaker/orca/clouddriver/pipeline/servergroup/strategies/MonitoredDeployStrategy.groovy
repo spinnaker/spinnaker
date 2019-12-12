@@ -211,12 +211,12 @@ class MonitoredDeployStrategy implements Strategy {
         resizeContext.capacity = savedCapacity // will scale to a percentage of that static capacity
       }
 
-      log.info("Adding `Grow to $p% of Desired Size` stage with context $resizeContext [executionId=${stage.execution.id}]")
+      log.info("Adding `Grow ${internalStageData.newServerGroup} to $p% of Desired Size` stage with context $resizeContext [executionId=${stage.execution.id}]")
 
       def resizeStage = newStage(
         stage.execution,
         ResizeServerGroupStage.TYPE,
-        "Grow to $p% of Desired Size",
+        "Grow ${internalStageData.newServerGroup} to $p% of Desired Size",
         resizeContext,
         stage,
         SyntheticStageOwner.STAGE_AFTER
@@ -231,7 +231,7 @@ class MonitoredDeployStrategy implements Strategy {
           useNameAsLabel   : true,     // hint to deck that it should _not_ override the name
         ]
 
-        log.info("Adding `Disable $p% of Desired Size` stage with context $disableContext [executionId=${stage.execution.id}]")
+        log.info("Adding `Disable $p% of Traffic on ${source.serverGroupName}` stage with context $disableContext [executionId=${stage.execution.id}]")
 
         def disablePortionStage = newStage(
           stage.execution,
@@ -459,7 +459,11 @@ class MonitoredDeployStrategy implements Strategy {
         serverGroup              : stageData.serverGroup,
         stageTimeoutMs           : MINUTES.toMillis(30), // timebox a rollback to 30 minutes
         additionalRollbackContext: [
-          enableAndDisableOnly: true
+          enableAndDisableOnly: true,
+          // When initiating a rollback automatically as part of deployment failure handling, only rollback to a server
+          // group that's enabled, as any disabled ones, even if newer, were likely manually marked so for being "bad"
+          // (e.g. as part of a manual rollback).
+          onlyEnabledServerGroups: true
         ]
       ],
       parent,
