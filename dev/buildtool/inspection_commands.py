@@ -1012,7 +1012,8 @@ class AuditArtifactVersions(CommandProcessor):
     candidates = []
     with open(path, 'r') as stream:
       for line in stream.read().split('\n'):
-        if line.endswith('-latest-unvalidated.yml'):
+        # This matches both -unvalidated and -validated BOMs
+        if line.endswith('validated.yml'):
           continue
         bom = CollectBomVersions.url_to_bom_name(line)
         if not CollectBomVersions.RELEASED_VERSION_MATCHER.match(bom):
