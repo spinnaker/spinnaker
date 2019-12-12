@@ -4,10 +4,12 @@ import com.netflix.spinnaker.keel.actuation.ResourcePersister
 import com.netflix.spinnaker.keel.api.ConstraintState
 import com.netflix.spinnaker.keel.api.ConstraintStatus
 import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.EnvironmentArtifactsSummary
 import com.netflix.spinnaker.keel.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.diff.AdHocDiffer
 import com.netflix.spinnaker.keel.diff.EnvironmentDiff
 import com.netflix.spinnaker.keel.exceptions.InvalidConstraintException
+import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository.Companion.DEFAULT_MAX_EVENTS
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
@@ -31,6 +33,7 @@ import org.springframework.web.bind.annotation.RestController
 class DeliveryConfigController(
   private val resourcePersister: ResourcePersister,
   private val deliveryConfigRepository: DeliveryConfigRepository,
+  private val artifactRepository: ArtifactRepository,
   private val adHocDiffer: AdHocDiffer
 ) {
   @PostMapping(
@@ -54,6 +57,17 @@ class DeliveryConfigController(
   )
   fun diff(@RequestBody deliveryConfig: SubmittedDeliveryConfig): List<EnvironmentDiff> =
     adHocDiffer.calculate(deliveryConfig)
+
+  @GetMapping(
+    path = ["/{name}/artifacts"],
+    produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
+  )
+  fun getArtifacts(
+    @PathVariable("name") name: String
+  ): List<EnvironmentArtifactsSummary> =
+    deliveryConfigRepository.get(name).let {
+      artifactRepository.versionsByEnvironment(it)
+    }
 
   @GetMapping(
     path = ["/{name}/environment/{environment}/constraints"],
