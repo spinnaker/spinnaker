@@ -291,6 +291,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
 
       test("export generates a spec for the existing security group") {
         val exportable = Exportable(
+          cloudProvider = "aws",
           account = "prod",
           serviceAccount = "keel@spin.io",
           moniker = parseMoniker("keel-fnord"),

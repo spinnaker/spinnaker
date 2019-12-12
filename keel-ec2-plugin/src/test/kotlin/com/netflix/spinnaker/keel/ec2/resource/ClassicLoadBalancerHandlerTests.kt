@@ -272,6 +272,7 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
 
       test("export generates a valid spec for the deployed CLB") {
         val exportable = Exportable(
+          cloudProvider = "aws",
           account = "test",
           serviceAccount = "keel@spin.spin.spin",
           moniker = parseMoniker("testapp-managedogge-wow"),

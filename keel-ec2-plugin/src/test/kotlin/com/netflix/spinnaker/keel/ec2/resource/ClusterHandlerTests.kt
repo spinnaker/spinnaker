@@ -155,6 +155,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
   val activeServerGroupResponseWest = serverGroupWest.toCloudDriverResponse(vpcWest, listOf(subnet1West, subnet2West, subnet3West), listOf(sg1West, sg2West))
 
   val exportable = Exportable(
+    cloudProvider = "aws",
     account = spec.locations.account,
     serviceAccount = "keel@spinnaker",
     moniker = spec.moniker,

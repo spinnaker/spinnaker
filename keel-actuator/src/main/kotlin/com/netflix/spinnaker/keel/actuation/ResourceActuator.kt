@@ -15,6 +15,7 @@ import com.netflix.spinnaker.keel.events.ResourceMissing
 import com.netflix.spinnaker.keel.events.ResourceValid
 import com.netflix.spinnaker.keel.events.Task
 import com.netflix.spinnaker.keel.pause.ResourcePauser
+import com.netflix.spinnaker.keel.logging.TracingSupport.Companion.withTracingContext
 import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.plugin.CannotResolveCurrentState
@@ -44,75 +45,77 @@ class ResourceActuator(
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   suspend fun <T : ResourceSpec> checkResource(resource: Resource<T>) {
-    val id = resource.id
-    val plugin = handlers.supporting(resource.apiVersion, resource.kind)
+    withTracingContext(resource) {
+      val id = resource.id
+      val plugin = handlers.supporting(resource.apiVersion, resource.kind)
 
-    if (resourcePauser.isPaused(resource)) {
-      log.debug("Actuation for resource {} is paused, skipping checks", id)
-      publisher.publishEvent(ResourceCheckSkipped(resource.apiVersion, resource.kind, id, "ActuationPaused"))
-      return
-    }
-
-    if (plugin.actuationInProgress(resource)) {
-      log.debug("Actuation for resource {} is already running, skipping checks", id)
-      publisher.publishEvent(ResourceCheckSkipped(resource.apiVersion, resource.kind, id, "ActuationInProgress"))
-      return
-    }
-
-    try {
-      val (desired, current) = plugin.resolve(resource)
-      val diff = ResourceDiff(desired, current)
-      if (diff.hasChanges()) {
-        diffFingerprintRepository.store(id, diff)
+      if (resourcePauser.isPaused(resource)) {
+        log.debug("Actuation for resource {} is paused, skipping checks", id)
+        publisher.publishEvent(ResourceCheckSkipped(resource.apiVersion, resource.kind, id, "ActuationPaused"))
+        return@withTracingContext
       }
 
-      val response = vetoEnforcer.canCheck(resource)
-      if (!response.allowed) {
-        log.debug("Skipping actuation for resource {} because it was vetoed: {}", id, response.message)
-        publisher.publishEvent(ResourceCheckSkipped(resource.apiVersion, resource.kind, id, response.vetoName))
-        publishVetoedEvent(response, resource)
-        return
+      if (plugin.actuationInProgress(resource)) {
+        log.debug("Actuation for resource {} is already running, skipping checks", id)
+        publisher.publishEvent(ResourceCheckSkipped(resource.apiVersion, resource.kind, id, "ActuationInProgress"))
+        return@withTracingContext
       }
 
-      log.debug("Checking resource {}", id)
-
-      when {
-        current == null -> {
-          log.warn("Resource {} is missing", id)
-          publisher.publishEvent(ResourceMissing(resource, clock))
-
-          plugin.create(resource, diff)
-            .also { tasks ->
-              publisher.publishEvent(ResourceActuationLaunched(resource, plugin.name, tasks, clock))
-            }
+      try {
+        val (desired, current) = plugin.resolve(resource)
+        val diff = ResourceDiff(desired, current)
+        if (diff.hasChanges()) {
+          diffFingerprintRepository.store(id, diff)
         }
-        diff.hasChanges() -> {
-          log.warn("Resource {} is invalid", id)
-          log.info("Resource {} delta: {}", id, diff.toDebug())
-          publisher.publishEvent(ResourceDeltaDetected(resource, diff.toDeltaJson(), clock))
 
-          plugin.update(resource, diff)
-            .also { tasks ->
-              publisher.publishEvent(ResourceActuationLaunched(resource, plugin.name, tasks, clock))
-            }
+        val response = vetoEnforcer.canCheck(resource)
+        if (!response.allowed) {
+          log.debug("Skipping actuation for resource {} because it was vetoed: {}", id, response.message)
+          publisher.publishEvent(ResourceCheckSkipped(resource.apiVersion, resource.kind, id, response.vetoName))
+          publishVetoedEvent(response, resource)
+          return@withTracingContext
         }
-        else -> {
-          log.info("Resource {} is valid", id)
-          // TODO: not sure this logic belongs here
-          val lastEvent = resourceRepository.lastEvent(id)
-          if (lastEvent is ResourceDeltaDetected || lastEvent is ResourceActuationLaunched) {
-            publisher.publishEvent(ResourceDeltaResolved(resource, clock))
-          } else {
-            publisher.publishEvent(ResourceValid(resource, clock))
+
+        log.debug("Checking resource {}", id)
+
+        when {
+          current == null -> {
+            log.warn("Resource {} is missing", id)
+            publisher.publishEvent(ResourceMissing(resource, clock))
+
+            plugin.create(resource, diff)
+              .also { tasks ->
+                publisher.publishEvent(ResourceActuationLaunched(resource, plugin.name, tasks, clock))
+              }
+          }
+          diff.hasChanges() -> {
+            log.warn("Resource {} is invalid", id)
+            log.info("Resource {} delta: {}", id, diff.toDebug())
+            publisher.publishEvent(ResourceDeltaDetected(resource, diff.toDeltaJson(), clock))
+
+            plugin.update(resource, diff)
+              .also { tasks ->
+                publisher.publishEvent(ResourceActuationLaunched(resource, plugin.name, tasks, clock))
+              }
+          }
+          else -> {
+            log.info("Resource {} is valid", id)
+            // TODO: not sure this logic belongs here
+            val lastEvent = resourceRepository.lastEvent(id)
+            if (lastEvent is ResourceDeltaDetected || lastEvent is ResourceActuationLaunched) {
+              publisher.publishEvent(ResourceDeltaResolved(resource, clock))
+            } else {
+              publisher.publishEvent(ResourceValid(resource, clock))
+            }
           }
         }
+      } catch (e: ResourceCurrentlyUnresolvable) {
+        log.warn("Resource check for {} failed (hopefully temporarily) due to {}", id, e.message)
+        publisher.publishEvent(ResourceCheckUnresolvable(resource, e, clock))
+      } catch (e: Exception) {
+        log.error("Resource check for $id failed", e)
+        publisher.publishEvent(ResourceCheckError(resource, e, clock))
       }
-    } catch (e: ResourceCurrentlyUnresolvable) {
-      log.warn("Resource check for {} failed (hopefully temporarily) due to {}", id, e.message)
-      publisher.publishEvent(ResourceCheckUnresolvable(resource, e, clock))
-    } catch (e: Exception) {
-      log.error("Resource check for $id failed", e)
-      publisher.publishEvent(ResourceCheckError(resource, e, clock))
     }
   }
 

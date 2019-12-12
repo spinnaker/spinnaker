@@ -14,6 +14,7 @@ dependencies {
   implementation("org.springframework:spring-context")
   implementation("org.springframework.boot:spring-boot-autoconfigure")
   implementation("com.netflix.frigga:frigga")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j")
 
   testImplementation(project(":keel-test"))
   testImplementation("io.strikt:strikt-jackson")

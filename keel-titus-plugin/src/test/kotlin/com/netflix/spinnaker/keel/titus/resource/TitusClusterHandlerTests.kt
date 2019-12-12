@@ -147,6 +147,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
   )
 
   val exportable = Exportable(
+    cloudProvider = "titus",
     account = spec.locations.account,
     serviceAccount = "keel@spinnaker",
     moniker = spec.moniker,
