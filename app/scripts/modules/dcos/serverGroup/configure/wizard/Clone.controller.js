@@ -109,7 +109,7 @@ angular
       };
 
       this.clone = function() {
-        let command = angular.copy($scope.command);
+        const command = angular.copy($scope.command);
         if ($scope.command.viewState.mode === 'editPipeline' || $scope.command.viewState.mode === 'createPipeline') {
           return $uibModalInstance.close(command);
         }

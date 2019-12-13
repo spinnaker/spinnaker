@@ -21,7 +21,7 @@ module(CANARY_ACATASK_ACATASKEXECUTIONDETAILS_CONTROLLER, [
 
     $scope.queryListUrl = SETTINGS.canaryConfig ? SETTINGS.canaryConfig.queryListUrl : null;
 
-    let initialized = () => {
+    const initialized = () => {
       $scope.detailsSection = $stateParams.details;
 
       $scope.canary = $scope.stage.context.canary;
@@ -53,7 +53,7 @@ module(CANARY_ACATASK_ACATASKEXECUTIONDETAILS_CONTROLLER, [
         $scope.viewState.loadingHistory = true;
         $scope.viewState.loadingHistoryError = false;
 
-        var canaryDeploymentId = $scope.deployment.canary.canaryDeployments[0].id;
+        const canaryDeploymentId = $scope.deployment.canary.canaryDeployments[0].id;
         canaryDeploymentHistoryService.getAnalysisHistory(canaryDeploymentId).then(
           function(results) {
             $scope.analysisHistory = results;
@@ -72,7 +72,7 @@ module(CANARY_ACATASK_ACATASKEXECUTIONDETAILS_CONTROLLER, [
 
     this.overrideFiltersForUrl = r => ClusterState.filterService.overrideFiltersForUrl(r);
 
-    let initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
+    const initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
 
     initialize();
 

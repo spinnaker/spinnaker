@@ -29,9 +29,9 @@ module(DCOS_PIPELINE_STAGES_SCALEDOWNCLUSTER_DCOSSCALEDOWNCLUSTERSTAGE, [])
   .controller('dcosScaleDownClusterStageCtrl', [
     '$scope',
     function($scope) {
-      var ctrl = this;
+      const ctrl = this;
 
-      let stage = $scope.stage;
+      const stage = $scope.stage;
 
       $scope.state = {
         accounts: false,

@@ -17,7 +17,7 @@ angular
     'dcosImageReader',
     function($q, dcosImageReader) {
       function configureCommand(application, command, query = '') {
-        let queries = command.docker.image ? [grabImageAndTag(command.docker.image.imageId)] : [];
+        const queries = command.docker.image ? [grabImageAndTag(command.docker.image.imageId)] : [];
 
         if (query) {
           queries.push(query);
@@ -82,9 +82,9 @@ angular
       }
 
       function configureDockerRegistries(command) {
-        var result = { dirty: {} };
+        const result = { dirty: {} };
 
-        var selectedDcosCluster = _.find(command.backingData.filtered.dcosClusters, { name: command.dcosCluster });
+        const selectedDcosCluster = _.find(command.backingData.filtered.dcosClusters, { name: command.dcosCluster });
         if (selectedDcosCluster) {
           command.backingData.filtered.dockerRegistries = selectedDcosCluster.dockerRegistries;
         } else {
@@ -95,9 +95,9 @@ angular
       }
 
       function configureImages(command) {
-        var result = { dirty: {} };
+        const result = { dirty: {} };
 
-        var registryAccountNames = _.map(command.backingData.filtered.dockerRegistries, function(registry) {
+        const registryAccountNames = _.map(command.backingData.filtered.dockerRegistries, function(registry) {
           return registry.accountName;
         });
         command.backingData.filtered.images = _.map(
@@ -142,17 +142,17 @@ angular
       }
 
       function configureSecrets(command) {
-        var result = { dirty: {} };
+        const result = { dirty: {} };
 
         if (!command.region || !command.backingData.allSecrets[command.dcosCluster]) {
           command.backingData.filtered.secrets = [];
         } else {
-          var appPath = command.account + '/' + command.region + '/';
+          const appPath = command.account + '/' + command.region + '/';
 
           command.backingData.filtered.secrets = _.filter(
             command.backingData.allSecrets[command.dcosCluster].sort(),
             function(secret) {
-              var secretPath = secret.substring(0, secret.lastIndexOf('/') + 1);
+              const secretPath = secret.substring(0, secret.lastIndexOf('/') + 1);
               return appPath.startsWith(secretPath);
             },
           );
@@ -177,7 +177,7 @@ angular
       }
 
       function configureDcosClusters(command) {
-        var result = { dirty: {} };
+        const result = { dirty: {} };
 
         command.backingData.filtered.dcosClusters = command.backingData.account.dcosClusters;
 
@@ -198,7 +198,7 @@ angular
       }
 
       function configureAccount(command) {
-        var result = { dirty: {} };
+        const result = { dirty: {} };
 
         command.backingData.account = command.backingData.credentialsKeyedByAccount[command.account];
 
@@ -217,7 +217,7 @@ angular
 
       function attachEventHandlers(command) {
         command.accountChanged = function accountChanged() {
-          var result = { dirty: {} };
+          const result = { dirty: {} };
           angular.extend(result.dirty, configureAccount(command).dirty);
           command.viewState.dirty = command.viewState.dirty || {};
           angular.extend(command.viewState.dirty, result.dirty);
@@ -227,7 +227,7 @@ angular
         command.dcosClusterChanged = function dcosClusterChanged() {
           updateRegion(command);
 
-          var result = { dirty: {} };
+          const result = { dirty: {} };
           angular.extend(result.dirty, configureDockerRegistries(command).dirty);
           angular.extend(result.dirty, configureSecrets(command).dirty);
           command.viewState.dirty = command.viewState.dirty || {};
@@ -238,7 +238,7 @@ angular
         command.groupChanged = function groupChanged() {
           updateRegion(command);
 
-          var result = { dirty: {} };
+          const result = { dirty: {} };
           angular.extend(result.dirty, configureSecrets(command).dirty);
           command.viewState.dirty = command.viewState.dirty || {};
           angular.extend(command.viewState.dirty, result.dirty);

@@ -43,7 +43,7 @@ module(CANARY_CANARY_CANARYEXECUTIONSUMMARY_CONTROLLER, [
     };
 
     this.isRestartable = function(stage) {
-      var stageConfig = Registry.pipeline.getStageConfig(stage);
+      const stageConfig = Registry.pipeline.getStageConfig(stage);
       if (!stageConfig || stage.isRestarting === true) {
         return false;
       }

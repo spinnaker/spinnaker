@@ -33,7 +33,7 @@ module(DCOS_PIPELINE_STAGES_RUNJOB_RUNJOBSTAGE, [
     '$scope',
     '$q',
     function($scope, $q) {
-      let stage = $scope.stage;
+      const stage = $scope.stage;
       this.stage = $scope.stage;
 
       if (!_.has(stage, 'name')) {
@@ -71,14 +71,14 @@ module(DCOS_PIPELINE_STAGES_RUNJOB_RUNJOBSTAGE, [
       };
 
       function attemptToSetValidAccount(accountsByName, stage) {
-        var defaultAccount = DcosProviderSettings.defaults.account;
-        var dcosAccountNames = _.keys(accountsByName);
-        var firstDcosAccount = null;
+        const defaultAccount = DcosProviderSettings.defaults.account;
+        const dcosAccountNames = _.keys(accountsByName);
+        let firstDcosAccount = null;
         if (dcosAccountNames.length) {
           firstDcosAccount = dcosAccountNames[0];
         }
 
-        var defaultAccountIsValid = defaultAccount && dcosAccountNames.includes(defaultAccount);
+        const defaultAccountIsValid = defaultAccount && dcosAccountNames.includes(defaultAccount);
 
         stage.account = defaultAccountIsValid
           ? defaultAccount
@@ -90,12 +90,12 @@ module(DCOS_PIPELINE_STAGES_RUNJOB_RUNJOBSTAGE, [
       }
 
       function attemptToSetValidDcosCluster(dcosAccountsByName, stage) {
-        var defaultDcosCluster = DcosProviderSettings.defaults.dcosCluster;
-        var selectedAccount = dcosAccountsByName[stage.account];
+        const defaultDcosCluster = DcosProviderSettings.defaults.dcosCluster;
+        const selectedAccount = dcosAccountsByName[stage.account];
 
         if (selectedAccount) {
-          var clusterNames = _.map(selectedAccount.dcosClusters, 'name');
-          var defaultDcosClusterIsValid = defaultDcosCluster && clusterNames.includes(defaultDcosCluster);
+          const clusterNames = _.map(selectedAccount.dcosClusters, 'name');
+          const defaultDcosClusterIsValid = defaultDcosCluster && clusterNames.includes(defaultDcosCluster);
           stage.dcosCluster = defaultDcosClusterIsValid
             ? defaultDcosCluster
             : clusterNames.length == 1

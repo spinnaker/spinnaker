@@ -28,7 +28,7 @@ import { DCOS_COMMON_SELECTFIELD_DIRECTIVE } from './common/selectField.directiv
 require('./logo/dcos.logo.less');
 
 // load all templates into the $templateCache
-var templates = require.context('./', true, /\.html$/);
+const templates = require.context('./', true, /\.html$/);
 templates.keys().forEach(function(key) {
   templates(key);
 });

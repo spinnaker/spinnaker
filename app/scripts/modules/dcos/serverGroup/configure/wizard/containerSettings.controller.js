@@ -30,7 +30,7 @@ module(DCOS_SERVERGROUP_CONFIGURE_WIZARD_CONTAINERSETTINGS_CONTROLLER, []).contr
         );
       }
 
-      var imageSearchResultsStream = new Subject();
+      const imageSearchResultsStream = new Subject();
 
       imageSearchResultsStream
         .debounceTime(250)

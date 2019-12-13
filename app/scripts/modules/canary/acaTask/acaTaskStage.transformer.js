@@ -24,11 +24,11 @@ module(CANARY_ACATASK_ACATASKSTAGE_TRANSFORMER, []).service('acaTaskTransformer'
 
         stage.exceptions = _.uniq(stage.exceptions);
 
-        var status = stage.status;
+        let status = stage.status;
 
-        var canaryStatus = stage.context.canary.status;
+        const canaryStatus = stage.context.canary.status;
 
-        var canaryResult = stage.context.canary.canaryResult && stage.context.canary.canaryResult.overallResult;
+        const canaryResult = stage.context.canary.canaryResult && stage.context.canary.canaryResult.overallResult;
 
         if (canaryStatus && status !== 'CANCELED') {
           if (canaryStatus.status === 'LAUNCHED' || canaryStatus.status === 'RUNNING') {

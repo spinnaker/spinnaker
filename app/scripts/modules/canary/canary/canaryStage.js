@@ -74,9 +74,9 @@ angular
             type: 'custom',
             fieldLabel: 'Lookback Duration',
             validate: (_pipeline, stage) => {
-              const cac = stage.canary.canaryConfig.canaryAnalysisConfig,
-                useLookback = cac.useLookback,
-                lookbackMins = cac.lookbackMins;
+              const cac = stage.canary.canaryConfig.canaryAnalysisConfig;
+              const useLookback = cac.useLookback;
+              const lookbackMins = cac.lookbackMins;
               let result = null;
               if (useLookback && !isValidValue(lookbackMins)) {
                 result =
@@ -315,7 +315,7 @@ angular
         return terminateAction ? terminateAction.delayBeforeActionInMins : 60;
       };
 
-      let filterServerGroups = () => {
+      const filterServerGroups = () => {
         AccountService.listAccounts(this.getCloudProvider()).then(accounts => ($scope.accounts = accounts));
         setClusterList();
       };
@@ -342,9 +342,9 @@ angular
         if (cluster.region) {
           return cluster.region;
         }
-        var availabilityZones = cluster.availabilityZones;
+        const availabilityZones = cluster.availabilityZones;
         if (availabilityZones) {
-          var regions = Object.keys(availabilityZones);
+          const regions = Object.keys(availabilityZones);
           if (regions && regions.length) {
             return regions[0];
           }
@@ -359,11 +359,11 @@ angular
         }
       };
 
-      let clusterFilter = cluster => {
+      const clusterFilter = cluster => {
         return $scope.stage.baseline.account ? cluster.account === $scope.stage.baseline.account : true;
       };
 
-      let setClusterList = () => {
+      const setClusterList = () => {
         $scope.clusterList = AppListExtractor.getClusters([$scope.application], clusterFilter);
       };
 
@@ -372,13 +372,13 @@ angular
         setClusterList();
       };
 
-      let getCloudProvider = () => {
+      const getCloudProvider = () => {
         return $scope.stage.baseline.cloudProvider || overriddenCloudProvider || 'aws';
       };
 
       this.getCloudProvider = getCloudProvider;
 
-      let resetCloudProvider = () => {
+      const resetCloudProvider = () => {
         delete $scope.stage.baseline.cluster;
         delete $scope.stage.baseline.account;
         delete $scope.stage.clusterPairs;

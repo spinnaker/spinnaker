@@ -45,14 +45,14 @@ angular
       confirmationModalService,
       dcosProxyUiService,
     ) {
-      let application = app;
+      const application = app;
 
       $scope.state = {
         loading: true,
       };
 
       function extractServerGroupSummary() {
-        var summary = _.find(application.serverGroups.data, function(toCheck) {
+        let summary = _.find(application.serverGroups.data, function(toCheck) {
           return (
             toCheck.name === serverGroup.name &&
             toCheck.account === serverGroup.accountId &&
@@ -93,7 +93,7 @@ angular
       };
 
       function normalizeDeploymentStatus(serverGroup) {
-        let deploymentStatus = serverGroup.deploymentStatus;
+        const deploymentStatus = serverGroup.deploymentStatus;
 
         if (deploymentStatus !== undefined && deploymentStatus !== null) {
           deploymentStatus.unavailableReplicas |= 0;
@@ -103,7 +103,7 @@ angular
       }
 
       function retrieveServerGroup() {
-        var summary = extractServerGroupSummary();
+        const summary = extractServerGroupSummary();
         return ServerGroupReader.getServerGroup(
           application.name,
           serverGroup.accountId,
@@ -140,7 +140,7 @@ angular
 
       this.isLastServerGroupInRegion = function(serverGroup, application) {
         try {
-          var cluster = _.find(application.clusters, { name: serverGroup.cluster, account: serverGroup.account });
+          const cluster = _.find(application.clusters, { name: serverGroup.cluster, account: serverGroup.account });
           return _.filter(cluster.serverGroups, { region: serverGroup.region }).length === 1;
         } catch (error) {
           return false;
@@ -148,27 +148,27 @@ angular
       };
 
       this.destroyServerGroup = () => {
-        var serverGroup = $scope.serverGroup;
+        const serverGroup = $scope.serverGroup;
 
-        var taskMonitor = {
+        const taskMonitor = {
           application: application,
           title: 'Destroying ' + serverGroup.name,
         };
 
-        var submitMethod = params =>
+        const submitMethod = params =>
           serverGroupWriter.destroyServerGroup(
             serverGroup,
             application,
             angular.extend(params, dcosServerGroupParamsMixin.destroyServerGroup(serverGroup, application)),
           );
 
-        var stateParams = {
+        const stateParams = {
           name: serverGroup.name,
           accountId: serverGroup.account,
           region: serverGroup.region,
         };
 
-        var confirmationModalParams = {
+        const confirmationModalParams = {
           header: 'Really destroy ' + serverGroup.name + '?',
           buttonText: 'Destroy ' + serverGroup.name,
           provider: 'dcos',
@@ -189,21 +189,21 @@ angular
       };
 
       this.disableServerGroup = function disableServerGroup() {
-        var serverGroup = $scope.serverGroup;
+        const serverGroup = $scope.serverGroup;
 
-        var taskMonitor = {
+        const taskMonitor = {
           application: application,
           title: 'Disabling ' + serverGroup.name,
         };
 
-        var submitMethod = params =>
+        const submitMethod = params =>
           serverGroupWriter.disableServerGroup(
             serverGroup,
             application,
             angular.extend(params, dcosServerGroupParamsMixin.disableServerGroup(serverGroup, application)),
           );
 
-        var confirmationModalParams = {
+        const confirmationModalParams = {
           header: 'Really disable ' + serverGroup.name + '?',
           buttonText: 'Disable ' + serverGroup.name,
           provider: 'dcos',

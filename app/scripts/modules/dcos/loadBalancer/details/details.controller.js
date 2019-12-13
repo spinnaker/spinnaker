@@ -18,7 +18,7 @@ angular
     'dcosProxyUiService',
     '$q',
     function($scope, $state, $uibModal, loadBalancer, app, confirmationModalService, dcosProxyUiService, $q) {
-      let application = app;
+      const application = app;
 
       $scope.state = {
         loading: true,

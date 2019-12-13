@@ -7,9 +7,9 @@ export const name = DCOS_SERVERGROUP_CONFIGURE_WIZARD_NETWORK_CONTROLLER; // for
 module(DCOS_SERVERGROUP_CONFIGURE_WIZARD_NETWORK_CONTROLLER, []).controller('dcosServerGroupNetworkController', [
   '$scope',
   function($scope) {
-    var HOST_NETWORK = 'HOST';
-    var BRIDGE_NETWORK = 'BRIDGE';
-    var USER_NETWORK = 'USER';
+    const HOST_NETWORK = 'HOST';
+    const BRIDGE_NETWORK = 'BRIDGE';
+    const USER_NETWORK = 'USER';
 
     this.networkTypes = [
       {

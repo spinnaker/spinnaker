@@ -22,7 +22,7 @@ module(CANARY_CANARY_ACTIONS_ENDCANARY_CONTROLLER, [UIROUTER_ANGULARJS]).control
 
     this.endCanary = function() {
       $scope.state = 'submitting';
-      var targetUrl = [SETTINGS.gateUrl, 'canaries', canaryId, 'end'].join('/');
+      const targetUrl = [SETTINGS.gateUrl, 'canaries', canaryId, 'end'].join('/');
       $http
         .put(targetUrl, $scope.command)
         .then(function onSuccess() {

@@ -30,7 +30,7 @@ module(DCOS_PIPELINE_STAGES_DESTROYASG_DCOSDESTROYASGSTAGE, [])
   .controller('dcosDestroyAsgStageCtrl', [
     '$scope',
     function($scope) {
-      let stage = $scope.stage;
+      const stage = $scope.stage;
 
       $scope.state = {
         accounts: false,

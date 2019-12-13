@@ -34,7 +34,7 @@ angular
     '$uibModal',
     'stage',
     function($scope, $uibModal, stage) {
-      var user = AuthenticationService.getAuthenticatedUser();
+      const user = AuthenticationService.getAuthenticatedUser();
       $scope.stage = stage;
       $scope.stage.baseline = $scope.stage.baseline || {};
       $scope.stage.canary = $scope.stage.canary || {};
@@ -69,7 +69,7 @@ angular
           : $scope.stage.canary.watchers //if it is not an array it is probably a SpEL
         : '';
 
-      let applicationProviders = $scope.application.attributes.cloudProviders;
+      const applicationProviders = $scope.application.attributes.cloudProviders;
       $scope.accounts = [];
       $scope.regions = [];
 
@@ -100,7 +100,7 @@ angular
       this.notificationHours = $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours.join(',');
 
       this.splitNotificationHours = () => {
-        var hoursField = this.notificationHours || '';
+        const hoursField = this.notificationHours || '';
         $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours = _.map(hoursField.split(','), function(
           str,
         ) {

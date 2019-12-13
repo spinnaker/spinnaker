@@ -20,7 +20,7 @@ module(CANARY_CANARY_CANARYDEPLOYMENT_CANARYDEPLOYMENTEXECUTIONDETAILS_CONTROLLE
   function($scope, $stateParams, executionDetailsSectionService, canaryDeploymentHistoryService) {
     $scope.configSections = ['canaryDeployment', 'canaryAnalysisHistory'];
 
-    let initialized = () => {
+    const initialized = () => {
       $scope.detailsSection = $stateParams.details;
 
       if ($scope.stage.context && $scope.stage.context.commits && $scope.stage.context.commits.length > 0) {
@@ -38,7 +38,7 @@ module(CANARY_CANARY_CANARYDEPLOYMENT_CANARYDEPLOYMENTEXECUTIONDETAILS_CONTROLLE
       $scope.commits = $scope.stage.context.commits;
 
       if ($scope.deployment.baselineCluster) {
-        var baselineMetadata = {
+        const baselineMetadata = {
           type: 'clusters',
           application: $scope.stage.context.application,
           cluster: $scope.deployment.baselineCluster.name,
@@ -48,7 +48,7 @@ module(CANARY_CANARY_CANARYDEPLOYMENT_CANARYDEPLOYMENTEXECUTIONDETAILS_CONTROLLE
         baselineMetadata.href = UrlBuilder.buildFromMetadata(baselineMetadata);
         $scope.baselineClusterUrl = baselineMetadata;
 
-        var canaryMetadata = {
+        const canaryMetadata = {
           type: 'clusters',
           application: $scope.stage.context.application,
           cluster: $scope.deployment.canaryCluster.name,
@@ -85,7 +85,7 @@ module(CANARY_CANARY_CANARYDEPLOYMENT_CANARYDEPLOYMENTEXECUTIONDETAILS_CONTROLLE
 
     this.overrideFiltersForUrl = r => ClusterState.filterService.overrideFiltersForUrl(r);
 
-    let initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
+    const initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
 
     initialize();
 

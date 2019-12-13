@@ -16,7 +16,7 @@ module(CANARY_CANARY_CANARYEXECUTIONDETAILS_CONTROLLER, [UIROUTER_ANGULARJS]).co
 
     $scope.configUrl = SETTINGS.canaryConfig ? SETTINGS.canaryConfig.analysisConfigUrl : null;
 
-    let initialized = () => {
+    const initialized = () => {
       $scope.detailsSection = $stateParams.details;
       $scope.canary = $scope.stage.context.canary;
 
@@ -27,7 +27,7 @@ module(CANARY_CANARY_CANARYEXECUTIONDETAILS_CONTROLLER, [UIROUTER_ANGULARJS]).co
       }
     };
 
-    let initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
+    const initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
 
     initialize();
 

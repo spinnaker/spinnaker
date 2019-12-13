@@ -21,7 +21,7 @@ module(DCOS_JOB_GENERAL_COMPONENT, []).component('dcosGeneral', {
 
     this.idPattern = {
       test: function(id) {
-        var pattern = /^([a-z0-9]*(\${.+})*)*$/;
+        const pattern = /^([a-z0-9]*(\${.+})*)*$/;
         return pattern.test(id);
       },
     };

@@ -28,9 +28,9 @@ module(DCOS_PIPELINE_STAGES_DISABLECLUSTER_DCOSDISABLECLUSTERSTAGE, [])
   .controller('dcosDisableClusterStageCtrl', [
     '$scope',
     function($scope) {
-      var ctrl = this;
+      const ctrl = this;
 
-      let stage = $scope.stage;
+      const stage = $scope.stage;
 
       $scope.state = {
         accounts: false,

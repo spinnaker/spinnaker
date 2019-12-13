@@ -10,13 +10,13 @@ module(DCOS_SERVERGROUP_CONFIGURE_WIZARD_HEALTHCHECKS_CONTROLLER, []).controller
   [
     '$scope',
     function($scope) {
-      var HTTP_PROTOCOL = 'HTTP';
-      var HTTPS_PROTOCOL = 'HTTPS';
-      var TCP_PROTOCOL = 'TCP';
-      var COMMAND_PROTOCOL = 'COMMAND';
-      var MESOS_HTTP_PROTOCOL = 'MESOS_HTTP';
-      var MESOS_HTTPS_PROTOCOL = 'MESOS_HTTPS';
-      var MESOS_TCP_PROTOCOL = 'MESOS_TCP';
+      const HTTP_PROTOCOL = 'HTTP';
+      const HTTPS_PROTOCOL = 'HTTPS';
+      const TCP_PROTOCOL = 'TCP';
+      const COMMAND_PROTOCOL = 'COMMAND';
+      const MESOS_HTTP_PROTOCOL = 'MESOS_HTTP';
+      const MESOS_HTTPS_PROTOCOL = 'MESOS_HTTPS';
+      const MESOS_TCP_PROTOCOL = 'MESOS_TCP';
 
       this.healthCheckProtocols = [
         HTTP_PROTOCOL,

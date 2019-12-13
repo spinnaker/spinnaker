@@ -5,10 +5,10 @@ import { module } from 'angular';
 export const DCOS_PROXY_UI_SERVICE = 'spinnaker.proxy.dcos.ui.service';
 export const name = DCOS_PROXY_UI_SERVICE; // for backwards compatibility
 module(DCOS_PROXY_UI_SERVICE, []).factory('dcosProxyUiService', function() {
-  let apiPrefix = '#';
+  const apiPrefix = '#';
 
   function buildLink(host, accountName, region, name, taskName = null) {
-    let regionParts = region != null ? region.replace('_', '/').split('/') : [];
+    const regionParts = region != null ? region.replace('_', '/').split('/') : [];
     let link = host + '/' + apiPrefix + '/services/overview/';
 
     if (regionParts.length > 1) {

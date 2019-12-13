@@ -29,7 +29,7 @@ module(DCOS_LOADBALANCER_CONFIGURE_WIZARD_UPSERT_CONTROLLER, [
     loadBalancerReader,
     dcosLoadBalancerTransformer,
   ) {
-    var ctrl = this;
+    const ctrl = this;
     $scope.isNew = isNew;
 
     $scope.pages = {
@@ -49,7 +49,7 @@ module(DCOS_LOADBALANCER_CONFIGURE_WIZARD_UPSERT_CONTROLLER, [
         return;
       }
       $uibModalInstance.close();
-      var newStateParams = {
+      const newStateParams = {
         name: $scope.loadBalancer.name,
         accountId: $scope.loadBalancer.account,
         region: $scope.loadBalancer.region,
@@ -83,7 +83,7 @@ module(DCOS_LOADBALANCER_CONFIGURE_WIZARD_UPSERT_CONTROLLER, [
         $scope.accounts = accounts;
         $scope.state.accountsLoaded = true;
 
-        var accountNames = _.map($scope.accounts, 'name');
+        const accountNames = _.map($scope.accounts, 'name');
         if (accountNames.length && !accountNames.includes($scope.loadBalancer.account)) {
           $scope.loadBalancer.account = accountNames[0];
         }
@@ -93,8 +93,8 @@ module(DCOS_LOADBALANCER_CONFIGURE_WIZARD_UPSERT_CONTROLLER, [
     }
 
     function updateLoadBalancerNames() {
-      var account = $scope.loadBalancer.credentials,
-        region = $scope.loadBalancer.region;
+      const account = $scope.loadBalancer.credentials;
+      const region = $scope.loadBalancer.region;
 
       const accountLoadBalancersByRegion = {};
       application
@@ -129,8 +129,8 @@ module(DCOS_LOADBALANCER_CONFIGURE_WIZARD_UPSERT_CONTROLLER, [
     };
 
     this.getName = function() {
-      var loadBalancer = $scope.loadBalancer;
-      var loadBalancerName = [application.name, loadBalancer.stack || '', loadBalancer.detail || ''].join('-');
+      const loadBalancer = $scope.loadBalancer;
+      const loadBalancerName = [application.name, loadBalancer.stack || '', loadBalancer.detail || ''].join('-');
       return _.trimEnd(loadBalancerName, '-');
     };
 
@@ -147,13 +147,13 @@ module(DCOS_LOADBALANCER_CONFIGURE_WIZARD_UPSERT_CONTROLLER, [
     };
 
     this.submit = function() {
-      var descriptor = isNew ? 'Create' : 'Update';
+      const descriptor = isNew ? 'Create' : 'Update';
 
       this.updateName();
       $scope.taskMonitor.submit(function() {
-        var zones = {};
+        const zones = {};
         zones[$scope.loadBalancer.region] = [$scope.loadBalancer.region];
-        let params = {
+        const params = {
           cloudProvider: 'dcos',
           availabilityZones: zones,
         };

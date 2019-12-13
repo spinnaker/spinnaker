@@ -19,7 +19,7 @@ module(DCOS_SERVERGROUP_CONFIGURE_WIZARD_ENVIRONMENTVARIABLES_CONTROLLER, []).co
       // init from the model
       if ($scope.command.env && this.isEnvironmentValid($scope.command.env)) {
         Object.keys($scope.command.env).forEach(key => {
-          let val = $scope.command.env[key];
+          const val = $scope.command.env[key];
           let secretSource = null;
           if (val.secret) {
             secretSource = $scope.command.secrets[val.secret].source;
@@ -86,7 +86,7 @@ module(DCOS_SERVERGROUP_CONFIGURE_WIZARD_ENVIRONMENTVARIABLES_CONTROLLER, []).co
       };
 
       this.synchronize = () => {
-        let allNames = $scope.command.viewModel.env.map(item => item.name);
+        const allNames = $scope.command.viewModel.env.map(item => item.name);
 
         $scope.command.env = {};
 

@@ -22,7 +22,7 @@ module(CANARY_CANARY_ACTIONS_GENERATESCORE_CONTROLLER, [UIROUTER_ANGULARJS]).con
 
     this.generateCanaryScore = function() {
       $scope.state = 'submitting';
-      var targetUrl = [SETTINGS.gateUrl, 'canaries', canaryId, 'generateCanaryResult'].join('/');
+      const targetUrl = [SETTINGS.gateUrl, 'canaries', canaryId, 'generateCanaryResult'].join('/');
       $http
         .post(targetUrl, $scope.command)
         .then(function onSuccess() {

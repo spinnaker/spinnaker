@@ -30,7 +30,7 @@ angular
       }
 
       this.isValid = function() {
-        var command = $scope.command;
+        const command = $scope.command;
         if (!$scope.verification.verified) {
           return false;
         }
@@ -48,9 +48,9 @@ angular
           return;
         }
 
-        var capacity = { min: $scope.command.newSize, max: $scope.command.newSize, desired: $scope.command.newSize };
+        const capacity = { min: $scope.command.newSize, max: $scope.command.newSize, desired: $scope.command.newSize };
 
-        var submitMethod = function() {
+        const submitMethod = function() {
           return serverGroupWriter.resizeServerGroup(serverGroup, application, {
             serverGroupName: serverGroup.name,
             credentials: serverGroup.account,

@@ -66,8 +66,8 @@ module(DCOS_INSTANCE_DETAILS_DETAILS_CONTROLLER, [INSTANCE_WRITE_SERVICE, CONFIR
       };
 
       function retrieveInstance() {
-        var extraData = {};
-        var instanceSummary, loadBalancers, account, region;
+        const extraData = {};
+        let instanceSummary, loadBalancers, account, region;
         app.serverGroups.data.some(function(serverGroup) {
           return serverGroup.instances.some(function(possibleInstance) {
             if (possibleInstance.id === instance.instanceId) {
@@ -109,9 +109,9 @@ module(DCOS_INSTANCE_DETAILS_DETAILS_CONTROLLER, [INSTANCE_WRITE_SERVICE, CONFIR
       }
 
       this.terminateInstance = function terminateInstance() {
-        var instance = $scope.instance;
+        const instance = $scope.instance;
 
-        var taskMonitor = {
+        const taskMonitor = {
           application: app,
           title: 'Terminating ' + instance.instanceId,
           onTaskComplete: function() {
@@ -121,8 +121,8 @@ module(DCOS_INSTANCE_DETAILS_DETAILS_CONTROLLER, [INSTANCE_WRITE_SERVICE, CONFIR
           },
         };
 
-        var submitMethod = function() {
-          let params = { cloudProvider: 'dcos' };
+        const submitMethod = function() {
+          const params = { cloudProvider: 'dcos' };
 
           if (instance.serverGroup) {
             params.managedInstanceGroupName = instance.serverGroup;
@@ -145,15 +145,15 @@ module(DCOS_INSTANCE_DETAILS_DETAILS_CONTROLLER, [INSTANCE_WRITE_SERVICE, CONFIR
       };
 
       this.registerInstanceWithLoadBalancer = function registerInstanceWithLoadBalancer() {
-        var instance = $scope.instance;
-        var loadBalancerNames = instance.loadBalancers.join(' and ');
+        const instance = $scope.instance;
+        const loadBalancerNames = instance.loadBalancers.join(' and ');
 
-        var taskMonitor = {
+        const taskMonitor = {
           application: app,
           title: 'Registering ' + instance.name + ' with ' + loadBalancerNames,
         };
 
-        var submitMethod = function() {
+        const submitMethod = function() {
           return instanceWriter.registerInstanceWithLoadBalancer(instance, app, {
             interestingHealthProviderNames: ['Dcos'],
           });
@@ -169,15 +169,15 @@ module(DCOS_INSTANCE_DETAILS_DETAILS_CONTROLLER, [INSTANCE_WRITE_SERVICE, CONFIR
       };
 
       this.deregisterInstanceFromLoadBalancer = function deregisterInstanceFromLoadBalancer() {
-        var instance = $scope.instance;
-        var loadBalancerNames = instance.loadBalancers.join(' and ');
+        const instance = $scope.instance;
+        const loadBalancerNames = instance.loadBalancers.join(' and ');
 
-        var taskMonitor = {
+        const taskMonitor = {
           application: app,
           title: 'Deregistering ' + instance.name + ' from ' + loadBalancerNames,
         };
 
-        var submitMethod = function() {
+        const submitMethod = function() {
           return instanceWriter.deregisterInstanceFromLoadBalancer(instance, app, {
             interestingHealthProviderNames: ['Dcos'],
           });
@@ -202,13 +202,13 @@ module(DCOS_INSTANCE_DETAILS_DETAILS_CONTROLLER, [INSTANCE_WRITE_SERVICE, CONFIR
       };
 
       this.hasHealthState = function hasHealthState(healthProviderType, state) {
-        var instance = $scope.instance;
+        const instance = $scope.instance;
         return instance.health.some(function(health) {
           return health.type === healthProviderType && health.state === state;
         });
       };
 
-      let initialize = app.isStandalone
+      const initialize = app.isStandalone
         ? retrieveInstance()
         : $q.all([app.serverGroups.ready(), app.loadBalancers.ready()]).then(retrieveInstance);
 

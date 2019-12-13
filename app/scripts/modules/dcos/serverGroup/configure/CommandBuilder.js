@@ -13,8 +13,8 @@ angular.module(DCOS_SERVERGROUP_CONFIGURE_COMMANDBUILDER, []).factory('dcosServe
   function($q) {
     function attemptToSetValidAccount(application, defaultAccount, defaultDcosCluster, command) {
       return AccountService.getCredentialsKeyedByAccount('dcos').then(function(dcosAccountsByName) {
-        var dcosAccountNames = _.keys(dcosAccountsByName);
-        var firstDcosAccount = null;
+        const dcosAccountNames = _.keys(dcosAccountsByName);
+        let firstDcosAccount = null;
 
         if (application.accounts.length) {
           firstDcosAccount = _.find(application.accounts, function(applicationAccount) {
@@ -24,7 +24,7 @@ angular.module(DCOS_SERVERGROUP_CONFIGURE_COMMANDBUILDER, []).factory('dcosServe
           firstDcosAccount = dcosAccountNames[0];
         }
 
-        var defaultAccountIsValid = defaultAccount && dcosAccountNames.includes(defaultAccount);
+        const defaultAccountIsValid = defaultAccount && dcosAccountNames.includes(defaultAccount);
 
         command.account = defaultAccountIsValid
           ? defaultAccount
@@ -37,10 +37,10 @@ angular.module(DCOS_SERVERGROUP_CONFIGURE_COMMANDBUILDER, []).factory('dcosServe
     }
 
     function attemptToSetValidDcosCluster(dcosAccountsByName, defaultDcosCluster, command) {
-      var selectedAccount = dcosAccountsByName[command.account];
+      const selectedAccount = dcosAccountsByName[command.account];
       if (selectedAccount) {
-        var clusterNames = _.map(selectedAccount.dcosClusters, 'name');
-        var defaultDcosClusterIsValid = defaultDcosCluster && clusterNames.includes(defaultDcosCluster);
+        const clusterNames = _.map(selectedAccount.dcosClusters, 'name');
+        const defaultDcosClusterIsValid = defaultDcosCluster && clusterNames.includes(defaultDcosCluster);
         command.dcosCluster = defaultDcosClusterIsValid
           ? defaultDcosCluster
           : clusterNames.length == 1
@@ -52,7 +52,7 @@ angular.module(DCOS_SERVERGROUP_CONFIGURE_COMMANDBUILDER, []).factory('dcosServe
 
     function reconcileUpstreamImages(image, upstreamImages) {
       if (image.fromContext) {
-        let matchingImage = upstreamImages.find(otherImage => image.stageId === otherImage.stageId);
+        const matchingImage = upstreamImages.find(otherImage => image.stageId === otherImage.stageId);
 
         if (matchingImage) {
           image.cluster = matchingImage.cluster;
@@ -63,7 +63,7 @@ angular.module(DCOS_SERVERGROUP_CONFIGURE_COMMANDBUILDER, []).factory('dcosServe
           return null;
         }
       } else if (image.fromTrigger) {
-        let matchingImage = upstreamImages.find(otherImage => {
+        const matchingImage = upstreamImages.find(otherImage => {
           return (
             image.registry === otherImage.registry &&
             image.repository === otherImage.repository &&
@@ -99,7 +99,7 @@ angular.module(DCOS_SERVERGROUP_CONFIGURE_COMMANDBUILDER, []).factory('dcosServe
         });
       }
       current.requisiteStageRefIds.forEach(function(id) {
-        let next = all.find(stage => stage.refId === id);
+        const next = all.find(stage => stage.refId === id);
         if (next) {
           result = result.concat(findUpstreamImages(next, all, visited));
         }
@@ -128,10 +128,10 @@ angular.module(DCOS_SERVERGROUP_CONFIGURE_COMMANDBUILDER, []).factory('dcosServe
     function buildNewServerGroupCommand(application, defaults) {
       defaults = defaults || {};
 
-      var defaultAccount = defaults.account || DcosProviderSettings.defaults.account;
-      var defaultDcosCluster = defaults.dcosCluster || DcosProviderSettings.defaults.dcosCluster;
+      const defaultAccount = defaults.account || DcosProviderSettings.defaults.account;
+      const defaultDcosCluster = defaults.dcosCluster || DcosProviderSettings.defaults.dcosCluster;
 
-      var command = {
+      const command = {
         application: application.name,
         group: null,
         stack: '',
@@ -197,7 +197,7 @@ angular.module(DCOS_SERVERGROUP_CONFIGURE_COMMANDBUILDER, []).factory('dcosServe
     function buildServerGroupCommandFromExisting(app, existing, mode) {
       mode = mode || 'clone';
 
-      var command = existing.deployDescription;
+      const command = existing.deployDescription;
 
       command.cloudProvider = 'dcos';
       command.selectedProvider = 'dcos';
@@ -228,13 +228,13 @@ angular.module(DCOS_SERVERGROUP_CONFIGURE_COMMANDBUILDER, []).factory('dcosServe
     }
 
     function buildServerGroupCommandFromPipeline(application, originalCluster, current, pipeline) {
-      var pipelineCluster = _.cloneDeep(originalCluster);
+      const pipelineCluster = _.cloneDeep(originalCluster);
 
-      var commandOptions = { account: pipelineCluster.account, region: pipelineCluster.region };
-      var asyncLoader = $q.all({ command: buildNewServerGroupCommand(application, commandOptions) });
+      const commandOptions = { account: pipelineCluster.account, region: pipelineCluster.region };
+      const asyncLoader = $q.all({ command: buildNewServerGroupCommand(application, commandOptions) });
 
       return asyncLoader.then(function(asyncData) {
-        var command = asyncData.command;
+        const command = asyncData.command;
 
         let contextImages = findUpstreamImages(current, pipeline.stages) || [];
         contextImages = contextImages.concat(findTriggerImages(pipeline.triggers));
@@ -243,20 +243,20 @@ angular.module(DCOS_SERVERGROUP_CONFIGURE_COMMANDBUILDER, []).factory('dcosServe
           command.docker.image = reconcileUpstreamImages(command.docker.image, contextImages);
         }
 
-        var viewState = {
+        const viewState = {
           contextImages: contextImages,
           mode: 'editPipeline',
           submitButtonLabel: 'Done',
         };
 
-        var viewOverrides = {
+        const viewOverrides = {
           region: pipelineCluster.region,
           credentials: pipelineCluster.account,
           viewState: viewState,
         };
 
         pipelineCluster.strategy = pipelineCluster.strategy || '';
-        var extendedCommand = angular.extend({}, command, pipelineCluster, viewOverrides);
+        const extendedCommand = angular.extend({}, command, pipelineCluster, viewOverrides);
         return extendedCommand;
       });
     }

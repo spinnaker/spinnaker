@@ -32,9 +32,9 @@ module(DCOS_PIPELINE_STAGES_RESIZEASG_DCOSRESIZEASGSTAGE, [])
   .controller('dcosResizeAsgStageCtrl', [
     '$scope',
     function($scope) {
-      var ctrl = this;
+      const ctrl = this;
 
-      let stage = $scope.stage;
+      const stage = $scope.stage;
 
       $scope.viewState = {
         accountsLoaded: false,

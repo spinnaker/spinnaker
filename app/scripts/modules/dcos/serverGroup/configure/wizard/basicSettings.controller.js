@@ -26,7 +26,7 @@ angular
 
       this.regionPattern = {
         test: function(stack) {
-          var pattern = $scope.command.viewState.templatingEnabled
+          const pattern = $scope.command.viewState.templatingEnabled
             ? /^((\/?((\.{2})|([a-z0-9][a-z0-9\-.]*[a-z0-9]+)|([a-z0-9]*))($|\/))*(\${.+})*)*$/
             : /^(\/?((\.{2})|([a-z0-9][a-z0-9\-.]*[a-z0-9]+)|([a-z0-9]*))($|\/))+$/;
           return pattern.test(stack);
@@ -35,14 +35,14 @@ angular
 
       this.stackPattern = {
         test: function(stack) {
-          var pattern = $scope.command.viewState.templatingEnabled ? /^([a-z0-9]*(\${.+})*)*$/ : /^[a-z0-9]*$/;
+          const pattern = $scope.command.viewState.templatingEnabled ? /^([a-z0-9]*(\${.+})*)*$/ : /^[a-z0-9]*$/;
           return pattern.test(stack);
         },
       };
 
       this.detailPattern = {
         test: function(detail) {
-          var pattern = $scope.command.viewState.templatingEnabled ? /^([a-z0-9-]*(\${.+})*)*$/ : /^[a-z0-9-]*$/;
+          const pattern = $scope.command.viewState.templatingEnabled ? /^([a-z0-9-]*(\${.+})*)*$/ : /^[a-z0-9-]*$/;
           return pattern.test(detail);
         },
       };
