@@ -52,7 +52,7 @@ const EXCLUDED_ARTIFACT_TYPES: RegExp[] = excludeAllTypesExcept(
 export function GoogleCloudBuildStageForm(props: IGoogleCloudBuildStageFormProps & IFormikStageConfigInjectedProps) {
   const stage = props.formik.values;
 
-  const [rawBuildDefinitionYaml, setRawBuildDefinitionYaml] = React.useState(
+  const [rawBuildDefinitionYaml, setRawBuildDefinitionYaml] = React.useState(() =>
     stage.buildDefinition ? yamlDocumentsToString([stage.buildDefinition]) : '',
   );
 
