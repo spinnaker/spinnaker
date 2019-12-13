@@ -1,4 +1,4 @@
-FROM openjdk:8-jre-alpine
+FROM openjdk:8-jre-slim
 MAINTAINER delivery-engineering@netflix.com
 COPY --from=compile /compiled_sources/rosco-web/build/install/rosco /opt/rosco
 COPY --from=compile /compiled_sources/rosco-web/config              /opt/rosco
