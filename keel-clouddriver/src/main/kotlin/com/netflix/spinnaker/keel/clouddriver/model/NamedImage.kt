@@ -33,6 +33,11 @@ val NamedImage.creationDate: Instant
       attributes["creationDate"].toString().let(Instant::parse)
     }
 
+val NamedImage.hasAppVersion: Boolean
+  get() = tagsByImageId
+    .values
+    .all { it != null && it.containsKey("appversion") }
+
 val NamedImage.appVersion: String
   get() = tagsByImageId
     .values

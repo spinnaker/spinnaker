@@ -23,6 +23,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.Image
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImageComparator
 import com.netflix.spinnaker.keel.clouddriver.model.appVersion
+import com.netflix.spinnaker.keel.clouddriver.model.hasAppVersion
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -69,6 +70,7 @@ class ImageService(
    */
   suspend fun getLatestNamedImage(packageName: String, account: String, region: String? = null): NamedImage? =
     cloudDriverService.namedImages(DEFAULT_SERVICE_ACCOUNT, packageName, account, region)
+      .filter { it.hasAppVersion }
       .sortedWith(NamedImageComparator)
       .firstOrNull {
         AppVersion.parseName(it.appVersion).packageName == packageName
@@ -87,6 +89,7 @@ class ImageService(
       account = account,
       region = region
     )
+      .filter { it.hasAppVersion }
       .sortedWith(NamedImageComparator)
       .firstOrNull {
         AppVersion.parseName(it.appVersion).run {
@@ -104,6 +107,7 @@ class ImageService(
       imageName = appVersion.toImageName().replace("~", "_"),
       account = account
     )
+      .filter { it.hasAppVersion }
       .sortedWith(NamedImageComparator)
       .find { namedImage ->
         val curAppVersion = AppVersion.parseName(namedImage.appVersion)
@@ -125,6 +129,7 @@ class ImageService(
       imageName = packageName,
       account = account
     )
+      .filter { it.hasAppVersion }
       .sortedWith(NamedImageComparator)
       .find {
         val curAppVersion = AppVersion.parseName(it.appVersion)
@@ -136,6 +141,7 @@ class ImageService(
 
   suspend fun getNamedImageFromJenkinsInfo(packageName: String, account: String, buildHost: String, buildName: String, buildNumber: String): NamedImage? =
     cloudDriverService.namedImages(DEFAULT_SERVICE_ACCOUNT, packageName, account)
+      .filter { it.hasAppVersion }
       .sortedWith(NamedImageComparator)
       .filter {
         AppVersion.parseName(it.appVersion).packageName == packageName
