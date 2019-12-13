@@ -113,12 +113,12 @@ class SpringEnvironmentExtensionConfigResolverTest : JUnit5Minutests {
   )
 
   private val properties = mapOf<String, Any?>(
-    "spinnaker.plugins.netflix.sweet-plugin.enabled" to "true",
-    "spinnaker.plugins.netflix.sweet-plugin.extensions.netflix.foo.config.somestring" to "overridden default",
-    "spinnaker.plugins.netflix.sweet-plugin.extensions.netflix.foo.config.someint" to 10,
-    "spinnaker.plugins.netflix.sweet-plugin.extensions.netflix.foo.config.somelist[0].hello" to "Future Rob",
-    "spinnaker.plugins.netflix.very-important.extensions.orca.stage.config.optional" to "some new value",
-    "spinnaker.extensions.netflix.bar.config.somelist[0].hello" to "one",
-    "spinnaker.extensions.netflix.bar.config.somelist[1].hello" to "two"
+    "spinnaker.extensibility.plugins.netflix.sweet-plugin.enabled" to "true",
+    "spinnaker.extensibility.plugins.netflix.sweet-plugin.extensions.netflix.foo.config.somestring" to "overridden default",
+    "spinnaker.extensibility.plugins.netflix.sweet-plugin.extensions.netflix.foo.config.someint" to 10,
+    "spinnaker.extensibility.plugins.netflix.sweet-plugin.extensions.netflix.foo.config.somelist[0].hello" to "Future Rob",
+    "spinnaker.extensibility.plugins.netflix.very-important.extensions.orca.stage.config.optional" to "some new value",
+    "spinnaker.extensibility.extensions.netflix.bar.config.somelist[0].hello" to "one",
+    "spinnaker.extensibility.extensions.netflix.bar.config.somelist[1].hello" to "two"
   )
 }

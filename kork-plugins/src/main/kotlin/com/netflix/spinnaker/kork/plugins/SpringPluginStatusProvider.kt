@@ -60,6 +60,6 @@ class SpringPluginStatusProvider(
     "$ROOT_CONFIG.$pluginId.enabled"
 
   companion object {
-    const val ROOT_CONFIG: String = "spinnaker.plugins"
+    const val ROOT_CONFIG: String = "spinnaker.extensibility.plugins"
   }
 }

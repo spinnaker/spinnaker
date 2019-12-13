@@ -114,8 +114,8 @@ class PluginSystemTest : JUnit5Minutests {
   private inner class GeneratedPluginFixture {
     val app = ApplicationContextRunner()
       .withPropertyValues(
-        "spinnaker.plugins.root-path=${pluginsDir.toAbsolutePath()}",
-        "spinnaker.plugins.${descriptor.pluginId}.enabled=true")
+        "spinnaker.extensibility.plugins-root-path=${pluginsDir.toAbsolutePath()}",
+        "spinnaker.extensibility.plugins.${descriptor.pluginId}.enabled=true")
       .withConfiguration(AutoConfigurations.of(PluginsAutoConfiguration::class.java))
   }
 
