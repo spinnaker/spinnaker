@@ -28,6 +28,7 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.session.web.http.DefaultCookieSerializer;
 
 @ConditionalOnExpression("${security.basicform.enabled:false}")
 @Configuration
@@ -38,6 +39,8 @@ public class BasicAuthConfig extends WebSecurityConfigurerAdapter {
   private final AuthConfig authConfig;
 
   private final BasicAuthProvider authProvider;
+
+  @Autowired DefaultCookieSerializer defaultCookieSerializer;
 
   @Autowired
   public BasicAuthConfig(AuthConfig authConfig, SecurityProperties securityProperties) {
@@ -52,6 +55,7 @@ public class BasicAuthConfig extends WebSecurityConfigurerAdapter {
 
   @Override
   protected void configure(HttpSecurity http) throws Exception {
+    defaultCookieSerializer.setSameSite(null);
     http.formLogin()
         .and()
         .httpBasic()
