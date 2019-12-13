@@ -31,9 +31,17 @@ export class Clusters extends React.Component<IClustersProps> implements IWizard
         }
 
         const areStackAndDetailDisabled = this.areStackAndDetailDisabled(cluster);
-        errors.stack = areStackAndDetailDisabled && cluster.stack !== '*' && 'Only * is valid for the selected account';
-        errors.detail =
+
+        const stackErrors =
+          areStackAndDetailDisabled && cluster.stack !== '*' && 'Only * is valid for the selected account';
+        if (stackErrors) {
+          errors.stack = stackErrors;
+        }
+        const detailErrors =
           areStackAndDetailDisabled && cluster.detail !== '*' && 'Only * is valid for the selected account';
+        if (detailErrors) {
+          errors.detail = detailErrors;
+        }
 
         return Object.keys(errors).length ? errors : null;
       });
