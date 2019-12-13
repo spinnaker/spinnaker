@@ -1,5 +1,5 @@
 import React from 'react';
-import { cloneDeep, defaults } from 'lodash';
+import { cloneDeep } from 'lodash';
 
 import { FormikStageConfig, IFormikStageConfigInjectedProps, IStageConfigProps } from '@spinnaker/core';
 
@@ -15,10 +15,11 @@ export function GoogleCloudBuildStageConfig({
   updateStage,
 }: IStageConfigProps) {
   const stageWithDefaults: IGoogleCloudBuildStage = React.useMemo(() => {
-    return defaults(cloneDeep(stage), {
+    return {
       application: application.name,
       buildDefinitionSource: BuildDefinitionSource.TEXT,
-    });
+      ...cloneDeep(stage),
+    };
   }, []);
 
   return (
