@@ -26,6 +26,7 @@ import com.netflix.spinnaker.keel.pause.ResourcePauser
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceStatus
+import com.netflix.spinnaker.keel.persistence.ResourceStatus.PAUSED
 import com.netflix.spinnaker.keel.plugin.UnsupportedKind
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import kotlinx.coroutines.runBlocking
@@ -70,9 +71,12 @@ class ResourceController(
     path = ["/{id}/status"],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
-  fun getStatus(@PathVariable("id") id: ResourceId): ResourceStatus {
-    return resourceRepository.getStatus(id)
-  }
+  fun getStatus(@PathVariable("id") id: ResourceId): ResourceStatus =
+    if (resourcePauser.isPaused(id)) { // todo eb: we could make determining status easier and more straight forward.
+      PAUSED
+    } else {
+      resourceRepository.getStatus(id)
+    }
 
   @PostMapping(
     path = ["/{id}/pause"],

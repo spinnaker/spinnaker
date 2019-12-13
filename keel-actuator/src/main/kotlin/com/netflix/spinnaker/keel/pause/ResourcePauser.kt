@@ -41,6 +41,11 @@ class ResourcePauser(
   fun isPaused(resource: Resource<*>): Boolean =
     getPauseScope(resource) != null
 
+  fun isPaused(id: ResourceId): Boolean {
+    val resource = resourceRepository.get(id)
+    return isPaused(resource)
+  }
+
   fun getPauseScope(resource: Resource<*>): Scope? =
     when {
       applicationIsPaused(resource.application) -> APPLICATION
