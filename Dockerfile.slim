@@ -1,4 +1,4 @@
-FROM openjdk:8-jre-slim
+FROM alpine:3.10
 MAINTAINER delivery-engineering@netflix.com
 COPY --from=compile /compiled_sources/rosco-web/build/install/rosco /opt/rosco
 COPY --from=compile /compiled_sources/rosco-web/config              /opt/rosco
@@ -6,7 +6,7 @@ COPY --from=compile /compiled_sources/rosco-web/config/packer       /opt/rosco/c
 
 WORKDIR /packer
 
-RUN apk --no-cache add --update bash wget curl openssl && \
+RUN apk --no-cache add --update bash wget curl openssl openjdk8-jre && \
   wget https://releases.hashicorp.com/packer/1.4.4/packer_1.4.4_linux_amd64.zip && \
   unzip packer_1.4.4_linux_amd64.zip && \
   rm packer_1.4.4_linux_amd64.zip
