@@ -92,7 +92,7 @@ public class ManagedController {
   @ApiOperation(value = "Pause management of a resource")
   @PostMapping(path = "/resources/{resourceId}/pause")
   void pauseResource(@PathVariable("resourceId") String resourceId) {
-    keelService.pauseResource(resourceId);
+    keelService.pauseResource(resourceId, Collections.emptyMap());
   }
 
   @ApiOperation(value = "Resume management of a resource")

@@ -70,7 +70,7 @@ public interface KeelService {
   Response resumeApplication(@Path("application") String application);
 
   @POST("/resources/{name}/pause")
-  Response pauseResource(@Path("name") String name);
+  Response pauseResource(@Path("name") String name, @Body Map requestBody);
 
   @DELETE("/resources/{name}/pause")
   Response resumeResource(@Path("name") String name);
