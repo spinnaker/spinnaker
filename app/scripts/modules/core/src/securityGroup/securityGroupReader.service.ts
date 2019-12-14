@@ -156,8 +156,8 @@ export class SecurityGroupReader {
           }
         });
       }
-      securityGroups.forEach(SecurityGroupReader.sortUsages);
     });
+    securityGroups.forEach(SecurityGroupReader.sortUsages);
 
     return { notFoundCaught, securityGroups };
   }
@@ -206,8 +206,8 @@ export class SecurityGroupReader {
           }
         });
       }
-      securityGroups.forEach(SecurityGroupReader.sortUsages);
     });
+    securityGroups.forEach(SecurityGroupReader.sortUsages);
 
     return { notFoundCaught, securityGroups };
   }
