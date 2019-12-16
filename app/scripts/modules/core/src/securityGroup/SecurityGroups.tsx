@@ -5,7 +5,6 @@ import { FilterTags, IFilterTag } from 'core/filterModel/FilterTags';
 import { ISecurityGroupGroup } from 'core/domain';
 import { SecurityGroupState } from 'core/state';
 import { Spinner } from 'core/widgets/spinners/Spinner';
-import { ReactInjector } from 'core/reactShims';
 import { ISortFilter } from 'core/filterModel';
 import { SETTINGS } from 'core/config';
 
@@ -48,6 +47,7 @@ const Groupings = ({ groups, app }: { groups: ISecurityGroupGroup[]; app: Applic
 );
 
 const Filters = () => {
+  const { showServerGroups, showLoadBalancers } = SecurityGroupState.filterModel.asFilterModel.sortFilter;
   const toggleParam = (event: any): void => {
     const { checked } = event.target;
     const name: keyof ISortFilter = event.target.name;
@@ -55,7 +55,6 @@ const Filters = () => {
     SecurityGroupState.filterModel.asFilterModel.applyParamsToUrl();
   };
 
-  // The way these "hideX" stateParams work is extra confusing and we should never do this inverse-boolean thing again
   return (
     <div className="col-lg-8 col-md-10">
       <div className="form-inline clearfix filters">
@@ -63,24 +62,14 @@ const Filters = () => {
           <label className="checkbox"> Show </label>
           <div className="checkbox">
             <label>
-              <input
-                type="checkbox"
-                name="showServerGroups"
-                checked={ReactInjector.$stateParams.hideServerGroups === true}
-                onChange={toggleParam}
-              />{' '}
-              Server Groups
+              <input type="checkbox" name="showServerGroups" checked={showServerGroups} onChange={toggleParam} /> Server
+              Groups
             </label>
           </div>
           <div className="checkbox">
             <label>
-              <input
-                type="checkbox"
-                name="showLoadBalancers"
-                checked={ReactInjector.$stateParams.hideLoadBalancers === true}
-                onChange={toggleParam}
-              />{' '}
-              Load Balancers
+              <input type="checkbox" name="showLoadBalancers" checked={showLoadBalancers} onChange={toggleParam} /> Load
+              Balancers
             </label>
           </div>
         </div>
