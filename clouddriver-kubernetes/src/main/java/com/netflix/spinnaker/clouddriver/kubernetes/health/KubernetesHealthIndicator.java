@@ -45,7 +45,9 @@ public class KubernetesHealthIndicator implements HealthIndicator {
     Map<String, String> warnings = warningMessages.get();
 
     Health.Builder resultBuilder = new Health.Builder().up();
-    warnings.forEach(resultBuilder::withDetail);
+    if (warnings != null) {
+      warnings.forEach(resultBuilder::withDetail);
+    }
 
     return resultBuilder.build();
   }
