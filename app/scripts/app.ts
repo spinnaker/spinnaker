@@ -1,7 +1,6 @@
 import 'jquery'; // ensures jQuery is loaded before Angular so Angular does not use jqlite
 import { module } from 'angular';
 import './strictDi';
-import { initPlugins } from './plugin-loader';
 
 import { CORE_MODULE } from '@spinnaker/core';
 import { DOCKER_MODULE } from '@spinnaker/docker';
@@ -19,11 +18,6 @@ import { AZURE_MODULE } from '@spinnaker/azure';
 import { HUAWEICLOUD_MODULE } from '@spinnaker/huaweicloud';
 import { DCOS_DCOS_MODULE } from './modules/dcos/dcos.module';
 
-initPlugins()
-  .catch(() => {
-    //TODO use CustomBanner to tell the user that plugin(s) have not been loaded
-  })
-  .finally(() => {
 module('netflix.spinnaker', [
   CORE_MODULE,
   AMAZON_MODULE,
@@ -41,4 +35,3 @@ module('netflix.spinnaker', [
   TITUS_MODULE,
   HUAWEICLOUD_MODULE,
 ]);
-  });

@@ -56,6 +56,7 @@ import { PAGE_TITLE_MODULE } from './pageTitle/pageTitle.module';
 import { PAGER_DUTY_MODULE } from 'core/pagerDuty/pagerDuty.module';
 import { PIPELINE_MODULE } from './pipeline/pipeline.module';
 import { PIPELINE_TEMPLATE_MODULE } from './pipeline/config/templates/pipelineTemplate.module';
+import { PLUGINS_MODULE } from './plugins';
 import { REACT_MODULE } from './reactShims';
 import { REGION_MODULE } from './region/region.module';
 import { SERVERGROUP_MODULE } from './serverGroup/serverGroup.module';
@@ -149,6 +150,7 @@ module(CORE_MODULE, [
   PAGER_DUTY_MODULE,
   PIPELINE_TEMPLATE_MODULE,
   PIPELINE_MODULE,
+  PLUGINS_MODULE,
   CORE_PRESENTATION_PRESENTATION_MODULE,
   CORE_PROJECTS_PROJECTS_MODULE,
 
