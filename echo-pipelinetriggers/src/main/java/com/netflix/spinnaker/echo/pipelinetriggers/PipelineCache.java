@@ -221,24 +221,13 @@ public class PipelineCache implements MonitoredPoller {
   // if anything fails during the refresh, we fall back to returning the cached version
   public Pipeline refresh(Pipeline cached) {
     try {
-      List<Map<String, Object>> latestVersion = front50.getLatestVersion(cached.getId());
-      if (latestVersion.isEmpty()) {
-        // if that corresponds to the case where the pipeline has been deleted, maybe we should not
-        // return the
-        // cached version
-        log.warn(
-            "Got empty results back from front50's /pipelines/{}/history?limit=1, falling back to cached={}",
-            cached.getId(),
-            cached);
-        return cached;
-      }
-
-      Optional<Pipeline> processed = process(latestVersion.get(0));
+      Map<String, Object> pipeline = front50.getPipeline(cached.getId());
+      Optional<Pipeline> processed = process(pipeline);
       if (!processed.isPresent()) {
         log.warn(
             "Failed to process raw pipeline, falling back to cached={}\n  latestVersion={}",
             cached,
-            latestVersion);
+            pipeline);
         return cached;
       }
 

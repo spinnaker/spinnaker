@@ -15,9 +15,8 @@ public interface Front50Service {
   @Headers("Accept: application/json")
   List<Pipeline> getPipelines(@Path("application") String application);
 
-  // either an empty list or a singleton of a raw pipeline config
-  @GET("/pipelines/{pipelineId}/history?limit=1")
-  List<Map<String, Object>> getLatestVersion(@Path("pipelineId") String pipelineId);
+  @GET("/pipelines/{pipelineId}/get")
+  Map<String, Object> getPipeline(@Path("pipelineId") String pipelineId);
 
   @POST("/graphql")
   @Headers("Accept: application/json")
