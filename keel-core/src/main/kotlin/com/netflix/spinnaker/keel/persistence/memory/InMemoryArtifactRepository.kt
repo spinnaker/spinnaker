@@ -2,15 +2,11 @@ package com.netflix.spinnaker.keel.persistence.memory
 
 import com.netflix.spinnaker.keel.api.ArtifactStatus
 import com.netflix.spinnaker.keel.api.ArtifactType
+import com.netflix.spinnaker.keel.api.ArtifactVersionStatus
 import com.netflix.spinnaker.keel.api.ArtifactVersions
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.EnvironmentArtifactsSummary
-import com.netflix.spinnaker.keel.api.PromotionStatus
-import com.netflix.spinnaker.keel.api.PromotionStatus.CURRENT
-import com.netflix.spinnaker.keel.api.PromotionStatus.DEPLOYING
-import com.netflix.spinnaker.keel.api.PromotionStatus.PENDING
-import com.netflix.spinnaker.keel.api.PromotionStatus.PREVIOUS
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
 import org.slf4j.Logger
@@ -154,24 +150,25 @@ class InMemoryArtifactRepository : ArtifactRepository {
           .artifacts
           .map { artifact ->
             val key = Key(artifact, deliveryConfig, environment.name)
-            val versions = artifacts
-              .getValue(artifact)
-              .map { it.version }
-              .groupBy {
-                when (it) {
-                  deployedVersions.getOrDefault(key, emptyList<String>()).lastOrNull() -> CURRENT
-                  in deployedVersions.getOrDefault(key, emptyList<String>()) -> PREVIOUS
-                  in approvedVersions.getOrDefault(key, emptyList<String>()) -> DEPLOYING
-                  else -> PENDING
-                }
-              }
-              .toMutableMap()
-              .apply {
-                PromotionStatus.values().forEach {
-                  putIfAbsent(it, emptyList())
-                }
-              }
-            ArtifactVersions(artifact.name, artifact.type, versions)
+            val deployed = deployedVersions[key] ?: emptyList<String>()
+            val approved = approvedVersions[key] ?: emptyList<String>()
+            val deploying = approved
+              .filterNot { it in deployed }
+              .lastOrNull()
+            ArtifactVersions(
+              name = artifact.name,
+              type = artifact.type,
+              versions = ArtifactVersionStatus(
+                current = deployed.lastOrNull(),
+                deploying = deploying,
+                pending = artifacts[artifact]
+                  ?.map { it.version }
+                  ?.filterNot { it in deployed }
+                  ?.filterNot { it == deploying }
+                  ?: emptyList(),
+                previous = deployed.dropLast(1)
+              )
+            )
           }
         EnvironmentArtifactsSummary(environment.name, artifactVersions)
       }

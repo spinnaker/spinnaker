@@ -4,14 +4,12 @@ import com.netflix.spinnaker.keel.api.ArtifactStatus.FINAL
 import com.netflix.spinnaker.keel.api.ArtifactStatus.SNAPSHOT
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.ArtifactType.DOCKER
+import com.netflix.spinnaker.keel.api.ArtifactVersionStatus
 import com.netflix.spinnaker.keel.api.DebianArtifact
+import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.DockerArtifact
 import com.netflix.spinnaker.keel.api.Environment
-import com.netflix.spinnaker.keel.api.PromotionStatus.CURRENT
-import com.netflix.spinnaker.keel.api.PromotionStatus.DEPLOYING
-import com.netflix.spinnaker.keel.api.PromotionStatus.PENDING
-import com.netflix.spinnaker.keel.api.PromotionStatus.PREVIOUS
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -21,12 +19,10 @@ import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.containsExactly
 import strikt.assertions.containsExactlyInAnyOrder
-import strikt.assertions.get
 import strikt.assertions.hasSize
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
-import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.isTrue
 import strikt.assertions.succeeded
@@ -62,6 +58,18 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
     val version4 = "keeldemo-1.0.0-h11.518aea2"
     val version5 = "keeldemo-1.0.0-h12.4ea8a9d"
     val version6 = "master-h12.4ea8a9d"
+  }
+
+  private fun Fixture<T>.versionsIn(
+    environment: Environment,
+    artifact: DeliveryArtifact = artifact1
+  ): ArtifactVersionStatus {
+    return subject
+      .versionsByEnvironment(manifest)
+      .first { it.name == environment.name }
+      .artifacts
+      .first { it.name == artifact.name && it.type == artifact.type }
+      .versions
   }
 
   fun tests() = rootContext<Fixture<T>> {
@@ -181,17 +189,11 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
         }
 
         test("the artifact version is pending in the environment") {
-          val environment1Versions = subject
-            .versionsByEnvironment(manifest)
-            .first { it.name == environment1.name }
-            .artifacts
-            .first { it.name == artifact1.name && it.type == artifact1.type }
-            .versions
-          expectThat(environment1Versions) {
-            get(PENDING).isNotNull().containsExactlyInAnyOrder(version1, version2, version3)
-            get(CURRENT).isNotNull().isEmpty()
-            get(DEPLOYING).isNotNull().isEmpty()
-            get(PREVIOUS).isNotNull().isEmpty()
+          expectThat(versionsIn(environment1)) {
+            get { pending }.containsExactlyInAnyOrder(version1, version2, version3)
+            get { current }.isNull()
+            get { deploying }.isNull()
+            get { previous }.isEmpty()
           }
         }
       }
@@ -213,17 +215,11 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
         }
 
         test("the version is deploying in the environment") {
-          val environment1Versions = subject
-            .versionsByEnvironment(manifest)
-            .first { it.name == environment1.name }
-            .artifacts
-            .first { it.name == artifact1.name && it.type == artifact1.type }
-            .versions
-          expectThat(environment1Versions) {
-            get(PENDING).isNotNull().containsExactlyInAnyOrder(version2, version3)
-            get(CURRENT).isNotNull().isEmpty()
-            get(DEPLOYING).isNotNull().containsExactly(version1)
-            get(PREVIOUS).isNotNull().isEmpty()
+          expectThat(versionsIn(environment1)) {
+            get { pending }.containsExactlyInAnyOrder(version2, version3)
+            get { current }.isNull()
+            get { deploying }.isEqualTo(version1)
+            get { previous }.isEmpty()
           }
         }
 
@@ -256,17 +252,11 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
           }
 
           test("the version is current in the environment") {
-            val environment1Versions = subject
-              .versionsByEnvironment(manifest)
-              .first { it.name == environment1.name }
-              .artifacts
-              .first { it.name == artifact1.name && it.type == artifact1.type }
-              .versions
-            expectThat(environment1Versions) {
-              get(PENDING).isNotNull().containsExactlyInAnyOrder(version2, version3)
-              get(CURRENT).isNotNull().containsExactly(version1)
-              get(DEPLOYING).isNotNull().isEmpty()
-              get(PREVIOUS).isNotNull().isEmpty()
+            expectThat(versionsIn(environment1)) {
+              get { pending }.containsExactlyInAnyOrder(version2, version3)
+              get { current }.isEqualTo(version1)
+              get { deploying }.isNull()
+              get { previous }.isEmpty()
             }
           }
 
@@ -287,17 +277,11 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
             }
 
             test("the new version is deploying in the environment") {
-              val environment1Versions = subject
-                .versionsByEnvironment(manifest)
-                .first { it.name == environment1.name }
-                .artifacts
-                .first { it.name == artifact1.name && it.type == artifact1.type }
-                .versions
-              expectThat(environment1Versions) {
-                get(PENDING).isNotNull().containsExactly(version3)
-                get(CURRENT).isNotNull().containsExactly(version1)
-                get(DEPLOYING).isNotNull().containsExactly(version2)
-                get(PREVIOUS).isNotNull().isEmpty()
+              expectThat(versionsIn(environment1)) {
+                get { pending }.containsExactly(version3)
+                get { current }.isEqualTo(version1)
+                get { deploying }.isEqualTo(version2)
+                get { previous }.isEmpty()
               }
             }
 
@@ -317,17 +301,11 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
               }
 
               test("the new version is current in the environment") {
-                val environment1Versions = subject
-                  .versionsByEnvironment(manifest)
-                  .first { it.name == environment1.name }
-                  .artifacts
-                  .first { it.name == artifact1.name && it.type == artifact1.type }
-                  .versions
-                expectThat(environment1Versions) {
-                  get(PENDING).isNotNull().containsExactly(version3)
-                  get(CURRENT).isNotNull().containsExactly(version2)
-                  get(DEPLOYING).isNotNull().isEmpty()
-                  get(PREVIOUS).isNotNull().containsExactly(version1)
+                expectThat(versionsIn(environment1)) {
+                  get { pending }.containsExactlyInAnyOrder(version3)
+                  get { current }.isEqualTo(version2)
+                  get { deploying }.isNull()
+                  get { previous }.containsExactly(version1)
                 }
               }
             }

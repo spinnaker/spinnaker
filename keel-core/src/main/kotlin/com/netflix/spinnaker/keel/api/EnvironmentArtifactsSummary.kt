@@ -8,9 +8,12 @@ data class EnvironmentArtifactsSummary(
 data class ArtifactVersions(
   val name: String,
   val type: ArtifactType,
-  val versions: Map<PromotionStatus, List<String>>
+  val versions: ArtifactVersionStatus
 )
 
-enum class PromotionStatus {
-  PREVIOUS, CURRENT, DEPLOYING, PENDING
-}
+data class ArtifactVersionStatus(
+  val current: String?,
+  val deploying: String?,
+  val pending: List<String>,
+  val previous: List<String>
+)
