@@ -71,7 +71,10 @@ internal fun ClusterSpec.resolveCapacity(region: String) =
 
 private fun ClusterSpec.resolveScaling(region: String): Scaling =
   Scaling(
-    suspendedProcesses = defaults.scaling?.suspendedProcesses + overrides[region]?.scaling?.suspendedProcesses
+    suspendedProcesses = defaults.scaling?.suspendedProcesses + overrides[region]?.scaling?.suspendedProcesses,
+    targetTrackingPolicies = defaults.scaling?.targetTrackingPolicies +
+      overrides[region]?.scaling?.targetTrackingPolicies,
+    stepScalingPolicies = defaults.scaling?.stepScalingPolicies + overrides[region]?.scaling?.stepScalingPolicies
   )
 
 private fun ClusterSpec.resolveDependencies(region: String): ClusterDependencies =
@@ -156,7 +159,17 @@ data class ClusterSpec(
     val scaling: Scaling? = null,
     @JsonInclude(NON_EMPTY)
     val tags: Map<String, String>? = null
-  )
+  ) {
+    init {
+      require(
+        capacity == null ||
+          (capacity.desired == null && scaling != null && scaling.hasScalingPolicies()) ||
+          (capacity.desired != null && (scaling == null || !scaling.hasScalingPolicies()))
+      ) {
+        "capacity.desired and auto-scaling policies are mutually exclusive"
+      }
+    }
+  }
 
   data class LaunchConfigurationSpec(
     val image: VirtualMachineImage? = null,

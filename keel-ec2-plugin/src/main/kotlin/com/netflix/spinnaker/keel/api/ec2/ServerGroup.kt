@@ -47,7 +47,16 @@ data class ServerGroup(
   @JsonIgnore
   @get:ObjectDiffProperty(inclusion = EXCLUDED)
   val buildInfo: BuildInfo? = null
-)
+) {
+  init {
+    require(
+      capacity.desired != null && !scaling.hasScalingPolicies() ||
+        capacity.desired == null && scaling.hasScalingPolicies()
+    ) {
+      "capacity.desired and auto-scaling policies are mutually exclusive"
+    }
+  }
+}
 
 val ServerGroup.moniker: Moniker
   get() = parseMoniker(name)

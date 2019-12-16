@@ -600,7 +600,7 @@ private fun TitusServerGroup.withDoubleCapacity(): TitusServerGroup =
     capacity = Capacity(
       min = capacity.min * 2,
       max = capacity.max * 2,
-      desired = capacity.desired * 2
+      desired = capacity.desired!! * 2
     )
   )
 
@@ -612,7 +612,7 @@ private fun TitusActiveServerGroup.withDoubleCapacity(): TitusActiveServerGroup 
     capacity = Capacity(
       min = capacity.min * 2,
       max = capacity.max * 2,
-      desired = capacity.desired * 2
+      desired = capacity.desired!! * 2
     )
   )
 

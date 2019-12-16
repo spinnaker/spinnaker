@@ -45,6 +45,18 @@ class TaskLauncher(
     description: String,
     correlationId: String,
     job: Map<String, Any?>
+  ): Task = submitJobToOrca(
+    resource = resource,
+    description = description,
+    correlationId = correlationId,
+    stages = listOf(job)
+  )
+
+  suspend fun submitJobToOrca(
+    resource: Resource<*>,
+    description: String,
+    correlationId: String,
+    stages: List<Map<String, Any?>>
   ): Task =
     orcaService
       .orchestrate(
@@ -53,7 +65,7 @@ class TaskLauncher(
           name = description,
           application = resource.application,
           description = description,
-          job = listOf(Job(job["type"].toString(), job)),
+          job = stages.map { Job(it["type"].toString(), it) },
           trigger = OrchestrationTrigger(
             correlationId = correlationId,
             notifications = resource.notifications

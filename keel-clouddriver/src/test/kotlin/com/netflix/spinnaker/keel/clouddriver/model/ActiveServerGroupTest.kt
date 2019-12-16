@@ -303,7 +303,57 @@ object ActiveServerGroupTest : ModelParsingTestSupport<CloudDriverService, Activ
     |    "serviceLinkedRoleARN": "arn:aws:iam::$owner:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling",
     |    "vpczoneIdentifier": "${subnets.joinToString(",")}"
     |  },
-    |  "scalingPolicies": [],
+    |  "scalingPolicies": [
+    |   {
+    |     "autoScalingGroupName": "$app-v$seq",
+    |     "policyName": "$app-v$seq/ZZZ-RPS per instance-GreaterThanThreshold-560.0-3-60-1576009239950",
+    |     "policyARN": "arn:aws:autoscaling:$region:$owner:scalingPolicy:8d1f1cc2-a28a-481e-b3b0-6e9c4cfc8712:autoScalingGroupName/$app-v$seq:policyName/$app-v$seq/ZZZ-RPS per instance-GreaterThanThreshold-560.0-3-60-1576009239950",
+    |     "policyType": "TargetTrackingScaling",
+    |     "stepAdjustments": [],
+    |     "estimatedInstanceWarmup": 300,
+    |     "alarms": [
+    |       {
+    |         "alarmName": "TargetTracking-$app-v$seq-AlarmHigh-3d97edfc-dc29-4497-9203-20e2c0859db6",
+    |         "alarmArn": "arn:aws:cloudwatch:$region:$owner:alarm:TargetTracking-$app-v$seq-AlarmHigh-3d97edfc-dc29-4497-9203-20e2c0859db6",
+    |         "alarmDescription": "DO NOT EDIT OR DELETE. For TargetTrackingScaling policy...",
+    |         "actionsEnabled": true,
+    |         "alarmActions": [
+    |           "arn:aws:autoscaling:$region:$owner:scalingPolicy:8d1f1cc2-a28a-481e-b3b0-6e9c4cfc8712:autoScalingGroupName/$app-v$seq:policyName/$app-v$seq/ZZZ-RPS per instance-GreaterThanThreshold-560.0-3-60-1576009239950"
+    |         ],
+    |         "metricName": "RPS per instance",
+    |         "namespace": "ZZZ/EPIC",
+    |         "statistic": "Average",
+    |         "dimensions": [
+    |           {
+    |             "name": "AutoScalingGroupName",
+    |             "value": "$app-v$seq"
+    |           }
+    |         ],
+    |         "period": 60,
+    |         "evaluationPeriods": 3,
+    |         "threshold": 560.0,
+    |         "comparisonOperator": "GreaterThanThreshold",
+    |         "metrics": [],
+    |         "okactions": []
+    |       }
+    |     ],
+    |     "targetTrackingConfiguration": {
+    |       "customizedMetricSpecification": {
+    |         "metricName": "RPS per instance",
+    |         "namespace": "ZZZ/EPIC",
+    |         "statistic": "Average",
+    |         "dimensions": [
+    |           {
+    |             "name": "AutoScalingGroupName",
+    |             "value": "$app-v$seq"
+    |           }
+    |         ]
+    |       },
+    |       "targetValue": 560.0,
+    |       "disableScaleIn": true
+    |     }
+    |   }
+    |  ],
     |  "scheduledActions": [],
     |  "buildInfo": {
     |    "package_name": "$app",
@@ -384,6 +434,34 @@ object ActiveServerGroupTest : ModelParsingTestSupport<CloudDriverService, Activ
       tags = setOf(Tag("spinnaker:application", app)),
       terminationPolicies = setOf("Default"),
       vpczoneIdentifier = subnets.joinToString(",")
+    ),
+    scalingPolicies = listOf(
+      ScalingPolicy(
+        autoScalingGroupName = "$app-v$seq",
+        policyName = "$app-v$seq/ZZZ-RPS per instance-GreaterThanThreshold-560.0-3-60-1576009239950",
+        policyType = "TargetTrackingScaling",
+        stepAdjustments = emptyList(),
+        estimatedInstanceWarmup = 300,
+        targetTrackingConfiguration = TargetTrackingConfiguration(
+          targetValue = 560.0,
+          disableScaleIn = true,
+          customizedMetricSpecification = CustomizedMetricSpecificationModel(
+            metricName = "RPS per instance",
+            namespace = "ZZZ/EPIC",
+            statistic = "Average",
+            dimensions = listOf(MetricDimensionModel(name = "AutoScalingGroupName", value = "$app-v$seq"))
+          )
+        ),
+        alarms = listOf(ScalingPolicyAlarm(
+          comparisonOperator = "GreaterThanThreshold",
+          dimensions = listOf(MetricDimensionModel(name = "AutoScalingGroupName", value = "$app-v$seq")),
+          evaluationPeriods = 3,
+          period = 60,
+          threshold = 560,
+          metricName = "RPS per instance",
+          namespace = "ZZZ/EPIC",
+          statistic = "Average"))
+      )
     ),
     vpcId = vpc,
     loadBalancers = emptySet(),

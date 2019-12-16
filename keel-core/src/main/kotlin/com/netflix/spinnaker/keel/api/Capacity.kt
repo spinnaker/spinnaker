@@ -20,5 +20,5 @@ package com.netflix.spinnaker.keel.api
 data class Capacity(
   val min: Int,
   val max: Int,
-  val desired: Int
+  val desired: Int? = null
 )

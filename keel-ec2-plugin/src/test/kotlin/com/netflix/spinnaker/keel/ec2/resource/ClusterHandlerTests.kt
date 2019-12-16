@@ -18,7 +18,10 @@ import com.netflix.spinnaker.keel.api.Highlander
 import com.netflix.spinnaker.keel.api.ec2.LaunchConfiguration
 import com.netflix.spinnaker.keel.api.ec2.Metric
 import com.netflix.spinnaker.keel.api.RedBlack
+import com.netflix.spinnaker.keel.api.ec2.CustomizedMetricSpecification
+import com.netflix.spinnaker.keel.api.ec2.Scaling
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup
+import com.netflix.spinnaker.keel.api.ec2.TargetTrackingPolicy
 import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
 import com.netflix.spinnaker.keel.api.ec2.byRegion
 import com.netflix.spinnaker.keel.api.ec2.resolve
@@ -28,13 +31,18 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroupImage
 import com.netflix.spinnaker.keel.clouddriver.model.AutoScalingGroup
+import com.netflix.spinnaker.keel.clouddriver.model.CustomizedMetricSpecificationModel
 import com.netflix.spinnaker.keel.clouddriver.model.InstanceMonitoring
 import com.netflix.spinnaker.keel.clouddriver.model.LaunchConfig
+import com.netflix.spinnaker.keel.clouddriver.model.MetricDimensionModel
 import com.netflix.spinnaker.keel.clouddriver.model.Network
+import com.netflix.spinnaker.keel.clouddriver.model.ScalingPolicy
+import com.netflix.spinnaker.keel.clouddriver.model.ScalingPolicyAlarm
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import com.netflix.spinnaker.keel.clouddriver.model.SuspendedProcess
 import com.netflix.spinnaker.keel.clouddriver.model.Tag
+import com.netflix.spinnaker.keel.clouddriver.model.TargetTrackingConfiguration
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.ec2.RETROFIT_NOT_FOUND
@@ -74,6 +82,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEmpty
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
+import strikt.assertions.isTrue
 import strikt.assertions.map
 import strikt.assertions.succeeded
 import java.time.Clock
@@ -107,6 +116,8 @@ internal class ClusterHandlerTests : JUnit5Minutests {
   val subnet2East = Subnet("subnet-2", vpcEast.id, vpcEast.account, vpcEast.region, "${vpcEast.region}d", "internal (vpc0)")
   val subnet3East = Subnet("subnet-3", vpcEast.id, vpcEast.account, vpcEast.region, "${vpcEast.region}e", "internal (vpc0)")
 
+  val targetTrackingPolicyName = "keel-test-target-tracking-policy"
+
   val spec = ClusterSpec(
     moniker = Moniker(app = "keel", stack = "test"),
     locations = SubnetAwareLocations(
@@ -133,7 +144,19 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         keyPair = "nf-keypair-test-fake",
         instanceMonitoring = false
       ),
-      capacity = Capacity(1, 6, 4),
+      capacity = Capacity(1, 6),
+      scaling = Scaling(
+        targetTrackingPolicies = setOf(TargetTrackingPolicy(
+          name = targetTrackingPolicyName,
+          targetValue = 560.0,
+          disableScaleIn = true,
+          customMetricSpec = CustomizedMetricSpecification(
+            name = "RPS per instance",
+            namespace = "SPIN/ACH",
+            statistic = "Average"
+          )
+        ))
+      ),
       dependencies = ClusterDependencies(
         loadBalancerNames = setOf("keel-test-frontend"),
         securityGroupNames = setOf(sg1West.name, sg2West.name)
@@ -198,6 +221,40 @@ internal class ClusterHandlerTests : JUnit5Minutests {
           health.terminationPolicies.map(TerminationPolicy::toString).toSet(),
           subnets.map(Subnet::id).joinToString(",")
         ),
+        listOf(ScalingPolicy(
+          autoScalingGroupName = "$name-v$sequence",
+          policyName = "$name-target-tracking-policy",
+          policyType = "TargetTrackingScaling",
+          estimatedInstanceWarmup = 300,
+          adjustmentType = null,
+          minAdjustmentStep = null,
+          minAdjustmentMagnitude = null,
+          stepAdjustments = null,
+          metricAggregationType = null,
+          targetTrackingConfiguration = TargetTrackingConfiguration(
+            560.0,
+            true,
+            CustomizedMetricSpecificationModel(
+              "RPS per instance",
+              "SPIN/ACH",
+              "Average",
+              null,
+              listOf(MetricDimensionModel("AutoScalingGroupName", "$name-v$sequence"))
+            ),
+            null
+          ),
+          alarms = listOf(ScalingPolicyAlarm(
+            true,
+            "GreaterThanThreshold",
+            listOf(MetricDimensionModel("AutoScalingGroupName", "$name-v$sequence")),
+            3,
+            60,
+            560,
+            "RPS per instance",
+            "SPIN/ACH",
+            "Average"
+          ))
+        )),
         vpc.id,
         dependencies.targetGroups,
         dependencies.loadBalancerNames,
@@ -276,7 +333,27 @@ internal class ClusterHandlerTests : JUnit5Minutests {
           .containsKey("us-west-2")
       }
 
-      test("annealing a diff creates a new server group") {
+      test("annealing a new cluster only uses a createServerGroup stage if it has no scaling policies") {
+        runBlocking {
+          upsert(
+            resource,
+            ResourceDiff(
+              serverGroups.map {
+                it.copy(scaling = Scaling(), capacity = Capacity(2, 2, 2))
+              }.byRegion(),
+              emptyMap()))
+        }
+
+        val slot = slot<OrchestrationRequest>()
+        coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
+
+        expectThat(slot.captured.job.size).isEqualTo(1)
+        expectThat(slot.captured.job.first()) {
+          get("type").isEqualTo("createServerGroup")
+        }
+      }
+
+      test("annealing a diff creates a new server group with scaling policies upserted in the same orchestration") {
         runBlocking {
           upsert(resource, ResourceDiff(serverGroups.byRegion(), emptyMap()))
         }
@@ -284,8 +361,17 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         val slot = slot<OrchestrationRequest>()
         coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
 
+        expectThat(slot.captured.job.size).isEqualTo(2)
         expectThat(slot.captured.job.first()) {
           get("type").isEqualTo("createServerGroup")
+          get("refId").isEqualTo("1")
+        }
+        expectThat(slot.captured.job[1]) {
+          get("type").isEqualTo("upsertScalingPolicy")
+          get("refId").isEqualTo("2")
+          get("requisiteStageRefIds")
+            .isA<List<String>>()
+            .isEqualTo(listOf("1"))
         }
       }
     }
@@ -336,14 +422,14 @@ internal class ClusterHandlerTests : JUnit5Minutests {
             .isEqualTo(SPINNAKER_EC2_API_V1)
           expectThat(spec.locations.regions)
             .hasSize(2)
+          expectThat(spec.defaults.scaling!!.targetTrackingPolicies)
+            .hasSize(1)
           expectThat(spec.overrides)
             .hasSize(0)
         }
 
         test("omits complex fields altogether when all their properties have default values") {
           expectThat(spec.defaults.health)
-            .isNull()
-          expectThat(spec.defaults.scaling)
             .isNull()
         }
       }
@@ -462,7 +548,6 @@ internal class ClusterHandlerTests : JUnit5Minutests {
 
     context("a diff has been detected") {
       context("the diff is only in capacity") {
-
         val modified = setOf(
           serverGroupEast.copy(name = activeServerGroupResponseEast.name),
           serverGroupWest.copy(name = activeServerGroupResponseWest.name).withDoubleCapacity()
@@ -496,10 +581,167 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         }
       }
 
-      context("the diff is something other than just capacity") {
+      context("the diff is only in scaling policies missing from current") {
         val modified = setOf(
           serverGroupEast.copy(name = activeServerGroupResponseEast.name),
-          serverGroupWest.copy(name = activeServerGroupResponseWest.name).withDoubleCapacity().withDifferentInstanceType()
+          serverGroupWest.copy(name = activeServerGroupResponseWest.name).withNoScalingPolicies()
+        )
+        val diff = ResourceDiff(
+          serverGroups.byRegion(),
+          modified.byRegion()
+        )
+
+        test("annealing only upserts scaling policies on the current server group") {
+          val metricSpec = serverGroupWest.scaling.targetTrackingPolicies.first().customMetricSpec!!
+          runBlocking {
+            upsert(resource, diff)
+          }
+
+          val slot = slot<OrchestrationRequest>()
+          coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
+
+          expectThat(slot.captured.job.size).isEqualTo(1)
+          expectThat(slot.captured.job.first()) {
+            get("type").isEqualTo("upsertScalingPolicy")
+            get("targetTrackingConfiguration")
+              .isA<Map<String, Any?>>()
+              .get {
+                expectThat(get("targetValue"))
+                  .isA<Double>()
+                  .isEqualTo(560.0)
+                expectThat(get("disableScaleIn"))
+                  .isA<Boolean>()
+                  .isTrue()
+                expectThat(get("customizedMetricSpecification"))
+                  .isA<CustomizedMetricSpecificationModel>()
+                  .isEqualTo(
+                    CustomizedMetricSpecificationModel(
+                      metricName = metricSpec.name,
+                      namespace = metricSpec.namespace,
+                      statistic = metricSpec.statistic
+                    )
+                  )
+              }
+          }
+        }
+      }
+
+      context("the diff is only that deployed scaling policies are no longer desired") {
+        val modified = setOf(
+          serverGroupEast.copy(name = activeServerGroupResponseEast.name),
+          serverGroupWest.copy(name = activeServerGroupResponseWest.name).withNoScalingPolicies()
+        )
+        val diff = ResourceDiff(
+          modified.byRegion(),
+          serverGroups.byRegion()
+        )
+
+        test("annealing only deletes policies from the current server group") {
+          runBlocking {
+            upsert(resource, diff)
+          }
+
+          val slot = slot<OrchestrationRequest>()
+          coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
+
+          expectThat(slot.captured.job.size).isEqualTo(1)
+          expectThat(slot.captured.job.first()) {
+            get("type").isEqualTo("deleteScalingPolicy")
+            get("policyName").isEqualTo(targetTrackingPolicyName)
+          }
+        }
+      }
+
+      context("only an existing scaling policy has been modified") {
+        val modified = setOf(
+          serverGroupEast.copy(name = activeServerGroupResponseEast.name),
+          serverGroupWest.copy(
+            name = activeServerGroupResponseWest.name,
+            scaling = serverGroupWest.scaling.copy(
+              targetTrackingPolicies = setOf(
+                serverGroupWest.scaling.targetTrackingPolicies
+                  .first()
+                  .copy(targetValue = 42.0)
+              )
+            )
+          )
+        )
+        val diff = ResourceDiff(
+          modified.byRegion(),
+          serverGroups.byRegion()
+        )
+
+        test("the modified policy is applied in two phases via one task") {
+          runBlocking {
+            upsert(resource, diff)
+          }
+
+          val slot = slot<OrchestrationRequest>()
+          coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
+
+          expectThat(slot.captured.job.size).isEqualTo(2)
+          expectThat(slot.captured.job.first()) {
+            get("refId").isEqualTo("1")
+            get("requisiteStageRefIds")
+              .isA<List<String>>()
+              .isEqualTo(emptyList())
+            get("type").isEqualTo("deleteScalingPolicy")
+            get("policyName").isEqualTo(targetTrackingPolicyName)
+          }
+          expectThat(slot.captured.job[1]) {
+            get("refId").isEqualTo("2")
+            get("requisiteStageRefIds")
+              .isA<List<String>>()
+              .isEqualTo(listOf("1"))
+            get("type").isEqualTo("upsertScalingPolicy")
+            get("targetTrackingConfiguration")
+              .isA<Map<String, Any?>>()["targetValue"]
+              .isEqualTo(42.0)
+          }
+        }
+      }
+
+      context("the diff is only in capacity and scaling policies") {
+        val modified = setOf(
+          serverGroupEast.copy(name = activeServerGroupResponseEast.name),
+          serverGroupWest.copy(name = activeServerGroupResponseWest.name)
+            .withDoubleCapacity()
+            .withNoScalingPolicies()
+        )
+        val diff = ResourceDiff(
+          serverGroups.byRegion(),
+          modified.byRegion()
+        )
+
+        test("annealing resizes and modifies scaling policies in-place on the current server group") {
+          runBlocking {
+            upsert(resource, diff)
+          }
+
+          val slot = slot<OrchestrationRequest>()
+          coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
+
+          expectThat(slot.captured.job.size).isEqualTo(2)
+          expectThat(slot.captured.job.first()) {
+            get("refId").isEqualTo("1")
+            get("type").isEqualTo("resizeServerGroup")
+          }
+          expectThat(slot.captured.job[1]) {
+            get("refId").isEqualTo("2")
+            get("type").isEqualTo("upsertScalingPolicy")
+            get("targetTrackingConfiguration")
+              .isA<Map<String, Any?>>()["targetValue"]
+              .isEqualTo(560.0)
+          }
+        }
+      }
+
+      context("the diff is something other than just capacity or scaling policies") {
+        val modified = setOf(
+          serverGroupEast.copy(name = activeServerGroupResponseEast.name),
+          serverGroupWest.copy(name = activeServerGroupResponseWest.name)
+            .withDoubleCapacity()
+            .withDifferentInstanceType()
         )
         val diff = ResourceDiff(
           serverGroups.byRegion(),
@@ -655,9 +897,15 @@ private fun ServerGroup.withDoubleCapacity(): ServerGroup =
     capacity = Capacity(
       min = capacity.min * 2,
       max = capacity.max * 2,
-      desired = capacity.desired * 2
+      desired = when (capacity.desired) {
+        null -> null
+        else -> capacity.desired!! * 2
+      }
     )
   )
+
+private fun ServerGroup.withNoScalingPolicies(): ServerGroup =
+  copy(scaling = Scaling(), capacity = capacity.copy(desired = capacity.max))
 
 private fun ServerGroup.withDifferentInstanceType(): ServerGroup =
   copy(

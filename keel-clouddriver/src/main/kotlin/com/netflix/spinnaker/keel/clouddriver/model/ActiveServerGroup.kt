@@ -13,6 +13,7 @@ data class ActiveServerGroup(
   val image: ActiveServerGroupImage,
   val launchConfig: LaunchConfig,
   val asg: AutoScalingGroup,
+  val scalingPolicies: List<ScalingPolicy>,
   val vpcId: String,
   val targetGroups: Set<String>,
   val loadBalancers: Set<String>,
@@ -68,6 +69,69 @@ data class AutoScalingGroup(
   val tags: Set<Tag>,
   val terminationPolicies: Set<String>,
   val vpczoneIdentifier: String
+)
+
+// https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_ScalingPolicy.html
+data class ScalingPolicy(
+  val autoScalingGroupName: String,
+  val policyName: String,
+  val policyType: String,
+  val estimatedInstanceWarmup: Int,
+  val adjustmentType: String? = null, // step scaling only
+  val minAdjustmentStep: Int? = null, // step scaling only
+  val minAdjustmentMagnitude: Int? = null, // step only
+  val stepAdjustments: List<StepAdjustmentModel>? = null,
+  val metricAggregationType: String? = null,
+  val targetTrackingConfiguration: TargetTrackingConfiguration? = null,
+  val alarms: List<ScalingPolicyAlarm>
+)
+
+// https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_StepAdjustment.html
+data class StepAdjustmentModel(
+  val metricIntervalLowerBound: Double? = null,
+  val metricIntervalUpperBound: Double? = null,
+  val scalingAdjustment: Int
+)
+
+// these are managed by EC2 for target tracking policies, but client provided for step policies
+data class ScalingPolicyAlarm(
+  val actionsEnabled: Boolean = true,
+  val comparisonOperator: String,
+  val dimensions: List<MetricDimensionModel>? = emptyList(),
+  val evaluationPeriods: Int,
+  val period: Int,
+  val threshold: Int,
+  val metricName: String,
+  val namespace: String,
+  val statistic: String
+)
+
+// https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_TargetTrackingConfiguration.html
+data class TargetTrackingConfiguration(
+  val targetValue: Double,
+  val disableScaleIn: Boolean? = null,
+  val customizedMetricSpecification: CustomizedMetricSpecificationModel? = null,
+  val predefinedMetricSpecification: PredefinedMetricSpecificationModel? = null
+)
+
+// https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_CustomizedMetricSpecification.html
+data class CustomizedMetricSpecificationModel(
+  val metricName: String,
+  val namespace: String,
+  val statistic: String,
+  val unit: String? = null,
+  val dimensions: List<MetricDimensionModel>? = emptyList()
+)
+
+// https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_PredefinedMetricSpecification.html
+data class PredefinedMetricSpecificationModel(
+  val predefinedMetricType: String,
+  val resourceLabel: String? = null
+)
+
+data class MetricDimensionModel(
+  val name: String,
+  val value: String
 )
 
 data class SuspendedProcess(

@@ -41,9 +41,23 @@ class ConvertExampleFilesTest : JUnit5Minutests {
 
   fun tests() = rootContext<Unit> {
 
-    context("cluster") {
+    context("ec2 cluster") {
       mapper.registerSubtypes(NamedType(ClusterSpec::class.java, "$SPINNAKER_EC2_API_V1/cluster"))
       val file = this.javaClass.getResource("/examples/cluster-example.yml").readText()
+
+      test("yaml can be parsed") {
+        expectCatching {
+          mapper.readValue<SubmittedResource<*>>(file)
+        }
+          .succeeded()
+          .get { spec }
+          .isA<ClusterSpec>()
+      }
+    }
+
+    context("ec2 cluster with scaling policies") {
+      mapper.registerSubtypes(NamedType(ClusterSpec::class.java, "$SPINNAKER_EC2_API_V1/cluster"))
+      val file = this.javaClass.getResource("/examples/ec2-cluster-with-autoscaling-example.yml").readText()
 
       test("yaml can be parsed") {
         expectCatching {

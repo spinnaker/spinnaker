@@ -12,14 +12,20 @@ import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
+import com.netflix.spinnaker.keel.api.ec2.CustomizedMetricSpecification
 import com.netflix.spinnaker.keel.api.ec2.Health
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
 import com.netflix.spinnaker.keel.api.ec2.LaunchConfiguration
 import com.netflix.spinnaker.keel.api.ec2.Location
 import com.netflix.spinnaker.keel.api.ec2.Metric
+import com.netflix.spinnaker.keel.api.ec2.MetricDimension
+import com.netflix.spinnaker.keel.api.ec2.PredefinedMetricSpecification
 import com.netflix.spinnaker.keel.api.ec2.Scaling
 import com.netflix.spinnaker.keel.api.ec2.ScalingProcess
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup
+import com.netflix.spinnaker.keel.api.ec2.StepAdjustment
+import com.netflix.spinnaker.keel.api.ec2.StepScalingPolicy
+import com.netflix.spinnaker.keel.api.ec2.TargetTrackingPolicy
 import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
 import com.netflix.spinnaker.keel.api.ec2.byRegion
 import com.netflix.spinnaker.keel.api.ec2.moniker
@@ -30,6 +36,11 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ResourceNotFound
 import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroup
+import com.netflix.spinnaker.keel.clouddriver.model.CustomizedMetricSpecificationModel
+import com.netflix.spinnaker.keel.clouddriver.model.MetricDimensionModel
+import com.netflix.spinnaker.keel.clouddriver.model.PredefinedMetricSpecificationModel
+import com.netflix.spinnaker.keel.clouddriver.model.ScalingPolicy
+import com.netflix.spinnaker.keel.clouddriver.model.StepAdjustmentModel
 import com.netflix.spinnaker.keel.clouddriver.model.Tag
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
@@ -85,22 +96,30 @@ class ClusterHandler(
       resourceDiff
         .toIndividualDiffs()
         .filter { diff -> diff.hasChanges() }
-        .map { diff ->
+        .mapNotNull { diff ->
           val desired = diff.desired
           val job = when {
-            diff.isCapacityOnly() -> diff.resizeServerGroupJob()
-            else -> diff.createServerGroupJob() + resource.spec.deployWith.toOrcaJobProperties()
+            diff.isCapacityOnly() -> listOf(diff.resizeServerGroupJob())
+            diff.isAutoScalingOnly() -> diff.modifyScalingPolicyJob()
+            diff.isCapacityAndAutoScalingOnly() -> listOf(diff.resizeServerGroupJob()) + diff.modifyScalingPolicyJob(1)
+            diff.shouldDeployAndModifyScalingPolicies() -> listOf(diff.createServerGroupJob() +
+              resource.spec.deployWith.toOrcaJobProperties()) + diff.modifyScalingPolicyJob(1)
+            else -> listOf(diff.createServerGroupJob() + resource.spec.deployWith.toOrcaJobProperties())
           }
 
-          log.info("Upserting server group using task: {}", job)
+          if (job.isEmpty()) {
+            null
+          } else {
+            log.info("Upserting server group using task: {}", job)
 
-          async {
-            taskLauncher.submitJobToOrca(
-              resource = resource,
-              description = "Upsert server group ${desired.moniker.name} in ${desired.location.account}/${desired.location.region}",
-              correlationId = "${resource.id}:${desired.location.region}",
-              job = job
-            )
+            async {
+              taskLauncher.submitJobToOrca(
+                resource = resource,
+                description = "Upsert server group ${desired.moniker.name} in ${desired.location.account}/${desired.location.region}",
+                correlationId = "${resource.id}:${desired.location.region}",
+                stages = job
+              )
+            }
           }
         }
         .map { it.await() }
@@ -174,7 +193,7 @@ class ClusterHandler(
         } else {
           null
         },
-        scaling = if (base.scaling.suspendedProcesses.isEmpty()) {
+        scaling = if (!base.scaling.hasScalingPolicies()) {
           null
         } else {
           base.scaling
@@ -223,9 +242,12 @@ class ClusterHandler(
       } else {
         ResourceDiff(healthSpec, defaults.health).hasChanges()
       }
+      val scaleDiff = ResourceDiff(defaults.scaling ?: Scaling(), serverGroup.scaling).hasChanges()
+      val capacityDiff = defaults.capacity?.min != serverGroup.capacity.min ||
+        defaults.capacity?.max != serverGroup.capacity.max
       val dependenciesDiff = ResourceDiff(dependencies, defaults.dependencies).hasChanges()
 
-      if (launchDiff || healthDiff || dependenciesDiff) {
+      if (launchDiff || healthDiff || scaleDiff || capacityDiff || dependenciesDiff) {
         (overrides as MutableMap)[region] = ClusterSpec.ServerGroupSpec(
           launchConfiguration = if (launchDiff) {
             launchSpec
@@ -234,6 +256,16 @@ class ClusterHandler(
           },
           health = if (healthDiff) {
             healthSpec
+          } else {
+            null
+          },
+          scaling = if (scaleDiff) {
+            serverGroup.scaling
+          } else {
+            null
+          },
+          capacity = if (capacityDiff) {
+            serverGroup.capacity
           } else {
             null
           },
@@ -262,11 +294,46 @@ class ClusterHandler(
   private fun ResourceDiff<ServerGroup>.isCapacityOnly(): Boolean =
     current != null && affectedRootPropertyTypes.all { it == Capacity::class.java }
 
+  /**
+   * @return `true` if the only changes in the diff are to scaling.
+   */
+  private fun ResourceDiff<ServerGroup>.isAutoScalingOnly(): Boolean =
+    current != null &&
+      affectedRootPropertyTypes.any { it == Scaling::class.java } &&
+      affectedRootPropertyTypes.all { it == Capacity::class.java || it == Scaling::class.java } &&
+      current!!.scaling.suspendedProcesses == desired.scaling.suspendedProcesses &&
+      current!!.capacity.min == desired.capacity.min &&
+      current!!.capacity.max == desired.capacity.max
+
+  /**
+   * @return `true` if [current] doesn't exist and desired includes a scaling policy.
+   */
+  private fun ResourceDiff<ServerGroup>.shouldDeployAndModifyScalingPolicies(): Boolean =
+    (current == null && desired.scaling.hasScalingPolicies()) ||
+      (current != null && !isCapacityAndAutoScalingOnly() && hasScalingPolicyDiff())
+
+  /**
+   * @return `true` if [current] exists and the diff impacts scaling policies or capacity only.
+   */
+  private fun ResourceDiff<ServerGroup>.isCapacityAndAutoScalingOnly(): Boolean =
+    current != null &&
+      affectedRootPropertyTypes.all { it == Capacity::class.java || it == Scaling::class.java } &&
+      current!!.scaling.suspendedProcesses == desired.scaling.suspendedProcesses
+
+  /**
+   * @return `true` if [current] exists and the diff includes a scaling policy change.
+   */
+  private fun ResourceDiff<ServerGroup>.hasScalingPolicyDiff(): Boolean =
+    current != null && affectedRootPropertyTypes.contains(Scaling::class.java) &&
+      (current!!.scaling.targetTrackingPolicies != desired.scaling.targetTrackingPolicies ||
+        current!!.scaling.stepScalingPolicies != desired.scaling.stepScalingPolicies)
+
   private fun ResourceDiff<ServerGroup>.createServerGroupJob(): Map<String, Any?> =
     with(desired) {
       mutableMapOf(
         "application" to moniker.app,
         "credentials" to location.account,
+        "refId" to "1",
         // the 2hr default timeout sort-of? makes sense in an imperative
         // pipeline world where maybe within 2 hours the environment around
         // the instances will fix itself and the stage will succeed. Since
@@ -335,6 +402,7 @@ class ClusterHandler(
       "Current server group must not be null when generating a resize job"
     }
     return mapOf(
+      "refId" to "1",
       "type" to "resizeServerGroup",
       "capacity" to mapOf(
         "min" to desired.capacity.min,
@@ -353,6 +421,193 @@ class ClusterHandler(
       "region" to current.location.region,
       "serverGroupName" to current.name
     )
+  }
+
+  /**
+   * @return list of stages to remove or create scaling policies in-place on the
+   * current serverGroup.
+   *
+   * Scaling policies are treated as immutable by keel once applied. If an existing
+   * policy is modified, it will be deleted and reapplied via a single task.
+   */
+  private fun ResourceDiff<ServerGroup>.modifyScalingPolicyJob(startingRefId: Int = 0): List<Map<String, Any?>> {
+    var (refId, stages) = toDeletePolicyJob(startingRefId)
+    val newTargetPolicies = when (current) {
+      null -> desired.scaling.targetTrackingPolicies
+      else -> desired.scaling.targetTrackingPolicies
+        .subtract(current!!.scaling.targetTrackingPolicies)
+    }
+    val newStepPolicies = when (current) {
+      null -> desired.scaling.stepScalingPolicies
+      else -> desired.scaling.stepScalingPolicies
+        .subtract(current!!.scaling.stepScalingPolicies)
+    }
+
+    if (newTargetPolicies.isNotEmpty()) {
+      val (newRef, jobs) = newTargetPolicies.toCreateJob(refId, current ?: desired)
+      refId = newRef
+      stages.addAll(jobs)
+    }
+
+    if (newStepPolicies.isNotEmpty()) {
+      stages.addAll(newStepPolicies.toCreateJob(refId, current ?: desired))
+    }
+
+    return stages
+  }
+
+  private fun ResourceDiff<ServerGroup>.toDeletePolicyJob(startingRefId: Int):
+    Pair<Int, MutableList<Map<String, Any?>>> {
+    var refId = startingRefId
+    val stages: MutableList<Map<String, Any?>> = mutableListOf()
+    if (current == null) {
+      return Pair(refId, stages)
+    }
+    val current = current!!
+    val targetPoliciesToRemove = current.scaling.targetTrackingPolicies.filterNot {
+      desired.scaling.targetTrackingPolicies.contains(it)
+    }
+    val stepPoliciesToRemove = current.scaling.stepScalingPolicies.filterNot {
+      desired.scaling.stepScalingPolicies.contains(it)
+    }
+    val policyNamesToRemove = targetPoliciesToRemove.mapNotNull { it.name } +
+      stepPoliciesToRemove.mapNotNull { it.name }
+        .toSet()
+
+    stages.addAll(
+      policyNamesToRemove
+        .map {
+          refId++
+          mapOf(
+            "refId" to refId.toString(),
+            "requisiteStageRefIds" to when (refId) {
+              0, 1 -> listOf()
+              else -> listOf((refId - 1).toString())
+            },
+            "type" to "deleteScalingPolicy",
+            "policyName" to it,
+            "cloudProvider" to CLOUD_PROVIDER,
+            "credentials" to desired.location.account,
+            "moniker" to mapOf(
+              "app" to current.moniker.app,
+              "stack" to current.moniker.stack,
+              "detail" to current.moniker.detail,
+              "cluster" to current.moniker.name,
+              "sequence" to current.moniker.sequence
+            ),
+            "region" to current.location.region
+          )
+        }
+        .toMutableList()
+    )
+
+    return Pair(refId, stages)
+  }
+
+  private fun Set<TargetTrackingPolicy>.toCreateJob(startingRefId: Int, serverGroup: ServerGroup):
+    Pair<Int, List<Map<String, Any?>>> {
+    var refId = startingRefId
+    val stages = map {
+      refId++
+      mapOf(
+        "refId" to refId.toString(),
+        "requisiteStageRefIds" to when (refId) {
+          0, 1 -> listOf()
+          else -> listOf((refId - 1).toString())
+        },
+        "type" to "upsertScalingPolicy",
+        "cloudProvider" to CLOUD_PROVIDER,
+        "credentials" to serverGroup.location.account,
+        "moniker" to mapOf(
+          "app" to serverGroup.moniker.app,
+          "stack" to serverGroup.moniker.stack,
+          "detail" to serverGroup.moniker.detail,
+          "cluster" to serverGroup.moniker.name,
+          "sequence" to serverGroup.moniker.sequence
+        ),
+        "region" to serverGroup.location.region,
+        "estimatedInstanceWarmup" to it.warmup.seconds,
+        "targetTrackingConfiguration" to mapOf(
+          "targetValue" to it.targetValue,
+          "disableScaleIn" to it.disableScaleIn,
+          "predefinedMetricSpecification" to when (it.predefinedMetricSpec) {
+            null -> null
+            else -> with(it.predefinedMetricSpec) {
+              PredefinedMetricSpecificationModel(
+                predefinedMetricType = type,
+                resourceLabel = label
+              )
+            }
+          },
+          "customizedMetricSpecification" to when (it.customMetricSpec) {
+            null -> null
+            else -> with(it.customMetricSpec) {
+              CustomizedMetricSpecificationModel(
+                metricName = name,
+                namespace = namespace,
+                statistic = statistic,
+                unit = unit,
+                dimensions = dimensions?.map { d ->
+                  MetricDimensionModel(name = d.name, value = d.value)
+                }
+              )
+            }
+          }
+        )
+      )
+    }
+
+    return Pair(refId, stages)
+  }
+
+  private fun Set<StepScalingPolicy>.toCreateJob(startingRefId: Int, serverGroup: ServerGroup):
+    List<Map<String, Any?>> {
+    var refId = startingRefId
+    return map {
+      refId++
+      mapOf(
+        "refId" to refId.toString(),
+        "requisiteStageRefIds" to when (refId) {
+          0, 1 -> listOf()
+          else -> listOf((refId - 1).toString())
+        },
+        "type" to "upsertScalingPolicy",
+        "cloudProvider" to CLOUD_PROVIDER,
+        "credentials" to serverGroup.location.account,
+        "moniker" to mapOf(
+          "app" to serverGroup.moniker.app,
+          "stack" to serverGroup.moniker.stack,
+          "detail" to serverGroup.moniker.detail,
+          "cluster" to serverGroup.moniker.name,
+          "sequence" to serverGroup.moniker.sequence
+        ),
+        "region" to serverGroup.location.region,
+        "adjustmentType" to it.adjustmentType,
+        "alarm" to mapOf(
+          "region" to serverGroup.location.region,
+          "actionsEnabled" to it.actionsEnabled,
+          "comparisonOperator" to it.comparisonOperator,
+          "dimensions" to it.dimensions,
+          "evaluationPeriods" to it.evaluationPeriods,
+          "period" to it.period.seconds,
+          "threshold" to it.threshold,
+          "namespace" to it.namespace,
+          "metricName" to it.metricName,
+          "statistic" to it.statistic
+        ),
+        "step" to mapOf(
+          "estimatedInstanceWarmup" to it.warmup.seconds,
+          "metricAggregationType" to it.metricAggregationType,
+          "stepAdjustments" to it.stepAdjustments.map { adjustment ->
+            StepAdjustmentModel(
+              metricIntervalLowerBound = adjustment.lowerBound,
+              metricIntervalUpperBound = adjustment.upperBound,
+              scalingAdjustment = adjustment.scalingAdjustment
+            )
+          }
+        )
+      )
+    }
   }
 
   private suspend fun CloudDriverService.getServerGroups(resource: Resource<ClusterSpec>): Iterable<ServerGroup> =
@@ -431,7 +686,12 @@ class ClusterHandler(
         )
       },
       buildInfo = buildInfo,
-      capacity = capacity.let { Capacity(it.min, it.max, it.desired) },
+      capacity = capacity.let {
+        when (scalingPolicies.isEmpty()) {
+          true -> Capacity(it.min, it.max, it.desired)
+          false -> Capacity(it.min, it.max)
+        }
+      },
       dependencies = ClusterDependencies(
         loadBalancerNames = loadBalancers,
         securityGroupNames = securityGroupNames,
@@ -445,10 +705,91 @@ class ClusterHandler(
         terminationPolicies = asg.terminationPolicies.map { TerminationPolicy.valueOf(it) }.toSet()
       ),
       scaling = Scaling(
-        suspendedProcesses = asg.suspendedProcesses.map { ScalingProcess.valueOf(it.processName) }.toSet()
+        suspendedProcesses = asg.suspendedProcesses.map { ScalingProcess.valueOf(it.processName) }.toSet(),
+        targetTrackingPolicies = scalingPolicies.toTargetTrackingPolicies(),
+        stepScalingPolicies = scalingPolicies.toStepScalingPolicies()
       ),
       tags = asg.tags.associateBy(Tag::key, Tag::value).filterNot { it.key in DEFAULT_TAGS }
     )
+
+  private fun List<MetricDimensionModel>?.toSpec(): Set<MetricDimension> =
+    when (this) {
+      null -> emptySet()
+      else -> this.filter { it.name != "AutoScalingGroupName" }
+        .map { MetricDimension(it.name, it.value) }
+        .toSet()
+    }
+
+  private fun CustomizedMetricSpecificationModel?.toSpec() =
+    when (this) {
+      null -> null
+      else -> CustomizedMetricSpecification(
+        name = metricName,
+        namespace = namespace,
+        statistic = statistic,
+        unit = unit,
+        dimensions = dimensions.toSpec()
+      )
+    }
+
+  private fun PredefinedMetricSpecificationModel?.toSpec() =
+    when (this) {
+      null -> null
+      else -> PredefinedMetricSpecification(
+        type = predefinedMetricType,
+        label = resourceLabel
+      )
+    }
+
+  private fun List<StepAdjustmentModel>?.toSteps() =
+    when (this) {
+      null -> emptySet()
+      else -> map {
+        StepAdjustment(
+          scalingAdjustment = it.scalingAdjustment,
+          lowerBound = it.metricIntervalLowerBound,
+          upperBound = it.metricIntervalUpperBound
+        )
+      }
+        .toSet()
+    }
+
+  private fun List<ScalingPolicy>.toTargetTrackingPolicies(): Set<TargetTrackingPolicy> =
+    filter { it.targetTrackingConfiguration != null }
+      .map {
+        TargetTrackingPolicy(
+          name = it.policyName,
+          warmup = Duration.ofSeconds(it.estimatedInstanceWarmup.toLong()),
+          targetValue = it.targetTrackingConfiguration!!.targetValue,
+          disableScaleIn = it.targetTrackingConfiguration!!.disableScaleIn,
+          predefinedMetricSpec = it.targetTrackingConfiguration!!.predefinedMetricSpecification.toSpec(),
+          customMetricSpec = it.targetTrackingConfiguration!!.customizedMetricSpecification.toSpec()
+        )
+      }
+      .toSet()
+
+  private fun List<ScalingPolicy>.toStepScalingPolicies(): Set<StepScalingPolicy> =
+    filter { it.targetTrackingConfiguration == null && it.adjustmentType != null }
+      .map {
+        val alarm = it.alarms.first()
+        StepScalingPolicy(
+          name = it.policyName,
+          adjustmentType = it.adjustmentType!!,
+          actionsEnabled = alarm.actionsEnabled,
+          comparisonOperator = alarm.comparisonOperator,
+          dimensions = alarm.dimensions.toSpec(),
+          evaluationPeriods = alarm.evaluationPeriods,
+          period = Duration.ofSeconds(alarm.period.toLong()),
+          threshold = alarm.threshold,
+          metricName = alarm.metricName,
+          namespace = alarm.namespace,
+          statistic = alarm.statistic,
+          warmup = Duration.ofSeconds(it.estimatedInstanceWarmup.toLong()),
+          metricAggregationType = it.metricAggregationType!!,
+          stepAdjustments = it.stepAdjustments.toSteps()
+        )
+      }
+      .toSet()
 
   private val ServerGroup.securityGroupIds: Collection<String>
     get() = dependencies
