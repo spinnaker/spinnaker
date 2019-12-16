@@ -16,6 +16,8 @@
 package com.netflix.spinnaker.clouddriver.sql.event
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.clouddriver.event.AbstractSpinnakerEvent
 import com.netflix.spinnaker.clouddriver.event.exceptions.AggregateChangeRejectedException
@@ -198,7 +200,7 @@ class SqlEventRepositoryTest : JUnit5Minutests {
       jooq = database.context,
       serviceVersion = serviceVersion,
       objectMapper = ObjectMapper().apply {
-        findAndRegisterModules()
+        registerModules(KotlinModule(), JavaTimeModule())
         registerSubtypes(MyEvent::class.java)
       },
       applicationEventPublisher = applicationEventPublisher,
