@@ -21,6 +21,7 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.id
+import com.netflix.spinnaker.keel.events.ResourceActuationResumed
 import com.netflix.spinnaker.keel.persistence.PausedRepository
 import com.netflix.spinnaker.keel.persistence.PausedRepository.Scope
 import com.netflix.spinnaker.keel.persistence.PausedRepository.Scope.APPLICATION
@@ -67,6 +68,11 @@ class ResourcePauser(
   fun resumeApplication(application: String) {
     log.info("Resuming application $application")
     pausedRepository.resumeApplication(application)
+    resourceRepository.getResourcesByApplication(application)
+      .forEach {
+        // helps a user not be confused by an out of date status from before a pause
+        publisher.publishEvent(ResourceActuationResumed(it))
+      }
   }
 
   fun pauseResource(id: ResourceId) {
@@ -77,6 +83,8 @@ class ResourcePauser(
   fun resumeResource(id: ResourceId) {
     log.info("Resuming resource $id")
     pausedRepository.resumeResource(id)
+    // helps a user not be confused by an out of date status from before a pause
+    publisher.publishEvent(ResourceActuationResumed(resourceRepository.get(id)))
   }
 
   fun pausedApplications(): List<String> =

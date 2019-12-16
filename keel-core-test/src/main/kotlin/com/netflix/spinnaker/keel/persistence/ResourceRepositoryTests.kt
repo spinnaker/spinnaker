@@ -149,7 +149,11 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
         }
 
         test("one resource is returned for the application") {
-          expectThat(subject.getByApplication("toast")).hasSize(1)
+          expectThat(subject.getResourceIdsByApplication("toast")).hasSize(1)
+        }
+
+        test("full resource returned for the application") {
+          expectThat(subject.getResourcesByApplication("toast")).hasSize(1)
         }
 
         test("resource summary is formatted correctly") {
@@ -292,7 +296,7 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
         test("deleting a non-existent application throws an exception") {
           expectThat(subject.deleteByApplication(resource.application)).isEqualTo(0)
-          }
+        }
       }
 
       context("fetching event history for the resource") {

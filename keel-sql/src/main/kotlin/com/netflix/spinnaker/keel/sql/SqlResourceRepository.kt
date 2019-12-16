@@ -68,14 +68,31 @@ open class SqlResourceRepository(
       .where(RESOURCE.ID.eq(id.value))
       .fetchOne()
       ?.let { (apiVersion, kind, metadata, spec) ->
-        Resource(
-          ApiVersion(apiVersion),
-          kind,
-          objectMapper.readValue<Map<String, Any?>>(metadata).asResourceMetadata(),
-          objectMapper.readValue(spec, resourceTypeIdentifier.identify(apiVersion.let(::ApiVersion), kind))
-        )
+        constructResource(apiVersion, kind, metadata, spec)
       } ?: throw NoSuchResourceId(id)
   }
+
+  override fun getResourcesByApplication(application: String): List<Resource<*>> {
+    return jooq
+      .select(RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.METADATA, RESOURCE.SPEC)
+      .from(RESOURCE)
+      .where(RESOURCE.APPLICATION.eq(application))
+      .fetch()
+      .map { (apiVersion, kind, metadata, spec) ->
+        constructResource(apiVersion, kind, metadata, spec)
+      }
+  }
+
+  /**
+   * Constructs a resource object from its database representation
+   */
+  private fun constructResource(apiVersion: String, kind: String, metadata: String, spec: String) =
+    Resource(
+      ApiVersion(apiVersion),
+      kind,
+      objectMapper.readValue<Map<String, Any?>>(metadata).asResourceMetadata(),
+      objectMapper.readValue(spec, resourceTypeIdentifier.identify(apiVersion.let(::ApiVersion), kind))
+    )
 
   override fun hasManagedResources(application: String): Boolean {
     return jooq
@@ -86,7 +103,7 @@ open class SqlResourceRepository(
       .value1() > 0
   }
 
-  override fun getByApplication(application: String): List<String> {
+  override fun getResourceIdsByApplication(application: String): List<String> {
     return jooq
       .select(RESOURCE.ID)
       .from(RESOURCE)
@@ -233,12 +250,7 @@ open class SqlResourceRepository(
           }
         }
         .map { (_, apiVersion, kind, metadata, spec) ->
-          Resource(
-            ApiVersion(apiVersion),
-            kind,
-            objectMapper.readValue<Map<String, Any?>>(metadata).asResourceMetadata(),
-            objectMapper.readValue(spec, resourceTypeIdentifier.identify(apiVersion.let(::ApiVersion), kind))
-          )
+          constructResource(apiVersion, kind, metadata, spec)
         }
     }
   }

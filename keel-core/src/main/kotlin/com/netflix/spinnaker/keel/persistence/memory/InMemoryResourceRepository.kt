@@ -67,10 +67,16 @@ class InMemoryResourceRepository(
   override fun hasManagedResources(application: String): Boolean =
     resources.any { it.value.application == application }
 
-  override fun getByApplication(application: String): List<String> =
+  override fun getResourceIdsByApplication(application: String): List<String> =
     resources
       .filterValues { it.application == application }
       .map { it.value.id.toString() }
+
+  override fun getResourcesByApplication(application: String): List<Resource<*>> =
+    resources
+      .filterValues { it.application == application }
+      .map { it.value }
+      .toList()
 
   override fun getSummaryByApplication(application: String): List<ResourceSummary> =
     resources

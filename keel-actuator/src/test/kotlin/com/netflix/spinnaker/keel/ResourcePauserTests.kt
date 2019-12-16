@@ -19,6 +19,7 @@ package com.netflix.spinnaker.keel
 
 import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.id
+import com.netflix.spinnaker.keel.events.ResourceActuationResumed
 import com.netflix.spinnaker.keel.pause.ResourcePauser
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryPausedRepository
@@ -27,6 +28,7 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expect
 import strikt.assertions.isFalse
@@ -40,6 +42,7 @@ class ResourcePauserTests : JUnit5Minutests {
     val resourceRepository: ResourceRepository = mockk() {
       every { get(resource1.id) } returns resource1
       every { get(resource2.id) } returns resource2
+      every { getResourcesByApplication(resource1.application) } returns listOf(resource1, resource2)
     }
     val pausedRepository = InMemoryPausedRepository()
     val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
@@ -64,6 +67,7 @@ class ResourcePauserTests : JUnit5Minutests {
           that(subject.isPaused(resource1)).isFalse()
           that(subject.isPaused(resource2)).isFalse()
         }
+        verify(exactly = 2) { publisher.publishEvent(any<ResourceActuationResumed>()) }
       }
     }
 
@@ -82,6 +86,7 @@ class ResourcePauserTests : JUnit5Minutests {
           that(subject.isPaused(resource1)).isFalse()
           that(subject.isPaused(resource2)).isFalse()
         }
+        verify(exactly = 1) { publisher.publishEvent(any<ResourceActuationResumed>()) }
       }
     }
   }

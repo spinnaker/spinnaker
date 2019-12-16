@@ -80,7 +80,12 @@ interface ResourceRepository : PeriodicallyCheckedRepository<Resource<out Resour
   /**
    * Fetches resources for a given application.
    */
-  fun getByApplication(application: String): List<String>
+  fun getResourceIdsByApplication(application: String): List<String>
+
+  /**
+   * Fetches resources for a given application.
+   */
+  fun getResourcesByApplication(application: String): List<Resource<*>>
 
   /**
    * Fetches resource summary, including the status
