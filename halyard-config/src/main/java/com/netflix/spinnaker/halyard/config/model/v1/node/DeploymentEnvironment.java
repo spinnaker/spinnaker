@@ -93,7 +93,9 @@ public class DeploymentEnvironment extends Node {
 
   public enum ImageVariant {
     SLIM("Based on an Alpine image"),
-    UBUNTU("Based on Canonical's ubuntu:bionic image");
+    UBUNTU("Based on Canonical's ubuntu:bionic image"),
+    JAVA8("A variant of SLIM that uses the Java 8 runtime"),
+    UBUNTU_JAVA8("A variant of UBUNTU that uses the Java 8 runtime");
 
     @Getter final String description;
 
@@ -102,17 +104,18 @@ public class DeploymentEnvironment extends Node {
     }
 
     public static ImageVariant fromString(String name) {
-      for (ImageVariant variant : values()) {
-        if (variant.toString().equalsIgnoreCase(name)) {
-          return variant;
-        }
+      try {
+        return ImageVariant.valueOf(name.toUpperCase().replace('-', '_'));
+      } catch (IllegalArgumentException e) {
+        throw new IllegalArgumentException(
+            String.format(
+                "ImageVariant \"%s\" is not a valid choice. The options are: %s",
+                name, Arrays.toString(ImageVariant.values())));
       }
+    }
 
-      throw new IllegalArgumentException(
-          "ImageVariant \""
-              + name
-              + "\" is not a valid choice. The options are: "
-              + Arrays.toString(ImageVariant.values()));
+    public String getContainerSuffix() {
+      return name().toLowerCase().replace("_", "-");
     }
   }
 

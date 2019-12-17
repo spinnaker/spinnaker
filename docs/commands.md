@@ -5951,9 +5951,10 @@ This is only required when Spinnaker is being deployed in non-Kubernetes cluster
  * `--git-origin-user`: This is the git user your github fork exists under.
  * `--git-upstream-user`: This is the upstream git user you are configuring to pull changes from & push PRs to.
  * `--image-variant`: The container image variant type to use when deploying a distributed installation of Spinnaker.
-Warning: variants other than the 'slim' one are only available with Spinnaker v1.16+
 	slim: Based on an Alpine image
 	ubuntu: Based on Canonical's ubuntu:bionic image.
+	java8: A variant of slim that uses the Java 8 runtime
+	ubuntu-java8: A variant of ubuntu that uses the Java 8 runtime
 Default value: slim
  * `--liveness-probe-enabled`: When true, enable Kubernetes liveness probes on Spinnaker services deployed in a Distributed installation. See docs for more information: [https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/)
  * `--liveness-probe-initial-delay-seconds`: The number of seconds to wait before performing the first liveness probe. Should be set to the longest service startup time. See docs for more information: [https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/)

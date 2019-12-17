@@ -109,9 +109,10 @@ public class EditDeploymentEnvironmentCommand extends AbstractConfigCommand {
       names = "--image-variant",
       description =
           "The container image variant type to use when deploying a distributed installation of Spinnaker.\n"
-              + "Warning: variants other than the 'slim' one are only available with Spinnaker v1.16+\n"
               + "\tslim: Based on an Alpine image\n"
               + "\tubuntu: Based on Canonical's ubuntu:bionic image.\n"
+              + "\tjava8: A variant of slim that uses the Java 8 runtime\n"
+              + "\tubuntu-java8: A variant of ubuntu that uses the Java 8 runtime\n"
               + "Default value: slim",
       converter = ImageVariantConverter.class)
   private ImageVariant imageVariant;

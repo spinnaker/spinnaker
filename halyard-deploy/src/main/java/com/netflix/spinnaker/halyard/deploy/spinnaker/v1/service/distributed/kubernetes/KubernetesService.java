@@ -48,7 +48,7 @@ public interface KubernetesService {
       // versions >= 1.16.0
       tag = version;
     } else {
-      tag = String.format("%s-%s", version, imageVariant.toString().toLowerCase());
+      tag = String.format("%s-%s", version, imageVariant.getContainerSuffix());
     }
 
     KubernetesImageDescription image =
