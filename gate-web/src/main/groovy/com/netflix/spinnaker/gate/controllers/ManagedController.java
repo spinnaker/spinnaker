@@ -68,12 +68,6 @@ public class ManagedController {
     return status;
   }
 
-  @ApiOperation(value = "Create or update a resource", response = Resource.class)
-  @PostMapping(path = "/resources")
-  Resource upsertResource(@RequestBody Resource resource) {
-    return keelService.upsertResource(resource);
-  }
-
   @ApiOperation(value = "Ad-hoc validate and diff a resource", response = Map.class)
   @PostMapping(
       path = "/resources/diff",
@@ -81,12 +75,6 @@ public class ManagedController {
       produces = {APPLICATION_JSON_VALUE})
   Map diffResource(@RequestBody Resource resource) {
     return keelService.diffResource(resource);
-  }
-
-  @ApiOperation(value = "Delete a resource", response = Resource.class)
-  @DeleteMapping(path = "/resources/{resourceId}")
-  Resource deleteResource(@PathVariable("resourceId") String resourceId) {
-    return keelService.deleteResource(resourceId);
   }
 
   @ApiOperation(value = "Pause management of a resource")
