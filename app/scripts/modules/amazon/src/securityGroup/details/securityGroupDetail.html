@@ -78,29 +78,7 @@
         <dd>{{securityGroup.description}}</dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="IP Range Rules ({{ipRules.length}})" expanded="{{ipRules.length > 0}}">
-      <div ng-if="!ipRules.length">None</div>
-
-      <dl
-        ng-class="insightCtrl.vm.filtersExpanded ? '' : 'dl-horizontal dl-medium'"
-        ng-repeat="ipRangeRule in ipRules | orderBy: 'range.address'"
-      >
-        <dt>IP Range</dt>
-        <dd>{{ipRangeRule.address}}</dd>
-        <dt>Port Ranges</dt>
-        <dd ng-repeat="rule in ipRangeRule.rules">
-          <span ng-if="rule.protocol === '-1'">
-            All ports and protocols
-            <div ng-if="ipRangeRule.rules.length > 1">
-              <em>Additional port ranges are specified, but redundant:</em>
-            </div>
-          </span>
-          <span ng-if="rule.protocol !== '-1'">
-            {{rule.protocol}}: {{rule.startPort}} &rarr; {{rule.endPort}}
-          </span>
-        </dd>
-      </dl>
-    </collapsible-section>
+    <ip-range-rules ip-rules="ipRules"></ip-range-rules>
     <collapsible-section
       heading="{{ctrl.firewallLabel}} Rules ({{securityGroupRules.length || 0}})"
       expanded="{{securityGroupRules.length > 0}}"
