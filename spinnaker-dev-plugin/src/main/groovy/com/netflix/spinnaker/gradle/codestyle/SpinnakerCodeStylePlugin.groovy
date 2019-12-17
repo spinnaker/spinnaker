@@ -22,6 +22,7 @@ import com.diffplug.gradle.spotless.SpotlessPlugin
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.plugins.JavaBasePlugin
 
 class SpinnakerCodeStylePlugin implements Plugin<Project> {
 
@@ -41,6 +42,14 @@ class SpinnakerCodeStylePlugin implements Plugin<Project> {
 
       project.plugins.apply(SpotlessPlugin)
       project.plugins.withType(SpotlessPlugin) { SpotlessPlugin spotless ->
+
+        // Instead of performing `spotlessCheck` on `check`, let's just `spotlessApply` instead, since devs will be
+        // required to make the changes anyway.
+        spotless.extension.enforceCheck = false
+        project.getTasks()
+          .matching { it.name == JavaBasePlugin.CHECK_TASK_NAME }
+          .all { it.dependsOn("spotlessApply") }
+
         spotless.extension.java(new Action<JavaExtension>() {
           @Override
           void execute(JavaExtension javaExtension) {
