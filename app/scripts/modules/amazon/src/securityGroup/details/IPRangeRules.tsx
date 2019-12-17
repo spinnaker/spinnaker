@@ -2,9 +2,9 @@ import React from 'react';
 import { Overridable, CollapsibleSection, LabeledValue, LabeledValueList } from '@spinnaker/core';
 
 export interface IIPRangeRulesProps {
-  ipRules: Array<IPRangeRulesDetails>;
+  ipRules: Array<IIPRangeRulesDetails>;
 }
-export interface IPRangeRulesDetails {
+export interface IIPRangeRulesDetails {
   rules: Array<IRangeRule>;
   address: String;
 }
@@ -19,7 +19,6 @@ export interface IRangeRule {
 export class IPRangeRules extends React.Component<IIPRangeRulesProps> {
   public render() {
     const ipRules = this.props.ipRules || [];
-    console.log(ipRules.length);
     const heading = 'IP Ranage Rules(' + ipRules.length + ')';
     return (
       <CollapsibleSection heading={heading}>
@@ -40,7 +39,9 @@ export class IPRangeRules extends React.Component<IIPRangeRulesProps> {
                   </span>
                 ) : (
                   <div>
-                    <span>{r.protocol + ':' + r.startPort + '->' + r.endPort}</span>
+                    <span>
+                      {r.protocol + ':' + r.startPort} &rarr; {r.endPort}
+                    </span>
                   </div>
                 ),
               )}
