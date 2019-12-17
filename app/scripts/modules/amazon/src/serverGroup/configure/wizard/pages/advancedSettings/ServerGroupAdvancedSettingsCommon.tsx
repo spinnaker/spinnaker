@@ -75,7 +75,12 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
               multi={true}
               value={values.enabledMetrics}
               options={values.backingData.enabledMetrics.map(m => ({ label: m, value: m }))}
-              onChange={(option: Option[]) => setFieldValue('enabledMetrics', option.map(o => o.value))}
+              onChange={(option: Option[]) =>
+                setFieldValue(
+                  'enabledMetrics',
+                  option.map(o => o.value),
+                )
+              }
             />
           </div>
         </div>
@@ -117,7 +122,12 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
               multi={true}
               value={values.terminationPolicies}
               options={values.backingData.terminationPolicies.map(m => ({ label: m, value: m }))}
-              onChange={(option: Option[]) => setFieldValue('terminationPolicies', option.map(o => o.value))}
+              onChange={(option: Option[]) =>
+                setFieldValue(
+                  'terminationPolicies',
+                  option.map(o => o.value),
+                )
+              }
             />
           </div>
         </div>

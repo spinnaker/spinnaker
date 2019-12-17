@@ -16,7 +16,10 @@ import {
 
 import { DockerImageReader, IDockerLookupType } from '../../image';
 
-const lookupTypeOptions = [{ value: 'digest', label: 'Digest' }, { value: 'tag', label: 'Tag' }];
+const lookupTypeOptions = [
+  { value: 'digest', label: 'Digest' },
+  { value: 'tag', label: 'Tag' },
+];
 
 export interface IDockerTriggerTemplateState {
   digest: string;

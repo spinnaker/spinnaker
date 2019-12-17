@@ -23,7 +23,10 @@ describe('<LabelFilter />', () => {
   describe('getKeyOptions', () => {
     it('returns available label key options for filter at given index', () => {
       const component: any = shallow(<LabelFilter {...props} />);
-      const keyOptionsIdx1 = [{ label: 'key2', value: 'key2' }, { label: 'key3', value: 'key3' }];
+      const keyOptionsIdx1 = [
+        { label: 'key2', value: 'key2' },
+        { label: 'key3', value: 'key3' },
+      ];
       expect(component.instance().getKeyOptions(1)).toEqual(keyOptionsIdx1);
     });
   });
@@ -49,7 +52,10 @@ function getLabelFilterProps(): ILabelFilterProps {
       key2: ['value4'],
       key3: ['value5', 'value6'],
     },
-    labelFilters: [{ key: 'key1', value: 'value1' }, { key: 'key2', value: 'value2' }],
+    labelFilters: [
+      { key: 'key1', value: 'value1' },
+      { key: 'key2', value: 'value2' },
+    ],
     updateLabelFilters: noop,
   };
 }

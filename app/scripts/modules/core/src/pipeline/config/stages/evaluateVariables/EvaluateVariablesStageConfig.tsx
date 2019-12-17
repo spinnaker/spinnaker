@@ -36,7 +36,10 @@ const variableNameValidator: IValidator = (val: string, label: string) =>
   errorMessage(`${label} should consist only of letters, numbers, or underscore`);
 
 const duplicateKeyValidatorFactory = (variables: IEvaluatedVariable[] = []) => {
-  const keyCounts = countBy(variables.map(x => x.key), x => x);
+  const keyCounts = countBy(
+    variables.map(x => x.key),
+    x => x,
+  );
   return (key: string) => keyCounts[key] > 1 && `Duplicate key '${key}'`;
 };
 

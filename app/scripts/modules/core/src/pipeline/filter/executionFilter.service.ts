@@ -321,9 +321,10 @@ export class ExecutionFilterService {
 
   private static applyGroupsToModel(groups: IExecutionGroup[]): void {
     const filterModel = ExecutionState.filterModel.asFilterModel;
-    filterModel.groups = this.diffExecutionGroups(filterModel.groups, groups).sort(
-      (a: IExecutionGroup, b: IExecutionGroup) => this.executionGroupSorter(a, b),
-    );
+    filterModel.groups = this.diffExecutionGroups(
+      filterModel.groups,
+      groups,
+    ).sort((a: IExecutionGroup, b: IExecutionGroup) => this.executionGroupSorter(a, b));
   }
 
   public static executionGroupSorter(a: IExecutionGroup, b: IExecutionGroup): number {

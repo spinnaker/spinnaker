@@ -56,16 +56,13 @@ export class FilterModelService {
 
     const iFilterConfigs = filterModel.config;
 
-    return iFilterConfigs.reduce(
-      (acc, filter) => {
-        const valueIfNil = filterTypeDefaults[filter.type];
-        const rawValue = params[filter.param];
-        const paramValue = isNil(rawValue) ? valueIfNil : rawValue;
-        // Clone deep so angularjs mutations happen on a different object reference
-        return { ...acc, [filter.model]: cloneDeep(paramValue) };
-      },
-      {} as any,
-    );
+    return iFilterConfigs.reduce((acc, filter) => {
+      const valueIfNil = filterTypeDefaults[filter.type];
+      const rawValue = params[filter.param];
+      const paramValue = isNil(rawValue) ? valueIfNil : rawValue;
+      // Clone deep so angularjs mutations happen on a different object reference
+      return { ...acc, [filter.model]: cloneDeep(paramValue) };
+    }, {} as any);
   }
 
   public static registerRouterHooks(filterModel: IFilterModel, stateGlob: string) {

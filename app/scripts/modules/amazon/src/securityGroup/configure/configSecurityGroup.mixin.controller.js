@@ -128,7 +128,10 @@ module(AMAZON_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
       const account = getAccount();
       const regions = $scope.securityGroup.regions || [];
       VpcReader.listVpcs().then(function(vpcs) {
-        const vpcsByName = _.groupBy(vpcs.filter(vpc => vpc.account === account), 'label');
+        const vpcsByName = _.groupBy(
+          vpcs.filter(vpc => vpc.account === account),
+          'label',
+        );
         $scope.allVpcs = vpcs;
         const available = [];
         _.forOwn(vpcsByName, function(vpcsToTest, label) {

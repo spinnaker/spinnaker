@@ -21,13 +21,10 @@ function poolBuilder(loadBalancers: any[]) {
     .map(lb => {
       const poolUnitTemplate = chain(poolValueCoordinates)
         .filter({ on: 'loadBalancer' })
-        .reduce(
-          (acc, coordinate) => {
-            acc[coordinate.filterField] = lb[coordinate.localField];
-            return acc;
-          },
-          {} as any,
-        )
+        .reduce((acc, coordinate) => {
+          acc[coordinate.filterField] = lb[coordinate.localField];
+          return acc;
+        }, {} as any)
         .value();
 
       const poolUnits = chain(['instances', 'detachedInstances'])

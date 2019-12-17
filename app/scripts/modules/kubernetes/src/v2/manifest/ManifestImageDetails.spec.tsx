@@ -72,4 +72,4 @@ describe('<ManifestImageDetails />', () => {
     expect(li.text().trim()).toEqual('busybox:latest');
   });
 });
-const component = (manifest: string) => mount(<ManifestImageDetails manifest={load(manifest)} /> as any);
+const component = (manifest: string) => mount((<ManifestImageDetails manifest={load(manifest)} />) as any);

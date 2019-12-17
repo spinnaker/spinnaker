@@ -35,15 +35,12 @@ module(PRECONFIGUREDJOB_STAGE, []).run(() => {
       preconfiguredJobs.forEach(preconfiguredJob => {
         const { label, description, type, waitForCompletion, parameters, producesArtifacts } = preconfiguredJob;
         const defaults = {
-          parameters: parameters.reduce(
-            (acc, parameter) => {
-              if (parameter.defaultValue) {
-                acc[parameter.name] = parameter.defaultValue;
-              }
-              return acc;
-            },
-            {} as any,
-          ),
+          parameters: parameters.reduce((acc, parameter) => {
+            if (parameter.defaultValue) {
+              acc[parameter.name] = parameter.defaultValue;
+            }
+            return acc;
+          }, {} as any),
         };
         Registry.pipeline.registerStage({
           label,

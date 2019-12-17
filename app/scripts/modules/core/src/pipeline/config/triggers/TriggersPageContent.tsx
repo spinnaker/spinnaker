@@ -83,7 +83,10 @@ export function TriggersPageContent(props: ITriggersPageContentProps) {
       if (
         !pipelineParam.triggers.find(t => t.expectedArtifactIds && t.expectedArtifactIds.includes(expectedArtifact.id))
       ) {
-        newExpectedArtifacts.splice(findIndex(newExpectedArtifacts, e => e.id === expectedArtifact.id), 1);
+        newExpectedArtifacts.splice(
+          findIndex(newExpectedArtifacts, e => e.id === expectedArtifact.id),
+          1,
+        );
       }
       ArtifactReferenceService.removeReferenceFromStages(expectedArtifact.id, pipelineParam.stages);
     });

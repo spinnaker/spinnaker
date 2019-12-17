@@ -89,7 +89,10 @@ describe('Controller: tasks', function() {
   });
 
   describe('Filtering Task list with one running task', function() {
-    var tasks = [{ isActive: false, name: 'a' }, { isActive: true, name: 'a' }];
+    var tasks = [
+      { isActive: false, name: 'a' },
+      { isActive: true, name: 'a' },
+    ];
 
     it('should sort the tasks with the RUNNING status at the top', function() {
       this.initializeController(tasks);
@@ -100,7 +103,10 @@ describe('Controller: tasks', function() {
   });
 
   describe('Filtering Task list by startTime in descending order with only running task', function() {
-    var tasks = [{ isActive: true, startTime: 20, name: 'a' }, { isActive: true, startTime: 99, name: 'a' }];
+    var tasks = [
+      { isActive: true, startTime: 20, name: 'a' },
+      { isActive: true, startTime: 99, name: 'a' },
+    ];
 
     it('should sort the tasks with the RUNNING status at the top', function() {
       this.initializeController(tasks);
@@ -115,7 +121,10 @@ describe('Controller: tasks', function() {
   });
 
   describe('Filtering Task list with zero running task', function() {
-    var tasks = [{ isActive: false, startTime: 22, name: 'a' }, { isActive: false, startTime: 100, name: 'a' }];
+    var tasks = [
+      { isActive: false, startTime: 22, name: 'a' },
+      { isActive: false, startTime: 100, name: 'a' },
+    ];
 
     it('should sort the tasks in descending order by startTime', function() {
       this.initializeController(tasks);

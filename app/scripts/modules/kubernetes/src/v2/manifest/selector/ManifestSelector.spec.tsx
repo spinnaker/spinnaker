@@ -468,4 +468,4 @@ describe('<ManifestSelector />', () => {
 });
 
 const component = (selector: any, props: any = {}) =>
-  mount<ManifestSelector>(<ManifestSelector onChange={noop} selector={selector} {...props} /> as any);
+  mount<ManifestSelector>((<ManifestSelector onChange={noop} selector={selector} {...props} />) as any);

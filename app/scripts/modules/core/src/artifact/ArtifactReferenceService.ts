@@ -14,7 +14,11 @@ export class ArtifactReferenceService {
   public static removeArtifactFromField(field: string, obj: { [key: string]: string | string[] }, artifactId: string) {
     const reference = get(obj, field);
     if (Array.isArray(reference)) {
-      set(obj, field, reference.filter((a: string) => a !== artifactId));
+      set(
+        obj,
+        field,
+        reference.filter((a: string) => a !== artifactId),
+      );
     } else if (reference === artifactId) {
       set(obj, field, null);
     }

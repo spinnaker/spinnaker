@@ -32,7 +32,10 @@ export class JobStageExecutionLogs extends React.Component<IJobStageExecutionLog
     const { account, location, deployedName } = this.props;
     Observable.from(ManifestReader.getManifest(account, location, deployedName))
       .takeUntil(this.destroy$)
-      .subscribe(manifest => this.setState({ manifest }), () => {});
+      .subscribe(
+        manifest => this.setState({ manifest }),
+        () => {},
+      );
   }
 
   private renderExternalLink(link: string, manifest: IManifest): string {

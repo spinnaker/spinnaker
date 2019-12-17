@@ -159,9 +159,10 @@ export class Application {
   public refresh(forceRefresh?: boolean): IPromise<any> {
     // refresh hidden data sources but do not consider their results when determining when the refresh completes
     this.dataSources.filter(ds => !ds.visible).forEach(ds => ds.refresh(forceRefresh));
-    return $q
-      .all(this.dataSources.filter(ds => ds.visible).map(source => source.refresh(forceRefresh)))
-      .then(() => this.applicationLoadSuccess(), error => this.applicationLoadError(error));
+    return $q.all(this.dataSources.filter(ds => ds.visible).map(source => source.refresh(forceRefresh))).then(
+      () => this.applicationLoadSuccess(),
+      error => this.applicationLoadError(error),
+    );
   }
 
   /**
@@ -256,7 +257,10 @@ export class Application {
     allProviders.forEach((provider: string) => {
       const vals = sources
         .map(ds =>
-          map(ds.data.filter((d: any) => typeof d === 'object' && d[ds.providerField] === provider), ds[field]),
+          map(
+            ds.data.filter((d: any) => typeof d === 'object' && d[ds.providerField] === provider),
+            ds[field],
+          ),
         )
         .filter(v => v.length > 0);
       const allValues = union(...vals);

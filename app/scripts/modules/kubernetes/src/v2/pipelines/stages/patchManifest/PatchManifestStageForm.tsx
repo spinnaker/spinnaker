@@ -79,7 +79,10 @@ export class PatchManifestStageForm extends React.Component<
       'requiredArtifactIds',
       bindings.filter(b => b.expectedArtifactId).map(b => b.expectedArtifactId),
     );
-    this.props.formik.setFieldValue('requiredArtifacts', bindings.filter(b => b.artifact));
+    this.props.formik.setFieldValue(
+      'requiredArtifacts',
+      bindings.filter(b => b.artifact),
+    );
   };
 
   private handleRawManifestChange = (rawManifest: string, manifests: any): void => {

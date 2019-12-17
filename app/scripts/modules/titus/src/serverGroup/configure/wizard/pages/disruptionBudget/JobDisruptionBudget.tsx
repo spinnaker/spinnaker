@@ -130,7 +130,10 @@ export class JobDisruptionBudget extends React.Component<IJobDisruptionBudgetPro
     const providers = values.disruptionBudget.containerHealthProviders;
     const existing = providers.find(p => p.name === provider);
     if (existing) {
-      setFieldValue('disruptionBudget.containerHealthProviders', providers.filter(p => p !== existing));
+      setFieldValue(
+        'disruptionBudget.containerHealthProviders',
+        providers.filter(p => p !== existing),
+      );
     } else {
       setFieldValue('disruptionBudget.containerHealthProviders', providers.concat({ name: provider }));
     }

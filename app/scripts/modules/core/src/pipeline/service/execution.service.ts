@@ -233,9 +233,10 @@ export class ExecutionService {
   }
 
   private waitUntilPipelineIsCancelled(application: Application, executionId: string): IPromise<any> {
-    return this.waitUntilExecutionMatches(executionId, (execution: IExecution) => execution.status === 'CANCELED').then(
-      () => application.executions.refresh(),
-    );
+    return this.waitUntilExecutionMatches(
+      executionId,
+      (execution: IExecution) => execution.status === 'CANCELED',
+    ).then(() => application.executions.refresh());
   }
 
   private waitUntilPipelineIsDeleted(application: Application, executionId: string): IPromise<any> {

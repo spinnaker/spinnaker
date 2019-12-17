@@ -82,7 +82,11 @@ describe('Task Data Source', function() {
       let errorsHandled = 0,
         successesHandled = 0;
       configureApplication();
-      application.getDataSource('tasks').onRefresh($scope, () => successesHandled++, () => errorsHandled++);
+      application.getDataSource('tasks').onRefresh(
+        $scope,
+        () => successesHandled++,
+        () => errorsHandled++,
+      );
 
       application.getDataSource('tasks').refresh();
       $scope.$digest();

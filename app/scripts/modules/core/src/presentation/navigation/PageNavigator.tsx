@@ -42,7 +42,10 @@ export class PageNavigator extends React.Component<IPageNavigatorProps, IPageNav
     const { children, deepLinkParam, hideNavigation, scrollableContainer } = this.props;
     this.container = this.element.closest(scrollableContainer);
     if (isFunction(this.container.bind) && !hideNavigation) {
-      this.container.bind(this.getEventKey(), throttle(() => this.handleScroll(), 20));
+      this.container.bind(
+        this.getEventKey(),
+        throttle(() => this.handleScroll(), 20),
+      );
     }
     this.navigator = this.element.find('.page-navigation');
     if (deepLinkParam && ReactInjector.$stateParams[deepLinkParam]) {

@@ -26,7 +26,10 @@ module(DCOS_PIPELINE_STAGES_RUNJOB_RUNJOBSTAGE, [
       cloudProvider: 'dcos',
       templateUrl: require('./runJobStage.html'),
       executionDetailsUrl: require('./runJobExecutionDetails.html'),
-      validators: [{ type: 'requiredField', fieldName: 'account' }, { type: 'requiredField', fieldName: 'general.id' }],
+      validators: [
+        { type: 'requiredField', fieldName: 'account' },
+        { type: 'requiredField', fieldName: 'general.id' },
+      ],
     });
   })
   .controller('dcosRunJobStageCtrl', [

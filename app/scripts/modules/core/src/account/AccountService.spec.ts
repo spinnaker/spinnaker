@@ -20,14 +20,12 @@ describe('Service: AccountService', () => {
   afterEach(SETTINGS.resetToOriginal);
 
   it('should filter the list of accounts by provider when supplied', done => {
-    $http
-      .expectGET(`${API.baseUrl}/credentials?expand=true`)
-      .respond(200, [
-        { name: 'test', type: 'aws' },
-        { name: 'prod', type: 'aws' },
-        { name: 'prod', type: 'gce' },
-        { name: 'gce-test', type: 'gce' },
-      ]);
+    $http.expectGET(`${API.baseUrl}/credentials?expand=true`).respond(200, [
+      { name: 'test', type: 'aws' },
+      { name: 'prod', type: 'aws' },
+      { name: 'prod', type: 'gce' },
+      { name: 'gce-test', type: 'gce' },
+    ]);
 
     AccountService.listAccounts('aws').then((accounts: IAccount[]) => {
       expect(accounts.length).toBe(2);
@@ -40,9 +38,10 @@ describe('Service: AccountService', () => {
 
   describe('getAllAccountDetailsForProvider', () => {
     it('should return details for each account', done => {
-      $http
-        .expectGET(API.baseUrl + '/credentials?expand=true')
-        .respond(200, [{ name: 'test', type: 'aws' }, { name: 'prod', type: 'aws' }]);
+      $http.expectGET(API.baseUrl + '/credentials?expand=true').respond(200, [
+        { name: 'test', type: 'aws' },
+        { name: 'prod', type: 'aws' },
+      ]);
 
       AccountService.getAllAccountDetailsForProvider('aws').then((details: any) => {
         expect(details.length).toBe(2);

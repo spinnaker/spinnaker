@@ -51,7 +51,12 @@ module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGMANAGER_SERVICE, []
       const rawTags = sg.targetTags;
       sg.tagsArray = rawTags ? rawTags.substring(1, rawTags.length - 1).split(', ') : [];
 
-      sg.selectedTags = commandTags ? _.intersection(commandTags.map(t => t.value), sg.tagsArray) : [];
+      sg.selectedTags = commandTags
+        ? _.intersection(
+            commandTags.map(t => t.value),
+            sg.tagsArray,
+          )
+        : [];
     });
   };
 
@@ -120,7 +125,12 @@ module(GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGMANAGER_SERVICE, []
       securityGroupObjectsWithTag = _.filter(securityGroupObjectsWithTag, sg => sg.network === this.command.network);
     }
 
-    if (!_.includes(tags.map(t => t.value), tagName)) {
+    if (
+      !_.includes(
+        tags.map(t => t.value),
+        tagName,
+      )
+    ) {
       tags.push({ value: tagName });
     }
 

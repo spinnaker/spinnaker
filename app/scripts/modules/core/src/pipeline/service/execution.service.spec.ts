@@ -258,7 +258,10 @@ describe('Service: executionService', () => {
 
       executionService
         .waitUntilExecutionMatches(executionId, execution => (execution as any).thingToMatch)
-        .then(() => (succeeded = true), () => (failed = true));
+        .then(
+          () => (succeeded = true),
+          () => (failed = true),
+        );
 
       expect(succeeded).toBe(false);
       expect(failed).toBe(false);
@@ -294,7 +297,10 @@ describe('Service: executionService', () => {
           { id: 1, isActive: false },
           { id: 2, isActive: true },
         ];
-        application.runningExecutions.data = [{ id: 1, isActive: true }, { id: 2, isActive: true }];
+        application.runningExecutions.data = [
+          { id: 1, isActive: true },
+          { id: 2, isActive: true },
+        ];
         executionService.removeCompletedExecutionsFromRunningData(application);
         expect(application.runningExecutions.data.map((d: any) => d.id)).toEqual([2]);
         expect(dataUpdated).toBe(true);

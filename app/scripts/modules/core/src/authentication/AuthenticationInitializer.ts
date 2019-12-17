@@ -103,9 +103,10 @@ export class AuthenticationInitializer {
         transformResponse: (response: string) => response,
       };
 
-      $http
-        .get(`${SETTINGS.gateUrl}/auth/logout`, config)
-        .then(() => this.loggedOutSequence(), () => this.loggedOutSequence());
+      $http.get(`${SETTINGS.gateUrl}/auth/logout`, config).then(
+        () => this.loggedOutSequence(),
+        () => this.loggedOutSequence(),
+      );
     }
   }
 

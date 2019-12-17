@@ -403,62 +403,57 @@ export class ExecutionsTransformer {
     });
 
     const idToGroupIdMap: { [key: string]: number | string } = {};
-    stageSummaries = stageSummaries.reduce(
-      (groupedStages, stage) => {
-        // Since everything should already be sorted, if the stage is not in a group, just push it on and continue
-        if (!stage.group) {
-          groupedStages.push(stage);
-          return groupedStages;
-        }
-
-        // The stage is in a group
-        let groupedStage = groupedStages.find(s => s.type === 'group' && s.name === stage.group);
-        if (!groupedStage) {
-          // Create a new grouped stage
-          groupedStage = {
-            activeStageType: undefined,
-            after: undefined,
-            before: stage.before,
-            cloudProvider: stage.cloudProvider, // what if the group has two different cloud providers?
-            comments: '',
-            endTime: stage.endTime,
-            groupStages: [],
-            id: stage.group, // TODO: Can't key off group name because a partial 'group' can be used multiple times...
-            index: undefined,
-            masterStage: undefined,
-            name: stage.group,
-            refId: stage.group, // TODO: Can't key off group name because a partial 'group' can be used multiple times...
-            requisiteStageRefIds:
-              stage.requisiteStageRefIds && stage.requisiteStageRefIds[0] === '*'
-                ? []
-                : stage.requisiteStageRefIds || [], // TODO: No idea what to do with refids...
-            stages: [],
-            startTime: stage.startTime,
-            status: undefined,
-            type: 'group',
-          } as IExecutionStageSummary;
-          groupedStages.push(groupedStage);
-        }
-        OrchestratedItemTransformer.defineProperties(stage);
-
-        // Update the runningTimeInMs function to account for the group
-        Object.defineProperties(groupedStage, {
-          runningTime: {
-            get: () => duration(this.calculateRunningTime(groupedStage)()),
-            configurable: true,
-          },
-          runningTimeInMs: {
-            get: this.calculateRunningTime(groupedStage),
-            configurable: true,
-          },
-        });
-
-        idToGroupIdMap[stage.refId] = groupedStage.refId;
-        groupedStage.groupStages.push(stage);
+    stageSummaries = stageSummaries.reduce((groupedStages, stage) => {
+      // Since everything should already be sorted, if the stage is not in a group, just push it on and continue
+      if (!stage.group) {
+        groupedStages.push(stage);
         return groupedStages;
-      },
-      [] as IExecutionStageSummary[],
-    );
+      }
+
+      // The stage is in a group
+      let groupedStage = groupedStages.find(s => s.type === 'group' && s.name === stage.group);
+      if (!groupedStage) {
+        // Create a new grouped stage
+        groupedStage = {
+          activeStageType: undefined,
+          after: undefined,
+          before: stage.before,
+          cloudProvider: stage.cloudProvider, // what if the group has two different cloud providers?
+          comments: '',
+          endTime: stage.endTime,
+          groupStages: [],
+          id: stage.group, // TODO: Can't key off group name because a partial 'group' can be used multiple times...
+          index: undefined,
+          masterStage: undefined,
+          name: stage.group,
+          refId: stage.group, // TODO: Can't key off group name because a partial 'group' can be used multiple times...
+          requisiteStageRefIds:
+            stage.requisiteStageRefIds && stage.requisiteStageRefIds[0] === '*' ? [] : stage.requisiteStageRefIds || [], // TODO: No idea what to do with refids...
+          stages: [],
+          startTime: stage.startTime,
+          status: undefined,
+          type: 'group',
+        } as IExecutionStageSummary;
+        groupedStages.push(groupedStage);
+      }
+      OrchestratedItemTransformer.defineProperties(stage);
+
+      // Update the runningTimeInMs function to account for the group
+      Object.defineProperties(groupedStage, {
+        runningTime: {
+          get: () => duration(this.calculateRunningTime(groupedStage)()),
+          configurable: true,
+        },
+        runningTimeInMs: {
+          get: this.calculateRunningTime(groupedStage),
+          configurable: true,
+        },
+      });
+
+      idToGroupIdMap[stage.refId] = groupedStage.refId;
+      groupedStage.groupStages.push(stage);
+      return groupedStages;
+    }, [] as IExecutionStageSummary[]);
 
     stageSummaries.forEach((summary, index) => {
       // this shouldn't be necessary, but we had a few group stages slip in, so this handles it gracefully-ish

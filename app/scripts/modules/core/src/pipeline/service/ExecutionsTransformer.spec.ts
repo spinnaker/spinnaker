@@ -44,7 +44,11 @@ describe('ExecutionTransformerService', function() {
 
     it('should group stages into summaries when no synthetic stages added', () => {
       const execution = {
-        stages: [{ id: '1', name: 'bake' }, { id: '2', name: 'deploy' }, { id: '3', name: 'wait' }],
+        stages: [
+          { id: '1', name: 'bake' },
+          { id: '2', name: 'deploy' },
+          { id: '3', name: 'wait' },
+        ],
       } as IExecution;
       ExecutionsTransformer.transformExecution({} as Application, execution);
 

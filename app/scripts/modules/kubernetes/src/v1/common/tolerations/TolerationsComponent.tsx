@@ -21,7 +21,10 @@ export interface IKubernetesTolerationsProps {
 }
 
 export class KubernetesTolerations extends React.Component<IKubernetesTolerationsProps> {
-  private static operators: Option[] = [{ value: 'Exists', label: 'Exists' }, { value: 'Equal', label: 'Equal' }];
+  private static operators: Option[] = [
+    { value: 'Exists', label: 'Exists' },
+    { value: 'Equal', label: 'Equal' },
+  ];
 
   private static effects: Option[] = [
     { value: 'NoSchedule', label: 'NoSchedule' },

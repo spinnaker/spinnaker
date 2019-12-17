@@ -124,13 +124,10 @@ export class MetricSelectorController implements IController {
   }
 
   private convertDimensionsToObject(): Dictionary<string> {
-    return this.alarm.dimensions.reduce(
-      (acc: Dictionary<string>, dimension: IMetricAlarmDimension) => {
-        acc[dimension.name] = dimension.value;
-        return acc;
-      },
-      {} as Dictionary<string>,
-    );
+    return this.alarm.dimensions.reduce((acc: Dictionary<string>, dimension: IMetricAlarmDimension) => {
+      acc[dimension.name] = dimension.value;
+      return acc;
+    }, {} as Dictionary<string>);
   }
 
   // used to determine if dimensions have changed when selecting a metric

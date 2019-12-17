@@ -29,7 +29,10 @@ export function DeletePipelineModal(props: IDeletePipelineModalProps) {
         const idsToUpdatedIndices = {};
         const isPipelineStrategy = pipeline.strategy === true;
         const data = isPipelineStrategy ? application.strategyConfigs.data : application.pipelineConfigs.data;
-        data.splice(data.findIndex((p: any) => p.id === pipeline.id), 1);
+        data.splice(
+          data.findIndex((p: any) => p.id === pipeline.id),
+          1,
+        );
         data.forEach((p: IPipeline, index: number) => {
           if (p.index !== index) {
             p.index = index;

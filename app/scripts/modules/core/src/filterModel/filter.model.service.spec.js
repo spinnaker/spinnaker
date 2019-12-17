@@ -222,7 +222,10 @@ describe('Service: FilterModelService', function() {
   describe('tagging', function() {
     describe('object tags', function() {
       beforeEach(function() {
-        filterModelConfig = [{ model: 'account', type: 'trueKeyObject' }, { model: 'region', type: 'trueKeyObject' }];
+        filterModelConfig = [
+          { model: 'account', type: 'trueKeyObject' },
+          { model: 'region', type: 'trueKeyObject' },
+        ];
       });
 
       it('should only add tags for true values from sortFilter', function() {
@@ -371,7 +374,10 @@ describe('Service: FilterModelService', function() {
     }
 
     beforeEach(function() {
-      filterModelConfig = [{ model: 'region', type: 'string' }, { model: 'account', type: 'string' }];
+      filterModelConfig = [
+        { model: 'region', type: 'string' },
+        { model: 'account', type: 'string' },
+      ];
       configure();
 
       $uiRouter.stateRegistry.register({ name: 'other' });
@@ -422,7 +428,10 @@ describe('Service: FilterModelService', function() {
 
     describe('default param naming', function() {
       it('should default param value to model if not supplied', function() {
-        filterModelConfig = [{ model: 'search', type: 'string' }, { model: 'aliased', param: 'alias', type: 'string' }];
+        filterModelConfig = [
+          { model: 'search', type: 'string' },
+          { model: 'aliased', param: 'alias', type: 'string' },
+        ];
         configure();
         expect(filterModelConfig[0].param).toBe('search');
         expect(filterModelConfig[1].param).toBe('alias');

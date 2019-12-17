@@ -63,7 +63,12 @@ export class TaskReader {
   }
 
   public static waitUntilTaskCompletes(task: ITask, interval = 1000): IPromise<ITask> {
-    return this.waitUntilTaskMatches(task, t => t.isCompleted, t => t.isFailed, interval);
+    return this.waitUntilTaskMatches(
+      task,
+      t => t.isCompleted,
+      t => t.isFailed,
+      interval,
+    );
   }
 
   /**

@@ -89,7 +89,10 @@ export class SecurityGroups extends React.Component<ISecurityGroupsProps, ISecur
   }
 
   private handleSecurityGroupsChanged = (newValues: Array<{ label: string; value: string }>): void => {
-    this.props.formik.setFieldValue('securityGroups', newValues.map(sg => sg.value));
+    this.props.formik.setFieldValue(
+      'securityGroups',
+      newValues.map(sg => sg.value),
+    );
   };
 
   private onRefreshStart() {

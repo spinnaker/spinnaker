@@ -46,15 +46,12 @@ export class MapEditor extends React.Component<IMapEditorProps, IMapEditorState>
   }
 
   private reduceModel(backingModel: IMapPair[]): { [key: string]: string } {
-    return backingModel.reduce(
-      (acc, pair) => {
-        if (this.props.allowEmpty || pair.value) {
-          acc[pair.key] = pair.value;
-        }
-        return acc;
-      },
-      {} as any,
-    );
+    return backingModel.reduce((acc, pair) => {
+      if (this.props.allowEmpty || pair.value) {
+        acc[pair.key] = pair.value;
+      }
+      return acc;
+    }, {} as any);
   }
 
   private validateUnique(model: IMapPair[]): boolean {

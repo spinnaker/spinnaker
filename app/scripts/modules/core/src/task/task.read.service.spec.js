@@ -58,7 +58,11 @@ describe('Service: taskReader', function() {
 
       $http.flush();
 
-      TaskReader.waitUntilTaskMatches(task, task => task.foo === 4, task => task.foo === 3).then(
+      TaskReader.waitUntilTaskMatches(
+        task,
+        task => task.foo === 4,
+        task => task.foo === 3,
+      ).then(
         () => (completed = true),
         () => (failed = true),
       );
@@ -76,7 +80,11 @@ describe('Service: taskReader', function() {
 
       $http.flush();
 
-      TaskReader.waitUntilTaskMatches(task, task => task.isCompleted, task => task.isFailed).then(
+      TaskReader.waitUntilTaskMatches(
+        task,
+        task => task.isCompleted,
+        task => task.isFailed,
+      ).then(
         () => (completed = true),
         () => (failed = true),
       );
@@ -107,7 +115,11 @@ describe('Service: taskReader', function() {
 
       $http.flush();
 
-      TaskReader.waitUntilTaskMatches(task, task => task.isCompleted, task => task.isFailed).then(
+      TaskReader.waitUntilTaskMatches(
+        task,
+        task => task.isCompleted,
+        task => task.isFailed,
+      ).then(
         () => (completed = true),
         () => (failed = true),
       );
@@ -138,7 +150,11 @@ describe('Service: taskReader', function() {
 
       $http.flush();
 
-      TaskReader.waitUntilTaskMatches(task, task => task.isCompleted, task => task.isFailed).then(
+      TaskReader.waitUntilTaskMatches(
+        task,
+        task => task.isCompleted,
+        task => task.isFailed,
+      ).then(
         () => (completed = true),
         () => (failed = true),
       );

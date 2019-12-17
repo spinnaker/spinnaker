@@ -38,7 +38,10 @@ export class WindowPicker extends React.Component<IWindowPickerProps, IWindowPic
     const { timeWindows } = values.disruptionBudget;
     const toRemove = timeWindows[index];
     if (toRemove.hourlyTimeWindows.length === 1) {
-      setFieldValue('disruptionBudget.timeWindows', timeWindows.filter(w => w !== toRemove));
+      setFieldValue(
+        'disruptionBudget.timeWindows',
+        timeWindows.filter(w => w !== toRemove),
+      );
     } else {
       const subWindowToRemove = toRemove.hourlyTimeWindows[subIndex];
       const newWindows = toRemove.hourlyTimeWindows.filter(w => w !== subWindowToRemove);

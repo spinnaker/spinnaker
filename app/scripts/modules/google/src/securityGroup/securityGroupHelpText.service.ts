@@ -61,7 +61,10 @@ export class GceSecurityGroupHelpTextService {
         ) {
           serverGroup.providerMetadata.tags.forEach((tag: string) => {
             if (!this.serverGroupsIndexedByTag.get(tag)) {
-              this.serverGroupsIndexedByTag.set(tag, new Set<string>([serverGroup.name]));
+              this.serverGroupsIndexedByTag.set(
+                tag,
+                new Set<string>([serverGroup.name]),
+              );
             } else {
               this.serverGroupsIndexedByTag.get(tag).add(serverGroup.name);
             }
