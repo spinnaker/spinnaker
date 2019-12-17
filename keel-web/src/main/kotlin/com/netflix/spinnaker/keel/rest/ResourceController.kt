@@ -94,6 +94,7 @@ class ResourceController(
     resourcePauser.resumeResource(id)
   }
 
+  @Deprecated("Individual resource creation is deprecated. Please use a delivery config.")
   @PostMapping(
     consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
@@ -115,6 +116,7 @@ class ResourceController(
     return runBlocking { adHocDiffer.calculate(resource) }
   }
 
+  @Deprecated("Individual resource deletion is deprecated. Please use a delivery config.")
   @DeleteMapping(
     path = ["/{id}"],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
