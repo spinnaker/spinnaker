@@ -17,7 +17,6 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
 import com.netflix.spinnaker.orca.front50.PipelineModelMutator;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateLoaderException;
 import com.netflix.spinnaker.orca.pipelinetemplate.loader.TemplateLoader;
@@ -29,6 +28,7 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfig
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderContext;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderUtil;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -128,7 +128,6 @@ public class TemplatedPipelineModelMutator implements PipelineModelMutator {
     }
   }
 
-  @SuppressWarnings("unchecked")
   private void applyConfigurations(
       PipelineConfiguration configuration, Map<String, Object> pipeline) {
     if (configuration.getConcurrentExecutions() != null) {
@@ -165,7 +164,7 @@ public class TemplatedPipelineModelMutator implements PipelineModelMutator {
           TemplateMerge.mergeDistinct(
               pipelineTemplateObjectMapper.convertValue(
                   pipeline.get("expectedArtifacts"),
-                  new TypeReference<List<ExpectedArtifact>>() {}),
+                  new TypeReference<List<HashMap<String, Object>>>() {}),
               configuration.getExpectedArtifacts()));
     }
   }

@@ -2,9 +2,6 @@ apply from: "$rootDir/gradle/kotlin.gradle"
 apply from: "$rootDir/gradle/spock.gradle"
 
 dependencies {
-  api("redis.clients:jedis:2.10.2") {
-    force = true
-  }
   api("com.netflix.spinnaker.kork:kork-jedis")
 
   implementation(project(":orca-core"))

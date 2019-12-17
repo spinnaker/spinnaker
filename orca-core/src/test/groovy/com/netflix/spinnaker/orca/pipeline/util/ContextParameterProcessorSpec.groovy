@@ -161,7 +161,7 @@ class ContextParameterProcessorSpec extends Specification {
     result.test == source.test
     summary[escapedExpression].size() == 1
     summary[escapedExpression][0].level as String == ExpressionEvaluationSummary.Result.Level.ERROR.name()
-    summary[escapedExpression][0].exceptionType == SpelEvaluationException
+    summary[escapedExpression][0].exceptionType == SpelEvaluationException.typeName
 
     where:
     testCase                                                            | desc
@@ -184,7 +184,7 @@ class ContextParameterProcessorSpec extends Specification {
     result.test == source.test
     summary[escapedExpression].size() == 1
     summary[escapedExpression][0].level as String == ExpressionEvaluationSummary.Result.Level.ERROR.name()
-    summary[escapedExpression][0].exceptionType == SpelEvaluationException
+    summary[escapedExpression][0].exceptionType == SpelEvaluationException.typeName
 
     where:
     testCase                                                   | desc

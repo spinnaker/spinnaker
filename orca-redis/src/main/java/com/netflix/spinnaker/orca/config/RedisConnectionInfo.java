@@ -17,7 +17,7 @@ package com.netflix.spinnaker.orca.config;
 
 import java.net.URI;
 import redis.clients.jedis.Protocol;
-import redis.clients.util.JedisURIHelper;
+import redis.clients.jedis.util.JedisURIHelper;
 
 public class RedisConnectionInfo {
   public boolean hasPassword() {

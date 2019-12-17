@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.notifications;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import com.netflix.spinnaker.kork.jedis.RedisClientSelector;
 import javax.annotation.Nonnull;
+import redis.clients.jedis.params.SetParams;
 
 public class RedisNotificationClusterLock implements NotificationClusterLock {
 
@@ -32,7 +33,14 @@ public class RedisNotificationClusterLock implements NotificationClusterLock {
     String key = "lock:" + notificationType;
     return redisClientDelegate.withCommandsClient(
         client -> {
-          return "OK".equals(client.set(key, "\uD83D\uDD12", "NX", "EX", lockTimeoutSeconds));
+          return "OK"
+              .equals(
+                  client
+                      // assuming lockTimeoutSeconds will be < 2147483647
+                      .set(
+                      key,
+                      "\uD83D\uDD12",
+                      SetParams.setParams().nx().ex((int) lockTimeoutSeconds)));
         });
   }
 }

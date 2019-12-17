@@ -462,10 +462,10 @@ class ArtifactResolverSpec extends Specification {
     bound.findAll({ a -> expectedBound.contains(a) }).size() == bound.size()
   }
 
-  def "resolveArtifacts sets the bound artifact on an expected artifact"() {
+  def "resolveArtifacts sets the bound artifact on an expected artifact when the expectedArtifact is ExpectedArtifact"() {
     given:
     def matchArtifact = Artifact.builder().type("docker/.*").build()
-    def expectedArtifact = ExpectedArtifact.builder().matchArtifact(matchArtifact).build()
+    def expectedArtifact = ExpectedArtifact.builder().matchArtifact(matchArtifact).id("id1").build()
     def receivedArtifact = Artifact.builder().name("my-artifact").type("docker/image").build()
     def pipeline = [
       id: "abc",
@@ -483,10 +483,31 @@ class ArtifactResolverSpec extends Specification {
     pipeline.expectedArtifacts[0].boundArtifact == receivedArtifact
   }
 
+  def "resolveArtifacts sets the bound artifact on an expected artifact when the expectedArtifact is Map<String, Object>"() {
+    given:
+    def matchArtifact = Artifact.builder().type("docker/.*").build()
+    def expectedArtifact = toMap(ExpectedArtifact.builder().matchArtifact(matchArtifact).id("id1").build())
+    def receivedArtifact = toMap(Artifact.builder().name("my-artifact").type("docker/image").build())
+    def pipeline = [
+            id: "abc",
+            trigger: [:],
+            expectedArtifacts: [expectedArtifact],
+            receivedArtifacts: [receivedArtifact],
+    ]
+    def artifactResolver = makeArtifactResolver()
+
+    when:
+    artifactResolver.resolveArtifacts(pipeline)
+
+    then:
+    pipeline.expectedArtifacts.size() == 1
+    pipeline.expectedArtifacts[0].boundArtifact == receivedArtifact
+  }
+
   def "resolveArtifacts adds received artifacts to the trigger, skipping duplicates"() {
     given:
     def matchArtifact = Artifact.builder().name("my-pipeline-artifact").type("docker/.*").build()
-    def expectedArtifact = ExpectedArtifact.builder().matchArtifact(matchArtifact).build()
+    def expectedArtifact = ExpectedArtifact.builder().matchArtifact(matchArtifact).id("id1").build()
     def receivedArtifact = Artifact.builder().name("my-pipeline-artifact").type("docker/image").build()
     def triggerArtifact = Artifact.builder().name("my-trigger-artifact").type("docker/image").build()
     def bothArtifact = Artifact.builder().name("my-both-artifact").type("docker/image").build()
@@ -512,7 +533,7 @@ class ArtifactResolverSpec extends Specification {
   def "resolveArtifacts is idempotent"() {
     given:
     def matchArtifact = Artifact.builder().name("my-pipeline-artifact").type("docker/.*").build()
-    def expectedArtifact = ExpectedArtifact.builder().matchArtifact(matchArtifact).build()
+    def expectedArtifact = ExpectedArtifact.builder().matchArtifact(matchArtifact).id("id1").build()
     def receivedArtifact = Artifact.builder().name("my-pipeline-artifact").type("docker/image").build()
     def triggerArtifact = Artifact.builder().name("my-trigger-artifact").type("docker/image").build()
     def bothArtifact = Artifact.builder().name("my-both-artifact").type("docker/image").build()
@@ -538,5 +559,9 @@ class ArtifactResolverSpec extends Specification {
 
   private List<Artifact> extractTriggerArtifacts(Map<String, Object> trigger) {
     return objectMapper.convertValue(trigger.artifacts, new TypeReference<List<Artifact>>(){});
+  }
+
+  private Map<String, Object> toMap(Object value) {
+    return objectMapper.convertValue(value, Map.class)
   }
 }

@@ -21,6 +21,7 @@ import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
@@ -228,14 +229,14 @@ public class ArtifactResolver {
 
   public void resolveArtifacts(@Nonnull Map pipeline) {
     Map<String, Object> trigger = (Map<String, Object>) pipeline.get("trigger");
+
+    List<?> originalExpectedArtifacts =
+        Optional.ofNullable((List<?>) pipeline.get("expectedArtifacts")).orElse(emptyList());
+
     List<ExpectedArtifact> expectedArtifacts =
-        Optional.ofNullable((List<?>) pipeline.get("expectedArtifacts"))
-            .map(
-                list ->
-                    list.stream()
-                        .map(it -> objectMapper.convertValue(it, ExpectedArtifact.class))
-                        .collect(toList()))
-            .orElse(emptyList());
+        originalExpectedArtifacts.stream()
+            .map(it -> objectMapper.convertValue(it, ExpectedArtifact.class))
+            .collect(toList());
 
     List<Artifact> receivedArtifactsFromPipeline =
         Optional.ofNullable((List<?>) pipeline.get("receivedArtifacts"))
@@ -288,10 +289,39 @@ public class ArtifactResolver {
           objectMapper.readValue(
               objectMapper.writeValueAsString(expectedArtifacts),
               List.class)); // Add the actual expectedArtifacts we included in the ids.
+
+      updateExpectedArtifacts(originalExpectedArtifacts, expectedArtifacts);
     } catch (IOException e) {
       throw new ArtifactResolutionException(
           "Failed to store artifacts in trigger: " + e.getMessage(), e);
     }
+  }
+
+  private void updateExpectedArtifacts(
+      List<?> originalExpectedArtifacts, List<ExpectedArtifact> updatedExpectedArtifacts)
+      throws JsonProcessingException {
+
+    for (Object artifact : originalExpectedArtifacts) {
+      if (artifact instanceof ExpectedArtifact) {
+        ExpectedArtifact ea = (ExpectedArtifact) artifact;
+        ea.setBoundArtifact(
+            findExpectedArtifactById(updatedExpectedArtifacts, ea.getId()).getBoundArtifact());
+      } else {
+        Map<String, Object> ea = (Map<String, Object>) artifact;
+        ea.put(
+            "boundArtifact",
+            objectMapper.readValue(
+                objectMapper.writeValueAsString(
+                    findExpectedArtifactById(updatedExpectedArtifacts, (String) ea.get("id"))
+                        .getBoundArtifact()),
+                Map.class));
+      }
+    }
+  }
+
+  private ExpectedArtifact findExpectedArtifactById(
+      List<ExpectedArtifact> expectedArtifacts, String id) {
+    return expectedArtifacts.stream().filter(it -> id.equals(it.getId())).findFirst().get();
   }
 
   private List<Artifact> getPriorArtifacts(final Map<String, Object> pipeline) {
