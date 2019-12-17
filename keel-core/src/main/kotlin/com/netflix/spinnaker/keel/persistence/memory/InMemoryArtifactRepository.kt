@@ -150,23 +150,28 @@ class InMemoryArtifactRepository : ArtifactRepository {
           .artifacts
           .map { artifact ->
             val key = Key(artifact, deliveryConfig, environment.name)
-            val deployed = deployedVersions[key] ?: emptyList<String>()
-            val approved = approvedVersions[key] ?: emptyList<String>()
+            val deployed = deployedVersions[key]
+              ?.sortedWith(artifact.versioningStrategy.comparator)
+              ?: emptyList()
+            val approved = approvedVersions[key]
+              ?.sortedWith(artifact.versioningStrategy.comparator)
+              ?: emptyList()
             val deploying = approved
               .filterNot { it in deployed }
-              .lastOrNull()
+              .firstOrNull()
             ArtifactVersions(
               name = artifact.name,
               type = artifact.type,
               versions = ArtifactVersionStatus(
-                current = deployed.lastOrNull(),
+                current = deployed.firstOrNull(),
                 deploying = deploying,
                 pending = artifacts[artifact]
                   ?.map { it.version }
                   ?.filterNot { it in deployed }
                   ?.filterNot { it == deploying }
                   ?: emptyList(),
-                previous = deployed.dropLast(1)
+                previous = deployed
+                  .drop(1)
               )
             )
           }

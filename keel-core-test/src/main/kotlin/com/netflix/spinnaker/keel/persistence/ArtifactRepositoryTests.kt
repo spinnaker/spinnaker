@@ -190,10 +190,10 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
 
         test("the artifact version is pending in the environment") {
           expectThat(versionsIn(environment1)) {
-            get { pending }.containsExactlyInAnyOrder(version1, version2, version3)
-            get { current }.isNull()
-            get { deploying }.isNull()
-            get { previous }.isEmpty()
+            get(ArtifactVersionStatus::pending).containsExactlyInAnyOrder(version1, version2, version3)
+            get(ArtifactVersionStatus::current).isNull()
+            get(ArtifactVersionStatus::deploying).isNull()
+            get(ArtifactVersionStatus::previous).isEmpty()
           }
         }
       }
@@ -216,10 +216,10 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
 
         test("the version is deploying in the environment") {
           expectThat(versionsIn(environment1)) {
-            get { pending }.containsExactlyInAnyOrder(version2, version3)
-            get { current }.isNull()
-            get { deploying }.isEqualTo(version1)
-            get { previous }.isEmpty()
+            get(ArtifactVersionStatus::pending).containsExactlyInAnyOrder(version2, version3)
+            get(ArtifactVersionStatus::current).isNull()
+            get(ArtifactVersionStatus::deploying).isEqualTo(version1)
+            get(ArtifactVersionStatus::previous).isEmpty()
           }
         }
 
@@ -253,10 +253,10 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
 
           test("the version is current in the environment") {
             expectThat(versionsIn(environment1)) {
-              get { pending }.containsExactlyInAnyOrder(version2, version3)
-              get { current }.isEqualTo(version1)
-              get { deploying }.isNull()
-              get { previous }.isEmpty()
+              get(ArtifactVersionStatus::pending).containsExactlyInAnyOrder(version2, version3)
+              get(ArtifactVersionStatus::current).isEqualTo(version1)
+              get(ArtifactVersionStatus::deploying).isNull()
+              get(ArtifactVersionStatus::previous).isEmpty()
             }
           }
 
@@ -278,10 +278,10 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
 
             test("the new version is deploying in the environment") {
               expectThat(versionsIn(environment1)) {
-                get { pending }.containsExactly(version3)
-                get { current }.isEqualTo(version1)
-                get { deploying }.isEqualTo(version2)
-                get { previous }.isEmpty()
+                get(ArtifactVersionStatus::pending).containsExactly(version3)
+                get(ArtifactVersionStatus::current).isEqualTo(version1)
+                get(ArtifactVersionStatus::deploying).isEqualTo(version2)
+                get(ArtifactVersionStatus::previous).isEmpty()
               }
             }
 
@@ -302,10 +302,10 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
 
               test("the new version is current in the environment") {
                 expectThat(versionsIn(environment1)) {
-                  get { pending }.containsExactlyInAnyOrder(version3)
-                  get { current }.isEqualTo(version2)
-                  get { deploying }.isNull()
-                  get { previous }.containsExactly(version1)
+                  get(ArtifactVersionStatus::pending).containsExactlyInAnyOrder(version3)
+                  get(ArtifactVersionStatus::current).isEqualTo(version2)
+                  get(ArtifactVersionStatus::deploying).isNull()
+                  get(ArtifactVersionStatus::previous).containsExactly(version1)
                 }
               }
             }

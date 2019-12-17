@@ -274,6 +274,7 @@ class SqlArtifactRepository(
           .map { (version, approvedAt, deployedAt) ->
             ArtifactVersionResult(version, approvedAt, deployedAt)
           }
+          .sortedWith(compareBy(artifact.versioningStrategy.comparator) { it.version })
         val deployed = versions.filter { it.deployedAt != null }
         val current = deployed.maxBy { checkNotNull(it.deployedAt) }
         val previous = deployed.filterNot { it == current }
