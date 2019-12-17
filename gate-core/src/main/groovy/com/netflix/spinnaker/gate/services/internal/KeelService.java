@@ -17,8 +17,8 @@
  */
 package com.netflix.spinnaker.gate.services.internal;
 
-import com.netflix.spinnaker.kork.manageddelivery.model.DeliveryConfig;
-import com.netflix.spinnaker.kork.manageddelivery.model.Resource;
+import com.netflix.spinnaker.gate.model.manageddelivery.DeliveryConfig;
+import com.netflix.spinnaker.gate.model.manageddelivery.Resource;
 import java.util.List;
 import java.util.Map;
 import retrofit.client.Response;

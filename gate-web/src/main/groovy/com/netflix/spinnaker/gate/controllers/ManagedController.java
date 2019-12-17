@@ -3,9 +3,9 @@ package com.netflix.spinnaker.gate.controllers;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import com.netflix.spinnaker.gate.model.manageddelivery.DeliveryConfig;
+import com.netflix.spinnaker.gate.model.manageddelivery.Resource;
 import com.netflix.spinnaker.gate.services.internal.KeelService;
-import com.netflix.spinnaker.kork.manageddelivery.model.DeliveryConfig;
-import com.netflix.spinnaker.kork.manageddelivery.model.Resource;
 import groovy.util.logging.Slf4j;
 import io.swagger.annotations.ApiOperation;
 import java.nio.charset.StandardCharsets;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.gate.config.manageddelivery;
+package com.netflix.spinnaker.gate.model.manageddelivery;
 
 import java.util.Collection;
 import java.util.Map;
