@@ -63,12 +63,14 @@ class SagaServiceTest : AbstractSagaTest() {
       mapOf(
         "completed doAction1" to listOf(
           DoAction1(),
-          SagaCommandCompleted("doAction1")
+          SagaCommandCompleted("doAction1"),
+          DoAction2()
         ),
         "completed doAction1, doAction2 incomplete" to listOf(
           DoAction1(),
           SagaCommandCompleted("doAction1"),
-          DoAction2()
+          DoAction2(),
+          SagaCommandCompleted("doAction2 incomplete")
         )
       ).forEach { (name, previousEvents) ->
         test("a saga resumes where it left off: $name") {
@@ -93,11 +95,20 @@ class SagaServiceTest : AbstractSagaTest() {
                 "DoAction2",
                 "DoAction3"
               )
-              get { getEvents() }.filterIsInstance<SagaCommandCompleted>().map { it.command }.containsExactly(
-                "doAction1",
-                "doAction2",
-                "doAction3"
-              )
+              if (name.equals("completed doAction1")) {
+                get { getEvents() }.filterIsInstance<SagaCommandCompleted>().map { it.command }.containsExactly(
+                  "doAction1",
+                  "doAction2",
+                  "doAction3"
+                )
+              } else {
+                get { getEvents() }.filterIsInstance<SagaCommandCompleted>().map { it.command }.containsExactly(
+                  "doAction1",
+                  "doAction2 incomplete",
+                  "doAction2",
+                  "doAction3"
+                )
+              }
               get { getEvents() }.map { it.javaClass }.contains(SagaCompleted::class.java)
             }
         }

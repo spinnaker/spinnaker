@@ -82,6 +82,7 @@ allprojects {
     }
 
     test {
+      useJUnitPlatform()
       testLogging {
         exceptionFormat = 'full'
         if (project.hasProperty('slowTest')) {
