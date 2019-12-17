@@ -18,7 +18,7 @@
   "scripts": {
     "clean": "rimraf .awcache .cache-loader build node_modules transpiled",
     "build": "NODE_OPTIONS=--max_old_space_size=8192 webpack --bail --progress --mode=production",
-    "lint": "eslint --ext js,jsx,ts,tsx app/scripts/modules/",
+    "lint": "eslint --ext js,jsx,ts,tsx app",
     "start": "sh ./start.sh",
     "start-dev-server": "webpack-dev-server --progress --mode=development",
     "test": "karma start",
