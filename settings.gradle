@@ -29,7 +29,6 @@ include(
   "kork-hystrix",
   "kork-jedis",
   "kork-jedis-test",
-  "kork-manageddelivery",
   "kork-plugins",
   "kork-plugins-api",
   "kork-plugins-spring-api",
