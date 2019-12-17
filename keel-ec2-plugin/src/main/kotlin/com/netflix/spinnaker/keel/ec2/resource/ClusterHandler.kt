@@ -370,12 +370,7 @@ class ClusterHandler(
         "useAmiBlockDeviceMappings" to false, // TODO: any reason to do otherwise?
         "copySourceCustomBlockDeviceMappings" to false, // TODO: any reason to do otherwise?
         "virtualizationType" to "hvm", // TODO: any reason to do otherwise?
-        "moniker" to mapOf(
-          "app" to moniker.app,
-          "stack" to moniker.stack,
-          "detail" to moniker.detail,
-          "cluster" to moniker.name
-        ),
+        "moniker" to moniker.orcaClusterMoniker,
         "amiName" to launchConfiguration.imageId,
         "reason" to "Diff detected at ${clock.instant().iso()}",
         "instanceType" to launchConfiguration.instanceType,
@@ -411,13 +406,7 @@ class ClusterHandler(
       ),
       "cloudProvider" to CLOUD_PROVIDER,
       "credentials" to desired.location.account,
-      "moniker" to mapOf(
-        "app" to current.moniker.app,
-        "stack" to current.moniker.stack,
-        "detail" to current.moniker.detail,
-        "cluster" to current.moniker.name,
-        "sequence" to current.moniker.sequence
-      ),
+      "moniker" to current.moniker.orcaClusterMoniker,
       "region" to current.location.region,
       "serverGroupName" to current.name
     )
@@ -488,13 +477,7 @@ class ClusterHandler(
             "policyName" to it,
             "cloudProvider" to CLOUD_PROVIDER,
             "credentials" to desired.location.account,
-            "moniker" to mapOf(
-              "app" to current.moniker.app,
-              "stack" to current.moniker.stack,
-              "detail" to current.moniker.detail,
-              "cluster" to current.moniker.name,
-              "sequence" to current.moniker.sequence
-            ),
+            "moniker" to current.moniker.orcaClusterMoniker,
             "region" to current.location.region
           )
         }
@@ -518,13 +501,7 @@ class ClusterHandler(
         "type" to "upsertScalingPolicy",
         "cloudProvider" to CLOUD_PROVIDER,
         "credentials" to serverGroup.location.account,
-        "moniker" to mapOf(
-          "app" to serverGroup.moniker.app,
-          "stack" to serverGroup.moniker.stack,
-          "detail" to serverGroup.moniker.detail,
-          "cluster" to serverGroup.moniker.name,
-          "sequence" to serverGroup.moniker.sequence
-        ),
+        "moniker" to serverGroup.moniker.orcaClusterMoniker,
         "region" to serverGroup.location.region,
         "estimatedInstanceWarmup" to it.warmup.seconds,
         "targetTrackingConfiguration" to mapOf(
@@ -574,13 +551,7 @@ class ClusterHandler(
         "type" to "upsertScalingPolicy",
         "cloudProvider" to CLOUD_PROVIDER,
         "credentials" to serverGroup.location.account,
-        "moniker" to mapOf(
-          "app" to serverGroup.moniker.app,
-          "stack" to serverGroup.moniker.stack,
-          "detail" to serverGroup.moniker.detail,
-          "cluster" to serverGroup.moniker.name,
-          "sequence" to serverGroup.moniker.sequence
-        ),
+        "moniker" to serverGroup.moniker.orcaClusterMoniker,
         "region" to serverGroup.location.region,
         "adjustmentType" to it.adjustmentType,
         "alarm" to mapOf(

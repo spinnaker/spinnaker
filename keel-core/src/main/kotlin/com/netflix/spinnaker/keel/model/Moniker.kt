@@ -44,6 +44,18 @@ data class Moniker(
       else -> "$app-${stack.orEmpty()}-$detail-v$sequenceString"
     }
 
+  @get:JsonIgnore
+  val orcaClusterMoniker: Map<String, Any>
+    get() = mapOf(
+      "app" to app,
+      "stack" to stack,
+      "detail" to detail,
+      "cluster" to name,
+      "sequence" to sequence
+    )
+      .filterValues { it != null }
+      .mapValues { it.value is Any }
+
   private val sequenceString =
     sequence?.rem(1000)?.toString()?.padStart(3, '0')
 }

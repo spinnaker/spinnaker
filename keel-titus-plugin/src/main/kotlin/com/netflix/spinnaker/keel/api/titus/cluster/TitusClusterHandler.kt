@@ -226,13 +226,7 @@ class TitusClusterHandler(
       ),
       "cloudProvider" to CLOUD_PROVIDER,
       "credentials" to desired.location.account,
-      "moniker" to mapOf(
-        "app" to current.moniker.app,
-        "stack" to current.moniker.stack,
-        "detail" to current.moniker.detail,
-        "cluster" to current.moniker.name,
-        "sequence" to current.moniker.sequence
-      ),
+      "moniker" to current.moniker.orcaClusterMoniker,
       "region" to current.location.region,
       "serverGroupName" to current.name
     )
@@ -269,12 +263,7 @@ class TitusClusterHandler(
         "stack" to moniker.stack,
         "freeFormDetails" to moniker.detail,
         "tags" to tags,
-        "moniker" to mapOf(
-          "app" to moniker.app,
-          "stack" to moniker.stack,
-          "detail" to moniker.detail,
-          "cluster" to moniker.name
-        ),
+        "moniker" to moniker.orcaClusterMoniker,
         "reason" to "Diff detected at ${clock.instant().iso()}",
         "type" to "createServerGroup",
         "cloudProvider" to CLOUD_PROVIDER,
