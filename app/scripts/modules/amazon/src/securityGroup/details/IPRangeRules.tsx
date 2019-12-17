@@ -19,7 +19,7 @@ export interface IRangeRule {
 export class IPRangeRules extends React.Component<IIPRangeRulesProps> {
   public render() {
     const ipRules = this.props.ipRules || [];
-    const heading = 'IP Ranage Rules(' + ipRules.length + ')';
+    const heading = `IP Range Rules (${ipRules.length})`;
     return (
       <CollapsibleSection heading={heading}>
         {ipRules.map(rule => (
@@ -40,7 +40,7 @@ export class IPRangeRules extends React.Component<IIPRangeRulesProps> {
                 ) : (
                   <div>
                     <span>
-                      {r.protocol + ':' + r.startPort} &rarr; {r.endPort}
+                      {r.protocol}:{r.startPort} &rarr; {r.endPort}
                     </span>
                   </div>
                 ),
