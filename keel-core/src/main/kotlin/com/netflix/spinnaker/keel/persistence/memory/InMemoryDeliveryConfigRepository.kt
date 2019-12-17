@@ -19,7 +19,7 @@ class InMemoryDeliveryConfigRepository(
 
   private val configs = mutableMapOf<String, DeliveryConfig>()
   private val constraints = mutableMapOf<String, ConstraintState>()
-  private val applicationConstraintMapper = mutableMapOf<String, Set<String>>()
+  private val applicationConstraintMapper = mutableMapOf<String, MutableSet<String>>()
   private val lastCheckTimes = mutableMapOf<String, Instant>()
   override fun deleteByApplication(application: String): Int {
     val size = configs.count { it.value.application == application }
@@ -66,7 +66,7 @@ class InMemoryDeliveryConfigRepository(
     constraints[stateId] = state
     applicationConstraintMapper
       .getOrPut(config.application, { mutableSetOf() })
-      .plus(stateId)
+      .add(stateId)
   }
 
   override fun constraintStateFor(application: String): List<ConstraintState> {

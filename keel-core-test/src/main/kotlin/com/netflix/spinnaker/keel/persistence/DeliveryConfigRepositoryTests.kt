@@ -19,6 +19,7 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectCatching
 import strikt.api.expectThat
+import strikt.assertions.contains
 import strikt.assertions.failed
 import strikt.assertions.hasSize
 import strikt.assertions.isA
@@ -218,8 +219,11 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
             .first()
             .copy(status = ConstraintStatus.PASS)
           repository.storeConstraintState(constraint)
+          val appConstraintState = repository.constraintStateFor(deliveryConfig.application)
           val updatedConstraintState = repository.constraintStateFor(deliveryConfig.name, environment.name)
 
+          expectThat(appConstraintState)
+            .contains(updatedConstraintState)
           expectThat(updatedConstraintState)
             .hasSize(1)
           expectThat(updatedConstraintState.first().status)

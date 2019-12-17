@@ -335,14 +335,13 @@ class SqlDeliveryConfigRepository(
     val deliveryConfigsByEnv = mutableMapOf<String, String>()
     val constraintResult = jooq
       .select(
-        ENVIRONMENT_ARTIFACT_CONSTRAINT.UID,
         ENVIRONMENT_ARTIFACT_CONSTRAINT.ENVIRONMENT_UID,
         ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_VERSION,
         ENVIRONMENT_ARTIFACT_CONSTRAINT.TYPE,
         ENVIRONMENT_ARTIFACT_CONSTRAINT.CREATED_AT,
         ENVIRONMENT_ARTIFACT_CONSTRAINT.STATUS,
-        ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_AT,
         ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_BY,
+        ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_AT,
         ENVIRONMENT_ARTIFACT_CONSTRAINT.COMMENT,
         ENVIRONMENT_ARTIFACT_CONSTRAINT.ATTRIBUTES
       )
@@ -364,7 +363,7 @@ class SqlDeliveryConfigRepository(
       .innerJoin(ENVIRONMENT)
       .on(ENVIRONMENT.UID.eq(CURRENT_CONSTRAINT.ENVIRONMENT_UID))
       .innerJoin(DELIVERY_CONFIG)
-      .on(DELIVERY_CONFIG.UID.eq(ENVIRONMENT.UID))
+      .on(DELIVERY_CONFIG.UID.eq(ENVIRONMENT.DELIVERY_CONFIG_UID))
       .where(CURRENT_CONSTRAINT.APPLICATION.eq(application))
       .fetch { (envId, envName, dcName) ->
         environmentNames[envId] = envName
@@ -374,8 +373,8 @@ class SqlDeliveryConfigRepository(
     return constraintResult.map { (envId,
                                     artifactVersion,
                                     type,
-                                    status,
                                     createdAt,
+                                    status,
                                     judgedBy,
                                     judgedAt,
                                     comment,
