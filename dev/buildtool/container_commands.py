@@ -45,7 +45,7 @@ class BuildContainerCommand(GradleCommandProcessor):
     image_name = self.scm.repository_name_to_service_name(repository.name)
     version = self.scm.get_repository_service_build_version(repository)
 
-    for variant in ('slim', 'ubuntu'):
+    for variant in ('slim', 'ubuntu', 'java8', 'ubuntu-java8'):
       tag = "{version}-{variant}".format(version=version, variant=variant)
       if not self.__gcb_image_exists(image_name, tag):
         return False
@@ -93,7 +93,11 @@ class BuildContainerCommand(GradleCommandProcessor):
     if os.path.isdir(gradle_cache):
       shutil.rmtree(gradle_cache)
 
-    cloudbuild_config = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cloudbuild.yml')
+    cloudbuild_file_name = 'cloudbuild-tag-java8.yml'
+    if os.path.exists(os.path.join(git_dir, 'Dockerfile.java8')):
+      cloudbuild_file_name = 'cloudbuild-build-java8.yml'
+
+    cloudbuild_config = os.path.join(os.path.dirname(os.path.abspath(__file__)), cloudbuild_file_name)
     service_name = self.scm.repository_name_to_service_name(repository.name)
     # Note this command assumes a cwd of git_dir
     command = ('gcloud builds submit '
