@@ -1,9 +1,9 @@
 import * as lodash from 'lodash';
 import * as react from 'react';
-import * as react_dom from 'react-dom';
-import * as spinnaker_core from '@spinnaker/core';
+import * as reactDOM from 'react-dom';
+import * as spinnakerCore from '@spinnaker/core';
 
-export const pluginSupport = {
+export const sharedLibraries = {
   sharedLibraryNames: [
     'lodash',
     'react',
@@ -13,6 +13,7 @@ export const pluginSupport = {
     '@spinnaker/core',
   ],
 
+  // This is the global (window) variable that the shared libs will be exposed on
   globalVariablePrefix: 'spinnaker.plugins.sharedLibraries',
 
   sanitizeLibraryName(libraryName: string): string {
@@ -31,8 +32,8 @@ export const pluginSupport = {
     if (destinationObject) {
       exposeSharedLibrary('lodash', lodash);
       exposeSharedLibrary('react', react);
-      exposeSharedLibrary('react-dom', react_dom);
-      exposeSharedLibrary('@spinnaker/core', spinnaker_core);
+      exposeSharedLibrary('react-dom', reactDOM);
+      exposeSharedLibrary('@spinnaker/core', spinnakerCore);
     }
   },
 };
