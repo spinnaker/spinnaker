@@ -47,10 +47,21 @@ public class AtlasSSEConverter implements Converter {
       Arrays.asList("timeseries", "close");
 
   private final ObjectMapper kayentaObjectMapper;
+  private String queryName;
+  private String queryString;
+  private String configName;
 
   @Autowired
   public AtlasSSEConverter(ObjectMapper kayentaObjectMapper) {
+    this(kayentaObjectMapper, null, null, null);
+  }
+
+  public AtlasSSEConverter(
+      ObjectMapper kayentaObjectMapper, String configName, String queryName, String queryString) {
     this.kayentaObjectMapper = kayentaObjectMapper;
+    this.queryName = queryName;
+    this.queryString = queryString;
+    this.configName = configName;
   }
 
   @Override
@@ -105,7 +116,13 @@ public class AtlasSSEConverter implements Converter {
           || !EXPECTED_RESULTS_TYPE_LIST.contains(atlasResultsType)) {
         if (atlasResultsType.equals("error")) {
           if (atlasResults.getMessage().contains("IllegalStateException")) {
-            throw new FatalQueryException("Atlas query failed: " + atlasResults.getMessage());
+            throw new FatalQueryException(
+                "Atlas query"
+                    + ((configName != null) ? " in canary config [" + configName + "]" : "")
+                    + ((queryName != null) ? " for query [" + queryName + "]" : "")
+                    + ((queryString != null) ? " with query string [" + queryString + "]" : "")
+                    + " failed: "
+                    + atlasResults.getMessage());
           } else {
             throw new RetryableQueryException("Atlas query failed: " + atlasResults.getMessage());
           }

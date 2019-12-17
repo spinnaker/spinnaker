@@ -18,6 +18,7 @@ package com.netflix.kayenta.atlas.metrics;
 
 import static java.time.temporal.ChronoUnit.SECONDS;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.atlas.backends.AtlasStorageDatabase;
 import com.netflix.kayenta.atlas.backends.BackendDatabase;
 import com.netflix.kayenta.atlas.canary.AtlasCanaryScope;
@@ -66,7 +67,7 @@ public class AtlasMetricsService implements MetricsService {
 
   @Autowired private final RetrofitClientFactory retrofitClientFactory;
 
-  @Autowired private final AtlasSSEConverter atlasSSEConverter;
+  @Autowired private final ObjectMapper kayentaObjectMapper;
 
   @Autowired private final Registry registry;
 
@@ -183,6 +184,13 @@ public class AtlasMetricsService implements MetricsService {
     RemoteService remoteService = new RemoteService();
     log.info("Using Atlas backend {}", uri);
     remoteService.setBaseUrl(uri);
+    AtlasSSEConverter atlasSSEConverter =
+        new AtlasSSEConverter(
+            kayentaObjectMapper,
+            canaryConfig.getName(),
+            canaryMetricConfig.getName(),
+            canaryMetricConfig.getQuery().toString());
+
     AtlasRemoteService atlasRemoteService =
         retrofitClientFactory.createClient(
             AtlasRemoteService.class, atlasSSEConverter, remoteService, okHttpClient);
