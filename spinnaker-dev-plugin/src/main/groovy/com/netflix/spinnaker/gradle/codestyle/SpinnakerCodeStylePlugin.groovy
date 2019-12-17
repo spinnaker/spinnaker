@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gradle.codestyle
 import com.diffplug.gradle.spotless.FormatExtension
 import com.diffplug.gradle.spotless.JavaExtension
 import com.diffplug.gradle.spotless.KotlinExtension
+import com.diffplug.gradle.spotless.KotlinGradleExtension
 import com.diffplug.gradle.spotless.SpotlessPlugin
 import org.gradle.api.Action
 import org.gradle.api.Plugin
@@ -65,12 +66,25 @@ class SpinnakerCodeStylePlugin implements Plugin<Project> {
           spotless.extension.kotlin(new Action<KotlinExtension>() {
             @Override
             void execute(KotlinExtension kotlinExtension) {
-              kotlinExtension.ktlint("0.31.0").userData([
+              kotlinExtension.ktlint("0.36.0").userData([
                 indent_size: '2',
                 continuation_indent_size: '2'
               ])
               kotlinExtension.trimTrailingWhitespace()
               kotlinExtension.endWithNewline()
+            }
+          })
+
+          spotless.extension.kotlinGradle(new Action<KotlinGradleExtension>() {
+            @Override
+            void execute(KotlinGradleExtension kotlinGradleExtension) {
+              kotlinGradleExtension.target("*.gradle.kts", "**/*.gradle.kts")
+              kotlinGradleExtension.ktlint("0.36.0").userData([
+                indent_size: '2',
+                continuation_indent_size: '2'
+              ])
+              kotlinGradleExtension.trimTrailingWhitespace()
+              kotlinGradleExtension.endWithNewline()
             }
           })
         }
