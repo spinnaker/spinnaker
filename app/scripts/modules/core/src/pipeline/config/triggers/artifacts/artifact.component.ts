@@ -59,7 +59,10 @@ class ArtifactCtrl implements IController {
     // Explicitly watch the artifact's kind so that external changes to it are correctly
     // reflected in the ui-select and artifact's editable form.
     this.loadArtifactKind();
-    this.$scope.$watch(() => this.artifact.type, () => this.loadArtifactKind());
+    this.$scope.$watch(
+      () => this.artifact.type,
+      () => this.loadArtifactKind(),
+    );
     AccountService.getArtifactAccounts().then(accounts => {
       this.artifactAccounts = accounts;
     });

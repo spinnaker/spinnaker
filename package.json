@@ -18,7 +18,7 @@
   "scripts": {
     "clean": "rimraf .awcache .cache-loader build node_modules transpiled",
     "build": "NODE_OPTIONS=--max_old_space_size=8192 webpack --bail --progress --mode=production",
-    "lint": "eslint --ext js,jsx,ts,tsx app/scripts/modules/",
+    "lint": "eslint --ext js,jsx,ts,tsx app",
     "start": "sh ./start.sh",
     "start-dev-server": "webpack-dev-server --progress --mode=development",
     "test": "karma start",
@@ -184,7 +184,7 @@
     "postcss-colorfix": "^0.0.4",
     "postcss-loader": "3.0.0",
     "postcss-nested": "^4.2.1",
-    "prettier": "^1.18.2",
+    "prettier": "1.19.1",
     "pretty-quick": "^1.11.1",
     "react-addons-test-utils": "15.6.2",
     "react-test-renderer": "16.3.2",

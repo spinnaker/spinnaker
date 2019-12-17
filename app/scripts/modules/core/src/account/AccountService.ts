@@ -189,12 +189,9 @@ export class AccountService {
 
   public static applicationAccounts(application: Application = null): IPromise<IAccountDetails[]> {
     return $q.all([this.listProviders(application), this.listAccounts()]).then(([providers, accounts]) => {
-      return providers.reduce(
-        (memo, p) => {
-          return memo.concat(accounts.filter(acc => acc.cloudProvider === p));
-        },
-        [] as IAccountDetails[],
-      );
+      return providers.reduce((memo, p) => {
+        return memo.concat(accounts.filter(acc => acc.cloudProvider === p));
+      }, [] as IAccountDetails[]);
     });
   }
 

@@ -92,9 +92,15 @@ export class PageModal extends React.Component<IPageModalProps, IPageModalState>
     const submitMethod = () => {
       const { subject, details } = this.state;
 
-      return PagerDutyWriter.sendPage(applications, services.map(s => s.integration_key), subject, ownerApp, {
-        details,
-      });
+      return PagerDutyWriter.sendPage(
+        applications,
+        services.map(s => s.integration_key),
+        subject,
+        ownerApp,
+        {
+          details,
+        },
+      );
     };
 
     taskMonitor.submit(submitMethod);

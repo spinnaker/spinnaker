@@ -65,7 +65,7 @@ export class CfInstanceSizeFieldValidator implements IStageOrTriggerValidator {
     const max: number = get(config, 'max');
     const min: number = get(config, 'min');
 
-    return fieldExists && ((!hasMax || (hasMax && field <= max)) && (!hasMin || (hasMin && field >= min)));
+    return fieldExists && (!hasMax || (hasMax && field <= max)) && (!hasMin || (hasMin && field >= min));
   }
 }
 

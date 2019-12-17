@@ -9,7 +9,10 @@ import { TargetGroup } from './TargetGroup';
 export class AmazonLoadBalancerClusterContainer extends React.Component<ILoadBalancerClusterContainerProps> {
   public shouldComponentUpdate(nextProps: ILoadBalancerClusterContainerProps) {
     const serverGroupsDiffer = () =>
-      !isEqual((nextProps.serverGroups || []).map(g => g.name), (this.props.serverGroups || []).map(g => g.name));
+      !isEqual(
+        (nextProps.serverGroups || []).map(g => g.name),
+        (this.props.serverGroups || []).map(g => g.name),
+      );
     const targetGroupsDiffer = () =>
       !isEqual(
         ((nextProps.loadBalancer as IAmazonApplicationLoadBalancer).targetGroups || []).map(t => t.name),

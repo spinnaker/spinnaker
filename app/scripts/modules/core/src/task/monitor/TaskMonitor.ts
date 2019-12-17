@@ -63,7 +63,10 @@ export class TaskMonitor {
     this.submitMethod = config.submitMethod;
 
     if (this.modalInstance) {
-      this.modalInstance.result.then(() => this.onModalClose(), () => this.onModalClose());
+      this.modalInstance.result.then(
+        () => this.onModalClose(),
+        () => this.onModalClose(),
+      );
     }
   }
 

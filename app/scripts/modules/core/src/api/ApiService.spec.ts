@@ -94,7 +94,10 @@ describe('API Service', function() {
       let succeeded = false;
       API.one('fine')
         .get()
-        .then(() => (succeeded = true), () => (rejected = true));
+        .then(
+          () => (succeeded = true),
+          () => (rejected = true),
+        );
 
       $httpBackend.flush();
       expect((AuthenticationInitializer.reauthenticateUser as Spy).calls.count()).toBe(0);
@@ -110,7 +113,10 @@ describe('API Service', function() {
       $httpBackend.expectGET(`${baseUrl}/some-array`).respond(200, []);
       API.one('some-array')
         .get()
-        .then(() => (succeeded = true), () => (rejected = true));
+        .then(
+          () => (succeeded = true),
+          () => (rejected = true),
+        );
       $httpBackend.flush();
 
       expect((AuthenticationInitializer.reauthenticateUser as Spy).calls.count()).toBe(0);
@@ -123,7 +129,10 @@ describe('API Service', function() {
       $httpBackend.expectGET(`${baseUrl}/some-object`).respond(200, {});
       API.one('some-object')
         .get()
-        .then(() => (succeeded = true), () => (rejected = true));
+        .then(
+          () => (succeeded = true),
+          () => (rejected = true),
+        );
       $httpBackend.flush();
 
       expect((AuthenticationInitializer.reauthenticateUser as Spy).calls.count()).toBe(0);

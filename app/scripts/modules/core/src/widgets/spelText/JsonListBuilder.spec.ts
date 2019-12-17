@@ -11,7 +11,10 @@ describe('JsonListBuilder', () => {
     it('a simple json with multiple attributes', function() {
       const json = { name: 'foo', bar: 'baz' };
       const result = JsonListBuilder.convertJsonKeysToBracketedList(json);
-      expect(result).toEqual([{ leaf: `['name']`, value: 'foo' }, { leaf: `['bar']`, value: 'baz' }]);
+      expect(result).toEqual([
+        { leaf: `['name']`, value: 'foo' },
+        { leaf: `['bar']`, value: 'baz' },
+      ]);
     });
 
     it('nested objects', function() {
@@ -23,7 +26,10 @@ describe('JsonListBuilder', () => {
     it('nested objects with multivalues', function() {
       const json = { name: { foo: 'bar', baz: 2 } };
       const result = JsonListBuilder.convertJsonKeysToBracketedList(json);
-      expect(result).toEqual([{ leaf: `['name']['foo']`, value: 'bar' }, { leaf: `['name']['baz']`, value: 2 }]);
+      expect(result).toEqual([
+        { leaf: `['name']['foo']`, value: 'bar' },
+        { leaf: `['name']['baz']`, value: 2 },
+      ]);
     });
 
     it('deep nested objects', function() {
@@ -50,7 +56,10 @@ describe('JsonListBuilder', () => {
     it('json with an array of multiple strings', function() {
       const json = { name: ['foo', 'bar'] };
       const result = JsonListBuilder.convertJsonKeysToBracketedList(json);
-      expect(result).toEqual([{ leaf: `['name'][0]`, value: 'foo' }, { leaf: `['name'][1]`, value: 'bar' }]);
+      expect(result).toEqual([
+        { leaf: `['name'][0]`, value: 'foo' },
+        { leaf: `['name'][1]`, value: 'bar' },
+      ]);
     });
 
     it('json with an array of one object', function() {
@@ -62,7 +71,10 @@ describe('JsonListBuilder', () => {
     it('json with an array of two object', function() {
       const json = { name: [{ foo: 2 }, { foo: 3 }] };
       const result = JsonListBuilder.convertJsonKeysToBracketedList(json);
-      expect(result).toEqual([{ leaf: `['name'][1]['foo']`, value: 3 }, { leaf: `['name'][0]['foo']`, value: 2 }]);
+      expect(result).toEqual([
+        { leaf: `['name'][1]['foo']`, value: 3 },
+        { leaf: `['name'][0]['foo']`, value: 2 },
+      ]);
     });
 
     it('json with dots in the key name', function() {

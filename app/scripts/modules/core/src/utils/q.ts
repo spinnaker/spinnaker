@@ -7,6 +7,10 @@ import { Observable } from 'rxjs';
 export function toIPromise<T>(source: Observable<T>): IPromise<T> {
   return $q((resolve, reject) => {
     let value: any;
-    source.subscribe((x: T) => (value = x), (err: any) => reject(err), () => resolve(value));
+    source.subscribe(
+      (x: T) => (value = x),
+      (err: any) => reject(err),
+      () => resolve(value),
+    );
   });
 }

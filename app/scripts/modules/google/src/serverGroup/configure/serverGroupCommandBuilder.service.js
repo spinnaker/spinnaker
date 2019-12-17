@@ -354,7 +354,10 @@ angular
           },
           backendServiceMetadata: [],
           minCpuPlatform: '(Automatic)',
-          disks: [{ type: 'pd-ssd', sizeGb: 10 }, { type: 'local-ssd', sizeGb: 375 }],
+          disks: [
+            { type: 'pd-ssd', sizeGb: 10 },
+            { type: 'local-ssd', sizeGb: 375 },
+          ],
           imageSource: 'priorStage',
           instanceMetadata: {},
           tags: [],

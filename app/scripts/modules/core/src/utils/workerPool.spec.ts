@@ -23,7 +23,10 @@ class TaskTracker {
     return () => {
       this.start(id);
       const promise = task();
-      promise.then(() => this.stop(id), () => this.stop(id));
+      promise.then(
+        () => this.stop(id),
+        () => this.stop(id),
+      );
       return promise;
     };
   }

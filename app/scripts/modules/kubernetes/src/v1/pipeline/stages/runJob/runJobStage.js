@@ -36,7 +36,10 @@ angular
       executionDetailsUrl: require('./runJobExecutionDetails.html'),
       producesArtifacts: true,
       supportsCustomTimeout: true,
-      validators: [{ type: 'requiredField', fieldName: 'account' }, { type: 'requiredField', fieldName: 'namespace' }],
+      validators: [
+        { type: 'requiredField', fieldName: 'account' },
+        { type: 'requiredField', fieldName: 'namespace' },
+      ],
     });
   })
   .controller('kubernetesRunJobStageCtrl', [

@@ -203,7 +203,10 @@ module(WEBHOOK_STAGE, [])
       templateUrl: require('./webhookStage.html'),
       executionDetailsUrl: require('./webhookExecutionDetails.html'),
       supportsCustomTimeout: true,
-      validators: [{ type: 'requiredField', fieldName: 'url' }, { type: 'requiredField', fieldName: 'method' }],
+      validators: [
+        { type: 'requiredField', fieldName: 'url' },
+        { type: 'requiredField', fieldName: 'method' },
+      ],
     });
   })
   .run(() => {

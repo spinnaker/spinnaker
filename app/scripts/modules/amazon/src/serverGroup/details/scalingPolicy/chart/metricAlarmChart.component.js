@@ -62,10 +62,19 @@ module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_CHART_METRICALARMCHART_COMPONENT
           this.chartData = {
             loading: true,
             noData: false, // flag set when server error occurs or no data available from server
-            threshold: [{ val: threshold, timestamp: start }, { val: threshold, timestamp: end }],
+            threshold: [
+              { val: threshold, timestamp: start },
+              { val: threshold, timestamp: end },
+            ],
             datapoints: [],
-            baseline: [{ val: 0, timestamp: start }, { val: 0, timestamp: end }],
-            topline: [{ val: topline, timestamp: start }, { val: topline, timestamp: end }],
+            baseline: [
+              { val: 0, timestamp: start },
+              { val: 0, timestamp: end },
+            ],
+            topline: [
+              { val: topline, timestamp: start },
+              { val: topline, timestamp: end },
+            ],
           };
         };
 

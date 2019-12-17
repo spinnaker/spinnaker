@@ -60,7 +60,10 @@ describe('Controller: CreateSecurityGroup', function() {
                   { name: 'group2', vpcId: null, id: '2' },
                   { name: 'group3', vpcId: 'vpc1-pe', id: '3' },
                 ],
-                'us-west-1': [{ name: 'group1', vpcId: null, id: '1' }, { name: 'group3', vpcId: 'vpc2-pw', id: '3' }],
+                'us-west-1': [
+                  { name: 'group1', vpcId: null, id: '1' },
+                  { name: 'group3', vpcId: 'vpc2-pw', id: '3' },
+                ],
               },
             },
             test: {

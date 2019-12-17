@@ -27,7 +27,10 @@ describe('<ExecutionParameters/>', () => {
   });
 
   it(`show only pinned parameters in 2 columns format`, function() {
-    const parameters: IDisplayableParameter[] = [{ key: '1', value: 'a' }, { key: '2', value: 'b' }];
+    const parameters: IDisplayableParameter[] = [
+      { key: '1', value: 'a' },
+      { key: '2', value: 'b' },
+    ];
 
     component = shallow(
       <ExecutionParameters
@@ -57,7 +60,10 @@ describe('<ExecutionParameters/>', () => {
   });
 
   it(`show all parameters in 2 columns format`, function() {
-    const parameters: IDisplayableParameter[] = [{ key: '1', value: 'a' }, { key: '2', value: 'b' }];
+    const parameters: IDisplayableParameter[] = [
+      { key: '1', value: 'a' },
+      { key: '2', value: 'b' },
+    ];
 
     component = shallow(
       <ExecutionParameters

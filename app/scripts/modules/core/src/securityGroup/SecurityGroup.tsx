@@ -8,6 +8,7 @@ import { ManagedResourceStatusIndicator } from 'core/managed';
 import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';
 import { CloudProviderLogo } from 'core/cloudProvider';
 import { ReactInjector } from 'core/reactShims';
+import { SecurityGroupState } from 'core/state';
 
 import './securityGroup.less';
 
@@ -68,8 +69,7 @@ const ServerGroup = ({ serverGroup }: { serverGroup: IServerGroupUsage }) => (
 );
 
 const ServerGroups = ({ serverGroups }: { serverGroups: IServerGroupUsage[] }) => {
-  // super confusing inverse-boolean here
-  if (!ReactInjector.$stateParams.hideServerGroups) {
+  if (!SecurityGroupState.filterModel.asFilterModel.sortFilter.showServerGroups) {
     return null;
   }
   return (
@@ -112,8 +112,7 @@ const LoadBalancer = ({
 );
 
 const LoadBalancers = ({ securityGroup }: { securityGroup: ISecurityGroup }) => {
-  // super confusing inverse-boolean here
-  if (!ReactInjector.$stateParams.hideLoadBalancers) {
+  if (!SecurityGroupState.filterModel.asFilterModel.sortFilter.showLoadBalancers) {
     return null;
   }
   return (

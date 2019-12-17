@@ -20,13 +20,10 @@ function poolBuilder(functions: any[]) {
     .map(fn => {
       const poolUnits = chain(poolValueCoordinates)
         .filter({ on: 'function' })
-        .reduce(
-          (acc, coordinate) => {
-            acc[coordinate.filterField] = fn[coordinate.localField];
-            return acc;
-          },
-          {} as any,
-        )
+        .reduce((acc, coordinate) => {
+          acc[coordinate.filterField] = fn[coordinate.localField];
+          return acc;
+        }, {} as any)
         .value();
       return poolUnits;
     })

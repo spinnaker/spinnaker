@@ -35,7 +35,10 @@ export class TriggerArtifactConstraintSelectorInput extends React.Component<ITri
         pipeline: this.props.pipeline,
         excludedArtifactTypePatterns: this.excludedArtifactTypes(),
         excludedDefaultArtifactTypePatterns: this.defaultExcludedArtifactTypePatterns,
-      }).then(result => this.props.onDefineExpectedArtifact(result), () => null);
+      }).then(
+        result => this.props.onDefineExpectedArtifact(result),
+        () => null,
+      );
       return;
     }
 
@@ -56,7 +59,10 @@ export class TriggerArtifactConstraintSelectorInput extends React.Component<ITri
       pipeline: this.props.pipeline,
       excludedArtifactTypePatterns: this.excludedArtifactTypes(),
       excludedDefaultArtifactTypePatterns: this.defaultExcludedArtifactTypePatterns,
-    }).then(result => this.props.onDefineExpectedArtifact(result), () => null);
+    }).then(
+      result => this.props.onDefineExpectedArtifact(result),
+      () => null,
+    );
   };
 
   private renderArtifact = (artifact: IExpectedArtifact) => {

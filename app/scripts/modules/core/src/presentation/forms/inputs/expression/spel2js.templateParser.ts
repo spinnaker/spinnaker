@@ -1,7 +1,7 @@
-import spel2js from 'spel2js';
+import { SpelExpressionEvaluator, SpelExpression } from 'spel2js';
 
 const literalExpression = (literalString: string) =>
-  spel2js.SpelExpressionEvaluator.compile(`'${literalString.replace(/'/g, "''")}'`);
+  SpelExpressionEvaluator.compile(`'${literalString.replace(/'/g, "''")}'`);
 
 /**
  * This captures a type of bracket and the position in which it occurs in the
@@ -88,8 +88,8 @@ class TemplateAwareExpressionParser {
    * @return the parsed expressions
    * @throws ParseException when the expressions cannot be parsed
    */
-  public parseExpressions(expressionString: string): spel2js.SpelExpression[] {
-    const expressions: spel2js.SpelExpression[] = [];
+  public parseExpressions(expressionString: string): SpelExpression[] {
+    const expressions: SpelExpression[] = [];
     const prefix = '${';
     const suffix = '}';
 
@@ -129,7 +129,7 @@ class TemplateAwareExpressionParser {
           );
         }
 
-        expressions.push(spel2js.SpelExpressionEvaluator.compile(expr));
+        expressions.push(SpelExpressionEvaluator.compile(expr));
         startIdx = suffixIndex + suffix.length;
       } else {
         // no more ${expressions} found in string, add rest as static text
@@ -243,7 +243,7 @@ class TemplateAwareExpressionParser {
   }
 }
 
-export function parseSpelExpressions(template: string): spel2js.SpelExpression[] {
+export function parseSpelExpressions(template: string): SpelExpression[] {
   const spelExpressions = new TemplateAwareExpressionParser().parseExpressions(template);
 
   // A Monkey patch which adds the current context when an exception occurs

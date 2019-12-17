@@ -98,7 +98,11 @@ describe('Pipeline Data Source', function() {
       configureApplication();
       application.getDataSource('executions').activate();
 
-      application.getDataSource('executions').onRefresh($scope, () => successesHandled++, () => errorsHandled++);
+      application.getDataSource('executions').onRefresh(
+        $scope,
+        () => successesHandled++,
+        () => errorsHandled++,
+      );
 
       application.getDataSource('executions').refresh();
       $scope.$digest();
@@ -142,7 +146,11 @@ describe('Pipeline Data Source', function() {
       configureApplication();
       application.getDataSource('pipelineConfigs').activate();
 
-      application.getDataSource('pipelineConfigs').onRefresh($scope, () => successesHandled++, () => errorsHandled++);
+      application.getDataSource('pipelineConfigs').onRefresh(
+        $scope,
+        () => successesHandled++,
+        () => errorsHandled++,
+      );
       application.getDataSource('pipelineConfigs').refresh();
       $scope.$digest();
 

@@ -133,7 +133,11 @@ describe('Directives: checklist', function() {
       selections: ['a', 'c'],
     };
 
-    scope.items = new Map([['a', 'x'], ['b', 'y'], ['c', 'z']]);
+    scope.items = new Map([
+      ['a', 'x'],
+      ['b', 'y'],
+      ['c', 'z'],
+    ]);
 
     const checklist = compile('<checklist model="model.selections" items="items"></checklist>')(scope);
 

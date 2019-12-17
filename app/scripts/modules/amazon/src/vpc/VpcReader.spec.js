@@ -19,13 +19,11 @@ describe('VpcReader', function() {
   });
 
   beforeEach(function() {
-    $http
-      .whenGET(API.baseUrl + '/networks/aws')
-      .respond(200, [
-        { name: 'vpc1', id: 'vpc-1', deprecated: true },
-        { name: 'vpc2', id: 'vpc-2', deprecated: false },
-        { name: 'vpc3', id: 'vpc-3' },
-      ]);
+    $http.whenGET(API.baseUrl + '/networks/aws').respond(200, [
+      { name: 'vpc1', id: 'vpc-1', deprecated: true },
+      { name: 'vpc2', id: 'vpc-2', deprecated: false },
+      { name: 'vpc3', id: 'vpc-3' },
+    ]);
   });
 
   it('adds label to vpc, including (deprecated) if deprecated field is true', function() {

@@ -75,13 +75,10 @@ const EditTitusServiceJobProcessesModal: React.SFC<IEditTitusServiceJobProcesses
         job: [
           {
             type: 'updateJobProcesses',
-            serviceJobProcesses: Object.keys(serverGroup.serviceJobProcesses).reduce(
-              (result, process) => {
-                result[process] = checkedServiceJobProcesses.includes(process) ? true : false;
-                return result;
-              },
-              {} as ITitusServiceJobProcesses,
-            ),
+            serviceJobProcesses: Object.keys(serverGroup.serviceJobProcesses).reduce((result, process) => {
+              result[process] = checkedServiceJobProcesses.includes(process) ? true : false;
+              return result;
+            }, {} as ITitusServiceJobProcesses),
             reason,
             region,
             jobId,

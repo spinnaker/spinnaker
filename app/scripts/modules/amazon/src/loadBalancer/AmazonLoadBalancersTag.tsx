@@ -130,8 +130,10 @@ export class AmazonLoadBalancersTag extends React.Component<ILoadBalancersTagPro
         this.setState({ loadBalancers, isLoading: false });
       }
     });
-    AmazonLoadBalancerDataUtils.populateTargetGroups(this.props.application, this.props
-      .serverGroup as IAmazonServerGroup).then((targetGroups: ITargetGroup[]) => {
+    AmazonLoadBalancerDataUtils.populateTargetGroups(
+      this.props.application,
+      this.props.serverGroup as IAmazonServerGroup,
+    ).then((targetGroups: ITargetGroup[]) => {
       if (this.mounted) {
         this.setState({ targetGroups });
       }

@@ -15,7 +15,10 @@ module(GOOGLE_PIPELINE_STAGES_FINDIMAGEFROMTAGS_GCEFINDIMAGEFROMTAGSSTAGE, [])
       templateUrl: require('./findImageFromTagsStage.html'),
       executionDetailsUrl: require('./findImageFromTagsExecutionDetails.html'),
       executionConfigSections: ['findImageConfig', 'taskStatus'],
-      validators: [{ type: 'requiredField', fieldName: 'packageName' }, { type: 'requiredField', fieldName: 'tags' }],
+      validators: [
+        { type: 'requiredField', fieldName: 'packageName' },
+        { type: 'requiredField', fieldName: 'tags' },
+      ],
     });
   })
   .controller('gceFindImageFromTagsStageCtrl', [

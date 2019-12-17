@@ -49,7 +49,10 @@ export class ConfigSectionFooterController implements IController {
     };
     updateCommand[this.configField] = this.config;
 
-    ApplicationWriter.updateApplication(updateCommand).then(() => this.saveSuccess(), () => this.saveError());
+    ApplicationWriter.updateApplication(updateCommand).then(
+      () => this.saveSuccess(),
+      () => this.saveError(),
+    );
   }
 }
 

@@ -256,9 +256,10 @@ export class ExecutionGroup extends React.PureComponent<IExecutionGroupProps, IE
     const hasRunningExecutions = group.runningExecutions && group.runningExecutions.length > 0;
     const isConfigurable = !pipelineConfig || PipelineTemplateV2Service.isConfigurable(pipelineConfig);
 
-    const deploymentAccountLabels = without(this.state.deploymentAccounts || [], ...(group.targetAccounts || [])).map(
-      (account: string) => <AccountTag key={account} account={account} />,
-    );
+    const deploymentAccountLabels = without(
+      this.state.deploymentAccounts || [],
+      ...(group.targetAccounts || []),
+    ).map((account: string) => <AccountTag key={account} account={account} />);
     const groupTargetAccountLabels: React.ReactNode[] = [];
     let groupTargetAccountLabelsExtra: React.ReactNode[] = [];
     if (group.targetAccounts && group.targetAccounts.length > 0) {

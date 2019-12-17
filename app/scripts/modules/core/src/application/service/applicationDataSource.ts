@@ -407,7 +407,10 @@ export class ApplicationDataSource<T = any> implements IDataSourceConfig<T> {
    * @return a method to call to unsubscribe
    */
   public onNextRefresh($scope: IScope, callback: (data?: any) => void, onError?: (err?: any) => void): () => void {
-    const subscription = this.nextRefresh$.subscribe(data => callback(data), error => onError && onError(error));
+    const subscription = this.nextRefresh$.subscribe(
+      data => callback(data),
+      error => onError && onError(error),
+    );
 
     $scope && $scope.$on('$destroy', () => subscription.unsubscribe());
     return () => subscription.unsubscribe();

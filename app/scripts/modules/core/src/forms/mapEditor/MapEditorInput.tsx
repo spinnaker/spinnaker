@@ -37,14 +37,11 @@ function objectToTuples(model: IMapEditorModel, errors: IMapEditorModel): IMapPa
 // Convert a list of IMapPairs to an object with keys and values
 // Prepend any duplicate keys with a magic string
 function tuplesToObject(pairs: IMapPair[]): IMapEditorModel {
-  return pairs.reduce(
-    (acc, pair, idx) => {
-      // Cannot have duplicate keys in an object, so prepend a magic string to the key
-      const key = isNil(acc[pair.key]) ? pair.key : `__MapEditorDuplicateKey__${idx}__${pair.key}`;
-      return { ...acc, [key]: pair.value };
-    },
-    {} as IMapEditorModel,
-  );
+  return pairs.reduce((acc, pair, idx) => {
+    // Cannot have duplicate keys in an object, so prepend a magic string to the key
+    const key = isNil(acc[pair.key]) ? pair.key : `__MapEditorDuplicateKey__${idx}__${pair.key}`;
+    return { ...acc, [key]: pair.value };
+  }, {} as IMapEditorModel);
 }
 
 function mapEditorValidator(options?: { allowEmptyValues: boolean }): IValidator {

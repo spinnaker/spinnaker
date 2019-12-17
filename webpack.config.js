@@ -12,6 +12,8 @@ const CACHE_INVALIDATE = getCacheInvalidateString();
 const NODE_MODULE_PATH = path.join(__dirname, 'node_modules');
 const SETTINGS_PATH = process.env.SETTINGS_PATH || './settings.js';
 const THREADS = getThreadLoaderThreads();
+// Used to fail CI for PRs which contain linter errors
+const ESLINT_FAIL_ON_ERROR = process.env.ESLINT_FAIL_ON_ERROR === 'true';
 
 function configure(env, webpackOpts) {
   const WEBPACK_MODE = (webpackOpts && webpackOpts.mode) || 'development';
@@ -121,7 +123,7 @@ function configure(env, webpackOpts) {
             { loader: 'cache-loader', options: { cacheIdentifier: CACHE_INVALIDATE } },
             { loader: 'thread-loader', options: { workers: THREADS } },
             { loader: 'babel-loader' },
-            { loader: 'eslint-loader' },
+            { loader: 'eslint-loader', options: { failOnError: ESLINT_FAIL_ON_ERROR } },
           ],
           exclude: /(node_modules(?!\/clipboard)|settings\.js)/,
         },
@@ -131,7 +133,7 @@ function configure(env, webpackOpts) {
             { loader: 'cache-loader', options: { cacheIdentifier: CACHE_INVALIDATE } },
             { loader: 'thread-loader', options: { workers: THREADS } },
             { loader: 'ts-loader', options: { happyPackMode: true } },
-            { loader: 'eslint-loader' },
+            { loader: 'eslint-loader', options: { failOnError: ESLINT_FAIL_ON_ERROR } },
           ],
           exclude: /node_modules/,
         },

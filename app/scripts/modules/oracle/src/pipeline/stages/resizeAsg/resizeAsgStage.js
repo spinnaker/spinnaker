@@ -56,7 +56,10 @@ module(ORACLE_PIPELINE_STAGES_RESIZEASG_RESIZEASGSTAGE, [CORE_APPLICATION_MODAL_
         { label: 'Scale to Exact Size', val: 'scale_exact' },
       ];
 
-      $scope.resizeTypes = [{ label: 'Percentage', val: 'pct' }, { label: 'Incremental', val: 'incr' }];
+      $scope.resizeTypes = [
+        { label: 'Percentage', val: 'pct' },
+        { label: 'Incremental', val: 'incr' },
+      ];
 
       stage.capacity = stage.capacity || {};
       stage.regions = stage.regions || [];

@@ -25,11 +25,17 @@ export class PlacementStrategyService {
   }
 
   public getAzBalancedSpreadStrategy(): IPlacementStrategy[] {
-    return [{ type: 'spread', field: 'attribute:ecs.availability-zone' }, { type: 'spread', field: 'instanceId' }];
+    return [
+      { type: 'spread', field: 'attribute:ecs.availability-zone' },
+      { type: 'spread', field: 'instanceId' },
+    ];
   }
 
   public getAzBalancedMemoryBinPackStrategy(): IPlacementStrategy[] {
-    return [{ type: 'spread', field: 'attribute:ecs.availability-zone' }, { type: 'binpack', field: 'memory' }];
+    return [
+      { type: 'spread', field: 'attribute:ecs.availability-zone' },
+      { type: 'binpack', field: 'memory' },
+    ];
   }
 
   public getBinPackMemoryStrategy(): IPlacementStrategy[] {
@@ -37,7 +43,10 @@ export class PlacementStrategyService {
   }
 
   public getAzBalancedCpuBinPackStrategy(): IPlacementStrategy[] {
-    return [{ type: 'spread', field: 'attribute:ecs.availability-zone' }, { type: 'binpack', field: 'cpu' }];
+    return [
+      { type: 'spread', field: 'attribute:ecs.availability-zone' },
+      { type: 'binpack', field: 'cpu' },
+    ];
   }
 
   public getBinPackCpuStrategy(): IPlacementStrategy[] {

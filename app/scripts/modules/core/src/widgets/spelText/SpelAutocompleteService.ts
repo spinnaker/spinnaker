@@ -26,9 +26,15 @@ interface IExecutionCache {
 export class SpelAutocompleteService {
   private executionCache: IExecutionCache = {};
 
-  private brackets: IBracket[] = [{ open: '(', close: ')' }, { open: '[', close: ']' }];
+  private brackets: IBracket[] = [
+    { open: '(', close: ')' },
+    { open: '[', close: ']' },
+  ];
 
-  private quotes: IBracket[] = [{ open: "'", close: "'" }, { open: '"', close: '"' }];
+  private quotes: IBracket[] = [
+    { open: "'", close: "'" },
+    { open: '"', close: '"' },
+  ];
 
   private helperFunctions = [
     'alphanumerical',

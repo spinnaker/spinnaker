@@ -29,7 +29,10 @@ describe('Controller: modifyScalingProcesses', function() {
   describe('isDirty', function() {
     beforeEach(function() {
       this.serverGroup = { name: 'the-asg' };
-      this.processes = [{ name: 'Launch', enabled: true }, { name: 'Terminate', enabled: true }];
+      this.processes = [
+        { name: 'Launch', enabled: true },
+        { name: 'Terminate', enabled: true },
+      ];
     });
     it('starts as not dirty', function() {
       this.initializeController(this.serverGroup, this.processes);
