@@ -48,7 +48,7 @@ class ArtifactListener(
               status = debStatus(korkArtifact)
             }
             is DockerArtifact -> {
-              version = "${korkArtifact.name}:${korkArtifact.version}"
+              version = korkArtifact.version
             }
             else -> throw UnsupportedArtifactTypeException(korkArtifact.type)
           }
