@@ -2,11 +2,11 @@ import React from 'react';
 import { Overridable, CollapsibleSection, LabeledValue, LabeledValueList } from '@spinnaker/core';
 
 export interface IIPRangeRulesProps {
-  ipRules: Array<IIPRangeRulesDetails>;
+  ipRules: IIPRangeRulesDetails[];
 }
 export interface IIPRangeRulesDetails {
-  rules: Array<IRangeRule>;
-  address: String;
+  rules: IRangeRule[];
+  address: string;
 }
 
 export interface IRangeRule {
