@@ -114,7 +114,17 @@ data class ResourcesSpec(
   val gpu: Int? = null,
   val memory: Int? = null,
   val networkMbps: Int? = null
-)
+) {
+  // titus limits documented here:
+  // https://github.com/Netflix/titus-control-plane/blob/master/titus-api/src/main/java/com/netflix/titus/api/jobmanager/model/job/sanitizer/JobConfiguration.java
+  init {
+    require(cpu == null || cpu in 1..64) { "cpu not within titus limits of 1 to 64" }
+    require(disk == null || disk in 10000..999000) { "disk not within titus limits of 10000 to 999000" }
+    require(gpu == null || gpu in 0..16) { "gpu not within titus limits of 0 to 16" }
+    require(memory == null || memory in 512..472000) { "memory not within titus limits of 512 to 472000" }
+    require(networkMbps == null || networkMbps in 128..40000) { "networkMbps not within titus limits of 128 to 40000" }
+  }
+}
 
 internal fun TitusClusterSpec.resolveCapacity(region: String) =
   overrides[region]?.capacity ?: defaults.capacity ?: Capacity(1, 1, 1)

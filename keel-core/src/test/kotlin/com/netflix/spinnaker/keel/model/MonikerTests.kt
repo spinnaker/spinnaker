@@ -24,7 +24,7 @@ internal class MonikerTests : JUnit5Minutests {
       }
 
       test("exports to orcaClusterMoniker") {
-        val orcaMoniker = orcaClusterMoniker
+        val orcaMoniker: Map<String, Any?> = orcaClusterMoniker
         expectThat(orcaMoniker) {
           get("app").isEqualTo("fnord")
           get("sequence").isEqualTo(5)
