@@ -4,13 +4,17 @@ COPY --from=halyard.compile /compiled_sources/halyard-web/build/install/halyard 
 
 ENV KUBECTL_RELEASE=1.12.7
 ENV AWS_BINARY_RELEASE_DATE=2019-03-27
+ENV AWS_CLI_VERSION=1.16.208
 
-RUN apk --no-cache add --update openjdk8
+RUN apk --no-cache add --update \
+  bash \
+  curl \
+  openjdk8-jre \
+  py-pip
 
-RUN echo '#!/usr/bin/env bash' | tee /usr/local/bin/hal > /dev/null && \
-  echo '/opt/halyard/bin/hal "$@"' | tee /usr/local/bin/hal > /dev/null
-
-RUN chmod +x /usr/local/bin/hal
+RUN echo '#!/usr/bin/env bash' > /usr/local/bin/hal && \
+  echo '/opt/halyard/bin/hal "$@"' > /usr/local/bin/hal && \
+  chmod +x /usr/local/bin/hal
 
 RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_RELEASE}/bin/linux/amd64/kubectl && \
     chmod +x ./kubectl && \
@@ -22,12 +26,15 @@ RUN curl -o aws-iam-authenticator https://amazon-eks.s3-us-west-2.amazonaws.com/
 
 ENV PATH "$PATH:/usr/local/bin/aws-iam-authenticator"
 
-RUN wget -O /tmp/get-pip.py https://bootstrap.pypa.io/get-pip.py && \
-    python /tmp/get-pip.py && \
-    pip install --upgrade awscli==1.16.208
+RUN apk --no-cache add --update py-pip
+RUN pip install --upgrade awscli==${AWS_CLI_VERSION}
 
-RUN useradd -m spinnaker
+RUN apk --purge del \
+  curl \
+  py-pip
+RUN rm -rf /var/cache/apk
 
+RUN adduser -D -S spinnaker
 USER spinnaker
 
-CMD "/opt/halyard/bin/halyard"
+CMD ["/opt/halyard/bin/halyard"]
