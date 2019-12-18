@@ -253,6 +253,7 @@ class TitusClusterHandler(
         "capacityGroup" to capacityGroup,
         "entryPoint" to entryPoint,
         "env" to env,
+        "containerAttributes" to containerAttributes,
         "constraints" to constraints,
         "digest" to container.digest,
         "registry" to runBlocking { getRegistryForTitusAccount(location.account) },
@@ -325,6 +326,9 @@ class TitusClusterHandler(
         if ("env" in diff.affectedRootPropertyNames) {
           newSpec = newSpec.copy(env = workingSpec.env)
         }
+        if ("containerAttributes" in diff.affectedRootPropertyNames) {
+          newSpec = newSpec.copy(containerAttributes = workingSpec.containerAttributes)
+        }
         if ("iamProfile" in diff.affectedRootPropertyNames) {
           newSpec = newSpec.copy(iamProfile = workingSpec.iamProfile)
         }
@@ -396,6 +400,7 @@ class TitusClusterHandler(
       entryPoint = entryPoint,
       resources = resources,
       env = env,
+      containerAttributes = containerAttributes,
       constraints = constraints,
       iamProfile = iamProfile.substringAfterLast("/"),
       capacityGroup = capacityGroup,
@@ -444,6 +449,7 @@ class TitusClusterHandler(
       dependencies = dependencies,
       entryPoint = entryPoint,
       env = env,
+      containerAttributes = containerAttributes,
       iamProfile = iamProfile,
       migrationPolicy = migrationPolicy,
       resources = resources.exportSpec(),

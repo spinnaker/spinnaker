@@ -26,6 +26,8 @@ spec:
     gpu: 0
   env:
     myvar: myvalue
+  containerAttributes:
+    titusParameter.agent.allowCpuBursting: true
   iamProfile: emburnstestInstanceProfile
   capacityGroup: emburnstest
   capacity:

@@ -42,6 +42,7 @@ data class TitusServerGroup(
   val container: ContainerWithDigest,
   val location: Location,
   val env: Map<String, String> = emptyMap(),
+  val containerAttributes: Map<String, String> = emptyMap(),
   val resources: Resources = Resources(),
   val iamProfile: String,
   val entryPoint: String = "",

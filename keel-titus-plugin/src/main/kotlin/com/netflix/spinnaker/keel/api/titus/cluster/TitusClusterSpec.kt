@@ -62,6 +62,7 @@ data class TitusClusterSpec(
     capacity: Capacity?,
     constraints: Constraints?,
     env: Map<String, String>?,
+    containerAttributes: Map<String, String>?,
     resources: ResourcesSpec?,
     iamProfile: String?,
     entryPoint: String?,
@@ -82,6 +83,7 @@ data class TitusClusterSpec(
       dependencies = dependencies,
       entryPoint = entryPoint,
       env = env,
+      containerAttributes = containerAttributes,
       iamProfile = iamProfile,
       migrationPolicy = migrationPolicy,
       resources = resources,
@@ -99,6 +101,7 @@ data class TitusServerGroupSpec(
   val dependencies: ClusterDependencies? = null,
   val entryPoint: String? = null,
   val env: Map<String, String>? = null,
+  val containerAttributes: Map<String, String>? = null,
   val iamProfile: String? = null,
   val migrationPolicy: MigrationPolicy? = null,
   val resources: ResourcesSpec? = null,
@@ -118,6 +121,9 @@ internal fun TitusClusterSpec.resolveCapacity(region: String) =
 
 internal fun TitusClusterSpec.resolveEnv(region: String) =
   emptyMap<String, String>() + overrides[region]?.env + defaults.env
+
+internal fun TitusClusterSpec.resolveContainerAttributes(region: String) =
+  emptyMap<String, String>() + overrides[region]?.containerAttributes + defaults.containerAttributes
 
 internal fun TitusClusterSpec.resolveResources(region: String): Resources {
   val default by lazy { Resources() }
@@ -177,6 +183,7 @@ fun TitusClusterSpec.resolve(): Set<TitusServerGroup> =
       dependencies = resolveDependencies(it.name),
       entryPoint = resolveEntryPoint(it.name),
       env = resolveEnv(it.name),
+      containerAttributes = resolveContainerAttributes(it.name),
       iamProfile = resolveIamProfile(it.name),
       migrationPolicy = resolveMigrationPolicy(it.name),
       resources = resolveResources(it.name),
