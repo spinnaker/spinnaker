@@ -53,6 +53,9 @@ public interface KeelService {
   @GET("/delivery-configs/{name}")
   DeliveryConfig getManifest(@Path("name") String name);
 
+  @GET("/delivery-configs/{name}/artifacts")
+  List<Map<String, Object>> getManifestArtifacts(@Path("name") String name);
+
   @POST("/delivery-configs")
   DeliveryConfig upsertManifest(@Body DeliveryConfig manifest);
 

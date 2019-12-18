@@ -111,6 +111,14 @@ public class ManagedController {
   }
 
   @ApiOperation(
+      value = "Get the status of each version of each artifact in each environment",
+      response = List.class)
+  @GetMapping(path = "/delivery-configs/{name}/artifacts")
+  List<Map<String, Object>> getManifestArtifacts(@PathVariable("name") String name) {
+    return keelService.getManifestArtifacts(name);
+  }
+
+  @ApiOperation(
       value = "Create or update a delivery config manifest",
       response = DeliveryConfig.class)
   @PostMapping(path = "/delivery-configs")
