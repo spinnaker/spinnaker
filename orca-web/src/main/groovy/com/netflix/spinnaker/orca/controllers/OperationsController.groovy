@@ -53,6 +53,7 @@ import retrofit.http.Query
 
 import javax.servlet.http.HttpServletResponse
 
+import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.PIPELINE
 import static net.logstash.logback.argument.StructuredArguments.value
@@ -142,13 +143,16 @@ class OperationsController {
       throw new UnsupportedOperationException("Front50 is not enabled, no way to retrieve pipeline configs. Fix this by setting front50.enabled: true")
     }
 
-    List<Map> history = AuthenticatedRequest.allowAnonymous({front50Service.getPipelineHistory(pipelineConfigId, 1)})
-    if (history.isEmpty()) {
-      throw new NotFoundException("Pipeline config $pipelineConfigId not found")
+    try {
+      Map pipelineConfig = AuthenticatedRequest.allowAnonymous({ front50Service.getPipeline(pipelineConfigId) })
+      pipelineConfig.trigger = trigger
+      return pipelineConfig
+    } catch (RetrofitError e) {
+      if (e.response?.status == HTTP_NOT_FOUND) {
+        throw new NotFoundException("Pipeline config $pipelineConfigId not found")
+      }
+      throw e
     }
-    Map pipelineConfig = history[0]
-    pipelineConfig.trigger = trigger
-    return pipelineConfig
   }
 
   private Map planOrOrchestratePipeline(Map pipeline) {

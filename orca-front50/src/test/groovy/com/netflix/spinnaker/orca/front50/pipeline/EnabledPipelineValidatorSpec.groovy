@@ -39,7 +39,7 @@ class EnabledPipelineValidatorSpec extends Specification {
     validator.checkRunnable(execution)
 
     then:
-    1 * front50Service.getPipelineHistory(execution.pipelineConfigId, 1) >> []
+    1 * front50Service.getPipeline(execution.pipelineConfigId) >> { throw notFoundError() }
     1 * front50Service.getPipelines(execution.application, false) >> []
 
     notThrown(PipelineValidationFailed)
@@ -56,8 +56,7 @@ class EnabledPipelineValidatorSpec extends Specification {
     validator.checkRunnable(execution)
 
     then:
-    1 * front50Service.getPipelineHistory(execution.pipelineConfigId, 1) >> [
-    ]
+    1 * front50Service.getPipeline(execution.pipelineConfigId) >> { throw notFoundError() }
     1 * front50Service.getPipelines(execution.application, false) >> [
         [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false]
     ]
@@ -69,14 +68,7 @@ class EnabledPipelineValidatorSpec extends Specification {
     validator.checkRunnable(execution)
 
     then:
-    1 * front50Service.getPipelineHistory(execution.pipelineConfigId, 1) >> {
-      throw RetrofitError.httpError(
-          "http://localhost",
-          new Response("http://localhost", HTTP_NOT_FOUND, "Not Found", [], null),
-          null,
-          null
-      )
-    }
+    1 * front50Service.getPipeline(execution.pipelineConfigId) >> { throw notFoundError() }
     1 * front50Service.getPipelines(execution.application, false) >> [
         [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false]
     ]
@@ -88,9 +80,7 @@ class EnabledPipelineValidatorSpec extends Specification {
     validator.checkRunnable(execution)
 
     then:
-    1 * front50Service.getPipelineHistory(execution.pipelineConfigId, 1) >> [
-        [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false]
-    ]
+    1 * front50Service.getPipeline(execution.pipelineConfigId) >> [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false]
     0 * _
 
     notThrown(PipelineValidationFailed)
@@ -107,8 +97,7 @@ class EnabledPipelineValidatorSpec extends Specification {
     validator.checkRunnable(execution)
 
     then:
-    1 * front50Service.getPipelineHistory(execution.pipelineConfigId, 1) >> [
-    ]
+    1 * front50Service.getPipeline(execution.pipelineConfigId) >> { throw notFoundError() }
     1 * front50Service.getPipelines(execution.application, false) >> [
         [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: true]
     ]
@@ -120,9 +109,7 @@ class EnabledPipelineValidatorSpec extends Specification {
     validator.checkRunnable(execution)
 
     then:
-    1 * front50Service.getPipelineHistory(execution.pipelineConfigId, 1) >> [
-        [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: true]
-    ]
+    1 * front50Service.getPipeline(execution.pipelineConfigId) >> [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: true]
     0 * _
 
     thrown(EnabledPipelineValidator.PipelineIsDisabled)
@@ -181,9 +168,7 @@ class EnabledPipelineValidatorSpec extends Specification {
     validator.checkRunnable(execution)
 
     then:
-    1 * front50Service.getPipelineHistory(execution.pipelineConfigId, 1) >> [
-        [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false]
-    ]
+    1 * front50Service.getPipeline(execution.pipelineConfigId) >> [id: execution.pipelineConfigId, application: execution.application, name: "whatever", disabled: false]
 
     notThrown(PipelineValidationFailed)
 
@@ -194,4 +179,14 @@ class EnabledPipelineValidatorSpec extends Specification {
       trigger = new DefaultTrigger("manual", null, "fzlem", [strategy: "kthxbye"])
     }
   }
+
+  def notFoundError() {
+    RetrofitError.httpError(
+      "http://localhost",
+      new Response("http://localhost", HTTP_NOT_FOUND, "Not Found", [], null),
+      null,
+      null
+    )
+  }
+
 }

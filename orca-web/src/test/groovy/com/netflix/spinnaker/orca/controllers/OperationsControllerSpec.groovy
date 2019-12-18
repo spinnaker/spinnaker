@@ -744,11 +744,7 @@ class OperationsControllerSpec extends Specification {
     executionLauncher.start(*_) >> { ExecutionType type, String json ->
       startedPipeline = mapper.readValue(json, Execution)
     }
-    front50Service.getPipelineHistory("1234", 1) >> {
-      [
-        [id: '1234', stages: []]
-      ]
-    }
+    front50Service.getPipeline("1234") >> [id: '1234', stages: []]
 
     Map trigger = [
       type      : "manual",

@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.front50.tasks;
 
+import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.RetryableTask;
@@ -24,7 +26,6 @@ import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.front50.model.DeliveryConfig;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -159,8 +160,14 @@ public class MonitorFront50Task implements RetryableTask {
   }
 
   private Optional<Map<String, Object>> getPipeline(String id) {
-    List<Map<String, Object>> pipelines = front50Service.getPipelineHistory(id, 1);
-    return pipelines.isEmpty() ? Optional.empty() : Optional.of(pipelines.get(0));
+    try {
+      return Optional.of(front50Service.getPipeline(id));
+    } catch (RetrofitError e) {
+      if (e.getResponse() != null && e.getResponse().getStatus() == HTTP_NOT_FOUND) {
+        return Optional.empty();
+      }
+      throw e;
+    }
   }
 
   @SuppressWarnings("unchecked")

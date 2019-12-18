@@ -60,20 +60,17 @@ public class EnabledPipelineValidator implements PipelineValidator {
       try {
         // attempt an optimized lookup via pipeline history vs fetching all pipelines for the
         // application and filtering
-        List<Map<String, Object>> pipelineConfigHistory =
-            front50Service.getPipelineHistory(pipeline.getPipelineConfigId(), 1);
+        Map<String, Object> pipelineConfig =
+            front50Service.getPipeline(pipeline.getPipelineConfigId());
 
-        if (!pipelineConfigHistory.isEmpty()) {
-          Map<String, Object> pipelineConfig = pipelineConfigHistory.get(0);
-          if ((boolean) pipelineConfig.getOrDefault("disabled", false)) {
-            throw new PipelineIsDisabled(
-                pipelineConfig.get("id").toString(),
-                pipelineConfig.get("application").toString(),
-                pipelineConfig.get("name").toString());
-          }
-
-          return;
+        if ((boolean) pipelineConfig.getOrDefault("disabled", false)) {
+          throw new PipelineIsDisabled(
+              pipelineConfig.get("id").toString(),
+              pipelineConfig.get("application").toString(),
+              pipelineConfig.get("name").toString());
         }
+
+        return;
       } catch (RetrofitError ignored) {
         // treat a failure to fetch pipeline config history as non-fatal and fallback to the
         // previous behavior
