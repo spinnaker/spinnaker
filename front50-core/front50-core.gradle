@@ -22,6 +22,7 @@ dependencies {
   implementation "org.springframework.security:spring-security-config"
   implementation "org.springframework.security:spring-security-core"
   implementation "org.springframework.security:spring-security-web"
+  implementation "com.netflix.spinnaker.kork:kork-web"
   api "com.github.ben-manes.caffeine:guava"
 
   implementation "com.netflix.spinnaker.kork:kork-core"

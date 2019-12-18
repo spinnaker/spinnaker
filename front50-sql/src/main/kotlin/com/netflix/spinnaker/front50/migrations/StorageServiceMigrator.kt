@@ -23,6 +23,8 @@ import com.netflix.spinnaker.front50.model.Timestamped
 import com.netflix.spinnaker.front50.model.tag.EntityTagsDAO
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.security.AuthenticatedRequest
+import java.util.concurrent.TimeUnit
+import kotlin.system.measureTimeMillis
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -30,8 +32,6 @@ import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import org.springframework.scheduling.annotation.Scheduled
-import java.util.concurrent.TimeUnit
-import kotlin.system.measureTimeMillis
 
 class StorageServiceMigrator(
   private val dynamicConfigService: DynamicConfigService,

@@ -37,9 +37,11 @@ import com.netflix.spinnaker.front50.model.sql.PipelineTableDefinition
 import com.netflix.spinnaker.front50.model.sql.ProjectTableDefinition
 import com.netflix.spinnaker.front50.model.sql.transactional
 import com.netflix.spinnaker.front50.model.sql.withRetry
-import com.netflix.spinnaker.kork.sql.routing.withPool
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
+import com.netflix.spinnaker.kork.sql.routing.withPool
 import com.netflix.spinnaker.security.AuthenticatedRequest
+import java.time.Clock
+import kotlin.system.measureTimeMillis
 import org.jooq.DSLContext
 import org.jooq.exception.SQLDialectNotSupportedException
 import org.jooq.impl.DSL
@@ -47,8 +49,6 @@ import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.max
 import org.jooq.impl.DSL.table
 import org.slf4j.LoggerFactory
-import java.time.Clock
-import kotlin.system.measureTimeMillis
 
 class SqlStorageService(
   private val objectMapper: ObjectMapper,

@@ -16,128 +16,52 @@
 
 package com.netflix.spinnaker.front50.controllers
 
-import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
-import com.netflix.spinnaker.fiat.shared.FiatService
-import com.netflix.spinnaker.front50.exception.NotFoundException
+import com.netflix.spinnaker.front50.ApplicationPermissionsService
 import com.netflix.spinnaker.front50.model.application.Application
-import com.netflix.spinnaker.front50.model.application.ApplicationDAO
-import com.netflix.spinnaker.front50.model.application.ApplicationPermissionDAO
-import com.netflix.spinnaker.kork.exceptions.SystemException
-import groovy.util.logging.Slf4j
 import io.swagger.annotations.ApiOperation
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
-import org.springframework.web.bind.annotation.*
-import retrofit.RetrofitError
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RestController
 
-@Slf4j
 @RestController
 @RequestMapping("/permissions")
 public class PermissionsController {
 
-  @Autowired
-  Optional<ApplicationPermissionDAO> applicationPermissionDAO
+  ApplicationPermissionsService permissionsService
 
-  @Autowired
-  ApplicationDAO applicationDAO
-
-  @Autowired(required = false)
-  FiatService fiatService
-
-  @Autowired
-  FiatClientConfigurationProperties fiatClientConfigurationProperties
-
-  @Value('${fiat.role-sync.enabled:true}')
-  Boolean roleSync
+  PermissionsController(ApplicationPermissionsService permissionsService) {
+    this.permissionsService = permissionsService
+  }
 
   @ApiOperation(value = "", notes = "Get all application permissions. Internal use only.")
   @RequestMapping(method = RequestMethod.GET, value = "/applications")
   Set<Application.Permission> getAllApplicationPermissions() {
-    Map<String, Application.Permission> actualPermissions = applicationPermissionDAO()
-        .all()
-        .collectEntries { Application.Permission perm ->
-      return [(perm.name.toLowerCase()): perm]
-    }
-
-    applicationDAO.all().each {
-      if (!actualPermissions.containsKey(it.name.toLowerCase())) {
-        actualPermissions.put(it.name.toLowerCase(),
-                              new Application.Permission(name: it.name,
-                                                         lastModified: -1,
-                                                         lastModifiedBy: "auto-generated"))
-      }
-    }
-
-    return actualPermissions.values()
+    return permissionsService.getAllApplicationPermissions()
   }
 
   @RequestMapping(method = RequestMethod.GET, value = "/applications/{appName:.+}")
   Application.Permission getApplicationPermission(@PathVariable String appName) {
-      return applicationPermissionDAO().findById(appName)
+    return permissionsService.getApplicationPermission(appName)
   }
 
   @ApiOperation(value = "", notes = "Create an application permission.")
   @RequestMapping(method = RequestMethod.POST, value = "/applications")
   Application.Permission createApplicationPermission(
       @RequestBody Application.Permission newPermission) {
-    def perm = applicationPermissionDAO().create(newPermission.id, newPermission)
-    syncUsers(perm, null)
-    return perm
+    return permissionsService.createApplicationPermission(newPermission)
   }
 
   @RequestMapping(method = RequestMethod.PUT, value = "/applications/{appName:.+}")
   Application.Permission updateApplicationPermission(
       @PathVariable String appName,
       @RequestBody Application.Permission newPermission) {
-    try {
-      def oldPermission = applicationPermissionDAO().findById(appName)
-      applicationPermissionDAO().update(appName, newPermission)
-      syncUsers(newPermission, oldPermission)
-    } catch (NotFoundException nfe) {
-      createApplicationPermission(newPermission)
-    }
-    return newPermission
+    return permissionsService.updateApplicationPermission(appName, newPermission)
   }
 
   @RequestMapping(method = RequestMethod.DELETE, value = "/applications/{appName:.+}")
   void deleteApplicationPermission(@PathVariable String appName) {
-    def oldPermission = applicationPermissionDAO().findById(appName)
-    applicationPermissionDAO().delete(appName)
-    syncUsers(null, oldPermission)
-  }
-
-  private void syncUsers(Application.Permission newPermission, Application.Permission oldPermission) {
-    if (!fiatClientConfigurationProperties.enabled || !fiatService) {
-      return
-    }
-
-    // Specifically using an empty list here instead of null, because an empty list will update
-    // the anonymous user's app list.
-    Set<String> roles = []
-
-    if (newPermission?.permissions?.isRestricted()) {
-      roles += newPermission.permissions.allGroups()
-    }
-
-    if (oldPermission?.permissions?.isRestricted()) {
-      roles += oldPermission.permissions.allGroups()
-    }
-
-    if (roleSync) {
-      try {
-        fiatService.sync(roles as List)
-      } catch (RetrofitError re) {
-        log.warn("Error syncing users", re)
-      }
-    }
-  }
-
-  private ApplicationPermissionDAO applicationPermissionDAO() {
-    if (!applicationPermissionDAO.isPresent()) {
-      throw new SystemException("Configured storage service does not support application permissions")
-    }
-
-    return applicationPermissionDAO.get()
+    permissionsService.deleteApplicationPermission(appName)
   }
 }

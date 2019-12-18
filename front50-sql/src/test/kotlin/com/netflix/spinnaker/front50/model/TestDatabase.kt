@@ -18,6 +18,7 @@ package com.netflix.spinnaker.front50.model
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import java.sql.SQLException
 import liquibase.Liquibase
 import liquibase.configuration.ConfigurationContainer
 import liquibase.configuration.GlobalConfiguration
@@ -36,7 +37,6 @@ import org.jooq.impl.DataSourceConnectionProvider
 import org.jooq.impl.DefaultConfiguration
 import org.jooq.impl.DefaultDSLContext
 import org.slf4j.LoggerFactory
-import java.sql.SQLException
 
 internal fun initDatabase(jdbcUrl: String, sqlDialect: SQLDialect): DSLContext {
   val dataSource = HikariDataSource(

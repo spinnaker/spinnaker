@@ -408,6 +408,16 @@ class Application implements Timestamped {
         permissions = b.build()
       }
     }
+
+    Permission copy() {
+      // It's OK to "copy" permissions without actually copying since the object is immutable.
+      return new Permission(
+        name: name,
+        lastModified: lastModified,
+        lastModifiedBy: lastModifiedBy,
+        permissions: permissions
+      )
+    }
   }
 
   static class TrafficGuard {

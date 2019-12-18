@@ -12,33 +12,36 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
-
-package com.netflix.spinnaker.front50.controllers
+package com.netflix.spinnaker.front50
 
 import com.netflix.spinnaker.fiat.model.Authorization
 import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.fiat.shared.FiatService
+import com.netflix.spinnaker.front50.config.FiatConfigurationProperties
 import com.netflix.spinnaker.front50.model.application.Application
+import com.netflix.spinnaker.front50.model.application.ApplicationDAO
 import com.netflix.spinnaker.front50.model.application.ApplicationPermissionDAO
 import spock.lang.Specification
 import spock.lang.Unroll
 
-public class PermissionsControllerSpec extends Specification {
+class ApplicationPermissionsServiceSpec extends Specification {
+
 
   @Unroll
   def "test application creation will sync roles in fiat"(permission, expectedSyncedRoles) {
     given:
     def fiatService = Mock(FiatService)
-    PermissionsController permissionsController = createPermissionController(fiatService)
-    permissionsController.applicationPermissionDAO = Optional.of(Mock(ApplicationPermissionDAO) {
-      create(_, _) >> permission
-    })
+    ApplicationPermissionsService subject = createSubject(
+      fiatService,
+      Mock(ApplicationPermissionDAO) {
+        create(_, _) >> permission
+      }
+    )
 
     when:
-    permissionsController.createApplicationPermission(permission)
+    subject.createApplicationPermission(permission)
 
     then:
     1 * fiatService.sync(expectedSyncedRoles)
@@ -63,13 +66,20 @@ public class PermissionsControllerSpec extends Specification {
       .build()
   }
 
-  private PermissionsController createPermissionController(FiatService fiatService) {
-    def permissionsController = new PermissionsController()
-    permissionsController.roleSync = true
-    permissionsController.fiatService = fiatService
-    permissionsController.fiatClientConfigurationProperties = Mock(FiatClientConfigurationProperties) {
-      isEnabled() >> true
-    }
-    permissionsController
+  private ApplicationPermissionsService createSubject(FiatService fiatService, ApplicationPermissionDAO applicationPermissionDAO) {
+    return new ApplicationPermissionsService(
+      Mock(ApplicationDAO),
+      Optional.of(fiatService),
+      Optional.of(applicationPermissionDAO),
+      Mock(FiatConfigurationProperties) {
+        getRoleSync() >> Mock(FiatConfigurationProperties.RoleSyncConfigurationProperties) {
+          isEnabled() >> true
+        }
+      },
+      Mock(FiatClientConfigurationProperties) {
+        isEnabled() >> true
+      },
+      []
+    )
   }
 }

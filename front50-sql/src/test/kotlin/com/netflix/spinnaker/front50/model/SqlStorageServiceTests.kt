@@ -26,12 +26,12 @@ import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import dev.minutest.ContextBuilder
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import java.time.Clock
 import org.jooq.SQLDialect
 import org.jooq.impl.DSL
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.isEqualTo
-import java.time.Clock
 
 internal object SqlStorageServiceTests : JUnit5Minutests {
 

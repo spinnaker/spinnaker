@@ -49,8 +49,6 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 
-import java.util.concurrent.Executors
-
 @Configuration
 @ComponentScan
 @EnableFiatAutoConfig
