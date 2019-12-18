@@ -1,10 +1,11 @@
-FROM openjdk:8
+FROM alpine:3.10
 LABEL maintainer="delivery-engineering@netflix.com"
 COPY --from=halyard.compile /compiled_sources/halyard-web/build/install/halyard /opt/halyard
 
 ENV KUBECTL_RELEASE=1.12.7
 ENV AWS_BINARY_RELEASE_DATE=2019-03-27
 
+RUN apk --no-cache add --update openjdk8
 
 RUN echo '#!/usr/bin/env bash' | tee /usr/local/bin/hal > /dev/null && \
   echo '/opt/halyard/bin/hal "$@"' | tee /usr/local/bin/hal > /dev/null
