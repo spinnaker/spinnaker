@@ -132,6 +132,125 @@ class EcsCreateServergroupDescriptionValidatorSpec extends AbstractValidatorSpec
     1 * errors.rejectValue('loadBalancedContainer', "${getDescriptionName()}.loadBalancedContainer.not.nullable")
   }
 
+  void '(with artifact) should fail when load balanced container is specified but load balancer is missing'() {
+    given:
+    def description = getDescription()
+    description.targetGroup = null
+    description.loadBalancedContainer = 'load-balanced-container'
+    description.useTaskDefinitionArtifact = true
+    def errors = Mock(Errors)
+
+    when:
+    validator.validate([], description, errors)
+
+    then:
+    1 * errors.rejectValue('targetGroup', "${getDescriptionName()}.targetGroup.not.nullable")
+  }
+
+  void 'target group mappings should fail when load balancer specified but container name is missing'() {
+    given:
+    def targetGroupMappings = new CreateServerGroupDescription.TargetGroupProperties(
+      containerName: null,
+      containerPort: 1337,
+      targetGroup: 'target-group-arn'
+    )
+    def description = getDescription()
+    description.targetGroup = null
+    description.containerPort = null
+    description.dockerImageAddress = null
+    description.useTaskDefinitionArtifact = true
+    description.targetGroupMappings = [targetGroupMappings]
+    def errors = Mock(Errors)
+
+    when:
+    validator.validate([], description, errors)
+
+    then:
+    1 * errors.rejectValue('targetGroupMappings.containerName', "${getDescriptionName()}.targetGroupMappings.containerName.not.nullable")
+  }
+
+  void 'target group mappings should fail when container name is specified but load balancer is missing'() {
+    given:
+    def targetGroupMappings = new CreateServerGroupDescription.TargetGroupProperties(
+      containerName: 'test-container',
+      containerPort: 1337,
+      targetGroup: null
+    )
+    def description = getDescription()
+    description.targetGroup = null
+    description.containerPort = null
+    description.dockerImageAddress = null
+    description.useTaskDefinitionArtifact = true
+    description.targetGroupMappings = [targetGroupMappings]
+    def errors = Mock(Errors)
+
+    when:
+    validator.validate([], description, errors)
+
+    then:
+    1 * errors.rejectValue('targetGroupMappings.targetGroup', "${getDescriptionName()}.targetGroupMappings.targetGroup.not.nullable")
+  }
+
+  void 'target group mappings should fail when container port is invalid'() {
+    given:
+    def targetGroupMappings = new CreateServerGroupDescription.TargetGroupProperties(
+      containerName: null,
+      containerPort: -1,
+      targetGroup: 'target-group-arn'
+    )
+    def description = getDescription()
+    description.targetGroup = null
+    description.containerPort = null
+    description.targetGroupMappings = [targetGroupMappings]
+    def errors = Mock(Errors)
+
+    when:
+    validator.validate([], description, errors)
+
+    then:
+    1 * errors.rejectValue('targetGroupMappings.containerPort', "${getDescriptionName()}.targetGroupMappings.containerPort.invalid")
+  }
+
+  void 'target group mappings should fail when container port is missing'() {
+    given:
+    def targetGroupMappings = new CreateServerGroupDescription.TargetGroupProperties(
+      containerName: null,
+      containerPort: null,
+      targetGroup: 'target-group-arn'
+    )
+    def description = getDescription()
+    description.targetGroup = null
+    description.containerPort = null
+    description.targetGroupMappings = [targetGroupMappings]
+    def errors = Mock(Errors)
+
+    when:
+    validator.validate([], description, errors)
+
+    then:
+    1 * errors.rejectValue('targetGroupMappings.containerPort', "${getDescriptionName()}.targetGroupMappings.containerPort.not.nullable")
+  }
+
+  void 'target group mappings should pass without load balancer if using container inputs'() {
+    given:
+    def targetGroupMappings = new CreateServerGroupDescription.TargetGroupProperties(
+      containerName: null,
+      containerPort: 1337,
+      targetGroup: 'target-group-arn'
+    )
+    def description = getDescription()
+    description.targetGroup = null
+    description.containerPort = null
+    description.targetGroupMappings = [targetGroupMappings]
+    def errors = Mock(Errors)
+
+    when:
+    validator.validate([], description, errors)
+
+    then:
+    0 * errors.rejectValue(_, _)
+  }
+
   @Override
   AbstractECSDescription getNulledDescription() {
     def description = (CreateServerGroupDescription) getDescription()

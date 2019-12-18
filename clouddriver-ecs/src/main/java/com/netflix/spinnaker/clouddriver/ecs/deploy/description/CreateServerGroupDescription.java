@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.annotation.Nullable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -31,8 +32,21 @@ import lombok.EqualsAndHashCode;
 public class CreateServerGroupDescription extends AbstractECSDescription {
   String ecsClusterName;
   String iamRole;
-  Integer containerPort;
-  String targetGroup;
+
+  /**
+   * @deprecated this field only allows for one container port to be specified. ECS supports the
+   *     ability to have multiple target groups and container ports to be mapped to a container.
+   *     <p>This field is deprecated in favour of [targetGroupMappings.containerPort]
+   */
+  @Deprecated Integer containerPort;
+
+  /**
+   * @deprecated this field only allows for one target group to be specified. ECS supports the
+   *     ability to have multiple target groups and container ports to be mapped to a container.
+   *     <p>This field is deprecated in favour of [targetGroupMappings.targetGroup]
+   */
+  @Deprecated String targetGroup;
+
   List<String> securityGroupNames;
 
   String portProtocol;
@@ -73,7 +87,15 @@ public class CreateServerGroupDescription extends AbstractECSDescription {
   Artifact resolvedTaskDefinitionArtifact;
   String taskDefinitionArtifactAccount;
   Map<String, String> containerToImageMap;
-  String loadBalancedContainer;
+
+  /**
+   * @deprecated this field only allows for one container to be specified. ECS supports the ability
+   *     to have multiple target groups and container ports to be mapped to one or more containers.
+   *     <p>This field is deprecated in favour of [targetGroupMappings.containerName]
+   */
+  @Deprecated String loadBalancedContainer;
+
+  Set<TargetGroupProperties> targetGroupMappings;
 
   @Override
   public String getRegion() {
@@ -104,5 +126,13 @@ public class CreateServerGroupDescription extends AbstractECSDescription {
     String arn;
     String name;
     String id;
+  }
+
+  @Data
+  @EqualsAndHashCode(callSuper = false)
+  public static class TargetGroupProperties {
+    String containerName;
+    Integer containerPort;
+    String targetGroup;
   }
 }

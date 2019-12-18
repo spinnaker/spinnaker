@@ -184,24 +184,6 @@ class ContainerInformationServiceSpec extends Specification {
     'STOPPED'        | 'Down'
   }
 
-
-  def 'should throw an exception when the service has multiple loadbalancers'() {
-    given:
-    def cachedService = new Service(
-      loadBalancers: [new LoadBalancer(), new LoadBalancer()]
-    )
-
-    serviceCacheClient.get(_) >> cachedService
-    taskHealthCacheClient.get(_) >> new TaskHealth()
-
-    when:
-    service.getHealthStatus('task-id', 'test-service-name', 'test-account', 'us-west-1')
-
-    then:
-    IllegalArgumentException exception = thrown()
-    exception.message == 'Cannot have more than 1 load balancer while checking ECS health.'
-  }
-
   def 'should return a proper private address for a task'() {
     given:
     def account = 'test-account'

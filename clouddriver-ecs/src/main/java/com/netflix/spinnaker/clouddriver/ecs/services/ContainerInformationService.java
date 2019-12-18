@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.ecs.services;
 
 import com.amazonaws.services.ec2.model.Instance;
-import com.amazonaws.services.ecs.model.LoadBalancer;
 import com.amazonaws.services.ecs.model.NetworkBinding;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.ContainerInstanceCacheClient;
@@ -86,19 +85,12 @@ public class ContainerInformationService {
 
       healthMetrics.add(loadBalancerHealth);
     } else {
-      List<LoadBalancer> loadBalancers = service.getLoadBalancers();
-      // There should only be 1 based on AWS documentation.
-      if (loadBalancers.size() == 1) {
-        Map<String, Object> loadBalancerHealth = new HashMap<>();
-        loadBalancerHealth.put("instanceId", taskId);
-        loadBalancerHealth.put("state", taskHealth.getState());
-        loadBalancerHealth.put("type", taskHealth.getType());
+      Map<String, Object> loadBalancerHealth = new HashMap<>();
+      loadBalancerHealth.put("instanceId", taskId);
+      loadBalancerHealth.put("state", taskHealth.getState());
+      loadBalancerHealth.put("type", taskHealth.getType());
 
-        healthMetrics.add(loadBalancerHealth);
-      } else if (loadBalancers.size() >= 2) {
-        throw new IllegalArgumentException(
-            "Cannot have more than 1 load balancer while checking ECS health.");
-      }
+      healthMetrics.add(loadBalancerHealth);
     }
 
     // Task-based health

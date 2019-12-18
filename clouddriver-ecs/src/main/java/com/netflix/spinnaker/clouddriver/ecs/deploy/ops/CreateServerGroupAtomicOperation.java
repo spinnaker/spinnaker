@@ -75,6 +75,7 @@ import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -83,6 +84,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class CreateServerGroupAtomicOperation
@@ -101,6 +104,8 @@ public class CreateServerGroupAtomicOperation
 
   protected ObjectMapper mapper =
       new ObjectMapper().enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+
+  private final Logger log = LoggerFactory.getLogger(getClass());
 
   @Autowired EcsCloudMetricService ecsCloudMetricService;
   @Autowired IamPolicyReader iamPolicyReader;
@@ -203,9 +208,10 @@ public class CreateServerGroupAtomicOperation
             .withMemoryReservation(description.getReservedMemory())
             .withImage(description.getDockerImageAddress());
 
-    Collection<PortMapping> portMappings = new LinkedList<>();
+    Set<PortMapping> portMappings = new HashSet<>();
 
-    if (description.getContainerPort() != null) {
+    if (StringUtils.isEmpty(description.getTargetGroup())
+        && description.getContainerPort() != null) {
       PortMapping portMapping =
           new PortMapping()
               .withProtocol(
@@ -221,6 +227,27 @@ public class CreateServerGroupAtomicOperation
       }
 
       portMappings.add(portMapping);
+    }
+
+    if (description.getTargetGroupMappings() != null) {
+      for (CreateServerGroupDescription.TargetGroupProperties properties :
+          description.getTargetGroupMappings()) {
+        PortMapping portMapping =
+            new PortMapping()
+                .withProtocol(
+                    description.getPortProtocol() != null ? description.getPortProtocol() : "tcp");
+
+        if (AWSVPC_NETWORK_MODE.equals(description.getNetworkMode())
+            || HOST_NETWORK_MODE.equals(description.getNetworkMode())) {
+          portMapping
+              .withHostPort(properties.getContainerPort())
+              .withContainerPort(properties.getContainerPort());
+        } else {
+          portMapping.withHostPort(0).withContainerPort(properties.getContainerPort());
+        }
+
+        portMappings.add(portMapping);
+      }
     }
 
     if (description.getServiceDiscoveryAssociations() != null) {
@@ -242,6 +269,7 @@ public class CreateServerGroupAtomicOperation
       }
     }
 
+    log.debug("The container port mappings are: {}", portMappings);
     containerDefinition.setPortMappings(portMappings);
 
     if (!NO_IMAGE_CREDENTIALS.equals(description.getDockerImageCredentialsSecret())
@@ -423,6 +451,8 @@ public class CreateServerGroupAtomicOperation
         String.format(
             "Creating %s of %s with %s for %s.",
             desiredCount, newServerGroupName, taskDefinitionArn, description.getAccount()));
+
+    log.debug("CreateServiceRequest being made is: {}", request.toString());
 
     Service service = ecs.createService(request).getService();
 
@@ -679,21 +709,46 @@ public class CreateServerGroupAtomicOperation
   }
 
   private Collection<LoadBalancer> retrieveLoadBalancers(String containerName) {
-    Collection<LoadBalancer> loadBalancers = new LinkedList<>();
-    if (description.getTargetGroup() != null && !description.getTargetGroup().isEmpty()) {
-      LoadBalancer loadBalancer = new LoadBalancer();
+    Set<LoadBalancer> loadBalancers = new HashSet<>();
+    Set<CreateServerGroupDescription.TargetGroupProperties> targetGroupMappings = new HashSet<>();
+
+    if (description.getTargetGroupMappings() != null
+        && !description.getTargetGroupMappings().isEmpty()) {
+      targetGroupMappings.addAll(description.getTargetGroupMappings());
+    }
+
+    if (StringUtils.isNotBlank(description.getTargetGroup())) {
+      CreateServerGroupDescription.TargetGroupProperties targetGroupMapping =
+          new CreateServerGroupDescription.TargetGroupProperties();
+
       String containerToUse =
-          description.getLoadBalancedContainer() != null
-                  && !description.getLoadBalancedContainer().isEmpty()
+          StringUtils.isNotBlank(description.getLoadBalancedContainer())
               ? description.getLoadBalancedContainer()
               : containerName;
+
+      targetGroupMapping.setContainerName(containerToUse);
+      targetGroupMapping.setContainerPort(description.getContainerPort());
+      targetGroupMapping.setTargetGroup(description.getTargetGroup());
+
+      targetGroupMappings.add(targetGroupMapping);
+    }
+
+    for (CreateServerGroupDescription.TargetGroupProperties targetGroupAssociation :
+        targetGroupMappings) {
+      LoadBalancer loadBalancer = new LoadBalancer();
+
+      String containerToUse =
+          StringUtils.isNotBlank(targetGroupAssociation.getContainerName())
+              ? targetGroupAssociation.getContainerName()
+              : containerName;
+
       loadBalancer.setContainerName(containerToUse);
-      loadBalancer.setContainerPort(description.getContainerPort());
+      loadBalancer.setContainerPort(targetGroupAssociation.getContainerPort());
 
       AmazonElasticLoadBalancing loadBalancingV2 = getAmazonElasticLoadBalancingClient();
 
       DescribeTargetGroupsRequest request =
-          new DescribeTargetGroupsRequest().withNames(description.getTargetGroup());
+          new DescribeTargetGroupsRequest().withNames(targetGroupAssociation.getTargetGroup());
       DescribeTargetGroupsResult describeTargetGroupsResult =
           loadBalancingV2.describeTargetGroups(request);
 
@@ -702,14 +757,19 @@ public class CreateServerGroupAtomicOperation
             describeTargetGroupsResult.getTargetGroups().get(0).getTargetGroupArn());
       } else if (describeTargetGroupsResult.getTargetGroups().size() > 1) {
         throw new IllegalArgumentException(
-            "There are multiple target groups with the name " + description.getTargetGroup() + ".");
+            "There are multiple target groups with the name "
+                + targetGroupAssociation.getTargetGroup()
+                + ".");
       } else {
         throw new IllegalArgumentException(
-            "There is no target group with the name " + description.getTargetGroup() + ".");
+            "There is no target group with the name "
+                + targetGroupAssociation.getTargetGroup()
+                + ".");
       }
 
       loadBalancers.add(loadBalancer);
     }
+
     return loadBalancers;
   }
 
