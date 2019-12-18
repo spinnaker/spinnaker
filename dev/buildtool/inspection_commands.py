@@ -454,6 +454,7 @@ class CollectArtifactVersions(CommandProcessor):
      <debian_repository>__versions.yml: All the debian build versions
      <jar_repository>__versions.yml: All the jar build versions
      <docker_registry>__versions.yml: All the container build versions
+     <config_bucket>__versions.yml: All the service-specific config build versions
      missing_jars.yml: Bintray debian versions without a corresponding jar
      missing_debians.yml: Bintray jar versions witout a corresponding debian
      config.yml: The configuration values used to collect the artifacts
@@ -665,11 +666,52 @@ class CollectArtifactVersions(CommandProcessor):
                                  default_flow_style=False), path)
     return image_map
 
+  def collect_config_bucket_versions(self):
+    options = self.options
+    bucket = options.halyard_bom_bucket
+    logging.debug("Collecting configs from bucket %s", bucket)
+    full_bucket_prefix = 'gs://{}/'.format(bucket)
+    command_parts = ['gsutil', 'ls', full_bucket_prefix]
+
+    response = check_subprocess(' '.join(command_parts))
+    config_map = {}
+    for subdir_prefix in response.splitlines():
+      if not subdir_prefix.endswith('/'):
+        continue
+
+      # Sample input line: gs://halconfig/clouddriver/
+      service_name = subdir_prefix.replace(full_bucket_prefix, "", 1).rstrip('/')
+      if service_name == 'bom':
+        continue
+
+      command_parts = ['gsutil', 'ls', subdir_prefix]
+
+      logging.debug("Collecting configs from {}".format(subdir_prefix))
+
+      versions = check_subprocess(' '.join(command_parts))
+
+      service_config_versions_list = []
+      for version_line in versions.splitlines():
+        version = version_line.replace(subdir_prefix, "", 1).rstrip('/')
+        if version.startswith('.'):
+          logging.debug("From %s to %s", version_line, version)
+        service_config_versions_list.append(version)
+
+      config_map[service_name] = service_config_versions_list
+
+    path = os.path.join(
+      self.get_output_dir(), bucket + '__config_versions.yml')
+    logging.info('Writing config versions to %s', path)
+    write_to_path(yaml.safe_dump(config_map,
+                                 allow_unicode=True,
+                                 default_flow_style=False), path)
+
   def _do_command(self):
     pool = ThreadPool(16)
     bintray_jars, bintray_debians = self.collect_bintray_versions(pool)
     self.collect_gcb_versions(pool)
     self.collect_gce_image_versions()
+    self.collect_config_bucket_versions()
     pool.close()
     pool.join()
 
@@ -707,7 +749,7 @@ class CollectArtifactVersionsFactory(CommandFactory):
   def __init__(self, **kwargs):
     super(CollectArtifactVersionsFactory, self).__init__(
         'collect_artifact_versions', CollectArtifactVersions,
-        'Find information about artifact jar/debian versions.', **kwargs)
+        'Find information about artifact jar/debian/config versions.', **kwargs)
 
   def init_argparser(self, parser, defaults):
     super(CollectArtifactVersionsFactory, self).init_argparser(
@@ -735,7 +777,10 @@ class CollectArtifactVersionsFactory(CommandFactory):
         help='The service account to use with the gce project.')
     self.add_argument(
         parser, 'publish_gce_image_project', defaults, None,
-        help='The GCE project ot collect images from.')
+        help='The GCE project to collect images from.')
+    self.add_argument(
+        parser, 'halyard_bom_bucket', defaults, None,
+        help='The bucket to inspect for versioned configs.')
 
 
 class AuditArtifactVersions(CommandProcessor):
@@ -771,6 +816,7 @@ class AuditArtifactVersions(CommandProcessor):
     jar_paths = []
     gcr_paths = []
     image_paths = []
+    config_paths = []
     for filename in os.listdir(artifact_data_dir):
       path = os.path.join(artifact_data_dir, filename)
       if filename.endswith('__gcb_versions.yml'):
@@ -781,9 +827,14 @@ class AuditArtifactVersions(CommandProcessor):
         debian_paths.append(path)
       elif filename.endswith('__gce_image_versions.yml'):
         image_paths.append(path)
+      elif filename.endswith('__config_versions.yml'):
+        config_paths.append(path)
 
-    for name, found in [('jar', jar_paths), ('debian', debian_paths),
-                        ('gce image', image_paths), ('gcr image', gcr_paths)]:
+    for name, found in [('jar', jar_paths),
+                        ('debian', debian_paths),
+                        ('gce image', image_paths),
+                        ('gcr image', gcr_paths),
+                        ('config', config_paths)]:
       if len(found) != 1:
         raise_and_log_error(
             ConfigError(
@@ -799,6 +850,8 @@ class AuditArtifactVersions(CommandProcessor):
       self.__debian_versions = yaml.safe_load(stream.read())
     with open(image_paths[0], 'r') as stream:
       self.__gce_image_versions = yaml.safe_load(stream.read())
+    with open(config_paths[0], 'r') as stream:
+      self.__config_versions = yaml.safe_load(stream.read())
 
   def __extract_all_bom_versions(self, bom_map):
     result = set([])
@@ -904,14 +957,17 @@ class AuditArtifactVersions(CommandProcessor):
     self.__missing_jars = {}
     self.__missing_containers = {}
     self.__missing_images = {}
+    self.__missing_configs = {}
     self.__found_debians = {}
     self.__found_jars = {}
     self.__found_containers = {}
     self.__found_images = {}
+    self.__found_configs = {}
     self.__unused_jars = {}
     self.__unused_debians = {}
     self.__unused_containers = {}
     self.__unused_gce_images = {}
+    self.__unused_configs = {}
     self.__invalid_boms = {}
     self.__confirmed_boms = set([])
     self.__prune_boms = []
@@ -919,6 +975,7 @@ class AuditArtifactVersions(CommandProcessor):
     self.__prune_debians = {}
     self.__prune_containers = {}
     self.__prune_gce_images = {}
+    self.__prune_configs = {}
     self.__invalid_versions = {}
 
   def audit_artifacts(self):
@@ -933,6 +990,9 @@ class AuditArtifactVersions(CommandProcessor):
     self.audit_package(
         'image',
         self.__gce_image_versions, self.__unused_gce_images)
+    self.audit_package(
+        'config',
+        self.__config_versions, self.__unused_configs)
 
     def maybe_write_log(what, data):
       if not data:
@@ -968,14 +1028,17 @@ class AuditArtifactVersions(CommandProcessor):
     maybe_write_log('missing_jars', self.__missing_jars)
     maybe_write_log('missing_containers', self.__missing_containers)
     maybe_write_log('missing_images', self.__missing_images)
+    maybe_write_log('missing_configs', self.__missing_configs)
     maybe_write_log('found_debians', self.__found_debians)
     maybe_write_log('found_jars', self.__found_jars)
     maybe_write_log('found_containers', self.__found_containers)
     maybe_write_log('found_images', self.__found_images)
+    maybe_write_log('found_configs', self.__found_configs)
     maybe_write_log('unused_debians', self.__unused_debians)
     maybe_write_log('unused_jars', self.__unused_jars)
     maybe_write_log('unused_containers', self.__unused_containers)
     maybe_write_log('unused_images', self.__unused_gce_images)
+    maybe_write_log('unused_configs', self.__unused_configs)
     maybe_write_log('invalid_boms', self.__invalid_boms)
     maybe_write_log('confirmed_boms', sorted(list(confirmed_boms)))
     maybe_write_log('confirmed_releases', sorted(list(confirmed_releases)))
@@ -1047,7 +1110,8 @@ class AuditArtifactVersions(CommandProcessor):
           (self.__unused_jars, self.__prune_jars),
           (self.__unused_debians, self.__prune_debians),
           (self.__unused_gce_images, self.__prune_gce_images),
-          (self.__unused_containers, self.__prune_containers)]:
+          (self.__unused_containers, self.__prune_containers),
+          (self.__unused_configs, self.__prune_configs)]:
         unused_list = unused_map.get(name, None)
         if unused_list is None:
           unused_list = unused_map.get('spinnaker-' + name, [])
@@ -1094,18 +1158,21 @@ class AuditArtifactVersions(CommandProcessor):
             name if name == 'spinnaker' else 'spinnaker-' + name),
         'container': lambda name: '%s/%s:' % (
             art_config['docker_registry'], name),
-        'image': lambda name: 'spinnaker-%s-' % name
+        'image': lambda name: 'spinnaker-%s-' % name,
+        'config': lambda name: 'gs://%s/%s/' % (bom_config['halyard_bom_bucket'], name)
     }
     artifact_version_func = {
         'jar': lambda version: version,
         'debian': lambda version: version,
         'container': lambda version: version,
-        'image': lambda version: version.replace('.', '-')
+        'image': lambda version: version.replace('.', '-'),
+        'config': lambda version: version + "**"
     }
     for art_type, art_map in [('jar', self.__prune_jars),
                               ('debian', self.__prune_debians),
                               ('container', self.__prune_containers),
-                              ('image', self.__prune_gce_images)]:
+                              ('image', self.__prune_gce_images),
+                              ('config', self.__prune_configs)]:
       urls = []
       for service, art_list in art_map.items():
         prefix = artifact_prefix_func[art_type](service)
@@ -1213,6 +1280,30 @@ class AuditArtifactVersions(CommandProcessor):
     logging.warning('Missing %s debian %s', key, build_version)
     return False
 
+  def audit_config(self, service, build_version, info_list):
+    # It appears we used to also pull the 'applies to all services' config,
+    # but this folder no longer exists in the bucket, so don't validate it.
+    if service == 'spinnaker':
+      return True
+
+    versions = []
+    if service in self.__config_versions:
+      versions = self.__config_versions[service]
+    elif service in ['monitoring-third-party']:
+      versions = self.__config_versions.get('monitoring-daemon', [])
+
+    if build_version in versions:
+      holder = self.__found_configs.get(service, {})
+      holder[build_version] = info_list
+      self.__found_configs[service] = holder
+      return True
+
+    holder = self.__missing_configs.get(service, {})
+    holder[build_version] = info_list
+    self.__missing_configs[service] = holder
+    logging.warning('Missing %s configs %s', service, build_version)
+    return False
+
   def package_in_bom_map(self, service, version, buildnum, service_map):
     version_map = service_map.get(service)
     if version_map is None:
@@ -1263,13 +1354,16 @@ class AuditArtifactVersions(CommandProcessor):
         self.audit_package_helper(package, version, buildnum, which)
 
   def audit_bom_services(self, bom_services, title):
-    def add_invalid_boms(jar_ok, deb_ok, container_ok, image_ok,
+    def add_invalid_boms(jar_ok, deb_ok, container_ok, image_ok, config_ok,
                          service, version_buildnum, info_list, invalid_boms):
-      if jar_ok and deb_ok and container_ok and image_ok:
+      if jar_ok and deb_ok and container_ok and image_ok and config_ok:
         return
 
-      kind_checks = [(jar_ok, 'jars'), (deb_ok, 'debs'),
-                     (container_ok, 'containers'), (image_ok, 'images')]
+      kind_checks = [(jar_ok, 'jars'),
+                     (deb_ok, 'debs'),
+                     (container_ok, 'containers'),
+                     (image_ok, 'images'),
+                     (config_ok, 'configs')]
       for info in info_list:
         bom_version = info['bom_version']
         bom_record = invalid_boms.get(bom_version, {})
@@ -1293,8 +1387,9 @@ class AuditArtifactVersions(CommandProcessor):
             deb_ok = self.audit_debian(service, version_buildnum, info_list)
             gcr_ok = self.audit_container(service, version_buildnum, info_list)
             image_ok = self.audit_image(service, version_buildnum, info_list)
+            config_ok = self.audit_config(service, version_buildnum, info_list)
 
-            add_invalid_boms(jar_ok, deb_ok, gcr_ok, image_ok,
+            add_invalid_boms(jar_ok, deb_ok, gcr_ok, image_ok, config_ok,
                              service, version_buildnum,
                              info_list, self.__invalid_boms)
 
