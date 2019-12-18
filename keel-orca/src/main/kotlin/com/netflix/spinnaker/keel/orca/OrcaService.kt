@@ -17,6 +17,7 @@ package com.netflix.spinnaker.keel.orca
 
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import java.time.Instant
+import java.util.HashMap
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -24,21 +25,19 @@ import retrofit2.http.Headers
 import retrofit2.http.POST
 import retrofit2.http.Path
 
-// TODO Origin needs to be set on executions
-// origin is used for dynamic routing by orca to different clouddriver instances
 interface OrcaService {
 
   @POST("/ops")
-  @Headers("Content-Type: application/context+json")
+  @Headers("Content-Type: application/context+json", "X-SPINNAKER-USER-ORIGIN: keel")
   suspend fun orchestrate(@Header("X-SPINNAKER-USER") serviceAccount: String, @Body request: OrchestrationRequest):
     TaskRefResponse
 
   @POST("/orchestrate/{pipelineConfigId}")
-  @Headers("Content-Type: application/context+json")
+  @Headers("Content-Type: application/context+json", "X-SPINNAKER-USER-ORIGIN: keel")
   suspend fun triggerPipeline(
     @Header("X-SPINNAKER-USER") serviceAccount: String,
     @Path("pipelineConfigId") pipelineConfigId: String,
-    @Body trigger: Map<String, Any?>
+    @Body trigger: HashMap<String, Any>
   ): TaskRefResponse
 
   @GET("/tasks/{id}")
