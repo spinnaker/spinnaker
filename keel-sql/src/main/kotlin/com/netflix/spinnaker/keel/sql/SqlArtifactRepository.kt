@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.sql
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.ArtifactStatus
 import com.netflix.spinnaker.keel.api.ArtifactType
+import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
@@ -115,7 +116,7 @@ class SqlArtifactRepository(
         .where(DELIVERY_ARTIFACT.UID.eq(DELIVERY_ARTIFACT_VERSION.DELIVERY_ARTIFACT_UID))
         .and(DELIVERY_ARTIFACT.NAME.eq(artifact.name))
         .and(DELIVERY_ARTIFACT.TYPE.eq(artifact.type.name))
-        .apply { if (statuses.isNotEmpty()) and(DELIVERY_ARTIFACT_VERSION.STATUS.`in`(*statuses.map { it.toString() }.toTypedArray())) }
+        .apply { if (artifact.type == DEB && statuses.isNotEmpty()) and(DELIVERY_ARTIFACT_VERSION.STATUS.`in`(*statuses.map { it.toString() }.toTypedArray())) }
         .fetch()
         .getValues(DELIVERY_ARTIFACT_VERSION.VERSION)
         .sortedWith(artifact.versioningStrategy.comparator)
