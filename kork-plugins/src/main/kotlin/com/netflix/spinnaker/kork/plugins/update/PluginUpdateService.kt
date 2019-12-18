@@ -16,8 +16,14 @@
 package com.netflix.spinnaker.kork.plugins.update
 
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginManager
+import com.netflix.spinnaker.kork.plugins.events.PluginDownloaded
+import com.netflix.spinnaker.kork.plugins.events.PluginDownloaded.Operation.INSTALL
+import com.netflix.spinnaker.kork.plugins.events.PluginDownloaded.Operation.UPDATE
+import com.netflix.spinnaker.kork.plugins.events.PluginDownloaded.Status.FAILED
+import com.netflix.spinnaker.kork.plugins.events.PluginDownloaded.Status.SUCCEEDED
 import org.pf4j.update.UpdateManager
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 
 /**
  * The [PluginUpdateService] is responsible for sourcing plugin updates from a plugin repository on startup.
@@ -40,7 +46,8 @@ import org.slf4j.LoggerFactory
  */
 class PluginUpdateService(
   internal val updateManager: UpdateManager,
-  internal val pluginManager: SpinnakerPluginManager
+  internal val pluginManager: SpinnakerPluginManager,
+  internal val applicationEventPublisher: ApplicationEventPublisher
 ) {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -70,8 +77,14 @@ class PluginUpdateService(
       val updated = updateManager.updatePlugin(plugin.id, lastRelease.version)
       if (updated) {
         log.debug("Updated plugin '{}'", plugin.id)
+        applicationEventPublisher.publishEvent(
+          PluginDownloaded(this, UPDATE, SUCCEEDED, plugin.id, lastRelease.version)
+        )
       } else {
         log.error("Failed updating plugin '{}'", plugin.id)
+        applicationEventPublisher.publishEvent(
+          PluginDownloaded(this, UPDATE, FAILED, plugin.id, lastRelease.version)
+        )
       }
     }
   }
@@ -94,8 +107,14 @@ class PluginUpdateService(
       val installed = updateManager.installPlugin(plugin.id, lastRelease.version)
       if (installed) {
         log.debug("Installed plugin '{}'", plugin.id)
+        applicationEventPublisher.publishEvent(
+          PluginDownloaded(this, INSTALL, SUCCEEDED, plugin.id, lastRelease.version)
+        )
       } else {
         log.error("Failed installing plugin '{}'", plugin.id)
+        applicationEventPublisher.publishEvent(
+          PluginDownloaded(this, INSTALL, FAILED, plugin.id, lastRelease.version)
+        )
       }
     }
   }

@@ -53,7 +53,8 @@ class PluginUpdateServiceTest : JUnit5Minutests {
           pluginManager,
           listOf(DefaultUpdateRepository("testing", paths.repository.toUri().toURL()))
         ),
-        pluginManager
+        pluginManager,
+        mockk(relaxed = true)
       )
     }
 

@@ -99,8 +99,10 @@ public class PluginsAutoConfiguration {
 
   @Bean
   public static PluginUpdateService pluginUpdateManagerAgent(
-      UpdateManager updateManager, SpinnakerPluginManager pluginManager) {
-    return new PluginUpdateService(updateManager, pluginManager);
+      UpdateManager updateManager,
+      SpinnakerPluginManager pluginManager,
+      ApplicationEventPublisher applicationEventPublisher) {
+    return new PluginUpdateService(updateManager, pluginManager, applicationEventPublisher);
   }
 
   @Bean
