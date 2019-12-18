@@ -3,7 +3,7 @@
 import { module } from 'angular';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { defaultsDeep, extend } from 'lodash';
+import { defaultsDeep, extend, omit } from 'lodash';
 
 import { AccountService } from 'core/account/AccountService';
 import { API } from 'core/api';
@@ -225,7 +225,10 @@ module(CORE_PIPELINE_CONFIG_STAGES_STAGE_MODULE, [
               application: $scope.application,
               stageFieldUpdated: $scope.stageFieldUpdated,
               updateStageField: changes => {
-                extend($scope.stage, changes);
+                // Reserved fields should not be mutated from with a StageConfig component
+                const allowedChanges = omit(changes, ['requisiteStageRefIds', 'refId', 'isNew', 'name', 'type']);
+
+                extend($scope.stage, allowedChanges);
                 $scope.stageFieldUpdated();
               },
               // Added to enable inline artifact editing from React stages
