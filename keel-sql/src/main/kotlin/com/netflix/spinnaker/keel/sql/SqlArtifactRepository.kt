@@ -3,11 +3,10 @@ package com.netflix.spinnaker.keel.sql
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.ArtifactStatus
 import com.netflix.spinnaker.keel.api.ArtifactType
-import com.netflix.spinnaker.keel.api.ArtifactVersionStatus
-import java.time.LocalDateTime
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
-import com.netflix.spinnaker.keel.api.DebianArtifact
+import com.netflix.spinnaker.keel.api.ArtifactVersionStatus
 import com.netflix.spinnaker.keel.api.ArtifactVersions
+import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.DockerArtifact
@@ -23,6 +22,7 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_VERSIONS
 import java.time.Clock
 import java.time.Instant
+import java.time.LocalDateTime
 import org.jooq.DSLContext
 import org.jooq.Record1
 import org.jooq.Select
@@ -227,12 +227,14 @@ class SqlArtifactRepository(
       val artifactVersions = deliveryConfig.artifacts.map { artifact ->
         val versionsInEnvironment = jooq
           .select(
-            ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION,
+            DELIVERY_ARTIFACT_VERSION.VERSION,
+            DELIVERY_ARTIFACT_VERSION.STATUS,
             ENVIRONMENT_ARTIFACT_VERSIONS.APPROVED_AT,
             ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT
           )
           .from(
             ENVIRONMENT_ARTIFACT_VERSIONS,
+            DELIVERY_ARTIFACT_VERSION,
             DELIVERY_ARTIFACT,
             ENVIRONMENT,
             DELIVERY_CONFIG
@@ -240,6 +242,8 @@ class SqlArtifactRepository(
           .where(DELIVERY_ARTIFACT.UID.eq(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID))
           .and(DELIVERY_ARTIFACT.NAME.eq(artifact.name))
           .and(DELIVERY_ARTIFACT.TYPE.eq(artifact.type.name))
+          .and(DELIVERY_ARTIFACT.UID.eq(DELIVERY_ARTIFACT_VERSION.DELIVERY_ARTIFACT_UID))
+          .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(DELIVERY_ARTIFACT_VERSION.VERSION))
           .and(ENVIRONMENT.UID.eq(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID))
           .and(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(DELIVERY_CONFIG.UID))
           .and(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
@@ -247,6 +251,7 @@ class SqlArtifactRepository(
         val pendingVersions = jooq
           .select(
             DELIVERY_ARTIFACT_VERSION.VERSION,
+            DELIVERY_ARTIFACT_VERSION.STATUS,
             castNull(LocalDateTime::class.java),
             castNull(LocalDateTime::class.java)
           )
@@ -271,7 +276,10 @@ class SqlArtifactRepository(
         val versions = versionsInEnvironment
           .unionAll(pendingVersions)
           .fetch()
-          .map { (version, approvedAt, deployedAt) ->
+          .filter { (_, status, _, _) ->
+            artifact !is DebianArtifact || artifact.statuses.isEmpty() || ArtifactStatus.valueOf(status) in artifact.statuses
+          }
+          .map { (version, _, approvedAt, deployedAt) ->
             ArtifactVersionResult(version, approvedAt, deployedAt)
           }
           .sortedWith(compareBy(artifact.versioningStrategy.comparator) { it.version })

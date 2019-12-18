@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.persistence
 
 import com.netflix.spinnaker.keel.api.ArtifactStatus.FINAL
+import com.netflix.spinnaker.keel.api.ArtifactStatus.RELEASE
 import com.netflix.spinnaker.keel.api.ArtifactStatus.SNAPSHOT
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.ArtifactType.DOCKER
@@ -13,6 +14,8 @@ import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import java.time.Clock
+import java.time.Duration
 import strikt.api.expect
 import strikt.api.expectCatching
 import strikt.api.expectThat
@@ -26,23 +29,19 @@ import strikt.assertions.isFalse
 import strikt.assertions.isNull
 import strikt.assertions.isTrue
 import strikt.assertions.succeeded
-import java.time.Clock
-import java.time.Duration
 
 abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests {
   abstract fun factory(clock: Clock): T
 
   val clock = MutableClock()
 
-  open fun Fixture<T>.persist() {}
-
   open fun T.flush() {}
 
   data class Fixture<T : ArtifactRepository>(
     val subject: T
   ) {
-    val artifact1 = DebianArtifact("foo")
-    val artifact2 = DebianArtifact("bar")
+    val artifact1 = DebianArtifact("foo", statuses = listOf(SNAPSHOT))
+    val artifact2 = DebianArtifact("bar", statuses = listOf(SNAPSHOT))
     val artifact3 = DockerArtifact("baz")
     val environment1 = Environment("test")
     val environment2 = Environment("staging")
@@ -59,6 +58,28 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
     val version5 = "keeldemo-1.0.0-h12.4ea8a9d"
     val version6 = "master-h12.4ea8a9d"
   }
+
+  open fun Fixture<T>.persist() {
+    with(subject) {
+      register(artifact1)
+      setOf(version1, version2, version3).forEach {
+        store(artifact1, it, SNAPSHOT)
+      }
+      setOf(version4, version5).forEach {
+        store(artifact1, it, RELEASE)
+      }
+      register(artifact2)
+      setOf(version1, version2, version3).forEach {
+        store(artifact2, it, SNAPSHOT)
+      }
+      setOf(version4, version5).forEach {
+        store(artifact2, it, RELEASE)
+      }
+    }
+    persist(manifest)
+  }
+
+  abstract fun persist(manifest: DeliveryConfig)
 
   private fun Fixture<T>.versionsIn(
     environment: Environment,

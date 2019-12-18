@@ -4,6 +4,7 @@ import com.netflix.spinnaker.keel.api.ArtifactStatus
 import com.netflix.spinnaker.keel.api.ArtifactType
 import com.netflix.spinnaker.keel.api.ArtifactVersionStatus
 import com.netflix.spinnaker.keel.api.ArtifactVersions
+import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.EnvironmentArtifactsSummary
@@ -166,6 +167,9 @@ class InMemoryArtifactRepository : ArtifactRepository {
                 current = deployed.firstOrNull(),
                 deploying = deploying,
                 pending = artifacts[artifact]
+                  ?.filter {
+                    artifact !is DebianArtifact || artifact.statuses.isEmpty() || it.status in artifact.statuses
+                  }
                   ?.map { it.version }
                   ?.filterNot { it in deployed }
                   ?.filterNot { it == deploying }
