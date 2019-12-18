@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.security.config;
 
+import com.amazonaws.SDKGlobalConfiguration;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,6 +33,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 
 public class CredentialsLoader<T extends AmazonCredentials> {
 
@@ -217,6 +219,14 @@ public class CredentialsLoader<T extends AmazonCredentials> {
       return Collections.emptyList();
     }
 
+    if (!StringUtils.isEmpty(config.getAccessKeyId())) {
+      System.setProperty(
+          SDKGlobalConfiguration.ACCESS_KEY_SYSTEM_PROPERTY, config.getAccessKeyId());
+    }
+    if (!StringUtils.isEmpty(config.getSecretAccessKey())) {
+      System.setProperty(
+          SDKGlobalConfiguration.SECRET_KEY_SYSTEM_PROPERTY, config.getSecretAccessKey());
+    }
     Lazy<List<Region>> defaultRegions = createDefaults(config.getDefaultRegions());
     List<T> initializedAccounts = new ArrayList<>(config.getAccounts().size());
     for (Account account : config.getAccounts()) {
