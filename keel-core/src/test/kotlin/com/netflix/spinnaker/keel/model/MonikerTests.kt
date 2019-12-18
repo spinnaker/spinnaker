@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.model
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectThat
+import strikt.assertions.get
 import strikt.assertions.isEqualTo
 
 internal class MonikerTests : JUnit5Minutests {
@@ -20,6 +21,14 @@ internal class MonikerTests : JUnit5Minutests {
 
       test("has a server group name that is just the application and sequence") {
         expectThat(serverGroup).isEqualTo("fnord-v005")
+      }
+
+      test("exports to orcaClusterMoniker") {
+        val orcaMoniker = orcaClusterMoniker
+        expectThat(orcaMoniker) {
+          get("app").isEqualTo("fnord")
+          get("sequence").isEqualTo(5)
+        }
       }
     }
 
