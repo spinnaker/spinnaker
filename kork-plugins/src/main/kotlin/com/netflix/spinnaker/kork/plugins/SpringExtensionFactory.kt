@@ -110,7 +110,8 @@ class SpringExtensionFactory(
     ResolvableType.forInstance(extension)
       .apply { resolve() }
       .also { resolvedType ->
-        resolvedType.interfaces.find { ConfigurableExtension::class.java.isAssignableFrom(it.rawClass!!) }
+        val parentTypes = listOf<ResolvableType>(resolvedType.superType) + resolvedType.interfaces
+        parentTypes.find { ConfigurableExtension::class.java.isAssignableFrom(it.rawClass!!) }
           ?.let {
             it.resolve()
             it.getGeneric(0).rawClass
