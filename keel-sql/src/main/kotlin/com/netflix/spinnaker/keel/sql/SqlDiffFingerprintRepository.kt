@@ -21,8 +21,8 @@ import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DIFF_FINGERPRINT
-import org.jooq.DSLContext
 import java.time.Clock
+import org.jooq.DSLContext
 
 class SqlDiffFingerprintRepository(
   private val jooq: DSLContext,

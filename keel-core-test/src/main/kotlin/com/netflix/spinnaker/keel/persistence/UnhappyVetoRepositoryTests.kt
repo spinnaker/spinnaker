@@ -21,13 +21,13 @@ import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import java.time.Clock
+import java.time.Duration
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.containsExactlyInAnyOrder
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
-import java.time.Clock
-import java.time.Duration
 
 abstract class UnhappyVetoRepositoryTests<T : UnhappyVetoRepository> : JUnit5Minutests {
   abstract fun factory(clock: Clock): T

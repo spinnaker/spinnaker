@@ -25,8 +25,8 @@ import com.netflix.spinnaker.keel.model.parseMoniker
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
-import com.netflix.spinnaker.keel.plugin.TaskLauncher
 import com.netflix.spinnaker.keel.plugin.Resolver
+import com.netflix.spinnaker.keel.plugin.TaskLauncher
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import com.netflix.spinnaker.keel.test.resource
 import de.danielbechler.diff.node.DiffNode.State.CHANGED
@@ -39,14 +39,14 @@ import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
+import java.time.Clock
+import java.util.UUID
 import kotlinx.coroutines.runBlocking
 import strikt.api.expectThat
 import strikt.assertions.get
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
-import java.time.Clock
-import java.util.UUID
 
 @Suppress("UNCHECKED_CAST")
 internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {

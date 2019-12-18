@@ -3,6 +3,8 @@ package com.netflix.spinnaker.keel.persistence
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import java.time.Clock
+import java.time.Duration
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.all
@@ -13,8 +15,6 @@ import strikt.assertions.hasSize
 import strikt.assertions.isEmpty
 import strikt.assertions.isNotEmpty
 import strikt.assertions.isNotEqualTo
-import java.time.Clock
-import java.time.Duration
 
 abstract class PeriodicallyCheckedRepositoryTests<T : Any, S : PeriodicallyCheckedRepository<T>> : JUnit5Minutests {
   abstract val descriptor: String

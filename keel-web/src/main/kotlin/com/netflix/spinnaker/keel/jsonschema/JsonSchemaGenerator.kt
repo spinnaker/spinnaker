@@ -11,7 +11,6 @@ import com.fasterxml.jackson.databind.introspect.AnnotatedClassResolver
 import com.fasterxml.jackson.databind.jsontype.NamedType
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer
 import com.fasterxml.jackson.module.kotlin.convertValue
-import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
@@ -34,6 +33,7 @@ import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.full.starProjectedType
 import kotlin.reflect.full.withNullability
 import kotlin.reflect.jvm.jvmErasure
+import org.slf4j.LoggerFactory
 
 class JsonSchemaGenerator(
   private val mapper: ObjectMapper,

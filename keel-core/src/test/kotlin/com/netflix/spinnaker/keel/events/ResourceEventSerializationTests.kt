@@ -9,14 +9,14 @@ import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneId
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.jackson.has
 import strikt.jackson.path
 import strikt.jackson.textValue
-import java.time.Clock
-import java.time.Instant
-import java.time.ZoneId
 
 internal class ResourceEventSerializationTests : JUnit5Minutests {
 

@@ -8,13 +8,13 @@ import com.netflix.spinnaker.keel.actuation.ScheduledEnvironmentCheckStarting
 import com.netflix.spinnaker.keel.actuation.ScheduledResourceCheckStarting
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceCheckResult
-import org.slf4j.LoggerFactory
-import org.springframework.context.event.EventListener
-import org.springframework.stereotype.Component
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicReference
+import org.slf4j.LoggerFactory
+import org.springframework.context.event.EventListener
+import org.springframework.stereotype.Component
 
 @Component
 class TelemetryListener(

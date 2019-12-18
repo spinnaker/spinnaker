@@ -12,8 +12,8 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.springframework.context.ApplicationEventPublisher
 import java.time.Duration
+import org.springframework.context.ApplicationEventPublisher
 
 internal object CheckSchedulerTests : JUnit5Minutests {
 

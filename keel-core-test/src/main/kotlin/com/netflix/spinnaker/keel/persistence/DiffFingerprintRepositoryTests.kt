@@ -23,9 +23,9 @@ import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import java.time.Clock
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
-import java.time.Clock
 
 abstract class DiffFingerprintRepositoryTests<T : DiffFingerprintRepository> : JUnit5Minutests {
   abstract fun factory(clock: Clock): T

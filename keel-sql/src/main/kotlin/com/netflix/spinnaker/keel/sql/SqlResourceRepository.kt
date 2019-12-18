@@ -19,12 +19,12 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_EVENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_LAST_CHECKED
 import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
 import de.huxhorn.sulky.ulid.ULID
-import org.jooq.DSLContext
-import org.jooq.impl.DSL.select
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
 import java.time.Instant.EPOCH
+import org.jooq.DSLContext
+import org.jooq.impl.DSL.select
 
 open class SqlResourceRepository(
   private val jooq: DSLContext,

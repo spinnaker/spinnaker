@@ -27,6 +27,7 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
+import java.util.UUID.randomUUID
 import kotlinx.coroutines.runBlocking
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectThat
@@ -34,7 +35,6 @@ import strikt.api.expectThrows
 import strikt.assertions.hasEntry
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
-import java.util.UUID.randomUUID
 
 internal class ImageHandlerTests : JUnit5Minutests {
 

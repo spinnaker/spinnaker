@@ -12,11 +12,11 @@ import com.netflix.spinnaker.keel.model.toEchoNotification
 import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
-import kotlinx.coroutines.runBlocking
-import org.springframework.stereotype.Component
 import java.lang.Exception
 import java.time.Clock
+import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory.getLogger
+import org.springframework.stereotype.Component
 
 /**
  * An environment promotion constraint to gate promotions on the successful execution

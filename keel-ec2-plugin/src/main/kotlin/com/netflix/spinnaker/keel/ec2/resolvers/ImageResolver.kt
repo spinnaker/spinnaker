@@ -3,9 +3,6 @@ package com.netflix.spinnaker.keel.ec2.resolvers
 import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.ArtifactStatus
-import com.netflix.spinnaker.keel.ec2.NoImageFound
-import com.netflix.spinnaker.keel.ec2.NoImageFoundForRegions
-import com.netflix.spinnaker.keel.ec2.NoImageSatisfiesConstraints
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
@@ -18,6 +15,9 @@ import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.appVersion
 import com.netflix.spinnaker.keel.clouddriver.model.baseImageVersion
+import com.netflix.spinnaker.keel.ec2.NoImageFound
+import com.netflix.spinnaker.keel.ec2.NoImageFoundForRegions
+import com.netflix.spinnaker.keel.ec2.NoImageSatisfiesConstraints
 import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository

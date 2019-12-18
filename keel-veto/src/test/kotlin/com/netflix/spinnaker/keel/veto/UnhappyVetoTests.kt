@@ -31,12 +31,12 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
 import io.mockk.mockk
+import java.time.Duration
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
-import java.time.Duration
 
 class UnhappyVetoTests : JUnit5Minutests {
   val r = resource()

@@ -17,6 +17,7 @@ import dev.minutest.rootContext
 import io.mockk.coEvery
 import io.mockk.mockk
 import io.mockk.slot
+import java.time.Clock
 import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
@@ -25,7 +26,6 @@ import strikt.assertions.isLessThanOrEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.isTrue
-import java.time.Clock
 
 internal class PipelineConstraintEvaluatorTests : JUnit5Minutests {
 

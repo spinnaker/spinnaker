@@ -13,13 +13,13 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.spyk
 import io.mockk.verify
+import java.time.Clock
+import java.time.Instant
 import org.junit.jupiter.api.fail
 import strikt.api.Assertion
 import strikt.api.expectThat
 import strikt.assertions.any
 import strikt.assertions.isEqualTo
-import java.time.Clock
-import java.time.Instant
 
 internal class TelemetryListenerTests : JUnit5Minutests {
 

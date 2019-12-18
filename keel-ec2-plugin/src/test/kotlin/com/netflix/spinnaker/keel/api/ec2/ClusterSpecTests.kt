@@ -16,6 +16,7 @@ import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import java.time.Duration
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.all
@@ -23,7 +24,6 @@ import strikt.assertions.contains
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
 import strikt.assertions.propertiesAreEqualTo
-import java.time.Duration
 
 internal class ClusterSpecTests : JUnit5Minutests {
 

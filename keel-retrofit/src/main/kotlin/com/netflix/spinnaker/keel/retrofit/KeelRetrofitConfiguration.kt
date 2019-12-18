@@ -17,6 +17,7 @@ package com.netflix.spinnaker.keel.retrofit
 
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
+import java.util.concurrent.TimeUnit.MILLISECONDS
 import okhttp3.ConnectionPool
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -29,7 +30,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Scope
-import java.util.concurrent.TimeUnit.MILLISECONDS
 
 @Configuration
 @Import(OkHttp3ClientConfiguration::class)

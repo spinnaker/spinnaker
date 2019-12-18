@@ -4,11 +4,11 @@ import com.netflix.spinnaker.keel.api.Capacity
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.retrofit.model.ModelParsingTestSupport
+import java.util.UUID.randomUUID
+import kotlin.random.Random.Default.nextInt
 import org.apache.commons.lang3.RandomStringUtils.random
 import org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric
 import org.apache.commons.lang3.RandomStringUtils.randomNumeric
-import java.util.UUID.randomUUID
-import kotlin.random.Random.Default.nextInt
 
 object ActiveServerGroupTest : ModelParsingTestSupport<CloudDriverService, ActiveServerGroup>(CloudDriverService::class.java) {
 

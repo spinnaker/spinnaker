@@ -3,8 +3,8 @@ package com.netflix.spinnaker.keel.sql
 import com.netflix.spinnaker.keel.persistence.ResourceRepositoryTests
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
-import org.junit.jupiter.api.AfterAll
 import java.time.Clock
+import org.junit.jupiter.api.AfterAll
 
 internal object SqlResourceRepositoryTests : ResourceRepositoryTests<SqlResourceRepository>() {
   private val testDatabase = initTestDatabase()

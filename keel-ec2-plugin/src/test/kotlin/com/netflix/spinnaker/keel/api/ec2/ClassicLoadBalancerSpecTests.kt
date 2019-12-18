@@ -5,9 +5,9 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import java.time.Duration
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
-import java.time.Duration
 
 internal object ClassicLoadBalancerSpecTests : JUnit5Minutests {
   data class Fixture(

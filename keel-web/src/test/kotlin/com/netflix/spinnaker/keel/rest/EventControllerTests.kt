@@ -21,6 +21,8 @@ import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import java.net.URI
+import java.time.Duration
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -42,8 +44,6 @@ import strikt.assertions.hasSize
 import strikt.assertions.map
 import strikt.jackson.hasSize
 import strikt.jackson.isArray
-import java.net.URI
-import java.time.Duration
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(

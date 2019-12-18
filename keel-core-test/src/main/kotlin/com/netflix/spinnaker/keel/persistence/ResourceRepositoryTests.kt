@@ -37,6 +37,10 @@ import io.mockk.confirmVerified
 import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifyAll
+import java.time.Clock
+import java.time.Duration
+import java.time.Period
+import java.util.UUID.randomUUID
 import strikt.api.Assertion
 import strikt.api.expect
 import strikt.api.expectCatching
@@ -52,10 +56,6 @@ import strikt.assertions.isGreaterThanOrEqualTo
 import strikt.assertions.isNotEmpty
 import strikt.assertions.isNotNull
 import strikt.assertions.map
-import java.time.Clock
-import java.time.Duration
-import java.time.Period
-import java.util.UUID.randomUUID
 
 abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests {
 

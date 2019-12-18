@@ -20,8 +20,8 @@ package com.netflix.spinnaker.keel.sql
 import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.persistence.UnhappyVetoRepository
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.UNHAPPY_VETO
-import org.jooq.DSLContext
 import java.time.Clock
+import org.jooq.DSLContext
 
 class SqlUnhappyVetoRepository(
   override val clock: Clock,

@@ -18,11 +18,11 @@
 package com.netflix.spinnaker.keel.persistence
 
 import com.netflix.spinnaker.keel.api.ResourceId
-import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 
 abstract class UnhappyVetoRepository(
   open val clock: Clock,

@@ -21,10 +21,10 @@ import com.netflix.spinnaker.keel.clouddriver.model.Credential
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.runBlocking
 import java.util.concurrent.TimeUnit.HOURS
 import java.util.concurrent.TimeUnit.MINUTES
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.runBlocking
 
 class MemoryCloudDriverCache(
   private val cloudDriver: CloudDriverService

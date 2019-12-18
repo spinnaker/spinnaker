@@ -9,6 +9,7 @@ import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
 import dev.minutest.rootContext
+import java.time.Clock
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -17,7 +18,6 @@ import strikt.api.expectThat
 import strikt.assertions.containsKey
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
-import java.time.Clock
 
 internal object SqlResourceRepositoryPeriodicallyCheckedTests :
   ResourceRepositoryPeriodicallyCheckedTests<SqlResourceRepository>() {

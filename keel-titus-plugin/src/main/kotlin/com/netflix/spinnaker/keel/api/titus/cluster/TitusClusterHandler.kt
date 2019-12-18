@@ -55,17 +55,17 @@ import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.SupportedKind
 import com.netflix.spinnaker.keel.plugin.TaskLauncher
 import com.netflix.spinnaker.keel.retrofit.isNotFound
+import java.time.Clock
+import java.time.Duration
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import net.swiftzer.semver.SemVer
 import org.springframework.context.ApplicationEventPublisher
 import retrofit2.HttpException
-import java.time.Clock
-import java.time.Duration
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 
 class TitusClusterHandler(
   private val cloudDriverService: CloudDriverService,

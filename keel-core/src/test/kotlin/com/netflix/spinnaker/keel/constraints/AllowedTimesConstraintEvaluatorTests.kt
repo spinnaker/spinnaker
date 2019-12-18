@@ -10,15 +10,15 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
 import io.mockk.mockk
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneId
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.failed
 import strikt.assertions.isA
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
-import java.time.Clock
-import java.time.Instant
-import java.time.ZoneId
 
 internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
   companion object {

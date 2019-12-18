@@ -1,6 +1,9 @@
 package com.netflix.spinnaker.keel.integration
 
 import com.netflix.spinnaker.keel.KeelApplication
+import java.io.IOException
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit.SECONDS
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import okhttp3.Interceptor
@@ -18,9 +21,6 @@ import retrofit2.Retrofit
 import retrofit2.http.GET
 import strikt.api.Assertion
 import strikt.api.expectThat
-import java.io.IOException
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit.SECONDS
 
 // TODO: this doesn't really need to be an integration test except that it's painful to configure
 //       the retrofit client without Spring

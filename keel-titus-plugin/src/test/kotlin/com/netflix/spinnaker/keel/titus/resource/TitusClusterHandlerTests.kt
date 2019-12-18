@@ -70,6 +70,9 @@ import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
+import java.time.Clock
+import java.time.Duration
+import java.util.UUID
 import kotlinx.coroutines.runBlocking
 import okhttp3.MediaType
 import okhttp3.ResponseBody
@@ -89,9 +92,6 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEmpty
 import strikt.assertions.isTrue
 import strikt.assertions.map
-import java.time.Clock
-import java.time.Duration
-import java.util.UUID
 
 // todo eb: we could probably have generic cluster tests
 // where you provide the correct info for the spec and active server groups

@@ -19,8 +19,8 @@
 package com.netflix.spinnaker.keel.plugin
 
 import com.netflix.spinnaker.keel.api.ApiVersion
-import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.ResourceSpec
 
 /**
  * Implementations apply changes to a [ResourceSpec] such as adding default values, applying

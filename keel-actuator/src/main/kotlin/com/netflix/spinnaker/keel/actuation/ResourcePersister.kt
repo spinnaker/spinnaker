@@ -21,12 +21,12 @@ import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.get
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.supporting
+import java.time.Clock
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Propagation.REQUIRED
 import org.springframework.transaction.annotation.Transactional
-import java.time.Clock
 
 @Component
 class ResourcePersister(

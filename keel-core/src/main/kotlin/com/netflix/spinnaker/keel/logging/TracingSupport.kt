@@ -6,9 +6,9 @@ import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.id
 import kotlinx.coroutines.CoroutineScope
-import org.slf4j.MDC
 import kotlinx.coroutines.slf4j.MDCContext
 import kotlinx.coroutines.withContext
+import org.slf4j.MDC
 
 /**
  * Support for tracing resources in log statements via MDC in coroutines.

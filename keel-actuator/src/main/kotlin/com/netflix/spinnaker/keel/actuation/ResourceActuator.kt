@@ -14,8 +14,8 @@ import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
 import com.netflix.spinnaker.keel.events.ResourceMissing
 import com.netflix.spinnaker.keel.events.ResourceValid
 import com.netflix.spinnaker.keel.events.Task
-import com.netflix.spinnaker.keel.pause.ResourcePauser
 import com.netflix.spinnaker.keel.logging.TracingSupport.Companion.withTracingContext
+import com.netflix.spinnaker.keel.pause.ResourcePauser
 import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.plugin.CannotResolveCurrentState
@@ -25,12 +25,12 @@ import com.netflix.spinnaker.keel.plugin.supporting
 import com.netflix.spinnaker.keel.telemetry.ResourceCheckSkipped
 import com.netflix.spinnaker.keel.veto.VetoEnforcer
 import com.netflix.spinnaker.keel.veto.VetoResponse
+import java.time.Clock
 import kotlinx.coroutines.async
 import kotlinx.coroutines.supervisorScope
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
-import java.time.Clock
 
 @Component
 class ResourceActuator(

@@ -26,6 +26,8 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.mockk
 import io.mockk.verify
+import java.time.Clock
+import java.time.Duration
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectCatching
@@ -38,8 +40,6 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isTrue
 import strikt.assertions.startsWith
 import strikt.assertions.succeeded
-import java.time.Clock
-import java.time.Duration
 
 @AutoConfigureMockMvc
 internal class ResourcePersisterTests : JUnit5Minutests {

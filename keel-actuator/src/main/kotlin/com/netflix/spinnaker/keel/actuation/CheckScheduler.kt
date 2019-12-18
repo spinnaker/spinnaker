@@ -5,6 +5,8 @@ import com.netflix.spinnaker.keel.activation.ApplicationUp
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.PeriodicallyCheckedRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
+import java.time.Duration
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -15,8 +17,6 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.event.EventListener
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
-import java.time.Duration
-import kotlin.coroutines.CoroutineContext
 
 @Component
 class CheckScheduler(

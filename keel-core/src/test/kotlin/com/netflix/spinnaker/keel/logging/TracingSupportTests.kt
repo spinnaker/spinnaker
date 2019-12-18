@@ -2,18 +2,18 @@ package com.netflix.spinnaker.keel.logging
 
 import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.id
-import com.netflix.spinnaker.keel.logging.TracingSupport.Companion.withTracingContext
 import com.netflix.spinnaker.keel.logging.TracingSupport.Companion.X_SPINNAKER_RESOURCE_ID
-import com.netflix.spinnaker.keel.test.resource
+import com.netflix.spinnaker.keel.logging.TracingSupport.Companion.withTracingContext
 import com.netflix.spinnaker.keel.model.Moniker
+import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.slf4j.MDC
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import strikt.assertions.isNull
 
 class TracingSupportTests : JUnit5Minutests {

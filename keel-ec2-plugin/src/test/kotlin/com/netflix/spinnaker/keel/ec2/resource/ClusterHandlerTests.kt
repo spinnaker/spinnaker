@@ -5,6 +5,8 @@ import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.netflix.spinnaker.keel.api.Capacity
 import com.netflix.spinnaker.keel.api.ClusterDependencies
 import com.netflix.spinnaker.keel.api.Exportable
+import com.netflix.spinnaker.keel.api.Highlander
+import com.netflix.spinnaker.keel.api.RedBlack
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
@@ -13,12 +15,10 @@ import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.VirtualMachineImage
+import com.netflix.spinnaker.keel.api.ec2.CustomizedMetricSpecification
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
-import com.netflix.spinnaker.keel.api.Highlander
 import com.netflix.spinnaker.keel.api.ec2.LaunchConfiguration
 import com.netflix.spinnaker.keel.api.ec2.Metric
-import com.netflix.spinnaker.keel.api.RedBlack
-import com.netflix.spinnaker.keel.api.ec2.CustomizedMetricSpecification
 import com.netflix.spinnaker.keel.api.ec2.Scaling
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup
 import com.netflix.spinnaker.keel.api.ec2.TargetTrackingPolicy
@@ -54,8 +54,8 @@ import com.netflix.spinnaker.keel.model.parseMoniker
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
-import com.netflix.spinnaker.keel.plugin.TaskLauncher
 import com.netflix.spinnaker.keel.plugin.Resolver
+import com.netflix.spinnaker.keel.plugin.TaskLauncher
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -67,6 +67,9 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import java.time.Clock
+import java.time.Duration
+import java.util.UUID.randomUUID
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomStringUtils.randomNumeric
 import org.springframework.context.ApplicationEventPublisher
@@ -85,9 +88,6 @@ import strikt.assertions.isNull
 import strikt.assertions.isTrue
 import strikt.assertions.map
 import strikt.assertions.succeeded
-import java.time.Clock
-import java.time.Duration
-import java.util.UUID.randomUUID
 
 internal class ClusterHandlerTests : JUnit5Minutests {
 

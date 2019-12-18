@@ -16,8 +16,8 @@
 package com.netflix.spinnaker.keel.plugin
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.ResourceSpec
 
 abstract class SimpleResourceHandler<T : ResourceSpec>(
   objectMapper: ObjectMapper,

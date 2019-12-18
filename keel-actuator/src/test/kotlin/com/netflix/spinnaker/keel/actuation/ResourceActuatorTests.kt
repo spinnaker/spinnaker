@@ -41,12 +41,12 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 import io.mockk.verifySequence
+import java.time.Clock
 import kotlinx.coroutines.runBlocking
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
-import java.time.Clock
 
 internal class ResourceActuatorTests : JUnit5Minutests {
 

@@ -7,7 +7,6 @@ import com.netflix.spinnaker.keel.api.TimeWindowConstraint
 import com.netflix.spinnaker.keel.constraints.ConstraintEvaluator.Companion.getConstraintForEnvironment
 import com.netflix.spinnaker.keel.exceptions.InvalidConstraintException
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
-import org.springframework.stereotype.Component
 import java.text.ParsePosition
 import java.time.Clock
 import java.time.DayOfWeek
@@ -15,6 +14,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
+import org.springframework.stereotype.Component
 
 /**
  * An environment promotion constraint to gate promotions to time windows.

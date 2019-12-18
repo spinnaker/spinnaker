@@ -32,6 +32,7 @@ import com.netflix.spinnaker.keel.api.ec2.SelfReferenceRule
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.Network
+import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel as ClouddriverSecurityGroup
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel.SecurityGroupRule
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel.SecurityGroupRuleCidr
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel.SecurityGroupRulePortRange
@@ -48,8 +49,8 @@ import com.netflix.spinnaker.keel.model.parseMoniker
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
-import com.netflix.spinnaker.keel.plugin.TaskLauncher
 import com.netflix.spinnaker.keel.plugin.Resolver
+import com.netflix.spinnaker.keel.plugin.TaskLauncher
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
@@ -60,6 +61,8 @@ import io.mockk.coVerify
 import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.mockk
+import java.time.Clock
+import java.util.UUID.randomUUID
 import kotlinx.coroutines.runBlocking
 import strikt.api.Assertion
 import strikt.api.expectThat
@@ -73,9 +76,6 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isNotEmpty
 import strikt.assertions.isNotNull
-import java.time.Clock
-import java.util.UUID.randomUUID
-import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel as ClouddriverSecurityGroup
 
 internal class SecurityGroupHandlerTests : JUnit5Minutests {
   private val cloudDriverService: CloudDriverService = mockk()

@@ -19,8 +19,8 @@ package com.netflix.spinnaker.keel.sql
 
 import com.netflix.spinnaker.keel.persistence.UnhappyVetoRepositoryTests
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
-import org.junit.jupiter.api.AfterAll
 import java.time.Clock
+import org.junit.jupiter.api.AfterAll
 
 internal object SqlUnhappyVetoRepositoryTests : UnhappyVetoRepositoryTests<SqlUnhappyVetoRepository>() {
 

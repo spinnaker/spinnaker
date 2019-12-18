@@ -30,13 +30,13 @@ import dev.minutest.rootContext
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import java.time.Instant
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
-import java.time.Instant
 
 class ImageServiceTests : JUnit5Minutests {
   class Fixture {

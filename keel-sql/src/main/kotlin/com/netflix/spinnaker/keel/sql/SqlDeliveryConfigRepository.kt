@@ -25,16 +25,16 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_RESOU
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
-import org.jooq.DSLContext
-import org.jooq.impl.DSL
-import org.jooq.impl.DSL.inline
-import org.jooq.impl.DSL.select
-import org.jooq.util.mysql.MySQLDSL
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
 import java.time.Instant.EPOCH
 import java.time.ZoneOffset
+import org.jooq.DSLContext
+import org.jooq.impl.DSL
+import org.jooq.impl.DSL.inline
+import org.jooq.impl.DSL.select
+import org.jooq.util.mysql.MySQLDSL
 
 class SqlDeliveryConfigRepository(
   private val jooq: DSLContext,

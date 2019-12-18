@@ -37,6 +37,7 @@ import dev.minutest.rootContext
 import io.mockk.coEvery
 import io.mockk.mockk
 import io.mockk.slot
+import java.time.Clock
 import kotlinx.coroutines.runBlocking
 import strikt.api.expectThat
 import strikt.assertions.first
@@ -44,7 +45,6 @@ import strikt.assertions.hasSize
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEmpty
-import java.time.Clock
 
 class TaskLauncherTests : JUnit5Minutests {
   class Fixture {

@@ -17,13 +17,13 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_ARTIFACT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_VERSIONS
+import java.time.Clock
+import java.time.Instant
 import org.jooq.DSLContext
 import org.jooq.Record1
 import org.jooq.Select
 import org.jooq.impl.DSL.select
 import org.slf4j.LoggerFactory
-import java.time.Clock
-import java.time.Instant
 
 class SqlArtifactRepository(
   private val jooq: DSLContext,

@@ -4,8 +4,8 @@ import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepositoryTests
 import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
-import org.junit.jupiter.api.AfterAll
 import java.time.Clock
+import org.junit.jupiter.api.AfterAll
 
 internal object SqlDeliveryConfigRepositoryTests : DeliveryConfigRepositoryTests<SqlDeliveryConfigRepository, SqlResourceRepository, SqlArtifactRepository>() {
   private val testDatabase = initTestDatabase()

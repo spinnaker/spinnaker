@@ -34,7 +34,6 @@ dependencies {
   api("org.jetbrains.kotlinx:kotlinx-coroutines-core")
   api("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j")
 
-
   testImplementation(project(":keel-test"))
   testImplementation(project(":keel-core-test"))
   testImplementation("io.strikt:strikt-jackson")

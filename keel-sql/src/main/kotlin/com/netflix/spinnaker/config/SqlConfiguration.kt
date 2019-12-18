@@ -10,6 +10,8 @@ import com.netflix.spinnaker.keel.sql.SqlPausedRepository
 import com.netflix.spinnaker.keel.sql.SqlResourceRepository
 import com.netflix.spinnaker.keel.sql.SqlUnhappyVetoRepository
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
+import java.time.Clock
+import javax.annotation.PostConstruct
 import org.jooq.DSLContext
 import org.jooq.impl.DefaultConfiguration
 import org.springframework.beans.factory.annotation.Autowired
@@ -17,8 +19,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
-import java.time.Clock
-import javax.annotation.PostConstruct
 
 @Configuration
 @ConditionalOnProperty("sql.enabled")
