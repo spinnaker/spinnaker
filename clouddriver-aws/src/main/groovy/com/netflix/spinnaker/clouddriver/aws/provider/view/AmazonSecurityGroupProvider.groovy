@@ -197,7 +197,8 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
       new IpRangeRule(
         range: rule.range,
         protocol: rule.protocol,
-        portRanges: rule.portRanges
+        portRanges: rule.portRanges,
+        description: rule.description
       )
 
     }.sort()
@@ -268,7 +269,8 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
         rules.put(key, [
           range     : new AddressableRange(ip: rangeParts[0], cidr: "/${rangeParts[1]}"),
           protocol  : permission.ipProtocol,
-          portRanges: [] as SortedSet
+          portRanges: [] as SortedSet,
+          description: ipRange.description
         ])
       }
       rules.get(key).portRanges += new Rule.PortRange(startPort: permission.fromPort, endPort: permission.toPort)
@@ -280,7 +282,8 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
         rules.put(key, [
           range     : new AddressableRange(ip: rangeParts[0], cidr: "/${rangeParts[1]}"),
           protocol  : permission.ipProtocol,
-          portRanges: [] as SortedSet
+          portRanges: [] as SortedSet,
+          description: ipRange.description
         ])
       }
       rules.get(key).portRanges += new Rule.PortRange(startPort: permission.fromPort, endPort: permission.toPort)

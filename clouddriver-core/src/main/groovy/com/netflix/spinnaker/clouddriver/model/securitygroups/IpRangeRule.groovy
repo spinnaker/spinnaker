@@ -37,4 +37,9 @@ class IpRangeRule implements Rule {
    * {@inheritDoc}
    */
   final SortedSet<Rule.PortRange> portRanges
+
+  /**
+   *  The Description of this rule
+   */
+  final String description
 }
