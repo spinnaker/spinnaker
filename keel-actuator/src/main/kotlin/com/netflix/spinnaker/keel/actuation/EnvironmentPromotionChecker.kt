@@ -3,8 +3,8 @@ package com.netflix.spinnaker.keel.actuation
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
-import com.netflix.spinnaker.keel.api.StatefulConstraint
 import com.netflix.spinnaker.keel.constraints.ConstraintEvaluator
+import com.netflix.spinnaker.keel.constraints.StatefulConstraintEvaluator
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.telemetry.ArtifactVersionApproved
 import org.slf4j.LoggerFactory
@@ -18,7 +18,7 @@ class EnvironmentPromotionChecker(
   private val publisher: ApplicationEventPublisher
 ) {
   private val statefulEvaluators: List<ConstraintEvaluator<*>> = constraints
-    .filter { it.constraintType is StatefulConstraint }
+    .filterIsInstance<StatefulConstraintEvaluator<*>>()
   private val statelessEvaluators = constraints - statefulEvaluators
 
   /**

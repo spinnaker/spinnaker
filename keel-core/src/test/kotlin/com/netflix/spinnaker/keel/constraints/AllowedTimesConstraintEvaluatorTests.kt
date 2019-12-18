@@ -232,6 +232,28 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
       }
     }
 
+    context("should not wrap around") {
+      fixture {
+        Fixture(
+          clock = mondayClock,
+          constraint = TimeWindowConstraint(
+            listOf(
+              TimeWindow(
+                days = "sat-tue",
+                hours = "9-11"
+              )
+            ),
+            tz = "America/Los_Angeles"
+          )
+        )
+      }
+
+      test("not in window, hour does not wrap-around") {
+        expectThat(subject.canPromote(artifact, "1.1", manifest, environment))
+          .isFalse()
+      }
+    }
+
     context("window is validated at construction") {
       test("invalid day range") {
         expectCatching {

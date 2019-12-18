@@ -34,10 +34,9 @@ import org.springframework.stereotype.Component
  *    windows:
  *      - days: Monday,Tuesday-Friday
  *        hours: 11-16
- *        tz: America/Los_Angeles
  *      - days: Wed
  *        hours: 12-14
- *        tz: America/Los_Angeles
+ *    tz: America/Los_Angeles
  */
 @Component
 class AllowedTimesConstraintEvaluator(
@@ -176,7 +175,7 @@ class AllowedTimesConstraintEvaluator(
 
   private fun String.hourRange(): Set<Int> {
     val hours = this.split("-")
-    return if (hours[1] > hours[0]) {
+    return if (hours[1].toInt() > hours[0].toInt()) {
       // i.e. 10-18
       IntRange(hours[0].toInt(), hours[1].toInt()).toSet()
     } else {

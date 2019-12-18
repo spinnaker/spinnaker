@@ -113,7 +113,7 @@ class PipelineConstraintEvaluator(
           state.copy(
             status = FAIL,
             comment = "Failed to trigger pipeline ${constraint.pipelineId}, please review pipeline constraint " +
-              "configuration in delivery-config ${deliveryConfig.name} for $targetEnvironment",
+              "configuration in delivery-config ${deliveryConfig.name} for ${targetEnvironment.name}",
             judgedAt = clock.instant(),
             judgedBy = "keel"))
 
