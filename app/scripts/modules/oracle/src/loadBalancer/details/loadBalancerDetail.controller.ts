@@ -155,9 +155,7 @@ export class OracleLoadBalancerDetailController implements IController {
     this.confirmationModalService.confirm({
       header: 'Really delete ' + this.loadBalancer.name + '?',
       buttonText: 'Delete ' + this.loadBalancer.name,
-      provider: 'oracle',
       account: this.loadBalancer.accountId,
-      applicationName: this.app.name,
       taskMonitorConfig: taskMonitor,
       submitMethod: submitMethod,
     });

@@ -320,7 +320,6 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         header: 'Really terminate ' + instance.instanceId + '?',
         buttonText: 'Terminate ' + instance.instanceId,
         account: instance.account,
-        provider: 'aws',
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod,
       });
@@ -347,7 +346,6 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         header: 'Really terminate ' + instance.instanceId + ' and shrink ' + instance.serverGroup + '?',
         buttonText: 'Terminate ' + instance.instanceId + ' and shrink ' + instance.serverGroup,
         account: instance.account,
-        provider: 'aws',
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod,
       });
@@ -373,7 +371,6 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         header: 'Really reboot ' + instance.instanceId + '?',
         buttonText: 'Reboot ' + instance.instanceId,
         account: instance.account,
-        provider: 'aws',
         platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
         platformHealthType: 'Amazon',
         taskMonitorConfig: taskMonitor,
@@ -419,7 +416,6 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       confirmationModalService.confirm({
         header: 'Really deregister ' + instance.instanceId + ' from ' + loadBalancerNames + '?',
         buttonText: 'Deregister ' + instance.instanceId,
-        provider: 'aws',
         account: instance.account,
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod,
@@ -464,7 +460,6 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       confirmationModalService.confirm({
         header: 'Really deregister ' + instance.instanceId + ' from ' + targetGroupNames + '?',
         buttonText: 'Deregister ' + instance.instanceId,
-        provider: 'aws',
         account: instance.account,
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod,
@@ -507,7 +502,6 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       confirmationModalService.confirm({
         header: 'Really disable ' + instance.instanceId + ' in discovery?',
         buttonText: 'Disable ' + instance.instanceId,
-        provider: 'aws',
         account: instance.account,
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod,

@@ -35,13 +35,11 @@ module(CORE_APPLICATION_CONFIG_APPLICATIONSNAPSHOTSECTION_COMPONENT, [
         const taskMonitor = {
           application: this.application,
           title: 'Taking snapshot of ' + this.application.name,
-          hasKatoTask: true,
         };
 
         confirmationModalService.confirm({
           header: 'Are you sure you want to take a snapshot of: ' + this.application.name + '?',
           buttonText: 'Take snapshot',
-          provider: 'gce',
           taskMonitorConfig: taskMonitor,
           submitMethod: submitMethod,
         });

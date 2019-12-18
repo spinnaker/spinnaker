@@ -193,7 +193,6 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         header: 'Really terminate ' + instance.id + '?',
         buttonText: 'Terminate ' + instance.id,
         account: instance.account,
-        provider: 'titus',
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod,
       });
@@ -232,7 +231,6 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         header: 'Really terminate ' + instance.id + ' and shrink ' + instance.serverGroup + '?',
         buttonText: 'Terminate ' + instance.id + ' and shrink ' + instance.serverGroup,
         account: instance.account,
-        provider: 'titus',
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod,
       });
@@ -284,7 +282,6 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       confirmationModalService.confirm({
         header: 'Really disable ' + instance.instanceId + ' in discovery?',
         buttonText: 'Disable ' + instance.instanceId,
-        provider: 'titus',
         account: instance.account,
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod,

@@ -171,7 +171,6 @@ angular
         const confirmationModalParams = {
           header: 'Really destroy ' + serverGroup.name + '?',
           buttonText: 'Destroy ' + serverGroup.name,
-          provider: 'dcos',
           account: serverGroup.account,
           taskMonitorConfig: taskMonitor,
           platformHealthType: 'DCOS',
@@ -206,7 +205,6 @@ angular
         const confirmationModalParams = {
           header: 'Really disable ' + serverGroup.name + '?',
           buttonText: 'Disable ' + serverGroup.name,
-          provider: 'dcos',
           account: serverGroup.account,
           taskMonitorConfig: taskMonitor,
           submitMethod: submitMethod,

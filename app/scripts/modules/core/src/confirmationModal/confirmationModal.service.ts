@@ -5,7 +5,6 @@ import { CORE_CONFIRMATIONMODAL_CONFIRMATIONMODAL_CONTROLLER } from './confirmat
 
 export interface IConfirmationModalParams {
   account?: string;
-  applicationName?: string;
   askForReason?: boolean;
   body?: string;
   buttonText?: string;
@@ -15,7 +14,6 @@ export interface IConfirmationModalParams {
   multiTaskTitle?: string;
   platformHealthOnlyShowOverride?: boolean;
   platformHealthType?: string;
-  provider?: string;
   reason?: string;
   size?: string;
   submitJustWithReason?: boolean;

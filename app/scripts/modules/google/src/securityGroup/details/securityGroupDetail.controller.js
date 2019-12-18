@@ -245,9 +245,7 @@ angular
         confirmationModalService.confirm({
           header: 'Really delete ' + securityGroup.name + '?',
           buttonText: 'Delete ' + securityGroup.name,
-          provider: 'gce',
           account: securityGroup.accountId,
-          applicationName: application.name,
           taskMonitorConfig: taskMonitor,
           submitMethod: submitMethod,
         });

@@ -45,7 +45,6 @@ class TargetTrackingSummaryController implements IComponentController {
       header: `Really delete ${this.policy.policyName}?`,
       buttonText: 'Delete scaling policy',
       account: this.serverGroup.account,
-      provider: 'aws',
       taskMonitorConfig: taskMonitor,
       submitMethod: () => ScalingPolicyWriter.deleteScalingPolicy(this.application, this.serverGroup, this.policy),
     });

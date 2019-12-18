@@ -31,7 +31,6 @@ function RollingRestart({ application, serverGroupManager }: IRollingRestartProp
       account: serverGroupManager.account,
       askForReason: true,
       header: `Initiate rolling restart of ${serverGroupManager.name}`,
-      provider: 'kubernetes',
       submitMethod: () => {
         return ManifestWriter.rollingRestartManifest(rollingRestartParameters, application);
       },

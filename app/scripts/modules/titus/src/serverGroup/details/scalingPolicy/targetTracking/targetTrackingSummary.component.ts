@@ -76,7 +76,6 @@ class TargetTrackingSummaryController implements IComponentController {
       header: `Really delete ${policy.id}?`,
       buttonText: 'Delete scaling policy',
       account: this.serverGroup.account,
-      provider: 'titus',
       taskMonitorConfig: taskMonitor,
       submitMethod: () =>
         TaskExecutor.executeTask({

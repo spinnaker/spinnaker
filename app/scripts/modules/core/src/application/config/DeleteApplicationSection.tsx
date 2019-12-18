@@ -14,7 +14,6 @@ export function DeleteApplicationSection(props: IDeleteApplicationSection) {
     const taskMonitor = {
       application,
       title: `Deleting ${application.name}`,
-      hasKatoTask: false,
       onTaskComplete: () => {
         ReactInjector.$state.go('home.infrastructure');
       },
@@ -23,7 +22,6 @@ export function DeleteApplicationSection(props: IDeleteApplicationSection) {
     ReactInjector.confirmationModalService.confirm({
       header: `Really delete ${application.name} ?`,
       buttonText: `Delete ${application.name}`,
-      provider: 'aws',
       taskMonitorConfig: taskMonitor,
       submitMethod: () => ApplicationWriter.deleteApplication(application.attributes),
     });

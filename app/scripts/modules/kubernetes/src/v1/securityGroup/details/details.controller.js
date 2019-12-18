@@ -131,9 +131,7 @@ angular
         confirmationModalService.confirm({
           header: 'Really delete ' + securityGroup.name + '?',
           buttonText: 'Delete ' + securityGroup.name,
-          provider: 'kubernetes',
           account: securityGroup.accountId,
-          applicationName: application.name,
           taskMonitorConfig: taskMonitor,
           submitMethod: submitMethod,
         });

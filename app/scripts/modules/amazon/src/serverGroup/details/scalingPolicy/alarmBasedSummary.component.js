@@ -57,7 +57,6 @@ module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_ALARMBASEDSUMMARY_COMPONENT, [
           header: 'Really delete ' + this.policy.policyName + '?',
           buttonText: 'Delete scaling policy',
           account: this.policy.alarms.length ? this.serverGroup.account : null, // don't confirm if it's a junk policy
-          provider: 'aws',
           taskMonitorConfig: taskMonitor,
           submitMethod: submitMethod,
         });

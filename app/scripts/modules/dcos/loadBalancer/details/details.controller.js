@@ -112,9 +112,7 @@ angular
         confirmationModalService.confirm({
           header: 'Really delete ' + loadBalancer.name + '?',
           buttonText: 'Delete ' + loadBalancer.name,
-          provider: 'dcos',
           account: loadBalancer.account,
-          applicationName: application.name,
           taskMonitorConfig: taskMonitor,
           submitMethod: submitMethod,
         });

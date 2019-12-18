@@ -143,7 +143,6 @@ class AppengineServerGroupDetailsController implements IController {
       header: 'Really destroy ' + this.serverGroup.name + '?',
       buttonText: 'Destroy ' + this.serverGroup.name,
       account: this.serverGroup.account,
-      provider: 'appengine',
       taskMonitorConfig: taskMonitor,
       submitMethod,
       askForReason: true,
@@ -190,7 +189,6 @@ class AppengineServerGroupDetailsController implements IController {
     const confirmationModalParams = {
       header: 'Really enable ' + this.serverGroup.name + '?',
       buttonText: 'Enable ' + this.serverGroup.name,
-      provider: 'appengine',
       body: modalBody,
       account: this.serverGroup.account,
       taskMonitorConfig: taskMonitor,
@@ -240,7 +238,6 @@ class AppengineServerGroupDetailsController implements IController {
     const confirmationModalParams = {
       header: 'Really disable ' + this.serverGroup.name + '?',
       buttonText: 'Disable ' + this.serverGroup.name,
-      provider: 'appengine',
       body: modalBody,
       account: this.serverGroup.account,
       taskMonitorConfig: taskMonitor,
@@ -281,7 +278,6 @@ class AppengineServerGroupDetailsController implements IController {
     const confirmationModalParams = {
       header: 'Really stop ' + this.serverGroup.name + '?',
       buttonText: 'Stop ' + this.serverGroup.name,
-      provider: 'appengine',
       account: this.serverGroup.account,
       body: modalBody,
       platformHealthOnlyShowOverride: this.app.attributes.platformHealthOnlyShowOverride,
@@ -305,7 +301,6 @@ class AppengineServerGroupDetailsController implements IController {
     const confirmationModalParams = {
       header: 'Really start ' + this.serverGroup.name + '?',
       buttonText: 'Start ' + this.serverGroup.name,
-      provider: 'appengine',
       account: this.serverGroup.account,
       platformHealthOnlyShowOverride: this.app.attributes.platformHealthOnlyShowOverride,
       platformHealthType: AppengineHealth.PLATFORM,

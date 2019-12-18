@@ -173,7 +173,6 @@ angular
         confirmationModalService.confirm({
           header: 'Really delete ' + loadBalancer.name + '?',
           buttonText: 'Delete ' + loadBalancer.name,
-          provider: 'azure',
           account: loadBalancer.accountId,
           applicationName: app.name,
           taskMonitorConfig: taskMonitor,

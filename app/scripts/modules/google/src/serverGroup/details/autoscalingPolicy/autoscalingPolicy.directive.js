@@ -121,7 +121,6 @@ module(GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_DIRECTIVE,
           header: `Really delete autoscaler for ${this.serverGroup.name}?`,
           buttonText: 'Delete autoscaler',
           account: this.serverGroup.account,
-          provider: 'gce',
           taskMonitorConfig: taskMonitor,
           submitMethod: () => gceAutoscalingPolicyWriter.deleteAutoscalingPolicy(this.application, this.serverGroup),
         });

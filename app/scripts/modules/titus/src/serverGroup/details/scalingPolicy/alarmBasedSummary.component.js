@@ -80,7 +80,6 @@ module(TITUS_SERVERGROUP_DETAILS_SCALINGPOLICY_ALARMBASEDSUMMARY_COMPONENT, [
           header: `Really delete ${policy.id}?`,
           buttonText: 'Delete scaling policy',
           account: serverGroup.account,
-          provider: 'titus',
           taskMonitorConfig: taskMonitor,
           submitMethod: submitMethod,
         });

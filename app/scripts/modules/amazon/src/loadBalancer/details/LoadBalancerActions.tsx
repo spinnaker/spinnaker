@@ -91,9 +91,7 @@ export class LoadBalancerActions extends React.Component<ILoadBalancerActionsPro
     ReactInjector.confirmationModalService.confirm({
       header: `Really delete ${loadBalancerFromParams.name} in ${loadBalancerFromParams.region}: ${loadBalancerFromParams.accountId}?`,
       buttonText: `Delete ${loadBalancerFromParams.name}`,
-      provider: 'aws',
       account: loadBalancerFromParams.accountId,
-      applicationName: app.name,
       taskMonitorConfig: taskMonitor,
       submitMethod,
     });

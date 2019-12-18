@@ -103,13 +103,11 @@ module(CORE_SNAPSHOT_DIFF_SNAPSHOTDIFF_MODAL_CONTROLLER, [
       const taskMonitor = {
         application: application,
         title: 'Restoring snapshot of ' + application.name,
-        hasKatoTask: true,
       };
 
       confirmationModalService.confirm({
         header: `Are you sure you want to restore snapshot of: ${application.name}?`,
         buttonText: 'Restore snapshot',
-        provider: 'gce',
         body: '<p>This will change your infrastructure to the state specified in the snapshot selected</p>',
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod,

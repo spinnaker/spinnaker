@@ -269,7 +269,6 @@ module(ECS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         header: 'Really terminate ' + instance.instanceId + '?',
         buttonText: 'Terminate ' + instance.instanceId,
         account: instance.account,
-        provider: 'ecs',
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod,
       });
@@ -296,7 +295,6 @@ module(ECS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         header: 'Really terminate ' + instance.instanceId + ' and shrink ' + instance.serverGroup + '?',
         buttonText: 'Terminate ' + instance.instanceId + ' and shrink ' + instance.serverGroup,
         account: instance.account,
-        provider: 'ecs',
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod,
       });
@@ -338,7 +336,6 @@ module(ECS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
       confirmationModalService.confirm({
         header: 'Really disable ' + instance.instanceId + ' in discovery?',
         buttonText: 'Disable ' + instance.instanceId,
-        provider: 'ecs',
         account: instance.account,
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod,

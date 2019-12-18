@@ -124,7 +124,6 @@ module(ORACLE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_CONTROLLER, [
         header: 'Really destroy ' + serverGroup.name + '?',
         buttonText: 'Destroy ' + serverGroup.name,
         account: serverGroup.account,
-        provider: provider,
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod,
         onTaskComplete: function() {

@@ -138,7 +138,6 @@ module(DCOS_INSTANCE_DETAILS_DETAILS_CONTROLLER, [INSTANCE_WRITE_SERVICE, CONFIR
           header: 'Really terminate ' + instance.instanceId + '?',
           buttonText: 'Terminate ' + instance.instanceId,
           account: instance.account,
-          provider: 'dcos',
           taskMonitorConfig: taskMonitor,
           submitMethod: submitMethod,
         });
@@ -186,7 +185,6 @@ module(DCOS_INSTANCE_DETAILS_DETAILS_CONTROLLER, [INSTANCE_WRITE_SERVICE, CONFIR
         confirmationModalService.confirm({
           header: 'Really deregister ' + instance.name + ' from ' + loadBalancerNames + '?',
           buttonText: 'Deregister ' + instance.name,
-          provider: 'dcos',
           account: instance.account,
           taskMonitorConfig: taskMonitor,
           submitMethod: submitMethod,

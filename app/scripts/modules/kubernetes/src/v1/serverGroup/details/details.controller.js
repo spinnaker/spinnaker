@@ -199,7 +199,6 @@ angular
         const confirmationModalParams = {
           header: 'Really disable ' + serverGroup.name + '?',
           buttonText: 'Disable ' + serverGroup.name,
-          provider: 'kubernetes',
           account: serverGroup.account,
           taskMonitorConfig: taskMonitor,
           submitMethod: submitMethod,
@@ -229,7 +228,6 @@ angular
         const confirmationModalParams = {
           header: 'Really enable ' + serverGroup.name + '?',
           buttonText: 'Enable ' + serverGroup.name,
-          provider: 'kubernetes',
           account: serverGroup.account,
           taskMonitorConfig: taskMonitor,
           submitMethod: submitMethod,

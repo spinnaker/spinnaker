@@ -207,9 +207,7 @@ angular
         confirmationModalService.confirm({
           header: 'Really delete ' + securityGroup.name + '?',
           buttonText: 'Delete ' + securityGroup.name,
-          provider: 'aws',
           account: securityGroup.accountId,
-          applicationName: application.name,
           taskMonitorConfig: taskMonitor,
           submitMethod: submitMethod,
           retryBody: `<div><p>Retry deleting the ${FirewallLabels.get(

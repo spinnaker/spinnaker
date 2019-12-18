@@ -73,9 +73,7 @@ export class FunctionActions extends React.Component<IFunctionActionsProps, IFun
     ReactInjector.confirmationModalService.confirm({
       header: `Really delete ${functionFromParams.functionName} in ${functionFromParams.region}: ${functionFromParams.account}?`,
       buttonText: `Delete ${functionFromParams.functionName}`,
-      provider: 'aws',
       account: functionFromParams.account,
-      applicationName: app.name,
       taskMonitorConfig: taskMonitor,
       submitMethod,
     });

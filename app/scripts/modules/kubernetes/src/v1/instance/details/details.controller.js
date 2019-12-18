@@ -216,7 +216,6 @@ module(KUBERNETES_V1_INSTANCE_DETAILS_DETAILS_CONTROLLER, [
         header: 'Really terminate ' + instance.instanceId + '?',
         buttonText: 'Terminate ' + instance.instanceId,
         account: instance.account,
-        provider: 'kubernetes',
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod,
       });
@@ -266,7 +265,6 @@ module(KUBERNETES_V1_INSTANCE_DETAILS_DETAILS_CONTROLLER, [
       confirmationModalService.confirm({
         header: 'Really deregister ' + instance.name + ' from ' + loadBalancerNames + '?',
         buttonText: 'Deregister ' + instance.name,
-        provider: 'kubernetes',
         account: instance.account,
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod,
