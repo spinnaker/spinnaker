@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.event.CompositeSpinnakerEvent
 import com.netflix.spinnaker.clouddriver.event.EventMetadata
 import com.netflix.spinnaker.clouddriver.event.SpinnakerEvent
 import com.netflix.spinnaker.clouddriver.event.exceptions.AggregateChangeRejectedException
+import com.netflix.spinnaker.clouddriver.event.exceptions.DuplicateEventAggregateException
 import com.netflix.spinnaker.clouddriver.event.persistence.EventRepository
 import com.netflix.spinnaker.clouddriver.event.persistence.EventRepository.ListAggregatesCriteria
 import com.netflix.spinnaker.clouddriver.sql.transactional
@@ -37,6 +38,7 @@ import org.jooq.impl.DSL.max
 import org.jooq.impl.DSL.table
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
+import java.sql.SQLIntegrityConstraintViolationException
 import java.util.UUID
 
 class SqlEventRepository(
@@ -82,10 +84,21 @@ class SqlEventRepository(
               field("version") to 0
             )
 
-            ctx.insertInto(AGGREGATES_TABLE)
-              .columns(initialAggregate.keys)
-              .values(initialAggregate.values)
-              .execute()
+            try {
+              ctx.insertInto(AGGREGATES_TABLE)
+                .columns(initialAggregate.keys)
+                .values(initialAggregate.values)
+                .execute()
+            } catch (e: SQLIntegrityConstraintViolationException) {
+              // In the event that two requests are made at the same time to create a new aggregate (via two diff
+              // clouddriver instances), catch the exception and bubble it up as a duplicate exception so that it
+              // may be processed in an idempotent way, rather than causing an error.
+              //
+              // This is preferential to going back to the database to load the existing aggregate record, since we
+              // already know the aggregate version will not match the originating version expected from this process
+              // and would fail just below anyway.
+              throw DuplicateEventAggregateException(e)
+            }
 
             Aggregate(aggregateType, aggregateId, 0)
           }()

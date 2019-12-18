@@ -21,6 +21,7 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.thread.NamedThreadFactory
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.event.exceptions.DuplicateEventAggregateException
 import com.netflix.spinnaker.clouddriver.metrics.TimedCallable
 import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEvent
 import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEventHandler
@@ -124,6 +125,11 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
             task.updateStatus TASK_PHASE, "Orchestration failed: ${atomicOperation.class.simpleName} | ${e.class.simpleName}: [${e.errors.join(', ')}]"
             task.addResultObjects([extractExceptionSummary(e, e.errors.join(", "), [operation: atomicOperation.class.simpleName])])
             failTask(task, e)
+          } catch (DuplicateEventAggregateException e) {
+            // In this case, we can safely assume that the atomic operation is being run elsewhere and can just return
+            // the existing task.
+            log.warn("Received duplicate event aggregate: Indicative of receiving the same operation twice. Noop'ing and returning the task pointer", e)
+            return getTask(clientRequestId)
           } catch (e) {
             def message = e.message
             def stringWriter = new StringWriter()
