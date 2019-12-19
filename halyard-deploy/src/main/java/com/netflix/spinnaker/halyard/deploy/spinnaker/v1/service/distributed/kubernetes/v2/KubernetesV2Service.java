@@ -768,11 +768,7 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T>, Kubernete
         .setEnabled(isEnabled(deploymentConfiguration));
     if (runsOnJvm()) {
       // Use half the available memory allocated to the container for the JVM heap
-      settings
-          .getEnv()
-          .put(
-              "JAVA_OPTS",
-              "-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=2");
+      settings.getEnv().put("JAVA_OPTS", "-XX:MaxRAMPercentage=50.0");
     }
     return settings;
   }
