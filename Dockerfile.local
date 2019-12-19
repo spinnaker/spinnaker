@@ -34,7 +34,8 @@ RUN apk --purge del \
   py-pip
 RUN rm -rf /var/cache/apk
 
-RUN adduser -D -S spinnaker
+RUN addgroup -S -g 1000 spinnaker
+RUN adduser -D -S -G spinnaker -u 1000 spinnaker
 USER spinnaker
 
 CMD ["/opt/halyard/bin/halyard"]
