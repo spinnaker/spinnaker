@@ -26,7 +26,11 @@ const Heading = ({ application, parentGrouping, securityGroup, heading }: ISecur
       <div className="flex-1">{(heading || '').toUpperCase()}</div>
 
       {!parentGrouping.isManaged && securityGroup.isManaged && (
-        <ManagedResourceStatusIndicator shape="circle" resourceSummary={securityGroup.managedResourceSummary} />
+        <ManagedResourceStatusIndicator
+          shape="circle"
+          resourceSummary={securityGroup.managedResourceSummary}
+          application={application}
+        />
       )}
       <EntityNotifications
         entity={securityGroup}

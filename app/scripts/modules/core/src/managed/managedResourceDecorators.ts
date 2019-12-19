@@ -31,6 +31,7 @@ export const addManagedResourceMetadataToServerGroups = (application: Applicatio
     serverGroup.isManaged = !!matchingResource;
     serverGroup.managedResourceSummary = matchingResource;
   });
+  application.serverGroups.dataUpdated();
 };
 
 export const addManagedResourceMetadataToLoadBalancers = (application: Application) => {
@@ -53,6 +54,7 @@ export const addManagedResourceMetadataToLoadBalancers = (application: Applicati
     loadBalancer.isManaged = !!matchingResource;
     loadBalancer.managedResourceSummary = matchingResource;
   });
+  application.loadBalancers.dataUpdated();
 };
 
 export const addManagedResourceMetadataToSecurityGroups = (application: Application) => {
@@ -74,4 +76,5 @@ export const addManagedResourceMetadataToSecurityGroups = (application: Applicat
     securityGroup.isManaged = !!matchingResource;
     securityGroup.managedResourceSummary = matchingResource;
   });
+  application.securityGroups.dataUpdated();
 };

@@ -42,7 +42,11 @@ export class LoadBalancerPod extends React.Component<ILoadBalancerPodProps> {
             <div className="pod-center horizontal space-between flex-1 no-right-padding">
               <div>{grouping.heading}</div>
               {grouping.isManaged && (
-                <ManagedResourceStatusIndicator shape="square" resourceSummary={grouping.managedResourceSummary} />
+                <ManagedResourceStatusIndicator
+                  shape="square"
+                  resourceSummary={grouping.managedResourceSummary}
+                  application={application}
+                />
               )}
             </div>
           </div>

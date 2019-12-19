@@ -98,7 +98,11 @@ export class ClusterPod extends React.Component<IClusterPodProps, IClusterPodSta
           <div>{subgroup.heading}</div>
           <div className={classNames('flex-container-h middle', { 'sp-margin-xs-left': showManagedIndicator })}>
             {showManagedIndicator && (
-              <ManagedResourceStatusIndicator shape="circle" resourceSummary={subgroup.managedResourceSummary} />
+              <ManagedResourceStatusIndicator
+                shape="circle"
+                resourceSummary={subgroup.managedResourceSummary}
+                application={application}
+              />
             )}
             <EntityNotifications
               entity={subgroup}

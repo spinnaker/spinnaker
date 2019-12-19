@@ -41,7 +41,11 @@ export class DefaultClusterPodTitle extends React.Component<IClusterPodTitleProp
             />
 
             {grouping.isManaged && (
-              <ManagedResourceStatusIndicator shape="square" resourceSummary={grouping.managedResourceSummary} />
+              <ManagedResourceStatusIndicator
+                shape="square"
+                resourceSummary={grouping.managedResourceSummary}
+                application={application}
+              />
             )}
           </div>
         </div>

@@ -69,10 +69,10 @@ const ManagedResourceConfig = ({ application }: IManagedResourceConfigProps) => 
     setPauseFailed(false);
     logClick('Pause Management', application.name);
 
-    ManagedWriter.pauseResourceManagement(application.name)
+    ManagedWriter.pauseApplicationManagement(application.name)
       .then(() => {
         setPaused(true);
-        application.managedResources.refresh();
+        application.managedResources.refresh(true);
       })
       .catch(() => setPauseFailed(true))
       .finally(() => setPausePending(false));
@@ -83,10 +83,10 @@ const ManagedResourceConfig = ({ application }: IManagedResourceConfigProps) => 
     setPauseFailed(false);
     logClick('Resume Management', application.name);
 
-    ManagedWriter.resumeResourceManagement(application.name)
+    ManagedWriter.resumeApplicationManagement(application.name)
       .then(() => {
         setPaused(false);
-        application.managedResources.refresh();
+        application.managedResources.refresh(true);
       })
       .catch(() => setPauseFailed(true))
       .finally(() => setPausePending(false));

@@ -58,6 +58,7 @@ export class LoadBalancer extends React.Component<ILoadBalancerProps> {
                     <ManagedResourceStatusIndicator
                       shape="circle"
                       resourceSummary={loadBalancer.managedResourceSummary}
+                      application={application}
                     />
                   )}
                   <EntityNotifications
