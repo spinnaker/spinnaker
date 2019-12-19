@@ -16,8 +16,10 @@
 
 package com.netflix.spinnaker.igor.scm.gitlab.client;
 
+import com.netflix.spinnaker.igor.scm.AbstractScmMaster;
+
 /** Wrapper class for a collection of GitLab clients */
-public class GitLabMaster {
+public class GitLabMaster extends AbstractScmMaster {
   private final GitLabClient gitLabClient;
   private final String baseUrl;
 

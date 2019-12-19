@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.igor.scm.github.client
 
 import com.netflix.spinnaker.igor.config.GitHubProperties
+import com.netflix.spinnaker.igor.scm.AbstractScmMaster
 import org.springframework.context.annotation.Bean
 import retrofit.Endpoints
 import retrofit.RequestInterceptor
@@ -29,7 +30,7 @@ import javax.validation.Valid
 /**
  * Wrapper class for a collection of GitHub clients
  */
-class GitHubMaster {
+class GitHubMaster  extends AbstractScmMaster {
     GitHubClient gitHubClient
     String baseUrl
 

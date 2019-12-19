@@ -18,6 +18,7 @@ package com.netflix.spinnaker.igor.config
 
 import com.netflix.spinnaker.igor.scm.stash.client.StashClient
 import com.netflix.spinnaker.igor.scm.stash.client.StashMaster
+import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
 import com.squareup.okhttp.Credentials
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -57,6 +58,8 @@ class StashConfig {
             .setRequestInterceptor(new BasicAuthRequestInterceptor(username, password))
             .setClient(new OkClient())
             .setConverter(new JacksonConverter())
+            .setLogLevel(RestAdapter.LogLevel.BASIC)
+            .setLog(new Slf4jRetrofitLogger(StashClient))
             .build()
             .create(StashClient)
     }

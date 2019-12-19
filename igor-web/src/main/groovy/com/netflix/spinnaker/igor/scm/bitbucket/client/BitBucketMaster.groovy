@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.igor.scm.bitbucket.client
 
 import com.netflix.spinnaker.igor.config.BitBucketProperties
+import com.netflix.spinnaker.igor.scm.AbstractScmMaster
 import com.squareup.okhttp.Credentials
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
@@ -30,7 +31,7 @@ import javax.validation.Valid
 /**
  * Wrapper class for a collection of BitBucket clients
  */
-class BitBucketMaster {
+class BitBucketMaster extends AbstractScmMaster {
   BitBucketClient bitBucketClient
   String baseUrl
 

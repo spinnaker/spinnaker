@@ -242,7 +242,7 @@ class BuildController {
             HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE)).split('/').drop(6).join('/')
         def buildService = getBuildService(master)
         if (buildService instanceof BuildProperties) {
-            BuildProperties buildProperties = (BuildProperties) buildService
+          BuildProperties buildProperties = (BuildProperties) buildService
           def genericBuild = buildService.getGenericBuild(job, buildNumber)
           return buildProperties.getBuildProperties(job, genericBuild, fileName)
         }

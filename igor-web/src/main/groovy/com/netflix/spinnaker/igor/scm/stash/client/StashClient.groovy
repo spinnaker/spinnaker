@@ -17,8 +17,11 @@
 package com.netflix.spinnaker.igor.scm.stash.client
 
 import com.netflix.spinnaker.igor.scm.stash.client.model.CompareCommitsResponse
+import com.netflix.spinnaker.igor.scm.stash.client.model.DirectoryListingResponse
+import com.netflix.spinnaker.igor.scm.stash.client.model.TextLinesResponse
 import retrofit.http.GET
 import retrofit.http.Path
+import retrofit.http.Query
 import retrofit.http.QueryMap
 
 /**
@@ -31,5 +34,23 @@ interface StashClient {
         @Path('projectKey') String projectKey,
         @Path('repositorySlug') String repositorySlug,
         @QueryMap Map queryMap)
+
+  // TODO: pagination support
+  @GET('/rest/api/1.0/projects/{projectKey}/repos/{repositorySlug}/browse/{dirPath}')
+  DirectoryListingResponse listDirectory(
+    @Path('projectKey') String projectKey,
+    @Path('repositorySlug') String repositorySlug,
+    @Path(value = 'dirPath', encode = false) String dirPath,
+    @Query('at') String at
+  )
+
+  // TODO: pagination support
+  @GET('/rest/api/1.0/projects/{projectKey}/repos/{repositorySlug}/browse/{filePath}')
+  TextLinesResponse getTextFileContents(
+    @Path('projectKey') String projectKey,
+    @Path('repositorySlug') String repositorySlug,
+    @Path(value = 'filePath', encode = false) String filePath,
+    @Query('at') String at
+  )
 }
 

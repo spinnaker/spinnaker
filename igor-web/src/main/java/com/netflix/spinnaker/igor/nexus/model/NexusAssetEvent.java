@@ -22,10 +22,12 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Data
+@EqualsAndHashCode(callSuper = false)
 public class NexusAssetEvent extends Event {
   private final Content content;
   private final Map<String, String> details =

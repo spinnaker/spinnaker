@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.igor.scm.bitbucket.client.model
 
 abstract class AbstractBitBucketResponse {
-  List<?> values
   String next
   Integer pagelen
 }

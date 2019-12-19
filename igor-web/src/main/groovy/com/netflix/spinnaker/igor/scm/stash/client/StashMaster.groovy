@@ -16,57 +16,46 @@
 
 package com.netflix.spinnaker.igor.scm.stash.client
 
-import com.netflix.spinnaker.igor.config.StashProperties
-import com.squareup.okhttp.Credentials
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.context.annotation.Bean
-import retrofit.Endpoints
-import retrofit.RequestInterceptor
-import retrofit.RestAdapter
-import retrofit.client.OkClient
-import retrofit.converter.SimpleXMLConverter
-
-import javax.validation.Valid
+import com.netflix.spinnaker.igor.scm.AbstractScmMaster
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
+import groovy.util.logging.Slf4j
+import retrofit.RetrofitError
 
 /**
  * Wrapper class for a collection of Stash clients
  */
-class StashMaster {
+@Slf4j
+class StashMaster extends AbstractScmMaster {
     StashClient stashClient
     String baseUrl
 
-    @Bean
-    @ConditionalOnProperty('stash.base-url')
-    StashMaster stashMaster(@Valid StashProperties stashProperties) {
-        log.info "bootstrapping ${stashProperties.baseUrl}"
-        new StashMaster(
-            stashClient : stashClient(stashProperties.baseUrl, stashProperties.username, stashProperties.password), baseUrl: stashProperties.baseUrl)
+  List<String> listDirectory(String projectKey, String repositorySlug, String path, String at) {
+    try {
+      return stashClient.listDirectory(projectKey, repositorySlug, path, at).toChildFilenames()
+    } catch (RetrofitError e) {
+      if (e.getKind() == RetrofitError.Kind.NETWORK) {
+        throw new NotFoundException("Could not find the server ${baseUrl}")
+      }
+      log.error(
+        "Failed to fetch file from {}/{}/{}, reason: {}",
+        projectKey, repositorySlug, path, e.message
+      )
+      throw e
     }
+  }
 
-    StashClient stashClient(String address, String username, String password) {
-        new RestAdapter.Builder()
-            .setEndpoint(Endpoints.newFixedEndpoint(address))
-            .setRequestInterceptor(new BasicAuthRequestInterceptor(username, password))
-            .setClient(new OkClient())
-            .setConverter(new SimpleXMLConverter())
-            .build()
-            .create(StashClient(address:address))
-
+  String getTextFileContents(String projectKey, String repositorySlug, String path, String at) {
+    try {
+      return stashClient.getTextFileContents(projectKey, repositorySlug, path, at).toTextContents()
+    } catch (RetrofitError e) {
+      if (e.getKind() == RetrofitError.Kind.NETWORK) {
+        throw new NotFoundException("Could not find the server ${baseUrl}")
+      }
+      log.error(
+        "Failed to fetch file from {}/{}/{}, reason: {}",
+        projectKey, repositorySlug, path, e.message
+      )
+      throw e
     }
-
-    static class BasicAuthRequestInterceptor implements RequestInterceptor {
-
-        private final String username
-        private final String password
-
-        BasicAuthRequestInterceptor(String username, String password) {
-            this.username = username
-            this.password = password
-        }
-
-        @Override
-        void intercept(RequestInterceptor.RequestFacade request) {
-            request.addHeader("Authorization", Credentials.basic(username, password))
-        }
-    }
+  }
 }
