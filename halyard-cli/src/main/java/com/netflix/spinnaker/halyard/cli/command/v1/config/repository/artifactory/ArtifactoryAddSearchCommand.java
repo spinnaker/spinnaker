@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.repository.artifactory;
 
+import static com.netflix.spinnaker.halyard.cli.command.v1.config.repository.artifactory.RepositoryType.MAVEN;
+
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.repository.search.AbstractAddSearchCommand;
@@ -53,22 +55,35 @@ public class ArtifactoryAddSearchCommand extends AbstractAddSearchCommand {
       description = ArtifactoryCommandProperties.REPO_DESCRIPTION)
   public String repo;
 
-  @Parameter(
-      names = "--groupId",
-      required = true,
-      description = ArtifactoryCommandProperties.GROUP_ID_DESCRIPTION)
+  @Parameter(names = "--groupId", description = ArtifactoryCommandProperties.GROUP_ID_DESCRIPTION)
   public String groupId;
+
+  @Parameter(
+      names = "--repo-type",
+      description = ArtifactoryCommandProperties.REPO_TYPE_DESCRIPTION)
+  public RepositoryType repoType = MAVEN;
 
   @Override
   protected Search buildSearch(String searchName) {
+    validate();
+
     ArtifactorySearch search = (ArtifactorySearch) new ArtifactorySearch().setName(searchName);
     search
         .setBaseUrl(baseUrl)
         .setRepo(repo)
         .setGroupId(groupId)
+        .setRepoType(repoType.getType())
         .setPassword(password)
         .setUsername(username);
 
     return search;
+  }
+
+  private void validate() {
+    if (repoType == MAVEN && !isSet(groupId)) {
+      throw new IllegalArgumentException(
+          String.format(
+              "\"groupId\" must be specified when repository type is \"%s\"", MAVEN.getType()));
+    }
   }
 }

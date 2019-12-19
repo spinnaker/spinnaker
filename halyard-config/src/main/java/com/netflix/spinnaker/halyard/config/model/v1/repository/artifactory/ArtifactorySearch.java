@@ -31,6 +31,7 @@ public class ArtifactorySearch extends Search {
   private String baseUrl;
   private String repo;
   private String groupId;
+  private String repoType;
   private String username;
   @Secret private String password;
 }

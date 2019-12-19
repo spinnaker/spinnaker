@@ -10117,11 +10117,12 @@ hal config repository artifactory search add SEARCH [parameters]
 `SEARCH`: The name of the search to operate on.
  * `--base-url`: (*Required*) The base url your artifactory search is reachable at.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
- * `--groupId`: (*Required*) The group id in your artifactory to be searched.
+ * `--groupId`: The group id in your artifactory to be searched.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--password`: (*Required*) (*Sensitive data* - user will be prompted on standard input) The password of the artifactory user to authenticate as.
  * `--read-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to view this build search or use it as a trigger source.
  * `--repo`: (*Required*) The repo in your artifactory to be searched.
+ * `--repo-type`: (*Default*: `MAVEN`) The package type of repo in your artifactory to be searched.
  * `--username`: (*Required*) The username of the artifactory user to authenticate as.
  * `--write-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to be able to run jobs on this build search.
 
@@ -10165,6 +10166,7 @@ hal config repository artifactory search edit SEARCH [parameters]
  * `--remove-read-permission`: Remove this permission from the list of read permissions.
  * `--remove-write-permission`: Remove this permission from the list of write permissions.
  * `--repo`: The repo in your artifactory to be searched.
+ * `--repo-type`: The package type of repo in your artifactory to be searched.
  * `--username`: The username of the artifactory user to authenticate as.
  * `--write-permissions`: A user must have at least one of these roles in order to be able to run jobs on this build search.
 
