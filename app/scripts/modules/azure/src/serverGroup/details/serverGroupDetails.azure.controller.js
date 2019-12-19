@@ -150,19 +150,24 @@ angular
       this.destroyServerGroup = function destroyServerGroup() {
         const serverGroup = $scope.serverGroup;
 
-        const taskMonitor = {
-          application: app,
-          title: 'Destroying ' + serverGroup.name,
-        };
-
-        const submitMethod = function() {
-          return serverGroupWriter.destroyServerGroup(serverGroup, app);
-        };
-
         const stateParams = {
           name: serverGroup.name,
           accountId: serverGroup.account,
           region: serverGroup.region,
+        };
+
+        const taskMonitor = {
+          application: app,
+          title: 'Destroying ' + serverGroup.name,
+          onTaskComplete: function() {
+            if ($state.includes('**.serverGroup', stateParams)) {
+              $state.go('^');
+            }
+          },
+        };
+
+        const submitMethod = function() {
+          return serverGroupWriter.destroyServerGroup(serverGroup, app);
         };
 
         const confirmationModalParams = {
@@ -171,11 +176,6 @@ angular
           account: serverGroup.account,
           taskMonitorConfig: taskMonitor,
           submitMethod: submitMethod,
-          onTaskComplete: function() {
-            if ($state.includes('**.serverGroup', stateParams)) {
-              $state.go('^');
-            }
-          },
         };
 
         ServerGroupWarningMessageService.addDestroyWarningMessage(app, serverGroup, confirmationModalParams);

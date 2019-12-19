@@ -108,6 +108,11 @@ module(ORACLE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_CONTROLLER, [
       const taskMonitor = {
         application: app,
         title: 'Destroying ' + serverGroup.name,
+        onTaskComplete: function() {
+          if ($state.includes('**.serverGroup', stateParams)) {
+            $state.go('^');
+          }
+        },
       };
 
       const submitMethod = function() {
@@ -126,11 +131,6 @@ module(ORACLE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_CONTROLLER, [
         account: serverGroup.account,
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod,
-        onTaskComplete: function() {
-          if ($state.includes('**.serverGroup', stateParams)) {
-            $state.go('^');
-          }
-        },
       });
     };
 

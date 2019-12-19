@@ -47,3 +47,7 @@ export function Markdown(props: IMarkdownProps) {
 
   return React.createElement(tag, { ...restProps, className });
 }
+
+export const toMarkdown = (message: string, options: IDOMPurifyConfig = {}, inline = false) => (
+  <Markdown message={message} tag={inline ? 'span' : 'div'} options={options} />
+);

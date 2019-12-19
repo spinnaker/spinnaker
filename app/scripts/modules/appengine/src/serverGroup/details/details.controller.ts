@@ -126,18 +126,23 @@ class AppengineServerGroupDetailsController implements IController {
   }
 
   public destroyServerGroup(): void {
-    const taskMonitor = {
-      application: this.app,
-      title: 'Destroying ' + this.serverGroup.name,
-    };
-
-    const submitMethod = (params: any) => this.serverGroupWriter.destroyServerGroup(this.serverGroup, this.app, params);
-
     const stateParams = {
       name: this.serverGroup.name,
       accountId: this.serverGroup.account,
       region: this.serverGroup.region,
     };
+
+    const taskMonitor = {
+      application: this.app,
+      title: 'Destroying ' + this.serverGroup.name,
+      onTaskComplete: () => {
+        if (this.$state.includes('**.serverGroup', stateParams)) {
+          this.$state.go('^');
+        }
+      },
+    };
+
+    const submitMethod = (params: any) => this.serverGroupWriter.destroyServerGroup(this.serverGroup, this.app, params);
 
     const confirmationModalParams = {
       header: 'Really destroy ' + this.serverGroup.name + '?',
@@ -149,11 +154,6 @@ class AppengineServerGroupDetailsController implements IController {
       platformHealthOnlyShowOverride: this.app.attributes.platformHealthOnlyShowOverride,
       platformHealthType: AppengineHealth.PLATFORM,
       body: this.getBodyTemplate(this.serverGroup, this.app),
-      onTaskComplete: () => {
-        if (this.$state.includes('**.serverGroup', stateParams)) {
-          this.$state.go('^');
-        }
-      },
       interestingHealthProviderNames: [] as string[],
     };
 

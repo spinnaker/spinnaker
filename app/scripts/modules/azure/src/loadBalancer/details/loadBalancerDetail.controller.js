@@ -11,12 +11,14 @@ import {
   FirewallLabels,
 } from '@spinnaker/core';
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
+import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 
 export const AZURE_LOADBALANCER_DETAILS_LOADBALANCERDETAIL_CONTROLLER =
   'spinnaker.azure.loadBalancer.details.controller';
 export const name = AZURE_LOADBALANCER_DETAILS_LOADBALANCERDETAIL_CONTROLLER; // for backwards compatibility
 angular
   .module(AZURE_LOADBALANCER_DETAILS_LOADBALANCERDETAIL_CONTROLLER, [
+    ANGULAR_UI_BOOTSTRAP,
     UIROUTER_ANGULARJS,
     SECURITY_GROUP_READER,
     LOAD_BALANCER_READ_SERVICE,
@@ -174,7 +176,6 @@ angular
           header: 'Really delete ' + loadBalancer.name + '?',
           buttonText: 'Delete ' + loadBalancer.name,
           account: loadBalancer.accountId,
-          applicationName: app.name,
           taskMonitorConfig: taskMonitor,
           submitMethod: submitMethod,
         });

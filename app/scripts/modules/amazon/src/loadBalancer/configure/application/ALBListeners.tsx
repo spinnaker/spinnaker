@@ -416,7 +416,6 @@ export class ALBListeners extends React.Component<IALBListenersProps, IALBListen
           }
           return $q.resolve();
         },
-        windowClass: 'zindex-top',
       });
     } else {
       this.removeAuthActionInternal(listener, actions, authIndex, ruleIndex);

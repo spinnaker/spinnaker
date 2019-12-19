@@ -147,6 +147,11 @@ angular
         const taskMonitor = {
           application: application,
           title: 'Destroying ' + serverGroup.name,
+          onTaskComplete: () => {
+            if ($state.includes('**.serverGroup', stateParams)) {
+              $state.go('^');
+            }
+          },
         };
 
         const submitMethod = params =>
@@ -169,11 +174,6 @@ angular
           taskMonitorConfig: taskMonitor,
           submitMethod: submitMethod,
           askForReason: true,
-          onTaskComplete: () => {
-            if ($state.includes('**.serverGroup', stateParams)) {
-              $state.go('^');
-            }
-          },
         };
 
         ServerGroupWarningMessageService.addDestroyWarningMessage(app, serverGroup, confirmationModalParams);

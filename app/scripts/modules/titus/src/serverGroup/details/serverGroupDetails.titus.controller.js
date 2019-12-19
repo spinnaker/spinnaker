@@ -227,6 +227,11 @@ angular
         const taskMonitor = {
           application: application,
           title: 'Destroying ' + serverGroup.name,
+          onTaskComplete: function() {
+            if ($state.includes('**.serverGroup', stateParams)) {
+              $state.go('^');
+            }
+          },
         };
 
         const submitMethod = function() {
@@ -251,11 +256,6 @@ angular
           platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
           platformHealthType: 'Titus',
           submitMethod: submitMethod,
-          onTaskComplete: function() {
-            if ($state.includes('**.serverGroup', stateParams)) {
-              $state.go('^');
-            }
-          },
         };
 
         ServerGroupWarningMessageService.addDestroyWarningMessage(app, serverGroup, confirmationModalParams);

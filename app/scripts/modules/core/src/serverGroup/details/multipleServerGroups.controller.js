@@ -75,7 +75,7 @@ angular
             '</span>) to be ' +
             verbs.futurePerfect.toLowerCase(),
           textToVerify: this.serverGroups.length + '',
-          taskMonitors: taskMonitors,
+          taskMonitorConfigs: taskMonitors,
           askForReason: true,
           multiTaskTitle: verbs.presentContinuous + ' ' + descriptor,
         });

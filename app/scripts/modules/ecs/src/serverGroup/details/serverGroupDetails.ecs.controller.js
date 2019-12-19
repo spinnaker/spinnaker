@@ -192,6 +192,11 @@ angular
         const taskMonitor = {
           application: app,
           title: 'Destroying ' + serverGroup.name,
+          onTaskComplete: () => {
+            if ($state.includes('**.serverGroup', stateParams)) {
+              $state.go('^');
+            }
+          },
         };
 
         const submitMethod = params => serverGroupWriter.destroyServerGroup(serverGroup, app, params);
@@ -211,11 +216,6 @@ angular
           askForReason: true,
           platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
           platformHealthType: 'Ecs',
-          onTaskComplete: () => {
-            if ($state.includes('**.serverGroup', stateParams)) {
-              $state.go('^');
-            }
-          },
         };
 
         ServerGroupWarningMessageService.addDestroyWarningMessage(app, serverGroup, confirmationModalParams);

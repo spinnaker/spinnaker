@@ -150,9 +150,20 @@ angular
       this.destroyServerGroup = () => {
         const serverGroup = $scope.serverGroup;
 
+        const stateParams = {
+          name: serverGroup.name,
+          accountId: serverGroup.account,
+          region: serverGroup.region,
+        };
+
         const taskMonitor = {
           application: application,
           title: 'Destroying ' + serverGroup.name,
+          onTaskComplete: () => {
+            if ($state.includes('**.serverGroup', stateParams)) {
+              $state.go('^');
+            }
+          },
         };
 
         const submitMethod = params =>
@@ -162,12 +173,6 @@ angular
             angular.extend(params, dcosServerGroupParamsMixin.destroyServerGroup(serverGroup, application)),
           );
 
-        const stateParams = {
-          name: serverGroup.name,
-          accountId: serverGroup.account,
-          region: serverGroup.region,
-        };
-
         const confirmationModalParams = {
           header: 'Really destroy ' + serverGroup.name + '?',
           buttonText: 'Destroy ' + serverGroup.name,
@@ -175,11 +180,6 @@ angular
           taskMonitorConfig: taskMonitor,
           platformHealthType: 'DCOS',
           submitMethod: submitMethod,
-          onTaskComplete: function() {
-            if ($state.includes('**.serverGroup', stateParams)) {
-              $state.go('^');
-            }
-          },
         };
 
         ServerGroupWarningMessageService.addDestroyWarningMessage(app, serverGroup, confirmationModalParams);

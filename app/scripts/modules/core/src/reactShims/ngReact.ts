@@ -25,7 +25,7 @@ import { ReactInject } from './react.injector';
 import { stageSummaryComponent } from 'core/pipeline/details/stageSummary.component';
 import { stepExecutionDetailsComponent } from 'core/pipeline/details/stepExecutionDetails.component';
 import { targetSelectComponent, ITargetSelectProps } from 'core/pipeline/config/targetSelect.component';
-import { taskMonitorWrapperComponent } from 'core/task/monitor/taskMonitor.directive';
+import { TaskMonitorWrapper } from 'core/task/monitor/TaskMonitorWrapper';
 import { viewChangesLinkWrapper } from 'core/diffs/viewChangesLink.component';
 import { viewScalingActivitiesLink } from 'core/serverGroup/details/scalingActivities/viewScalingActivitiesLink.component';
 import { IInstanceArchetypeSelectorProps } from 'core/serverGroup/configure/common/InstanceArchetypeSelector';
@@ -54,7 +54,7 @@ export class NgReactInjector extends ReactInject {
   public StageSummaryWrapper: React.ComponentClass<IStageSummaryWrapperProps>                   = angular2react('stageSummary', stageSummaryComponent, this.$injectorProxy) as any;
   public StepExecutionDetailsWrapper: React.ComponentClass<IStepExecutionDetailsWrapperProps>   = angular2react('stepExecutionDetails', stepExecutionDetailsComponent, this.$injectorProxy) as any;
   public TargetSelect: React.ComponentClass<ITargetSelectProps>                                 = angular2react('targetSelect', targetSelectComponent, this.$injectorProxy) as any;
-  public TaskMonitorWrapper: React.ComponentClass<ITaskMonitorProps>                            = angular2react('taskMonitorWrapper', taskMonitorWrapperComponent, this.$injectorProxy) as any;
+  public TaskMonitorWrapper: React.FunctionComponent<ITaskMonitorProps>                         = TaskMonitorWrapper;
   public UserMenu: React.ComponentClass<{}>                                                     = angular2react('userMenu', {}, this.$injectorProxy) as any;
   public ViewChangesLink: React.ComponentClass<IViewChangesLinkProps>                           = angular2react('viewChangesLinkWrapper', viewChangesLinkWrapper, this.$injectorProxy) as any;
   public ViewScalingActivitiesLink: React.ComponentClass<IViewScalingActivitiesLinkProps>       = angular2react('viewScalingActivitiesLink', viewScalingActivitiesLink, this.$injectorProxy) as any;

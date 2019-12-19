@@ -89,6 +89,11 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
     const taskMonitor = {
       application: app,
       title: 'Destroying ' + serverGroup.name,
+      onTaskComplete: () => {
+        if (ReactInjector.$state.includes('**.serverGroup', stateParams)) {
+          ReactInjector.$state.go('^');
+        }
+      },
     };
 
     const submitMethod = (params: IServerGroupJob) =>
@@ -110,11 +115,6 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
       askForReason: true,
       platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
       platformHealthType: 'Amazon',
-      onTaskComplete: () => {
-        if (ReactInjector.$state.includes('**.serverGroup', stateParams)) {
-          ReactInjector.$state.go('^');
-        }
-      },
     };
 
     ServerGroupWarningMessageService.addDestroyWarningMessage(app, serverGroup, confirmationModalParams);

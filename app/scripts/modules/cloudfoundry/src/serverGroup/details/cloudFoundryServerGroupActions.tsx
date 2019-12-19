@@ -71,20 +71,25 @@ export class CloudFoundryServerGroupActions extends React.Component<ICloudFoundr
   private destroyServerGroup = (): void => {
     const { app, serverGroup } = this.props;
 
+    const stateParams = {
+      name: serverGroup.name,
+      accountId: serverGroup.account,
+      region: serverGroup.region,
+    };
+
     const taskMonitor = {
       application: app,
       title: 'Destroying ' + serverGroup.name,
+      onTaskComplete: () => {
+        if (ReactInjector.$state.includes('**.serverGroup', stateParams)) {
+          ReactInjector.$state.go('^');
+        }
+      },
     };
 
     const submitMethod = (params: ICloudFoundryServerGroupJob) => {
       params.serverGroupName = serverGroup.name;
       return ReactInjector.serverGroupWriter.destroyServerGroup(serverGroup, app, params);
-    };
-
-    const stateParams = {
-      name: serverGroup.name,
-      accountId: serverGroup.account,
-      region: serverGroup.region,
     };
 
     const confirmationModalParams = {
@@ -97,11 +102,6 @@ export class CloudFoundryServerGroupActions extends React.Component<ICloudFoundr
       askForReason: true,
       platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
       platformHealthType: 'Cloud Foundry',
-      onTaskComplete: () => {
-        if (ReactInjector.$state.includes('**.serverGroup', stateParams)) {
-          ReactInjector.$state.go('^');
-        }
-      },
     };
 
     ServerGroupWarningMessageService.addDestroyWarningMessage(app, serverGroup, confirmationModalParams);

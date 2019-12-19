@@ -1,8 +1,6 @@
 import React from 'react';
 import { Markdown } from 'core/presentation';
 import { ReactInjector } from 'core/reactShims';
-import { module } from 'angular';
-import { react2angular } from 'react2angular';
 import { ITask } from 'core/domain';
 import { RawParams } from '@uirouter/core';
 import { TrafficGuardHelperLink } from '../TrafficGuardHelperLink';
@@ -52,8 +50,3 @@ export class TaskMonitorError extends React.Component<ITaskMonitorErrorProps> {
     );
   }
 }
-
-export const TASK_MONITOR_ERROR = 'spinnaker.core.task.monitor.error';
-const ngmodule = module(TASK_MONITOR_ERROR, []);
-
-ngmodule.component('taskMonitorError', react2angular(TaskMonitorError, ['errorMessage', 'task']));

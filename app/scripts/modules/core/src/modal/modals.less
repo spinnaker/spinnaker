@@ -265,15 +265,27 @@ html .select2-container-multi {
   }
 }
 
+.overlay-modal-appear {
+  transform: scaleY(0);
+}
+
+.overlay-modal-appear-active {
+  transform: scaleY(1);
+}
+
 .overlay-modal {
-  transition: height 0.25s ease-in-out;
-  height: 0;
-  opacity: 0;
+  transition: transform 0.25s ease-in-out;
+  height: 100%;
+  min-height: 450px;
   overflow-y: auto;
   border-bottom: 2px solid var(--color-primary);
   background-color: var(--color-white);
-  z-index: 6;
-  position: relative;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
 
   .overlay-modal-status {
     padding: 0 30px;
@@ -286,13 +298,14 @@ html .select2-container-multi {
     overflow-y: auto;
     margin: 0;
     padding-top: 20px;
-    height: ~'calc(100% - 145px)';
+    flex: 1;
   }
   .modal-header,
   .modal-footer {
     position: relative;
     width: 100%;
     background-color: var(--color-white);
+    flex: 0;
   }
   .modal-header {
     top: 0;
