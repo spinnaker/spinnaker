@@ -123,7 +123,7 @@ export class ServerGroupDetails extends React.Component<IServerGroupDetailsProps
           <div className="band band-info">Disabled {timestamp(serverGroup.disabledDate)}</div>
         )}
         {!loading && serverGroup.isManaged && (
-          <ManagedResourceDetailsIndicator resourceSummary={serverGroup.managedResourceSummary} />
+          <ManagedResourceDetailsIndicator resourceSummary={serverGroup.managedResourceSummary} application={app} />
         )}
         {!loading && (
           <div className="content">

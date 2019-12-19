@@ -61,6 +61,7 @@
   <managed-resource-details-indicator
     ng-if="!ctrl.state.loading && ctrl.loadBalancer.isManaged"
     resource-summary="ctrl.loadBalancer.managedResourceSummary"
+    application="ctrl.application"
   >
   </managed-resource-details-indicator>
   <div ng-if="!ctrl.state.loading" class="content">

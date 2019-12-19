@@ -57,6 +57,7 @@
   <managed-resource-details-indicator
     ng-if="!state.loading && securityGroup.isManaged"
     resource-summary="securityGroup.managedResourceSummary"
+    application="ctrl.application"
   >
   </managed-resource-details-indicator>
   <div class="content" ng-if="!state.loading">

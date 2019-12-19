@@ -45,7 +45,7 @@ export function HelpField(props: IHelpFieldProps) {
   const contents = <HelpFieldContents content={content} fallback={fallback} id={id} />;
   const popover = (
     <HoverablePopover placement={placement || 'top'} template={contents} onShow={onShow} onHide={onHide}>
-      <a className="clickable help-field"> {label || icon} </a>
+      <span className="clickable help-field"> {label || icon} </span>
     </HoverablePopover>
   );
 

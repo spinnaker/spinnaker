@@ -1,16 +1,21 @@
 import React from 'react';
 import ReactGA from 'react-ga';
-import { Dropdown } from 'react-bootstrap';
+import { Dropdown, MenuItem } from 'react-bootstrap';
 
 import { SETTINGS } from 'core/config/settings';
 import { HoverablePopover } from 'core/presentation';
 
 import { IManagedResourceSummary } from 'core/domain';
+import { Application } from 'core/application';
+import { ReactInjector } from 'core/reactShims';
 
 import './ManagedResourceDetailsIndicator.css';
+import { toggleResourcePause } from 'core/managed/toggleResourceManagement';
+import { HelpField } from 'core/help';
 
 export interface IManagedResourceDetailsIndicatorProps {
   resourceSummary: IManagedResourceSummary;
+  application: Application;
 }
 
 const logClick = (label: string, resourceId: string) =>
@@ -20,12 +25,15 @@ const logClick = (label: string, resourceId: string) =>
     label: resourceId,
   });
 
-export const ManagedResourceDetailsIndicator = ({ resourceSummary }: IManagedResourceDetailsIndicatorProps) => {
+export const ManagedResourceDetailsIndicator = ({
+  resourceSummary,
+  application,
+}: IManagedResourceDetailsIndicatorProps) => {
   if (!resourceSummary) {
     return null;
   }
 
-  const { id } = resourceSummary;
+  const { id, isPaused } = resourceSummary;
 
   const helpText = (
     <>
@@ -45,6 +53,25 @@ export const ManagedResourceDetailsIndicator = ({ resourceSummary }: IManagedRes
     </>
   );
 
+  // events are getting trapped by React bootstrap menu
+  const allowNavigation = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (target && target.hasAttribute('href')) {
+      window.location.href = target.getAttribute('href');
+    }
+  };
+
+  const appPausedHelpContent = `
+    <p>Resource management is currently disabled for the entire application.
+    <a
+      href=${ReactInjector.$state.href('home.applications.application.config', {
+        section: 'managed-resources',
+      })}
+    >
+      Resume application management
+    </a>
+</p>`;
+
   return (
     <div className="flex-container-h middle ManagedResourceDetailsIndicator">
       <HoverablePopover template={helpText} placement="left">
@@ -61,6 +88,16 @@ export const ManagedResourceDetailsIndicator = ({ resourceSummary }: IManagedRes
         >
           <Dropdown.Toggle className="btn btn-sm btn-default dropdown-toggle">Resource Actions</Dropdown.Toggle>
           <Dropdown.Menu className="dropdown-menu">
+            {!application.isManagementPaused && (
+              <MenuItem onClick={() => toggleResourcePause(resourceSummary, application)}>
+                {isPaused ? 'Resume ' : 'Pause '} Management
+              </MenuItem>
+            )}
+            {application.isManagementPaused && (
+              <MenuItem disabled={true} onClick={allowNavigation}>
+                Resume Management <HelpField content={appPausedHelpContent} />
+              </MenuItem>
+            )}
             <li>
               <a target="_blank" onClick={() => logClick('History', id)} href={`${SETTINGS.gateUrl}/history/${id}`}>
                 History

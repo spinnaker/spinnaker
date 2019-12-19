@@ -25,9 +25,9 @@ const viewConfigurationByStatus: { [status in ManagedResourceStatus]?: IToggleCo
 export const toggleResourcePause = (
   resourceSummary: IManagedResourceSummary,
   application: Application,
-  hidePopover: () => void,
+  hidePopover?: () => void,
 ) => {
-  hidePopover();
+  hidePopover?.();
   const { id, isPaused } = resourceSummary;
   const toggle = () =>
     isPaused ? ManagedWriter.resumeResourceManagement(id) : ManagedWriter.pauseResourceManagement(id);

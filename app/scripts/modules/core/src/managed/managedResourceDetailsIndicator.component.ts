@@ -6,5 +6,5 @@ import { ManagedResourceDetailsIndicator } from './ManagedResourceDetailsIndicat
 export const MANAGED_RESOURCE_DETAILS_INDICATOR = 'spinnaker.core.managed.resourceDetailsIndicator.component';
 module(MANAGED_RESOURCE_DETAILS_INDICATOR, []).component(
   'managedResourceDetailsIndicator',
-  react2angular(ManagedResourceDetailsIndicator, ['resourceSummary']),
+  react2angular(ManagedResourceDetailsIndicator, ['resourceSummary', 'application']),
 );
