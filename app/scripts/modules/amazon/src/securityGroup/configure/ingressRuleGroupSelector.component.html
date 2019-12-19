@@ -68,6 +68,9 @@
   Select from a different account <span ng-if="$ctrl.securityGroup.vpcId">or VPC</span>
 </a>
 
+<div ng-if="$ctrl.crossAccountAccounts && $ctrl.crossAccountAccounts.length !== $ctrl.accounts.length">
+  <help-field key="aws.securityGroup.cross.account.ingress.help" expand="true"></help-field>
+</div>
 <span ng-if="$ctrl.securityGroup.regions.length > 1" class="small">
   Cross-account rules disabled when 2+ regions selected
 </span>

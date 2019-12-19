@@ -82,6 +82,7 @@ const helpContents: { [key: string]: string } = {
     <p>If you do not wish to use VPC, select "None".</p>`,
   'aws.securityGroup.name':
     '<p>The {{firewall}} name is formed by combining the application name, the <b>Stack</b> field, and the <b>Detail</b> field.</p>',
+  'aws.securityGroup.cross.account.ingress.help': '<p>Accounts that are excluded will not show up in this list</p>',
   'aws.scalingPolicy.search.restricted': `<p>Resets dimensions to "AutoScalingGroupName: {name of the ASG}" and provides
         a simpler, combined input for the namespace and metric name fields.</p>`,
   'aws.scalingPolicy.search.all': `
