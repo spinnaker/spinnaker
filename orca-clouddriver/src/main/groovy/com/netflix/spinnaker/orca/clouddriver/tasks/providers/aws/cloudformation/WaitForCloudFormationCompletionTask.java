@@ -67,9 +67,13 @@ public class WaitForCloudFormationCompletionTask implements OverridableTimeoutRe
               + stack.get("stackStatus"));
       boolean isChangeSet =
           (boolean) Optional.ofNullable(stage.getContext().get("isChangeSet")).orElse(false);
+      boolean isChangeSetExecution =
+          (boolean)
+              Optional.ofNullable(stage.getContext().get("isChangeSetExecution")).orElse(false);
       log.info("Deploying a CloudFormation ChangeSet for stackId " + stackId + ": " + isChangeSet);
+
       String status =
-          isChangeSet
+          (isChangeSet && !isChangeSetExecution)
               ? getChangeSetInfo(stack, stage.getContext(), "status")
               : getStackInfo(stack, "stackStatus");
       if (isComplete(status)) {

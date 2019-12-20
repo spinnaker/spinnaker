@@ -106,6 +106,7 @@ public class DeployCloudFormationTask extends AbstractCloudProviderAwareTask imp
     }
 
     Object templateBody = task.get("templateBody");
+
     if (templateBody instanceof Map && !((Map) templateBody).isEmpty()) {
       templateBody = new Yaml().dump(templateBody);
       task.put("templateBody", templateBody);
@@ -115,6 +116,7 @@ public class DeployCloudFormationTask extends AbstractCloudProviderAwareTask imp
               .stream().map(part -> new Yaml().dump(part)).collect(Collectors.joining("\n---\n"));
       task.put("templateBody", templateBody);
     }
+
     if (!(templateBody instanceof String) || Strings.isNullOrEmpty((String) templateBody)) {
       throw new IllegalArgumentException(
           "Invalid stage format, missing artifact or templateBody field: "
