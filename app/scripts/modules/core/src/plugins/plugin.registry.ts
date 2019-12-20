@@ -8,10 +8,7 @@ export interface IDeckPlugin {
 export interface IPluginManifestData {
   name: string;
   version: number;
-}
-
-export interface ILocalDevPluginManifestData extends IPluginManifestData {
-  url: string;
+  devUrl?: string;
 }
 
 export class PluginRegistry {
@@ -36,12 +33,12 @@ export class PluginRegistry {
     return Promise.all(this.pluginMetaData.map(plugin => this.load(plugin)));
   }
 
-  private async load(pluginMetaData: IPluginManifestData | ILocalDevPluginManifestData) {
+  private async load(pluginMetaData: IPluginManifestData) {
     this.validateMetadata(pluginMetaData);
 
     // Use `url` from the manifest, if it exists.
     // This will be the case only during local development.
-    const devUrl = (pluginMetaData as ILocalDevPluginManifestData).url;
+    const { devUrl } = pluginMetaData;
 
     // This will eventually build the url from name/version and fetch binaries from Gate/Front50
     // const { name, version } = pluginMetaData;
