@@ -68,10 +68,17 @@ public class V2PipelineTemplatesController {
     this.objectMapper = objectMapper;
   }
 
+  // TODO(louisjimenez): Deprecated. Will be replaced with /versions endpoint starting with 1.19.
   @ApiOperation(value = "(ALPHA) List pipeline templates.", response = List.class)
   @RequestMapping(method = RequestMethod.GET)
   public Collection<Map> list(@RequestParam(required = false) List<String> scopes) {
     return v2PipelineTemplateService.findByScope(scopes);
+  }
+
+  @ApiOperation(value = "List pipeline templates with versions", response = Map.class)
+  @RequestMapping(value = "/versions", method = RequestMethod.GET)
+  public Map<String, List<Map>> listVersions(@RequestParam(required = false) List<String> scopes) {
+    return v2PipelineTemplateService.findVersionsByScope(scopes);
   }
 
   @ApiOperation(value = "(ALPHA) Plan a pipeline template configuration.", response = HashMap.class)

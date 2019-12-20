@@ -50,8 +50,14 @@ public class V2PipelineTemplateService {
     return orcaServiceSelector.withContext(RequestContext.get()).plan(pipeline);
   }
 
+  // TODO(louisjimenez): Deprecated. Will be replaced with /versions endpoint starting with 1.19.
   public List<Map> findByScope(List<String> scopes) {
     return front50Service.getV2PipelineTemplates(
+        scopes == null ? null : (String[]) scopes.toArray());
+  }
+
+  public Map<String, List<Map>> findVersionsByScope(List<String> scopes) {
+    return front50Service.getV2PipelineTemplatesVersions(
         scopes == null ? null : (String[]) scopes.toArray());
   }
 

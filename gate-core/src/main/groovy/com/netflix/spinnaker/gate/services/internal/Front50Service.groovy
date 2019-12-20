@@ -104,8 +104,12 @@ interface Front50Service {
                             @Query("tag") String tag,
                             @Query("digest") String digest)
 
+  // TODO(louisjimenez): Deprecated. Will be replaced with /versions endpoint starting with 1.19.
   @GET('/v2/pipelineTemplates')
   List<Map> getV2PipelineTemplates(@Query("scopes") String... scopes)
+
+  @GET('/v2/pipelineTemplates/versions')
+  Map<String, List<Map>> getV2PipelineTemplatesVersions(@Query("scopes") String... scopes)
 
   @GET("/v2/pipelineTemplates/{pipelineTemplateId}/dependentPipelines")
   List<Map<String, Object>> getV2PipelineTemplateDependents(@Path("pipelineTemplateId") String pipelineTemplateId)
