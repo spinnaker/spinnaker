@@ -13,6 +13,7 @@ steps:
     name: gcr.io/cloud-builders/docker
     args: [
             "build",
+            "-t", "gcr.io/$PROJECT_ID/$_IMAGE_NAME:$TAG_NAME",
             "-t", "gcr.io/$PROJECT_ID/$_IMAGE_NAME:$TAG_NAME-slim",
             "-f", "Dockerfile.slim",
             ".",
@@ -25,14 +26,6 @@ steps:
             "-t", "gcr.io/$PROJECT_ID/$_IMAGE_NAME:$TAG_NAME-ubuntu",
             "-f", "Dockerfile.ubuntu",
             ".",
-          ]
-  - id: tagDefaultImage
-    waitFor: ["buildSlimImage"]
-    name: gcr.io/cloud-builders/docker
-    args: [
-            "tag",
-            "gcr.io/$PROJECT_ID/$_IMAGE_NAME:$TAG_NAME-slim",
-            "gcr.io/$PROJECT_ID/$_IMAGE_NAME:$TAG_NAME",
           ]
   - id: buildJava8Image
     waitFor: ["buildCompileImage"]
@@ -53,10 +46,10 @@ steps:
             ".",
           ]
 images:
-  - gcr.io/$PROJECT_ID/$_IMAGE_NAME:$TAG_NAME-slim
-  - gcr.io/$PROJECT_ID/$_IMAGE_NAME:$TAG_NAME-ubuntu
   - gcr.io/$PROJECT_ID/$_IMAGE_NAME:$TAG_NAME
+  - gcr.io/$PROJECT_ID/$_IMAGE_NAME:$TAG_NAME-slim
   - gcr.io/$PROJECT_ID/$_IMAGE_NAME:$TAG_NAME-java8
+  - gcr.io/$PROJECT_ID/$_IMAGE_NAME:$TAG_NAME-ubuntu
   - gcr.io/$PROJECT_ID/$_IMAGE_NAME:$TAG_NAME-ubuntu-java8
 timeout: 3600s
 options:
