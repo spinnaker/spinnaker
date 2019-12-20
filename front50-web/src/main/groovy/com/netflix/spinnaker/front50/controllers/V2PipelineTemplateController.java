@@ -68,11 +68,20 @@ public class V2PipelineTemplateController {
 
   @Autowired ObjectMapper objectMapper;
 
-  // TODO(jacobkiefer): Add fiat authz
+  // TODO(louisjimenez): Deprecated. Will be replaced with /versions endpoint starting with 1.19.
   @RequestMapping(value = "", method = RequestMethod.GET)
   List<PipelineTemplate> list(
       @RequestParam(required = false, value = "scopes") List<String> scopes) {
     return (List<PipelineTemplate>) getPipelineTemplateDAO().getPipelineTemplatesByScope(scopes);
+  }
+
+  // TODO(jacobkiefer): Add fiat authz
+  @RequestMapping(value = "versions", method = RequestMethod.GET)
+  Map<String, List<PipelineTemplate>> listVersions(
+      @RequestParam(required = false, value = "scopes") List<String> scopes) {
+    return getPipelineTemplateDAO().getPipelineTemplatesByScope(scopes).stream()
+        .filter(pt -> pt.getOrDefault("schema", "").equals("v2"))
+        .collect(Collectors.groupingBy(PipelineTemplate::undecoratedId));
   }
 
   @RequestMapping(value = "", method = RequestMethod.POST)
