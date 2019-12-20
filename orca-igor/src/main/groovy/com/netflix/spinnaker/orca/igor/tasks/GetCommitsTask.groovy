@@ -24,7 +24,7 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
-import com.netflix.spinnaker.orca.igor.BuildService
+import com.netflix.spinnaker.orca.igor.ScmService
 import com.netflix.spinnaker.orca.kato.tasks.DiffTask
 import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -49,7 +49,7 @@ class GetCommitsTask implements DiffTask {
   ObjectMapper objectMapper
 
   @Autowired(required = false)
-  BuildService buildService
+  ScmService scmService
 
   @Autowired(required = false)
   Front50Service front50Service
@@ -58,8 +58,8 @@ class GetCommitsTask implements DiffTask {
   TaskResult execute(Stage stage) {
     def retriesRemaining = stage.context.getCommitsRetriesRemaining != null ? stage.context.getCommitsRetriesRemaining : MAX_RETRIES
     // is igor not configured or have we exceeded configured retries
-    if (!buildService || retriesRemaining == 0) {
-      log.info("igor is not configured or retries exceeded : buildService : ${buildService}, retries : ${retriesRemaining}")
+    if (!scmService || retriesRemaining == 0) {
+      log.info("igor is not configured or retries exceeded : scmService : ${scmService}, retries : ${retriesRemaining}")
       return TaskResult.builder(ExecutionStatus.SUCCEEDED).context([commits: [], getCommitsRetriesRemaining: retriesRemaining]).build()
     }
 
@@ -146,7 +146,7 @@ class GetCommitsTask implements DiffTask {
 
   List getCommitsList(String repoType, String projectKey, String repositorySlug, String sourceCommit, String targetCommit) {
     List commitsList = []
-    List commits = buildService.compareCommits(repoType, projectKey, repositorySlug, [to: sourceCommit, from: targetCommit, limit: 100])
+    List commits = scmService.compareCommits(repoType, projectKey, repositorySlug, [to: sourceCommit, from: targetCommit, limit: 100])
     commits.each {
       // add commits to the task output
       commitsList << [displayId: it.displayId, id: it.id, authorDisplayName: it.authorDisplayName,

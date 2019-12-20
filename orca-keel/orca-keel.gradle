@@ -19,7 +19,22 @@ apply from: "$rootDir/gradle/kotlin.gradle"
 dependencies {
   implementation(project(":orca-core"))
   implementation(project(":orca-retrofit"))
+  implementation(project(":orca-igor"))
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("org.springframework:spring-web")
   implementation("org.springframework.boot:spring-boot-autoconfigure")
+
+  testImplementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+  testImplementation("dev.minutest:minutest")
+  testImplementation("io.mockk:mockk")
+  testImplementation("io.strikt:strikt-jackson")
+  testImplementation("org.assertj:assertj-core")
+  testImplementation("org.junit.jupiter:junit-jupiter-api")
+  testImplementation("org.junit.jupiter:junit-jupiter-params")
+}
+
+test {
+  useJUnitPlatform {
+    includeEngines("junit-jupiter")
+  }
 }

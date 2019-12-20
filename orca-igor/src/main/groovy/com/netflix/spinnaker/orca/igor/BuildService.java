@@ -56,12 +56,4 @@ public class BuildService {
       Integer buildNumber, String fileName, String master, String job) {
     return igorService.getArtifacts(buildNumber, fileName, master, encode(job));
   }
-
-  public List compareCommits(
-      String repoType,
-      String projectKey,
-      String repositorySlug,
-      Map<String, String> requestParams) {
-    return igorService.compareCommits(repoType, projectKey, repositorySlug, requestParams);
-  }
 }

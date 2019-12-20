@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Netflix, Inc.
+ * Copyright 2019 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,21 @@
 package com.netflix.spinnaker.orca.keel.pipeline
 
 import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.keel.task.UpsertIntentTask
+import com.netflix.spinnaker.orca.keel.task.PublishDeliveryConfigTask
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.stereotype.Component
 import kotlin.reflect.KClass
 
+/**
+ * Pipeline stage that retrieves a Managed Delivery config manifest from source control via igor, then publishes it to keel.
+ * Generally this will be added to a single-stage pipeline with a git trigger to support GitOps flows.
+ */
 @Component
-class UpsertIntentStage() : StageDefinitionBuilder {
+class PublishDeliveryConfigStage : StageDefinitionBuilder {
   override fun taskGraph(stage: Stage, builder: TaskNode.Builder) {
-    builder.withTask("upsertIntent", UpsertIntentTask::class)
+    builder.withTask("publishDeliveryConfig", PublishDeliveryConfigTask::class)
   }
 
   private fun TaskNode.Builder.withTask(name: String, type: KClass<out Task>) =

@@ -1,7 +1,7 @@
 /*
- * Copyright 2017 Netflix, Inc.
+ * Copyright 2019 Netflix, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License")
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -14,15 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca
+package com.netflix.spinnaker.orca.keel.model
 
-import com.netflix.spinnaker.orca.keel.model.DeliveryConfig
-import retrofit.client.Response
-import retrofit.http.Body
-import retrofit.http.Header
-import retrofit.http.POST
-
-interface KeelService {
-  @POST("/delivery-configs/")
-  fun publishDeliveryConfig(@Body deliveryConfig: DeliveryConfig, @Header(value = "X-SPINNAKER-USER") user: String): Response
-}
+/**
+ * A Managed Delivery config file, modeled as a simple Map for now. Keel is expected to validate the format, not orca.
+ */
+typealias DeliveryConfig = Map<String, Any?>

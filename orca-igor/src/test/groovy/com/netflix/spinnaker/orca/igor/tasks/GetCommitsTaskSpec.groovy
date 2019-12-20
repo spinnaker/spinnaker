@@ -22,7 +22,7 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
-import com.netflix.spinnaker.orca.igor.BuildService
+import com.netflix.spinnaker.orca.igor.ScmService
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -42,7 +42,7 @@ class GetCommitsTaskSpec extends Specification {
   @Subject
   GetCommitsTask task = new GetCommitsTask()
 
-  BuildService buildService = Mock(BuildService)
+  ScmService scmService = Mock(ScmService)
   OortService oortService = Mock(OortService)
   Front50Service front50Service = Mock(Front50Service)
 
@@ -53,9 +53,9 @@ class GetCommitsTaskSpec extends Specification {
     return new ObjectMapper()
   }
 
-  def "buildService should be optional"() {
+  def "scmService should be optional"() {
     given:
-    task.buildService = null
+    task.scmService = null
 
     when:
     def result = task.execute(ExecutionBuilder.stage {})
@@ -189,7 +189,7 @@ class GetCommitsTaskSpec extends Specification {
   Stage setupGetCommits(Map contextMap, String account, String app, String sourceImage, String targetImage, String region, String cluster, String serverGroup, int serverGroupCalls = 1, int oortCalls = 1, Execution pipeline = this.pipeline) {
     def stage = new Stage(pipeline, "stash", contextMap)
 
-    task.buildService = Stub(BuildService) {
+    task.scmService = Stub(ScmService) {
       compareCommits("stash", "projectKey", "repositorySlug", ['to': '186605b', 'from': 'a86305d', 'limit': 100]) >> [[message: "my commit", displayId: "abcdab", id: "abcdabcdabcdabcd", authorDisplayName: "Joe Coder", timestamp: 1432081865000, commitUrl: "http://stash.com/abcdabcdabcdabcd"],
                                                                                                                       [message: "bug fix", displayId: "efghefgh", id: "efghefghefghefghefgh", authorDisplayName: "Jane Coder", timestamp: 1432081256000, commitUrl: "http://stash.com/efghefghefghefghefgh"]]
     }
@@ -254,13 +254,13 @@ class GetCommitsTaskSpec extends Specification {
     1 * oortService.getByAmiId("aws", account, region, targetImage) >> targetResponse
 
     and:
-    task.buildService = buildService
+    task.scmService = scmService
 
     when:
     def result = task.execute(stage)
 
     then:
-    1 * buildService.compareCommits("stash", "projectKey", "repositorySlug", ['to': '186605b', 'from': 'a86305d', 'limit': 100]) >> {
+    1 * scmService.compareCommits("stash", "projectKey", "repositorySlug", ['to': '186605b', 'from': 'a86305d', 'limit': 100]) >> {
       throw new RetrofitError(null, null,
         new Response("http://stash.com", 500, "test reason", [], null), null, null, null, null)
     }
@@ -286,7 +286,7 @@ class GetCommitsTaskSpec extends Specification {
     def stage = new Stage(pipeline, "stash", [application: app, account: account, source: [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [imageId: targetImage, ami: targetImageName, region: region]]])
 
     and:
-    task.buildService = buildService
+    task.scmService = scmService
     task.front50Service = front50Service
     1 * front50Service.get(app) >> new Application()
 
@@ -339,7 +339,7 @@ class GetCommitsTaskSpec extends Specification {
                                               source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImageName, imageId: targetImage, region: region]], "kato.tasks": katoMap])
 
     and:
-    task.buildService = Stub(BuildService) {
+    task.scmService = Stub(ScmService) {
       compareCommits("stash", "projectKey", "repositorySlug", ['to': '186605b', 'from': 'a86305d', 'limit': 100]) >> [[message: "my commit", displayId: "abcdab", id: "abcdabcdabcdabcd", authorDisplayName: "Joe Coder", timestamp: 1432081865000, commitUrl: "http://stash.com/abcdabcdabcdabcd"],
                                                                                                                       [message: "bug fix", displayId: "efghefgh", id: "efghefghefghefghefgh", authorDisplayName: "Jane Coder", timestamp: 1432081256000, commitUrl: "http://stash.com/efghefghefghefghefgh"]]
     }
@@ -388,7 +388,7 @@ class GetCommitsTaskSpec extends Specification {
                                               source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImageName, imageId: targetImage, region: region]], "kato.tasks": katoMap])
 
     and:
-    task.buildService = Stub(BuildService) {
+    task.scmService = Stub(ScmService) {
       compareCommits("stash", "projectKey", "repositorySlug", ['to': '186605b', 'from': 'a86305d', 'limit': 100]) >> [[message: "my commit", displayId: "abcdab", id: "abcdabcdabcdabcd", authorDisplayName: "Joe Coder", timestamp: 1432081865000, commitUrl: "http://stash.com/abcdabcdabcdabcd"],
                                                                                                                       [message: "bug fix", displayId: "efghefgh", id: "efghefghefghefghefgh", authorDisplayName: "Jane Coder", timestamp: 1432081256000, commitUrl: "http://stash.com/efghefghefghefghefgh"]]
     }
@@ -456,7 +456,7 @@ class GetCommitsTaskSpec extends Specification {
                                               source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImageName, imageId: targetImage, region: region]], "kato.tasks": katoMap])
 
     and:
-    task.buildService = Stub(BuildService) {
+    task.scmService = Stub(ScmService) {
       compareCommits("stash", "projectKey", "repositorySlug", ['to': '186605b', 'from': 'a86305d', 'limit': 100]) >> {
         throw new RetrofitError(null, null, new Response("http://stash.com", 404, "test reason", [], null), null, null, null, null)
       }
