@@ -5,50 +5,54 @@ export interface IDeckPlugin {
   stages?: IStageTypeConfig[];
 }
 
-export interface IPluginManifestData {
+export interface IPluginManifest {
   name: string;
-  version: number;
+  version: string;
   devUrl?: string;
+  module?: any;
 }
 
 export class PluginRegistry {
-  private pluginMetaData: IPluginManifestData[] = [];
+  private pluginManifests: IPluginManifest[] = [];
 
-  register(pluginMetaData: IPluginManifestData) {
-    this.pluginMetaData.push(pluginMetaData);
+  getRegisteredPlugins() {
+    return this.pluginManifests.slice();
   }
 
-  validateMetadata(pluginMetaData: IPluginManifestData) {
-    if (!pluginMetaData) {
-      throw new Error(`Invalid plugin metadata: received ${pluginMetaData} object`);
+  register(pluginManifest: IPluginManifest) {
+    this.validateManifest(pluginManifest);
+    this.pluginManifests.push(pluginManifest);
+  }
+
+  validateManifest(pluginManifest: IPluginManifest) {
+    if (!pluginManifest) {
+      throw new Error(`Invalid plugin manifest: received ${pluginManifest} object`);
     }
-    const keys: Array<keyof IPluginManifestData> = ['name', 'version'];
-    const missingKeys = keys.filter(key => !pluginMetaData[key]);
+    const keys: Array<keyof IPluginManifest> = ['name', 'version'];
+    const missingKeys = keys.filter(key => !pluginManifest[key]);
     if (missingKeys.length) {
-      throw new Error(`Invalid plugin metadata: Required key is missing: '${missingKeys.join(', ')}'`);
+      throw new Error(`Invalid plugin manifest: Required key is missing: '${missingKeys.join(', ')}'`);
     }
   }
 
   public loadPlugins(): Promise<any[]> {
-    return Promise.all(this.pluginMetaData.map(plugin => this.load(plugin)));
+    return Promise.all(this.pluginManifests.map(plugin => this.load(plugin)));
   }
 
-  private async load(pluginMetaData: IPluginManifestData) {
-    this.validateMetadata(pluginMetaData);
+  private async load(pluginManifest: IPluginManifest) {
+    this.validateManifest(pluginManifest);
 
     // Use `url` from the manifest, if it exists.
     // This will be the case only during local development.
-    const { devUrl } = pluginMetaData;
+    const { devUrl } = pluginManifest;
 
     // This will eventually build the url from name/version and fetch binaries from Gate/Front50
-    // const { name, version } = pluginMetaData;
+    // const { name, version } = pluginManifest;
     // const url = devUrl || `${gateurl}/plugins/${name}/${version}/index.js`;
 
     try {
-      // This inline comment is used by webpack to emit a native import() (instead of doing a webpack import)
-      // See: https://webpack.js.org/api/module-methods/
-      const module = await import(/* webpackIgnore: true */ devUrl);
-      Object.assign(pluginMetaData, { module });
+      const module = await this.loadModuleFromUrl(devUrl);
+      Object.assign(pluginManifest, { module });
 
       if (!module || !module.plugin) {
         throw new Error(
@@ -60,9 +64,17 @@ export class PluginRegistry {
 
       // Register extensions with deck.
       plugin.stages?.forEach(stage => Registry.pipeline.registerStage(stage));
+
+      return module;
     } catch (error) {
       console.error(`Failed to load plugin from ${devUrl}`);
       throw error;
     }
+  }
+
+  private loadModuleFromUrl(url: string) {
+    // This inline comment is used by webpack to emit a native import() (instead of doing a webpack import)
+    // See: https://webpack.js.org/api/module-methods/
+    return import(/* webpackIgnore: true */ url);
   }
 }
