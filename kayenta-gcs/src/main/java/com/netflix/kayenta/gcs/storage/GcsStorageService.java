@@ -100,6 +100,12 @@ public class GcsStorageService implements StorageService {
           log.error("Could not create bucket {} in project {}: {}", bucketName, projectName, e2);
           throw new IllegalArgumentException(e2);
         }
+      } else if (e.getStatusCode() == 403) {
+        log.error(
+            "Account does not have permissions to get bucket metadata {}. Please see the FAQ for details: https://github.com/spinnaker/kayenta/blob/master/docs/faq.md#why-doesnt-my-google-account-have-access-to-get-bucket-metadata: {}",
+            bucketName,
+            e);
+        throw new IllegalArgumentException(e);
       } else {
         log.error("Could not get bucket {}: {}", bucketName, e);
         throw new IllegalArgumentException(e);

@@ -6,6 +6,7 @@
 - [How does Kayenta decide if a metric passes or fails?](#how-does-kayenta-decide-if-a-metric-passes-or-fails)
 - [How do I report metrics in a way that is compatible with Kayenta and canary analysis](#how-do-i-report-metrics-in-a-way-that-is-compatible-with-kayenta-and-canary-analysis)
 - [My metric failed and I don't agree with the results, can I change how sensitive Kayenta is to change?](#my-metric-failed-and-i-dont-agree-with-the-results-can-i-change-how-sensitive-kayenta-is-to-change)
+- [Why doesn't my Google account have access to get bucket metadata?](#why-doesnt-my-google-account-have-access-to-get-bucket-metadata)
 
 ## Can you use Kayenta as a standalone service without the rest of Spinnaker?
 
@@ -54,3 +55,7 @@ _Warning: This is a beta feature and may be removed._
 
 Yes, there are a couple of settings available for you.
 See [EffectSize](./canary-config.md#effect-size) for more information.
+
+## Why doesn't my Google account have access to get bucket metadata?
+
+In order for Kayenta to read and write from a GCS bucket, it first needs to checks for the existence of the bucket. It does this by making a GET request to the `storage/v1/b/{bucket}` API which returns some metadata about the bucket. In order to interact with this API you need a role that has the `storage.buckets.get` permission. This permission used to be included in Google's [Standard Roles](https://cloud.google.com/storage/docs/access-control/iam-roles), but has since been removed and put into [Legacy Roles](https://cloud.google.com/storage/docs/access-control/iam-roles#legacy-roles). In order to get that permission, you can create a custom role and apply `storage.buckets.get` to it, add the `roles/storage.legacyBucketReader` as explained in the Legacy Roles section, or use the `roles/storage.admin` role.
