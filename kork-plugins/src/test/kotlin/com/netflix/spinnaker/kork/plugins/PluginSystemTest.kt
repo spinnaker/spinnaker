@@ -116,7 +116,9 @@ class PluginSystemTest : JUnit5Minutests {
       .withPropertyValues(
         "spinnaker.extensibility.plugins-root-path=${pluginsDir.toAbsolutePath()}",
         "spinnaker.extensibility.plugins.${descriptor.pluginId}.enabled=true")
-      .withConfiguration(AutoConfigurations.of(PluginsAutoConfiguration::class.java))
+      .withConfiguration(AutoConfigurations.of(
+        PluginsAutoConfiguration::class.java
+      ))
   }
 
   // companion to avoid generating a plugin per test case

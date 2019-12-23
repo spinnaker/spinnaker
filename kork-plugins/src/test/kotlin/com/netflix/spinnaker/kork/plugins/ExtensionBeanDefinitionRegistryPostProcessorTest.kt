@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.kork.plugins
 
 import com.netflix.spinnaker.kork.plugins.events.ExtensionLoaded
+import com.netflix.spinnaker.kork.plugins.proxy.aspects.InvocationAspect
 import com.netflix.spinnaker.kork.plugins.update.PluginUpdateService
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -102,9 +103,11 @@ class ExtensionBeanDefinitionRegistryPostProcessorTest : JUnit5Minutests {
     val pluginWrapper: PluginWrapper = mockk(relaxed = true)
     val extensionFactory: ExtensionFactory = mockk(relaxed = true)
     val applicationEventPublisher: ApplicationEventPublisher = mockk(relaxed = true)
+    val invocationAspects: List<InvocationAspect<*>> = mockk(relaxed = true)
     val pluginDescriptor: SpinnakerPluginDescriptor = mockk(relaxed = true)
 
-    val subject = ExtensionBeanDefinitionRegistryPostProcessor(pluginManager, updateService, applicationEventPublisher)
+    val subject = ExtensionBeanDefinitionRegistryPostProcessor(pluginManager, updateService,
+      applicationEventPublisher, invocationAspects)
 
     init {
       every { extensionFactory.create(eq(FooExtension::class.java)) } returns FooExtension()

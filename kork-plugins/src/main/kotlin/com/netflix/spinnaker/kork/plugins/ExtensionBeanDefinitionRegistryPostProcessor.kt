@@ -17,6 +17,9 @@ package com.netflix.spinnaker.kork.plugins
 
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import com.netflix.spinnaker.kork.plugins.events.ExtensionLoaded
+import com.netflix.spinnaker.kork.plugins.proxy.ExtensionInvocationProxy
+import com.netflix.spinnaker.kork.plugins.proxy.aspects.InvocationAspect
+import com.netflix.spinnaker.kork.plugins.proxy.aspects.InvocationState
 import com.netflix.spinnaker.kork.plugins.update.PluginUpdateService
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory
@@ -32,7 +35,8 @@ import org.springframework.context.ApplicationEventPublisher
 class ExtensionBeanDefinitionRegistryPostProcessor(
   private val pluginManager: SpinnakerPluginManager,
   private val updateManagerService: PluginUpdateService,
-  private val applicationEventPublisher: ApplicationEventPublisher
+  private val applicationEventPublisher: ApplicationEventPublisher,
+  private val invocationAspects: List<InvocationAspect<*>>
 ) : BeanDefinitionRegistryPostProcessor {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -48,7 +52,6 @@ class ExtensionBeanDefinitionRegistryPostProcessor(
   }
 
   override fun postProcessBeanFactory(beanFactory: ConfigurableListableBeanFactory) {
-    log.debug("Creating system extensions")
     pluginManager.getExtensionClassNames(null).forEach {
       log.debug("Creating extension '{}'", it)
 
@@ -66,11 +69,14 @@ class ExtensionBeanDefinitionRegistryPostProcessor(
       applicationEventPublisher.publishEvent(ExtensionLoaded(this, beanName, extensionClass))
     }
 
-    log.debug("Creating plugin extensions")
     pluginManager.startedPlugins.forEach { plugin ->
       if (plugin.isUnsafe()) return@forEach
       log.debug("Creating extensions for plugin '{}'", plugin.pluginId)
-      pluginManager.getExtensionClassNames(plugin.pluginId).forEach {
+
+      val pluginExtensions = pluginManager.getExtensionClassNames(plugin.pluginId)
+      if (pluginExtensions.isNullOrEmpty()) log.warn("No extensions found for plugin '{}'", plugin.pluginId)
+
+      pluginExtensions.forEach {
         log.debug("Creating extension '{}' for plugin '{}'", it, plugin.pluginId)
 
         val extensionClass = try {
@@ -79,7 +85,11 @@ class ExtensionBeanDefinitionRegistryPostProcessor(
           throw IntegrationException("Could not find extension class '$it' for plugin '${plugin.pluginId}'", e)
         }
 
-        val bean = pluginManager.extensionFactory.create(extensionClass)
+        val bean = ExtensionInvocationProxy.proxy(
+          pluginManager.extensionFactory.create(extensionClass),
+          invocationAspects as List<InvocationAspect<InvocationState>>,
+          plugin.descriptor as SpinnakerPluginDescriptor)
+
         val beanName = "${plugin.pluginId.replace(".", "")}${extensionClass.simpleName.capitalize()}"
 
         beanFactory.registerSingleton(beanName, bean)
