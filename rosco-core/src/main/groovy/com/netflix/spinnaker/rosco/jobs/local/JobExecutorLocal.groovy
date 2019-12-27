@@ -168,6 +168,8 @@ class JobExecutorLocal implements JobExecutor {
           } else {
             bakeStatus.state = BakeStatus.State.CANCELED
             bakeStatus.result = BakeStatus.Result.FAILURE
+            log.info("StdOut for failed job $jobId: $outputContent")
+            log.info("StdErr for failed job $jobId: $logsContent")
           }
 
           jobIdToHandlerMap.remove(jobId)
