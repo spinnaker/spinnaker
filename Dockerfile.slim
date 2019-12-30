@@ -1,4 +1,4 @@
-FROM alpine:3.10
+FROM alpine:3.11
 MAINTAINER delivery-engineering@netflix.com
 COPY --from=compile /compiled_sources/igor-web/build/install/igor /opt/igor
 RUN apk --no-cache add --update bash openjdk11-jre
