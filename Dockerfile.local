@@ -1,4 +1,4 @@
-FROM alpine:3.10
+FROM alpine:3.11
 LABEL maintainer="delivery-engineering@netflix.com"
 COPY --from=halyard.compile /compiled_sources/halyard-web/build/install/halyard /opt/halyard
 
