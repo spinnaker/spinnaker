@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.kork.plugins.config
 
 import com.fasterxml.jackson.core.JsonParseException
+import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -31,6 +32,7 @@ import com.netflix.spinnaker.kork.exceptions.SystemException
 import org.slf4j.LoggerFactory
 import org.springframework.core.env.ConfigurableEnvironment
 import org.springframework.core.env.EnumerablePropertySource
+import java.lang.reflect.ParameterizedType
 import java.util.Properties
 
 /**
@@ -46,7 +48,7 @@ import java.util.Properties
  *  plugin configuration with Spring Config Server / FastProps, without leaking Spring into the plugins.
  */
 @Alpha
-class SpringEnvironmentExtensionConfigResolver(
+class SpringEnvironmentConfigResolver(
   private val environment: ConfigurableEnvironment
 ) : ConfigResolver {
 
@@ -57,36 +59,43 @@ class SpringEnvironmentExtensionConfigResolver(
     .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
     .registerModules(KotlinModule())
 
-  override fun <T> resolve(coordinates: ConfigCoordinates, expectedType: Class<T>): T {
-    val pointer = when (coordinates) {
-      is PluginConfigCoordinates ->
-        listOf(
-          coordinates.pluginId,
-          "extensions",
-          coordinates.extensionId
-        ).let {
-          "/spinnaker/extensibility/plugins/${it.joinToString("/").replace(".", "/")}/config"
-        }
-      is SystemExtensionConfigCoordinates ->
-        "/spinnaker/extensibility/extensions/${coordinates.extensionId.replace(".", "/")}/config"
+  override fun <T> resolve(coordinates: ConfigCoordinates, expectedType: Class<T>): T =
+    resolveInternal(coordinates, { expectedType.newInstance() }) {
+      mapper.readValue(it, expectedType)
     }
+
+  override fun <T> resolve(coordinates: ConfigCoordinates, expectedType: TypeReference<T>): T =
+    resolveInternal(coordinates, {
+      // Yo, it's fine. Totally fine.
+      @Suppress("UNCHECKED_CAST")
+      val type = ((expectedType.type as ParameterizedType).rawType as Class<T>)
+      if (type.isInterface) {
+        // TODO(rz): Maybe this should be supported, but there's only one use at this point, and we can just call in
+        //  with HashMap instead of Map.
+        throw SystemConfigException("Expected type must be a concrete class, interface given")
+      }
+      type.newInstance() as T
+    }) {
+      mapper.readValue(it, expectedType)
+    }
+
+  private fun <T> resolveInternal(
+    coordinates: ConfigCoordinates,
+    missingCallback: () -> T,
+    callback: (TreeTraversingParser) -> T
+  ): T {
+    val pointer = coordinates.toPointer()
     log.debug("Searching for config at '$pointer'")
 
     val tree = mapper.valueToTree<ObjectNode>(propertySourcesAsMap()).at(pointer)
 
     if (tree is MissingNode) {
       log.debug("Missing configuration for '$coordinates': Loading default")
-      return expectedType.newInstance()
+      return missingCallback()
     }
 
     try {
-      return mapper.readValue(
-        TreeTraversingParser(
-          tree,
-          mapper
-        ),
-        expectedType
-      )
+      return callback(TreeTraversingParser(tree, mapper))
     } catch (pe: JsonParseException) {
       throw IntegrationException("Failed reading extension config: Input appears invalid", pe)
     } catch (me: JsonMappingException) {
@@ -115,4 +124,6 @@ class SpringEnvironmentExtensionConfigResolver(
       .filter { it.startsWith("spinnaker.extensibility") }
       .map { it to getProperty(it) }
       .toMap()
+
+  inner class SystemConfigException(message: String) : SystemException(message)
 }

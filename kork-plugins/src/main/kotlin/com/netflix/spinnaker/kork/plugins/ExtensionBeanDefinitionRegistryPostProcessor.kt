@@ -44,8 +44,8 @@ class ExtensionBeanDefinitionRegistryPostProcessor(
   override fun postProcessBeanDefinitionRegistry(registry: BeanDefinitionRegistry) {
     val start = System.currentTimeMillis()
     log.debug("Preparing plugins")
-    pluginManager.loadPlugins()
     updateManagerService.checkForUpdates()
+    pluginManager.loadPlugins()
     pluginManager.startPlugins()
 
     log.debug("Finished preparing plugins in {}ms", System.currentTimeMillis() - start)

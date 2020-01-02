@@ -43,6 +43,8 @@ import org.springframework.context.ApplicationEventPublisher
  *  plugin versions to use. We may not want the most recent release of a plugin.
  * TODO(rz): The front50 integration will need to be smart enough to understand what service is asking for plugins
  *  from the repository, and return only the plugins that are supposed to be installed on that service.
+ * TODO(rz): Consider not loading the plugins and deferring this to the PluginManager so that no errors are raised when
+ *  trying to load the same plugin twice.
  */
 class PluginUpdateService(
   internal val updateManager: UpdateManager,

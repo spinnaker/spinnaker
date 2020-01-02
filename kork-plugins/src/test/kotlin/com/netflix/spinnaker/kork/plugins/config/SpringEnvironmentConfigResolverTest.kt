@@ -15,6 +15,8 @@
  */
 package com.netflix.spinnaker.kork.plugins.config
 
+import com.fasterxml.jackson.core.type.TypeReference
+import com.netflix.spinnaker.config.PluginsConfigurationProperties.PluginRepositoryProperties
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
@@ -27,9 +29,10 @@ import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
+import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 
-class SpringEnvironmentExtensionConfigResolverTest : JUnit5Minutests {
+class SpringEnvironmentConfigResolverTest : JUnit5Minutests {
 
   fun tests() = rootContext<Fixture> {
     fixture {
@@ -37,8 +40,6 @@ class SpringEnvironmentExtensionConfigResolverTest : JUnit5Minutests {
     }
 
     test("plugin extension with shortened config path") {
-      every { environment.getProperty(any(), eq(TestExtensionConfig::class.java)) } returns TestExtensionConfig()
-
       expectThat(subject.resolve(
         PluginConfigCoordinates("netflix.sweet-plugin", "netflix.foo"),
         TestExtensionConfig::class.java
@@ -54,8 +55,6 @@ class SpringEnvironmentExtensionConfigResolverTest : JUnit5Minutests {
     }
 
     test("plugin extension with expanded path") {
-      every { environment.getProperty(any(), eq(TestExtensionConfig::class.java)) } returns TestExtensionConfig()
-
       expectThat(subject.resolve(
         PluginConfigCoordinates("netflix.very-important", "orca.stage"),
         TestExtensionConfig::class.java
@@ -70,8 +69,6 @@ class SpringEnvironmentExtensionConfigResolverTest : JUnit5Minutests {
     }
 
     test("system extension config path") {
-      every { environment.getProperty(any(), eq(TestExtensionConfig::class.java)) } returns TestExtensionConfig()
-
       expectThat(subject.resolve(
         SystemExtensionConfigCoordinates("netflix.bar"),
         TestExtensionConfig::class.java
@@ -88,11 +85,24 @@ class SpringEnvironmentExtensionConfigResolverTest : JUnit5Minutests {
             }
         }
     }
+
+    test("loading repository configs") {
+      expectThat(subject.resolve(
+        RepositoryConfigCoordinates(),
+        object : TypeReference<HashMap<String, PluginRepositoryProperties>>() {}
+      ))
+        .isA<Map<String, PluginRepositoryProperties>>()
+        .and {
+          get { get("foo") }
+            .isNotNull()
+            .get { url }.isEqualTo("http://localhost:9000")
+        }
+    }
   }
 
   private inner class Fixture {
     val environment: ConfigurableEnvironment = mockk(relaxed = true)
-    val subject = SpringEnvironmentExtensionConfigResolver(environment)
+    val subject = SpringEnvironmentConfigResolver(environment)
 
     init {
       every { environment.propertySources } returns MutablePropertySources().apply {
@@ -119,6 +129,7 @@ class SpringEnvironmentExtensionConfigResolverTest : JUnit5Minutests {
     "spinnaker.extensibility.plugins.netflix.sweet-plugin.extensions.netflix.foo.config.somelist[0].hello" to "Future Rob",
     "spinnaker.extensibility.plugins.netflix.very-important.extensions.orca.stage.config.optional" to "some new value",
     "spinnaker.extensibility.extensions.netflix.bar.config.somelist[0].hello" to "one",
-    "spinnaker.extensibility.extensions.netflix.bar.config.somelist[1].hello" to "two"
+    "spinnaker.extensibility.extensions.netflix.bar.config.somelist[1].hello" to "two",
+    "spinnaker.extensibility.repositories.foo.url" to "http://localhost:9000"
   )
 }

@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.kork.plugins.config
 
+import com.fasterxml.jackson.core.type.TypeReference
 import com.netflix.spinnaker.kork.annotations.Alpha
 
 /**
@@ -29,23 +30,53 @@ interface ConfigResolver {
    * must be used rather than throwing an error.
    */
   fun <T> resolve(coordinates: ConfigCoordinates, expectedType: Class<T>): T
+
+  /**
+   * @see [resolve].
+   *
+   * Instead of taking a concrete [Class], this method accepts Jackson's [TypeReference].
+   *
+   * IMPORTANT: [T] should be a concrete class, not a reference to an interface. For example, [HashMap] should be used
+   * instead of [Map], so that a default can be returned should no config exist at the desired [coordinates].
+   */
+  fun <T> resolve(coordinates: ConfigCoordinates, expectedType: TypeReference<T>): T
 }
 
-sealed class ConfigCoordinates(
-  val extensionId: String
-)
+sealed class ConfigCoordinates {
+  abstract fun toPointer(): String
+}
 
 /**
  * Config coordinates for a plugin's extension.
  */
 class PluginConfigCoordinates(
   val pluginId: String,
-  extensionId: String
-) : ConfigCoordinates(extensionId)
+  val extensionId: String
+) : ConfigCoordinates() {
+  override fun toPointer(): String =
+    listOf(
+      pluginId,
+      "extensions",
+      extensionId
+    ).let {
+      "/spinnaker/extensibility/plugins/${it.joinToString("/").replace(".", "/")}/config"
+    }
+}
 
 /**
  * Config coordinates for a system extension.
  */
 class SystemExtensionConfigCoordinates(
-  extensionId: String
-) : ConfigCoordinates(extensionId)
+  val extensionId: String
+) : ConfigCoordinates() {
+  override fun toPointer(): String =
+    "/spinnaker/extensibility/extensions/${extensionId.replace(".", "/")}/config"
+}
+
+/**
+ * Config coordinates for plugin repository configs.
+ */
+class RepositoryConfigCoordinates : ConfigCoordinates() {
+  override fun toPointer(): String =
+    "/spinnaker/extensibility/repositories"
+}

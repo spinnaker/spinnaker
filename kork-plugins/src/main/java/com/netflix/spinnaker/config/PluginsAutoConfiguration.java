@@ -17,12 +17,15 @@ package com.netflix.spinnaker.config;
 
 import static java.lang.String.format;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.config.PluginsConfigurationProperties.PluginRepositoryProperties;
 import com.netflix.spinnaker.kork.plugins.ExtensionBeanDefinitionRegistryPostProcessor;
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginManager;
 import com.netflix.spinnaker.kork.plugins.SpringPluginStatusProvider;
 import com.netflix.spinnaker.kork.plugins.config.ConfigResolver;
-import com.netflix.spinnaker.kork.plugins.config.SpringEnvironmentExtensionConfigResolver;
+import com.netflix.spinnaker.kork.plugins.config.RepositoryConfigCoordinates;
+import com.netflix.spinnaker.kork.plugins.config.SpringEnvironmentConfigResolver;
 import com.netflix.spinnaker.kork.plugins.proxy.aspects.InvocationAspect;
 import com.netflix.spinnaker.kork.plugins.proxy.aspects.InvocationState;
 import com.netflix.spinnaker.kork.plugins.proxy.aspects.LogInvocationAspect;
@@ -33,7 +36,9 @@ import com.netflix.spinnaker.kork.plugins.update.SpinnakerUpdateManager;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import org.pf4j.PluginStatusProvider;
 import org.pf4j.update.DefaultUpdateRepository;
@@ -66,7 +71,7 @@ public class PluginsAutoConfiguration {
   @ConditionalOnMissingBean(ConfigResolver.class)
   public static ConfigResolver springEnvironmentConfigResolver(
       ConfigurableEnvironment environment) {
-    return new SpringEnvironmentExtensionConfigResolver(environment);
+    return new SpringEnvironmentConfigResolver(environment);
   }
 
   @Bean
@@ -85,23 +90,33 @@ public class PluginsAutoConfiguration {
 
   @Bean
   public static UpdateManager pluginUpdateManager(
-      SpinnakerPluginManager pluginManager, PluginsConfigurationProperties properties) {
-    // TODO(rz): If no repositories, should we setup something to default to?
+      SpinnakerPluginManager pluginManager, ConfigResolver configResolver) {
+    Map<String, PluginRepositoryProperties> repositoriesConfig =
+        configResolver.resolve(
+            new RepositoryConfigCoordinates(),
+            new TypeReference<HashMap<String, PluginRepositoryProperties>>() {});
+
     List<UpdateRepository> repositories =
-        properties.repositories.entrySet().stream()
-            .map(
-                entry -> {
-                  try {
-                    return new DefaultUpdateRepository(
-                        entry.getKey(), new URL(entry.getValue().url));
-                  } catch (MalformedURLException e) {
-                    throw new BeanCreationException(
-                        format("Plugin repository '%s' has malformed URL", entry.getKey()), e);
-                  }
-                })
+        repositoriesConfig.entrySet().stream()
+            .map(entry -> createUpdateRepository(entry.getKey(), entry.getValue().url))
             .collect(Collectors.toList());
 
+    if (repositories.isEmpty()) {
+      log.warn(
+          "No remote repositories defined, will fallback to looking for a "
+              + "'repositories.json' file next to the application executable");
+    }
+
     return new SpinnakerUpdateManager(pluginManager, repositories);
+  }
+
+  private static UpdateRepository createUpdateRepository(String name, String url) {
+    try {
+      return new DefaultUpdateRepository(name, new URL(url));
+    } catch (MalformedURLException e) {
+      throw new BeanCreationException(
+          format("Plugin repository '%s' has malformed URL: '%s'", name, url), e);
+    }
   }
 
   @Bean

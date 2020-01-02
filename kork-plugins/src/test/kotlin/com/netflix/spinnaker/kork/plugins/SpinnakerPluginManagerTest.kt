@@ -15,17 +15,19 @@
  */
 package com.netflix.spinnaker.kork.plugins
 
+import com.fasterxml.jackson.core.type.TypeReference
 import com.netflix.spinnaker.kork.plugins.config.ConfigCoordinates
 import com.netflix.spinnaker.kork.plugins.config.ConfigResolver
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import java.lang.reflect.ParameterizedType
+import java.nio.file.Paths
 import org.pf4j.DefaultPluginDescriptor
 import org.pf4j.PluginState
 import org.pf4j.PluginStatusProvider
 import org.pf4j.PluginWrapper
 import strikt.api.expectThat
 import strikt.assertions.isTrue
-import java.nio.file.Paths
 
 class SpinnakerPluginManagerTest : JUnit5Minutests {
 
@@ -63,4 +65,7 @@ class FakePluginStatusProvider : PluginStatusProvider {
 
 class FakeConfigResolver : ConfigResolver {
   override fun <T> resolve(coordinates: ConfigCoordinates, expectedType: Class<T>) = expectedType.newInstance()
+  override fun <T> resolve(coordinates: ConfigCoordinates, expectedType: TypeReference<T>): T =
+    @Suppress("UNCHECKED_CAST")
+    ((expectedType.type as ParameterizedType).rawType as Class<T>).newInstance()
 }
