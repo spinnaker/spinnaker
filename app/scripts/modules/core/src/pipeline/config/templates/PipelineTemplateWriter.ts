@@ -14,16 +14,16 @@ export class PipelineTemplateWriter {
     });
   }
 
-  public static deleteTemplate(template: { id: string; digest?: string; version?: string }): IPromise<any> {
+  public static deleteTemplate(template: { id: string; digest?: string; tag?: string }): IPromise<any> {
     let request = API.one('v2')
       .one('pipelineTemplates')
       .one(template.id);
 
-    const params: { digest?: string; version?: string } = {};
+    const params: { digest?: string; tag?: string } = {};
     if (template.digest) {
       params.digest = template.digest;
-    } else if (template.version) {
-      params.version = template.version;
+    } else if (template.tag) {
+      params.tag = template.tag;
     }
 
     request = request.withParams(params);

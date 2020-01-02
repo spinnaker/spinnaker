@@ -6,15 +6,22 @@
   }
 }
 
-.pipeline-template-actions {
-  button.link {
-    padding: 0 1em 0 0;
+.templates-table {
+  &__template-actions {
+    display: flex;
+    button.link {
+      padding: 0 1em 0 0;
 
-    &:last-child {
-      padding: 0;
+      &:last-child {
+        padding: 0;
+      }
+    }
+    .link--create {
+      margin-left: 1rem;
     }
   }
-  .link--create {
-    margin-left: 1rem;
+
+  &__template-versions {
+    min-width: 300px;
   }
 }

@@ -42,6 +42,21 @@ export class PipelineTemplateV2Service {
     return `${id}:${digest}`;
   }
 
+  public static getTemplateVersion({ digest, tag, id }: IPipelineTemplateV2): string {
+    if (digest) {
+      return `${id}@sha256:${digest}`;
+    } else if (tag) {
+      return `${id}:${tag}`;
+    } else {
+      return id;
+    }
+  }
+
+  public static convertTemplateVersionToId(templateVersion: string): string {
+    const versionSplitOnDigest = templateVersion.split('@');
+    return versionSplitOnDigest.length > 1 ? versionSplitOnDigest[0] : versionSplitOnDigest[0].split(':')[0];
+  }
+
   public static getPipelineTemplateConfigV2(source: string): IPipelineTemplateConfigV2 {
     // Scoped to Front50 in the short-term.
     return {
@@ -75,7 +90,6 @@ export class PipelineTemplateV2Service {
   }
 
   private static schema = 'v2';
-  public static defaultTag = 'latest';
 
   public static inheritedKeys: Set<InheritedItem> = new Set([
     InheritedItem.Triggers,

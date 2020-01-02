@@ -167,7 +167,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
       ...pipelineConfig,
       ...(preselectedTemplate
         ? PipelineTemplateV2Service.getPipelineTemplateConfigV2(
-            `${preselectedTemplate.id}:${PipelineTemplateV2Service.defaultTag}`,
+            PipelineTemplateV2Service.getTemplateVersion(preselectedTemplate),
           )
         : PipelineTemplateReader.getPipelineTemplateConfig({
             name: command.name,

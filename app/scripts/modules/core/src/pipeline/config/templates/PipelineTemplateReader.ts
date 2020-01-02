@@ -3,7 +3,7 @@ import { $q } from 'ngimport';
 import { flatten } from 'lodash';
 import { API } from 'core/api/ApiService';
 import { IPipeline } from 'core/domain/IPipeline';
-import { IPipelineTemplateV2 } from 'core/domain/IPipelineTemplateV2';
+import { IPipelineTemplateV2Collections } from 'core/domain/IPipelineTemplateV2';
 import { IPipelineTemplateConfigV2 } from 'core/domain';
 import { PipelineTemplateV2Service } from 'core/pipeline';
 
@@ -142,14 +142,7 @@ export class PipelineTemplateReader {
     };
   }
 
-  public static getV2PipelineTemplateList(): IPromise<IPipelineTemplateV2[]> {
-    return API.one('pipelineTemplates')
-      .get()
-      .then((templates: IPipelineTemplateV2[]) => {
-        return templates.filter(
-          ({ digest, schema, tag }) =>
-            schema === 'v2' && tag === PipelineTemplateV2Service.defaultTag && typeof digest === 'undefined',
-        );
-      });
+  public static getV2PipelineTemplateList(): IPromise<IPipelineTemplateV2Collections> {
+    return API.one('v2', 'pipelineTemplates', 'versions').get();
   }
 }

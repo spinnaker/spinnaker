@@ -32,3 +32,11 @@ export interface IPipelineTemplatePlanV2 extends IPipeline {
   appConfig: { [key: string]: any };
   templateVariables: { [key: string]: any };
 }
+
+export interface IPipelineTemplateV2Collections {
+  [key: string]: IPipelineTemplateV2[];
+}
+
+export interface IPipelineTemplateV2VersionSelections {
+  [key: string]: string;
+}
