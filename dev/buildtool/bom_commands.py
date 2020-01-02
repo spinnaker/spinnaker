@@ -406,8 +406,9 @@ class PublishBomCommand(RepositoryCommandProcessor):
     for profile in os.listdir(config_path):
       profile_path = os.path.join(config_path, profile)
       if os.path.isfile(profile_path):
-        shutil.copyfile(profile_path, os.path.join(target_dir, profile))
-        logging.debug('Copied profile to %s', profile_path)
+        target_path = os.path.join(target_dir, profile)
+        shutil.copyfile(profile_path, target_path)
+        logging.debug('Copied profile to %s', target_path)
       elif not os.path.isdir(profile_path):
         logging.warning('%s is neither file nor directory -- ignoring',
                         profile_path)
