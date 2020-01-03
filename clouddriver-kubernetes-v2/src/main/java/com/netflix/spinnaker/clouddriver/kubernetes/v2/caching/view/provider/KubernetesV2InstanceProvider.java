@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider;
 
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
+import com.netflix.spinnaker.clouddriver.kubernetes.model.ContainerLog;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.KubernetesV2Instance;
@@ -27,13 +28,16 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
-import com.netflix.spinnaker.clouddriver.model.ContainerLog;
 import com.netflix.spinnaker.clouddriver.model.InstanceProvider;
 import io.kubernetes.client.models.V1Container;
+import io.kubernetes.client.models.V1ObjectMeta;
 import io.kubernetes.client.models.V1Pod;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,49 +86,63 @@ public class KubernetesV2InstanceProvider
   }
 
   @Override
-  public List<ContainerLog> getConsoleOutput(String account, String location, String fullName) {
+  public List<ContainerLog> getConsoleOutput(String account, String namespace, String fullName) {
     Optional<KubernetesV2Credentials> optionalCredentials = accountResolver.getCredentials(account);
     if (!optionalCredentials.isPresent()) {
       log.warn("Failure getting account {}", account);
       return null;
     }
-    KubernetesV2Credentials credentials = optionalCredentials.get();
 
+    KubernetesV2Credentials credentials = optionalCredentials.get();
     Pair<KubernetesKind, String> parsedName;
+
     try {
       parsedName = KubernetesManifest.fromFullResourceName(fullName);
     } catch (Exception e) {
       return null;
     }
 
-    String name = parsedName.getRight();
-
+    String podName = parsedName.getRight();
     V1Pod pod =
         KubernetesCacheDataConverter.getResource(
-            credentials.get(KubernetesKind.POD, location, name), V1Pod.class);
-
-    List<ContainerLog> result = new ArrayList<>();
+            credentials.get(KubernetesKind.POD, namespace, podName), V1Pod.class);
 
     // Short-circuit if pod cannot be found
     if (pod == null) {
-      result.add(
+      return Collections.singletonList(
           new ContainerLog("Error", "Failed to retrieve pod data; pod may have been deleted."));
-      return result;
     }
 
-    // Make live calls rather than abuse the cache for storing all logs
-    for (V1Container container : pod.getSpec().getContainers()) {
-      ContainerLog log = new ContainerLog();
-      log.setName(container.getName());
-      try {
-        log.setOutput(credentials.logs(location, name, container.getName()));
-      } catch (KubectlJobExecutor.KubectlException e) {
-        // Typically happens if the container/pod isn't running yet
-        log.setOutput(e.getMessage());
-      }
-      result.add(log);
-    }
+    return getPodLogs(credentials, pod);
+  }
 
-    return result;
+  @Nonnull
+  private List<ContainerLog> getPodLogs(
+      @Nonnull KubernetesV2Credentials credentials, @Nonnull V1Pod pod) {
+    List<V1Container> initContainers = pod.getSpec().getInitContainers();
+    List<V1Container> containers = pod.getSpec().getContainers();
+
+    return Stream.concat(initContainers.stream(), containers.stream())
+        .map(container -> getContainerLog(credentials, pod, container))
+        .collect(Collectors.toList());
+  }
+
+  @Nonnull
+  private ContainerLog getContainerLog(
+      @Nonnull KubernetesV2Credentials credentials,
+      @Nonnull V1Pod pod,
+      @Nonnull V1Container container) {
+    String containerName = container.getName();
+    V1ObjectMeta metadata = pod.getMetadata();
+
+    try {
+      // Make live calls rather than abuse the cache for storing all logs
+      String containerLogs =
+          credentials.logs(metadata.getNamespace(), metadata.getName(), containerName);
+      return new ContainerLog(containerName, containerLogs);
+    } catch (KubectlJobExecutor.KubectlException e) {
+      // Typically happens if the container/pod isn't running yet
+      return new ContainerLog(containerName, e.getMessage());
+    }
   }
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.model;
+package com.netflix.spinnaker.clouddriver.kubernetes.v1.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,6 +23,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 @NoArgsConstructor
+@Deprecated
+/**
+ * @deprecated only used in kubernetes v1 provider. use @ContainerLog in the clouddriver-kubernetes
+ *     project instead.
+ */
 public class ContainerLog {
   private String name;
   private String output;
