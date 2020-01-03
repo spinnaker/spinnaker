@@ -143,6 +143,17 @@
 
   local trigger = self.trigger,
   triggers:: {
+
+    artifactory(name):: trigger(name, 'artifactory') {
+      withAccount(account):: self + { account: account },
+      withExpectedArtifacts(expectedArtifacts):: self + if std.type(expectedArtifacts) == 'array' then { expectedArtifactIds: std.map(function(expectedArtifact) expectedArtifact.id, expectedArtifacts) } else { expectedArtifactIds: [expectedArtifacts.id] },
+      withOrganization(organization):: self + { organization: organization },
+      withRunAsUser(runAsUser):: self + { runAsUser: runAsUser },
+      withRegistry(registry):: self + { registry: registry },
+      withRepository(repository):: self + { repository: repository },
+      withTag(tag):: self + { tag: tag },
+    },
+
     docker(name):: trigger(name, 'docker') {
       withAccount(account):: self + { account: account },
       withExpectedArtifacts(expectedArtifacts):: self + if std.type(expectedArtifacts) == 'array' then { expectedArtifactIds: std.map(function(expectedArtifact) expectedArtifact.id, expectedArtifacts) } else { expectedArtifactIds: [expectedArtifacts.id] },
