@@ -1,13 +1,17 @@
 import React from 'react';
 import { mount } from 'enzyme';
 import { Subject } from 'rxjs';
-import { useForceUpdateFromObservable } from './useForceUpdateFromObservable.hook';
+import { useForceUpdate } from 'core/presentation';
 
-describe('useForceUpdateFromObservable', () => {
+describe('useForceUpdate', () => {
   let renderCounts = 0;
 
   const TestComponent = ({ stream }: { stream: Subject<void> }) => {
-    useForceUpdateFromObservable(stream);
+    const forceUpdate = useForceUpdate();
+    React.useEffect(() => {
+      const subscription = stream.subscribe(() => forceUpdate());
+      return () => subscription.unsubscribe();
+    });
     renderCounts += 1;
     return <i />;
   };

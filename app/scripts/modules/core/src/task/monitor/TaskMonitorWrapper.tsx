@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { CSSTransition } from 'react-transition-group';
 
 import { TaskMonitor } from 'core/task';
-import { useForceUpdateFromObservable } from 'core/presentation/hooks';
+import { useForceUpdate } from 'core/presentation/hooks';
 
 import { TaskMonitorStatus } from './TaskMonitorStatus';
 import { TaskMonitorError } from './TaskMonitorError';
@@ -12,7 +12,12 @@ export interface ITaskMonitorProps {
 }
 
 export const TaskMonitorWrapper = ({ monitor }: ITaskMonitorProps) => {
-  useForceUpdateFromObservable(monitor.statusUpdatedStream);
+  const forceUpdate = useForceUpdate();
+
+  useEffect(() => {
+    const subscription = monitor.statusUpdatedStream.subscribe(() => forceUpdate());
+    return () => subscription.unsubscribe();
+  }, []);
 
   if (!monitor.submitting && !monitor.error) {
     return null;
