@@ -7,11 +7,11 @@ databaseChangeLog:
             tableName: environment_artifact_versions
             columns:
               - column:
-                  name: status
+                  name: promotion_status
                   type: varchar(255)
                   constraints:
                     nullable: false
       rollback:
         - dropColumn:
             tableName: environment_artifact_versions
-            columnName: status
+            columnName: promotion_status

@@ -62,3 +62,6 @@ databaseChangeLog:
   - include:
       file: changelog/20191218-add-status-to-environment-artifact-versions.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20200106-rename-artifact-status.yml
+      relativeToChangelogFile: true
