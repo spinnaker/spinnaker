@@ -1,10 +1,9 @@
 import React from 'react';
 import ReactGA from 'react-ga';
-import DOMPurify from 'dompurify';
 import { isUndefined } from 'lodash';
 
 import { HelpContentsRegistry, HelpTextExpandedContext } from 'core/help';
-import { HoverablePopover, Placement } from 'core/presentation';
+import { HoverablePopover, Markdown, Placement } from 'core/presentation';
 
 export interface IHelpFieldProps {
   id?: string;
@@ -22,9 +21,10 @@ function HelpFieldContents(props: Pick<IHelpFieldProps, 'id' | 'fallback' | 'con
   if (id && !contentString) {
     contentString = HelpContentsRegistry.getHelpField(id) || fallback;
   }
+  console.warn(contentString);
 
   const config = { ADD_ATTR: ['target'] }; // allow: target="_blank"
-  return <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(contentString, config) }} />;
+  return <Markdown message={contentString} options={config} trim={true} />;
 }
 
 export function HelpField(props: IHelpFieldProps) {

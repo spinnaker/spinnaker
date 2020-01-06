@@ -1,5 +1,4 @@
 import React from 'react';
-import DOMPurify from 'dompurify';
 import { Field, FormikProps } from 'formik';
 
 import {
@@ -12,6 +11,7 @@ import {
   ReactInjector,
   IServerGroup,
   IWizardPageComponent,
+  Markdown,
   TaskReason,
 } from '@spinnaker/core';
 
@@ -282,7 +282,7 @@ export class ServerGroupBasicSettings
           <div className="form-group">
             <div className="col-md-3 sm-label-right">Image Source</div>
             <div className="col-md-7" style={{ marginTop: '5px' }}>
-              <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(values.viewState.imageSourceText) }} />
+              <Markdown tag="span" message={values.viewState.imageSourceText} />
             </div>
           </div>
         )}

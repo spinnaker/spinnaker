@@ -1,8 +1,9 @@
 import React from 'react';
-import DOMPurify from 'dompurify';
 import Select, { Option } from 'react-select';
 import { unset } from 'lodash';
 
+import { HelpField } from 'core/help/HelpField';
+import { Markdown } from 'core/presentation';
 import { IServerGroupCommand } from 'core/serverGroup';
 
 import {
@@ -10,7 +11,6 @@ import {
   IDeploymentStrategy,
   IDeploymentStrategyAdditionalFieldsProps,
 } from './deploymentStrategy.registry';
-import { HelpField } from 'core/help/HelpField';
 
 export interface IDeploymentStrategySelectorProps {
   command: IServerGroupCommand;
@@ -122,10 +122,10 @@ export class DeploymentStrategySelector extends React.Component<
     return (
       <div className="body-regular">
         <strong>
-          <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(option.label) }} />
+          <Markdown tag="span" message={option.label} />
         </strong>
         <div>
-          <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(option.description) }} />
+          <Markdown tag="span" message={option.description} />
         </div>
       </div>
     );

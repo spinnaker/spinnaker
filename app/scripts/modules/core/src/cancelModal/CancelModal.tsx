@@ -72,7 +72,7 @@ export class CancelModal extends React.Component<ICancelModalProps, ICancelModal
         initialValues={{}}
         onSubmit={this.submitConfirmation}
         render={() => {
-          const wrappedBody = body ? <Markdown message={body} /> : null;
+          const wrappedBody = body ? <Markdown message={body} trim={true} /> : null;
 
           return (
             <Form className="form-horizontal">

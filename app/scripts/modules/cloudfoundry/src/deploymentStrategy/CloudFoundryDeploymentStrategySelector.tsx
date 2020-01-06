@@ -1,5 +1,4 @@
 import React from 'react';
-import DOMPurify from 'dompurify';
 import Select, { Option } from 'react-select';
 import { defaultsDeep, unset } from 'lodash';
 
@@ -8,6 +7,7 @@ import {
   IDeploymentStrategy,
   IDeploymentStrategyAdditionalFieldsProps,
   IServerGroupCommand,
+  Markdown,
 } from '@spinnaker/core';
 
 import { IRedBlackCommand } from 'cloudfoundry/deploymentStrategy/strategies/redblack/redblack.strategy';
@@ -167,10 +167,10 @@ export class CloudFoundryDeploymentStrategySelector extends React.Component<
     return (
       <div className="body-regular">
         <strong>
-          <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(option.label) }} />
+          <Markdown tag="span" message={option.label} />
         </strong>
         <div>
-          <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(option.description) }} />
+          <Markdown tag="span" message={option.description} />
         </div>
       </div>
     );

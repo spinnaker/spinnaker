@@ -1,5 +1,4 @@
 import React from 'react';
-import DOMPurify from 'dompurify';
 import { UISref } from '@uirouter/react';
 import SearchApi from 'js-worker-search';
 import { groupBy } from 'lodash';
@@ -24,6 +23,7 @@ import { relativeTime } from 'core/utils/timeFormatters';
 import { IOnCall, IPagerDutyService, PagerDutyReader } from './pagerDuty.read.service';
 import { ReactInjector } from 'core/reactShims';
 import { SETTINGS } from 'core/config';
+import { Markdown } from 'core/presentation';
 
 import './pager.less';
 
@@ -315,8 +315,9 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
           title={service.name}
           href={`https://${this.state.accountName}.pagerduty.com/services/${service.id}`}
           target="_blank"
-          dangerouslySetInnerHTML={{ __html: this.highlight(service.name) }}
-        />
+        >
+          <Markdown tag="span" message={this.highlight(service.name)} />
+        </a>
       </div>
     );
   };
@@ -337,7 +338,9 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
       return (
         <li key={app.name}>
           <UISref to="home.applications.application.insight.clusters" params={{ application: app.name }}>
-            <a className="clickable" dangerouslySetInnerHTML={{ __html: this.highlight(displayName) }} />
+            <a>
+              <Markdown message={this.highlight(displayName)} tag="span" />
+            </a>
           </UISref>
         </li>
       );
@@ -362,9 +365,9 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
     const match = this.state.filterString || this.state.app;
     if (match) {
       const re = new RegExp(match, 'gi');
-      return DOMPurify.sanitize(text.replace(re, '<span class="highlighted">$&</span>'));
+      return text.replace(re, '<span class="highlighted">$&</span>');
     }
-    return DOMPurify.sanitize(text);
+    return text;
   }
 
   private onCallRenderer = (data: TableCellProps): React.ReactNode => {
@@ -387,12 +390,9 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
                       {onCalls[Number(level)]
                         .filter(user => !user.name.includes('ExcludeFromAudit'))
                         .map((user, index) => (
-                          <a
-                            key={index}
-                            target="_blank"
-                            href={user.url}
-                            dangerouslySetInnerHTML={{ __html: this.highlight(user.name) }}
-                          />
+                          <a key={index} target="_blank" href={user.url}>
+                            <Markdown tag="span" message={this.highlight(user.name)} />
+                          </a>
                         ))}
                     </div>
                   </div>
@@ -476,12 +476,13 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
 
   private rowClicked = (info: RowMouseEventHandlerParams): void => {
     // Don't change selection if clicking a link...
-    if (!['A', 'I'].includes((info.event.target as any).tagName)) {
-      const service: IPagerDutyService = (info.rowData as any).service;
-      if (service.status !== 'disabled') {
-        const flippedValue = !this.state.selectedKeys.get(service.integration_key);
-        this.selectedChanged(service, flippedValue);
-      }
+    if ((info.event.target as HTMLElement).closest('A') !== null) {
+      return;
+    }
+    const service: IPagerDutyService = (info.rowData as any).service;
+    if (service.status !== 'disabled') {
+      const flippedValue = !this.state.selectedKeys.get(service.integration_key);
+      this.selectedChanged(service, flippedValue);
     }
   };
 

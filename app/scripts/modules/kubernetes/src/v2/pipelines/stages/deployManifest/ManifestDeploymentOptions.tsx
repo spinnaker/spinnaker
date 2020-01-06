@@ -1,9 +1,8 @@
-import DOMPurify from 'dompurify';
 import React from 'react';
 import { cloneDeep, map, set, split } from 'lodash';
 import Select, { Creatable, Option } from 'react-select';
 
-import { IAccountDetails, IDeploymentStrategy, StageConfigField } from '@spinnaker/core';
+import { IAccountDetails, IDeploymentStrategy, Markdown, StageConfigField } from '@spinnaker/core';
 
 import { ManifestKindSearchService } from 'kubernetes/v2/manifest/ManifestKindSearch';
 import { rolloutStrategies } from 'kubernetes/v2/rolloutStrategy';
@@ -81,10 +80,10 @@ export class ManifestDeploymentOptions extends React.Component<
     return (
       <div className="body-regular">
         <strong>
-          <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(option.label) }} />
+          <Markdown tag="span" message={option.label} />
         </strong>
         <div>
-          <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(option.description) }} />
+          <Markdown tag="span" message={option.description} />
         </div>
       </div>
     );
