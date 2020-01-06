@@ -30,6 +30,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isTrue
 import strikt.assertions.map
 import strikt.assertions.succeeded
+import strikt.jackson.at
 import strikt.jackson.booleanValue
 import strikt.jackson.has
 import strikt.jackson.hasSize
@@ -729,11 +730,6 @@ fun <T : JsonNode> Assertion.Builder<T>.doesNotHave(fieldName: String): Assertio
     } else {
       pass()
     }
-  }
-
-fun <T : JsonNode> Assertion.Builder<T>.at(pointer: String): Assertion.Builder<JsonNode> =
-  get("node at $pointer") {
-    at(pointer)
   }
 
 fun Assertion.Builder<ArrayNode>.isEmpty(): Assertion.Builder<ArrayNode> =
