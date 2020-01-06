@@ -17,8 +17,9 @@
 package com.netflix.spinnaker.orca.keel.pipeline
 
 import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.keel.task.PublishDeliveryConfigTask
+import com.netflix.spinnaker.orca.keel.task.ImportDeliveryConfigTask
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.Aliases
 import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.stereotype.Component
@@ -29,9 +30,10 @@ import kotlin.reflect.KClass
  * Generally this will be added to a single-stage pipeline with a git trigger to support GitOps flows.
  */
 @Component
-class PublishDeliveryConfigStage : StageDefinitionBuilder {
+@Aliases("publishDeliveryConfig")
+class ImportDeliveryConfigStage : StageDefinitionBuilder {
   override fun taskGraph(stage: Stage, builder: TaskNode.Builder) {
-    builder.withTask("publishDeliveryConfig", PublishDeliveryConfigTask::class)
+    builder.withTask("importDeliveryConfig", ImportDeliveryConfigTask::class)
   }
 
   private fun TaskNode.Builder.withTask(name: String, type: KClass<out Task>) =

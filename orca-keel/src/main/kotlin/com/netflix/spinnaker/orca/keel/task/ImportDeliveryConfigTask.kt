@@ -37,7 +37,7 @@ import java.util.concurrent.TimeUnit
  * to support GitOps flows.
  */
 @Component
-class PublishDeliveryConfigTask
+class ImportDeliveryConfigTask
 constructor(
   private val keelService: KeelService,
   private val scmService: ScmService,

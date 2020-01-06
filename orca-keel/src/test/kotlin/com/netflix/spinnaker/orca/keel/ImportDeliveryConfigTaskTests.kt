@@ -22,7 +22,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.KeelService
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.igor.ScmService
-import com.netflix.spinnaker.orca.keel.task.PublishDeliveryConfigTask
+import com.netflix.spinnaker.orca.keel.task.ImportDeliveryConfigTask
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTrigger
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.GitTrigger
@@ -40,7 +40,7 @@ import strikt.api.expectThrows
 import strikt.assertions.isEqualTo
 import java.lang.IllegalArgumentException
 
-internal class PublishDeliveryConfigTaskTests : JUnit5Minutests {
+internal class ImportDeliveryConfigTaskTests : JUnit5Minutests {
   data class ManifestLocation(
     val repoType: String,
     val projectKey: String,
@@ -85,7 +85,7 @@ internal class PublishDeliveryConfigTaskTests : JUnit5Minutests {
       } returns Response("http://keel", 200, "", emptyList(), null)
     }
 
-    val subject = PublishDeliveryConfigTask(keelService, scmService, objectMapper)
+    val subject = ImportDeliveryConfigTask(keelService, scmService, objectMapper)
 
     fun execute(context: Map<String, Any?>) =
       subject.execute(
@@ -284,7 +284,7 @@ internal class PublishDeliveryConfigTaskTests : JUnit5Minutests {
 
         test("task retries if max retries not reached") {
           var result: TaskResult
-          for (attempt in 1 until PublishDeliveryConfigTask.MAX_RETRIES) {
+          for (attempt in 1 until ImportDeliveryConfigTask.MAX_RETRIES) {
             result = execute(manifestLocation.toMap().also { it["attempt"] = attempt })
             expectThat(result.status).isEqualTo(ExecutionStatus.RUNNING)
             expectThat(result.context["attempt"]).isEqualTo(attempt + 1)
@@ -292,7 +292,7 @@ internal class PublishDeliveryConfigTaskTests : JUnit5Minutests {
         }
 
         test("task fails if max retries reached") {
-          val result = execute(manifestLocation.toMap().also { it["attempt"] = PublishDeliveryConfigTask.MAX_RETRIES })
+          val result = execute(manifestLocation.toMap().also { it["attempt"] = ImportDeliveryConfigTask.MAX_RETRIES })
           expectThat(result.status).isEqualTo(ExecutionStatus.TERMINAL)
         }
       }
