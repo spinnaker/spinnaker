@@ -77,6 +77,16 @@ interface ArtifactRepository {
   ): Boolean
 
   /**
+   * Marks [version] as currently deploying to [targetEnvironment].
+   */
+  fun markAsDeployingTo(
+    deliveryConfig: DeliveryConfig,
+    artifact: DeliveryArtifact,
+    version: String,
+    targetEnvironment: String
+  )
+
+  /**
    * @return `true` if [version] has (previously or currently) been deployed successfully to
    * [targetEnvironment].
    */

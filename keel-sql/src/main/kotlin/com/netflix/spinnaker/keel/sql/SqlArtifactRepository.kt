@@ -22,11 +22,10 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_VERSIONS
 import java.time.Clock
 import java.time.Instant
-import java.time.LocalDateTime
 import org.jooq.DSLContext
 import org.jooq.Record1
 import org.jooq.Select
-import org.jooq.impl.DSL.castNull
+import org.jooq.impl.DSL
 import org.jooq.impl.DSL.select
 import org.jooq.impl.DSL.selectOne
 import org.slf4j.LoggerFactory
@@ -167,6 +166,7 @@ class SqlArtifactRepository(
       .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID, artifact.uid)
       .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION, version)
       .set(ENVIRONMENT_ARTIFACT_VERSIONS.APPROVED_AT, currentTimestamp())
+      .set(ENVIRONMENT_ARTIFACT_VERSIONS.STATUS, "approved")
       .onDuplicateKeyIgnore()
       .execute() > 0
   }
@@ -204,6 +204,25 @@ class SqlArtifactRepository(
       )
   }
 
+  override fun markAsDeployingTo(
+    deliveryConfig: DeliveryConfig,
+    artifact: DeliveryArtifact,
+    version: String,
+    targetEnvironment: String
+  ) {
+    val environment = deliveryConfig.environmentNamed(targetEnvironment)
+    val environmentUid = deliveryConfig.getUidFor(environment)
+    jooq
+      .insertInto(ENVIRONMENT_ARTIFACT_VERSIONS)
+      .set(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID, environmentUid)
+      .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID, artifact.uid)
+      .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION, version)
+      .set(ENVIRONMENT_ARTIFACT_VERSIONS.STATUS, "deploying")
+      .onDuplicateKeyUpdate()
+      .set(ENVIRONMENT_ARTIFACT_VERSIONS.STATUS, "deploying")
+      .execute()
+  }
+
   override fun markAsSuccessfullyDeployedTo(
     deliveryConfig: DeliveryConfig,
     artifact: DeliveryArtifact,
@@ -211,14 +230,25 @@ class SqlArtifactRepository(
     targetEnvironment: String
   ) {
     val environment = deliveryConfig.environmentNamed(targetEnvironment)
+    val environmentUid = deliveryConfig.getUidFor(environment)
     jooq
       .insertInto(ENVIRONMENT_ARTIFACT_VERSIONS)
-      .set(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID, deliveryConfig.getUidFor(environment))
+      .set(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID, environmentUid)
       .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID, artifact.uid)
       .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION, version)
       .set(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT, currentTimestamp())
+      .set(ENVIRONMENT_ARTIFACT_VERSIONS.STATUS, "current")
       .onDuplicateKeyUpdate()
       .set(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT, currentTimestamp())
+      .set(ENVIRONMENT_ARTIFACT_VERSIONS.STATUS, "current")
+      .execute()
+    jooq
+      .update(ENVIRONMENT_ARTIFACT_VERSIONS)
+      .set(ENVIRONMENT_ARTIFACT_VERSIONS.STATUS, "previous")
+      .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(environmentUid))
+      .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
+      .and(ENVIRONMENT_ARTIFACT_VERSIONS.STATUS.eq("current"))
+      .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.ne(version))
       .execute()
   }
 
@@ -229,8 +259,7 @@ class SqlArtifactRepository(
           .select(
             DELIVERY_ARTIFACT_VERSION.VERSION,
             DELIVERY_ARTIFACT_VERSION.STATUS,
-            ENVIRONMENT_ARTIFACT_VERSIONS.APPROVED_AT,
-            ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT
+            ENVIRONMENT_ARTIFACT_VERSIONS.STATUS
           )
           .from(
             ENVIRONMENT_ARTIFACT_VERSIONS,
@@ -252,8 +281,7 @@ class SqlArtifactRepository(
           .select(
             DELIVERY_ARTIFACT_VERSION.VERSION,
             DELIVERY_ARTIFACT_VERSION.STATUS,
-            castNull(LocalDateTime::class.java),
-            castNull(LocalDateTime::class.java)
+            DSL.`val`("pending")
           )
           .from(
             DELIVERY_ARTIFACT_VERSION,
@@ -276,38 +304,29 @@ class SqlArtifactRepository(
         val versions = versionsInEnvironment
           .unionAll(pendingVersions)
           .fetch()
-          .filter { (_, status, _, _) ->
-            artifact !is DebianArtifact || artifact.statuses.isEmpty() || ArtifactStatus.valueOf(status) in artifact.statuses
+          .filter { (_, artifactStatus, _) ->
+            artifact !is DebianArtifact || artifact.statuses.isEmpty() || ArtifactStatus.valueOf(artifactStatus) in artifact.statuses
           }
-          .map { (version, _, approvedAt, deployedAt) ->
-            ArtifactVersionResult(version, approvedAt, deployedAt)
-          }
-          .sortedWith(compareBy(artifact.versioningStrategy.comparator) { it.version })
-        val deployed = versions.filter { it.deployedAt != null }
-        val current = deployed.maxBy { checkNotNull(it.deployedAt) }
-        val previous = deployed.filterNot { it == current }
-        val deploying = versions.filter { it.approvedAt != null && it.deployedAt == null }.maxBy { checkNotNull(it.approvedAt) }
-        val pending = versions.filter { it.approvedAt == null }
+          .sortedWith(compareBy(artifact.versioningStrategy.comparator) { (version, _, _) -> version })
+          .groupBy({ (_, _, promotionStatus) ->
+            promotionStatus
+          }, { (version, _, _) ->
+            version
+          })
         ArtifactVersions(
           name = artifact.name,
           type = artifact.type,
           versions = ArtifactVersionStatus(
-            current = current?.version,
-            deploying = deploying?.version,
-            pending = pending.map { it.version },
-            previous = previous.map { it.version }
+            current = versions["current"]?.firstOrNull(),
+            deploying = versions["deploying"]?.firstOrNull(),
+            pending = versions["pending"] ?: emptyList(),
+            previous = versions["previous"] ?: emptyList()
           )
         )
       }
       EnvironmentArtifactsSummary(environment.name, artifactVersions)
     }
   }
-
-  private data class ArtifactVersionResult(
-    val version: String,
-    val approvedAt: LocalDateTime?,
-    val deployedAt: LocalDateTime?
-  )
 
   private fun DeliveryConfig.environmentNamed(name: String): Environment =
     requireNotNull(environments.firstOrNull { it.name == name }) {

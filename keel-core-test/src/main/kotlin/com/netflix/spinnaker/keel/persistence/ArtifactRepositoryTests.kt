@@ -223,6 +223,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
         before {
           clock.incrementBy(Duration.ofHours(1))
           subject.approveVersionFor(manifest, artifact1, version1, environment1.name)
+          subject.markAsDeployingTo(manifest, artifact1, version1, environment1.name)
         }
 
         test("the approved version for that environment matches") {
@@ -285,6 +286,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
             before {
               clock.incrementBy(Duration.ofHours(1))
               subject.approveVersionFor(manifest, artifact1, version2, environment1.name)
+              subject.markAsDeployingTo(manifest, artifact1, version2, environment1.name)
             }
 
             test("the latest approved version changes") {
