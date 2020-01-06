@@ -6,3 +6,7 @@ data class Environment(
   val constraints: Set<Constraint> = emptySet(),
   val notifications: Set<NotificationConfig> = emptySet() // applies to each resource
 )
+
+enum class PromotionStatus {
+  PENDING, APPROVED, DEPLOYING, CURRENT, PREVIOUS
+}

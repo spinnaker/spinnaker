@@ -12,6 +12,12 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.DockerArtifact
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.EnvironmentArtifactsSummary
+import com.netflix.spinnaker.keel.api.PromotionStatus
+import com.netflix.spinnaker.keel.api.PromotionStatus.APPROVED
+import com.netflix.spinnaker.keel.api.PromotionStatus.CURRENT
+import com.netflix.spinnaker.keel.api.PromotionStatus.DEPLOYING
+import com.netflix.spinnaker.keel.api.PromotionStatus.PENDING
+import com.netflix.spinnaker.keel.api.PromotionStatus.PREVIOUS
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
@@ -166,7 +172,7 @@ class SqlArtifactRepository(
       .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID, artifact.uid)
       .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION, version)
       .set(ENVIRONMENT_ARTIFACT_VERSIONS.APPROVED_AT, currentTimestamp())
-      .set(ENVIRONMENT_ARTIFACT_VERSIONS.STATUS, "approved")
+      .set(ENVIRONMENT_ARTIFACT_VERSIONS.STATUS, APPROVED.name)
       .onDuplicateKeyIgnore()
       .execute() > 0
   }
@@ -217,9 +223,9 @@ class SqlArtifactRepository(
       .set(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID, environmentUid)
       .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID, artifact.uid)
       .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION, version)
-      .set(ENVIRONMENT_ARTIFACT_VERSIONS.STATUS, "deploying")
+      .set(ENVIRONMENT_ARTIFACT_VERSIONS.STATUS, DEPLOYING.name)
       .onDuplicateKeyUpdate()
-      .set(ENVIRONMENT_ARTIFACT_VERSIONS.STATUS, "deploying")
+      .set(ENVIRONMENT_ARTIFACT_VERSIONS.STATUS, DEPLOYING.name)
       .execute()
   }
 
@@ -237,17 +243,17 @@ class SqlArtifactRepository(
       .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID, artifact.uid)
       .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION, version)
       .set(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT, currentTimestamp())
-      .set(ENVIRONMENT_ARTIFACT_VERSIONS.STATUS, "current")
+      .set(ENVIRONMENT_ARTIFACT_VERSIONS.STATUS, CURRENT.name)
       .onDuplicateKeyUpdate()
       .set(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT, currentTimestamp())
-      .set(ENVIRONMENT_ARTIFACT_VERSIONS.STATUS, "current")
+      .set(ENVIRONMENT_ARTIFACT_VERSIONS.STATUS, CURRENT.name)
       .execute()
     jooq
       .update(ENVIRONMENT_ARTIFACT_VERSIONS)
-      .set(ENVIRONMENT_ARTIFACT_VERSIONS.STATUS, "previous")
+      .set(ENVIRONMENT_ARTIFACT_VERSIONS.STATUS, PREVIOUS.name)
       .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(environmentUid))
       .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
-      .and(ENVIRONMENT_ARTIFACT_VERSIONS.STATUS.eq("current"))
+      .and(ENVIRONMENT_ARTIFACT_VERSIONS.STATUS.eq(CURRENT.name))
       .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.ne(version))
       .execute()
   }
@@ -281,7 +287,7 @@ class SqlArtifactRepository(
           .select(
             DELIVERY_ARTIFACT_VERSION.VERSION,
             DELIVERY_ARTIFACT_VERSION.STATUS,
-            DSL.`val`("pending")
+            DSL.`val`(PENDING.name)
           )
           .from(
             DELIVERY_ARTIFACT_VERSION,
@@ -303,7 +309,9 @@ class SqlArtifactRepository(
           )
         val versions = versionsInEnvironment
           .unionAll(pendingVersions)
-          .fetch()
+          .fetch { (version, artifactStatus, promotionStatus) ->
+            Triple(version, artifactStatus, PromotionStatus.valueOf(promotionStatus))
+          }
           .filter { (_, artifactStatus, _) ->
             artifact !is DebianArtifact || artifact.statuses.isEmpty() || ArtifactStatus.valueOf(artifactStatus) in artifact.statuses
           }
@@ -317,10 +325,10 @@ class SqlArtifactRepository(
           name = artifact.name,
           type = artifact.type,
           versions = ArtifactVersionStatus(
-            current = versions["current"]?.firstOrNull(),
-            deploying = versions["deploying"]?.firstOrNull(),
-            pending = versions["pending"] ?: emptyList(),
-            previous = versions["previous"] ?: emptyList()
+            current = versions[CURRENT]?.firstOrNull(),
+            deploying = versions[DEPLOYING]?.firstOrNull(),
+            pending = versions[PENDING] ?: emptyList(),
+            previous = versions[PREVIOUS] ?: emptyList()
           )
         )
       }

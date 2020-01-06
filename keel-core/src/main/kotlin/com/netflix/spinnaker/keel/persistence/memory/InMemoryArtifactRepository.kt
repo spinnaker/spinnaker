@@ -8,6 +8,10 @@ import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.EnvironmentArtifactsSummary
+import com.netflix.spinnaker.keel.api.PromotionStatus
+import com.netflix.spinnaker.keel.api.PromotionStatus.CURRENT
+import com.netflix.spinnaker.keel.api.PromotionStatus.DEPLOYING
+import com.netflix.spinnaker.keel.api.PromotionStatus.PREVIOUS
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
 import org.slf4j.Logger
@@ -17,7 +21,7 @@ class InMemoryArtifactRepository : ArtifactRepository {
   private val artifacts = mutableMapOf<DeliveryArtifact, MutableList<ArtifactVersionAndStatus>>()
   private val approvedVersions = mutableMapOf<Key, MutableList<String>>()
   private val deployedVersions = mutableMapOf<Key, MutableList<String>>()
-  private val statusByEnvironment = mutableMapOf<Key, MutableMap<String, String>>()
+  private val statusByEnvironment = mutableMapOf<Key, MutableMap<String, PromotionStatus>>()
   private val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
 
   private data class Key(
@@ -144,14 +148,14 @@ class InMemoryArtifactRepository : ArtifactRepository {
     }
 
     val statuses = statusByEnvironment.getOrPut(key, ::mutableMapOf)
-    statuses.filterValues { it == "current" }.forEach { statuses[it.key] = "previous" }
-    statuses[version] = "current"
+    statuses.filterValues { it == CURRENT }.forEach { statuses[it.key] = PREVIOUS }
+    statuses[version] = CURRENT
   }
 
   override fun markAsDeployingTo(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact, version: String, targetEnvironment: String) {
     val key = Key(artifact, deliveryConfig, targetEnvironment)
     val statuses = statusByEnvironment.getOrPut(key, ::mutableMapOf)
-    statuses[version] = "deploying"
+    statuses[version] = DEPLOYING
   }
 
   override fun versionsByEnvironment(deliveryConfig: DeliveryConfig): List<EnvironmentArtifactsSummary> =
@@ -168,14 +172,14 @@ class InMemoryArtifactRepository : ArtifactRepository {
               name = artifact.name,
               type = artifact.type,
               versions = ArtifactVersionStatus(
-                current = statuses.filterValues { it == "current" }.keys.firstOrNull(),
-                deploying = statuses.filterValues { it == "deploying" }.keys.firstOrNull(),
+                current = statuses.filterValues { it == CURRENT }.keys.firstOrNull(),
+                deploying = statuses.filterValues { it == DEPLOYING }.keys.firstOrNull(),
                 pending = artifacts[artifact]
                   ?.filter { it.status == null || it.status in ((artifact as? DebianArtifact)?.statuses ?: emptySet<ArtifactStatus>()) }
                   ?.map { it.version }
                   ?.filter { it !in statuses.keys }
                   ?: emptyList(),
-                previous = statuses.filterValues { it == "previous" }.keys.toList()
+                previous = statuses.filterValues { it == PREVIOUS }.keys.toList()
               )
             )
           }
