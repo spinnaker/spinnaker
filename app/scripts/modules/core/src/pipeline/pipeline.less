@@ -15,31 +15,6 @@
     flex: 1 0 100px;
     overflow-y: auto;
   }
-
-  .stage-filters {
-    label {
-      font-size: 12px;
-      vertical-align: -1px;
-      font-weight: normal;
-    }
-    border-bottom: 1px solid var(--color-alto);
-    border-top: 1px solid var(--color-alto);
-    padding-top: 5px;
-    padding-bottom: 5px;
-    margin-bottom: 5px;
-    .form-group {
-      margin-right: 5px;
-    }
-    .legend.color {
-      display: inline-block;
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-    }
-  }
-  .faded {
-    color: var(--color-concrete);
-  }
 }
 
 .canary-config-view {
@@ -74,29 +49,6 @@
   padding-right: 4px;
   margin-bottom: 10px;
   margin-top: 4px;
-}
-
-.pipeline-details {
-  @media (min-width: 992px) {
-    .details-panel {
-      /*width: 34% !important;*/
-    }
-  }
-  @media (max-width: 992px) {
-    .details-panel {
-      display: none;
-    }
-  }
-  .fa-check {
-    color: var(--color-success);
-  }
-  .fa-exclamation-triangle {
-    color: var(--color-danger);
-  }
-  dt {
-    float: left;
-    margin-right: 5px;
-  }
 }
 
 .stage-label {

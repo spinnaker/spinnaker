@@ -5,8 +5,6 @@ import { Application } from 'core/application/application.model';
 import { IFunctionGroup } from 'core/domain';
 import Function from './Function';
 
-import './functionPod.less';
-
 export interface IFunctionPodProps {
   grouping: IFunctionGroup;
   application: Application;

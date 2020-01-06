@@ -13,12 +13,6 @@
     background-color: var(--color-accent-g2);
     align-items: center;
   }
-  &.clickable.heading-sticky {
-    box-shadow: none;
-    .shadowed {
-      box-shadow: 0 8px 6px -6px var(--color-concrete);
-    }
-  }
   .clearfix();
 }
 
@@ -32,23 +26,4 @@
   position: sticky;
   top: 67px;
   z-index: 1;
-}
-
-.heading-sticky {
-  position: fixed;
-  z-index: 2;
-  margin: 0;
-  .sticky-only {
-    display: inline;
-  }
-}
-
-.not-sticky {
-  top: unset;
-  width: 100%;
-  z-index: 3;
-}
-
-.sticky-only {
-  display: none;
 }

@@ -43,9 +43,7 @@ body {
   padding-top: 125px;
 }
 
-/* Everything but the jumbotron gets side spacing for mobile first views */
 .header,
-.marketing,
 .footer {
   padding-left: 15px;
   padding-right: 15px;
@@ -547,26 +545,6 @@ body > .container {
   margin: 30px 0;
 }
 
-/* Main marketing message and sign up button */
-.jumbotron {
-  text-align: center;
-  border-bottom: 1px solid var(--color-seashell);
-}
-
-.jumbotron .btn {
-  font-size: 21px;
-  padding: 14px 24px;
-}
-
-/* Supporting marketing content */
-.marketing {
-  margin: 40px 0;
-}
-
-.marketing p + h4 {
-  margin-top: 28px;
-}
-
 .no-highlight {
   color: var(--color-black);
 
@@ -575,22 +553,6 @@ body > .container {
     text-decoration: none;
     color: var(--color-black);
   }
-}
-
-.nav-tabs a {
-  color: var(--color-black);
-}
-
-.nav-tabs li {
-  cursor: pointer;
-}
-
-.nav-tabs a:hover {
-  color: var(--color-dovegray);
-}
-
-.navbar-fixed-primary {
-  z-index: @fixed-header-z-index + 1;
 }
 
 .navbar-inverse {
@@ -639,14 +601,6 @@ body > .container {
     font-weight: 200;
     border-top-color: var(--color-white);
   }
-}
-
-.nav-tabs > li.active > a,
-.nav-tabs > li.active > a:focus,
-.nav-tabs > li.active > a:hover {
-  border-top: 4px solid transparent;
-  background-color: var(--color-dovegray);
-  color: var(--color-white);
 }
 
 .form-horizontal {
@@ -741,24 +695,9 @@ body > .container {
   }
 }
 
-.page-flow-panel {
-  overflow-x: hidden;
-}
-
-.panel-footer {
-  .pager {
-    margin-bottom: 0;
-    margin-top: 0;
-  }
-}
-
 .full-width {
   display: block;
   width: 100%;
-}
-
-.action-button {
-  padding: 0;
 }
 
 .add-new {
@@ -843,20 +782,6 @@ select:invalid {
   }
 }
 
-.config-table {
-  td {
-    background-color: var(--color-white);
-  }
-  thead th,
-  tfoot td {
-    background-color: transparent;
-  }
-}
-
-.build-stage {
-  font-size: 90%;
-}
-
 .form-group {
   margin-bottom: 5px;
 }
@@ -867,7 +792,6 @@ select:invalid {
   }
 }
 
-.flat-list,
 .checklist {
   li {
     list-style-type: none;
@@ -946,21 +870,6 @@ select:invalid {
       margin-top: 0;
     }
   }
-}
-
-.details-row {
-  width: 99%;
-  table {
-    color: var(--color-dovegray);
-    th,
-    td {
-      padding-left: 0px !important;
-    }
-  }
-}
-
-.padding {
-  padding: 10px;
 }
 
 .pad-left {
@@ -1124,16 +1033,8 @@ select:invalid {
   }
 }
 
-.loading-header {
-  position: relative;
-}
-
 .clickable {
   cursor: pointer;
-}
-
-.clickable.clickable-sm {
-  margin-right: 10px;
 }
 
 .glyphicon-spinning {
@@ -1154,7 +1055,7 @@ select:invalid {
   .spinning(6);
 }
 
-a.help-field {
+.help-field {
   color: var(--color-concrete);
   opacity: 0.8;
   &:active,
@@ -1170,7 +1071,7 @@ a.help-field {
 
 div.text-only {
   display: inline-block;
-  a.help-field {
+  .help-field {
     color: var(--color-mineshaft);
     text-decoration: none;
     border-bottom: 1px dashed var(--color-concrete);
@@ -1189,21 +1090,6 @@ textarea.code {
 
 .warning-text {
   color: var(--color-danger);
-}
-
-.panel-progress {
-  margin: 5px;
-  border-radius: 0px;
-  height: 5px;
-  margin-bottom: 0px;
-  border: 0px;
-  padding: 0px;
-  .progress-bar-danger {
-    background-color: var(--color-danger);
-  }
-  .progress-bar-success {
-    background-color: var(--color-success);
-  }
 }
 
 .modal {

@@ -20,16 +20,6 @@
     background-color: var(--color-alabaster);
     margin: 0;
     padding: 10px 0;
-
-    &.heading-sticky {
-      box-shadow: 0 8px 6px -6px var(--color-concrete);
-    }
-  }
-
-  .heading-sticky {
-    > h4 {
-      box-shadow: 0 8px 6px -6px var(--color-concrete);
-    }
   }
 }
 
@@ -52,8 +42,7 @@
   }
 
   .glyphicon-th,
-  .glyphicon-th-large,
-  .icon-server-group {
+  .glyphicon-th-large {
     color: var(--color-success);
   }
 
@@ -443,12 +432,6 @@ running-tasks-tag {
       background-color: var(--color-alabaster);
     }
 
-    .heading-sticky {
-      > h6 {
-        background-color: var(--color-alabaster);
-      }
-    }
-
     .rollup-pod-server-group {
       .server-group-title {
         background-color: rgba(255, 255, 255, 0.9);
@@ -546,10 +529,6 @@ running-tasks-tag {
       opacity: 0.4;
     }
 
-    .icon-server-group {
-      color: var(--color-dovegray);
-    }
-
     &:hover {
       .section-title,
       .health-counts,
@@ -558,21 +537,6 @@ running-tasks-tag {
         opacity: 0.7;
       }
     }
-  }
-
-  .load-balancer-server-group {
-    .instances {
-      padding: 0;
-    }
-  }
-
-  &.instances-only {
-    padding: 10px;
-  }
-
-  .build-title {
-    font-size: 110%;
-    padding: 10px 10px 8px 10px;
   }
 }
 
@@ -608,9 +572,5 @@ running-tasks-tag {
         background-color: var(--color-cirrus);
       }
     }
-  }
-
-  .heading-sticky {
-    box-shadow: 0 8px 6px -6px var(--color-concrete);
   }
 }

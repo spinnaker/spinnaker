@@ -1,32 +1,5 @@
 @import (reference) '~core/presentation/less/imports/commonImports.less';
 
-.new-pipeline {
-  .fade-in(0.4);
-}
-
-.sortable-stages {
-  display: inline-block;
-  vertical-align: top;
-  .glyphicon-time {
-    opacity: 0.6;
-  }
-  .invalid {
-    border-color: var(--color-danger);
-    @shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 6px var(--color-danger-light);
-    .box-shadow(@shadow);
-  }
-}
-
-.additional-details {
-  margin-top: 15px;
-}
-
-.pipeline-config {
-  &.row {
-    border-bottom: 1px solid var(--color-alto);
-  }
-}
-
 .stage-choice {
   .ui-select-highlight {
     text-decoration: underline;
@@ -122,36 +95,6 @@ pipeline-configurer {
     background-color: var(--color-white);
   }
 
-  .panel-body {
-    padding-top: 0;
-  }
-
-  .heading-pipeline-config {
-    display: block;
-    width: 100%;
-    cursor: pointer;
-    font-weight: 600;
-    &:hover {
-      text-decoration: none;
-    }
-
-    .glyphicon {
-      font-size: 13px;
-      opacity: 0.7;
-      margin-right: 5px;
-    }
-
-    .dirty {
-      .fa-exclamation-triangle {
-        color: var(--color-danger);
-        font-size: 90%;
-        opacity: 1;
-        margin-left: 5px;
-        padding: 0 2px;
-      }
-    }
-  }
-
   .pipeline-actions,
   .create-action,
   .permalink {
@@ -162,35 +105,6 @@ pipeline-configurer {
     margin-right: 30px;
     font-size: 80%;
     line-height: 30px;
-  }
-}
-
-.nav-pipeline-config {
-  margin-bottom: 0;
-  padding-left: 0;
-
-  display: inline-block;
-  width: 100%;
-
-  h4 {
-    line-height: 24px;
-    text-transform: uppercase;
-    font-weight: 600;
-  }
-
-  li {
-    float: left;
-  }
-
-  .config-section {
-    a,
-    button {
-      margin: 10px 5px;
-      vertical-align: top;
-      &:first-child {
-        margin-left: 0;
-      }
-    }
   }
 }
 
@@ -262,21 +176,6 @@ triggers,
       margin: 5px 0 0 0;
     }
   }
-}
-
-pipeline-config-stage {
-  .panel-group {
-    .panel {
-      border-radius: 0;
-      .panel-body {
-        padding-top: 15px;
-      }
-    }
-  }
-}
-
-availability-zone-selector {
-  display: block;
 }
 
 .pipeline-graph-container {

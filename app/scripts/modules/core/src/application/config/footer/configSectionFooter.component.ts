@@ -4,8 +4,6 @@ import { cloneDeep } from 'lodash';
 import { ApplicationWriter } from 'core/application/service/ApplicationWriter';
 import { Application } from 'core/application/application.model';
 
-import './configSectionFooter.component.less';
-
 export interface IConfigSectionFooterViewState {
   originalConfig: any;
   originalStringVal: string;
