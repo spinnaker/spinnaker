@@ -1,6 +1,5 @@
 import { distanceInWords } from 'date-fns';
 import { $log } from 'ngimport';
-import { get } from 'lodash';
 
 import { IOrchestratedItem, IOrchestratedItemVariable, ITask, ITaskStep } from 'core/domain';
 import { ReactInjector } from 'core/reactShims';
@@ -40,7 +39,7 @@ export class OrchestratedItemTransformer {
     };
 
     item.getDisplayUser = (): string => {
-      const authenticatedUser = get(item, 'execution.authentication.user', 'unknown user');
+      const authenticatedUser = item.execution?.authentication?.user ?? 'unknown user';
       const user = item.getValueFor('user');
       if (user === null || user === authenticatedUser) {
         return authenticatedUser;
@@ -171,13 +170,11 @@ export class OrchestratedItemTransformer {
   private static getGeneralException(task: ITask): string {
     const generalException: any = task.getValueFor('exception');
     if (generalException) {
-      const errors = get(generalException, 'details.errors', []).filter(m => !!m);
+      const errors = (generalException.details?.errors ?? []).filter((m: any) => !!m);
       if (errors.length) {
         return errors.join('\n\n');
       }
-      if (generalException.details && generalException.details.error) {
-        return generalException.details.error;
-      }
+      return generalException.details?.error ?? null;
     }
     return null;
   }

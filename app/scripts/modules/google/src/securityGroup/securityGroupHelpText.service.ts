@@ -1,5 +1,5 @@
 import { module } from 'angular';
-import { get, has } from 'lodash';
+import { has } from 'lodash';
 
 import { Application, FirewallLabels, IServerGroup } from '@spinnaker/core';
 
@@ -57,7 +57,7 @@ export class GceSecurityGroupHelpTextService {
         if (
           has(serverGroup, 'providerMetadata.tags.length') &&
           serverGroup.account === this.account &&
-          get(serverGroup, 'providerMetadata.networkName') === this.network
+          serverGroup.providerMetadata?.networkName === this.network
         ) {
           serverGroup.providerMetadata.tags.forEach((tag: string) => {
             if (!this.serverGroupsIndexedByTag.get(tag)) {

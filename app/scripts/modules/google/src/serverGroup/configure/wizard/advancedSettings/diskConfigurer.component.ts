@@ -1,5 +1,5 @@
 import { module, IComponentOptions, IComponentController, IScope } from 'angular';
-import { get, without } from 'lodash';
+import { without } from 'lodash';
 
 interface IGceDisk {
   type: string;
@@ -24,14 +24,11 @@ class GceDiskConfigurerController implements IComponentController {
     this.setLocalSSDCount();
     this.setPersistentDisks();
 
-    if (
-      this.getLocalSSDDisks().length &&
-      !get(this.command, 'viewState.instanceTypeDetails.storage.localSSDSupported')
-    ) {
+    if (this.getLocalSSDDisks().length && !this.command?.viewState?.instanceTypeDetails?.storage?.localSSDSupported) {
       this.updateDisks({ disks: this.sortDisks(this.getPersistentDisks()) });
     }
 
-    this.isDefault = get(this.command, 'viewState.instanceTypeDetails.storage.isDefault', false);
+    this.isDefault = !!this.command?.viewState?.instanceTypeDetails?.storage?.isDefault;
   }
 
   public $onChanges(): void {

@@ -1,6 +1,6 @@
 import { IController, IScope, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
-import { cloneDeep, get, map, mapValues, reduce } from 'lodash';
+import { cloneDeep, map, mapValues, reduce } from 'lodash';
 
 import {
   Application,
@@ -345,9 +345,7 @@ class AppengineServerGroupDetailsController implements IController {
 
   private canStartOrStopServerGroup(): boolean {
     const isFlex = this.serverGroup.env === 'FLEXIBLE';
-    const usesManualScaling = get(this.serverGroup, 'scalingPolicy.type') === 'MANUAL';
-    const usesBasicScaling = get(this.serverGroup, 'scalingPolicy.type') === 'BASIC';
-    return isFlex || usesManualScaling || usesBasicScaling;
+    return isFlex || ['MANUAL', 'BASIC'].includes(this.serverGroup.scalingPolicy?.type);
   }
 
   private getBodyTemplate(serverGroup: IAppengineServerGroup, app: Application): string {
@@ -392,7 +390,7 @@ class AppengineServerGroupDetailsController implements IController {
     app: Application,
   ): { [key: string]: number } {
     const loadBalancer = app.getDataSource('loadBalancers').data.find((toCheck: IAppengineLoadBalancer): boolean => {
-      const allocations = get(toCheck, 'split.allocations', {});
+      const allocations = toCheck.split?.allocations ?? {};
       const enabledServerGroups = Object.keys(allocations);
       return enabledServerGroups.includes(serverGroup.name);
     });

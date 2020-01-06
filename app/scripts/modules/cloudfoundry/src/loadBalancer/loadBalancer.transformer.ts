@@ -1,4 +1,4 @@
-import { camelCase, chain, cloneDeep, get, has } from 'lodash';
+import { camelCase, chain, cloneDeep, has } from 'lodash';
 
 import {
   Application,
@@ -142,7 +142,7 @@ export class CloudFoundryLoadBalancerTransformer {
     instance.region = loadBalancer.region;
     instance.loadBalancers = [loadBalancer.name];
     const health = instance.health || {};
-    instance.healthState = get(instance, 'health.state') || 'OutOfService';
+    instance.healthState = health.state ?? 'OutOfService';
     instance.health = [health];
 
     return instance as IInstance;

@@ -1,12 +1,20 @@
 import { IPromise, IQService, module } from 'angular';
-import { flatten, forOwn, get, groupBy, has, head, keys, values } from 'lodash';
+import { flatten, forOwn, groupBy, has, head, keys, values } from 'lodash';
 
 import { ArtifactReferenceService } from 'core/artifact';
 import { API } from 'core/api';
 import { Application } from 'core/application';
 import { NameUtils } from 'core/naming';
 import { FilterModelService } from 'core/filterModel';
-import { IArtifactExtractor, ICluster, IClusterSummary, IExecution, IExecutionStage, IServerGroup } from 'core/domain';
+import {
+  IArtifactExtractor,
+  ICluster,
+  IClusterSummary,
+  IExecution,
+  IExecutionStage,
+  IServerGroup,
+  ITask,
+} from 'core/domain';
 import { ClusterState } from 'core/state';
 import { ProviderServiceDelegate } from 'core/cloudProvider';
 import { SETTINGS } from 'core/config/settings';
@@ -145,7 +153,7 @@ export class ClusterService {
   }
 
   public addExecutionsToServerGroups(application: Application): void {
-    const executions = get(application, 'runningExecutions.data', []);
+    const executions = application.runningExecutions?.data ?? [];
 
     if (!application.serverGroups.data) {
       return; // still run if there are no running tasks, since they may have all finished and we need to clear them.
@@ -171,7 +179,7 @@ export class ClusterService {
   }
 
   public addTasksToServerGroups(application: Application): void {
-    const runningTasks = get(application, 'runningTasks.data', []);
+    const runningTasks: ITask[] = application.runningTasks?.data ?? [];
     if (!application.serverGroups.data) {
       return; // still run if there are no running tasks, since they may have all finished and we need to clear them.
     }
@@ -181,7 +189,7 @@ export class ClusterService {
       } else {
         serverGroup.runningTasks.length = 0;
       }
-      runningTasks.forEach(function(task) {
+      runningTasks.forEach(task => {
         if (taskMatcher.taskMatches(task, serverGroup)) {
           serverGroup.runningTasks.push(task);
         }

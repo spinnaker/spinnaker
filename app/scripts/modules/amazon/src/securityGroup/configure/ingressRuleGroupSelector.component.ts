@@ -1,8 +1,14 @@
 import { IController, IComponentOptions, module } from 'angular';
 import { Subject, Subscription } from 'rxjs';
-import { get, intersection, uniq } from 'lodash';
+import { intersection, uniq } from 'lodash';
 
-import { ISecurityGroupRule, ISecurityGroup, IVpc, IAccountDetails } from '@spinnaker/core';
+import {
+  ISecurityGroupRule,
+  ISecurityGroup,
+  IVpc,
+  IAccountDetails,
+  ISecurityGroupsByAccountSourceData,
+} from '@spinnaker/core';
 import { AWSProviderSettings } from 'amazon/aws.settings';
 
 interface IInfiniteScroll {
@@ -29,7 +35,7 @@ class IngressRuleSelectorController implements IController {
   public crossAccountAccounts: IAccountDetails[];
   public vpcs: IVpc[];
   public regionalVpcs: { [region: string]: IVpc[] };
-  public allSecurityGroups: ISecurityGroup[];
+  public allSecurityGroups: ISecurityGroupsByAccountSourceData;
   public coordinatesChanged: Subject<void>;
   public allSecurityGroupsUpdated: Subject<void>;
   public availableSecurityGroups: string[];
@@ -67,7 +73,7 @@ class IngressRuleSelectorController implements IController {
   public enableCrossAccount(): void {
     this.rule.crossAccountEnabled = true;
     this.crossAccountAccounts = this.accounts;
-    const exclusions = get(AWSProviderSettings, `crossAccountIngressExclusions["${this.securityGroup.credentials}"]`);
+    const exclusions = AWSProviderSettings?.crossAccountIngressExclusions[this.securityGroup.credentials];
     if (exclusions && Array.isArray(exclusions)) {
       this.crossAccountAccounts = this.accounts.filter(account => !exclusions.includes(account.name));
     }
@@ -116,7 +122,7 @@ class IngressRuleSelectorController implements IController {
         regionalVpcId = regionalVpc ? regionalVpc.id : undefined;
       }
 
-      const regionalGroupNames = get(this.allSecurityGroups, [account, 'aws', region].join('.'), [])
+      const regionalGroupNames = (this.allSecurityGroups?.[account].aws?.[region] ?? [])
         .filter(sg => sg.vpcId === regionalVpcId)
         .map(sg => sg.name);
 

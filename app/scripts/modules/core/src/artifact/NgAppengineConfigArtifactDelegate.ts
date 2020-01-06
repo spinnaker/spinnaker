@@ -1,5 +1,4 @@
 import { IScope } from 'angular';
-import { get } from 'lodash';
 
 import { Registry } from 'core/registry';
 import { IExpectedArtifact, IArtifactSource, IStage, IPipeline } from 'core/domain';
@@ -15,11 +14,11 @@ export class NgAppengineConfigArtifactDelegate
   public requestingNew = false;
 
   private getStage() {
-    return get(this, 'artifact.$scope.command.viewState.stage', null);
+    return this.artifact?.$scope?.command?.viewState?.stage;
   }
 
   private getPipeline() {
-    return get(this, 'artifact.$scope.command.viewState.pipeline', null);
+    return this.artifact?.$scope?.command?.viewState?.pipeline;
   }
 
   constructor(private artifact: { $scope: IScope; id: string; account: string }) {

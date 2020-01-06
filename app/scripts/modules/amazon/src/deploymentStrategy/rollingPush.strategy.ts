@@ -1,5 +1,4 @@
 import { DeploymentStrategyRegistry, IServerGroupCommand } from '@spinnaker/core';
-import { get } from 'lodash';
 
 import { AdditionalFields } from './AdditionalFields';
 
@@ -34,7 +33,7 @@ DeploymentStrategyRegistry.registerStrategy({
       order: 'oldest',
       relaunchAllInstances: true,
       concurrentRelaunches: 1,
-      totalRelaunches: get(command, 'capacity.max', 1),
+      totalRelaunches: Number(command?.capacity?.max) ?? 1,
     };
   },
 });

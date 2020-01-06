@@ -1,5 +1,3 @@
-import { get } from 'lodash';
-
 import { ArtifactReferenceService, ExecutionArtifactTab, ExpectedArtifactService } from 'core/artifact';
 import { ExecutionDetailsTasks, IValidatorConfig } from 'core/pipeline';
 
@@ -47,9 +45,9 @@ if (SETTINGS.feature.versionedProviders) {
     artifactRemover: (stage: IStage, artifactId: string) => {
       ArtifactReferenceService.removeArtifactFromFields(['expectedArtifactId'])(stage, artifactId);
 
-      const artifactMatches = (artifact: IArtifact) => artifact.id === artifactId;
-      stage.expectedArtifacts = get(stage, 'expectedArtifacts', []).filter(a => !artifactMatches(a));
-      stage.inputArtifacts = get(stage, 'inputArtifacts', []).filter(a => !artifactMatches(a));
+      const artifactDoesNotMatch = (artifact: IArtifact) => artifact.id !== artifactId;
+      stage.expectedArtifacts = (stage.expectedArtifacts ?? []).filter(artifactDoesNotMatch);
+      stage.inputArtifacts = (stage.inputArtifacts ?? []).filter(artifactDoesNotMatch);
     },
     validators: [{ type: 'custom', validate: requiredField } as ICustomValidator],
     manualExecutionComponent: ManualExecutionBakeManifest,

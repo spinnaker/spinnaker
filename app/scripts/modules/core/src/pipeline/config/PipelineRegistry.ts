@@ -1,4 +1,4 @@
-import { get, uniq, isNil, cloneDeep, intersection, memoize, defaults } from 'lodash';
+import { uniq, isNil, cloneDeep, intersection, memoize, defaults } from 'lodash';
 
 import { Application } from 'core/application/application.model';
 import {
@@ -68,10 +68,8 @@ export class PipelineRegistry {
 
   public registerNotification(notificationConfig: INotificationTypeConfig): void {
     if (SETTINGS.notifications) {
-      const notificationSetting: { enabled: boolean; botName?: string } = get(
-        SETTINGS.notifications,
-        notificationConfig.key,
-      );
+      const notificationSetting: { enabled: boolean; botName?: string } =
+        SETTINGS.notifications?.[notificationConfig.key];
       if (notificationSetting && notificationSetting.enabled) {
         const config = cloneDeep(notificationConfig);
         config.config = { ...notificationSetting };
@@ -319,10 +317,10 @@ export class PipelineRegistry {
   // Some stages (RunJob, ?) are only setting the cloudProvider field in stage.context.
   private static resolveCloudProvider(stage: IStage): string {
     return (
-      stage.cloudProvider ||
-      stage.cloudProviderType ||
-      get(stage, ['context', 'cloudProvider']) ||
-      get(stage, ['context', 'cloudProviderType']) ||
+      stage.cloudProvider ??
+      stage.cloudProviderType ??
+      stage.context?.cloudProvider ??
+      stage?.context?.cloudProviderType ??
       'aws'
     );
   }

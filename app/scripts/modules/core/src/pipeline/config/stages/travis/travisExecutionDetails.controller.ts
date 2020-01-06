@@ -1,6 +1,5 @@
 import { IController, IScope, module } from 'angular';
 import { StateParams } from '@uirouter/angularjs';
-import { get } from 'lodash';
 
 import {
   EXECUTION_DETAILS_SECTION_SERVICE,
@@ -25,7 +24,7 @@ export class TravisExecutionDetailsCtrl implements IController {
   }
 
   public initialized(): void {
-    this.detailsSection = get<string>(this.$stateParams, 'details', '');
+    this.detailsSection = this.$stateParams.details ?? '';
     this.failureMessage = this.getFailureMessage();
   }
 
@@ -33,7 +32,7 @@ export class TravisExecutionDetailsCtrl implements IController {
     let failureMessage = this.stage.failureMessage;
     const context = this.stage.context || {};
     const buildInfo = context.buildInfo || {};
-    const testResults = get(buildInfo, 'testResults', []);
+    const testResults: Array<{ failCount: number }> = buildInfo.testResults ?? [];
     const failingTests = testResults.filter(results => results.failCount > 0);
     const failingTestCount = failingTests.reduce((acc, results) => acc + results.failCount, 0);
     if (buildInfo.result === 'FAILURE') {

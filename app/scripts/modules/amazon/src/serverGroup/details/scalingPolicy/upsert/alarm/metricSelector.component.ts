@@ -1,6 +1,6 @@
 import { IController, IComponentOptions, module } from 'angular';
 
-import { Dictionary, get } from 'lodash';
+import { Dictionary } from 'lodash';
 import { Subject } from 'rxjs';
 
 import { CloudMetricsReader, ICloudMetricDescriptor, IServerGroup, IMetricAlarmDimension } from '@spinnaker/core';
@@ -31,7 +31,7 @@ export class MetricSelectorController implements IController {
   public namespaceUpdated = new Subject();
 
   public alarm: IConfigurableMetric;
-  public namespaces = get(AWSProviderSettings, 'metrics.customNamespaces', []).concat(NAMESPACES);
+  public namespaces = (AWSProviderSettings?.metrics?.customNamespaces ?? []).concat(NAMESPACES);
   public state: IMetricEditorState;
   public serverGroup: IServerGroup;
 

@@ -1,5 +1,4 @@
 import { IPromise, IScope } from 'angular';
-import { get } from 'lodash';
 import { $log, $q } from 'ngimport';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 
@@ -522,7 +521,7 @@ export class ApplicationDataSource<T = any> implements IDataSourceConfig<T> {
     this.alerts = [];
     if (Array.isArray(this.data) && this.data.length) {
       this.alerts = this.data
-        .filter((d: any) => get(d, 'entityTags.alerts.length', 0))
+        .filter((d: any) => d.entityTags?.alerts?.length ?? 0)
         .map((d: any) => d['entityTags'] as IEntityTags);
     }
   }
