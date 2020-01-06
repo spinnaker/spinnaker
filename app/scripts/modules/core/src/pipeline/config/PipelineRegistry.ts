@@ -320,7 +320,7 @@ export class PipelineRegistry {
       stage.cloudProvider ??
       stage.cloudProviderType ??
       stage.context?.cloudProvider ??
-      stage?.context?.cloudProviderType ??
+      stage.context?.cloudProviderType ??
       'aws'
     );
   }

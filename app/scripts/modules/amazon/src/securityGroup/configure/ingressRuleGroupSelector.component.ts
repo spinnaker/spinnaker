@@ -122,7 +122,7 @@ class IngressRuleSelectorController implements IController {
         regionalVpcId = regionalVpc ? regionalVpc.id : undefined;
       }
 
-      const regionalGroupNames = (this.allSecurityGroups?.[account].aws?.[region] ?? [])
+      const regionalGroupNames = (this.allSecurityGroups?.[account]?.aws?.[region] ?? [])
         .filter(sg => sg.vpcId === regionalVpcId)
         .map(sg => sg.name);
 
