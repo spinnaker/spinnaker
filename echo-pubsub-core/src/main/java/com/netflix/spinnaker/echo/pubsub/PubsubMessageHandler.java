@@ -31,7 +31,6 @@ import java.util.Optional;
 import java.util.zip.CRC32;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import redis.clients.jedis.params.SetParams;
 
 /** Shared cache of received and handled pubsub messages to synchronize clients. */
 @Slf4j
@@ -42,6 +41,8 @@ public class PubsubMessageHandler {
   private final Registry registry;
   private final List<EventCreator> eventCreators;
 
+  private static final String SET_IF_NOT_EXIST = "NX";
+  private static final String SET_EXPIRE_TIME_SECONDS = "EX";
   private static final String SUCCESS = "OK";
 
   @Service
@@ -130,7 +131,11 @@ public class PubsubMessageHandler {
         redisClientDelegate.withCommandsClient(
             c -> {
               return c.set(
-                  messageKey, identifier, SetParams.setParams().nx().ex(ackDeadlineSeconds));
+                  messageKey,
+                  identifier,
+                  SET_IF_NOT_EXIST,
+                  SET_EXPIRE_TIME_SECONDS,
+                  ackDeadlineSeconds);
             });
     return SUCCESS.equals(response);
   }
