@@ -28,7 +28,6 @@ import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
-import redis.clients.jedis.params.SetParams
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -77,7 +76,7 @@ class ClusteredAgentSchedulerSpec extends Specification {
         agentExecutionScheduler.runAll()
 
         then:
-        1 * jedis.set(_ as String, _ as String, _ as SetParams) >> 'definitely not ok'
+        1 * jedis.set(_ as String, _ as String, 'NX', 'PX', _ as Long) >> 'definitely not ok'
         1 * jedis.close()
         0 * _
     }
@@ -89,7 +88,7 @@ class ClusteredAgentSchedulerSpec extends Specification {
         agentExecutionScheduler.runAll()
 
         then:
-        1 * jedis.set(_ as String, _ as String, _ as SetParams) >> 'OK'
+        1 * jedis.set(_ as String, _ as String, 'NX', 'PX', _ as Long) >> 'OK'
         1 * inst.executionStarted(agent)
         1 * exec.executeAgent(agent)
         1 * inst.executionCompleted(agent, _)
@@ -108,7 +107,7 @@ class ClusteredAgentSchedulerSpec extends Specification {
         agentExecutionScheduler.runAll()
 
         then:
-        1 * jedis.set(_ as String, _ as String, _ as SetParams) >> 'OK'
+        1 * jedis.set(_ as String, _ as String, 'NX', 'PX', _ as Long) >> 'OK'
         1 * inst.executionStarted(agent)
         1 * exec.executeAgent(agent) >> { throw cause }
         1 * inst.executionFailed(agent, cause)

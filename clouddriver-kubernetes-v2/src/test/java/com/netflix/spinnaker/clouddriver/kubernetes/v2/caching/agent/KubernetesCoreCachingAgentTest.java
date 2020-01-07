@@ -267,7 +267,7 @@ final class KubernetesCoreCachingAgentTest {
         onDemandResult.getOnDemandEvictions().get(DEPLOYMENT_KIND);
     assertThat(deploymentEvictions).containsExactly(expectedKey);
 
-    Collection<DefaultCacheData> remainingItems =
+    Collection<CacheData> remainingItems =
         Optional.ofNullable(onDemandResult.getOnDemandEntries().get(DEPLOYMENT_KIND))
             .orElse(ImmutableList.of());
     // We expect that exactly one caching agent processed the request, so the entry should have been
@@ -353,7 +353,7 @@ final class KubernetesCoreCachingAgentTest {
 
     // We expect that exactly one caching agent processed the request, so the entry should have been
     // evicted once
-    Collection<DefaultCacheData> remainingItems =
+    Collection<CacheData> remainingItems =
         Optional.ofNullable(onDemandResult.getOnDemandEntries().get(STORAGE_CLASS_KIND))
             .orElse(ImmutableList.of());
     assertThat(remainingItems).hasSize(numCachingAgents - 1);
@@ -402,7 +402,7 @@ final class KubernetesCoreCachingAgentTest {
   private static class ProcessOnDemandResult {
     Map<String, Collection<CacheData>> onDemandResults;
     Map<String, Collection<String>> onDemandEvictions;
-    Map<String, Collection<DefaultCacheData>> onDemandEntries;
+    Map<String, Collection<CacheData>> onDemandEntries;
 
     ProcessOnDemandResult(
         Collection<OnDemandAgent.OnDemandResult> onDemandResults,
@@ -454,7 +454,7 @@ final class KubernetesCoreCachingAgentTest {
   }
 
   /** Given a collection of ProviderCache, return all on-demand entries in these caches. */
-  private static ImmutableMap<String, Collection<DefaultCacheData>> extractCacheEntries(
+  private static ImmutableMap<String, Collection<CacheData>> extractCacheEntries(
       Collection<ProviderCache> providerCaches) {
     return providerCaches.stream()
         .map(providerCache -> providerCache.getAll("onDemand"))
@@ -463,7 +463,7 @@ final class KubernetesCoreCachingAgentTest {
         .map(
             cacheData -> {
               try {
-                return objectMapper.readValue(
+                return objectMapper.<Map<String, Collection<CacheData>>>readValue(
                     (String) cacheData.getAttributes().get("cacheResults"),
                     new TypeReference<Map<String, Collection<DefaultCacheData>>>() {});
               } catch (IOException e) {
@@ -539,7 +539,7 @@ final class KubernetesCoreCachingAgentTest {
   @Value
   private static class LoadDataResult {
     Map<String, Collection<CacheData>> results;
-    Map<String, Collection<DefaultCacheData>> cacheEntries;
+    Map<String, Collection<CacheData>> cacheEntries;
 
     LoadDataResult(
         Collection<CacheResult> loadDataResults, Collection<ProviderCache> providerCaches) {
