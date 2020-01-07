@@ -23,7 +23,8 @@ import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
 import com.netflix.spinnaker.kork.jedis.lock.RedisLockManager
 import com.netflix.spinnaker.kork.lock.BaseLockManagerSpec
-import redis.clients.jedis.commands.JedisCommands
+import com.netflix.spinnaker.kork.lock.LockManager
+import redis.clients.jedis.JedisCommands
 import redis.clients.jedis.JedisPool
 import spock.lang.Shared
 

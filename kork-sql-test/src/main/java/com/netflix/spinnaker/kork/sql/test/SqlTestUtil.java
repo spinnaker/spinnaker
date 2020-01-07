@@ -27,7 +27,6 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Comparator;
 import liquibase.ContextExpression;
-import liquibase.LabelExpression;
 import liquibase.Liquibase;
 import liquibase.changelog.ChangeLogParameters;
 import liquibase.changelog.DatabaseChangeLog;
@@ -163,9 +162,7 @@ public class SqlTestUtil {
           false,
           Comparator.comparing(String::toString),
           new ClassLoaderResourceAccessor(),
-          new ContextExpression(),
-          new LabelExpression(),
-          false);
+          new ContextExpression());
 
       migrate =
           new Liquibase(
