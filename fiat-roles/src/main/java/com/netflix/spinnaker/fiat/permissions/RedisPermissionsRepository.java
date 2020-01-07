@@ -334,7 +334,7 @@ public class RedisPermissionsRepository implements PermissionsRepository {
                 return jedis.sscan(key, cursor.get());
               });
       results.addAll(result.getResult());
-      cursor.set(result.getCursor());
+      cursor.set(result.getStringCursor());
     } while (!"0".equals(cursor.get()));
     return results;
   }
