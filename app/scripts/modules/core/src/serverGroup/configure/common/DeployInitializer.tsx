@@ -152,7 +152,7 @@ export class DeployInitializer extends React.Component<IDeployInitializerProps, 
         <ModalClose dismiss={onDismiss} />
         <div>
           <Modal.Header>
-            <h3>Template Selection</h3>
+            <Modal.Title>Template Selection</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <form className="form-horizontal">

@@ -59,7 +59,7 @@ export function DeletePipelineModal(props: IDeletePipelineModalProps) {
       <Modal key="modal" show={true} onHide={() => {}}>
         <ModalClose dismiss={dismissModal} />
         <Modal.Header>
-          <h3>Really Delete {pipeline.strategy === true ? 'Strategy' : 'Pipeline'}?</h3>
+          <Modal.Title>Really Delete {pipeline.strategy === true ? 'Strategy' : 'Pipeline'}?</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {deleteError && (

@@ -5,7 +5,7 @@ import { Modal } from 'react-bootstrap';
 import { IModalComponentProps, LayoutProvider, ResponsiveFieldLayout, SpinFormik } from 'core/presentation';
 import { Application } from 'core/application';
 import { NgReact } from 'core/reactShims';
-import { SubmitButton } from 'core/modal';
+import { SubmitButton, ModalClose } from 'core/modal';
 
 import { ITaskCommand, TaskExecutor } from '../taskExecutor';
 import { TaskMonitor } from '../monitor/TaskMonitor';
@@ -68,14 +68,6 @@ export class TaskMonitorModal<T> extends React.Component<ITaskMonitorModalProps<
     const { isSubmitting } = this.state;
     const { TaskMonitorWrapper } = NgReact;
 
-    const closeButton = (
-      <div className="modal-close close-button pull-right">
-        <a className="btn btn-link" onClick={this.close}>
-          <span className="glyphicon glyphicon-remove" />
-        </a>
-      </div>
-    );
-
     return (
       <div>
         <TaskMonitorWrapper monitor={this.state.taskMonitor} />
@@ -85,9 +77,9 @@ export class TaskMonitorModal<T> extends React.Component<ITaskMonitorModalProps<
           onSubmit={this.submitTask}
           render={formik => (
             <Form className="form-horizontal">
+              <ModalClose dismiss={this.close} />
               <Modal.Header>
-                <h3>{this.props.title}</h3>
-                {closeButton}
+                <Modal.Title>{this.props.title}</Modal.Title>
               </Modal.Header>
 
               <Modal.Body className="entity-tag-editor-modal">

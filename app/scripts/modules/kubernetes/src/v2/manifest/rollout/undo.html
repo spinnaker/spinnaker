@@ -3,7 +3,9 @@
   <form role="form" name="undoRolloutForm">
     <modal-close dismiss="$dismiss()"></modal-close>
     <div class="modal-header">
-      <h3>Undo rollout of {{ctrl.command.manifestName | robotToHuman}} in {{ctrl.command.location}}</h3>
+      <h4 class="modal-title">
+        Undo rollout of {{ctrl.command.manifestName | robotToHuman}} in {{ctrl.command.location}}
+      </h4>
     </div>
     <div class="modal-body confirmation-modal">
       <div class="form-horizontal">

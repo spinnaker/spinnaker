@@ -3,7 +3,7 @@
   <form role="form" name="deleteForm">
     <modal-close dismiss="$dismiss()"></modal-close>
     <div class="modal-header">
-      <h3>Delete {{ctrl.command.manifestName | robotToHuman}} in {{ctrl.command.location}}</h3>
+      <h4 class="modal-title">Delete {{ctrl.command.manifestName | robotToHuman}} in {{ctrl.command.location}}</h4>
     </div>
     <div ng-if="ctrl.manifestController">
       <div class="alert alert-warning">

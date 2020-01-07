@@ -109,10 +109,10 @@ export class CloudFoundryMapLoadBalancersModal extends React.Component<
           render={formik => {
             return (
               <>
-                <Modal.Header>
-                  <h3>Map route to {serverGroup.name}</h3>
-                </Modal.Header>
                 <ModalClose dismiss={this.close} />
+                <Modal.Header>
+                  <Modal.Title>Map route to {serverGroup.name}</Modal.Title>
+                </Modal.Header>
                 <Modal.Body>
                   <Form className="form-horizontal">
                     <Routes fieldName="routes" isRequired={true} singleRouteOnly={true} />

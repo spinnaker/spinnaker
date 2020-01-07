@@ -1,5 +1,6 @@
 import React from 'react';
 import { cloneDeepWith } from 'lodash';
+import { Modal } from 'react-bootstrap';
 
 import 'brace/mode/json';
 
@@ -70,11 +71,11 @@ export class EditStageJsonModal extends React.Component<IEditStageJsonModalProps
     const invalid = !!errorMessage;
     const { dismissModal } = this.props;
     return (
-      <div className="flex-fill">
-        <div className="modal-header">
-          <h3>Edit Stage JSON</h3>
-        </div>
-        <div className="modal-body flex-fill">
+      <>
+        <Modal.Header>
+          <Modal.Title>Edit Stage JSON</Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="flex-fill">
           <p>The JSON below represents the stage configuration in its persisted state.</p>
           <form name="form" className="form-horizontal flex-fill">
             <div className="flex-fill">
@@ -86,8 +87,8 @@ export class EditStageJsonModal extends React.Component<IEditStageJsonModalProps
             updates the configuration within the browser, so you'll want to verify your changes and click "Save Changes"
             when you're ready.
           </p>
-        </div>
-        <div className="modal-footer">
+        </Modal.Body>
+        <Modal.Footer>
           {invalid && (
             <div className="slide-in">
               <div className="error-message">Error: {errorMessage}</div>
@@ -99,8 +100,8 @@ export class EditStageJsonModal extends React.Component<IEditStageJsonModalProps
           <button className="btn btn-primary" disabled={invalid} onClick={() => this.updateStage()}>
             <span className="far fa-check-circle" /> Update Stage
           </button>
-        </div>
-      </div>
+        </Modal.Footer>
+      </>
     );
   }
 }

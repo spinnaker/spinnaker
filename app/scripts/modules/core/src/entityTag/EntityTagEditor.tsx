@@ -5,7 +5,7 @@ import { Modal } from 'react-bootstrap';
 import { Application } from 'core/application';
 import { IEntityRef, IEntityTag } from 'core/domain';
 import { HelpField } from 'core/help';
-import { SubmitButton } from 'core/modal';
+import { SubmitButton, ModalClose } from 'core/modal';
 import {
   FormField,
   FormikFormField,
@@ -136,14 +136,6 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
     const { initialValues, isSubmitting } = this.state;
     const ownerOptions = opts || [];
 
-    const closeButton = (
-      <div className="modal-close close-button pull-right">
-        <a className="btn btn-link" onClick={this.close}>
-          <span className="glyphicon glyphicon-remove" />
-        </a>
-      </div>
-    );
-
     const submitLabel = `${isNew ? ' Create' : ' Update'} ${tag.value.type}`;
 
     const { TaskMonitorWrapper } = NgReact;
@@ -157,11 +149,11 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
           onSubmit={this.upsertTag}
           render={({ isValid, values, setFieldValue }) => (
             <Form className="form-horizontal">
+              <ModalClose dismiss={this.close} />
               <Modal.Header>
-                <h3>
+                <Modal.Title>
                   {isNew ? 'Create' : 'Update'} {tag.value.type}
-                </h3>
-                {closeButton}
+                </Modal.Title>
               </Modal.Header>
 
               <Modal.Body className="entity-tag-editor-modal">

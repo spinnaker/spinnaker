@@ -201,10 +201,10 @@ export class CloudFoundryResizeServerGroupModal extends React.Component<
           render={formik => {
             return (
               <>
-                <Modal.Header>
-                  <h3>Resize {serverGroup.name}</h3>
-                </Modal.Header>
                 <ModalClose dismiss={this.close} />
+                <Modal.Header>
+                  <Modal.Title>Resize {serverGroup.name}</Modal.Title>
+                </Modal.Header>
                 <Modal.Body>
                   <Form className="form-horizontal">
                     {this.renderDesired(formik)}

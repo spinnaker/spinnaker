@@ -3,7 +3,9 @@
   <form role="form" name="pauseRolloutForm">
     <modal-close dismiss="$dismiss()"></modal-close>
     <div class="modal-header">
-      <h3>Pause rollout of {{ctrl.command.manifestName | robotToHuman}} in {{ctrl.command.location}}</h3>
+      <h4 class="modal-title">
+        Pause rollout of {{ctrl.command.manifestName | robotToHuman}} in {{ctrl.command.location}}
+      </h4>
     </div>
     <div class="modal-body confirmation-modal">
       <task-reason command="ctrl.command"></task-reason>

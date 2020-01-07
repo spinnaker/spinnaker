@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { CSSTransition } from 'react-transition-group';
+import { Modal } from 'react-bootstrap';
 
 import { TaskMonitor } from 'core/task';
 import { useForceUpdate } from 'core/presentation/hooks';
@@ -17,6 +18,9 @@ export const TaskMonitorWrapper = ({ monitor }: ITaskMonitorProps) => {
   }
 
   const forceUpdate = useForceUpdate();
+  if (!monitor) {
+    return null;
+  }
 
   useEffect(() => {
     const subscription = monitor.statusUpdatedStream.subscribe(() => forceUpdate());
@@ -30,10 +34,10 @@ export const TaskMonitorWrapper = ({ monitor }: ITaskMonitorProps) => {
   return (
     <CSSTransition appear={true} classNames="overlay-modal" timeout={0} in={true}>
       <div className="overlay overlay-modal vertical">
-        <div className="modal-header">
-          <h3>{monitor.title}</h3>
-        </div>
-        <div className="modal-body clearfix">
+        <Modal.Header>
+          <Modal.Title>{monitor.title}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
           <div className="clearfix">
             {monitor.task && (
               <div className="col-md-8 col-md-offset-2 overlay-modal-status">
@@ -42,23 +46,23 @@ export const TaskMonitorWrapper = ({ monitor }: ITaskMonitorProps) => {
             )}
             <TaskMonitorError errorMessage={monitor.errorMessage} task={monitor.task} />
           </div>
-        </div>
+        </Modal.Body>
         {!monitor.error && (
-          <div className="modal-footer">
+          <Modal.Footer>
             <button className="btn btn-primary" onClick={monitor.closeModal}>
               Close
             </button>
-          </div>
+          </Modal.Footer>
         )}
         {monitor.error && (
-          <div className="modal-footer">
+          <Modal.Footer>
             <button className="btn btn-primary" onClick={() => monitor.tryToFix()}>
               Go back and try to fix this
             </button>
             <button className="btn btn-default" onClick={monitor.closeModal}>
               Cancel
             </button>
-          </div>
+          </Modal.Footer>
         )}
       </div>
     </CSSTransition>

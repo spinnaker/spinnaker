@@ -118,10 +118,10 @@ export class CloudFoundryRollbackServerGroupModal extends React.Component<
           render={formik => {
             return (
               <>
-                <Modal.Header>
-                  <h3>Rollback {serverGroup.name}</h3>
-                </Modal.Header>
                 <ModalClose dismiss={this.close} />
+                <Modal.Header>
+                  <Modal.Title>Rollback {serverGroup.name}</Modal.Title>
+                </Modal.Header>
                 <Modal.Body>
                   <Form className="form-horizontal">
                     <div className="row" style={{ marginTop: '10px', marginBottom: '10px' }}>

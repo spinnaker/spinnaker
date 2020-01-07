@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { Modal } from 'react-bootstrap';
+
 import 'brace/mode/json';
 
 import { IPipeline, IPipelineLock, IStage } from 'core/domain';
@@ -111,49 +113,52 @@ export class EditPipelineJsonModal extends React.Component<IEditPipelineJsonModa
     const { dismissModal } = this.props;
 
     return (
-      <div className="flex-fill">
-        <div className="modal-header">
-          <h3>
+      <>
+        <Modal.Header>
+          <Modal.Title>
             {!locked && <span>Edit </span>}
             {isStrategy ? 'Strategy' : 'Pipeline'} JSON
-          </h3>
-        </div>
-        {!!pipelinePlanJSON && (
-          <ul className="tabs-basic" style={{ listStyle: 'none' }}>
-            <li role="presentation" className={activeTab === 'pipeline' ? 'selected' : ''}>
-              <a onClick={() => this.setActiveTab('pipeline')}>Configuration</a>
-            </li>
-            <li role="presentation" className={activeTab === 'renderedPipeline' ? 'selected' : ''}>
-              <a onClick={() => this.setActiveTab('renderedPipeline')}>Rendered pipeline</a>
-            </li>
-          </ul>
-        )}
-        {activeTab === 'pipeline' && (
-          <div className="modal-body flex-fill">
-            <p>
-              The JSON below represents the {isStrategy ? 'strategy' : 'pipeline'} configuration in its persisted state.
-            </p>
-            {!locked && (
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="flex-fill">
+          {!!pipelinePlanJSON && (
+            <ul className="tabs-basic" style={{ listStyle: 'none' }}>
+              <li role="presentation" className={activeTab === 'pipeline' ? 'selected' : ''}>
+                <a onClick={() => this.setActiveTab('pipeline')}>Configuration</a>
+              </li>
+              <li role="presentation" className={activeTab === 'renderedPipeline' ? 'selected' : ''}>
+                <a onClick={() => this.setActiveTab('renderedPipeline')}>Rendered pipeline</a>
+              </li>
+            </ul>
+          )}
+          {activeTab === 'pipeline' && (
+            <>
               <p>
-                <strong>Note:</strong> Clicking "Update {isStrategy ? 'Strategy' : 'Pipeline'}" below will not save your
-                changes to the server - it only updates the configuration within the browser, so you'll want to verify
-                your changes and click "Save Changes" when you're ready.
+                The JSON below represents the {isStrategy ? 'strategy' : 'pipeline'} configuration in its persisted
+                state.
               </p>
-            )}
-            <JsonEditor value={pipelineJSON} onChange={this.updateJson} onValidation={this.onValidate} />
-          </div>
-        )}
-        {activeTab === 'renderedPipeline' && (
-          <div className="modal-body flex-fill">
-            <p>This pipeline is based on a template. The JSON below represents the rendered pipeline.</p>
-            <form role="form" name="form" className="form-horizontal flex-fill">
-              <div className="flex-fill">
-                <JsonEditor value={pipelinePlanJSON} readOnly={true} />
-              </div>
-            </form>
-          </div>
-        )}
-        <div className="modal-footer">
+              {!locked && (
+                <p>
+                  <strong>Note:</strong> Clicking "Update {isStrategy ? 'Strategy' : 'Pipeline'}" below will not save
+                  your changes to the server - it only updates the configuration within the browser, so you'll want to
+                  verify your changes and click "Save Changes" when you're ready.
+                </p>
+              )}
+              <JsonEditor value={pipelineJSON} onChange={this.updateJson} onValidation={this.onValidate} />
+            </>
+          )}
+          {activeTab === 'renderedPipeline' && (
+            <>
+              <p>This pipeline is based on a template. The JSON below represents the rendered pipeline.</p>
+              <form role="form" name="form" className="form-horizontal flex-fill">
+                <div className="flex-fill">
+                  <JsonEditor value={pipelinePlanJSON} readOnly={true} />
+                </div>
+              </form>
+            </>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
           {invalid && (
             <div className="slide-in">
               <div className="error-message">Error: {errorMessage}</div>
@@ -167,8 +172,8 @@ export class EditPipelineJsonModal extends React.Component<IEditPipelineJsonModa
               <span className="far fa-check-circle" /> Update {isStrategy ? 'Strategy' : 'Pipeline'}
             </button>
           )}
-        </div>
-      </div>
+        </Modal.Footer>
+      </>
     );
   }
 }

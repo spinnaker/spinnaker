@@ -33,7 +33,7 @@ export function UnlockPipelineModal(props: IUnlockPipelineModalProps) {
       <Modal key="modal" show={true} onHide={() => {}}>
         <ModalClose dismiss={dismissModal} />
         <Modal.Header>
-          <h3>Really Unlock Pipeline?</h3>
+          <Modal.Title>Really Unlock Pipeline?</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {saveError && (

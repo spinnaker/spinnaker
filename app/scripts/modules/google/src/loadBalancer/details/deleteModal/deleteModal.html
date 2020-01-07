@@ -3,7 +3,7 @@
   <form role="form" ng-if="!ctrl.submitting">
     <modal-close dismiss="$dismiss()"></modal-close>
     <div class="modal-header">
-      <h3>Really delete {{ctrl.loadBalancer.name}}?</h3>
+      <h4 class="modal-title">Really delete {{ctrl.loadBalancer.name}}?</h4>
     </div>
     <div class="modal-body confirmation-modal" ng-if="ctrl.hasHealthChecks()">
       <div class="row">

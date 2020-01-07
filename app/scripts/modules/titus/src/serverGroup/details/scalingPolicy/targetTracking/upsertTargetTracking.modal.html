@@ -2,7 +2,7 @@
   <task-monitor monitor="$ctrl.taskMonitor"></task-monitor>
   <modal-close dismiss="$dismiss()"></modal-close>
   <div class="modal-header">
-    <h3>{{$ctrl.policy.id ? "Update" : "Create"}} scaling policy</h3>
+    <h4 class="modal-title">{{$ctrl.policy.id ? "Update" : "Create"}} scaling policy</h4>
   </div>
   <div class="modal-body">
     <form name="form" novalidate>

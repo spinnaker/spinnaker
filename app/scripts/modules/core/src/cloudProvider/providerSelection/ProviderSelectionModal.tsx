@@ -2,6 +2,7 @@ import { CloudProviderRegistry } from 'core/cloudProvider';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 import { IModalComponentProps, ReactModal } from 'core/presentation';
+import { ModalClose } from 'core/modal';
 
 export interface IProviderSelectionModalProps extends IModalComponentProps {
   providerOptions: string[];
@@ -43,8 +44,9 @@ export class ProviderSelectionModal extends React.Component<
 
     return (
       <>
+        <ModalClose dismiss={this.cancel} />
         <Modal.Header>
-          <h3>Select Your Provider</h3>
+          <Modal.Title>Select Your Provider</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <div className="card-choices">

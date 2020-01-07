@@ -28,7 +28,7 @@ export class ExpressionError extends React.Component<IExpressionErrorProps, IExp
       <div>
         <Modal show={this.state.showContextModal} onHide={toggleModal}>
           <Modal.Header>
-            <h3>{spelError.message}</h3>
+            <Modal.Title>{spelError.message}</Modal.Title>
           </Modal.Header>
 
           <Modal.Body>

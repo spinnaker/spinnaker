@@ -162,7 +162,7 @@ export class ManifestCopier extends React.Component<IManifestCopierProps, IManif
         <ModalClose dismiss={this.props.onDismiss} />
         <div>
           <Modal.Header>
-            <h3>Copy Manifest</h3>
+            <Modal.Title>Copy Manifest</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <form className="form-horizontal">

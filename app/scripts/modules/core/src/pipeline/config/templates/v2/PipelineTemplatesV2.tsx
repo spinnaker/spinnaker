@@ -285,7 +285,7 @@ export class PipelineTemplatesV2 extends React.Component<{}, IPipelineTemplatesV
             <ShowPipelineTemplateJsonModal
               template={detailsTemplate}
               editable={false}
-              modalHeading="View PipelineTemplate"
+              modalHeading="View Pipeline Template"
               descriptionText="The JSON below contains the metadata, variables and pipeline definition for this template."
               dismissModal={this.dismissDetailsModal}
             />

@@ -254,11 +254,10 @@ export function TitusResizeServerGroupModal(props: ITitusResizeServerGroupModalP
         render={formik => {
           return (
             <>
-              <Modal.Header>
-                <h3>Resize {serverGroup.name}</h3>
-              </Modal.Header>
-
               <ModalClose dismiss={dismissModal} />
+              <Modal.Header>
+                <Modal.Title>Resize {serverGroup.name}</Modal.Title>
+              </Modal.Header>
 
               <Modal.Body>
                 <Form className="form-horizontal">

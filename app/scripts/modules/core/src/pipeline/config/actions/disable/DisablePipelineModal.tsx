@@ -30,7 +30,7 @@ export function DisablePipelineModal(props: IDisablePipelineModalProps) {
       <Modal key="modal" show={true} onHide={() => {}}>
         <ModalClose dismiss={dismissModal} />
         <Modal.Header>
-          <h3>Really Disable Pipeline?</h3>
+          <Modal.Title>Really Disable Pipeline?</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {saveError && (

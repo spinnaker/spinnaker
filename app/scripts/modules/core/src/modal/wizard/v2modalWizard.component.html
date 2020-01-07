@@ -2,7 +2,7 @@
   <task-monitor ng-if="$ctrl.taskMonitor" monitor="$ctrl.taskMonitor"></task-monitor>
   <modal-close dismiss="$ctrl.dismiss()"></modal-close>
   <div class="modal-header" ng-if="$ctrl.wizard.heading">
-    <h3>{{ $ctrl.wizard.heading }}</h3>
+    <h4 class="modal-title">{{ $ctrl.wizard.heading }}</h4>
   </div>
   <div ng-class="{'modal-body': !$ctrl.notReallyModal}">
     <div class="row">

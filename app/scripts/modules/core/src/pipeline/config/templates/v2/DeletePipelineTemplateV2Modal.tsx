@@ -2,6 +2,7 @@ import React from 'react';
 import { Modal } from 'react-bootstrap';
 import { get } from 'lodash';
 import { IPipelineTemplateV2 } from 'core/domain/IPipelineTemplateV2';
+import { ModalClose } from 'core/modal';
 import { PipelineTemplateWriter } from '../PipelineTemplateWriter';
 
 import './DeletePipelineTemplateV2Modal.less';
@@ -49,23 +50,22 @@ export class DeletePipelineTemplateV2Modal extends React.Component<
     const { deleteError } = this.state;
     return (
       <Modal show={true} dialogClassName="modal-lg" onHide={() => {}}>
-        <div className="modal-header">
-          <h3>Really delete template {this.props.template.metadata.name}?</h3>
-        </div>
-        <div className="modal-body">
-          Deleting a pipeline template will not work if there are any pipelines depending on it.
-        </div>
-        <div className="modal-footer">
+        <ModalClose dismiss={this.props.onClose} />
+        <Modal.Header>
+          <Modal.Title>Really delete template {this.props.template.metadata.name}?</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>Deleting a pipeline template will not work if there are any pipelines depending on it.</Modal.Body>
+        <Modal.Footer>
           {deleteError && (
             <span className="delete-pipeline-template-modal__delete-error">{this.getDeleteErrorMessage()}</span>
           )}
-          <button className="btn" onClick={this.props.onClose}>
+          <button className="btn btn-default" onClick={this.props.onClose}>
             Cancel
           </button>
           <button className="btn btn-primary" onClick={this.deleteTemplate}>
             Delete
           </button>
-        </div>
+        </Modal.Footer>
       </Modal>
     );
   }

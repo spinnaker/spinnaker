@@ -1,9 +1,11 @@
 import React from 'react';
 
 import Select from 'react-select';
+import { Modal } from 'react-bootstrap';
 
 import {
   IModalComponentProps,
+  ModalClose,
   noop,
   NgReact,
   ReactInjector,
@@ -123,19 +125,15 @@ export class AzureRollbackServerGroupModal extends React.Component<
     );
 
     return (
-      <div className="modal-page confirmation-modal">
+      <Modal onHide={this.close}>
         <TaskMonitorWrapper monitor={taskMonitor} />
         {submitting && (
           <form role="form">
-            <div className="modal-close close-button pull-right">
-              <button className="link" type="button" onClick={this.close}>
-                <span className="glyphicon glyphicon-remove" />
-              </button>
-            </div>
-            <div className="modal-header">
-              <h3>Rollback {serverGroup.name}</h3>
-            </div>
-            <div className="modal-body confirmation-modal">
+            <ModalClose dismiss={this.close} />
+            <Modal.Header>
+              <Modal.Title>Rollback {serverGroup.name}</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
               <div className="row">
                 <div className="col-sm-3 sm-label-right">Restore to</div>
                 <div className="col-sm-6">
@@ -147,7 +145,7 @@ export class AzureRollbackServerGroupModal extends React.Component<
                 </div>
               </div>
               <TaskReason reason={command.taskReason} onChange={this.handleTaskReasonChange} />
-            </div>
+            </Modal.Body>
             <AzureModalFooter
               onSubmit={this.submit}
               onCancel={this.close}
@@ -156,7 +154,7 @@ export class AzureRollbackServerGroupModal extends React.Component<
             />
           </form>
         )}
-      </div>
+      </Modal>
     );
   }
 }

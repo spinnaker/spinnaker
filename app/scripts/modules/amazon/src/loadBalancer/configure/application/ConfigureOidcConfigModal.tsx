@@ -77,7 +77,7 @@ export class ConfigureOidcConfigModal extends React.Component<
             <Form className="form-horizontal">
               <ModalClose dismiss={this.close} />
               <Modal.Header>
-                <h3>Configure OIDC Client</h3>
+                <Modal.Title>Configure OIDC Client</Modal.Title>
               </Modal.Header>
 
               <Modal.Body>

@@ -66,7 +66,7 @@ export function RenamePipelineModal(props: IRenamePipelineModalProps) {
             <Modal key="modal" show={true} onHide={() => {}}>
               <ModalClose dismiss={dismissModal} />
               <Modal.Header>
-                <h3>Rename Pipeline</h3>
+                <Modal.Title>Rename Pipeline</Modal.Title>
               </Modal.Header>
               <Modal.Body>
                 {saveError && (

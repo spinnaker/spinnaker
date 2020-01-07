@@ -172,8 +172,7 @@ export class WizardModal<T = {}> extends React.Component<IWizardModalProps<T>, I
           render={formik => (
             <Form className={`form-horizontal ${formClassName}`}>
               <ModalClose dismiss={dismissModal} />
-
-              <Modal.Header>{heading && <h3>{heading}</h3>}</Modal.Header>
+              <Modal.Header>{heading && <Modal.Title>{heading}</Modal.Title>}</Modal.Header>
 
               <Modal.Body>
                 {loading || !initialized ? (

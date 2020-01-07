@@ -96,7 +96,7 @@ export function ShowPipelineHistoryModal(props: IShowHistoryModalProps) {
       <Modal key="modal" dialogClassName="modal-lg modal-fullscreen" show={true} onHide={() => {}}>
         <ModalClose dismiss={dismissModal} />
         <Modal.Header>
-          <h3>Pipeline Revision History</h3>
+          <Modal.Title>Pipeline Revision History</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {loading && (

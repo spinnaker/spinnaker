@@ -74,9 +74,9 @@ export class ConfigureRedirectConfigModal extends React.Component<IConfigureRedi
             <Form className="form-horizontal">
               <ModalClose dismiss={this.close} />
               <Modal.Header>
-                <h3>
+                <Modal.Title>
                   Configure Redirect <HelpField id="aws.loadBalancer.redirect" />
-                </h3>
+                </Modal.Title>
               </Modal.Header>
 
               <Modal.Body>

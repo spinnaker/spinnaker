@@ -76,10 +76,10 @@ export class CancelModal extends React.Component<ICancelModalProps, ICancelModal
 
           return (
             <Form className="form-horizontal">
-              <Modal.Header>
-                <h3>{header}</h3>
-              </Modal.Header>
               <ModalClose dismiss={this.close} />
+              <Modal.Header>
+                <Modal.Title>{header}</Modal.Title>
+              </Modal.Header>
               <Modal.Body>
                 {wrappedBody}
                 {error}

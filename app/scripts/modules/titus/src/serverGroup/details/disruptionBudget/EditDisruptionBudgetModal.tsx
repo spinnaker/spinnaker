@@ -67,10 +67,10 @@ export class EditDisruptionBudgetModal extends React.Component<IEditDisruptionBu
           onSubmit={(values: ITitusServerGroupCommand) => this.submit(values, taskMonitor)}
           render={formik => (
             <>
-              <Modal.Header>
-                <h3>Update Disruption Budget</h3>
-              </Modal.Header>
               <ModalClose dismiss={dismissModal} />
+              <Modal.Header>
+                <Modal.Title>Update Disruption Budget</Modal.Title>
+              </Modal.Header>
               <Modal.Body>
                 <JobDisruptionBudget formik={formik} app={application} />
               </Modal.Body>
