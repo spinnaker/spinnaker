@@ -15,6 +15,7 @@ Registry.pipeline.registerTrigger({
   ),
   key: 'git',
   label: 'Git',
+  providesRepositoryInformation: true,
   validators: [
     {
       type: 'serviceAccountAccess',

@@ -9,6 +9,7 @@ import { TRIGGERS } from './triggers/triggers.module';
 import './triggers';
 import './validation/requiredField.validator';
 import './validation/anyFieldRequired.validator';
+import './validation/repositoryInformationProvided.validator';
 import './validation/serviceAccountAccess.validator';
 import './validation/stageBeforeType.validator';
 import './validation/stageOrTriggerBeforeType.validator';
