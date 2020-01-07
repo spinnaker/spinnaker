@@ -28,6 +28,7 @@ import javax.annotation.PreDestroy;
 import org.apache.commons.configuration.CompositeConfiguration;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,6 +38,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourcePropertySource;
 
 @Configuration
+@ConditionalOnProperty(value = "archaius.enabled", matchIfMissing = true)
 public class ArchaiusConfiguration {
 
   /** This is a BeanPostProcessor to ensure early initialization only. */
