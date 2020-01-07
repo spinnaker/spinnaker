@@ -12,6 +12,10 @@ export interface ITaskMonitorProps {
 }
 
 export const TaskMonitorWrapper = ({ monitor }: ITaskMonitorProps) => {
+  if (!monitor) {
+    return null;
+  }
+
   const forceUpdate = useForceUpdate();
 
   useEffect(() => {
