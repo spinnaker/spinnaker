@@ -31,7 +31,6 @@ dependencies {
   implementation "com.netflix.spinnaker.kork:kork-core"
   implementation "com.netflix.spinnaker.kork:kork-web"
   implementation "com.netflix.spinnaker.kork:kork-security"
-  implementation "com.netflix.spinnaker.kork:kork-manageddelivery"
   implementation "com.netflix.spectator:spectator-api"
   implementation "com.github.ben-manes.caffeine:guava"
   implementation "com.netflix.hystrix:hystrix-core"

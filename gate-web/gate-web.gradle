@@ -39,7 +39,6 @@ dependencies {
   implementation "com.netflix.spinnaker.kork:kork-secrets-aws"
   implementation "com.netflix.spinnaker.kork:kork-secrets-gcp"
   implementation "com.netflix.spinnaker.kork:kork-core"
-  implementation "com.netflix.spinnaker.kork:kork-manageddelivery"
   implementation "com.netflix.frigga:frigga"
   implementation "redis.clients:jedis"
   implementation "com.netflix.hystrix:hystrix-core"
@@ -58,7 +57,6 @@ dependencies {
   testImplementation "com.squareup.retrofit:retrofit-mock"
   testImplementation "org.springframework.security:spring-security-test"
   testImplementation "org.springframework.security:spring-security-ldap"
-  testImplementation "org.springframework.security:spring-security-oauth2-jose"
   testImplementation "com.unboundid:unboundid-ldapsdk"
   testImplementation "com.netflix.spinnaker.kork:kork-jedis-test"
 
