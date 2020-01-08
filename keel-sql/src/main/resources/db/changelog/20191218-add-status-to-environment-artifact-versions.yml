@@ -9,6 +9,7 @@ databaseChangeLog:
               - column:
                   name: promotion_status
                   type: varchar(255)
+                  value: PENDING
                   constraints:
                     nullable: false
       rollback:

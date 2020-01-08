@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: default-promotion-status
+      author: fletch
+      changes:
+      - upate:
+          tableName: delivery_artifact_version
+          columns:
+            - column:
+                name: promotion_status
+                value: APPROVED
+          where: approved_at is not null
+      - upate:
+          tableName: delivery_artifact_version
+          columns:
+            - column:
+                name: promotion_status
+                value: PREVIOUS
+          where: deployed_at is not null
