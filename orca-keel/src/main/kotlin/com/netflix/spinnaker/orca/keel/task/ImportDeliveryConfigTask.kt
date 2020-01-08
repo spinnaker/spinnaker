@@ -23,7 +23,7 @@ import com.netflix.spinnaker.orca.KeelService
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.igor.ScmService
-import com.netflix.spinnaker.orca.pipeline.model.GitTrigger
+import com.netflix.spinnaker.orca.pipeline.model.SourceCodeTrigger
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Trigger
 import org.slf4j.LoggerFactory
@@ -46,7 +46,7 @@ constructor(
   private val log = LoggerFactory.getLogger(javaClass)
 
   override fun execute(stage: Stage): TaskResult {
-    val context = objectMapper.convertValue<PublishDeliveryConfigContext>(stage.context)
+    val context = objectMapper.convertValue<ImportDeliveryConfigContext>(stage.context)
     val trigger = stage.execution.trigger
     val user = trigger.user ?: "anonymous"
     val manifestLocation = processDeliveryConfigLocation(trigger, context)
@@ -61,22 +61,18 @@ constructor(
 
       TaskResult.builder(ExecutionStatus.SUCCEEDED).context(emptyMap<String, Any?>()).build()
     } catch (e: RetrofitError) {
-      handleFailure(e, context)
+      handleRetryableFailures(e, context)
     } catch (e: Exception) {
       log.error("Unexpected exception while executing {}, aborting.", javaClass.simpleName, e)
       buildError(e.message)
     }
   }
 
-  private fun processDeliveryConfigLocation(trigger: Trigger, context: PublishDeliveryConfigContext): String {
-    if (trigger is GitTrigger) {
-      // if the pipeline has a git trigger, infer what context we can from the trigger
-      // FIXME: GitTrigger props are non-null, but IIUC branch and hash would be mutually exclusive, so what to do here?
-      if (trigger.hash != null && context.ref == null) {
+  private fun processDeliveryConfigLocation(trigger: Trigger, context: ImportDeliveryConfigContext): String {
+    if (trigger is SourceCodeTrigger) {
+      // if the pipeline has a source code trigger (git, etc.), infer what context we can from the trigger
+      if (context.ref == null) {
         context.ref = trigger.hash
-        log.debug("Inferred context.ref from trigger: ${context.ref}")
-      } else if (trigger.branch != null && context.ref == null) {
-        context.ref = "refs/heads/${trigger.branch}"
         log.debug("Inferred context.ref from trigger: ${context.ref}")
       }
       if (context.repoType == null) {
@@ -92,7 +88,7 @@ constructor(
         log.debug("Inferred context.repository from trigger: ${context.repositorySlug}")
       }
     } else {
-      // otherwise, apply defaults where possible, or fail
+      // otherwise, apply defaults where possible, or fail if there's not enough information in the context
       if (context.ref == null) {
         context.ref = "refs/heads/master"
       }
@@ -106,7 +102,7 @@ constructor(
       ?: ""}/${context.manifest}@${context.ref}"
   }
 
-  private fun handleFailure(e: RetrofitError, context: PublishDeliveryConfigContext): TaskResult {
+  private fun handleRetryableFailures(e: RetrofitError, context: ImportDeliveryConfigContext): TaskResult {
     return when {
       e.kind == RetrofitError.Kind.NETWORK -> {
         // retry if unable to connect
@@ -127,7 +123,7 @@ constructor(
     }
   }
 
-  private fun buildRetry(context: PublishDeliveryConfigContext): TaskResult {
+  private fun buildRetry(context: ImportDeliveryConfigContext): TaskResult {
     context.incrementAttempt()
     return if (context.attempt > context.maxRetries!!) {
       val error = "Maximum number of retries exceeded (${context.maxRetries})"
@@ -152,7 +148,7 @@ constructor(
       "$message: ${cause?.message ?: ""}"
     }
 
-  data class PublishDeliveryConfigContext(
+  data class ImportDeliveryConfigContext(
     var repoType: String? = null,
     var projectKey: String? = null,
     var repositorySlug: String? = null,
@@ -163,8 +159,8 @@ constructor(
     val maxRetries: Int? = MAX_RETRIES
   )
 
-  fun PublishDeliveryConfigContext.incrementAttempt() = this.also { attempt += 1 }
-  fun PublishDeliveryConfigContext.toMap() = objectMapper.convertValue<Map<String, Any?>>(this)
+  fun ImportDeliveryConfigContext.incrementAttempt() = this.also { attempt += 1 }
+  fun ImportDeliveryConfigContext.toMap() = objectMapper.convertValue<Map<String, Any?>>(this)
 
   companion object {
     const val MAX_RETRIES = 5

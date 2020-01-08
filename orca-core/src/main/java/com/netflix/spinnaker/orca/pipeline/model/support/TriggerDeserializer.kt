@@ -31,11 +31,11 @@ import com.netflix.spinnaker.orca.pipeline.model.NexusTrigger
 import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
 import com.netflix.spinnaker.orca.pipeline.model.Trigger
 
-internal class TriggerDeserializer :
+class TriggerDeserializer :
   StdDeserializer<Trigger>(Trigger::class.java) {
 
   companion object {
-    val customTriggerSuppliers: MutableList<CustomTriggerDeserializerSupplier> = mutableListOf()
+    val customTriggerSuppliers: MutableSet<CustomTriggerDeserializerSupplier> = mutableSetOf()
   }
 
   override fun deserialize(parser: JsonParser, context: DeserializationContext): Trigger =
