@@ -11,6 +11,7 @@ import com.netflix.spinnaker.keel.diff.EnvironmentDiff
 import com.netflix.spinnaker.keel.exceptions.InvalidConstraintException
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
+import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigException
 import com.netflix.spinnaker.keel.persistence.ResourceRepository.Companion.DEFAULT_MAX_EVENTS
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import java.time.Instant
@@ -110,7 +111,13 @@ class DeliveryConfigController(
 
   @ExceptionHandler(InvalidConstraintException::class)
   @ResponseStatus(HttpStatus.NOT_FOUND)
-  fun onNotFound(e: InvalidConstraintException) {
+  fun onConstraintNotFound(e: InvalidConstraintException) {
+    log.info(e.message)
+  }
+
+  @ExceptionHandler(NoSuchDeliveryConfigException::class)
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  fun onDeliveryConfigNotFound(e: NoSuchDeliveryConfigException) {
     log.info(e.message)
   }
 
