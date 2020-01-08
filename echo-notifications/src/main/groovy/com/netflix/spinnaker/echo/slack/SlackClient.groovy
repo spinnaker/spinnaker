@@ -33,7 +33,7 @@ interface SlackClient {
   /**
    * Documentation: https://api.slack.com/incoming-webhooks
    */
-  @POST('/services/{token}')
+  @POST('/{token}')
   Response sendUsingIncomingWebHook(
     @Path(value = "token", encode = false) String token,
     @Body SlackRequest slackRequest)

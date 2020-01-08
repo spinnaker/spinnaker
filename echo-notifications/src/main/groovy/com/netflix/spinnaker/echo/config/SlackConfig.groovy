@@ -41,7 +41,7 @@ import static retrofit.Endpoints.newFixedEndpoint
 @CompileStatic
 class SlackConfig {
 
-  final static String SLACK_INCOMING_WEBHOOK = 'https://hooks.slack.com'
+  final static String SLACK_INCOMING_WEBHOOK = 'https://hooks.slack.com/services'
   final static String SLACK_CHAT_API = 'https://slack.com'
 
   @Value('${slack.base-url:}')
