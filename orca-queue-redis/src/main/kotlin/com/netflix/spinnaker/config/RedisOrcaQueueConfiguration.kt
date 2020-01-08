@@ -85,7 +85,7 @@ class RedisOrcaQueueConfiguration : RedisQueueConfiguration() {
     redisQueueProperties: RedisQueueProperties,
     clock: Clock,
     deadMessageHandler: RedisDeadMessageHandler,
-    @Qualifier("queueEventPublisher") publisher: EventPublisher,
+    publisher: EventPublisher,
     mapper: ObjectMapper,
     serializationMigrator: Optional<SerializationMigrator>
   ): RedisQueue {
@@ -99,7 +99,7 @@ class RedisOrcaQueueConfiguration : RedisQueueConfiguration() {
     @Qualifier("queueRedisCluster") cluster: JedisCluster,
     redisQueueProperties: RedisQueueProperties,
     clock: Clock,
-    @Qualifier("queueEventPublisher") deadMessageHandler: RedisClusterDeadMessageHandler,
+    deadMessageHandler: RedisClusterDeadMessageHandler,
     publisher: EventPublisher,
     redisQueueObjectMapper: ObjectMapper,
     serializationMigrator: Optional<SerializationMigrator>
