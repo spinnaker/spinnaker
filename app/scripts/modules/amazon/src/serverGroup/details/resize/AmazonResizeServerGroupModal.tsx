@@ -5,6 +5,7 @@ import { pickBy } from 'lodash';
 
 import {
   Application,
+  confirmNotManaged,
   CheckboxInput,
   FormikFormField,
   HelpField,
@@ -66,9 +67,12 @@ export class AmazonResizeServerGroupModal extends React.Component<
 
   private formikRef = React.createRef<Formik<IAmazonResizeServerGroupValues>>();
 
-  public static show(props: IAmazonResizeServerGroupModalProps): Promise<IResizeJob> {
+  public static show(props: IAmazonResizeServerGroupModalProps) {
     const modalProps = {};
-    return ReactModal.show(AmazonResizeServerGroupModal, props, modalProps);
+    const { serverGroup, application } = props;
+    return confirmNotManaged(serverGroup, application)
+      .then(() => ReactModal.show(AmazonResizeServerGroupModal, props, modalProps))
+      .catch(noop);
   }
 
   constructor(props: IAmazonResizeServerGroupModalProps) {

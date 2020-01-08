@@ -1,0 +1,127 @@
+import React from 'react';
+import { $q } from 'ngimport';
+
+import { IManagedResource, IManagedResourceSummary, ManagedResourceStatus } from 'core/domain';
+import { Application } from 'core/application';
+import { ReactInjector } from 'core/reactShims';
+
+import { ManagedWriter } from './ManagedWriter';
+
+import './ManagedResourceStatusIndicator.less';
+
+interface IToggleConfiguration {
+  pauseWarning?: JSX.Element;
+}
+
+const viewConfigurationByStatus: { [status in ManagedResourceStatus]?: IToggleConfiguration } = {
+  ACTUATING: {
+    pauseWarning: (
+      <p>
+        <div className="horizontal top sp-padding-m alert alert-warning">
+          <i className="fa fa-exclamation-triangle sp-margin-m-right sp-margin-xs-top" />
+          <span>
+            Pausing management will not interrupt the action Spinnaker is currently performing to resolve the drift in
+            configuration.
+          </span>
+        </div>
+      </p>
+    ),
+  },
+};
+
+export const confirmNotManaged = (resource: IManagedResource, application: Application) => {
+  const { managedResourceSummary, isManaged } = resource;
+  if (!isManaged || managedResourceSummary.isPaused) {
+    return $q.when();
+  }
+  const submitMethod = () => {
+    return ManagedWriter.pauseResourceManagement(managedResourceSummary.id).then(() =>
+      application.managedResources.refresh(true),
+    );
+  };
+  return ReactInjector.confirmationModalService.confirm({
+    header: `Pause Management?`,
+    bodyContent: <BodyText resourceSummary={managedResourceSummary} />,
+    account: managedResourceSummary.locations.account,
+    buttonText: 'Pause management',
+    submitMethod,
+  });
+};
+
+export const toggleResourcePause = (
+  resourceSummary: IManagedResourceSummary,
+  application: Application,
+  hidePopover?: () => void,
+) => {
+  hidePopover?.();
+  const { id, isPaused } = resourceSummary;
+  const toggle = () =>
+    isPaused ? ManagedWriter.resumeResourceManagement(id) : ManagedWriter.pauseResourceManagement(id);
+
+  const submitMethod = () => toggle().then(() => application.managedResources.refresh(true));
+
+  return ReactInjector.confirmationModalService.confirm({
+    header: `Really ${isPaused ? 'resume' : 'pause'} resource management?`,
+    bodyContent: <PopoverToggleBodyText resourceSummary={resourceSummary} />,
+    account: resourceSummary.locations.account,
+    buttonText: `${isPaused ? 'Resume' : 'Pause'} management`,
+    submitMethod,
+  });
+};
+
+const PopoverToggleBodyText = ({ resourceSummary }: { resourceSummary: IManagedResourceSummary }) => {
+  const { isPaused, status } = resourceSummary;
+  if (isPaused) {
+    return (
+      <>
+        <p>Spinnaker will resume taking action to resolve drift from the declarative configuration.</p>
+        <MultiRegionWarning resourceSummary={resourceSummary} />
+      </>
+    );
+  } else {
+    return (
+      <>
+        <p>
+          While a resource is paused, Spinnaker will not take action to resolve drift from the declarative
+          configuration.
+        </p>
+        {viewConfigurationByStatus[status]?.pauseWarning}
+        <MultiRegionWarning resourceSummary={resourceSummary} />
+      </>
+    );
+  }
+};
+
+const MultiRegionWarning = ({ resourceSummary }: { resourceSummary: IManagedResourceSummary }) => {
+  const { isPaused, locations } = resourceSummary;
+  const regions = locations.regions.map(r => r.name).sort();
+  if (regions.length < 2) {
+    return null;
+  }
+  return (
+    <div className="horizontal top sp-padding-m alert alert-warning">
+      <i className="fa fa-exclamation-triangle sp-margin-m-right sp-margin-xs-top" />
+      <span>
+        {isPaused ? 'Resuming' : 'Pausing'} management of this resource will affect the following regions:{' '}
+        <b>{regions.join(', ')}</b>.
+      </span>
+    </div>
+  );
+};
+
+const BodyText = ({ resourceSummary }: { resourceSummary: IManagedResourceSummary }) => {
+  const { status } = resourceSummary;
+  return (
+    <>
+      <p>
+        🌈 <b>Spinnaker is continuously managing this resource.</b>
+      </p>
+      <p>
+        If you need to temporarily stop Spinnaker from managing this resource — for example, if something is wrong and
+        manual intervention is required — you can pause management and resume it later.
+      </p>
+      {viewConfigurationByStatus[status]?.pauseWarning}
+      <MultiRegionWarning resourceSummary={resourceSummary} />
+    </>
+  );
+};

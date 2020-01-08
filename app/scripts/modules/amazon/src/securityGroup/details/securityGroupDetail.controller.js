@@ -6,11 +6,13 @@ import _ from 'lodash';
 import {
   CloudProviderRegistry,
   CONFIRMATION_MODAL_SERVICE,
+  confirmNotManaged,
   RecentHistoryService,
   SECURITY_GROUP_READER,
   SecurityGroupWriter,
   FirewallLabels,
   MANAGED_RESOURCE_DETAILS_INDICATOR,
+  noop,
 } from '@spinnaker/core';
 
 import { VpcReader } from '../../vpc/VpcReader';
@@ -145,20 +147,28 @@ angular
         }
       });
 
+      function checkManagement() {
+        return confirmNotManaged($scope.securityGroup, application);
+      }
+
       this.editInboundRules = function editInboundRules() {
-        $uibModal.open({
-          templateUrl: require('../configure/editSecurityGroup.html'),
-          controller: 'awsEditSecurityGroupCtrl as ctrl',
-          size: 'lg',
-          resolve: {
-            securityGroup: function() {
-              return angular.copy($scope.securityGroup);
-            },
-            application: function() {
-              return application;
-            },
-          },
-        });
+        checkManagement()
+          .then(() =>
+            $uibModal.open({
+              templateUrl: require('../configure/editSecurityGroup.html'),
+              controller: 'awsEditSecurityGroupCtrl as ctrl',
+              size: 'lg',
+              resolve: {
+                securityGroup: function() {
+                  return angular.copy($scope.securityGroup);
+                },
+                application: function() {
+                  return application;
+                },
+              },
+            }),
+          )
+          .catch(noop);
       };
 
       this.cloneSecurityGroup = function cloneSecurityGroup() {
@@ -204,16 +214,18 @@ angular
           return SecurityGroupWriter.deleteSecurityGroup(securityGroup, application, params);
         };
 
-        confirmationModalService.confirm({
-          header: 'Really delete ' + securityGroup.name + '?',
-          buttonText: 'Delete ' + securityGroup.name,
-          account: securityGroup.accountId,
-          taskMonitorConfig: taskMonitor,
-          submitMethod: submitMethod,
-          retryBody: `<div><p>Retry deleting the ${FirewallLabels.get(
-            'firewall',
-          )} and revoke any dependent ingress rules?</p><p>Any instance or load balancer associations will have to removed manually.</p></div>`,
-        });
+        checkManagement().then(() =>
+          confirmationModalService.confirm({
+            header: 'Really delete ' + securityGroup.name + '?',
+            buttonText: 'Delete ' + securityGroup.name,
+            account: securityGroup.accountId,
+            taskMonitorConfig: taskMonitor,
+            submitMethod: submitMethod,
+            retryBody: `<div><p>Retry deleting the ${FirewallLabels.get(
+              'firewall',
+            )} and revoke any dependent ingress rules?</p><p>Any instance or load balancer associations will have to removed manually.</p></div>`,
+          }),
+        );
       };
 
       if (app.isStandalone) {
