@@ -30,6 +30,10 @@ dependencies {
     implementation "org.springframework.boot:spring-boot-starter-actuator"
     implementation "org.springframework.boot:spring-boot-starter-web"
 
+    implementation "javax.xml.bind:jaxb-api"
+    implementation "com.sun.xml.bind:jaxb-core:2.3.0.1"
+    implementation "com.sun.xml.bind:jaxb-impl:2.3.2"
+
     testImplementation "org.springframework.boot:spring-boot-starter-test"
     testImplementation "org.spockframework:spock-core"
     testImplementation "org.spockframework:spock-spring"
