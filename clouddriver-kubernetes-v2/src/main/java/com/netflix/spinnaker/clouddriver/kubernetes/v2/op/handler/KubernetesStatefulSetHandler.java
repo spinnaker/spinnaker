@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
@@ -132,14 +133,14 @@ public class KubernetesStatefulSetHandler extends KubernetesHandler
       return result;
     }
 
-    Integer desiredReplicas = statefulSet.getSpec().getReplicas();
-    Integer existing = status.getReplicas();
-    if (existing == null || (desiredReplicas != null && desiredReplicas > existing)) {
+    int desiredReplicas = defaultToZero(statefulSet.getSpec().getReplicas());
+    int existing = defaultToZero(status.getReplicas());
+    if (desiredReplicas > existing) {
       return result.unstable("Waiting for at least the desired replica count to be met");
     }
 
-    existing = status.getReadyReplicas();
-    if (existing == null || (desiredReplicas != null && desiredReplicas > existing)) {
+    existing = defaultToZero(status.getReadyReplicas());
+    if (desiredReplicas > existing) {
       return result.unstable("Waiting for all updated replicas to be ready");
     }
 
@@ -159,8 +160,8 @@ public class KubernetesStatefulSetHandler extends KubernetesHandler
       return result;
     }
 
-    existing = status.getCurrentReplicas();
-    if (existing == null || (desiredReplicas != null && desiredReplicas > existing)) {
+    existing = defaultToZero(status.getCurrentReplicas());
+    if (desiredReplicas > existing) {
       return result.unstable("Waiting for all updated replicas to be scheduled");
     }
 
@@ -169,6 +170,11 @@ public class KubernetesStatefulSetHandler extends KubernetesHandler
     }
 
     return result;
+  }
+
+  // Unboxes an Integer, returning 0 if the input is null
+  private int defaultToZero(@Nullable Integer input) {
+    return input == null ? 0 : input;
   }
 
   @Override

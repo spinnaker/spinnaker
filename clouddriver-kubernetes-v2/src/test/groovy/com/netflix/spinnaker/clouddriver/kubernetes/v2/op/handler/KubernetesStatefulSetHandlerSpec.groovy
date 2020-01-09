@@ -10,39 +10,36 @@ import spock.lang.Specification
 
 
 class KubernetesStatefulSetHandlerSpec extends Specification {
-  def objectMapper = new ObjectMapper()
   def handler = new KubernetesStatefulSetHandler()
   def gsonObj = new Gson()
 
   def IMAGE = "gcr.io/project/image"
-  def ACCOUNT = "my-account"
   def CLUSTER_SIZE = 5
   def VERSION = "version"
   def NAMESPACE = "my-namespace"
   def NAME = "my-name"
-  def KIND = KubernetesKind.STATEFUL_SET
 
   String statefulSetManifestWithPartition(Integer partition = CLUSTER_SIZE) {
     def sourceJson = KubernetesStatefulSetHandler.class.getResource("statefulsetpartitionbase.json").getText("utf-8")
     def templateEngine = new SimpleTemplateEngine()
     def binding = [
       "partition": partition,
-      "name": getNAME(),
-      "namespace": getNAMESPACE(),
-      "replicas": getCLUSTER_SIZE(),
-      "image": getIMAGE(),
+      "name": NAME,
+      "namespace": NAMESPACE,
+      "replicas": CLUSTER_SIZE,
+      "image": IMAGE,
     ]
     def template = templateEngine.createTemplate(sourceJson).make(binding)
     return template.toString()
   }
 
-  String statefulSetManifest() {
+  String statefulSetManifest(int replicas = CLUSTER_SIZE) {
     def sourceJson = KubernetesStatefulSetHandler.class.getResource("statefulsetbase.json").getText("utf-8")
     def templateEngine = new SimpleTemplateEngine()
     def binding = [
       "name": getNAME(),
       "namespace": getNAMESPACE(),
-      "replicas": getCLUSTER_SIZE(),
+      "replicas": replicas,
       "image": getIMAGE(),
     ]
     def template = templateEngine.createTemplate(sourceJson).make(binding)
@@ -332,4 +329,51 @@ class KubernetesStatefulSetHandlerSpec extends Specification {
     status.stable.message == "Partitioned roll out complete"
   }
 
+  def "[status] unstable with no replicas when desired replicas > 0"() {
+    when:
+    // When there are no replicas, availableReplicas, currentReplicas, readyReplicas,
+    // and updatedReplicas may be absent from the status.
+    def statusJSONString = """
+{
+  "status": {
+    "observedGeneration": 1,
+    "replicas": 0,
+    "currentRevision": "$NAME-$VERSION",
+    "updateRevision": "$NAME-$VERSION"
+  }
+}
+""".toString()
+    def baseJson = gsonObj.fromJson(statefulSetManifest(1), Object)
+    def statusJson = gsonObj.fromJson(statusJSONString, Object)
+    def manifestJson = baseJson << statusJson
+    def manifest = stringToManifest(manifestJson)
+    def status = handler.status(manifest)
+
+    then:
+    !status.stable.state
+  }
+
+  def "[status] stable with no replicas when desired replicas = 0"() {
+    when:
+    // When there are no replicas, availableReplicas, currentReplicas, readyReplicas,
+    // and updatedReplicas may be absent from the status.
+    def statusJSONString = """
+{
+  "status": {
+    "observedGeneration": 1,
+    "replicas": 0,
+    "currentRevision": "$NAME-$VERSION",
+    "updateRevision": "$NAME-$VERSION"
+  }
+}
+""".toString()
+    def baseJson = gsonObj.fromJson(statefulSetManifest(0), Object)
+    def statusJson = gsonObj.fromJson(statusJSONString, Object)
+    def manifestJson = baseJson << statusJson
+    def manifest = stringToManifest(manifestJson)
+    def status = handler.status(manifest)
+
+    then:
+    status.stable.state
+  }
 }
