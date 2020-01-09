@@ -79,6 +79,7 @@ allprojects {
       annotationProcessor "org.projectlombok:lombok"
       testAnnotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
       testAnnotationProcessor "org.projectlombok:lombok"
+      testRuntimeOnly "org.junit.vintage:junit-vintage-engine" // Required for Spock tests to execute along with Junit5 tests.
     }
 
     test {
