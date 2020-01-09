@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -30,6 +31,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.netflix.spectator.api.NoopRegistry;
+import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
@@ -546,5 +548,43 @@ final class KubernetesCoreCachingAgentTest {
       this.results = extractCacheResults(loadDataResults);
       this.cacheEntries = extractCacheEntries(providerCaches);
     }
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = {1, 2, 10})
+  public void authoritativeForLogicalTypes(int numAgents) {
+    ImmutableCollection<KubernetesCoreCachingAgent> cachingAgents =
+        createCachingAgents(getNamedAccountCredentials(), numAgents);
+    cachingAgents.forEach(
+        cachingAgent ->
+            assertThat(getAuthoritativeTypes(cachingAgent.getProvidedDataTypes()))
+                .containsAll(
+                    ImmutableList.of(
+                        Keys.LogicalKind.APPLICATIONS.toString(),
+                        Keys.LogicalKind.CLUSTERS.toString(),
+                        Keys.Kind.ARTIFACT.toString())));
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = {1, 2, 10})
+  public void authoritativeForKubernetesKinds(int numAgents) {
+    ImmutableCollection<KubernetesCoreCachingAgent> cachingAgents =
+        createCachingAgents(getNamedAccountCredentials(), numAgents);
+    cachingAgents.forEach(
+        cachingAgent ->
+            assertThat(getAuthoritativeTypes(cachingAgent.getProvidedDataTypes()))
+                .containsAll(
+                    ImmutableList.of(
+                        KubernetesKind.NAMESPACE.toString(),
+                        KubernetesKind.POD.toString(),
+                        KubernetesKind.REPLICA_SET.toString())));
+  }
+
+  private static ImmutableList<String> getAuthoritativeTypes(
+      Collection<AgentDataType> agentDataTypes) {
+    return agentDataTypes.stream()
+        .filter(dataType -> dataType.getAuthority() == AUTHORITATIVE)
+        .map(AgentDataType::getTypeName)
+        .collect(toImmutableList());
   }
 }

@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent;
 
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,12 +28,10 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKindProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -48,16 +47,14 @@ public class KubernetesCoreCachingAgent extends KubernetesV2OnDemandCachingAgent
   }
 
   public Collection<AgentDataType> getProvidedDataTypes() {
-    List<AgentDataType> types = new ArrayList<>();
-    types.add(AUTHORITATIVE.forType(Keys.LogicalKind.APPLICATIONS.toString()));
-    types.add(AUTHORITATIVE.forType(Keys.LogicalKind.CLUSTERS.toString()));
+    Stream<String> logicalTypes =
+        Stream.of(Keys.LogicalKind.APPLICATIONS, Keys.LogicalKind.CLUSTERS, Keys.Kind.ARTIFACT)
+            .map(Enum::toString);
+    Stream<String> kubernetesTypes = primaryKinds().stream().map(KubernetesKind::toString);
 
-    types.addAll(
-        primaryKinds().stream()
-            .map(k -> AUTHORITATIVE.forType(k.toString()))
-            .collect(Collectors.toList()));
-
-    return Collections.unmodifiableSet(new HashSet<>(types));
+    return Stream.concat(logicalTypes, kubernetesTypes)
+        .map(AUTHORITATIVE::forType)
+        .collect(toImmutableSet());
   }
 
   @Override
