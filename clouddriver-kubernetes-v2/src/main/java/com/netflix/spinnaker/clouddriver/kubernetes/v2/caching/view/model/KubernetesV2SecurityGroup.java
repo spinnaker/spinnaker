@@ -31,6 +31,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.model.SecurityGroup;
 import com.netflix.spinnaker.clouddriver.model.SecurityGroupSummary;
 import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule;
+import io.kubernetes.client.custom.IntOrString;
 import io.kubernetes.client.models.V1NetworkPolicy;
 import io.kubernetes.client.models.V1NetworkPolicyEgressRule;
 import io.kubernetes.client.models.V1NetworkPolicyIngressRule;
@@ -43,6 +44,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -143,10 +145,13 @@ public class KubernetesV2SecurityGroup extends ManifestBasedModel implements Sec
   }
 
   private static Rule fromPolicyPort(V1NetworkPolicyPort policyPort) {
-    String port = policyPort.getPort().toString();
+    IntOrString port = policyPort.getPort();
     return new PortRule()
         .setProtocol(policyPort.getProtocol())
-        .setPortRanges(new TreeSet<>(Collections.singletonList(new StringPortRange(port))));
+        .setPortRanges(
+            port == null
+                ? null
+                : new TreeSet<>(Collections.singletonList(new StringPortRange(port.toString()))));
   }
 
   @Data
@@ -160,8 +165,8 @@ public class KubernetesV2SecurityGroup extends ManifestBasedModel implements Sec
 
   @Data
   private static class PortRule implements Rule {
-    private SortedSet<PortRange> portRanges;
-    private String protocol;
+    @Nullable private SortedSet<PortRange> portRanges;
+    @Nullable private String protocol;
   }
 
   @EqualsAndHashCode(callSuper = true)
