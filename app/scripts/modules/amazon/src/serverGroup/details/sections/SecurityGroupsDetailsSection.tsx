@@ -2,14 +2,7 @@ import React from 'react';
 import { chain, find, sortBy } from 'lodash';
 import { UISref } from '@uirouter/react';
 
-import {
-  CollapsibleSection,
-  confirmNotManaged,
-  ISecurityGroup,
-  ModalInjector,
-  FirewallLabels,
-  noop,
-} from '@spinnaker/core';
+import { CollapsibleSection, confirmNotManaged, ISecurityGroup, ModalInjector, FirewallLabels } from '@spinnaker/core';
 
 import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
 
@@ -47,8 +40,9 @@ export class SecurityGroupsDetailsSection extends React.Component<
 
   private updateSecurityGroups = (): void => {
     const { app, serverGroup } = this.props;
-    confirmNotManaged(serverGroup, app)
-      .then(() =>
+    confirmNotManaged(serverGroup, app).then(
+      notManaged =>
+        notManaged &&
         ModalInjector.modalService.open({
           templateUrl: require('../securityGroup/editSecurityGroups.modal.html'),
           controller: 'EditSecurityGroupsCtrl as $ctrl',
@@ -58,8 +52,7 @@ export class SecurityGroupsDetailsSection extends React.Component<
             securityGroups: () => this.state.securityGroups,
           },
         }),
-      )
-      .catch(noop);
+    );
   };
 
   public componentWillReceiveProps(nextProps: IAmazonServerGroupDetailsSectionProps): void {

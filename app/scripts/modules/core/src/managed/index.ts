@@ -5,4 +5,5 @@ export * from './managedResourceDetailsIndicator.component';
 export * from './ManagedResourceStatusIndicator';
 export * from './managed.dataSource';
 export * from './managedResourceDecorators';
+export * from './ManagedMenuItem';
 export * from './toggleResourceManagement';

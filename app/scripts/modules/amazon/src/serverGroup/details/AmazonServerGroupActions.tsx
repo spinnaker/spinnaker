@@ -1,18 +1,19 @@
 import React from 'react';
-import { Dropdown, Tooltip } from 'react-bootstrap';
-import { get, find, filter, orderBy } from 'lodash';
+import { Dropdown, MenuItem, Tooltip } from 'react-bootstrap';
+import { filter, find, get, orderBy } from 'lodash';
 
 import {
   ClusterTargetBuilder,
   IOwnerOption,
   IServerGroupActionsProps,
   IServerGroupJob,
+  ManagedMenuItem,
   ModalInjector,
   NgReact,
+  Overridable,
   ReactInjector,
   ServerGroupWarningMessageService,
   SETTINGS,
-  Overridable,
 } from '@spinnaker/core';
 
 import { IAmazonServerGroup, IAmazonServerGroupView } from 'amazon/domain';
@@ -35,13 +36,7 @@ export class AmazonServerGroupActionsResize extends React.Component<IAmazonResiz
   };
 
   public render(): JSX.Element {
-    return (
-      <li>
-        <a className="clickable" onClick={this.resizeServerGroup}>
-          Resize
-        </a>
-      </li>
-    );
+    return <MenuItem onClick={this.resizeServerGroup}>Resize</MenuItem>;
   }
 }
 
@@ -296,27 +291,21 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
         <Dropdown.Toggle className="btn btn-sm btn-primary dropdown-toggle">Server Group Actions</Dropdown.Toggle>
         <Dropdown.Menu className="dropdown-menu">
           {this.isRollbackEnabled() && (
-            <li>
-              <a className="clickable" onClick={this.rollbackServerGroup}>
-                Rollback
-              </a>
-            </li>
+            <ManagedMenuItem resource={serverGroup} application={app} onClick={this.rollbackServerGroup}>
+              Rollback
+            </ManagedMenuItem>
           )}
           {this.isRollbackEnabled() && <li role="presentation" className="divider" />}
           <AmazonServerGroupActionsResize application={app} serverGroup={serverGroup} />
           {!serverGroup.isDisabled && (
-            <li>
-              <a className="clickable" onClick={this.disableServerGroup}>
-                Disable
-              </a>
-            </li>
+            <ManagedMenuItem resource={serverGroup} application={app} onClick={this.disableServerGroup}>
+              Disable
+            </ManagedMenuItem>
           )}
           {this.hasDisabledInstances() && !this.isEnableLocked() && (
-            <li>
-              <a className="clickable" onClick={this.enableServerGroup}>
-                Enable
-              </a>
-            </li>
+            <ManagedMenuItem resource={serverGroup} application={app} onClick={this.enableServerGroup}>
+              Enable
+            </ManagedMenuItem>
           )}
           {this.isEnableLocked() && (
             <li className="disabled">
@@ -327,11 +316,9 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
               </Tooltip>
             </li>
           )}
-          <li>
-            <a className="clickable" onClick={this.destroyServerGroup}>
-              Destroy
-            </a>
-          </li>
+          <ManagedMenuItem resource={serverGroup} application={app} onClick={this.destroyServerGroup}>
+            Destroy
+          </ManagedMenuItem>
           <li>
             <a className="clickable" onClick={this.cloneServerGroup}>
               Clone

@@ -8,6 +8,7 @@ import { ReactInjector } from 'core/reactShims';
 import { ManagedWriter } from './ManagedWriter';
 
 import './ManagedResourceStatusIndicator.less';
+import { IPromise } from 'angular';
 
 interface IToggleConfiguration {
   pauseWarning?: JSX.Element;
@@ -29,23 +30,35 @@ const viewConfigurationByStatus: { [status in ManagedResourceStatus]?: IToggleCo
   },
 };
 
-export const confirmNotManaged = (resource: IManagedResource, application: Application) => {
+/***
+ * If the resource is not managed, or management is paused, this will return an immediate promise with a true value.
+ * If the resource is managed, an interstitial modal will prompt the user to pause resource management. The promise will
+ * then resolve with true if the user paused resource management, or false if they chose not to pause management.
+ * @param resource
+ * @param application
+ */
+export const confirmNotManaged = (resource: IManagedResource, application: Application): IPromise<boolean> => {
   const { managedResourceSummary, isManaged } = resource;
   if (!isManaged || managedResourceSummary.isPaused) {
-    return $q.when();
+    return $q.when(true);
   }
   const submitMethod = () => {
     return ManagedWriter.pauseResourceManagement(managedResourceSummary.id).then(() =>
       application.managedResources.refresh(true),
     );
   };
-  return ReactInjector.confirmationModalService.confirm({
-    header: `Pause Management?`,
-    bodyContent: <BodyText resourceSummary={managedResourceSummary} />,
-    account: managedResourceSummary.locations.account,
-    buttonText: 'Pause management',
-    submitMethod,
-  });
+  return ReactInjector.confirmationModalService
+    .confirm({
+      header: `Pause Management?`,
+      bodyContent: <BodyText resourceSummary={managedResourceSummary} />,
+      account: managedResourceSummary.locations.account,
+      buttonText: 'Pause management',
+      submitMethod,
+    })
+    .then(
+      () => true,
+      () => false,
+    );
 };
 
 export const toggleResourcePause = (

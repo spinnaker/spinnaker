@@ -52,12 +52,7 @@ export class ConfirmationModalService {
       extendedParams.taskMonitors = taskMonitorConfigs.map(m => new TaskMonitor(m));
     }
 
-    const modalProps = { closeModal: deferred.resolve, dismissModal: deferred.reject };
-    const props = { ...extendedParams, ...modalProps };
-    ReactModal.show(ConfirmModal, props);
-
-    // modal was closed
-    deferred.promise.catch(() => {});
+    ReactModal.show(ConfirmModal, extendedParams).then(deferred.resolve, deferred.reject);
 
     return deferred.promise;
   }

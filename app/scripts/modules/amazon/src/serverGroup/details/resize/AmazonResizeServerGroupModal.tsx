@@ -70,9 +70,9 @@ export class AmazonResizeServerGroupModal extends React.Component<
   public static show(props: IAmazonResizeServerGroupModalProps) {
     const modalProps = {};
     const { serverGroup, application } = props;
-    return confirmNotManaged(serverGroup, application)
-      .then(() => ReactModal.show(AmazonResizeServerGroupModal, props, modalProps))
-      .catch(noop);
+    return confirmNotManaged(serverGroup, application).then(notManaged => {
+      notManaged && ReactModal.show(AmazonResizeServerGroupModal, props, modalProps);
+    });
   }
 
   constructor(props: IAmazonResizeServerGroupModalProps) {

@@ -152,8 +152,8 @@ angular
       }
 
       this.editInboundRules = function editInboundRules() {
-        checkManagement()
-          .then(() =>
+        confirmNotManaged($scope.securityGroup, application).then(notManaged => {
+          notManaged &&
             $uibModal.open({
               templateUrl: require('../configure/editSecurityGroup.html'),
               controller: 'awsEditSecurityGroupCtrl as ctrl',
@@ -166,9 +166,8 @@ angular
                   return application;
                 },
               },
-            }),
-          )
-          .catch(noop);
+            });
+        });
       };
 
       this.cloneSecurityGroup = function cloneSecurityGroup() {
@@ -214,18 +213,19 @@ angular
           return SecurityGroupWriter.deleteSecurityGroup(securityGroup, application, params);
         };
 
-        checkManagement().then(() =>
-          confirmationModalService.confirm({
-            header: 'Really delete ' + securityGroup.name + '?',
-            buttonText: 'Delete ' + securityGroup.name,
-            account: securityGroup.accountId,
-            taskMonitorConfig: taskMonitor,
-            submitMethod: submitMethod,
-            retryBody: `<div><p>Retry deleting the ${FirewallLabels.get(
-              'firewall',
-            )} and revoke any dependent ingress rules?</p><p>Any instance or load balancer associations will have to removed manually.</p></div>`,
-          }),
-        );
+        confirmNotManaged($scope.securityGroup, application).then(notManaged => {
+          notManaged &&
+            confirmationModalService.confirm({
+              header: 'Really delete ' + securityGroup.name + '?',
+              buttonText: 'Delete ' + securityGroup.name,
+              account: securityGroup.accountId,
+              taskMonitorConfig: taskMonitor,
+              submitMethod: submitMethod,
+              retryBody: `<div><p>Retry deleting the ${FirewallLabels.get(
+                'firewall',
+              )} and revoke any dependent ingress rules?</p><p>Any instance or load balancer associations will have to removed manually.</p></div>`,
+            });
+        });
       };
 
       if (app.isStandalone) {

@@ -64,10 +64,10 @@ export const ConfirmModal = (props: IConfirmModalProps) => {
         });
       });
     } else if (submitJustWithReason) {
-      submitMethod({ reason }).then(dismissModal);
+      submitMethod({ reason }).then(closeModal);
     } else {
       if (submitMethod) {
-        submitMethod().then(dismissModal, showError);
+        submitMethod().then(closeModal, showError);
       } else {
         closeModal();
       }

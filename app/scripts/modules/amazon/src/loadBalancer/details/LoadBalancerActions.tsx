@@ -6,6 +6,7 @@ import {
   Application,
   ApplicationReader,
   LoadBalancerWriter,
+  ManagedMenuItem,
   SETTINGS,
   NgReact,
   ReactInjector,
@@ -121,15 +122,13 @@ export class LoadBalancerActions extends React.Component<ILoadBalancerActionsPro
           </Dropdown.Toggle>
           <Dropdown.Menu className="dropdown-menu">
             {application && (
-              <li>
-                <a className="clickable" onClick={this.editLoadBalancer}>
-                  Edit Load Balancer
-                </a>
-              </li>
+              <ManagedMenuItem resource={loadBalancer} application={app} onClick={this.editLoadBalancer}>
+                Edit Load Balancer
+              </ManagedMenuItem>
             )}
             {!application && (
               <li className="disabled">
-                <a className="clickable" onClick={this.editLoadBalancer}>
+                <a>
                   Edit Load Balancer{' '}
                   <HelpField
                     content={`The application <b>${loadBalancerAppName}</b> must be configured before this load balancer can be edited.`}
@@ -138,15 +137,13 @@ export class LoadBalancerActions extends React.Component<ILoadBalancerActionsPro
               </li>
             )}
             {allowDeletion && (
-              <li>
-                <a className="clickable" onClick={this.deleteLoadBalancer}>
-                  Delete Load Balancer
-                </a>
-              </li>
+              <ManagedMenuItem resource={loadBalancer} application={app} onClick={this.deleteLoadBalancer}>
+                Delete Load Balancer
+              </ManagedMenuItem>
             )}
             {!allowDeletion && (
               <li className="disabled">
-                <a className="clickable" onClick={this.deleteLoadBalancer}>
+                <a>
                   Delete Load Balancer{' '}
                   <HelpField content="You must detach all instances before you can delete this load balancer." />
                 </a>

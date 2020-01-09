@@ -1,6 +1,13 @@
 import React from 'react';
 
-import { CurrentCapacity, DesiredCapacity, ReactModal, Application, Overridable } from '@spinnaker/core';
+import {
+  confirmNotManaged,
+  CurrentCapacity,
+  DesiredCapacity,
+  ReactModal,
+  Application,
+  Overridable,
+} from '@spinnaker/core';
 import { ITitusServerGroup } from 'titus/domain';
 import { ITitusResizeServerGroupModalProps, TitusResizeServerGroupModal } from './resize/TitusResizeServerGroupModal';
 
@@ -18,7 +25,10 @@ export class TitusCapacityDetailsSection extends React.Component<ICapacityDetail
     const simpleMode = capacity.min === capacity.max;
 
     const resizeServerGroup = () =>
-      ReactModal.show<ITitusResizeServerGroupModalProps>(TitusResizeServerGroupModal, { serverGroup, application });
+      confirmNotManaged(serverGroup, application).then(notManaged => {
+        notManaged &&
+          ReactModal.show<ITitusResizeServerGroupModalProps>(TitusResizeServerGroupModal, { serverGroup, application });
+      });
 
     return (
       <>
