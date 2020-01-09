@@ -21,7 +21,6 @@ function HelpFieldContents(props: Pick<IHelpFieldProps, 'id' | 'fallback' | 'con
   if (id && !contentString) {
     contentString = HelpContentsRegistry.getHelpField(id) || fallback;
   }
-  console.warn(contentString);
 
   const config = { ADD_ATTR: ['target'] }; // allow: target="_blank"
   return <Markdown message={contentString} options={config} trim={true} />;
