@@ -23,6 +23,7 @@ import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Headers
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Path
 
 interface OrcaService {
@@ -46,6 +47,12 @@ interface OrcaService {
   @GET("/pipelines/{id}")
   suspend fun getPipelineExecution(@Path("id") id: String): ExecutionDetailResponse
 
+  @GET("/tasks/{id}")
+  suspend fun getOrchestrationExecution(@Path("id") id: String): ExecutionDetailResponse
+
+  @PUT("/tasks/{id}/cancel")
+  suspend fun cancelOrchestration(@Path("id") id: String)
+
   @GET("/executions/correlated/{correlationId}")
   suspend fun getCorrelatedExecutions(@Path("correlationId") correlationId: String): List<String>
 }
@@ -63,5 +70,10 @@ data class ExecutionDetailResponse(
   val buildTime: Instant,
   val startTime: Instant?,
   val endTime: Instant?,
-  val status: OrcaExecutionStatus
+  val status: OrcaExecutionStatus,
+  val execution: OrcaExecutionStages = OrcaExecutionStages(emptyList())
+)
+
+data class OrcaExecutionStages(
+  val stages: List<Map<String, Any>>?
 )

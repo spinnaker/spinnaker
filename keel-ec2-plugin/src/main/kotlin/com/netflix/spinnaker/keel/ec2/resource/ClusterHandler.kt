@@ -42,6 +42,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.PredefinedMetricSpecificatio
 import com.netflix.spinnaker.keel.clouddriver.model.ScalingPolicy
 import com.netflix.spinnaker.keel.clouddriver.model.StepAdjustmentModel
 import com.netflix.spinnaker.keel.clouddriver.model.Tag
+import com.netflix.spinnaker.keel.clouddriver.model.subnet
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
@@ -583,7 +584,7 @@ class ClusterHandler(
         account = accountName,
         region = region,
         vpc = cloudDriverCache.networkBy(vpcId).name ?: error("VPC with id $vpcId has no name!"),
-        subnet = subnet,
+        subnet = subnet(cloudDriverCache),
         availabilityZones = zones
       ),
       launchConfiguration = launchConfig.run {
@@ -714,13 +715,6 @@ class ClusterHandler(
       .map {
         cloudDriverCache.securityGroupByName(location.account, location.region, it).id
       }
-
-  private val ActiveServerGroup.subnet: String
-    get() = asg.vpczoneIdentifier.substringBefore(",").let { subnetId ->
-      cloudDriverCache
-        .subnetBy(subnetId)
-        .purpose ?: throw IllegalStateException("Subnet $subnetId has no purpose!")
-    }
 
   private val ActiveServerGroup.securityGroupNames: Set<String>
     get() = securityGroups.map {

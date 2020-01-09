@@ -19,6 +19,9 @@ package com.netflix.spinnaker.config
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
+import com.netflix.spinnaker.keel.clouddriver.ImageService
+import com.netflix.spinnaker.keel.constraints.CanaryConstraintDeployHandler
+import com.netflix.spinnaker.keel.ec2.constraints.Ec2CanaryConstraintDeployHandler
 import com.netflix.spinnaker.keel.ec2.resource.ApplicationLoadBalancerHandler
 import com.netflix.spinnaker.keel.ec2.resource.ClassicLoadBalancerHandler
 import com.netflix.spinnaker.keel.ec2.resource.ClusterHandler
@@ -110,5 +113,19 @@ class EC2Config {
       taskLauncher,
       objectMapper,
       normalizers
+    )
+
+  @Bean
+  fun ec2CanaryDeployHandler(
+    taskLauncher: TaskLauncher,
+    cloudDriverService: CloudDriverService,
+    cloudDriverCache: CloudDriverCache,
+    imageService: ImageService
+  ): CanaryConstraintDeployHandler =
+    Ec2CanaryConstraintDeployHandler(
+      taskLauncher,
+      cloudDriverService,
+      cloudDriverCache,
+      imageService
     )
 }

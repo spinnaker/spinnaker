@@ -42,7 +42,8 @@ enum class ConstraintStatus(private val passed: Boolean, private val failed: Boo
   use = JsonTypeInfo.Id.NAME,
   property = "type")
 @JsonSubTypes(
-  Type(value = PipelineConstraintStateAttributes::class, name = "pipeline")
+  Type(value = PipelineConstraintStateAttributes::class, name = "pipeline"),
+  Type(value = CanaryConstraintAttributes::class, name = "canary")
 )
 abstract class ConstraintStateAttributes(val type: String)
 
@@ -52,3 +53,22 @@ data class PipelineConstraintStateAttributes(
   val latestAttempt: Instant,
   val lastExecutionStatus: String? = null
 ) : ConstraintStateAttributes("pipeline")
+
+data class CanaryConstraintAttributes(
+  val executions: Set<RegionalExecutionId> = emptySet(),
+  val startAttempt: Int = 0,
+  val status: Set<CanaryStatus> = emptySet()
+) : ConstraintStateAttributes("canary")
+
+data class RegionalExecutionId(
+  val region: String,
+  val executionId: String
+)
+
+data class CanaryStatus(
+  val executionId: String,
+  val region: String,
+  val executionStatus: String,
+  val scores: List<Double> = emptyList(),
+  val scoreMessage: String?
+)

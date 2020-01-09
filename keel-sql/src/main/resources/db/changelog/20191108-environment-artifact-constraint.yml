@@ -163,3 +163,16 @@ databaseChangeLog:
             columns:
               - column:
                   name: constraint_uid
+
+  - changeSet:
+      id: wider-envconstraint-columns
+      author: asher
+      changes:
+        - modifyDataType:
+            tableName: environment_artifact_constraint
+            columnName: judged_by
+            newDataType: varchar(512)
+        - modifyDataType:
+            tableName: environment_artifact_constraint
+            columnName: comment
+            newDataType: varchar(1024)

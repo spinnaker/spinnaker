@@ -58,22 +58,41 @@ class TaskLauncher(
     correlationId: String,
     stages: List<Map<String, Any?>>
   ): Task =
+    submitJobToOrca(
+      serviceAccount = resource.serviceAccount,
+      application = resource.application,
+      notifications = resource.notifications,
+      subject = resource.id.value,
+      description = description,
+      correlationId = correlationId,
+      stages = stages
+    )
+
+  suspend fun submitJobToOrca(
+    serviceAccount: String,
+    application: String,
+    notifications: List<EchoNotification>,
+    subject: String,
+    description: String,
+    correlationId: String,
+    stages: List<Map<String, Any?>>
+  ): Task =
     orcaService
       .orchestrate(
-        resource.serviceAccount,
+        serviceAccount,
         OrchestrationRequest(
           name = description,
-          application = resource.application,
+          application = application,
           description = description,
           job = stages.map { Job(it["type"].toString(), it) },
           trigger = OrchestrationTrigger(
             correlationId = correlationId,
-            notifications = resource.notifications
+            notifications = notifications
           )
         )
       )
       .let {
-        log.info("Started task {} to upsert {}", it.ref, resource.id)
+        log.info("Started task {} to upsert {}", it.ref, subject)
         Task(id = it.taskId, name = description)
       }
 

@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.clouddriver.model
 import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.netflix.spinnaker.keel.api.Capacity
+import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.model.Moniker
 
 // todo eb: this should be more general so that it works for all server groups, not just ec2
@@ -24,6 +25,13 @@ data class ActiveServerGroup(
   val moniker: Moniker,
   val buildInfo: BuildInfo? = null
 )
+
+fun ActiveServerGroup.subnet(cloudDriverCache: CloudDriverCache): String =
+  asg.vpczoneIdentifier.substringBefore(",").let { subnetId ->
+    cloudDriverCache
+      .subnetBy(subnetId)
+      .purpose ?: error("Subnet $subnetId has no purpose!")
+  }
 
 data class ActiveServerGroupImage(
   val imageId: String,
