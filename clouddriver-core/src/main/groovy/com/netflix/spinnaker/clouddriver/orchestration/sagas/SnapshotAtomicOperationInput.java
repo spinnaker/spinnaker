@@ -30,7 +30,6 @@ import javax.annotation.Nullable;
 import lombok.Builder;
 import lombok.Value;
 import lombok.experimental.NonFinal;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 /**
@@ -41,9 +40,9 @@ import org.springframework.stereotype.Component;
 public class SnapshotAtomicOperationInput
     implements SagaAction<SnapshotAtomicOperationInput.SnapshotAtomicOperationInputCommand> {
 
-  @NotNull
+  @Nonnull
   @Override
-  public Result apply(@NotNull SnapshotAtomicOperationInputCommand command, @NotNull Saga saga) {
+  public Result apply(@Nonnull SnapshotAtomicOperationInputCommand command, @Nonnull Saga saga) {
     // We happily don't need to do anything here. This action just snapshots our input data.
     return new Result(command.nextCommand, Collections.emptyList());
   }
@@ -64,7 +63,7 @@ public class SnapshotAtomicOperationInput
     @NonFinal private EventMetadata metadata;
 
     @Override
-    public void setMetadata(@NotNull EventMetadata eventMetadata) {
+    public void setMetadata(@Nonnull EventMetadata eventMetadata) {
       this.metadata = eventMetadata;
     }
 

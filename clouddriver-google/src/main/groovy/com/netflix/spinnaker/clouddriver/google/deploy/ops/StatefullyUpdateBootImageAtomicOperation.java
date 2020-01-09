@@ -50,8 +50,8 @@ import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 
 @Slf4j
 public class StatefullyUpdateBootImageAtomicOperation extends GoogleAtomicOperation<Void> {
@@ -160,7 +160,7 @@ public class StatefullyUpdateBootImageAtomicOperation extends GoogleAtomicOperat
     }
   }
 
-  @NotNull
+  @Nonnull
   private Image getImage(Task task, GoogleNamedAccountCredentials credentials) throws IOException {
 
     task.updateStatus(BASE_PHASE, "Looking up image " + description.getBootImage());

@@ -19,15 +19,15 @@ package com.netflix.spinnaker.clouddriver.titus.deploy.handlers;
 import com.netflix.spinnaker.clouddriver.saga.flow.SagaExceptionHandler;
 import com.netflix.spinnaker.clouddriver.titus.TitusException;
 import io.grpc.StatusRuntimeException;
-import org.jetbrains.annotations.NotNull;
+import javax.annotation.Nonnull;
 import org.springframework.stereotype.Component;
 
 @Component
 public class TitusExceptionHandler implements SagaExceptionHandler {
 
-  @NotNull
+  @Nonnull
   @Override
-  public Exception handle(@NotNull Exception exception) {
+  public Exception handle(@Nonnull Exception exception) {
     if (exception instanceof StatusRuntimeException) {
       StatusRuntimeException statusRuntimeException = (StatusRuntimeException) exception;
       return new TitusException(statusRuntimeException, isRetryable(statusRuntimeException));

@@ -63,7 +63,6 @@ import javax.annotation.Nullable;
 import lombok.Builder;
 import lombok.Value;
 import lombok.experimental.NonFinal;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -117,9 +116,9 @@ public class PrepareTitusDeploy extends AbstractTitusDeployAction
     return input;
   }
 
-  @NotNull
+  @Nonnull
   @Override
-  public Result apply(@NotNull PrepareTitusDeployCommand command, @NotNull Saga saga) {
+  public Result apply(@Nonnull PrepareTitusDeployCommand command, @Nonnull Saga saga) {
     final TitusDeployDescription description = command.description;
 
     prepareDeployDescription(description);

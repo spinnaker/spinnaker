@@ -42,7 +42,6 @@ import lombok.Builder;
 import lombok.NoArgsConstructor;
 import lombok.Value;
 import lombok.experimental.NonFinal;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -106,9 +105,9 @@ public class LoadFront50App implements SagaAction<LoadFront50App.LoadFront50AppC
     return command;
   }
 
-  @NotNull
+  @Nonnull
   @Override
-  public Result apply(@NotNull LoadFront50AppCommand command, @NotNull Saga saga) {
+  public Result apply(@Nonnull LoadFront50AppCommand command, @Nonnull Saga saga) {
     try {
       Map response = front50Service.getApplication(command.getAppName());
       try {
@@ -154,7 +153,7 @@ public class LoadFront50App implements SagaAction<LoadFront50App.LoadFront50AppC
       this.metadata = metadata;
     }
 
-    @NotNull
+    @Nonnull
     @Override
     public List<SpinnakerEvent> getComposedEvents() {
       return Collections.singletonList(nextCommand);

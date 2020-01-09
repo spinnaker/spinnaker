@@ -22,8 +22,8 @@ import com.netflix.spinnaker.clouddriver.titus.TitusUtils;
 import com.netflix.spinnaker.clouddriver.titus.deploy.actions.SubmitTitusJob;
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.TitusDeployDescription;
 import com.netflix.spinnaker.clouddriver.titus.deploy.events.TitusJobSubmitted;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -39,7 +39,7 @@ public class TitusDeployCompletionHandler implements SagaCompletionHandler<Titus
 
   @Nullable
   @Override
-  public TitusDeploymentResult handle(@NotNull Saga completedSaga) {
+  public TitusDeploymentResult handle(@Nonnull Saga completedSaga) {
     final TitusDeployDescription description =
         completedSaga.getEvent(SubmitTitusJob.SubmitTitusJobCommand.class).getDescription();
 

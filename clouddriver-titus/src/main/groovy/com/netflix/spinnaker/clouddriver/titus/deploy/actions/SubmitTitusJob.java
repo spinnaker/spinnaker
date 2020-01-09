@@ -45,7 +45,6 @@ import javax.annotation.Nonnull;
 import lombok.Builder;
 import lombok.Value;
 import lombok.experimental.NonFinal;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,9 +72,9 @@ public class SubmitTitusJob extends AbstractTitusDeployAction
    * references inside of the lambda. This should really be refactored so that pattern isn't
    * necessary. It's really gross as-is.
    */
-  @NotNull
+  @Nonnull
   @Override
-  public Result apply(@NotNull SubmitTitusJobCommand command, @NotNull Saga saga) {
+  public Result apply(@Nonnull SubmitTitusJobCommand command, @Nonnull Saga saga) {
     final TitusDeployDescription description = command.description;
 
     prepareDeployDescription(description);

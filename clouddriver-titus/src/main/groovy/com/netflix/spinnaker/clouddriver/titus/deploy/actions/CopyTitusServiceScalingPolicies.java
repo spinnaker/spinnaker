@@ -45,7 +45,6 @@ import javax.annotation.Nonnull;
 import lombok.Builder;
 import lombok.Value;
 import lombok.experimental.NonFinal;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -63,9 +62,9 @@ public class CopyTitusServiceScalingPolicies extends AbstractTitusDeployAction
     super(accountCredentialsRepository, titusClientProvider);
   }
 
-  @NotNull
+  @Nonnull
   @Override
-  public Result apply(@NotNull CopyTitusServiceScalingPoliciesCommand command, @NotNull Saga saga) {
+  public Result apply(@Nonnull CopyTitusServiceScalingPoliciesCommand command, @Nonnull Saga saga) {
     final TitusDeployDescription description = command.description;
 
     prepareDeployDescription(description);

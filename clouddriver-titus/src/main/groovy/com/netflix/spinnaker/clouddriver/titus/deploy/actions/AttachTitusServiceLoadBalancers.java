@@ -33,7 +33,6 @@ import javax.annotation.Nullable;
 import lombok.Builder;
 import lombok.Value;
 import lombok.experimental.NonFinal;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -52,9 +51,9 @@ public class AttachTitusServiceLoadBalancers extends AbstractTitusDeployAction
     this.titusClientProvider = titusClientProvider1;
   }
 
-  @NotNull
+  @Nonnull
   @Override
-  public Result apply(@NotNull AttachTitusServiceLoadBalancersCommand command, @NotNull Saga saga) {
+  public Result apply(@Nonnull AttachTitusServiceLoadBalancersCommand command, @Nonnull Saga saga) {
     final TitusDeployDescription description = command.description;
 
     prepareDeployDescription(description);
