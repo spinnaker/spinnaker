@@ -1,7 +1,7 @@
 import { ISecurityGroupsByAccount, ISecurityGroup } from '@spinnaker/core';
 
 export class KubernetesSecurityGroupReader {
-  public static resolveIndexedSecurityGroup(
+  public resolveIndexedSecurityGroup(
     indexedSecurityGroups: ISecurityGroupsByAccount,
     container: ISecurityGroup,
     securityGroupId: string,
