@@ -18,17 +18,14 @@ package com.netflix.spinnaker.front50.listeners;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.fiat.model.Authorization;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
+import com.netflix.spinnaker.front50.ApplicationPermissionsService;
 import com.netflix.spinnaker.front50.config.ChaosMonkeyEventListenerConfigurationProperties;
 import com.netflix.spinnaker.front50.events.ApplicationEventListener;
-import com.netflix.spinnaker.front50.events.ApplicationPermissionEventListener;
 import com.netflix.spinnaker.front50.model.application.Application;
-import com.netflix.spinnaker.front50.model.application.ApplicationDAO;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -37,22 +34,21 @@ import org.springframework.stereotype.Component;
  * Ensures that when Chaos Monkey is enabled (or disabled) on an Application, its permissions are
  * applied correctly.
  *
- * <p>This listens on both Application events, as well as ApplicationPermission events.
+ * <p>This listens on both Application events.
  */
 @Component
-public class ChaosMonkeyEventListener
-    implements ApplicationEventListener, ApplicationPermissionEventListener {
+public class ChaosMonkeyEventListener implements ApplicationEventListener {
   private static final Logger log = LoggerFactory.getLogger(ChaosMonkeyEventListener.class);
 
-  private final ApplicationDAO applicationDAO;
+  private final ApplicationPermissionsService applicationPermissionsService;
   private final ChaosMonkeyEventListenerConfigurationProperties properties;
   private final ObjectMapper objectMapper;
 
   public ChaosMonkeyEventListener(
-      ApplicationDAO applicationDAO,
+      ApplicationPermissionsService applicationPermissionsService,
       ChaosMonkeyEventListenerConfigurationProperties properties,
       ObjectMapper objectMapper) {
-    this.applicationDAO = applicationDAO;
+    this.applicationPermissionsService = applicationPermissionsService;
     this.properties = properties;
     this.objectMapper = objectMapper;
   }
@@ -64,46 +60,27 @@ public class ChaosMonkeyEventListener
 
   @Override
   public Application call(Application originalApplication, Application updatedApplication) {
-    boolean isChaosMonkeyEnabled = isChaosMonkeyEnabled(updatedApplication);
-    if (isChaosMonkeyEnabled(originalApplication) == isChaosMonkeyEnabled) {
-      // Flag didn't change, we don't need to do anything.
+    Application.Permission permission =
+        applicationPermissionsService.getApplicationPermission(updatedApplication.getName());
+
+    if (!permission.getPermissions().isRestricted()) {
       return updatedApplication;
     }
 
-    Object rawPermissions = updatedApplication.details().get("permissions");
-    if (!(rawPermissions instanceof Map)) {
-      // Exit early, no permissions config found on the application
-      log.warn("No permissions config found on application '{}'", updatedApplication.getName());
-      return updatedApplication;
-    }
-
-    @SuppressWarnings("unchecked")
-    Map<String, List<String>> permissionsMap = (Map<String, List<String>>) rawPermissions;
-    if (permissionsMap.isEmpty()) {
-      // An empty permissions map means the application is unrestricted - let's not change this.
-      return updatedApplication;
-    }
-
-    if (isChaosMonkeyEnabled) {
-      // Chaos Monkey is enabled, apply permissions
-      List<String> readPermissions = permissionsMap.computeIfAbsent("READ", k -> new ArrayList<>());
-      if (!readPermissions.contains(properties.getUserRole())) {
-        log.info("Chaos Monkey READ permissions applied for '{}'", updatedApplication.getName());
-        readPermissions.add(properties.getUserRole());
-      }
-      List<String> writePermissions = permissionsMap.get("WRITE");
-      if (!writePermissions.contains(properties.getUserRole())) {
-        log.info("Chaos Monkey WRITE permissions applied for '{}'", updatedApplication.getName());
-        writePermissions.add(properties.getUserRole());
-      }
+    if (isChaosMonkeyEnabled(updatedApplication)) {
+      applyNewPermissions(permission, true);
     } else {
-      // Chaos Monkey is disabled, revoke permissions
-      log.info(
-          "Revoking Chaos Monkey READ and WRITE permissions for '{}'",
-          updatedApplication.getName());
-      permissionsMap.get("READ").remove(properties.getUserRole());
-      permissionsMap.get("WRITE").remove(properties.getUserRole());
+      applyNewPermissions(permission, false);
     }
+
+    Application.Permission updatedPermission =
+        applicationPermissionsService.updateApplicationPermission(
+            updatedApplication.getName(), permission);
+
+    log.debug(
+        "Updated application `{}` with permissions `{}`",
+        updatedApplication.getName(),
+        updatedPermission.getPermissions().toString());
 
     return updatedApplication;
   }
@@ -111,35 +88,6 @@ public class ChaosMonkeyEventListener
   @Override
   public void rollback(Application originalApplication) {
     // Do nothing.
-  }
-
-  @Override
-  public boolean supports(ApplicationPermissionEventListener.Type type) {
-    return properties.isEnabled()
-        && Arrays.asList(
-                ApplicationPermissionEventListener.Type.PRE_CREATE,
-                ApplicationPermissionEventListener.Type.PRE_UPDATE)
-            .contains(type);
-  }
-
-  @Nullable
-  @Override
-  public Application.Permission call(
-      @Nullable Application.Permission originalPermission,
-      @Nullable Application.Permission updatedPermission) {
-    if (updatedPermission == null) {
-      return null;
-    }
-
-    Application application = applicationDAO.findByName(updatedPermission.getName());
-
-    if (isChaosMonkeyEnabled(application)) {
-      applyNewPermissions(updatedPermission, true);
-    } else {
-      applyNewPermissions(updatedPermission, false);
-    }
-
-    return updatedPermission;
   }
 
   private void applyNewPermissions(Application.Permission updatedPermission, boolean addRole) {
@@ -150,10 +98,13 @@ public class ChaosMonkeyEventListener
         (key, value) -> {
           List<String> roles = new ArrayList<>(value);
           if (key == Authorization.READ || key == Authorization.WRITE) {
-            if (addRole) {
-              roles.add(properties.getUserRole());
+            if (addRole && !onlyChaosMonkeyPermissions(updatedPermission, key)) {
+              // Only add the chaos monkey role if it doesn't already exist
+              if (!hasChaosMonkeyPermissions(updatedPermission, key)) {
+                roles.add(properties.getUserRole());
+              }
             } else {
-              roles.remove(properties.getUserRole());
+              roles.removeAll(Collections.singletonList(properties.getUserRole()));
             }
           }
           unpackedPermissions.put(key, roles);
@@ -163,17 +114,29 @@ public class ChaosMonkeyEventListener
     updatedPermission.setPermissions(newPermissions);
   }
 
-  @Override
-  public void rollback(@Nonnull Application.Permission originalPermission) {
-    // Do nothing.
-  }
-
   private boolean isChaosMonkeyEnabled(Application application) {
     Object config = application.details().get("chaosMonkey");
     if (config == null) {
       return false;
     }
     return objectMapper.convertValue(config, ChaosMonkeyConfig.class).enabled;
+  }
+
+  private boolean hasChaosMonkeyPermissions(
+      Application.Permission updatedPermission, Authorization authorizationType) {
+    return updatedPermission
+        .getPermissions()
+        .get(authorizationType)
+        .contains(properties.getUserRole());
+  }
+
+  private boolean onlyChaosMonkeyPermissions(
+      Application.Permission updatedPermission, Authorization authorizationType) {
+    return updatedPermission.getPermissions().get(authorizationType).stream()
+            .filter(role -> role.equals(properties.getUserRole()))
+            .distinct()
+            .count()
+        == 1;
   }
 
   private static class ChaosMonkeyConfig {
