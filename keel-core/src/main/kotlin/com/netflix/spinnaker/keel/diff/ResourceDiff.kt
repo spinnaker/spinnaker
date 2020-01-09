@@ -31,20 +31,17 @@ data class ResourceDiff<T : Any>(
   fun hasChanges(): Boolean = diff.hasChanges()
 
   val affectedRootPropertyTypes: List<Class<*>>
-    get() = mutableListOf<Class<*>>()
-      .also { types ->
-        diff.visitChildren { node, visit ->
-          visit.dontGoDeeper()
-          types += node.valueType
-        }
-      }
+    get() = children.map { it.valueType }.toList()
 
   val affectedRootPropertyNames: Set<String>
-    get() = mutableSetOf<String>()
-      .also { names ->
+    get() = children.map { it.propertyName }.toSet()
+
+  val children: Set<DiffNode>
+    get() = mutableSetOf<DiffNode>()
+      .also { nodes ->
         diff.visitChildren { node, visit ->
           visit.dontGoDeeper()
-          names += node.propertyName
+          nodes += node
         }
       }
 

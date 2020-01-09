@@ -49,7 +49,7 @@ class TitusImageResolver(
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   override fun getContainerFromSpec(resource: Resource<TitusClusterSpec>) =
-    resource.spec.defaults.container
+    resource.spec.defaults.container ?: error("Container not specified or resolved")
 
   override fun getAccountFromSpec(resource: Resource<TitusClusterSpec>) =
     resource.spec.deriveRegistry()

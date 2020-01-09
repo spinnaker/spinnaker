@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATE_KEYS_AS_TI
 import com.fasterxml.jackson.databind.SerializationFeature.WRITE_DURATIONS_AS_TIMESTAMPS
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator.Feature.USE_NATIVE_TYPE_ID
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
@@ -27,7 +28,9 @@ fun configuredObjectMapper(): ObjectMapper =
  * Factory method for [YAMLMapper]s configured how we like 'em.
  */
 fun configuredYamlMapper(): YAMLMapper =
-  YAMLMapper().configureMe()
+  YAMLMapper()
+    .configureMe()
+    .disable(USE_NATIVE_TYPE_ID)
 
 private fun <T : ObjectMapper> T.configureMe(): T =
   apply {

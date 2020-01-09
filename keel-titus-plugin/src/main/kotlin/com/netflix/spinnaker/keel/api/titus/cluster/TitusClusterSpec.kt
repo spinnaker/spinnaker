@@ -94,7 +94,7 @@ data class TitusClusterSpec(
 }
 
 data class TitusServerGroupSpec(
-  val container: Container,
+  val container: Container? = null,
   val capacity: Capacity? = null,
   val capacityGroup: String? = null,
   val constraints: Constraints? = null,
@@ -189,7 +189,7 @@ fun TitusClusterSpec.resolve(): Set<TitusServerGroup> =
       capacity = resolveCapacity(it.name),
       capacityGroup = resolveCapacityGroup(it.name),
       constraints = resolveConstraints(it.name),
-      container = resolveContainer(defaults.container),
+      container = resolveContainer(defaults.container ?: error("Container image not specified or resolved")),
       dependencies = resolveDependencies(it.name),
       entryPoint = resolveEntryPoint(it.name),
       env = resolveEnv(it.name),

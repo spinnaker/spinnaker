@@ -53,6 +53,8 @@ import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.SupportedKind
 import com.netflix.spinnaker.keel.plugin.TaskLauncher
+import com.netflix.spinnaker.keel.plugin.buildSpecFromDiff
+import com.netflix.spinnaker.keel.plugin.convert
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import java.time.Clock
 import java.time.Duration
@@ -164,8 +166,6 @@ class ClusterHandler(
       .toSet()
 
     val base = serverGroups.values.first()
-    val healthDiff = ResourceDiff(base.health, Health())
-    val modifiedHealth = healthDiff.hasChanges()
 
     val locations = SubnetAwareLocations(
       account = exportable.account,
@@ -183,23 +183,7 @@ class ClusterHandler(
         null
       },
       locations = locations,
-      _defaults = ClusterSpec.ServerGroupSpec(
-        launchConfiguration = base.launchConfiguration
-          .exportSpec(exportable.account, exportable.moniker.app),
-        capacity = base.capacity,
-        dependencies = base.dependencies,
-        health = if (modifiedHealth) {
-          base.health.exportSpec()
-        } else {
-          null
-        },
-        scaling = if (!base.scaling.hasScalingPolicies()) {
-          null
-        } else {
-          base.scaling
-        },
-        tags = base.tags
-      ),
+      _defaults = base.exportSpec(exportable.account, exportable.moniker.app),
       overrides = mutableMapOf()
     )
 
@@ -226,55 +210,14 @@ class ClusterHandler(
 
   private fun ClusterSpec.generateOverrides(account: String, application: String, serverGroups: Map<String, ServerGroup>) =
     serverGroups.forEach { (region, serverGroup) ->
-      val launchSpec = serverGroup.launchConfiguration.exportSpec(account, application)
-      val healthSpec = serverGroup.health.exportSpec()
-      val dependencies = with(serverGroup.dependencies) {
-        ClusterDependencies(
-          loadBalancerNames = loadBalancerNames,
-          securityGroupNames = securityGroupNames,
-          targetGroups = targetGroups
-        )
-      }
-
-      val launchDiff = ResourceDiff(launchSpec, defaults.launchConfiguration).hasChanges()
-      val healthDiff = if (defaults.health == null) {
-        ResourceDiff(healthSpec, Health().exportSpec()).hasChanges()
-      } else {
-        ResourceDiff(healthSpec, defaults.health).hasChanges()
-      }
-      val scaleDiff = ResourceDiff(defaults.scaling ?: Scaling(), serverGroup.scaling).hasChanges()
-      val capacityDiff = defaults.capacity?.min != serverGroup.capacity.min ||
-        defaults.capacity?.max != serverGroup.capacity.max
-      val dependenciesDiff = ResourceDiff(dependencies, defaults.dependencies).hasChanges()
-
-      if (launchDiff || healthDiff || scaleDiff || capacityDiff || dependenciesDiff) {
-        (overrides as MutableMap)[region] = ClusterSpec.ServerGroupSpec(
-          launchConfiguration = if (launchDiff) {
-            launchSpec
-          } else {
-            null
-          },
-          health = if (healthDiff) {
-            healthSpec
-          } else {
-            null
-          },
-          scaling = if (scaleDiff) {
-            serverGroup.scaling
-          } else {
-            null
-          },
-          capacity = if (capacityDiff) {
-            serverGroup.capacity
-          } else {
-            null
-          },
-          dependencies = if (dependenciesDiff) {
-            dependencies
-          } else {
-            null
-          }
-        )
+      val workingSpec = serverGroup.exportSpec(account, application)
+      val override: ClusterSpec.ServerGroupSpec? = buildSpecFromDiff(
+        defaults,
+        workingSpec,
+        OVERRIDABLE_SERVER_GROUP_PROPERTIES
+      )
+      if (override != null) {
+        (overrides as MutableMap)[region] = override
       }
     }
 
@@ -789,79 +732,53 @@ class ClusterHandler(
     atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ISO_DATE_TIME)
 
   /**
+   * Translates a ServerGroup object to a ClusterSpec.ServerGroupSpec with default values omitted for export.
+   */
+  private fun ServerGroup.exportSpec(account: String, application: String): ClusterSpec.ServerGroupSpec {
+    val defaults = ClusterSpec.ServerGroupSpec(
+      capacity = Capacity(1, 1, 1),
+      dependencies = ClusterDependencies(),
+      health = Health().exportSpec(),
+      scaling = Scaling(),
+      tags = emptyMap()
+    )
+
+    val thisSpec = ClusterSpec.ServerGroupSpec(
+      launchConfiguration = launchConfiguration.exportSpec(account, application),
+      capacity = capacity,
+      dependencies = dependencies,
+      health = health.exportSpec(),
+      scaling = if (!scaling.hasScalingPolicies()) {
+        null
+      } else {
+        scaling
+      },
+      tags = tags
+    )
+
+    return checkNotNull(buildSpecFromDiff(defaults, thisSpec))
+  }
+
+  /**
    * Translates a LaunchConfiguration object to a ClusterSpec.LaunchConfigurationSpec with default values omitted for export.
    */
-  private fun LaunchConfiguration.exportSpec(account: String, application: String): ClusterSpec.LaunchConfigurationSpec {
-    val defaultKeyPair = cloudDriverCache.defaultKeyPairForAccount(account)
-    return ClusterSpec.LaunchConfigurationSpec(
-      instanceType = instanceType,
-      ebsOptimized = if (!ebsOptimized) {
-        null
-      } else {
-        ebsOptimized
-      },
-      // for the iam role, we compare against a default based on a stable naming convention
-      iamRole = if (iamRole == LaunchConfiguration.defaultIamRoleFor(application)) {
-        null
-      } else {
-        iamRole
-      },
-      // for the key pair, we compare against the currently configured default in clouddriver since there are
-      // multiple naming conventions, and handle the case where the default includes a region placeholder
-      keyPair = if (defaultKeyPair.contains(REGION_PLACEHOLDER)) {
-        if (defaultKeyPair.replace(REGION_PLACEHOLDER, REGION_PATTERN).toRegex().matches(keyPair)) {
-          null
-        } else {
-          keyPair
-        }
-      } else {
-        if (keyPair == defaultKeyPair) {
-          null
-        } else {
-          keyPair
-        }
-      },
-      instanceMonitoring = if (!instanceMonitoring) {
-        null
-      } else {
-        instanceMonitoring
-      },
-      ramdiskId = ramdiskId
+  private fun LaunchConfiguration.exportSpec(account: String, application: String): ClusterSpec.LaunchConfigurationSpec? {
+    val defaults = ClusterSpec.LaunchConfigurationSpec(
+      ebsOptimized = false,
+      iamRole = LaunchConfiguration.defaultIamRoleFor(application),
+      instanceMonitoring = false,
+      keyPair = cloudDriverCache.defaultKeyPairForAccount(account)
     )
+    val thisSpec: ClusterSpec.LaunchConfigurationSpec = convert(this)
+    return buildSpecFromDiff(defaults, thisSpec)
   }
 
   /**
    * Translates a Health object to a ClusterSpec.HealthSpec with default values omitted for export.
    */
-  private fun Health.exportSpec(): ClusterSpec.HealthSpec {
-    val defaults by lazy { Health() }
-    return ClusterSpec.HealthSpec(
-      cooldown = if (cooldown == defaults.cooldown) {
-        null
-      } else {
-        cooldown
-      },
-      warmup = if (warmup == defaults.warmup) {
-        null
-      } else {
-        warmup
-      },
-      healthCheckType = if (healthCheckType == defaults.healthCheckType) {
-        null
-      } else {
-        healthCheckType
-      },
-      enabledMetrics = if (enabledMetrics == defaults.enabledMetrics) {
-        null
-      } else {
-        enabledMetrics
-      },
-      terminationPolicies = if (terminationPolicies == defaults.terminationPolicies) {
-        null
-      } else {
-        terminationPolicies
-      }
-    )
+  private fun Health.exportSpec(): ClusterSpec.HealthSpec? {
+    val defaults = Health()
+    return buildSpecFromDiff(defaults, this)
   }
 
   companion object {
@@ -871,6 +788,13 @@ class ClusterHandler(
       "spinnaker:application",
       "spinnaker:stack",
       "spinnaker:details"
+    )
+
+    private val OVERRIDABLE_SERVER_GROUP_PROPERTIES = setOf(
+      "health",
+      "launchConfiguration",
+      "dependencies",
+      "scaling"
     )
 
     private const val REGION_PLACEHOLDER = "{{region}}"
