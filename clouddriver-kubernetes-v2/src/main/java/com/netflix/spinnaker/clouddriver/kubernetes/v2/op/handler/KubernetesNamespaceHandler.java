@@ -20,7 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler.DeployPriority.NAMESPACE_PRIORITY;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesNamespaceCachingAgent;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCoreCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgentFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
@@ -59,6 +59,6 @@ public class KubernetesNamespaceHandler extends KubernetesHandler {
 
   @Override
   protected KubernetesV2CachingAgentFactory cachingAgentFactory() {
-    return KubernetesNamespaceCachingAgent::new;
+    return KubernetesCoreCachingAgent::new;
   }
 }
