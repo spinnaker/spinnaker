@@ -1,4 +1,5 @@
 import { HelpContentsRegistry } from './helpContents.registry';
+import { SETTINGS } from 'core/config/settings';
 
 export interface IHelpContents {
   [key: string]: string;
@@ -477,6 +478,7 @@ const helpContents: { [key: string]: string } = {
   'pipeline.config.entitytags.namespace': `All tags have an associated namespace (<strong>default</strong> will be used if unspecified) that provides a means of grouping tags by a logical owner.`,
   'pipeline.config.entitytags.value': `Value can either be a string or an object. If you want to use an object, input a valid JSON string.`,
   'pipeline.config.entitytags.region': `(Optional) Target a specific region, use * if you want to apply to all regions.`,
+  'pipeline.config.deliveryConfig.manifest': `(Optional) Name of the file with your Delivery Config manifest. Leave blank to use the default name (<strong><i>${SETTINGS.managedDelivery?.defaultManifest}</i></strong>).`,
 };
 
 Object.keys(helpContents).forEach(key => HelpContentsRegistry.register(key, helpContents[key]));

@@ -38,6 +38,7 @@ export interface IFeatures {
   iapRefresherEnabled?: boolean;
   // whether stages affecting infrastructure (like "Create Load Balancer") should be enabled or not
   infrastructureStages?: boolean;
+  managedDelivery?: boolean;
   managedPipelineTemplatesV2UI?: boolean;
   managedServiceAccounts?: boolean;
   managedResources?: boolean;
@@ -109,6 +110,10 @@ export interface ISpinnakerSettings {
   additionalHelpLinks?: IAdditionalHelpLinks[];
   gateUrl: string;
   gitSources: string[];
+  managedDelivery?: {
+    defaultManifest: string;
+    manifestBasePath: string;
+  };
   maxPipelineAgeDays: number;
   newApplicationDefaults: INewApplicationDefaults;
   notifications: INotificationSettings;

@@ -8,6 +8,7 @@ export interface IStageOrTriggerTypeConfig {
   manualExecutionComponent?: React.ComponentType<ITriggerTemplateComponentProps>;
   label?: string;
   description?: string;
+  extendedDescription?: string;
   key: string;
   templateUrl?: string;
   controller?: string;

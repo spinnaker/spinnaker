@@ -26,6 +26,7 @@ var gceStatefulMigsEnabled = process.env.GCE_STATEFUL_MIGS_ENABLED === 'true' ? 
 var gremlinEnabled = process.env.GREMLIN_ENABLED === 'false' ? false : true;
 var iapRefresherEnabled = process.env.IAP_REFRESHER_ENABLED === 'true' ? true : false;
 var infrastructureEnabled = process.env.INFRA_ENABLED === 'true' ? true : false;
+var managedDeliveryEnabled = process.env.MANAGED_DELIVERY_ENABLED === 'true';
 var managedPipelineTemplatesV2UIEnabled = process.env.MANAGED_PIPELINE_TEMPLATES_V2_UI_ENABLED === 'true';
 var managedServiceAccountsEnabled = process.env.MANAGED_SERVICE_ACCOUNTS_ENABLED === 'true';
 var managedResourcesEnabled = process.env.MANAGED_RESOURCES_ENABLED === 'true';
@@ -86,6 +87,7 @@ window.spinnakerSettings = {
     iapRefresherEnabled: iapRefresherEnabled,
     // whether stages affecting infrastructure (like "Create Load Balancer") should be enabled or not
     infrastructureStages: infrastructureEnabled,
+    managedDelivery: managedDeliveryEnabled,
     managedPipelineTemplatesV2UI: managedPipelineTemplatesV2UIEnabled,
     managedServiceAccounts: managedServiceAccountsEnabled,
     managedResources: managedResourcesEnabled,
@@ -104,6 +106,10 @@ window.spinnakerSettings = {
   },
   gateUrl: apiHost,
   gitSources: ['stash', 'github', 'bitbucket', 'gitlab'],
+  managedDelivery: {
+    defaultManifest: 'spinnaker.yml',
+    manifestBasePath: '.spinnaker',
+  },
   maxPipelineAgeDays: 14,
   newApplicationDefaults: {
     chaosMonkey: false,
