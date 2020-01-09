@@ -46,10 +46,6 @@ public class PluginArtifactService {
     return repository.getByService(service);
   }
 
-  public PluginArtifact findById(@Nonnull String pluginId) {
-    return repository.findById(pluginId);
-  }
-
   public PluginArtifact upsert(@Nonnull PluginArtifact pluginArtifact) {
     validate(pluginArtifact);
 
