@@ -51,6 +51,7 @@ class DeliveryConfigController(
   fun get(@PathVariable("name") name: String): DeliveryConfig =
     deliveryConfigRepository.get(name)
 
+  // todo eb: make this work with artifact references
   @PostMapping(
     path = ["/diff"],
     consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE],

@@ -94,17 +94,6 @@ class ResourceController(
     resourcePauser.resumeResource(id)
   }
 
-  @Deprecated("Individual resource creation is deprecated. Please use a delivery config.")
-  @PostMapping(
-    consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE],
-    produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
-  )
-  @PreAuthorize("@authorizationSupport.userCanModifySpec(#resource.metadata[serviceAccount], #resource.spec)")
-  fun upsert(@RequestBody resource: SubmittedResource<*>): Resource<*> {
-    log.debug("Upserting: $resource")
-    return resourcePersister.upsert(resource)
-  }
-
   @PostMapping(
     path = ["/diff"],
     consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE],
@@ -114,17 +103,6 @@ class ResourceController(
   fun diff(@RequestBody resource: SubmittedResource<*>): DiffResult {
     log.debug("Diffing: $resource")
     return runBlocking { adHocDiffer.calculate(resource) }
-  }
-
-  @Deprecated("Individual resource deletion is deprecated. Please use a delivery config.")
-  @DeleteMapping(
-    path = ["/{id}"],
-    produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
-  )
-  @PreAuthorize("@authorizationSupport.userCanModifyResource(#id)")
-  fun delete(@PathVariable("id") id: ResourceId): Resource<*> {
-    log.debug("Deleting: $id")
-    return resourcePersister.delete(id)
   }
 
   @ExceptionHandler(NoSuchResourceException::class)

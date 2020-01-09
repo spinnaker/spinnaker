@@ -40,15 +40,15 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
   data class Fixture<T : ArtifactRepository>(
     val subject: T
   ) {
-    val artifact1 = DebianArtifact("foo", statuses = listOf(SNAPSHOT))
-    val artifact2 = DebianArtifact("bar", statuses = listOf(SNAPSHOT))
-    val artifact3 = DockerArtifact("baz")
+    val artifact1 = DebianArtifact("foo", deliveryConfigName = "my-manifest", statuses = listOf(SNAPSHOT))
+    val artifact2 = DebianArtifact("bar", deliveryConfigName = "my-manifest", statuses = listOf(SNAPSHOT))
+    val artifact3 = DockerArtifact("baz", deliveryConfigName = "my-manifest")
     val environment1 = Environment("test")
     val environment2 = Environment("staging")
     val manifest = DeliveryConfig(
       name = "my-manifest",
       application = "fnord",
-      artifacts = setOf(artifact1, artifact2),
+      artifacts = setOf(artifact1, artifact2, artifact3),
       environments = setOf(environment1, environment2)
     )
     val version1 = "keeldemo-0.0.1~dev.8-h8.41595c4"
@@ -75,6 +75,8 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
       setOf(version4, version5).forEach {
         store(artifact2, it, RELEASE)
       }
+      register(artifact3)
+      store(artifact3, version6, null)
     }
     persist(manifest)
   }
@@ -224,15 +226,23 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
           clock.incrementBy(Duration.ofHours(1))
           subject.approveVersionFor(manifest, artifact1, version1, environment1.name)
           subject.markAsDeployingTo(manifest, artifact1, version1, environment1.name)
+          subject.approveVersionFor(manifest, artifact3, version6, environment2.name)
+          subject.markAsDeployingTo(manifest, artifact3, version6, environment2.name)
         }
 
         test("the approved version for that environment matches") {
+          // debian
           expectThat(subject.latestVersionApprovedIn(manifest, artifact1, environment1.name))
             .isEqualTo(version1)
+          // docker
+          expectThat(subject.latestVersionApprovedIn(manifest, artifact3, environment2.name))
+            .isEqualTo(version6)
         }
 
         test("the version is not considered successfully deployed yet") {
           expectThat(subject.wasSuccessfullyDeployedTo(manifest, artifact1, version1, environment1.name))
+            .isFalse()
+          expectThat(subject.wasSuccessfullyDeployedTo(manifest, artifact3, version6, environment2.name))
             .isFalse()
         }
 
@@ -241,6 +251,13 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
             get(ArtifactVersionStatus::pending).containsExactlyInAnyOrder(version2, version3)
             get(ArtifactVersionStatus::current).isNull()
             get(ArtifactVersionStatus::deploying).isEqualTo(version1)
+            get(ArtifactVersionStatus::previous).isEmpty()
+          }
+
+          expectThat(versionsIn(environment2, artifact3)) {
+            get(ArtifactVersionStatus::pending).isEmpty()
+            get(ArtifactVersionStatus::current).isNull()
+            get(ArtifactVersionStatus::deploying).isEqualTo(version6)
             get(ArtifactVersionStatus::previous).isEmpty()
           }
         }
@@ -266,10 +283,13 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
         context("the version is marked as successfully deployed") {
           before {
             subject.markAsSuccessfullyDeployedTo(manifest, artifact1, version1, environment1.name)
+            subject.markAsSuccessfullyDeployedTo(manifest, artifact3, version6, environment2.name)
           }
 
           test("the version is now considered successfully deployed") {
             expectThat(subject.wasSuccessfullyDeployedTo(manifest, artifact1, version1, environment1.name))
+              .isTrue()
+            expectThat(subject.wasSuccessfullyDeployedTo(manifest, artifact3, version6, environment2.name))
               .isTrue()
           }
 
@@ -407,7 +427,6 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
     context("getting all filters by type") {
       before {
         persist()
-        subject.register(artifact3)
         subject.store(artifact1, version4, FINAL)
         subject.store(artifact3, version6, FINAL)
       }

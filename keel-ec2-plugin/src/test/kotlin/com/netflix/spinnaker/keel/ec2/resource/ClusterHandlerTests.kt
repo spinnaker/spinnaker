@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.netflix.spinnaker.keel.api.Capacity
 import com.netflix.spinnaker.keel.api.ClusterDependencies
+import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Highlander
 import com.netflix.spinnaker.keel.api.RedBlack
@@ -96,11 +97,12 @@ internal class ClusterHandlerTests : JUnit5Minutests {
   val orcaService = mockk<OrcaService>()
   val objectMapper = ObjectMapper().registerKotlinModule()
   val normalizers = emptyList<Resolver<ClusterSpec>>()
-  val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
   val clock = Clock.systemDefaultZone()
+  val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
+  val deliveryConfigRepository: InMemoryDeliveryConfigRepository = mockk()
   val taskLauncher = TaskLauncher(
     orcaService,
-    InMemoryDeliveryConfigRepository(clock)
+    deliveryConfigRepository
   )
 
   val vpcWest = Network(CLOUD_PROVIDER, "vpc-1452353", "vpc0", "test", "us-west-2")
@@ -310,6 +312,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
       }
 
       coEvery { orcaService.orchestrate("keel@spinnaker", any()) } returns TaskRefResponse("/tasks/${randomUUID()}")
+      every { deliveryConfigRepository.environmentFor(any()) } returns Environment("test")
     }
 
     after {

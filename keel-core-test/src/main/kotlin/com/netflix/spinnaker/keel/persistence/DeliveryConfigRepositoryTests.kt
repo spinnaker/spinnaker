@@ -26,7 +26,6 @@ import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
-import strikt.assertions.isNotNull
 import strikt.assertions.succeeded
 
 abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : ResourceRepository, A : ArtifactRepository> :
@@ -168,7 +167,7 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
         copy(
           deliveryConfig = deliveryConfig.copy(
             artifacts = setOf(
-              DebianArtifact(name = "keel")
+              DebianArtifact(name = "keel", deliveryConfigName = deliveryConfig.name)
             ),
             environments = setOf(
               Environment(
@@ -272,7 +271,6 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
 
           getEnvironment(resource)
             .succeeded()
-            .isNotNull()
             .isEqualTo(environment)
         }
 
@@ -281,7 +279,6 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
 
           getDeliveryConfig(resource)
             .succeeded()
-            .isNotNull()
             .isEqualTo(deliveryConfig)
         }
       }

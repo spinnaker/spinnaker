@@ -223,7 +223,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
 
         test("artifacts are persisted") {
           expectThat(artifactRepository.isRegistered("keel", DEB)).isTrue()
-          verify { publisher.publishEvent(ArtifactRegisteredEvent(DebianArtifact("keel"))) }
+          verify { publisher.publishEvent(ArtifactRegisteredEvent(DebianArtifact(name = "keel", deliveryConfigName = "keel-manifest"))) }
         }
 
         test("individual resources are persisted") {
@@ -239,7 +239,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
 
       context("a delivery config with existing artifacts and resources is persisted") {
         before {
-          val artifact = DebianArtifact(name = "keel")
+          val artifact = DebianArtifact(name = "keel", deliveryConfigName = "keel-manifest")
             .also {
               artifactRepository.register(it)
             }

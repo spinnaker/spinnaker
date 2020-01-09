@@ -21,8 +21,8 @@ import com.netflix.spinnaker.keel.api.PromotionStatus.PREVIOUS
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_ARTIFACT
-import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_ARTIFACT_VERSION
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_VERSIONS
@@ -46,8 +46,11 @@ class SqlArtifactRepository(
       .set(DELIVERY_ARTIFACT.UID, randomUID().toString())
       .set(DELIVERY_ARTIFACT.NAME, artifact.name)
       .set(DELIVERY_ARTIFACT.TYPE, artifact.type.name)
+      .set(DELIVERY_ARTIFACT.REFERENCE, artifact.reference)
+      .set(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME, artifact.deliveryConfigName)
       .set(DELIVERY_ARTIFACT.DETAILS, artifact.detailsAsJson())
       .onDuplicateKeyUpdate()
+      .set(DELIVERY_ARTIFACT.REFERENCE, artifact.reference)
       .set(DELIVERY_ARTIFACT.DETAILS, artifact.detailsAsJson())
       .execute()
   }
@@ -71,65 +74,87 @@ class SqlArtifactRepository(
       mapOf("statuses" to statuses)
     )
 
-  override fun get(name: String, type: ArtifactType): DeliveryArtifact {
+  override fun get(name: String, type: ArtifactType, deliveryConfigName: String): List<DeliveryArtifact> {
     return jooq
-      .select(DELIVERY_ARTIFACT.DETAILS)
+      .select(DELIVERY_ARTIFACT.DETAILS, DELIVERY_ARTIFACT.REFERENCE)
       .from(DELIVERY_ARTIFACT)
       .where(DELIVERY_ARTIFACT.NAME.eq(name))
       .and(DELIVERY_ARTIFACT.TYPE.eq(type.name))
-      .fetchOne()
-      ?.let { (details) ->
-        mapToArtifact(name, type, details)
+      .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(deliveryConfigName))
+      .fetch { (details, reference) ->
+        mapToArtifact(name, type, details, reference, deliveryConfigName)
       } ?: throw NoSuchArtifactException(name, type)
   }
 
-  override fun store(artifact: DeliveryArtifact, version: String, status: ArtifactStatus?): Boolean {
-    val uid = jooq.select(DELIVERY_ARTIFACT.UID)
+  override fun get(name: String, type: ArtifactType, reference: String, deliveryConfigName: String): DeliveryArtifact {
+    return jooq
+      .select(DELIVERY_ARTIFACT.DETAILS, DELIVERY_ARTIFACT.REFERENCE)
       .from(DELIVERY_ARTIFACT)
-      .where(DELIVERY_ARTIFACT.NAME.eq(artifact.name))
-      .and(DELIVERY_ARTIFACT.TYPE.eq(artifact.type.name))
+      .where(DELIVERY_ARTIFACT.NAME.eq(name))
+      .and(DELIVERY_ARTIFACT.TYPE.eq(type.name))
+      .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(deliveryConfigName))
+      .and(DELIVERY_ARTIFACT.REFERENCE.eq(reference))
       .fetchOne()
-      ?: throw NoSuchArtifactException(artifact)
+      ?.let { (details, reference) ->
+        mapToArtifact(name, type, details, reference, deliveryConfigName)
+      } ?: throw NoSuchArtifactException(name, type)
+  }
 
-    return jooq.insertInto(DELIVERY_ARTIFACT_VERSION)
-      .set(DELIVERY_ARTIFACT_VERSION.DELIVERY_ARTIFACT_UID, uid.value1())
-      .set(DELIVERY_ARTIFACT_VERSION.VERSION, version)
-      .set(DELIVERY_ARTIFACT_VERSION.RELEASE_STATUS, status?.toString())
+  override fun store(artifact: DeliveryArtifact, version: String, status: ArtifactStatus?): Boolean =
+    store(artifact.name, artifact.type, version, status)
+
+  override fun store(name: String, type: ArtifactType, version: String, status: ArtifactStatus?): Boolean {
+    if (!isRegistered(name, type)) {
+      throw NoSuchArtifactException(name, type)
+    }
+
+    return jooq.insertInto(ARTIFACT_VERSIONS)
+      .set(ARTIFACT_VERSIONS.NAME, name)
+      .set(ARTIFACT_VERSIONS.TYPE, type.value())
+      .set(ARTIFACT_VERSIONS.VERSION, version)
+      .set(ARTIFACT_VERSIONS.RELEASE_STATUS, status?.toString())
       .onDuplicateKeyIgnore()
       .execute() == 1
   }
 
   override fun isRegistered(name: String, type: ArtifactType): Boolean =
     jooq
-      .selectOne()
+      .selectCount()
       .from(DELIVERY_ARTIFACT)
       .where(DELIVERY_ARTIFACT.NAME.eq(name))
       .and(DELIVERY_ARTIFACT.TYPE.eq(type.name))
-      .fetchOne() != null
+      .fetchOne()
+      .value1() > 0
 
   override fun getAll(type: ArtifactType?): List<DeliveryArtifact> =
     jooq
-      .select(DELIVERY_ARTIFACT.NAME, DELIVERY_ARTIFACT.TYPE, DELIVERY_ARTIFACT.DETAILS)
+      .select(DELIVERY_ARTIFACT.NAME, DELIVERY_ARTIFACT.TYPE, DELIVERY_ARTIFACT.DETAILS, DELIVERY_ARTIFACT.REFERENCE, DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME)
       .from(DELIVERY_ARTIFACT)
       .apply { if (type != null) where(DELIVERY_ARTIFACT.TYPE.eq(type.toString())) }
-      .fetch { (name, storedType, details) ->
-        mapToArtifact(name, ArtifactType.valueOf(storedType), details)
+      .fetch { (name, storedType, details, reference, configName) ->
+        mapToArtifact(name, ArtifactType.valueOf(storedType), details, reference, configName)
       }
 
-  override fun versions(name: String, type: ArtifactType, statuses: List<ArtifactStatus>): List<String> =
-    versions(get(name, type), statuses)
+  override fun versions(name: String, type: ArtifactType): List<String> {
+    return jooq.select(ARTIFACT_VERSIONS.VERSION)
+      .from(ARTIFACT_VERSIONS)
+      .where(ARTIFACT_VERSIONS.NAME.eq(name))
+      .and(ARTIFACT_VERSIONS.TYPE.eq(type.value()))
+      .fetch()
+      .getValues(ARTIFACT_VERSIONS.VERSION)
+  }
 
+  // todo eb: get status from artifact instead of function param?
   override fun versions(artifact: DeliveryArtifact, statuses: List<ArtifactStatus>): List<String> {
     return if (isRegistered(artifact.name, artifact.type)) {
       jooq
-        .select(DELIVERY_ARTIFACT_VERSION.VERSION)
-        .from(DELIVERY_ARTIFACT, DELIVERY_ARTIFACT_VERSION)
-        .where(DELIVERY_ARTIFACT.UID.eq(DELIVERY_ARTIFACT_VERSION.DELIVERY_ARTIFACT_UID))
-        .and(DELIVERY_ARTIFACT.NAME.eq(artifact.name))
-        .and(DELIVERY_ARTIFACT.TYPE.eq(artifact.type.name))
-        .apply { if (artifact.type == DEB && statuses.isNotEmpty()) and(DELIVERY_ARTIFACT_VERSION.RELEASE_STATUS.`in`(*statuses.map { it.toString() }.toTypedArray())) }
+        .select(ARTIFACT_VERSIONS.VERSION, ARTIFACT_VERSIONS.RELEASE_STATUS)
+        .from(ARTIFACT_VERSIONS)
+        .where(ARTIFACT_VERSIONS.NAME.eq(artifact.name))
+        .and(ARTIFACT_VERSIONS.TYPE.eq(artifact.type.value()))
+        .apply { if (artifact.type == DEB && statuses.isNotEmpty()) and(ARTIFACT_VERSIONS.RELEASE_STATUS.`in`(*statuses.map { it.toString() }.toTypedArray())) }
         .fetch()
-        .getValues(DELIVERY_ARTIFACT_VERSION.VERSION)
+        .getValues(ARTIFACT_VERSIONS.VERSION)
         .sortedWith(artifact.versioningStrategy.comparator)
     } else {
       throw NoSuchArtifactException(artifact)
@@ -145,18 +170,20 @@ class SqlArtifactRepository(
     val environment = deliveryConfig.environmentNamed(targetEnvironment)
     val envUid = deliveryConfig.getUidFor(environment)
     val artifactId = artifact.uid
-    return jooq
-      .select(DELIVERY_ARTIFACT_VERSION.VERSION)
-      .from(ENVIRONMENT_ARTIFACT_VERSIONS
-        .innerJoin(DELIVERY_ARTIFACT_VERSION)
-        .on(DELIVERY_ARTIFACT_VERSION.DELIVERY_ARTIFACT_UID.eq(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID)))
+    val versions: List<String> = jooq
+      .select(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION)
+      .from(ENVIRONMENT_ARTIFACT_VERSIONS, ARTIFACT_VERSIONS)
       .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(envUid))
-      .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(DELIVERY_ARTIFACT_VERSION.VERSION))
       .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifactId))
-      .apply { if (statuses.isNotEmpty()) and(DELIVERY_ARTIFACT_VERSION.RELEASE_STATUS.`in`(*statuses.map { it.toString() }.toTypedArray())) }
+      .and(ARTIFACT_VERSIONS.NAME.eq(artifact.name))
+      .and(ARTIFACT_VERSIONS.TYPE.eq(artifact.type.name))
+      .and(ARTIFACT_VERSIONS.VERSION.eq(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION))
+      .apply { if (statuses.isNotEmpty()) and(ARTIFACT_VERSIONS.RELEASE_STATUS.`in`(*statuses.map { it.toString() }.toTypedArray())) }
       .orderBy(ENVIRONMENT_ARTIFACT_VERSIONS.APPROVED_AT.desc())
-      .limit(1)
-      .fetchOne(0, String::class.java)
+      .fetch()
+      .getValues(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION)
+
+    return versions.firstOrNull()
   }
 
   override fun approveVersionFor(
@@ -264,12 +291,12 @@ class SqlArtifactRepository(
         val versionsInEnvironment = jooq
           .select(
             ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION,
-            DELIVERY_ARTIFACT_VERSION.RELEASE_STATUS,
+            ARTIFACT_VERSIONS.RELEASE_STATUS,
             ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS
           )
           .from(
             ENVIRONMENT_ARTIFACT_VERSIONS,
-            DELIVERY_ARTIFACT_VERSION,
+            ARTIFACT_VERSIONS,
             DELIVERY_ARTIFACT,
             ENVIRONMENT,
             DELIVERY_CONFIG
@@ -277,43 +304,50 @@ class SqlArtifactRepository(
           .where(DELIVERY_ARTIFACT.UID.eq(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID))
           .and(DELIVERY_ARTIFACT.NAME.eq(artifact.name))
           .and(DELIVERY_ARTIFACT.TYPE.eq(artifact.type.name))
-          .and(DELIVERY_ARTIFACT.UID.eq(DELIVERY_ARTIFACT_VERSION.DELIVERY_ARTIFACT_UID))
-          .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(DELIVERY_ARTIFACT_VERSION.VERSION))
+          .and(DELIVERY_ARTIFACT.REFERENCE.eq(artifact.reference))
+          .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(deliveryConfig.name))
+          .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(ARTIFACT_VERSIONS.VERSION))
           .and(ENVIRONMENT.UID.eq(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID))
           .and(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(DELIVERY_CONFIG.UID))
-          .and(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
           .and(ENVIRONMENT.NAME.eq(environment.name))
+          .and(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
+          .and(ARTIFACT_VERSIONS.NAME.eq(artifact.name))
+          .and(ARTIFACT_VERSIONS.TYPE.eq(artifact.type.name))
         val pendingVersions = jooq
           .select(
-            DELIVERY_ARTIFACT_VERSION.VERSION,
-            DELIVERY_ARTIFACT_VERSION.RELEASE_STATUS,
+            ARTIFACT_VERSIONS.VERSION,
+            ARTIFACT_VERSIONS.RELEASE_STATUS,
             DSL.`val`(PENDING.name)
           )
           .from(
-            DELIVERY_ARTIFACT_VERSION,
+            ARTIFACT_VERSIONS,
             DELIVERY_ARTIFACT,
             ENVIRONMENT,
             DELIVERY_CONFIG
           )
-          .where(DELIVERY_ARTIFACT.UID.eq(DELIVERY_ARTIFACT_VERSION.DELIVERY_ARTIFACT_UID))
-          .and(DELIVERY_ARTIFACT.NAME.eq(artifact.name))
+          .where(DELIVERY_ARTIFACT.NAME.eq(artifact.name))
           .and(DELIVERY_ARTIFACT.TYPE.eq(artifact.type.name))
+          .and(DELIVERY_ARTIFACT.REFERENCE.eq(artifact.reference))
+          .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(deliveryConfig.name))
           .and(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(DELIVERY_CONFIG.UID))
           .and(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
           .and(ENVIRONMENT.NAME.eq(environment.name))
+          .and(ARTIFACT_VERSIONS.NAME.eq(artifact.name))
+          .and(ARTIFACT_VERSIONS.TYPE.eq(artifact.type.name))
           .andNotExists(
             selectOne()
               .from(ENVIRONMENT_ARTIFACT_VERSIONS)
-              .where(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(DELIVERY_ARTIFACT_VERSION.VERSION))
+              .where(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(ARTIFACT_VERSIONS.VERSION))
               .and(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(ENVIRONMENT.UID))
+              .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(DELIVERY_ARTIFACT.UID))
           )
         val versions = versionsInEnvironment
           .unionAll(pendingVersions)
           .fetch { (version, releaseStatus, promotionStatus) ->
             Triple(version, releaseStatus, PromotionStatus.valueOf(promotionStatus))
           }
-          .filter { (_, artifactStatus, _) ->
-            artifact !is DebianArtifact || artifact.statuses.isEmpty() || ArtifactStatus.valueOf(artifactStatus) in artifact.statuses
+          .filter { (_, releaseStatus, _) ->
+            artifact !is DebianArtifact || artifact.statuses.isEmpty() || ArtifactStatus.valueOf(releaseStatus) in artifact.statuses
           }
           .sortedWith(compareBy(artifact.versioningStrategy.comparator) { (version, _, _) -> version })
           .groupBy({ (_, _, promotionStatus) ->
@@ -351,7 +385,9 @@ class SqlArtifactRepository(
     get() = select(DELIVERY_ARTIFACT.UID)
       .from(DELIVERY_ARTIFACT)
       .where(DELIVERY_ARTIFACT.NAME.eq(name)
-        .and(DELIVERY_ARTIFACT.TYPE.eq(type.name)))
+        .and(DELIVERY_ARTIFACT.TYPE.eq(type.name))
+        .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(deliveryConfigName))
+        .and(DELIVERY_ARTIFACT.REFERENCE.eq(reference)))
 
   private val DeliveryConfig.uid: Select<Record1<String>>
     get() = select(DELIVERY_CONFIG.UID)

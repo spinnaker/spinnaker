@@ -76,6 +76,8 @@ internal class ImageHandlerTests : JUnit5Minutests {
       appVersion = "keel-0.161.0-h63.24d0843",
       regions = resource.spec.regions
     )
+
+    val artifact = DebianArtifact(name = "keel", deliveryConfigName = "delivery-config")
   }
 
   fun tests() = rootContext<Fixture> {
@@ -86,9 +88,8 @@ internal class ImageHandlerTests : JUnit5Minutests {
     context("resolving desired and current state") {
       context("clouddriver has an image for the base AMI") {
         before {
-          val artifact = DebianArtifact("keel")
           artifactRepository.register(artifact)
-          artifactRepository.store(artifact, image.appVersion, FINAL)
+          artifactRepository.store(artifact.name, artifact.type, image.appVersion, FINAL)
 
           every {
             baseImageCache.getBaseImage(resource.spec.baseOs, resource.spec.baseLabel)
@@ -155,7 +156,6 @@ internal class ImageHandlerTests : JUnit5Minutests {
 
       context("there are no known versions of the artifact") {
         before {
-          val artifact = DebianArtifact("keel")
           artifactRepository.register(artifact)
           every {
             baseImageCache.getBaseImage(resource.spec.baseOs, resource.spec.baseLabel)
@@ -172,9 +172,8 @@ internal class ImageHandlerTests : JUnit5Minutests {
 
       context("there is only a version with the wrong status") {
         before {
-          val artifact = DebianArtifact("keel")
           artifactRepository.register(artifact)
-          artifactRepository.store(artifact, image.appVersion, FINAL)
+          artifactRepository.store(artifact.name, artifact.type, image.appVersion, FINAL)
           every {
             baseImageCache.getBaseImage(resource.spec.baseOs, resource.spec.baseLabel)
           } returns "xenialbase-x86_64-201904291721-ebs"
@@ -190,9 +189,8 @@ internal class ImageHandlerTests : JUnit5Minutests {
 
       context("there is no cached base image") {
         before {
-          val artifact = DebianArtifact("keel")
           artifactRepository.register(artifact)
-          artifactRepository.store(artifact, image.appVersion, FINAL)
+          artifactRepository.store(artifact.name, artifact.type, image.appVersion, FINAL)
 
           every {
             baseImageCache.getBaseImage(resource.spec.baseOs, resource.spec.baseLabel)
@@ -206,9 +204,8 @@ internal class ImageHandlerTests : JUnit5Minutests {
 
       context("clouddriver can't find the base AMI") {
         before {
-          val artifact = DebianArtifact("keel")
           artifactRepository.register(artifact)
-          artifactRepository.store(artifact, image.appVersion, FINAL)
+          artifactRepository.store(artifact.name, artifact.type, image.appVersion, FINAL)
 
           every {
             baseImageCache.getBaseImage(resource.spec.baseOs, resource.spec.baseLabel)

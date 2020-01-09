@@ -41,7 +41,7 @@ class SampleDockerImageResolver(
   override fun getAccountFromSpec(resource: Resource<SampleSpecWithContainer>) =
     resource.spec.account
 
-  override fun updateContainerInSpec(resource: Resource<SampleSpecWithContainer>, container: Container) =
+  override fun updateContainerInSpec(resource: Resource<SampleSpecWithContainer>, container: ContainerProvider) =
     resource.copy(spec = resource.spec.copy(container = container))
 
   // this would normally call out to clouddriver
@@ -61,7 +61,7 @@ class SampleDockerImageResolver(
 }
 
 data class SampleSpecWithContainer(
-  val container: Container,
+  val container: ContainerProvider,
   val account: String
 ) : ResourceSpec {
   @JsonIgnore

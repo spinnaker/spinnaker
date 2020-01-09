@@ -57,8 +57,7 @@ internal class ApplicationControllerTests {
       .andExpect(content().json(
         """
           {
-            "hasManagedResources":true,
-            "hasDeliveryConfig":false
+            "hasManagedResources":true
           }
         """.trimIndent()
       ))
@@ -73,7 +72,6 @@ internal class ApplicationControllerTests {
           |{
           |"hasManagedResources":true,
           |"resources":[{"id":"${res.id}","kind":"${res.kind}","status":"CREATED"}],
-          |"hasDeliveryConfig":false,
           |"currentEnvironmentConstraints":[]
           |}
         """.trimMargin()

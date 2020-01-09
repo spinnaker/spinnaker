@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.keel.ec2.resource
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
@@ -61,7 +62,6 @@ import io.mockk.coVerify
 import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.mockk
-import java.time.Clock
 import java.util.UUID.randomUUID
 import kotlinx.coroutines.runBlocking
 import strikt.api.Assertion
@@ -81,10 +81,13 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
   private val cloudDriverService: CloudDriverService = mockk()
   private val cloudDriverCache: CloudDriverCache = mockk()
   private val orcaService: OrcaService = mockk()
-  private val clock = Clock.systemDefaultZone()
+  private val deliveryConfigRepository: InMemoryDeliveryConfigRepository = mockk() {
+    // we're just using this to get notifications
+    every { environmentFor(any()) } returns Environment("test")
+  }
   private val taskLauncher = TaskLauncher(
     orcaService,
-    InMemoryDeliveryConfigRepository(clock)
+    deliveryConfigRepository
   )
   private val objectMapper = configuredObjectMapper()
   private val normalizers = emptyList<Resolver<SecurityGroupSpec>>()

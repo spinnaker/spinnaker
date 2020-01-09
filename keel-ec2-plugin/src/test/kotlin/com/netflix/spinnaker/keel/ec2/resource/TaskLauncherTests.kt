@@ -42,7 +42,6 @@ import kotlinx.coroutines.runBlocking
 import strikt.api.expectThat
 import strikt.assertions.first
 import strikt.assertions.hasSize
-import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEmpty
 
@@ -63,18 +62,6 @@ class TaskLauncherTests : JUnit5Minutests {
       coEvery {
         orcaService.orchestrate(any(), capture(request))
       } returns TaskRefResponse("/tasks/${randomUID()}")
-    }
-
-    context("no environments") {
-      before {
-        runBlocking {
-          taskLauncher.submitJobToOrca(resource, "task description", "correlate this", mapOf())
-        }
-      }
-
-      test("empty list gets returned") {
-        expectThat(request.captured.trigger.notifications).isEmpty()
-      }
     }
 
     context("an environment exists") {

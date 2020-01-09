@@ -22,7 +22,7 @@ import com.netflix.spinnaker.keel.api.ClusterDependencies
 import com.netflix.spinnaker.keel.clouddriver.model.Constraints
 import com.netflix.spinnaker.keel.clouddriver.model.MigrationPolicy
 import com.netflix.spinnaker.keel.clouddriver.model.Resources
-import com.netflix.spinnaker.keel.docker.ContainerWithDigest
+import com.netflix.spinnaker.keel.docker.DigestProvider
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.model.parseMoniker
 import de.danielbechler.diff.inclusion.Inclusion
@@ -39,7 +39,7 @@ data class TitusServerGroup(
    */
   @get:ObjectDiffProperty(inclusion = Inclusion.EXCLUDED)
   val name: String,
-  val container: ContainerWithDigest,
+  val container: DigestProvider,
   val location: Location,
   val env: Map<String, String> = emptyMap(),
   val containerAttributes: Map<String, String> = emptyMap(),

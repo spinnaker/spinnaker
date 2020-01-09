@@ -42,6 +42,14 @@ data class ArtifactImageProvider(
 ) : ImageProvider()
 
 /**
+ * Provides image id by referencing an artifact defined in the delivery config
+ */
+@JsonDeserialize(using = JsonDeserializer.None::class)
+data class ReferenceArtifactImageProvider(
+  val reference: String
+) : ImageProvider()
+
+/**
  * Provides an image by reference to a jenkins master, job, and job number
  */
 @JsonDeserialize(using = JsonDeserializer.None::class)

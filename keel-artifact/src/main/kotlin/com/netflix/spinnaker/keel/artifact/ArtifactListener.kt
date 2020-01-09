@@ -12,6 +12,7 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.events.ArtifactEvent
 import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.events.ArtifactSyncEvent
+import com.netflix.spinnaker.keel.exceptions.UnsupportedArtifactTypeException
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.telemetry.ArtifactVersionUpdated
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
@@ -37,26 +38,25 @@ class ArtifactListener(
     event
       .artifacts
       .filter { it.type.toUpperCase() in artifactTypeNames }
-      .forEach { korkArtifact ->
-        if (artifactRepository.isRegistered(korkArtifact.name, korkArtifact.type())) {
-          val artifact = artifactRepository.get(korkArtifact.name, korkArtifact.type())
+      .forEach { artifact ->
+        if (artifactRepository.isRegistered(artifact.name, artifact.type())) {
           val version: String
           var status: ArtifactStatus? = null
-          when (artifact) {
-            is DebianArtifact -> {
-              version = "${korkArtifact.name}-${korkArtifact.version}"
-              status = debStatus(korkArtifact)
+          when (artifact.type()) {
+            DEB -> {
+              version = "${artifact.name}-${artifact.version}"
+              status = debStatus(artifact)
             }
-            is DockerArtifact -> {
-              version = korkArtifact.version
+            DOCKER -> {
+              version = artifact.version
             }
-            else -> throw UnsupportedArtifactTypeException(korkArtifact.type)
+            else -> throw UnsupportedArtifactTypeException(artifact.type)
           }
           log.info("Registering version {} ({}) of {} {}", version, status, artifact.name, artifact.type)
-          artifactRepository.store(artifact, version, status)
+          artifactRepository.store(artifact.name, artifact.type(), version, status)
             .also { wasAdded ->
               if (wasAdded) {
-                publisher.publishEvent(ArtifactVersionUpdated(artifact.name, artifact.type))
+                publisher.publishEvent(ArtifactVersionUpdated(artifact.name, artifact.type()))
               }
             }
         }
@@ -89,7 +89,7 @@ class ArtifactListener(
    * For each registered debian artifact, get the last version, and persist if it's newer than what we have.
    */
   // todo eb: should we fetch more than one version?
-  @Scheduled(initialDelay = 60000, fixedDelayString = "\${keel.artifact-refresh.frequency:PT6H}")
+  @Scheduled(fixedDelayString = "\${keel.artifact-refresh.frequency:PT6H}")
   fun syncArtifactVersions() =
     runBlocking {
       artifactRepository.getAll().forEach { artifact ->
@@ -116,7 +116,7 @@ class ArtifactListener(
                 // todo eb: is there a better way to think of docker status?
                 DOCKER -> null
               }
-              artifactRepository.store(artifact, latestVersion, status)
+              artifactRepository.store(artifact.name, artifact.type, latestVersion, status)
             }
           }
         }
@@ -145,7 +145,7 @@ class ArtifactListener(
           val version = "${artifact.name}-$firstVersion"
           val status = debStatus(artifactService.getArtifact(artifact.name, firstVersion))
           log.debug("Storing latest version {} ({}) for registered artifact {}", version, status, artifact)
-          artifactRepository.store(artifact, version, status)
+          artifactRepository.store(artifact.name, artifact.type, version, status)
         }
     }
 
@@ -157,7 +157,7 @@ class ArtifactListener(
       getLatestDockerTag(artifact)
         ?.let { firstVersion ->
           log.debug("Storing latest version {} for registered artifact {}", firstVersion, artifact)
-          artifactRepository.store(artifact, firstVersion, null)
+          artifactRepository.store(artifact.name, artifact.type, firstVersion, null)
         }
     }
 

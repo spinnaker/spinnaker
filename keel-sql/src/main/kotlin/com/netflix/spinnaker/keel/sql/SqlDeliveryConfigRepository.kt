@@ -13,6 +13,7 @@ import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigName
+import com.netflix.spinnaker.keel.persistence.OrphanedResourceException
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.CURRENT_CONSTRAINT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_ARTIFACT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG
@@ -182,12 +183,12 @@ class SqlDeliveryConfigRepository(
 
   private fun DeliveryConfig.attachDependents(uid: String): DeliveryConfig =
     jooq
-      .select(DELIVERY_ARTIFACT.NAME, DELIVERY_ARTIFACT.TYPE, DELIVERY_ARTIFACT.DETAILS)
+      .select(DELIVERY_ARTIFACT.NAME, DELIVERY_ARTIFACT.TYPE, DELIVERY_ARTIFACT.DETAILS, DELIVERY_ARTIFACT.REFERENCE, DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME)
       .from(DELIVERY_ARTIFACT, DELIVERY_CONFIG_ARTIFACT)
       .where(DELIVERY_CONFIG_ARTIFACT.ARTIFACT_UID.eq(DELIVERY_ARTIFACT.UID))
       .and(DELIVERY_CONFIG_ARTIFACT.DELIVERY_CONFIG_UID.eq(uid))
-      .fetch { (name, type, details) ->
-        mapToArtifact(name, ArtifactType.valueOf(type), details)
+      .fetch { (name, type, details, reference, configName) ->
+        mapToArtifact(name, ArtifactType.valueOf(type), details, reference, configName)
       }
       .toSet()
       .let { artifacts ->
@@ -209,9 +210,9 @@ class SqlDeliveryConfigRepository(
               environments = environments.toSet()
             )
           }
-  }
+      }
 
-  override fun environmentFor(resourceId: ResourceId): Environment? =
+  override fun environmentFor(resourceId: ResourceId): Environment =
     jooq
       .select(ENVIRONMENT.UID, ENVIRONMENT.NAME, ENVIRONMENT.CONSTRAINTS, ENVIRONMENT.NOTIFICATIONS)
       .from(ENVIRONMENT, ENVIRONMENT_RESOURCE, RESOURCE)
@@ -225,9 +226,9 @@ class SqlDeliveryConfigRepository(
           constraints = mapper.readValue(constraintsJson),
           notifications = mapper.readValue(notificationsJson ?: "[]")
         )
-      }
+      } ?: throw OrphanedResourceException(resourceId)
 
-  override fun deliveryConfigFor(resourceId: ResourceId): DeliveryConfig? =
+  override fun deliveryConfigFor(resourceId: ResourceId): DeliveryConfig =
     // TODO: this implementation could be more efficient by sharing code with get(name)
     jooq
       .select(DELIVERY_CONFIG.NAME)
@@ -238,7 +239,7 @@ class SqlDeliveryConfigRepository(
       .and(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(DELIVERY_CONFIG.UID))
       .fetchOne { (name) ->
         get(name)
-      }
+      } ?: throw OrphanedResourceException(resourceId)
 
   override fun storeConstraintState(state: ConstraintState) {
     environmentUidByName(state.deliveryConfigName, state.environmentName)
@@ -512,15 +513,6 @@ class SqlDeliveryConfigRepository(
           get(name)
         }
     }
-  }
-
-  override fun hasDeliveryConfig(application: String): Boolean {
-    return jooq
-      .selectCount()
-      .from(DELIVERY_CONFIG)
-      .where(DELIVERY_CONFIG.APPLICATION.eq(application))
-      .fetchOne()
-      .value1() > 0
   }
 
   private fun environmentUidByName(deliveryConfigName: String, environmentName: String): String? =

@@ -8,6 +8,7 @@ import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.resources
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigName
+import com.netflix.spinnaker.keel.persistence.OrphanedResourceException
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
@@ -51,16 +52,18 @@ class InMemoryDeliveryConfigRepository(
     }
   }
 
-  override fun environmentFor(resourceId: ResourceId): Environment? =
+  override fun environmentFor(resourceId: ResourceId): Environment =
     configs
       .values
       .flatMap { it.environments }
       .firstOrNull { it.resourceIds.contains(resourceId) }
+      ?: throw OrphanedResourceException(resourceId)
 
-  override fun deliveryConfigFor(resourceId: ResourceId): DeliveryConfig? =
+  override fun deliveryConfigFor(resourceId: ResourceId): DeliveryConfig =
     configs
       .values
       .firstOrNull { it.resourceIds.contains(resourceId) }
+      ?: throw OrphanedResourceException(resourceId)
 
   override fun storeConstraintState(state: ConstraintState) {
     val config = get(state.deliveryConfigName)
@@ -111,10 +114,6 @@ class InMemoryDeliveryConfigRepository(
         }
       }
       .map { name -> configs[name] ?: error("No delivery config named $name") }
-  }
-
-  override fun hasDeliveryConfig(application: String): Boolean {
-    return configs.values.any { it.application == application }
   }
 
   fun dropAll() {

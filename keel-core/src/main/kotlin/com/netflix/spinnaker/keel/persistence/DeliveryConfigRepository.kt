@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.persistence
 
+import com.netflix.spinnaker.keel.api.ArtifactType
 import com.netflix.spinnaker.keel.api.ConstraintState
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
@@ -21,24 +22,14 @@ interface DeliveryConfigRepository : PeriodicallyCheckedRepository<DeliveryConfi
   fun get(name: String): DeliveryConfig
 
   /**
-   * Check if the given application has a [DeliveryConfig].
-   * @return Boolean
-   */
-  fun hasDeliveryConfig(application: String): Boolean
-
-  /**
    * Retrieve the [Environment] a resource belongs to, by the resource [id].
-   *
-   * @return An [Environment] or `null` if the resource is not managed via an [Environment]
    */
-  fun environmentFor(resourceId: ResourceId): Environment?
+  fun environmentFor(resourceId: ResourceId): Environment
 
   /**
    * Retrieve the [DeliveryConfig] a resource belongs to (the parent of its environment).
-   *
-   * @return A [DeliveryConfig] or `null` if the resource is not managed via a [DeliveryConfig].]
    */
-  fun deliveryConfigFor(resourceId: ResourceId): DeliveryConfig?
+  fun deliveryConfigFor(resourceId: ResourceId): DeliveryConfig
 
   /**
    * @return All [DeliveryConfig] instances associated with [application], or an empty collection if
@@ -107,3 +98,8 @@ interface DeliveryConfigRepository : PeriodicallyCheckedRepository<DeliveryConfi
 
 sealed class NoSuchDeliveryConfigException(message: String) : RuntimeException(message)
 class NoSuchDeliveryConfigName(name: String) : NoSuchDeliveryConfigException("No delivery config named $name exists in the repository")
+
+class NoMatchingArtifactException(deliveryConfigName: String, type: ArtifactType, reference: String) :
+  RuntimeException("No artifact with reference $reference and type $type found in delivery config $deliveryConfigName")
+
+class OrphanedResourceException(id: ResourceId) : RuntimeException("Resource $id exists without being a part of a delivery config")

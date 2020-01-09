@@ -80,9 +80,8 @@ class TaskLauncher(
   private val Resource<*>.notifications: List<EchoNotification>
     get() = deliveryConfigRepository
       .environmentFor(id)
-      ?.notifications
-      ?.map { it.toEchoNotification() }
-      ?: emptyList()
+      .notifications
+      .map { it.toEchoNotification() }
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }

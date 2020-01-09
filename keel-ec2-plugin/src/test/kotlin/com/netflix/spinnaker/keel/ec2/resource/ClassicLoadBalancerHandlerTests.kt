@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.ec2.resource
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerSpec
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
@@ -44,7 +45,6 @@ import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
-import java.time.Clock
 import java.util.UUID
 import kotlinx.coroutines.runBlocking
 import strikt.api.Assertion
@@ -63,10 +63,13 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
   private val cloudDriverService = mockk<CloudDriverService>()
   private val cloudDriverCache = mockk<CloudDriverCache>()
   private val orcaService = mockk<OrcaService>()
-  private val clock = Clock.systemDefaultZone()
+  private val deliveryConfigRepository: InMemoryDeliveryConfigRepository = mockk() {
+    // we're just using this to get notifications
+    every { environmentFor(any()) } returns Environment("test")
+  }
   private val taskLauncher = TaskLauncher(
     orcaService,
-    InMemoryDeliveryConfigRepository(clock)
+    deliveryConfigRepository
   )
   private val mapper = ObjectMapper().registerKotlinModule()
   private val yamlMapper = configuredYamlMapper()

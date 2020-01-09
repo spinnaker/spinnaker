@@ -19,11 +19,12 @@ package com.netflix.spinnaker.keel.docker
 
 import com.netflix.spinnaker.keel.serialization.PropertyNamePolymorphicDeserializer
 
-class ContainerDeserializer :
-  PropertyNamePolymorphicDeserializer<Container>(Container::class.java) {
-  override fun identifySubType(fieldNames: Collection<String>): Class<out Container> =
+class ContainerProviderDeserializer :
+  PropertyNamePolymorphicDeserializer<ContainerProvider>(ContainerProvider::class.java) {
+  override fun identifySubType(fieldNames: Collection<String>): Class<out ContainerProvider> =
     when {
-      "digest" in fieldNames -> ContainerWithDigest::class.java
-      else -> ContainerWithVersionedTag::class.java
+      "reference" in fieldNames -> ReferenceProvider::class.java
+      "tagVersionStrategy" in fieldNames -> VersionedTagProvider::class.java
+      else -> DigestProvider::class.java
     }
 }

@@ -39,12 +39,12 @@ internal class ArtifactControllerTests {
 
   @Test
   fun `can get the versions of an artifact`() {
-    val artifact = DebianArtifact("fnord")
+    val artifact = DebianArtifact(name = "fnord", deliveryConfigName = "myconfig")
     with(artifactRepository) {
       register(artifact)
-      store(artifact, "fnord-1.0.0-41595c4", FINAL)
-      store(artifact, "fnord-2.0.0-608bd90", FINAL)
       store(artifact, "fnord-2.1.0-18ed1dc", FINAL)
+      store(artifact, "fnord-2.0.0-608bd90", FINAL)
+      store(artifact, "fnord-1.0.0-41595c4", FINAL)
     }
 
     val request = get("/artifacts/${artifact.name}/${artifact.type}")
@@ -62,11 +62,14 @@ internal class ArtifactControllerTests {
   }
 
   @Test
-  fun `unregistered artifact is not found when requesting versions`() {
+  fun `versions empty for an artifact we're not tracking`() {
     val request = get("/artifacts/unregistered/DEB")
       .accept(APPLICATION_YAML)
     mvc
       .perform(request)
-      .andExpect(status().isNotFound)
+      .andExpect(status().isOk)
+      .andExpect(content().string(
+        """--- []""".trimMargin()
+      ))
   }
 }

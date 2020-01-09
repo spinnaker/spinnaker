@@ -22,7 +22,7 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.titus.SPINNAKER_TITUS_API_V1
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
-import com.netflix.spinnaker.keel.docker.Container
+import com.netflix.spinnaker.keel.docker.ContainerProvider
 import com.netflix.spinnaker.keel.docker.DockerImageResolver
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
@@ -54,7 +54,7 @@ class TitusImageResolver(
   override fun getAccountFromSpec(resource: Resource<TitusClusterSpec>) =
     resource.spec.deriveRegistry()
 
-  override fun updateContainerInSpec(resource: Resource<TitusClusterSpec>, container: Container) =
+  override fun updateContainerInSpec(resource: Resource<TitusClusterSpec>, container: ContainerProvider) =
     resource.copy(spec = resource.spec.copy(_defaults = resource.spec.defaults.copy(container = container)))
 
   override fun getTags(account: String, organization: String, image: String) =

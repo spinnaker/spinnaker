@@ -15,7 +15,7 @@
  * limitations under the License.
  *
  */
-package com.netflix.spinnaker.keel.artifact
+package com.netflix.spinnaker.keel.exceptions
 
 import com.netflix.spinnaker.keel.api.ArtifactType
 

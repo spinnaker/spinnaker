@@ -48,8 +48,6 @@ class ApplicationController(
     @PathVariable("application") application: String,
     @RequestParam("includeDetails", required = false, defaultValue = "false") includeDetails: Boolean
   ): Map<String, Any> {
-    val hasDeliveryConfig = deliveryConfigRepository.hasDeliveryConfig(application)
-
     if (includeDetails) {
       var resources = resourceRepository.getSummaryByApplication(application)
       resources = resources.map { summary ->
@@ -61,24 +59,19 @@ class ApplicationController(
           summary
         }
       }
-      val constraintStates = if (hasDeliveryConfig) {
-        deliveryConfigRepository.constraintStateFor(application)
-      } else {
-        emptyList()
-      }
+      val constraintStates = deliveryConfigRepository.constraintStateFor(application)
 
       return mapOf(
         "applicationPaused" to resourcePauser.applicationIsPaused(application),
         "hasManagedResources" to resources.isNotEmpty(),
         "resources" to resources,
-        "hasDeliveryConfig" to hasDeliveryConfig,
         "currentEnvironmentConstraints" to constraintStates
       )
     }
     return mapOf(
       "applicationPaused" to resourcePauser.applicationIsPaused(application),
-      "hasManagedResources" to resourceRepository.hasManagedResources(application),
-      "hasDeliveryConfig" to hasDeliveryConfig)
+      "hasManagedResources" to resourceRepository.hasManagedResources(application)
+    )
   }
 
   @PostMapping(

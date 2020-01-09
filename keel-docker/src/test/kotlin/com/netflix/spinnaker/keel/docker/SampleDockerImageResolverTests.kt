@@ -38,11 +38,13 @@ import strikt.assertions.isEqualTo
  * underlying logic of pulling the right tag or right digest.
  */
 class SampleDockerImageResolverTests : JUnit5Minutests {
-
   val configRepo: InMemoryDeliveryConfigRepository = InMemoryDeliveryConfigRepository()
   val artifactRepo: InMemoryArtifactRepository = InMemoryArtifactRepository()
-  private val spec = SampleSpecWithContainer(
-    container = ContainerWithVersionedTag(
+
+  private val artifact = DockerArtifact(name = "spkr/keeldemo", reference = "spkr/keeldemo", tagVersionStrategy = SEMVER_TAG, deliveryConfigName = "mydeliveryconfig")
+
+  private val oldStyleSpec = SampleSpecWithContainer(
+    container = VersionedTagProvider(
       organization = "spkr",
       image = "keeldemo",
       tagVersionStrategy = SEMVER_TAG
@@ -50,72 +52,105 @@ class SampleDockerImageResolverTests : JUnit5Minutests {
     account = "test"
   )
 
-  private val resource = Resource(
-    apiVersion = SAMPLE_API_VERSION,
-    kind = "sample",
-    spec = spec,
-    metadata = mapOf(
-      "id" to "${SAMPLE_API_VERSION.prefix}:sample:sample-resource",
-      "application" to "myapp",
-      "serviceAccount" to "keel@spinnaker"
-    ))
-
-  private val artifact = DockerArtifact(name = "spkr/keeldemo", tagVersionStrategy = SEMVER_TAG)
-
-  private val env = Environment(
-    name = "test",
-    resources = setOf(resource)
+  private val referenceSpec = SampleSpecWithContainer(
+    container = ReferenceProvider(
+      reference = "spkr/keeldemo"
+    ),
+    account = "test"
   )
-  private val deliveryConfig = DeliveryConfig(
-    name = "mydeliveryconfig",
-    application = "keel",
-    artifacts = setOf(artifact),
-    environments = setOf(env)
-  )
+  val versionedContainerResource = generateResource(oldStyleSpec)
+
+  val referenceResource = generateResource(referenceSpec)
+  val versionedDeliveryConfig = generateDeliveryConfig(versionedContainerResource, artifact)
+
+  val referenceDeliveryConfig = generateDeliveryConfig(referenceResource, artifact)
+
+  private fun generateResource(spec: SampleSpecWithContainer) =
+    Resource(
+      apiVersion = SAMPLE_API_VERSION,
+      kind = "sample",
+      spec = spec,
+      metadata = mapOf(
+        "id" to "${SAMPLE_API_VERSION.prefix}:sample:sample-resource",
+        "application" to "myapp",
+        "serviceAccount" to "keel@spinnaker"
+      ))
+
+  private fun generateDeliveryConfig(resource: Resource<SampleSpecWithContainer>, artifact: DockerArtifact): DeliveryConfig {
+    val env = Environment(
+      name = "test",
+      resources = setOf(resource)
+    )
+    return DeliveryConfig(
+      name = "mydeliveryconfig",
+      application = "keel",
+      artifacts = setOf(artifact),
+      environments = setOf(env)
+    )
+  }
 
   fun tests() = rootContext<SampleDockerImageResolver> {
     fixture {
       SampleDockerImageResolver(configRepo, artifactRepo)
     }
 
-    context("a semantic versioned resource") {
-      test("resolves latest to correct digest") {
-        val resolvedResource = this.invoke(resource)
-        expect {
-          that(resolvedResource.spec.container).isA<ContainerWithDigest>()
-          that(resolvedResource.spec.container as ContainerWithDigest).get { digest }.isEqualTo("sha256:0d49cebbbb00d5cefd384fcbb2f46c97b7412b59b62862a3459f09232d6acf28")
-        }
-      }
-    }
-
-    context("a resource part of a delivery config") {
+    context("resolving from versioned tag provider") {
       before {
-        configRepo.store(deliveryConfig)
+        configRepo.store(versionedDeliveryConfig)
         artifactRepo.register(artifact)
       }
-
       after {
         configRepo.dropAll()
         artifactRepo.dropAll()
       }
 
       test("no versions throws exception") {
-        expectThrows<NoDockerImageSatisfiesConstraints> { this.invoke(resource) }
+        expectThrows<NoDockerImageSatisfiesConstraints> { this.invoke(versionedContainerResource) }
       }
 
       test("no versions approved yet") {
         artifactRepo.store(artifact, "v0.0.1", null)
-        expectThrows<NoDockerImageSatisfiesConstraints> { this.invoke(resource) }
+        expectThrows<NoDockerImageSatisfiesConstraints> { this.invoke(versionedContainerResource) }
       }
 
       test("there is a version approved") {
         artifactRepo.store(artifact, "v0.0.1", null)
-        artifactRepo.approveVersionFor(deliveryConfig, artifact, "v0.0.1", env.name)
+        artifactRepo.approveVersionFor(versionedDeliveryConfig, artifact, "v0.0.1", "test")
 
-        val resolvedResource = this.invoke(resource)
+        val resolvedResource = this.invoke(versionedContainerResource)
         expect {
-          that(resolvedResource.spec.container).isA<ContainerWithDigest>()
-          that(resolvedResource.spec.container as ContainerWithDigest).get { digest }.isEqualTo("sha256:2763a2b9d53e529c62b326b7331d1b44aae344be0b79ff64c74559c5c96b76b7")
+          that(resolvedResource.spec.container).isA<DigestProvider>()
+          that(resolvedResource.spec.container as DigestProvider).get { digest }.isEqualTo("sha256:2763a2b9d53e529c62b326b7331d1b44aae344be0b79ff64c74559c5c96b76b7")
+        }
+      }
+    }
+
+    context("resolving from reference provider") {
+      before {
+        configRepo.store(referenceDeliveryConfig)
+        artifactRepo.register(artifact)
+      }
+      after {
+        configRepo.dropAll()
+        artifactRepo.dropAll()
+      }
+      test("no versions throws exception") {
+        expectThrows<NoDockerImageSatisfiesConstraints> { this.invoke(referenceResource) }
+      }
+
+      test("no versions approved yet") {
+        artifactRepo.store(artifact, "v0.0.1", null)
+        expectThrows<NoDockerImageSatisfiesConstraints> { this.invoke(referenceResource) }
+      }
+
+      test("there is a version approved") {
+        artifactRepo.store(artifact, "v0.0.1", null)
+        artifactRepo.approveVersionFor(referenceDeliveryConfig, artifact, "v0.0.1", "test")
+
+        val resolvedResource = this.invoke(referenceResource)
+        expect {
+          that(resolvedResource.spec.container).isA<DigestProvider>()
+          that(resolvedResource.spec.container as DigestProvider).get { digest }.isEqualTo("sha256:2763a2b9d53e529c62b326b7331d1b44aae344be0b79ff64c74559c5c96b76b7")
         }
       }
     }

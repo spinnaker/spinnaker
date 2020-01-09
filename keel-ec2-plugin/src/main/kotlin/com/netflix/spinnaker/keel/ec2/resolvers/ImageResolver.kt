@@ -2,7 +2,8 @@ package com.netflix.spinnaker.keel.ec2.resolvers
 
 import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.keel.api.ApiVersion
-import com.netflix.spinnaker.keel.api.ArtifactStatus
+import com.netflix.spinnaker.keel.api.ArtifactType.DEB
+import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
@@ -10,6 +11,7 @@ import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.VirtualMachineImage
 import com.netflix.spinnaker.keel.api.ec2.JenkinsImageProvider
+import com.netflix.spinnaker.keel.api.ec2.ReferenceArtifactImageProvider
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
@@ -21,6 +23,7 @@ import com.netflix.spinnaker.keel.ec2.NoImageSatisfiesConstraints
 import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
+import com.netflix.spinnaker.keel.persistence.NoMatchingArtifactException
 import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import kotlinx.coroutines.runBlocking
@@ -44,46 +47,46 @@ class ImageResolver(
     val imageProvider = resource.spec.imageProvider ?: return resource
     val image = runBlocking {
       when (imageProvider) {
-        is ArtifactImageProvider -> resolveFromArtifact(resource, imageProvider)
+        is ReferenceArtifactImageProvider -> resolveFromReference(resource, imageProvider)
+        // todo eb: artifact provider is here for backwards compatibility. Remove?
+        is ArtifactImageProvider -> resolveFromArtifact(resource, imageProvider.deliveryArtifact as DebianArtifact)
         is JenkinsImageProvider -> resolveFromJenkinsJob(resource, imageProvider)
       }
     }
     return resource.withVirtualMachineImages(image)
   }
 
+  private suspend fun resolveFromReference(
+    resource: Resource<ClusterSpec>,
+    imageProvider: ReferenceArtifactImageProvider
+  ): NamedImage {
+    val deliveryConfig = deliveryConfigRepository.deliveryConfigFor(resource.id)
+    val artifact = deliveryConfig.artifacts.find { it.reference == imageProvider.reference && it.type == DEB }
+      ?: throw NoMatchingArtifactException(deliveryConfig.name, DEB, imageProvider.reference)
+
+    return resolveFromArtifact(resource, artifact as DebianArtifact)
+  }
+
   private suspend fun resolveFromArtifact(
     resource: Resource<ClusterSpec>,
-    imageProvider: ArtifactImageProvider
+    artifact: DebianArtifact
   ): NamedImage {
     val deliveryConfig = deliveryConfigRepository.deliveryConfigFor(resource.id)
     val environment = deliveryConfigRepository.environmentFor(resource.id)
-    val artifact = imageProvider.deliveryArtifact
     val account = dynamicConfigService.getConfig("images.default-account", "test")
     val regions = resource.spec.locations.regions.map { it.name }
 
-    return if (deliveryConfig != null && environment != null) {
-      val artifactVersion = artifactRepository.latestVersionApprovedIn(
-        deliveryConfig,
-        artifact,
-        environment.name,
-        if (imageProvider.artifactStatuses.isEmpty()) {
-          enumValues<ArtifactStatus>().toList()
-        } else {
-          imageProvider.artifactStatuses
-        }
-      ) ?: throw NoImageSatisfiesConstraints(artifact.name, environment.name)
-      imageService.getLatestNamedImageWithAllRegionsForAppVersion(
-        appVersion = AppVersion.parseName(artifactVersion),
-        account = account,
-        regions = regions
-      ) ?: throw NoImageFoundForRegions(artifactVersion, regions)
-    } else {
-      imageService.getLatestNamedImageWithAllRegions(
-        packageName = artifact.name,
-        account = account,
-        regions = regions
-      ) ?: throw NoImageFoundForRegions(artifact.name, regions)
-    }
+    val artifactVersion = artifactRepository.latestVersionApprovedIn(
+      deliveryConfig,
+      artifact,
+      environment.name,
+      artifact.statuses // todo eb: this is kind of a change, since we used to pass statuses in from the artifact image provider
+    ) ?: throw NoImageSatisfiesConstraints(artifact.name, environment.name)
+    return imageService.getLatestNamedImageWithAllRegionsForAppVersion(
+      appVersion = AppVersion.parseName(artifactVersion),
+      account = account,
+      regions = regions
+    ) ?: throw NoImageFoundForRegions(artifactVersion, regions)
   }
 
   private suspend fun resolveFromJenkinsJob(

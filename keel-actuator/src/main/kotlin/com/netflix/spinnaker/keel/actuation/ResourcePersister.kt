@@ -1,7 +1,9 @@
 package com.netflix.spinnaker.keel.actuation
 
+import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.DockerArtifact
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceId
@@ -14,6 +16,7 @@ import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceDeleted
 import com.netflix.spinnaker.keel.events.ResourceUpdated
+import com.netflix.spinnaker.keel.exceptions.UnsupportedArtifactTypeException
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
@@ -42,7 +45,7 @@ class ResourcePersister(
     DeliveryConfig(
       name = deliveryConfig.name,
       application = deliveryConfig.application,
-      artifacts = deliveryConfig.artifacts,
+      artifacts = deliveryConfig.artifacts.transform(deliveryConfig.name),
       environments = deliveryConfig.environments.mapTo(mutableSetOf()) { env ->
         Environment(
           name = env.name,
@@ -55,9 +58,10 @@ class ResourcePersister(
       }
     )
       .also {
-        it.artifacts.forEach { artifact ->
-          artifact.register()
-        }
+        it.artifacts.transform(deliveryConfig.name)
+          .forEach { artifact ->
+            artifact.register()
+          }
         deliveryConfigRepository.store(it)
       }
 
@@ -135,6 +139,15 @@ class ResourcePersister(
     artifactRepository.register(this)
     publisher.publishEvent(ArtifactRegisteredEvent(this))
   }
+
+  private fun Set<DeliveryArtifact>.transform(deliveryConfigName: String) =
+    this.map { artifact ->
+      when (artifact) {
+        is DockerArtifact -> artifact.copy(deliveryConfigName = deliveryConfigName)
+        is DebianArtifact -> artifact.copy(deliveryConfigName = deliveryConfigName)
+        else -> throw UnsupportedArtifactTypeException(artifact.type.value())
+      }
+    }.toSet()
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }

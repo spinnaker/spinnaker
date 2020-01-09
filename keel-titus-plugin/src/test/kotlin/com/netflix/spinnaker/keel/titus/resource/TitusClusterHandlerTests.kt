@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.netflix.spinnaker.keel.api.Capacity
 import com.netflix.spinnaker.keel.api.ClusterDependencies
+import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Highlander
 import com.netflix.spinnaker.keel.api.RedBlack
@@ -50,8 +51,8 @@ import com.netflix.spinnaker.keel.clouddriver.model.ServiceJobProcesses
 import com.netflix.spinnaker.keel.clouddriver.model.TitusActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.TitusActiveServerGroupImage
 import com.netflix.spinnaker.keel.diff.ResourceDiff
-import com.netflix.spinnaker.keel.docker.ContainerWithDigest
-import com.netflix.spinnaker.keel.docker.ContainerWithVersionedTag
+import com.netflix.spinnaker.keel.docker.DigestProvider
+import com.netflix.spinnaker.keel.docker.VersionedTagProvider
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.parseMoniker
@@ -102,7 +103,11 @@ class TitusClusterHandlerTests : JUnit5Minutests {
   val orcaService = mockk<OrcaService>()
   val objectMapper = ObjectMapper().registerKotlinModule()
   val resolvers = emptyList<Resolver<TitusClusterSpec>>()
-  val taskLauncher = TaskLauncher(orcaService, InMemoryDeliveryConfigRepository())
+  val deliveryConfigRepository: InMemoryDeliveryConfigRepository = mockk()
+  val taskLauncher = TaskLauncher(
+    orcaService,
+    deliveryConfigRepository
+  )
   val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
   val clock = Clock.systemDefaultZone()
 
@@ -121,7 +126,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
       regions = setOf(SimpleRegionSpec("us-east-1"), SimpleRegionSpec("us-west-2"))
     ),
     _defaults = TitusServerGroupSpec(
-      container = ContainerWithDigest(
+      container = DigestProvider(
         organization = "spinnaker",
         image = "keel",
         digest = "sha:1111"
@@ -231,6 +236,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
         )
       }
       coEvery { orcaService.orchestrate("keel@spinnaker", any()) } returns TaskRefResponse("/tasks/${UUID.randomUUID()}")
+      every { deliveryConfigRepository.environmentFor(any()) } returns Environment("test")
     }
 
     after {
@@ -467,7 +473,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
         before {
           coEvery { cloudDriverService.titusActiveServerGroup("us-east-1") } returns activeServerGroupResponseEast
           coEvery { cloudDriverService.titusActiveServerGroup("us-west-2") } returns activeServerGroupResponseWest
-          coEvery { cloudDriverService.findDockerImages("testregistry", spec.defaults.container!!.repository()) } returns images
+          coEvery { cloudDriverService.findDockerImages("testregistry", (spec.defaults.container!! as DigestProvider).repository()) } returns images
           coEvery { cloudDriverService.getAccountInformation(titusAccount) } returns mapOf("registry" to "testregistry")
         }
 
@@ -521,7 +527,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
               .withDifferentEntryPoint()
               .withDifferentEnv()
               .withDoubleCapacity()
-          coEvery { cloudDriverService.findDockerImages("testregistry", spec.defaults.container!!.repository()) } returns images
+          coEvery { cloudDriverService.findDockerImages("testregistry", (spec.defaults.container!! as DigestProvider).repository()) } returns images
           coEvery { cloudDriverService.getAccountInformation(titusAccount) } returns mapOf("registry" to "testregistry")
         }
 
@@ -600,7 +606,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
     }
 
     context("generate container") {
-      val container = ContainerWithDigest(
+      val container = DigestProvider(
         organization = "emburns",
         image = "spin-titus-demo",
         digest = "sha:1111"
@@ -620,7 +626,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
           container = container.copy(digest = "sha:2222"),
           account = titusAccount)
         expect {
-          that(generatedContainer).isA<ContainerWithVersionedTag>().get { tagVersionStrategy }.isEqualTo(INCREASING_TAG)
+          that(generatedContainer).isA<VersionedTagProvider>().get { tagVersionStrategy }.isEqualTo(INCREASING_TAG)
         }
       }
     }

@@ -39,7 +39,9 @@ private val objectMapper: ObjectMapper = configuredObjectMapper()
 fun mapToArtifact(
   name: String,
   type: ArtifactType,
-  json: String
+  json: String,
+  reference: String,
+  deliveryConfigName: String
 ): DeliveryArtifact {
   try {
     val details = objectMapper.readValue<Map<String, Any>>(json)
@@ -54,7 +56,9 @@ fun mapToArtifact(
         } ?: emptyList()
         DebianArtifact(
           name = name,
-          statuses = statuses
+          statuses = statuses,
+          reference = reference,
+          deliveryConfigName = deliveryConfigName
         )
       }
       DOCKER -> {
@@ -62,7 +66,9 @@ fun mapToArtifact(
         DockerArtifact(
           name = name,
           tagVersionStrategy = objectMapper.convertValue(tagVersionStrategy),
-          captureGroupRegex = details["captureGroupRegex"]?.toString()
+          captureGroupRegex = details["captureGroupRegex"]?.toString(),
+          reference = reference,
+          deliveryConfigName = deliveryConfigName
         )
       }
     }

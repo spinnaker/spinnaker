@@ -21,25 +21,29 @@ import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.netflix.spinnaker.keel.api.TagVersionStrategy
 
-@JsonDeserialize(using = ContainerDeserializer::class)
-sealed class Container(
-  open val organization: String,
-  open val image: String
-) {
+@JsonDeserialize(using = ContainerProviderDeserializer::class)
+sealed class ContainerProvider
+
+@JsonDeserialize(using = JsonDeserializer.None::class)
+data class ReferenceProvider(
+  val reference: String
+) : ContainerProvider()
+
+@JsonDeserialize(using = JsonDeserializer.None::class)
+data class DigestProvider(
+  val organization: String, // todo eb: should this be name = org/image instead, for consistency?
+  val image: String,
+  val digest: String
+) : ContainerProvider() {
   fun repository() = "$organization/$image"
 }
 
 @JsonDeserialize(using = JsonDeserializer.None::class)
-data class ContainerWithDigest(
-  override val organization: String,
-  override val image: String,
-  val digest: String
-) : Container(organization, image)
-
-@JsonDeserialize(using = JsonDeserializer.None::class)
-data class ContainerWithVersionedTag(
-  override val organization: String,
-  override val image: String,
+data class VersionedTagProvider(
+  val organization: String,
+  val image: String,
   val tagVersionStrategy: TagVersionStrategy,
   val captureGroupRegex: String? = null
-) : Container(organization, image)
+) : ContainerProvider() {
+  fun repository() = "$organization/$image"
+}

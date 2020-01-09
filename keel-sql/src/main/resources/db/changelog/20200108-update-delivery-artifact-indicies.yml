@@ -1,0 +1,17 @@
+databaseChangeLog:
+  - changeSet:
+      id: update-delivery-artifact-indicies
+      author: emjburns
+      changes:
+        - dropIndex:
+            indexName: delivery_artifact_name_type_idx
+            tableName: delivery_artifact
+        - createIndex:
+            indexName: delivery_artifact_name_type_idx
+            tableName: delivery_artifact
+            unique: false
+            columns:
+              - column:
+                  name: name
+              - column:
+                  name: type

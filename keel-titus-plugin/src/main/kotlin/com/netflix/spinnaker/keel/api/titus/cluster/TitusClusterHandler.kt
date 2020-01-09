@@ -46,9 +46,9 @@ import com.netflix.spinnaker.keel.clouddriver.model.MigrationPolicy
 import com.netflix.spinnaker.keel.clouddriver.model.Resources
 import com.netflix.spinnaker.keel.clouddriver.model.TitusActiveServerGroup
 import com.netflix.spinnaker.keel.diff.ResourceDiff
-import com.netflix.spinnaker.keel.docker.Container
-import com.netflix.spinnaker.keel.docker.ContainerWithDigest
-import com.netflix.spinnaker.keel.docker.ContainerWithVersionedTag
+import com.netflix.spinnaker.keel.docker.ContainerProvider
+import com.netflix.spinnaker.keel.docker.DigestProvider
+import com.netflix.spinnaker.keel.docker.VersionedTagProvider
 import com.netflix.spinnaker.keel.events.Task
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.orca.OrcaService
@@ -176,7 +176,8 @@ class TitusClusterHandler(
     )
   }
 
-  fun generateContainer(container: ContainerWithDigest, account: String): Container {
+  // todo eb: this should generate a reference...
+  fun generateContainer(container: DigestProvider, account: String): ContainerProvider {
     val images = runBlocking {
       cloudDriverService.findDockerImages(
         account = getRegistryForTitusAccount(account),
@@ -186,7 +187,7 @@ class TitusClusterHandler(
 
     val image = images.find { it.digest == container.digest } ?: return container
     val tagVersionStrategy = findTagVersioningStrategy(image) ?: return container
-    return ContainerWithVersionedTag(
+    return VersionedTagProvider(
       organization = container.organization,
       image = container.image,
       tagVersionStrategy = tagVersionStrategy
@@ -358,7 +359,7 @@ class TitusClusterHandler(
         region = region
       ),
       capacity = capacity,
-      container = ContainerWithDigest(
+      container = DigestProvider(
         organization = image.dockerImageName.split("/").first(),
         image = image.dockerImageName.split("/").last(),
         digest = image.dockerImageDigest

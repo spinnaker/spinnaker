@@ -31,8 +31,8 @@ import com.netflix.spinnaker.keel.api.titus.exceptions.ErrorResolvingContainerEx
 import com.netflix.spinnaker.keel.clouddriver.model.Constraints
 import com.netflix.spinnaker.keel.clouddriver.model.MigrationPolicy
 import com.netflix.spinnaker.keel.clouddriver.model.Resources
-import com.netflix.spinnaker.keel.docker.Container
-import com.netflix.spinnaker.keel.docker.ContainerWithDigest
+import com.netflix.spinnaker.keel.docker.ContainerProvider
+import com.netflix.spinnaker.keel.docker.DigestProvider
 import com.netflix.spinnaker.keel.model.Moniker
 
 /**
@@ -58,7 +58,7 @@ data class TitusClusterSpec(
     moniker: Moniker,
     deployWith: ClusterDeployStrategy = RedBlack(),
     locations: SimpleLocations,
-    container: Container,
+    container: ContainerProvider,
     capacity: Capacity?,
     constraints: Constraints?,
     env: Map<String, String>?,
@@ -94,7 +94,7 @@ data class TitusClusterSpec(
 }
 
 data class TitusServerGroupSpec(
-  val container: Container? = null,
+  val container: ContainerProvider? = null,
   val capacity: Capacity? = null,
   val capacityGroup: String? = null,
   val constraints: Constraints? = null,
@@ -158,8 +158,8 @@ internal fun TitusClusterSpec.resolveCapacityGroup(region: String) =
 internal fun TitusClusterSpec.resolveConstraints(region: String) =
   overrides[region]?.constraints ?: defaults.constraints ?: Constraints()
 
-internal fun resolveContainer(container: Container): ContainerWithDigest {
-  if (container is ContainerWithDigest) {
+internal fun resolveContainerProvider(container: ContainerProvider): DigestProvider {
+  if (container is DigestProvider) {
     return container
   } else {
     // The spec container should be replaced with a resolved container by now.
@@ -189,7 +189,7 @@ fun TitusClusterSpec.resolve(): Set<TitusServerGroup> =
       capacity = resolveCapacity(it.name),
       capacityGroup = resolveCapacityGroup(it.name),
       constraints = resolveConstraints(it.name),
-      container = resolveContainer(defaults.container ?: error("Container image not specified or resolved")),
+      container = resolveContainerProvider(defaults.container ?: error("Container image not specified or resolved")),
       dependencies = resolveDependencies(it.name),
       entryPoint = resolveEntryPoint(it.name),
       env = resolveEnv(it.name),
