@@ -42,7 +42,6 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -66,7 +65,6 @@ public class Applications {
 
   private final LoadingCache<String, CloudFoundryServerGroup> serverGroupCache =
       CacheBuilder.newBuilder()
-          .expireAfterWrite(5, TimeUnit.MINUTES)
           .build(
               new CacheLoader<String, CloudFoundryServerGroup>() {
                 @Override
