@@ -2,7 +2,7 @@ import { Page } from '../../core/pages/Page';
 
 export class CreateServerGroupModalPage extends Page {
   public static locators = {
-    createServerGroupHeading: `//h3[contains(., 'Create New Server Group')]`,
+    createServerGroupHeading: `//h4[contains(., 'Create New Server Group')]`,
     acceleratorSectionHeading: `//*[contains(@class, 'sm-label-left') and contains(., 'Accelerators')]`,
     addAcceleratorButton: `//button[contains(., 'Add Accelerator')]`,
     acceleratorTypeSelect: `//gce-accelerator-configurer//div[contains(@class, 'Select')]`,
