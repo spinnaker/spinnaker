@@ -30,8 +30,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.Kub
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.model.Manifest.Status;
-import io.kubernetes.client.models.V1beta2DaemonSet;
-import io.kubernetes.client.models.V1beta2DaemonSetStatus;
+import io.kubernetes.client.openapi.models.V1beta2DaemonSet;
+import io.kubernetes.client.openapi.models.V1beta2DaemonSetStatus;
 import java.util.Map;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

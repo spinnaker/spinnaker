@@ -20,8 +20,8 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.clouddriver.model.Health;
 import com.netflix.spinnaker.clouddriver.model.HealthState;
-import io.kubernetes.client.models.V1ContainerStatus;
-import io.kubernetes.client.models.V1PodStatus;
+import io.kubernetes.client.openapi.models.V1ContainerStatus;
+import io.kubernetes.client.openapi.models.V1PodStatus;
 import java.util.Map;
 import lombok.Data;
 
@@ -52,7 +52,7 @@ public class KubernetesV2Health implements Health {
     this.source = "Container " + status.getName();
     this.type = "kuberentes/container";
 
-    if (!status.isReady()) {
+    if (!status.getReady()) {
       state = HealthState.Down;
     } else {
       state = HealthState.Up;

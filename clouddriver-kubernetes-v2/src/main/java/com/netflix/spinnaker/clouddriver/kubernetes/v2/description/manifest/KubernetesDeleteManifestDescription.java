@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
 
-import io.kubernetes.client.models.V1DeleteOptions;
+import io.kubernetes.client.openapi.models.V1DeleteOptions;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

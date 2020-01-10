@@ -19,10 +19,10 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKindProperties
-import io.kubernetes.client.models.V1beta1CustomResourceDefinition
-import io.kubernetes.client.models.V1beta1CustomResourceDefinitionBuilder
-import io.kubernetes.client.models.V1beta1CustomResourceDefinitionNamesBuilder
-import io.kubernetes.client.models.V1beta1CustomResourceDefinitionSpecBuilder
+import io.kubernetes.client.openapi.models.V1beta1CustomResourceDefinition
+import io.kubernetes.client.openapi.models.V1beta1CustomResourceDefinitionBuilder
+import io.kubernetes.client.openapi.models.V1beta1CustomResourceDefinitionNamesBuilder
+import io.kubernetes.client.openapi.models.V1beta1CustomResourceDefinitionSpecBuilder
 import spock.lang.Specification
 import spock.lang.Unroll
 

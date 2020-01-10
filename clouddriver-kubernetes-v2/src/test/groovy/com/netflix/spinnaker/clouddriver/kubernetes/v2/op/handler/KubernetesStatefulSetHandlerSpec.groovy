@@ -5,7 +5,7 @@ import com.google.gson.Gson
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesCacheDataConverter
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind
 import groovy.text.SimpleTemplateEngine
-import io.kubernetes.client.models.V1beta2StatefulSet
+import io.kubernetes.client.openapi.models.V1beta2StatefulSet
 import spock.lang.Specification
 
 

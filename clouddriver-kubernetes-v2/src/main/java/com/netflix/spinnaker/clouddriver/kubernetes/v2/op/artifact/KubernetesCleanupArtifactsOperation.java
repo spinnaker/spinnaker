@@ -31,7 +31,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Cred
 import com.netflix.spinnaker.clouddriver.model.ArtifactProvider;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import io.kubernetes.client.models.V1DeleteOptions;
+import io.kubernetes.client.openapi.models.V1DeleteOptions;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;

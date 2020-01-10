@@ -34,7 +34,11 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.model.Manifest.Status;
-import io.kubernetes.client.models.*;
+import io.kubernetes.client.openapi.models.NetworkingV1beta1HTTPIngressPath;
+import io.kubernetes.client.openapi.models.NetworkingV1beta1HTTPIngressRuleValue;
+import io.kubernetes.client.openapi.models.NetworkingV1beta1Ingress;
+import io.kubernetes.client.openapi.models.NetworkingV1beta1IngressBackend;
+import io.kubernetes.client.openapi.models.NetworkingV1beta1IngressRule;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -119,24 +123,24 @@ public class KubernetesIngressHandler extends KubernetesHandler {
     if (!SUPPORTED_API_VERSIONS.contains(manifest.getApiVersion())) {
       throw new UnsupportedVersionException(manifest);
     }
-    V1beta1Ingress v1beta1Ingress =
-        KubernetesCacheDataConverter.getResource(manifest, V1beta1Ingress.class);
+    NetworkingV1beta1Ingress v1beta1Ingress =
+        KubernetesCacheDataConverter.getResource(manifest, NetworkingV1beta1Ingress.class);
     return attachedServices(v1beta1Ingress);
   }
 
-  private static List<String> attachedServices(V1beta1Ingress ingress) {
+  private static List<String> attachedServices(NetworkingV1beta1Ingress ingress) {
     Set<String> result = new HashSet<>();
-    V1beta1IngressBackend backend = ingress.getSpec().getBackend();
+    NetworkingV1beta1IngressBackend backend = ingress.getSpec().getBackend();
     if (backend != null) {
       result.add(backend.getServiceName());
     }
 
-    List<V1beta1IngressRule> rules = ingress.getSpec().getRules();
+    List<NetworkingV1beta1IngressRule> rules = ingress.getSpec().getRules();
     rules = rules == null ? new ArrayList<>() : rules;
-    for (V1beta1IngressRule rule : rules) {
-      V1beta1HTTPIngressRuleValue http = rule.getHttp();
+    for (NetworkingV1beta1IngressRule rule : rules) {
+      NetworkingV1beta1HTTPIngressRuleValue http = rule.getHttp();
       if (http != null) {
-        for (V1beta1HTTPIngressPath path : http.getPaths()) {
+        for (NetworkingV1beta1HTTPIngressPath path : http.getPaths()) {
           backend = path.getBackend();
           if (backend != null) {
             result.add(backend.getServiceName());

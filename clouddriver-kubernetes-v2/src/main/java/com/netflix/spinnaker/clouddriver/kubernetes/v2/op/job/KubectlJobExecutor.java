@@ -33,7 +33,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesSelectorList;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
-import io.kubernetes.client.models.V1DeleteOptions;
+import io.kubernetes.client.openapi.models.V1DeleteOptions;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.EOFException;
@@ -158,8 +158,8 @@ public class KubectlJobExecutor {
     // spinnaker generally accepts deletes of resources that don't exist
     command.add("--ignore-not-found=true");
 
-    if (deleteOptions.isOrphanDependents() != null) {
-      command.add("--cascade=" + !deleteOptions.isOrphanDependents());
+    if (deleteOptions.getOrphanDependents() != null) {
+      command.add("--cascade=" + !deleteOptions.getOrphanDependents());
     }
 
     if (deleteOptions.getGracePeriodSeconds() != null) {

@@ -27,8 +27,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesSelect
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.model.JobProvider;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
-import io.kubernetes.client.models.V1Job;
-import io.kubernetes.client.models.V1Pod;
+import io.kubernetes.client.openapi.models.V1Job;
+import io.kubernetes.client.openapi.models.V1Pod;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
