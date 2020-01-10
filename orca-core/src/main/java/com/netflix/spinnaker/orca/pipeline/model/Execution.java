@@ -513,5 +513,15 @@ public class Execution implements Serializable {
     public void setType(@Nonnull String type) {
       this.type = type;
     }
+
+    private String version;
+
+    public @Nonnull String getVersion() {
+      return version;
+    }
+
+    public void setVersion(@Nonnull String version) {
+      this.version = version;
+    }
   }
 }

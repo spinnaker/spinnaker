@@ -127,7 +127,8 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
       notifications: [],
       source: [
         id: source("simple-001.yml"),
-        type: "templatedPipeline"
+        type: "templatedPipeline",
+        version: "v1"
       ],
       stages: [
         [

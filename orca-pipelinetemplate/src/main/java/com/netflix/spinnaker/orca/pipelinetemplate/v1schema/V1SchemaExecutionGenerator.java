@@ -42,6 +42,7 @@ public class V1SchemaExecutionGenerator implements ExecutionGenerator {
       Map<String, String> source = new HashMap<>();
       source.put("id", template.getSource());
       source.put("type", "templatedPipeline");
+      source.put("version", "v1");
       pipeline.put("source", source);
     }
     if (request.getExecutionId() != null) {
