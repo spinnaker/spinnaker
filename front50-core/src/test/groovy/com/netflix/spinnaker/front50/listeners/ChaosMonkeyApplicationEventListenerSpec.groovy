@@ -26,14 +26,14 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-class ChaosMonkeyEventListenerSpec extends Specification {
+class ChaosMonkeyApplicationEventListenerSpec extends Specification {
 
   private final static String CHAOS_MONKEY_PRINCIPAL = "chaosmonkey@example.com"
 
   def applicationPermissionsService = Mock(ApplicationPermissionsService)
 
   @Subject
-  def subject = new ChaosMonkeyEventListener(
+  def subject = new ChaosMonkeyApplicationEventListener(
     applicationPermissionsService,
     new ChaosMonkeyEventListenerConfigurationProperties(
       userRole: CHAOS_MONKEY_PRINCIPAL
@@ -87,7 +87,7 @@ class ChaosMonkeyEventListenerSpec extends Specification {
     )
 
     applicationPermissionsService.getApplicationPermission(application.name) >> permission
-    applicationPermissionsService.updateApplicationPermission(application.name, _ as Application.Permission) >> updatedPermissions
+    applicationPermissionsService.updateApplicationPermission(application.name, _ as Application.Permission, true) >> updatedPermissions
 
     when:
     subject.call(application, application)
@@ -102,9 +102,11 @@ class ChaosMonkeyEventListenerSpec extends Specification {
     true               | ["a"]                                           | [CHAOS_MONKEY_PRINCIPAL]                        | ["a", CHAOS_MONKEY_PRINCIPAL] | []
     true               | [CHAOS_MONKEY_PRINCIPAL]                        | [CHAOS_MONKEY_PRINCIPAL]                        | []                            | []
     true               | [CHAOS_MONKEY_PRINCIPAL,CHAOS_MONKEY_PRINCIPAL] | [CHAOS_MONKEY_PRINCIPAL,CHAOS_MONKEY_PRINCIPAL] | []                            | []
+    true               | [CHAOS_MONKEY_PRINCIPAL]                        | []                                              | []                            | []
     false              | ["a"]                                           | ["b"]                                           | ["a"]                         | ["b"]
     false              | ["a", CHAOS_MONKEY_PRINCIPAL]                   | ["b", CHAOS_MONKEY_PRINCIPAL]                   | ["a"]                         | ["b"]
     false              | [CHAOS_MONKEY_PRINCIPAL]                        | [CHAOS_MONKEY_PRINCIPAL]                        | []                            | []
     false              | [CHAOS_MONKEY_PRINCIPAL,CHAOS_MONKEY_PRINCIPAL] | [CHAOS_MONKEY_PRINCIPAL,CHAOS_MONKEY_PRINCIPAL] | []                            | []
+    false              | [CHAOS_MONKEY_PRINCIPAL]                        | []                                              | []                            | []
   }
 }

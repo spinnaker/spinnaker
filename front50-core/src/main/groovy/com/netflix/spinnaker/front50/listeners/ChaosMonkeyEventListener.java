@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Netflix, Inc.
+ * Copyright 2020 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,84 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.netflix.spinnaker.front50.listeners;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.fiat.model.Authorization;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
-import com.netflix.spinnaker.front50.ApplicationPermissionsService;
 import com.netflix.spinnaker.front50.config.ChaosMonkeyEventListenerConfigurationProperties;
-import com.netflix.spinnaker.front50.events.ApplicationEventListener;
 import com.netflix.spinnaker.front50.model.application.Application;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
-/**
- * Ensures that when Chaos Monkey is enabled (or disabled) on an Application, its permissions are
- * applied correctly.
- *
- * <p>This listens on both Application events.
- */
-@Component
-public class ChaosMonkeyEventListener implements ApplicationEventListener {
-  private static final Logger log = LoggerFactory.getLogger(ChaosMonkeyEventListener.class);
+/** Common routines for chaos monkey event listeners. */
+public abstract class ChaosMonkeyEventListener {
 
-  private final ApplicationPermissionsService applicationPermissionsService;
-  private final ChaosMonkeyEventListenerConfigurationProperties properties;
-  private final ObjectMapper objectMapper;
+  protected final ChaosMonkeyEventListenerConfigurationProperties properties;
+  protected final ObjectMapper objectMapper;
 
-  public ChaosMonkeyEventListener(
-      ApplicationPermissionsService applicationPermissionsService,
-      ChaosMonkeyEventListenerConfigurationProperties properties,
-      ObjectMapper objectMapper) {
-    this.applicationPermissionsService = applicationPermissionsService;
+  protected ChaosMonkeyEventListener(
+      ChaosMonkeyEventListenerConfigurationProperties properties, ObjectMapper objectMapper) {
     this.properties = properties;
     this.objectMapper = objectMapper;
   }
 
-  @Override
-  public boolean supports(ApplicationEventListener.Type type) {
-    return properties.isEnabled() && ApplicationEventListener.Type.PRE_UPDATE == type;
-  }
-
-  @Override
-  public Application call(Application originalApplication, Application updatedApplication) {
-    Application.Permission permission =
-        applicationPermissionsService.getApplicationPermission(updatedApplication.getName());
-
-    if (!permission.getPermissions().isRestricted()) {
-      return updatedApplication;
-    }
-
-    if (isChaosMonkeyEnabled(updatedApplication)) {
-      applyNewPermissions(permission, true);
-    } else {
-      applyNewPermissions(permission, false);
-    }
-
-    Application.Permission updatedPermission =
-        applicationPermissionsService.updateApplicationPermission(
-            updatedApplication.getName(), permission);
-
-    log.debug(
-        "Updated application `{}` with permissions `{}`",
-        updatedApplication.getName(),
-        updatedPermission.getPermissions().toString());
-
-    return updatedApplication;
-  }
-
-  @Override
-  public void rollback(Application originalApplication) {
-    // Do nothing.
-  }
-
-  private void applyNewPermissions(Application.Permission updatedPermission, boolean addRole) {
+  protected void applyNewPermissions(Application.Permission updatedPermission, boolean addRole) {
     Permissions permissions = updatedPermission.getPermissions();
 
     Map<Authorization, List<String>> unpackedPermissions = permissions.unpack();
@@ -98,11 +46,8 @@ public class ChaosMonkeyEventListener implements ApplicationEventListener {
         (key, value) -> {
           List<String> roles = new ArrayList<>(value);
           if (key == Authorization.READ || key == Authorization.WRITE) {
-            if (addRole && !onlyChaosMonkeyPermissions(updatedPermission, key)) {
-              // Only add the chaos monkey role if it doesn't already exist
-              if (!hasChaosMonkeyPermissions(updatedPermission, key)) {
-                roles.add(properties.getUserRole());
-              }
+            if (addRole && shouldAddChaosMonkeyPermission(updatedPermission, key)) {
+              roles.add(properties.getUserRole());
             } else {
               roles.removeAll(Collections.singletonList(properties.getUserRole()));
             }
@@ -114,7 +59,7 @@ public class ChaosMonkeyEventListener implements ApplicationEventListener {
     updatedPermission.setPermissions(newPermissions);
   }
 
-  private boolean isChaosMonkeyEnabled(Application application) {
+  protected boolean isChaosMonkeyEnabled(Application application) {
     Object config = application.details().get("chaosMonkey");
     if (config == null) {
       return false;
@@ -122,21 +67,17 @@ public class ChaosMonkeyEventListener implements ApplicationEventListener {
     return objectMapper.convertValue(config, ChaosMonkeyConfig.class).enabled;
   }
 
-  private boolean hasChaosMonkeyPermissions(
+  /**
+   * We only want to add the chaos monkey role if it's missing from the permission and the
+   * permission is not otherwise empty.
+   */
+  private boolean shouldAddChaosMonkeyPermission(
       Application.Permission updatedPermission, Authorization authorizationType) {
-    return updatedPermission
-        .getPermissions()
-        .get(authorizationType)
-        .contains(properties.getUserRole());
-  }
-
-  private boolean onlyChaosMonkeyPermissions(
-      Application.Permission updatedPermission, Authorization authorizationType) {
-    return updatedPermission.getPermissions().get(authorizationType).stream()
-            .filter(role -> role.equals(properties.getUserRole()))
-            .distinct()
-            .count()
-        == 1;
+    return !updatedPermission
+            .getPermissions()
+            .get(authorizationType)
+            .contains(properties.getUserRole())
+        && !updatedPermission.getPermissions().get(authorizationType).isEmpty();
   }
 
   private static class ChaosMonkeyConfig {
