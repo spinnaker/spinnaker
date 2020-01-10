@@ -69,11 +69,7 @@ public class ChaosMonkeyApplicationPermissionEventListener extends ChaosMonkeyEv
 
     Application application = applicationDAO.findByName(updatedPermission.getName());
 
-    if (isChaosMonkeyEnabled(application)) {
-      applyNewPermissions(updatedPermission, true);
-    } else {
-      applyNewPermissions(updatedPermission, false);
-    }
+    applyNewPermissions(updatedPermission, isChaosMonkeyEnabled(application));
 
     return updatedPermission;
   }

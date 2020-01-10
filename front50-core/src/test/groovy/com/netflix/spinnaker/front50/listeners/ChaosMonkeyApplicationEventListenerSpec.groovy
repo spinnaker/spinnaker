@@ -99,6 +99,7 @@ class ChaosMonkeyApplicationEventListenerSpec extends Specification {
     chaosMonkeyEnabled | readPermissions                                 | writePermissions                                | readPermissionsExpected       | writePermissionsExpected
     true               | ["a"]                                           | ["b"]                                           | ["a", CHAOS_MONKEY_PRINCIPAL] | ["b", CHAOS_MONKEY_PRINCIPAL]
     true               | [CHAOS_MONKEY_PRINCIPAL]                        | ["a"]                                           | []                            | ["a", CHAOS_MONKEY_PRINCIPAL]
+    true               | ["a", CHAOS_MONKEY_PRINCIPAL]                   | ["b", CHAOS_MONKEY_PRINCIPAL]                   | ["a", CHAOS_MONKEY_PRINCIPAL] | ["b", CHAOS_MONKEY_PRINCIPAL]
     true               | ["a"]                                           | [CHAOS_MONKEY_PRINCIPAL]                        | ["a", CHAOS_MONKEY_PRINCIPAL] | []
     true               | [CHAOS_MONKEY_PRINCIPAL]                        | [CHAOS_MONKEY_PRINCIPAL]                        | []                            | []
     true               | [CHAOS_MONKEY_PRINCIPAL,CHAOS_MONKEY_PRINCIPAL] | [CHAOS_MONKEY_PRINCIPAL,CHAOS_MONKEY_PRINCIPAL] | []                            | []

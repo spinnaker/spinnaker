@@ -60,11 +60,7 @@ public class ChaosMonkeyApplicationEventListener extends ChaosMonkeyEventListene
       return updatedApplication;
     }
 
-    if (isChaosMonkeyEnabled(updatedApplication)) {
-      applyNewPermissions(permission, true);
-    } else {
-      applyNewPermissions(permission, false);
-    }
+    applyNewPermissions(permission, isChaosMonkeyEnabled(updatedApplication));
 
     Application.Permission updatedPermission =
         applicationPermissionsService.updateApplicationPermission(

@@ -38,7 +38,8 @@ public abstract class ChaosMonkeyEventListener {
     this.objectMapper = objectMapper;
   }
 
-  protected void applyNewPermissions(Application.Permission updatedPermission, boolean addRole) {
+  protected void applyNewPermissions(
+      Application.Permission updatedPermission, boolean chaosMonkeyEnabled) {
     Permissions permissions = updatedPermission.getPermissions();
 
     Map<Authorization, List<String>> unpackedPermissions = permissions.unpack();
@@ -46,9 +47,11 @@ public abstract class ChaosMonkeyEventListener {
         (key, value) -> {
           List<String> roles = new ArrayList<>(value);
           if (key == Authorization.READ || key == Authorization.WRITE) {
-            if (addRole && shouldAddChaosMonkeyPermission(updatedPermission, key)) {
+            if (chaosMonkeyEnabled && shouldAdd(updatedPermission, key)) {
               roles.add(properties.getUserRole());
-            } else {
+            } else if (chaosMonkeyEnabled && shouldRemove(updatedPermission, key)) {
+              roles.removeAll(Collections.singletonList(properties.getUserRole()));
+            } else if (!chaosMonkeyEnabled) {
               roles.removeAll(Collections.singletonList(properties.getUserRole()));
             }
           }
@@ -71,13 +74,20 @@ public abstract class ChaosMonkeyEventListener {
    * We only want to add the chaos monkey role if it's missing from the permission and the
    * permission is not otherwise empty.
    */
-  private boolean shouldAddChaosMonkeyPermission(
+  private boolean shouldAdd(
       Application.Permission updatedPermission, Authorization authorizationType) {
     return !updatedPermission
             .getPermissions()
             .get(authorizationType)
             .contains(properties.getUserRole())
         && !updatedPermission.getPermissions().get(authorizationType).isEmpty();
+  }
+
+  /** We only want to remove chaos monkey permissions if it is the only permission. */
+  private boolean shouldRemove(
+      Application.Permission updatedPermission, Authorization authorizationType) {
+    return updatedPermission.getPermissions().get(authorizationType).stream()
+        .allMatch(it -> it.equals(properties.getUserRole()));
   }
 
   private static class ChaosMonkeyConfig {
