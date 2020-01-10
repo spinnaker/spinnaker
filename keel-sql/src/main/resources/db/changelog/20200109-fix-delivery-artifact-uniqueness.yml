@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: fix-delivery-artifact-uniqueness
+      author: emjburns
+      changes:
+        - addColumn:
+            tableName: delivery_artifact
+            columns:
+              - column:
+                  name: fingerprint
+                  type: char(40)
+                  afterColumn: uid
+                  constraints:
+                    nullable: true

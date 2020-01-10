@@ -26,8 +26,10 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_ARTIFACT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_VERSIONS
+import java.security.MessageDigest
 import java.time.Clock
 import java.time.Instant
+import javax.xml.bind.DatatypeConverter
 import org.jooq.DSLContext
 import org.jooq.Record1
 import org.jooq.Select
@@ -35,6 +37,7 @@ import org.jooq.impl.DSL
 import org.jooq.impl.DSL.select
 import org.jooq.impl.DSL.selectOne
 import org.slf4j.LoggerFactory
+import org.springframework.scheduling.annotation.Scheduled
 
 class SqlArtifactRepository(
   private val jooq: DSLContext,
@@ -42,8 +45,19 @@ class SqlArtifactRepository(
   private val objectMapper: ObjectMapper
 ) : ArtifactRepository {
   override fun register(artifact: DeliveryArtifact) {
+    val id: String = jooq
+      .select(DELIVERY_ARTIFACT.UID)
+      .from(DELIVERY_ARTIFACT)
+      .where(DELIVERY_ARTIFACT.NAME.eq(artifact.name)
+        .and(DELIVERY_ARTIFACT.TYPE.eq(artifact.type.name))
+        .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(artifact.deliveryConfigName))
+        .and(DELIVERY_ARTIFACT.REFERENCE.eq(artifact.reference)))
+      .fetchOne(DELIVERY_ARTIFACT.UID)
+      ?: randomUID().toString()
+
     jooq.insertInto(DELIVERY_ARTIFACT)
-      .set(DELIVERY_ARTIFACT.UID, randomUID().toString())
+      .set(DELIVERY_ARTIFACT.UID, id)
+      .set(DELIVERY_ARTIFACT.FINGERPRINT, artifact.fingerprint())
       .set(DELIVERY_ARTIFACT.NAME, artifact.name)
       .set(DELIVERY_ARTIFACT.TYPE, artifact.type.name)
       .set(DELIVERY_ARTIFACT.REFERENCE, artifact.reference)
@@ -394,6 +408,34 @@ class SqlArtifactRepository(
       .from(DELIVERY_CONFIG)
       // TODO: currently this is unique but I feel like it should be a compound key with application name
       .where(DELIVERY_CONFIG.NAME.eq(name))
+
+  // Generates a unique hash for an artifact
+  private fun DeliveryArtifact.fingerprint(): String {
+    return fingerprint(name, type.name, deliveryConfigName ?: "_pending", reference)
+  }
+
+  private fun fingerprint(name: String, type: String, deliveryConfigName: String, reference: String): String {
+    val data = name + type + deliveryConfigName + reference
+    val bytes = MessageDigest
+      .getInstance("SHA-1")
+      .digest(data.toByteArray())
+    return DatatypeConverter.printHexBinary(bytes).toUpperCase()
+  }
+
+  // todo eb: make fingerprint non-null and unique, remove this migration function
+  @Scheduled(fixedDelay = 600)
+  private fun computeFingerprints() {
+    jooq
+      .select(DELIVERY_ARTIFACT.UID, DELIVERY_ARTIFACT.NAME, DELIVERY_ARTIFACT.TYPE, DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME, DELIVERY_ARTIFACT.REFERENCE)
+      .from(DELIVERY_ARTIFACT)
+      .forUpdate()
+      .fetch { (uid, name, type, configName, reference) ->
+        jooq.update(DELIVERY_ARTIFACT)
+          .set(DELIVERY_ARTIFACT.FINGERPRINT, fingerprint(name, type, configName, reference))
+          .where(DELIVERY_ARTIFACT.UID.eq(uid))
+          .execute()
+      }
+  }
 
   private fun Instant.toLocal() = atZone(clock.zone).toLocalDateTime()
 

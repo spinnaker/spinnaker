@@ -74,3 +74,6 @@ databaseChangeLog:
   - include:
       file: changelog/20200108-update-delivery-artifact-indicies.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20200109-fix-delivery-artifact-uniqueness.yml
+      relativeToChangelogFile: true
