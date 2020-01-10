@@ -54,6 +54,9 @@ export class ConfirmationModalService {
 
     ReactModal.show(ConfirmModal, extendedParams).then(deferred.resolve, deferred.reject);
 
+    // modal was dismissed
+    deferred.promise.catch(() => {});
+
     return deferred.promise;
   }
 }
