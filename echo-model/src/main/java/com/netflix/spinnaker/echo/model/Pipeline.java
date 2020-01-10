@@ -87,6 +87,8 @@ public class Pipeline {
 
   @JsonProperty String errorMessage;
 
+  @JsonProperty Map<String, String> source;
+
   Trigger trigger;
 
   @JsonPOJOBuilder(withPrefix = "")

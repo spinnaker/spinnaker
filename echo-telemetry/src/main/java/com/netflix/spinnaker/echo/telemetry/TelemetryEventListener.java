@@ -110,10 +110,17 @@ public class TelemetryEventListener implements EchoEventListener {
     Holder.Content content = objectMapper.convertValue(event.getContent(), Holder.Content.class);
     Holder.Execution execution = content.getExecution();
 
-    // TODO(ttomsu, louisjimenez): Add MPTv1 and v2 execution type detection.
     Execution.Type executionType =
         Execution.Type.valueOf(
             parseEnum(Execution.Type.getDescriptor(), execution.getType().toUpperCase()));
+
+    if ("templatedPipeline".equalsIgnoreCase(execution.getSource().getType())) {
+      if ("v1".equalsIgnoreCase(execution.getSource().getVersion())) {
+        executionType = Execution.Type.MANAGED_PIPELINE_TEMPLATE_V1;
+      } else if ("v2".equalsIgnoreCase(execution.getSource().getVersion())) {
+        executionType = Execution.Type.MANAGED_PIPELINE_TEMPLATE_V2;
+      }
+    }
 
     Status executionStatus =
         Status.valueOf(parseEnum(Status.getDescriptor(), execution.getStatus().toUpperCase()));
@@ -274,6 +281,7 @@ public class TelemetryEventListener implements EchoEventListener {
       @Builder.Default private final String type = "UNKNOWN";
       @Builder.Default private final String status = "UNKNOWN";
       @Builder.Default private final Trigger trigger = Trigger.builder().build();
+      @Builder.Default private final Source source = Source.builder().build();
       @Builder.Default private final List<Stage> stages = new ArrayList<>();
 
       @JsonPOJOBuilder(withPrefix = "")
@@ -289,6 +297,18 @@ public class TelemetryEventListener implements EchoEventListener {
 
       @JsonPOJOBuilder(withPrefix = "")
       public static class TriggerBuilder {}
+    }
+
+    @Getter
+    @Builder
+    @JsonDeserialize(builder = Source.SourceBuilder.class)
+    public static class Source {
+
+      private final String type;
+      private final String version;
+
+      @JsonPOJOBuilder(withPrefix = "")
+      public static class SourceBuilder {}
     }
 
     @Getter
