@@ -237,7 +237,7 @@ public class GitRepoArtifactCredentials implements ArtifactCredentials {
       return reference.startsWith("http");
     }
     if (authType == AuthType.SSH) {
-      return reference.startsWith("git@");
+      return reference.startsWith("ssh://") || reference.startsWith("git@");
     }
     return true;
   }
