@@ -70,6 +70,7 @@ export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExe
       active ? 'active' : '',
       previousStageActive ? 'after-active' : '',
       stage.isRunning ? 'glowing' : '',
+      stage.requiresAttention ? 'requires-attention' : '',
     ].join(' ');
 
     const TooltipComponent = stage.useCustomTooltip ? stage.labelComponent : ExecutionBarLabel;

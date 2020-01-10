@@ -18,17 +18,11 @@
         </label>
         <br />
         <label>
-          <input type="checkbox" ng-checked="ctrl.isChangeSet()" ng-click="ctrl.toggleChangeSet()" />
+          <input type="checkbox" ng-checked="stage.isChangeSet" ng-click="ctrl.toggleChangeSet()" />
           <strong>Create CloudFormation ChangeSet</strong>
         </label>
       </stage-config-field>
-      <div ng-if="ctrl.isChangeSet()">
-        <stage-config-field label="ChangeSet name">
-          <label class="sm-label-right">
-            <input type="text" class="form-control input-sm" ng-model="stage.changeSetName" />
-          </label>
-        </stage-config-field>
-      </div>
+
       <stage-config-field label="IAM role ARN">
         <label class="sm-label-right">
           <input type="text" class="form-control input-sm" ng-model="stage.roleARN" />
@@ -71,6 +65,9 @@
       update-pipeline="ctrl.updatePipeline"
     >
     </stage-artifact-selector-delegate>
+    <div ng-if="stage.isChangeSet">
+      <cloud-formation-change-set-info stage="stage" stageconfig="stageConfigCtrl"> </cloud-formation-change-set-info>
+    </div>
     <hr />
     <stage-config-field label="Parameters" field-columns="6">
       <map-editor model="ctrl.$scope.stage.parameters" add-button-label="Add parameter"></map-editor>

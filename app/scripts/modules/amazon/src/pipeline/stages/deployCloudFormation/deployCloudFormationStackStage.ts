@@ -8,6 +8,10 @@ import {
   Registry,
 } from '@spinnaker/core';
 
+import { EvaluateCloudFormationChangeSetExecutionMarkerIcon } from './evaluateCloudFormationChangeSetExecutionMarkerIcon';
+import { EvaluateCloudFormationChangeSetExecutionLabel } from './evaluateCloudFormationChangeSetExecutionLabel';
+import { EvaluateCloudFormationChangeSetExecutionDetails } from './evaluateCloudFormationChangeSetExecutionDetails';
+
 import { DeployCloudFormationStackConfigController } from './deployCloudFormationStackConfig.controller';
 
 export const DEPLOY_CLOUDFORMATION_STACK_STAGE = 'spinnaker.amazon.pipeline.stages.deployCloudFormationStage';
@@ -22,10 +26,13 @@ module(DEPLOY_CLOUDFORMATION_STACK_STAGE, [])
       templateUrl: require('./deployCloudFormationStackConfig.html'),
       controller: 'DeployCloudFormationStackConfigController',
       controllerAs: 'ctrl',
-      executionDetailsSections: [ExecutionDetailsTasks],
+      useCustomTooltip: true,
+      executionDetailsSections: [ExecutionDetailsTasks, EvaluateCloudFormationChangeSetExecutionDetails],
+      executionLabelComponent: EvaluateCloudFormationChangeSetExecutionLabel,
       producesArtifacts: true,
       supportsCustomTimeout: true,
       validators: [],
+      markerIcon: EvaluateCloudFormationChangeSetExecutionMarkerIcon,
       accountExtractor: (stage: IStage): string[] => (stage.account ? [stage.account] : []),
       configAccountExtractor: (stage: any): string[] => (stage.account ? [stage.account] : []),
       artifactExtractor: ExpectedArtifactService.accumulateArtifacts(['stackArtifactId', 'requiredArtifactIds']),

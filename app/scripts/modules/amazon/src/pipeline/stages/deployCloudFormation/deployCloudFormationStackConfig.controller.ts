@@ -53,10 +53,6 @@ export class DeployCloudFormationStackConfigController implements IController {
     );
   }
 
-  public isChangeSet() {
-    return this.$scope.stage.isChangeSet;
-  }
-
   public toggleChangeSet() {
     this.$scope.stage.isChangeSet = !this.$scope.stage.isChangeSet;
   }

@@ -45,6 +45,7 @@ import {
 
 import { DEPLOY_CLOUDFORMATION_STACK_STAGE } from './pipeline/stages/deployCloudFormation/deployCloudFormationStackStage';
 import { CLOUDFORMATION_TEMPLATE_ENTRY } from './pipeline/stages/deployCloudFormation/cloudFormationTemplateEntry.component';
+import { CLOUD_FORMATION_CHANGE_SET_INFO } from './pipeline/stages/deployCloudFormation/CloudFormationChangeSetInfo';
 import { CreateLambdaFunction } from './function/CreateLambdaFunction';
 import { AmazonFunctionDetails } from './function';
 import { AMAZON_PIPELINE_STAGES_BAKE_AWSBAKESTAGE } from './pipeline/stages/bake/awsBakeStage';
@@ -64,6 +65,7 @@ import { AMAZON_PIPELINE_STAGES_TAGIMAGE_AWSTAGIMAGESTAGE } from './pipeline/sta
 import { AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE } from './instance/awsInstanceType.service';
 import { AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER } from './instance/details/instance.details.controller';
 import { AMAZON_SEARCH_SEARCHRESULTFORMATTER } from './search/searchResultFormatter';
+import { AWS_EVALUATE_CLOUD_FORMATION_CHANGE_SET_EXECUTION_SERVICE } from './pipeline/stages/deployCloudFormation/evaluateCloudFormationChangeSetExecution.service';
 
 // load all templates into the $templateCache
 const templates = require.context('./', true, /\.html$/);
@@ -101,6 +103,8 @@ module(AMAZON_MODULE, [
   AMAZON_SEARCH_SEARCHRESULTFORMATTER,
   DEPLOY_CLOUDFORMATION_STACK_STAGE,
   CLOUDFORMATION_TEMPLATE_ENTRY,
+  CLOUD_FORMATION_CHANGE_SET_INFO,
+  AWS_EVALUATE_CLOUD_FORMATION_CHANGE_SET_EXECUTION_SERVICE,
 ]).config(() => {
   CloudProviderRegistry.registerProvider('aws', {
     name: 'Amazon',

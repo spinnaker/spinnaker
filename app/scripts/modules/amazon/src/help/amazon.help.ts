@@ -159,6 +159,19 @@ const helpContents: { [key: string]: string } = {
   'aws.function.deadletterqueue': `A dead letter queue configuration that specifies the queue or topic where Lambda sends asynchronous events when they fail processing. (SNS or SQS)`,
   'aws.function.tracingConfig.mode': `The function's AWS X-Ray tracing configuration.`,
   'aws.function.kmsKeyArn': `The ARN of the AWS Key Management Service (AWS KMS) key that's used to encrypt your function's environment variables. If it's not provided, AWS Lambda uses a default service key.`,
+  'aws.cloudformation.changeSet.options': `<p>Action to take when the created ChangeSet contains a replacement.</p>
+        <p>
+          <b>ask:</b> Execution will be put on hold asking for user feedback.
+        </p>
+        <p>
+          <b>skip it:</b> ChangeSet will not be executed and stage will continue.
+        </p>
+        <p>
+          <b>execute it</b> ChangeSet will be executed.
+        </p>
+        <p>
+          <b>fail stage</b> ChangeSet will not be executed and the stage will fail.
+        </p>`,
 };
 
 Object.keys(helpContents).forEach(key => HelpContentsRegistry.register(key, helpContents[key]));

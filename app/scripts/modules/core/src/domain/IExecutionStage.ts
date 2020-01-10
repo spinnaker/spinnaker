@@ -77,4 +77,5 @@ export interface IExecutionStageSummary extends IOrchestratedItem {
   status: string;
   type: string;
   useCustomTooltip?: boolean;
+  requiresAttention?: boolean;
 }
