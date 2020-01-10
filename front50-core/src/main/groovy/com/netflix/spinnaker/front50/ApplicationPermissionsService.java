@@ -109,22 +109,27 @@ public class ApplicationPermissionsService {
   }
 
   public Permission updateApplicationPermission(
-      @Nonnull String appName, @Nonnull Permission newPermission) {
+      @Nonnull String appName, @Nonnull Permission newPermission, boolean skipListeners) {
+    if (skipListeners) {
+      return update(appName, newPermission);
+    }
     return performWrite(
         supportingEventListeners(Type.PRE_UPDATE),
         supportingEventListeners(Type.POST_UPDATE),
-        (unused, newPerm) -> {
-          try {
-            Permission oldPerm = applicationPermissionDAO().findById(appName);
-            applicationPermissionDAO().update(appName, newPerm);
-            syncUsers(newPermission, oldPerm);
-          } catch (NotFoundException e) {
-            createApplicationPermission(newPermission);
-          }
-          return newPerm;
-        },
+        (unused, newPerm) -> update(appName, newPerm),
         null,
         newPermission);
+  }
+
+  private Permission update(@Nonnull String appName, @Nonnull Permission newPermission) {
+    try {
+      Permission oldPerm = applicationPermissionDAO().findById(appName);
+      applicationPermissionDAO().update(appName, newPermission);
+      syncUsers(newPermission, oldPerm);
+    } catch (NotFoundException e) {
+      createApplicationPermission(newPermission);
+    }
+    return newPermission;
   }
 
   public void deleteApplicationPermission(@Nonnull String appName) {
