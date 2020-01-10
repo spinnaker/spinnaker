@@ -4,7 +4,7 @@ import * as angular from 'angular';
 import _ from 'lodash';
 
 import {
-  CONFIRMATION_MODAL_SERVICE,
+  ConfirmationModalService,
   ServerGroupReader,
   ServerGroupWarningMessageService,
   SERVER_GROUP_WRITER,
@@ -24,7 +24,6 @@ angular
   .module(AZURE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_AZURE_CONTROLLER, [
     UIROUTER_ANGULARJS,
     AZURE_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE,
-    CONFIRMATION_MODAL_SERVICE,
     SERVER_GROUP_WRITER,
   ])
   .controller('azureServerGroupDetailsCtrl', [
@@ -35,7 +34,6 @@ angular
     'serverGroup',
     'azureServerGroupCommandBuilder',
     '$uibModal',
-    'confirmationModalService',
     'serverGroupWriter',
     function(
       $scope,
@@ -45,7 +43,6 @@ angular
       serverGroup,
       azureServerGroupCommandBuilder,
       $uibModal,
-      confirmationModalService,
       serverGroupWriter,
     ) {
       $scope.state = {
@@ -180,7 +177,7 @@ angular
 
         ServerGroupWarningMessageService.addDestroyWarningMessage(app, serverGroup, confirmationModalParams);
 
-        confirmationModalService.confirm(confirmationModalParams);
+        ConfirmationModalService.confirm(confirmationModalParams);
       };
 
       this.disableServerGroup = function disableServerGroup() {
@@ -203,7 +200,7 @@ angular
 
         ServerGroupWarningMessageService.addDisableWarningMessage(app, serverGroup, confirmationModalParams);
 
-        confirmationModalService.confirm(confirmationModalParams);
+        ConfirmationModalService.confirm(confirmationModalParams);
       };
 
       this.enableServerGroup = function enableServerGroup() {
@@ -224,7 +221,7 @@ angular
           );
         };
 
-        confirmationModalService.confirm({
+        ConfirmationModalService.confirm({
           header: 'Really enable ' + serverGroup.name + '?',
           buttonText: 'Enable ' + serverGroup.name,
           account: serverGroup.account,

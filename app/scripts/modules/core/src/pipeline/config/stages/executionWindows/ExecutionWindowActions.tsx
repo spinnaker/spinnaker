@@ -3,6 +3,7 @@ import { get } from 'lodash';
 
 import { IExecution, IExecutionStage } from 'core/domain';
 import { Application } from 'core/application/application.model';
+import { ConfirmationModalService } from 'core/confirmationModal';
 import { ReactInjector } from 'core/reactShims';
 import { timePickerTime } from 'core/utils/timeFormatters';
 import { SystemTimezone } from 'core/utils/SystemTimezone';
@@ -45,7 +46,7 @@ export class ExecutionWindowActions extends React.Component<
   }
 
   private finishWaiting = (e: React.MouseEvent<HTMLElement>): void => {
-    const { confirmationModalService, executionService } = ReactInjector;
+    const { executionService } = ReactInjector;
     (e.target as HTMLElement).blur(); // forces closing of the popover when the modal opens
     const { application, execution, stage } = this.props;
 
@@ -55,7 +56,7 @@ export class ExecutionWindowActions extends React.Component<
     };
 
     const data = { skipRemainingWait: true };
-    confirmationModalService.confirm({
+    ConfirmationModalService.confirm({
       header: 'Really skip execution window?',
       buttonText: 'Skip',
       body: stage.context.skipWindowText || `<p>${DEFAULT_SKIP_WINDOW_TEXT}</p>`,

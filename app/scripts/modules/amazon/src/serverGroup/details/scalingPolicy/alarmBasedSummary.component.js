@@ -2,7 +2,7 @@
 
 import { module } from 'angular';
 
-import { CONFIRMATION_MODAL_SERVICE } from '@spinnaker/core';
+import { ConfirmationModalService } from '@spinnaker/core';
 
 import { SCALING_POLICY_POPOVER } from './popover/scalingPolicyPopover.component';
 import { ScalingPolicyWriter } from './ScalingPolicyWriter';
@@ -16,7 +16,6 @@ export const name = AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_ALARMBASEDSUMMARY_C
 module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_ALARMBASEDSUMMARY_COMPONENT, [
   AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_UPSERTSCALINGPOLICY_CONTROLLER,
   SCALING_POLICY_POPOVER,
-  CONFIRMATION_MODAL_SERVICE,
 ]).component('alarmBasedSummary', {
   bindings: {
     policy: '=',
@@ -26,8 +25,7 @@ module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_ALARMBASEDSUMMARY_COMPONENT, [
   templateUrl: require('./alarmBasedSummary.component.html'),
   controller: [
     '$uibModal',
-    'confirmationModalService',
-    function($uibModal, confirmationModalService) {
+    function($uibModal) {
       this.popoverTemplate = require('./popover/scalingPolicyDetails.popover.html');
 
       this.editPolicy = () => {
@@ -53,7 +51,7 @@ module(AMAZON_SERVERGROUP_DETAILS_SCALINGPOLICY_ALARMBASEDSUMMARY_COMPONENT, [
         const submitMethod = () =>
           ScalingPolicyWriter.deleteScalingPolicy(this.application, this.serverGroup, this.policy);
 
-        confirmationModalService.confirm({
+        ConfirmationModalService.confirm({
           header: 'Really delete ' + this.policy.policyName + '?',
           buttonText: 'Delete scaling policy',
           account: this.policy.alarms.length ? this.serverGroup.account : null, // don't confirm if it's a junk policy

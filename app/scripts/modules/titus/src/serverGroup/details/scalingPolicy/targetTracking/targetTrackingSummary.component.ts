@@ -32,8 +32,8 @@ class TargetTrackingSummaryController implements IComponentController {
   public config: ITargetTrackingConfiguration;
   public popoverTemplate = require('./targetTrackingPopover.html');
 
-  public static $inject = ['$uibModal', 'confirmationModalService'];
-  constructor(private $uibModal: IModalService, private confirmationModalService: ConfirmationModalService) {}
+  public static $inject = ['$uibModal'];
+  constructor(private $uibModal: IModalService) {}
 
   public $onInit() {
     this.config = this.policy.targetTrackingConfiguration;
@@ -72,7 +72,7 @@ class TargetTrackingSummaryController implements IComponentController {
       title: 'Deleting scaling policy ' + this.policy.id,
     };
 
-    this.confirmationModalService.confirm({
+    ConfirmationModalService.confirm({
       header: `Really delete ${policy.id}?`,
       buttonText: 'Delete scaling policy',
       account: this.serverGroup.account,

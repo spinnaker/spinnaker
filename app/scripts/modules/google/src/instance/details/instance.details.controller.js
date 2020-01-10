@@ -5,7 +5,7 @@ import _ from 'lodash';
 
 import {
   CloudProviderRegistry,
-  CONFIRMATION_MODAL_SERVICE,
+  ConfirmationModalService,
   FirewallLabels,
   InstanceReader,
   INSTANCE_WRITE_SERVICE,
@@ -24,14 +24,12 @@ module(GOOGLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
   ANGULAR_UI_BOOTSTRAP,
   GOOGLE_COMMON_XPNNAMING_GCE_SERVICE,
   INSTANCE_WRITE_SERVICE,
-  CONFIRMATION_MODAL_SERVICE,
   GCE_HTTP_LOAD_BALANCER_UTILS,
 ]).controller('gceInstanceDetailsCtrl', [
   '$scope',
   '$state',
   '$uibModal',
   'instanceWriter',
-  'confirmationModalService',
   'instance',
   'app',
   'moniker',
@@ -44,7 +42,6 @@ module(GOOGLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
     $state,
     $uibModal,
     instanceWriter,
-    confirmationModalService,
     instance,
     app,
     moniker,
@@ -350,7 +347,7 @@ module(GOOGLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         return instanceWriter.terminateInstance(instance, app, params);
       };
 
-      confirmationModalService.confirm({
+      ConfirmationModalService.confirm({
         header: 'Really terminate ' + instance.instanceId + '?',
         buttonText: 'Terminate ' + instance.instanceId,
         account: instance.account,
@@ -380,7 +377,7 @@ module(GOOGLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         });
       };
 
-      confirmationModalService.confirm({
+      ConfirmationModalService.confirm({
         header: 'Really terminate ' + instance.instanceId + ' and shrink ' + instance.serverGroup + '?',
         buttonText: 'Terminate ' + instance.instanceId + ' and shrink ' + instance.serverGroup,
         account: instance.account,
@@ -404,7 +401,7 @@ module(GOOGLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         });
       };
 
-      confirmationModalService.confirm({
+      ConfirmationModalService.confirm({
         header: 'Really reboot ' + instance.instanceId + '?',
         buttonText: 'Reboot ' + instance.instanceId,
         account: instance.account,
@@ -426,7 +423,7 @@ module(GOOGLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         return instanceWriter.registerInstanceWithLoadBalancer(instance, app);
       };
 
-      confirmationModalService.confirm({
+      ConfirmationModalService.confirm({
         header: 'Really register ' + instance.instanceId + ' with ' + loadBalancerNames + '?',
         buttonText: 'Register ' + instance.instanceId,
         account: instance.account,
@@ -448,7 +445,7 @@ module(GOOGLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         return instanceWriter.deregisterInstanceFromLoadBalancer(instance, app);
       };
 
-      confirmationModalService.confirm({
+      ConfirmationModalService.confirm({
         header: 'Really deregister ' + instance.instanceId + ' from ' + loadBalancerNames + '?',
         buttonText: 'Deregister ' + instance.instanceId,
         account: instance.account,
@@ -469,7 +466,7 @@ module(GOOGLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         return instanceWriter.enableInstanceInDiscovery(instance, app);
       };
 
-      confirmationModalService.confirm({
+      ConfirmationModalService.confirm({
         header: 'Really enable ' + instance.instanceId + ' in discovery?',
         buttonText: 'Enable ' + instance.instanceId,
         account: instance.account,
@@ -490,7 +487,7 @@ module(GOOGLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         return instanceWriter.disableInstanceInDiscovery(instance, app);
       };
 
-      confirmationModalService.confirm({
+      ConfirmationModalService.confirm({
         header: 'Really disable ' + instance.instanceId + ' in discovery?',
         buttonText: 'Disable ' + instance.instanceId,
         account: instance.account,

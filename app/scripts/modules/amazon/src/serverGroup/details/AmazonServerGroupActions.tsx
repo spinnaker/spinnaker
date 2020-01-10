@@ -4,6 +4,7 @@ import { filter, find, get, orderBy } from 'lodash';
 
 import {
   ClusterTargetBuilder,
+  ConfirmationModalService,
   IOwnerOption,
   IServerGroupActionsProps,
   IServerGroupJob,
@@ -118,7 +119,7 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
       confirmationModalParams.interestingHealthProviderNames = ['Amazon'];
     }
 
-    ReactInjector.confirmationModalService.confirm(confirmationModalParams);
+    ConfirmationModalService.confirm(confirmationModalParams);
   };
 
   private disableServerGroup = (): void => {
@@ -151,7 +152,7 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
       confirmationModalParams.interestingHealthProviderNames = ['Amazon'];
     }
 
-    ReactInjector.confirmationModalService.confirm(confirmationModalParams);
+    ConfirmationModalService.confirm(confirmationModalParams);
   };
 
   private enableServerGroup = (): void => {
@@ -168,8 +169,7 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
       cancelButtonText: 'No, I just want to enable the server group',
     };
 
-    ReactInjector.confirmationModalService
-      .confirm(confirmationModalParams)
+    ConfirmationModalService.confirm(confirmationModalParams)
       .then(() => this.rollbackServerGroup())
       .catch(({ source }) => {
         // don't show the enable modal if the user cancels with the header button
@@ -207,7 +207,7 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
       confirmationModalParams.interestingHealthProviderNames = ['Amazon'];
     }
 
-    ReactInjector.confirmationModalService.confirm(confirmationModalParams);
+    ConfirmationModalService.confirm(confirmationModalParams);
   }
 
   private rollbackServerGroup = (): void => {

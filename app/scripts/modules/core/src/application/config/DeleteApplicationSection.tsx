@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { Application, ApplicationWriter } from 'core/application';
+import { ConfirmationModalService } from 'core/confirmationModal';
 import { ReactInjector } from 'core/reactShims';
 import { FirewallLabel } from 'core/securityGroup/label';
 
@@ -19,7 +20,7 @@ export function DeleteApplicationSection(props: IDeleteApplicationSection) {
       },
     };
 
-    ReactInjector.confirmationModalService.confirm({
+    ConfirmationModalService.confirm({
       header: `Really delete ${application.name} ?`,
       buttonText: `Delete ${application.name}`,
       taskMonitorConfig: taskMonitor,

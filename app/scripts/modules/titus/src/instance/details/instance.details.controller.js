@@ -7,7 +7,7 @@ import { getAllTargetGroups, applyHealthCheckInfoToTargetGroups } from '@spinnak
 import {
   AccountService,
   CloudProviderRegistry,
-  CONFIRMATION_MODAL_SERVICE,
+  ConfirmationModalService,
   FirewallLabels,
   InstanceReader,
   INSTANCE_WRITE_SERVICE,
@@ -24,7 +24,6 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
   UIROUTER_ANGULARJS,
   ANGULAR_UI_BOOTSTRAP,
   INSTANCE_WRITE_SERVICE,
-  CONFIRMATION_MODAL_SERVICE,
   TITUS_SECURITYGROUP_SECURITYGROUP_READ_SERVICE,
 ]).controller('titusInstanceDetailsCtrl', [
   '$scope',
@@ -32,25 +31,12 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
   '$state',
   '$uibModal',
   'instanceWriter',
-  'confirmationModalService',
   'instance',
   'app',
   'moniker',
   'environment',
   'overrides',
-  function(
-    $scope,
-    $q,
-    $state,
-    $uibModal,
-    instanceWriter,
-    confirmationModalService,
-    instance,
-    app,
-    moniker,
-    environment,
-    overrides,
-  ) {
+  function($scope, $q, $state, $uibModal, instanceWriter, instance, app, moniker, environment, overrides) {
     // needed for standalone instances
     $scope.detailsTemplateUrl = CloudProviderRegistry.getValue('titus', 'instance.detailsTemplateUrl');
 
@@ -189,7 +175,7 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         return instanceWriter.terminateInstance(instance, app, params);
       };
 
-      confirmationModalService.confirm({
+      ConfirmationModalService.confirm({
         header: 'Really terminate ' + instance.id + '?',
         buttonText: 'Terminate ' + instance.id,
         account: instance.account,
@@ -227,7 +213,7 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         );
       };
 
-      confirmationModalService.confirm({
+      ConfirmationModalService.confirm({
         header: 'Really terminate ' + instance.id + ' and shrink ' + instance.serverGroup + '?',
         buttonText: 'Terminate ' + instance.id + ' and shrink ' + instance.serverGroup,
         account: instance.account,
@@ -257,7 +243,7 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         return instanceWriter.enableInstanceInDiscovery(instance, app);
       };
 
-      confirmationModalService.confirm({
+      ConfirmationModalService.confirm({
         header: 'Really enable ' + instance.instanceId + ' in discovery?',
         buttonText: 'Enable ' + instance.instanceId,
         account: instance.account,
@@ -279,7 +265,7 @@ module(TITUS_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         return instanceWriter.disableInstanceInDiscovery(instance, app);
       };
 
-      confirmationModalService.confirm({
+      ConfirmationModalService.confirm({
         header: 'Really disable ' + instance.instanceId + ' in discovery?',
         buttonText: 'Disable ' + instance.instanceId,
         account: instance.account,

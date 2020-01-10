@@ -5,7 +5,7 @@ import _ from 'lodash';
 
 import {
   CloudProviderRegistry,
-  CONFIRMATION_MODAL_SERVICE,
+  ConfirmationModalService,
   InstanceReader,
   INSTANCE_WRITE_SERVICE,
   RecentHistoryService,
@@ -20,13 +20,11 @@ module(KUBERNETES_V1_INSTANCE_DETAILS_DETAILS_CONTROLLER, [
   UIROUTER_ANGULARJS,
   ANGULAR_UI_BOOTSTRAP,
   INSTANCE_WRITE_SERVICE,
-  CONFIRMATION_MODAL_SERVICE,
 ]).controller('kubernetesInstanceDetailsController', [
   '$scope',
   '$state',
   '$uibModal',
   'instanceWriter',
-  'confirmationModalService',
   'instance',
   'app',
   'moniker',
@@ -38,7 +36,6 @@ module(KUBERNETES_V1_INSTANCE_DETAILS_DETAILS_CONTROLLER, [
     $state,
     $uibModal,
     instanceWriter,
-    confirmationModalService,
     instance,
     app,
     moniker,
@@ -212,7 +209,7 @@ module(KUBERNETES_V1_INSTANCE_DETAILS_DETAILS_CONTROLLER, [
         return instanceWriter.terminateInstance(instance, app, params);
       };
 
-      confirmationModalService.confirm({
+      ConfirmationModalService.confirm({
         header: 'Really terminate ' + instance.instanceId + '?',
         buttonText: 'Terminate ' + instance.instanceId,
         account: instance.account,
@@ -237,7 +234,7 @@ module(KUBERNETES_V1_INSTANCE_DETAILS_DETAILS_CONTROLLER, [
         });
       };
 
-      confirmationModalService.confirm({
+      ConfirmationModalService.confirm({
         header: 'Really register ' + instance.name + ' with ' + loadBalancerNames + '?',
         buttonText: 'Register ' + instance.name,
         account: instance.account,
@@ -262,7 +259,7 @@ module(KUBERNETES_V1_INSTANCE_DETAILS_DETAILS_CONTROLLER, [
         });
       };
 
-      confirmationModalService.confirm({
+      ConfirmationModalService.confirm({
         header: 'Really deregister ' + instance.name + ' from ' + loadBalancerNames + '?',
         buttonText: 'Deregister ' + instance.name,
         account: instance.account,

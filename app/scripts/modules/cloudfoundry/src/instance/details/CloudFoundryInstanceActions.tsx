@@ -9,14 +9,13 @@ import { ICloudFoundryInstance } from 'cloudfoundry/domain';
 
 export interface ICloudFoundryInstanceActionsProps {
   application: Application;
-  confirmationModalService: ConfirmationModalService;
   instance: ICloudFoundryInstance;
   instanceWriter: InstanceWriter;
 }
 
 export class CloudFoundryInstanceActions extends React.Component<ICloudFoundryInstanceActionsProps> {
   private terminateInstance = () => {
-    const { application, confirmationModalService, instance, instanceWriter } = this.props;
+    const { application, instance, instanceWriter } = this.props;
     const instanceClone = cloneDeep(instance) as any;
     instanceClone.placement = {};
     instanceClone.id = instance.name;
@@ -34,7 +33,7 @@ export class CloudFoundryInstanceActions extends React.Component<ICloudFoundryIn
       return instanceWriter.terminateInstance(instance, application, { cloudProvider: 'cloudfoundry' });
     };
 
-    confirmationModalService.confirm({
+    ConfirmationModalService.confirm({
       header: 'Really terminate ' + instance.name + '?',
       buttonText: 'Terminate',
       account: instance.account,

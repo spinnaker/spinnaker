@@ -2,7 +2,7 @@
 
 import { module } from 'angular';
 
-import { CONFIRMATION_MODAL_SERVICE, SETTINGS } from '@spinnaker/core';
+import { ConfirmationModalService, SETTINGS } from '@spinnaker/core';
 import { GOOGLE_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_WRITE_SERVICE } from './../../../autoscalingPolicy/autoscalingPolicy.write.service';
 import { GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_MODAL_UPSERTAUTOSCALINGPOLICY_MODAL_CONTROLLER } from './modal/upsertAutoscalingPolicy.modal.controller';
 import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
@@ -11,7 +11,6 @@ export const GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_DIRE
   'spinnaker.gce.instance.details.scalingPolicy.directive';
 export const name = GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_DIRECTIVE; // for backwards compatibility
 module(GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_DIRECTIVE, [
-  CONFIRMATION_MODAL_SERVICE,
   ANGULAR_UI_BOOTSTRAP,
   GOOGLE_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_WRITE_SERVICE,
   GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_MODAL_UPSERTAUTOSCALINGPOLICY_MODAL_CONTROLLER,
@@ -25,8 +24,7 @@ module(GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_DIRECTIVE,
   controller: [
     '$uibModal',
     'gceAutoscalingPolicyWriter',
-    'confirmationModalService',
-    function($uibModal, gceAutoscalingPolicyWriter, confirmationModalService) {
+    function($uibModal, gceAutoscalingPolicyWriter) {
       const policy = this.policy;
 
       policy.bases = [];
@@ -117,7 +115,7 @@ module(GOOGLE_SERVERGROUP_DETAILS_AUTOSCALINGPOLICY_AUTOSCALINGPOLICY_DIRECTIVE,
           title: `Deleting autoscaler for ${this.serverGroup.name}`,
         };
 
-        confirmationModalService.confirm({
+        ConfirmationModalService.confirm({
           header: `Really delete autoscaler for ${this.serverGroup.name}?`,
           buttonText: 'Delete autoscaler',
           account: this.serverGroup.account,

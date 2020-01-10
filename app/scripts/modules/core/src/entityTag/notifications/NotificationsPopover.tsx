@@ -12,7 +12,7 @@ import {
   NotificationList,
 } from 'core/entityTag';
 import { Placement, HoverablePopover, IHoverablePopoverContentsProps } from 'core/presentation';
-import { ReactInjector } from 'core/reactShims';
+import { ConfirmationModalService } from 'core/confirmationModal';
 import { noop } from 'core/utils';
 import { ITaskMonitorConfig } from 'core/task';
 
@@ -136,7 +136,6 @@ export class NotificationsPopover extends React.Component<INotificationsPopoverP
   }
 
   public handleDeleteNotification(notification: INotification): void {
-    const { confirmationModalService } = ReactInjector;
     const { application, entity, onUpdate } = this.props;
     const { entityTags, entityTag } = notification;
     const type = entityTag.value['type'];
@@ -147,7 +146,7 @@ export class NotificationsPopover extends React.Component<INotificationsPopoverP
       onTaskComplete: () => application.entityTags.refresh().then(() => onUpdate()),
     };
 
-    confirmationModalService.confirm({
+    ConfirmationModalService.confirm({
       header: `Really delete ${type}?`,
       buttonText: `Delete ${type}`,
       account: entity.account,

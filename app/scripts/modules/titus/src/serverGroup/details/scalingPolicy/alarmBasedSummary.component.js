@@ -2,7 +2,7 @@
 
 import { module } from 'angular';
 
-import { AccountService, CONFIRMATION_MODAL_SERVICE, TaskExecutor } from '@spinnaker/core';
+import { AccountService, ConfirmationModalService, TaskExecutor } from '@spinnaker/core';
 
 import './scalingPolicySummary.component.less';
 import { TITUS_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_UPSERTSCALINGPOLICY_CONTROLLER } from './upsert/upsertScalingPolicy.controller';
@@ -12,7 +12,6 @@ export const TITUS_SERVERGROUP_DETAILS_SCALINGPOLICY_ALARMBASEDSUMMARY_COMPONENT
 export const name = TITUS_SERVERGROUP_DETAILS_SCALINGPOLICY_ALARMBASEDSUMMARY_COMPONENT; // for backwards compatibility
 module(TITUS_SERVERGROUP_DETAILS_SCALINGPOLICY_ALARMBASEDSUMMARY_COMPONENT, [
   TITUS_SERVERGROUP_DETAILS_SCALINGPOLICY_UPSERT_UPSERTSCALINGPOLICY_CONTROLLER,
-  CONFIRMATION_MODAL_SERVICE,
 ]).component('titusAlarmBasedSummary', {
   bindings: {
     policy: '=',
@@ -22,8 +21,7 @@ module(TITUS_SERVERGROUP_DETAILS_SCALINGPOLICY_ALARMBASEDSUMMARY_COMPONENT, [
   templateUrl: require('./alarmBasedSummary.component.html'),
   controller: [
     '$uibModal',
-    'confirmationModalService',
-    function($uibModal, confirmationModalService) {
+    function($uibModal) {
       this.$onInit = () => {
         AccountService.getAccountDetails(this.serverGroup.account).then(details => {
           // alarmServerGroup is used to trick the chart rendering into using AWS metrics
@@ -76,7 +74,7 @@ module(TITUS_SERVERGROUP_DETAILS_SCALINGPOLICY_ALARMBASEDSUMMARY_COMPONENT, [
             ],
           });
 
-        confirmationModalService.confirm({
+        ConfirmationModalService.confirm({
           header: `Really delete ${policy.id}?`,
           buttonText: 'Delete scaling policy',
           account: serverGroup.account,

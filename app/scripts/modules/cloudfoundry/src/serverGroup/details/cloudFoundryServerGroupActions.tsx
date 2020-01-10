@@ -5,6 +5,7 @@ import { filter, find, get, orderBy } from 'lodash';
 
 import {
   ClusterTargetBuilder,
+  ConfirmationModalService,
   IOwnerOption,
   IServerGroupActionsProps,
   IServerGroupJob,
@@ -110,7 +111,7 @@ export class CloudFoundryServerGroupActions extends React.Component<ICloudFoundr
       confirmationModalParams.interestingHealthProviderNames = ['Cloud Foundry'];
     }
 
-    ReactInjector.confirmationModalService.confirm(confirmationModalParams);
+    ConfirmationModalService.confirm(confirmationModalParams);
   };
 
   private disableServerGroup = (): void => {
@@ -143,7 +144,7 @@ export class CloudFoundryServerGroupActions extends React.Component<ICloudFoundr
       confirmationModalParams.interestingHealthProviderNames = ['Cloud Foundry'];
     }
 
-    ReactInjector.confirmationModalService.confirm(confirmationModalParams);
+    ConfirmationModalService.confirm(confirmationModalParams);
   };
 
   private enableServerGroup = (): void => {
@@ -160,8 +161,7 @@ export class CloudFoundryServerGroupActions extends React.Component<ICloudFoundr
       cancelButtonText: 'No, I just want to enable the server group',
     };
 
-    ReactInjector.confirmationModalService
-      .confirm(confirmationModalParams)
+    ConfirmationModalService.confirm(confirmationModalParams)
       .then(() => this.rollbackServerGroup())
       .catch(({ source }) => {
         // don't show the enable modal if the user cancels with the header button
@@ -200,7 +200,7 @@ export class CloudFoundryServerGroupActions extends React.Component<ICloudFoundr
       confirmationModalParams.interestingHealthProviderNames = ['Cloud Foundry'];
     }
 
-    ReactInjector.confirmationModalService.confirm(confirmationModalParams);
+    ConfirmationModalService.confirm(confirmationModalParams);
   }
 
   private rollbackServerGroup = (): void => {

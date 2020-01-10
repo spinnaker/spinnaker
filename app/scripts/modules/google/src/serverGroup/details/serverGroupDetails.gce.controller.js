@@ -4,7 +4,7 @@ import * as angular from 'angular';
 import _ from 'lodash';
 
 import {
-  CONFIRMATION_MODAL_SERVICE,
+  ConfirmationModalService,
   ClusterTargetBuilder,
   FirewallLabels,
   NetworkReader,
@@ -32,7 +32,6 @@ angular
   .module(GOOGLE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_GCE_CONTROLLER, [
     UIROUTER_ANGULARJS,
     GOOGLE_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE,
-    CONFIRMATION_MODAL_SERVICE,
     SERVER_GROUP_WRITER,
     GOOGLE_COMMON_XPNNAMING_GCE_SERVICE,
     GOOGLE_SERVERGROUP_DETAILS_RESIZE_RESIZESERVERGROUP_CONTROLLER,
@@ -49,7 +48,6 @@ angular
     'serverGroup',
     'gceServerGroupCommandBuilder',
     '$uibModal',
-    'confirmationModalService',
     'serverGroupWriter',
     'gceXpnNamingService',
     function(
@@ -61,7 +59,6 @@ angular
       serverGroup,
       gceServerGroupCommandBuilder,
       $uibModal,
-      confirmationModalService,
       serverGroupWriter,
       gceXpnNamingService,
     ) {
@@ -363,7 +360,7 @@ angular
           confirmationModalParams.interestingHealthProviderNames = ['Google'];
         }
 
-        confirmationModalService.confirm(confirmationModalParams);
+        ConfirmationModalService.confirm(confirmationModalParams);
       };
 
       this.disableServerGroup = () => {
@@ -393,7 +390,7 @@ angular
           confirmationModalParams.interestingHealthProviderNames = ['Google'];
         }
 
-        confirmationModalService.confirm(confirmationModalParams);
+        ConfirmationModalService.confirm(confirmationModalParams);
       };
 
       this.enableServerGroup = () => {
@@ -421,7 +418,7 @@ angular
           confirmationModalParams.interestingHealthProviderNames = ['Google'];
         }
 
-        confirmationModalService.confirm(confirmationModalParams);
+        ConfirmationModalService.confirm(confirmationModalParams);
       };
 
       this.rollbackServerGroup = () => {

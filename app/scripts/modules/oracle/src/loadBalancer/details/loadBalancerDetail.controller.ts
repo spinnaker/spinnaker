@@ -24,7 +24,6 @@ export class OracleLoadBalancerDetailController implements IController {
     'loadBalancer',
     'app',
     'securityGroupReader',
-    'confirmationModalService',
     'loadBalancerReader',
     '$q',
   ];
@@ -35,7 +34,6 @@ export class OracleLoadBalancerDetailController implements IController {
     private loadBalancer: ILoadBalancerDetails,
     private app: Application,
     private securityGroupReader: SecurityGroupReader,
-    private confirmationModalService: ConfirmationModalService,
     private loadBalancerReader: LoadBalancerReader,
     private $q: angular.IQService,
   ) {
@@ -152,7 +150,7 @@ export class OracleLoadBalancerDetailController implements IController {
 
     const submitMethod = () => LoadBalancerWriter.deleteLoadBalancer(command, this.app);
 
-    this.confirmationModalService.confirm({
+    ConfirmationModalService.confirm({
       header: 'Really delete ' + this.loadBalancer.name + '?',
       buttonText: 'Delete ' + this.loadBalancer.name,
       account: this.loadBalancer.accountId,

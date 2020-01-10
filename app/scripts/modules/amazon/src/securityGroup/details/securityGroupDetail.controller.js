@@ -5,7 +5,7 @@ import _ from 'lodash';
 
 import {
   CloudProviderRegistry,
-  CONFIRMATION_MODAL_SERVICE,
+  ConfirmationModalService,
   confirmNotManaged,
   RecentHistoryService,
   SECURITY_GROUP_READER,
@@ -26,7 +26,6 @@ angular
   .module(AMAZON_SECURITYGROUP_DETAILS_SECURITYGROUPDETAIL_CONTROLLER, [
     UIROUTER_ANGULARJS,
     SECURITY_GROUP_READER,
-    CONFIRMATION_MODAL_SERVICE,
     AMAZON_SECURITYGROUP_CLONE_CLONESECURITYGROUP_CONTROLLER,
     MANAGED_RESOURCE_DETAILS_INDICATOR,
   ])
@@ -35,10 +34,9 @@ angular
     '$state',
     'resolvedSecurityGroup',
     'app',
-    'confirmationModalService',
     'securityGroupReader',
     '$uibModal',
-    function($scope, $state, resolvedSecurityGroup, app, confirmationModalService, securityGroupReader, $uibModal) {
+    function($scope, $state, resolvedSecurityGroup, app, securityGroupReader, $uibModal) {
       this.application = app;
       const application = app;
       const securityGroup = resolvedSecurityGroup;
@@ -215,7 +213,7 @@ angular
 
         confirmNotManaged($scope.securityGroup, application).then(notManaged => {
           notManaged &&
-            confirmationModalService.confirm({
+            ConfirmationModalService.confirm({
               header: 'Really delete ' + securityGroup.name + '?',
               buttonText: 'Delete ' + securityGroup.name,
               account: securityGroup.accountId,

@@ -3,7 +3,7 @@
 import * as angular from 'angular';
 import _ from 'lodash';
 
-import { CONFIRMATION_MODAL_SERVICE, SECURITY_GROUP_READER, FirewallLabels } from '@spinnaker/core';
+import { SECURITY_GROUP_READER, ConfirmationModalService, FirewallLabels } from '@spinnaker/core';
 import { AZURE_SECURITYGROUP_SECURITYGROUP_WRITE_SERVICE } from '../securityGroup.write.service';
 import { AZURE_SECURITYGROUP_CLONE_CLONESECURITYGROUP_CONTROLLER } from '../clone/cloneSecurityGroup.controller';
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
@@ -16,7 +16,6 @@ angular
     UIROUTER_ANGULARJS,
     SECURITY_GROUP_READER,
     AZURE_SECURITYGROUP_SECURITYGROUP_WRITE_SERVICE,
-    CONFIRMATION_MODAL_SERVICE,
     AZURE_SECURITYGROUP_CLONE_CLONESECURITYGROUP_CONTROLLER,
   ])
   .controller('azureSecurityGroupDetailsCtrl', [
@@ -24,20 +23,10 @@ angular
     '$state',
     'resolvedSecurityGroup',
     'app',
-    'confirmationModalService',
     'azureSecurityGroupWriter',
     'securityGroupReader',
     '$uibModal',
-    function(
-      $scope,
-      $state,
-      resolvedSecurityGroup,
-      app,
-      confirmationModalService,
-      azureSecurityGroupWriter,
-      securityGroupReader,
-      $uibModal,
-    ) {
+    function($scope, $state, resolvedSecurityGroup, app, azureSecurityGroupWriter, securityGroupReader, $uibModal) {
       const application = app;
       const securityGroup = resolvedSecurityGroup;
 
@@ -133,7 +122,7 @@ angular
           });
         };
 
-        confirmationModalService.confirm({
+        ConfirmationModalService.confirm({
           header: 'Really delete ' + securityGroup.name + '?',
           buttonText: 'Delete ' + securityGroup.name,
           account: securityGroup.accountId,

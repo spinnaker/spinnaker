@@ -1,6 +1,6 @@
 'use strict';
 
-import { CONFIRMATION_MODAL_SERVICE } from 'core/confirmationModal/confirmationModal.service';
+import { ConfirmationModalService } from 'core/confirmationModal';
 import { INSTANCE_WRITE_SERVICE } from 'core/instance/instance.write.service';
 import { ClusterState } from 'core/state';
 import { CORE_INSTANCE_DETAILS_MULTIPLEINSTANCESERVERGROUP_DIRECTIVE } from './multipleInstanceServerGroup.directive';
@@ -14,15 +14,13 @@ export const name = CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER; // for b
 module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
   UIROUTER_ANGULARJS,
   INSTANCE_WRITE_SERVICE,
-  CONFIRMATION_MODAL_SERVICE,
   CORE_INSTANCE_DETAILS_MULTIPLEINSTANCESERVERGROUP_DIRECTIVE,
 ]).controller('MultipleInstancesCtrl', [
   '$scope',
   '$state',
-  'confirmationModalService',
   'instanceWriter',
   'app',
-  function($scope, $state, confirmationModalService, instanceWriter, app) {
+  function($scope, $state, instanceWriter, app) {
     this.selectedGroups = [];
 
     /**
@@ -44,7 +42,7 @@ module(CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER, [
         title: verbs.presentContinuous + ' ' + descriptor,
       };
 
-      confirmationModalService.confirm({
+      ConfirmationModalService.confirm({
         header: 'Really ' + verbs.simplePresent.toLowerCase() + ' ' + descriptor + '?',
         buttonText: verbs.simplePresent + ' ' + descriptor,
         verificationLabel:

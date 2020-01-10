@@ -4,7 +4,6 @@ import { head, sortBy } from 'lodash';
 
 import {
   Application,
-  CONFIRMATION_MODAL_SERVICE,
   IApplicationSecurityGroup,
   ILoadBalancer,
   ISecurityGroup,
@@ -235,6 +234,5 @@ module(AWS_LOAD_BALANCER_DETAILS_CTRL, [
   SECURITY_GROUP_READER,
   LOAD_BALANCER_ACTIONS,
   LOAD_BALANCER_READ_SERVICE,
-  CONFIRMATION_MODAL_SERVICE,
   MANAGED_RESOURCE_DETAILS_INDICATOR,
 ]).controller('awsLoadBalancerDetailsCtrl', AwsLoadBalancerDetailsController);

@@ -2,6 +2,7 @@ import React from 'react';
 
 import { IExecution, IExecutionStage } from 'core/domain';
 import { Application } from 'core/application/application.model';
+import { ConfirmationModalService } from 'core/confirmationModal';
 import { ReactInjector } from 'core/reactShims';
 import { duration } from 'core/utils/timeFormatters';
 import { OrchestratedItemRunningTime } from 'core/pipeline/executions/execution/OrchestratedItemRunningTime';
@@ -33,7 +34,7 @@ export class SkipWait extends React.Component<ISkipWaitProps, ISkipWaitState> {
   };
 
   private skipRemainingWait = (e: React.MouseEvent<HTMLElement>): void => {
-    const { confirmationModalService, executionService } = ReactInjector;
+    const { executionService } = ReactInjector;
     (e.target as HTMLElement).blur(); // forces closing of the popover when the modal opens
     const { stage, application } = this.props;
     const matcher = (execution: IExecution) => {
@@ -42,7 +43,7 @@ export class SkipWait extends React.Component<ISkipWaitProps, ISkipWaitState> {
     };
 
     const data = { skipRemainingWait: true };
-    confirmationModalService.confirm({
+    ConfirmationModalService.confirm({
       header: 'Really skip wait?',
       buttonText: 'Skip',
       body: stage.context.skipWaitText || DEFAULT_SKIP_WAIT_TEXT,

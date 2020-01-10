@@ -3,7 +3,7 @@
 import * as angular from 'angular';
 
 import { PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider/providerService.delegate';
-import { CONFIRMATION_MODAL_SERVICE } from 'core/confirmationModal/confirmationModal.service';
+import { ConfirmationModalService } from 'core/confirmationModal';
 import { SERVER_GROUP_WRITER } from 'core/serverGroup/serverGroupWriter.service';
 import { ClusterState } from 'core/state';
 import { CORE_SERVERGROUP_DETAILS_MULTIPLESERVERGROUP_COMPONENT } from './multipleServerGroup.component';
@@ -16,18 +16,16 @@ angular
   .module(CORE_SERVERGROUP_DETAILS_MULTIPLESERVERGROUPS_CONTROLLER, [
     UIROUTER_ANGULARJS,
     SERVER_GROUP_WRITER,
-    CONFIRMATION_MODAL_SERVICE,
     PROVIDER_SERVICE_DELEGATE,
     CORE_SERVERGROUP_DETAILS_MULTIPLESERVERGROUP_COMPONENT,
   ])
   .controller('MultipleServerGroupsCtrl', [
     '$scope',
     '$state',
-    'confirmationModalService',
     'serverGroupWriter',
     'providerServiceDelegate',
     'app',
-    function($scope, $state, confirmationModalService, serverGroupWriter, providerServiceDelegate, app) {
+    function($scope, $state, serverGroupWriter, providerServiceDelegate, app) {
       this.serverGroups = [];
 
       /**
@@ -66,7 +64,7 @@ angular
           };
         });
 
-        confirmationModalService.confirm({
+        ConfirmationModalService.confirm({
           header: 'Really ' + verbs.simplePresent.toLowerCase() + ' ' + descriptor + '?',
           buttonText: verbs.simplePresent + ' ' + descriptor,
           verificationLabel:

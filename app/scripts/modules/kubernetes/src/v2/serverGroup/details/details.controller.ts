@@ -3,7 +3,6 @@ import { IModalService } from 'angular-ui-bootstrap';
 
 import {
   Application,
-  CONFIRMATION_MODAL_SERVICE,
   ClusterTargetBuilder,
   IEntityTags,
   IManifest,
@@ -32,13 +31,12 @@ class KubernetesServerGroupDetailsController implements IController {
   public manifest: IManifest;
   public entityTagTargets: IOwnerOption[];
 
-  public static $inject = ['serverGroup', 'app', '$uibModal', '$scope', 'confirmationModalService'];
+  public static $inject = ['serverGroup', 'app', '$uibModal', '$scope'];
   constructor(
     serverGroup: IServerGroupFromStateParams,
     public app: Application,
     private $uibModal: IModalService,
     private $scope: IScope,
-    private confirmationModalService: ConfirmationModalService,
   ) {
     const unsubscribe = KubernetesManifestService.makeManifestRefresher(
       this.app,
@@ -148,7 +146,7 @@ class KubernetesServerGroupDetailsController implements IController {
   public canDisable = () => ManifestTrafficService.canDisableServerGroup(this.serverGroup);
 
   public disableServerGroup = (): void => {
-    this.confirmationModalService.confirm({
+    ConfirmationModalService.confirm({
       header: `Really disable ${this.manifest.name}?`,
       buttonText: 'Disable',
       askForReason: true,
@@ -165,7 +163,7 @@ class KubernetesServerGroupDetailsController implements IController {
   public canEnable = () => ManifestTrafficService.canEnableServerGroup(this.serverGroup);
 
   public enableServerGroup = (): void => {
-    this.confirmationModalService.confirm({
+    ConfirmationModalService.confirm({
       header: `Really enable ${this.manifest.name}?`,
       buttonText: 'Enable',
       askForReason: true,
@@ -227,7 +225,7 @@ class KubernetesServerGroupDetailsController implements IController {
 
 export const KUBERNETES_V2_SERVER_GROUP_DETAILS_CTRL = 'spinnaker.kubernetes.v2.serverGroup.details.controller';
 
-module(KUBERNETES_V2_SERVER_GROUP_DETAILS_CTRL, [CONFIRMATION_MODAL_SERVICE, SERVER_GROUP_WRITER]).controller(
+module(KUBERNETES_V2_SERVER_GROUP_DETAILS_CTRL, [SERVER_GROUP_WRITER]).controller(
   'kubernetesV2ServerGroupDetailsCtrl',
   KubernetesServerGroupDetailsController,
 );

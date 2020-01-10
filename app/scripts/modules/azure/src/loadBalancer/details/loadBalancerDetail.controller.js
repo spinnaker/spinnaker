@@ -4,7 +4,7 @@ import * as angular from 'angular';
 import _ from 'lodash';
 
 import {
-  CONFIRMATION_MODAL_SERVICE,
+  ConfirmationModalService,
   LOAD_BALANCER_READ_SERVICE,
   LoadBalancerWriter,
   SECURITY_GROUP_READER,
@@ -22,7 +22,6 @@ angular
     UIROUTER_ANGULARJS,
     SECURITY_GROUP_READER,
     LOAD_BALANCER_READ_SERVICE,
-    CONFIRMATION_MODAL_SERVICE,
   ])
   .controller('azureLoadBalancerDetailsCtrl', [
     '$scope',
@@ -32,7 +31,6 @@ angular
     'loadBalancer',
     'app',
     'securityGroupReader',
-    'confirmationModalService',
     'loadBalancerReader',
     '$q',
     function(
@@ -43,7 +41,6 @@ angular
       loadBalancer,
       app,
       securityGroupReader,
-      confirmationModalService,
       loadBalancerReader,
       $q,
     ) {
@@ -172,7 +169,7 @@ angular
 
         const submitMethod = () => LoadBalancerWriter.deleteLoadBalancer(command, app);
 
-        confirmationModalService.confirm({
+        ConfirmationModalService.confirm({
           header: 'Really delete ' + loadBalancer.name + '?',
           buttonText: 'Delete ' + loadBalancer.name,
           account: loadBalancer.accountId,

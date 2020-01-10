@@ -9,7 +9,7 @@ import {
   AccountService,
   confirmNotManaged,
   ClusterTargetBuilder,
-  CONFIRMATION_MODAL_SERVICE,
+  ConfirmationModalService,
   ServerGroupReader,
   ServerGroupWarningMessageService,
   SERVER_GROUP_WRITER,
@@ -36,7 +36,6 @@ angular
   .module(TITUS_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_TITUS_CONTROLLER, [
     UIROUTER_ANGULARJS,
     TITUS_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER,
-    CONFIRMATION_MODAL_SERVICE,
     DISRUPTION_BUDGET_DETAILS_SECTION,
     SERVER_GROUP_WRITER,
     TITUS_SERVERGROUP_DETAILS_ROLLBACK_ROLLBACKSERVERGROUP_CONTROLLER,
@@ -53,7 +52,6 @@ angular
     'serverGroup',
     'titusServerGroupCommandBuilder',
     '$uibModal',
-    'confirmationModalService',
     'serverGroupWriter',
     'awsServerGroupTransformer',
     function(
@@ -65,7 +63,6 @@ angular
       serverGroup,
       titusServerGroupCommandBuilder,
       $uibModal,
-      confirmationModalService,
       serverGroupWriter,
       awsServerGroupTransformer,
     ) {
@@ -262,7 +259,7 @@ angular
         ServerGroupWarningMessageService.addDestroyWarningMessage(app, serverGroup, confirmationModalParams);
 
         confirmNotManaged(serverGroup, app).then(
-          notManaged => notManaged && confirmationModalService.confirm(confirmationModalParams),
+          notManaged => notManaged && ConfirmationModalService.confirm(confirmationModalParams),
         );
       };
 
@@ -296,7 +293,7 @@ angular
         ServerGroupWarningMessageService.addDisableWarningMessage(app, serverGroup, confirmationModalParams);
 
         confirmNotManaged(serverGroup, app).then(
-          notManaged => notManaged && confirmationModalService.confirm(confirmationModalParams),
+          notManaged => notManaged && ConfirmationModalService.confirm(confirmationModalParams),
         );
       };
 
@@ -318,8 +315,7 @@ angular
             cancelButtonText: 'No, I just want to enable the server group',
           };
 
-          confirmationModalService
-            .confirm(confirmationModalParams)
+          ConfirmationModalService.confirm(confirmationModalParams)
             .then(() => this.rollbackServerGroup())
             .catch(({ source }) => {
               // don't show the enable modal if the user cancels with the header button
@@ -363,7 +359,7 @@ angular
           submitMethod: submitMethod,
         };
 
-        confirmationModalService.confirm(confirmationModalParams);
+        ConfirmationModalService.confirm(confirmationModalParams);
       };
 
       this.cloneServerGroup = function cloneServerGroup() {

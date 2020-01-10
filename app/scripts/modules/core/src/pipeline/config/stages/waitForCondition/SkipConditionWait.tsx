@@ -2,6 +2,7 @@ import React from 'react';
 
 import { IExecution, IExecutionStage } from 'core/domain';
 import { Application } from 'core/application/application.model';
+import { ConfirmationModalService } from 'core/confirmationModal';
 import { ReactInjector } from 'core/reactShims';
 import { duration } from 'core/utils/timeFormatters';
 
@@ -19,7 +20,7 @@ const skipRemainingWait = (
   execution: IExecution,
   application: Application,
 ): void => {
-  const { confirmationModalService, executionService } = ReactInjector;
+  const { executionService } = ReactInjector;
   (event.target as HTMLElement).blur(); // forces closing of the popover when the modal opens
   const matcher = ({ stages }: IExecution) => {
     const match = stages.find(test => test.id === stage.id);
@@ -27,7 +28,7 @@ const skipRemainingWait = (
   };
 
   const data = { status: 'SKIPPED' };
-  confirmationModalService.confirm({
+  ConfirmationModalService.confirm({
     header: 'Really skip wait?',
     buttonText: 'Skip',
     body: stage.context.skipWaitText || DEFAULT_SKIP_WAIT_TEXT,

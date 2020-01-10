@@ -18,12 +18,11 @@ export class StageSummaryController implements IController {
   private parser: Parser = new Parser();
   private renderer: HtmlRenderer = new HtmlRenderer();
 
-  public static $inject = ['$scope', '$stateParams', '$state', 'confirmationModalService', 'executionService'];
+  public static $inject = ['$scope', '$stateParams', '$state', 'executionService'];
   constructor(
     private $scope: IScope,
     private $stateParams: StateParams,
     private $state: StateService,
-    private confirmationModalService: ConfirmationModalService,
     private executionService: ExecutionService,
   ) {}
 
@@ -104,7 +103,7 @@ export class StageSummaryController implements IController {
 
   public openManualSkipStageModal(): void {
     const topLevelStage = this.getTopLevelStage();
-    this.confirmationModalService.confirm({
+    ConfirmationModalService.confirm({
       header: 'Really skip this stage?',
       buttonText: 'Skip',
       askForReason: true,

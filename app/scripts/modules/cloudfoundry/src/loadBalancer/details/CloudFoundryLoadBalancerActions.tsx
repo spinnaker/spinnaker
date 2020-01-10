@@ -4,6 +4,7 @@ import { Dropdown } from 'react-bootstrap';
 
 import {
   Application,
+  ConfirmationModalService,
   ILoadBalancer,
   ILoadBalancerDeleteCommand,
   LoadBalancerWriter,
@@ -38,7 +39,7 @@ export class CloudFoundryLoadBalancerActions extends React.Component<ICloudFound
       return LoadBalancerWriter.deleteLoadBalancer(loadBalancerDeleteCommand, application);
     };
 
-    ReactInjector.confirmationModalService.confirm({
+    ConfirmationModalService.confirm({
       header: 'Really delete ' + loadBalancer.name + '?',
       buttonText: 'Delete ' + loadBalancer.name,
       account: loadBalancer.account,

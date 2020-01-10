@@ -2,7 +2,7 @@
 
 import { module } from 'angular';
 
-import { CONFIRMATION_MODAL_SERVICE } from 'core/confirmationModal/confirmationModal.service';
+import { ConfirmationModalService } from 'core/confirmationModal/confirmationModal.service';
 import { SnapshotWriter } from 'core/snapshot/SnapshotWriter';
 import { CORE_SNAPSHOT_DIFF_VIEWSNAPSHOTDIFFBUTTON_COMPONENT } from 'core/snapshot/diff/viewSnapshotDiffButton.component';
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
@@ -12,7 +12,6 @@ export const CORE_APPLICATION_CONFIG_APPLICATIONSNAPSHOTSECTION_COMPONENT =
 export const name = CORE_APPLICATION_CONFIG_APPLICATIONSNAPSHOTSECTION_COMPONENT; // for backwards compatibility
 module(CORE_APPLICATION_CONFIG_APPLICATIONSNAPSHOTSECTION_COMPONENT, [
   UIROUTER_ANGULARJS,
-  CONFIRMATION_MODAL_SERVICE,
   CORE_SNAPSHOT_DIFF_VIEWSNAPSHOTDIFFBUTTON_COMPONENT,
 ]).component('applicationSnapshotSection', {
   templateUrl: require('./applicationSnapshotSection.component.html'),
@@ -21,8 +20,7 @@ module(CORE_APPLICATION_CONFIG_APPLICATIONSNAPSHOTSECTION_COMPONENT, [
   },
   controller: [
     '$state',
-    'confirmationModalService',
-    function($state, confirmationModalService) {
+    function($state) {
       if (this.application.notFound || this.application.hasError) {
         return;
       }
@@ -37,7 +35,7 @@ module(CORE_APPLICATION_CONFIG_APPLICATIONSNAPSHOTSECTION_COMPONENT, [
           title: 'Taking snapshot of ' + this.application.name,
         };
 
-        confirmationModalService.confirm({
+        ConfirmationModalService.confirm({
           header: 'Are you sure you want to take a snapshot of: ' + this.application.name + '?',
           buttonText: 'Take snapshot',
           taskMonitorConfig: taskMonitor,

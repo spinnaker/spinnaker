@@ -9,7 +9,7 @@ import { AccountService } from 'core/account/AccountService';
 import { API } from 'core/api';
 import { BASE_EXECUTION_DETAILS_CTRL } from './common/baseExecutionDetails.controller';
 import { SETTINGS } from 'core/config';
-import { CONFIRMATION_MODAL_SERVICE } from 'core/confirmationModal/confirmationModal.service';
+import { ConfirmationModalService } from 'core/confirmationModal';
 import { STAGE_NAME } from './StageName';
 import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
 import { Registry } from 'core/registry';
@@ -33,7 +33,6 @@ module(CORE_PIPELINE_CONFIG_STAGES_STAGE_MODULE, [
   OVERRRIDE_FAILURE,
   CORE_PIPELINE_CONFIG_STAGES_OPTIONALSTAGE_OPTIONALSTAGE_DIRECTIVE,
   CORE_PIPELINE_CONFIG_STAGES_FAILONFAILEDEXPRESSIONS_FAILONFAILEDEXPRESSIONS_DIRECTIVE,
-  CONFIRMATION_MODAL_SERVICE,
   CORE_PIPELINE_CONFIG_STAGES_COMMON_STAGECONFIGFIELD_STAGECONFIGFIELD_DIRECTIVE,
 ])
   .directive('pipelineConfigStage', function() {
@@ -320,8 +319,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_STAGE_MODULE, [
   .controller('RestartStageCtrl', [
     '$scope',
     '$stateParams',
-    'confirmationModalService',
-    function($scope, $stateParams, confirmationModalService) {
+    function($scope, $stateParams) {
       const restartStage = function() {
         return API.one('pipelines')
           .one($stateParams.executionId)
@@ -340,7 +338,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_STAGE_MODULE, [
           body =
             '<p><strong>This pipeline is currently running - restarting this stage will result in multiple concurrently running pipelines.</strong></p>';
         }
-        confirmationModalService.confirm({
+        ConfirmationModalService.confirm({
           header: 'Really restart ' + $scope.stage.name + '?',
           buttonText: 'Restart ' + $scope.stage.name,
           body: body,

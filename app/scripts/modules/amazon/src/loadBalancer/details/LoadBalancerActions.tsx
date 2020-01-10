@@ -5,11 +5,11 @@ import { get, values } from 'lodash';
 import {
   Application,
   ApplicationReader,
+  ConfirmationModalService,
   LoadBalancerWriter,
   ManagedMenuItem,
   SETTINGS,
   NgReact,
-  ReactInjector,
   HelpField,
 } from '@spinnaker/core';
 
@@ -89,7 +89,7 @@ export class LoadBalancerActions extends React.Component<ILoadBalancerActionsPro
 
     const submitMethod = () => LoadBalancerWriter.deleteLoadBalancer(command, app);
 
-    ReactInjector.confirmationModalService.confirm({
+    ConfirmationModalService.confirm({
       header: `Really delete ${loadBalancerFromParams.name} in ${loadBalancerFromParams.region}: ${loadBalancerFromParams.accountId}?`,
       buttonText: `Delete ${loadBalancerFromParams.name}`,
       account: loadBalancerFromParams.accountId,

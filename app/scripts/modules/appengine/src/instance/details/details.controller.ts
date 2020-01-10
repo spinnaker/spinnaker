@@ -3,7 +3,6 @@ import { cloneDeep, flattenDeep } from 'lodash';
 
 import {
   Application,
-  CONFIRMATION_MODAL_SERVICE,
   ConfirmationModalService,
   INSTANCE_WRITE_SERVICE,
   InstanceReader,
@@ -34,12 +33,11 @@ class AppengineInstanceDetailsController implements IController {
   public outOfServiceToolTip = `
     An App Engine instance is 'Out Of Service' if no load balancers are directing traffic to its server group.`;
 
-  public static $inject = ['$q', 'app', 'instanceWriter', 'confirmationModalService', 'instance'];
+  public static $inject = ['$q', 'app', 'instanceWriter', 'instance'];
   constructor(
     private $q: IQService,
     private app: Application,
     private instanceWriter: InstanceWriter,
-    private confirmationModalService: ConfirmationModalService,
     instance: InstanceFromStateParams,
   ) {
     this.app
@@ -75,7 +73,7 @@ class AppengineInstanceDetailsController implements IController {
       return this.instanceWriter.terminateInstance(instance, this.app, { cloudProvider: 'appengine' });
     };
 
-    this.confirmationModalService.confirm({
+    ConfirmationModalService.confirm({
       header: 'Really terminate ' + shortName + '?',
       buttonText: 'Terminate ' + shortName,
       account: instance.account,
@@ -124,7 +122,7 @@ class AppengineInstanceDetailsController implements IController {
 
 export const APPENGINE_INSTANCE_DETAILS_CTRL = 'spinnaker.appengine.instanceDetails.controller';
 
-module(APPENGINE_INSTANCE_DETAILS_CTRL, [INSTANCE_WRITE_SERVICE, CONFIRMATION_MODAL_SERVICE]).controller(
+module(APPENGINE_INSTANCE_DETAILS_CTRL, [INSTANCE_WRITE_SERVICE]).controller(
   'appengineInstanceDetailsCtrl',
   AppengineInstanceDetailsController,
 );

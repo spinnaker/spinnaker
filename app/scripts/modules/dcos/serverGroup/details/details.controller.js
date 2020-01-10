@@ -4,7 +4,7 @@ import * as angular from 'angular';
 import _ from 'lodash';
 
 import {
-  CONFIRMATION_MODAL_SERVICE,
+  ConfirmationModalService,
   ServerGroupWarningMessageService,
   ServerGroupReader,
   SERVER_GROUP_WRITER,
@@ -18,7 +18,6 @@ export const name = DCOS_SERVERGROUP_DETAILS_DETAILS_CONTROLLER; // for backward
 angular
   .module(DCOS_SERVERGROUP_DETAILS_DETAILS_CONTROLLER, [
     DCOS_SERVERGROUP_CONFIGURE_CONFIGURE_DCOS_MODULE,
-    CONFIRMATION_MODAL_SERVICE,
     SERVER_GROUP_WRITER,
     DCOS_SERVERGROUP_PARAMSMIXIN,
   ])
@@ -31,7 +30,6 @@ angular
     'serverGroupWriter',
     'dcosServerGroupCommandBuilder',
     'dcosServerGroupParamsMixin',
-    'confirmationModalService',
     'dcosProxyUiService',
     function(
       $scope,
@@ -42,7 +40,6 @@ angular
       serverGroupWriter,
       dcosServerGroupCommandBuilder,
       dcosServerGroupParamsMixin,
-      confirmationModalService,
       dcosProxyUiService,
     ) {
       const application = app;
@@ -184,7 +181,7 @@ angular
 
         ServerGroupWarningMessageService.addDestroyWarningMessage(app, serverGroup, confirmationModalParams);
 
-        confirmationModalService.confirm(confirmationModalParams);
+        ConfirmationModalService.confirm(confirmationModalParams);
       };
 
       this.disableServerGroup = function disableServerGroup() {
@@ -211,7 +208,7 @@ angular
           askForReason: true,
         };
 
-        confirmationModalService.confirm(confirmationModalParams);
+        ConfirmationModalService.confirm(confirmationModalParams);
       };
 
       this.resizeServerGroup = function resizeServerGroup() {

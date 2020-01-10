@@ -3,7 +3,7 @@ import { module } from 'angular';
 import React from 'react';
 import { react2angular } from 'react2angular';
 
-import { Application, ManifestWriter, ReactInjector } from '@spinnaker/core';
+import { Application, ManifestWriter, ConfirmationModalService } from '@spinnaker/core';
 
 import { IKubernetesServerGroupManager } from 'kubernetes/v2/serverGroupManager';
 
@@ -27,7 +27,7 @@ function RollingRestart({ application, serverGroupManager }: IRollingRestartProp
       location: serverGroupManager.namespace,
       manifestName: serverGroupManager.name,
     };
-    ReactInjector.confirmationModalService.confirm({
+    ConfirmationModalService.confirm({
       account: serverGroupManager.account,
       askForReason: true,
       header: `Initiate rolling restart of ${serverGroupManager.name}`,

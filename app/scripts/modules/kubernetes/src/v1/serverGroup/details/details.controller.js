@@ -4,7 +4,7 @@ import * as angular from 'angular';
 import _ from 'lodash';
 
 import {
-  CONFIRMATION_MODAL_SERVICE,
+  ConfirmationModalService,
   ServerGroupReader,
   ServerGroupWarningMessageService,
   SERVER_GROUP_WRITER,
@@ -21,7 +21,6 @@ angular
   .module(KUBERNETES_V1_SERVERGROUP_DETAILS_DETAILS_CONTROLLER, [
     UIROUTER_ANGULARJS,
     KUBERNETES_V1_SERVERGROUP_CONFIGURE_CONFIGURE_KUBERNETES_MODULE,
-    CONFIRMATION_MODAL_SERVICE,
     SERVER_GROUP_WRITER,
     KUBERNETES_V1_SERVERGROUP_PARAMSMIXIN,
   ])
@@ -34,7 +33,6 @@ angular
     'serverGroupWriter',
     'kubernetesServerGroupCommandBuilder',
     'kubernetesServerGroupParamsMixin',
-    'confirmationModalService',
     'kubernetesProxyUiService',
     function(
       $scope,
@@ -45,7 +43,6 @@ angular
       serverGroupWriter,
       kubernetesServerGroupCommandBuilder,
       kubernetesServerGroupParamsMixin,
-      confirmationModalService,
       kubernetesProxyUiService,
     ) {
       const application = (this.application = app);
@@ -178,7 +175,7 @@ angular
 
         ServerGroupWarningMessageService.addDestroyWarningMessage(app, serverGroup, confirmationModalParams);
 
-        confirmationModalService.confirm(confirmationModalParams);
+        ConfirmationModalService.confirm(confirmationModalParams);
       };
 
       this.disableServerGroup = function disableServerGroup() {
@@ -207,7 +204,7 @@ angular
 
         ServerGroupWarningMessageService.addDisableWarningMessage(app, serverGroup, confirmationModalParams);
 
-        confirmationModalService.confirm(confirmationModalParams);
+        ConfirmationModalService.confirm(confirmationModalParams);
       };
 
       this.enableServerGroup = function enableServerGroup() {
@@ -234,7 +231,7 @@ angular
           askForReason: true,
         };
 
-        confirmationModalService.confirm(confirmationModalParams);
+        ConfirmationModalService.confirm(confirmationModalParams);
       };
 
       this.rollbackServerGroup = function rollbackServerGroup() {

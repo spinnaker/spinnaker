@@ -4,7 +4,7 @@ import { module } from 'angular';
 
 import _ from 'lodash';
 
-import { CONFIRMATION_MODAL_SERVICE } from 'core/confirmationModal/confirmationModal.service';
+import { ConfirmationModalService } from 'core/confirmationModal';
 import { ViewStateCache } from 'core/cache';
 import { DISPLAYABLE_TASKS_FILTER } from './displayableTasks.filter';
 import { SETTINGS } from 'core/config/settings';
@@ -17,7 +17,6 @@ export const name = CORE_TASK_TASKS_CONTROLLER; // for backwards compatibility
 module(CORE_TASK_TASKS_CONTROLLER, [
   UIROUTER_ANGULARJS,
   CORE_TASK_TASKPROGRESSBAR_DIRECTIVE,
-  CONFIRMATION_MODAL_SERVICE,
   DISPLAYABLE_TASKS_FILTER,
 ]).controller('TasksCtrl', [
   '$scope',
@@ -25,8 +24,7 @@ module(CORE_TASK_TASKS_CONTROLLER, [
   '$stateParams',
   '$q',
   'app',
-  'confirmationModalService',
-  function($scope, $state, $stateParams, $q, app, confirmationModalService) {
+  function($scope, $state, $stateParams, $q, app) {
     if (app.notFound || app.hasError) {
       return;
     }
@@ -163,7 +161,7 @@ module(CORE_TASK_TASKS_CONTROLLER, [
         });
       };
 
-      confirmationModalService.confirm({
+      ConfirmationModalService.confirm({
         header: 'Really cancel ' + task.name + '?',
         buttonText: 'Yes',
         cancelButtonText: 'No',

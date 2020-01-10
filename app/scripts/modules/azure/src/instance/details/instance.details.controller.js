@@ -5,7 +5,7 @@ import _ from 'lodash';
 
 import {
   CloudProviderRegistry,
-  CONFIRMATION_MODAL_SERVICE,
+  ConfirmationModalService,
   InstanceReader,
   INSTANCE_WRITE_SERVICE,
   InstanceTemplates,
@@ -20,17 +20,15 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
   UIROUTER_ANGULARJS,
   ANGULAR_UI_BOOTSTRAP,
   INSTANCE_WRITE_SERVICE,
-  CONFIRMATION_MODAL_SERVICE,
 ]).controller('azureInstanceDetailsCtrl', [
   '$scope',
   '$state',
   '$uibModal',
   'instanceWriter',
-  'confirmationModalService',
   'instance',
   'app',
   '$q',
-  function($scope, $state, $uibModal, instanceWriter, confirmationModalService, instance, app, $q) {
+  function($scope, $state, $uibModal, instanceWriter, instance, app, $q) {
     // needed for standalone instances
     $scope.detailsTemplateUrl = CloudProviderRegistry.getValue('azure', 'instance.detailsTemplateUrl');
 
@@ -208,7 +206,7 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         return instanceWriter.terminateInstance(instance, app);
       };
 
-      confirmationModalService.confirm({
+      ConfirmationModalService.confirm({
         header: 'Really terminate ' + instance.instanceId + '?',
         buttonText: 'Terminate ' + instance.instanceId,
         account: instance.account,
@@ -234,7 +232,7 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         return instanceWriter.terminateInstanceAndShrinkServerGroup(instance, app);
       };
 
-      confirmationModalService.confirm({
+      ConfirmationModalService.confirm({
         header: 'Really terminate ' + instance.instanceId + ' and shrink ' + instance.serverGroup + '?',
         buttonText: 'Terminate ' + instance.instanceId + ' and shrink ' + instance.serverGroup,
         account: instance.account,
@@ -255,7 +253,7 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         return instanceWriter.rebootInstance(instance, app);
       };
 
-      confirmationModalService.confirm({
+      ConfirmationModalService.confirm({
         header: 'Really reboot ' + instance.instanceId + '?',
         buttonText: 'Reboot ' + instance.instanceId,
         account: instance.account,
@@ -277,7 +275,7 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         return instanceWriter.registerInstanceWithLoadBalancer(instance, app);
       };
 
-      confirmationModalService.confirm({
+      ConfirmationModalService.confirm({
         header: 'Really register ' + instance.instanceId + ' with ' + loadBalancerNames + '?',
         buttonText: 'Register ' + instance.instanceId,
         account: instance.account,
@@ -299,7 +297,7 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         return instanceWriter.deregisterInstanceFromLoadBalancer(instance, app);
       };
 
-      confirmationModalService.confirm({
+      ConfirmationModalService.confirm({
         header: 'Really deregister ' + instance.instanceId + ' from ' + loadBalancerNames + '?',
         buttonText: 'Deregister ' + instance.instanceId,
         account: instance.account,
@@ -320,7 +318,7 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         return instanceWriter.enableInstanceInDiscovery(instance, app);
       };
 
-      confirmationModalService.confirm({
+      ConfirmationModalService.confirm({
         header: 'Really enable ' + instance.instanceId + ' in discovery?',
         buttonText: 'Enable ' + instance.instanceId,
         account: instance.account,
@@ -341,7 +339,7 @@ module(AZURE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         return instanceWriter.disableInstanceInDiscovery(instance, app);
       };
 
-      confirmationModalService.confirm({
+      ConfirmationModalService.confirm({
         header: 'Really disable ' + instance.instanceId + ' in discovery?',
         buttonText: 'Disable ' + instance.instanceId,
         account: instance.account,

@@ -6,10 +6,10 @@ import { FormikErrors, FormikProps } from 'formik';
 
 import {
   Application,
+  ConfirmationModalService,
   CustomLabels,
   HelpField,
   IWizardPageComponent,
-  ReactInjector,
   Tooltip,
   ValidationMessage,
 } from '@spinnaker/core';
@@ -403,7 +403,7 @@ export class ALBListeners extends React.Component<IALBListenersProps, IALBListen
 
     if (confirmDefaultRemove || confirmRemove) {
       // TODO: Confirmation Dialog first.
-      ReactInjector.confirmationModalService.confirm({
+      ConfirmationModalService.confirm({
         header: 'Really remove authentication?',
         buttonText: `Remove Auth`,
         submitMethod: () => {

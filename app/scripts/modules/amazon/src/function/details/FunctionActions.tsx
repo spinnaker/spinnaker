@@ -1,7 +1,14 @@
 import React from 'react';
 import { Dropdown } from 'react-bootstrap';
 
-import { Application, ApplicationReader, FunctionWriter, SETTINGS, NgReact, ReactInjector } from '@spinnaker/core';
+import {
+  Application,
+  ApplicationReader,
+  FunctionWriter,
+  SETTINGS,
+  NgReact,
+  ConfirmationModalService,
+} from '@spinnaker/core';
 
 import { IAmazonFunction, IAmazonFunctionDeleteCommand } from 'amazon/domain';
 
@@ -70,7 +77,7 @@ export class FunctionActions extends React.Component<IFunctionActionsProps, IFun
 
     const submitMethod = () => FunctionWriter.deleteFunction(command, app);
 
-    ReactInjector.confirmationModalService.confirm({
+    ConfirmationModalService.confirm({
       header: `Really delete ${functionFromParams.functionName} in ${functionFromParams.region}: ${functionFromParams.account}?`,
       buttonText: `Delete ${functionFromParams.functionName}`,
       account: functionFromParams.account,

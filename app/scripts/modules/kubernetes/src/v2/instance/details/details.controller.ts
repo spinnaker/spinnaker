@@ -2,14 +2,7 @@ import { IController, IPromise, IQService, IScope, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 import { flattenDeep } from 'lodash';
 
-import {
-  Application,
-  CONFIRMATION_MODAL_SERVICE,
-  InstanceReader,
-  RecentHistoryService,
-  IManifest,
-  ILoadBalancer,
-} from '@spinnaker/core';
+import { Application, InstanceReader, RecentHistoryService, IManifest, ILoadBalancer } from '@spinnaker/core';
 
 import { IKubernetesInstance } from './IKubernetesInstance';
 import { KubernetesManifestService } from 'kubernetes/v2/manifest/manifest.service';
@@ -158,7 +151,7 @@ class KubernetesInstanceDetailsController implements IController {
 
 export const KUBERNETES_V2_INSTANCE_DETAILS_CTRL = 'spinnaker.kubernetes.v2.instanceDetails.controller';
 
-module(KUBERNETES_V2_INSTANCE_DETAILS_CTRL, [CONFIRMATION_MODAL_SERVICE]).controller(
+module(KUBERNETES_V2_INSTANCE_DETAILS_CTRL, []).controller(
   'kubernetesV2InstanceDetailsCtrl',
   KubernetesInstanceDetailsController,
 );

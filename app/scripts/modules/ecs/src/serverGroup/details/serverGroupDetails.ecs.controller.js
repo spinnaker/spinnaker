@@ -2,13 +2,13 @@
 
 import * as angular from 'angular';
 import { chain, filter, find, has, isEmpty } from 'lodash';
-import { FirewallLabels } from '@spinnaker/core';
 
 import { ECS_SERVER_GROUP_TRANSFORMER } from '../serverGroup.transformer';
 
 import {
   AccountService,
-  CONFIRMATION_MODAL_SERVICE,
+  ConfirmationModalService,
+  FirewallLabels,
   OVERRIDE_REGISTRY,
   ServerGroupReader,
   SERVER_GROUP_WRITER,
@@ -26,7 +26,6 @@ angular
   .module(ECS_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_ECS_CONTROLLER, [
     UIROUTER_ANGULARJS,
     ECS_SERVER_GROUP_TRANSFORMER,
-    CONFIRMATION_MODAL_SERVICE,
     OVERRIDE_REGISTRY,
     SERVER_GROUP_WRITER,
     ECS_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE,
@@ -40,7 +39,6 @@ angular
     'serverGroup',
     'ecsServerGroupCommandBuilder',
     '$uibModal',
-    'confirmationModalService',
     'serverGroupWriter',
     'ecsServerGroupTransformer',
     'overrideRegistry',
@@ -51,7 +49,6 @@ angular
       serverGroup,
       ecsServerGroupCommandBuilder,
       $uibModal,
-      confirmationModalService,
       serverGroupWriter,
       ecsServerGroupTransformer,
       overrideRegistry,
@@ -224,7 +221,7 @@ angular
           confirmationModalParams.interestingHealthProviderNames = ['Ecs'];
         }
 
-        confirmationModalService.confirm(confirmationModalParams);
+        ConfirmationModalService.confirm(confirmationModalParams);
       };
 
       this.disableServerGroup = () => {
@@ -256,7 +253,7 @@ angular
           confirmationModalParams.interestingHealthProviderNames = ['Ecs'];
         }
 
-        confirmationModalService.confirm(confirmationModalParams);
+        ConfirmationModalService.confirm(confirmationModalParams);
       };
 
       this.enableServerGroup = () => {
@@ -286,7 +283,7 @@ angular
           confirmationModalParams.interestingHealthProviderNames = ['Ecs'];
         }
 
-        confirmationModalService.confirm(confirmationModalParams);
+        ConfirmationModalService.confirm(confirmationModalParams);
       };
 
       this.rollbackServerGroup = () => {

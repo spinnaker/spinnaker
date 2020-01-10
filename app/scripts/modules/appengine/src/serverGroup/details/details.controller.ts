@@ -4,7 +4,6 @@ import { cloneDeep, map, mapValues, reduce } from 'lodash';
 
 import {
   Application,
-  CONFIRMATION_MODAL_SERVICE,
   ConfirmationModalService,
   IConfirmationModalParams,
   IServerGroup,
@@ -65,7 +64,6 @@ class AppengineServerGroupDetailsController implements IController {
     'serverGroup',
     'app',
     'serverGroupWriter',
-    'confirmationModalService',
     'appengineServerGroupWriter',
     'appengineServerGroupCommandBuilder',
   ];
@@ -76,7 +74,6 @@ class AppengineServerGroupDetailsController implements IController {
     serverGroup: IServerGroupFromStateParams,
     public app: Application,
     private serverGroupWriter: ServerGroupWriter,
-    private confirmationModalService: ConfirmationModalService,
     private appengineServerGroupWriter: AppengineServerGroupWriter,
     private appengineServerGroupCommandBuilder: AppengineServerGroupCommandBuilder,
   ) {
@@ -161,7 +158,7 @@ class AppengineServerGroupDetailsController implements IController {
       confirmationModalParams.interestingHealthProviderNames = [AppengineHealth.PLATFORM];
     }
 
-    this.confirmationModalService.confirm(confirmationModalParams);
+    ConfirmationModalService.confirm(confirmationModalParams);
   }
 
   public enableServerGroup(): void {
@@ -203,7 +200,7 @@ class AppengineServerGroupDetailsController implements IController {
       confirmationModalParams.interestingHealthProviderNames = [AppengineHealth.PLATFORM];
     }
 
-    this.confirmationModalService.confirm(confirmationModalParams);
+    ConfirmationModalService.confirm(confirmationModalParams);
   }
 
   public disableServerGroup(): void {
@@ -252,7 +249,7 @@ class AppengineServerGroupDetailsController implements IController {
       confirmationModalParams.interestingHealthProviderNames = [AppengineHealth.PLATFORM];
     }
 
-    this.confirmationModalService.confirm(confirmationModalParams);
+    ConfirmationModalService.confirm(confirmationModalParams);
   }
 
   public stopServerGroup(): void {
@@ -287,7 +284,7 @@ class AppengineServerGroupDetailsController implements IController {
       askForReason: true,
     };
 
-    this.confirmationModalService.confirm(confirmationModalParams);
+    ConfirmationModalService.confirm(confirmationModalParams);
   }
 
   public startServerGroup(): void {
@@ -309,7 +306,7 @@ class AppengineServerGroupDetailsController implements IController {
       askForReason: true,
     };
 
-    this.confirmationModalService.confirm(confirmationModalParams);
+    ConfirmationModalService.confirm(confirmationModalParams);
   }
 
   public cloneServerGroup(): void {
@@ -459,8 +456,7 @@ class AppengineServerGroupDetailsController implements IController {
 
 export const APPENGINE_SERVER_GROUP_DETAILS_CTRL = 'spinnaker.appengine.serverGroup.details.controller';
 
-module(APPENGINE_SERVER_GROUP_DETAILS_CTRL, [
-  APPENGINE_SERVER_GROUP_WRITER,
-  CONFIRMATION_MODAL_SERVICE,
-  SERVER_GROUP_WRITER,
-]).controller('appengineServerGroupDetailsCtrl', AppengineServerGroupDetailsController);
+module(APPENGINE_SERVER_GROUP_DETAILS_CTRL, [APPENGINE_SERVER_GROUP_WRITER, SERVER_GROUP_WRITER]).controller(
+  'appengineServerGroupDetailsCtrl',
+  AppengineServerGroupDetailsController,
+);

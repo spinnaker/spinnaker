@@ -7,6 +7,7 @@ import { Subscription } from 'rxjs';
 import classNames from 'classnames';
 
 import { Application } from 'core/application/application.model';
+import { ConfirmationModalService } from 'core/confirmationModal';
 import { StageExecutionDetails } from 'core/pipeline/details/StageExecutionDetails';
 import { ExecutionStatus } from 'core/pipeline/status/ExecutionStatus';
 import { ParametersAndArtifacts } from 'core/pipeline/status/ParametersAndArtifacts';
@@ -149,8 +150,8 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
   }
 
   public deleteExecution(): void {
-    const { confirmationModalService, executionService } = ReactInjector;
-    confirmationModalService.confirm({
+    const { executionService } = ReactInjector;
+    ConfirmationModalService.confirm({
       header: 'Really delete execution?',
       buttonText: 'Delete',
       body: '<p>This will permanently delete the execution history.</p>',
@@ -180,8 +181,8 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
   }
 
   public pauseExecution(): void {
-    const { confirmationModalService, executionService } = ReactInjector;
-    confirmationModalService.confirm({
+    const { executionService } = ReactInjector;
+    ConfirmationModalService.confirm({
       header: 'Really pause execution?',
       buttonText: 'Pause',
       body:
@@ -191,8 +192,8 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
   }
 
   public resumeExecution(): void {
-    const { confirmationModalService, executionService } = ReactInjector;
-    confirmationModalService.confirm({
+    const { executionService } = ReactInjector;
+    ConfirmationModalService.confirm({
       header: 'Really resume execution?',
       buttonText: 'Resume',
       submitMethod: () => executionService.resumeExecution(this.props.application, this.props.execution.id),

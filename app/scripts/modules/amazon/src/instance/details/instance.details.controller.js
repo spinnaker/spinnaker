@@ -6,7 +6,7 @@ import { getAllTargetGroups, applyHealthCheckInfoToTargetGroups } from './utils'
 
 import {
   CloudProviderRegistry,
-  CONFIRMATION_MODAL_SERVICE,
+  ConfirmationModalService,
   InstanceReader,
   RecentHistoryService,
   SETTINGS,
@@ -25,30 +25,17 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
   ANGULAR_UI_BOOTSTRAP,
   AMAZON_INSTANCE_WRITE_SERVICE,
   AMAZON_VPC_VPCTAG_DIRECTIVE,
-  CONFIRMATION_MODAL_SERVICE,
 ]).controller('awsInstanceDetailsCtrl', [
   '$scope',
   '$state',
   'amazonInstanceWriter',
-  'confirmationModalService',
   'instance',
   'app',
   'moniker',
   'environment',
   '$q',
   'overrides',
-  function(
-    $scope,
-    $state,
-    amazonInstanceWriter,
-    confirmationModalService,
-    instance,
-    app,
-    moniker,
-    environment,
-    $q,
-    overrides,
-  ) {
+  function($scope, $state, amazonInstanceWriter, instance, app, moniker, environment, $q, overrides) {
     // needed for standalone instances
     $scope.detailsTemplateUrl = CloudProviderRegistry.getValue('aws', 'instance.detailsTemplateUrl');
 
@@ -316,7 +303,7 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         return amazonInstanceWriter.terminateInstance(instance, app);
       };
 
-      confirmationModalService.confirm({
+      ConfirmationModalService.confirm({
         header: 'Really terminate ' + instance.instanceId + '?',
         buttonText: 'Terminate ' + instance.instanceId,
         account: instance.account,
@@ -342,7 +329,7 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         return amazonInstanceWriter.terminateInstanceAndShrinkServerGroup(instance, app);
       };
 
-      confirmationModalService.confirm({
+      ConfirmationModalService.confirm({
         header: 'Really terminate ' + instance.instanceId + ' and shrink ' + instance.serverGroup + '?',
         buttonText: 'Terminate ' + instance.instanceId + ' and shrink ' + instance.serverGroup,
         account: instance.account,
@@ -367,7 +354,7 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         return amazonInstanceWriter.rebootInstance(instance, app, params);
       };
 
-      confirmationModalService.confirm({
+      ConfirmationModalService.confirm({
         header: 'Really reboot ' + instance.instanceId + '?',
         buttonText: 'Reboot ' + instance.instanceId,
         account: instance.account,
@@ -391,7 +378,7 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         return amazonInstanceWriter.registerInstanceWithLoadBalancer(instance, app);
       };
 
-      confirmationModalService.confirm({
+      ConfirmationModalService.confirm({
         header: 'Really register ' + instance.instanceId + ' with ' + loadBalancerNames + '?',
         buttonText: 'Register ' + instance.instanceId,
         account: instance.account,
@@ -413,7 +400,7 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         return amazonInstanceWriter.deregisterInstanceFromLoadBalancer(instance, app);
       };
 
-      confirmationModalService.confirm({
+      ConfirmationModalService.confirm({
         header: 'Really deregister ' + instance.instanceId + ' from ' + loadBalancerNames + '?',
         buttonText: 'Deregister ' + instance.instanceId,
         account: instance.account,
@@ -435,7 +422,7 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         return amazonInstanceWriter.registerInstanceWithTargetGroup(instance, app);
       };
 
-      confirmationModalService.confirm({
+      ConfirmationModalService.confirm({
         header: 'Really register ' + instance.instanceId + ' with ' + targetGroupNames + '?',
         buttonText: 'Register ' + instance.instanceId,
         account: instance.account,
@@ -457,7 +444,7 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         return amazonInstanceWriter.deregisterInstanceFromTargetGroup(instance, app);
       };
 
-      confirmationModalService.confirm({
+      ConfirmationModalService.confirm({
         header: 'Really deregister ' + instance.instanceId + ' from ' + targetGroupNames + '?',
         buttonText: 'Deregister ' + instance.instanceId,
         account: instance.account,
@@ -478,7 +465,7 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         return amazonInstanceWriter.enableInstanceInDiscovery(instance, app);
       };
 
-      confirmationModalService.confirm({
+      ConfirmationModalService.confirm({
         header: 'Really enable ' + instance.instanceId + ' in discovery?',
         buttonText: 'Enable ' + instance.instanceId,
         account: instance.account,
@@ -499,7 +486,7 @@ module(AMAZON_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
         return amazonInstanceWriter.disableInstanceInDiscovery(instance, app);
       };
 
-      confirmationModalService.confirm({
+      ConfirmationModalService.confirm({
         header: 'Really disable ' + instance.instanceId + ' in discovery?',
         buttonText: 'Disable ' + instance.instanceId,
         account: instance.account,

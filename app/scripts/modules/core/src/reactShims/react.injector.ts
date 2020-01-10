@@ -5,7 +5,6 @@ import { StateParams, StateService, UIRouter } from '@uirouter/core';
 
 import { CacheInitializerService } from '../cache/cacheInitializer.service';
 import { ClusterService } from '../cluster/cluster.service';
-import { ConfirmationModalService } from '../confirmationModal/confirmationModal.service';
 import { ExecutionDetailsSectionService } from 'core/pipeline/details/executionDetailsSection.service';
 import { ExecutionService } from '../pipeline/service/execution.service';
 import { ImageReader } from 'core/image/image.reader';
@@ -45,7 +44,6 @@ export class CoreReactInject extends ReactInject {
   public get $stateParams() { return this.$injector.get('$stateParams') as StateParams; }
   public get $uiRouter() { return this.$injector.get('$uiRouter') as UIRouter; }
   public get cacheInitializer() { return this.$injector.get('cacheInitializer') as CacheInitializerService; }
-  public get confirmationModalService() { return this.$injector.get('confirmationModalService') as ConfirmationModalService; }
   public get clusterService() { return this.$injector.get('clusterService') as ClusterService; }
   public get executionDetailsSectionService() { return this.$injector.get('executionDetailsSectionService') as ExecutionDetailsSectionService; }
   public get executionService() { return this.$injector.get('executionService') as ExecutionService; }

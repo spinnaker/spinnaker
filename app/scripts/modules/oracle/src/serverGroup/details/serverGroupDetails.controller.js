@@ -3,7 +3,7 @@
 import { module } from 'angular';
 
 import {
-  CONFIRMATION_MODAL_SERVICE,
+  ConfirmationModalService,
   NetworkReader,
   ServerGroupReader,
   ServerGroupWarningMessageService,
@@ -20,7 +20,6 @@ export const ORACLE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_CONTROLLER =
 export const name = ORACLE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_CONTROLLER; // for backwards compatibility
 module(ORACLE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_CONTROLLER, [
   UIROUTER_ANGULARJS,
-  CONFIRMATION_MODAL_SERVICE,
   SERVER_GROUP_WRITER,
   ORACLE_IMAGE_IMAGE_READER,
   ORACLE_SERVERGROUP_DETAILS_RESIZE_RESIZESERVERGROUP_CONTROLLER,
@@ -31,19 +30,9 @@ module(ORACLE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_CONTROLLER, [
   '$uibModal',
   'app',
   'serverGroup',
-  'confirmationModalService',
   'serverGroupWriter',
   'oracleImageReader',
-  function(
-    $scope,
-    $state,
-    $uibModal,
-    app,
-    serverGroup,
-    confirmationModalService,
-    serverGroupWriter,
-    oracleImageReader,
-  ) {
+  function($scope, $state, $uibModal, app, serverGroup, serverGroupWriter, oracleImageReader) {
     const provider = 'oracle';
 
     this.application = app;
@@ -125,7 +114,7 @@ module(ORACLE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_CONTROLLER, [
         region: serverGroup.region,
       };
 
-      confirmationModalService.confirm({
+      ConfirmationModalService.confirm({
         header: 'Really destroy ' + serverGroup.name + '?',
         buttonText: 'Destroy ' + serverGroup.name,
         account: serverGroup.account,
@@ -196,7 +185,7 @@ module(ORACLE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_CONTROLLER, [
         confirmationModalParams.interestingHealthProviderNames = ['Oracle'];
       }
 
-      confirmationModalService.confirm(confirmationModalParams);
+      ConfirmationModalService.confirm(confirmationModalParams);
     };
 
     this.enableServerGroup = () => {
@@ -224,7 +213,7 @@ module(ORACLE_SERVERGROUP_DETAILS_SERVERGROUPDETAILS_CONTROLLER, [
         confirmationModalParams.interestingHealthProviderNames = ['Oracle'];
       }
 
-      confirmationModalService.confirm(confirmationModalParams);
+      ConfirmationModalService.confirm(confirmationModalParams);
     };
 
     const cancelLoader = () => {

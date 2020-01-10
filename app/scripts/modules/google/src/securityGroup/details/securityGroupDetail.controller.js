@@ -6,7 +6,7 @@ import _ from 'lodash';
 import {
   AccountService,
   CloudProviderRegistry,
-  CONFIRMATION_MODAL_SERVICE,
+  ConfirmationModalService,
   FirewallLabels,
   SECURITY_GROUP_READER,
   SecurityGroupWriter,
@@ -23,7 +23,6 @@ angular
   .module(GOOGLE_SECURITYGROUP_DETAILS_SECURITYGROUPDETAIL_CONTROLLER, [
     UIROUTER_ANGULARJS,
     SECURITY_GROUP_READER,
-    CONFIRMATION_MODAL_SERVICE,
     GOOGLE_SECURITYGROUP_CLONE_CLONESECURITYGROUP_CONTROLLER,
     GCE_SECURITY_GROUP_HELP_TEXT_SERVICE,
   ])
@@ -32,7 +31,6 @@ angular
     '$state',
     'resolvedSecurityGroup',
     'app',
-    'confirmationModalService',
     'securityGroupReader',
     '$uibModal',
     'gceSecurityGroupHelpTextService',
@@ -41,7 +39,6 @@ angular
       $state,
       resolvedSecurityGroup,
       app,
-      confirmationModalService,
       securityGroupReader,
       $uibModal,
       gceSecurityGroupHelpTextService,
@@ -242,7 +239,7 @@ angular
           });
         };
 
-        confirmationModalService.confirm({
+        ConfirmationModalService.confirm({
           header: 'Really delete ' + securityGroup.name + '?',
           buttonText: 'Delete ' + securityGroup.name,
           account: securityGroup.accountId,

@@ -5,7 +5,7 @@ import _ from 'lodash';
 
 import {
   CloudProviderRegistry,
-  CONFIRMATION_MODAL_SERVICE,
+  ConfirmationModalService,
   FirewallLabels,
   SECURITY_GROUP_READER,
   SecurityGroupWriter,
@@ -17,20 +17,15 @@ export const KUBERNETES_V1_SECURITYGROUP_DETAILS_DETAILS_CONTROLLER =
   'spinnaker.securityGroup.kubernetes.details.controller';
 export const name = KUBERNETES_V1_SECURITYGROUP_DETAILS_DETAILS_CONTROLLER; // for backwards compatibility
 angular
-  .module(KUBERNETES_V1_SECURITYGROUP_DETAILS_DETAILS_CONTROLLER, [
-    UIROUTER_ANGULARJS,
-    SECURITY_GROUP_READER,
-    CONFIRMATION_MODAL_SERVICE,
-  ])
+  .module(KUBERNETES_V1_SECURITYGROUP_DETAILS_DETAILS_CONTROLLER, [UIROUTER_ANGULARJS, SECURITY_GROUP_READER])
   .controller('kubernetesSecurityGroupDetailsController', [
     '$scope',
     '$state',
     'resolvedSecurityGroup',
     'app',
-    'confirmationModalService',
     'securityGroupReader',
     '$uibModal',
-    function($scope, $state, resolvedSecurityGroup, app, confirmationModalService, securityGroupReader, $uibModal) {
+    function($scope, $state, resolvedSecurityGroup, app, securityGroupReader, $uibModal) {
       const application = app;
       const securityGroup = resolvedSecurityGroup;
 
@@ -128,7 +123,7 @@ angular
           });
         };
 
-        confirmationModalService.confirm({
+        ConfirmationModalService.confirm({
           header: 'Really delete ' + securityGroup.name + '?',
           buttonText: 'Delete ' + securityGroup.name,
           account: securityGroup.accountId,

@@ -1,4 +1,5 @@
 import { ApplicationModelBuilder } from 'core/application/applicationModel.builder';
+import { ConfirmationModalService } from 'core/confirmationModal';
 import { TaskWriter } from './task.write.service';
 
 describe('Controller: tasks', function() {
@@ -23,16 +24,10 @@ describe('Controller: tasks', function() {
         application.tasks.loaded = true;
         application.tasks.dataUpdated();
 
-        let confirmationModalService = {
-          confirm: function(params) {
-            $q.when(null).then(params.submitMethod);
-          },
-        };
         scope = $rootScope.$new();
         controller = $controller('TasksCtrl', {
           app: application,
           $scope: scope,
-          confirmationModalService: confirmationModalService,
         });
       };
     }),
@@ -75,6 +70,7 @@ describe('Controller: tasks', function() {
 
       this.initializeController(tasks);
       spyOn(controller.application.tasks, 'refresh').and.callFake(() => taskReloadCalls++);
+      spyOn(ConfirmationModalService, 'confirm').and.callFake(params => $q.when().then(params.submitMethod));
       scope.$digest();
 
       expect(taskReloadCalls).toBe(0);

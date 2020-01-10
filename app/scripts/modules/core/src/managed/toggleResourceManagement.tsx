@@ -3,7 +3,7 @@ import { $q } from 'ngimport';
 
 import { IManagedResource, IManagedResourceSummary, ManagedResourceStatus } from 'core/domain';
 import { Application } from 'core/application';
-import { ReactInjector } from 'core/reactShims';
+import { ConfirmationModalService } from 'core/confirmationModal';
 
 import { ManagedWriter } from './ManagedWriter';
 
@@ -47,18 +47,16 @@ export const confirmNotManaged = (resource: IManagedResource, application: Appli
       application.managedResources.refresh(true),
     );
   };
-  return ReactInjector.confirmationModalService
-    .confirm({
-      header: `Pause Management?`,
-      bodyContent: <BodyText resourceSummary={managedResourceSummary} />,
-      account: managedResourceSummary.locations.account,
-      buttonText: 'Pause management',
-      submitMethod,
-    })
-    .then(
-      () => true,
-      () => false,
-    );
+  return ConfirmationModalService.confirm({
+    header: `Pause Management?`,
+    bodyContent: <BodyText resourceSummary={managedResourceSummary} />,
+    account: managedResourceSummary.locations.account,
+    buttonText: 'Pause management',
+    submitMethod,
+  }).then(
+    () => true,
+    () => false,
+  );
 };
 
 export const toggleResourcePause = (
@@ -73,7 +71,7 @@ export const toggleResourcePause = (
 
   const submitMethod = () => toggle().then(() => application.managedResources.refresh(true));
 
-  return ReactInjector.confirmationModalService.confirm({
+  return ConfirmationModalService.confirm({
     header: `Really ${isPaused ? 'resume' : 'pause'} resource management?`,
     bodyContent: <PopoverToggleBodyText resourceSummary={resourceSummary} />,
     account: resourceSummary.locations.account,

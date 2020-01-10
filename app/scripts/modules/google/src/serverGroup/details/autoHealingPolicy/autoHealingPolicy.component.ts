@@ -9,12 +9,8 @@ class GceAutoHealingPolicyDetailsCtrl implements IController {
   public serverGroup: IGceServerGroup;
   public application: Application;
 
-  public static $inject = ['$uibModal', 'confirmationModalService', 'gceAutoscalingPolicyWriter'];
-  constructor(
-    private $uibModal: IModalService,
-    private confirmationModalService: ConfirmationModalService,
-    private gceAutoscalingPolicyWriter: any,
-  ) {}
+  public static $inject = ['$uibModal', 'gceAutoscalingPolicyWriter'];
+  constructor(private $uibModal: IModalService, private gceAutoscalingPolicyWriter: any) {}
 
   public editPolicy(): void {
     this.$uibModal.open({
@@ -35,7 +31,7 @@ class GceAutoHealingPolicyDetailsCtrl implements IController {
       title: `Deleting autohealing policy for ${this.serverGroup.name}`,
     };
 
-    this.confirmationModalService.confirm({
+    ConfirmationModalService.confirm({
       header: `Really delete autohealer for ${this.serverGroup.name}?`,
       buttonText: 'Delete autohealer',
       account: this.serverGroup.account,
