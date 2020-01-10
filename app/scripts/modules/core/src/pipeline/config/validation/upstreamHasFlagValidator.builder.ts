@@ -15,10 +15,6 @@ export interface IUpstreamFlagProvidedValidationConfig extends IValidatorConfig 
 }
 
 export const buildUpstreamHasFlagValidator = (flag: keyof IStageOrTriggerTypeConfig, name: string) => {
-  const providingStages = Registry.pipeline.getStageTypes().filter(x => x[flag]);
-  const providingTriggers = Registry.pipeline.getTriggerTypes().filter(x => x[flag]);
-  const defaultProviders = providingStages.concat(providingTriggers);
-
   PipelineConfigValidator.registerValidator(name, {
     validate: (
       pipeline: IPipeline,
@@ -26,6 +22,10 @@ export const buildUpstreamHasFlagValidator = (flag: keyof IStageOrTriggerTypeCon
       validator: IUpstreamFlagProvidedValidationConfig,
       _config: IStageOrTriggerTypeConfig,
     ) => {
+      const providingStages = Registry.pipeline.getStageTypes().filter(x => x[flag]);
+      const providingTriggers = Registry.pipeline.getTriggerTypes().filter(x => x[flag]);
+      const defaultProviders = providingStages.concat(providingTriggers);
+
       const genericUpstreamValidator = new StageOrTriggerBeforeTypeValidator();
       const repositoryProviders = validator.getProviders ? validator.getProviders() : defaultProviders;
       const stageTypes: string[] = uniq(map(repositoryProviders, 'key'));
