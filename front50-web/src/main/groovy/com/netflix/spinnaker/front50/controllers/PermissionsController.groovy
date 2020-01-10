@@ -57,7 +57,7 @@ public class PermissionsController {
   Application.Permission updateApplicationPermission(
       @PathVariable String appName,
       @RequestBody Application.Permission newPermission) {
-    return permissionsService.updateApplicationPermission(appName, newPermission, false)
+    return permissionsService.updateApplicationPermission(appName, newPermission)
   }
 
   @RequestMapping(method = RequestMethod.DELETE, value = "/applications/{appName:.+}")

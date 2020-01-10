@@ -21,12 +21,11 @@ import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.front50.ApplicationPermissionsService;
 import com.netflix.spinnaker.front50.config.ChaosMonkeyEventListenerConfigurationProperties;
 import com.netflix.spinnaker.front50.events.ApplicationEventListener;
-import com.netflix.spinnaker.front50.events.ApplicationPermissionEventListener;
 import com.netflix.spinnaker.front50.model.application.Application;
-import com.netflix.spinnaker.front50.model.application.ApplicationDAO;
-import java.util.*;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -38,21 +37,17 @@ import org.springframework.stereotype.Component;
  * <p>This listens on both Application events.
  */
 @Component
-public class ChaosMonkeyEventListener
-    implements ApplicationEventListener, ApplicationPermissionEventListener {
+public class ChaosMonkeyEventListener implements ApplicationEventListener {
   private static final Logger log = LoggerFactory.getLogger(ChaosMonkeyEventListener.class);
 
-  private final ApplicationDAO applicationDAO;
   private final ApplicationPermissionsService applicationPermissionsService;
   private final ChaosMonkeyEventListenerConfigurationProperties properties;
   private final ObjectMapper objectMapper;
 
   public ChaosMonkeyEventListener(
-      ApplicationDAO applicationDAO,
       ApplicationPermissionsService applicationPermissionsService,
       ChaosMonkeyEventListenerConfigurationProperties properties,
       ObjectMapper objectMapper) {
-    this.applicationDAO = applicationDAO;
     this.applicationPermissionsService = applicationPermissionsService;
     this.properties = properties;
     this.objectMapper = objectMapper;
@@ -80,7 +75,7 @@ public class ChaosMonkeyEventListener
 
     Application.Permission updatedPermission =
         applicationPermissionsService.updateApplicationPermission(
-            updatedApplication.getName(), permission, true);
+            updatedApplication.getName(), permission);
 
     log.debug(
         "Updated application `{}` with permissions `{}`",
@@ -92,40 +87,6 @@ public class ChaosMonkeyEventListener
 
   @Override
   public void rollback(Application originalApplication) {
-    // Do nothing.
-  }
-
-  @Override
-  public boolean supports(ApplicationPermissionEventListener.Type type) {
-    return properties.isEnabled()
-        && Arrays.asList(
-                ApplicationPermissionEventListener.Type.PRE_CREATE,
-                ApplicationPermissionEventListener.Type.PRE_UPDATE)
-            .contains(type);
-  }
-
-  @Nullable
-  @Override
-  public Application.Permission call(
-      @Nullable Application.Permission originalPermission,
-      @Nullable Application.Permission updatedPermission) {
-    if (updatedPermission == null || !updatedPermission.getPermissions().isRestricted()) {
-      return null;
-    }
-
-    Application application = applicationDAO.findByName(updatedPermission.getName());
-
-    if (isChaosMonkeyEnabled(application)) {
-      applyNewPermissions(updatedPermission, true);
-    } else {
-      applyNewPermissions(updatedPermission, false);
-    }
-
-    return updatedPermission;
-  }
-
-  @Override
-  public void rollback(@Nonnull Application.Permission originalPermission) {
     // Do nothing.
   }
 
