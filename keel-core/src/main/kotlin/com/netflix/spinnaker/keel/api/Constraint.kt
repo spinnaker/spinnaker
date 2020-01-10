@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.api
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import com.fasterxml.jackson.annotation.JsonTypeInfo
@@ -89,8 +90,28 @@ data class CanaryConstraint(
   val regions: Set<String>,
   val capacity: Int,
   // If true, the failure of a canary in one region triggers the immediate cancellation of other regions
-  val failureCancelsRunningRegions: Boolean = true
-) : StatefulConstraint("canary")
+  val failureCancelsRunningRegions: Boolean = true,
+  // If set to >0, a multi-region canary only has to pass in this number of regions for the constraint to pass
+  val minSuccessfulRegions: Int = 0
+) : StatefulConstraint("canary") {
+  init {
+    require(minSuccessfulRegions <= regions.size) {
+      "passIfSucceedsInNRegions = $minSuccessfulRegions but only ${regions.size} regions are specified"
+    }
+
+    if (regions.size < 2) {
+      require(minSuccessfulRegions == 0) {
+        "passIfSucceedsInNRegions can only be set on a multi-region constraint"
+      }
+    }
+  }
+
+  @JsonIgnore
+  val allowedFailures: Int = when (minSuccessfulRegions) {
+    0 -> 0
+    else -> regions.size - minSuccessfulRegions
+  }
+}
 
 data class CanarySource(
   val account: String,

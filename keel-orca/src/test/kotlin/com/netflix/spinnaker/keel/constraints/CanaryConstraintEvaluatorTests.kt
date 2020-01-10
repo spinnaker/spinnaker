@@ -149,15 +149,7 @@ internal class CanaryConstraintEvaluatorTests : JUnit5Minutests {
 
         coEvery {
           orcaService.getOrchestrationExecution(any())
-        } returns ExecutionDetailResponse(
-          id = randomUID().toString(),
-          name = "fnord",
-          application = "fnord",
-          buildTime = clock.instant(),
-          startTime = clock.instant(),
-          endTime = null,
-          status = OrcaExecutionStatus.RUNNING
-        )
+        } returns executionDetailResponse()
 
         coEvery {
           orcaService.getCorrelatedExecutions(any())
@@ -277,6 +269,8 @@ internal class CanaryConstraintEvaluatorTests : JUnit5Minutests {
         deliveryConfigRepository.storeConstraintState(state.copy(attributes = attributes))
       }
 
+      after { clearMocks(orcaService) }
+
       test("one region failed, another is still running and is cancelled") {
         coEvery {
           orcaService.getCorrelatedExecutions("$judge:us-west-1")
@@ -288,25 +282,11 @@ internal class CanaryConstraintEvaluatorTests : JUnit5Minutests {
 
         coEvery {
           orcaService.getOrchestrationExecution(west1Id)
-        } returns ExecutionDetailResponse(
-          id = west1Id,
-          name = "fnord",
-          application = "fnord",
-          buildTime = clock.instant(),
-          startTime = clock.instant(),
-          endTime = null,
-          status = OrcaExecutionStatus.RUNNING)
+        } returns executionDetailResponse(west1Id)
 
         coEvery {
           orcaService.getOrchestrationExecution(west2Id)
-        } returns ExecutionDetailResponse(
-          id = west2Id,
-          name = "fnord",
-          application = "fnord",
-          buildTime = clock.instant(),
-          startTime = clock.instant(),
-          endTime = clock.instant(),
-          status = OrcaExecutionStatus.TERMINAL)
+        } returns executionDetailResponse(west2Id, OrcaExecutionStatus.TERMINAL)
 
         coEvery {
           orcaService.cancelOrchestration(any())
@@ -318,6 +298,112 @@ internal class CanaryConstraintEvaluatorTests : JUnit5Minutests {
         coVerify(exactly = 1) {
           orcaService.cancelOrchestration(west1Id)
         }
+      }
+    }
+
+    context("the canary fails early in one region but passIfSucceedsInNRegions allows it") {
+      deriveFixture {
+        val newConstraint = defaultConstraint.copy(minSuccessfulRegions = 1)
+        copy(
+          constraint = newConstraint,
+          targetEnvironment = targetEnvironment.copy(
+            constraints = setOf(newConstraint)))
+      }
+
+      val west1Id = randomUID().toString()
+      val west2Id = randomUID().toString()
+
+      before {
+        deliveryConfigRepository.dropAll()
+        deliveryConfigRepository.store(deliveryConfig)
+
+        coEvery {
+          orcaService.getCorrelatedExecutions(any())
+        } returns emptyList()
+
+        expectThat(subject.canPromote(artifact, version, deliveryConfig, targetEnvironment))
+          .isFalse()
+
+        coVerify(exactly = 2) {
+          orcaService.getCorrelatedExecutions(any())
+        }
+
+        val state = deliveryConfigRepository.getConstraintState(
+          deliveryConfig.name,
+          targetEnvironment.name,
+          version,
+          type)
+
+        var attributes = state!!.attributes!! as CanaryConstraintAttributes
+
+        attributes = attributes.copy(
+          executions = setOf(
+            RegionalExecutionId(region = "us-west-1", executionId = west1Id),
+            RegionalExecutionId(region = "us-west-2", executionId = west2Id)))
+
+        deliveryConfigRepository.storeConstraintState(state.copy(attributes = attributes))
+      }
+
+      after { clearMocks(orcaService) }
+
+      test("one region failed, another is still running and it continues") {
+        coEvery {
+          orcaService.getCorrelatedExecutions("$judge:us-west-1")
+        } returns listOf(west1Id)
+
+        coEvery {
+          orcaService.getCorrelatedExecutions("$judge:us-west-2")
+        } returns emptyList()
+
+        coEvery {
+          orcaService.getOrchestrationExecution(west1Id)
+        } returns executionDetailResponse(west1Id)
+
+        coEvery {
+          orcaService.getOrchestrationExecution(west2Id)
+        } returns executionDetailResponse(west2Id, OrcaExecutionStatus.TERMINAL)
+
+        expectThat(subject.canPromote(artifact, version, deliveryConfig, targetEnvironment))
+          .isFalse()
+
+        coVerify(exactly = 0) {
+          orcaService.cancelOrchestration(west1Id)
+        }
+
+        val state = deliveryConfigRepository.getConstraintState(
+          deliveryConfig.name,
+          targetEnvironment.name,
+          version,
+          type)!!
+
+        expectThat(state.status)
+          .isEqualTo(ConstraintStatus.PENDING)
+      }
+
+      test("one region has failed, the other has passed") {
+        coEvery {
+          orcaService.getCorrelatedExecutions(any())
+        } returns emptyList()
+
+        coEvery {
+          orcaService.getOrchestrationExecution(west1Id)
+        } returns executionDetailResponse(west1Id, OrcaExecutionStatus.SUCCEEDED)
+
+        coEvery {
+          orcaService.getOrchestrationExecution(west2Id)
+        } returns executionDetailResponse(west2Id, OrcaExecutionStatus.TERMINAL)
+
+        expectThat(subject.canPromote(artifact, version, deliveryConfig, targetEnvironment))
+          .isTrue()
+
+        val state = deliveryConfigRepository.getConstraintState(
+          deliveryConfig.name,
+          targetEnvironment.name,
+          version,
+          type)!!
+
+        expectThat(state.status)
+          .isEqualTo(ConstraintStatus.PASS)
       }
     }
 
@@ -384,6 +470,22 @@ internal class CanaryConstraintEvaluatorTests : JUnit5Minutests {
       }
     }
   }
+
+  fun executionDetailResponse(
+    id: String = randomUID().toString(),
+    status: OrcaExecutionStatus = OrcaExecutionStatus.RUNNING
+  ) =
+    ExecutionDetailResponse(
+      id = id,
+      name = "fnord",
+      application = "fnord",
+      buildTime = clock.instant(),
+      startTime = clock.instant(),
+      endTime = when (status.isIncomplete()) {
+        true -> null
+        false -> clock.instant()
+      },
+      status = status)
 }
 
 class DummyCanaryConstraintDeployHandler : CanaryConstraintDeployHandler {

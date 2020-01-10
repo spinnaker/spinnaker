@@ -47,6 +47,16 @@ import org.springframework.stereotype.Component
  *    regions:
  *      - us-east-1
  *      - us-west-2
+ *      - us-west-1
+ *
+ * Optional parameters:
+ *    // For a multi-region canary, this many regions must pass for the constraint to pass.
+ *    // If unset or set to 0, all regions must pass.
+ *    minSuccessfulRegions: 2
+ *    // When a region fails (or regional failures violate minSuccessfulRegions), the default
+ *    // behavior is to immediate cancel any still running regions. If set to false, running
+ *    // regions are left to complete naturally.
+ *    failureCancelsRunningRegions: false
  */
 @Component
 class CanaryConstraintEvaluator(
@@ -77,7 +87,7 @@ class CanaryConstraintEvaluator(
       canaryStatus(attributes)
     }
 
-    if (status.anyFailed()) {
+    if (status.numFailed() > constraint.allowedFailures) {
       val stillRunning = status.getRunning()
       if (stillRunning.isNotEmpty() && constraint.failureCancelsRunningRegions) {
         runBlocking {
@@ -97,7 +107,7 @@ class CanaryConstraintEvaluator(
       return false
     }
 
-    if (status.allPassed() && status.regions() == constraint.regions) {
+    if (status.passed(constraint)) {
       deliveryConfigRepository.storeConstraintState(
         state.copy(
           status = ConstraintStatus.PASS,
@@ -211,15 +221,27 @@ class CanaryConstraintEvaluator(
       }
     }
 
-  private fun Set<CanaryStatus>.allPassed(): Boolean =
-    all {
+  private fun Set<CanaryStatus>.passed(constraint: CanaryConstraint): Boolean {
+    val passed = filter {
       OrcaExecutionStatus.valueOf(it.executionStatus).isSuccess()
     }
+      .size
 
-  private fun Set<CanaryStatus>.anyFailed(): Boolean =
-    any {
+    val failed = filter {
       OrcaExecutionStatus.valueOf(it.executionStatus).isFailure()
     }
+      .size
+
+    return passed + failed == size &&
+      failed <= constraint.allowedFailures &&
+      regions() == constraint.regions
+  }
+
+  private fun Set<CanaryStatus>.numFailed(): Int =
+    filter {
+      OrcaExecutionStatus.valueOf(it.executionStatus).isFailure()
+    }
+      .size
 
   private fun Set<CanaryStatus>.anyRunning(): Boolean =
     isNotEmpty() && getRunning().isNotEmpty()
