@@ -57,7 +57,7 @@
         </span>
         <span ng-if="stage.context.lastCapacityCheck.total !== 0">
           ( current status:
-          <health-counts container="stage.context.lastCapacityCheck" class="no-float"></health-counts>)
+          <health-counts container="stage.context.lastCapacityCheck"></health-counts>)
         </span>
       </p>
       <div ng-if="waitingForUpInstances && customStuckDeployGuide" ng-bind-html="customStuckDeployGuide"></div>

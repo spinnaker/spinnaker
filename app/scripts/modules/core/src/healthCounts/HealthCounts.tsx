@@ -188,7 +188,7 @@ export class HealthCounts extends React.Component<IHealthCountsProps, IHealthCou
 
     if (percentLabel !== 'n/a') {
       return (
-        <div className={`health-counts ${className}`}>
+        <span className={`health-counts ${className}`}>
           <Tooltip template={legend} placement={this.props.legendPlacement}>
             <span className="counter instance-health-counts">
               {counts}
@@ -200,11 +200,11 @@ export class HealthCounts extends React.Component<IHealthCountsProps, IHealthCou
               )}
             </span>
           </Tooltip>
-        </div>
+        </span>
       );
     } else if (container.outOfService) {
       return (
-        <div className={`health-counts ${className}`}>
+        <span className={`health-counts ${className}`}>
           <Tooltip template={legend}>
             <span className="counter instance-health-counts">
               <span>
@@ -212,7 +212,7 @@ export class HealthCounts extends React.Component<IHealthCountsProps, IHealthCou
               </span>
             </span>
           </Tooltip>
-        </div>
+        </span>
       );
     } else {
       return null;
