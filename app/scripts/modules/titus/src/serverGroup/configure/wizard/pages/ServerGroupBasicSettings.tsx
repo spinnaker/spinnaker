@@ -3,6 +3,7 @@ import { Field, FormikErrors, FormikProps } from 'formik';
 
 import {
   DeploymentStrategySelector,
+  DeployingIntoManagedClusterWarning,
   HelpField,
   NameUtils,
   RegionSelectField,
@@ -114,6 +115,12 @@ export class ServerGroupBasicSettings
       }
     }
 
+    // this error is added exclusively to disable the "create/clone" button - it is not visible aside from the warning
+    // rendered by the DeployingIntoManagedClusterWarning component
+    if (values.resourceSummary) {
+      errors.resourceSummary = { id: 'Cluster is managed' };
+    }
+
     return errors;
   }
 
@@ -137,11 +144,15 @@ export class ServerGroupBasicSettings
   };
 
   private stackChanged = (stack: string) => {
-    this.props.formik.setFieldValue('stack', stack);
+    const { formik } = this.props;
+    formik.setFieldValue('stack', stack);
+    formik.values.clusterChanged(formik.values);
   };
 
   private freeFormDetailsChanged = (freeFormDetails: string) => {
-    this.props.formik.setFieldValue('freeFormDetails', freeFormDetails);
+    const { formik } = this.props;
+    formik.setFieldValue('freeFormDetails', freeFormDetails);
+    formik.values.clusterChanged(formik.values);
   };
 
   public componentWillReceiveProps(nextProps: IServerGroupBasicSettingsProps) {
@@ -164,7 +175,8 @@ export class ServerGroupBasicSettings
   };
 
   public render() {
-    const { errors, setFieldValue, values } = this.props.formik;
+    const { app, formik } = this.props;
+    const { errors, setFieldValue, values } = formik;
     const { createsNewCluster, latestServerGroup, namePreview, showPreviewAsWarning } = this.state;
 
     const accounts = values.backingData.accounts;
@@ -172,6 +184,7 @@ export class ServerGroupBasicSettings
 
     return (
       <div className="container-fluid form-horizontal">
+        <DeployingIntoManagedClusterWarning app={app} formik={formik} />
         <div className="form-group">
           <div className="col-md-3 sm-label-right">Account</div>
           <div className="col-md-7">

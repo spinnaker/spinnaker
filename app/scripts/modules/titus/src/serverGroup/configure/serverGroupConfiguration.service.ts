@@ -20,6 +20,8 @@ import {
   SecurityGroupReader,
   IVpc,
   ISecurityGroup,
+  NameUtils,
+  setMatchingResourceSummary,
 } from '@spinnaker/core';
 import {
   IAmazonApplicationLoadBalancer,
@@ -135,13 +137,20 @@ export class TitusServerGroupConfigurationService {
       command.viewState.dirty = { ...(command.viewState.dirty || {}), ...result.dirty };
       this.configureLoadBalancerOptions(command);
       this.configureSecurityGroupOptions(command);
+      setMatchingResourceSummary(command);
       return result;
     };
 
     cmd.regionChanged = (command: ITitusServerGroupCommand) => {
       this.configureLoadBalancerOptions(command);
       this.configureSecurityGroupOptions(command);
+      setMatchingResourceSummary(command);
       return {};
+    };
+
+    cmd.clusterChanged = (command: ITitusServerGroupCommand): void => {
+      command.moniker = NameUtils.getMoniker(command.application, command.stack, command.freeFormDetails);
+      setMatchingResourceSummary(command);
     };
   }
 

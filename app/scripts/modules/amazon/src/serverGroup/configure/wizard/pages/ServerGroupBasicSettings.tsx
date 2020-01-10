@@ -1,5 +1,5 @@
 import React from 'react';
-import { Field, FormikProps } from 'formik';
+import { Field, FormikErrors, FormikProps } from 'formik';
 
 import {
   AccountSelectInput,
@@ -12,6 +12,7 @@ import {
   IServerGroup,
   IWizardPageComponent,
   Markdown,
+  DeployingIntoManagedClusterWarning,
   TaskReason,
 } from '@spinnaker/core';
 
@@ -111,8 +112,8 @@ export class ServerGroupBasicSettings
     setFieldValue('subnetType', values.subnetType);
   };
 
-  public validate(values: IAmazonServerGroupCommand): { [key: string]: string } {
-    const errors: { [key: string]: string } = {};
+  public validate(values: IAmazonServerGroupCommand): FormikErrors<IAmazonServerGroupCommand> {
+    const errors: FormikErrors<IAmazonServerGroupCommand> = {};
 
     if (!isStackPattern(values.stack)) {
       errors.stack = 'Only dot(.) and underscore(_) special characters are allowed in the Stack field.';
@@ -125,6 +126,12 @@ export class ServerGroupBasicSettings
 
     if (!values.viewState.disableImageSelection && !values.amiName) {
       errors.amiName = 'Image required.';
+    }
+
+    // this error is added exclusively to disable the "create/clone" button - it is not visible aside from the warning
+    // rendered by the DeployingIntoManagedClusterWarning component
+    if (values.resourceSummary) {
+      errors.resourceSummary = { id: 'Cluster is managed' };
     }
 
     return errors;
@@ -206,6 +213,7 @@ export class ServerGroupBasicSettings
             </div>
           </div>
         )}
+        <DeployingIntoManagedClusterWarning app={app} formik={formik} />
         <div className="form-group">
           <div className="col-md-3 sm-label-right">Account</div>
           <div className="col-md-7">

@@ -2,7 +2,7 @@ import { module } from 'angular';
 
 import { Application } from 'core/application/application.model';
 import { IMoniker } from 'core/naming/IMoniker';
-import { ILoadBalancer, ISecurityGroup, ISubnet, IPipeline, IStage } from 'core/domain';
+import { ILoadBalancer, ISecurityGroup, ISubnet, IPipeline, IStage, IManagedResourceSummary } from 'core/domain';
 import { ICapacity } from 'core/serverGroup/serverGroupWriter.service';
 import { IDeploymentStrategy } from 'core/deploymentStrategy';
 import { ISecurityGroupsByAccountSourceData } from 'core/securityGroup/securityGroupReader.service';
@@ -75,6 +75,7 @@ export interface IServerGroupCommandBackingData {
   enabledMetrics: string[];
   healthCheckTypes: string[];
   instanceTypes: string[];
+  managedResources: IManagedResourceSummary[];
   loadBalancers: ILoadBalancer[];
   terminationPolicies: string[];
   subnets: ISubnet[];
@@ -111,6 +112,7 @@ export interface IServerGroupCommand {
   preferSourceCapacity?: boolean;
   reason?: string;
   region: string;
+  resourceSummary?: IManagedResourceSummary;
   securityGroups: string[];
   selectedProvider: string;
   source?: {
@@ -138,7 +140,20 @@ export interface IServerGroupCommand {
   credentialsChanged: (command: IServerGroupCommand) => IServerGroupCommandResult;
   imageChanged: (command: IServerGroupCommand) => IServerGroupCommandResult;
   instanceTypeChanged: (command: IServerGroupCommand) => void;
+  clusterChanged?: (command: IServerGroupCommand) => void;
 }
+
+export const setMatchingResourceSummary = (command: IServerGroupCommand) => {
+  command.resourceSummary = (command.backingData.managedResources ?? []).find(
+    resource =>
+      !resource.isPaused &&
+      resource.kind === 'cluster' &&
+      resource.locations.regions.some(r => r.name === command.region) &&
+      (resource.moniker.stack ?? '') === command.stack &&
+      (resource.moniker.detail ?? '') === command.freeFormDetails &&
+      resource.locations.account === command.credentials,
+  );
+};
 
 export class ServerGroupCommandBuilderService {
   private getDelegate(provider: string, skin?: string): any {
