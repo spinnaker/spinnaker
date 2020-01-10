@@ -36,7 +36,7 @@ data class GitTrigger
   override val branch: String,
   override val slug: String,
   val action: String
-) : Trigger, SourceCodeTrigger {
+) : SourceCodeTrigger {
   override var other: Map<String, Any> = mutableMapOf()
   override var resolvedExpectedArtifacts: List<ExpectedArtifact> = mutableListOf()
 }

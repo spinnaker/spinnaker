@@ -19,7 +19,7 @@ package com.netflix.spinnaker.orca.pipeline.model
 /**
  * Defines properties that are common across different types of source code triggers.
  */
-interface SourceCodeTrigger {
+interface SourceCodeTrigger : Trigger {
   val source: String
   val project: String
   val branch: String
