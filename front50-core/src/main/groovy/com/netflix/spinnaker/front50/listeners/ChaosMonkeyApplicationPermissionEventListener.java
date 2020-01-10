@@ -64,7 +64,7 @@ public class ChaosMonkeyApplicationPermissionEventListener extends ChaosMonkeyEv
       @Nullable Application.Permission originalPermission,
       @Nullable Application.Permission updatedPermission) {
     if (updatedPermission == null || !updatedPermission.getPermissions().isRestricted()) {
-      return null;
+      return updatedPermission;
     }
 
     Application application = applicationDAO.findByName(updatedPermission.getName());
