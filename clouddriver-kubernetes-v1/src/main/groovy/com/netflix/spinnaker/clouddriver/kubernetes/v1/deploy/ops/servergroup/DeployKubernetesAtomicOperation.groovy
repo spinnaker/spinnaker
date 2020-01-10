@@ -36,7 +36,7 @@ import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder
 import io.fabric8.kubernetes.api.model.apps.DeploymentFluentImpl
 import io.fabric8.kubernetes.api.model.apps.DoneableDeployment
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder
-import io.kubernetes.client.models.V1Pod
+import io.kubernetes.client.openapi.models.V1Pod
 
 class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResult> {
   private static final String BASE_PHASE = "DEPLOY"

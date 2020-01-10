@@ -37,9 +37,9 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v1.provider.view.MutableCach
 import com.netflix.spinnaker.clouddriver.kubernetes.v1.security.KubernetesV1Credentials
 import groovy.util.logging.Slf4j
 import io.fabric8.kubernetes.api.model.Event
-import io.kubernetes.client.models.V1PodList
-import io.kubernetes.client.models.V1beta1DaemonSet
-import io.kubernetes.client.models.V1beta1StatefulSet
+import io.kubernetes.client.openapi.models.V1PodList
+import io.kubernetes.client.openapi.models.V1beta1DaemonSet
+import io.kubernetes.client.openapi.models.V1beta1StatefulSet
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE

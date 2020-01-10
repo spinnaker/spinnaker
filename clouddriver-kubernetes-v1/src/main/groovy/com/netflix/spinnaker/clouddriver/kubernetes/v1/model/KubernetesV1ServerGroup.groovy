@@ -34,8 +34,8 @@ import io.fabric8.kubernetes.api.model.HorizontalPodAutoscaler
 import io.fabric8.kubernetes.api.model.ReplicationController
 import io.fabric8.kubernetes.api.model.apps.ReplicaSet
 import io.fabric8.kubernetes.client.internal.SerializationUtils
-import io.kubernetes.client.models.V1beta1DaemonSet
-import io.kubernetes.client.models.V1beta1StatefulSet
+import io.kubernetes.client.openapi.models.V1beta1DaemonSet
+import io.kubernetes.client.openapi.models.V1beta1StatefulSet
 
 import static com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.KubernetesUtil.ENABLE_DISABLE_ANNOTATION
 

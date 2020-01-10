@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v1.deploy.exception
 
 import groovy.transform.InheritConstructors
-import io.kubernetes.client.ApiException
+import io.kubernetes.client.openapi.ApiException
 
 @InheritConstructors
 class KubernetesClientOperationException extends RuntimeException {

@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v1.model
 
 import io.fabric8.kubernetes.api.model.HasMetadata
 import io.fabric8.kubernetes.api.model.ObjectMeta
-import io.kubernetes.client.models.V1ObjectMeta
+import io.kubernetes.client.openapi.models.V1ObjectMeta
 
 class KubernetesControllerConverter implements HasMetadata {
   String kind
