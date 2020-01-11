@@ -124,10 +124,12 @@
     name: name,
     required: false,
     hasOptions: false,
+    pinned: false,
     withLabel(label):: self + { label: label },
     withDescription(description):: self + { description: description },
     withDefaultValue(default):: self + { default: default },
     isRequired(isRequired):: self + { required: isRequired },
+    isPinned(isPinned):: self + { pinned: isPinned },
     withOptions(options):: self + { hasOptions: true, options: [{ value: x } for x in options] },
   },
 
