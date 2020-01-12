@@ -47,6 +47,11 @@ public class PluginArtifactController {
         .orElseGet(pluginArtifactService::findAll);
   }
 
+  @RequestMapping(value = "/{id}", method = RequestMethod.GET)
+  PluginArtifact get(@PathVariable String id) {
+    return pluginArtifactService.findById(id);
+  }
+
   @RequestMapping(value = "", method = RequestMethod.POST)
   PluginArtifact upsert(@RequestBody PluginArtifact pluginArtifact) {
     return pluginArtifactService.upsert(pluginArtifact);
