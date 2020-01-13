@@ -119,7 +119,8 @@ public class KubernetesV2InstanceProvider
   @Nonnull
   private List<ContainerLog> getPodLogs(
       @Nonnull KubernetesV2Credentials credentials, @Nonnull V1Pod pod) {
-    List<V1Container> initContainers = pod.getSpec().getInitContainers();
+    List<V1Container> initContainers =
+        Optional.ofNullable(pod.getSpec().getInitContainers()).orElse(Collections.emptyList());
     List<V1Container> containers = pod.getSpec().getContainers();
 
     return Stream.concat(initContainers.stream(), containers.stream())
