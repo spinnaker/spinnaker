@@ -20,6 +20,7 @@ import com.netflix.spinnaker.orca.front50.model.Application
 import com.netflix.spinnaker.orca.front50.model.ApplicationNotifications
 import com.netflix.spinnaker.orca.front50.model.DeliveryConfig
 import com.netflix.spinnaker.orca.front50.model.Front50Credential
+import com.netflix.spinnaker.orca.front50.model.PluginArtifact
 import retrofit.client.Response
 import retrofit.http.*
 
@@ -47,6 +48,12 @@ interface Front50Service {
 
   @PUT("/permissions/applications/{applicationName}")
   Response updatePermission(@Path("applicationName") String applicationName, @Body Application.Permission permission)
+
+  @POST("/pluginArtifacts")
+  PluginArtifact upsertPluginArtifact(@Body PluginArtifact pluginArtifact)
+
+  @DELETE("/pluginArtifacts/{pluginArtifactId}")
+  Response deletePluginArtifact(@Path("pluginArtifactId") String pluginArtifactId)
 
   @GET("/pipelines/{applicationName}")
   List<Map<String, Object>> getPipelines(@Path("applicationName") String applicationName)
