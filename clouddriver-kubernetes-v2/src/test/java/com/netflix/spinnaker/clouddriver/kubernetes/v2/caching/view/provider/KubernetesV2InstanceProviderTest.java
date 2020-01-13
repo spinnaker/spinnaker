@@ -82,22 +82,22 @@ final class KubernetesV2InstanceProviderTest {
 
   @Test
   void getInstanceSuccess() {
-    final CacheData cacheData = mock(CacheData.class);
-    final Map<String, Object> attributes = new HashMap<>();
-    final KubernetesManifest manifest = getKubernetesManifest();
+    CacheData cacheData = mock(CacheData.class);
+    Map<String, Object> attributes = new HashMap<>();
+    KubernetesManifest manifest = getKubernetesManifest();
     attributes.put("manifest", manifest);
     when(cacheData.getAttributes()).thenReturn(attributes);
     when(cacheUtils.getSingleEntry(KIND.toString(), CACHE_KEY)).thenReturn(Optional.of(cacheData));
     when(cacheData.getId()).thenReturn(CACHE_KEY);
 
-    final KubernetesV2Instance instance = provider.getInstance(ACCOUNT, NAMESPACE, POD_FULL_NAME);
+    KubernetesV2Instance instance = provider.getInstance(ACCOUNT, NAMESPACE, POD_FULL_NAME);
 
     assertThat(instance.getManifest()).isEqualTo(manifest);
   }
 
   @Test
   void getInstanceBadPodNameShouldReturnNull() {
-    final KubernetesV2Instance instance = provider.getInstance(ACCOUNT, NAMESPACE, "badname");
+    KubernetesV2Instance instance = provider.getInstance(ACCOUNT, NAMESPACE, "badname");
 
     assertThat(instance).isNull();
   }
@@ -106,18 +106,18 @@ final class KubernetesV2InstanceProviderTest {
   void getInstancePodNotFoundShouldReturnNull() {
     when(cacheUtils.getSingleEntry(KIND.toString(), CACHE_KEY)).thenReturn(Optional.empty());
 
-    final KubernetesV2Instance instance = provider.getInstance(ACCOUNT, NAMESPACE, POD_FULL_NAME);
+    KubernetesV2Instance instance = provider.getInstance(ACCOUNT, NAMESPACE, POD_FULL_NAME);
 
     assertThat(instance).isNull();
   }
 
   @Test
   void getConsoleOutputSuccess() {
-    final KubernetesManifest manifest = getKubernetesManifest();
+    KubernetesManifest manifest = getKubernetesManifest();
     when(credentials.get(KubernetesKind.POD, NAMESPACE, POD_NAME)).thenReturn(manifest);
     when(credentials.logs(anyString(), anyString(), anyString())).thenReturn(LOG_OUTPUT);
 
-    final List<ContainerLog> logs = provider.getConsoleOutput(ACCOUNT, NAMESPACE, POD_FULL_NAME);
+    List<ContainerLog> logs = provider.getConsoleOutput(ACCOUNT, NAMESPACE, POD_FULL_NAME);
 
     assertThat(logs).isNotEmpty();
     assertThat(logs).hasSize(2);
@@ -128,13 +128,30 @@ final class KubernetesV2InstanceProviderTest {
   }
 
   @Test
+  void getConsoleOutputNoInitContainer() {
+    V1Pod pod = getPod();
+    pod.getSpec().setInitContainers(null);
+    KubernetesManifest manifest = json.deserialize(json.serialize(pod), KubernetesManifest.class);
+
+    when(credentials.get(KubernetesKind.POD, NAMESPACE, POD_NAME)).thenReturn(manifest);
+    when(credentials.logs(anyString(), anyString(), anyString())).thenReturn(LOG_OUTPUT);
+
+    List<ContainerLog> logs = provider.getConsoleOutput(ACCOUNT, NAMESPACE, POD_FULL_NAME);
+
+    assertThat(logs).isNotEmpty();
+    assertThat(logs).hasSize(1);
+    assertThat(logs.get(0).getName()).isEqualTo(CONTAINER);
+    assertThat(logs.get(0).getOutput()).isEqualTo(LOG_OUTPUT);
+  }
+
+  @Test
   void getConsoleOutputKubectlException() {
-    final KubernetesManifest manifest = getKubernetesManifest();
+    KubernetesManifest manifest = getKubernetesManifest();
     when(credentials.get(KubernetesKind.POD, NAMESPACE, POD_NAME)).thenReturn(manifest);
     when(credentials.logs(anyString(), anyString(), anyString()))
         .thenThrow(new KubectlJobExecutor.KubectlException(LOG_OUTPUT, null));
 
-    final List<ContainerLog> logs = provider.getConsoleOutput(ACCOUNT, NAMESPACE, POD_FULL_NAME);
+    List<ContainerLog> logs = provider.getConsoleOutput(ACCOUNT, NAMESPACE, POD_FULL_NAME);
 
     assertThat(logs).isNotEmpty();
     assertThat(logs).hasSize(2);
@@ -144,12 +161,12 @@ final class KubernetesV2InstanceProviderTest {
     assertThat(logs.get(1).getOutput()).isEqualTo(LOG_OUTPUT);
   }
 
-  private KubernetesManifest getKubernetesManifest() {
-    final V1Pod pod = new V1Pod();
-    final V1PodSpec podSpec = new V1PodSpec();
-    final V1ObjectMeta metadata = new V1ObjectMeta();
-    final V1Container container = new V1Container();
-    final V1Container initContainer = new V1Container();
+  private V1Pod getPod() {
+    V1Pod pod = new V1Pod();
+    V1PodSpec podSpec = new V1PodSpec();
+    V1ObjectMeta metadata = new V1ObjectMeta();
+    V1Container container = new V1Container();
+    V1Container initContainer = new V1Container();
 
     metadata.setName(POD_NAME);
     metadata.setNamespace(NAMESPACE);
@@ -160,6 +177,11 @@ final class KubernetesV2InstanceProviderTest {
     podSpec.setContainers(Lists.newArrayList(container));
     podSpec.setInitContainers(Lists.newArrayList(initContainer));
 
+    return pod;
+  }
+
+  private KubernetesManifest getKubernetesManifest() {
+    V1Pod pod = getPod();
     return json.deserialize(json.serialize(pod), KubernetesManifest.class);
   }
 
@@ -167,14 +189,14 @@ final class KubernetesV2InstanceProviderTest {
   void getConsoleOutputAccountNotFoundShouldReturnNull() {
     when(accountResolver.getCredentials(ACCOUNT)).thenReturn(Optional.empty());
 
-    final List<ContainerLog> logs = provider.getConsoleOutput(ACCOUNT, NAMESPACE, POD_FULL_NAME);
+    List<ContainerLog> logs = provider.getConsoleOutput(ACCOUNT, NAMESPACE, POD_FULL_NAME);
 
     assertThat(logs).isNull();
   }
 
   @Test
   void getConsoleOutputBadPodNameShouldReturnNull() {
-    final List<ContainerLog> logs = provider.getConsoleOutput(ACCOUNT, NAMESPACE, "badname");
+    List<ContainerLog> logs = provider.getConsoleOutput(ACCOUNT, NAMESPACE, "badname");
 
     assertThat(logs).isNull();
   }
@@ -183,7 +205,7 @@ final class KubernetesV2InstanceProviderTest {
   void getConsoleOutputPodNotFoundShouldReturnErrorContainerLog() {
     when(credentials.get(KubernetesKind.POD, NAMESPACE, POD_NAME)).thenReturn(null);
 
-    final List<ContainerLog> logs = provider.getConsoleOutput(ACCOUNT, NAMESPACE, POD_FULL_NAME);
+    List<ContainerLog> logs = provider.getConsoleOutput(ACCOUNT, NAMESPACE, POD_FULL_NAME);
 
     assertThat(logs).isNotEmpty();
     assertThat(logs).hasSize(1);
