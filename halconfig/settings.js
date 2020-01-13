@@ -232,7 +232,6 @@ window.spinnakerSettings = {
     },
   },
   pubsubProviders: ['google'], // TODO(joonlim): Add amazon once it is confirmed that amazon pub/sub works.
-  plugins: '{{%plugins%}}',
   triggerTypes: [
     'artifactory',
     'nexus',
