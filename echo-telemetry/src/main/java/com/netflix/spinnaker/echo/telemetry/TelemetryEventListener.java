@@ -114,7 +114,8 @@ public class TelemetryEventListener implements EchoEventListener {
         Execution.Type.valueOf(
             parseEnum(Execution.Type.getDescriptor(), execution.getType().toUpperCase()));
 
-    if ("templatedPipeline".equalsIgnoreCase(execution.getSource().getType())) {
+    if (execution.getSource() != null
+        && "templatedPipeline".equalsIgnoreCase(execution.getSource().getType())) {
       if ("v1".equalsIgnoreCase(execution.getSource().getVersion())) {
         executionType = Execution.Type.MANAGED_PIPELINE_TEMPLATE_V1;
       } else if ("v2".equalsIgnoreCase(execution.getSource().getVersion())) {

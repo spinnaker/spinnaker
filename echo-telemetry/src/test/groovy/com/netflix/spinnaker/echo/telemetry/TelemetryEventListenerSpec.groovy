@@ -44,6 +44,7 @@ class TelemetryEventListenerSpec extends Specification {
         trigger: [
           type: "GIT"
         ],
+        source: null,
         stages : [
           [
             type               : "deploy",
