@@ -78,6 +78,41 @@ class AllowedTimesConstraintEvaluator(
         daysOfWeek.contains(it) || dayAliases.contains(it)
       }
     }
+
+    fun parseHours(hourConfig: String?): Set<Int> {
+      if (hourConfig == null) {
+        return emptySet()
+      }
+
+      val hours = mutableSetOf<Int>()
+      val trimmed = hourConfig.replace(whiteSpace, "")
+      val elements = trimmed.split(",")
+
+      elements.forEach {
+        when {
+          it.isInt() -> hours.add(it.toInt())
+          it.isIntRange() -> hours.addAll(it.hourRange())
+        }
+      }
+
+      return hours
+    }
+
+    private fun String.isInt(): Boolean = this.matches(intOnly)
+
+    private fun String.isIntRange(): Boolean = this.matches(intRange)
+
+    private fun String.hourRange(): Set<Int> {
+      val hours = this.split("-")
+      return if (hours[1].toInt() > hours[0].toInt()) {
+        // i.e. 10-18
+        IntRange(hours[0].toInt(), hours[1].toInt()).toSet()
+      } else {
+        // i.e. 18-04 == between 18-23 || 0-4
+        IntRange(hours[0].toInt(), 23).toSet() +
+          IntRange(0, hours[1].toInt()).toSet()
+      }
+    }
   }
 
   override val constraintType = TimeWindowConstraint::class.java
@@ -101,7 +136,7 @@ class AllowedTimesConstraintEvaluator(
       .atZone(tz)
 
     constraint.windows.forEach {
-      val hours = parseHours(it.hours, deliveryConfig, targetEnvironment.name)
+      val hours = parseHours(it.hours)
       val hoursMatch = hours.isEmpty() || hours.contains(now.hour)
 
       val today = now.dayOfWeek
@@ -119,29 +154,6 @@ class AllowedTimesConstraintEvaluator(
     }
 
     return false
-  }
-
-  private fun parseHours(hourConfig: String?, deliveryConfig: DeliveryConfig, envName: String): Set<Int> {
-    if (hourConfig == null) {
-      return emptySet()
-    }
-
-    val hours = mutableSetOf<Int>()
-    val trimmed = hourConfig.replace(whiteSpace, "")
-    val elements = trimmed.split(",")
-
-    elements.forEach {
-      when {
-        it.isInt() -> hours.add(it.toInt())
-        it.isIntRange() -> hours.addAll(it.hourRange())
-        else -> throw InvalidConstraintException(
-          CONSTRAINT_NAME,
-          "Invalid allowed-times constraint ($it) on deliveryConfig: ${deliveryConfig.name}, " +
-            "application: ${deliveryConfig.application}, environment: $envName")
-      }
-    }
-
-    return hours
   }
 
   private fun parseDays(dayConfig: String?, deliveryConfig: DeliveryConfig, envName: String): Set<String> {
@@ -167,22 +179,6 @@ class AllowedTimesConstraintEvaluator(
     }
 
     return days
-  }
-
-  private fun String.isInt(): Boolean = this.matches(intOnly)
-
-  private fun String.isIntRange(): Boolean = this.matches(intRange)
-
-  private fun String.hourRange(): Set<Int> {
-    val hours = this.split("-")
-    return if (hours[1].toInt() > hours[0].toInt()) {
-      // i.e. 10-18
-      IntRange(hours[0].toInt(), hours[1].toInt()).toSet()
-    } else {
-      // i.e. 18-04 == between 18-23 || 0-4
-      IntRange(hours[0].toInt(), 23).toSet() +
-        IntRange(0, hours[1].toInt()).toSet()
-    }
   }
 
   private fun String.isDay(): Boolean = daysOfWeek.contains(this)

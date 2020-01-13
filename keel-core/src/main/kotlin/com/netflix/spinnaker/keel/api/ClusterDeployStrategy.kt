@@ -1,11 +1,15 @@
 package com.netflix.spinnaker.keel.api
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id
 import com.fasterxml.jackson.annotation.JsonTypeName
+import com.netflix.spinnaker.keel.constraints.AllowedTimesConstraintEvaluator
 import java.time.Duration
 import java.time.Duration.ZERO
 
@@ -28,7 +32,10 @@ data class RedBlack(
   val resizePreviousToZero: Boolean = false,
   val maxServerGroups: Int = 2,
   val delayBeforeDisable: Duration = ZERO,
-  val delayBeforeScaleDown: Duration = ZERO
+  val delayBeforeScaleDown: Duration = ZERO,
+  // The order of this list is important for pauseTime based staggers
+  @JsonInclude(NON_EMPTY)
+  val stagger: List<StaggeredRegion> = emptyList()
 ) : ClusterDeployStrategy() {
   override fun toOrcaJobProperties() = mapOf(
     "strategy" to "redblack",
@@ -45,4 +52,38 @@ object Highlander : ClusterDeployStrategy() {
   override fun toOrcaJobProperties() = mapOf(
     "strategy" to "highlander"
   )
+}
+
+/**
+ * Allows the deployment of multi-region clusters to be staggered by region.
+ *
+ * @param region: The region to stagger
+ * @param hours: If set, this region will only be deployed to during these hours.
+ *  Supports a mix of ranges and comma separated values (i.e. "9,10-16")
+ * @param pauseTime: If set, pause for the given duration AFTER the deployment
+ *  of this region completes
+ *
+ * Any regions omitted are expected to be deployed in parallel after the final staggered
+ * region (and its optional [pauseTime]) have completed.
+ *
+ * TODO: Implement support in cluster resource handlers.
+ */
+data class StaggeredRegion(
+  val region: String,
+  val hours: String? = null,
+  val pauseTime: Duration? = null
+) {
+  init {
+    require(hours != null || pauseTime != null) {
+      "one of allowedHours or pauseTime must be set"
+    }
+
+    if (hours != null) {
+      require(AllowedTimesConstraintEvaluator.validateHours(hours))
+    }
+  }
+
+  @get:JsonIgnore
+  val allowedHours: Set<Int>
+    get() = AllowedTimesConstraintEvaluator.parseHours(hours)
 }
