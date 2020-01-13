@@ -111,6 +111,6 @@ module(CORE_APPLICATION_CONFIG_APPLICATIONATTRIBUTES_DIRECTIVE, [
           .catch(() => {});
       };
 
-      this.slackBaseUrl = SETTINGS.slack.baseUrl;
+      this.slackBaseUrl = get(SETTINGS, 'slack.baseUrl', '');
     },
   ]);
