@@ -2,6 +2,7 @@ package com.netflix.spinnaker.cats.sql.cache
 
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.RunnableAgent
+import com.netflix.spinnaker.cats.sql.SqlAgent
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
 import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider
 import org.jooq.DSLContext
@@ -15,7 +16,7 @@ class SqlTableMetricsAgent(
   private val registry: Registry,
   private val clock: Clock,
   private val namespace: String?
-) : RunnableAgent, CustomScheduledAgent {
+) : RunnableAgent, CustomScheduledAgent, SqlAgent {
 
   companion object {
     private val DEFAULT_POLL_INTERVAL_MILLIS = TimeUnit.MINUTES.toMillis(1)

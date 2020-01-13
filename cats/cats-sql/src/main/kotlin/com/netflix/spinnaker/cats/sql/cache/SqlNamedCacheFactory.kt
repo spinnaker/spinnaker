@@ -21,7 +21,6 @@ class SqlNamedCacheFactory(
   private val cacheMetrics: SqlCacheMetrics,
   private val dynamicConfigService: DynamicConfigService,
   private val sqlConstraints: SqlConstraints
-
 ) : NamedCacheFactory {
 
   @ExperimentalContracts

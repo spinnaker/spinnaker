@@ -65,6 +65,11 @@ class SqlConfiguration {
   ): SqlTaskCleanupAgent =
     SqlTaskCleanupAgent(jooq, clock, registry, properties)
 
+  /**
+   * TODO(rz): When enabled, clouddriver gets wired up with two SqlProviders (one here, another in cats-sql).
+   *  This should get cleaned up such that only one sqlProvider is ever created (register agents via an interface, say
+   *  `SqlAgent`?)
+   */
   @Bean
   @ConditionalOnProperty("sql.task-repository.enabled")
   @ConditionalOnExpression("\${sql.read-only:false} == false")
