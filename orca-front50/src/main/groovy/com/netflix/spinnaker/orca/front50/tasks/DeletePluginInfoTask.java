@@ -16,13 +16,10 @@
 
 package com.netflix.spinnaker.orca.front50.tasks;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.Task;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.front50.Front50Service;
-import com.netflix.spinnaker.orca.front50.model.PluginArtifact;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,39 +27,53 @@ import javax.annotation.Nonnull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import retrofit.client.Response;
 
 @Component
-public class UpsertPluginArtifactTask implements Task {
+public class DeletePluginInfoTask implements Task {
 
   private Logger log = LoggerFactory.getLogger(getClass());
 
   private Front50Service front50Service;
-  private ObjectMapper objectMapper;
 
   @Autowired
-  public UpsertPluginArtifactTask(Front50Service front50Service, ObjectMapper objectMapper) {
+  public DeletePluginInfoTask(Front50Service front50Service) {
     this.front50Service = front50Service;
-    this.objectMapper = objectMapper;
   }
 
   @Nonnull
   @Override
   public TaskResult execute(@Nonnull Stage stage) {
-    if (!stage.getContext().containsKey("pluginArtifact")) {
-      throw new IllegalArgumentException("Key 'pluginArtifact' must be provided.");
+    StageData stageData = stage.mapTo(StageData.class);
+
+    if (stageData.pluginInfoId == null) {
+      throw new IllegalArgumentException("Key 'pluginInfoId' must be provided.");
     }
 
-    PluginArtifact pluginArtifact =
-        objectMapper.convertValue(
-            stage.getContext().get("pluginArtifact"), new TypeReference<PluginArtifact>() {});
+    String pluginInfoId = stageData.pluginInfoId;
 
-    log.debug("Upserting front50 plugin artifact `{}`", pluginArtifact.getId());
-    PluginArtifact upsertedPluginArtifact = front50Service.upsertPluginArtifact(pluginArtifact);
+    log.debug("Deleting front50 plugin info `{}`", pluginInfoId);
+    Response response = front50Service.deletePluginInfo(pluginInfoId);
+
+    if (response.getStatus() != HttpStatus.NO_CONTENT.value()
+        && response.getStatus() != HttpStatus.NOT_FOUND.value()) {
+      log.warn(
+          "Failed to delete `{}`, received unexpected response status `{}`",
+          pluginInfoId,
+          response.getStatus());
+      return TaskResult.ofStatus(ExecutionStatus.TERMINAL);
+    }
 
     Map<String, Object> outputs = new HashMap<>();
-    outputs.put("pluginArtifact", upsertedPluginArtifact);
+    outputs.put("front50ResponseStatus", response.getStatus());
+    outputs.put("pluginInfoId", pluginInfoId);
 
     return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build();
+  }
+
+  private static class StageData {
+    public String pluginInfoId;
   }
 }

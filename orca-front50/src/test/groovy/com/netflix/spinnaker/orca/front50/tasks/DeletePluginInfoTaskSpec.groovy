@@ -25,24 +25,24 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 
-class DeletePluginArtifactTaskSpec extends Specification {
+class DeletePluginInfoTaskSpec extends Specification {
 
   Front50Service front50Service = Mock()
 
   @Subject
-  DeletePluginArtifactTask task = new DeletePluginArtifactTask(front50Service)
+  DeletePluginInfoTask task = new DeletePluginInfoTask(front50Service)
 
-  def "Should call front50 delete plugin artifact"() {
+  def "Should call front50 delete plugin info"() {
     given:
     String pluginId = "netflix.stage-plugin"
     Stage stage = new Stage(new Execution(Execution.ExecutionType.ORCHESTRATION, null),
-      "deletePluginArtifact", [pluginArtifactId: pluginId])
+      "deletePluginInfo", [pluginInfoId: pluginId])
 
     when:
     def result = task.execute(stage)
 
     then:
-    1 * front50Service.deletePluginArtifact(pluginId) >> {
+    1 * front50Service.deletePluginInfo(pluginId) >> {
       new Response('http://front50', 204, 'No Content', [], null)
     }
     result.status == ExecutionStatus.SUCCEEDED

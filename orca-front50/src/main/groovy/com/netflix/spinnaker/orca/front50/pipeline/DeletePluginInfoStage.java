@@ -14,35 +14,17 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.front50.model;
+package com.netflix.spinnaker.orca.front50.pipeline;
 
-import java.util.List;
+import com.netflix.spinnaker.orca.front50.tasks.DeletePluginInfoTask;
+import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
+import com.netflix.spinnaker.orca.pipeline.TaskNode;
+import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import javax.annotation.Nonnull;
-import lombok.Builder;
-import lombok.Data;
 
-@Data
-@Builder
-public class PluginArtifact {
-  @Nonnull private String id;
-  private String description;
-  private String provider;
-  @Nonnull private List<Release> releases;
-
-  @Data
-  public static class Release {
-    private String version;
-    private String date;
-
-    private List<String> requires;
-    private String url;
-    private String sha512sum;
-    private State state;
-    private String lastModifiedBy;
-
-    public enum State {
-      CANDIDATE,
-      RELEASE
-    }
+public class DeletePluginInfoStage implements StageDefinitionBuilder {
+  @Override
+  public void taskGraph(@Nonnull Stage stage, @Nonnull TaskNode.Builder builder) {
+    builder.withTask("deletePluginInfo", DeletePluginInfoTask.class);
   }
 }
