@@ -20,6 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching;
 import static com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.Kind.KUBERNETES_METRIC;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import java.util.Arrays;
@@ -165,7 +166,7 @@ public class Keys {
 
   @EqualsAndHashCode
   public abstract static class CacheKey {
-    private static final String provider = "kubernetes.v2";
+    @Getter private final String provider = KubernetesCloudProvider.ID;
 
     public abstract String getGroup();
 
