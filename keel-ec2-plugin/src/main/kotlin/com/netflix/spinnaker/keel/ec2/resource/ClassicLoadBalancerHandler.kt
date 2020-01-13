@@ -3,7 +3,6 @@ package com.netflix.spinnaker.keel.ec2.resource
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
@@ -173,8 +172,10 @@ class ClassicLoadBalancerHandler(
     )
   }
 
-  override suspend fun <T : ResourceSpec> actuationInProgress(resource: Resource<T>) =
-    (resource.spec as ClassicLoadBalancerSpec).locations
+  override suspend fun actuationInProgress(resource: Resource<ClassicLoadBalancerSpec>): Boolean =
+    resource
+      .spec
+      .locations
       .regions
       .map { it.name }
       .any { region ->

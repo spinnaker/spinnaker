@@ -18,7 +18,6 @@ package com.netflix.spinnaker.keel.ec2.resource
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
 import com.netflix.spinnaker.keel.api.SubmittedResource
@@ -233,8 +232,10 @@ class SecurityGroupHandler(
       }
     }
 
-  override suspend fun <T : ResourceSpec> actuationInProgress(resource: Resource<T>) =
-    (resource.spec as SecurityGroupSpec).locations
+  override suspend fun actuationInProgress(resource: Resource<SecurityGroupSpec>): Boolean =
+    resource
+      .spec
+      .locations
       .regions
       .map { it.name }
       .any { region ->

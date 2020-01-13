@@ -186,5 +186,11 @@ class ResourceActuator(
     resourceDiff: ResourceDiff<*>
   ): List<Task> =
     update(resource as Resource<S>, resourceDiff as ResourceDiff<R>)
+
+  @Suppress("UNCHECKED_CAST")
+  private suspend fun <S : ResourceSpec> ResourceHandler<S, *>.actuationInProgress(
+    resource: Resource<*>
+  ): Boolean =
+    actuationInProgress(resource as Resource<S>)
   // end type coercing extensions
 }

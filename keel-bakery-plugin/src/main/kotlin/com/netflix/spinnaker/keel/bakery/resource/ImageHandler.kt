@@ -8,7 +8,6 @@ import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.NoKnownArtifactVersions
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.id
@@ -150,7 +149,7 @@ class ImageHandler(
     return listOf(Task(id = taskRef.taskId, name = description)) // TODO: wow, this is ugly
   }
 
-  override suspend fun <T : ResourceSpec> actuationInProgress(resource: Resource<T>) =
+  override suspend fun actuationInProgress(resource: Resource<ImageSpec>): Boolean =
     orcaService
       .getCorrelatedExecutions(resource.id.toString())
       .isNotEmpty()

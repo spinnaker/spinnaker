@@ -164,10 +164,10 @@ abstract class ResourceHandler<S : ResourceSpec, R : Any>(
   }
 
   /**
-   * @return `true` if this plugin is still busy running a previous actuation for the resource
-   * associated with [id], `false` otherwise.
+   * @return `true` if this plugin is still busy running a previous actuation for [resource],
+   * `false` otherwise.
    */
-  open suspend fun <T : ResourceSpec> actuationInProgress(resource: Resource<T>): Boolean = false
+  open suspend fun actuationInProgress(resource: Resource<S>): Boolean = false
 
   /**
    * Used to register the [ResourceSpec] sub-type supported by this handler with Jackson so we can

@@ -22,7 +22,6 @@ import com.netflix.spinnaker.keel.api.Capacity
 import com.netflix.spinnaker.keel.api.ClusterDependencies
 import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
 import com.netflix.spinnaker.keel.api.SubmittedResource
@@ -95,8 +94,10 @@ class TitusClusterHandler(
       .getServerGroups(resource)
       .byRegion()
 
-  override suspend fun <T : ResourceSpec> actuationInProgress(resource: Resource<T>) =
-    (resource.spec as TitusClusterSpec).locations
+  override suspend fun actuationInProgress(resource: Resource<TitusClusterSpec>): Boolean =
+    resource
+      .spec
+      .locations
       .regions
       .map { it.name }
       .any { region ->

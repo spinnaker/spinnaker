@@ -6,7 +6,6 @@ import com.netflix.spinnaker.keel.api.ClusterDependencies
 import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
@@ -222,8 +221,10 @@ class ClusterHandler(
       }
     }
 
-  override suspend fun <T : ResourceSpec> actuationInProgress(resource: Resource<T>) =
-    (resource.spec as ClusterSpec).locations
+  override suspend fun actuationInProgress(resource: Resource<ClusterSpec>) =
+    resource
+      .spec
+      .locations
       .regions
       .map { it.name }
       .any { region ->
