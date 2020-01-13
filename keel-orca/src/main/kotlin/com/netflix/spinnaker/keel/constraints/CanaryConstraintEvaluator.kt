@@ -310,6 +310,7 @@ class CanaryConstraintEvaluator(
 
 fun CanaryConstraint.toStageBase(
   cloudDriverCache: CloudDriverCache,
+  metricsAccount: String,
   storageAccount: String,
   app: String,
   control: Map<String, Any?>,
@@ -326,7 +327,7 @@ fun CanaryConstraint.toStageBase(
       "canaryAnalysisIntervalMins" to canaryAnalysisInterval.toMinutes(),
       "canaryConfigId" to canaryConfigId,
       "lifetimeDuration" to lifetime,
-      "metricsAccountName" to metricsAccountName,
+      "metricsAccountName" to metricsAccount,
       "scopes" to listOf(
         mapOf(
           "extendedScopeParams" to mapOf(

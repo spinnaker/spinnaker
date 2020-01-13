@@ -81,8 +81,7 @@ data class CanaryConstraint(
   val canaryAnalysisInterval: Duration = Duration.ofMinutes(30),
   val cleanupDelay: Duration = Duration.ZERO,
   val lifetime: Duration,
-  // TODO: this default is only for testing; we need a configurable way to resolve constraint defaults -af
-  val metricsAccountName: String = "atlas-global.prod",
+  val metricsAccount: String? = null,
   val storageAccount: String? = null,
   val marginalScore: Int,
   val passScore: Int,

@@ -20,8 +20,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ImageService
+import com.netflix.spinnaker.keel.constraints.CanaryConstraintConfigurationProperties
 import com.netflix.spinnaker.keel.constraints.CanaryConstraintDeployHandler
 import com.netflix.spinnaker.keel.ec2.constraints.Ec2CanaryConstraintDeployHandler
+import com.netflix.spinnaker.keel.ec2.resolvers.ImageResolver
 import com.netflix.spinnaker.keel.ec2.resource.ApplicationLoadBalancerHandler
 import com.netflix.spinnaker.keel.ec2.resource.ClassicLoadBalancerHandler
 import com.netflix.spinnaker.keel.ec2.resource.ClusterHandler
@@ -31,11 +33,13 @@ import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.plugin.TaskLauncher
 import java.time.Clock
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
+@EnableConfigurationProperties(CanaryConstraintConfigurationProperties::class)
 @ConditionalOnProperty("keel.plugins.ec2.enabled")
 class EC2Config {
 
@@ -117,15 +121,19 @@ class EC2Config {
 
   @Bean
   fun ec2CanaryDeployHandler(
+    defaults: CanaryConstraintConfigurationProperties,
     taskLauncher: TaskLauncher,
     cloudDriverService: CloudDriverService,
     cloudDriverCache: CloudDriverCache,
-    imageService: ImageService
+    imageService: ImageService,
+    imageResolver: ImageResolver
   ): CanaryConstraintDeployHandler =
     Ec2CanaryConstraintDeployHandler(
+      defaults,
       taskLauncher,
       cloudDriverService,
       cloudDriverCache,
-      imageService
+      imageService,
+      imageResolver
     )
 }

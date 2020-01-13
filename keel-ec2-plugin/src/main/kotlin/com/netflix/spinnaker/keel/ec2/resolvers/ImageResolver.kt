@@ -40,7 +40,6 @@ class ImageResolver(
 
   override val apiVersion: ApiVersion = SPINNAKER_EC2_API_V1
   override val supportedKind: String = "cluster"
-
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   override fun invoke(resource: Resource<ClusterSpec>): Resource<ClusterSpec> {
@@ -55,6 +54,9 @@ class ImageResolver(
     }
     return resource.withVirtualMachineImages(image)
   }
+
+  val defaultImageAccount: String
+    get() = dynamicConfigService.getConfig("images.default-account", "test")
 
   private suspend fun resolveFromReference(
     resource: Resource<ClusterSpec>,
@@ -73,7 +75,7 @@ class ImageResolver(
   ): NamedImage {
     val deliveryConfig = deliveryConfigRepository.deliveryConfigFor(resource.id)
     val environment = deliveryConfigRepository.environmentFor(resource.id)
-    val account = dynamicConfigService.getConfig("images.default-account", "test")
+    val account = defaultImageAccount
     val regions = resource.spec.locations.regions.map { it.name }
 
     val artifactVersion = artifactRepository.latestVersionApprovedIn(

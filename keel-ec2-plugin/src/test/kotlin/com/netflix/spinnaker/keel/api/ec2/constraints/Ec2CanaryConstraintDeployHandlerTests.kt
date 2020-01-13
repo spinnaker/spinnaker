@@ -20,7 +20,9 @@ import com.netflix.spinnaker.keel.clouddriver.model.LaunchConfig
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import com.netflix.spinnaker.keel.clouddriver.model.SuspendedProcess
+import com.netflix.spinnaker.keel.constraints.CanaryConstraintConfigurationProperties
 import com.netflix.spinnaker.keel.ec2.constraints.Ec2CanaryConstraintDeployHandler
+import com.netflix.spinnaker.keel.ec2.resolvers.ImageResolver
 import com.netflix.spinnaker.keel.events.Task
 import com.netflix.spinnaker.keel.model.parseMoniker
 import com.netflix.spinnaker.keel.plugin.TaskLauncher
@@ -49,6 +51,7 @@ internal class Ec2CanaryConstraintDeployHandlerTests : JUnit5Minutests {
     val cloudDriverService: CloudDriverService = mockk()
     val cloudDriverCache: CloudDriverCache = mockk()
     val imageService: ImageService = mockk()
+    val imageResolver: ImageResolver = mockk()
   }
 
   data class Fixture(
@@ -78,7 +81,13 @@ internal class Ec2CanaryConstraintDeployHandlerTests : JUnit5Minutests {
       regions = setOf("us-west-1", "us-west-2")
     )
 
-    val subject = Ec2CanaryConstraintDeployHandler(taskLauncher, cloudDriverService, cloudDriverCache, imageService)
+    val subject = Ec2CanaryConstraintDeployHandler(
+      CanaryConstraintConfigurationProperties(),
+      taskLauncher,
+      cloudDriverService,
+      cloudDriverCache,
+      imageService,
+      imageResolver)
   }
 
   fun tests() = rootContext<Fixture> {
@@ -101,6 +110,10 @@ internal class Ec2CanaryConstraintDeployHandlerTests : JUnit5Minutests {
         coEvery {
           taskLauncher.submitJobToOrca(any(), any(), any(), any(), any(), any(), any())
         } returns Task(randomUID().toString(), "fnord canary")
+
+        coEvery {
+          imageResolver.defaultImageAccount
+        } returns "test"
 
         coEvery {
           cloudDriverCache.subnetBy(any())

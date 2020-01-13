@@ -10,8 +10,10 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.subnet
+import com.netflix.spinnaker.keel.constraints.CanaryConstraintConfigurationProperties
 import com.netflix.spinnaker.keel.constraints.CanaryConstraintDeployHandler
 import com.netflix.spinnaker.keel.constraints.toStageBase
+import com.netflix.spinnaker.keel.ec2.resolvers.ImageResolver
 import com.netflix.spinnaker.keel.events.Task
 import com.netflix.spinnaker.keel.model.parseMoniker
 import com.netflix.spinnaker.keel.model.toEchoNotification
@@ -25,13 +27,14 @@ import org.slf4j.LoggerFactory
 import retrofit2.HttpException
 
 class Ec2CanaryConstraintDeployHandler(
+  private val defaults: CanaryConstraintConfigurationProperties,
   private val taskLauncher: TaskLauncher,
   private val cloudDriverService: CloudDriverService,
   private val cloudDriverCache: CloudDriverCache,
-  private val imageService: ImageService
+  private val imageService: ImageService,
+  private val imageResolver: ImageResolver
 ) : CanaryConstraintDeployHandler {
   companion object {
-    const val DEFAULT_KAYENTA_STORAGE_ACCOUNT = "s3-objects"
     private val log by lazy { LoggerFactory.getLogger(Ec2CanaryConstraintDeployHandler::class.java) }
   }
 
@@ -53,7 +56,7 @@ class Ec2CanaryConstraintDeployHandler(
 
     val image = imageService.getLatestNamedImageWithAllRegionsForAppVersion(
       appVersion = AppVersion.parseName(version.replace("~", "_")),
-      account = "test", // TODO: update when we have "default image account" configuration
+      account = imageResolver.defaultImageAccount,
       regions = constraint.regions.toList())
       ?.imageName ?: error("Image not found for $version in all requested regions ($regions)")
 
@@ -66,7 +69,8 @@ class Ec2CanaryConstraintDeployHandler(
       val sourceServerGroup = source.getValue(region)
       constraint.toStageBase(
         cloudDriverCache = cloudDriverCache,
-        storageAccount = constraint.storageAccount ?: DEFAULT_KAYENTA_STORAGE_ACCOUNT,
+        metricsAccount = constraint.metricsAccount ?: defaults.metricsAccount,
+        storageAccount = constraint.storageAccount ?: defaults.storageAccount,
         app = deliveryConfig.application,
         control = sourceServerGroup.toKayentaStageServerGroup(constraint.capacity, "baseline", image),
         experiment = sourceServerGroup.toKayentaStageServerGroup(constraint.capacity, "canary", image)
