@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.front50.model.pluginartifact;
+package com.netflix.spinnaker.front50.model.plugininfo;
 
 import com.netflix.spinnaker.front50.model.ItemDAO;
-import com.netflix.spinnaker.front50.model.pluginartifact.PluginArtifact.Release;
+import com.netflix.spinnaker.front50.model.plugininfo.PluginInfo.Release;
 import java.util.Collection;
 import javax.annotation.Nonnull;
 
-public interface PluginArtifactRepository extends ItemDAO<PluginArtifact> {
+public interface PluginInfoRepository extends ItemDAO<PluginInfo> {
   /**
    * Returns a collection of plugins that should be installed by a particular service.
    *
    * <p>This is determined by inference, using a {@link Release}'s {@code requires} field.
    */
   @Nonnull
-  Collection<PluginArtifact> getByService(@Nonnull String service);
+  Collection<PluginInfo> getByService(@Nonnull String service);
 }

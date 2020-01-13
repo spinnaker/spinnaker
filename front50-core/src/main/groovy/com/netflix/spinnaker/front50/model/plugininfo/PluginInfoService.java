@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.front50.model.pluginartifact;
+package com.netflix.spinnaker.front50.model.plugininfo;
 
 import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.netflix.spinnaker.front50.validator.GenericValidationErrors;
-import com.netflix.spinnaker.front50.validator.PluginArtifactValidator;
+import com.netflix.spinnaker.front50.validator.PluginInfoValidator;
 import com.netflix.spinnaker.kork.exceptions.UserException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,38 +27,37 @@ import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 
 @Component
-public class PluginArtifactService {
+public class PluginInfoService {
 
-  private final PluginArtifactRepository repository;
-  private final List<PluginArtifactValidator> validators;
+  private final PluginInfoRepository repository;
+  private final List<PluginInfoValidator> validators;
 
-  public PluginArtifactService(
-      PluginArtifactRepository repository, List<PluginArtifactValidator> validators) {
+  public PluginInfoService(PluginInfoRepository repository, List<PluginInfoValidator> validators) {
     this.repository = repository;
     this.validators = validators;
   }
 
-  public Collection<PluginArtifact> findAll() {
+  public Collection<PluginInfo> findAll() {
     return repository.all();
   }
 
-  public Collection<PluginArtifact> findAllByService(@Nonnull String service) {
+  public Collection<PluginInfo> findAllByService(@Nonnull String service) {
     return repository.getByService(service);
   }
 
-  public PluginArtifact findById(@Nonnull String pluginId) {
+  public PluginInfo findById(@Nonnull String pluginId) {
     return repository.findById(pluginId);
   }
 
-  public PluginArtifact upsert(@Nonnull PluginArtifact pluginArtifact) {
-    validate(pluginArtifact);
+  public PluginInfo upsert(@Nonnull PluginInfo pluginInfo) {
+    validate(pluginInfo);
 
     try {
-      repository.findById(pluginArtifact.getId());
-      repository.update(pluginArtifact.getId(), pluginArtifact);
-      return pluginArtifact;
+      repository.findById(pluginInfo.getId());
+      repository.update(pluginInfo.getId(), pluginInfo);
+      return pluginInfo;
     } catch (NotFoundException e) {
-      return repository.create(pluginArtifact.getId(), pluginArtifact);
+      return repository.create(pluginInfo.getId(), pluginInfo);
     }
   }
 
@@ -66,31 +65,31 @@ public class PluginArtifactService {
     repository.delete(id);
   }
 
-  public PluginArtifact createRelease(@Nonnull String id, @Nonnull PluginArtifact.Release release) {
-    PluginArtifact artifact = repository.findById(id);
+  public PluginInfo createRelease(@Nonnull String id, @Nonnull PluginInfo.Release release) {
+    PluginInfo pluginInfo = repository.findById(id);
 
-    artifact.getReleases().add(release);
+    pluginInfo.getReleases().add(release);
 
-    return upsert(artifact);
+    return upsert(pluginInfo);
   }
 
-  public PluginArtifact deleteRelease(@Nonnull String id, @Nonnull String releaseVersion) {
-    PluginArtifact artifact = repository.findById(id);
+  public PluginInfo deleteRelease(@Nonnull String id, @Nonnull String releaseVersion) {
+    PluginInfo pluginInfo = repository.findById(id);
 
-    new ArrayList<>(artifact.getReleases())
+    new ArrayList<>(pluginInfo.getReleases())
         .forEach(
             release -> {
               if (release.getVersion().equals(releaseVersion)) {
-                artifact.getReleases().remove(release);
+                pluginInfo.getReleases().remove(release);
               }
             });
 
-    return upsert(artifact);
+    return upsert(pluginInfo);
   }
 
-  private void validate(PluginArtifact pluginArtifact) {
-    Errors errors = new GenericValidationErrors(pluginArtifact);
-    validators.forEach(v -> v.validate(pluginArtifact, errors));
+  private void validate(PluginInfo pluginInfo) {
+    Errors errors = new GenericValidationErrors(pluginInfo);
+    validators.forEach(v -> v.validate(pluginInfo, errors));
     if (errors.hasErrors()) {
       throw new ValidationException(errors);
     }

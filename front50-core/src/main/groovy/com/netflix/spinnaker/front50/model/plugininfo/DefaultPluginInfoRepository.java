@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.front50.model.pluginartifact;
+package com.netflix.spinnaker.front50.model.plugininfo;
 
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.front50.model.ObjectKeyLoader;
@@ -27,9 +27,9 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import rx.Scheduler;
 
-public class DefaultPluginArtifactRepository extends StorageServiceSupport<PluginArtifact>
-    implements PluginArtifactRepository {
-  public DefaultPluginArtifactRepository(
+public class DefaultPluginInfoRepository extends StorageServiceSupport<PluginInfo>
+    implements PluginInfoRepository {
+  public DefaultPluginInfoRepository(
       StorageService service,
       Scheduler scheduler,
       ObjectKeyLoader objectKeyLoader,
@@ -37,7 +37,7 @@ public class DefaultPluginArtifactRepository extends StorageServiceSupport<Plugi
       boolean shouldWarmCache,
       Registry registry) {
     super(
-        ObjectType.PLUGIN_ARTIFACT,
+        ObjectType.PLUGIN_INFO,
         service,
         scheduler,
         objectKeyLoader,
@@ -48,19 +48,18 @@ public class DefaultPluginArtifactRepository extends StorageServiceSupport<Plugi
 
   @Nonnull
   @Override
-  public Collection<PluginArtifact> getByService(@Nonnull String service) {
+  public Collection<PluginInfo> getByService(@Nonnull String service) {
     return all().stream()
-        .filter(
-            artifact -> artifact.getReleases().stream().anyMatch(r -> r.supportsService(service)))
+        .filter(info -> info.getReleases().stream().anyMatch(r -> r.supportsService(service)))
         .collect(Collectors.toList());
   }
 
   @Override
-  public PluginArtifact create(String id, PluginArtifact item) {
+  public PluginInfo create(String id, PluginInfo item) {
     Objects.requireNonNull(item.getId());
     if (!item.getId().equals(id)) {
       // Won't happen unless Orca passes a mismatched request path / request body.
-      throw new IntegrationException("The provided id and plugin artifact id do not match");
+      throw new IntegrationException("The provided id and plugin info id do not match");
     }
 
     if (item.getCreateTs() == null) {

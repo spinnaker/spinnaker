@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.front50.model.pluginartifact;
+package com.netflix.spinnaker.front50.model.plugininfo;
 
 import com.netflix.spinnaker.front50.model.Timestamped;
 import java.time.Instant;
@@ -25,13 +25,13 @@ import javax.annotation.Nonnull;
 import lombok.Data;
 
 /**
- * A Spinnaker plugin's release artifact metadata.
+ * A Spinnaker plugin's artifact information.
  *
  * <p>This model is used internally by Spinnaker to track what plugins are available for services to
  * install, as well as the specific releases that should be installed.
  */
 @Data
-public class PluginArtifact implements Timestamped {
+public class PluginInfo implements Timestamped {
   /**
    * The canonical plugin ID.
    *
@@ -45,21 +45,21 @@ public class PluginArtifact implements Timestamped {
   /** The plugin provider, typically the name of the author (or company). */
   private String provider;
 
-  /** A list of plugin artifact releases. */
+  /** A list of plugin releases. */
   @Nonnull private List<Release> releases = new ArrayList<>();
 
-  /** The time (epoch millis) when the plugin artifact was first created. */
+  /** The time (epoch millis) when the plugin info was first created. */
   private Long createTs;
 
-  /** The last time (epoch millis) this PluginArtifact was modified. */
+  /** The last time (epoch millis) this PluginInfo was modified. */
   private Long lastModified;
 
-  /** The last principal to modify this PluginArtifact. */
+  /** The last principal to modify this PluginInfo. */
   private String lastModifiedBy;
 
-  public PluginArtifact() {}
+  public PluginInfo() {}
 
-  /** A singular {@code PluginArtifact} release. */
+  /** A singular {@code PluginInfo} release. */
   @Data
   public static class Release {
     public static final Pattern SUPPORTS_PATTERN =
@@ -70,13 +70,13 @@ public class PluginArtifact implements Timestamped {
     public static final String SUPPORTS_PATTERN_VERSION_GROUP = "version";
 
     /**
-     * The version of a plugin artifact release in SemVer format.
+     * The version of a plugin release in SemVer format.
      *
      * @link https://semver.org/
      */
     private String version;
 
-    /** The date of the plugin artifact release. */
+    /** The date of the plugin release. */
     private String date;
 
     /**

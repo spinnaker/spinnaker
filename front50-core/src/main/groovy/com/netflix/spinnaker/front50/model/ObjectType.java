@@ -21,7 +21,7 @@ import com.netflix.spinnaker.front50.model.delivery.Delivery;
 import com.netflix.spinnaker.front50.model.notification.Notification;
 import com.netflix.spinnaker.front50.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplate;
-import com.netflix.spinnaker.front50.model.pluginartifact.PluginArtifact;
+import com.netflix.spinnaker.front50.model.plugininfo.PluginInfo;
 import com.netflix.spinnaker.front50.model.project.Project;
 import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccount;
 import com.netflix.spinnaker.front50.model.snapshot.Snapshot;
@@ -43,7 +43,7 @@ public enum ObjectType {
   SNAPSHOT(Snapshot.class, "snapshots", "snapshot.json"),
   ENTITY_TAGS(EntityTags.class, "tags", "entity-tags-metadata.json"),
   DELIVERY(Delivery.class, "delivery", "delivery-metadata.json"),
-  PLUGIN_ARTIFACT(PluginArtifact.class, "pluginArtifacts", "plugin-artifact-metadata.json");
+  PLUGIN_INFO(PluginInfo.class, "pluginInfo", "plugin-info-metadata.json");
 
   public final Class<? extends Timestamped> clazz;
   public final String group;

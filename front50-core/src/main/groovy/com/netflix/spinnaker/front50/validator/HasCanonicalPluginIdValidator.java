@@ -15,23 +15,23 @@
  */
 package com.netflix.spinnaker.front50.validator;
 
-import com.netflix.spinnaker.front50.model.pluginartifact.PluginArtifact;
+import com.netflix.spinnaker.front50.model.plugininfo.PluginInfo;
 import java.util.regex.Pattern;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 
 @Component
-public class HasCanonicalPluginIdValidator implements PluginArtifactValidator {
+public class HasCanonicalPluginIdValidator implements PluginInfoValidator {
 
   private final Pattern pattern = Pattern.compile("[\\w]+\\.[\\w]+");
 
   @Override
-  public void validate(PluginArtifact pluginArtifact, Errors validationErrors) {
-    if (!pattern.matcher(pluginArtifact.getId()).matches()) {
+  public void validate(PluginInfo pluginInfo, Errors validationErrors) {
+    if (!pattern.matcher(pluginInfo.getId()).matches()) {
       validationErrors.rejectValue(
           "id",
-          "pluginArtifact.id.invalid",
-          "Plugin Artifact must have a '{namespace}.{id}' canonical format");
+          "pluginInfo.id.invalid",
+          "Plugin Info must have a '{namespace}.{id}' canonical format");
     }
   }
 }

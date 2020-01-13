@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.front50.model.pluginartifact
+package com.netflix.spinnaker.front50.model.plugininfo
 
 
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class PluginArtifactSpec extends Specification {
+class PluginInfoSpec extends Specification {
 
   @Unroll
-  def "artifact release supports service"() {
+  def "plugin info release supports service"() {
     given:
-    def release = new PluginArtifact.Release(
+    def release = new PluginInfo.Release(
       requires: [
         "clouddriver>=2.0.0",
         "orca>7.0.0",

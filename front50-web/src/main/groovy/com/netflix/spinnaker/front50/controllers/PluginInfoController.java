@@ -15,8 +15,8 @@
  */
 package com.netflix.spinnaker.front50.controllers;
 
-import com.netflix.spinnaker.front50.model.pluginartifact.PluginArtifact;
-import com.netflix.spinnaker.front50.model.pluginartifact.PluginArtifactService;
+import com.netflix.spinnaker.front50.model.plugininfo.PluginInfo;
+import com.netflix.spinnaker.front50.model.plugininfo.PluginInfoService;
 import java.util.Collection;
 import java.util.Optional;
 import org.springframework.http.HttpStatus;
@@ -28,50 +28,48 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-/** TODO(rz): What's the permissions model for something like artifacts? */
+/** TODO(rz): What's the permissions model for something like plugin info? */
 @RestController
-@RequestMapping("/pluginArtifacts")
-public class PluginArtifactController {
+@RequestMapping("/pluginInfo")
+public class PluginInfoController {
 
-  private final PluginArtifactService pluginArtifactService;
+  private final PluginInfoService pluginInfoService;
 
-  public PluginArtifactController(PluginArtifactService pluginArtifactService) {
-    this.pluginArtifactService = pluginArtifactService;
+  public PluginInfoController(PluginInfoService pluginInfoService) {
+    this.pluginInfoService = pluginInfoService;
   }
 
   @RequestMapping(value = "", method = RequestMethod.GET)
-  Collection<PluginArtifact> list(
-      @RequestParam(value = "service", required = false) String service) {
+  Collection<PluginInfo> list(@RequestParam(value = "service", required = false) String service) {
     return Optional.ofNullable(service)
-        .map(pluginArtifactService::findAllByService)
-        .orElseGet(pluginArtifactService::findAll);
+        .map(pluginInfoService::findAllByService)
+        .orElseGet(pluginInfoService::findAll);
   }
 
   @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-  PluginArtifact get(@PathVariable String id) {
-    return pluginArtifactService.findById(id);
+  PluginInfo get(@PathVariable String id) {
+    return pluginInfoService.findById(id);
   }
 
   @RequestMapping(value = "", method = RequestMethod.POST)
-  PluginArtifact upsert(@RequestBody PluginArtifact pluginArtifact) {
-    return pluginArtifactService.upsert(pluginArtifact);
+  PluginInfo upsert(@RequestBody PluginInfo pluginInfo) {
+    return pluginInfoService.upsert(pluginInfo);
   }
 
   @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   void delete(@PathVariable String id) {
-    pluginArtifactService.delete(id);
+    pluginInfoService.delete(id);
   }
 
   @RequestMapping(value = "/{id}/releases", method = RequestMethod.POST)
-  PluginArtifact createRelease(
-      @PathVariable String id, @RequestBody PluginArtifact.Release release) {
-    return pluginArtifactService.createRelease(id, release);
+  PluginInfo createRelease(@PathVariable String id, @RequestBody PluginInfo.Release release) {
+    return pluginInfoService.createRelease(id, release);
   }
 
   @RequestMapping(value = "/{id}/releases/{releaseVersion}", method = RequestMethod.DELETE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  PluginArtifact deleteRelease(@PathVariable String id, @PathVariable String releaseVersion) {
-    return pluginArtifactService.deleteRelease(id, releaseVersion);
+  PluginInfo deleteRelease(@PathVariable String id, @PathVariable String releaseVersion) {
+    return pluginInfoService.deleteRelease(id, releaseVersion);
   }
 }

@@ -26,7 +26,7 @@ import com.netflix.spinnaker.front50.model.ObjectType.ENTITY_TAGS
 import com.netflix.spinnaker.front50.model.ObjectType.NOTIFICATION
 import com.netflix.spinnaker.front50.model.ObjectType.PIPELINE
 import com.netflix.spinnaker.front50.model.ObjectType.PIPELINE_TEMPLATE
-import com.netflix.spinnaker.front50.model.ObjectType.PLUGIN_ARTIFACT
+import com.netflix.spinnaker.front50.model.ObjectType.PLUGIN_INFO
 import com.netflix.spinnaker.front50.model.ObjectType.PROJECT
 import com.netflix.spinnaker.front50.model.ObjectType.SERVICE_ACCOUNT
 import com.netflix.spinnaker.front50.model.ObjectType.SNAPSHOT
@@ -76,7 +76,7 @@ class SqlStorageService(
       SNAPSHOT to DefaultTableDefinition(SNAPSHOT, "snapshots", false),
       ENTITY_TAGS to DefaultTableDefinition(ENTITY_TAGS, "entity_tags", false),
       DELIVERY to DeliveryTableDefinition(),
-      PLUGIN_ARTIFACT to DefaultTableDefinition(PLUGIN_ARTIFACT, "plugin_artifacts", false)
+      PLUGIN_INFO to DefaultTableDefinition(PLUGIN_INFO, "plugin_info", false)
     )
   }
 

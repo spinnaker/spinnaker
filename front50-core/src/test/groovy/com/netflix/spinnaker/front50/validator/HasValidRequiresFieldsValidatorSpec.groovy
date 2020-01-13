@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.front50.validator
 
-import com.netflix.spinnaker.front50.model.pluginartifact.PluginArtifact
+import com.netflix.spinnaker.front50.model.plugininfo.PluginInfo
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -28,13 +28,13 @@ class HasValidRequiresFieldsValidatorSpec extends Specification {
   @Unroll
   def "requires release with valid requires field formatting"() {
     setup:
-    def pluginArtifact = new PluginArtifact(
-      releases: [new PluginArtifact.Release(requires: requiresValue)]
+    def pluginInfo = new PluginInfo(
+      releases: [new PluginInfo.Release(requires: requiresValue)]
     )
-    def errors = new GenericValidationErrors(pluginArtifact)
+    def errors = new GenericValidationErrors(pluginInfo)
 
     when:
-    subject.validate(pluginArtifact, errors)
+    subject.validate(pluginInfo, errors)
 
     then:
     errors.hasErrors() == hasErrors

@@ -34,8 +34,8 @@ import com.netflix.spinnaker.front50.model.pipeline.DefaultPipelineTemplateDAO;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplateDAO;
-import com.netflix.spinnaker.front50.model.pluginartifact.DefaultPluginArtifactRepository;
-import com.netflix.spinnaker.front50.model.pluginartifact.PluginArtifactRepository;
+import com.netflix.spinnaker.front50.model.plugininfo.DefaultPluginInfoRepository;
+import com.netflix.spinnaker.front50.model.plugininfo.PluginInfoRepository;
 import com.netflix.spinnaker.front50.model.project.DefaultProjectDAO;
 import com.netflix.spinnaker.front50.model.project.ProjectDAO;
 import com.netflix.spinnaker.front50.model.serviceaccount.DefaultServiceAccountDAO;
@@ -244,19 +244,19 @@ public class CommonStorageServiceDAOConfig {
   }
 
   @Bean
-  PluginArtifactRepository pluginArtifactRepository(
+  PluginInfoRepository pluginInfoRepository(
       StorageService storageService,
       StorageServiceConfigurationProperties storageServiceConfigurationProperties,
       ObjectKeyLoader objectKeyLoader,
       Registry registry) {
-    return new DefaultPluginArtifactRepository(
+    return new DefaultPluginInfoRepository(
         storageService,
         Schedulers.from(
             Executors.newFixedThreadPool(
-                storageServiceConfigurationProperties.getPluginArtifact().getThreadPool())),
+                storageServiceConfigurationProperties.getPluginInfo().getThreadPool())),
         objectKeyLoader,
-        storageServiceConfigurationProperties.getPluginArtifact().getRefreshMs(),
-        storageServiceConfigurationProperties.getPluginArtifact().getShouldWarmCache(),
+        storageServiceConfigurationProperties.getPluginInfo().getRefreshMs(),
+        storageServiceConfigurationProperties.getPluginInfo().getShouldWarmCache(),
         registry);
   }
 }

@@ -15,10 +15,10 @@
  */
 package com.netflix.spinnaker.front50.validator;
 
-import com.netflix.spinnaker.front50.model.pluginartifact.PluginArtifact;
+import com.netflix.spinnaker.front50.model.plugininfo.PluginInfo;
 import org.springframework.validation.Errors;
 
-/** A {@link PluginArtifact} validator. */
-public interface PluginArtifactValidator {
-  void validate(PluginArtifact pluginArtifact, Errors validationErrors);
+/** A {@link PluginInfo} validator. */
+public interface PluginInfoValidator {
+  void validate(PluginInfo pluginInfo, Errors validationErrors);
 }

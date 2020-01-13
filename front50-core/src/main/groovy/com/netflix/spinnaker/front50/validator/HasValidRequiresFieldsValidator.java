@@ -15,10 +15,10 @@
  */
 package com.netflix.spinnaker.front50.validator;
 
-import static com.netflix.spinnaker.front50.model.pluginartifact.PluginArtifact.Release.SUPPORTS_PATTERN;
+import static com.netflix.spinnaker.front50.model.plugininfo.PluginInfo.Release.SUPPORTS_PATTERN;
 import static java.lang.String.format;
 
-import com.netflix.spinnaker.front50.model.pluginartifact.PluginArtifact;
+import com.netflix.spinnaker.front50.model.plugininfo.PluginInfo;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -26,14 +26,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 
 @Component
-public class HasValidRequiresFieldsValidator implements PluginArtifactValidator {
+public class HasValidRequiresFieldsValidator implements PluginInfoValidator {
 
   private static final List<String> VALID_OPERATORS = Arrays.asList("<", ">", ">=", "<=");
 
   @Override
-  public void validate(PluginArtifact pluginArtifact, Errors validationErrors) {
+  public void validate(PluginInfo pluginInfo, Errors validationErrors) {
 
-    pluginArtifact
+    pluginInfo
         .getReleases()
         .forEach(
             release -> {
@@ -44,7 +44,7 @@ public class HasValidRequiresFieldsValidator implements PluginArtifactValidator 
                         Matcher m = SUPPORTS_PATTERN.matcher(requires);
                         if (!m.matches()) {
                           validationErrors.reject(
-                              "pluginArtifact.releases.invalidRequiresFormat",
+                              "pluginInfo.releases.invalidRequiresFormat",
                               format(
                                   "Invalid Release requires field formatting (requires '%s')",
                                   SUPPORTS_PATTERN.pattern()));
@@ -52,9 +52,9 @@ public class HasValidRequiresFieldsValidator implements PluginArtifactValidator 
                         }
 
                         if (!VALID_OPERATORS.contains(
-                            m.group(PluginArtifact.Release.SUPPORTS_PATTERN_OPERATOR_GROUP))) {
+                            m.group(PluginInfo.Release.SUPPORTS_PATTERN_OPERATOR_GROUP))) {
                           validationErrors.reject(
-                              "pluginArtifact.releases.invalidRequiresOperator",
+                              "pluginInfo.releases.invalidRequiresOperator",
                               format(
                                   "Invalid Release requires comparison operator (requires one of: %s)",
                                   VALID_OPERATORS));

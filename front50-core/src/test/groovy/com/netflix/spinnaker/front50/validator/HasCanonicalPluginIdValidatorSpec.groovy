@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.front50.validator
 
-import com.netflix.spinnaker.front50.model.pluginartifact.PluginArtifact
+import com.netflix.spinnaker.front50.model.plugininfo.PluginInfo
 import org.springframework.validation.Errors
 import spock.lang.Specification
 import spock.lang.Subject
@@ -29,11 +29,11 @@ class HasCanonicalPluginIdValidatorSpec extends Specification {
   @Unroll
   def "requires a canonical plugin id"() {
     setup:
-    PluginArtifact pluginArtifact = new PluginArtifact(id: id)
-    Errors errors = new GenericValidationErrors(pluginArtifact)
+    PluginInfo pluginInfo = new PluginInfo(id: id)
+    Errors errors = new GenericValidationErrors(pluginInfo)
 
     when:
-    subject.validate(pluginArtifact, errors)
+    subject.validate(pluginInfo, errors)
 
     then:
     errors.hasErrors() == hasErrors

@@ -13,58 +13,58 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.front50.model.pluginartifact
+package com.netflix.spinnaker.front50.model.plugininfo
 
 import com.netflix.spinnaker.front50.exception.NotFoundException
-import com.netflix.spinnaker.front50.validator.PluginArtifactValidator
+import com.netflix.spinnaker.front50.validator.PluginInfoValidator
 import spock.lang.Specification
 import spock.lang.Subject
 
-class PluginArtifactServiceSpec extends Specification {
+class PluginInfoServiceSpec extends Specification {
 
-  PluginArtifactRepository repository = Mock()
-  PluginArtifactValidator validator = Mock()
+  PluginInfoRepository repository = Mock()
+  PluginInfoValidator validator = Mock()
 
   @Subject
-  PluginArtifactService subject = new PluginArtifactService(repository, [validator])
+  PluginInfoService subject = new PluginInfoService(repository, [validator])
 
   def "upsert conditionally creates or updates"() {
     given:
-    PluginArtifact pluginArtifact = new PluginArtifact(id: "foo.bar")
+    PluginInfo pluginInfo = new PluginInfo(id: "foo.bar")
 
     when:
-    subject.upsert(pluginArtifact)
+    subject.upsert(pluginInfo)
 
     then:
-    1 * validator.validate(pluginArtifact, _)
+    1 * validator.validate(pluginInfo, _)
     1 * repository.findById("foo.bar") >> {
       throw new NotFoundException("k")
     }
-    1 * repository.create("foo.bar", pluginArtifact) >> pluginArtifact
+    1 * repository.create("foo.bar", pluginInfo) >> pluginInfo
     0 * repository.update(_, _)
 
     when:
-    subject.upsert(pluginArtifact)
+    subject.upsert(pluginInfo)
 
     then:
-    1 * validator.validate(pluginArtifact, _)
-    1 * repository.findById("foo.bar") >> pluginArtifact
-    1 * repository.update("foo.bar", pluginArtifact)
+    1 * validator.validate(pluginInfo, _)
+    1 * repository.findById("foo.bar") >> pluginInfo
+    1 * repository.update("foo.bar", pluginInfo)
     0 * repository.create(_, _)
   }
 
-  def "creating a new release appends to plugin artifact releases"() {
+  def "creating a new release appends to plugin info releases"() {
     given:
-    PluginArtifact pluginArtifact = new PluginArtifact(id: "foo.bar")
-    pluginArtifact.releases.add(new PluginArtifact.Release(version: "1.0.0"))
+    PluginInfo pluginInfo = new PluginInfo(id: "foo.bar")
+    pluginInfo.releases.add(new PluginInfo.Release(version: "1.0.0"))
 
-    PluginArtifact.Release newRelease = new PluginArtifact.Release(version: "2.0.0")
+    PluginInfo.Release newRelease = new PluginInfo.Release(version: "2.0.0")
 
     when:
     def result = subject.createRelease("foo.bar", newRelease)
 
     then:
-    2 * repository.findById("foo.bar") >> pluginArtifact
+    2 * repository.findById("foo.bar") >> pluginInfo
     result.releases*.version == ["1.0.0", "2.0.0"]
   }
 }
