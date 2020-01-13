@@ -20,14 +20,13 @@ import com.netflix.spinnaker.kork.plugins.SpinnakerPluginDescriptor
 import io.mockk.every
 import io.mockk.mockk
 import org.pf4j.ExtensionPoint
-import org.pf4j.PluginDescriptor
 import java.lang.reflect.Method
 
 internal fun createPluginDescriptor(pluginId: String, version: String): SpinnakerPluginDescriptor {
-  val descriptor: PluginDescriptor = mockk(relaxed = true)
+  val descriptor: SpinnakerPluginDescriptor = mockk(relaxed = true)
   every { descriptor.pluginId } returns pluginId
   every { descriptor.version } returns version
-  return SpinnakerPluginDescriptor(descriptor)
+  return descriptor
 }
 
 internal fun createMethod(): Method {

@@ -24,6 +24,7 @@ import dev.minutest.rootContext
 import io.mockk.mockk
 import org.pf4j.PluginClassLoader
 import org.pf4j.PluginDescriptor
+import org.pf4j.PluginLoader
 import org.pf4j.PluginManager
 import strikt.api.expectThat
 import strikt.assertions.isTrue
@@ -33,31 +34,35 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
-class SpinnakerDefaultPluginLoaderTest : JUnit5Minutests {
+abstract class SpinnakerPluginLoadersTCK : JUnit5Minutests {
+
+  protected abstract fun subjectSupplier(): (f: Fixture) -> PluginLoader
+
+  protected abstract fun buildFixture(): Fixture
 
   fun tests() = rootContext<Fixture> {
-    fixture { Fixture() }
+    fixture { buildFixture() }
 
-    test("plugin directory is applicable") {
+    test("unsafe plugin directory is applicable") {
       expectThat(subject.isApplicable(unsafePluginPath)).isTrue()
     }
 
-    test("loads the plugin class") {
+    test("loads the unsafe plugin class") {
       val classpath = subject.loadPlugin(unsafePluginPath, unsafePluginDescriptor)
       expectThat(classpath).isA<UnsafePluginClassLoader>()
       expectThat(classpath.loadClass(unsafePluginDescriptor.pluginClass).name).isEqualTo(unsafePluginDescriptor.pluginClass)
     }
 
-    test("generated plugin directory is applicable") {
-      expectThat(subject.isApplicable(generatedPluginPath)).isTrue()
+    test("standard plugin directory is applicable") {
+      expectThat(subject.isApplicable(standardPluginPath)).isTrue()
     }
 
-    test("loads the generated plugin") {
-      val classpath = subject.loadPlugin(generatedPluginPath, generatedPluginDescriptor)
+    test("loads the standard plugin") {
+      val classpath = subject.loadPlugin(standardPluginPath, standardPluginDescriptor)
       expectThat(classpath).isA<PluginClassLoader>()
-      val pluginClass = classpath.loadClass(generatedPluginDescriptor.pluginClass)
-      expectThat(pluginClass.name).isEqualTo(generatedPluginDescriptor.pluginClass)
-      val extensionClassName = "${pluginClass.`package`.name}.${generatedPluginName}TestExtension"
+      val pluginClass = classpath.loadClass(standardPluginDescriptor.pluginClass)
+      expectThat(pluginClass.name).isEqualTo(standardPluginDescriptor.pluginClass)
+      val extensionClassName = "${pluginClass.`package`.name}.${standardPluginName}TestExtension"
       val extensionClass = classpath.loadClass(extensionClassName)
       expectThat(TestExtension::class.java.isAssignableFrom(extensionClass)).isTrue()
       val extension = extensionClass.newInstance() as TestExtension
@@ -65,18 +70,37 @@ class SpinnakerDefaultPluginLoaderTest : JUnit5Minutests {
     }
   }
 
-  private inner class Fixture {
-    val unsafePluginPath: Path = Paths.get(javaClass.getResource("/unsafe-testplugin/plugin.properties").toURI()).parent
-    val unsafePluginDescriptor: PluginDescriptor = SpinnakerPropertiesPluginDescriptorFinder().find(unsafePluginPath)
-    val pluginManager: PluginManager = mockk(relaxed = true)
-    val subject = SpinnakerDefaultPluginLoader(pluginManager)
+  interface Fixture {
+    val subject: PluginLoader
+    val unsafePluginPath: Path
+    val unsafePluginDescriptor: PluginDescriptor
+    val pluginManager: PluginManager
+    val standardPluginPath: Path
+    val standardPluginDescriptor: PluginDescriptor
+    val standardPluginName: String
+  }
+
+  protected open inner class FixtureImpl(supplier: (f: Fixture) -> PluginLoader) : Fixture {
+    val unsafeDescriptorDirectory: Path = Paths.get(javaClass.getResource("/unsafe-testplugin/plugin.properties").toURI()).parent
+    override val unsafePluginPath: Path = unsafeDescriptorDirectory
+    override val unsafePluginDescriptor: PluginDescriptor = SpinnakerPropertiesPluginDescriptorFinder().find(unsafeDescriptorDirectory)
+    override val pluginManager: PluginManager = mockk(relaxed = true)
+    override val standardPluginPath: Path = generatedPluginPath
+    override val standardPluginDescriptor: PluginDescriptor = generatedPluginDescriptor
+    override val standardPluginName: String = generatedPluginName
+    override val subject = supplier(this)
   }
 
   companion object {
-    val generatedPluginName = "SpinnakerDefaultPluginLoaderTest"
+    const val generatedPluginName = "SpinnakerDefaultPluginLoaderTests"
     val generatedPluginPath: Path = Files.createTempDirectory("generatedplugin").also {
       TestPluginBuilder(pluginPath = it, name = generatedPluginName).build()
     }
     val generatedPluginDescriptor: PluginDescriptor = SpinnakerPropertiesPluginDescriptorFinder().find(generatedPluginPath)
   }
+}
+
+class SpinnakerDefaultPluginLoaderTest : SpinnakerPluginLoadersTCK() {
+  override fun subjectSupplier(): (f: Fixture) -> PluginLoader = { SpinnakerDefaultPluginLoader(it.pluginManager) }
+  override fun buildFixture(): Fixture = FixtureImpl(subjectSupplier())
 }

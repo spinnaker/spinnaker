@@ -24,7 +24,6 @@ import dev.minutest.rootContext
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.jupiter.api.assertThrows
-import org.pf4j.DefaultPluginDescriptor
 import org.pf4j.PluginDescriptor
 import org.pf4j.PluginWrapper
 import strikt.api.expectThat
@@ -64,7 +63,7 @@ class SpinnakerPluginEndpointTest : JUnit5Minutests {
     val subject = SpinnakerPluginEndpoint(pluginManager)
 
     init {
-      val pluginWrapper = PluginWrapper(pluginManager, SpinnakerPluginDescriptor(DefaultPluginDescriptor("test", "", "", "", "", "", "")), null, this.javaClass.classLoader)
+      val pluginWrapper = PluginWrapper(pluginManager, SpinnakerPluginDescriptor("test", "", "", "", "", "", ""), null, this.javaClass.classLoader)
       every { pluginManager.getPlugins() } returns listOf(pluginWrapper)
       every { pluginManager.getPlugin("abc") } returns null
       every { pluginManager.getPlugin("test") } returns pluginWrapper

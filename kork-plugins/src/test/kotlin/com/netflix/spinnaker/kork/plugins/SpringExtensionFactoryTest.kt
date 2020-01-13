@@ -24,7 +24,6 @@ import io.mockk.mockk
 import org.pf4j.Extension
 import org.pf4j.ExtensionPoint
 import org.pf4j.Plugin
-import org.pf4j.PluginDescriptor
 import org.pf4j.PluginWrapper
 import strikt.api.expectThat
 import strikt.api.expectThrows
@@ -94,9 +93,9 @@ class SpringExtensionFactoryTest : JUnit5Minutests {
   }
 
   private fun createPluginDescriptor(pluginId: String): SpinnakerPluginDescriptor {
-    val descriptor: PluginDescriptor = mockk(relaxed = true)
+    val descriptor: SpinnakerPluginDescriptor = mockk(relaxed = true)
     every { descriptor.pluginId } returns pluginId
-    return SpinnakerPluginDescriptor(descriptor)
+    return descriptor
   }
 
   interface TheExtensionPoint : ExtensionPoint

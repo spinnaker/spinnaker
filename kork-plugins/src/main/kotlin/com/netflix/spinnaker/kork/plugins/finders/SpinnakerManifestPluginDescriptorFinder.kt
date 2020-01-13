@@ -17,6 +17,7 @@ package com.netflix.spinnaker.kork.plugins.finders
 
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginDescriptor
 import com.netflix.spinnaker.kork.plugins.validate
+import org.pf4j.DefaultPluginDescriptor
 import org.pf4j.ManifestPluginDescriptorFinder
 import org.pf4j.PluginDescriptor
 import java.util.jar.Manifest
@@ -27,14 +28,14 @@ import java.util.jar.Manifest
  */
 internal class SpinnakerManifestPluginDescriptorFinder : ManifestPluginDescriptorFinder() {
   override fun createPluginDescriptor(manifest: Manifest): PluginDescriptor =
-    super.createPluginDescriptor(manifest)
-      .also { it.validate() }
-      .let {
-        SpinnakerPluginDescriptor(
-          it,
-          manifest.mainAttributes.getValue(PLUGIN_UNSAFE)?.toBoolean() ?: false
-        )
+    super.createPluginDescriptor(manifest).also {
+      if (it is SpinnakerPluginDescriptor) {
+        it.unsafe = manifest.mainAttributes.getValue(PLUGIN_UNSAFE)?.toBoolean() ?: false
       }
+      it.validate()
+    }
+
+  override fun createPluginDescriptorInstance(): DefaultPluginDescriptor = SpinnakerPluginDescriptor()
 
   companion object {
     const val PLUGIN_UNSAFE = "Plugin-Unsafe"
