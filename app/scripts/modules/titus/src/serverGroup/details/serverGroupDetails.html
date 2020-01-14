@@ -80,6 +80,10 @@
     <div class="band band-info" ng-if="serverGroup.isDisabled">
       Job is Disabled
     </div>
+    <managed-resource-details-indicator
+      resource-summary="serverGroup.managedResourceSummary"
+      app="ctrl.application"
+    ></managed-resource-details-indicator>
     <server-group-running-tasks-details
       server-group="serverGroup"
       application="ctrl.application"
