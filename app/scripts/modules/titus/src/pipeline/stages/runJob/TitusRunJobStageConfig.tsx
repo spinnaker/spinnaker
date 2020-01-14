@@ -338,21 +338,18 @@ export class TitusRunJobStageConfig extends React.Component<IStageConfigProps, I
                 required={true}
                 onChange={e => this.stageFieldChanged('cluster.iamProfile', e.target.value)}
               />
+              {!stage.isNew && !stage.cluster.iamProfile && (
+                <a
+                  className="small clickable"
+                  onClick={() => this.stageFieldChanged('cluster.iamProfile', this.defaultIamProfile)}
+                >
+                  Use suggested default
+                </a>
+              )}
             </div>
             <div className="col-md-1 small" style={{ whiteSpace: 'nowrap', paddingLeft: '0px', paddingTop: '7px' }}>
               in <AccountTag account={awsAccount} />
             </div>
-            {!stage.isNew && !stage.cluster.iamProfile && (
-              <div className="checkbox">
-                <label>
-                  <input
-                    type="checkbox"
-                    onChange={() => this.stageFieldChanged('cluster.iamProfile', this.defaultIamProfile)}
-                  />
-                  Use default
-                </label>
-              </div>
-            )}
           </div>
 
           <StageConfigField label="Capacity Group" fieldColumns={4} helpKey="titus.job.capacityGroup">
