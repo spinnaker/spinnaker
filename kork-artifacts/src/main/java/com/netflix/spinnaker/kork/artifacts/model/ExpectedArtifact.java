@@ -17,10 +17,13 @@
 package com.netflix.spinnaker.kork.artifacts.model;
 
 import java.util.regex.Pattern;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Data
 @Builder
 public class ExpectedArtifact {
@@ -30,29 +33,6 @@ public class ExpectedArtifact {
   Artifact defaultArtifact;
   String id; // UUID to use this ExpectedArtifact by reference in Pipelines.
   Artifact boundArtifact;
-
-  // Deprecated as consumers should be using a builder; in the future this constructor will be
-  // removed from the public API
-  @Deprecated
-  public ExpectedArtifact(
-      Artifact matchArtifact,
-      boolean usePriorArtifact,
-      boolean useDefaultArtifact,
-      Artifact defaultArtifact,
-      String id,
-      Artifact boundArtifact) {
-    this.matchArtifact = matchArtifact;
-    this.usePriorArtifact = usePriorArtifact;
-    this.useDefaultArtifact = useDefaultArtifact;
-    this.defaultArtifact = defaultArtifact;
-    this.id = id;
-    this.boundArtifact = boundArtifact;
-  }
-
-  // Deprecated as consumers should be using a builder; in the future this constructor will be
-  // removed from the public API
-  @Deprecated
-  public ExpectedArtifact() {}
 
   /**
    * Decide if the "matchArtifact" matches the incoming artifact. Any fields not specified in the
