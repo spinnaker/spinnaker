@@ -133,6 +133,27 @@ function start_command() {
   echo "$(timestamp): Started $command as pid=${COMMAND_TO_PID[$command]} to $logfile"
 }
 
+function start_spinrel() {
+  local command=$1
+  shift
+  local extra_args=
+
+  if [[ $# -gt 0 ]]; then
+    extra_args="$@"
+  fi
+
+  local logfile=$(command_log_path $command)
+  mkdir -p $(dirname logfile)
+  echo "$(timestamp): Start $command"
+
+  echo "$(timestamp): $SPINREL $command ${extra_args[@]}" \
+      &> $logfile
+  $SPINREL $command ${extra_args[@]} \
+      &>> $logfile &
+  COMMAND_TO_PID[$command]=$!
+  echo "$(timestamp): Started $command as pid=${COMMAND_TO_PID[$command]} to $logfile"
+}
+
 
 ##############################################################
 # Figure out how long the longest outstanding command name is
