@@ -170,8 +170,7 @@ class AppengineServerGroupDetailsController implements IController {
     const submitMethod = (params: any) =>
       this.serverGroupWriter.enableServerGroup(this.serverGroup, this.app, { ...params });
 
-    const modalBody = `
-      <div class="well well-sm">
+    const modalBody = `<div class="well well-sm">
         <p>
           Enabling <b>${this.serverGroup.name}</b> will set its traffic allocation for
           <b>${this.serverGroup.loadBalancers[0]}</b> to 100%.
@@ -213,8 +212,7 @@ class AppengineServerGroupDetailsController implements IController {
       this.serverGroupWriter.disableServerGroup(this.serverGroup, this.app.name, params);
 
     const expectedAllocations = this.expectedAllocationsAfterDisableOperation(this.serverGroup, this.app);
-    const modalBody = `
-      <div class="well well-sm">
+    const modalBody = `<div class="well well-sm">
         <p>
           For App Engine, a disable operation sets this server group's allocation
           to 0% and sets the other enabled server groups' allocations to their relative proportions
@@ -262,8 +260,7 @@ class AppengineServerGroupDetailsController implements IController {
 
     let modalBody: string;
     if (!this.serverGroup.disabled) {
-      modalBody = `
-        <div class="alert alert-danger">
+      modalBody = `<div class="alert alert-danger">
           <p>Stopping this server group will scale it down to zero instances.</p>
           <p>
             This server group is currently serving traffic from <b>${this.serverGroup.loadBalancers[0]}</b>.

@@ -108,8 +108,7 @@ export class StageSummaryController implements IController {
       buttonText: 'Skip',
       askForReason: true,
       submitJustWithReason: true,
-      body: `
-        <div class="alert alert-warning">
+      body: `<div class="alert alert-warning">
           <b>Warning:</b> Skipping this stage may have unpredictable results.
           <ul>
             <li>Mutating changes initiated by this stage will continue and will need to be cleaned up manually.</li>

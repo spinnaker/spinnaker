@@ -117,8 +117,7 @@ class AppengineLoadBalancerDetailsController implements IController {
     if (hasAny) {
       if (hasMoreThanOne) {
         const listOfServerGroupNames = serverGroupNames.map(name => `<li>${name}</li>`).join('');
-        return `
-          <div class="alert alert-warning">
+        return `<div class="alert alert-warning">
             <p>
               Deleting <b>${this.loadBalancer.name}</b> will destroy the following server groups:
               <ul>
@@ -128,8 +127,7 @@ class AppengineLoadBalancerDetailsController implements IController {
           </div>
         `;
       } else {
-        return `
-          <div class="alert alert-warning">
+        return `<div class="alert alert-warning">
             <p>
               Deleting <b>${this.loadBalancer.name}</b> will destroy <b>${serverGroupNames[0]}</b>.
             </p>

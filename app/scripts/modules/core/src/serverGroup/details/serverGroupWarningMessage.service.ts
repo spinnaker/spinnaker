@@ -12,15 +12,12 @@ export class ServerGroupWarningMessageService {
   ): void {
     const remainingServerGroups: IServerGroup[] = this.getOtherServerGroupsInCluster(application, serverGroup);
     if (!remainingServerGroups.length) {
-      params.body = `
-        <h4 class="error-message">You are destroying the last Server Group in the Cluster.</h4>
+      params.body = `<h4 class="error-message">You are destroying the last Server Group in the Cluster.</h4>
         <dl class="dl-horizontal dl-narrow">
           <dt>Account: </dt>
           <dd>${serverGroup.account}</dd>
-
           <dt>Region: </dt>
           <dd>${serverGroup.region}</dd>
-
           <dt>Cluster: </dt>
           <dd>${serverGroup.cluster}</dd>
         </dl>`;
@@ -50,8 +47,7 @@ export class ServerGroupWarningMessageService {
       const activeInstancesAfterDisable = totalActiveInstances - serverGroup.instanceCounts.up;
       const activePercentRemaining = Math.round((activeInstancesAfterDisable / totalActiveInstances) * 100);
 
-      params.body = `
-        <h4>You are disabling <b>${serverGroup.instanceCounts.up}</b>
+      params.body = `<h4>You are disabling <b>${serverGroup.instanceCounts.up}</b>
             instance${serverGroup.instanceCounts.up === 1 ? '' : 's'}.</h4>
         <p>This will reduce the cluster to <b>${activePercentRemaining}</b> percent of its current capacity,
            leaving <b>${activeInstancesAfterDisable}</b> instance${activeInstancesAfterDisable === 1 ? '' : 's'} taking
