@@ -31,6 +31,7 @@ import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.isNull
+import java.net.URL
 
 class SpringEnvironmentConfigResolverTest : JUnit5Minutests {
 
@@ -95,7 +96,7 @@ class SpringEnvironmentConfigResolverTest : JUnit5Minutests {
         .and {
           get { get("foo") }
             .isNotNull()
-            .get { url }.isEqualTo("http://localhost:9000")
+            .get { url }.isEqualTo(URL("http://localhost:9000"))
         }
     }
   }

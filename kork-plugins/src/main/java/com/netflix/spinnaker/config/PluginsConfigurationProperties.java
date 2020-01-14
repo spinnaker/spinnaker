@@ -15,8 +15,10 @@
  */
 package com.netflix.spinnaker.config;
 
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.SneakyThrows;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -59,7 +61,32 @@ public class PluginsConfigurationProperties {
    */
   public Map<String, PluginRepositoryProperties> repositories = new HashMap<>();
 
+  /** Definition of a single {@link org.pf4j.update.UpdateRepository}. */
   public static class PluginRepositoryProperties {
-    public String url;
+    /** The base URL to the repository. */
+    private String url;
+
+    /** Configuration for an optional override of {@link org.pf4j.update.FileDownloader}. */
+    public FileDownloaderProperties fileDownloader;
+
+    /** Custom {@link org.pf4j.update.FileDownloader} configuration. */
+    public static class FileDownloaderProperties {
+      /** The fully qualified class name of the FileDownloader to use. */
+      public String className;
+
+      /**
+       * The configuration for the FileDownloader.
+       *
+       * <p>If defined, the FileDownloader must use the {@link
+       * com.netflix.spinnaker.kork.plugins.config.Configurable} annotation to inform the plugin
+       * framework how to cast the configuration for injection.
+       */
+      public Object config;
+    }
+
+    @SneakyThrows
+    public URL getUrl() {
+      return new URL(url);
+    }
   }
 }
