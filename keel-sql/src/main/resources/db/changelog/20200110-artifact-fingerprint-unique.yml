@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - changeSet:
+      id: artifact-fingerprint-unique
+      author: emjburns
+      changes:
+        - createIndex:
+            indexName: delivery_artifact_fingerprint_idx
+            tableName: delivery_artifact
+            unique: true
+            columns:
+              - column:
+                  name: fingerprint
+        - addNotNullConstraint:
+            columnDataType: char(40)
+            columnName: fingerprint
+            tableName: delivery_artifact

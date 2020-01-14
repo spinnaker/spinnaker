@@ -37,7 +37,6 @@ import org.jooq.impl.DSL
 import org.jooq.impl.DSL.select
 import org.jooq.impl.DSL.selectOne
 import org.slf4j.LoggerFactory
-import org.springframework.scheduling.annotation.Scheduled
 
 class SqlArtifactRepository(
   private val jooq: DSLContext,
@@ -420,21 +419,6 @@ class SqlArtifactRepository(
       .getInstance("SHA-1")
       .digest(data.toByteArray())
     return DatatypeConverter.printHexBinary(bytes).toUpperCase()
-  }
-
-  // todo eb: make fingerprint non-null and unique, remove this migration function
-  @Scheduled(fixedDelay = 600)
-  private fun computeFingerprints() {
-    jooq
-      .select(DELIVERY_ARTIFACT.UID, DELIVERY_ARTIFACT.NAME, DELIVERY_ARTIFACT.TYPE, DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME, DELIVERY_ARTIFACT.REFERENCE)
-      .from(DELIVERY_ARTIFACT)
-      .forUpdate()
-      .fetch { (uid, name, type, configName, reference) ->
-        jooq.update(DELIVERY_ARTIFACT)
-          .set(DELIVERY_ARTIFACT.FINGERPRINT, fingerprint(name, type, configName, reference))
-          .where(DELIVERY_ARTIFACT.UID.eq(uid))
-          .execute()
-      }
   }
 
   private fun Instant.toLocal() = atZone(clock.zone).toLocalDateTime()
