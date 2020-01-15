@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.core.env.ConfigurableEnvironment
 import org.springframework.core.env.EnumerablePropertySource
 import java.lang.reflect.ParameterizedType
+import java.lang.RuntimeException
 import java.util.Properties
 
 /**
@@ -99,7 +100,7 @@ class SpringEnvironmentConfigResolver(
       throw IntegrationException("Failed reading extension config: Input appears invalid", pe)
     } catch (me: JsonMappingException) {
       throw IntegrationException("Failed reading extension config: Could not map provided config to expected shape", me)
-    } catch (e: Exception) {
+    } catch (@Suppress("TooGenericExceptionCaught") e: RuntimeException) {
       throw SystemException("Failed resolving extension config for an unexpected reason", e)
     }
   }

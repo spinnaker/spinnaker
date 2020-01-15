@@ -35,10 +35,11 @@ data class SqlProperties(
       }
       return connectionPool!!
     }
-    if (connectionPools.size == 1) {
-      return connectionPools.values.first()
+    return if (connectionPools.size == 1) {
+      connectionPools.values.first()
+    } else {
+      connectionPools.values.first { it.default }
     }
-    return connectionPools.values.first { it.default }
   }
 }
 

@@ -24,8 +24,8 @@ import com.netflix.spinnaker.kork.plugins.loaders.SpinnakerJarPluginLoader
 import org.pf4j.CompoundPluginLoader
 import org.pf4j.DefaultPluginManager
 import org.pf4j.ExtensionFactory
-import org.pf4j.PluginLoader
 import org.pf4j.PluginDescriptorFinder
+import org.pf4j.PluginLoader
 import org.pf4j.PluginStatusProvider
 import org.pf4j.PluginWrapper
 import java.nio.file.Path
@@ -46,11 +46,11 @@ open class SpinnakerPluginManager(
 
   private val springExtensionFactory: ExtensionFactory = SpringExtensionFactory(this, configResolver)
 
-  private inner class ExtensionFactoryDelegate() : ExtensionFactory {
+  private inner class ExtensionFactoryDelegate : ExtensionFactory {
     override fun <T : Any?> create(extensionClass: Class<T>?): T = springExtensionFactory.create(extensionClass)
   }
 
-  private inner class PluginStatusProviderDelegate() : PluginStatusProvider {
+  private inner class PluginStatusProviderDelegate : PluginStatusProvider {
     override fun disablePlugin(pluginId: String?) = statusProvider.disablePlugin(pluginId)
 
     override fun isPluginDisabled(pluginId: String?): Boolean = statusProvider.isPluginDisabled(pluginId)

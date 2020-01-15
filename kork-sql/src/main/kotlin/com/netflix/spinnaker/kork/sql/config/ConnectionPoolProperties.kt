@@ -18,6 +18,7 @@ package com.netflix.spinnaker.kork.sql.config
 import org.jooq.SQLDialect
 import java.util.concurrent.TimeUnit
 
+@Suppress("MagicNumber")
 data class ConnectionPoolProperties(
   var dialect: SQLDialect = SQLDialect.MYSQL,
   var jdbcUrl: String? = null,

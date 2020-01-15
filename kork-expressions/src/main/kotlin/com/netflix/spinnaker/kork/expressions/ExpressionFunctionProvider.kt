@@ -87,14 +87,21 @@ interface ExpressionFunctionProvider : ExtensionPoint {
     val parameters: List<FunctionParameter>,
     val documentation: FunctionDocumentation?
   ) {
-    @Deprecated("Please use the overload with description", replaceWith = ReplaceWith("FunctionDefinition(name, \"\", functionParameters)"))
+    @Deprecated(
+      "Please use the overload with description",
+      replaceWith = ReplaceWith("FunctionDefinition(name, \"\", functionParameters)"))
     constructor(name: String, vararg functionParameters: FunctionParameter) :
       this(name, "", listOf(*functionParameters), null)
 
     constructor(name: String, description: String, vararg functionParameters: FunctionParameter) :
       this(name, description, listOf(*functionParameters), null)
 
-    constructor(name: String, description: String, documentation: FunctionDocumentation, vararg functionParameters: FunctionParameter) :
+    constructor(
+      name: String,
+      description: String,
+      documentation: FunctionDocumentation,
+      vararg functionParameters: FunctionParameter
+    ) :
       this(name, description, listOf(*functionParameters), documentation)
   }
 
@@ -131,7 +138,8 @@ interface ExpressionFunctionProvider : ExtensionPoint {
    * This is used by deck to display in-line docs for a SpEL function
    *
    * @param usage example usage, e.g. "#stage('bake in us-east').hasSucceeded"
-   * @param description explanation of the usage sample, markdown supported e.g. "checks if the bake stage has completed successfully"
+   * @param description explanation of the usage sample, markdown supported
+   *  e.g. "checks if the bake stage has completed successfully"
    */
   data class FunctionUsageExample(
     val usage: String,

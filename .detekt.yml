@@ -1,0 +1,7 @@
+style:
+  ThrowsCount:
+    active: false
+
+formatting:
+  ParameterListWrapping:
+    active: false

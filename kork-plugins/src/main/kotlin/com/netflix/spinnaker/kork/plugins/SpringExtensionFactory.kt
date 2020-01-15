@@ -102,6 +102,7 @@ class SpringExtensionFactory(
   /**
    * Load an extension config, provided a set of [ConfigCoordinates].
    */
+  @Suppress("ThrowsCount")
   private fun loadConfig(extension: Any, coordinates: ConfigCoordinates) {
     if (extension !is ConfigurableExtension<*>) {
       return
@@ -127,15 +128,18 @@ class SpringExtensionFactory(
             } catch (se: SecurityException) {
               throw SystemException(se)
             } catch (iae: IllegalAccessException) {
-              throw SystemException("Could not access setConfiguration method on extension: ${extension.javaClass.name}", iae)
+              throw SystemException(
+                "Could not access setConfiguration method on extension: ${extension.javaClass.name}", iae)
             } catch (iae: IllegalArgumentException) {
-              throw SystemException("Configuration on extension appears to be invalid: ${extension.javaClass.name}", iae)
+              throw SystemException(
+                "Configuration on extension appears to be invalid: ${extension.javaClass.name}", iae)
             } catch (ite: InvocationTargetException) {
-              throw SystemException("Failed to invoke setConfiguration on extension: ${extension.javaClass.name}", ite)
+              throw SystemException(
+                "Failed to invoke setConfiguration on extension: ${extension.javaClass.name}", ite)
             }
           }
-          ?: throw SystemException(
-            "Could not find configuration class '${resolvedType.getGeneric(0)}' for extension: ${extension.javaClass.name}")
+          ?: throw SystemException("Could not find configuration class " +
+            "'${resolvedType.getGeneric(0)}' for extension: ${extension.javaClass.name}")
       }
   }
 
@@ -147,7 +151,7 @@ class SpringExtensionFactory(
   private fun <T> createWithoutSpring(extensionClass: Class<T>): T? {
     try {
       return extensionClass.newInstance()
-    } catch (e: Exception) {
+    } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
       log.error(e.message, e)
     }
     return null

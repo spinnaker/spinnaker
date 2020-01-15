@@ -40,10 +40,10 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
 import org.springframework.boot.autoconfigure.jdbc.metadata.DataSourcePoolMetadataProvidersConfiguration
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Conditional
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.DependsOn
 import org.springframework.context.annotation.Import
-import org.springframework.context.annotation.Conditional
 import org.springframework.jdbc.datasource.DataSourceTransactionManager
 import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy
 import sun.net.InetAddressCachePolicy
@@ -78,6 +78,7 @@ class DefaultSqlConfiguration {
   fun secondaryLiquibase(properties: SqlProperties): SpringLiquibase =
     SpringLiquibaseProxy(properties.secondaryMigration)
 
+  @Suppress("ReturnCount", "ThrowsCount")
   @DependsOn("liquibase")
   @Bean
   fun dataSource(dataSourceFactory: DataSourceFactory, properties: SqlProperties): DataSource {
@@ -174,8 +175,14 @@ class DefaultSqlConfiguration {
 
   @Bean(destroyMethod = "close")
   @Conditional(SecondaryPoolDialectCondition::class)
-  fun secondaryJooq(connectionProvider: DataSourceConnectionProvider, sqlProperties: SqlProperties): DSLContext {
-    val secondaryPool: ConnectionPoolProperties = sqlProperties.connectionPools.filter { !it.value.default }.values.first()
+  fun secondaryJooq(
+    connectionProvider: DataSourceConnectionProvider,
+    sqlProperties: SqlProperties
+  ): DSLContext {
+    val secondaryPool: ConnectionPoolProperties = sqlProperties.connectionPools
+      .filter { !it.value.default }
+      .values
+      .first()
     val secondaryJooqConfig: DefaultConfiguration = DefaultConfiguration().apply {
       set(*DefaultExecuteListenerProvider.providers(
         JooqToSpringExceptionTransformer(),
@@ -224,6 +231,7 @@ private fun forceInetAddressCachePolicy() {
 
 class InetAddressOverrideFailure(cause: Throwable) : IllegalStateException(cause)
 
+@Suppress("ThrowsCount")
 private fun validateDefaultTargetDataSources(targets: Collection<TargetDataSource>) {
   if (targets.isEmpty()) {
     throw BeanCreationException("At least one connection pool must be configured")

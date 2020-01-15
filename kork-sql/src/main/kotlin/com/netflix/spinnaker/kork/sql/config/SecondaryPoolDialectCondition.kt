@@ -18,11 +18,11 @@ package com.netflix.spinnaker.kork.sql.config
 
 import org.springframework.boot.autoconfigure.condition.ConditionOutcome
 import org.springframework.boot.autoconfigure.condition.SpringBootCondition
-import org.springframework.context.annotation.ConditionContext
-import org.springframework.core.type.AnnotatedTypeMetadata
-import org.springframework.boot.context.properties.source.ConfigurationPropertyName
 import org.springframework.boot.context.properties.bind.Bindable
 import org.springframework.boot.context.properties.bind.Binder
+import org.springframework.boot.context.properties.source.ConfigurationPropertyName
+import org.springframework.context.annotation.ConditionContext
+import org.springframework.core.type.AnnotatedTypeMetadata
 
 class SecondaryPoolDialectCondition : SpringBootCondition() {
 
@@ -39,9 +39,18 @@ class SecondaryPoolDialectCondition : SpringBootCondition() {
       return false
     }
 
-    val defaultPool: ConnectionPoolProperties = sqlProperties.connectionPools.filter { it.value.default }.values.first()
-    val secondaryPool: ConnectionPoolProperties = sqlProperties.connectionPools.filter { !it.value.default }.values.first()
+    val defaultPool: ConnectionPoolProperties = sqlProperties.connectionPools.first(default = true)
+    val secondaryPool: ConnectionPoolProperties = sqlProperties.connectionPools.first(default = false)
 
     return defaultPool.dialect != secondaryPool.dialect
   }
+
+  private fun MutableMap<String, ConnectionPoolProperties>.first(default: Boolean): ConnectionPoolProperties =
+    filter {
+      if (default) {
+        it.value.default
+      } else {
+        !it.value.default
+      }
+    }.values.first()
 }

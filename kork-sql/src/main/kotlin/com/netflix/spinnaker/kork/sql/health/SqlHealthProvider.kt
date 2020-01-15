@@ -34,6 +34,7 @@ class SqlHealthProvider(
 
   private val log = LoggerFactory.getLogger(javaClass)
 
+  @Suppress("VariableNaming")
   internal val _enabled = AtomicBoolean(false)
   private val _healthException: AtomicReference<Exception> = AtomicReference()
 
@@ -66,7 +67,7 @@ class SqlHealthProvider(
         }
       }
       unhealthyCounter.set(0)
-    } catch (e: Exception) {
+    } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
       _healthException.set(e)
       healthyCounter.set(0)
       unhealthyCounter.incrementAndGet().also { unhealthyCount ->
