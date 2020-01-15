@@ -19,13 +19,19 @@ package com.netflix.spinnaker.kork.artifacts.model;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Data
-@Builder
+@Builder(toBuilder = true)
+@JsonDeserialize(builder = Artifact.ArtifactBuilder.class)
 @JsonIgnoreProperties("kind")
 public class Artifact {
   @JsonProperty("type")
@@ -58,37 +64,6 @@ public class Artifact {
   @JsonProperty("uuid")
   private String uuid;
 
-  // Deprecated as consumers should be using a builder; in the future this constructor will be
-  // removed from the public API
-  @Deprecated
-  public Artifact(
-      String type,
-      boolean customKind,
-      String name,
-      String version,
-      String location,
-      String reference,
-      Map<String, Object> metadata,
-      String artifactAccount,
-      String provenance,
-      String uuid) {
-    this.type = type;
-    this.customKind = customKind;
-    this.name = name;
-    this.version = version;
-    this.location = location;
-    this.reference = reference;
-    this.metadata = metadata;
-    this.artifactAccount = artifactAccount;
-    this.provenance = provenance;
-    this.uuid = uuid;
-  }
-
-  // Deprecated as consumers should be using a builder; in the future this constructor will be
-  // removed from the public API
-  @Deprecated
-  public Artifact() {}
-
   // Add extra, unknown data to the metadata map:
   @JsonAnySetter
   public void putMetadata(String key, Object value) {
@@ -97,4 +72,7 @@ public class Artifact {
     }
     metadata.put(key, value);
   }
+
+  @JsonPOJOBuilder(withPrefix = "")
+  public static class ArtifactBuilder {}
 }
