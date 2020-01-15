@@ -2,7 +2,6 @@ package com.netflix.spinnaker.keel.ec2.resolvers
 
 import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.keel.api.ArtifactStatus.RELEASE
-import com.netflix.spinnaker.keel.api.ArtifactStatus.SNAPSHOT
 import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
@@ -209,19 +208,6 @@ internal class ImageResolverTests : JUnit5Minutests {
           before {
             artifactRepository.register(artifact)
             artifactRepository.store(artifact, "${artifact.name}-$version2", RELEASE)
-          }
-          test("throws an exception") {
-            expectCatching { resolve() }
-              .failed()
-              .isA<NoImageSatisfiesConstraints>()
-          }
-        }
-
-        context("only an artifact with the wrong status has been approved for the environment") {
-          before {
-            artifactRepository.register(artifact)
-            artifactRepository.store(artifact, "${artifact.name}-$version2", SNAPSHOT)
-            artifactRepository.approveVersionFor(deliveryConfig, artifact, "${artifact.name}-$version2", "test")
           }
           test("throws an exception") {
             expectCatching { resolve() }

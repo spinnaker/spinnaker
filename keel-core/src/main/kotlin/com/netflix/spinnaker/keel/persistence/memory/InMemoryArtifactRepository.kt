@@ -118,16 +118,16 @@ class InMemoryArtifactRepository : ArtifactRepository {
   override fun versions(name: String, type: ArtifactType): List<String> =
     versions.getOrDefault(VersionsKey(name, type), emptyList<ArtifactVersionAndStatus>()).map { it.version }
 
-  override fun versions(artifact: DeliveryArtifact, statuses: List<ArtifactStatus>): List<String> {
+  override fun versions(artifact: DeliveryArtifact): List<String> {
     val versions = versions.getOrDefault(VersionsKey(artifact.name, artifact.type), null)
       ?: throw NoSuchArtifactException(artifact)
     return versions
       .filter {
-        if (statuses.isEmpty()) {
+        if (artifact is DebianArtifact && artifact.statuses.isNotEmpty()) {
+          it.status in artifact.statuses
+        } else {
           // select all
           true
-        } else {
-          it.status in statuses
         }
       }
       .map { it.version }
@@ -164,16 +164,13 @@ class InMemoryArtifactRepository : ArtifactRepository {
   override fun latestVersionApprovedIn(
     deliveryConfig: DeliveryConfig,
     artifact: DeliveryArtifact,
-    targetEnvironment: String,
-    statuses: List<ArtifactStatus>
+    targetEnvironment: String
   ): String? {
     val artifactId = getId(artifact) ?: throw NoSuchArtifactException(artifact)
     val key = EnvironmentVersionsKey(artifactId, deliveryConfig, targetEnvironment)
-    val approved = approvedVersions.getOrDefault(key, mutableListOf())
-    val versionsWithCorrectStatus = versions(artifact, statuses)
-
-    // return the latest version that has been approved with the correct status
-    return approved.intersect(versionsWithCorrectStatus).sortedWith(artifact.versioningStrategy.comparator).firstOrNull()
+    return approvedVersions
+      .getOrDefault(key, mutableListOf())
+      .sortedWith(artifact.versioningStrategy.comparator).firstOrNull()
   }
 
   override fun wasSuccessfullyDeployedTo(
@@ -232,7 +229,10 @@ class InMemoryArtifactRepository : ArtifactRepository {
                 current = statuses.filterValues { it == CURRENT }.keys.firstOrNull(),
                 deploying = statuses.filterValues { it == DEPLOYING }.keys.firstOrNull(),
                 pending = versions[VersionsKey(artifact.name, artifact.type)]
-                  ?.filter { it.status == null || it.status in ((artifact as? DebianArtifact)?.statuses ?: emptySet<ArtifactStatus>()) }
+                  ?.filter {
+                    it.status == null || it.status in ((artifact as? DebianArtifact)?.statuses
+                      ?: emptySet<ArtifactStatus>())
+                  }
                   ?.map { it.version }
                   ?.filter { it !in statuses.keys }
                   ?: emptyList(),

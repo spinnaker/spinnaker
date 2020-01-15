@@ -40,9 +40,11 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
   data class Fixture<T : ArtifactRepository>(
     val subject: T
   ) {
-    val artifact1 = DebianArtifact("foo", deliveryConfigName = "my-manifest", statuses = listOf(SNAPSHOT))
-    val artifact2 = DebianArtifact("bar", deliveryConfigName = "my-manifest", statuses = listOf(SNAPSHOT))
-    val artifact3 = DockerArtifact("baz", deliveryConfigName = "my-manifest")
+    // the artifact built off a feature branch
+    val artifact1 = DebianArtifact("keeldemo", deliveryConfigName = "my-manifest", reference = "candidate", statuses = listOf(SNAPSHOT))
+    // the artifact built off of master
+    val artifact2 = DebianArtifact("keeldemo", deliveryConfigName = "my-manifest", reference = "master", statuses = listOf(RELEASE))
+    val artifact3 = DockerArtifact("docker", deliveryConfigName = "my-manifest", reference = "docker-artifact")
     val environment1 = Environment("test")
     val environment2 = Environment("staging")
     val manifest = DeliveryConfig(
@@ -51,11 +53,11 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
       artifacts = setOf(artifact1, artifact2, artifact3),
       environments = setOf(environment1, environment2)
     )
-    val version1 = "keeldemo-0.0.1~dev.8-h8.41595c4"
-    val version2 = "keeldemo-0.0.1~dev.9-h9.3d2c8ff"
-    val version3 = "keeldemo-0.0.1~dev.10-h10.1d2d542"
-    val version4 = "keeldemo-1.0.0-h11.518aea2"
-    val version5 = "keeldemo-1.0.0-h12.4ea8a9d"
+    val version1 = "keeldemo-0.0.1~dev.8-h8.41595c4" // snapshot
+    val version2 = "keeldemo-0.0.1~dev.9-h9.3d2c8ff" // snapshot
+    val version3 = "keeldemo-0.0.1~dev.10-h10.1d2d542" // snapshot
+    val version4 = "keeldemo-1.0.0-h11.518aea2" // release
+    val version5 = "keeldemo-1.0.0-h12.4ea8a9d" // release
     val version6 = "master-h12.4ea8a9d"
   }
 
@@ -148,16 +150,17 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
           expectThat(subject.versions(artifact1)).hasSize(1)
         }
 
-        test("registering a new version adds it to the list") {
+        test("adding a new version adds it to the list") {
           val result = subject.store(artifact1, version2, SNAPSHOT)
 
           expectThat(result).isTrue()
           expectThat(subject.versions(artifact1)).containsExactly(version2, version1)
         }
 
-        test("querying the list for SNAPSHOT returns both artifacts") {
+        test("querying the list for returns both artifacts") {
+          // status is stored on the artifact
           subject.store(artifact1, version2, SNAPSHOT)
-          expectThat(subject.versions(artifact1, listOf(SNAPSHOT))).containsExactly(version2, version1)
+          expectThat(subject.versions(artifact1)).containsExactly(version2, version1)
         }
       }
 
@@ -166,29 +169,34 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
           listOf(version1, version2, version3, version4, version5)
             .shuffled()
             .forEach {
-              subject.store(artifact1, it, SNAPSHOT)
+              if (it == version4 || it == version5) {
+                subject.store(artifact1, it, RELEASE)
+              } else {
+                subject.store(artifact1, it, SNAPSHOT)
+              }
             }
         }
 
-        test("versions are returned newest first") {
-          expectThat(subject.versions(artifact1))
-            .isEqualTo(listOf(version5, version4, version3, version2, version1))
+        test("versions are returned newest first and status is respected") {
+          expect {
+            that(subject.versions(artifact1)).isEqualTo(listOf(version3, version2, version1))
+            that(subject.versions(artifact2)).isEqualTo(listOf(version5, version4))
+          }
         }
       }
 
       context("filtering based on status works") {
         before {
-          subject.store(artifact1, version1, SNAPSHOT)
-          subject.store(artifact1, version2, SNAPSHOT)
-          subject.store(artifact1, version4, FINAL)
+          persist()
         }
 
-        test("querying for all returns 3") {
-          expectThat(subject.versions(artifact1)).containsExactly(version4, version2, version1)
+        test("querying for all returns all") {
+          val artifactWithAll = artifact1.copy(statuses = emptyList())
+          expectThat(subject.versions(artifactWithAll)).containsExactly(version5, version4, version3, version2, version1)
         }
 
-        test("querying for FINAL returns version4") {
-          expectThat(subject.versions(artifact1, listOf(FINAL))).containsExactly(version4)
+        test("querying with only release returns correct versions") {
+          expectThat(subject.versions(artifact2)).containsExactly(version5, version4)
         }
       }
     }
@@ -404,22 +412,6 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
           that(subject.isApprovedFor(manifest, artifact2, version1, environment1.name)).isTrue()
           that(subject.isApprovedFor(manifest, artifact2, version2, environment1.name)).isTrue()
           that(subject.isApprovedFor(manifest, artifact2, version3, environment1.name)).isTrue()
-        }
-      }
-    }
-
-    context("getting latest artifact approved in env respects status") {
-      before {
-        persist()
-        subject.store(artifact1, version4, FINAL)
-        subject.approveVersionFor(manifest, artifact1, version1, environment1.name)
-        subject.approveVersionFor(manifest, artifact1, version4, environment1.name)
-      }
-
-      test("querying for different statuses works") {
-        expect {
-          that(subject.latestVersionApprovedIn(manifest, artifact1, environment1.name, listOf(SNAPSHOT))).isEqualTo(version1)
-          that(subject.latestVersionApprovedIn(manifest, artifact1, environment1.name)).isEqualTo(version4)
         }
       }
     }

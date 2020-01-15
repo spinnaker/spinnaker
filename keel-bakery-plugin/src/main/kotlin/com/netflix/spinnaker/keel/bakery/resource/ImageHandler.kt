@@ -3,7 +3,6 @@ package com.netflix.spinnaker.keel.bakery.resource
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.igor.ArtifactService
-import com.netflix.spinnaker.keel.api.ArtifactStatus
 import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.NoKnownArtifactVersions
@@ -50,8 +49,8 @@ class ImageHandler(
 
   override suspend fun toResolvedType(resource: Resource<ImageSpec>): Image =
     with(resource) {
-      val artifact = DebianArtifact(spec.artifactName)
-      val latestVersion = artifact.findLatestVersion(resource.spec.artifactStatuses)
+      val artifact = DebianArtifact(name = spec.artifactName, statuses = spec.artifactStatuses)
+      val latestVersion = artifact.findLatestVersion()
       val baseImage = baseImageCache.getBaseImage(spec.baseOs, spec.baseLabel)
       val baseAmi = findBaseAmi(baseImage, resource.serviceAccount)
       Image(
@@ -63,20 +62,18 @@ class ImageHandler(
 
   override suspend fun current(resource: Resource<ImageSpec>): Image? =
     with(resource) {
-      imageService
-        .getLatestImageWithAllRegions(spec.artifactName, "test", resource.spec.regions.toList())
-        ?.let {
-          it.copy(regions = it.regions.intersect(resource.spec.regions))
-        }
+      imageService.getLatestImageWithAllRegions(spec.artifactName, "test", resource.spec.regions.toList())?.let {
+        it.copy(regions = it.regions.intersect(resource.spec.regions))
+      }
     }
 
   /**
    * First checks our repo, and if a version isn't found checks igor.
    */
-  private fun DeliveryArtifact.findLatestVersion(statuses: List<ArtifactStatus>): String {
+  private fun DeliveryArtifact.findLatestVersion(): String {
     try {
       val knownVersion = artifactRepository
-        .versions(this, statuses)
+        .versions(this)
         .firstOrNull()
       if (knownVersion != null) {
         log.debug("Latest known version of $name = $knownVersion")
@@ -89,11 +86,12 @@ class ImageHandler(
         publisher.publishEvent(ArtifactRegisteredEvent(this))
       }
     }
+    val deb = this as DebianArtifact
 
     // even though the artifact isn't registered we should grab the latest version to use
     return runBlocking {
       val versions = igorService
-        .getVersions(name, statuses.map { it.toString() })
+        .getVersions(name, deb.statuses.map { it.toString() })
       log.debug("Finding latest version of $name: versions igor knows about = $versions")
       versions
         .firstOrNull()

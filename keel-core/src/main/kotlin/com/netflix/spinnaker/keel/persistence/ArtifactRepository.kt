@@ -30,11 +30,11 @@ interface ArtifactRepository {
   fun store(artifact: DeliveryArtifact, version: String, status: ArtifactStatus?): Boolean
 
   /**
-   * @returns the versions we have for an artifact, optionally filtering by status if provided
+   * @returns the versions we have for an artifact, filtering by the artifact status information,
+   * and sorting with the artifact's sorting strategy
    */
   fun versions(
-    artifact: DeliveryArtifact,
-    statuses: List<ArtifactStatus> = emptyList()
+    artifact: DeliveryArtifact
   ): List<String>
 
   /**
@@ -46,14 +46,14 @@ interface ArtifactRepository {
   ): List<String>
 
   /**
-   * @return the latest version of [artifact] approved for use in [targetEnvironment],
-   * optionally filtering by status if provided.
+   * @return the latest version of [artifact] approved for use in [targetEnvironment]
+   *
+   * Only versions that meet the status requirements for an artifact can be approved
    */
   fun latestVersionApprovedIn(
     deliveryConfig: DeliveryConfig,
     artifact: DeliveryArtifact,
-    targetEnvironment: String,
-    statuses: List<ArtifactStatus> = emptyList()
+    targetEnvironment: String
   ): String?
 
   /**

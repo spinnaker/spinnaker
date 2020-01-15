@@ -81,8 +81,7 @@ class ImageResolver(
     val artifactVersion = artifactRepository.latestVersionApprovedIn(
       deliveryConfig,
       artifact,
-      environment.name,
-      artifact.statuses // todo eb: this is kind of a change, since we used to pass statuses in from the artifact image provider
+      environment.name
     ) ?: throw NoImageSatisfiesConstraints(artifact.name, environment.name)
     return imageService.getLatestNamedImageWithAllRegionsForAppVersion(
       appVersion = AppVersion.parseName(artifactVersion),

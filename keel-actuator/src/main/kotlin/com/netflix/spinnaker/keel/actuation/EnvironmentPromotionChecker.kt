@@ -21,12 +21,6 @@ class EnvironmentPromotionChecker(
     .filterIsInstance<StatefulConstraintEvaluator<*>>()
   private val statelessEvaluators = constraints - statefulEvaluators
 
-  /**
-   * TODO (Critical): The EC2 ClusterSpec enables artifact filtering by ArtifactStatus. This is
-   *  currently handled in ImageResolver after artifacts are "approved" for an environment.
-   *  Instead, this needs to happen here or earlier. Otherwise we may deploy canary clusters or
-   *  request manual judgements for artifacts that should never be allowed in a given environemnt.
-   */
   suspend fun checkEnvironments(deliveryConfig: DeliveryConfig) {
     deliveryConfig
       .artifacts
