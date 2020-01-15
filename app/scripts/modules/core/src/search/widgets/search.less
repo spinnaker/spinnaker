@@ -55,11 +55,9 @@
     }
 
     &.search__input--focus {
-      @color: @input-border-focus;
-      @color-rgba: rgba(red(@color), green(@color), blue(@color), 0.6);
-      border-color: @color;
+      border-color: var(--color-accent);
       outline: 0;
-      .box-shadow(~'inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px @{color-rgba}');
+      .box-shadow(~'inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px -2px var(--color-accent)');
     }
 
     &.search__input--blur {

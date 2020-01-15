@@ -75,7 +75,7 @@
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
-  background-color: white;
+  background-color: var(--color-white);
   z-index: 100;
   box-shadow: 1px 1px 2px rgba(61, 61, 61, 0.5);
   padding: 5px 10px;

@@ -3,8 +3,8 @@
 
 .footer {
   flex: 0 0 64px;
-  background-color: white;
-  color: white;
+  background-color: var(--color-white);
+  color: var(--color-white);
   display: flex;
   justify-content: center;
   align-items: center;

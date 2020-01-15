@@ -9,7 +9,7 @@
 .header {
   flex: 1 0 auto;
   background-color: headerColor;
-  color: white;
+  color: var(--color-white);
   justify-content: center;
   display: flex;
   align-items: center;
