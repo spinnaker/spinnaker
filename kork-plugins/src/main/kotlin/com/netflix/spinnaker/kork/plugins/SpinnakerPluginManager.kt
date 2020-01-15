@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.kork.plugins
 
 import com.netflix.spinnaker.kork.annotations.Beta
+import com.netflix.spinnaker.kork.plugins.bundle.PluginBundleExtractor
 import com.netflix.spinnaker.kork.plugins.config.ConfigResolver
 import com.netflix.spinnaker.kork.plugins.finders.SpinnakerPluginDescriptorFinder
 import com.netflix.spinnaker.kork.plugins.loaders.SpinnakerDefaultPluginLoader
@@ -41,10 +42,12 @@ import java.nio.file.Path
 open class SpinnakerPluginManager(
   private val statusProvider: PluginStatusProvider,
   private val configResolver: ConfigResolver,
+  private val serviceName: String,
   pluginsRoot: Path
 ) : DefaultPluginManager(pluginsRoot) {
 
   private val springExtensionFactory: ExtensionFactory = SpringExtensionFactory(this, configResolver)
+  private val bundleExtractor = PluginBundleExtractor()
 
   private inner class ExtensionFactoryDelegate : ExtensionFactory {
     override fun <T : Any?> create(extensionClass: Class<T>?): T = springExtensionFactory.create(extensionClass)
@@ -70,6 +73,11 @@ open class SpinnakerPluginManager(
 
   override fun createPluginDescriptorFinder(): PluginDescriptorFinder =
     SpinnakerPluginDescriptorFinder()
+
+  override fun loadPluginFromPath(pluginPath: Path): PluginWrapper? {
+    val extractedPath = bundleExtractor.extractService(pluginPath, serviceName)
+    return super.loadPluginFromPath(extractedPath)
+  }
 
   internal fun setPlugins(specifiedPlugins: Collection<PluginWrapper>) {
     this.plugins = specifiedPlugins.associateBy { it.pluginId }

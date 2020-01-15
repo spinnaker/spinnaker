@@ -47,7 +47,13 @@ class PluginUpdateServiceTest : JUnit5Minutests {
     val paths = setupTestPluginInfra()
 
     fixture {
-      val pluginManager = SpinnakerPluginManager(DefaultPluginStatusProvider(paths.plugins), mockk(), paths.plugins)
+      val pluginManager = SpinnakerPluginManager(
+        DefaultPluginStatusProvider(paths.plugins),
+        mockk(),
+        "kork",
+        paths.plugins
+      )
+
       PluginUpdateService(
         SpinnakerUpdateManager(
           pluginManager,

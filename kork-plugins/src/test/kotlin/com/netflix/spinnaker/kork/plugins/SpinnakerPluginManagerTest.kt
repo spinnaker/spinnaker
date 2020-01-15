@@ -31,12 +31,19 @@ import strikt.assertions.isTrue
 
 class SpinnakerPluginManagerTest : JUnit5Minutests {
 
-  fun tests() = rootContext {
+  fun tests() = rootContext<SpinnakerPluginManager> {
+    fixture {
+      SpinnakerPluginManager(
+        FakePluginStatusProvider(),
+        FakeConfigResolver(),
+        "kork",
+        Paths.get("plugins")
+      )
+    }
 
     test("SpinnakerPluginManager is initialized properly and usable") {
-      val pluginManager = SpinnakerPluginManager(FakePluginStatusProvider(), FakeConfigResolver(), Paths.get("plugins"))
       val testPluginWrapper = PluginWrapper(
-        pluginManager,
+        this,
         DefaultPluginDescriptor(
           "TestPlugin",
           "desc",
@@ -50,9 +57,9 @@ class SpinnakerPluginManagerTest : JUnit5Minutests {
         null
       )
       testPluginWrapper.pluginState = PluginState.DISABLED
-      pluginManager.setPlugins(listOf(testPluginWrapper))
+      setPlugins(listOf(testPluginWrapper))
 
-      expectThat(pluginManager.enablePlugin("TestPlugin")).isTrue()
+      expectThat(enablePlugin("TestPlugin")).isTrue()
     }
   }
 }
