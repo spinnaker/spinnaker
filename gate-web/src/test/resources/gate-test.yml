@@ -40,3 +40,12 @@ spring:
 cors:
   allowedOriginsPattern: '^https?://(?:localhost|[^/]+\.somewhere\.net)(?::[1-9]\d*)?/?$'
   expectLocalhost: true
+
+---
+
+spring:
+  profiles: test
+
+spinnaker:
+  extensions:
+    applicationName: spinnakerpluginstest

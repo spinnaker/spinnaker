@@ -156,4 +156,8 @@ interface Front50Service {
 
   @GET('/deliveries/{id}')
   Map getDelivery(@Path('id') String id)
+
+  // Plugins related
+  @GET('/pluginInfo')
+  List<Map> getPluginInfo(@Query("service") String service)
 }
