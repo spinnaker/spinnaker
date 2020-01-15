@@ -19,7 +19,11 @@ package com.netflix.spinnaker.kork.artifacts.model;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.runner.JUnitPlatform;
 import org.junit.runner.RunWith;
@@ -37,6 +41,7 @@ final class ArtifactTest {
             .uuid("6b9a5d0b-5706-41da-b379-234c27971482")
             .name("my-artifact")
             .version("3")
+            .metadata(ImmutableMap.<String, Object>builder().put("test", "123").build())
             .location("somewhere")
             .provenance("history")
             .build();
@@ -44,5 +49,28 @@ final class ArtifactTest {
     String json = objectMapper.writeValueAsString(originalArtifact);
     Artifact deserializedArtifact = objectMapper.readValue(json, Artifact.class);
     assertThat(originalArtifact).isEqualTo(deserializedArtifact);
+  }
+
+  @Test
+  public void unknownKeysInMetadata() {
+    ImmutableMap<String, String> originalArtifact =
+        ImmutableMap.<String, String>builder().put("id", "123").put("name", "my-artifact").build();
+
+    Artifact deserializedArtifact = objectMapper.convertValue(originalArtifact, Artifact.class);
+    assertThat(deserializedArtifact.getMetadata()).containsEntry("id", "123");
+  }
+
+  @Test
+  public void kindIsIgnored() {
+    ImmutableMap<String, String> originalArtifact =
+        ImmutableMap.<String, String>builder()
+            .put("kind", "test")
+            .put("name", "my-artifact")
+            .build();
+
+    Artifact deserializedArtifact = objectMapper.convertValue(originalArtifact, Artifact.class);
+    Map<String, Object> metadata =
+        Optional.ofNullable(deserializedArtifact.getMetadata()).orElseGet(HashMap::new);
+    assertThat(metadata).doesNotContainKey("kind");
   }
 }

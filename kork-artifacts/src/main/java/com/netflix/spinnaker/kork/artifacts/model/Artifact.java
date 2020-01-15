@@ -32,7 +32,6 @@ import lombok.Data;
 @Data
 @Builder(toBuilder = true)
 @JsonDeserialize(builder = Artifact.ArtifactBuilder.class)
-@JsonIgnoreProperties("kind")
 public class Artifact {
   @JsonProperty("type")
   private String type;
@@ -64,8 +63,10 @@ public class Artifact {
   @JsonProperty("uuid")
   private String uuid;
 
-  // Add extra, unknown data to the metadata map:
-  @JsonAnySetter
+  // This function existed to support deserialization; now that deserialization uses the inner
+  // builder class, we no longer need to support it on the outer class.  This function will be
+  // removed in a future release of kork.
+  @Deprecated
   public void putMetadata(String key, Object value) {
     if (metadata == null) {
       metadata = new HashMap<>();
@@ -73,6 +74,18 @@ public class Artifact {
     metadata.put(key, value);
   }
 
+  @JsonIgnoreProperties("kind")
   @JsonPOJOBuilder(withPrefix = "")
-  public static class ArtifactBuilder {}
+  public static class ArtifactBuilder {
+    private Map<String, Object> metadata;
+
+    // Add extra, unknown data to the metadata map:
+    @JsonAnySetter
+    public void putMetadata(String key, Object value) {
+      if (metadata == null) {
+        metadata = new HashMap<>();
+      }
+      metadata.put(key, value);
+    }
+  }
 }
