@@ -1,7 +1,7 @@
 FROM alpine:3.11
 MAINTAINER delivery-engineering@netflix.com
 COPY --from=compile /compiled_sources/orca-web/build/install/orca /opt/orca
-RUN apk --no-cache add --update bash openjdk11-jre
+RUN apk --no-cache add --update bash openjdk8-jre
 RUN adduser -D -S spinnaker
 USER spinnaker
 CMD ["/opt/orca/bin/orca"]
