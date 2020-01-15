@@ -21,7 +21,7 @@
     flex: 1 1 auto;
     overflow-y: auto;
     height: 100%;
-    margin-bottom: 0;
+    margin-bottom: 50px;
 
     .highlighted {
       background-color: var(--color-warning-light);
@@ -70,7 +70,7 @@
           border-color: var(--color-seashell);
         }
         .page-checkbox {
-          label {
+          .fa {
             cursor: not-allowed;
             &:hover {
               background: var(--color-cirrus);
@@ -142,39 +142,28 @@
       width: 20px;
       height: 20px;
       position: relative;
-      background: var(--color-titanium);
-      border-radius: 50px;
+      border: 2px solid var(--color-titanium);
+      border-radius: 50%;
+      background-color: var(--color-cirrus);
       &.checked {
-        background: var(--color-accent);
-        label {
+        border-color: var(--color-accent);
+        .fa {
           color: var(--color-accent);
         }
       }
-      label {
+      .fa {
+        display: inline-block;
         width: 16px;
         height: 16px;
         position: absolute;
         top: 2px;
         left: 2px;
         cursor: pointer;
-        background: var(--color-cirrus);
-        border-radius: 50px;
         font-size: 12px;
         color: var(--color-cirrus);
 
-        i {
-          position: absolute;
-          top: 2px;
-          left: 2px;
-        }
         &:hover {
           color: var(--color-titanium);
-        }
-      }
-      input[type='checkbox'] {
-        visibility: hidden;
-        &:checked + label:after {
-          opacity: 1;
         }
       }
     }
@@ -245,6 +234,10 @@
 }
 
 .on-call-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
   padding: 10px;
   background-color: var(--color-white);
   margin: 0;

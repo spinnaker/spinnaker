@@ -1198,15 +1198,19 @@ html {
   }
   width: 100%;
   height: 100%;
+  display: flex;
+  flex-direction: column;
 
   .spinnaker-content {
-    height: calc(~'100% - 40px');
+    flex: 1 1 auto;
     display: flex;
+    overflow-y: auto;
     flex-direction: column;
     align-items: stretch;
     > [ui-view='main'] {
       display: flex;
       flex-direction: column;
+      flex: 1 1 auto;
       height: 100%;
       padding: 0;
       margin: 0;
@@ -1215,7 +1219,6 @@ html {
         width: 100%;
       }
       position: relative;
-      overflow-y: hidden;
     }
     .scrollable-columns {
       background-color: var(--color-alabaster);

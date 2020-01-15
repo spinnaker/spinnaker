@@ -249,7 +249,9 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
     onCalls: { [id: string]: IOnCall[] },
     services: IPagerDutyService[],
   ): IOnCallsByService[] {
+    const appsByApiKey = groupBy(applications, 'pdApiKey');
     return services
+      .filter(a => a.integration_key) // filter out services without an integration_key
       .map(service => {
         // connect the users attached to the service by way of escalation policy
         let users: IUserList;
@@ -271,7 +273,7 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
 
         // Get applications associated with the service key
         const apiKey = service.integration_key;
-        const associatedApplications = apiKey ? applications.filter(app => app.pdApiKey === apiKey) : [];
+        const associatedApplications = appsByApiKey[apiKey] ?? [];
         searchTokens.push(...associatedApplications.map(app => `${app.name},${app.aliases || ''}`));
 
         const onCallsByService = {
@@ -281,13 +283,9 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
           last: DateTime.fromISO((service as any).lastIncidentTimestamp),
           searchString: searchTokens.join(' '),
         };
-        if (onCallsByService.service.integration_key) {
-          this.searchApi.indexDocument(onCallsByService.service.id, onCallsByService.searchString);
-        }
+        this.searchApi.indexDocument(onCallsByService.service.id, onCallsByService.searchString);
         return onCallsByService;
-      })
-      .filter(a => a.service.integration_key);
-    // filter out services without an integration_key
+      });
   }
 
   private selectedChanged = (service: IPagerDutyService, value: boolean): void => {
@@ -406,24 +404,12 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
 
   private pageRenderer = (data: TableCellProps): React.ReactNode => {
     const service: IPagerDutyService = data.cellData;
-    const disabled = service.status === 'disabled';
 
-    const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-      if (!disabled) {
-        const target = event.target;
-        this.selectedChanged(service, target.checked);
-      }
-    };
-
-    const id = `checkbox-${service.integration_key}`;
     const checked = this.state.selectedKeys.has(service.integration_key);
     return (
       <div style={paddingStyle}>
         <div className={`page-checkbox ${checked ? 'checked' : ''}`}>
-          <input type="checkbox" id={id} name={service.integration_key} checked={checked} onChange={onChange} />
-          <label htmlFor={id}>
-            <i className="fa fa-check" />
-          </label>
+          <i className="fa fa-check" />
         </div>
       </div>
     );
