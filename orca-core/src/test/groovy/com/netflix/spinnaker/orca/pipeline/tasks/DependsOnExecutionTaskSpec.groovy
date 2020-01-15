@@ -70,8 +70,8 @@ class DependsOnExecutionTaskSpec extends Specification {
     return stage {
       refId = "1"
       type = "dependsOnExecution"
-      context["type"] = ORCHESTRATION
-      context["id"] = dependencyId
+      context["executionType"] = ORCHESTRATION
+      context["executionId"] = dependencyId
     }
   }
 }

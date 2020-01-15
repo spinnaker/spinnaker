@@ -58,7 +58,7 @@ public class DependsOnExecutionTask implements OverridableTimeoutRetryableTask {
     TaskContext context = stage.mapTo(TaskContext.class);
 
     try {
-      Execution execution = repository.retrieve(context.type, context.id);
+      Execution execution = repository.retrieve(context.executionType, context.executionId);
       ExecutionStatus status = execution.getStatus();
 
       if (status.isSuccessful()) {
@@ -74,13 +74,15 @@ public class DependsOnExecutionTask implements OverridableTimeoutRetryableTask {
       return TaskResult.RUNNING;
     } catch (ExecutionNotFoundException e) {
       return TaskResult.builder(ExecutionStatus.TERMINAL)
-          .context("error", format("Execution (%s) %s not found.", context.type, context.id))
+          .context(
+              "error",
+              format("Execution (%s) %s not found.", context.executionType, context.executionId))
           .build();
     }
   }
 
   private static class TaskContext {
-    @NotNull public ExecutionType type;
-    @NotNull public String id;
+    @NotNull public ExecutionType executionType;
+    @NotNull public String executionId;
   }
 }
