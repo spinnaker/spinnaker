@@ -1,0 +1,46 @@
+package com.netflix.spinnaker.keel.serialization
+
+import com.fasterxml.jackson.databind.DeserializationContext
+import com.fasterxml.jackson.databind.InjectableValues
+import com.fasterxml.jackson.databind.JsonMappingException
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.deser.std.StdNodeBasedDeserializer
+import com.fasterxml.jackson.module.kotlin.convertValue
+import com.netflix.spinnaker.keel.api.Constraint
+import com.netflix.spinnaker.keel.api.NotificationConfig
+import com.netflix.spinnaker.keel.api.SubmittedEnvironment
+import com.netflix.spinnaker.keel.api.SubmittedResource
+import com.netflix.spinnaker.keel.api.SubnetAwareLocations
+import java.lang.IllegalArgumentException
+
+/**
+ * Deserializer that allows us to propagate values such as [SubmittedEnvironment.locations] to all
+ * resources in the environment without having to make the corresponding properties in the resource
+ * specs nullable and continually have to look up the environment.
+ */
+class SubmittedEnvironmentDeserializer : StdNodeBasedDeserializer<SubmittedEnvironment>(SubmittedEnvironment::class.java) {
+  override fun convert(root: JsonNode, context: DeserializationContext): SubmittedEnvironment =
+    with(context.mapper) {
+      val name = root.path("name").textValue()
+      val constraints: Set<Constraint> = convert(root, "constraints") ?: emptySet()
+      val notifications: Set<NotificationConfig> = convert(root, "notifications") ?: emptySet()
+      val locations: SubnetAwareLocations? = convert(root, "locations")
+      val resources: Set<SubmittedResource<*>> = copy().run {
+        injectableValues = InjectableValues.Std(mapOf("locations" to locations))
+        convert(root, "resources") ?: emptySet()
+      }
+      try {
+        SubmittedEnvironment(name, resources, constraints, notifications, locations)
+      } catch (e: Exception) {
+        throw context.instantiationException<SubmittedEnvironment>(e)
+      }
+    }
+
+  private inline fun <reified T : Any> ObjectMapper.convert(root: JsonNode, path: String): T? =
+    try {
+      convertValue(root.path(path))
+    } catch (e: IllegalArgumentException) {
+      throw JsonMappingException.wrapWithPath(e, root, path)
+    }
+}

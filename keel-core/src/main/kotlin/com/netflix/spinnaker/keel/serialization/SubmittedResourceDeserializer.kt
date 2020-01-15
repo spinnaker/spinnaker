@@ -2,7 +2,6 @@ package com.netflix.spinnaker.keel.serialization
 
 import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.deser.std.StdNodeBasedDeserializer
 import com.fasterxml.jackson.databind.introspect.AnnotatedClassResolver
 import com.fasterxml.jackson.databind.type.TypeFactory
@@ -48,13 +47,5 @@ class SubmittedResourceDeserializer : StdNodeBasedDeserializer<SubmittedResource
     }
   }
 }
-
-private val DeserializationContext.mapper: ObjectMapper
-  // Such an intuitive API. ObjectMapper is the only thing that implements ObjectCodec but useful
-  // methods like convertValue are not on that interface so we need to do a dirty type cast.
-  get() = parser.codec as ObjectMapper
-
-private inline fun <reified T> DeserializationContext.instantiationException(cause: Throwable) =
-  instantiationException(T::class.java, cause)
 
 private inline fun <reified T> TypeFactory.constructType() = constructType(T::class.java)

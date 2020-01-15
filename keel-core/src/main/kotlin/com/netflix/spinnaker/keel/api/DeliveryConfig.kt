@@ -1,6 +1,8 @@
 package com.netflix.spinnaker.keel.api
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.netflix.spinnaker.keel.persistence.NoMatchingArtifactException
+import com.netflix.spinnaker.keel.serialization.SubmittedEnvironmentDeserializer
 
 const val DEFAULT_SERVICE_ACCOUNT = "keel@spinnaker.io"
 
@@ -18,11 +20,16 @@ data class SubmittedDeliveryConfig(
   val environments: Set<SubmittedEnvironment> = emptySet()
 )
 
+@JsonDeserialize(using = SubmittedEnvironmentDeserializer::class)
 data class SubmittedEnvironment(
   val name: String,
   val resources: Set<SubmittedResource<*>>,
   val constraints: Set<Constraint> = emptySet(),
-  val notifications: Set<NotificationConfig> = emptySet()
+  val notifications: Set<NotificationConfig> = emptySet(),
+  /**
+   * Optional locations that are propagated to any [resources] where they are not specified.
+   */
+  val locations: SubnetAwareLocations? = null
 )
 
 val DeliveryConfig.resources: Set<Resource<*>>

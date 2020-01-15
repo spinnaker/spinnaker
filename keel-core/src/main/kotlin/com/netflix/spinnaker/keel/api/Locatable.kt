@@ -17,10 +17,13 @@
  */
 package com.netflix.spinnaker.keel.api
 
+import com.fasterxml.jackson.annotation.JacksonInject
+
 /**
  * A resource spec which is located in an account and one or more regions.
  */
 interface Locatable<T : Locations<*>> : ResourceSpec {
+  @get:JacksonInject("locations")
   val locations: T
 }
 
