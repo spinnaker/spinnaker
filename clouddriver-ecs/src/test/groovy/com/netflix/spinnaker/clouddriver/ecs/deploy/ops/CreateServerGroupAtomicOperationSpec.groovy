@@ -37,6 +37,7 @@ import com.netflix.spinnaker.clouddriver.ecs.services.EcsCloudMetricService
 import com.netflix.spinnaker.clouddriver.ecs.services.SecurityGroupSelector
 import com.netflix.spinnaker.clouddriver.ecs.services.SubnetSelector
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
 
 import static com.netflix.spinnaker.clouddriver.ecs.deploy.ops.CreateServerGroupAtomicOperation.DOCKER_LABEL_KEY_SERVERGROUP
 
@@ -517,12 +518,12 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
 
   def 'should generate a RegisterTaskDefinitionRequest object from artifact'() {
     given:
-    def resolvedArtifact = [
-      name: "taskdef.json",
-      reference: "fake.github.com/repos/org/repo/taskdef.json",
-      artifactAccount: "my-github-acct",
-      type: "github/file"
-    ]
+    def resolvedArtifact = Artifact.builder()
+      .name("taskdef.json")
+      .reference("fake.github.com/repos/org/repo/taskdef.json")
+      .artifactAccount("my-github-acct")
+      .type("github/file")
+      .build()
     def containerDef1 =
       new ContainerDefinition()
         .withName("web")
@@ -592,12 +593,12 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
 
   def 'should set spinnaker role on FARGATE RegisterTaskDefinitionRequest if none in artifact'() {
     given:
-    def resolvedArtifact = [
-      name: "taskdef.json",
-      reference: "fake.github.com/repos/org/repo/taskdef.json",
-      artifactAccount: "my-github-acct",
-      type: "github/file"
-    ]
+    def resolvedArtifact = Artifact.builder()
+      .name("taskdef.json")
+      .reference("fake.github.com/repos/org/repo/taskdef.json")
+      .artifactAccount("my-github-acct")
+      .type("github/file")
+      .build()
     def containerDef =
       new ContainerDefinition()
         .withName("web")
@@ -642,12 +643,12 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
 
   def 'should fail if network mode in artifact does not match description'() {
     given:
-    def resolvedArtifact = [
-      name: "taskdef.json",
-      reference: "fake.github.com/repos/org/repo/taskdef.json",
-      artifactAccount: "my-github-acct",
-      type: "github/file"
-    ]
+    def resolvedArtifact = Artifact.builder()
+      .name("taskdef.json")
+      .reference("fake.github.com/repos/org/repo/taskdef.json")
+      .artifactAccount("my-github-acct")
+      .type("github/file")
+      .build()
     def registerTaskDefRequest =
       new RegisterTaskDefinitionRequest()
         .withContainerDefinitions([new ContainerDefinition()])
