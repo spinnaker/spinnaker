@@ -79,6 +79,8 @@ class EmailNotificationAgent extends AbstractEventNotificationAgent {
 
     log.info('Sending email {} for {} {} {} {}', kv('address', preference.address), kv('application', application), kv('type', config.type), kv('status', status), kv('executionId', event.content?.execution?.id))
 
+    String link = "${spinnakerUrl}/#/applications/${application}/${config.type == 'stage' ? 'executions/details' : config.link }/${event.content?.execution?.id}"
+
     sendMessage(
       preference.address ? [preference.address] as String[] : null,
       preference.cc ? [preference.cc] as String[] : null,
@@ -86,7 +88,7 @@ class EmailNotificationAgent extends AbstractEventNotificationAgent {
       subject,
       config.type,
       status,
-      config.link,
+      link,
       preference.message?."$config.type.$status"?.text,
       preference.customBody ?: context.customBody
     )
