@@ -123,21 +123,48 @@ class ImageService(
    * Returns the latest image that is present in all regions.
    * Each ami must have tags.
    */
-  suspend fun getLatestNamedImageWithAllRegions(packageName: String, account: String, regions: List<String>): NamedImage? =
-    cloudDriverService.namedImages(
+  suspend fun getLatestNamedImageWithAllRegions(packageName: String, account: String, regions: List<String>): NamedImage? {
+    val images = cloudDriverService.namedImages(
       serviceAccount = DEFAULT_SERVICE_ACCOUNT,
       imageName = packageName,
       account = account
     )
+
+    val filteredImages = images
       .filter { it.hasAppVersion }
       .sortedWith(NamedImageComparator)
+
+    val eliminatedImages = mutableMapOf<String, String>()
+    val image = filteredImages
       .find {
+        val errors = mutableListOf<String>()
         val curAppVersion = AppVersion.parseName(it.appVersion)
-        curAppVersion.packageName == packageName &&
-          it.accounts.contains(account) &&
-          it.amis.keys.containsAll(regions) &&
-          tagsExistForAllAmis(it.tagsByImageId)
+        if (curAppVersion.packageName != packageName) {
+          errors.add("[package name ${curAppVersion.packageName} does not match required package]")
+        }
+        if (!it.accounts.contains(account)) {
+          errors.add("[image is only in accounts ${it.accounts}]")
+        }
+        if (!it.amis.keys.containsAll(regions)) {
+          errors.add("[image is only in regions ${it.amis.keys}]")
+        }
+        if (!tagsExistForAllAmis(it.tagsByImageId)) {
+          errors.add("[image does not have tags for all regions: existing tags ${it.tagsByImageId}]")
+        }
+        if (errors.isEmpty()) {
+          true
+        } else {
+          eliminatedImages[it.imageName] = errors.joinToString(",")
+          false
+        }
       }
+    log.debug(
+      "Finding latest qualifying named image for $packageName in account $account and regions $regions:\n " +
+        "selected image=${image?.imageName}\n " +
+        "rejected images=${eliminatedImages.map { it.key + ": " + it.value + "\n" }.joinToString("")}")
+
+    return image
+  }
 
   suspend fun getNamedImageFromJenkinsInfo(packageName: String, account: String, buildHost: String, buildName: String, buildNumber: String): NamedImage? =
     cloudDriverService.namedImages(DEFAULT_SERVICE_ACCOUNT, packageName, account)

@@ -63,9 +63,11 @@ class ImageHandler(
 
   override suspend fun current(resource: Resource<ImageSpec>): Image? =
     with(resource) {
-      imageService.getLatestImageWithAllRegions(spec.artifactName, "test", resource.spec.regions.toList())?.let {
-        it.copy(regions = it.regions.intersect(resource.spec.regions))
-      }
+      imageService
+        .getLatestImageWithAllRegions(spec.artifactName, "test", resource.spec.regions.toList())
+        ?.let {
+          it.copy(regions = it.regions.intersect(resource.spec.regions))
+        }
     }
 
   /**
@@ -77,9 +79,11 @@ class ImageHandler(
         .versions(this, statuses)
         .firstOrNull()
       if (knownVersion != null) {
+        log.debug("Latest known version of $name = $knownVersion")
         return knownVersion
       }
     } catch (e: NoSuchArtifactException) {
+      log.debug("Latest known version of $name = null")
       if (!artifactRepository.isRegistered(name, type)) {
         // we clearly care about this artifact, let's register it.
         publisher.publishEvent(ArtifactRegisteredEvent(this))
@@ -88,11 +92,15 @@ class ImageHandler(
 
     // even though the artifact isn't registered we should grab the latest version to use
     return runBlocking {
-      igorService
+      val versions = igorService
         .getVersions(name, statuses.map { it.toString() })
+      log.debug("Finding latest version of $name: versions igor knows about = $versions")
+      versions
         .firstOrNull()
         ?.let {
-          "$name-$it"
+          val version = "$name-$it"
+          log.debug("Finding latest version of $name, choosing = $version")
+          version
         }
     } ?: throw NoKnownArtifactVersions(this)
   }

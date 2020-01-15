@@ -48,7 +48,7 @@ data class DebianArtifact(
   @JsonProperty(access = Access.WRITE_ONLY) override val deliveryConfigName: String? = null,
   override val reference: String = name,
   val statuses: List<ArtifactStatus> = emptyList(),
-  override val versioningStrategy: VersioningStrategy = DebianSemVerVersioningStrategy
+  @JsonProperty(access = Access.WRITE_ONLY) override val versioningStrategy: VersioningStrategy = DebianSemVerVersioningStrategy
 ) : DeliveryArtifact {
   override val type = DEB
 }

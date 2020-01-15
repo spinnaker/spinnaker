@@ -34,8 +34,6 @@ import com.netflix.spinnaker.keel.events.ResourceState.Ok
 import java.time.Clock
 import java.time.Instant
 
-// todo emjburns: use the common class in kork, but refactor so you can also set the time in those.
-// todo emjburns: maybe only do ^ once the api stabilizes, for now we're using maps in gate.
 @JsonTypeInfo(
   use = Id.NAME,
   property = "type",
