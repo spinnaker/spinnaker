@@ -45,7 +45,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.subnet
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
-import com.netflix.spinnaker.keel.ec2.image.ArtifactVersionDeployed
+import com.netflix.spinnaker.keel.events.ArtifactVersionDeployed
 import com.netflix.spinnaker.keel.events.Task
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.orca.OrcaService
@@ -539,7 +539,8 @@ class ClusterHandler(
           if (appVersion != null) {
             publisher.publishEvent(ArtifactVersionDeployed(
               resourceId = resource.id,
-              artifactVersion = appVersion
+              artifactVersion = appVersion,
+              provider = "aws"
             ))
           }
         }

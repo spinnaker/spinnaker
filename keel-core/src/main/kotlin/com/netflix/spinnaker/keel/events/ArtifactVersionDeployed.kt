@@ -15,7 +15,7 @@
  * limitations under the License.
  *
  */
-package com.netflix.spinnaker.keel.ec2.image
+package com.netflix.spinnaker.keel.events
 
 import com.netflix.spinnaker.keel.api.ResourceId
 

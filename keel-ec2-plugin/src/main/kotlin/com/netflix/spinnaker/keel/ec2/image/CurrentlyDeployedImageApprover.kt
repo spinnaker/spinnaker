@@ -17,10 +17,14 @@
  */
 package com.netflix.spinnaker.keel.ec2.image
 
+import com.netflix.spinnaker.keel.api.ArtifactType
 import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
+import com.netflix.spinnaker.keel.api.ec2.ReferenceArtifactImageProvider
+import com.netflix.spinnaker.keel.events.ArtifactVersionDeployed
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
+import com.netflix.spinnaker.keel.persistence.NoMatchingArtifactException
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
@@ -43,11 +47,22 @@ class CurrentlyDeployedImageApprover(
       val deliveryConfig = deliveryConfigRepository.deliveryConfigFor(resourceId)
       val env = deliveryConfigRepository.environmentFor(resourceId)
 
-      if (resource.spec is ClusterSpec && deliveryConfig != null && env != null) {
+      if (resource.spec is ClusterSpec) {
         val spec = resource.spec as ClusterSpec // needed because kotlin can't cast it automatically
-        if (spec.imageProvider is ArtifactImageProvider) {
-          val artifact = spec.imageProvider.deliveryArtifact
+        val artifact = when (spec.imageProvider) {
+          is ArtifactImageProvider -> {
+            spec.imageProvider.deliveryArtifact
+          }
+          is ReferenceArtifactImageProvider -> {
+            deliveryConfig.artifacts.find { it.reference == spec.imageProvider.reference && it.type == ArtifactType.DEB }
+              ?: throw NoMatchingArtifactException(deliveryConfig.name, ArtifactType.DEB, spec.imageProvider.reference)
+          }
+          else -> {
+            null
+          }
+        }
 
+        if (artifact != null) {
           val approvedForEnv = artifactRepository.isApprovedFor(
             deliveryConfig = deliveryConfig,
             artifact = artifact,
