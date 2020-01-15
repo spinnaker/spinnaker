@@ -107,7 +107,7 @@ class EmailNotificationAgent extends AbstractEventNotificationAgent {
         .replace("{{link}}", link ?: "")
       body = new MarkdownToHtmlFormatter().convert(interpolated)
     } else {
-      Template template = configuration.getTemplate(type == 'stage' ? 'stage.ftl' : 'pipeline.ftl', "UTF-8")
+      Template template = configuration.getTemplate("email-template.ftl", "UTF-8")
       body = FreeMarkerTemplateUtils.processTemplateIntoString(
         template,
         [
