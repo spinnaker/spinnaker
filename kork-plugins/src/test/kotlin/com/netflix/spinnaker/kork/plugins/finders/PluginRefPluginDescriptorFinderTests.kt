@@ -13,39 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.netflix.spinnaker.kork.plugins.finders
 
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.verify
-import org.pf4j.CompoundPluginDescriptorFinder
-import org.pf4j.RuntimeMode
+import org.pf4j.PluginDescriptor
+import org.pf4j.PluginDescriptorFinder
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isTrue
+import java.nio.file.Path
 import java.nio.file.Paths
 
-class SpinnakerPluginDescriptorFinderTest : JUnit5Minutests {
+class PluginRefPluginDescriptorFinderTests : JUnit5Minutests {
 
   fun tests() = rootContext<Fixture> {
     fixture { Fixture() }
 
     test("delegates isApplicable to internal chain") {
-      every { finder.isApplicable(any()) } returns true
-      expectThat(subject.isApplicable(Paths.get("/somewhere"))).isTrue()
-      verify(exactly = 1) { finder.isApplicable(any()) }
+      expectThat(subject.isApplicable(pluginRefPath)).isTrue()
     }
 
     test("delegates find to internal chain") {
-      every { finder.find(any()) } returns pluginDescriptor
-      expectThat(subject.find(Paths.get("/somewhere/plugin"))).isEqualTo(pluginDescriptor)
+      // TODO(cf): implement .equals on SpinnakerPluginDescriptor that accounts for lack of equals on DefaultPluginDescriptor..
+      expectThat(subject.find(pluginRefPath)).isEqualTo(expectedDescriptor)
     }
   }
 
   private inner class Fixture {
-    val finder: CompoundPluginDescriptorFinder = mockk(relaxed = true)
-    val subject = SpinnakerPluginDescriptorFinder(RuntimeMode.DEPLOYMENT, finder)
+    val expectedDescriptor: PluginDescriptor = SpinnakerPropertiesPluginDescriptorFinder().find(Paths.get(javaClass.getResource("/testplugin/plugin.properties").toURI()).parent)
+    val pluginRefPath: Path = Paths.get(javaClass.getResource("/test.plugin-ref").toURI())
+    val finder: PluginDescriptorFinder = SpinnakerPropertiesPluginDescriptorFinder()
+    val subject = PluginRefPluginDescriptorFinder(finder)
   }
 }

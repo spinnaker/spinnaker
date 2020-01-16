@@ -18,6 +18,7 @@ package com.netflix.spinnaker.kork.plugins.finders
 import org.pf4j.CompoundPluginDescriptorFinder
 import org.pf4j.PluginDescriptor
 import org.pf4j.PluginDescriptorFinder
+import org.pf4j.RuntimeMode
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 
@@ -28,6 +29,7 @@ import java.nio.file.Path
  * @see SpinnakerPropertiesPluginDescriptorFinder
  */
 class SpinnakerPluginDescriptorFinder(
+  private val runtimeMode: RuntimeMode,
   private val finders: CompoundPluginDescriptorFinder = CompoundPluginDescriptorFinder()
 ) : PluginDescriptorFinder {
 
@@ -40,9 +42,19 @@ class SpinnakerPluginDescriptorFinder(
       // if it's not done correctly, however.
       log.warn("Custom finders have been provided, skipping defaults")
     } else {
-      finders
-        .add(SpinnakerPropertiesPluginDescriptorFinder())
-        .add(SpinnakerManifestPluginDescriptorFinder())
+      fun addSpinnakerFinders(finder: CompoundPluginDescriptorFinder): CompoundPluginDescriptorFinder =
+        finder
+          .add(SpinnakerPropertiesPluginDescriptorFinder())
+          .add(SpinnakerManifestPluginDescriptorFinder())
+
+      if (runtimeMode == RuntimeMode.DEVELOPMENT) {
+        val spinnakerFinders = addSpinnakerFinders(CompoundPluginDescriptorFinder())
+        finders
+          .add(PluginRefPluginDescriptorFinder(spinnakerFinders))
+          .add(spinnakerFinders)
+      } else {
+        addSpinnakerFinders(finders)
+      }
     }
   }
 

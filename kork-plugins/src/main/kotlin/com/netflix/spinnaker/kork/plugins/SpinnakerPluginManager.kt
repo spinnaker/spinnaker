@@ -19,14 +19,18 @@ import com.netflix.spinnaker.kork.annotations.Beta
 import com.netflix.spinnaker.kork.plugins.bundle.PluginBundleExtractor
 import com.netflix.spinnaker.kork.plugins.config.ConfigResolver
 import com.netflix.spinnaker.kork.plugins.finders.SpinnakerPluginDescriptorFinder
+import com.netflix.spinnaker.kork.plugins.loaders.PluginRefPluginLoader
 import com.netflix.spinnaker.kork.plugins.loaders.SpinnakerDefaultPluginLoader
 import com.netflix.spinnaker.kork.plugins.loaders.SpinnakerDevelopmentPluginLoader
 import com.netflix.spinnaker.kork.plugins.loaders.SpinnakerJarPluginLoader
+import com.netflix.spinnaker.kork.plugins.repository.PluginRefPluginRepository
 import org.pf4j.CompoundPluginLoader
+import org.pf4j.CompoundPluginRepository
 import org.pf4j.DefaultPluginManager
 import org.pf4j.ExtensionFactory
 import org.pf4j.PluginDescriptorFinder
 import org.pf4j.PluginLoader
+import org.pf4j.PluginRepository
 import org.pf4j.PluginStatusProvider
 import org.pf4j.PluginWrapper
 import java.nio.file.Path
@@ -67,12 +71,13 @@ open class SpinnakerPluginManager(
 
   override fun createPluginLoader(): PluginLoader =
     CompoundPluginLoader()
+      .add(PluginRefPluginLoader(this), this::isDevelopment)
       .add(SpinnakerDevelopmentPluginLoader(this), this::isDevelopment)
       .add(SpinnakerDefaultPluginLoader(this))
       .add(SpinnakerJarPluginLoader(this))
 
   override fun createPluginDescriptorFinder(): PluginDescriptorFinder =
-    SpinnakerPluginDescriptorFinder()
+    SpinnakerPluginDescriptorFinder(this.getRuntimeMode())
 
   override fun loadPluginFromPath(pluginPath: Path): PluginWrapper? {
     val extractedPath = bundleExtractor.extractService(pluginPath, serviceName)
@@ -82,4 +87,8 @@ open class SpinnakerPluginManager(
   internal fun setPlugins(specifiedPlugins: Collection<PluginWrapper>) {
     this.plugins = specifiedPlugins.associateBy { it.pluginId }
   }
+
+  override fun createPluginRepository(): PluginRepository = CompoundPluginRepository()
+    .add(PluginRefPluginRepository(getPluginsRoot()), this::isDevelopment)
+    .add(super.createPluginRepository())
 }
