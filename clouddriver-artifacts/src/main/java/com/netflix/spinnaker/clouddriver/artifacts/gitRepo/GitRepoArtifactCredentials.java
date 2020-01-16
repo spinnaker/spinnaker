@@ -38,7 +38,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.ArchiveCommand;
-import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -98,6 +97,8 @@ public class GitRepoArtifactCredentials implements ArtifactCredentials {
   @Override
   public InputStream download(Artifact artifact) throws IOException {
     String repoReference = artifact.getReference();
+    String subPath = artifactSubPath(artifact);
+    String remoteRef = artifactVersion(artifact);
     Path stagingPath =
         Paths.get(System.getProperty("java.io.tmpdir"), UUID.randomUUID().toString());
 
@@ -111,10 +112,10 @@ public class GitRepoArtifactCredentials implements ArtifactCredentials {
 
     try (Closeable ignored = () -> FileUtils.deleteDirectory(stagingPath.toFile())) {
       log.info("Cloning git/repo {} into {}", repoReference, stagingPath.toString());
-      Git localRepository = clone(artifact, stagingPath);
+      Git localRepository = clone(artifact, stagingPath, remoteRef);
       ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
       log.info("Creating archive for git/repo {}", repoReference);
-      archiveToOutputStream(artifact, localRepository, outputStream);
+      archiveToOutputStream(localRepository, outputStream, remoteRef, subPath);
       return new ByteArrayInputStream(outputStream.toByteArray());
     } catch (GitAPIException e) {
       throw new IOException(
@@ -122,38 +123,24 @@ public class GitRepoArtifactCredentials implements ArtifactCredentials {
     }
   }
 
-  private Git clone(Artifact artifact, Path stagingPath) throws GitAPIException {
-    String version = "origin/" + artifactVersion(artifact);
-    String subPath = artifactSubPath(artifact);
+  private Git clone(Artifact artifact, Path stagingPath, String remoteRef) throws GitAPIException {
     // TODO(ethanfrogers): add support for clone history depth once jgit supports it
 
-    Git localRepository =
-        addAuthentication(Git.cloneRepository())
-            .setURI(artifact.getReference())
-            .setDirectory(stagingPath.toFile())
-            .setNoCheckout(true)
-            .call();
-
-    CheckoutCommand checkoutCommand =
-        localRepository.checkout().setName(version).setStartPoint(version);
-
-    if (!StringUtils.isEmpty(subPath)) {
-      checkoutCommand = checkoutCommand.addPath(subPath);
-    }
-
-    checkoutCommand.call();
-    return localRepository;
+    return addAuthentication(Git.cloneRepository())
+        .setURI(artifact.getReference())
+        .setDirectory(stagingPath.toFile())
+        .setBranch(remoteRef)
+        .call();
   }
 
-  private void archiveToOutputStream(Artifact artifact, Git repository, OutputStream outputStream)
+  private void archiveToOutputStream(
+      Git repository, OutputStream outputStream, String remoteRef, String subPath)
       throws GitAPIException, IOException {
-    String version = artifactVersion(artifact);
-    String subPath = artifactSubPath(artifact);
 
     ArchiveCommand archiveCommand =
         repository
             .archive()
-            .setTree(repository.getRepository().resolve("origin/" + version))
+            .setTree(repository.getRepository().resolve(remoteRef))
             .setFormat("tgz")
             .setOutputStream(outputStream);
 
