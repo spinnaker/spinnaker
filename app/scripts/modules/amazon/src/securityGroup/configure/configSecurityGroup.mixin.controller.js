@@ -337,6 +337,14 @@ module(AMAZON_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
       ruleset.splice(index, 1);
     };
 
+    ctrl.updateRuleType = function(type, ruleset, index) {
+      const rule = ruleset[index];
+      if (type === 'icmp') {
+        rule.startPort = 0;
+        rule.endPort = 0;
+      }
+    };
+
     ctrl.dismissRemovedRules = function() {
       $scope.state.removedRules = [];
       ModalWizard.markClean('Ingress');
