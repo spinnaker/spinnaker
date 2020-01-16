@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.config
 
+import com.netflix.spinnaker.orca.q.NoopQueue
+import com.netflix.spinnaker.q.Queue
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
@@ -33,4 +35,8 @@ class OrcaQueueConfiguration {
   @Bean
   @ConditionalOnMissingBean(Clock::class)
   fun systemClock(): Clock = Clock.systemDefaultZone()
+
+  @Bean
+  @ConditionalOnMissingBean(Queue::class)
+  fun queue(): Queue = NoopQueue()
 }
