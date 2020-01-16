@@ -58,7 +58,9 @@ public class DependsOnExecutionTask implements OverridableTimeoutRetryableTask {
     TaskContext context = stage.mapTo(TaskContext.class);
 
     try {
-      Execution execution = repository.retrieve(context.executionType, context.executionId);
+      Execution execution =
+          repository.retrieve(
+              ExecutionType.valueOf(context.executionType.toUpperCase()), context.executionId);
       ExecutionStatus status = execution.getStatus();
 
       if (status.isSuccessful()) {
@@ -82,7 +84,7 @@ public class DependsOnExecutionTask implements OverridableTimeoutRetryableTask {
   }
 
   private static class TaskContext {
-    @NotNull public ExecutionType executionType;
+    @NotNull public String executionType;
     @NotNull public String executionId;
   }
 }
