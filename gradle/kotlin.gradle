@@ -32,9 +32,6 @@ dependencies {
   testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
   testRuntimeOnly "org.junit.vintage:junit-vintage-engine"
   testRuntimeOnly "org.jetbrains.spek:spek-junit-platform-engine"
-
-
-  detektPlugins "io.gitlab.arturbosch.detekt:detekt-formatting:1.2.2"
 }
 
 test {

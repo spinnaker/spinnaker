@@ -1,7 +1,5 @@
 style:
   ThrowsCount:
     active: false
-
-formatting:
-  ParameterListWrapping:
+  MaxLineLength:
     active: false
