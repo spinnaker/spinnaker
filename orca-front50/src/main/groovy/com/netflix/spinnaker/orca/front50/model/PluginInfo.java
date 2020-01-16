@@ -34,7 +34,7 @@ public class PluginInfo {
     private String version;
     private String date;
 
-    private List<String> requires;
+    private String requires;
     private String url;
     private String sha512sum;
     private State state;
