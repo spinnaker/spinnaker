@@ -38,7 +38,7 @@ export function ImportDeliveryConfigExecutionDetails(props: IExecutionDetailsSec
         <div>
           <div className="alert alert-danger">
             Something went wrong during import:
-            <pre>${stage.context.error}</pre>
+            <pre>{stage.context.error}</pre>
           </div>
         </div>
       )}
