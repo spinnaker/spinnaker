@@ -58,7 +58,7 @@ class EmailNotificationAgentSpec extends Specification {
     email.subject == expectedSubject
 
     and:
-    1 * configuration.getTemplate("${type}.ftl", "UTF-8") >> template
+    1 * configuration.getTemplate("email-template.ftl", "UTF-8") >> template
     1 * template.process(_, _)
 
     where:
