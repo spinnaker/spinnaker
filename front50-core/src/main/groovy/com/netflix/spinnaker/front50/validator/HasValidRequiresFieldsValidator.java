@@ -37,11 +37,10 @@ public class HasValidRequiresFieldsValidator implements PluginInfoValidator {
         .getReleases()
         .forEach(
             release -> {
-              release
-                  .getRequires()
+              Arrays.stream(release.getRequires().split(","))
                   .forEach(
                       requires -> {
-                        Matcher m = SUPPORTS_PATTERN.matcher(requires);
+                        Matcher m = SUPPORTS_PATTERN.matcher(requires.trim());
                         if (!m.matches()) {
                           validationErrors.reject(
                               "pluginInfo.releases.invalidRequiresFormat",

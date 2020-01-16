@@ -24,13 +24,7 @@ class PluginInfoSpec extends Specification {
   @Unroll
   def "plugin info release supports service"() {
     given:
-    def release = new PluginInfo.Release(
-      requires: [
-        "clouddriver>=2.0.0",
-        "orca>7.0.0",
-        "gate>=3.0.0"
-      ]
-    )
+    def release = new PluginInfo.Release(requires: "clouddriver>=2.0.0,orca>7.0.0,gate>=3.0.0")
 
     expect:
     release.supportsService(service) == expectedResult

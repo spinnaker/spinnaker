@@ -18,6 +18,7 @@ package com.netflix.spinnaker.front50.model.plugininfo;
 import com.netflix.spinnaker.front50.model.Timestamped;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -92,8 +93,10 @@ public class PluginInfo implements Timestamped {
      * <p>1. "{service}" is alphanumeric and dash characters. 2. "{comparator}" is an algebraic
      * comparison operator (e.g. {@code "<", "<=", ">", ">="}) 3. "{version}" is a SemVer-compatible
      * version.
+     *
+     * <p>For multiple elements this is a comma-delimited string.
      */
-    private List<String> requires;
+    private String requires;
 
     /** The absolute path of the plugin artifact binary. */
     private String url;
@@ -125,10 +128,10 @@ public class PluginInfo implements Timestamped {
      * @param service The service name to check against.
      */
     public boolean supportsService(@Nonnull String service) {
-      return requires.stream()
+      return Arrays.stream(requires.split(","))
           .anyMatch(
               it -> {
-                Matcher m = SUPPORTS_PATTERN.matcher(it);
+                Matcher m = SUPPORTS_PATTERN.matcher(it.trim());
                 if (m.matches()) {
                   return m.group(SUPPORTS_PATTERN_SERVICE_GROUP).equals(service);
                 }

@@ -40,12 +40,13 @@ class HasValidRequiresFieldsValidatorSpec extends Specification {
     errors.hasErrors() == hasErrors
 
     where:
-    requiresValue         || hasErrors
-    ["gate<=1.0.0"]       || false
-    ["gate>=1.0.0"]       || false
-    ["gate<1.0.0"]        || false
-    ["hello-world=1.0.0"] || true
-    ["gate=1.0.0"]        || true
-    ["gate=foo"]          || true
+    requiresValue              || hasErrors
+    "gate<=1.0.0,echo>=1.0.0"  || false
+    "gate<=1.0.0, echo>=1.0.0" || false
+    "gate>=1.0.0"              || false
+    "gate<1.0.0"               || false
+    "hello-world=1.0.0"        || true
+    "gate=1.0.0"               || true
+    "gate=foo"                 || true
   }
 }
