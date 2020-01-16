@@ -48,6 +48,7 @@ import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.docker.ContainerProvider
 import com.netflix.spinnaker.keel.docker.DigestProvider
 import com.netflix.spinnaker.keel.docker.VersionedTagProvider
+import com.netflix.spinnaker.keel.events.ArtifactVersionDeployed
 import com.netflix.spinnaker.keel.events.Task
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.orca.OrcaService
@@ -319,6 +320,22 @@ class TitusClusterHandler(
       resource.spec.locations.regions.map { it.name }.toSet(),
       resource.serviceAccount
     )
+      .also { them ->
+        if (them.distinctBy { it.container.digest }.size == 1) {
+          val container = them.first().container
+          val image = cloudDriverService.findDockerImages(
+            account = getRegistryForTitusAccount(resource.spec.locations.account),
+            repository = container.repository()
+          ).find { it.digest == container.digest }
+          if (image != null) {
+            publisher.publishEvent(ArtifactVersionDeployed(
+              resourceId = resource.id,
+              artifactVersion = image.tag,
+              provider = "titus"
+            ))
+          }
+        }
+      }
 
   private suspend fun CloudDriverService.getServerGroups(
     account: String,
@@ -348,8 +365,6 @@ class TitusClusterHandler(
         }
       }
         .mapNotNull { it.await() }
-      // todo eb: how can we tell what version is deployed here?
-      // todo: emit an event for the version that's deployed
     }
 
   private fun TitusActiveServerGroup.toTitusServerGroup() =

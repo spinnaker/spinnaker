@@ -248,6 +248,8 @@ class TitusClusterHandlerTests : JUnit5Minutests {
       before {
         coEvery { cloudDriverService.titusActiveServerGroup("us-east-1") } returns activeServerGroupResponseEast
         coEvery { cloudDriverService.titusActiveServerGroup("us-west-2") } throws RETROFIT_NOT_FOUND
+        coEvery { cloudDriverService.findDockerImages("testregistry", "spinnaker/keel", any(), any()) } returns
+          listOf(DockerImage("testregistry", "spinnaker/keel", "master-h2.blah", "sha:1111"))
       }
 
       test("the current model is null") {
@@ -278,6 +280,8 @@ class TitusClusterHandlerTests : JUnit5Minutests {
       before {
         coEvery { cloudDriverService.titusActiveServerGroup("us-east-1") } returns activeServerGroupResponseEast
         coEvery { cloudDriverService.titusActiveServerGroup("us-west-2") } returns activeServerGroupResponseWest
+        coEvery { cloudDriverService.findDockerImages("testregistry", "spinnaker/keel", any(), any()) } returns
+          listOf(DockerImage("testregistry", "spinnaker/keel", "master-h2.blah", "sha:1111"))
       }
 
       // TODO: test for multiple server group response

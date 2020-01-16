@@ -1,5 +1,7 @@
 package com.netflix.spinnaker.keel.api
 
+import com.netflix.spinnaker.keel.persistence.NoMatchingArtifactException
+
 const val DEFAULT_SERVICE_ACCOUNT = "keel@spinnaker.io"
 
 data class DeliveryConfig(
@@ -25,3 +27,7 @@ data class SubmittedEnvironment(
 
 val DeliveryConfig.resources: Set<Resource<*>>
   get() = environments.flatMapTo(mutableSetOf()) { it.resources }
+
+fun DeliveryConfig.matchingArtifact(reference: String, type: ArtifactType): DeliveryArtifact =
+  artifacts.find { it.reference == reference && it.type == type }
+    ?: throw NoMatchingArtifactException(name, type, reference)

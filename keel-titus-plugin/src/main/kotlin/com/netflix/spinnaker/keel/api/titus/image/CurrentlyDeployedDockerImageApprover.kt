@@ -1,27 +1,9 @@
-/*
- *
- * Copyright 2019 Netflix, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License")
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-package com.netflix.spinnaker.keel.ec2.image
+package com.netflix.spinnaker.keel.api.titus.image
 
-import com.netflix.spinnaker.keel.api.ArtifactType.DEB
-import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
-import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
-import com.netflix.spinnaker.keel.api.ec2.ReferenceArtifactImageProvider
+import com.netflix.spinnaker.keel.api.ArtifactType.DOCKER
 import com.netflix.spinnaker.keel.api.matchingArtifact
+import com.netflix.spinnaker.keel.api.titus.cluster.TitusClusterSpec
+import com.netflix.spinnaker.keel.docker.ReferenceProvider
 import com.netflix.spinnaker.keel.events.ArtifactVersionDeployed
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
@@ -32,7 +14,7 @@ import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 
 @Component
-class CurrentlyDeployedImageApprover(
+class CurrentlyDeployedDockerImageApprover(
   private val artifactRepository: ArtifactRepository,
   private val resourceRepository: ResourceRepository,
   private val deliveryConfigRepository: DeliveryConfigRepository
@@ -47,20 +29,11 @@ class CurrentlyDeployedImageApprover(
       val deliveryConfig = deliveryConfigRepository.deliveryConfigFor(resourceId)
       val env = deliveryConfigRepository.environmentFor(resourceId)
 
-      (resource.spec as? ClusterSpec)?.let { spec ->
-        val artifact = when (spec.imageProvider) {
-          is ArtifactImageProvider -> {
-            spec.imageProvider.deliveryArtifact
-          }
-          is ReferenceArtifactImageProvider -> {
-            deliveryConfig.matchingArtifact(spec.imageProvider.reference, DEB)
-          }
-          else -> {
-            null
-          }
-        }
+      (resource.spec as? TitusClusterSpec)?.let { spec ->
+        if (spec.defaults.container != null && spec.defaults.container is ReferenceProvider) {
+          val container = spec.defaults.container as ReferenceProvider
+          val artifact = deliveryConfig.matchingArtifact(container.reference, DOCKER)
 
-        if (artifact != null) {
           val approvedForEnv = artifactRepository.isApprovedFor(
             deliveryConfig = deliveryConfig,
             artifact = artifact,
