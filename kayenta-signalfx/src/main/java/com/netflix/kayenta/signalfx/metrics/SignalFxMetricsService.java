@@ -72,6 +72,8 @@ public class SignalFxMetricsService implements MetricsService {
 
   @Autowired private final Map<String, SignalFxScopeConfiguration> signalFxScopeConfigurationMap;
 
+  @Autowired private final SignalFxQueryBuilderService queryBuilder;
+
   @Override
   public String getType() {
     return "signalfx";
@@ -94,16 +96,9 @@ public class SignalFxMetricsService implements MetricsService {
     SignalFxCanaryScope signalFxCanaryScope = (SignalFxCanaryScope) canaryScope;
     SignalFxCanaryMetricSetQueryConfig queryConfig =
         (SignalFxCanaryMetricSetQueryConfig) canaryMetricConfig.getQuery();
-    String aggregationMethod =
-        Optional.ofNullable(queryConfig.getAggregationMethod()).orElse("mean");
-    List<QueryPair> queryPairs =
-        Optional.ofNullable(queryConfig.getQueryPairs()).orElse(new LinkedList<>());
 
-    return SimpleSignalFlowProgramBuilder.create(
-            queryConfig.getMetricName(), aggregationMethod, scopeConfiguration)
-        .withQueryPairs(queryPairs)
-        .withScope(signalFxCanaryScope)
-        .build();
+    return queryBuilder.buildQuery(
+        canaryConfig, queryConfig, canaryScope, scopeConfiguration, signalFxCanaryScope);
   }
 
   @Override

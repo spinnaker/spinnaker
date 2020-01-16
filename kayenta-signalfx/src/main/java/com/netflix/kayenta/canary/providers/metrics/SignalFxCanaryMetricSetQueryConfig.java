@@ -20,14 +20,15 @@ package com.netflix.kayenta.canary.providers.metrics;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig;
 import java.util.List;
-import javax.validation.constraints.NotNull;
+import javax.annotation.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.springframework.util.StringUtils;
 
-@Builder
+@Builder(toBuilder = true)
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
@@ -36,11 +37,26 @@ public class SignalFxCanaryMetricSetQueryConfig implements CanaryMetricSetQueryC
 
   public static final String SERVICE_TYPE = "signalfx";
 
-  @NotNull @Getter private String metricName;
+  @Nullable @Getter private String metricName;
 
   @Getter private List<QueryPair> queryPairs;
 
   @Getter private String aggregationMethod;
+
+  @Nullable @Getter private String customInlineTemplate;
+
+  @Getter private String customFilterTemplate;
+
+  @Override
+  public CanaryMetricSetQueryConfig cloneWithEscapedInlineTemplate() {
+    if (StringUtils.isEmpty(customInlineTemplate)) {
+      return this;
+    } else {
+      return this.toBuilder()
+          .customInlineTemplate(customInlineTemplate.replace("${", "$\\{"))
+          .build();
+    }
+  }
 
   @Override
   public String getServiceType() {

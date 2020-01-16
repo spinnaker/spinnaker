@@ -9,7 +9,7 @@
     {
       "name": "Cpu Usage Percentage",
       "query": {
-        "metricName": "kayenta.integration-test.cpu.avg",
+        "customInlineTemplate": "data('kayenta.integration-test.cpu.avg', filter=filter('canary-scope', '${scope}') and filter('location', '${location}')).mean(by=['location', 'canary-scope']).publish()",
         "serviceType": "signalfx",
         "type": "signalfx"
       },
