@@ -24,6 +24,7 @@ import org.pf4j.PluginState
 import org.pf4j.update.UpdateManager
 import org.pf4j.update.UpdateRepository
 import org.slf4j.LoggerFactory
+import java.io.File
 
 /**
  * TODO(rz): Update [hasPluginUpdate] such that it understands the latest plugin is not always the one desired
@@ -50,6 +51,7 @@ class SpinnakerUpdateManager(
 
     val pluginsRoot = pluginManager.pluginsRoot
     val file = pluginsRoot.resolve(downloaded.fileName)
+    File(pluginsRoot.toString()).mkdirs()
     try {
       Files.move(downloaded, file, StandardCopyOption.REPLACE_EXISTING)
     } catch (e: IOException) {
