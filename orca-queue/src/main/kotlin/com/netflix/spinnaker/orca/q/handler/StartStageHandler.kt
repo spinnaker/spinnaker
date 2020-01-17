@@ -203,7 +203,7 @@ class StartStageHandler(
       return false
     }
 
-    val clonedContext = objectMapper.convertValue(this.context, Map::class.java) as Map<String, Any>
+    val clonedContext: MutableMap<String, Any> = this.context.toMutableMap()
     val clonedStage = Stage(this.execution, this.type, clonedContext).also {
       it.refId = refId
       it.requisiteStageRefIds = requisiteStageRefIds

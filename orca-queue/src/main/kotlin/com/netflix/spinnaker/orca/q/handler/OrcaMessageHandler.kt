@@ -64,6 +64,13 @@ internal interface OrcaMessageHandler<M : Message> : MessageHandler<M> {
       try {
         execution
           .stageById(stageId)
+          .also {
+            /**
+             * Mutates it.context in a required way (such as removing refId and requisiteRefIds from the
+             * context map) for some non-linear stage features.
+             */
+            Stage(execution, it.type, it.context)
+          }
           .let(block)
       } catch (e: IllegalArgumentException) {
         queue.push(InvalidStageId(this))
