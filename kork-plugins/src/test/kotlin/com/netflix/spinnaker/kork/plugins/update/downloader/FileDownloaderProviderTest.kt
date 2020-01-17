@@ -13,38 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.kork.plugins.update
+
+package com.netflix.spinnaker.kork.plugins.update.downloader
 
 import com.netflix.spinnaker.config.PluginsConfigurationProperties
-import com.netflix.spinnaker.kork.plugins.update.downloader.ProcessFileDownloader
-import com.netflix.spinnaker.kork.plugins.update.downloader.ProcessFileDownloaderConfig
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
-import java.net.URL
 
-class UpdateRepositoryFactoryTest : JUnit5Minutests {
+class FileDownloaderProviderTest : JUnit5Minutests {
 
-  fun tests() = rootContext<UpdateRepositoryFactory> {
-    context("custom file downloader") {
+  fun tests() = rootContext<FileDownloaderProvider> {
+    context("file download provider") {
       fixture {
-        UpdateRepositoryFactory(
-          "myRepo",
-          URL("http://example.com"),
+        FileDownloaderProvider
+      }
+
+      test("creates the ProcessFileDownloader with custom config") {
+        expectThat(get(
           PluginsConfigurationProperties.PluginRepositoryProperties.FileDownloaderProperties().apply {
             className = ProcessFileDownloader::class.java.canonicalName
             config = ProcessFileDownloaderConfig("curl -O")
-          }
-        )
-      }
-
-      test("creates update repository with configured custom file downloader") {
-        expectThat(create())
-          .isA<ConfigurableUpdateRepository>()
-          .get { fileDownloader }
-          .describedAs("file downloader")
+          }))
           .isA<ProcessFileDownloader>()
           .get { config.command }.isEqualTo("curl -O")
       }

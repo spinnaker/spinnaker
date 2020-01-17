@@ -30,6 +30,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class PluginsConfigurationProperties {
   public static final String CONFIG_NAMESPACE = "spinnaker.extensibility";
   public static final String DEFAULT_ROOT_PATH = "plugins";
+  public static final String FRONT5O_REPOSITORY = "front50";
 
   /**
    * The root filepath to the directory containing all plugins.
@@ -63,6 +64,9 @@ public class PluginsConfigurationProperties {
 
   /** Definition of a single {@link org.pf4j.update.UpdateRepository}. */
   public static class PluginRepositoryProperties {
+    /** Flag to determine if repository is enabled. */
+    private boolean enabled = true;
+
     /** The base URL to the repository. */
     private String url;
 
@@ -87,6 +91,10 @@ public class PluginsConfigurationProperties {
     @SneakyThrows
     public URL getUrl() {
       return new URL(url);
+    }
+
+    public boolean isEnabled() {
+      return enabled;
     }
   }
 }

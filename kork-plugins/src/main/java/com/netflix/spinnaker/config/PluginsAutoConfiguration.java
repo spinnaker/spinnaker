@@ -29,9 +29,10 @@ import com.netflix.spinnaker.kork.plugins.proxy.aspects.InvocationState;
 import com.netflix.spinnaker.kork.plugins.proxy.aspects.LogInvocationAspect;
 import com.netflix.spinnaker.kork.plugins.proxy.aspects.MetricInvocationAspect;
 import com.netflix.spinnaker.kork.plugins.spring.actuator.SpinnakerPluginEndpoint;
+import com.netflix.spinnaker.kork.plugins.update.ConfigurableUpdateRepository;
 import com.netflix.spinnaker.kork.plugins.update.PluginUpdateService;
 import com.netflix.spinnaker.kork.plugins.update.SpinnakerUpdateManager;
-import com.netflix.spinnaker.kork.plugins.update.UpdateRepositoryFactory;
+import com.netflix.spinnaker.kork.plugins.update.downloader.FileDownloaderProvider;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
@@ -40,6 +41,7 @@ import java.util.stream.Collectors;
 import org.pf4j.PluginStatusProvider;
 import org.pf4j.update.UpdateManager;
 import org.pf4j.update.UpdateRepository;
+import org.pf4j.update.verifier.CompoundVerifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
@@ -49,11 +51,13 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 
 @Configuration
 @EnableConfigurationProperties(PluginsConfigurationProperties.class)
+@Import({Front50UpdateRepositoryConfiguration.class})
 public class PluginsAutoConfiguration {
 
   private static final Logger log = LoggerFactory.getLogger(PluginsAutoConfiguration.class);
@@ -68,6 +72,14 @@ public class PluginsAutoConfiguration {
   public static ConfigResolver springEnvironmentConfigResolver(
       ConfigurableEnvironment environment) {
     return new SpringEnvironmentConfigResolver(environment);
+  }
+
+  @Bean
+  public static Map<String, PluginRepositoryProperties> pluginRepositoriesConfig(
+      ConfigResolver configResolver) {
+    return configResolver.resolve(
+        new RepositoryConfigCoordinates(),
+        new TypeReference<HashMap<String, PluginRepositoryProperties>>() {});
   }
 
   @Bean
@@ -89,21 +101,26 @@ public class PluginsAutoConfiguration {
 
   @Bean
   public static UpdateManager pluginUpdateManager(
-      SpinnakerPluginManager pluginManager, ConfigResolver configResolver) {
-    Map<String, PluginRepositoryProperties> repositoriesConfig =
-        configResolver.resolve(
-            new RepositoryConfigCoordinates(),
-            new TypeReference<HashMap<String, PluginRepositoryProperties>>() {});
+      SpinnakerPluginManager pluginManager, List<UpdateRepository> updateRepositories) {
+    return new SpinnakerUpdateManager(pluginManager, updateRepositories);
+  }
+
+  @Bean
+  public static List<UpdateRepository> pluginUpdateRepositories(
+      Map<String, PluginRepositoryProperties> pluginRepositoriesConfig) {
 
     List<UpdateRepository> repositories =
-        repositoriesConfig.entrySet().stream()
+        pluginRepositoriesConfig.entrySet().stream()
+            .filter(entry -> entry.getValue().isEnabled())
+            .filter(
+                entry -> !entry.getKey().equals(PluginsConfigurationProperties.FRONT5O_REPOSITORY))
             .map(
                 entry ->
-                    new UpdateRepositoryFactory(
-                            entry.getKey(),
-                            entry.getValue().getUrl(),
-                            entry.getValue().fileDownloader)
-                        .create())
+                    new ConfigurableUpdateRepository(
+                        entry.getKey(),
+                        entry.getValue().getUrl(),
+                        FileDownloaderProvider.get(entry.getValue().fileDownloader),
+                        new CompoundVerifier()))
             .collect(Collectors.toList());
 
     if (repositories.isEmpty()) {
@@ -112,7 +129,7 @@ public class PluginsAutoConfiguration {
               + "'repositories.json' file next to the application executable");
     }
 
-    return new SpinnakerUpdateManager(pluginManager, repositories);
+    return repositories;
   }
 
   @Bean

@@ -13,6 +13,10 @@ dependencies {
 
   implementation project(":kork-plugins-spring-api")
 
+  implementation project(":kork-web")
+  implementation("com.squareup.retrofit2:retrofit")
+  implementation("com.squareup.retrofit2:converter-jackson")
+
   implementation "org.pf4j:pf4j"
   implementation "org.pf4j:pf4j-update"
 

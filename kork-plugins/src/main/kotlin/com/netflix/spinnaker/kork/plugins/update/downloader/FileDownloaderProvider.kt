@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.kork.plugins.update
+
+package com.netflix.spinnaker.kork.plugins.update.downloader
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.PluginsConfigurationProperties.PluginRepositoryProperties.FileDownloaderProperties
@@ -22,30 +23,16 @@ import com.netflix.spinnaker.kork.plugins.config.Configurable
 import org.pf4j.update.FileDownloader
 import org.pf4j.update.SimpleFileDownloader
 import org.pf4j.update.UpdateRepository
-import org.pf4j.update.verifier.CompoundVerifier
-import java.net.URL
 
-/**
- * Factory for [UpdateRepository].
- */
-class UpdateRepositoryFactory(
-  private val name: String,
-  private val url: URL,
-  private val fileDownloaderProperties: FileDownloaderProperties
-) {
+object FileDownloaderProvider {
 
-  fun create(): UpdateRepository =
-    ConfigurableUpdateRepository(
-      name,
-      url,
-      createFileDownloader(),
-      CompoundVerifier()
-    )
+  private val mapper: ObjectMapper = ObjectMapper()
 
   /**
-   * Create a [FileDownloader] for the [UpdateRepository].
+   * Get a [FileDownloader] for the [UpdateRepository].
    */
-  private fun createFileDownloader(): FileDownloader {
+  @JvmStatic
+  fun get(fileDownloaderProperties: FileDownloaderProperties): FileDownloader {
     if (fileDownloaderProperties.className == null) {
       return SimpleFileDownloader()
     }
@@ -72,9 +59,5 @@ class UpdateRepositoryFactory(
     } else {
       downloaderClass.newInstance()
     } as FileDownloader
-  }
-
-  private companion object {
-    val mapper: ObjectMapper = ObjectMapper()
   }
 }

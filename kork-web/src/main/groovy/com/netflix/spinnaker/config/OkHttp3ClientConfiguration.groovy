@@ -50,6 +50,10 @@ class OkHttp3ClientConfiguration {
     this.okHttp3MetricsInterceptor = okHttp3MetricsInterceptor
   }
 
+  public OkHttp3ClientConfiguration(OkHttpClientConfigurationProperties okHttpClientConfigurationProperties) {
+    this.okHttpClientConfigurationProperties = okHttpClientConfigurationProperties
+  }
+
   /**
    * @return OkHttpClient w/ <optional> key and trust stores
    */
@@ -62,7 +66,10 @@ class OkHttp3ClientConfiguration {
         okHttpClientConfigurationProperties.connectionPool.maxIdleConnections,
         okHttpClientConfigurationProperties.connectionPool.keepAliveDurationMs,
         TimeUnit.MILLISECONDS))
-      .addInterceptor(okHttp3MetricsInterceptor)
+
+    if (okHttp3MetricsInterceptor != null) {
+      okHttpClientBuilder.addInterceptor(okHttp3MetricsInterceptor)
+    }
 
     if (!okHttpClientConfigurationProperties.keyStore && !okHttpClientConfigurationProperties.trustStore) {
       return okHttpClientBuilder
