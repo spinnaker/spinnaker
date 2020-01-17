@@ -32,7 +32,7 @@ export class CopyToClipboard extends React.Component<ICopyToClipboardProps, ICop
     displayText: false,
   };
 
-  private inputRef: React.RefObject<HTMLInputElement> = React.createRef();
+  private inputRef: React.RefObject<HTMLTextAreaElement> = React.createRef();
   private mounted = false;
 
   constructor(props: ICopyToClipboardProps) {
@@ -67,7 +67,7 @@ export class CopyToClipboard extends React.Component<ICopyToClipboardProps, ICop
       label: analyticsLabel || text,
     });
 
-    const node: HTMLInputElement = this.inputRef.current;
+    const node: HTMLTextAreaElement = this.inputRef.current;
     node.focus();
     node.select();
 
@@ -116,27 +116,21 @@ export class CopyToClipboard extends React.Component<ICopyToClipboardProps, ICop
   };
 
   public render() {
-    const { buttonInnerNode, toolTip, text = '' } = this.props;
+    const { buttonInnerNode, toolTip, text = '', className = 'btn btn-xs btn-default clipboard-btn' } = this.props;
 
     const copyButton = (
-      <button
-        onClick={this.handleClick}
-        className="btn btn-xs btn-default clipboard-btn"
-        uib-tooltip={toolTip}
-        aria-label="Copy to clipboard"
-      >
+      <button onClick={this.handleClick} className={className} uib-tooltip={toolTip} aria-label="Copy to clipboard">
         {buttonInnerNode ? buttonInnerNode : <span className="glyphicon glyphicon-copy" />}
       </button>
     );
 
     return (
       <>
-        <input
+        <textarea
           onChange={e => e} // no-op to prevent warnings
           ref={this.inputRef}
           value={text}
-          type="text"
-          style={{ zIndex: -1, position: 'fixed', opacity: 0 }}
+          style={{ zIndex: -1, position: 'fixed', opacity: 0, top: 0, left: 0 }}
         />
         {toolTip ? this.renderTooltip(copyButton) : copyButton}
       </>
