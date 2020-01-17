@@ -104,7 +104,7 @@ const helpContents: { [key: string]: string } = {
       </p>
       <p>For example, if you want to match against any GCS object, only supply <b>type</b> = gcs/object. If you also want to restrict the matches by other fields, include those as well.</p>
       <p>Regex is accepted, so you could for example match on a filepath like so <b>name</b> = .*\\.yaml to match all incoming YAML files.</p>
-      <p>See the <a href="https://www.spinnaker.io/reference/artifacts/">reference</a> for more information.</p>`,
+      <p>See the <a href="https://www.spinnaker.io/reference/artifacts/in-pipelines/#expected-artifacts">reference</a> for more information.</p>`,
   'pipeline.config.expectedArtifact.ifMissing': `
       <p>If no artifact was supplied by your trigger to match against this expected artifact, you have a few options:
         <ol>
