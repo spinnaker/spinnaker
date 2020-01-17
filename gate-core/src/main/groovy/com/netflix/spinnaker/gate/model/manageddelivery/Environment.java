@@ -26,4 +26,5 @@ public class Environment {
   Collection<Resource> resources;
   Collection<Map<String, Object>> constraints;
   Collection<Notification> notifications;
+  Map<String, Object> locations;
 }
