@@ -27,7 +27,7 @@ import com.netflix.spinnaker.orca.bakery.api.manifests.BakeManifestRequest;
 import com.netflix.spinnaker.orca.bakery.api.manifests.helm.HelmBakeManifestRequest;
 import com.netflix.spinnaker.orca.bakery.api.manifests.kustomize.KustomizeBakeManifestRequest;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import java.util.Collections;
 import java.util.HashMap;
@@ -57,16 +57,16 @@ public class CreateBakeManifestTask implements RetryableTask {
 
   @Nullable private final BakeryService bakery;
 
-  private final ArtifactResolver artifactResolver;
+  private final ArtifactUtils artifactUtils;
 
   private final ContextParameterProcessor contextParameterProcessor;
 
   @Autowired
   public CreateBakeManifestTask(
-      ArtifactResolver artifactResolver,
+      ArtifactUtils artifactUtils,
       ContextParameterProcessor contextParameterProcessor,
       Optional<BakeryService> bakery) {
-    this.artifactResolver = artifactResolver;
+    this.artifactUtils = artifactUtils;
     this.contextParameterProcessor = contextParameterProcessor;
     this.bakery = bakery.orElse(null);
   }
@@ -91,7 +91,7 @@ public class CreateBakeManifestTask implements RetryableTask {
             .map(
                 p -> {
                   Artifact a =
-                      artifactResolver.getBoundArtifactForStage(stage, p.getId(), p.getArtifact());
+                      artifactUtils.getBoundArtifactForStage(stage, p.getId(), p.getArtifact());
                   if (a == null) {
                     throw new IllegalArgumentException(
                         String.format(

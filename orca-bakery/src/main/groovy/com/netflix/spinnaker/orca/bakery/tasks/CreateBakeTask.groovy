@@ -29,7 +29,7 @@ import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import com.netflix.spinnaker.orca.pipeline.util.OperatingSystem
 import com.netflix.spinnaker.orca.pipeline.util.PackageInfo
 import com.netflix.spinnaker.orca.pipeline.util.PackageType
@@ -51,7 +51,7 @@ class CreateBakeTask implements RetryableTask {
   long timeout = 300000
 
   @Autowired
-  ArtifactResolver artifactResolver
+  ArtifactUtils artifactUtils
 
   @Autowired(required = false)
   BakerySelector bakerySelector
@@ -155,7 +155,7 @@ class CreateBakeTask implements RetryableTask {
       packageType = new OperatingSystem(stage.context.baseOs as String).getPackageType()
     }
 
-    List<Artifact> artifacts = artifactResolver.getAllArtifacts(stage.getExecution())
+    List<Artifact> artifacts = artifactUtils.getAllArtifacts(stage.getExecution())
 
     PackageInfo packageInfo = new PackageInfo(stage,
       artifacts,
@@ -170,7 +170,7 @@ class CreateBakeTask implements RetryableTask {
     // if the field "packageArtifactIds" is present in the context, because it was set in the UI,
     // this will resolve those ids into real artifacts and then put them in List<Artifact> packageArtifacts
     requestMap.packageArtifacts = stage.context.packageArtifactIds.collect { String artifactId ->
-      artifactResolver.getBoundArtifactForId(stage, artifactId)
+      artifactUtils.getBoundArtifactForId(stage, artifactId)
     }
 
     // Workaround for deck/titusBakeStage.js historically injecting baseOs=trusty into stage definitions;

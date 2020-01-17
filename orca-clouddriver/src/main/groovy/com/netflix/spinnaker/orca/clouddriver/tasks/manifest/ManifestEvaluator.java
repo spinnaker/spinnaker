@@ -31,7 +31,7 @@ import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import java.io.InputStream;
 import java.util.*;
@@ -52,7 +52,7 @@ public class ManifestEvaluator implements CloudProviderAware {
   private static final ThreadLocal<Yaml> yamlParser =
       ThreadLocal.withInitial(() -> new Yaml(new SafeConstructor()));
 
-  private final ArtifactResolver artifactResolver;
+  private final ArtifactUtils artifactUtils;
   private final OortService oort;
   private final ObjectMapper objectMapper;
   private final ContextParameterProcessor contextParameterProcessor;
@@ -73,7 +73,7 @@ public class ManifestEvaluator implements CloudProviderAware {
     List<Map<Object, Object>> manifests = Collections.emptyList();
     if (ManifestContext.Source.Artifact.equals(context.getSource())) {
       Artifact manifestArtifact =
-          artifactResolver.getBoundArtifactForStage(
+          artifactUtils.getBoundArtifactForStage(
               stage, context.getManifestArtifactId(), context.getManifestArtifact());
 
       if (manifestArtifact == null) {
@@ -145,7 +145,7 @@ public class ManifestEvaluator implements CloudProviderAware {
 
     List<Artifact> requiredArtifacts = new ArrayList<>();
     for (String id : Optional.ofNullable(context.getRequiredArtifactIds()).orElse(emptyList())) {
-      Artifact requiredArtifact = artifactResolver.getBoundArtifactForId(stage, id);
+      Artifact requiredArtifact = artifactUtils.getBoundArtifactForId(stage, id);
       if (requiredArtifact == null) {
         throw new IllegalStateException(
             "No artifact with id '" + id + "' could be found in the pipeline context.");
@@ -158,7 +158,7 @@ public class ManifestEvaluator implements CloudProviderAware {
     for (ManifestContext.BindArtifact artifact :
         Optional.ofNullable(context.getRequiredArtifacts()).orElse(emptyList())) {
       Artifact requiredArtifact =
-          artifactResolver.getBoundArtifactForStage(
+          artifactUtils.getBoundArtifactForStage(
               stage, artifact.getExpectedArtifactId(), artifact.getArtifact());
 
       if (requiredArtifact == null) {
@@ -173,7 +173,7 @@ public class ManifestEvaluator implements CloudProviderAware {
 
     log.info("Artifacts {} are bound to the manifest", requiredArtifacts);
 
-    return new Result(manifests, requiredArtifacts, artifactResolver.getArtifacts(stage));
+    return new Result(manifests, requiredArtifacts, artifactUtils.getArtifacts(stage));
   }
 
   public TaskResult buildTaskResult(String taskName, Stage stage, Map<String, Object> task) {

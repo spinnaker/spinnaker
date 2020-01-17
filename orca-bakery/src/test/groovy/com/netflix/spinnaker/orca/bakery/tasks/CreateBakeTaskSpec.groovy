@@ -24,7 +24,7 @@ import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.*
-import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.mime.TypedString
@@ -48,7 +48,7 @@ class CreateBakeTaskSpec extends Specification {
   Stage bakeStage
   def mapper = OrcaObjectMapper.newInstance()
 
-  ArtifactResolver artifactResolver = Stub() {
+  ArtifactUtils artifactUtils = Stub() {
     getAllArtifacts(_) >> []
   }
 
@@ -211,7 +211,7 @@ class CreateBakeTaskSpec extends Specification {
 
   def setup() {
     task.mapper = mapper
-    task.artifactResolver = artifactResolver
+    task.artifactUtils = artifactUtils
     bakeStage = pipeline.stages.first()
   }
 
@@ -1090,7 +1090,7 @@ class CreateBakeTaskSpec extends Specification {
       type = "bake"
       context = bakeConfigWithArtifacts
     }
-    task.artifactResolver = Mock(ArtifactResolver)
+    task.artifactUtils = Mock(ArtifactUtils)
     def bakery = Mock(BakeryService)
 
     and:
@@ -1107,8 +1107,8 @@ class CreateBakeTaskSpec extends Specification {
     def bakeResult = task.bakeFromContext(stage, selectedBakeryService)
 
     then:
-    2 * task.artifactResolver.getBoundArtifactForId(stage, _) >> Artifact.builder().build()
-    1 * task.artifactResolver.getAllArtifacts(_) >> []
+    2 * task.artifactUtils.getBoundArtifactForId(stage, _) >> Artifact.builder().build()
+    1 * task.artifactUtils.getAllArtifacts(_) >> []
     bakeResult.getPackageArtifacts().size() == 2
   }
 
@@ -1118,7 +1118,7 @@ class CreateBakeTaskSpec extends Specification {
       type = "bake"
       context = bakeConfig
     }
-    task.artifactResolver = Mock(ArtifactResolver)
+    task.artifactUtils = Mock(ArtifactUtils)
     def bakery = Mock(BakeryService)
 
     and:
@@ -1135,8 +1135,8 @@ class CreateBakeTaskSpec extends Specification {
     def bakeResult = task.bakeFromContext(stage, selectedBakeryService)
 
     then:
-    0 * task.artifactResolver.getBoundArtifactForId(*_) >> Artifact.builder().build()
-    1 * task.artifactResolver.getAllArtifacts(_) >> []
+    0 * task.artifactUtils.getBoundArtifactForId(*_) >> Artifact.builder().build()
+    1 * task.artifactUtils.getAllArtifacts(_) >> []
     bakeResult.getPackageArtifacts().size() == 0
   }
 
@@ -1146,7 +1146,7 @@ class CreateBakeTaskSpec extends Specification {
       type = "bake"
       context = bakeConfigWithoutOs
     }
-    task.artifactResolver = Mock(ArtifactResolver)
+    task.artifactUtils = Mock(ArtifactUtils)
     def bakery = Mock(BakeryService)
 
     and:
@@ -1164,8 +1164,8 @@ class CreateBakeTaskSpec extends Specification {
 
     then:
     noExceptionThrown()
-    2 * task.artifactResolver.getBoundArtifactForId(stage, _) >> Artifact.builder().build()
-    1 * task.artifactResolver.getAllArtifacts(_) >> []
+    2 * task.artifactUtils.getBoundArtifactForId(stage, _) >> Artifact.builder().build()
+    1 * task.artifactUtils.getAllArtifacts(_) >> []
     bakeResult.getPackageArtifacts().size() == 2
   }
 }

@@ -28,7 +28,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Trigger
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipelinetemplate.PipelineTemplatePreprocessor
 import com.netflix.spinnaker.orca.pipelinetemplate.handler.PipelineTemplateErrorHandler
@@ -57,7 +57,7 @@ class DependentPipelineStarterSpec extends Specification {
 
   ObjectMapper mapper = OrcaObjectMapper.newInstance()
   ExecutionRepository executionRepository = Mock(ExecutionRepository)
-  ArtifactResolver artifactResolver = Spy(ArtifactResolver, constructorArgs: [mapper, executionRepository, new ContextParameterProcessor()])
+  ArtifactUtils artifactUtils = Spy(ArtifactUtils, constructorArgs: [mapper, executionRepository, new ContextParameterProcessor()])
 
   def "should only propagate credentials when explicitly provided"() {
     setup:
@@ -88,7 +88,7 @@ class DependentPipelineStarterSpec extends Specification {
       mapper,
       new ContextParameterProcessor(),
       Optional.empty(),
-      Optional.of(artifactResolver),
+      Optional.of(artifactUtils),
       new NoopRegistry()
     )
 
@@ -141,7 +141,7 @@ class DependentPipelineStarterSpec extends Specification {
       mapper,
       new ContextParameterProcessor(),
       Optional.empty(),
-      Optional.of(artifactResolver),
+      Optional.of(artifactUtils),
       new NoopRegistry()
     )
 
@@ -196,7 +196,7 @@ class DependentPipelineStarterSpec extends Specification {
       mapper,
       new ContextParameterProcessor(),
       Optional.empty(),
-      Optional.of(artifactResolver),
+      Optional.of(artifactUtils),
       new NoopRegistry()
     )
 
@@ -209,7 +209,7 @@ class DependentPipelineStarterSpec extends Specification {
         trigger = mapper.convertValue(p.trigger, Trigger)
       }
     }
-    artifactResolver.getArtifactsForPipelineId(*_) >> {
+    artifactUtils.getArtifactsForPipelineId(*_) >> {
       return new ArrayList<Artifact>();
     }
 
@@ -265,7 +265,7 @@ class DependentPipelineStarterSpec extends Specification {
       mapper,
       new ContextParameterProcessor(),
       Optional.empty(),
-      Optional.of(artifactResolver),
+      Optional.of(artifactUtils),
       new NoopRegistry()
     )
 
@@ -278,7 +278,7 @@ class DependentPipelineStarterSpec extends Specification {
         trigger = mapper.convertValue(p.trigger, Trigger)
       }
     }
-    artifactResolver.getArtifactsForPipelineId(*_) >> {
+    artifactUtils.getArtifactsForPipelineId(*_) >> {
       return new ArrayList<Artifact>();
     }
 
@@ -325,7 +325,7 @@ class DependentPipelineStarterSpec extends Specification {
       mapper,
       new ContextParameterProcessor(),
       Optional.empty(),
-      Optional.of(artifactResolver),
+      Optional.of(artifactUtils),
       new NoopRegistry()
     )
 
@@ -338,7 +338,7 @@ class DependentPipelineStarterSpec extends Specification {
         trigger = mapper.convertValue(p.trigger, Trigger)
       }
     }
-    artifactResolver.getArtifactsForPipelineId(*_) >> {
+    artifactUtils.getArtifactsForPipelineId(*_) >> {
       return new ArrayList<Artifact>();
     }
 
@@ -376,7 +376,7 @@ class DependentPipelineStarterSpec extends Specification {
       mapper,
       new ContextParameterProcessor(),
       Optional.empty(),
-      Optional.of(artifactResolver),
+      Optional.of(artifactUtils),
       new NoopRegistry()
     )
 
@@ -426,7 +426,7 @@ class DependentPipelineStarterSpec extends Specification {
       mapper,
       new ContextParameterProcessor(),
       Optional.empty(),
-      Optional.of(artifactResolver),
+      Optional.of(artifactUtils),
       new NoopRegistry()
     )
 
@@ -537,7 +537,7 @@ class DependentPipelineStarterSpec extends Specification {
       mapper,
       parameterProcessor,
       Optional.of([pipelineTemplatePreprocessor] as List<ExecutionPreprocessor>),
-      Optional.of(artifactResolver),
+      Optional.of(artifactUtils),
       registry
     )
 
@@ -669,7 +669,7 @@ class DependentPipelineStarterSpec extends Specification {
       mapper,
       parameterProcessor,
       Optional.of([pipelineTemplatePreprocessor] as List<ExecutionPreprocessor>),
-      Optional.of(artifactResolver),
+      Optional.of(artifactUtils),
       registry
     )
 
@@ -686,7 +686,7 @@ class DependentPipelineStarterSpec extends Specification {
     }
     1 * templateLoader.load(_ as TemplateConfiguration.TemplateSource) >> [triggeredPipelineTemplate]
 
-    artifactResolver.getArtifactsForPipelineId(*_) >> {
+    artifactUtils.getArtifactsForPipelineId(*_) >> {
       return new ArrayList<>()
     }
 

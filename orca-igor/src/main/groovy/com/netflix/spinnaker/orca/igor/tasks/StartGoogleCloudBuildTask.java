@@ -26,7 +26,7 @@ import com.netflix.spinnaker.orca.igor.IgorService;
 import com.netflix.spinnaker.orca.igor.model.GoogleCloudBuild;
 import com.netflix.spinnaker.orca.igor.model.GoogleCloudBuildStageDefinition;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import java.io.IOException;
 import java.util.Map;
@@ -42,7 +42,7 @@ import retrofit.client.Response;
 public class StartGoogleCloudBuildTask implements Task {
   private final IgorService igorService;
   private final OortService oortService;
-  private final ArtifactResolver artifactResolver;
+  private final ArtifactUtils artifactUtils;
   private final ContextParameterProcessor contextParameterProcessor;
 
   private final RetrySupport retrySupport = new RetrySupport();
@@ -84,7 +84,7 @@ public class StartGoogleCloudBuildTask implements Task {
   private Map<String, Object> getBuildDefinitionFromArtifact(
       @Nonnull Stage stage, GoogleCloudBuildStageDefinition stageDefinition) {
     Artifact buildDefinitionArtifact =
-        artifactResolver.getBoundArtifactForStage(
+        artifactUtils.getBoundArtifactForStage(
             stage,
             stageDefinition.getBuildDefinitionArtifact().getArtifactId(),
             stageDefinition.getBuildDefinitionArtifact().getArtifact());

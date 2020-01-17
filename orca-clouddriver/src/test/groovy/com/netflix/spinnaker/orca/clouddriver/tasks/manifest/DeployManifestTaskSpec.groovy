@@ -22,7 +22,7 @@ import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import rx.Observable
 import spock.lang.Specification
@@ -32,12 +32,12 @@ class DeployManifestTaskSpec extends Specification {
   String TASK_ID = "12345"
 
   KatoService katoService = Mock(KatoService)
-  def artifactResolver = Stub(ArtifactResolver) {
+  def artifactUtils = Stub(ArtifactUtils) {
     getArtifacts(*_) >> []
   }
 
   @Subject
-  DeployManifestTask task = new DeployManifestTask(new ManifestEvaluator(artifactResolver,
+  DeployManifestTask task = new DeployManifestTask(new ManifestEvaluator(artifactUtils,
     Mock(OortService), new ObjectMapper(), Mock(ContextParameterProcessor), katoService))
 
   def "enables traffic when the trafficManagement field is absent"() {

@@ -25,7 +25,7 @@ import com.netflix.spinnaker.orca.Task;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
 import java.io.InputStream;
 import java.util.Map;
 import java.util.Objects;
@@ -37,14 +37,14 @@ import retrofit.client.Response;
 public class ConsumeArtifactTask implements Task {
   public static final String TASK_NAME = "consumeArtifact";
 
-  private ArtifactResolver artifactResolver;
+  private ArtifactUtils artifactUtils;
   private OortService oort;
   private RetrySupport retrySupport;
   private ObjectMapper objectMapper = new ObjectMapper();
 
   public ConsumeArtifactTask(
-      ArtifactResolver artifactResolver, OortService oortService, RetrySupport retrySupport) {
-    this.artifactResolver = artifactResolver;
+      ArtifactUtils artifactUtils, OortService oortService, RetrySupport retrySupport) {
+    this.artifactUtils = artifactUtils;
     this.oort = oortService;
     this.retrySupport = retrySupport;
   }
@@ -54,7 +54,7 @@ public class ConsumeArtifactTask implements Task {
     Map<String, Object> task = stage.getContext();
     String artifactId = (String) task.get("consumeArtifactId");
 
-    Artifact artifact = artifactResolver.getBoundArtifactForId(stage, artifactId);
+    Artifact artifact = artifactUtils.getBoundArtifactForId(stage, artifactId);
     if (artifact == null) {
       throw new IllegalArgumentException("No artifact could be bound to '" + artifactId + "'");
     }

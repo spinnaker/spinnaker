@@ -35,7 +35,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Trigger
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipelinetemplate.PipelineTemplateService
 import com.netflix.spinnaker.orca.webhook.service.WebhookService
@@ -92,7 +92,7 @@ class OperationsController {
   JobService jobService
 
   @Autowired(required = false)
-  ArtifactResolver artifactResolver
+  ArtifactUtils artifactUtils
 
   @Autowired
   FiatStatus fiatStatus
@@ -296,7 +296,7 @@ class OperationsController {
         pipeline.trigger.parentExecution    = parentExecution
         pipeline.trigger.parentPipelineName = parentExecution.name
 
-        pipeline.receivedArtifacts = artifactResolver.getAllArtifacts(parentExecution)
+        pipeline.receivedArtifacts = artifactUtils.getAllArtifacts(parentExecution)
       }
     }
 
@@ -311,7 +311,7 @@ class OperationsController {
     }
 
     if (resolveArtifacts) {
-      artifactResolver?.resolveArtifacts(pipeline)
+      artifactUtils?.resolveArtifacts(pipeline)
     }
   }
 

@@ -31,7 +31,7 @@ import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.pipeline
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
-class ArtifactResolverSpec extends Specification {
+class ArtifactUtilsSpec extends Specification {
   ObjectMapper objectMapper = new ObjectMapper()
 
   def pipelineId = "abc"
@@ -49,12 +49,12 @@ class ArtifactResolverSpec extends Specification {
     0 * _
   }
 
-  def makeArtifactResolver() {
-    return makeArtifactResolverWithStub(executionRepository)
+  def makeArtifactUtils() {
+    return makeArtifactUtilsWithStub(executionRepository)
   }
 
-  def makeArtifactResolverWithStub(ExecutionRepository executionRepositoryStub) {
-    return new ArtifactResolver(new ObjectMapper(), executionRepositoryStub,
+  def makeArtifactUtilsWithStub(ExecutionRepository executionRepositoryStub) {
+    return new ArtifactUtils(new ObjectMapper(), executionRepositoryStub,
       new ContextParameterProcessor())
   }
 
@@ -73,7 +73,7 @@ class ArtifactResolverSpec extends Specification {
     execution.trigger.artifacts.add(Artifact.builder().type('http/file').name('build/libs/my-jar-100.jar').build())
 
     when:
-    def artifact = makeArtifactResolver().getBoundArtifactForStage(execution.stages[0], null, Artifact.builder()
+    def artifact = makeArtifactUtils().getBoundArtifactForStage(execution.stages[0], null, Artifact.builder()
       .type('http/file')
       .name('build/libs/my-jar-${trigger[\'buildNumber\']}.jar')
       .build())
@@ -85,10 +85,10 @@ class ArtifactResolverSpec extends Specification {
   def "should find upstream artifacts in small pipeline"() {
     when:
     def desired = execution.getStages().find { it.name == "desired" }
-    def artifactResolver = makeArtifactResolver()
+    def artifactUtils = makeArtifactUtils()
 
     then:
-    def artifacts = artifactResolver.getArtifacts(desired)
+    def artifacts = artifactUtils.getArtifacts(desired)
     artifacts.size == 3
     artifacts.find { it.type == "1" } != null
     artifacts.find { it.type == "2" } != null
@@ -119,10 +119,10 @@ class ArtifactResolverSpec extends Specification {
   def "should find upstream artifacts only"() {
     when:
     def desired = execution.getStages().find { it.name == "desired" }
-    def artifactResolver = makeArtifactResolver()
+    def artifactUtils = makeArtifactUtils()
 
     then:
-    def artifacts = artifactResolver.getArtifacts(desired)
+    def artifacts = artifactUtils.getArtifacts(desired)
     artifacts.size == 1
     artifacts.find { it.type == "1" } != null
 
@@ -165,10 +165,10 @@ class ArtifactResolverSpec extends Specification {
     execution.trigger = new DefaultTrigger("webhook", null, "user", [:], [Artifact.builder().type("trigger").build()])
 
     def desired = execution.getStages().find { it.name == "desired" }
-    def artifactResolver = makeArtifactResolver()
+    def artifactUtils = makeArtifactUtils()
 
     then:
-    def artifacts = artifactResolver.getArtifacts(desired)
+    def artifacts = artifactUtils.getArtifacts(desired)
     artifacts.size == 2
     artifacts.find { it.type == "1" } != null
     artifacts.find { it.type == "trigger" } != null
@@ -189,10 +189,10 @@ class ArtifactResolverSpec extends Specification {
     }
 
     def desired = execution.getStages().find { it.name == "desired" }
-    def artifactResolver = makeArtifactResolver()
+    def artifactUtils = makeArtifactUtils()
 
     then:
-    def artifacts = artifactResolver.getArtifacts(desired)
+    def artifacts = artifactUtils.getArtifacts(desired)
     artifacts.size == 0
   }
 
@@ -217,10 +217,10 @@ class ArtifactResolverSpec extends Specification {
     }
 
     def desired = execution.getStages().find { it.name == "desired" }
-    def artifactResolver = makeArtifactResolver()
+    def artifactUtils = makeArtifactUtils()
 
     then:
-    def artifact = artifactResolver.getBoundArtifactForId(desired, "1")
+    def artifact = artifactUtils.getBoundArtifactForId(desired, "1")
     artifact != null
     artifact.type == "correct"
   }
@@ -251,10 +251,10 @@ class ArtifactResolverSpec extends Specification {
     execution.trigger.resolvedExpectedArtifacts = [ExpectedArtifact.builder().id("1").boundArtifact(correctArtifact).build()]
 
     def desired = execution.getStages().find { it.name == "desired" }
-    def artifactResolver = makeArtifactResolver()
+    def artifactUtils = makeArtifactUtils()
 
     then:
-    def artifact = artifactResolver.getBoundArtifactForId(desired, "1")
+    def artifact = artifactUtils.getBoundArtifactForId(desired, "1")
     artifact != null
     artifact.type == "correct"
   }
@@ -262,9 +262,9 @@ class ArtifactResolverSpec extends Specification {
   @Unroll
   def "should find a matching artifact for #expected"() {
     when:
-    def artifactResolver = makeArtifactResolver()
+    def artifactUtils = makeArtifactUtils()
     def expected = ExpectedArtifact.builder().matchArtifact(matchArtifact).build()
-    def artifact = artifactResolver.resolveSingleArtifact(expected, existing, null, true)
+    def artifact = artifactUtils.resolveSingleArtifact(expected, existing, null, true)
 
     then:
     artifact == desired
@@ -279,9 +279,9 @@ class ArtifactResolverSpec extends Specification {
   @Unroll
   def "should fail find a matching artifact for #expected"() {
     when:
-    def artifactResolver = makeArtifactResolver()
+    def artifactUtils = makeArtifactUtils()
     def expected = ExpectedArtifact.builder().matchArtifact(matchArtifact).build()
-    def artifact = artifactResolver.resolveSingleArtifact(expected, existing, null, true)
+    def artifact = artifactUtils.resolveSingleArtifact(expected, existing, null, true)
 
     then:
     artifact == null
@@ -312,10 +312,10 @@ class ArtifactResolverSpec extends Specification {
     }
     execution.trigger = new DefaultTrigger("webhook", null, "user", [:], [Artifact.builder().type("trigger").build()])
 
-    def artifactResolver = makeArtifactResolver()
+    def artifactUtils = makeArtifactUtils()
 
     then:
-    def artifacts = artifactResolver.getAllArtifacts(execution)
+    def artifacts = artifactUtils.getAllArtifacts(execution)
     artifacts.size == 3
     artifacts*.type == ["2", "1", "trigger"]
   }
@@ -355,14 +355,14 @@ class ArtifactResolverSpec extends Specification {
       0 * _
     }
 
-    def artifactResolver = makeArtifactResolverWithStub(executionRepositoryStub)
+    def artifactUtils = makeArtifactUtilsWithStub(executionRepositoryStub)
 
     then:
-    def artifacts = artifactResolver.getArtifactsForPipelineId(pipelineId, executionCriteria)
+    def artifacts = artifactUtils.getArtifactsForPipelineId(pipelineId, executionCriteria)
     artifacts.size == 3
     artifacts*.type == ["2", "1", "trigger"]
 
-    def emptyArtifacts = artifactResolver.getArtifactsForPipelineId(pipelineId, executionTerminalCriteria)
+    def emptyArtifacts = artifactUtils.getArtifactsForPipelineId(pipelineId, executionTerminalCriteria)
     emptyArtifacts == []
   }
 
@@ -393,10 +393,10 @@ class ArtifactResolverSpec extends Specification {
       0 * _
     }
 
-    def artifactResolver = makeArtifactResolverWithStub(executionRepositoryStub)
+    def artifactUtils = makeArtifactUtilsWithStub(executionRepositoryStub)
 
     then:
-    def artifacts = artifactResolver.getArtifactsForPipelineIdWithoutStageRef(pipelineId, "2", expectedExecutionCriteria)
+    def artifacts = artifactUtils.getArtifactsForPipelineIdWithoutStageRef(pipelineId, "2", expectedExecutionCriteria)
     artifacts.size == 2
     artifacts*.type == ["1", "trigger"]
   }
@@ -406,14 +406,14 @@ class ArtifactResolverSpec extends Specification {
     given:
     def matchArtifact = Artifact.builder().type("docker/.*").build()
     when:
-    def artifactResolver = makeArtifactResolver()
+    def artifactUtils = makeArtifactUtils()
     def expectedArtifact = ExpectedArtifact.builder()
       .matchArtifact(matchArtifact)
       .defaultArtifact(defaultArtifact)
       .useDefaultArtifact(defaultArtifact != null)
       .usePriorArtifact(usePriorArtifact)
       .build()
-    def bound = artifactResolver.resolveExpectedArtifacts([expectedArtifact], available, prior, true)
+    def bound = artifactUtils.resolveExpectedArtifacts([expectedArtifact], available, prior, true)
 
     then:
     bound.size() == expectedBound.size()
@@ -454,8 +454,8 @@ class ArtifactResolverSpec extends Specification {
     ]
 
     when:
-    def artifactResolver = makeArtifactResolver()
-    def bound = artifactResolver.resolveExpectedArtifacts(expectedArtifacts, availableArtifacts, priorArtifacts, true)
+    def artifactUtils = makeArtifactUtils()
+    def bound = artifactUtils.resolveExpectedArtifacts(expectedArtifacts, availableArtifacts, priorArtifacts, true)
 
     then:
     bound.size() == expectedBound.size()
@@ -473,10 +473,10 @@ class ArtifactResolverSpec extends Specification {
       expectedArtifacts: [expectedArtifact],
       receivedArtifacts: [receivedArtifact],
     ]
-    def artifactResolver = makeArtifactResolver()
+    def artifactUtils = makeArtifactUtils()
 
     when:
-    artifactResolver.resolveArtifacts(pipeline)
+    artifactUtils.resolveArtifacts(pipeline)
 
     then:
     pipeline.expectedArtifacts.size() == 1
@@ -498,10 +498,10 @@ class ArtifactResolverSpec extends Specification {
       expectedArtifacts: [expectedArtifact],
       receivedArtifacts: [receivedArtifact, bothArtifact],
     ]
-    def artifactResolver = makeArtifactResolver()
+    def artifactUtils = makeArtifactUtils()
 
     when:
-    artifactResolver.resolveArtifacts(pipeline)
+    artifactUtils.resolveArtifacts(pipeline)
 
     then:
     List<Artifact> triggerArtifacts = extractTriggerArtifacts(pipeline.trigger)
@@ -524,12 +524,12 @@ class ArtifactResolverSpec extends Specification {
       expectedArtifacts: [expectedArtifact],
       receivedArtifacts: [receivedArtifact, bothArtifact],
     ]
-    def artifactResolver = makeArtifactResolver()
+    def artifactUtils = makeArtifactUtils()
 
     when:
-    artifactResolver.resolveArtifacts(pipeline)
+    artifactUtils.resolveArtifacts(pipeline)
     List<Artifact> initialArtifacts = extractTriggerArtifacts(pipeline.trigger)
-    artifactResolver.resolveArtifacts(pipeline)
+    artifactUtils.resolveArtifacts(pipeline)
     List<Artifact> finalArtifacts = extractTriggerArtifacts(pipeline.trigger)
 
     then:

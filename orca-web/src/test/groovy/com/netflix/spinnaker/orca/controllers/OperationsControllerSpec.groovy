@@ -34,7 +34,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.JenkinsTrigger
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipelinetemplate.PipelineTemplateService
 import com.netflix.spinnaker.orca.webhook.config.WebhookProperties
@@ -70,7 +70,7 @@ class OperationsControllerSpec extends Specification {
   def executionRepository = Mock(ExecutionRepository)
   def pipelineTemplateService = Mock(PipelineTemplateService)
   def webhookService = Mock(WebhookService)
-  def artifactResolver = Mock(ArtifactResolver)
+  def artifactUtils = Mock(ArtifactUtils)
   def fiatService = Mock(FiatService)
   def fiatStatus = Mock(FiatStatus) {
     _ * isEnabled() >> { return false }
@@ -86,7 +86,7 @@ class OperationsControllerSpec extends Specification {
       executionLauncher: executionLauncher,
       contextParameterProcessor: new ContextParameterProcessor(),
       webhookService: webhookService,
-      artifactResolver: artifactResolver,
+      artifactUtils: artifactUtils,
       fiatService: fiatService,
       fiatStatus: fiatStatus,
       front50Service: front50Service
@@ -482,9 +482,9 @@ class OperationsControllerSpec extends Specification {
       startedPipeline
     }
     executionRepository.retrievePipelinesForPipelineConfigId(*_) >> Observable.empty()
-    ArtifactResolver realArtifactResolver = new ArtifactResolver(mapper, executionRepository, new ContextParameterProcessor())
+    ArtifactUtils realArtifactUtils = new ArtifactUtils(mapper, executionRepository, new ContextParameterProcessor())
 
-    // can't use @subject, since we need to test the behavior of otherwise mocked-out 'artifactResolver'
+    // can't use @subject, since we need to test the behavior of otherwise mocked-out 'artifactUtils'
     def tempController = new OperationsController(
         objectMapper: mapper,
         buildService: buildService,
@@ -493,7 +493,7 @@ class OperationsControllerSpec extends Specification {
         executionLauncher: executionLauncher,
         contextParameterProcessor: new ContextParameterProcessor(),
         webhookService: webhookService,
-        artifactResolver: realArtifactResolver,
+        artifactUtils: realArtifactUtils,
     )
 
     def reference = 'gs://bucket'
@@ -601,7 +601,7 @@ class OperationsControllerSpec extends Specification {
       type: PIPELINE
     ]
     def response = Mock(HttpServletResponse)
-    artifactResolver.resolveArtifacts(*_) >> { Map pipeline ->
+    artifactUtils.resolveArtifacts(*_) >> { Map pipeline ->
       throw new IllegalStateException(format("Unmatched expected artifact could not be resolved."))
     }
     Execution failedPipeline = null

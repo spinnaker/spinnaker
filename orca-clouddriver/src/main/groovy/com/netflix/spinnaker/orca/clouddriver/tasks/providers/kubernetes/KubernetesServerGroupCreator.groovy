@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.kubernetes
 
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreator
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -31,7 +31,7 @@ class KubernetesServerGroupCreator implements ServerGroupCreator {
   String cloudProvider = "kubernetes"
 
   @Autowired
-  ArtifactResolver artifactResolver
+  ArtifactUtils artifactUtils
 
   @Override
   List<Map> getOperations(Stage stage) {
@@ -44,7 +44,7 @@ class KubernetesServerGroupCreator implements ServerGroupCreator {
       operation.putAll(stage.context)
     }
 
-    KubernetesContainerFinder.populateFromStage(operation, stage, artifactResolver)
+    KubernetesContainerFinder.populateFromStage(operation, stage, artifactUtils)
 
     return [[(OPERATION): operation]]
   }

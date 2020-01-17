@@ -35,7 +35,7 @@ import com.netflix.spinnaker.orca.pipeline.WaitStage;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner;
-import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
 import groovy.util.logging.Slf4j;
 import java.io.IOException;
 import java.util.*;
@@ -68,7 +68,7 @@ public class CFRollingRedBlackStrategy implements Strategy, ApplicationContextAw
   public final String name = "cfrollingredblack";
 
   private ApplicationContext applicationContext;
-  private ArtifactResolver artifactResolver;
+  private ArtifactUtils artifactUtils;
   private Optional<PipelineStage> pipelineStage;
   private ResizeStrategySupport resizeStrategySupport;
   private TargetServerGroupResolver targetServerGroupResolver;
@@ -123,8 +123,7 @@ public class CFRollingRedBlackStrategy implements Strategy, ApplicationContextAw
       Artifact artifact = objectMapper.convertValue(manifest.get("artifact"), Artifact.class);
       String artifactId =
           manifest.get("artifactId") != null ? manifest.get("artifactId").toString() : null;
-      Artifact boundArtifact =
-          artifactResolver.getBoundArtifactForStage(stage, artifactId, artifact);
+      Artifact boundArtifact = artifactUtils.getBoundArtifactForStage(stage, artifactId, artifact);
 
       if (boundArtifact == null) {
         throw new IllegalArgumentException("Unable to bind the manifest artifact");

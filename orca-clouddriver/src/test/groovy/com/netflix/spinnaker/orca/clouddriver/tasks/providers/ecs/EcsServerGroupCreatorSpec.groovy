@@ -21,13 +21,13 @@ import spock.lang.Subject
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
-import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class EcsServerGroupCreatorSpec extends Specification {
 
   @Subject
-  ArtifactResolver mockResolver
+  ArtifactUtils mockResolver
   EcsServerGroupCreator creator
   def stage = stage {}
 
@@ -37,7 +37,7 @@ class EcsServerGroupCreatorSpec extends Specification {
   ]
 
   def setup() {
-    mockResolver = Stub(ArtifactResolver)
+    mockResolver = Stub(ArtifactUtils)
     creator = new EcsServerGroupCreator(mockResolver)
     stage.execution.stages.add(stage)
     stage.context = deployConfig

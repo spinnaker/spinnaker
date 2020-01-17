@@ -21,7 +21,7 @@ import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipelinetemplate.PipelineTemplatePreprocessor
 import com.netflix.spinnaker.orca.pipelinetemplate.handler.PipelineTemplateErrorHandler
@@ -56,7 +56,7 @@ class V1SchemaIntegrationSpec extends Specification {
   ContextParameterProcessor contextParameterProcessor = new ContextParameterProcessor()
 
   ExecutionRepository executionRepository = Mock(ExecutionRepository)
-  ArtifactResolver artifactResolver = Spy(ArtifactResolver, constructorArgs: [objectMapper, executionRepository, new ContextParameterProcessor()])
+  ArtifactUtils artifactUtils = Spy(ArtifactUtils, constructorArgs: [objectMapper, executionRepository, new ContextParameterProcessor()])
 
   Renderer renderer = new JinjaRenderer(
     new YamlRenderedValueConverter(), objectMapper, Mock(Front50Service), []
@@ -78,7 +78,7 @@ class V1SchemaIntegrationSpec extends Specification {
       objectMapper,
       new SchemaVersionHandler(
         new V1SchemaHandlerGroup(templateLoader, renderer, objectMapper, registry),
-        new V2SchemaHandlerGroup(v2TemplateLoader, objectMapper, contextParameterProcessor, artifactResolver)),
+        new V2SchemaHandlerGroup(v2TemplateLoader, objectMapper, contextParameterProcessor, artifactUtils)),
       new PipelineTemplateErrorHandler(),
       registry
     )

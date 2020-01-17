@@ -22,7 +22,7 @@ import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import retrofit.client.Response
 import retrofit.mime.TypedString
 import rx.Observable
@@ -35,10 +35,10 @@ class DeployCloudFormationTaskSpec extends Specification {
   def katoService = Mock(KatoService)
   def oortService = Mock(OortService)
   def objectMapper = new ObjectMapper()
-  def artifactResolver = Mock(ArtifactResolver)
+  def artifactUtils = Mock(ArtifactUtils)
 
   @Subject
-  def deployCloudFormationTask = new DeployCloudFormationTask(katoService: katoService, oortService: oortService,  artifactResolver: artifactResolver, objectMapper: objectMapper)
+  def deployCloudFormationTask = new DeployCloudFormationTask(katoService: katoService, oortService: oortService,  artifactUtils: artifactUtils, objectMapper: objectMapper)
 
   def "should put kato task information as output"() {
     given:
@@ -106,7 +106,7 @@ class DeployCloudFormationTaskSpec extends Specification {
     def result = deployCloudFormationTask.execute(stage)
 
     then:
-    (_..1) * artifactResolver.getBoundArtifactForStage(stage, 'id', null) >> Artifact.builder().build()
+    (_..1) * artifactUtils.getBoundArtifactForStage(stage, 'id', null) >> Artifact.builder().build()
     (_..1) * oortService.fetchArtifact(_) >> new Response("url", 200, "reason", Collections.emptyList(), template)
     thrown(expectedException)
 
@@ -141,7 +141,7 @@ class DeployCloudFormationTaskSpec extends Specification {
     def result = deployCloudFormationTask.execute(stage)
 
     then:
-    1 * artifactResolver.getBoundArtifactForStage(stage, stackArtifactId, _) >> Artifact.builder().build()
+    1 * artifactUtils.getBoundArtifactForStage(stage, stackArtifactId, _) >> Artifact.builder().build()
     1 * oortService.fetchArtifact(_) >> new Response("url", 200, "reason", Collections.emptyList(), new TypedString(template))
     1 * katoService.requestOperations("aws", {
       it.get(0).get("deployCloudFormation").containsKey("templateBody")

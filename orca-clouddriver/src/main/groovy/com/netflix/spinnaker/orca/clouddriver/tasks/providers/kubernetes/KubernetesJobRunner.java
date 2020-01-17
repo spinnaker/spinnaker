@@ -22,7 +22,7 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestContext;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestEvaluator;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.RunJobManifestContext;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
 import java.util.*;
 import lombok.Data;
 import org.springframework.stereotype.Component;
@@ -34,15 +34,13 @@ public class KubernetesJobRunner implements JobRunner {
   private boolean katoResultExpected = false;
   private String cloudProvider = "kubernetes";
 
-  private ArtifactResolver artifactResolver;
+  private ArtifactUtils artifactUtils;
   private ObjectMapper objectMapper;
   private ManifestEvaluator manifestEvaluator;
 
   public KubernetesJobRunner(
-      ArtifactResolver artifactResolver,
-      ObjectMapper objectMapper,
-      ManifestEvaluator manifestEvaluator) {
-    this.artifactResolver = artifactResolver;
+      ArtifactUtils artifactUtils, ObjectMapper objectMapper, ManifestEvaluator manifestEvaluator) {
+    this.artifactUtils = artifactUtils;
     this.objectMapper = objectMapper;
     this.manifestEvaluator = manifestEvaluator;
   }
@@ -71,7 +69,7 @@ public class KubernetesJobRunner implements JobRunner {
       operation.put("optionalArtifacts", result.getOptionalArtifacts());
     }
 
-    KubernetesContainerFinder.populateFromStage(operation, stage, artifactResolver);
+    KubernetesContainerFinder.populateFromStage(operation, stage, artifactUtils);
 
     Map<String, Object> task = new HashMap<>();
     task.put(OPERATION, operation);

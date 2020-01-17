@@ -27,7 +27,7 @@ import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
 import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -50,17 +50,17 @@ public class GetPipelinesFromArtifactTask implements Task {
   private final Front50Service front50Service;
   private final OortService oort;
   private final ObjectMapper objectMapper;
-  private final ArtifactResolver artifactResolver;
+  private final ArtifactUtils artifactUtils;
 
   public GetPipelinesFromArtifactTask(
       Front50Service front50Service,
       OortService oort,
       ObjectMapper objectMapper,
-      ArtifactResolver artifactResolver) {
+      ArtifactUtils artifactUtils) {
     this.front50Service = front50Service;
     this.oort = oort;
     this.objectMapper = objectMapper;
-    this.artifactResolver = artifactResolver;
+    this.artifactUtils = artifactUtils;
   }
 
   @Getter
@@ -79,7 +79,7 @@ public class GetPipelinesFromArtifactTask implements Task {
   public TaskResult execute(Stage stage) {
     final PipelinesArtifactData pipelinesArtifact = stage.mapTo(PipelinesArtifactData.class);
     Artifact resolvedArtifact =
-        artifactResolver.getBoundArtifactForStage(
+        artifactUtils.getBoundArtifactForStage(
             stage, pipelinesArtifact.getId(), pipelinesArtifact.getInline());
     if (resolvedArtifact == null) {
       throw new IllegalArgumentException(

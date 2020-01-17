@@ -25,7 +25,7 @@ import com.netflix.spinnaker.orca.extensionpoint.pipeline.ExecutionPreprocessor
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Trigger
-import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import com.netflix.spinnaker.security.User
@@ -47,7 +47,7 @@ class DependentPipelineStarter implements ApplicationContextAware {
   ObjectMapper objectMapper
   ContextParameterProcessor contextParameterProcessor
   List<ExecutionPreprocessor> executionPreprocessors
-  ArtifactResolver artifactResolver
+  ArtifactUtils artifactUtils
   Registry registry
 
   @Autowired
@@ -55,13 +55,13 @@ class DependentPipelineStarter implements ApplicationContextAware {
                            ObjectMapper objectMapper,
                            ContextParameterProcessor contextParameterProcessor,
                            Optional<List<ExecutionPreprocessor>> executionPreprocessors,
-                           Optional<ArtifactResolver> artifactResolver,
+                           Optional<ArtifactUtils> artifactUtils,
                            Registry registry) {
     this.applicationContext = applicationContext
     this.objectMapper = objectMapper
     this.contextParameterProcessor = contextParameterProcessor
     this.executionPreprocessors = executionPreprocessors.orElse(new ArrayList<>())
-    this.artifactResolver = artifactResolver.orElse(null)
+    this.artifactUtils = artifactUtils.orElse(null)
     this.registry = registry
   }
 
@@ -109,9 +109,9 @@ class DependentPipelineStarter implements ApplicationContextAware {
     //keep the trigger as the preprocessor removes it.
 
     if (parentPipelineStageId != null) {
-      pipelineConfig.receivedArtifacts = artifactResolver?.getArtifacts(parentPipeline.stageById(parentPipelineStageId))
+      pipelineConfig.receivedArtifacts = artifactUtils?.getArtifacts(parentPipeline.stageById(parentPipelineStageId))
     } else {
-      pipelineConfig.receivedArtifacts = artifactResolver?.getAllArtifacts(parentPipeline)
+      pipelineConfig.receivedArtifacts = artifactUtils?.getAllArtifacts(parentPipeline)
     }
 
     // This is required for template source with jinja expressions
@@ -128,7 +128,7 @@ class DependentPipelineStarter implements ApplicationContextAware {
     def artifactError = null
 
     try {
-      artifactResolver?.resolveArtifacts(pipelineConfig)
+      artifactUtils?.resolveArtifacts(pipelineConfig)
     } catch (Exception e) {
       artifactError = e
     }

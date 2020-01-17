@@ -24,7 +24,7 @@ import com.netflix.spinnaker.orca.igor.IgorService
 import com.netflix.spinnaker.orca.igor.model.GoogleCloudBuild
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import retrofit.client.Response
 import retrofit.mime.TypedString
@@ -60,11 +60,11 @@ class StartGoogleCloudBuildTaskSpec extends Specification {
   Execution execution = Mock(Execution)
   IgorService igorService = Mock(IgorService)
   OortService oortService = Mock(OortService)
-  ArtifactResolver artifactResolver = Mock(ArtifactResolver)
+  ArtifactUtils artifactUtils = Mock(ArtifactUtils)
   ContextParameterProcessor contextParameterProcessor = Mock(ContextParameterProcessor)
 
   @Subject
-  StartGoogleCloudBuildTask task = new StartGoogleCloudBuildTask(igorService, oortService, artifactResolver, contextParameterProcessor)
+  StartGoogleCloudBuildTask task = new StartGoogleCloudBuildTask(igorService, oortService, artifactUtils, contextParameterProcessor)
 
   def "starts a build defined inline"() {
     given:
@@ -128,7 +128,7 @@ class StartGoogleCloudBuildTaskSpec extends Specification {
     TaskResult result = task.execute(stage)
 
     then:
-    artifactResolver.getBoundArtifactForStage(stage, null, artifact) >> artifact
+    artifactUtils.getBoundArtifactForStage(stage, null, artifact) >> artifact
     oortService.fetchArtifact(artifact) >> new Response("", 200, "", Collections.emptyList(), new TypedString(objectMapper.writeValueAsString(RAW_BUILD)))
     1 * contextParameterProcessor.process(RAW_BUILD, _, _) >> BUILD
 

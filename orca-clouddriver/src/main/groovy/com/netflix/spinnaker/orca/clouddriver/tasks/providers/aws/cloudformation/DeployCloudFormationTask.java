@@ -28,7 +28,7 @@ import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Collections;
@@ -56,7 +56,7 @@ public class DeployCloudFormationTask extends AbstractCloudProviderAwareTask imp
 
   @Autowired ObjectMapper objectMapper;
 
-  @Autowired ArtifactResolver artifactResolver;
+  @Autowired ArtifactUtils artifactUtils;
 
   public static final String TASK_NAME = "deployCloudFormation";
 
@@ -89,7 +89,7 @@ public class DeployCloudFormationTask extends AbstractCloudProviderAwareTask imp
               .map(m -> objectMapper.convertValue(m, Artifact.class))
               .orElse(null);
       Artifact artifact =
-          artifactResolver.getBoundArtifactForStage(stage, stackArtifactId, stackArtifact);
+          artifactUtils.getBoundArtifactForStage(stage, stackArtifactId, stackArtifact);
       Optional.ofNullable(task.get("stackArtifactAccount"))
           .ifPresent(account -> artifact.setArtifactAccount(account.toString()));
       Response response = oortService.fetchArtifact(artifact);

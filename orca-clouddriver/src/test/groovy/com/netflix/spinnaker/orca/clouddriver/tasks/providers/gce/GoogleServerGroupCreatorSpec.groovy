@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.gce
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
-import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import com.netflix.spinnaker.orca.test.model.ExecutionBuilder
 import spock.lang.Specification
 
 class GoogleServerGroupCreatorSpec extends Specification {
 
-  ArtifactResolver artifactResolver = Mock(ArtifactResolver)
+  ArtifactUtils artifactUtils = Mock(ArtifactUtils)
 
   def "should get operations"() {
     given:
@@ -41,7 +41,7 @@ class GoogleServerGroupCreatorSpec extends Specification {
     def stage = ExecutionBuilder.stage {
       context.putAll(ctx)
     }
-    def ops = new GoogleServerGroupCreator(artifactResolver: artifactResolver).getOperations(stage)
+    def ops = new GoogleServerGroupCreator(artifactUtils: artifactUtils).getOperations(stage)
 
     then:
     ops == [
@@ -62,7 +62,7 @@ class GoogleServerGroupCreatorSpec extends Specification {
     stage = ExecutionBuilder.stage {
       context.putAll(ctx)
     }
-    ops = new GoogleServerGroupCreator(artifactResolver: artifactResolver).getOperations(stage)
+    ops = new GoogleServerGroupCreator(artifactUtils: artifactUtils).getOperations(stage)
 
     then:
     ops == [
@@ -86,7 +86,7 @@ class GoogleServerGroupCreatorSpec extends Specification {
     stage = ExecutionBuilder.stage {
       context.putAll(ctx)
     }
-    ops = new GoogleServerGroupCreator(artifactResolver: artifactResolver).getOperations(stage)
+    ops = new GoogleServerGroupCreator(artifactUtils: artifactUtils).getOperations(stage)
 
     then:
     ops == [
@@ -111,8 +111,8 @@ class GoogleServerGroupCreatorSpec extends Specification {
       context.putAll(ctx)
     }
     Artifact buildArtifact = Artifact.ArtifactBuilder.newInstance().name("santaImage").build();
-    artifactResolver.getBoundArtifactForStage(*_) >> buildArtifact
-    ops = new GoogleServerGroupCreator(artifactResolver: artifactResolver).getOperations(stage)
+    artifactUtils.getBoundArtifactForStage(*_) >> buildArtifact
+    ops = new GoogleServerGroupCreator(artifactUtils: artifactUtils).getOperations(stage)
 
     then:
     ops == [
@@ -136,10 +136,10 @@ class GoogleServerGroupCreatorSpec extends Specification {
     stage = ExecutionBuilder.stage {
       context.putAll(ctx)
     }
-    artifactResolver.getBoundArtifactForId(*_) >> {
+    artifactUtils.getBoundArtifactForId(*_) >> {
       return Artifact.builder().name("santaImage").build()
     }
-    ops = new GoogleServerGroupCreator(artifactResolver: artifactResolver).getOperations(stage)
+    ops = new GoogleServerGroupCreator(artifactUtils: artifactUtils).getOperations(stage)
 
     then:
     IllegalArgumentException illegalArgumentException = thrown()
@@ -151,7 +151,7 @@ class GoogleServerGroupCreatorSpec extends Specification {
     stage = ExecutionBuilder.stage {
       context.putAll(ctx)
     }
-    new GoogleServerGroupCreator(artifactResolver: artifactResolver).getOperations(stage)
+    new GoogleServerGroupCreator(artifactUtils: artifactUtils).getOperations(stage)
 
     then:
     IllegalStateException illegalStagteException = thrown()

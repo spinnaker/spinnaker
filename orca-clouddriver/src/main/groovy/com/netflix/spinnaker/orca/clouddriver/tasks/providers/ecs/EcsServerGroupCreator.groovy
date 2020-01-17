@@ -23,7 +23,7 @@ import com.netflix.spinnaker.orca.kato.tasks.DeploymentDetailsAware
 import com.netflix.spinnaker.orca.pipeline.model.DockerTrigger
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import groovy.util.logging.Slf4j
 import javax.annotation.Nullable
 import org.springframework.stereotype.Component
@@ -38,10 +38,10 @@ class EcsServerGroupCreator implements ServerGroupCreator, DeploymentDetailsAwar
   final Optional<String> healthProviderName = Optional.of("ecs")
 
   final ObjectMapper mapper = new ObjectMapper()
-  final ArtifactResolver artifactResolver
+  final ArtifactUtils artifactUtils
 
-  EcsServerGroupCreator(ArtifactResolver artifactResolver) {
-    this.artifactResolver = artifactResolver
+  EcsServerGroupCreator(ArtifactUtils artifactUtils) {
+    this.artifactUtils = artifactUtils
   }
 
   @Override
@@ -97,7 +97,7 @@ class EcsServerGroupCreator implements ServerGroupCreator, DeploymentDetailsAwar
   private Artifact getTaskDefArtifact(Stage stage, Object input) {
     TaskDefinitionArtifact taskDefArtifactInput = mapper.convertValue(input, TaskDefinitionArtifact.class)
 
-    Artifact taskDef = artifactResolver.getBoundArtifactForStage(
+    Artifact taskDef = artifactUtils.getBoundArtifactForStage(
       stage,
       taskDefArtifactInput.artifactId,
       taskDefArtifactInput.artifact)

@@ -23,7 +23,7 @@ import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.tasks.artifacts.ConsumeArtifactTask
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import retrofit.client.Response
 import retrofit.mime.TypedString
 import spock.lang.Specification
@@ -32,13 +32,13 @@ import spock.lang.Subject
 class ConsumeArtifactTaskSpec extends Specification {
 
   def oortService = Mock(OortService)
-  def artifactResolver = Stub(ArtifactResolver) {
+  def artifactUtils = Stub(ArtifactUtils) {
     getBoundArtifactForId(*_) >> Artifact.builder().build()
   }
 
   @Subject
   ConsumeArtifactTask task = new ConsumeArtifactTask(
-    artifactResolver,
+    artifactUtils,
     oortService,
     new RetrySupport()
   )

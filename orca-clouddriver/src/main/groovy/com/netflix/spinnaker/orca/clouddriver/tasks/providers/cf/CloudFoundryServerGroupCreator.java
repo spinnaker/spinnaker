@@ -24,7 +24,7 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestEvaluator;
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreator;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +40,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 class CloudFoundryServerGroupCreator implements ServerGroupCreator {
   private final ObjectMapper mapper;
-  private final ArtifactResolver artifactResolver;
+  private final ArtifactUtils artifactUtils;
   private final ManifestEvaluator manifestEvaluator;
 
   @Override
@@ -90,7 +90,7 @@ class CloudFoundryServerGroupCreator implements ServerGroupCreator {
     CloudFoundryDeployArtifact applicationArtifactInput =
         mapper.convertValue(input, CloudFoundryDeployArtifact.class);
     Artifact artifact =
-        artifactResolver.getBoundArtifactForStage(
+        artifactUtils.getBoundArtifactForStage(
             stage,
             applicationArtifactInput.getArtifactId(),
             applicationArtifactInput.getArtifact());

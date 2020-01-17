@@ -23,7 +23,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.Task;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +38,7 @@ import org.springframework.stereotype.Component;
 public class FindArtifactFromExecutionTask implements Task {
   public static final String TASK_NAME = "findArtifactFromExecution";
 
-  private final ArtifactResolver artifactResolver;
+  private final ArtifactUtils artifactUtils;
 
   @Nonnull
   @Override
@@ -57,15 +57,15 @@ public class FindArtifactFromExecutionTask implements Task {
         Optional.ofNullable(stage.getExecution().getPipelineConfigId()).orElse("");
     if (pipelineConfigId.equals(pipeline)) {
       priorArtifacts =
-          artifactResolver.getArtifactsForPipelineIdWithoutStageRef(
+          artifactUtils.getArtifactsForPipelineIdWithoutStageRef(
               pipeline, stage.getRefId(), executionOptions.toCriteria());
     } else {
       priorArtifacts =
-          artifactResolver.getArtifactsForPipelineId(pipeline, executionOptions.toCriteria());
+          artifactUtils.getArtifactsForPipelineId(pipeline, executionOptions.toCriteria());
     }
 
     Set<Artifact> matchingArtifacts =
-        artifactResolver.resolveExpectedArtifacts(expectedArtifacts, priorArtifacts, null, false);
+        artifactUtils.resolveExpectedArtifacts(expectedArtifacts, priorArtifacts, null, false);
 
     outputs.put("resolvedExpectedArtifacts", expectedArtifacts);
     outputs.put("artifacts", matchingArtifacts);

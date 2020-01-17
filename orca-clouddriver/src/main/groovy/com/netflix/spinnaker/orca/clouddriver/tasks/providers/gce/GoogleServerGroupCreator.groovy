@@ -21,7 +21,7 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreator
 import com.netflix.spinnaker.orca.kato.tasks.DeploymentDetailsAware
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -34,7 +34,7 @@ class GoogleServerGroupCreator implements ServerGroupCreator, DeploymentDetailsA
   String cloudProvider = "gce"
 
   @Autowired
-  ArtifactResolver artifactResolver
+  ArtifactUtils artifactUtils
 
   @Autowired
   ObjectMapper objectMapper
@@ -76,7 +76,7 @@ class GoogleServerGroupCreator implements ServerGroupCreator, DeploymentDetailsA
     if (artifactId == null && imageArtifact == null) {
       throw new IllegalArgumentException("Image source was set to artifact but no artifact was specified.")
     }
-    return artifactResolver.getBoundArtifactForStage(stage, artifactId, imageArtifact)
+    return artifactUtils.getBoundArtifactForStage(stage, artifactId, imageArtifact)
   }
 
   private String getImage(Stage stage) {

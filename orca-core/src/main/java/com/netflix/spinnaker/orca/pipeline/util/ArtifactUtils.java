@@ -55,7 +55,7 @@ import rx.functions.Func2;
 import rx.schedulers.Schedulers;
 
 @Component
-public class ArtifactResolver {
+public class ArtifactUtils {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -64,7 +64,7 @@ public class ArtifactResolver {
   private final ContextParameterProcessor contextParameterProcessor;
 
   @Autowired
-  public ArtifactResolver(
+  public ArtifactUtils(
       ObjectMapper objectMapper,
       ExecutionRepository executionRepository,
       ContextParameterProcessor contextParameterProcessor) {

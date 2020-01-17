@@ -40,7 +40,7 @@ import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategySupport;
 import com.netflix.spinnaker.orca.pipeline.WaitStage;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -60,7 +60,7 @@ class CFRollingRedBlackStrategyTest {
   private SpringDynamicConfigService springDynamicConfigService = new SpringDynamicConfigService();
   private PipelineStage pipelineStage = mock(PipelineStage.class);
   private ResizeStrategySupport resizeStrategySupport = mock(ResizeStrategySupport.class);
-  private ArtifactResolver artifactResolver = mock(ArtifactResolver.class);
+  private ArtifactUtils artifactUtils = mock(ArtifactUtils.class);
   private OortService oortService = mock(OortService.class);
   private TargetServerGroupResolver targetServerGroupResolver =
       mock(TargetServerGroupResolver.class);
@@ -72,7 +72,7 @@ class CFRollingRedBlackStrategyTest {
     strategy =
         new CFRollingRedBlackStrategy(
             null,
-            artifactResolver,
+            artifactUtils,
             Optional.of(pipelineStage),
             resizeStrategySupport,
             targetServerGroupResolver,
@@ -206,7 +206,7 @@ class CFRollingRedBlackStrategyTest {
     assertThat(deployServerGroupStage.getContext().get("useSourceCapacity")).isNull();
     assertThat(deployServerGroupStage.getContext().get("capacity")).isEqualTo(zeroCapacity);
     assertThat(deployServerGroupStage.getContext().get("manifest")).isEqualTo(expectedManifest);
-    verifyZeroInteractions(artifactResolver);
+    verifyZeroInteractions(artifactUtils);
     verifyZeroInteractions(oortService);
   }
 
@@ -272,7 +272,7 @@ class CFRollingRedBlackStrategyTest {
     assertThat(deployServerGroupStage.getContext().get("useSourceCapacity")).isNull();
     assertThat(deployServerGroupStage.getContext().get("capacity")).isEqualTo(zeroCapacity);
     assertThat(deployServerGroupStage.getContext().get("manifest")).isEqualTo(expectedManifest);
-    verifyZeroInteractions(artifactResolver);
+    verifyZeroInteractions(artifactUtils);
     verifyZeroInteractions(oortService);
   }
 
@@ -298,7 +298,7 @@ class CFRollingRedBlackStrategyTest {
             new Execution(PIPELINE, "unit"), CreateServerGroupStage.PIPELINE_CONFIG_TYPE, context);
     ResizeStrategy.Capacity resizeTo4Capacity = new ResizeStrategy.Capacity(4, 4, 4);
 
-    when(artifactResolver.getBoundArtifactForStage(any(), any(), any()))
+    when(artifactUtils.getBoundArtifactForStage(any(), any(), any()))
         .thenReturn(boundArtifactForStage);
     when(oortService.fetchArtifact(any())).thenReturn(oortServiceResponse);
 
@@ -324,7 +324,7 @@ class CFRollingRedBlackStrategyTest {
     assertThat(deployServerGroupStage.getContext().get("useSourceCapacity")).isNull();
     assertThat(deployServerGroupStage.getContext().get("capacity")).isEqualTo(zeroCapacity);
     assertThat(deployServerGroupStage.getContext().get("manifest")).isEqualTo(expectedManifest);
-    verify(artifactResolver)
+    verify(artifactUtils)
         .getBoundArtifactForStage(deployServerGroupStage, artifactId, Artifact.builder().build());
     verify(oortService).fetchArtifact(boundArtifactForStage);
   }
@@ -364,7 +364,7 @@ class CFRollingRedBlackStrategyTest {
         .thenReturn(singletonList(new TargetServerGroup(Collections.emptyMap())));
     when(resizeStrategySupport.getCapacity(any(), any(), any(), any()))
         .thenReturn(initialSourceCapacity);
-    when(artifactResolver.getBoundArtifactForStage(any(), any(), any()))
+    when(artifactUtils.getBoundArtifactForStage(any(), any(), any()))
         .thenReturn(boundArtifactForStage);
     when(oortService.fetchArtifact(any())).thenReturn(oortServiceResponse);
 
@@ -401,7 +401,7 @@ class CFRollingRedBlackStrategyTest {
     assertThat(deployServerGroupStage.getContext().get("useSourceCapacity")).isNull();
     assertThat(deployServerGroupStage.getContext().get("capacity")).isEqualTo(zeroCapacity);
     assertThat(deployServerGroupStage.getContext().get("manifest")).isEqualTo(expectedManifest);
-    verify(artifactResolver)
+    verify(artifactUtils)
         .getBoundArtifactForStage(deployServerGroupStage, artifactId, Artifact.builder().build());
     verify(oortService).fetchArtifact(boundArtifactForStage);
   }

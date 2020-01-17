@@ -25,7 +25,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.Task;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver;
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +40,7 @@ import org.springframework.stereotype.Component;
 public class BindProducedArtifactsTask implements Task {
   public static final String TASK_NAME = "bindProducedArtifacts";
 
-  @Autowired ArtifactResolver artifactResolver;
+  @Autowired ArtifactUtils artifactUtils;
 
   @Autowired ObjectMapper objectMapper;
 
@@ -58,9 +58,9 @@ public class BindProducedArtifactsTask implements Task {
       return TaskResult.SUCCEEDED;
     }
 
-    List<Artifact> artifacts = artifactResolver.getArtifacts(stage);
+    List<Artifact> artifacts = artifactUtils.getArtifacts(stage);
     Set<Artifact> resolvedArtifacts =
-        artifactResolver.resolveExpectedArtifacts(expectedArtifacts, artifacts, false);
+        artifactUtils.resolveExpectedArtifacts(expectedArtifacts, artifacts, false);
 
     outputs.put("artifacts", resolvedArtifacts);
     outputs.put("resolvedExpectedArtifacts", expectedArtifacts);

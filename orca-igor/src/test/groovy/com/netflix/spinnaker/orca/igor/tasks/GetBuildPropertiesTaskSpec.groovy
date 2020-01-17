@@ -25,7 +25,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.tasks.artifacts.BindProducedArtifactsTask
-import com.netflix.spinnaker.orca.pipeline.util.ArtifactResolver
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import retrofit.RetrofitError
 import retrofit.client.Response
@@ -35,7 +35,7 @@ import spock.lang.Subject
 
 class GetBuildPropertiesTaskSpec extends Specification {
   def executionRepository = Mock(ExecutionRepository)
-  def artifactResolver = new ArtifactResolver(new ObjectMapper(), executionRepository, new ContextParameterProcessor())
+  def artifactUtils = new ArtifactUtils(new ObjectMapper(), executionRepository, new ContextParameterProcessor())
   def buildService = Stub(BuildService)
 
   def BUILD_NUMBER = 4
@@ -96,7 +96,7 @@ class GetBuildPropertiesTaskSpec extends Specification {
            reference: "gcr.io/project/my-image@sha256:28f82eba",
            name: "gcr.io/project/my-image",
            version: "sha256:28f82eba"],]]
-    bindTask.artifactResolver = artifactResolver
+    bindTask.artifactUtils = artifactUtils
     bindTask.objectMapper = new ObjectMapper()
 
     when:
