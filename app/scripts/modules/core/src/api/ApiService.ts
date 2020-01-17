@@ -42,9 +42,11 @@ export class API {
       const contentType = result.headers('content-type');
       if (contentType) {
         const isJson = contentType.match(/application\/(.+\+)?json/); // e.g application/json, application/hal+json
+        // e.g. application/yaml, application/x-yaml; it's regex, let's not get too fancy
+        const isYaml = contentType.match(/application\/(.+-)?yaml/);
         const isZeroLengthHtml = contentType.includes('text/html') && result.data === '';
         const isZeroLengthText = contentType.includes('text/plain') && result.data === '';
-        if (!(isJson || isZeroLengthHtml || isZeroLengthText)) {
+        if (!(isJson || isYaml || isZeroLengthHtml || isZeroLengthText)) {
           AuthenticationInitializer.reauthenticateUser();
           reject(new InvalidAPIResponse(API.invalidContentMessage, result));
         }
