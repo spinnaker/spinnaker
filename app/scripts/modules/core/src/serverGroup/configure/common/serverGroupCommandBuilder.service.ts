@@ -172,7 +172,7 @@ export class ServerGroupCommandBuilderService {
     return this.getDelegate(provider, skin).buildNewServerGroupCommand(application, options);
   }
 
-  public buildServerGroupCommandFromExisting(application: Application, serverGroup: any, mode: string): any {
+  public buildServerGroupCommandFromExisting(application: Application, serverGroup: any, mode?: string): any {
     return this.getDelegate(serverGroup.type).buildServerGroupCommandFromExisting(application, serverGroup, mode);
   }
 
