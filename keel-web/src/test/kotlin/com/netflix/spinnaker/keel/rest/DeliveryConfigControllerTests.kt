@@ -4,7 +4,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.actuation.ResourcePersister
 import com.netflix.spinnaker.keel.api.ConstraintState
-import com.netflix.spinnaker.keel.api.ConstraintStatus.PASS
+import com.netflix.spinnaker.keel.api.ConstraintStatus.OVERRIDE_PASS
 import com.netflix.spinnaker.keel.api.ConstraintStatus.PENDING
 import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.DependsOnConstraint
@@ -281,6 +281,21 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
           }
 
           derivedContext<ResultActions>("interacting with manual judgement") {
+            val constraintStateYaml =
+              """---
+                |type: manual-judgement
+                |artifactVersion: keel-1.0.2
+                |status: OVERRIDE_PASS
+              """.trimMargin()
+
+            val constraintStateJson =
+              """{
+                |  "type": "manual-judgement",
+                |  "artifactVersion": "keel-1.0.2",
+                |  "status": "OVERRIDE_PASS"
+                |}
+              """.trimMargin()
+
             fixture {
               val judgement = ConstraintState("keel-manifest", "prod", "keel-1.0.2", "manual-judgement", PENDING)
               deliveryConfigRepository.storeConstraintState(judgement)
@@ -297,10 +312,13 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
             derivedContext<ResultActions>("approving manual judgement") {
               fixture {
                 val request = post(
-                  "/delivery-configs/keel-manifest/environment/prod/constraint/manual-judgement" +
-                    "?artifactVersion=keel-1.0.2&status=PASS")
+                  "/delivery-configs/keel-manifest/environment/prod/constraint")
                   .accept(contentType)
                   .contentType(contentType)
+                  .content(when (contentType) {
+                    APPLICATION_YAML -> constraintStateYaml
+                    else -> constraintStateJson
+                  })
                   .header("X-SPINNAKER-USER", "keel")
 
                 mvc.perform(request)
@@ -313,7 +331,7 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
                   .getConstraintState("keel-manifest", "prod", "keel-1.0.2", "manual-judgement")
 
                 expectThat(judgement).isNotNull()
-                expectThat(judgement!!.status).isEqualTo(PASS)
+                expectThat(judgement!!.status).isEqualTo(OVERRIDE_PASS)
                 expectThat(judgement.judgedBy).isEqualTo("keel")
               }
 
@@ -321,7 +339,7 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
                 val states = getProdConstraintStates(contentType)
                 expectThat(states).hasSize(1)
                 with(states.first()) {
-                  expectThat(status).isEqualTo(PASS)
+                  expectThat(status).isEqualTo(OVERRIDE_PASS)
                   expectThat(judgedBy).isEqualTo("keel")
                 }
               }

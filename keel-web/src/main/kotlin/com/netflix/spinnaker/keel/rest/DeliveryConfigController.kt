@@ -2,10 +2,10 @@ package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.actuation.ResourcePersister
 import com.netflix.spinnaker.keel.api.ConstraintState
-import com.netflix.spinnaker.keel.api.ConstraintStatus
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.EnvironmentArtifactsSummary
 import com.netflix.spinnaker.keel.api.SubmittedDeliveryConfig
+import com.netflix.spinnaker.keel.api.UpdatedConstraintStatus
 import com.netflix.spinnaker.keel.diff.AdHocDiffer
 import com.netflix.spinnaker.keel.diff.EnvironmentDiff
 import com.netflix.spinnaker.keel.exceptions.InvalidConstraintException
@@ -83,7 +83,7 @@ class DeliveryConfigController(
     deliveryConfigRepository.constraintStateFor(name, environment, limit ?: DEFAULT_MAX_EVENTS)
 
   @PostMapping(
-    path = ["/{name}/environment/{environment}/constraint/{type}"],
+    path = ["/{name}/environment/{environment}/constraint"],
     consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
@@ -93,21 +93,21 @@ class DeliveryConfigController(
     @RequestHeader("X-SPINNAKER-USER") user: String,
     @PathVariable("name") name: String,
     @PathVariable("environment") environment: String,
-    @PathVariable("type") type: String,
-    @RequestParam("artifactVersion") artifactVersion: String,
-    @RequestParam("status") status: String,
-    @RequestParam("comment") comment: String?
+    @RequestBody status: UpdatedConstraintStatus
   ) {
-    val currentState = deliveryConfigRepository.getConstraintState(name, environment, artifactVersion, type)
-      ?: throw InvalidConstraintException("$name/$environment/$type/$artifactVersion", "constraint not found")
+    val currentState = deliveryConfigRepository.getConstraintState(
+      name,
+      environment,
+      status.artifactVersion,
+      status.type) ?: throw InvalidConstraintException(
+      "$name/$environment/${status.type}/${status.artifactVersion}", "constraint not found")
 
     deliveryConfigRepository.storeConstraintState(
       currentState.copy(
-        status = ConstraintStatus.valueOf(status),
-        comment = comment ?: currentState.comment,
+        status = status.status,
+        comment = status.comment ?: currentState.comment,
         judgedAt = Instant.now(),
-        judgedBy = user
-      ))
+        judgedBy = user))
   }
 
   @ExceptionHandler(InvalidConstraintException::class)

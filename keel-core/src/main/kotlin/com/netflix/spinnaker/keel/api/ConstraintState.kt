@@ -37,6 +37,13 @@ enum class ConstraintStatus(private val passed: Boolean, private val failed: Boo
   fun failed() = failed
 }
 
+data class UpdatedConstraintStatus(
+  val type: String,
+  val artifactVersion: String,
+  val status: ConstraintStatus,
+  val comment: String?
+)
+
 @JsonTypeInfo(
   include = JsonTypeInfo.As.EXISTING_PROPERTY,
   use = JsonTypeInfo.Id.NAME,
