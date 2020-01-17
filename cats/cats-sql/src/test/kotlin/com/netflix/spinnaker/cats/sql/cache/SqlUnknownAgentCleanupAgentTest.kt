@@ -31,6 +31,7 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.table
+import org.junit.jupiter.api.assertDoesNotThrow
 import org.springframework.beans.factory.ObjectProvider
 import strikt.api.expect
 import strikt.api.expectThat
@@ -87,6 +88,18 @@ class SqlUnknownAgentCleanupAgentTest : JUnit5Minutests {
         test("resources referencing old data are deleted") {
           expectThat(selectAllRels())
             .hasSize(1)[0].isEqualTo("aws:serverGroups:myapp-prod:prod:us-east-1:myapp-prod-v000")
+        }
+      }
+    }
+    context("add caching agent for uninstantiated custom resource definition") {
+      deriveFixture {
+        fixture.providerAgents.add(unregisteredCustomResourceCachingAgent())
+        fixture
+      }
+
+      test("error is not thrown when table does not exist for type for which agent is authoritative") {
+        assertDoesNotThrow {
+          subject.run()
         }
       }
     }
@@ -229,6 +242,13 @@ class SqlUnknownAgentCleanupAgentTest : JUnit5Minutests {
             )
           )
         )
+      }
+
+    fun unregisteredCustomResourceCachingAgent(): TestAgent =
+      TestAgent().also {
+        it.scope = "unregisteredCustomResources"
+        it.types = setOf("cloud.google.com.BackendConfig")
+        it.authoritative = setOf("cloud.google.com.BackendConfig")
       }
 
     fun selectAllResources(): List<String> =

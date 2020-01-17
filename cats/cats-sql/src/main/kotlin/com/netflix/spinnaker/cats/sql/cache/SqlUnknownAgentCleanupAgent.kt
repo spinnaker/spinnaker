@@ -91,6 +91,13 @@ class SqlUnknownAgentCleanupAgent(
     }
     log.debug("Checking table '$tableName' for '$dataType' data cleanup")
 
+    val tableExists = jooq.fetch("show tables like '$tableName'").intoResultSet()
+    if (!tableExists.next()) {
+      log.debug("Table '$tableName' not found")
+      state.touchedTables.add(tableName)
+      return
+    }
+
     val rs = jooq.select(*cacheTable.fields)
       .from(table(tableName))
       .fetch()
