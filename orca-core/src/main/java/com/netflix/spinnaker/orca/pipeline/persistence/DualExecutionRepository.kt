@@ -167,21 +167,21 @@ class DualExecutionRepository(
     return Observable.merge(
       primary.retrieve(type),
       previous.retrieve(type)
-    )
+    ).distinct { it.id }
   }
 
   override fun retrieve(type: Execution.ExecutionType, criteria: ExecutionCriteria): Observable<Execution> {
     return Observable.merge(
       primary.retrieve(type, criteria),
       previous.retrieve(type, criteria)
-    )
+    ).distinct { it.id }
   }
 
   override fun retrievePipelinesForApplication(application: String): Observable<Execution> {
     return Observable.merge(
       primary.retrievePipelinesForApplication(application),
       previous.retrievePipelinesForApplication(application)
-    )
+    ).distinct { it.id }
   }
 
   override fun retrievePipelinesForPipelineConfigId(
@@ -191,7 +191,7 @@ class DualExecutionRepository(
     return Observable.merge(
       primary.retrievePipelinesForPipelineConfigId(pipelineConfigId, criteria),
       previous.retrievePipelinesForPipelineConfigId(pipelineConfigId, criteria)
-    )
+    ).distinct { it.id }
   }
 
   override fun retrievePipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
@@ -212,7 +212,7 @@ class DualExecutionRepository(
         buildTimeStartBoundary,
         buildTimeEndBoundary,
         executionCriteria)
-      )
+      ).distinctBy { it.id }
   }
 
   override fun retrieveAllPipelinesForPipelineConfigIdsBetweenBuildTimeBoundary(
@@ -232,7 +232,7 @@ class DualExecutionRepository(
         buildTimeStartBoundary,
         buildTimeEndBoundary,
         executionCriteria)
-      )
+      ).distinctBy { it.id }
   }
 
   override fun retrieveOrchestrationsForApplication(
@@ -242,7 +242,7 @@ class DualExecutionRepository(
     return Observable.merge(
       primary.retrieveOrchestrationsForApplication(application, criteria),
       previous.retrieveOrchestrationsForApplication(application, criteria)
-    )
+    ).distinct { it.id }
   }
 
   override fun retrieveOrchestrationsForApplication(
@@ -253,7 +253,7 @@ class DualExecutionRepository(
     val result = Observable.merge(
       Observable.from(primary.retrieveOrchestrationsForApplication(application, criteria, sorter)),
       Observable.from(previous.retrieveOrchestrationsForApplication(application, criteria, sorter))
-    ).toList().toBlocking().single().toMutableList()
+    ).toList().toBlocking().single().distinctBy { it.id }.toMutableList()
 
     return if (sorter != null) {
       result.asSequence().sortedWith(sorter as Comparator<in Execution>).toMutableList()
@@ -290,7 +290,7 @@ class DualExecutionRepository(
     return Observable.merge(
       Observable.from(primary.retrieveBufferedExecutions()),
       Observable.from(previous.retrieveBufferedExecutions())
-    ).toList().toBlocking().single()
+    ).toList().toBlocking().single().distinctBy { it.id }.toMutableList()
   }
 
   override fun retrieveAllApplicationNames(executionType: Execution.ExecutionType?): MutableList<String> {
