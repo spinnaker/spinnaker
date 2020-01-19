@@ -78,4 +78,24 @@ class NotificationTemplateEngineSpec extends Specification {
     null          | Type.SUBJECT  | Notification.Type.EMAIL | "test"
   }
 
+  void "Using a MARKDOWN formatter should leave the original markdown untouched"() {
+    given:
+    def notification = new Notification(
+      notificationType: Notification.Type.EMAIL,
+      to: ["test@netflix.com"],
+      severity: Notification.Severity.NORMAL,
+      additionalContext: [
+        subject: "test",
+        body: "This is *markdown*! :yay:",
+        formatter: "MARKDOWN"
+      ]
+    )
+
+    when:
+    def output = new NotificationTemplateEngine().build(notification, Type.BODY)
+
+    then:
+    output == "This is *markdown*! :yay:"
+  }
+
 }

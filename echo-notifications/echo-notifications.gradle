@@ -15,24 +15,28 @@
  */
 
 dependencies {
-    implementation project(':echo-core')
-    implementation project(':echo-model')
-    implementation project(":echo-pipelinetriggers")
-    implementation "org.springframework.boot:spring-boot-starter-web"
-    implementation "com.squareup.retrofit:retrofit"
-    implementation "com.squareup.retrofit:converter-jackson"
-    implementation "com.squareup.okhttp:okhttp"
-    implementation "com.squareup.okhttp:okhttp-urlconnection"
-    implementation "com.squareup.okhttp:okhttp-apache"
-    implementation "com.netflix.spinnaker.kork:kork-core"
-    implementation "com.netflix.spinnaker.kork:kork-artifacts"
-    implementation "com.netflix.spinnaker.kork:kork-web"
-    implementation "commons-codec:commons-codec"
-    implementation "javax.mail:mail:1.4.1"
-    implementation "org.springframework.boot:spring-boot-starter-mail"
-    implementation "org.springframework.boot:spring-boot-starter-freemarker"
-    implementation "org.jsoup:jsoup:1.8.2"
-    implementation "com.atlassian.commonmark:commonmark:0.9.0"
-    testImplementation "com.icegreen:greenmail:1.4.0"
-    testImplementation "org.apache.httpcomponents:httpclient"
+  implementation project(':echo-core')
+  implementation project(':echo-model')
+  implementation project(":echo-pipelinetriggers")
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "com.squareup.retrofit:retrofit"
+  implementation "com.squareup.retrofit:converter-jackson"
+  implementation "com.squareup.okhttp:okhttp"
+  implementation "com.squareup.okhttp:okhttp-urlconnection"
+  implementation "com.squareup.okhttp:okhttp-apache"
+  implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0"
+  implementation "com.netflix.spinnaker.kork:kork-core"
+  implementation "com.netflix.spinnaker.kork:kork-artifacts"
+  implementation "com.netflix.spinnaker.kork:kork-web"
+  implementation "commons-codec:commons-codec"
+  implementation "javax.mail:mail:1.4.1"
+  implementation "org.springframework.boot:spring-boot-starter-mail"
+  implementation "org.springframework.boot:spring-boot-starter-freemarker"
+  implementation "org.jsoup:jsoup:1.8.2"
+  implementation "com.atlassian.commonmark:commonmark:0.9.0"
+  testImplementation "com.icegreen:greenmail:1.4.0"
+  testImplementation "org.apache.httpcomponents:httpclient"
+  testImplementation "org.spockframework:spock-spring"
+  testImplementation "org.springframework:spring-test"
+  annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
 }

@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
+package com.netflix.spinnaker.echo.config
 
-package com.netflix.spinnaker.echo.slack
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.boot.context.properties.ConfigurationProperties
 
-import groovy.transform.Canonical
-
-@Canonical
-class SlackRequest {
-  List<SlackAttachment> attachments
-  String channel
+@ConfigurationProperties(prefix = "slack.app")
+@Qualifier("slackAppConfig")
+class SlackAppProperties extends SlackLegacyProperties {
+  String verificationToken
+  String signingSecret
 }
+

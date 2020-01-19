@@ -1,22 +1,66 @@
 package com.netflix.spinnaker.echo.config
 
+import com.netflix.spinnaker.echo.slack.SlackAppService
+import com.netflix.spinnaker.echo.slack.SlackService
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+import retrofit.RestAdapter.LogLevel
+import retrofit.client.Client
 import spock.lang.Specification
 import spock.lang.Subject
 
+@SpringBootTest(
+  classes = [ SlackConfig, MockRetrofitConfig ],
+  properties = [
+    "slack.enabled = true",
+    // Used for the old bot
+    "slack.token = xoxb-token-for-old-bot",
+    // Used for the new bot
+    "slack.app.token = xoxb-token-for-new-bot",
+    "slack.app.verification_token = verification-token",
+    "slack.app.signing_secret = signing-secret"
+  ],
+  webEnvironment = SpringBootTest.WebEnvironment.NONE
+)
 class SlackConfigSpec extends Specification {
   @Subject
-  SlackConfig slackConfig = new SlackConfig()
+  @Autowired
+  @Qualifier("slackLegacyConfig")
+  SlackLegacyProperties legacyConfig
+
+  @Subject
+  @Autowired
+  @Qualifier("slackAppConfig")
+  SlackAppProperties appConfig
+
+  @Subject
+  @Autowired
+  @Qualifier("slackLegacyService")
+  SlackService slackLegacyService
+
+  @Subject
+  @Autowired
+  @Qualifier("slackAppService")
+  SlackAppService slackAppService
+
+  def 'legacy config loads as expected'() {
+    expect:
+    legacyConfig.token == "xoxb-token-for-old-bot"
+  }
 
   def 'test slack incoming web hook is inferred correctly'() {
     given:
 
     when:
-    def useIncomingHook = slackConfig.useIncomingWebHook(token)
-    def endpoint = slackConfig.slackEndpoint(useIncomingHook)
+    legacyConfig.token = token
 
     then:
-    useIncomingHook == expectedUseIncomingWebHook
-    endpoint.url == expectedEndpoint
+    legacyConfig.useIncomingWebhook == expectedUseIncomingWebHook
+    legacyConfig.baseUrl == expectedEndpoint
 
     where:
     token                                          | expectedEndpoint                   | expectedUseIncomingWebHook
@@ -31,14 +75,12 @@ class SlackConfigSpec extends Specification {
     given:
 
     when:
-    slackConfig.setSlackBaseUrl(baseUrl)
-    def useIncomingHook = slackConfig.useIncomingWebHook(token)
-    def endpoint = slackConfig.slackEndpoint(useIncomingHook)
-
+    legacyConfig.token = token
+    legacyConfig.baseUrl = baseUrl
 
     then:
-    useIncomingHook == expectedUseIncomingWebHook
-    endpoint.url == expectedEndpoint
+    legacyConfig.useIncomingWebhook == expectedUseIncomingWebHook
+    legacyConfig.baseUrl == expectedEndpoint
 
     where:
     token                                          | baseUrl               | expectedEndpoint                   | expectedUseIncomingWebHook
@@ -52,16 +94,15 @@ class SlackConfigSpec extends Specification {
 
   def 'test slack incoming web hook when forceUseIncomingWebhook'() {
     given:
-    slackConfig.forceUseIncomingWebhook = true
-    slackConfig.slackBaseUrl = 'https://example.com'
 
     when:
-    def useIncomingHook = slackConfig.useIncomingWebHook(token)
-    def endpoint = slackConfig.slackEndpoint(useIncomingHook)
+    legacyConfig.token = token
+    legacyConfig.forceUseIncomingWebhook = true
+    legacyConfig.baseUrl = 'https://example.com'
 
     then:
-    useIncomingHook == expectedUseIncomingWebHook
-    endpoint.url == expectedEndpoint
+    legacyConfig.useIncomingWebhook == expectedUseIncomingWebHook
+    legacyConfig.baseUrl == expectedEndpoint
 
     where:
     token                                          | expectedEndpoint      | expectedUseIncomingWebHook
@@ -70,5 +111,28 @@ class SlackConfigSpec extends Specification {
     "OLD/FASHION"                                  | "https://example.com" | true
     ""                                             | "https://example.com" | true
     null                                           | "https://example.com" | true
+  }
+
+  def 'new app config loads as expected'() {
+    expect:
+    appConfig.token == "xoxb-token-for-new-bot"
+    appConfig.verificationToken == "verification-token"
+    appConfig.signingSecret == "signing-secret"
+  }
+
+  def 'legacy and new app services use different configs and clients'() {
+    expect:
+    slackAppService.config != slackLegacyService.config
+    slackAppService.slackClient != slackLegacyService.slackClient
+  }
+
+}
+
+@Configuration
+class MockRetrofitConfig extends Specification {
+  @MockBean Client client
+
+  @Bean LogLevel getRetrofitLogLevel() {
+    return LogLevel.BASIC
   }
 }

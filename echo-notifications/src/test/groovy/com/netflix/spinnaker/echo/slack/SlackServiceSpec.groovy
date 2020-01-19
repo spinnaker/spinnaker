@@ -1,8 +1,9 @@
 package com.netflix.spinnaker.echo.slack
 
+import com.netflix.spinnaker.echo.api.Notification
 import com.netflix.spinnaker.echo.config.SlackConfig
+import com.netflix.spinnaker.echo.config.SlackLegacyProperties
 import groovy.json.JsonSlurper
-import org.apache.http.HttpEntity
 import org.apache.http.NameValuePair
 import org.apache.http.client.utils.URLEncodedUtils
 import retrofit.client.Client
@@ -17,7 +18,6 @@ import spock.util.concurrent.BlockingVariable
 import java.nio.charset.Charset
 
 import static java.util.Collections.emptyList
-import static retrofit.Endpoints.newFixedEndpoint
 import static retrofit.RestAdapter.LogLevel
 
 class SlackServiceSpec extends Specification {
@@ -25,6 +25,7 @@ class SlackServiceSpec extends Specification {
   @Subject mockHttpClient
   @Subject BlockingVariable<String> actualUrl
   @Subject BlockingVariable<String> actualPayload
+  SlackLegacyProperties configProperties
 
   def setup() {
     actualUrl = new BlockingVariable<String>()
@@ -37,18 +38,20 @@ class SlackServiceSpec extends Specification {
       actualPayload.set(getString(request.body))
       mockResponse()
     }
+
+    configProperties = new SlackLegacyProperties()
   }
 
   def 'test sending Slack notification using incoming web hook'() {
 
     given: "a SlackService configured to send using a mocked HTTP client and useIncomingHook=true"
-    def useIncomingHook = true
-    def endpoint = newFixedEndpoint(SlackConfig.SLACK_INCOMING_WEBHOOK)
+    configProperties.forceUseIncomingWebhook = true
+    configProperties.token = token
 
-    def slackService = slackConfig.slackService(useIncomingHook, endpoint, mockHttpClient, LogLevel.FULL)
+    def slackService = slackConfig.slackService(configProperties, mockHttpClient, LogLevel.FULL)
 
     when: "sending a notification"
-    slackService.sendMessage(token, new SlackAttachment("Title", "the text"), "#testing", true)
+    slackService.sendMessage(new SlackAttachment("Title", "the text"), "#testing", true)
     def responseJson = new JsonSlurper().parseText(actualPayload.get())
 
     then: "the HTTP URL and payload intercepted are the ones expected"
@@ -69,13 +72,13 @@ class SlackServiceSpec extends Specification {
   def 'test sending Slack notification using chat.postMessage API'() {
 
     given: "a SlackService configured to send using a mocked HTTP client and useIncomingHook=false"
-    def useIncomingHook = false
-    def endpoint = newFixedEndpoint(SlackConfig.SLACK_CHAT_API)
+    configProperties.forceUseIncomingWebhook = false
+    configProperties.token = token
 
-    def slackService = slackConfig.slackService(useIncomingHook, endpoint, mockHttpClient, LogLevel.FULL)
+    def slackService = slackConfig.slackService(configProperties, mockHttpClient, LogLevel.FULL)
 
     when: "sending a notification"
-    slackService.sendMessage(token, new SlackAttachment("Title", "the text"), "#testing", true)
+    slackService.sendMessage(new SlackAttachment("Title", "the text"), "#testing", true)
 
     // Parse URL Encoded Form
     def params = URLEncodedUtils.parse(actualPayload.get(), Charset.forName("UTF-8"))
@@ -100,6 +103,46 @@ class SlackServiceSpec extends Specification {
     token           | expectedUrl
     "oldStyleToken" | "https://slack.com/api/chat.postMessage"
   }
+
+  def 'sending an interactive Slack notification'() {
+
+    given: "a SlackService configured to send a message with the chat API"
+    configProperties.forceUseIncomingWebhook = false
+    configProperties.token = "shhh"
+
+    def slackService = slackConfig.slackService(configProperties, mockHttpClient, LogLevel.FULL)
+
+    when: "sending a notification with interactive actions"
+    slackService.sendMessage(
+      new SlackAttachment(
+        "Title",
+        "the text",
+        new Notification.InteractiveActions(callbackServiceId: "test", callbackMessageId: "blah", actions: [
+          new Notification.ButtonAction(name: "choice", label: "OK", value: "ok")
+        ])
+      ),
+      "#testing", true)
+
+    // Parse URL Encoded Form
+    def params = URLEncodedUtils.parse(actualPayload.get(), Charset.forName("UTF-8"))
+    def attachmentsField = getField(params, "attachments")
+    def attachmentsJson = parseJson(attachmentsField.value)
+
+    then: "a Slack attachment payload is generated as expected"
+    attachmentsJson[0]["title"] == "Title"
+    attachmentsJson[0]["text"] == "the text"
+    attachmentsJson[0]["fallback"] == "the text"
+    attachmentsJson[0]["footer"] == "Spinnaker"
+    attachmentsJson[0]["mrkdwn_in"] == ["text"]
+    attachmentsJson[0]["actions"].size == 1
+    attachmentsJson[0]["actions"][0] == [
+      type: "button",
+      name: "choice",
+      text: "OK",
+      value: "ok"
+    ]
+  }
+
 
   def static getField(Collection<NameValuePair> params, String fieldName) {
     params.find({ it -> it.name == fieldName })

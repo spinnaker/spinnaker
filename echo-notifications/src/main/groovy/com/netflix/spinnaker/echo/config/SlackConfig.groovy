@@ -17,15 +17,15 @@
 
 package com.netflix.spinnaker.echo.config
 
+import com.netflix.spinnaker.echo.slack.SlackAppService
 import com.netflix.spinnaker.echo.slack.SlackClient
 import com.netflix.spinnaker.echo.slack.SlackService
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
-import org.apache.commons.lang3.StringUtils
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import retrofit.Endpoint
@@ -37,41 +37,25 @@ import static retrofit.Endpoints.newFixedEndpoint
 
 @Configuration
 @ConditionalOnProperty('slack.enabled')
+@EnableConfigurationProperties([SlackLegacyProperties, SlackAppProperties])
 @Slf4j
 @CompileStatic
 class SlackConfig {
 
-  final static String SLACK_INCOMING_WEBHOOK = 'https://hooks.slack.com/services'
-  final static String SLACK_CHAT_API = 'https://slack.com'
-
-  @Value('${slack.base-url:}')
-  String slackBaseUrl
-
-  @Value('${slack.force-use-incoming-webhook:false}')
-  Boolean forceUseIncomingWebhook;
-
+  /**
+   * This bean is used for integrations with old-style "custom integration" Slack bots, which do not support features
+   * like interactive notifications. See {@link #slackAppService} for more details.
+   *
+   * Slack documentation: https://api.slack.com/custom-integrations
+   */
   @Bean
-  Endpoint slackEndpoint(@Qualifier("useIncomingWebHook") boolean useIncomingWebHook) {
-    String endpoint;
-
-    if (StringUtils.isNotBlank(slackBaseUrl)) {
-      endpoint = slackBaseUrl
-    } else {
-      endpoint = useIncomingWebHook ? SLACK_INCOMING_WEBHOOK : SLACK_CHAT_API;
-    }
-
-    log.info("Using Slack {}: {}.", useIncomingWebHook ? "incoming webhook" : "chat api", endpoint)
-
-    newFixedEndpoint(endpoint)
-  }
-
-  @Bean
-  SlackService slackService(@Qualifier("useIncomingWebHook") boolean useIncomingWebHook,
-                            Endpoint slackEndpoint,
+  @Qualifier("slackLegacyService")
+  SlackService slackService(@Qualifier("slackLegacyConfig") SlackLegacyProperties config,
                             Client retrofitClient,
                             RestAdapter.LogLevel retrofitLogLevel) {
 
-    log.info("Slack service loaded")
+    Endpoint slackEndpoint = newFixedEndpoint(config.baseUrl)
+    log.info("Using Slack {}: {}.", config.useIncomingWebhook ? "incoming webhook" : "chat api", config.baseUrl)
 
     def slackClient = new RestAdapter.Builder()
         .setEndpoint(slackEndpoint)
@@ -82,16 +66,34 @@ class SlackConfig {
         .build()
         .create(SlackClient.class)
 
-    new SlackService(slackClient, useIncomingWebHook)
+    log.info("Slack legacy service loaded")
+    new SlackService(slackClient, config)
   }
 
-  @Bean(name="useIncomingWebHook")
-  boolean useIncomingWebHook(@Value('${slack.token:}') String token) {
-    return forceUseIncomingWebhook || isIncomingWebhookToken(token)
-  }
+  /**
+   * This bean is used for new-style Slack apps, which support interactive messages and other features.
+   * You can use the same token for both the legacy service above and this one (whose configuration resides
+   * in the {@code slack.app} sub-key in the config), if your integration already uses a new app, or a different
+   * token for the legacy service and this one, which might be useful for migrations.
+   *
+   * Calls to {@code POST /notifications} for non-interactive notifications rely on the legacy service, and
+   * on the app service for interactive ones. {@see NotificationController#create}
+   */
+  @Bean
+  @Qualifier("slackAppService")
+  SlackAppService slackAppService(@Qualifier("slackAppConfig") SlackAppProperties config,
+                                  Client retrofitClient,
+                                  RestAdapter.LogLevel retrofitLogLevel) {
+    def slackClient = new RestAdapter.Builder()
+      .setEndpoint(newFixedEndpoint(config.baseUrl))
+      .setClient(retrofitClient)
+      .setLogLevel(retrofitLogLevel)
+      .setLog(new Slf4jRetrofitLogger(SlackClient.class))
+      .setConverter(new JacksonConverter())
+      .build()
+      .create(SlackClient.class)
 
-  def boolean isIncomingWebhookToken(String token) {
-    return (StringUtils.isNotBlank(token) && token.count("/") >= 2)
+    log.info("Slack app service loaded")
+    new SlackAppService(slackClient, config)
   }
-
 }

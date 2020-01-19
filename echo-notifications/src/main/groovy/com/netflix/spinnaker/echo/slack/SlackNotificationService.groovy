@@ -17,12 +17,12 @@
 package com.netflix.spinnaker.echo.slack
 
 import com.netflix.spinnaker.echo.api.Notification
+import com.netflix.spinnaker.echo.api.Notification.InteractiveActions
 import com.netflix.spinnaker.echo.controller.EchoResponse
 import com.netflix.spinnaker.echo.notification.NotificationService
 import com.netflix.spinnaker.echo.notification.NotificationTemplateEngine
 import groovy.util.logging.Slf4j
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
@@ -30,19 +30,18 @@ import org.springframework.stereotype.Component
 @Component
 @ConditionalOnProperty('slack.enabled')
 class SlackNotificationService implements NotificationService {
-  private static Notification.Type TYPE = Notification.Type.SLACK
+  protected static Notification.Type TYPE = Notification.Type.SLACK
 
-  @Autowired
-  SlackService slack
+  protected SlackService slack
+  protected NotificationTemplateEngine notificationTemplateEngine
 
-  @Value('${slack.token:}')
-  String token
-
-  @Value('${slack.send-compact-messages:false}')
-  Boolean sendCompactMessages
-
-  @Autowired
-  NotificationTemplateEngine notificationTemplateEngine
+  SlackNotificationService(
+    @Qualifier("slackLegacyService") SlackService slack,
+    NotificationTemplateEngine notificationTemplateEngine
+  ) {
+    this.slack = slack
+    this.notificationTemplateEngine = notificationTemplateEngine
+  }
 
   @Override
   boolean supportsType(Notification.Type type) {
@@ -55,10 +54,12 @@ class SlackNotificationService implements NotificationService {
     notification.to.each {
       def response
       String address = it.startsWith('#') ? it : "#${it}"
-      if (sendCompactMessages) {
-        response = slack.sendCompactMessage(token, new CompactSlackMessage(text), address, true)
+      if (slack.config.sendCompactMessages) {
+        response = slack.sendCompactMessage(new CompactSlackMessage(text), address, true)
       } else {
-        response = slack.sendMessage(token, new SlackAttachment("Spinnaker Notification", text), address, true)
+        response = slack.sendMessage(
+          new SlackAttachment("Spinnaker Notification", text, (InteractiveActions)notification.interactiveActions),
+          address, true)
       }
       log.trace("Received response from Slack: {} {} for message '{}'. {}",
         response?.status, response?.reason, text, response?.body)

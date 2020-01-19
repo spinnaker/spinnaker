@@ -17,27 +17,57 @@
 
 package com.netflix.spinnaker.echo.slack
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.netflix.spinnaker.echo.config.SlackLegacyProperties
 import groovy.json.JsonBuilder
 import groovy.transform.Canonical
+import groovy.util.logging.Slf4j
 import retrofit.client.Response
 
 @Canonical
+@Slf4j
 class SlackService {
-
   SlackClient slackClient
-  boolean useIncomingWebHook
+  SlackLegacyProperties config
 
-  Response sendCompactMessage(String token, CompactSlackMessage message, String channel, boolean asUser) {
-    slackClient.sendMessage(token, message.buildMessage(), channel, asUser)
+  Response sendCompactMessage(CompactSlackMessage message, String channel, boolean asUser) {
+    slackClient.sendMessage(config.token, message.buildMessage(), channel, asUser)
   }
 
-  Response sendMessage(String token, SlackAttachment message, String channel, boolean asUser) {
-    useIncomingWebHook ?
-      slackClient.sendUsingIncomingWebHook(token, new SlackRequest([message], channel)) :
-      slackClient.sendMessage(token, toJson(message), channel, asUser)
+  Response sendMessage(SlackAttachment message, String channel, boolean asUser) {
+    config.useIncomingWebhook ?
+      slackClient.sendUsingIncomingWebHook(config.token, new SlackRequest([message], channel)) :
+      slackClient.sendMessage(config.token, toJson(message), channel, asUser)
   }
+
+  SlackUserInfo getUserInfo(String userId) {
+    slackClient.getUserInfo(config.token, userId)
+  }
+
 
   def static toJson(message) {
     "[" + new JsonBuilder(message).toPrettyString() + "]"
+  }
+
+  // Partial view into the response from Slack, but enough for our needs
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  static class SlackUserInfo {
+    String id
+    String name
+    String realName
+    String email
+    boolean deleted
+    boolean has2fa
+
+    @JsonProperty('user')
+    private void unpack(Map user) {
+      this.id = user.id
+      this.name = user.name
+      this.realName = user.real_name
+      this.deleted = user.deleted
+      this.has2fa = user.has_2fa
+      this.email = user.profile.email
+    }
   }
 }
