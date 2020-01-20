@@ -35,5 +35,5 @@ internal fun PluginWrapper.isUnsafe(): Boolean {
  * Validates a [PluginDescriptor] according to additional Spinnaker conventions.
  */
 internal fun PluginDescriptor.validate() {
-  CanonicalPluginIdValidator.validate(this)
+  CanonicalPluginId.validate(this.pluginId)
 }
