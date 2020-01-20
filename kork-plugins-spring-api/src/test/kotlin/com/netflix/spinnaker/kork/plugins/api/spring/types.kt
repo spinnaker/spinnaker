@@ -18,6 +18,7 @@ package com.netflix.spinnaker.kork.plugins.api.spring
 import org.pf4j.Extension
 import org.pf4j.PluginWrapper
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.support.BeanDefinitionRegistry
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -39,4 +40,14 @@ internal class TestSpringPlugin(wrapper: PluginWrapper) : SpringPlugin(wrapper) 
   }
 
   internal class MyObject(val something: Int)
+}
+
+
+internal class TestPrivilegedSpringPlugin(wrapper: PluginWrapper) : PrivilegedSpringPlugin(wrapper) {
+
+  override fun registerBeanDefinitions(registry: BeanDefinitionRegistry) {
+    registerBean(primaryBeanDefinitionFor(MyService::class.java), registry)
+  }
+
+  internal class MyService
 }

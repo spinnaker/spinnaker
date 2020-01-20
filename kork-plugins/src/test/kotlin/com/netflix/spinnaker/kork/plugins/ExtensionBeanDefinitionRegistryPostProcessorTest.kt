@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.kork.plugins
 
+import com.netflix.spinnaker.kork.plugins.api.spring.PrivilegedSpringPlugin
 import com.netflix.spinnaker.kork.plugins.events.ExtensionLoaded
 import com.netflix.spinnaker.kork.plugins.proxy.aspects.InvocationAspect
 import com.netflix.spinnaker.kork.plugins.update.PluginUpdateService
@@ -41,6 +42,17 @@ class ExtensionBeanDefinitionRegistryPostProcessorTest : JUnit5Minutests {
 
         verify(exactly = 1) { pluginManager.loadPlugins() }
         verify(exactly = 1) { pluginManager.startPlugins() }
+      }
+
+      test("privileged Spring plugins register bean definitions") {
+        val plugin: PrivilegedSpringPlugin = mockk(relaxed = true)
+        val registry = GenericApplicationContext()
+        every { pluginWrapper.plugin } returns plugin
+        every { pluginManager.startedPlugins } returns listOf(pluginWrapper)
+
+        subject.postProcessBeanDefinitionRegistry(registry)
+
+        verify(exactly = 1) { plugin.registerBeanDefinitions(registry) }
       }
     }
 

@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.kork.plugins
 
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
+import com.netflix.spinnaker.kork.plugins.api.spring.PrivilegedSpringPlugin
 import com.netflix.spinnaker.kork.plugins.events.ExtensionLoaded
 import com.netflix.spinnaker.kork.plugins.proxy.ExtensionInvocationProxy
 import com.netflix.spinnaker.kork.plugins.proxy.aspects.InvocationAspect
@@ -26,6 +27,8 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory
 import org.springframework.beans.factory.support.BeanDefinitionRegistry
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor
 import org.springframework.context.ApplicationEventPublisher
+
+import kotlin.jvm.javaClass
 
 /**
  * The primary point of integration between PF4J and Spring, this class is invoked early
@@ -47,6 +50,13 @@ class ExtensionBeanDefinitionRegistryPostProcessor(
     updateManagerService.checkForUpdates()
     pluginManager.loadPlugins()
     pluginManager.startPlugins()
+
+    pluginManager.startedPlugins.forEach { pluginWrapper ->
+      val p = pluginWrapper.plugin
+      if (p is PrivilegedSpringPlugin) {
+        p.registerBeanDefinitions(registry)
+      }
+    }
 
     log.debug("Finished preparing plugins in {}ms", System.currentTimeMillis() - start)
   }
