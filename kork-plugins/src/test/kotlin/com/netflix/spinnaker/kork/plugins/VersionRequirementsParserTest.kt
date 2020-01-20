@@ -20,6 +20,7 @@ import com.netflix.spinnaker.kork.plugins.VersionRequirementsParser.VersionRequi
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectThat
+import strikt.api.expectThrows
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
 
@@ -50,6 +51,12 @@ class VersionRequirementsParserTest : JUnit5Minutests {
         VersionRequirements("orca", VersionRequirementOperator.GT, "3.0.0")
       ))
       expectThat(result).isEqualTo("clouddriver>1.0.0,orca>3.0.0")
+    }
+
+    test("InvalidPluginVersionRequirementException thrown") {
+      expectThrows<VersionRequirementsParser.InvalidPluginVersionRequirementException> {
+        VersionRequirementsParser.parseAll("gate=foo")
+      }
     }
   }
 }

@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.kork.plugins
 
 import com.netflix.spinnaker.kork.exceptions.UserException
-import java.lang.IllegalStateException
 import java.util.regex.Pattern
 
 /**
@@ -43,10 +42,8 @@ object VersionRequirementsParser {
   fun parse(version: String): VersionRequirements {
     return SUPPORTS_PATTERN.matcher(version)
       .also {
-        try {
-          it.matches()
-        } catch (e: IllegalStateException) {
-          throw InvalidPluginVersionRequirementException(version, e)
+        if (!it.matches()) {
+          throw InvalidPluginVersionRequirementException(version)
         }
       }
       .let {
@@ -91,9 +88,8 @@ object VersionRequirementsParser {
     override fun toString(): String = "$service${operator.symbol}$version"
   }
 
-  class InvalidPluginVersionRequirementException(version: String, cause: Exception) : UserException(
-    "The provided version requirement '$version' is not valid: It must conform to '$SUPPORTS_PATTERN'",
-    cause
+  class InvalidPluginVersionRequirementException(version: String) : UserException(
+    "The provided version requirement '$version' is not valid: It must conform to '$SUPPORTS_PATTERN'"
   )
 
   class IllegalVersionRequirementsOperator(symbol: String, availableOperators: String) : UserException(
