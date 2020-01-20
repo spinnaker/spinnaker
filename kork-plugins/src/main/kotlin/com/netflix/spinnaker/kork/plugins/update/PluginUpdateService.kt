@@ -21,9 +21,9 @@ import com.netflix.spinnaker.kork.plugins.events.PluginDownloaded.Operation.INST
 import com.netflix.spinnaker.kork.plugins.events.PluginDownloaded.Operation.UPDATE
 import com.netflix.spinnaker.kork.plugins.events.PluginDownloaded.Status.FAILED
 import com.netflix.spinnaker.kork.plugins.events.PluginDownloaded.Status.SUCCEEDED
-import org.pf4j.update.UpdateManager
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
+import java.nio.file.Path
 
 /**
  * The [PluginUpdateService] is responsible for sourcing plugin updates from a plugin repository on startup.
@@ -47,7 +47,7 @@ import org.springframework.context.ApplicationEventPublisher
  *  trying to load the same plugin twice.
  */
 class PluginUpdateService(
-  internal val updateManager: UpdateManager,
+  internal val updateManager: SpinnakerUpdateManager,
   internal val pluginManager: SpinnakerPluginManager,
   internal val applicationEventPublisher: ApplicationEventPublisher
 ) {
@@ -57,6 +57,10 @@ class PluginUpdateService(
   fun checkForUpdates() {
     updateExistingPlugins()
     installNewPlugins()
+  }
+
+  fun download(pluginId: String, version: String): Path {
+    return updateManager.downloadPluginRelease(pluginId, version)
   }
 
   internal fun updateExistingPlugins() {

@@ -25,6 +25,7 @@ import org.pf4j.update.UpdateManager
 import org.pf4j.update.UpdateRepository
 import org.slf4j.LoggerFactory
 import java.io.File
+import java.nio.file.Path
 
 /**
  * TODO(rz): Update [hasPluginUpdate] such that it understands the latest plugin is not always the one desired
@@ -96,5 +97,9 @@ class SpinnakerUpdateManager(
     val state = pluginManager.startPlugin(newPluginId)
 
     return PluginState.STARTED == state
+  }
+
+  fun downloadPluginRelease(pluginId: String, version: String): Path {
+    return downloadPlugin(pluginId, version)
   }
 }

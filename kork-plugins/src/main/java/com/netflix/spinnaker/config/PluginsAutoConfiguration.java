@@ -39,7 +39,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.pf4j.PluginStatusProvider;
-import org.pf4j.update.UpdateManager;
 import org.pf4j.update.UpdateRepository;
 import org.pf4j.update.verifier.CompoundVerifier;
 import org.slf4j.Logger;
@@ -100,7 +99,7 @@ public class PluginsAutoConfiguration {
   }
 
   @Bean
-  public static UpdateManager pluginUpdateManager(
+  public static SpinnakerUpdateManager pluginUpdateManager(
       SpinnakerPluginManager pluginManager, List<UpdateRepository> updateRepositories) {
     return new SpinnakerUpdateManager(pluginManager, updateRepositories);
   }
@@ -134,7 +133,7 @@ public class PluginsAutoConfiguration {
 
   @Bean
   public static PluginUpdateService pluginUpdateManagerAgent(
-      UpdateManager updateManager,
+      SpinnakerUpdateManager updateManager,
       SpinnakerPluginManager pluginManager,
       ApplicationEventPublisher applicationEventPublisher) {
     return new PluginUpdateService(updateManager, pluginManager, applicationEventPublisher);
