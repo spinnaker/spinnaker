@@ -24,6 +24,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
+import com.netflix.spinnaker.igor.build.model.GenericArtifact;
 import com.netflix.spinnaker.igor.build.model.GenericBuild;
 import com.netflix.spinnaker.igor.build.model.GenericGitRevision;
 import com.netflix.spinnaker.igor.build.model.JobConfiguration;
@@ -36,14 +37,18 @@ import com.netflix.spinnaker.igor.concourse.client.model.Resource;
 import com.netflix.spinnaker.igor.concourse.client.model.Team;
 import com.netflix.spinnaker.igor.config.ConcourseProperties;
 import com.netflix.spinnaker.igor.model.BuildServiceProvider;
+import com.netflix.spinnaker.igor.service.ArtifactDecorator;
 import com.netflix.spinnaker.igor.service.BuildOperations;
 import com.netflix.spinnaker.igor.service.BuildProperties;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -58,17 +63,20 @@ import reactor.core.publisher.Flux;
 public class ConcourseService implements BuildOperations, BuildProperties {
   private final ConcourseProperties.Host host;
   private final ConcourseClient client;
+  private final Optional<ArtifactDecorator> artifactDecorator;
   private final Permissions permissions;
 
   @Nullable private final Pattern resourceFilter;
 
-  public ConcourseService(ConcourseProperties.Host host) {
+  public ConcourseService(
+      ConcourseProperties.Host host, Optional<ArtifactDecorator> artifactDecorator) {
     this.host = host;
     this.client = new ConcourseClient(host.getUrl(), host.getUsername(), host.getPassword());
     this.resourceFilter =
         host.getResourceFilterRegex() == null
             ? null
             : Pattern.compile(host.getResourceFilterRegex());
+    this.artifactDecorator = artifactDecorator;
     this.permissions = host.getPermissions().build();
   }
 
@@ -173,9 +181,13 @@ public class ConcourseService implements BuildOperations, BuildProperties {
                         (m1, m2) -> {
                           Map<String, String> m1OrEmpty = m1 == null ? emptyMap() : m1;
                           Map<String, String> m2OrEmpty = m2 == null ? emptyMap() : m2;
-                          return Stream.concat(
+
+                          Map<String, String> merged = new HashMap<>();
+                          Stream.concat(
                                   m1OrEmpty.entrySet().stream(), m2OrEmpty.entrySet().stream())
-                              .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+                              .forEach(me -> merged.put(me.getKey(), me.getValue()));
+
+                          return merged;
                         })));
 
     // extract git information from this particular named resource type
@@ -211,6 +223,8 @@ public class ConcourseService implements BuildOperations, BuildProperties {
     if (!mergedMetadataByResourceName.isEmpty()) {
       build.setProperties(mergedMetadataByResourceName);
     }
+
+    parseAndDecorateArtifacts(build, resources);
 
     return build;
   }
@@ -265,6 +279,27 @@ public class ConcourseService implements BuildOperations, BuildProperties {
     } finally {
       eventStream.dispose();
     }
+  }
+
+  private void parseAndDecorateArtifacts(GenericBuild build, Collection<Resource> resources) {
+    build.setArtifacts(getArtifactsFromResources(resources));
+    artifactDecorator.ifPresent(decorator -> decorator.decorate(build));
+  }
+
+  private List<GenericArtifact> getArtifactsFromResources(Collection<Resource> resources) {
+    return resources.stream()
+        .map(r -> r.getMetadata().get("url"))
+        .filter(Objects::nonNull)
+        .map(ConcourseService::translateS3HttpUrl)
+        .map(url -> new GenericArtifact(url, url, url))
+        .collect(Collectors.toList());
+  }
+
+  private static String translateS3HttpUrl(String url) {
+    if (url.startsWith("https://s3-")) {
+      url = "s3://" + url.substring(url.indexOf('/', 8) + 1);
+    }
+    return url;
   }
 
   @Override

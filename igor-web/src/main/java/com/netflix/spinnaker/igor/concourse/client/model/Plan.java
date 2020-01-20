@@ -19,6 +19,7 @@ package com.netflix.spinnaker.igor.concourse.client.model;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import lombok.Data;
@@ -32,6 +33,8 @@ public class Plan {
   public static class InnerPlan {
     @JsonAlias("do")
     private List<Op> does;
+
+    @Nullable private OnFailure onFailure;
   }
 
   @Setter
@@ -70,8 +73,14 @@ public class Plan {
     private Op step;
   }
 
+  @Data
+  private static class OnFailure {
+    private InnerPlan step;
+  }
+
   public List<Resource> getResources() {
-    return plan.getDoes().stream()
+    return Optional.ofNullable(plan.getOnFailure()).map(OnFailure::getStep).map(InnerPlan::getDoes)
+        .orElse(plan.getDoes()).stream()
         .map(Op::getResource)
         .filter(Objects::nonNull)
         .collect(Collectors.toList());

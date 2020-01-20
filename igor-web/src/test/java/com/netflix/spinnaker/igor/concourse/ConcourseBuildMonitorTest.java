@@ -24,6 +24,7 @@ import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.igor.concourse.service.ConcourseService;
 import com.netflix.spinnaker.igor.config.ConcourseProperties;
 import com.netflix.spinnaker.igor.history.EchoService;
+import com.netflix.spinnaker.igor.service.ArtifactDecorator;
 import com.netflix.spinnaker.igor.service.BuildServices;
 import com.squareup.okhttp.mockwebserver.MockResponse;
 import com.squareup.okhttp.mockwebserver.MockWebServer;
@@ -34,6 +35,7 @@ import org.junit.jupiter.api.Test;
 import rx.schedulers.Schedulers;
 
 class ConcourseBuildMonitorTest {
+  private ArtifactDecorator artifactDecorator = mock(ArtifactDecorator.class);
   private ConcourseCache cache = mock(ConcourseCache.class);
   private EchoService echoService = mock(EchoService.class);
   private IgorConfigurationProperties igorConfigurationProperties =
@@ -53,7 +55,8 @@ class ConcourseBuildMonitorTest {
     props.setMasters(Collections.singletonList(host));
 
     BuildServices buildServices = new BuildServices();
-    buildServices.addServices(ImmutableMap.of("test", new ConcourseService(host)));
+    buildServices.addServices(
+        ImmutableMap.of("test", new ConcourseService(host, Optional.of(artifactDecorator))));
 
     this.monitor =
         new ConcourseBuildMonitor(

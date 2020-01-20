@@ -70,7 +70,9 @@ public class EventService {
                       Event ev = mapper.readValue(data, Event.class);
                       Event.Origin origin = ev.getData().getOrigin();
                       // we don't care about task output
-                      if (origin != null && !"stdout".equals(origin.getSource())) {
+                      if (origin != null
+                          && !"stdout".equals(origin.getSource())
+                          && ev.getData().getMetadata() != null) {
                         sink.next(ev);
                       }
                     } catch (IOException e) {
