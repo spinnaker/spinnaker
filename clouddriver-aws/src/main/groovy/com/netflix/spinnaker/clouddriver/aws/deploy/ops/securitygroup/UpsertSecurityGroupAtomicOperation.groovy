@@ -115,6 +115,8 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
 
       try {
         securityGroupUpdater.addIngress(ipPermissionsToAdd)
+        //Update tags to ensure they are consistent with rule changes
+        securityGroupUpdater.updateTags(description)
         task.updateStatus BASE_PHASE, status
       } catch (AmazonServiceException e) {
         task.updateStatus BASE_PHASE, "Error adding ingress to '${description.name}' - ${e.errorMessage}"
@@ -131,6 +133,8 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
 
       try {
         securityGroupUpdater.removeIngress(ipPermissionsToRemove)
+        //Update tags to ensure they are consistent with rule changes
+        securityGroupUpdater.updateTags(description)
         task.updateStatus BASE_PHASE, status
       } catch (AmazonServiceException e) {
         task.updateStatus BASE_PHASE, "Error removing ingress from ${description.name}: ${e.errorMessage}"

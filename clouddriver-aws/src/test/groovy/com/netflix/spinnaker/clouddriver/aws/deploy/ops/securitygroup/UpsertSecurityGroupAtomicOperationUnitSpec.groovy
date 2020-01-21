@@ -101,7 +101,7 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
         new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")
       ])
     ])
-    0 * _
+    1 * createdSecurityGroup.updateTags(description)
   }
 
   void "non-existent security group that is found on create should be updated"() {
@@ -144,7 +144,7 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
         new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")
       ])
     ])
-    0 * _
+    1 * existingSecurityGroup.updateTags(description)
   }
 
   void "existing security group should be unchanged"() {
@@ -181,7 +181,7 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
         new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")
       ])
     ])
-    0 * _
+    1 * existingSecurityGroup.updateTags(description)
   }
 
   void "existing security group should be updated with ingress by id"() {
@@ -206,7 +206,7 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
         new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")
       ])
     ])
-    0 * _
+    1 * existingSecurityGroup.updateTags(description)
   }
 
   void "existing security group should be updated with ingress from another account"() {
@@ -233,7 +233,7 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
         new UserIdGroupPair(userId: "accountId2", groupId: "id-bar")
       ])
     ])
-    0 * _
+    1 * existingSecurityGroup.updateTags(description)
   }
 
   void "existing permissions should not be re-created when a security group is modified"() {
@@ -283,7 +283,7 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
         new UserIdGroupPair(userId: "accountId1", groupId: "grp")
       ])
     ])
-    0 * _
+    2 * existingSecurityGroup.updateTags(description)
   }
 
   void "should only append security group ingress"() {
@@ -326,7 +326,7 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
         new UserIdGroupPair(userId: "accountId1", groupId: "id-bar")
       ])
     ])
-    0 * _
+    1 * existingSecurityGroup.updateTags(description)
   }
 
   void "should fail for missing ingress security group in vpc"() {
@@ -391,7 +391,6 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
     then:
     1 * securityGroupLookup.getSecurityGroupByName("test", "foo", null) >> Optional.of(existingSecurityGroup)
     1 * existingSecurityGroup.getSecurityGroup() >> new SecurityGroup(groupName: "foo", groupId: "123", ipPermissions: [])
-    0 * _
 
     then:
     1 * existingSecurityGroup.addIngress([
@@ -399,6 +398,7 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
         new UserIdGroupPair(userId: "accountId1", groupName: "bar")
       ])
     ])
+    1 * existingSecurityGroup.updateTags(description)
 
   }
 
