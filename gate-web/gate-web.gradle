@@ -20,6 +20,7 @@ repositories {
 dependencies {
   implementation project(":gate-core")
   implementation project(":gate-proxy")
+  implementation project(":gate-deck-plugins")
   implementation project(":gate-integrations-gremlin")
 
   implementation "com.squareup.retrofit:retrofit"
@@ -33,12 +34,13 @@ dependencies {
   implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
   implementation "com.netflix.spinnaker.fiat:fiat-api:$fiatVersion"
 
+  implementation "com.netflix.spinnaker.kork:kork-core"
+  implementation "com.netflix.spinnaker.kork:kork-plugins"
+  implementation "com.netflix.spinnaker.kork:kork-secrets-aws"
+  implementation "com.netflix.spinnaker.kork:kork-secrets-gcp"
   implementation "com.netflix.spinnaker.kork:kork-stackdriver"
   implementation "com.netflix.spinnaker.kork:kork-swagger"
   implementation "com.netflix.spinnaker.kork:kork-web"
-  implementation "com.netflix.spinnaker.kork:kork-secrets-aws"
-  implementation "com.netflix.spinnaker.kork:kork-secrets-gcp"
-  implementation "com.netflix.spinnaker.kork:kork-core"
   implementation "com.netflix.frigga:frigga"
   implementation "redis.clients:jedis"
   implementation "com.netflix.hystrix:hystrix-core"

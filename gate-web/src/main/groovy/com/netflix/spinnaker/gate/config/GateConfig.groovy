@@ -22,6 +22,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.OkHttpClientConfiguration
+import com.netflix.spinnaker.config.PluginsAutoConfiguration
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.fiat.shared.FiatService
@@ -33,6 +34,7 @@ import com.netflix.spinnaker.gate.converters.YamlHttpMessageConverter
 import com.netflix.spinnaker.gate.filters.CorsFilter
 import com.netflix.spinnaker.gate.filters.GateOriginValidator
 import com.netflix.spinnaker.gate.filters.OriginValidator
+import com.netflix.spinnaker.gate.plugins.DeckPluginConfiguration
 import com.netflix.spinnaker.gate.retrofit.EurekaOkClient
 import com.netflix.spinnaker.gate.retrofit.Slf4jRetrofitLogger
 import com.netflix.spinnaker.gate.services.EurekaLookupService
@@ -55,6 +57,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Primary
 import org.springframework.core.Ordered
 import org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter
@@ -80,6 +83,7 @@ import static retrofit.Endpoints.newFixedEndpoint
 @Configuration
 @Slf4j
 @EnableConfigurationProperties(FiatClientConfigurationProperties)
+@Import([PluginsAutoConfiguration, DeckPluginConfiguration])
 class GateConfig extends RedisHttpSessionConfiguration {
 
   @Value('${server.session.timeout-in-seconds:3600}')
