@@ -18,6 +18,7 @@ package com.netflix.spinnaker.config;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import javax.annotation.Nullable;
 import lombok.SneakyThrows;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -71,7 +72,7 @@ public class PluginsConfigurationProperties {
     private String url;
 
     /** Configuration for an optional override of {@link org.pf4j.update.FileDownloader}. */
-    public FileDownloaderProperties fileDownloader;
+    @Nullable public FileDownloaderProperties fileDownloader;
 
     /** Custom {@link org.pf4j.update.FileDownloader} configuration. */
     public static class FileDownloaderProperties {
