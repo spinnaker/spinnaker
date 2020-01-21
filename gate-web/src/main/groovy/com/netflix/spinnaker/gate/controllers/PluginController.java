@@ -119,7 +119,7 @@ public class PluginController {
     return taskService.create(operation);
   }
 
-  String getAppName() {
+  public String getAppName() {
     String applicationName = spinnakerExtensionsConfigProperties.getApplicationName();
     if (StringUtils.isEmpty(applicationName)) {
       applicationName = DEFAULT_APPLICATION_NAME;
