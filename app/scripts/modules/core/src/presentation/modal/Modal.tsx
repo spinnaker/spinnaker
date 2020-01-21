@@ -4,7 +4,7 @@ import { CSSTransition } from 'react-transition-group';
 
 const { useMemo } = React;
 
-import { useEventListener, useContainerClassNames, useLatestCallback } from 'core/presentation';
+import { useEventListener, useContainerClassNames, useLatestCallback, TabBoundary } from 'core/presentation';
 
 import { ModalContext } from './ModalContext';
 import styles from './Modal.module.css';
@@ -31,7 +31,7 @@ export const Modal = ({ onRequestClose, isOpen, children }: IModalProps) => {
   return (
     <ModalContext.Provider value={modalContext}>
       {ReactDOM.createPortal(
-        <>
+        <TabBoundary>
           <CSSTransition in={isOpen} timeout={300} mountOnEnter={true} unmountOnExit={true} classNames={styles}>
             <div className={styles.backdrop} />
           </CSSTransition>
@@ -40,7 +40,7 @@ export const Modal = ({ onRequestClose, isOpen, children }: IModalProps) => {
               <div className={styles.dialog}>{children}</div>
             </div>
           </CSSTransition>
-        </>,
+        </TabBoundary>,
         document.body,
       )}
     </ModalContext.Provider>

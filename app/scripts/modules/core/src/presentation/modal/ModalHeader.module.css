@@ -7,7 +7,7 @@
 @value closeButtonHoverTransition: all 150ms ease-out;
 
 .header {
-  flex: 1 0 auto;
+  flex: none;
   background-color: headerColor;
   color: var(--color-white);
   justify-content: center;
@@ -31,6 +31,8 @@
 }
 
 .close {
+  border: none;
+  background-color: transparent;
   flex: 0 0 56px;
   height: 56px;
   display: flex;
@@ -41,7 +43,8 @@
   transition: closeButtonHoverTransition;
 }
 
-.close:hover {
+.close:hover,
+.close:focus {
   background-color: closeButtonHoverColor;
 }
 

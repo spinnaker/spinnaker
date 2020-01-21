@@ -15,9 +15,9 @@ export const ModalHeader = ({ children }: IModalHeaderProps) => {
   return (
     <div className={styles.header}>
       <div className={styles.title}>{children}</div>
-      <div className={styles.close} onClick={() => onRequestClose && onRequestClose()}>
+      <button className={styles.close} onClick={() => onRequestClose && onRequestClose()}>
         <i className="ico icon-close" />
-      </div>
+      </button>
     </div>
   );
 };
