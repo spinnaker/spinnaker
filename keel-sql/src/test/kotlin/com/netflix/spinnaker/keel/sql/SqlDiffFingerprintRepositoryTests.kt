@@ -18,6 +18,8 @@
 package com.netflix.spinnaker.keel.sql
 
 import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepositoryTests
+import com.netflix.spinnaker.kork.sql.config.RetryProperties
+import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import java.time.Clock
 import org.junit.jupiter.api.AfterAll
@@ -25,9 +27,11 @@ import org.junit.jupiter.api.AfterAll
 internal object SqlDiffFingerprintRepositoryTests : DiffFingerprintRepositoryTests<SqlDiffFingerprintRepository>() {
   private val testDatabase = initTestDatabase()
   private val jooq = testDatabase.context
+  private val retryProperties = RetryProperties(1, 0)
+  private val sqlRetry = SqlRetry(SqlRetryProperties(retryProperties, retryProperties))
 
   override fun factory(clock: Clock): SqlDiffFingerprintRepository {
-    return SqlDiffFingerprintRepository(jooq, clock)
+    return SqlDiffFingerprintRepository(jooq, clock, sqlRetry)
   }
 
   override fun SqlDiffFingerprintRepository.flush() {

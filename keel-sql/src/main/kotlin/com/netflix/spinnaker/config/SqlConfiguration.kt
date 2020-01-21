@@ -8,8 +8,10 @@ import com.netflix.spinnaker.keel.sql.SqlDeliveryConfigRepository
 import com.netflix.spinnaker.keel.sql.SqlDiffFingerprintRepository
 import com.netflix.spinnaker.keel.sql.SqlPausedRepository
 import com.netflix.spinnaker.keel.sql.SqlResourceRepository
+import com.netflix.spinnaker.keel.sql.SqlRetry
 import com.netflix.spinnaker.keel.sql.SqlUnhappyVetoRepository
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
+import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import java.time.Clock
 import javax.annotation.PostConstruct
 import org.jooq.DSLContext
@@ -22,11 +24,14 @@ import org.springframework.context.annotation.Import
 
 @Configuration
 @ConditionalOnProperty("sql.enabled")
-@Import(DefaultSqlConfiguration::class)
+@Import(DefaultSqlConfiguration::class, SqlRetryProperties::class)
 class SqlConfiguration {
 
   @Autowired
   lateinit var jooqConfiguration: DefaultConfiguration
+
+  @Autowired
+  lateinit var sqlRetryProperties: SqlRetryProperties
 
   // This allows us to run tests with a testcontainers database that has a different schema name to
   // the real one used by the JOOQ code generator. It _is_ possible to change the schema used by
@@ -44,11 +49,11 @@ class SqlConfiguration {
     resourceTypeIdentifier: ResourceTypeIdentifier,
     objectMapper: ObjectMapper
   ) =
-    SqlResourceRepository(jooq, clock, resourceTypeIdentifier, objectMapper)
+    SqlResourceRepository(jooq, clock, resourceTypeIdentifier, objectMapper, SqlRetry(sqlRetryProperties))
 
   @Bean
   fun artifactRepository(jooq: DSLContext, clock: Clock, objectMapper: ObjectMapper) =
-    SqlArtifactRepository(jooq, clock, objectMapper)
+    SqlArtifactRepository(jooq, clock, objectMapper, SqlRetry(sqlRetryProperties))
 
   @Bean
   fun deliveryConfigRepository(
@@ -56,22 +61,22 @@ class SqlConfiguration {
     clock: Clock,
     resourceTypeIdentifier: ResourceTypeIdentifier
   ) =
-    SqlDeliveryConfigRepository(jooq, clock, resourceTypeIdentifier)
+    SqlDeliveryConfigRepository(jooq, clock, resourceTypeIdentifier, SqlRetry(sqlRetryProperties))
 
   @Bean
   fun diffFingerprintRepository(
     jooq: DSLContext,
     clock: Clock
-  ) = SqlDiffFingerprintRepository(jooq, clock)
+  ) = SqlDiffFingerprintRepository(jooq, clock, SqlRetry(sqlRetryProperties))
 
   @Bean
   fun unhappyVetoRepository(
     jooq: DSLContext
   ) =
-    SqlUnhappyVetoRepository(clock, jooq)
+    SqlUnhappyVetoRepository(clock, jooq, SqlRetry(sqlRetryProperties))
 
   @Bean
   fun pausedRepository(
     jooq: DSLContext
-  ) = SqlPausedRepository(jooq)
+  ) = SqlPausedRepository(jooq, SqlRetry(sqlRetryProperties))
 }

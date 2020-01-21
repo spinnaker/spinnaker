@@ -7,6 +7,8 @@ import com.netflix.spinnaker.keel.persistence.ResourceRepositoryPeriodicallyChec
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.test.resource
+import com.netflix.spinnaker.kork.sql.config.RetryProperties
+import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil.cleanupDb
 import dev.minutest.rootContext
 import java.time.Clock
@@ -24,9 +26,11 @@ internal object SqlResourceRepositoryPeriodicallyCheckedTests :
 
   private val testDatabase = initTestDatabase()
   private val jooq = testDatabase.context
+  private val retryProperties = RetryProperties(1, 0)
+  private val sqlRetry = SqlRetry(SqlRetryProperties(retryProperties, retryProperties))
 
   override val factory: (clock: Clock) -> SqlResourceRepository = { clock ->
-    SqlResourceRepository(jooq, clock, DummyResourceTypeIdentifier, configuredObjectMapper())
+    SqlResourceRepository(jooq, clock, DummyResourceTypeIdentifier, configuredObjectMapper(), sqlRetry)
   }
 
   override fun flush() {

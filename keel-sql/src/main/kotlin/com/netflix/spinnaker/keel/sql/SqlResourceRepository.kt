@@ -18,6 +18,8 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_EVENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_LAST_CHECKED
 import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
+import com.netflix.spinnaker.keel.sql.RetryCategory.READ
+import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
 import de.huxhorn.sulky.ulid.ULID
 import java.time.Clock
 import java.time.Duration
@@ -30,57 +32,70 @@ open class SqlResourceRepository(
   private val jooq: DSLContext,
   private val clock: Clock,
   private val resourceTypeIdentifier: ResourceTypeIdentifier,
-  private val objectMapper: ObjectMapper
+  private val objectMapper: ObjectMapper,
+  private val sqlRetry: SqlRetry
 ) : ResourceRepository {
 
   override fun deleteByApplication(application: String): Int {
     val resourceIds = getUidByApplication(application)
 
     resourceIds.forEach { uid ->
-      jooq.deleteFrom(RESOURCE)
-        .where(RESOURCE.UID.eq(uid))
-        .execute()
-      jooq.deleteFrom(RESOURCE_LAST_CHECKED)
-        .where(RESOURCE_LAST_CHECKED.RESOURCE_UID.eq(uid))
-        .execute()
-      jooq.deleteFrom(RESOURCE_EVENT)
-        .where(RESOURCE_EVENT.UID.eq(uid))
-        .execute()
+      sqlRetry.withRetry(WRITE) {
+        jooq.deleteFrom(RESOURCE)
+          .where(RESOURCE.UID.eq(uid))
+          .execute()
+      }
+      sqlRetry.withRetry(WRITE) {
+        jooq.deleteFrom(RESOURCE_LAST_CHECKED)
+          .where(RESOURCE_LAST_CHECKED.RESOURCE_UID.eq(uid))
+          .execute()
+      }
+      sqlRetry.withRetry(WRITE) {
+        jooq.deleteFrom(RESOURCE_EVENT)
+          .where(RESOURCE_EVENT.UID.eq(uid))
+          .execute()
+      }
     }
     return resourceIds.size
   }
 
   override fun allResources(callback: (ResourceHeader) -> Unit) {
-    jooq
-      .select(RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.ID)
-      .from(RESOURCE)
-      .fetch()
-      .map { (apiVersion, kind, id) ->
-        ResourceHeader(ResourceId(id), ApiVersion(apiVersion), kind)
-      }
-      .forEach(callback)
+    sqlRetry.withRetry(READ) {
+      jooq
+        .select(RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.ID)
+        .from(RESOURCE)
+        .fetch()
+        .map { (apiVersion, kind, id) ->
+          ResourceHeader(ResourceId(id), ApiVersion(apiVersion), kind)
+        }
+        .forEach(callback)
+    }
   }
 
   override fun get(id: ResourceId): Resource<out ResourceSpec> {
-    return jooq
-      .select(RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.METADATA, RESOURCE.SPEC)
-      .from(RESOURCE)
-      .where(RESOURCE.ID.eq(id.value))
-      .fetchOne()
-      ?.let { (apiVersion, kind, metadata, spec) ->
-        constructResource(apiVersion, kind, metadata, spec)
-      } ?: throw NoSuchResourceId(id)
+    return sqlRetry.withRetry(READ) {
+      jooq
+        .select(RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.METADATA, RESOURCE.SPEC)
+        .from(RESOURCE)
+        .where(RESOURCE.ID.eq(id.value))
+        .fetchOne()
+        ?.let { (apiVersion, kind, metadata, spec) ->
+          constructResource(apiVersion, kind, metadata, spec)
+        } ?: throw NoSuchResourceId(id)
+    }
   }
 
   override fun getResourcesByApplication(application: String): List<Resource<*>> {
-    return jooq
-      .select(RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.METADATA, RESOURCE.SPEC)
-      .from(RESOURCE)
-      .where(RESOURCE.APPLICATION.eq(application))
-      .fetch()
-      .map { (apiVersion, kind, metadata, spec) ->
-        constructResource(apiVersion, kind, metadata, spec)
-      }
+    return sqlRetry.withRetry(READ) {
+      jooq
+        .select(RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.METADATA, RESOURCE.SPEC)
+        .from(RESOURCE)
+        .where(RESOURCE.APPLICATION.eq(application))
+        .fetch()
+        .map { (apiVersion, kind, metadata, spec) ->
+          constructResource(apiVersion, kind, metadata, spec)
+        }
+    }
   }
 
   /**
@@ -95,48 +110,56 @@ open class SqlResourceRepository(
     )
 
   override fun hasManagedResources(application: String): Boolean {
-    return jooq
-      .selectCount()
-      .from(RESOURCE)
-      .where(RESOURCE.APPLICATION.eq(application))
-      .fetchOne()
-      .value1() > 0
+    return sqlRetry.withRetry(READ) {
+      jooq
+        .selectCount()
+        .from(RESOURCE)
+        .where(RESOURCE.APPLICATION.eq(application))
+        .fetchOne()
+        .value1() > 0
+    }
   }
 
   override fun getResourceIdsByApplication(application: String): List<String> {
-    return jooq
-      .select(RESOURCE.ID)
-      .from(RESOURCE)
-      .where(RESOURCE.APPLICATION.eq(application))
-      .fetch(RESOURCE.ID)
+    return sqlRetry.withRetry(READ) {
+      jooq
+        .select(RESOURCE.ID)
+        .from(RESOURCE)
+        .where(RESOURCE.APPLICATION.eq(application))
+        .fetch(RESOURCE.ID)
+    }
   }
 
   fun getUidByApplication(application: String): List<String> {
-    return jooq
-      .select(RESOURCE.UID)
-      .from(RESOURCE)
-      .where(RESOURCE.APPLICATION.eq(application))
-      .fetch(RESOURCE.UID)
+    return sqlRetry.withRetry(READ) {
+      jooq
+        .select(RESOURCE.UID)
+        .from(RESOURCE)
+        .where(RESOURCE.APPLICATION.eq(application))
+        .fetch(RESOURCE.UID)
+    }
   }
 
   override fun getSummaryByApplication(application: String): List<ResourceSummary> {
-    val resources: List<Resource<*>> = jooq
-      .select(RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.METADATA, RESOURCE.SPEC)
-      .from(RESOURCE)
-      .where(RESOURCE.APPLICATION.eq(application))
-      .fetch()
-      .map { (apiVersion, kind, metadata, spec) ->
-        Resource(
-          ApiVersion(apiVersion),
-          kind,
-          objectMapper.readValue<Map<String, Any?>>(metadata).asResourceMetadata(),
-          objectMapper.readValue(spec, resourceTypeIdentifier.identify(apiVersion.let(::ApiVersion), kind))
-        )
-      }
-
+    val resources: List<Resource<*>> = sqlRetry.withRetry(READ) {
+      jooq
+        .select(RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.METADATA, RESOURCE.SPEC)
+        .from(RESOURCE)
+        .where(RESOURCE.APPLICATION.eq(application))
+        .fetch()
+        .map { (apiVersion, kind, metadata, spec) ->
+          Resource(
+            ApiVersion(apiVersion),
+            kind,
+            objectMapper.readValue<Map<String, Any?>>(metadata).asResourceMetadata(),
+            objectMapper.readValue(spec, resourceTypeIdentifier.identify(apiVersion.let(::ApiVersion), kind))
+          )
+        }
+    }
     return resources.map { it.toResourceSummary() }
   }
 
+  // todo: this is not retryable due to overall repository structure: https://github.com/spinnaker/keel/issues/740
   override fun store(resource: Resource<*>) {
     val uid = jooq.select(RESOURCE.UID)
       .from(RESOURCE)
@@ -171,22 +194,25 @@ open class SqlResourceRepository(
 
   override fun eventHistory(id: ResourceId, limit: Int): List<ResourceEvent> {
     require(limit > 0) { "limit must be a positive integer" }
-    return jooq
-      .select(RESOURCE_EVENT.JSON)
-      .from(RESOURCE_EVENT, RESOURCE)
-      .where(RESOURCE.ID.eq(id.toString()))
-      .and(RESOURCE.UID.eq(RESOURCE_EVENT.UID))
-      .orderBy(RESOURCE_EVENT.TIMESTAMP.desc())
-      .limit(limit)
-      .fetch()
-      .map { (json) ->
-        objectMapper.readValue<ResourceEvent>(json)
-      }
-      .ifEmpty {
-        throw NoSuchResourceId(id)
-      }
+    return sqlRetry.withRetry(READ) {
+      jooq
+        .select(RESOURCE_EVENT.JSON)
+        .from(RESOURCE_EVENT, RESOURCE)
+        .where(RESOURCE.ID.eq(id.toString()))
+        .and(RESOURCE.UID.eq(RESOURCE_EVENT.UID))
+        .orderBy(RESOURCE_EVENT.TIMESTAMP.desc())
+        .limit(limit)
+        .fetch()
+        .map { (json) ->
+          objectMapper.readValue<ResourceEvent>(json)
+        }
+        .ifEmpty {
+          throw NoSuchResourceId(id)
+        }
+    }
   }
 
+  // todo: add sql retries once we've rethought repository structure: https://github.com/spinnaker/keel/issues/740
   override fun appendHistory(event: ResourceEvent) {
     if (event.ignoreRepeatedInHistory) {
       val previousEvent = jooq
@@ -213,45 +239,53 @@ open class SqlResourceRepository(
   }
 
   override fun delete(id: ResourceId) {
-    val uid = jooq.select(RESOURCE.UID)
-      .from(RESOURCE)
-      .where(RESOURCE.ID.eq(id.value))
-      .fetchOne(RESOURCE.UID)
-      ?.let(ULID::parseULID)
-      ?: throw NoSuchResourceId(id)
-    jooq.deleteFrom(RESOURCE)
-      .where(RESOURCE.UID.eq(uid.toString()))
-      .execute()
-    jooq.deleteFrom(RESOURCE_EVENT)
-      .where(RESOURCE_EVENT.UID.eq(uid.toString()))
-      .execute()
+    val uid = sqlRetry.withRetry(READ) {
+      jooq.select(RESOURCE.UID)
+        .from(RESOURCE)
+        .where(RESOURCE.ID.eq(id.value))
+        .fetchOne(RESOURCE.UID)
+        ?.let(ULID::parseULID)
+        ?: throw NoSuchResourceId(id)
+    }
+    sqlRetry.withRetry(WRITE) {
+      jooq.deleteFrom(RESOURCE)
+        .where(RESOURCE.UID.eq(uid.toString()))
+        .execute()
+    }
+    sqlRetry.withRetry(WRITE) {
+      jooq.deleteFrom(RESOURCE_EVENT)
+        .where(RESOURCE_EVENT.UID.eq(uid.toString()))
+        .execute()
+    }
   }
 
   override fun itemsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<Resource<out ResourceSpec>> {
     val now = clock.instant()
     val cutoff = now.minus(minTimeSinceLastCheck).toLocal()
-    return jooq.inTransaction {
-      select(RESOURCE.UID, RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.METADATA, RESOURCE.SPEC)
-        .from(RESOURCE, RESOURCE_LAST_CHECKED)
-        .where(RESOURCE.UID.eq(RESOURCE_LAST_CHECKED.RESOURCE_UID))
-        .and(RESOURCE_LAST_CHECKED.AT.lessOrEqual(cutoff))
-        .orderBy(RESOURCE_LAST_CHECKED.AT)
-        .limit(limit)
-        .forUpdate()
-        .fetch()
-        .also {
-          it.forEach { (uid, _, _, _, _) ->
-            insertInto(RESOURCE_LAST_CHECKED)
-              .set(RESOURCE_LAST_CHECKED.RESOURCE_UID, uid)
-              .set(RESOURCE_LAST_CHECKED.AT, now.toLocal())
-              .onDuplicateKeyUpdate()
-              .set(RESOURCE_LAST_CHECKED.AT, now.toLocal())
-              .execute()
+    return sqlRetry.withRetry(WRITE) {
+      jooq.inTransaction {
+        select(RESOURCE.UID, RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.METADATA, RESOURCE.SPEC)
+          .from(RESOURCE, RESOURCE_LAST_CHECKED)
+          .where(RESOURCE.UID.eq(RESOURCE_LAST_CHECKED.RESOURCE_UID))
+          .and(RESOURCE_LAST_CHECKED.AT.lessOrEqual(cutoff))
+          .orderBy(RESOURCE_LAST_CHECKED.AT)
+          .limit(limit)
+          .forUpdate()
+          .fetch()
+          .also {
+            it.forEach { (uid, _, _, _, _) ->
+              insertInto(RESOURCE_LAST_CHECKED)
+                .set(RESOURCE_LAST_CHECKED.RESOURCE_UID, uid)
+                .set(RESOURCE_LAST_CHECKED.AT, now.toLocal())
+                .onDuplicateKeyUpdate()
+                .set(RESOURCE_LAST_CHECKED.AT, now.toLocal())
+                .execute()
+            }
           }
-        }
-        .map { (_, apiVersion, kind, metadata, spec) ->
-          constructResource(apiVersion, kind, metadata, spec)
-        }
+          .map { (_, apiVersion, kind, metadata, spec) ->
+            constructResource(apiVersion, kind, metadata, spec)
+          }
+      }
     }
   }
 

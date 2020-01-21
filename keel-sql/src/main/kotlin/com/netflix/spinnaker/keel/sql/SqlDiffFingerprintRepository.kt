@@ -21,56 +21,66 @@ import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DIFF_FINGERPRINT
+import com.netflix.spinnaker.keel.sql.RetryCategory.READ
+import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
 import java.time.Clock
 import org.jooq.DSLContext
 
 class SqlDiffFingerprintRepository(
   private val jooq: DSLContext,
-  private val clock: Clock
+  private val clock: Clock,
+  private val sqlRetry: SqlRetry
 ) : DiffFingerprintRepository {
   override fun store(resourceId: ResourceId, diff: ResourceDiff<*>) {
     val hash = diff.generateHash()
-    jooq
-      .select(DIFF_FINGERPRINT.COUNT, DIFF_FINGERPRINT.FIRST_DETECTION_TIME, DIFF_FINGERPRINT.HASH)
-      .from(DIFF_FINGERPRINT)
-      .where(DIFF_FINGERPRINT.RESOURCE_ID.eq(resourceId.toString()))
-      .fetchOne()
-      ?.let { (count, firstDetectionTime, existingHash) ->
-        var newCount = 1
-        var newTime = clock.instant().toEpochMilli()
-        if (hash == existingHash) {
-          newCount = count + 1
-          newTime = firstDetectionTime
-        }
+    val record = sqlRetry.withRetry(READ) {
+      jooq
+        .select(DIFF_FINGERPRINT.COUNT, DIFF_FINGERPRINT.FIRST_DETECTION_TIME, DIFF_FINGERPRINT.HASH)
+        .from(DIFF_FINGERPRINT)
+        .where(DIFF_FINGERPRINT.RESOURCE_ID.eq(resourceId.toString()))
+        .fetchOne()
+    }
+    record?.let { (count, firstDetectionTime, existingHash) ->
+      var newCount = 1
+      var newTime = clock.instant().toEpochMilli()
+      if (hash == existingHash) {
+        newCount = count + 1
+        newTime = firstDetectionTime
+      }
+      sqlRetry.withRetry(WRITE) {
         jooq.update(DIFF_FINGERPRINT)
           .set(DIFF_FINGERPRINT.HASH, hash)
           .set(DIFF_FINGERPRINT.COUNT, newCount)
           .set(DIFF_FINGERPRINT.FIRST_DETECTION_TIME, newTime)
           .where(DIFF_FINGERPRINT.RESOURCE_ID.eq(resourceId.toString()))
           .execute()
-        return
       }
+      return
+    }
 
     // if there's a duplicate key here we have a bigger issue - either there's something wrong with our data,
     // or multiple instances are checking the resource at the same time
-    jooq.insertInto(DIFF_FINGERPRINT)
-      .set(DIFF_FINGERPRINT.RESOURCE_ID, resourceId.toString())
-      .set(DIFF_FINGERPRINT.HASH, hash)
-      .set(DIFF_FINGERPRINT.COUNT, 1)
-      .set(DIFF_FINGERPRINT.FIRST_DETECTION_TIME, clock.instant().toEpochMilli())
-      .execute()
+    sqlRetry.withRetry(WRITE) {
+      jooq.insertInto(DIFF_FINGERPRINT)
+        .set(DIFF_FINGERPRINT.RESOURCE_ID, resourceId.toString())
+        .set(DIFF_FINGERPRINT.HASH, hash)
+        .set(DIFF_FINGERPRINT.COUNT, 1)
+        .set(DIFF_FINGERPRINT.FIRST_DETECTION_TIME, clock.instant().toEpochMilli())
+        .execute()
+    }
   }
 
   override fun diffCount(resourceId: ResourceId): Int {
-    val count = jooq
-      .select(DIFF_FINGERPRINT.COUNT)
-      .from(DIFF_FINGERPRINT)
-      .where(DIFF_FINGERPRINT.RESOURCE_ID.eq(resourceId.toString()))
-      .fetchOne()
-      ?.let { (count) ->
-        count
-      }
-
+    val count = sqlRetry.withRetry(READ) {
+      jooq
+        .select(DIFF_FINGERPRINT.COUNT)
+        .from(DIFF_FINGERPRINT)
+        .where(DIFF_FINGERPRINT.RESOURCE_ID.eq(resourceId.toString()))
+        .fetchOne()
+        ?.let { (count) ->
+          count
+        }
+    }
     return count ?: 0
   }
 }

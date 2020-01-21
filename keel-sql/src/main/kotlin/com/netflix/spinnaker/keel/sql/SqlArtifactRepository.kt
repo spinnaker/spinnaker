@@ -25,6 +25,8 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_ARTIFACT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_VERSIONS
+import com.netflix.spinnaker.keel.sql.RetryCategory.READ
+import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
 import java.security.MessageDigest
 import java.time.Clock
 import java.time.Instant
@@ -40,31 +42,36 @@ import org.slf4j.LoggerFactory
 class SqlArtifactRepository(
   private val jooq: DSLContext,
   private val clock: Clock,
-  private val objectMapper: ObjectMapper
+  private val objectMapper: ObjectMapper,
+  private val sqlRetry: SqlRetry
 ) : ArtifactRepository {
   override fun register(artifact: DeliveryArtifact) {
-    val id: String = jooq
-      .select(DELIVERY_ARTIFACT.UID)
-      .from(DELIVERY_ARTIFACT)
-      .where(DELIVERY_ARTIFACT.NAME.eq(artifact.name)
-        .and(DELIVERY_ARTIFACT.TYPE.eq(artifact.type.name))
-        .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(artifact.deliveryConfigName))
-        .and(DELIVERY_ARTIFACT.REFERENCE.eq(artifact.reference)))
-      .fetchOne(DELIVERY_ARTIFACT.UID)
-      ?: randomUID().toString()
+    val id: String = (sqlRetry.withRetry(READ) {
+      jooq
+        .select(DELIVERY_ARTIFACT.UID)
+        .from(DELIVERY_ARTIFACT)
+        .where(DELIVERY_ARTIFACT.NAME.eq(artifact.name)
+          .and(DELIVERY_ARTIFACT.TYPE.eq(artifact.type.name))
+          .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(artifact.deliveryConfigName))
+          .and(DELIVERY_ARTIFACT.REFERENCE.eq(artifact.reference)))
+        .fetchOne(DELIVERY_ARTIFACT.UID)
+    }
+      ?: randomUID().toString())
 
-    jooq.insertInto(DELIVERY_ARTIFACT)
-      .set(DELIVERY_ARTIFACT.UID, id)
-      .set(DELIVERY_ARTIFACT.FINGERPRINT, artifact.fingerprint())
-      .set(DELIVERY_ARTIFACT.NAME, artifact.name)
-      .set(DELIVERY_ARTIFACT.TYPE, artifact.type.name)
-      .set(DELIVERY_ARTIFACT.REFERENCE, artifact.reference)
-      .set(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME, artifact.deliveryConfigName)
-      .set(DELIVERY_ARTIFACT.DETAILS, artifact.detailsAsJson())
-      .onDuplicateKeyUpdate()
-      .set(DELIVERY_ARTIFACT.REFERENCE, artifact.reference)
-      .set(DELIVERY_ARTIFACT.DETAILS, artifact.detailsAsJson())
-      .execute()
+    sqlRetry.withRetry(WRITE) {
+      jooq.insertInto(DELIVERY_ARTIFACT)
+        .set(DELIVERY_ARTIFACT.UID, id)
+        .set(DELIVERY_ARTIFACT.FINGERPRINT, artifact.fingerprint())
+        .set(DELIVERY_ARTIFACT.NAME, artifact.name)
+        .set(DELIVERY_ARTIFACT.TYPE, artifact.type.name)
+        .set(DELIVERY_ARTIFACT.REFERENCE, artifact.reference)
+        .set(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME, artifact.deliveryConfigName)
+        .set(DELIVERY_ARTIFACT.DETAILS, artifact.detailsAsJson())
+        .onDuplicateKeyUpdate()
+        .set(DELIVERY_ARTIFACT.REFERENCE, artifact.reference)
+        .set(DELIVERY_ARTIFACT.DETAILS, artifact.detailsAsJson())
+        .execute()
+    }
   }
 
   private fun DeliveryArtifact.detailsAsJson() =
@@ -87,26 +94,30 @@ class SqlArtifactRepository(
     )
 
   override fun get(name: String, type: ArtifactType, deliveryConfigName: String): List<DeliveryArtifact> {
-    return jooq
-      .select(DELIVERY_ARTIFACT.DETAILS, DELIVERY_ARTIFACT.REFERENCE)
-      .from(DELIVERY_ARTIFACT)
-      .where(DELIVERY_ARTIFACT.NAME.eq(name))
-      .and(DELIVERY_ARTIFACT.TYPE.eq(type.name))
-      .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(deliveryConfigName))
-      .fetch { (details, reference) ->
-        mapToArtifact(name, type, details, reference, deliveryConfigName)
-      } ?: throw NoSuchArtifactException(name, type)
+    return sqlRetry.withRetry(READ) {
+      jooq
+        .select(DELIVERY_ARTIFACT.DETAILS, DELIVERY_ARTIFACT.REFERENCE)
+        .from(DELIVERY_ARTIFACT)
+        .where(DELIVERY_ARTIFACT.NAME.eq(name))
+        .and(DELIVERY_ARTIFACT.TYPE.eq(type.name))
+        .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(deliveryConfigName))
+        .fetch { (details, reference) ->
+          mapToArtifact(name, type, details, reference, deliveryConfigName)
+        }
+    } ?: throw NoSuchArtifactException(name, type)
   }
 
   override fun get(name: String, type: ArtifactType, reference: String, deliveryConfigName: String): DeliveryArtifact {
-    return jooq
-      .select(DELIVERY_ARTIFACT.DETAILS, DELIVERY_ARTIFACT.REFERENCE)
-      .from(DELIVERY_ARTIFACT)
-      .where(DELIVERY_ARTIFACT.NAME.eq(name))
-      .and(DELIVERY_ARTIFACT.TYPE.eq(type.name))
-      .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(deliveryConfigName))
-      .and(DELIVERY_ARTIFACT.REFERENCE.eq(reference))
-      .fetchOne()
+    return sqlRetry.withRetry(READ) {
+      jooq
+        .select(DELIVERY_ARTIFACT.DETAILS, DELIVERY_ARTIFACT.REFERENCE)
+        .from(DELIVERY_ARTIFACT)
+        .where(DELIVERY_ARTIFACT.NAME.eq(name))
+        .and(DELIVERY_ARTIFACT.TYPE.eq(type.name))
+        .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(deliveryConfigName))
+        .and(DELIVERY_ARTIFACT.REFERENCE.eq(reference))
+        .fetchOne()
+    }
       ?.let { (details, reference) ->
         mapToArtifact(name, type, details, reference, deliveryConfigName)
       } ?: throw NoSuchArtifactException(name, type)
@@ -120,52 +131,62 @@ class SqlArtifactRepository(
       throw NoSuchArtifactException(name, type)
     }
 
-    return jooq.insertInto(ARTIFACT_VERSIONS)
-      .set(ARTIFACT_VERSIONS.NAME, name)
-      .set(ARTIFACT_VERSIONS.TYPE, type.value())
-      .set(ARTIFACT_VERSIONS.VERSION, version)
-      .set(ARTIFACT_VERSIONS.RELEASE_STATUS, status?.toString())
-      .onDuplicateKeyIgnore()
-      .execute() == 1
+    return sqlRetry.withRetry(WRITE) {
+      jooq.insertInto(ARTIFACT_VERSIONS)
+        .set(ARTIFACT_VERSIONS.NAME, name)
+        .set(ARTIFACT_VERSIONS.TYPE, type.value())
+        .set(ARTIFACT_VERSIONS.VERSION, version)
+        .set(ARTIFACT_VERSIONS.RELEASE_STATUS, status?.toString())
+        .onDuplicateKeyIgnore()
+        .execute()
+    } == 1
   }
 
   override fun isRegistered(name: String, type: ArtifactType): Boolean =
-    jooq
-      .selectCount()
-      .from(DELIVERY_ARTIFACT)
-      .where(DELIVERY_ARTIFACT.NAME.eq(name))
-      .and(DELIVERY_ARTIFACT.TYPE.eq(type.name))
-      .fetchOne()
-      .value1() > 0
+    sqlRetry.withRetry(READ) {
+      jooq
+        .selectCount()
+        .from(DELIVERY_ARTIFACT)
+        .where(DELIVERY_ARTIFACT.NAME.eq(name))
+        .and(DELIVERY_ARTIFACT.TYPE.eq(type.name))
+        .fetchOne()
+        .value1()
+    } > 0
 
   override fun getAll(type: ArtifactType?): List<DeliveryArtifact> =
-    jooq
-      .select(DELIVERY_ARTIFACT.NAME, DELIVERY_ARTIFACT.TYPE, DELIVERY_ARTIFACT.DETAILS, DELIVERY_ARTIFACT.REFERENCE, DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME)
-      .from(DELIVERY_ARTIFACT)
-      .apply { if (type != null) where(DELIVERY_ARTIFACT.TYPE.eq(type.toString())) }
-      .fetch { (name, storedType, details, reference, configName) ->
-        mapToArtifact(name, ArtifactType.valueOf(storedType), details, reference, configName)
-      }
+    sqlRetry.withRetry(READ) {
+      jooq
+        .select(DELIVERY_ARTIFACT.NAME, DELIVERY_ARTIFACT.TYPE, DELIVERY_ARTIFACT.DETAILS, DELIVERY_ARTIFACT.REFERENCE, DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME)
+        .from(DELIVERY_ARTIFACT)
+        .apply { if (type != null) where(DELIVERY_ARTIFACT.TYPE.eq(type.toString())) }
+        .fetch { (name, storedType, details, reference, configName) ->
+          mapToArtifact(name, ArtifactType.valueOf(storedType), details, reference, configName)
+        }
+    }
 
   override fun versions(name: String, type: ArtifactType): List<String> {
-    return jooq.select(ARTIFACT_VERSIONS.VERSION)
-      .from(ARTIFACT_VERSIONS)
-      .where(ARTIFACT_VERSIONS.NAME.eq(name))
-      .and(ARTIFACT_VERSIONS.TYPE.eq(type.value()))
-      .fetch()
-      .getValues(ARTIFACT_VERSIONS.VERSION)
+    return sqlRetry.withRetry(READ) {
+      jooq.select(ARTIFACT_VERSIONS.VERSION)
+        .from(ARTIFACT_VERSIONS)
+        .where(ARTIFACT_VERSIONS.NAME.eq(name))
+        .and(ARTIFACT_VERSIONS.TYPE.eq(type.value()))
+        .fetch()
+        .getValues(ARTIFACT_VERSIONS.VERSION)
+    }
   }
 
   override fun versions(artifact: DeliveryArtifact): List<String> {
     return if (isRegistered(artifact.name, artifact.type)) {
-      jooq
-        .select(ARTIFACT_VERSIONS.VERSION, ARTIFACT_VERSIONS.RELEASE_STATUS)
-        .from(ARTIFACT_VERSIONS)
-        .where(ARTIFACT_VERSIONS.NAME.eq(artifact.name))
-        .and(ARTIFACT_VERSIONS.TYPE.eq(artifact.type.value()))
-        .apply { if (artifact is DebianArtifact && artifact.statuses.isNotEmpty()) and(ARTIFACT_VERSIONS.RELEASE_STATUS.`in`(*artifact.statuses.map { it.toString() }.toTypedArray())) }
-        .fetch()
-        .getValues(ARTIFACT_VERSIONS.VERSION)
+      sqlRetry.withRetry(READ) {
+        jooq
+          .select(ARTIFACT_VERSIONS.VERSION, ARTIFACT_VERSIONS.RELEASE_STATUS)
+          .from(ARTIFACT_VERSIONS)
+          .where(ARTIFACT_VERSIONS.NAME.eq(artifact.name))
+          .and(ARTIFACT_VERSIONS.TYPE.eq(artifact.type.value()))
+          .apply { if (artifact is DebianArtifact && artifact.statuses.isNotEmpty()) and(ARTIFACT_VERSIONS.RELEASE_STATUS.`in`(*artifact.statuses.map { it.toString() }.toTypedArray())) }
+          .fetch()
+          .getValues(ARTIFACT_VERSIONS.VERSION)
+      }
         .sortedWith(artifact.versioningStrategy.comparator)
     } else {
       throw NoSuchArtifactException(artifact)
@@ -180,14 +201,16 @@ class SqlArtifactRepository(
     val environment = deliveryConfig.environmentNamed(targetEnvironment)
     val envUid = deliveryConfig.getUidFor(environment)
     val artifactId = artifact.uid
-    val versions: List<String> = jooq
-      .select(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION)
-      .from(ENVIRONMENT_ARTIFACT_VERSIONS)
-      .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(envUid))
-      .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifactId))
-      .orderBy(ENVIRONMENT_ARTIFACT_VERSIONS.APPROVED_AT.desc())
-      .fetch()
-      .getValues(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION)
+    val versions: List<String> = sqlRetry.withRetry(READ) {
+      jooq
+        .select(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION)
+        .from(ENVIRONMENT_ARTIFACT_VERSIONS)
+        .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(envUid))
+        .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifactId))
+        .orderBy(ENVIRONMENT_ARTIFACT_VERSIONS.APPROVED_AT.desc())
+        .fetch()
+        .getValues(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION)
+    }
 
     return versions.firstOrNull()
   }
@@ -199,15 +222,17 @@ class SqlArtifactRepository(
     targetEnvironment: String
   ): Boolean {
     val environment = deliveryConfig.environmentNamed(targetEnvironment)
-    return jooq
-      .insertInto(ENVIRONMENT_ARTIFACT_VERSIONS)
-      .set(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID, deliveryConfig.getUidFor(environment))
-      .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID, artifact.uid)
-      .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION, version)
-      .set(ENVIRONMENT_ARTIFACT_VERSIONS.APPROVED_AT, currentTimestamp())
-      .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, APPROVED.name)
-      .onDuplicateKeyIgnore()
-      .execute() > 0
+    return sqlRetry.withRetry(WRITE) {
+      jooq
+        .insertInto(ENVIRONMENT_ARTIFACT_VERSIONS)
+        .set(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID, deliveryConfig.getUidFor(environment))
+        .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID, artifact.uid)
+        .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION, version)
+        .set(ENVIRONMENT_ARTIFACT_VERSIONS.APPROVED_AT, currentTimestamp())
+        .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, APPROVED.name)
+        .onDuplicateKeyIgnore()
+        .execute()
+    } > 0
   }
 
   override fun isApprovedFor(
@@ -217,12 +242,14 @@ class SqlArtifactRepository(
     targetEnvironment: String
   ): Boolean {
     val environment = deliveryConfig.environmentNamed(targetEnvironment)
-    val versions = jooq
-      .select(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION)
-      .from(ENVIRONMENT_ARTIFACT_VERSIONS)
-      .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(deliveryConfig.getUidFor(environment)))
-      .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
-      .fetch(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION, String::class.java)
+    val versions = sqlRetry.withRetry(READ) {
+      jooq
+        .select(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION)
+        .from(ENVIRONMENT_ARTIFACT_VERSIONS)
+        .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(deliveryConfig.getUidFor(environment)))
+        .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
+        .fetch(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION, String::class.java)
+    }
     return versions.contains(version)
   }
 
@@ -233,14 +260,16 @@ class SqlArtifactRepository(
     targetEnvironment: String
   ): Boolean {
     val environment = deliveryConfig.environmentNamed(targetEnvironment)
-    return jooq
-      .fetchExists(
-        ENVIRONMENT_ARTIFACT_VERSIONS,
-        ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(deliveryConfig.getUidFor(environment))
-          .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
-          .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(version))
-          .and(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT.isNotNull)
-      )
+    return sqlRetry.withRetry(READ) {
+      jooq
+        .fetchExists(
+          ENVIRONMENT_ARTIFACT_VERSIONS,
+          ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(deliveryConfig.getUidFor(environment))
+            .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
+            .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(version))
+            .and(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT.isNotNull)
+        )
+    }
   }
 
   override fun markAsDeployingTo(
@@ -251,15 +280,17 @@ class SqlArtifactRepository(
   ) {
     val environment = deliveryConfig.environmentNamed(targetEnvironment)
     val environmentUid = deliveryConfig.getUidFor(environment)
-    jooq
-      .insertInto(ENVIRONMENT_ARTIFACT_VERSIONS)
-      .set(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID, environmentUid)
-      .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID, artifact.uid)
-      .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION, version)
-      .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, DEPLOYING.name)
-      .onDuplicateKeyUpdate()
-      .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, DEPLOYING.name)
-      .execute()
+    sqlRetry.withRetry(WRITE) {
+      jooq
+        .insertInto(ENVIRONMENT_ARTIFACT_VERSIONS)
+        .set(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID, environmentUid)
+        .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID, artifact.uid)
+        .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION, version)
+        .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, DEPLOYING.name)
+        .onDuplicateKeyUpdate()
+        .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, DEPLOYING.name)
+        .execute()
+    }
   }
 
   override fun markAsSuccessfullyDeployedTo(
@@ -270,25 +301,29 @@ class SqlArtifactRepository(
   ) {
     val environment = deliveryConfig.environmentNamed(targetEnvironment)
     val environmentUid = deliveryConfig.getUidFor(environment)
-    jooq
-      .insertInto(ENVIRONMENT_ARTIFACT_VERSIONS)
-      .set(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID, environmentUid)
-      .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID, artifact.uid)
-      .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION, version)
-      .set(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT, currentTimestamp())
-      .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, CURRENT.name)
-      .onDuplicateKeyUpdate()
-      .set(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT, currentTimestamp())
-      .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, CURRENT.name)
-      .execute()
-    jooq
-      .update(ENVIRONMENT_ARTIFACT_VERSIONS)
-      .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, PREVIOUS.name)
-      .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(environmentUid))
-      .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
-      .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(CURRENT.name))
-      .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.ne(version))
-      .execute()
+    sqlRetry.withRetry(WRITE) {
+      jooq
+        .insertInto(ENVIRONMENT_ARTIFACT_VERSIONS)
+        .set(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID, environmentUid)
+        .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID, artifact.uid)
+        .set(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION, version)
+        .set(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT, currentTimestamp())
+        .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, CURRENT.name)
+        .onDuplicateKeyUpdate()
+        .set(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT, currentTimestamp())
+        .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, CURRENT.name)
+        .execute()
+    }
+    sqlRetry.withRetry(WRITE) {
+      jooq
+        .update(ENVIRONMENT_ARTIFACT_VERSIONS)
+        .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, PREVIOUS.name)
+        .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(environmentUid))
+        .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
+        .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(CURRENT.name))
+        .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.ne(version))
+        .execute()
+    }
   }
 
   override fun versionsByEnvironment(deliveryConfig: DeliveryConfig): List<EnvironmentArtifactsSummary> {
@@ -347,11 +382,13 @@ class SqlArtifactRepository(
               .and(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(ENVIRONMENT.UID))
               .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(DELIVERY_ARTIFACT.UID))
           )
-        val versions = versionsInEnvironment
-          .unionAll(pendingVersions)
-          .fetch { (version, releaseStatus, promotionStatus) ->
-            Triple(version, releaseStatus, PromotionStatus.valueOf(promotionStatus))
-          }
+        val versions = sqlRetry.withRetry(READ) {
+          versionsInEnvironment
+            .unionAll(pendingVersions)
+            .fetch { (version, releaseStatus, promotionStatus) ->
+              Triple(version, releaseStatus, PromotionStatus.valueOf(promotionStatus))
+            }
+        }
           .filter { (_, releaseStatus, _) ->
             artifact !is DebianArtifact || artifact.statuses.isEmpty() || ArtifactStatus.valueOf(releaseStatus) in artifact.statuses
           }

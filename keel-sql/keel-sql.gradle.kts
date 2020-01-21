@@ -30,6 +30,7 @@ dependencies {
   implementation("org.jooq:jooq:3.11.11")
   implementation("com.zaxxer:HikariCP")
   implementation("org.liquibase:liquibase-core")
+  implementation("com.netflix.spinnaker.kork:kork-sql")
 
   runtimeOnly("mysql:mysql-connector-java")
 
