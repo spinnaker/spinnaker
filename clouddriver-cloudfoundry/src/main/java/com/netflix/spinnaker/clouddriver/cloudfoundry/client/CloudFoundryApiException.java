@@ -76,6 +76,6 @@ public class CloudFoundryApiException extends RuntimeException {
                   + ". raw response body: "
                   + response.getBody();
             })
-        .orElse("error, url :" + retrofitError.getUrl() + " body: " + retrofitError.getBody());
+        .orElse("error, url :" + retrofitError.getUrl() + " cause: " + retrofitError.getCause());
   }
 }

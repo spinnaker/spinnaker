@@ -59,7 +59,7 @@ public class Routes {
 
   private LoadingCache<String, List<RouteMapping>> routeMappings =
       CacheBuilder.newBuilder()
-          .expireAfterWrite(30, TimeUnit.SECONDS)
+          .expireAfterWrite(3, TimeUnit.MINUTES)
           .build(
               new CacheLoader<String, List<RouteMapping>>() {
                 @Override
@@ -143,7 +143,7 @@ public class Routes {
 
   public List<CloudFoundryLoadBalancer> all() throws CloudFoundryApiException {
     List<Resource<Route>> routeResources =
-        collectPageResources("routes", pg -> api.all(pg, 5000, null));
+        collectPageResources("routes", pg -> api.all(pg, 500, null));
     List<CloudFoundryLoadBalancer> loadBalancers = new ArrayList<>(routeResources.size());
     for (Resource<Route> routeResource : routeResources) {
       loadBalancers.add(map(routeResource));

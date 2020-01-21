@@ -95,7 +95,7 @@ public class Applications {
 
   public List<CloudFoundryApplication> all() {
     List<Application> newCloudFoundryAppList =
-        collectPages("applications", page -> api.all(page, 5000, null, null));
+        collectPages("applications", page -> api.all(page, 500, null, null));
 
     // Evict Records from `cache` that are no longer in the foundation
     List<String> availableAppIds =
