@@ -25,7 +25,6 @@ import java.io.InputStream;
 import java.util.Arrays;
 import org.junit.Before;
 import org.junit.Test;
-import org.yaml.snakeyaml.Yaml;
 
 public class AbstractStorageEngineTest {
   AbstractStorageSecretEngine engine;
@@ -53,7 +52,6 @@ public class AbstractStorageEngineTest {
   @Test
   public void canParseYaml() throws SecretDecryptionException {
     ByteArrayInputStream bis = readStream("test: value\na:\n  b: othervalue\nc:\n  - d\n  - e");
-    engine.yamlParser = new Yaml();
     engine.parseAsYaml("a/b", bis);
     assertTrue(Arrays.equals("value".getBytes(), engine.getParsedValue("a/b", "test")));
     assertTrue(Arrays.equals("othervalue".getBytes(), engine.getParsedValue("a/b", "a.b")));
