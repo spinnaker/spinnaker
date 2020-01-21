@@ -25,6 +25,8 @@ dependencies {
   implementation "com.netflix.spinnaker.kork:kork-web"
   api "com.github.ben-manes.caffeine:guava"
 
+  api "com.netflix.spinnaker.kork:kork-plugins"
+
   implementation "com.netflix.spinnaker.kork:kork-core"
   implementation "com.netflix.spinnaker.kork:kork-exceptions"
   implementation "com.netflix.spinnaker.kork:kork-hystrix"

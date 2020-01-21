@@ -15,20 +15,15 @@
  */
 package com.netflix.spinnaker.front50.validator;
 
-import static com.netflix.spinnaker.front50.model.plugininfo.PluginInfo.Release.SUPPORTS_PATTERN;
-import static java.lang.String.format;
-
 import com.netflix.spinnaker.front50.model.plugininfo.PluginInfo;
-import java.util.Arrays;
-import java.util.List;
-import java.util.regex.Matcher;
+import com.netflix.spinnaker.kork.plugins.VersionRequirementsParser;
+import com.netflix.spinnaker.kork.plugins.VersionRequirementsParser.IllegalVersionRequirementsOperator;
+import com.netflix.spinnaker.kork.plugins.VersionRequirementsParser.InvalidPluginVersionRequirementException;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 
 @Component
 public class HasValidRequiresFieldsValidator implements PluginInfoValidator {
-
-  private static final List<String> VALID_OPERATORS = Arrays.asList("<", ">", ">=", "<=");
 
   @Override
   public void validate(PluginInfo pluginInfo, Errors validationErrors) {
@@ -37,28 +32,17 @@ public class HasValidRequiresFieldsValidator implements PluginInfoValidator {
         .getReleases()
         .forEach(
             release -> {
-              Arrays.stream(release.getRequires().split(","))
-                  .forEach(
-                      requires -> {
-                        Matcher m = SUPPORTS_PATTERN.matcher(requires.trim());
-                        if (!m.matches()) {
-                          validationErrors.reject(
-                              "pluginInfo.releases.invalidRequiresFormat",
-                              format(
-                                  "Invalid Release requires field formatting (requires '%s')",
-                                  SUPPORTS_PATTERN.pattern()));
-                          return;
-                        }
-
-                        if (!VALID_OPERATORS.contains(
-                            m.group(PluginInfo.Release.SUPPORTS_PATTERN_OPERATOR_GROUP))) {
-                          validationErrors.reject(
-                              "pluginInfo.releases.invalidRequiresOperator",
-                              format(
-                                  "Invalid Release requires comparison operator (requires one of: %s)",
-                                  VALID_OPERATORS));
-                        }
-                      });
+              try {
+                VersionRequirementsParser.INSTANCE.parseAll(release.getRequires());
+              } catch (InvalidPluginVersionRequirementException invalidPluginVersionRequirement) {
+                validationErrors.reject(
+                    "pluginInfo.id.invalidPluginVersionRequirement",
+                    invalidPluginVersionRequirement.getMessage());
+              } catch (IllegalVersionRequirementsOperator illegalVersionRequirementOperator) {
+                validationErrors.reject(
+                    "pluginInfo.id.illegalVersionRequirementOperator",
+                    illegalVersionRequirementOperator.getMessage());
+              }
             });
   }
 }

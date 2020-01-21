@@ -16,18 +16,16 @@
 package com.netflix.spinnaker.front50.validator;
 
 import com.netflix.spinnaker.front50.model.plugininfo.PluginInfo;
-import java.util.regex.Pattern;
+import com.netflix.spinnaker.kork.plugins.CanonicalPluginId;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 
 @Component
 public class HasCanonicalPluginIdValidator implements PluginInfoValidator {
 
-  private final Pattern pattern = Pattern.compile("[\\w]+\\.[\\w]+");
-
   @Override
   public void validate(PluginInfo pluginInfo, Errors validationErrors) {
-    if (!pattern.matcher(pluginInfo.getId()).matches()) {
+    if (!CanonicalPluginId.Companion.isValid(pluginInfo.getId())) {
       validationErrors.rejectValue(
           "id",
           "pluginInfo.id.invalid",
