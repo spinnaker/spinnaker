@@ -18,10 +18,14 @@ package com.netflix.spinnaker.orca.front50.model;
 
 import java.util.List;
 import javax.annotation.Nonnull;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class PluginInfo {
   @Nonnull private String id;
@@ -30,6 +34,8 @@ public class PluginInfo {
   @Nonnull private List<Release> releases;
 
   @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
   public static class Release {
     private String version;
     private String date;
