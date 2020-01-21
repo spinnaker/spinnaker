@@ -24,8 +24,7 @@ The following high level diagram shows how events flow through `echo`:
 5. `orca` sends events to `echo` when:
     - a stage is starting/completed so `echo` can send notifications if any are defined on the stage
     - a pipeline (or orchestration) is starting/completed so `echo` can send notification as above
-    - a manual judgement stage is reached - a notifcation from 
-    - the user has clicked the page button on the application page
+    - a manual judgement stage is reached - a notifcation from the user has clicked the page button on the application page
 
 6. `echo` uses external services (e.g. email/slack) to send notifications.  
     Notifications can either be a result of an event received by `echo` (e.g. stage completed which has a notification on completion), or a specific notification request from another service (e.g. orca will send a notifcation for Manual Judgement stage)
