@@ -27,7 +27,7 @@ class SpinnakerExtensionGradlePluginTest {
     @Test fun `spinnakerserviceextension plugin registers task`() {
         // Create a test project and apply the plugin
         val project = ProjectBuilder.builder().build()
-        project.plugins.apply("com.netflix.spinnaker.gradle.extension.spinnakerserviceextension")
+        project.plugins.apply("io.spinnaker.plugin.service-extension")
         project.plugins.apply("java")
 
         // Verify the result
@@ -38,7 +38,7 @@ class SpinnakerExtensionGradlePluginTest {
     @Test fun `spinnakeruiextension plugin registers task`() {
         // Create a test project and apply the plugin
         val project = ProjectBuilder.builder().build()
-        project.plugins.apply("com.netflix.spinnaker.gradle.extension.spinnakeruiextension")
+        project.plugins.apply("io.spinnaker.plugin.ui-extension")
 
         // Verify the result
         assertNotNull(project.tasks.findByName("registerPlugin"))
@@ -49,7 +49,7 @@ class SpinnakerExtensionGradlePluginTest {
         // Create a test project and apply the plugin
         val project = ProjectBuilder.builder().build()
         project.plugins.apply("java")
-        project.plugins.apply("com.netflix.spinnaker.gradle.extension.spinnakerextensionsbundler")
+        project.plugins.apply("io.spinnaker.plugin.bundler")
         // Verify the result
         assertNotNull(project.tasks.findByName("distPluginZip"))
     }

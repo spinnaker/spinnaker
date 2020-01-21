@@ -34,7 +34,7 @@ class SpinnakerExtensionGradlePluginFunctionalTest {
         projectDir.resolve("build.gradle").writeText("""
             plugins {
                 id('java')
-                id('com.netflix.spinnaker.gradle.extension.spinnakerserviceextension')
+                id('io.spinnaker.plugin.service-extension')
             }
         """)
 
