@@ -76,3 +76,12 @@ object LocationConstants {
   const val DEFAULT_VPC_NAME = "vpc0"
   const val DEFAULT_SUBNET_PURPOSE = "internal (%s)"
 }
+
+fun SubnetAwareLocations.toSimpleLocations() =
+  SimpleLocations(
+    account,
+    vpc,
+    regions
+      .map { SimpleRegionSpec(it.name) }
+      .toSet()
+  )

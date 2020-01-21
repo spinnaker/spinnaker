@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.serialization
 
+import com.fasterxml.jackson.databind.BeanProperty
 import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.InjectableValues
 import com.fasterxml.jackson.databind.JsonMappingException
@@ -9,9 +10,11 @@ import com.fasterxml.jackson.databind.deser.std.StdNodeBasedDeserializer
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.api.Constraint
 import com.netflix.spinnaker.keel.api.NotificationConfig
+import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SubmittedEnvironment
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
+import com.netflix.spinnaker.keel.api.toSimpleLocations
 import java.lang.IllegalArgumentException
 
 /**
@@ -27,7 +30,7 @@ class SubmittedEnvironmentDeserializer : StdNodeBasedDeserializer<SubmittedEnvir
       val notifications: Set<NotificationConfig> = convert(root, "notifications") ?: emptySet()
       val locations: SubnetAwareLocations? = convert(root, "locations")
       val resources: Set<SubmittedResource<*>> = copy().run {
-        injectableValues = InjectableValues.Std(mapOf("locations" to locations))
+        injectableValues = InjectableLocations(locations)
         convert(root, "resources") ?: emptySet()
       }
       try {
@@ -43,4 +46,22 @@ class SubmittedEnvironmentDeserializer : StdNodeBasedDeserializer<SubmittedEnvir
     } catch (e: IllegalArgumentException) {
       throw JsonMappingException.wrapWithPath(e, root, path)
     }
+}
+
+private class InjectableLocations(
+  value: SubnetAwareLocations?
+) : InjectableValues.Std(mapOf("locations" to value)) {
+  override fun findInjectableValue(
+    valueId: Any,
+    context: DeserializationContext,
+    forProperty: BeanProperty,
+    beanInstance: Any?
+  ): Any? {
+    val value = super.findInjectableValue(valueId, context, forProperty, beanInstance) as? SubnetAwareLocations
+    return when {
+      value == null -> null
+      forProperty.type.isTypeOrSubTypeOf(SimpleLocations::class.java) -> value.toSimpleLocations()
+      else -> value
+    }
+  }
 }

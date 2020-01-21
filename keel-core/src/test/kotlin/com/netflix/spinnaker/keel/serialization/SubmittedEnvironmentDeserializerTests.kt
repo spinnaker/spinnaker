@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.jsontype.NamedType
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.Locatable
+import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SubmittedEnvironment
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import dev.minutest.junit.JUnit5Minutests
@@ -22,7 +23,8 @@ class SubmittedEnvironmentDeserializerTests : JUnit5Minutests {
     val mapper = configuredYamlMapper()
       .apply {
         configure(DeserializationFeature.WRAP_EXCEPTIONS, true)
-        registerSubtypes(NamedType(TestLocatableResource::class.java, "test/v1/test-locatable"))
+        registerSubtypes(NamedType(TestSubnetAwareLocatableResource::class.java, "test/v1/test-subnet-aware-locatable"))
+        registerSubtypes(NamedType(TestSimpleLocatableResource::class.java, "test/v1/test-simple-locatable"))
       }
   }
 
@@ -34,7 +36,7 @@ class SubmittedEnvironmentDeserializerTests : JUnit5Minutests {
           |name: test
           |resources:
           |- apiVersion: test/v1
-          |  kind: test-locatable
+          |  kind: test-subnet-aware-locatable
           |  metadata:
           |    serviceAccount: mickey@disney.com
           |  spec:
@@ -58,11 +60,11 @@ class SubmittedEnvironmentDeserializerTests : JUnit5Minutests {
         )
       }
 
-      test("resource's locations corresponds to what was specified at the environment level") {
+      test("resource's locations corresponds to what was specified in the resource spec") {
         val environment = mapper.readValue<SubmittedEnvironment>(json)
 
         expectThat(environment.resources.first().spec)
-          .isA<TestLocatableResource>()
+          .isA<TestSubnetAwareLocatableResource>()
           .get { locations.account }
           .isEqualTo("prod")
       }
@@ -75,7 +77,7 @@ class SubmittedEnvironmentDeserializerTests : JUnit5Minutests {
           |name: test
           |resources:
           |- apiVersion: test/v1
-          |  kind: test-locatable
+          |  kind: test-subnet-aware-locatable
           |  metadata:
           |    serviceAccount: mickey@disney.com
           |  spec:
@@ -92,11 +94,45 @@ class SubmittedEnvironmentDeserializerTests : JUnit5Minutests {
         )
       }
 
-      test("locations corresponds to what was specified on the resource") {
+      test("locations corresponds to what was specified at the environment level") {
         val environment = mapper.readValue<SubmittedEnvironment>(json)
 
         expectThat(environment.resources.first().spec)
-          .isA<TestLocatableResource>()
+          .isA<TestSubnetAwareLocatableResource>()
+          .get { locations.account }
+          .isEqualTo("test")
+      }
+    }
+
+    context("locations is omitted from the resource spec for a resource with non-subnet aware locations") {
+      fixture {
+        Fixture("""
+          |---
+          |name: test
+          |resources:
+          |- apiVersion: test/v1
+          |  kind: test-simple-locatable
+          |  metadata:
+          |    serviceAccount: mickey@disney.com
+          |  spec:
+          |    id: my-resource
+          |    application: whatever
+          |locations:
+          |  account: test
+          |  subnet: internal (vpc0)
+          |  vpc: vpc0
+          |  regions:
+          |  - name: us-east-1
+          |  - name: us-west-2
+          """.trimMargin()
+        )
+      }
+
+      test("locations corresponds to what was specified at the environment level") {
+        val environment = mapper.readValue<SubmittedEnvironment>(json)
+
+        expectThat(environment.resources.first().spec)
+          .isA<TestSimpleLocatableResource>()
           .get { locations.account }
           .isEqualTo("test")
       }
@@ -109,7 +145,7 @@ class SubmittedEnvironmentDeserializerTests : JUnit5Minutests {
           |- name: test
           |  resources:
           |  - apiVersion: test/v1
-          |    kind: test-locatable
+          |    kind: test-subnet-aware-locatable
           |    metadata:
           |      serviceAccount: mickey@disney.com
           |    spec:
@@ -125,7 +161,7 @@ class SubmittedEnvironmentDeserializerTests : JUnit5Minutests {
           |- name: prod
           |  resources:
           |  - apiVersion: test/v1
-          |    kind: test-locatable
+          |    kind: test-subnet-aware-locatable
           |    metadata:
           |      serviceAccount: mickey@disney.com
           |    spec:
@@ -168,8 +204,14 @@ class SubmittedEnvironmentDeserializerTests : JUnit5Minutests {
   }
 }
 
-private data class TestLocatableResource(
+private data class TestSubnetAwareLocatableResource(
   override val id: String,
   override val application: String,
   override val locations: SubnetAwareLocations
 ) : Locatable<SubnetAwareLocations>
+
+private data class TestSimpleLocatableResource(
+  override val id: String,
+  override val application: String,
+  override val locations: SimpleLocations
+) : Locatable<SimpleLocations>
