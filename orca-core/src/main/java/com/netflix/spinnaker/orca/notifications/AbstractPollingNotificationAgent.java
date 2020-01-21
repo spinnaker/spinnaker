@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.notifications;
 import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UP;
 
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent;
-import com.netflix.spinnaker.orca.NamedThreadFactory;
+import com.netflix.spinnaker.kork.threads.NamedThreadFactory;
 import java.util.concurrent.*;
 import javax.annotation.PreDestroy;
 import org.slf4j.Logger;
