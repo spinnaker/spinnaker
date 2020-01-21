@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.cats.sql
+package com.netflix.spinnaker.clouddriver.sql
 
 import com.netflix.spinnaker.cats.agent.Agent
 

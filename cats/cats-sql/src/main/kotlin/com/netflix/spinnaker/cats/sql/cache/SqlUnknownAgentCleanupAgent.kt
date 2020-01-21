@@ -20,7 +20,7 @@ import com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.agent.RunnableAgent
 import com.netflix.spinnaker.cats.provider.ProviderRegistry
-import com.netflix.spinnaker.cats.sql.SqlAgent
+import com.netflix.spinnaker.clouddriver.sql.SqlAgent
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
 import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider
 import com.netflix.spinnaker.config.ConnectionPools

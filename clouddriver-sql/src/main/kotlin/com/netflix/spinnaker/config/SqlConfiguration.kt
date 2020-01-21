@@ -100,6 +100,7 @@ class SqlConfiguration {
   }
 
   @Bean
+  @ConditionalOnExpression("\${sql.read-only:false} == false")
   fun sqlEventCleanupAgent(
     jooq: DSLContext,
     registry: Registry,

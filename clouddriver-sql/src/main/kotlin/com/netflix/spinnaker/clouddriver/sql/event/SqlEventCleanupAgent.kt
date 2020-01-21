@@ -17,6 +17,7 @@ package com.netflix.spinnaker.clouddriver.sql.event
 
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.RunnableAgent
+import com.netflix.spinnaker.clouddriver.sql.SqlAgent
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
 import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider
 import com.netflix.spinnaker.config.ConnectionPools
@@ -40,7 +41,7 @@ class SqlEventCleanupAgent(
   private val jooq: DSLContext,
   private val registry: Registry,
   private val properties: SqlEventCleanupAgentConfigProperties
-) : RunnableAgent, CustomScheduledAgent {
+) : RunnableAgent, CustomScheduledAgent, SqlAgent {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
