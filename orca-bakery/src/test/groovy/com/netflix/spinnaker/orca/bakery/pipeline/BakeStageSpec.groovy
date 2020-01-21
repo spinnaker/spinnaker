@@ -218,7 +218,7 @@ class BakeStageSpec extends Specification {
   private
   static List<Map> expectedContexts(String cloudProvider, String amiSuffix, String... regions) {
     return regions.collect {
-      [cloudProviderType: cloudProvider, amiSuffix: amiSuffix, type: BakeStage.PIPELINE_CONFIG_TYPE, "region": it, name: "Bake in ${it}", refId: "1"]
+      [cloudProviderType: cloudProvider, amiSuffix: amiSuffix, type: BakeStage.PIPELINE_CONFIG_TYPE, "region": it, name: "Bake in ${it}"]
     }
   }
 }

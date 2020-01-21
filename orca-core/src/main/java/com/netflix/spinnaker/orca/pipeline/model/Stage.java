@@ -104,7 +104,6 @@ public class Stage implements Serializable {
     this.execution = execution;
     this.type = type;
     this.name = name;
-    this.context.putAll(context);
 
     this.refId = (String) context.remove("refId");
     this.startTimeExpiry =
@@ -114,6 +113,8 @@ public class Stage implements Serializable {
     this.requisiteStageRefIds =
         Optional.ofNullable((Collection<String>) context.remove("requisiteStageRefIds"))
             .orElse(emptySet());
+
+    this.context.putAll(context);
   }
 
   public Stage(Execution execution, String type, Map<String, Object> context) {
