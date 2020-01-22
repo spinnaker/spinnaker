@@ -50,6 +50,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
     val manifest = DeliveryConfig(
       name = "my-manifest",
       application = "fnord",
+      serviceAccount = "keel@spinnaker",
       artifacts = setOf(artifact1, artifact2, artifact3),
       environments = setOf(environment1, environment2)
     )

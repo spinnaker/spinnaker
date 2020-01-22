@@ -64,15 +64,11 @@ data class Resource<T : ResourceSpec>(
  */
 @JsonDeserialize(using = SubmittedResourceDeserializer::class)
 data class SubmittedResource<T : ResourceSpec>(
-  val metadata: Map<String, Any?>,
+  val metadata: Map<String, Any?> = emptyMap(),
   val apiVersion: ApiVersion,
   val kind: String,
   val spec: T
-) {
-  init {
-    require(metadata["serviceAccount"].isValidServiceAccount()) { "serviceAccount must be a valid service account" }
-  }
-}
+)
 
 val <T : ResourceSpec> SubmittedResource<T>.id: ResourceId
   get() = "${apiVersion.prefix}:$kind:${spec.id}".let(::ResourceId)

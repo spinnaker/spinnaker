@@ -61,18 +61,16 @@ internal class ResourceControllerTests {
 
   @Test
   fun `can't diff a resource when unauthorized`() {
-    every { authorizationSupport.userCanModifySpec("keel@spinnaker", any()) } returns false
+    every { authorizationSupport.userCanModifySpec("fzlem@netflix.com", any()) } returns false
 
     val request = post("/resources/diff")
       .accept(APPLICATION_JSON)
       .contentType(APPLICATION_JSON)
+      .header("X-SPINNAKER-USER", "fzlem@netflix.com")
       .content(
         """{
           |  "apiVersion": "test.spinnaker.netflix.com/v1",
           |  "kind": "whatever",
-          |  "metadata": {
-          |  "serviceAccount": "keel@spinnaker"
-          |  },
           |  "spec": {
           |    "data": "o hai"
           |  }
@@ -86,16 +84,16 @@ internal class ResourceControllerTests {
 
   @Test
   fun `an invalid request body results in an HTTP 400`() {
-    every { authorizationSupport.userCanModifySpec("keel@spinnaker", any()) } returns true
+    every { authorizationSupport.userCanModifySpec(any(), any()) } returns true
     val request = post("/resources/diff")
       .accept(APPLICATION_YAML)
       .contentType(APPLICATION_YAML)
+      .header("X-SPINNAKER-USER", "fzlem@netflix.com")
       .content(
         """---
           |apiVersion: test.spinnaker.netflix.com/v1
-          |kind: whatever
           |metadata:
-          |  name: i-forgot-my-service-account
+          |  name: i-forgot-my-kind
           |spec:
           |  data: o hai"""
           .trimMargin()

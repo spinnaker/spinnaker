@@ -21,6 +21,7 @@ fun deliveryConfig(
   deliveryConfig: DeliveryConfig = DeliveryConfig(
     name = configName,
     application = "fnord",
+    serviceAccount = "keel@spinnaker",
     artifacts = setOf(artifact),
     environments = setOf(env)
   )

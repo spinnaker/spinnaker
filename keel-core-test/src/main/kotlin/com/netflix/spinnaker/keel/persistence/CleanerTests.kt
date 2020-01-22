@@ -43,6 +43,7 @@ abstract class CleanerTests<D : DeliveryConfigRepository, R : ResourceRepository
   val deliveryConfig = DeliveryConfig(
     name = configName,
     application = "fnord",
+    serviceAccount = "keel@spinnaker",
     artifacts = setOf(artifact),
     environments = setOf(firstEnv)
   )

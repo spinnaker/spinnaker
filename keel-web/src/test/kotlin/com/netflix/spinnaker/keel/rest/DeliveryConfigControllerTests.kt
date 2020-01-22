@@ -82,6 +82,7 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
           SubmittedDeliveryConfig(
             name = "keel-manifest",
             application = "keel",
+            serviceAccount = "keel@spinnaker",
             artifacts = setOf(DebianArtifact(name = "keel")),
             environments = setOf(
               SubmittedEnvironment(
@@ -89,7 +90,6 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
                 resources = setOf(SubmittedResource(
                   apiVersion = SPINNAKER_API_V1.subApi("test"),
                   kind = "whatever",
-                  metadata = mapOf("serviceAccount" to "keel@spinnaker"),
                   spec = DummyResourceSpec(data = "resource in test")
                 ))
               ),
@@ -98,7 +98,6 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
                 resources = setOf(SubmittedResource(
                   apiVersion = SPINNAKER_API_V1.subApi("test"),
                   kind = "whatever",
-                  metadata = mapOf("serviceAccount" to "keel@spinnaker"),
                   spec = DummyResourceSpec(data = "resource in prod")
                 )),
                 constraints = setOf(DependsOnConstraint("test"))
@@ -133,6 +132,7 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
         """---
         |name: keel-manifest
         |application: keel
+        |serviceAccount: keel@spinnaker
         |artifacts:
         |- name: keel
         |  type: deb
@@ -141,8 +141,6 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
         |  resources:
         |  - apiVersion: test.spinnaker.netflix.com/v1
         |    kind: whatever
-        |    metadata:
-        |      serviceAccount: keel@spinnaker
         |    spec:
         |      data: resource in test
         |      application: someapp
@@ -157,8 +155,6 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
         |  resources:
         |  - apiVersion: test.spinnaker.netflix.com/v1
         |    kind: whatever
-        |    metadata:
-        |      serviceAccount: keel@spinnaker
         |    spec:
         |      data: resource in prod
         |      application: someapp
@@ -169,6 +165,7 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
         """{
         |  "name": "keel-manifest",
         |  "application": "keel",
+        |  "serviceAccount": "keel@spinnaker",
         |  "artifacts": [
         |    {
         |      "name": "keel",
@@ -182,9 +179,6 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
         |        {
         |          "apiVersion": "test.spinnaker.netflix.com/v1",
         |          "kind": "whatever",
-        |          "metadata": {
-        |            "serviceAccount": "keel@spinnaker"
-        |          },
         |          "spec": {
         |            "data": "resource in test",
         |            "application": "someapp"
@@ -217,9 +211,6 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
         |        {
         |          "apiVersion": "test.spinnaker.netflix.com/v1",
         |          "kind": "whatever",
-        |          "metadata": {
-        |            "serviceAccount": "keel@spinnaker"
-        |          },
         |          "spec": {
         |            "data": "resource in prod",
         |            "application": "someapp"

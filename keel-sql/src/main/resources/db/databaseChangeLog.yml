@@ -80,3 +80,6 @@ databaseChangeLog:
   - include:
       file: changelog/20200110-artifact-fingerprint-unique.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20200122-service-account-on-delivery-config.yml
+      relativeToChangelogFile: true

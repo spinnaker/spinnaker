@@ -84,6 +84,7 @@ class SampleDockerImageResolverTests : JUnit5Minutests {
     return DeliveryConfig(
       name = "mydeliveryconfig",
       application = "keel",
+      serviceAccount = "keel@spinnaker",
       artifacts = setOf(artifact),
       environments = setOf(env)
     )

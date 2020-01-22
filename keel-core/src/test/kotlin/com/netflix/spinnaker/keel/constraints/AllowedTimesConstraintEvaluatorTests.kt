@@ -42,6 +42,7 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
     val manifest = DeliveryConfig(
       name = "my-manifest",
       application = "fnord",
+      serviceAccount = "keel@spinnaker",
       artifacts = setOf(artifact),
       environments = setOf(environment)
     )

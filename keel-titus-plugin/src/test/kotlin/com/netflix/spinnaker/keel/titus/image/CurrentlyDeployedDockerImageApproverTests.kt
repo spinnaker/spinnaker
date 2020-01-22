@@ -72,6 +72,7 @@ internal class CurrentlyDeployedDockerImageApproverTests : JUnit5Minutests {
     val deliveryConfig = DeliveryConfig(
       name = "manifest",
       application = "waffles",
+      serviceAccount = "keel@spinnaker",
       artifacts = setOf(artifact),
       environments = setOf(testEnv)
     )

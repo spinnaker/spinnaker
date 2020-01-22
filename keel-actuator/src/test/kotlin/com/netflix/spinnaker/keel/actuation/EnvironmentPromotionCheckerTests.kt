@@ -48,6 +48,7 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
     val deliveryConfig = DeliveryConfig(
       name = "my-manifest",
       application = "fnord",
+      serviceAccount = "keel@spinnaker",
       environments = setOf(environment),
       artifacts = setOf(artifact)
     )

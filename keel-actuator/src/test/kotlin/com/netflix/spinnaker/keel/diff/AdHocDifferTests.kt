@@ -57,6 +57,7 @@ class AdHocDifferTests : JUnit5Minutests {
     val deliveryConfig = SubmittedDeliveryConfig(
       name = "keel-manifest",
       application = "keel",
+      serviceAccount = "keel@spinnaker",
       artifacts = setOf(DebianArtifact(name = "keel")),
       environments = setOf(
         SubmittedEnvironment(

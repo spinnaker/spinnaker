@@ -76,7 +76,11 @@ internal class Ec2CanaryConstraintDeployHandlerTests : JUnit5Minutests {
         capacity = 1
       ),
       version = "fnord-42.0.0-h42",
-      deliveryConfig = DeliveryConfig(name = "fnord-manifest", application = "fnord"),
+      deliveryConfig = DeliveryConfig(
+        name = "fnord-manifest",
+        application = "fnord",
+        serviceAccount = "keel@spinnaker"
+      ),
       targetEnvironment = Environment("prod"),
       regions = setOf("us-west-1", "us-west-2")
     )

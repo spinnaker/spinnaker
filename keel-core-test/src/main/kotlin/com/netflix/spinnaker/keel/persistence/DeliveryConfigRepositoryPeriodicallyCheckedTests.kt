@@ -13,7 +13,8 @@ abstract class DeliveryConfigRepositoryPeriodicallyCheckedTests<S : DeliveryConf
       .map { i ->
         DeliveryConfig(
           name = "delivery-config-$i",
-          application = "fnord"
+          application = "fnord",
+          serviceAccount = "keel@spinnaker"
         )
           .also(subject::store)
       }

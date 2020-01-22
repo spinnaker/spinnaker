@@ -56,12 +56,13 @@ class SqlDeliveryConfigRepository(
         .select(
           DELIVERY_CONFIG.UID,
           DELIVERY_CONFIG.NAME,
-          DELIVERY_CONFIG.APPLICATION
+          DELIVERY_CONFIG.APPLICATION,
+          DELIVERY_CONFIG.SERVICE_ACCOUNT
         )
         .from(DELIVERY_CONFIG)
         .where(DELIVERY_CONFIG.APPLICATION.eq(application))
-        .fetch { (uid, name, application) ->
-          DeliveryConfig(name, application).attachDependents(uid)
+        .fetch { (uid, name, application, serviceAccount) ->
+          DeliveryConfig(name, application, serviceAccount).attachDependents(uid)
         }
     }
 
@@ -201,6 +202,7 @@ class SqlDeliveryConfigRepository(
         .set(DELIVERY_CONFIG.UID, uid)
         .set(DELIVERY_CONFIG.NAME, name)
         .set(DELIVERY_CONFIG.APPLICATION, application)
+        .set(DELIVERY_CONFIG.SERVICE_ACCOUNT, serviceAccount)
         .onDuplicateKeyIgnore()
         .execute()
       artifacts.forEach { artifact ->
@@ -261,12 +263,13 @@ class SqlDeliveryConfigRepository(
         .select(
           DELIVERY_CONFIG.UID,
           DELIVERY_CONFIG.NAME,
-          DELIVERY_CONFIG.APPLICATION
+          DELIVERY_CONFIG.APPLICATION,
+          DELIVERY_CONFIG.SERVICE_ACCOUNT
         )
         .from(DELIVERY_CONFIG)
         .where(DELIVERY_CONFIG.NAME.eq(name))
-        .fetchOne { (uid, name, application) ->
-          uid to DeliveryConfig(name, application)
+        .fetchOne { (uid, name, application, serviceAccount) ->
+          uid to DeliveryConfig(name, application, serviceAccount)
         }
     }
       ?.let { (uid, deliveryConfig) ->

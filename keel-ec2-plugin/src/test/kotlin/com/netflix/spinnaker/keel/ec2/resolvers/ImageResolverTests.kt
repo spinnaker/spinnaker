@@ -137,10 +137,11 @@ internal class ImageResolverTests : JUnit5Minutests {
     )
 
     val deliveryConfig = DeliveryConfig(
-      "my-manifest",
-      "fnord",
-      setOf(artifact),
-      setOf(
+      name = "my-manifest",
+      application = "fnord",
+      serviceAccount = "keel@spinnaker",
+      artifacts = setOf(artifact),
+      environments = setOf(
         Environment(name = "test", resources = setOf(resource))
       )
     )

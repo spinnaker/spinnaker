@@ -72,7 +72,12 @@ class TaskLauncherTests : JUnit5Minutests {
           resources = setOf(resource),
           notifications = setOf(notification)
         )
-        val deliveryConfig = DeliveryConfig(name = "keel", application = "keel", environments = setOf(env))
+        val deliveryConfig = DeliveryConfig(
+          name = "keel",
+          application = "keel",
+          serviceAccount = "keel@spinnaker",
+          environments = setOf(env)
+        )
         deliveryConfigRepository.store(deliveryConfig)
 
         runBlocking {

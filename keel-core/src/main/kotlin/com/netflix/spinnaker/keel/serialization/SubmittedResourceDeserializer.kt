@@ -14,13 +14,13 @@ class SubmittedResourceDeserializer : StdNodeBasedDeserializer<SubmittedResource
 
   override fun convert(root: JsonNode, context: DeserializationContext): SubmittedResource<*> {
     with(context) {
-      val apiVersion = root.get("apiVersion").textValue().let(::ApiVersion)
-      val kind = root.get("kind").textValue()
-      val metadata = mapper.convertValue<Map<String, Any?>>(root.get("metadata"))
-      val specType = resolveResourceSpecType(apiVersion, kind)
-      val spec = mapper.convertValue(root.get("spec"), specType) as ResourceSpec
-
       try {
+        val apiVersion = root.path("apiVersion").textValue().let(::ApiVersion)
+        val kind = root.path("kind").textValue()
+        val specType = resolveResourceSpecType(apiVersion, kind)
+        val metadata = mapper.convertValue<Map<String, Any?>?>(root.path("metadata")) ?: emptyMap()
+        val spec = mapper.convertValue(root.path("spec"), specType) as ResourceSpec
+
         return SubmittedResource(metadata, apiVersion, kind, spec)
       } catch (e: Exception) {
         throw instantiationException<SubmittedResource<*>>(e)

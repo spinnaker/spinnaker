@@ -43,6 +43,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
@@ -99,8 +100,8 @@ class ResourceController(
     consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
-  @PreAuthorize("@authorizationSupport.userCanModifySpec(#resource.metadata[serviceAccount], #resource.spec)")
-  fun diff(@RequestBody resource: SubmittedResource<*>): DiffResult {
+  @PreAuthorize("@authorizationSupport.userCanModifySpec(#user, #resource.spec)")
+  fun diff(@RequestHeader("X-SPINNAKER-USER") user: String, @RequestBody resource: SubmittedResource<*>): DiffResult {
     log.debug("Diffing: $resource")
     return runBlocking { adHocDiffer.calculate(resource) }
   }

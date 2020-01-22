@@ -41,7 +41,11 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
     val deliveryConfigRepositoryProvider: (ResourceTypeIdentifier) -> T,
     val resourceRepositoryProvider: () -> R,
     val artifactRepositoryProvider: () -> A,
-    val deliveryConfig: DeliveryConfig = DeliveryConfig("keel", "keel")
+    val deliveryConfig: DeliveryConfig = DeliveryConfig(
+      name = "keel",
+      application = "keel",
+      serviceAccount = "keel@spinnaker"
+    )
   ) {
     private val resourceTypeIdentifier: ResourceTypeIdentifier =
       object : ResourceTypeIdentifier {

@@ -54,12 +54,17 @@ class ResourcePersister(
     val new = DeliveryConfig(
       name = deliveryConfig.name,
       application = deliveryConfig.application,
+      serviceAccount = deliveryConfig.serviceAccount,
       artifacts = deliveryConfig.artifacts.transform(deliveryConfig.name),
       environments = deliveryConfig.environments.mapTo(mutableSetOf()) { env ->
         Environment(
           name = env.name,
           resources = env.resources.mapTo(mutableSetOf()) { resource ->
-            upsert(resource)
+            upsert(
+              resource.copy(
+                metadata = mapOf("serviceAccount" to deliveryConfig.serviceAccount) + resource.metadata
+              )
+            )
           },
           constraints = env.constraints,
           notifications = env.notifications

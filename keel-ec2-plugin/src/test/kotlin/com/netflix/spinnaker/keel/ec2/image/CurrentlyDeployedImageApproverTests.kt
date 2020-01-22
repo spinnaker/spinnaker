@@ -131,6 +131,7 @@ internal class CurrentlyDeployedImageApproverTests : JUnit5Minutests {
     val deliveryConfig = DeliveryConfig(
       name = "manifest",
       application = "fnord",
+      serviceAccount = "keel@spinnaker",
       artifacts = setOf(artifact),
       environments = setOf(testEnv)
     )

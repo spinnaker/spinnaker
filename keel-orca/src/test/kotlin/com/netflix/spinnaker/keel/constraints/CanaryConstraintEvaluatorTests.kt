@@ -77,6 +77,7 @@ internal class CanaryConstraintEvaluatorTests : JUnit5Minutests {
     val deliveryConfig: DeliveryConfig = DeliveryConfig(
       name = "fnord-manifest",
       application = "fnord",
+      serviceAccount = "keel@spinnaker",
       environments = setOf(
         Environment(
           name = "test",

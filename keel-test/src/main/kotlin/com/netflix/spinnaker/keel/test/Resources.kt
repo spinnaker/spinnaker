@@ -107,10 +107,7 @@ fun <T : ResourceSpec> submittedResource(
   SubmittedResource(
     apiVersion = apiVersion,
     kind = kind,
-    spec = spec,
-    metadata = mapOf(
-      "serviceAccount" to "keel@spinnaker"
-    )
+    spec = spec
   )
 
 data class DummyResourceSpec(
