@@ -7,20 +7,10 @@ Method | HTTP request | Description
 [**CancelPipelineUsingPUT1**](PipelineControllerApi.md#CancelPipelineUsingPUT1) | **Put** /pipelines/{id}/cancel | Cancel a pipeline execution
 [**DeletePipelineUsingDELETE**](PipelineControllerApi.md#DeletePipelineUsingDELETE) | **Delete** /pipelines/{application}/{pipelineName} | Delete a pipeline definition
 [**DeletePipelineUsingDELETE1**](PipelineControllerApi.md#DeletePipelineUsingDELETE1) | **Delete** /pipelines/{id} | Delete a pipeline execution
-[**EvaluateExpressionForExecutionAtStageUsingDELETE**](PipelineControllerApi.md#EvaluateExpressionForExecutionAtStageUsingDELETE) | **Delete** /pipelines/{id}/{stageId}/evaluateExpression | Evaluate a pipeline expression at a specific stage using the provided execution as context
 [**EvaluateExpressionForExecutionAtStageUsingGET**](PipelineControllerApi.md#EvaluateExpressionForExecutionAtStageUsingGET) | **Get** /pipelines/{id}/{stageId}/evaluateExpression | Evaluate a pipeline expression at a specific stage using the provided execution as context
-[**EvaluateExpressionForExecutionAtStageUsingHEAD**](PipelineControllerApi.md#EvaluateExpressionForExecutionAtStageUsingHEAD) | **Head** /pipelines/{id}/{stageId}/evaluateExpression | Evaluate a pipeline expression at a specific stage using the provided execution as context
-[**EvaluateExpressionForExecutionAtStageUsingOPTIONS**](PipelineControllerApi.md#EvaluateExpressionForExecutionAtStageUsingOPTIONS) | **Options** /pipelines/{id}/{stageId}/evaluateExpression | Evaluate a pipeline expression at a specific stage using the provided execution as context
-[**EvaluateExpressionForExecutionAtStageUsingPATCH**](PipelineControllerApi.md#EvaluateExpressionForExecutionAtStageUsingPATCH) | **Patch** /pipelines/{id}/{stageId}/evaluateExpression | Evaluate a pipeline expression at a specific stage using the provided execution as context
-[**EvaluateExpressionForExecutionAtStageUsingPOST**](PipelineControllerApi.md#EvaluateExpressionForExecutionAtStageUsingPOST) | **Post** /pipelines/{id}/{stageId}/evaluateExpression | Evaluate a pipeline expression at a specific stage using the provided execution as context
-[**EvaluateExpressionForExecutionAtStageUsingPUT**](PipelineControllerApi.md#EvaluateExpressionForExecutionAtStageUsingPUT) | **Put** /pipelines/{id}/{stageId}/evaluateExpression | Evaluate a pipeline expression at a specific stage using the provided execution as context
-[**EvaluateExpressionForExecutionUsingDELETE**](PipelineControllerApi.md#EvaluateExpressionForExecutionUsingDELETE) | **Delete** /pipelines/{id}/evaluateExpression | Evaluate a pipeline expression using the provided execution as context
 [**EvaluateExpressionForExecutionUsingGET**](PipelineControllerApi.md#EvaluateExpressionForExecutionUsingGET) | **Get** /pipelines/{id}/evaluateExpression | Evaluate a pipeline expression using the provided execution as context
-[**EvaluateExpressionForExecutionUsingHEAD**](PipelineControllerApi.md#EvaluateExpressionForExecutionUsingHEAD) | **Head** /pipelines/{id}/evaluateExpression | Evaluate a pipeline expression using the provided execution as context
-[**EvaluateExpressionForExecutionUsingOPTIONS**](PipelineControllerApi.md#EvaluateExpressionForExecutionUsingOPTIONS) | **Options** /pipelines/{id}/evaluateExpression | Evaluate a pipeline expression using the provided execution as context
-[**EvaluateExpressionForExecutionUsingPATCH**](PipelineControllerApi.md#EvaluateExpressionForExecutionUsingPATCH) | **Patch** /pipelines/{id}/evaluateExpression | Evaluate a pipeline expression using the provided execution as context
-[**EvaluateExpressionForExecutionUsingPUT**](PipelineControllerApi.md#EvaluateExpressionForExecutionUsingPUT) | **Put** /pipelines/{id}/evaluateExpression | Evaluate a pipeline expression using the provided execution as context
-[**EvaluateExpressionForExecutionViaPOSTUsingPOST1**](PipelineControllerApi.md#EvaluateExpressionForExecutionViaPOSTUsingPOST1) | **Post** /pipelines/{id}/evaluateExpression | Evaluate a pipeline expression using the provided execution as context
+[**EvaluateExpressionForExecutionViaPOSTUsingPOST**](PipelineControllerApi.md#EvaluateExpressionForExecutionViaPOSTUsingPOST) | **Post** /pipelines/{id}/evaluateExpression | Evaluate a pipeline expression using the provided execution as context
+[**EvaluateVariablesUsingPOST**](PipelineControllerApi.md#EvaluateVariablesUsingPOST) | **Post** /pipelines/{id}/evaluateVariables | Evaluate variables same as Evaluate Variables stage using the provided execution as context
 [**GetPipelineUsingGET**](PipelineControllerApi.md#GetPipelineUsingGET) | **Get** /pipelines/{id} | Retrieve a pipeline execution
 [**InvokePipelineConfigUsingPOST1**](PipelineControllerApi.md#InvokePipelineConfigUsingPOST1) | **Post** /pipelines/{application}/{pipelineNameOrId} | Trigger a pipeline execution
 [**InvokePipelineConfigViaEchoUsingPOST**](PipelineControllerApi.md#InvokePipelineConfigViaEchoUsingPOST) | **Post** /pipelines/v2/{application}/{pipelineNameOrId} | Trigger a pipeline execution
@@ -123,34 +113,6 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **EvaluateExpressionForExecutionAtStageUsingDELETE**
-> map[string]interface{} EvaluateExpressionForExecutionAtStageUsingDELETE(ctx, expression, id, stageId)
-Evaluate a pipeline expression at a specific stage using the provided execution as context
-
-### Required Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
-  **expression** | **string**| expression | 
-  **id** | **string**| id | 
-  **stageId** | **string**| stageId | 
-
-### Return type
-
-[**map[string]interface{}**](interface{}.md)
-
-### Authorization
-
-No authorization required
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: */*
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
 # **EvaluateExpressionForExecutionAtStageUsingGET**
 > map[string]interface{} EvaluateExpressionForExecutionAtStageUsingGET(ctx, expression, id, stageId)
 Evaluate a pipeline expression at a specific stage using the provided execution as context
@@ -163,173 +125,6 @@ Name | Type | Description  | Notes
   **expression** | **string**| expression | 
   **id** | **string**| id | 
   **stageId** | **string**| stageId | 
-
-### Return type
-
-[**map[string]interface{}**](interface{}.md)
-
-### Authorization
-
-No authorization required
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: */*
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **EvaluateExpressionForExecutionAtStageUsingHEAD**
-> map[string]interface{} EvaluateExpressionForExecutionAtStageUsingHEAD(ctx, expression, id, stageId)
-Evaluate a pipeline expression at a specific stage using the provided execution as context
-
-### Required Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
-  **expression** | **string**| expression | 
-  **id** | **string**| id | 
-  **stageId** | **string**| stageId | 
-
-### Return type
-
-[**map[string]interface{}**](interface{}.md)
-
-### Authorization
-
-No authorization required
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: */*
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **EvaluateExpressionForExecutionAtStageUsingOPTIONS**
-> map[string]interface{} EvaluateExpressionForExecutionAtStageUsingOPTIONS(ctx, expression, id, stageId)
-Evaluate a pipeline expression at a specific stage using the provided execution as context
-
-### Required Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
-  **expression** | **string**| expression | 
-  **id** | **string**| id | 
-  **stageId** | **string**| stageId | 
-
-### Return type
-
-[**map[string]interface{}**](interface{}.md)
-
-### Authorization
-
-No authorization required
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: */*
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **EvaluateExpressionForExecutionAtStageUsingPATCH**
-> map[string]interface{} EvaluateExpressionForExecutionAtStageUsingPATCH(ctx, expression, id, stageId)
-Evaluate a pipeline expression at a specific stage using the provided execution as context
-
-### Required Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
-  **expression** | **string**| expression | 
-  **id** | **string**| id | 
-  **stageId** | **string**| stageId | 
-
-### Return type
-
-[**map[string]interface{}**](interface{}.md)
-
-### Authorization
-
-No authorization required
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: */*
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **EvaluateExpressionForExecutionAtStageUsingPOST**
-> map[string]interface{} EvaluateExpressionForExecutionAtStageUsingPOST(ctx, expression, id, stageId)
-Evaluate a pipeline expression at a specific stage using the provided execution as context
-
-### Required Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
-  **expression** | **string**| expression | 
-  **id** | **string**| id | 
-  **stageId** | **string**| stageId | 
-
-### Return type
-
-[**map[string]interface{}**](interface{}.md)
-
-### Authorization
-
-No authorization required
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: */*
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **EvaluateExpressionForExecutionAtStageUsingPUT**
-> map[string]interface{} EvaluateExpressionForExecutionAtStageUsingPUT(ctx, expression, id, stageId)
-Evaluate a pipeline expression at a specific stage using the provided execution as context
-
-### Required Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
-  **expression** | **string**| expression | 
-  **id** | **string**| id | 
-  **stageId** | **string**| stageId | 
-
-### Return type
-
-[**map[string]interface{}**](interface{}.md)
-
-### Authorization
-
-No authorization required
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: */*
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **EvaluateExpressionForExecutionUsingDELETE**
-> map[string]interface{} EvaluateExpressionForExecutionUsingDELETE(ctx, expression, id)
-Evaluate a pipeline expression using the provided execution as context
-
-### Required Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
-  **expression** | **string**| expression | 
-  **id** | **string**| id | 
 
 ### Return type
 
@@ -373,116 +168,8 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **EvaluateExpressionForExecutionUsingHEAD**
-> map[string]interface{} EvaluateExpressionForExecutionUsingHEAD(ctx, expression, id)
-Evaluate a pipeline expression using the provided execution as context
-
-### Required Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
-  **expression** | **string**| expression | 
-  **id** | **string**| id | 
-
-### Return type
-
-[**map[string]interface{}**](interface{}.md)
-
-### Authorization
-
-No authorization required
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: */*
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **EvaluateExpressionForExecutionUsingOPTIONS**
-> map[string]interface{} EvaluateExpressionForExecutionUsingOPTIONS(ctx, expression, id)
-Evaluate a pipeline expression using the provided execution as context
-
-### Required Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
-  **expression** | **string**| expression | 
-  **id** | **string**| id | 
-
-### Return type
-
-[**map[string]interface{}**](interface{}.md)
-
-### Authorization
-
-No authorization required
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: */*
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **EvaluateExpressionForExecutionUsingPATCH**
-> map[string]interface{} EvaluateExpressionForExecutionUsingPATCH(ctx, expression, id)
-Evaluate a pipeline expression using the provided execution as context
-
-### Required Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
-  **expression** | **string**| expression | 
-  **id** | **string**| id | 
-
-### Return type
-
-[**map[string]interface{}**](interface{}.md)
-
-### Authorization
-
-No authorization required
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: */*
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **EvaluateExpressionForExecutionUsingPUT**
-> map[string]interface{} EvaluateExpressionForExecutionUsingPUT(ctx, expression, id)
-Evaluate a pipeline expression using the provided execution as context
-
-### Required Parameters
-
-Name | Type | Description  | Notes
-------------- | ------------- | ------------- | -------------
- **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
-  **expression** | **string**| expression | 
-  **id** | **string**| id | 
-
-### Return type
-
-[**map[string]interface{}**](interface{}.md)
-
-### Authorization
-
-No authorization required
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: */*
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **EvaluateExpressionForExecutionViaPOSTUsingPOST1**
-> map[string]interface{} EvaluateExpressionForExecutionViaPOSTUsingPOST1(ctx, id, pipelineExpression)
+# **EvaluateExpressionForExecutionViaPOSTUsingPOST**
+> map[string]interface{} EvaluateExpressionForExecutionViaPOSTUsingPOST(ctx, id, pipelineExpression)
 Evaluate a pipeline expression using the provided execution as context
 
 ### Required Parameters
@@ -492,6 +179,44 @@ Name | Type | Description  | Notes
  **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
   **id** | **string**| id | 
   **pipelineExpression** | [**interface{}**](interface{}.md)| pipelineExpression | 
+
+### Return type
+
+[**map[string]interface{}**](interface{}.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: */*
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **EvaluateVariablesUsingPOST**
+> map[string]interface{} EvaluateVariablesUsingPOST(ctx, executionId, expressions, optional)
+Evaluate variables same as Evaluate Variables stage using the provided execution as context
+
+### Required Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **ctx** | **context.Context** | context for logging, tracing, authentication, etc.
+  **executionId** | **string**| Execution id to run against | 
+  **expressions** | [**[]Mapstringstring**](Map«string,string».md)| List of variables/expressions to evaluate | 
+ **optional** | **map[string]interface{}** | optional parameters | nil if no parameters
+
+### Optional Parameters
+Optional parameters are passed through a map[string]interface{}.
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **executionId** | **string**| Execution id to run against | 
+ **expressions** | [**[]Mapstringstring**](Map«string,string».md)| List of variables/expressions to evaluate | 
+ **requisiteStageRefIds** | **string**| Comma separated list of requisite stage IDs for the evaluation stage | 
+ **spelVersion** | **string**| Version of SpEL evaluation logic to use (v3 or v4) | 
 
 ### Return type
 
@@ -535,7 +260,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **InvokePipelineConfigUsingPOST1**
-> HttpEntity InvokePipelineConfigUsingPOST1(ctx, application, pipelineNameOrId, optional)
+> InvokePipelineConfigUsingPOST1(ctx, application, pipelineNameOrId, optional)
 Trigger a pipeline execution
 
 ### Required Parameters
@@ -558,7 +283,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**HttpEntity**](HttpEntity.md)
+ (empty response body)
 
 ### Authorization
 

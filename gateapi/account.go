@@ -11,17 +11,17 @@ package swagger
 
 type Account struct {
 
-	AccountId string `json:"accountId,omitempty"`
-
-	Permissions map[string][]string `json:"permissions,omitempty"`
+	Skin string `json:"skin,omitempty"`
 
 	RequiredGroupMembership []string `json:"requiredGroupMembership,omitempty"`
 
-	Name string `json:"name,omitempty"`
+	AccountId string `json:"accountId,omitempty"`
 
 	ProviderVersion string `json:"providerVersion,omitempty"`
 
-	Skin string `json:"skin,omitempty"`
+	Permissions map[string][]string `json:"permissions,omitempty"`
+
+	Name string `json:"name,omitempty"`
 
 	Type_ string `json:"type,omitempty"`
 }

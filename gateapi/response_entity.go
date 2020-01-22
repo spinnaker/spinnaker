@@ -11,9 +11,9 @@ package swagger
 
 type ResponseEntity struct {
 
-	StatusCodeValue int32 `json:"statusCodeValue,omitempty"`
-
 	StatusCode string `json:"statusCode,omitempty"`
 
 	Body *interface{} `json:"body,omitempty"`
+
+	StatusCodeValue int32 `json:"statusCodeValue,omitempty"`
 }
