@@ -15,7 +15,7 @@ jobs:
     #    query: 'label:build-cop-rotation'
     #    token: ${{ secrets.SPINNAKERBOT_GHA_BUILD_COP_TOKEN }}
     - id: rotation
-      uses: lee-dohm/team-rotation@v1
+      uses: lee-dohm/team-rotation@76c68f419feb4d70efaae2a83b2f04bba8977eb1
       with:
         teamName: "@spinnaker/build-cops"
         token: ${{ secrets.SPINNAKERBOT_GHA_BUILD_COP_TOKEN }}
