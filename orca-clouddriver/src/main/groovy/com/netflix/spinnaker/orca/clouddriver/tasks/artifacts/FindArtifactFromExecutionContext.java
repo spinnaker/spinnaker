@@ -17,25 +17,26 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.artifacts;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
+import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNullableByDefault;
 import lombok.Data;
 import lombok.Getter;
 
 @Getter
 public class FindArtifactFromExecutionContext extends HashMap<String, Object> {
   private final ExecutionOptions executionOptions;
-  private final List<ExpectedArtifact> expectedArtifacts;
+  @Nonnull private final ImmutableList<ExpectedArtifact> expectedArtifacts;
   private final String pipeline;
 
   // There does not seem to be a way to auto-generate a constructor using our current version of
-  // Lombok (1.16.20) that
-  // Jackson can use to deserialize.
+  // Lombok (1.16.20) that Jackson can use to deserialize.
+  @ParametersAreNullableByDefault
   public FindArtifactFromExecutionContext(
       @JsonProperty("executionOptions") ExecutionOptions executionOptions,
       @JsonProperty("expectedArtifact") ExpectedArtifact expectedArtifact,
@@ -43,8 +44,13 @@ public class FindArtifactFromExecutionContext extends HashMap<String, Object> {
       @JsonProperty("pipeline") String pipeline) {
     this.executionOptions = executionOptions;
     // Previously, this stage accepted only one expected artifact
-    this.expectedArtifacts =
-        Optional.ofNullable(expectedArtifacts).orElse(Collections.singletonList(expectedArtifact));
+    if (expectedArtifacts != null) {
+      this.expectedArtifacts = ImmutableList.copyOf(expectedArtifacts);
+    } else if (expectedArtifact != null) {
+      this.expectedArtifacts = ImmutableList.of(expectedArtifact);
+    } else {
+      this.expectedArtifacts = ImmutableList.of();
+    }
     this.pipeline = pipeline;
   }
 

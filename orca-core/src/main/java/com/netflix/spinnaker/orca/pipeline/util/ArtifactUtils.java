@@ -16,16 +16,17 @@
 
 package com.netflix.spinnaker.orca.pipeline.util;
 
-import static java.lang.String.format;
+import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
-import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.model.StageContext;
@@ -34,19 +35,15 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.Execu
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -228,53 +225,33 @@ public class ArtifactUtils {
 
   public void resolveArtifacts(@Nonnull Map pipeline) {
     Map<String, Object> trigger = (Map<String, Object>) pipeline.get("trigger");
-    List<ExpectedArtifact> expectedArtifacts =
-        Optional.ofNullable((List<?>) pipeline.get("expectedArtifacts"))
-            .map(
-                list ->
-                    list.stream()
-                        .map(it -> objectMapper.convertValue(it, ExpectedArtifact.class))
-                        .collect(toList()))
-            .orElse(emptyList());
+    ImmutableList<ExpectedArtifact> expectedArtifacts =
+        Optional.ofNullable((List<?>) pipeline.get("expectedArtifacts")).orElse(emptyList())
+            .stream()
+            .map(it -> objectMapper.convertValue(it, ExpectedArtifact.class))
+            .collect(toImmutableList());
 
-    List<Artifact> receivedArtifactsFromPipeline =
-        Optional.ofNullable((List<?>) pipeline.get("receivedArtifacts"))
-            .map(
-                list ->
-                    list.stream()
-                        .map(it -> objectMapper.convertValue(it, Artifact.class))
-                        .collect(toList()))
-            .orElse(emptyList());
-    List<Artifact> artifactsFromTrigger =
-        Optional.ofNullable((List<?>) trigger.get("artifacts"))
-            .map(
-                list ->
-                    list.stream()
-                        .map(it -> objectMapper.convertValue(it, Artifact.class))
-                        .collect(toList()))
-            .orElse(emptyList());
+    ImmutableSet<Artifact> receivedArtifacts =
+        Stream.concat(
+                Optional.ofNullable((List<?>) pipeline.get("receivedArtifacts")).orElse(emptyList())
+                    .stream(),
+                Optional.ofNullable((List<?>) trigger.get("artifacts")).orElse(emptyList())
+                    .stream())
+            .map(it -> objectMapper.convertValue(it, Artifact.class))
+            .collect(toImmutableSet());
 
-    List<Artifact> receivedArtifacts =
-        Stream.concat(receivedArtifactsFromPipeline.stream(), artifactsFromTrigger.stream())
-            .distinct()
-            .collect(toList());
+    ArtifactResolver.ResolveResult resolveResult =
+        ArtifactResolver.getInstance(
+                receivedArtifacts,
+                () -> getPriorArtifacts(pipeline),
+                /* requireUniqueMatches= */ true)
+            .resolveExpectedArtifacts(expectedArtifacts);
 
-    if (expectedArtifacts.isEmpty()) {
-      try {
-        trigger.put(
-            "artifacts",
-            objectMapper.readValue(objectMapper.writeValueAsString(receivedArtifacts), List.class));
-      } catch (IOException e) {
-        log.warn("Failure storing received artifacts: {}", e.getMessage(), e);
-      }
-      return;
-    }
-
-    List<Artifact> priorArtifacts = getPriorArtifacts(pipeline);
-    LinkedHashSet<Artifact> resolvedArtifacts =
-        resolveExpectedArtifacts(expectedArtifacts, receivedArtifacts, priorArtifacts, true);
-    LinkedHashSet<Artifact> allArtifacts = new LinkedHashSet<>(receivedArtifacts);
-    allArtifacts.addAll(resolvedArtifacts);
+    ImmutableSet<Artifact> allArtifacts =
+        ImmutableSet.<Artifact>builder()
+            .addAll(receivedArtifacts)
+            .addAll(resolveResult.getResolvedArtifacts())
+            .build();
 
     try {
       trigger.put(
@@ -282,11 +259,13 @@ public class ArtifactUtils {
           objectMapper.readValue(objectMapper.writeValueAsString(allArtifacts), List.class));
       trigger.put(
           "expectedArtifacts",
-          objectMapper.readValue(objectMapper.writeValueAsString(expectedArtifacts), List.class));
+          objectMapper.readValue(
+              objectMapper.writeValueAsString(resolveResult.getResolvedExpectedArtifacts()),
+              List.class));
       trigger.put(
           "resolvedExpectedArtifacts",
           objectMapper.readValue(
-              objectMapper.writeValueAsString(expectedArtifacts),
+              objectMapper.writeValueAsString(resolveResult.getResolvedExpectedArtifacts()),
               List.class)); // Add the actual expectedArtifacts we included in the ids.
     } catch (IOException e) {
       throw new ArtifactResolutionException(
@@ -304,87 +283,6 @@ public class ArtifactUtils {
     return getArtifactsForPipelineId((String) pipeline.get("id"), criteria);
   }
 
-  public Artifact resolveSingleArtifact(
-      ExpectedArtifact expectedArtifact,
-      List<Artifact> possibleMatches,
-      List<Artifact> priorArtifacts,
-      boolean requireUniqueMatches) {
-    Artifact resolved =
-        matchSingleArtifact(expectedArtifact, possibleMatches, requireUniqueMatches);
-
-    if (resolved == null && expectedArtifact.isUsePriorArtifact() && priorArtifacts != null) {
-      resolved = matchSingleArtifact(expectedArtifact, priorArtifacts, requireUniqueMatches);
-      expectedArtifact.setBoundArtifact(resolved);
-    }
-
-    if (resolved == null
-        && expectedArtifact.isUseDefaultArtifact()
-        && expectedArtifact.getDefaultArtifact() != null) {
-      resolved = expectedArtifact.getDefaultArtifact();
-      expectedArtifact.setBoundArtifact(resolved);
-    }
-
-    return resolved;
-  }
-
-  private Artifact matchSingleArtifact(
-      ExpectedArtifact expectedArtifact,
-      List<Artifact> possibleMatches,
-      boolean requireUniqueMatches) {
-    if (expectedArtifact.getBoundArtifact() != null) {
-      return expectedArtifact.getBoundArtifact();
-    }
-    List<Artifact> matches =
-        possibleMatches.stream().filter(expectedArtifact::matches).collect(toList());
-    Artifact result;
-    switch (matches.size()) {
-      case 0:
-        return null;
-      case 1:
-        result = matches.get(0);
-        break;
-      default:
-        if (requireUniqueMatches) {
-          throw new InvalidRequestException(
-              "Expected artifact " + expectedArtifact + " matches multiple artifacts " + matches);
-        }
-        result = matches.get(0);
-    }
-
-    expectedArtifact.setBoundArtifact(result);
-    return result;
-  }
-
-  public Set<Artifact> resolveExpectedArtifacts(
-      List<ExpectedArtifact> expectedArtifacts,
-      List<Artifact> receivedArtifacts,
-      boolean requireUniqueMatches) {
-    return resolveExpectedArtifacts(
-        expectedArtifacts, receivedArtifacts, null, requireUniqueMatches);
-  }
-
-  public LinkedHashSet<Artifact> resolveExpectedArtifacts(
-      List<ExpectedArtifact> expectedArtifacts,
-      List<Artifact> receivedArtifacts,
-      List<Artifact> priorArtifacts,
-      boolean requireUniqueMatches) {
-    LinkedHashSet<Artifact> resolvedArtifacts = new LinkedHashSet<>();
-
-    for (ExpectedArtifact expectedArtifact : expectedArtifacts) {
-      Artifact resolved =
-          resolveSingleArtifact(
-              expectedArtifact, receivedArtifacts, priorArtifacts, requireUniqueMatches);
-      if (resolved == null) {
-        throw new InvalidRequestException(
-            format("Unmatched expected artifact %s could not be resolved.", expectedArtifact));
-      } else {
-        resolvedArtifacts.add(resolved);
-      }
-    }
-
-    return resolvedArtifacts;
-  }
-
   private Execution getExecutionForPipelineId(
       @Nonnull String pipelineId, @Nonnull ExecutionCriteria criteria) {
     return executionRepository.retrievePipelinesForPipelineConfigId(pipelineId, criteria)
@@ -397,12 +295,6 @@ public class ArtifactUtils {
     ArtifactResolutionException(String message, Throwable cause) {
       super(message, cause);
     }
-  }
-
-  @Data
-  public static class ResolveResult {
-    Set<Artifact> resolvedArtifacts = new HashSet<>();
-    Set<ExpectedArtifact> unresolvedExpectedArtifacts = new HashSet<>();
   }
 
   private static Func2<Execution, Execution, Integer> startTimeOrId =

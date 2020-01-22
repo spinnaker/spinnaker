@@ -62,6 +62,7 @@ dependencies {
   testImplementation(project(":orca-test"))
   testImplementation(project(":orca-test-groovy"))
   testImplementation("org.junit.jupiter:junit-jupiter-api")
+  testImplementation("org.junit.platform:junit-platform-runner")
   testImplementation("org.assertj:assertj-core")
 
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-api")

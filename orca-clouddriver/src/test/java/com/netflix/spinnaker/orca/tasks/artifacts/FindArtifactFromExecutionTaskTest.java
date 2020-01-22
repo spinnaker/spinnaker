@@ -21,7 +21,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
 import com.netflix.spinnaker.orca.TaskResult;
@@ -32,7 +31,6 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.runner.JUnitPlatform;
@@ -54,7 +52,6 @@ final class FindArtifactFromExecutionTaskTest {
   void findsSingleArtifact() {
     ImmutableList<ExpectedArtifact> expectedArtifacts = ImmutableList.of(EXPECTED_ARTIFACT_A);
     ImmutableList<Artifact> pipelineArtifacts = ImmutableList.of(ARTIFACT_A, ARTIFACT_B);
-    LinkedHashSet<Artifact> resolvedArtifacts = new LinkedHashSet<>(ImmutableSet.of(ARTIFACT_A));
     Stage stage =
         new Stage(
             mock(Execution.class), "findArtifactFromExecution", getStageContext(expectedArtifacts));
@@ -63,15 +60,14 @@ final class FindArtifactFromExecutionTaskTest {
     when(artifactUtils.getArtifactsForPipelineId(
             eq(PIPELINE), any(ExecutionRepository.ExecutionCriteria.class)))
         .thenReturn(pipelineArtifacts);
-    when(artifactUtils.resolveExpectedArtifacts(expectedArtifacts, pipelineArtifacts, null, false))
-        .thenReturn(resolvedArtifacts);
 
     FindArtifactFromExecutionTask task = new FindArtifactFromExecutionTask(artifactUtils);
     TaskResult result = task.execute(stage);
 
     Collection<ExpectedArtifact> resolvedExpectedArtifacts =
         (Collection<ExpectedArtifact>) result.getContext().get("resolvedExpectedArtifacts");
-    assertThat(resolvedExpectedArtifacts).containsExactly(EXPECTED_ARTIFACT_A);
+    assertThat(resolvedExpectedArtifacts)
+        .containsExactly(withBoundArtifact(EXPECTED_ARTIFACT_A, ARTIFACT_A));
 
     Collection<Artifact> artifacts = (Collection<Artifact>) result.getContext().get("artifacts");
     assertThat(artifacts).containsExactly(ARTIFACT_A);
@@ -82,8 +78,6 @@ final class FindArtifactFromExecutionTaskTest {
     ImmutableList<ExpectedArtifact> expectedArtifacts =
         ImmutableList.of(EXPECTED_ARTIFACT_A, EXPECTED_ARTIFACT_B);
     ImmutableList<Artifact> pipelineArtifacts = ImmutableList.of(ARTIFACT_A, ARTIFACT_B);
-    LinkedHashSet<Artifact> resolvedArtifacts =
-        new LinkedHashSet<>(ImmutableSet.of(ARTIFACT_A, ARTIFACT_B));
     Stage stage =
         new Stage(
             mock(Execution.class), "findArtifactFromExecution", getStageContext(expectedArtifacts));
@@ -92,15 +86,16 @@ final class FindArtifactFromExecutionTaskTest {
     when(artifactUtils.getArtifactsForPipelineId(
             eq(PIPELINE), any(ExecutionRepository.ExecutionCriteria.class)))
         .thenReturn(pipelineArtifacts);
-    when(artifactUtils.resolveExpectedArtifacts(expectedArtifacts, pipelineArtifacts, null, false))
-        .thenReturn(resolvedArtifacts);
 
     FindArtifactFromExecutionTask task = new FindArtifactFromExecutionTask(artifactUtils);
     TaskResult result = task.execute(stage);
 
     Collection<ExpectedArtifact> resolvedExpectedArtifacts =
         (Collection<ExpectedArtifact>) result.getContext().get("resolvedExpectedArtifacts");
-    assertThat(resolvedExpectedArtifacts).containsExactly(EXPECTED_ARTIFACT_A, EXPECTED_ARTIFACT_B);
+    assertThat(resolvedExpectedArtifacts)
+        .containsExactly(
+            withBoundArtifact(EXPECTED_ARTIFACT_A, ARTIFACT_A),
+            withBoundArtifact(EXPECTED_ARTIFACT_B, ARTIFACT_B));
 
     Collection<Artifact> artifacts = (Collection<Artifact>) result.getContext().get("artifacts");
     assertThat(artifacts).containsExactly(ARTIFACT_A, ARTIFACT_B);
@@ -117,5 +112,10 @@ final class FindArtifactFromExecutionTaskTest {
     context.put("pipeline", PIPELINE);
 
     return context;
+  }
+
+  private static ExpectedArtifact withBoundArtifact(
+      ExpectedArtifact expectedArtifact, Artifact artifact) {
+    return expectedArtifact.toBuilder().boundArtifact(artifact).build();
   }
 }
