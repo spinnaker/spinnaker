@@ -38,7 +38,6 @@ import com.google.api.services.cloudbuild.v1.model.ListBuildTriggersResponse;
 import com.google.api.services.cloudbuild.v1.model.Operation;
 import com.google.api.services.cloudbuild.v1.model.RepoSource;
 import com.netflix.spinnaker.igor.RedisConfig;
-import com.netflix.spinnaker.igor.config.GoogleCloudBuildConfig;
 import com.netflix.spinnaker.igor.config.LockManagerConfig;
 import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers;
 import java.util.ArrayList;

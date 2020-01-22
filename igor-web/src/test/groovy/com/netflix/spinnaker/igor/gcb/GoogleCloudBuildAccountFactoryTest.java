@@ -26,17 +26,18 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
 public class GoogleCloudBuildAccountFactoryTest {
-  private GoogleCredentialsService googleCredentialsService = mock(GoogleCredentialsService.class);
-  private GoogleCloudBuildClient.Factory googleCloudBuildClientFactory =
+  private final GoogleCredentialsService googleCredentialsService =
+      mock(GoogleCredentialsService.class);
+  private final GoogleCloudBuildClient.Factory googleCloudBuildClientFactory =
       mock(GoogleCloudBuildClient.Factory.class);
-  private GoogleCloudBuildCache.Factory googleCloudBuildCacheFactory =
+  private final GoogleCloudBuildCache.Factory googleCloudBuildCacheFactory =
       mock(GoogleCloudBuildCache.Factory.class);
-  private GoogleCloudBuildParser googleCloudBuildParser = new GoogleCloudBuildParser();
+  private final GoogleCloudBuildParser googleCloudBuildParser = new GoogleCloudBuildParser();
 
-  private GoogleCredentials googleCredentials = mock(GoogleCredentials.class);
-  private GoogleCloudBuildClient googleCloudBuildClient = mock(GoogleCloudBuildClient.class);
+  private final GoogleCredentials googleCredentials = mock(GoogleCredentials.class);
+  private final GoogleCloudBuildClient googleCloudBuildClient = mock(GoogleCloudBuildClient.class);
 
-  private GoogleCloudBuildAccountFactory googleCloudBuildAccountFactory =
+  private final GoogleCloudBuildAccountFactory googleCloudBuildAccountFactory =
       new GoogleCloudBuildAccountFactory(
           googleCredentialsService,
           googleCloudBuildClientFactory,

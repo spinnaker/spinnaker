@@ -26,7 +26,7 @@ import com.google.api.services.storage.Storage;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.GoogleCredentials;
 import java.io.IOException;
-import lombok.RequiredArgsConstructor;
+import javax.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -34,8 +34,7 @@ import org.springframework.stereotype.Component;
 /** Factory for calling CloudBuild client library code to create CloudBuild objects */
 @Component
 @ConditionalOnProperty("gcb.enabled")
-@RequiredArgsConstructor
-public class CloudBuildFactory {
+final class CloudBuildFactory {
   private final int connectTimeoutSec = 10;
   private final int readTimeoutSec = 10;
 
@@ -43,14 +42,19 @@ public class CloudBuildFactory {
   private final HttpTransport httpTransport;
 
   // Override the base URL for all requests to the cloud build API; primarily for testing.
-  private final String overrideRootUrl;
+  @Nullable private final String overrideRootUrl;
 
   @Autowired
-  public CloudBuildFactory(HttpTransport httpTransport) {
+  CloudBuildFactory(HttpTransport httpTransport) {
     this(httpTransport, null);
   }
 
-  public CloudBuild getCloudBuild(GoogleCredentials credentials, String applicationName) {
+  CloudBuildFactory(HttpTransport httpTransport, @Nullable String overrideRootUrl) {
+    this.httpTransport = httpTransport;
+    this.overrideRootUrl = overrideRootUrl;
+  }
+
+  CloudBuild getCloudBuild(GoogleCredentials credentials, String applicationName) {
     HttpRequestInitializer requestInitializer = getRequestInitializer(credentials);
     CloudBuild.Builder builder =
         new CloudBuild.Builder(httpTransport, jsonFactory, requestInitializer)
@@ -62,7 +66,7 @@ public class CloudBuildFactory {
     return builder.build();
   }
 
-  public Storage getCloudStorage(GoogleCredentials credentials, String applicationName) {
+  Storage getCloudStorage(GoogleCredentials credentials, String applicationName) {
     HttpRequestInitializer requestInitializer = getRequestInitializer(credentials);
     Storage.Builder builder =
         new Storage.Builder(httpTransport, jsonFactory, requestInitializer)

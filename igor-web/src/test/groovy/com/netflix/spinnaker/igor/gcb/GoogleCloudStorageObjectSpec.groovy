@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.igor.gcb.model
+package com.netflix.spinnaker.igor.gcb
 
+import com.netflix.spinnaker.igor.gcb.GoogleCloudStorageObject
 import spock.lang.Specification
 import spock.lang.Unroll
 

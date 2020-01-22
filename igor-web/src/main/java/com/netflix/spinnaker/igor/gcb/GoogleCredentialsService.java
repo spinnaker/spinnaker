@@ -21,6 +21,7 @@ import com.google.auth.oauth2.GoogleCredentials;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -30,13 +31,13 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @ConditionalOnProperty("gcb.enabled")
-public class GoogleCredentialsService {
+class GoogleCredentialsService {
   GoogleCredentials getFromKey(String jsonPath) {
     try {
       InputStream stream = getCredentialAsStream(jsonPath);
       return loadCredential(stream);
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new UncheckedIOException(e);
     }
   }
 
@@ -48,7 +49,7 @@ public class GoogleCredentialsService {
           ? credentials.createScoped(CloudBuildScopes.all())
           : credentials;
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new UncheckedIOException(e);
     }
   }
 

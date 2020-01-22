@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.igor.config;
+package com.netflix.spinnaker.igor.gcb;
 
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.HttpTransport;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
-import com.netflix.spinnaker.igor.gcb.*;
+import com.netflix.spinnaker.igor.config.GoogleCloudBuildProperties;
 import com.netflix.spinnaker.igor.polling.LockService;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import java.io.IOException;
@@ -38,7 +38,7 @@ import org.springframework.context.annotation.Configuration;
   GoogleCloudBuildProperties.class,
   IgorConfigurationProperties.class
 })
-public class GoogleCloudBuildConfig {
+class GoogleCloudBuildConfig {
   @Bean
   HttpTransport httpTransport() throws IOException, GeneralSecurityException {
     return GoogleNetHttpTransport.newTrustedTransport();
@@ -48,15 +48,15 @@ public class GoogleCloudBuildConfig {
   GoogleCloudBuildAccountRepository googleCloudBuildAccountRepository(
       GoogleCloudBuildAccountFactory googleCloudBuildAccountFactory,
       GoogleCloudBuildProperties googleCloudBuildProperties) {
-    GoogleCloudBuildAccountRepository credentials = new GoogleCloudBuildAccountRepository();
+    GoogleCloudBuildAccountRepository.Builder builder = GoogleCloudBuildAccountRepository.builder();
     googleCloudBuildProperties
         .getAccounts()
         .forEach(
             a -> {
               GoogleCloudBuildAccount account = googleCloudBuildAccountFactory.build(a);
-              credentials.registerAccount(a.getName(), account);
+              builder.registerAccount(a.getName(), account);
             });
-    return credentials;
+    return builder.build();
   }
 
   @Bean

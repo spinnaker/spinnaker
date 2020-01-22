@@ -25,6 +25,7 @@ import com.google.api.services.storage.Storage;
 import com.google.auth.oauth2.GoogleCredentials;
 import java.io.IOException;
 import java.io.InputStream;
+import javax.annotation.Nullable;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
@@ -33,43 +34,43 @@ import lombok.RequiredArgsConstructor;
  * delegating to GoogleCloudBuildExecutor to execute these requests.
  */
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public class GoogleCloudBuildClient {
+class GoogleCloudBuildClient {
   private final String projectId;
   private final CloudBuild cloudBuild;
   private final Storage cloudStorage;
   private final GoogleCloudBuildExecutor executor;
 
-  @RequiredArgsConstructor
-  public static class Factory {
+  @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
+  static class Factory {
     private final CloudBuildFactory cloudBuildFactory;
     private final GoogleCloudBuildExecutor executor;
     private final String applicationName;
 
-    public GoogleCloudBuildClient create(GoogleCredentials credentials, String projectId) {
+    GoogleCloudBuildClient create(GoogleCredentials credentials, String projectId) {
       CloudBuild cloudBuild = cloudBuildFactory.getCloudBuild(credentials, applicationName);
       Storage cloudStorage = cloudBuildFactory.getCloudStorage(credentials, applicationName);
       return new GoogleCloudBuildClient(projectId, cloudBuild, cloudStorage, executor);
     }
   }
 
-  public Operation createBuild(Build build) {
+  Operation createBuild(Build build) {
     return executor.execute(() -> cloudBuild.projects().builds().create(projectId, build));
   }
 
-  public Build getBuild(String buildId) {
+  Build getBuild(String buildId) {
     return executor.execute(() -> cloudBuild.projects().builds().get(projectId, buildId));
   }
 
-  public ListBuildTriggersResponse listTriggers() {
+  ListBuildTriggersResponse listTriggers() {
     return executor.execute(() -> cloudBuild.projects().triggers().list(projectId));
   }
 
-  public Operation runTrigger(String triggerId, RepoSource repoSource) {
+  Operation runTrigger(String triggerId, RepoSource repoSource) {
     return executor.execute(
         () -> cloudBuild.projects().triggers().run(projectId, triggerId, repoSource));
   }
 
-  public InputStream fetchStorageObject(String bucket, String object, Long version)
+  InputStream fetchStorageObject(String bucket, String object, @Nullable Long version)
       throws IOException {
     Storage.Objects.Get getRequest = cloudStorage.objects().get(bucket, object);
     if (version != null) {

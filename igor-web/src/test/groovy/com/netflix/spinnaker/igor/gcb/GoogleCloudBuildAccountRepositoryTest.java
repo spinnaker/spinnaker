@@ -16,58 +16,66 @@
 
 package com.netflix.spinnaker.igor.gcb;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
-import java.util.Collections;
-import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
 public class GoogleCloudBuildAccountRepositoryTest {
-
-  @Test(expected = NotFoundException.class)
+  @Test
   public void emptyRepository() {
-    GoogleCloudBuildAccountRepository repository = new GoogleCloudBuildAccountRepository();
-    repository.getGoogleCloudBuild("missing");
+    GoogleCloudBuildAccountRepository repository =
+        GoogleCloudBuildAccountRepository.builder().build();
+
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> repository.getGoogleCloudBuild("missing"));
   }
 
-  @Test(expected = NotFoundException.class)
+  @Test
   public void missingAccount() {
-    GoogleCloudBuildAccountRepository repository = new GoogleCloudBuildAccountRepository();
-
     GoogleCloudBuildAccount presentAccount = mock(GoogleCloudBuildAccount.class);
-    repository.registerAccount("present", presentAccount);
+    GoogleCloudBuildAccountRepository repository =
+        GoogleCloudBuildAccountRepository.builder()
+            .registerAccount("present", presentAccount)
+            .build();
 
-    repository.getGoogleCloudBuild("missing");
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> repository.getGoogleCloudBuild("missing"));
   }
 
   @Test
   public void presentAccount() {
-    GoogleCloudBuildAccountRepository repository = new GoogleCloudBuildAccountRepository();
-
     GoogleCloudBuildAccount presentAccount = mock(GoogleCloudBuildAccount.class);
-    repository.registerAccount("present", presentAccount);
+    GoogleCloudBuildAccountRepository repository =
+        GoogleCloudBuildAccountRepository.builder()
+            .registerAccount("present", presentAccount)
+            .build();
 
-    GoogleCloudBuildAccount retrievedAccount = repository.getGoogleCloudBuild("present");
-    assertSame(presentAccount, retrievedAccount);
+    assertThat(repository.getGoogleCloudBuild("present")).isEqualTo(presentAccount);
   }
 
   @Test
-  public void getAccounts() {
-    GoogleCloudBuildAccountRepository repository = new GoogleCloudBuildAccountRepository();
+  public void getAccountsEmpty() {
+    GoogleCloudBuildAccountRepository repository =
+        GoogleCloudBuildAccountRepository.builder().build();
 
+    assertThat(repository.getAccounts()).isEmpty();
+  }
+
+  @Test
+  public void getAccountsNotEmpty() {
     GoogleCloudBuildAccount presentAccount = mock(GoogleCloudBuildAccount.class);
+    GoogleCloudBuildAccountRepository repository =
+        GoogleCloudBuildAccountRepository.builder()
+            .registerAccount("present", presentAccount)
+            .build();
 
-    List<String> accountsBefore = repository.getAccounts();
-    assertTrue(accountsBefore.isEmpty());
-
-    repository.registerAccount("present", presentAccount);
-
-    List<String> accountsAfter = repository.getAccounts();
-    assertEquals(accountsAfter, Collections.singletonList("present"));
+    assertThat(repository.getAccounts()).containsExactly("present");
   }
 }

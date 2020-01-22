@@ -16,33 +16,49 @@
 
 package com.netflix.spinnaker.igor.gcb;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSortedMap;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Keeps track of all registered instances of GoogleCloudBuildAccount and returns the appropriate
  * account when it is requested by name.
  */
-public class GoogleCloudBuildAccountRepository {
-  private final Map<String, GoogleCloudBuildAccount> accounts = new HashMap<>();
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+final class GoogleCloudBuildAccountRepository {
+  private final ImmutableSortedMap<String, GoogleCloudBuildAccount> accounts;
 
-  public void registerAccount(String name, GoogleCloudBuildAccount account) {
-    accounts.put(name, account);
+  ImmutableList<String> getAccounts() {
+    return accounts.keySet().asList();
   }
 
-  public List<String> getAccounts() {
-    return accounts.keySet().stream().sorted().collect(Collectors.toList());
-  }
-
-  public GoogleCloudBuildAccount getGoogleCloudBuild(String name) {
+  GoogleCloudBuildAccount getGoogleCloudBuild(String name) {
     GoogleCloudBuildAccount account = accounts.get(name);
     if (account == null) {
       throw new NotFoundException(
           String.format("No Google Cloud Build account with name %s is configured", name));
     }
     return account;
+  }
+
+  static Builder builder() {
+    return new Builder();
+  }
+
+  @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+  static final class Builder {
+    private final ImmutableSortedMap.Builder<String, GoogleCloudBuildAccount> accounts =
+        ImmutableSortedMap.naturalOrder();
+
+    Builder registerAccount(String name, GoogleCloudBuildAccount account) {
+      accounts.put(name, account);
+      return this;
+    }
+
+    GoogleCloudBuildAccountRepository build() {
+      return new GoogleCloudBuildAccountRepository(accounts.build());
+    }
   }
 }

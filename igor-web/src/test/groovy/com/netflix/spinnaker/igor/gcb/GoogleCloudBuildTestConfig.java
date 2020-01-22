@@ -65,7 +65,7 @@ public class GoogleCloudBuildTestConfig {
       @Override
       GoogleCredentials getFromKey(String jsonPath) {
         if (!jsonPath.equals("/path/to/some/file")) {
-          return null;
+          throw new RuntimeException("Could not generate GoogleCredentials");
         }
         // Create a mock credential whose bearer token is always "test-token"
         try {

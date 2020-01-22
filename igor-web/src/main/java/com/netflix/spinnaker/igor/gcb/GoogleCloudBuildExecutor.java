@@ -21,6 +21,7 @@ import com.google.api.services.cloudbuild.v1.CloudBuildRequest;
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -32,12 +33,11 @@ import org.springframework.stereotype.Component;
 @Component
 @ConditionalOnProperty("gcb.enabled")
 @Slf4j
-public class GoogleCloudBuildExecutor {
+final class GoogleCloudBuildExecutor {
   // TODO(ezimanyi): Consider adding retry logic here
-  public <T> T execute(RequestFactory<T> requestFactory) {
+  <T> T execute(RequestFactory<? extends T> requestFactory) {
     try {
-      CloudBuildRequest<T> request = requestFactory.get();
-      return request.execute();
+      return requestFactory.get().execute();
     } catch (GoogleJsonResponseException e) {
       if (e.getStatusCode() == 400) {
         log.error(e.getMessage());
@@ -45,12 +45,15 @@ public class GoogleCloudBuildExecutor {
       } else if (e.getStatusCode() == 404) {
         throw new NotFoundException(e.getMessage());
       }
-      throw new RuntimeException(e);
+      throw new UncheckedIOException(e);
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new UncheckedIOException(e);
     }
   }
 
+  // This is effectively a Supplier<CloudBuildRequest<T>> except that it allows an IOException to be
+  // thrown by the get() method.
+  @FunctionalInterface
   interface RequestFactory<T> {
     CloudBuildRequest<T> get() throws IOException;
   }

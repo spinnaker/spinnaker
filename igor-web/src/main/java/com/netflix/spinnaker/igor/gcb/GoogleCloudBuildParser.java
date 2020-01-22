@@ -20,6 +20,7 @@ import com.google.api.client.json.JsonGenerator;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.io.UncheckedIOException;
 import java.io.Writer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -32,31 +33,29 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @ConditionalOnProperty("gcb.enabled")
-public class GoogleCloudBuildParser {
+final class GoogleCloudBuildParser {
   private final JacksonFactory jacksonFactory = JacksonFactory.getDefaultInstance();
 
-  public final <T> T parse(String input, Class<T> destinationClass) {
+  <T> T parse(String input, Class<T> destinationClass) {
     try {
       return jacksonFactory.createJsonParser(input).parse(destinationClass);
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new UncheckedIOException(e);
     }
   }
 
-  public final <T> T convert(Object input, Class<T> destinationClass) {
+  <T> T convert(Object input, Class<T> destinationClass) {
     String inputString = serialize(input);
     return parse(inputString, destinationClass);
   }
 
-  public final String serialize(Object input) {
-    try {
-      Writer writer = new StringWriter();
-      JsonGenerator generator = jacksonFactory.createJsonGenerator(writer);
+  String serialize(Object input) {
+    Writer writer = new StringWriter();
+    try (JsonGenerator generator = jacksonFactory.createJsonGenerator(writer)) {
       generator.serialize(input);
-      generator.flush();
-      return writer.toString();
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new UncheckedIOException(e);
     }
+    return writer.toString();
   }
 }

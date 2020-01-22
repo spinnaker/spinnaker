@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.igor.gcb.model;
+package com.netflix.spinnaker.igor.gcb;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -23,11 +23,11 @@ import lombok.Getter;
 
 @Getter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class GoogleCloudBuildArtifact {
+final class GoogleCloudBuildArtifact {
   private final String location;
 
   @JsonCreator
-  public GoogleCloudBuildArtifact(@JsonProperty("location") String location) {
+  GoogleCloudBuildArtifact(@JsonProperty("location") String location) {
     this.location = location;
   }
 }

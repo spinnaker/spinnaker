@@ -19,8 +19,8 @@ package com.netflix.spinnaker.igor.gcb;
 import com.google.api.services.cloudbuild.v1.model.Build;
 import com.google.api.services.cloudbuild.v1.model.BuildTrigger;
 import com.google.api.services.cloudbuild.v1.model.RepoSource;
+import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
@@ -39,7 +39,7 @@ public class GoogleCloudBuildController {
 
   @RequestMapping(value = "/accounts", method = RequestMethod.GET)
   @PostFilter("hasPermission(filterObject, 'BUILD_SERVICE', 'READ')")
-  List<String> getAccounts() {
+  public ImmutableList<String> getAccounts() {
     return googleCloudBuildAccountRepository.getAccounts();
   }
 
@@ -48,7 +48,7 @@ public class GoogleCloudBuildController {
       method = RequestMethod.POST,
       consumes = MediaType.APPLICATION_JSON_VALUE)
   @PreAuthorize("hasPermission(#account, 'BUILD_SERVICE', 'WRITE')")
-  Build createBuild(@PathVariable String account, @RequestBody String buildString) {
+  public Build createBuild(@PathVariable String account, @RequestBody String buildString) {
     Build build = googleCloudBuildParser.parse(buildString, Build.class);
     return googleCloudBuildAccountRepository.getGoogleCloudBuild(account).createBuild(build);
   }
@@ -57,7 +57,7 @@ public class GoogleCloudBuildController {
       value = "/builds/{account}/{buildId}",
       method = RequestMethod.PUT,
       consumes = MediaType.APPLICATION_JSON_VALUE)
-  void updateBuild(
+  public void updateBuild(
       @PathVariable String account,
       @PathVariable String buildId,
       @Query("status") String status,
@@ -69,13 +69,14 @@ public class GoogleCloudBuildController {
 
   @RequestMapping(value = "/builds/{account}/{buildId}", method = RequestMethod.GET)
   @PreAuthorize("hasPermission(#account, 'BUILD_SERVICE', 'READ')")
-  Build getBuild(@PathVariable String account, @PathVariable String buildId) {
+  public Build getBuild(@PathVariable String account, @PathVariable String buildId) {
     return googleCloudBuildAccountRepository.getGoogleCloudBuild(account).getBuild(buildId);
   }
 
   @RequestMapping(value = "/builds/{account}/{buildId}/artifacts", method = RequestMethod.GET)
   @PreAuthorize("hasPermission(#account, 'BUILD_SERVICE', 'READ')")
-  List<Artifact> getArtifacts(@PathVariable String account, @PathVariable String buildId) {
+  public ImmutableList<Artifact> getArtifacts(
+      @PathVariable String account, @PathVariable String buildId) {
     return googleCloudBuildAccountRepository.getGoogleCloudBuild(account).getArtifacts(buildId);
   }
 
@@ -83,7 +84,7 @@ public class GoogleCloudBuildController {
       value = "/artifacts/extract/{account}",
       method = RequestMethod.PUT,
       consumes = MediaType.APPLICATION_JSON_VALUE)
-  List<Artifact> extractArtifacts(
+  public ImmutableList<Artifact> extractArtifacts(
       @PathVariable String account, @RequestBody String serializedBuild) {
     Build build = googleCloudBuildParser.parse(serializedBuild, Build.class);
     return googleCloudBuildAccountRepository.getGoogleCloudBuild(account).extractArtifacts(build);
@@ -91,7 +92,7 @@ public class GoogleCloudBuildController {
 
   @RequestMapping(value = "/triggers/{account}", method = RequestMethod.GET)
   @PreAuthorize("hasPermission(#account, 'BUILD_SERVICE', 'READ')")
-  List<BuildTrigger> listTriggers(@PathVariable String account) {
+  public ImmutableList<BuildTrigger> listTriggers(@PathVariable String account) {
     return googleCloudBuildAccountRepository.getGoogleCloudBuild(account).listTriggers();
   }
 
@@ -100,7 +101,7 @@ public class GoogleCloudBuildController {
       method = RequestMethod.POST,
       consumes = MediaType.APPLICATION_JSON_VALUE)
   @PreAuthorize("hasPermission(#account, 'BUILD_SERVICE', 'WRITE')")
-  Build runTrigger(
+  public Build runTrigger(
       @PathVariable String account,
       @PathVariable String triggerId,
       @RequestBody String repoSourceString) {
