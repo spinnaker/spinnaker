@@ -294,7 +294,10 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
           expectThat(unresolvedDiff.hasChanges())
             .isTrue()
           // But diffs cleanly after resolvers are applied
-          val resolvedDiff = ResourceDiff(desired(resource), desired(normalize(export)))
+          val resolvedDiff = ResourceDiff(
+            desired(resource),
+            desired(normalize(export.copy(metadata = mapOf("serviceAccount" to "keel@spinnaker"))))
+          )
           expectThat(resolvedDiff.hasChanges())
             .isFalse()
         }

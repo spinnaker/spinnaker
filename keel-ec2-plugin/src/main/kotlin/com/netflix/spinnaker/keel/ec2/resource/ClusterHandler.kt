@@ -357,8 +357,7 @@ class ClusterHandler(
     return SubmittedResource(
       apiVersion = supportedKind.apiVersion,
       kind = supportedKind.kind,
-      spec = spec,
-      metadata = mapOf("serviceAccount" to exportable.serviceAccount)
+      spec = spec
     )
   }
 
