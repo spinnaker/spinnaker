@@ -2,9 +2,17 @@ import React from 'react';
 import { chain, find, sortBy } from 'lodash';
 import { UISref } from '@uirouter/react';
 
-import { CollapsibleSection, confirmNotManaged, ISecurityGroup, ModalInjector, FirewallLabels } from '@spinnaker/core';
+import {
+  CollapsibleSection,
+  confirmNotManaged,
+  ISecurityGroup,
+  ModalInjector,
+  FirewallLabels,
+  ISecurityGroupsByAccount,
+} from '@spinnaker/core';
 
 import { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
+import { AwsSecurityGroupReader } from 'amazon/securityGroup/securityGroup.reader';
 
 export interface ISecurityGroupsDetailsSectionState {
   securityGroups: ISecurityGroup[];
@@ -20,6 +28,19 @@ export class SecurityGroupsDetailsSection extends React.Component<
     this.state = { securityGroups: this.getSecurityGroups(props) };
   }
 
+  private tryFindingSecurityGroupInIndex(
+    index: ISecurityGroupsByAccount,
+    account: string,
+    region: string,
+    securityGroupId: string,
+  ): ISecurityGroup {
+    try {
+      return AwsSecurityGroupReader.resolveIndexedSecurityGroup(index, { account, region }, securityGroupId);
+    } catch (e) {
+      return undefined;
+    }
+  }
+
   private getSecurityGroups(props: IAmazonServerGroupDetailsSectionProps): ISecurityGroup[] {
     let securityGroups: ISecurityGroup[];
     const { app, serverGroup } = props;
@@ -28,7 +49,13 @@ export class SecurityGroupsDetailsSection extends React.Component<
         .map((id: string) => {
           return (
             find(app.securityGroups.data, { accountName: serverGroup.account, region: serverGroup.region, id }) ||
-            find(app.securityGroups.data, { accountName: serverGroup.account, region: serverGroup.region, name: id })
+            find(app.securityGroups.data, { accountName: serverGroup.account, region: serverGroup.region, name: id }) ||
+            this.tryFindingSecurityGroupInIndex(
+              app['securityGroupsIndex'],
+              serverGroup.account,
+              serverGroup.region,
+              id,
+            ) || { id, name: id } // Last resort fallback so that security groups do not get removed (upon editing) just because deck couldn't find them
           );
         })
         .compact()
