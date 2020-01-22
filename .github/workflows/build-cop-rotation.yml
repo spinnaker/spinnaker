@@ -2,8 +2,8 @@ name: Build Cop
 
 on:
   schedule:
-  - cron: "*/5 * * * *"
-  # - cron: 0 11 * * MON-FRI
+  # - cron: "*/5 * * * *"
+  - cron: 0 11 * * MON-FRI
 
 jobs:
   stuff:
