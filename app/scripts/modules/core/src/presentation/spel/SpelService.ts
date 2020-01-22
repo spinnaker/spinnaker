@@ -1,3 +1,5 @@
+import { isString } from 'lodash';
+
 import { API } from 'core/api';
 import { parseSpelExpressions } from 'core/presentation';
 
@@ -47,5 +49,14 @@ export class SpelService {
    */
   public static parseExpressionString(expression: string): void {
     parseSpelExpressions(expression);
+  }
+
+  /**
+   * Determines if a string is a SpEL expression
+   *
+   * @param value The value to check for SpEL
+   */
+  public static includesSpel(value: string): boolean {
+    return isString(value) && value.includes('${');
   }
 }

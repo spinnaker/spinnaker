@@ -30,7 +30,6 @@ export function SpelInput(props: ISpelInputProps) {
   const { previewStage, ...rest } = props;
   const [expression, isDebouncing] = useDebouncedValue(props.value, 300);
   const isInitialRender = !useIsMountedRef().current;
-  const hasNewlines = !!/\n/.exec(rest.value);
 
   function previewExpressionValidator() {
     const { status, error, result } = fetchSpelPreview;
@@ -68,5 +67,18 @@ export function SpelInput(props: ISpelInputProps) {
     !isInitialRender && props.validation && props.validation.revalidate && props.validation.revalidate();
   }, [fetchSpelPreview.status, isDebouncing]);
 
-  return <TextAreaInput inputClassName="SpelInput" rows={hasNewlines ? 3 : 1} {...rest} />;
+  return <SimpleSpelInput {...rest} />;
+}
+
+/** An Input for entering SpEL without preview functionality */
+export function SimpleSpelInput(props: ITextInputProps) {
+  const hasNewlines = !!/\n/.exec(props.value);
+  return (
+    <TextAreaInput
+      inputClassName="SpelInput"
+      rows={hasNewlines ? 3 : 1}
+      placeholder={props.placeholder || 'Variable value, e.g. ${trigger.buildInfo.number}'}
+      {...props}
+    />
+  );
 }

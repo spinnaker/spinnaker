@@ -27,8 +27,9 @@ export function ResponsiveFieldLayout(props: ILayoutProps) {
         </div>
         <div className="sp-formItem__right">
           <div className="sp-form">
-            <span className="field">
-              {input} {actions}
+            <span className="flex-container-h margin-between-lg field">
+              <span className="input">{input}</span>
+              {actions}
             </span>
           </div>
           {helpUnder && help && <div className="description">{help}</div>}

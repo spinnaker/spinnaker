@@ -6,6 +6,7 @@ import {
   ArtifactTypePatterns,
   excludeAllTypesExcept,
   FormikFormField,
+  FormikSpelContextProvider,
   IArtifact,
   IExpectedArtifact,
   IFormInputProps,
@@ -14,6 +15,7 @@ import {
   IPipeline,
   RadioButtonInput,
   ReactSelectInput,
+  SpelService,
   StageArtifactSelectorDelegate,
   TextInput,
   useData,
@@ -63,7 +65,12 @@ export function GoogleCloudBuildStageForm(props: IGoogleCloudBuildStageFormProps
   );
 
   const { result: fetchTriggersResult, status: fetchTriggersStatus } = useData(
-    () => IgorService.getGcbTriggers(stage.account),
+    () => {
+      if (SpelService.includesSpel(stage.account)) {
+        return null;
+      }
+      return IgorService.getGcbTriggers(stage.account);
+    },
     [],
     [stage.account],
   );
@@ -128,93 +135,99 @@ export function GoogleCloudBuildStageForm(props: IGoogleCloudBuildStageFormProps
   }, [stage.triggerType]);
 
   return (
-    <div className="form-horizontal">
-      <FormikFormField
-        fastField={false}
-        label="Account"
-        name="account"
-        input={(inputProps: IFormInputProps) => (
-          <ReactSelectInput
-            {...inputProps}
-            clearable={false}
-            isLoading={fetchAccountsStatus === 'PENDING'}
-            stringOptions={fetchAccountsResult}
-          />
-        )}
-      />
-      <FormikFormField
-        fastField={false}
-        label="Build Definition Source"
-        name="buildDefinitionSource"
-        input={(inputProps: IFormInputProps) => <RadioButtonInput {...inputProps} options={SOURCE_OPTIONS} />}
-      />
-      {stage.buildDefinitionSource === BuildDefinitionSource.TEXT && (
+    <FormikSpelContextProvider value={true}>
+      <div className="form-horizontal">
         <FormikFormField
           fastField={false}
-          label="Build Definition"
-          name="buildDefinition"
+          label="Account"
+          name="account"
           input={(inputProps: IFormInputProps) => (
-            <YamlEditor {...inputProps} value={rawBuildDefinitionYaml} onChange={onYamlChange} />
+            <ReactSelectInput
+              {...inputProps}
+              clearable={false}
+              isLoading={fetchAccountsStatus === 'PENDING'}
+              stringOptions={fetchAccountsResult}
+            />
           )}
         />
-      )}
-      {stage.buildDefinitionSource === BuildDefinitionSource.ARTIFACT && (
-        <StageArtifactSelectorDelegate
-          artifact={get(stage, 'buildDefinitionArtifact.artifact')}
-          excludedArtifactTypePatterns={EXCLUDED_ARTIFACT_TYPES}
-          expectedArtifactId={get(stage, 'buildDefinitionArtifact.artifactId')}
-          label="Build Definition Artifact"
-          onArtifactEdited={setArtifact}
-          onExpectedArtifactSelected={(artifact: IExpectedArtifact) => setArtifactId(artifact.id)}
-          pipeline={props.pipeline}
-          selectedArtifactAccount={get(stage, 'buildDefinitionArtifact.artifactAccount')}
-          selectedArtifactId={get(stage, 'buildDefinitionArtifact.artifactId')}
-          setArtifactAccount={setArtifactAccount}
-          setArtifactId={setArtifactId}
-          stage={stage}
-          updatePipeline={props.updatePipeline}
+        <FormikFormField
+          fastField={false}
+          label="Build Definition Source"
+          name="buildDefinitionSource"
+          input={(inputProps: IFormInputProps) => <RadioButtonInput {...inputProps} options={SOURCE_OPTIONS} />}
+          spelAware={false}
         />
-      )}
-      {stage.buildDefinitionSource === BuildDefinitionSource.TRIGGER && (
-        <>
+        {stage.buildDefinitionSource === BuildDefinitionSource.TEXT && (
           <FormikFormField
             fastField={false}
-            name="triggerId"
-            label="Trigger Name"
+            label="Build Definition"
+            name="buildDefinition"
             input={(inputProps: IFormInputProps) => (
-              <ReactSelectInput
-                {...inputProps}
-                clearable={false}
-                disabled={!stage.account}
-                isLoading={fetchTriggersStatus === 'PENDING'}
-                options={(fetchTriggersResult || []).map(trigger => ({
-                  label: trigger.name,
-                  value: trigger.id,
-                }))}
-              />
+              <YamlEditor {...inputProps} value={rawBuildDefinitionYaml} onChange={onYamlChange} />
             )}
+            spelAware={false}
           />
-          <FormikFormField
-            fastField={false}
-            name="triggerType"
-            label="Trigger Type"
-            input={(inputProps: IFormInputProps) => (
-              <ReactSelectInput
-                {...inputProps}
-                clearable={false}
-                disabled={!stage.triggerId}
-                options={TRIGGER_TYPE_OPTIONS}
-              />
-            )}
+        )}
+        {stage.buildDefinitionSource === BuildDefinitionSource.ARTIFACT && (
+          <StageArtifactSelectorDelegate
+            artifact={get(stage, 'buildDefinitionArtifact.artifact')}
+            excludedArtifactTypePatterns={EXCLUDED_ARTIFACT_TYPES}
+            expectedArtifactId={get(stage, 'buildDefinitionArtifact.artifactId')}
+            label="Build Definition Artifact"
+            onArtifactEdited={setArtifact}
+            onExpectedArtifactSelected={(artifact: IExpectedArtifact) => setArtifactId(artifact.id)}
+            pipeline={props.pipeline}
+            selectedArtifactAccount={get(stage, 'buildDefinitionArtifact.artifactAccount')}
+            selectedArtifactId={get(stage, 'buildDefinitionArtifact.artifactId')}
+            setArtifactAccount={setArtifactAccount}
+            setArtifactId={setArtifactId}
+            stage={stage}
+            updatePipeline={props.updatePipeline}
           />
-          <FormikFormField
-            fastField={false}
-            label="Value"
-            name={`repoSource.${stage.triggerType}`}
-            input={(inputProps: IFormInputProps) => <TextInput {...inputProps} disabled={!stage.triggerType} />}
-          />
-        </>
-      )}
-    </div>
+        )}
+        {stage.buildDefinitionSource === BuildDefinitionSource.TRIGGER && (
+          <>
+            <FormikFormField
+              fastField={false}
+              name="triggerId"
+              label="Trigger Name"
+              input={(inputProps: IFormInputProps) => (
+                <ReactSelectInput
+                  {...inputProps}
+                  clearable={false}
+                  disabled={!stage.account}
+                  isLoading={fetchTriggersStatus === 'PENDING'}
+                  options={(fetchTriggersResult || []).map(trigger => ({
+                    label: trigger.name,
+                    value: trigger.id,
+                  }))}
+                />
+              )}
+            />
+            <FormikFormField
+              fastField={false}
+              name="triggerType"
+              label="Trigger Type"
+              input={(inputProps: IFormInputProps) => (
+                <ReactSelectInput
+                  {...inputProps}
+                  clearable={false}
+                  disabled={!stage.triggerId}
+                  options={TRIGGER_TYPE_OPTIONS}
+                />
+              )}
+              spelAware={false}
+            />
+            <FormikFormField
+              fastField={false}
+              label="Value"
+              name={`repoSource.${stage.triggerType}`}
+              input={(inputProps: IFormInputProps) => <TextInput {...inputProps} disabled={!stage.triggerType} />}
+              spelAware={false}
+            />
+          </>
+        )}
+      </div>
+    </FormikSpelContextProvider>
   );
 }
