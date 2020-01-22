@@ -1,10 +1,9 @@
 package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.pause.ResourcePauser
+import com.netflix.spinnaker.keel.persistence.Cleaner
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
-import com.netflix.spinnaker.keel.persistence.NoSuchApplication
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
-import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import org.slf4j.LoggerFactory.getLogger
 import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatus.NO_CONTENT
@@ -20,8 +19,8 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping(path = ["/admin"])
 class AdminController(
   private val deliveryConfigRepository: DeliveryConfigRepository,
-  private val resourceRepository: ResourceRepository,
-  private val resourcePauser: ResourcePauser
+  private val resourcePauser: ResourcePauser,
+  private val cleaner: Cleaner
 ) {
   private val log by lazy { getLogger(javaClass) }
 
@@ -33,20 +32,15 @@ class AdminController(
     @PathVariable("application") application: String
   ) {
     log.debug("Deleting all data for application: $application")
-    deleteApplication(application)
+    deliveryConfigRepository.getByApplication(application).forEach { config ->
+      cleaner.delete(config.name)
+    }
   }
 
   @ExceptionHandler(NoSuchResourceException::class)
   @ResponseStatus(HttpStatus.NOT_FOUND)
   fun onNotFound(e: NoSuchResourceException) {
     log.error(e.message)
-  }
-
-  fun deleteApplication(application: String) {
-    val resources = resourceRepository.deleteByApplication(application)
-    val deliveryConfigs = deliveryConfigRepository.deleteByApplication(application)
-    if (resources == 0 && deliveryConfigs == 0)
-      throw NoSuchApplication(application)
   }
 
   @GetMapping(

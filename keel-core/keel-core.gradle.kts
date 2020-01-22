@@ -16,6 +16,7 @@
 
 plugins {
   `java-library`
+  id("kotlin-spring")
 }
 
 dependencies {
@@ -34,6 +35,8 @@ dependencies {
   api("org.jetbrains.kotlinx:kotlinx-coroutines-core")
   api("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j")
 
+  implementation("org.springframework:spring-tx")
+
   testImplementation(project(":keel-test"))
   testImplementation(project(":keel-core-test"))
   testImplementation("io.strikt:strikt-jackson")
@@ -42,4 +45,5 @@ dependencies {
   testImplementation("org.assertj:assertj-core")
   testImplementation("org.junit.jupiter:junit-jupiter-api")
   testImplementation("org.junit.jupiter:junit-jupiter-params")
+  testImplementation("org.springframework.boot:spring-boot-test-autoconfigure")
 }

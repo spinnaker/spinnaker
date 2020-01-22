@@ -18,7 +18,9 @@ import com.netflix.spinnaker.keel.events.ResourceDeleted
 import com.netflix.spinnaker.keel.events.ResourceUpdated
 import com.netflix.spinnaker.keel.exceptions.UnsupportedArtifactTypeException
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
+import com.netflix.spinnaker.keel.persistence.Cleaner
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
+import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigException
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.get
@@ -37,12 +39,19 @@ class ResourcePersister(
   private val artifactRepository: ArtifactRepository,
   private val resourceRepository: ResourceRepository,
   private val handlers: List<ResourceHandler<*, *>>,
+  private val cleaner: Cleaner,
   private val clock: Clock,
   private val publisher: ApplicationEventPublisher
 ) {
   @Transactional(propagation = REQUIRED)
-  fun upsert(deliveryConfig: SubmittedDeliveryConfig): DeliveryConfig =
-    DeliveryConfig(
+  fun upsert(deliveryConfig: SubmittedDeliveryConfig): DeliveryConfig {
+    val old = try {
+      deliveryConfigRepository.get(deliveryConfig.name)
+    } catch (e: NoSuchDeliveryConfigException) {
+      null
+    }
+
+    val new = DeliveryConfig(
       name = deliveryConfig.name,
       application = deliveryConfig.application,
       artifacts = deliveryConfig.artifacts.transform(deliveryConfig.name),
@@ -57,13 +66,19 @@ class ResourcePersister(
         )
       }
     )
-      .also {
-        it.artifacts.transform(deliveryConfig.name)
-          .forEach { artifact ->
-            artifact.register()
-          }
-        deliveryConfigRepository.store(it)
-      }
+    new.artifacts.forEach { artifact ->
+      artifact.register()
+    }
+    deliveryConfigRepository.store(new)
+    if (old != null) {
+      cleaner.removeResources(old, new)
+    }
+    return new
+  }
+
+  fun delete(deliveryConfigName: String) {
+    cleaner.delete(deliveryConfigName)
+  }
 
   fun <T : ResourceSpec> upsert(resource: SubmittedResource<T>): Resource<T> =
     resource.let {

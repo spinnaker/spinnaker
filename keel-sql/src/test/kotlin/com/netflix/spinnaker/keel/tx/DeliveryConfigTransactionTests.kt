@@ -77,7 +77,7 @@ internal class DeliveryConfigTransactionTests : JUnit5Minutests {
     val submittedManifest = SubmittedDeliveryConfig(
       name = "keel-manifest",
       application = "keel",
-      artifacts = setOf(DebianArtifact(name = "keel")),
+      artifacts = setOf(DebianArtifact(name = "keel", deliveryConfigName = "keel-manifest")),
       environments = setOf(
         SubmittedEnvironment(
           name = "test",

@@ -86,7 +86,7 @@ abstract class DockerImageResolver<T : ResourceSpec>(
     when (container) {
       is ReferenceProvider -> {
         deliveryConfig.artifacts.find { it.reference == container.reference && it.type == DOCKER } as DockerArtifact?
-          ?: throw NoMatchingArtifactException(container.reference, DOCKER, deliveryConfig.name)
+          ?: throw NoMatchingArtifactException(reference = container.reference, type = DOCKER, deliveryConfigName = deliveryConfig.name)
       }
       is VersionedTagProvider -> {
         // deprecated

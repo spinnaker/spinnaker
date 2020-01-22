@@ -34,6 +34,8 @@ import java.time.Instant
 import java.time.Instant.EPOCH
 import java.time.ZoneOffset
 import org.jooq.DSLContext
+import org.jooq.Record1
+import org.jooq.Select
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.inline
 import org.jooq.impl.DSL.select
@@ -105,6 +107,68 @@ class SqlDeliveryConfigRepository(
     return deliveryConfigUIDs.size
   }
 
+  override fun delete(name: String) {
+    sqlRetry.withRetry(WRITE) {
+      jooq.transaction { config ->
+        val txn = DSL.using(config)
+        val deliveryConfigUid: String = txn
+          .select(DELIVERY_CONFIG.UID)
+          .from(DELIVERY_CONFIG)
+          .where(DELIVERY_CONFIG.NAME.eq(name))
+          .fetchOne(DELIVERY_CONFIG.UID)
+        txn
+          .deleteFrom(DELIVERY_CONFIG)
+          .where(DELIVERY_CONFIG.NAME.eq(name))
+          .execute()
+        txn
+          .deleteFrom(DELIVERY_CONFIG_LAST_CHECKED)
+          .where(DELIVERY_CONFIG_LAST_CHECKED.DELIVERY_CONFIG_UID.eq(deliveryConfigUid))
+          .execute()
+      }
+    }
+  }
+
+  override fun deleteResourceFromEnv(deliveryConfigName: String, environmentName: String, resourceId: ResourceId) {
+    sqlRetry.withRetry(WRITE) {
+      jooq.deleteFrom(ENVIRONMENT_RESOURCE)
+        .where(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(envUid(deliveryConfigName, environmentName)))
+        .and(ENVIRONMENT_RESOURCE.RESOURCE_UID.eq(resourceId.uid))
+        .execute()
+    }
+  }
+
+  override fun deleteEnvironment(deliveryConfigName: String, environmentName: String) {
+    val deliveryConfigUid = sqlRetry.withRetry(READ) {
+      jooq.select(DELIVERY_CONFIG.UID)
+        .from(DELIVERY_CONFIG)
+        .where(DELIVERY_CONFIG.NAME.eq(deliveryConfigName))
+        .fetchOne(DELIVERY_CONFIG.UID)
+    }
+    val envUid = envUid(deliveryConfigName, environmentName)
+    sqlRetry.withRetry(WRITE) {
+      jooq.transaction { config ->
+        val txn = DSL.using(config)
+        txn
+          .deleteFrom(ENVIRONMENT_ARTIFACT_CONSTRAINT)
+          .where(ENVIRONMENT_ARTIFACT_CONSTRAINT.ENVIRONMENT_UID.eq(envUid))
+          .execute()
+        txn
+          .deleteFrom(ENVIRONMENT_ARTIFACT_VERSIONS)
+          .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(envUid))
+          .execute()
+        txn
+          .deleteFrom(ENVIRONMENT_RESOURCE)
+          .where(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(envUid))
+          .execute()
+        txn
+          .deleteFrom(ENVIRONMENT)
+          .where(ENVIRONMENT.UID.eq(envUid))
+          .and(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(deliveryConfigUid))
+          .execute()
+      }
+    }
+  }
+
   private fun getUIDsByApplication(application: String): List<String> =
     sqlRetry.withRetry(READ) {
       jooq
@@ -142,7 +206,13 @@ class SqlDeliveryConfigRepository(
       artifacts.forEach { artifact ->
         jooq.insertInto(DELIVERY_CONFIG_ARTIFACT)
           .set(DELIVERY_CONFIG_ARTIFACT.DELIVERY_CONFIG_UID, uid)
-          .set(DELIVERY_CONFIG_ARTIFACT.ARTIFACT_UID, jooq.select(DELIVERY_ARTIFACT.UID).from(DELIVERY_ARTIFACT).where(DELIVERY_ARTIFACT.NAME.eq(artifact.name)))
+          .set(DELIVERY_CONFIG_ARTIFACT.ARTIFACT_UID, jooq
+            .select(DELIVERY_ARTIFACT.UID)
+            .from(DELIVERY_ARTIFACT)
+            .where(DELIVERY_ARTIFACT.NAME.eq(artifact.name))
+            .and(DELIVERY_ARTIFACT.TYPE.eq(artifact.type.name))
+            .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(artifact.deliveryConfigName))
+            .and(DELIVERY_ARTIFACT.REFERENCE.eq(artifact.reference)))
           .onDuplicateKeyIgnore()
           .execute()
       }
@@ -561,6 +631,11 @@ class SqlDeliveryConfigRepository(
     }
   }
 
+  private val ResourceId.uid: Select<Record1<String>>
+    get() = select(RESOURCE.UID)
+      .from(RESOURCE)
+      .where(RESOURCE.ID.eq(this.value))
+
   private fun environmentUidByName(deliveryConfigName: String, environmentName: String): String? =
     sqlRetry.withRetry(READ) {
       jooq
@@ -574,6 +649,15 @@ class SqlDeliveryConfigRepository(
         .fetchOne(ENVIRONMENT.UID)
     }
       ?: null
+
+  private fun envUid(deliveryConfigName: String, environmentName: String): Select<Record1<String>> =
+    select(ENVIRONMENT.UID)
+      .from(DELIVERY_CONFIG)
+      .innerJoin(ENVIRONMENT).on(DELIVERY_CONFIG.UID.eq(ENVIRONMENT.DELIVERY_CONFIG_UID))
+      .where(
+        DELIVERY_CONFIG.NAME.eq(deliveryConfigName),
+        ENVIRONMENT.NAME.eq(environmentName)
+      )
 
   private fun applicationByDeliveryConfigName(name: String): String =
     sqlRetry.withRetry(READ) {

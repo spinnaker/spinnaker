@@ -109,6 +109,10 @@ class InMemoryArtifactRepository : ArtifactRepository {
     }
   }
 
+  override fun delete(artifact: DeliveryArtifact) {
+    artifacts.remove(getId(artifact))
+  }
+
   override fun isRegistered(name: String, type: ArtifactType) =
     versions.containsKey(VersionsKey(name, type))
 

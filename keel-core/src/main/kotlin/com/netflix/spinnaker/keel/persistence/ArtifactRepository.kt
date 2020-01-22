@@ -30,6 +30,12 @@ interface ArtifactRepository {
   fun store(artifact: DeliveryArtifact, version: String, status: ArtifactStatus?): Boolean
 
   /**
+   * Deletes an artifact from a delivery config.
+   * Does not remove the registration of an artifact.
+   */
+  fun delete(artifact: DeliveryArtifact)
+
+  /**
    * @returns the versions we have for an artifact, filtering by the artifact status information,
    * and sorting with the artifact's sorting strategy
    */

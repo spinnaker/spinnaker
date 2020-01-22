@@ -18,11 +18,13 @@ import com.netflix.spinnaker.keel.api.PromotionStatus.DEPLOYING
 import com.netflix.spinnaker.keel.api.PromotionStatus.PENDING
 import com.netflix.spinnaker.keel.api.PromotionStatus.PREVIOUS
 import com.netflix.spinnaker.keel.api.randomUID
+import com.netflix.spinnaker.keel.persistence.ArtifactNotFoundException
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_ARTIFACT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG_ARTIFACT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
@@ -120,7 +122,7 @@ class SqlArtifactRepository(
     }
       ?.let { (details, reference) ->
         mapToArtifact(name, type, details, reference, deliveryConfigName)
-      } ?: throw NoSuchArtifactException(name, type)
+      } ?: throw ArtifactNotFoundException(name, type, reference, deliveryConfigName)
   }
 
   override fun store(artifact: DeliveryArtifact, version: String, status: ArtifactStatus?): Boolean =
@@ -140,6 +142,24 @@ class SqlArtifactRepository(
         .onDuplicateKeyIgnore()
         .execute()
     } == 1
+  }
+
+  override fun delete(artifact: DeliveryArtifact) {
+    requireNotNull(artifact.deliveryConfigName) { "Error removing artifact - it has no delivery config!" }
+    val deliveryConfigId = select(DELIVERY_CONFIG.UID)
+      .from(DELIVERY_CONFIG)
+      .where(DELIVERY_CONFIG.NAME.eq(artifact.deliveryConfigName))
+
+    jooq.transaction { config ->
+      val txn = DSL.using(config)
+      txn.deleteFrom(DELIVERY_CONFIG_ARTIFACT)
+        .where(DELIVERY_CONFIG_ARTIFACT.DELIVERY_CONFIG_UID.eq(deliveryConfigId))
+        .and(DELIVERY_CONFIG_ARTIFACT.ARTIFACT_UID.eq(artifact.uid))
+        .execute()
+      txn.deleteFrom(DELIVERY_ARTIFACT)
+        .where(DELIVERY_ARTIFACT.UID.eq(artifact.uid))
+        .execute()
+    }
   }
 
   override fun isRegistered(name: String, type: ArtifactType): Boolean =

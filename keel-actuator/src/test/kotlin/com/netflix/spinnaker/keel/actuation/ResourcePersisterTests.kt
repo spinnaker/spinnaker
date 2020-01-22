@@ -14,6 +14,7 @@ import com.netflix.spinnaker.keel.api.resources
 import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceUpdated
+import com.netflix.spinnaker.keel.persistence.Cleaner
 import com.netflix.spinnaker.keel.persistence.get
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
@@ -51,11 +52,13 @@ internal class ResourcePersisterTests : JUnit5Minutests {
   ) {
     private val clock: Clock = Clock.systemDefaultZone()
     val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
+    private val cleaner: Cleaner = mockk(relaxUnitFun = true)
     private val subject: ResourcePersister = ResourcePersister(
       deliveryConfigRepository,
       artifactRepository,
       resourceRepository,
       listOf(DummyResourceHandler),
+      cleaner,
       clock,
       publisher
     )

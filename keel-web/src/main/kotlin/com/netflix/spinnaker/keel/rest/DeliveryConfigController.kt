@@ -18,6 +18,7 @@ import java.time.Instant
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -50,6 +51,16 @@ class DeliveryConfigController(
   )
   fun get(@PathVariable("name") name: String): DeliveryConfig =
     deliveryConfigRepository.get(name)
+
+  @DeleteMapping(
+    path = ["/{name}"],
+    produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
+  )
+  fun delete(@PathVariable("name") name: String) {
+    val deliveryConfig = deliveryConfigRepository.get(name)
+    log.info("Deleting delivery config $name: $deliveryConfig")
+    resourcePersister.delete(name)
+  }
 
   // todo eb: make this work with artifact references
   @PostMapping(

@@ -46,6 +46,23 @@ interface DeliveryConfigRepository : PeriodicallyCheckedRepository<DeliveryConfi
   fun deleteByApplication(application: String): Int
 
   /**
+   * Deletes a delivery config, and the environments within in it.
+   * Does not delete any resources or artifacts.
+   */
+  fun delete(name: String)
+
+  /**
+   * Removes a resource from an environment
+   */
+  fun deleteResourceFromEnv(deliveryConfigName: String, environmentName: String, resourceId: ResourceId)
+
+  /**
+   * Deletes an environment from a delivery config.
+   * Does not delete the resources within an environment
+   */
+  fun deleteEnvironment(deliveryConfigName: String, environmentName: String)
+
+  /**
    * Updates state for a stateful [Environment] constraint.
    */
   fun storeConstraintState(state: ConstraintState)

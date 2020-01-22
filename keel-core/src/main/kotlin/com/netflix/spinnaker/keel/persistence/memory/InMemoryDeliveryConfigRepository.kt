@@ -52,6 +52,33 @@ class InMemoryDeliveryConfigRepository(
     }
   }
 
+  override fun delete(name: String) {
+    configs.remove(name)
+  }
+
+  override fun deleteResourceFromEnv(deliveryConfigName: String, environmentName: String, resourceId: ResourceId) {
+    val config = get(deliveryConfigName)
+    val newResources = config.environments
+      .find { it.name == environmentName }
+      ?.resources?.filter { it.id != resourceId }?.toSet() ?: emptySet()
+    val envs = config.environments.map { env ->
+      if (env.name == environmentName) {
+        env.copy(resources = newResources)
+      } else {
+        env
+      }
+    }.toSet()
+    val newConfig = config.copy(environments = envs)
+    configs[deliveryConfigName] = newConfig
+  }
+
+  override fun deleteEnvironment(deliveryConfigName: String, environmentName: String) {
+    val config = get(deliveryConfigName)
+    configs[deliveryConfigName] = config.copy(
+      environments = config.environments.filter { it.name != environmentName }.toSet()
+    )
+  }
+
   override fun environmentFor(resourceId: ResourceId): Environment =
     configs
       .values
