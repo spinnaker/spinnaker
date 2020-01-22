@@ -30,13 +30,13 @@ interface OrcaService {
 
   @POST("/ops")
   @Headers("Content-Type: application/context+json", "X-SPINNAKER-USER-ORIGIN: keel")
-  suspend fun orchestrate(@Header("X-SPINNAKER-USER") serviceAccount: String, @Body request: OrchestrationRequest):
+  suspend fun orchestrate(@Header("X-SPINNAKER-USER") user: String, @Body request: OrchestrationRequest):
     TaskRefResponse
 
   @POST("/orchestrate/{pipelineConfigId}")
   @Headers("Content-Type: application/context+json", "X-SPINNAKER-USER-ORIGIN: keel")
   suspend fun triggerPipeline(
-    @Header("X-SPINNAKER-USER") serviceAccount: String,
+    @Header("X-SPINNAKER-USER") user: String,
     @Path("pipelineConfigId") pipelineConfigId: String,
     @Body trigger: HashMap<String, Any>
   ): TaskRefResponse

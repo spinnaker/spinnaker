@@ -38,7 +38,7 @@ interface CloudDriverService {
 
   @GET("/securityGroups/{account}/{type}/{region}/{securityGroupName}")
   suspend fun getSecurityGroup(
-    @Header("X-SPINNAKER-USER") serviceAccount: String,
+    @Header("X-SPINNAKER-USER") user: String,
     @Path("account") account: String,
     @Path("type") type: String,
     @Path("securityGroupName") securityGroupName: String,
@@ -51,40 +51,40 @@ interface CloudDriverService {
     @Path("account") account: String,
     @Path("provider") provider: String,
     @Query("region") region: String,
-    @Header("X-SPINNAKER-USER") serviceAccount: String = DEFAULT_SERVICE_ACCOUNT
+    @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
   ): Collection<SecurityGroupSummary>
 
   @GET("/networks")
   suspend fun listNetworks(
-    @Header("X-SPINNAKER-USER") serviceAccount: String = DEFAULT_SERVICE_ACCOUNT
+    @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
   ): Map<String, Set<Network>>
 
   @GET("/networks/{cloudProvider}")
   suspend fun listNetworksByCloudProvider(
     @Path("cloudProvider") cloudProvider: String,
-    @Header("X-SPINNAKER-USER") serviceAccount: String = DEFAULT_SERVICE_ACCOUNT
+    @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
   ): Set<Network>
 
   @GET("/subnets/{cloudProvider}")
   suspend fun listSubnets(
     @Path("cloudProvider") cloudProvider: String,
-    @Header("X-SPINNAKER-USER") serviceAccount: String = DEFAULT_SERVICE_ACCOUNT
+    @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
   ): Set<Subnet>
 
   @GET("/credentials")
   suspend fun listCredentials(
-    @Header("X-SPINNAKER-USER") serviceAccount: String = DEFAULT_SERVICE_ACCOUNT
+    @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
   ): Set<Credential>
 
   @GET("/credentials/{account}")
   suspend fun getCredential(
     @Path("account") account: String,
-    @Header("X-SPINNAKER-USER") serviceAccount: String = DEFAULT_SERVICE_ACCOUNT
+    @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
   ): Credential
 
   @GET("/{provider}/loadBalancers/{account}/{region}/{name}")
   suspend fun getClassicLoadBalancer(
-    @Header("X-SPINNAKER-USER") serviceAccount: String,
+    @Header("X-SPINNAKER-USER") user: String,
     @Path("provider") provider: String,
     @Path("account") account: String,
     @Path("region") region: String,
@@ -93,7 +93,7 @@ interface CloudDriverService {
 
   @GET("/{provider}/loadBalancers/{account}/{region}/{name}")
   suspend fun getApplicationLoadBalancer(
-    @Header("X-SPINNAKER-USER") serviceAccount: String,
+    @Header("X-SPINNAKER-USER") user: String,
     @Path("provider") provider: String,
     @Path("account") account: String,
     @Path("region") region: String,
@@ -102,7 +102,7 @@ interface CloudDriverService {
 
   @GET("/applications/{app}/clusters/{account}/{cluster}/{cloudProvider}/{region}/serverGroups/target/current_asg_dynamic?onlyEnabled=true")
   suspend fun activeServerGroup(
-    @Header("X-SPINNAKER-USER") serviceAccount: String,
+    @Header("X-SPINNAKER-USER") user: String,
     @Path("app") app: String,
     @Path("account") account: String,
     @Path("cluster") cluster: String,
@@ -114,7 +114,7 @@ interface CloudDriverService {
   // make above call general and roll titus into it.
   @GET("/applications/{app}/clusters/{account}/{cluster}/{cloudProvider}/{region}/serverGroups/target/current_asg_dynamic?onlyEnabled=true")
   suspend fun titusActiveServerGroup(
-    @Header("X-SPINNAKER-USER") serviceAccount: String,
+    @Header("X-SPINNAKER-USER") user: String,
     @Path("app") app: String,
     @Path("account") account: String,
     @Path("cluster") cluster: String,
@@ -124,7 +124,7 @@ interface CloudDriverService {
 
   @GET("/aws/images/find")
   suspend fun namedImages(
-    @Header("X-SPINNAKER-USER") serviceAccount: String,
+    @Header("X-SPINNAKER-USER") user: String,
     @Query("q") imageName: String,
     @Query("account") account: String?,
     @Query("region") region: String? = null
@@ -134,7 +134,7 @@ interface CloudDriverService {
   suspend fun images(
     @Query("provider") provider: String,
     @Query("q") name: String,
-    @Header("X-SPINNAKER-USER") serviceAccount: String = DEFAULT_SERVICE_ACCOUNT
+    @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
   ): List<NamedImage>
 
   @GET("/dockerRegistry/images/find")
@@ -143,31 +143,31 @@ interface CloudDriverService {
     @Query("repository") repository: String? = null,
     @Query("tag") tag: String? = null,
     @Query("q") q: String? = null,
-    @Header("X-SPINNAKER-USER") serviceAccount: String = DEFAULT_SERVICE_ACCOUNT
+    @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
   ): List<DockerImage>
 
   @GET("/dockerRegistry/images/tags")
   suspend fun findDockerTagsForImage(
     @Query("account") account: String,
     @Query("repository") repository: String,
-    @Header("X-SPINNAKER-USER") serviceAccount: String = DEFAULT_SERVICE_ACCOUNT
+    @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
   ): List<String>
 
   @GET("/tags/{entityId}")
   suspend fun getTagsForEntity(
     @Path("entityId") entityId: String,
-    @Header("X-SPINNAKER-USER") serviceAccount: String = DEFAULT_SERVICE_ACCOUNT
+    @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
   ): EntityTags
 
   @GET("/tags")
   suspend fun getTagsForParams(
     @QueryMap allParameters: Map<String, String>,
-    @Header("X-SPINNAKER-USER") serviceAccount: String = DEFAULT_SERVICE_ACCOUNT
+    @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
   ): EntityTags
 
   @GET("/credentials/{account}")
   suspend fun getAccountInformation(
     @Path("account") account: String,
-    @Header("X-SPINNAKER-USER") serviceAccount: String = DEFAULT_SERVICE_ACCOUNT
+    @Header("X-SPINNAKER-USER") user: String = DEFAULT_SERVICE_ACCOUNT
   ): Map<String, Any?>
 }

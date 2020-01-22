@@ -638,7 +638,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
   }
 
   private suspend fun CloudDriverService.titusActiveServerGroup(user: String, region: String) = titusActiveServerGroup(
-    serviceAccount = user,
+    user = user,
     app = spec.moniker.app,
     account = spec.locations.account,
     cluster = spec.moniker.name,

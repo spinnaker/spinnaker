@@ -227,7 +227,7 @@ class ImageServiceTests : JUnit5Minutests {
       before {
         coEvery {
           cloudDriver.namedImages(
-            serviceAccount = DEFAULT_SERVICE_ACCOUNT,
+            user = DEFAULT_SERVICE_ACCOUNT,
             imageName = "my-package",
             account = "test"
           )
@@ -251,7 +251,7 @@ class ImageServiceTests : JUnit5Minutests {
       before {
         coEvery {
           cloudDriver.namedImages(
-            serviceAccount = DEFAULT_SERVICE_ACCOUNT,
+            user = DEFAULT_SERVICE_ACCOUNT,
             imageName = "my-package",
             account = "test"
           )
@@ -277,7 +277,7 @@ class ImageServiceTests : JUnit5Minutests {
           before {
             coEvery {
               cloudDriver.namedImages(
-                serviceAccount = DEFAULT_SERVICE_ACCOUNT,
+                user = DEFAULT_SERVICE_ACCOUNT,
                 imageName = "my-package",
                 account = "test",
                 region = region
@@ -308,7 +308,7 @@ class ImageServiceTests : JUnit5Minutests {
       before {
         coEvery {
           cloudDriver.namedImages(
-            serviceAccount = DEFAULT_SERVICE_ACCOUNT,
+            user = DEFAULT_SERVICE_ACCOUNT,
             imageName = "my-package",
             account = "test",
             region = null
@@ -346,7 +346,7 @@ class ImageServiceTests : JUnit5Minutests {
 
         coVerify {
           cloudDriver.namedImages(
-            serviceAccount = DEFAULT_SERVICE_ACCOUNT,
+            user = DEFAULT_SERVICE_ACCOUNT,
             imageName = "my-package-0.0.1_rc.98-h99.4cb755c",
             account = "test"
           )
@@ -383,7 +383,7 @@ class ImageServiceTests : JUnit5Minutests {
       before {
         coEvery {
           cloudDriver.namedImages(
-            serviceAccount = DEFAULT_SERVICE_ACCOUNT,
+            user = DEFAULT_SERVICE_ACCOUNT,
             imageName = packageName,
             account = "test"
           )
@@ -406,7 +406,7 @@ class ImageServiceTests : JUnit5Minutests {
       before {
         coEvery {
           cloudDriver.namedImages(
-            serviceAccount = DEFAULT_SERVICE_ACCOUNT,
+            user = DEFAULT_SERVICE_ACCOUNT,
             imageName = appVersion,
             account = "test"
           )

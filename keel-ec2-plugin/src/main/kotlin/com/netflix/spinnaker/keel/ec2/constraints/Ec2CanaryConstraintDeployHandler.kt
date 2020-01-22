@@ -85,7 +85,7 @@ class Ec2CanaryConstraintDeployHandler(
       scope.async {
         try {
           taskLauncher.submitJobToOrca(
-            serviceAccount = constraint.serviceAccount,
+            user = constraint.serviceAccount,
             application = deliveryConfig.application,
             notifications = targetEnvironment.notifications.map { it.toEchoNotification() },
             subject = description,
@@ -112,7 +112,7 @@ class Ec2CanaryConstraintDeployHandler(
         async {
           try {
             cloudDriverService.activeServerGroup(
-              serviceAccount = constraint.serviceAccount,
+              user = constraint.serviceAccount,
               app = app,
               account = constraint.source.account,
               cluster = constraint.source.cluster,

@@ -84,7 +84,7 @@ class ImageService(
    */
   suspend fun getLatestNamedImage(appVersion: AppVersion, account: String, region: String? = null): NamedImage? =
     cloudDriverService.namedImages(
-      serviceAccount = DEFAULT_SERVICE_ACCOUNT,
+      user = DEFAULT_SERVICE_ACCOUNT,
       imageName = appVersion.toImageName().replace("~", "_"),
       account = account,
       region = region
@@ -103,7 +103,7 @@ class ImageService(
    */
   suspend fun getLatestNamedImageWithAllRegionsForAppVersion(appVersion: AppVersion, account: String, regions: List<String>): NamedImage? =
     cloudDriverService.namedImages(
-      serviceAccount = DEFAULT_SERVICE_ACCOUNT,
+      user = DEFAULT_SERVICE_ACCOUNT,
       imageName = appVersion.toImageName().replace("~", "_"),
       account = account
     )
@@ -125,7 +125,7 @@ class ImageService(
    */
   suspend fun getLatestNamedImageWithAllRegions(packageName: String, account: String, regions: List<String>): NamedImage? {
     val images = cloudDriverService.namedImages(
-      serviceAccount = DEFAULT_SERVICE_ACCOUNT,
+      user = DEFAULT_SERVICE_ACCOUNT,
       imageName = packageName,
       account = account
     )
