@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.refresh;
 
-import com.netflix.spinnaker.cats.thread.NamedThreadFactory;
+import com.netflix.spinnaker.kork.threads.NamedThreadFactory;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;

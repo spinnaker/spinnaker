@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.cats.agent;
 
 import com.netflix.spinnaker.cats.module.CatsModuleAware;
-import com.netflix.spinnaker.cats.thread.NamedThreadFactory;
+import com.netflix.spinnaker.kork.threads.NamedThreadFactory;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;

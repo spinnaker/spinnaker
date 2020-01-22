@@ -17,10 +17,10 @@
 package com.netflix.spinnaker.clouddriver.search.executor;
 
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.cats.thread.NamedThreadFactory;
 import com.netflix.spinnaker.clouddriver.search.SearchProvider;
 import com.netflix.spinnaker.clouddriver.search.SearchQueryCommand;
 import com.netflix.spinnaker.clouddriver.search.SearchResultSet;
+import com.netflix.spinnaker.kork.threads.NamedThreadFactory;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;

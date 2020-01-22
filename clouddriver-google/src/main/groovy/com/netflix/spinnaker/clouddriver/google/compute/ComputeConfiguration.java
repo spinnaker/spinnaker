@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.google.compute;
 
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.netflix.spinnaker.cats.thread.NamedThreadFactory;
+import com.netflix.spinnaker.kork.threads.NamedThreadFactory;
 import java.util.concurrent.Executors;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;

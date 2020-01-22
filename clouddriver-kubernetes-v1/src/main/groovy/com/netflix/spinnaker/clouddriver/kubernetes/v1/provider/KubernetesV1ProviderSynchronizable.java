@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v1.provider;
 
 import com.netflix.spinnaker.cats.module.CatsModule;
-import com.netflix.spinnaker.cats.thread.NamedThreadFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.KubernetesCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
@@ -30,6 +29,7 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.security.CredentialsInitializerSynchronizable;
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils;
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
+import com.netflix.spinnaker.kork.threads.NamedThreadFactory;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;

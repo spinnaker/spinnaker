@@ -25,10 +25,10 @@ import com.netflix.spinnaker.cats.cluster.AgentIntervalProvider
 import com.netflix.spinnaker.cats.cluster.NodeIdentity
 import com.netflix.spinnaker.cats.cluster.NodeStatusProvider
 import com.netflix.spinnaker.cats.module.CatsModuleAware
-import com.netflix.spinnaker.cats.thread.NamedThreadFactory
 import com.netflix.spinnaker.config.ConnectionPools
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.sql.routing.withPool
+import com.netflix.spinnaker.kork.threads.NamedThreadFactory
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.table

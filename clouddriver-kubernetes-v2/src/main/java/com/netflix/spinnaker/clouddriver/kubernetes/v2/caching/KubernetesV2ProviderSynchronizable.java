@@ -19,13 +19,13 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching;
 
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.module.CatsModule;
-import com.netflix.spinnaker.cats.thread.NamedThreadFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgentDispatcher;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.security.*;
+import com.netflix.spinnaker.kork.threads.NamedThreadFactory;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;

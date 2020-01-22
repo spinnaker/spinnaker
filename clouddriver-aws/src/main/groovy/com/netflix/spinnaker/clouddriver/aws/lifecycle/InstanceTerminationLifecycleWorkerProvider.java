@@ -17,11 +17,11 @@ package com.netflix.spinnaker.clouddriver.aws.lifecycle;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.cats.thread.NamedThreadFactory;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery.AwsEurekaSupport;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
+import com.netflix.spinnaker.kork.threads.NamedThreadFactory;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;

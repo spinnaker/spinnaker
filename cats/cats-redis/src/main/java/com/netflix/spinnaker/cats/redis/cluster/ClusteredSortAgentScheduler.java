@@ -26,7 +26,7 @@ import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation;
 import com.netflix.spinnaker.cats.cluster.AgentIntervalProvider;
 import com.netflix.spinnaker.cats.cluster.NodeStatusProvider;
 import com.netflix.spinnaker.cats.module.CatsModuleAware;
-import com.netflix.spinnaker.cats.thread.NamedThreadFactory;
+import com.netflix.spinnaker.kork.threads.NamedThreadFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;

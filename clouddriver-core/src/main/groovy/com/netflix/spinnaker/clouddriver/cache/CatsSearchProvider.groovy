@@ -18,10 +18,10 @@ package com.netflix.spinnaker.clouddriver.cache
 
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.provider.ProviderRegistry
-import com.netflix.spinnaker.cats.thread.NamedThreadFactory
 import com.netflix.spinnaker.clouddriver.search.SearchProvider
 import com.netflix.spinnaker.clouddriver.search.SearchResultSet
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
+import com.netflix.spinnaker.kork.threads.NamedThreadFactory
 import groovy.text.SimpleTemplateEngine
 import groovy.text.Template
 import org.slf4j.Logger
