@@ -16,3 +16,4 @@ data
 .project
 .settings/
 bin/
+plugins/

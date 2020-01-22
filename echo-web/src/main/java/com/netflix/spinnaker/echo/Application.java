@@ -34,7 +34,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 @ComponentScan({"com.netflix.spinnaker.echo.config", "com.netflix.spinnaker.config"})
 public class Application extends SpringBootServletInitializer {
-  private static final Map<String, Object> DEFAULT_PROPS = new DefaultPropertiesBuilder().build();
+  private static final Map<String, Object> DEFAULT_PROPS =
+      new DefaultPropertiesBuilder().property("spring.application.name", "echo").build();
 
   public static void main(String... args) {
     ConfigServerBootstrap.systemProperties("echo");

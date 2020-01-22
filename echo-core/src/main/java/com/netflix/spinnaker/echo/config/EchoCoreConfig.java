@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.echo.config;
 
+import com.netflix.spinnaker.config.PluginsAutoConfiguration;
 import com.netflix.spinnaker.echo.discovery.DiscoveryPollingConfiguration;
 import com.netflix.spinnaker.echo.events.EchoEventListener;
 import com.netflix.spinnaker.echo.events.EventPropagator;
@@ -38,7 +39,11 @@ import org.springframework.context.annotation.Import;
   "com.netflix.spinnaker.echo.build",
   "com.netflix.spinnaker.echo.events",
 })
-@Import({PlatformComponents.class, DiscoveryPollingConfiguration.class})
+@Import({
+  PlatformComponents.class,
+  DiscoveryPollingConfiguration.class,
+  PluginsAutoConfiguration.class
+})
 public class EchoCoreConfig {
   private ApplicationContext context;
 
