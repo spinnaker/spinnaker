@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest     
     steps:
     - id: assigned
-      uses: lee-dohm/last-assigned@v1
+      uses: lee-dohm/last-assigned@master
       with:
         query: 'label:build-cop-rotation'
         token: ${{ secrets.SPINNAKERBOT_GHA_BUILD_COP_TOKEN }}
