@@ -134,6 +134,7 @@ export class CopyToClipboard extends React.Component<ICopyToClipboardProps, ICop
           onChange={e => e} // no-op to prevent warnings
           ref={this.inputRef}
           value={text}
+          tabIndex={-1}
           style={{ zIndex: -1, position: 'fixed', opacity: 0, top: 0, left: 0 }}
         />
         {this.renderTooltip(copyButton)}
