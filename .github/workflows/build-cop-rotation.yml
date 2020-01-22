@@ -1,13 +1,13 @@
 name: Build Cop
 
-on: 
+on:
   schedule:
   - cron: "*/5 * * * *"
   # - cron: 0 11 * * MON-FRI
 
 jobs:
   stuff:
-    runs-on: ubuntu-latest     
+    runs-on: ubuntu-latest
     steps:
     #- id: assigned
     #  uses: lee-dohm/last-assigned@master
@@ -18,6 +18,7 @@ jobs:
       uses: lee-dohm/team-rotation@v1
       with:
         teamName: "@spinnaker/build-cops"
+        token: ${{ secrets.SPINNAKERBOT_GHA_BUILD_COP_TOKEN }}
         # last: ${{ steps.assigned.outputs.last }}
     - uses: JasonEtco/create-an-issue@v2
       env:
