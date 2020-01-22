@@ -24,7 +24,6 @@ import org.pf4j.update.SimpleFileDownloader
 import org.pf4j.update.UpdateRepository
 import org.pf4j.update.verifier.CompoundVerifier
 import org.slf4j.LoggerFactory
-import retrofit2.HttpException
 import java.net.URL
 
 /**
@@ -57,22 +56,27 @@ class Front50UpdateRepository(
 
   override fun getPlugins(): MutableMap<String, SpinnakerPluginInfo> {
     return plugins.ifEmpty {
-      try {
-        log.debug("Populating plugin info cache from front50.")
-        front50Service.list(applicationName).associateByTo(plugins) { it.id }
-      } catch (e: HttpException) {
-        throw SystemException("Unable to list front50 plugin info", e)
+      log.debug("Populating plugin info cache from front50")
+      val response = front50Service.list(applicationName).execute()
+
+      if (!response.isSuccessful) {
+        throw SystemException("Unable to list front50 plugin info", response.message())
       }
+
+      response.body()!!.associateByTo(plugins) { it.id }
     }
   }
 
   override fun getPlugin(id: String): SpinnakerPluginInfo {
-    return plugins.getOrPut(id, {
-      try {
-        front50Service.getById(id)
-      } catch (e: HttpException) {
-        throw SystemException("Unable to get the requested plugin info `$id` from front50", e)
-      }
+    return plugins.getOrPut(id,
+      {
+        val response = front50Service.getById(id).execute()
+        if (!response.isSuccessful) {
+          throw SystemException("Unable to get the requested plugin info `$id` from front50",
+            response.message())
+        }
+
+        response.body()!!
     })
   }
 

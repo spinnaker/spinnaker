@@ -23,7 +23,6 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.mockk
 import org.pf4j.DefaultPluginStatusProvider
-import org.pf4j.PluginState
 import org.pf4j.update.DefaultUpdateRepository
 import org.pf4j.update.PluginInfo
 import org.pf4j.update.UpdateManager
@@ -82,9 +81,9 @@ class PluginUpdateServiceTest : JUnit5Minutests {
         installNewPlugins()
 
         expect {
-          that(pluginManager.plugins).hasSize(1)
-          that(pluginManager.getPlugin("spinnaker.generatedtestplugin"))
-            .get { pluginState }.isEqualTo(PluginState.STARTED)
+          that(pluginManager.pluginsRoot.contains(
+            paths.plugins.resolve("spinnaker.generatedtestplugin-0.0.1.zip"))
+          )
         }
       }
     }
@@ -119,13 +118,14 @@ class PluginUpdateServiceTest : JUnit5Minutests {
 
           updateExistingPlugins()
 
-          that(updateManager.hasPluginUpdate("spinnaker.generatedtestplugin"))
-            .describedAs("plugin update status")
-            .isFalse()
-          that(pluginManager.plugins).hasSize(1)
-          that(pluginManager.getPlugin("spinnaker.generatedtestplugin").descriptor.version)
-            .describedAs("updated plugin version")
-            .isEqualTo("0.0.2")
+          expect {
+            that(pluginManager.pluginsRoot.contains(
+              paths.plugins.resolve("spinnaker.generatedtestplugin-0.0.2.zip"))
+            )
+            that(!pluginManager.pluginsRoot.contains(
+              paths.plugins.resolve("spinnaker.generatedtestplugin-0.0.1.zip"))
+            )
+          }
         }
       }
     }

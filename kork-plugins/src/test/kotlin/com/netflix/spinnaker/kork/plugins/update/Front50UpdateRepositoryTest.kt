@@ -27,7 +27,7 @@ import io.mockk.mockk
 import org.junit.jupiter.api.assertThrows
 import org.pf4j.update.SimpleFileDownloader
 import org.pf4j.update.verifier.CompoundVerifier
-import retrofit2.HttpException
+import retrofit2.Response
 import strikt.api.expectThat
 import strikt.assertions.get
 import strikt.assertions.isA
@@ -40,25 +40,25 @@ class Front50UpdateRepositoryTest : JUnit5Minutests {
     fixture { Fixture() }
 
     test("getPlugins populates the plugins cache, subsequent getPlugin returns cached item") {
-      every { front50Service.list(applicationName) } returns Collections.singletonList(plugin)
+      every { front50Service.list(applicationName).execute() } returns response
 
       val plugins = subject.getPlugins()
 
       expectThat(plugins)
         .isA<MutableMap<String, SpinnakerPluginInfo>>()[pluginId]
         .get { plugin.id }.isEqualTo(pluginId)
-        .get { plugin.spinnakerReleases[0].state == pluginReleaseState }
+        .get { plugin.getReleases()[0].state == pluginReleaseState }
 
       val plugin = subject.getPlugin(pluginId)
 
       expectThat(plugin)
         .isA<SpinnakerPluginInfo>()
         .get { plugin.id }.isEqualTo(pluginId)
-        .get { plugin.spinnakerReleases[0].state == pluginReleaseState }
+        .get { plugin.getReleases()[0].state == pluginReleaseState }
     }
 
-    test("HttpException results in thrown SystemException") {
-      every { front50Service.list(applicationName) } throws HttpException(mockk(relaxed = true))
+    test("Response error results in thrown SystemException") {
+      every { front50Service.list(applicationName).execute() } returns Response.error(500, mockk(relaxed = true))
       assertThrows<SystemException> { (subject.getPlugins()) }
     }
 
@@ -85,9 +85,11 @@ class Front50UpdateRepositoryTest : JUnit5Minutests {
       front50Service
     )
 
-    val plugin = SpinnakerPluginInfo(listOf(SpinnakerPluginRelease(pluginReleaseState)))
+    val plugin = SpinnakerPluginInfo()
+    val response: Response<Collection<SpinnakerPluginInfo>> = Response.success(Collections.singletonList(plugin))
 
     init {
+      plugin.setReleases(listOf(SpinnakerPluginRelease(pluginReleaseState)))
       plugin.id = pluginId
     }
   }

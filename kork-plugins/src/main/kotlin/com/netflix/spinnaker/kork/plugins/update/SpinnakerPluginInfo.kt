@@ -16,12 +16,20 @@
 
 package com.netflix.spinnaker.kork.plugins.update
 
-import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonSetter
 import org.pf4j.update.PluginInfo
 
-data class SpinnakerPluginInfo(
-  @JsonProperty("releases") val spinnakerReleases: List<SpinnakerPluginRelease>
-) : PluginInfo() {
+class SpinnakerPluginInfo : PluginInfo() {
+
+  @Suppress("UNCHECKED_CAST")
+  fun getReleases(): List<SpinnakerPluginRelease> {
+    return releases as List<SpinnakerPluginRelease>
+  }
+
+  @JsonSetter("releases")
+  fun setReleases(spinnakerReleases: List<SpinnakerPluginRelease>) {
+    releases = spinnakerReleases
+  }
 
   data class SpinnakerPluginRelease(val state: State) : PluginRelease() {
     enum class State {

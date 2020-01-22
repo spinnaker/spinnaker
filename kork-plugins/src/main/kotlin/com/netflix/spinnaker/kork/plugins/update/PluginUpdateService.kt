@@ -21,9 +21,15 @@ import com.netflix.spinnaker.kork.plugins.events.PluginDownloaded.Operation.INST
 import com.netflix.spinnaker.kork.plugins.events.PluginDownloaded.Operation.UPDATE
 import com.netflix.spinnaker.kork.plugins.events.PluginDownloaded.Status.FAILED
 import com.netflix.spinnaker.kork.plugins.events.PluginDownloaded.Status.SUCCEEDED
+import org.pf4j.PluginRuntimeException
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
+import java.io.File
+import java.io.IOException
+import java.lang.UnsupportedOperationException
+import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.StandardCopyOption
 
 /**
  * The [PluginUpdateService] is responsible for sourcing plugin updates from a plugin repository on startup.
@@ -33,23 +39,16 @@ import java.nio.file.Path
  *
  * All plugins that are returned by the repository will be downloaded and installed.
  *
- * While it's possible that this could be used after the application has started up, there is no guarantee that the
- * extensions a plugin exposes will be correctly refreshed within the Spring context at this point. Therefore, it is
- * strongly advised that if a plugin update needs to occur, the service should be redeployed. If live updates are
- * desired in the future, we'll need to proxy extensions so that the real implementing object is delegated to, allowing
- * Spring injection to continue working.
+ * Plugins will not be loaded or started from this service.  All plugin loading and starting occurs
+ * via [com.netflix.spinnaker.kork.plugins.ExtensionBeanDefinitionRegistryPostProcessor].
  *
  * TODO(rz): Look to a local config or front50 (depending on spinnaker setup) to determine if there are specific
  *  plugin versions to use. We may not want the most recent release of a plugin.
- * TODO(rz): The front50 integration will need to be smart enough to understand what service is asking for plugins
- *  from the repository, and return only the plugins that are supposed to be installed on that service.
- * TODO(rz): Consider not loading the plugins and deferring this to the PluginManager so that no errors are raised when
- *  trying to load the same plugin twice.
  */
 class PluginUpdateService(
   internal val updateManager: SpinnakerUpdateManager,
   internal val pluginManager: SpinnakerPluginManager,
-  internal val applicationEventPublisher: ApplicationEventPublisher
+  private val applicationEventPublisher: ApplicationEventPublisher
 ) {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -59,6 +58,9 @@ class PluginUpdateService(
     installNewPlugins()
   }
 
+  /**
+   * This is used in Gate to download Deck plugin artifacts - do not remove and must remain public.
+   */
   fun download(pluginId: String, version: String): Path {
     return updateManager.downloadPluginRelease(pluginId, version)
   }
@@ -80,7 +82,25 @@ class PluginUpdateService(
 
       log.debug("Update plugin '{}' from version {} to {}", plugin.id, installedVersion, lastRelease.version)
 
-      val updated = updateManager.updatePlugin(plugin.id, lastRelease.version)
+      if (pluginManager.getPlugin(plugin.id) == null) {
+        throw PluginRuntimeException("Plugin {} cannot be updated since it is not installed", plugin.id)
+      }
+
+      val hasUpdate = updateManager.hasPluginUpdate(plugin.id)
+      val updated: Boolean = if (hasUpdate) {
+        val downloaded = download(plugin.id, lastRelease.version)
+
+        if (!pluginManager.deletePlugin(plugin.id)) {
+          false
+        } else {
+          pluginManager.pluginsRoot.write(downloaded)
+        }
+      } else {
+        log.warn("Plugin {} does not have an update available which is compatible with system version {}",
+          plugin.id, pluginManager.systemVersion)
+        false
+      }
+
       if (updated) {
         log.debug("Updated plugin '{}'", plugin.id)
         applicationEventPublisher.publishEvent(
@@ -110,7 +130,11 @@ class PluginUpdateService(
       val lastRelease = updateManager.getLastPluginRelease(plugin.id)
       log.debug("Installing plugin '{}' with version {}", plugin.id, lastRelease.version)
 
-      val installed = updateManager.installPlugin(plugin.id, lastRelease.version)
+      // Download to temporary location
+      val downloaded = download(plugin.id, lastRelease.version)
+
+      val installed = pluginManager.pluginsRoot.write(downloaded)
+
       if (installed) {
         log.debug("Installed plugin '{}'", plugin.id)
         applicationEventPublisher.publishEvent(
@@ -122,6 +146,25 @@ class PluginUpdateService(
           PluginDownloaded(this, INSTALL, FAILED, plugin.id, lastRelease.version)
         )
       }
+    }
+  }
+
+  /**
+   * Write the plugin, creating the the plugins root directory defined in [pluginManager] if
+   * necessary.
+   */
+  private fun Path.write(downloaded: Path): Boolean {
+    if (pluginManager.pluginsRoot == this) {
+      val file = this.resolve(downloaded.fileName)
+      File(this.toString()).mkdirs()
+      try {
+        return Files.move(downloaded, file, StandardCopyOption.REPLACE_EXISTING)
+          .contains(downloaded.fileName)
+      } catch (e: IOException) {
+        throw PluginRuntimeException(e, "Failed to write file '{}' to plugins folder", file)
+      }
+    } else {
+      throw UnsupportedOperationException("This operation is only supported on the specified plugins root directory.")
     }
   }
 }
