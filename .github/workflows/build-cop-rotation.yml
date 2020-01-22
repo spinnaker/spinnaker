@@ -9,16 +9,16 @@ jobs:
   stuff:
     runs-on: ubuntu-latest     
     steps:
-    - id: assigned
-      uses: lee-dohm/last-assigned@master
-      with:
-        query: 'label:build-cop-rotation'
-        token: ${{ secrets.SPINNAKERBOT_GHA_BUILD_COP_TOKEN }}
+    #- id: assigned
+    #  uses: lee-dohm/last-assigned@master
+    #  with:
+    #    query: 'label:build-cop-rotation'
+    #    token: ${{ secrets.SPINNAKERBOT_GHA_BUILD_COP_TOKEN }}
     - id: rotation
       uses: lee-dohm/team-rotation@v1
       with:
         teamName: "@spinnaker/build-cops"
-        last: ${{ steps.assigned.outputs.last }}
+        # last: ${{ steps.assigned.outputs.last }}
     - uses: JasonEtco/create-an-issue@v2
       env:
         GITHUB_TOKEN: ${{ secrets.SPINNAKERBOT_GHA_BUILD_COP_TOKEN }}
