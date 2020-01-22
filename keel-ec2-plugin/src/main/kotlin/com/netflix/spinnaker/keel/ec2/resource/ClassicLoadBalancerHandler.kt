@@ -107,7 +107,7 @@ class ClassicLoadBalancerHandler(
       account = exportable.account,
       name = exportable.moniker.name,
       regions = exportable.regions,
-      serviceAccount = exportable.serviceAccount)
+      serviceAccount = exportable.user)
 
     if (clbs.isEmpty()) {
       throw ResourceNotFound("Could not find classic load balancer: ${exportable.moniker.name} " +

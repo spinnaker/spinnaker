@@ -292,7 +292,7 @@ class ClusterHandler(
       account = exportable.account,
       moniker = exportable.moniker,
       regions = exportable.regions,
-      serviceAccount = exportable.serviceAccount
+      serviceAccount = exportable.user
     )
       .byRegion()
 

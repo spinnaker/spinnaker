@@ -233,7 +233,7 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
         val exportable = Exportable(
           cloudProvider = "aws",
           account = "test",
-          serviceAccount = "keel@spin.spin.spin",
+          user = "fzlem@netflix.com",
           moniker = parseMoniker("testapp-managedogge-wow"),
           regions = setOf("us-east-1"),
           kind = supportedKind.kind

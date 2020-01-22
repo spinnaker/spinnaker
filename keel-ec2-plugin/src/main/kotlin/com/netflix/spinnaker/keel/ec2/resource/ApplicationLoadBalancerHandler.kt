@@ -105,7 +105,7 @@ class ApplicationLoadBalancerHandler(
       account = exportable.account,
       name = exportable.moniker.name,
       regions = exportable.regions,
-      serviceAccount = exportable.serviceAccount
+      serviceAccount = exportable.user
     )
 
     if (albs.isEmpty()) {

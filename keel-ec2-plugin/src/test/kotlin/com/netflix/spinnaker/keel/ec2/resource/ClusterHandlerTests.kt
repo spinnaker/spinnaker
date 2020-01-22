@@ -28,6 +28,7 @@ import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
 import com.netflix.spinnaker.keel.api.ec2.byRegion
 import com.netflix.spinnaker.keel.api.ec2.resolve
 import com.netflix.spinnaker.keel.api.ec2.resolveCapacity
+import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroup
@@ -189,7 +190,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
   val exportable = Exportable(
     cloudProvider = "aws",
     account = spec.locations.account,
-    serviceAccount = "keel@spinnaker",
+    user = "fzlem@netflix.com",
     moniker = spec.moniker,
     regions = spec.locations.regions.map { it.name }.toSet(),
     kind = "cluster"
@@ -318,7 +319,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
           setOf(subnet1East.availabilityZone)
       }
 
-      coEvery { orcaService.orchestrate("keel@spinnaker", any()) } returns TaskRefResponse("/tasks/${randomUUID()}")
+      coEvery { orcaService.orchestrate(resource.serviceAccount, any()) } returns TaskRefResponse("/tasks/${randomUUID()}")
       every { deliveryConfigRepository.environmentFor(any()) } returns Environment("test")
     }
 
@@ -329,8 +330,8 @@ internal class ClusterHandlerTests : JUnit5Minutests {
 
     context("the cluster does not exist or has no active server groups") {
       before {
-        coEvery { cloudDriverService.activeServerGroup("us-east-1") } returns activeServerGroupResponseEast
-        coEvery { cloudDriverService.activeServerGroup("us-west-2") } throws RETROFIT_NOT_FOUND
+        coEvery { cloudDriverService.activeServerGroup(any(), "us-east-1") } returns activeServerGroupResponseEast
+        coEvery { cloudDriverService.activeServerGroup(any(), "us-west-2") } throws RETROFIT_NOT_FOUND
       }
 
       test("the current model is null") {
@@ -355,7 +356,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         }
 
         val slot = slot<OrchestrationRequest>()
-        coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
+        coVerify { orcaService.orchestrate(resource.serviceAccount, capture(slot)) }
 
         // slot will only contain the last orchestration request made, which should
         // always be for the second staggered region (east).
@@ -384,7 +385,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         }
 
         val slot = slot<OrchestrationRequest>()
-        coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
+        coVerify { orcaService.orchestrate(resource.serviceAccount, capture(slot)) }
 
         expectThat(slot.captured.job.size).isEqualTo(3)
         expectThat(slot.captured.job.first()) {
@@ -416,8 +417,8 @@ internal class ClusterHandlerTests : JUnit5Minutests {
 
     context("the cluster has active server groups") {
       before {
-        coEvery { cloudDriverService.activeServerGroup("us-east-1") } returns activeServerGroupResponseEast
-        coEvery { cloudDriverService.activeServerGroup("us-west-2") } returns activeServerGroupResponseWest
+        coEvery { cloudDriverService.activeServerGroup(any(), "us-east-1") } returns activeServerGroupResponseEast
+        coEvery { cloudDriverService.activeServerGroup(any(), "us-west-2") } returns activeServerGroupResponseWest
       }
 
       // TODO: test for multiple server group response
@@ -474,8 +475,8 @@ internal class ClusterHandlerTests : JUnit5Minutests {
 
       context("other handling of default properties in cluster export") {
         before {
-          coEvery { cloudDriverService.activeServerGroup("us-east-1") } returns activeServerGroupResponseEast
-          coEvery { cloudDriverService.activeServerGroup("us-west-2") } returns activeServerGroupResponseWest
+          coEvery { cloudDriverService.activeServerGroup(any(), "us-east-1") } returns activeServerGroupResponseEast
+          coEvery { cloudDriverService.activeServerGroup(any(), "us-west-2") } returns activeServerGroupResponseWest
             .withNonDefaultHealthProps()
             .withNonDefaultLaunchConfigProps()
         }
@@ -519,8 +520,8 @@ internal class ClusterHandlerTests : JUnit5Minutests {
 
     context("the cluster has active server groups with different app versions") {
       before {
-        coEvery { cloudDriverService.activeServerGroup("us-east-1") } returns activeServerGroupResponseEast
-        coEvery { cloudDriverService.activeServerGroup("us-west-2") } returns activeServerGroupResponseWest.withOlderAppVersion()
+        coEvery { cloudDriverService.activeServerGroup(any(), "us-east-1") } returns activeServerGroupResponseEast
+        coEvery { cloudDriverService.activeServerGroup(any(), "us-west-2") } returns activeServerGroupResponseWest.withOlderAppVersion()
 
         runBlocking {
           current(resource)
@@ -534,8 +535,8 @@ internal class ClusterHandlerTests : JUnit5Minutests {
 
     context("the cluster has active server groups with missing app version tag in one region") {
       before {
-        coEvery { cloudDriverService.activeServerGroup("us-east-1") } returns activeServerGroupResponseEast
-        coEvery { cloudDriverService.activeServerGroup("us-west-2") } answers { activeServerGroupResponseWest.withMissingAppVersion() }
+        coEvery { cloudDriverService.activeServerGroup(any(), "us-east-1") } returns activeServerGroupResponseEast
+        coEvery { cloudDriverService.activeServerGroup(any(), "us-west-2") } answers { activeServerGroupResponseWest.withMissingAppVersion() }
       }
 
       test("app version is null in the region with missing tag") {
@@ -575,7 +576,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         }
 
         val slot = slot<OrchestrationRequest>()
-        coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
+        coVerify { orcaService.orchestrate(resource.serviceAccount, capture(slot)) }
 
         expectThat(slot.captured.job.first()) {
           get("type").isEqualTo("createServerGroup")
@@ -601,7 +602,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
           }
 
           val slot = slot<OrchestrationRequest>()
-          coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
+          coVerify { orcaService.orchestrate(resource.serviceAccount, capture(slot)) }
 
           expectThat(slot.captured.job.first()) {
             get("type").isEqualTo("resizeServerGroup")
@@ -636,7 +637,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
           }
 
           val slot = slot<OrchestrationRequest>()
-          coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
+          coVerify { orcaService.orchestrate(resource.serviceAccount, capture(slot)) }
 
           expectThat(slot.captured.job.size).isEqualTo(1)
           expectThat(slot.captured.job.first()) {
@@ -680,7 +681,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
           }
 
           val slot = slot<OrchestrationRequest>()
-          coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
+          coVerify { orcaService.orchestrate(resource.serviceAccount, capture(slot)) }
 
           expectThat(slot.captured.job.size).isEqualTo(1)
           expectThat(slot.captured.job.first()) {
@@ -715,7 +716,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
           }
 
           val slot = slot<OrchestrationRequest>()
-          coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
+          coVerify { orcaService.orchestrate(resource.serviceAccount, capture(slot)) }
 
           expectThat(slot.captured.job.size).isEqualTo(2)
           expectThat(slot.captured.job.first()) {
@@ -757,7 +758,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
           }
 
           val slot = slot<OrchestrationRequest>()
-          coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
+          coVerify { orcaService.orchestrate(resource.serviceAccount, capture(slot)) }
 
           expectThat(slot.captured.job.size).isEqualTo(2)
           expectThat(slot.captured.job.first()) {
@@ -792,7 +793,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
           }
 
           val slot = slot<OrchestrationRequest>()
-          coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
+          coVerify { orcaService.orchestrate(resource.serviceAccount, capture(slot)) }
 
           expectThat(slot.captured.job.first()) {
             get("type").isEqualTo("createServerGroup")
@@ -813,7 +814,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
           }
 
           val slot = slot<OrchestrationRequest>()
-          coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
+          coVerify { orcaService.orchestrate(resource.serviceAccount, capture(slot)) }
 
           expectThat(slot.captured.job.first()) {
             get("strategy").isEqualTo("redblack")
@@ -837,7 +838,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
           }
 
           val slot = slot<OrchestrationRequest>()
-          coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
+          coVerify { orcaService.orchestrate(resource.serviceAccount, capture(slot)) }
 
           expectThat(slot.captured.job.first()) {
             get("strategy").isEqualTo("redblack")
@@ -855,7 +856,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
           }
 
           val slot = slot<OrchestrationRequest>()
-          coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
+          coVerify { orcaService.orchestrate(resource.serviceAccount, capture(slot)) }
 
           expectThat(slot.captured.job.first()) {
             get("strategy").isEqualTo("highlander")
@@ -907,8 +908,8 @@ internal class ClusterHandlerTests : JUnit5Minutests {
     }
   }
 
-  private suspend fun CloudDriverService.activeServerGroup(region: String) = activeServerGroup(
-    serviceAccount = "keel@spinnaker",
+  private suspend fun CloudDriverService.activeServerGroup(user: String, region: String) = activeServerGroup(
+    serviceAccount = user,
     app = spec.moniker.app,
     account = spec.locations.account,
     cluster = spec.moniker.name,

@@ -32,6 +32,7 @@ import com.netflix.spinnaker.keel.api.TagVersionStrategy.BRANCH_JOB_COMMIT_BY_JO
 import com.netflix.spinnaker.keel.api.TagVersionStrategy.INCREASING_TAG
 import com.netflix.spinnaker.keel.api.TagVersionStrategy.SEMVER_JOB_COMMIT_BY_SEMVER
 import com.netflix.spinnaker.keel.api.TagVersionStrategy.SEMVER_TAG
+import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.api.titus.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.api.titus.SPINNAKER_TITUS_API_V1
 import com.netflix.spinnaker.keel.api.titus.cluster.TitusClusterHandler
@@ -155,7 +156,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
   val exportable = Exportable(
     cloudProvider = "titus",
     account = spec.locations.account,
-    serviceAccount = "keel@spinnaker",
+    user = "fzlem@netflix.com",
     moniker = spec.moniker,
     regions = spec.locations.regions.map { it.name }.toSet(),
     kind = "cluster"
@@ -235,7 +236,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
           "registry" to awsAccount + "registry"
         )
       }
-      coEvery { orcaService.orchestrate("keel@spinnaker", any()) } returns TaskRefResponse("/tasks/${UUID.randomUUID()}")
+      coEvery { orcaService.orchestrate(resource.serviceAccount, any()) } returns TaskRefResponse("/tasks/${UUID.randomUUID()}")
       every { deliveryConfigRepository.environmentFor(any()) } returns Environment("test")
     }
 
@@ -246,8 +247,8 @@ class TitusClusterHandlerTests : JUnit5Minutests {
 
     context("the cluster does not exist or has no active server groups") {
       before {
-        coEvery { cloudDriverService.titusActiveServerGroup("us-east-1") } returns activeServerGroupResponseEast
-        coEvery { cloudDriverService.titusActiveServerGroup("us-west-2") } throws RETROFIT_NOT_FOUND
+        coEvery { cloudDriverService.titusActiveServerGroup(any(), "us-east-1") } returns activeServerGroupResponseEast
+        coEvery { cloudDriverService.titusActiveServerGroup(any(), "us-west-2") } throws RETROFIT_NOT_FOUND
         coEvery { cloudDriverService.findDockerImages("testregistry", "spinnaker/keel", any(), any()) } returns
           listOf(DockerImage("testregistry", "spinnaker/keel", "master-h2.blah", "sha:1111"))
       }
@@ -268,7 +269,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
         }
 
         val slot = slot<OrchestrationRequest>()
-        coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
+        coVerify { orcaService.orchestrate(resource.serviceAccount, capture(slot)) }
 
         expectThat(slot.captured.job.first()) {
           get("type").isEqualTo("createServerGroup")
@@ -278,8 +279,8 @@ class TitusClusterHandlerTests : JUnit5Minutests {
 
     context("the cluster has active server groups") {
       before {
-        coEvery { cloudDriverService.titusActiveServerGroup("us-east-1") } returns activeServerGroupResponseEast
-        coEvery { cloudDriverService.titusActiveServerGroup("us-west-2") } returns activeServerGroupResponseWest
+        coEvery { cloudDriverService.titusActiveServerGroup(any(), "us-east-1") } returns activeServerGroupResponseEast
+        coEvery { cloudDriverService.titusActiveServerGroup(any(), "us-west-2") } returns activeServerGroupResponseWest
         coEvery { cloudDriverService.findDockerImages("testregistry", "spinnaker/keel", any(), any()) } returns
           listOf(DockerImage("testregistry", "spinnaker/keel", "master-h2.blah", "sha:1111"))
       }
@@ -325,7 +326,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
           }
 
           val slot = slot<OrchestrationRequest>()
-          coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
+          coVerify { orcaService.orchestrate(resource.serviceAccount, capture(slot)) }
 
           expectThat(slot.captured.job.first()) {
             get("type").isEqualTo("resizeServerGroup")
@@ -360,7 +361,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
           }
 
           val slot = slot<OrchestrationRequest>()
-          coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
+          coVerify { orcaService.orchestrate(resource.serviceAccount, capture(slot)) }
 
           expectThat(slot.captured.job.first()) {
             get("type").isEqualTo("createServerGroup")
@@ -381,7 +382,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
           }
 
           val slot = slot<OrchestrationRequest>()
-          coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
+          coVerify { orcaService.orchestrate(resource.serviceAccount, capture(slot)) }
 
           expectThat(slot.captured.job.first()) {
             get("strategy").isEqualTo("redblack")
@@ -405,7 +406,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
           }
 
           val slot = slot<OrchestrationRequest>()
-          coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
+          coVerify { orcaService.orchestrate(resource.serviceAccount, capture(slot)) }
 
           expectThat(slot.captured.job.first()) {
             get("strategy").isEqualTo("redblack")
@@ -423,7 +424,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
           }
 
           val slot = slot<OrchestrationRequest>()
-          coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
+          coVerify { orcaService.orchestrate(resource.serviceAccount, capture(slot)) }
 
           expectThat(slot.captured.job.first()) {
             get("strategy").isEqualTo("highlander")
@@ -475,8 +476,8 @@ class TitusClusterHandlerTests : JUnit5Minutests {
       }
       context("export without overrides") {
         before {
-          coEvery { cloudDriverService.titusActiveServerGroup("us-east-1") } returns activeServerGroupResponseEast
-          coEvery { cloudDriverService.titusActiveServerGroup("us-west-2") } returns activeServerGroupResponseWest
+          coEvery { cloudDriverService.titusActiveServerGroup(any(), "us-east-1") } returns activeServerGroupResponseEast
+          coEvery { cloudDriverService.titusActiveServerGroup(any(), "us-west-2") } returns activeServerGroupResponseWest
           coEvery { cloudDriverService.findDockerImages("testregistry", (spec.defaults.container!! as DigestProvider).repository()) } returns images
           coEvery { cloudDriverService.getAccountInformation(titusAccount) } returns mapOf("registry" to "testregistry")
         }
@@ -524,9 +525,9 @@ class TitusClusterHandlerTests : JUnit5Minutests {
 
       context("export with overrides") {
         before {
-          coEvery { cloudDriverService.titusActiveServerGroup("us-east-1") } returns
+          coEvery { cloudDriverService.titusActiveServerGroup(any(), "us-east-1") } returns
             activeServerGroupResponseEast
-          coEvery { cloudDriverService.titusActiveServerGroup("us-west-2") } returns
+          coEvery { cloudDriverService.titusActiveServerGroup(any(), "us-west-2") } returns
             activeServerGroupResponseWest
               .withDifferentEntryPoint()
               .withDifferentEnv()
@@ -636,8 +637,8 @@ class TitusClusterHandlerTests : JUnit5Minutests {
     }
   }
 
-  private suspend fun CloudDriverService.titusActiveServerGroup(region: String) = titusActiveServerGroup(
-    serviceAccount = "keel@spinnaker",
+  private suspend fun CloudDriverService.titusActiveServerGroup(user: String, region: String) = titusActiveServerGroup(
+    serviceAccount = user,
     app = spec.moniker.app,
     account = spec.locations.account,
     cluster = spec.moniker.name,

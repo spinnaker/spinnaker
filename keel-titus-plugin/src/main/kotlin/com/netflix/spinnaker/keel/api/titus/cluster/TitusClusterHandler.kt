@@ -141,7 +141,7 @@ class TitusClusterHandler(
       exportable.account,
       exportable.moniker,
       exportable.regions,
-      exportable.serviceAccount
+      exportable.user
     ).byRegion()
 
     if (serverGroups.isEmpty()) {

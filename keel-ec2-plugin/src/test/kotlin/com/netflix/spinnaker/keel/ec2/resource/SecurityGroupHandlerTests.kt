@@ -296,7 +296,7 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
         val exportable = Exportable(
           cloudProvider = "aws",
           account = "prod",
-          serviceAccount = "keel@spin.io",
+          user = "fzlem@netflix.com",
           moniker = parseMoniker("keel-fnord"),
           regions = setOf("us-west-3", "us-east-17"),
           kind = handler.supportedKind.kind

@@ -142,7 +142,7 @@ class SecurityGroupHandler(
           async {
             try {
               cloudDriverService.getSecurityGroup(
-                exportable.serviceAccount,
+                exportable.user,
                 exportable.account,
                 CLOUD_PROVIDER,
                 summary!!.name,

@@ -13,12 +13,12 @@ import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
+import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
@@ -61,15 +61,14 @@ class ExportController(
    */
   @GetMapping(
     path = ["/{cloudProvider}/{account}/{type}/{name}"],
-    params = ["serviceAccount"],
-    produces = [MediaType.APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
+    produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
   fun get(
     @PathVariable("cloudProvider") cloudProvider: String,
     @PathVariable("account") account: String,
     @PathVariable("type") type: String,
     @PathVariable("name") name: String,
-    @RequestParam("serviceAccount") serviceAccount: String
+    @RequestHeader("X-SPINNAKER-USER") user: String
   ): SubmittedResource<*> {
     val provider = cloudProviderOverrides[cloudProvider] ?: cloudProvider
     val apiVersion = SPINNAKER_API_V1.subApi(provider)
@@ -78,7 +77,7 @@ class ExportController(
     val exportable = Exportable(
       cloudProvider = provider,
       account = account,
-      serviceAccount = serviceAccount,
+      user = user,
       moniker = parseMoniker(name),
       regions = (
         cloudDriverCache

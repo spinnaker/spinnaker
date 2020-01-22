@@ -21,7 +21,7 @@ class TracingSupportTests : JUnit5Minutests {
   val exportable = Exportable(
     cloudProvider = "aws",
     account = "test",
-    serviceAccount = "keel@spinnaker",
+    user = "fzlem@netflix.com",
     moniker = Moniker("keel"),
     regions = emptySet(),
     kind = resource.kind
