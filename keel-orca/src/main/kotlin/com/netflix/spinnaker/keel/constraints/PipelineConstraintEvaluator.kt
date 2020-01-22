@@ -31,7 +31,6 @@ import org.springframework.stereotype.Component
  *
  * constraints:
  *  - type: pipeline
- *    serviceAccount: keel@spinnaker (OPTIONAL, defaults to keel's `DEFAULT_SERVICE_ACCOUNT`)
  *    pipelineId: (the id visible when editing a pipeline, not its name)
  *    retries: (OPTIONAL, the number of times to retry a failure, defaults to 0)
  *    parameters: (OPTIONAL, Map of trigger parameters to pass along, `user` and `type` are reserved)
@@ -85,7 +84,7 @@ class PipelineConstraintEvaluator(
     if (shouldTrigger(constraint, attributes)) {
       try {
         val executionId = runBlocking {
-          startPipeline(targetEnvironment, constraint)
+          startPipeline(targetEnvironment, constraint, deliveryConfig.serviceAccount)
         }
 
         attributes = PipelineConstraintStateAttributes(
@@ -154,7 +153,8 @@ class PipelineConstraintEvaluator(
 
   private suspend fun startPipeline(
     environment: Environment,
-    constraint: PipelineConstraint
+    constraint: PipelineConstraint,
+    serviceAccount: String
   ): String {
 
     // using java.util.HashMap over kotlin.collections for retrofit2 compatibility
@@ -171,7 +171,7 @@ class PipelineConstraintEvaluator(
     }
 
     return orcaService
-      .triggerPipeline(constraint.serviceAccount, constraint.pipelineId, trigger)
+      .triggerPipeline(serviceAccount, constraint.pipelineId, trigger)
       .taskId
   }
 

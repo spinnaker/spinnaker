@@ -64,7 +64,6 @@ data class ManualJudgementConstraint(
 ) : StatefulConstraint("manual-judgement")
 
 data class PipelineConstraint(
-  val serviceAccount: String = "anonymous",
   val timeout: Duration = Duration.ofHours(2),
   val pipelineId: String,
   val retries: Int = 0,
@@ -73,7 +72,6 @@ data class PipelineConstraint(
 
 // TODO: doesn't support sliding look-back, custom metric scope, or extended scope parameters (will default to asg)
 data class CanaryConstraint(
-  val serviceAccount: String = "anonymous",
   val timeout: Duration = Duration.ofHours(24),
   // TODO: resolve config name -> id via kayenta/canaryConfig?application=application
   val canaryConfigId: String,

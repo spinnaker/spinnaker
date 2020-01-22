@@ -60,7 +60,7 @@ class Ec2CanaryConstraintDeployHandler(
       regions = constraint.regions.toList())
       ?.imageName ?: error("Image not found for $version in all requested regions ($regions)")
 
-    val source = getSourceServerGroups(deliveryConfig.application, constraint)
+    val source = getSourceServerGroups(deliveryConfig.application, constraint, deliveryConfig.serviceAccount)
     require(regions.all { source.containsKey(it) }) {
       "Source cluster ${constraint.source.cluster} not available in all canary regions"
     }
@@ -85,7 +85,7 @@ class Ec2CanaryConstraintDeployHandler(
       scope.async {
         try {
           taskLauncher.submitJobToOrca(
-            user = constraint.serviceAccount,
+            user = deliveryConfig.serviceAccount,
             application = deliveryConfig.application,
             notifications = targetEnvironment.notifications.map { it.toEchoNotification() },
             subject = description,
@@ -105,14 +105,15 @@ class Ec2CanaryConstraintDeployHandler(
 
   private suspend fun getSourceServerGroups(
     app: String,
-    constraint: CanaryConstraint
+    constraint: CanaryConstraint,
+    serviceAccount: String
   ): Map<String, ActiveServerGroup> =
     coroutineScope {
       constraint.regions.map { region ->
         async {
           try {
             cloudDriverService.activeServerGroup(
-              user = constraint.serviceAccount,
+              user = serviceAccount,
               app = app,
               account = constraint.source.account,
               cluster = constraint.source.cluster,

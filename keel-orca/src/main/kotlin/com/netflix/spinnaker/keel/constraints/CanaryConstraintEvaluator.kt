@@ -32,7 +32,6 @@ import org.springframework.stereotype.Component
  *
  * constraints:
  *  - type: canary
- *    serviceAccount: "keel@keel.io" // Will move to the Delivery Config root
  *    canaryConfigId: b11b739d-7b1d-47c7-8430-d8ddffafb645 // Will later support named configs
  *    beginAnalysisAfter: PT3M
  *    canaryAnalysisInterval: PT10M
