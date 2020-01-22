@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.cats.redis.cluster;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.agent.AgentExecution;
 import com.netflix.spinnaker.cats.agent.AgentScheduler;
@@ -26,7 +27,6 @@ import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation;
 import com.netflix.spinnaker.cats.cluster.AgentIntervalProvider;
 import com.netflix.spinnaker.cats.cluster.NodeStatusProvider;
 import com.netflix.spinnaker.cats.module.CatsModuleAware;
-import com.netflix.spinnaker.kork.threads.NamedThreadFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -111,9 +111,14 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware
     storeScripts();
 
     this.agentWorkPool =
-        Executors.newCachedThreadPool(new NamedThreadFactory(AgentWorker.class.getSimpleName()));
+        Executors.newCachedThreadPool(
+            new ThreadFactoryBuilder()
+                .setNameFormat(AgentWorker.class.getSimpleName() + "-%d")
+                .build());
     Executors.newSingleThreadScheduledExecutor(
-            new NamedThreadFactory(ClusteredSortAgentScheduler.class.getSimpleName()))
+            new ThreadFactoryBuilder()
+                .setNameFormat(ClusteredSortAgentScheduler.class.getSimpleName() + "-%d")
+                .build())
         .scheduleAtFixedRate(this, 0, 1, TimeUnit.SECONDS);
   }
 

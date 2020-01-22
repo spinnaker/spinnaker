@@ -19,8 +19,19 @@ package com.netflix.spinnaker.clouddriver.titus.caching.agents;
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE;
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.TARGET_GROUPS;
-import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.*;
-import static java.util.Collections.*;
+import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.APPLICATIONS;
+import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.CLUSTERS;
+import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.HEALTH;
+import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.IMAGES;
+import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.INSTANCES;
+import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.SERVER_GROUPS;
+import static java.util.Collections.EMPTY_LIST;
+import static java.util.Collections.EMPTY_SET;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singletonList;
+import static java.util.Collections.unmodifiableSet;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetTypeEnum;
@@ -28,13 +39,19 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.protobuf.util.JsonFormat;
 import com.netflix.frigga.Names;
 import com.netflix.frigga.autoscaling.AutoScalingGroupNameBuilder;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.histogram.PercentileTimer;
-import com.netflix.spinnaker.cats.agent.*;
+import com.netflix.spinnaker.cats.agent.Agent;
+import com.netflix.spinnaker.cats.agent.AgentDataType;
+import com.netflix.spinnaker.cats.agent.AgentExecution;
+import com.netflix.spinnaker.cats.agent.CacheResult;
+import com.netflix.spinnaker.cats.agent.CachingAgent;
+import com.netflix.spinnaker.cats.agent.DefaultCacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.cats.provider.ProviderRegistry;
@@ -52,10 +69,30 @@ import com.netflix.spinnaker.clouddriver.titus.client.TitusRegion;
 import com.netflix.spinnaker.clouddriver.titus.client.model.TaskState;
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
-import com.netflix.spinnaker.kork.threads.NamedThreadFactory;
-import com.netflix.titus.grpc.protogen.*;
-import java.util.*;
-import java.util.concurrent.*;
+import com.netflix.titus.grpc.protogen.Job;
+import com.netflix.titus.grpc.protogen.JobChangeNotification;
+import com.netflix.titus.grpc.protogen.JobStatus;
+import com.netflix.titus.grpc.protogen.ObserveJobsQuery;
+import com.netflix.titus.grpc.protogen.ScalingPolicy;
+import com.netflix.titus.grpc.protogen.ScalingPolicyResult;
+import com.netflix.titus.grpc.protogen.ScalingPolicyStatus;
+import com.netflix.titus.grpc.protogen.Task;
+import com.netflix.titus.grpc.protogen.TaskStatus;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -218,8 +255,10 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent, CachingA
       StreamingCacheState state = new StreamingCacheState();
 
       ScheduledExecutorService executor =
-          Executors.newScheduledThreadPool(
-              1, new NamedThreadFactory(TitusStreamingUpdateAgent.class.getSimpleName()));
+          Executors.newSingleThreadScheduledExecutor(
+              new ThreadFactoryBuilder()
+                  .setNameFormat(TitusStreamingUpdateAgent.class.getSimpleName() + "-%d")
+                  .build());
       final Future handler =
           executor.submit(
               () -> {

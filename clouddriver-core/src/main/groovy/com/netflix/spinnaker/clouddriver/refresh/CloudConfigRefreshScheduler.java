@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.refresh;
 
-import com.netflix.spinnaker.kork.threads.NamedThreadFactory;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +34,9 @@ public class CloudConfigRefreshScheduler implements Runnable {
     this.contextRefresher = contextRefresher;
 
     Executors.newSingleThreadScheduledExecutor(
-            new NamedThreadFactory(CloudConfigRefreshScheduler.class.getSimpleName()))
+            new ThreadFactoryBuilder()
+                .setNameFormat(CloudConfigRefreshScheduler.class.getSimpleName() + "-%d")
+                .build())
         .scheduleAtFixedRate(this, interval, interval, TimeUnit.SECONDS);
   }
 

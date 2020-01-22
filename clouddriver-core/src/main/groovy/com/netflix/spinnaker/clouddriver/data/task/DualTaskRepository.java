@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.clouddriver.data.task;
 
-import com.netflix.spinnaker.kork.threads.NamedThreadFactory;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -41,7 +41,10 @@ public class DualTaskRepository implements TaskRepository {
         primary,
         previous,
         Executors.newFixedThreadPool(
-            threadPoolSize, new NamedThreadFactory(DualTaskRepository.class.getSimpleName())),
+            threadPoolSize,
+            new ThreadFactoryBuilder()
+                .setNameFormat(DualTaskRepository.class.getSimpleName() + "-%d")
+                .build()),
         asyncTimeoutSeconds);
   }
 

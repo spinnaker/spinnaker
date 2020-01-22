@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.cats.agent;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.netflix.spinnaker.cats.module.CatsModuleAware;
-import com.netflix.spinnaker.kork.threads.NamedThreadFactory;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -54,7 +54,9 @@ public class DefaultAgentScheduler extends CatsModuleAware implements AgentSched
     this(
         Executors.newScheduledThreadPool(
             Runtime.getRuntime().availableProcessors(),
-            new NamedThreadFactory(DefaultAgentScheduler.class.getSimpleName())),
+            new ThreadFactoryBuilder()
+                .setNameFormat(DefaultAgentScheduler.class.getSimpleName() + "-%d")
+                .build()),
         interval,
         unit);
   }

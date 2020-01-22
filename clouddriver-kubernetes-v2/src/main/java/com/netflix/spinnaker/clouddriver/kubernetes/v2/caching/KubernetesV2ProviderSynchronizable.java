@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.module.CatsModule;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
@@ -25,7 +26,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAcco
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgentDispatcher;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.security.*;
-import com.netflix.spinnaker.kork.threads.NamedThreadFactory;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -62,7 +62,9 @@ public class KubernetesV2ProviderSynchronizable implements CredentialsInitialize
 
     ScheduledExecutorService poller =
         Executors.newSingleThreadScheduledExecutor(
-            new NamedThreadFactory(KubernetesV2ProviderSynchronizable.class.getSimpleName()));
+            new ThreadFactoryBuilder()
+                .setNameFormat(KubernetesV2ProviderSynchronizable.class.getSimpleName() + "-%d")
+                .build());
   }
 
   @Override
