@@ -9,6 +9,7 @@ jobs:
   stuff:
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v2
     - id: assigned
       uses: "lee-dohm/last-assigned@76c68f419feb4d70efaae2a83b2f04bba8977eb1"
       with:
