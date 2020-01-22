@@ -17,9 +17,12 @@ package com.netflix.spinnaker.orca.notifications;
 
 import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UP;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent;
-import com.netflix.spinnaker.kork.threads.NamedThreadFactory;
-import java.util.concurrent.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,8 +71,10 @@ public abstract class AbstractPollingNotificationAgent
 
     if (agentRunFuture == null) {
       executorService =
-          new ScheduledThreadPoolExecutor(
-              1, new NamedThreadFactory(this.getClass().getSimpleName()));
+          Executors.newSingleThreadScheduledExecutor(
+              new ThreadFactoryBuilder()
+                  .setNameFormat(this.getClass().getSimpleName() + "-%d")
+                  .build());
       agentRunFuture =
           executorService.scheduleWithFixedDelay(
               agentTickWrapper, 0, getPollingInterval(), getPollingIntervalUnit());
