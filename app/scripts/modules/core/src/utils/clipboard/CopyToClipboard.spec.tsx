@@ -23,6 +23,20 @@ describe('<CopyToClipboard />', () => {
     expect(overlay.innerText).toEqual('Copy Rebel Girl');
   });
 
+  it('Shows tooltip when button clicked, even if no default tooltip configured', () => {
+    const wrapper = mount(<CopyToClipboard text="No Tooltip" />);
+    const button = wrapper.find('button');
+    button.simulate('mouseOver');
+
+    // Grab the overlay from document by generated ID
+    let overlay = document.getElementById('clipboardValue-No-Tooltip');
+    expect(overlay).toBeFalsy();
+
+    button.simulate('click');
+    overlay = document.getElementById('clipboardValue-No-Tooltip');
+    expect(overlay.innerText).toEqual('Copied!');
+  });
+
   it('fires a GA event on click', () => {
     const wrapper = mount(<CopyToClipboard toolTip="Copy Rebel Girl" text="Rebel Girl" />);
     const button = wrapper.find('button');

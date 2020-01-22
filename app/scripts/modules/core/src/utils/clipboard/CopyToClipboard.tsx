@@ -98,6 +98,10 @@ export class CopyToClipboard extends React.Component<ICopyToClipboardProps, ICop
       shouldUpdatePosition,
     };
 
+    if (!copy) {
+      return children;
+    }
+
     return (
       <OverlayTrigger
         defaultOverlayShown={persistOverlay}
@@ -116,10 +120,10 @@ export class CopyToClipboard extends React.Component<ICopyToClipboardProps, ICop
   };
 
   public render() {
-    const { buttonInnerNode, toolTip, text = '', className = 'btn btn-xs btn-default clipboard-btn' } = this.props;
+    const { buttonInnerNode, text = '', className = 'btn btn-xs btn-default clipboard-btn' } = this.props;
 
     const copyButton = (
-      <button onClick={this.handleClick} className={className} uib-tooltip={toolTip} aria-label="Copy to clipboard">
+      <button onClick={this.handleClick} className={className} aria-label="Copy to clipboard">
         {buttonInnerNode ? buttonInnerNode : <span className="glyphicon glyphicon-copy" />}
       </button>
     );
@@ -132,7 +136,7 @@ export class CopyToClipboard extends React.Component<ICopyToClipboardProps, ICop
           value={text}
           style={{ zIndex: -1, position: 'fixed', opacity: 0, top: 0, left: 0 }}
         />
-        {toolTip ? this.renderTooltip(copyButton) : copyButton}
+        {this.renderTooltip(copyButton)}
       </>
     );
   }
