@@ -1,6 +1,6 @@
 import { ScrollToService } from 'core/utils/scrollTo/scrollTo.service';
 
-export interface IWizardPageState {
+export interface IModalWizardPageState {
   done: boolean;
   blocked: boolean;
   rendered: boolean;
@@ -11,23 +11,23 @@ export interface IWizardPageState {
   required: boolean;
 }
 
-export interface IWizardPage {
-  state: IWizardPageState;
+export interface IModalWizardPage {
+  state: IModalWizardPageState;
   key: string;
   label: string;
 }
 
 export class ModalWizard {
-  public static renderedPages: IWizardPage[] = [];
-  public static pageRegistry: IWizardPage[] = [];
-  public static currentPage: IWizardPage;
+  public static renderedPages: IModalWizardPage[] = [];
+  public static pageRegistry: IModalWizardPage[] = [];
+  public static currentPage: IModalWizardPage;
   public static heading: string;
 
   public static setHeading(heading: string): void {
     this.heading = heading;
   }
 
-  public static getPage(key: string): IWizardPage {
+  public static getPage(key: string): IModalWizardPage {
     return this.pageRegistry.find(p => p.key === key);
   }
 
@@ -47,7 +47,7 @@ export class ModalWizard {
     this.getPage(key).state.done = false;
   }
 
-  public static setCurrentPage(page: IWizardPage, skipScroll?: boolean): void {
+  public static setCurrentPage(page: IModalWizardPage, skipScroll?: boolean): void {
     this.pageRegistry.forEach(test => (test.state.current = test === page));
     this.currentPage = page;
 
@@ -64,7 +64,7 @@ export class ModalWizard {
     }
   }
 
-  public static registerPage(key: string, label: string, state?: IWizardPageState): void {
+  public static registerPage(key: string, label: string, state?: IModalWizardPageState): void {
     state = state || {
       done: false,
       blocked: true,
@@ -80,7 +80,7 @@ export class ModalWizard {
   }
 
   public static renderPages(): void {
-    const renderedPages: IWizardPage[] = this.pageRegistry.filter(page => page.state.rendered);
+    const renderedPages: IModalWizardPage[] = this.pageRegistry.filter(page => page.state.rendered);
     this.renderedPages = renderedPages;
     if (renderedPages.length === 1) {
       this.setCurrentPage(renderedPages[0]);

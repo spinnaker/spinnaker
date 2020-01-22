@@ -1,6 +1,6 @@
 import { IController, module } from 'angular';
 
-import { ModalWizard, IWizardPageState } from './ModalWizard';
+import { ModalWizard, IModalWizardPageState } from './ModalWizard';
 /**
  * Wizard page directive
  * possible attributes:
@@ -67,7 +67,7 @@ export class WizardPageController implements IController {
   /**
    * Internal state of the page, initialized based on other public fields
    */
-  public state: IWizardPageState;
+  public state: IModalWizardPageState;
 
   public static $inject = ['$scope'];
   public constructor(private $scope: ng.IScope) {}

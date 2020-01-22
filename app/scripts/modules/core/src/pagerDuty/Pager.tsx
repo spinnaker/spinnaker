@@ -12,11 +12,13 @@ import {
   Column,
   RowMouseEventHandlerParams,
   SortDirection,
-  SortDirectionType,
   Table,
   TableCellProps,
   TableHeaderProps,
 } from 'react-virtualized';
+
+// defined in react-virtualized but TS complains about not finding it so we duplicate it here
+type SortDirectionType = 'ASC' | 'DESC';
 
 import { ApplicationReader, IApplicationSummary } from 'core/application';
 import { relativeTime } from 'core/utils/timeFormatters';

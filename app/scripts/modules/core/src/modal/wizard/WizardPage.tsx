@@ -22,7 +22,7 @@ export interface IWizardPageProps {
   wizard: IWizardModalApi;
 }
 
-export interface IWizardPageState {
+interface IWizardPageState {
   errors: object;
   order: number;
   isLoading: boolean;
