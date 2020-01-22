@@ -49,6 +49,7 @@ export class JsonEditor extends React.Component<IJsonEditorProps> {
           showLineNumbers: false,
           showFoldWidgets: false,
         }}
+        editorProps={{ $blockScrolling: Infinity }}
         className="ace-editor"
       />
     );

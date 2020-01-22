@@ -51,6 +51,13 @@ export class JsonEditor extends React.Component<IJsonEditorProps> {
   }
 
   public render() {
-    return <AceEditor {...this.props} ref={this.editorRef} onValidate={this.validate} />;
+    return (
+      <AceEditor
+        {...this.props}
+        ref={this.editorRef}
+        onValidate={this.validate}
+        editorProps={{ $blockScrolling: Infinity }}
+      />
+    );
   }
 }

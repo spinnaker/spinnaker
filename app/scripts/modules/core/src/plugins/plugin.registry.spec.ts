@@ -58,6 +58,7 @@ describe('PluginRegistry', () => {
 
     it('should return a rejected promise if a loaded module doesnt contain an export named plugin', async () => {
       loadModuleFromUrlSpy.and.callFake(fakePromise({}));
+      spyOn(console, 'error').and.stub();
       const plugin1 = { name: 'foo', version: '1.0.0' };
       pluginRegistry.register(plugin1);
 
