@@ -94,7 +94,7 @@ func executePipeline(cmd *cobra.Command, options ExecuteOptions) error {
 		}
 	}
 
-	_, resp, err := gateClient.PipelineControllerApi.InvokePipelineConfigUsingPOST1(gateClient.Context,
+	resp, err := gateClient.PipelineControllerApi.InvokePipelineConfigUsingPOST1(gateClient.Context,
 		options.application,
 		options.name,
 		map[string]interface{}{"trigger": trigger})
