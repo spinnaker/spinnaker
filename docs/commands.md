@@ -599,6 +599,11 @@
  * [**hal plugins enable**](#hal-plugins-enable)
  * [**hal plugins enable-downloading**](#hal-plugins-enable-downloading)
  * [**hal plugins list**](#hal-plugins-list)
+ * [**hal plugins repository**](#hal-plugins-repository)
+ * [**hal plugins repository add**](#hal-plugins-repository-add)
+ * [**hal plugins repository delete**](#hal-plugins-repository-delete)
+ * [**hal plugins repository edit**](#hal-plugins-repository-edit)
+ * [**hal plugins repository list**](#hal-plugins-repository-list)
  * [**hal shutdown**](#hal-shutdown)
  * [**hal spin**](#hal-spin)
  * [**hal spin install**](#hal-spin-install)
@@ -11564,6 +11569,7 @@ hal plugins [parameters] [subcommands]
  * `enable`: Enable or disable all plugins
  * `enable-downloading`: Enable or disable the ability for Spinnaker services to download jars for plugins
  * `list`: List all plugins
+ * `repository`: Configure, validate, and view the specified plugin repository.
 
 ---
 ## hal plugins add
@@ -11685,6 +11691,87 @@ List all plugins
 #### Usage
 ```
 hal plugins list [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal plugins repository
+
+Configure, validate, and view the specified plugin repository.
+
+#### Usage
+```
+hal plugins repository [subcommands]
+```
+
+#### Subcommands
+ * `add`: Add a plugin repository
+ * `delete`: Delete a plugin repository
+ * `edit`: Edit a plugin repository
+ * `list`: List all plugin repositories
+
+---
+## hal plugins repository add
+
+Add a plugin repository
+
+#### Usage
+```
+hal plugins repository add REPOSITORY [parameters]
+```
+
+#### Parameters
+`REPOSITORY`: The name of the plugin repository to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--url`: (*Required*) The location of the plugin repository.
+
+
+---
+## hal plugins repository delete
+
+Delete a plugin repository
+
+#### Usage
+```
+hal plugins repository delete REPOSITORY [parameters]
+```
+
+#### Parameters
+`REPOSITORY`: The name of the plugin repository to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal plugins repository edit
+
+Edit a plugin repository
+
+#### Usage
+```
+hal plugins repository edit REPOSITORY [parameters]
+```
+
+#### Parameters
+`REPOSITORY`: The name of the plugin repository to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--url`: The location of the plugin repository.
+
+
+---
+## hal plugins repository list
+
+List all plugin repositories
+
+#### Usage
+```
+hal plugins repository list [parameters]
 ```
 
 #### Parameters

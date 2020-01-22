@@ -16,10 +16,9 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
-import com.netflix.spinnaker.halyard.config.model.v1.plugins.Plugin;
-import java.util.ArrayList;
+import com.netflix.spinnaker.halyard.config.model.v1.plugins.PluginRepository;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.Data;
@@ -27,31 +26,33 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class Plugins extends Node {
-  private List<Plugin> plugins = new ArrayList<>();
-  private boolean enabled;
-  private boolean downloadingEnabled;
+public class Extensibility extends Node {
+  private Map<String, PluginRepository> repositories = new HashMap<>();
 
   @Override
   public String getNodeName() {
-    return "plugins";
+    return "extensibility";
   }
 
   @Override
   public NodeIterator getChildren() {
     return NodeIteratorFactory.makeListIterator(
-        plugins.stream().map(a -> (Node) a).collect(Collectors.toList()));
+        repositories.entrySet().stream()
+            .map(a -> (Node) a.getValue())
+            .collect(Collectors.toList()));
   }
 
-  public Map<String, Object> pluginConfigurations() {
-    Map<String, Object> fullyRenderedYaml = new LinkedHashMap<>();
-    Map<String, Object> pluginMetadata =
-        plugins.stream()
-            .filter(p -> p.getEnabled())
-            .filter(p -> !p.getManifestLocation().isEmpty())
-            .collect(
-                Collectors.toMap(p -> p.generateManifest().getName(), p -> p.getCombinedOptions()));
-    fullyRenderedYaml.put("plugins", pluginMetadata);
-    return fullyRenderedYaml;
+  public Map<String, Object> repositoriesConfig() {
+    Map<String, Object> repositoriesYaml = new LinkedHashMap<>();
+    for (Map.Entry<String, PluginRepository> entry : repositories.entrySet()) {
+      repositoriesYaml.put(entry.getKey(), entry.getValue().toMap());
+    }
+    return repositoriesYaml;
+  }
+
+  public Map<String, Object> toMap() {
+    Map<String, Object> extensibilityYaml = new LinkedHashMap<>();
+    extensibilityYaml.put("repositories", repositoriesConfig());
+    return extensibilityYaml;
   }
 }

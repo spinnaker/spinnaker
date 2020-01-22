@@ -22,6 +22,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.canary.Canary;
 import com.netflix.spinnaker.halyard.config.model.v1.ha.HaService;
 import com.netflix.spinnaker.halyard.config.model.v1.node.*;
 import com.netflix.spinnaker.halyard.config.model.v1.plugins.Plugin;
+import com.netflix.spinnaker.halyard.config.model.v1.plugins.PluginRepository;
 import com.netflix.spinnaker.halyard.config.model.v1.security.*;
 import com.netflix.spinnaker.halyard.config.model.v1.webook.WebhookTrust;
 import com.netflix.spinnaker.halyard.core.DaemonOptions;
@@ -925,6 +926,35 @@ public interface DaemonService {
   DaemonTask<Halconfig, Void> deletePlugin(
       @Path("deploymentName") String deploymentName,
       @Path("pluginName") String pluginName,
+      @Query("validate") boolean validate);
+
+  @POST("/v1/config/deployments/{deploymentName}/pluginRepositories/")
+  DaemonTask<Halconfig, Void> addPluginRepository(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate,
+      @Body PluginRepository pluginRepository);
+
+  @GET("/v1/config/deployments/{deploymentName}/pluginRepositories/")
+  DaemonTask<Halconfig, Object> getPluginRepositories(
+      @Path("deploymentName") String deploymentName, @Query("validate") boolean validate);
+
+  @GET("/v1/config/deployments/{deploymentName}/pluginRepositories/{repositoryName}/")
+  DaemonTask<Halconfig, Object> getPluginRepository(
+      @Path("deploymentName") String deploymentName,
+      @Path("repositoryName") String pluginName,
+      @Query("validate") boolean validate);
+
+  @PUT("/v1/config/deployments/{deploymentName}/pluginRepositories/{repositoryName}/")
+  DaemonTask<Halconfig, Void> setPluginRepository(
+      @Path("deploymentName") String deploymentName,
+      @Path("repositoryName") String pluginName,
+      @Query("validate") boolean validate,
+      @Body PluginRepository pluginRepository);
+
+  @DELETE("/v1/config/deployments/{deploymentName}/pluginRepositories/{repositoryName}/")
+  DaemonTask<Halconfig, Void> deletePluginRepository(
+      @Path("deploymentName") String deploymentName,
+      @Path("repositoryName") String pluginName,
       @Query("validate") boolean validate);
 
   @GET("/v1/config/deployments/{deploymentName}/telemetry/")

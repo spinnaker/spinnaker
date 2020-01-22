@@ -88,6 +88,8 @@ public class DeploymentConfiguration extends Node {
 
   Plugins plugins = new Plugins().setDownloadingEnabled(false);
 
+  Spinnaker spinnaker = new Spinnaker();
+
   Webhook webhook = new Webhook();
 
   Telemetry telemetry = new Telemetry();

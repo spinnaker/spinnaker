@@ -37,7 +37,7 @@ class PluginsSpec extends Specification {
         plugin.generateManifest() >> manifest
 
         when:
-        def subject = plugins.getPluginConfigurations()
+        def subject = plugins.pluginConfigurations()
 
         then:
         def expectedOptions = [

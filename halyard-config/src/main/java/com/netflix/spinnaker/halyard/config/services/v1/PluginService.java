@@ -37,8 +37,8 @@ public class PluginService {
   private final ValidateService validateService;
   private final DeploymentService deploymentService;
 
-  private Plugins getPlugins(String deploymentName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setPlugin();
+  public Plugins getPlugins(String deploymentName) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setPlugins();
 
     return lookupService.getSingularNodeOrDefault(
         filter, Plugins.class, Plugins::new, n -> setPlugins(deploymentName, n));

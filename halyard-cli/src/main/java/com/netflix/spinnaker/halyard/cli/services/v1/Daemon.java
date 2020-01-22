@@ -28,6 +28,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.ha.HaService;
 import com.netflix.spinnaker.halyard.config.model.v1.ha.HaServices;
 import com.netflix.spinnaker.halyard.config.model.v1.node.*;
 import com.netflix.spinnaker.halyard.config.model.v1.plugins.Plugin;
+import com.netflix.spinnaker.halyard.config.model.v1.plugins.PluginRepository;
 import com.netflix.spinnaker.halyard.config.model.v1.security.*;
 import com.netflix.spinnaker.halyard.config.model.v1.webook.WebhookTrust;
 import com.netflix.spinnaker.halyard.core.DaemonOptions;
@@ -1365,6 +1366,58 @@ public class Daemon {
     return () -> {
       ResponseUnwrapper.get(
           getService().setPluginsDownloadingEnabled(deploymentName, validate, enable));
+      return null;
+    };
+  }
+
+  public static Supplier<Map<String, PluginRepository>> getPluginRepositories(
+      String deploymentName, boolean validate) {
+    return () -> {
+      Object rawPlugin =
+          ResponseUnwrapper.get(getService().getPluginRepositories(deploymentName, validate));
+      return getObjectMapper()
+          .convertValue(rawPlugin, new TypeReference<Map<String, PluginRepository>>() {});
+    };
+  }
+
+  public static Supplier<Void> addPluginRepository(
+      String deploymentName, boolean validate, PluginRepository pluginRepository) {
+    return () -> {
+      ResponseUnwrapper.get(
+          getService().addPluginRepository(deploymentName, validate, pluginRepository));
+      return null;
+    };
+  }
+
+  public static Supplier<PluginRepository> getPluginRepository(
+      String deploymentName, String pluginRepositoryName, boolean validate) {
+    return () -> {
+      Object rawPluginRepository =
+          ResponseUnwrapper.get(
+              getService().getPluginRepository(deploymentName, pluginRepositoryName, validate));
+      return getObjectMapper().convertValue(rawPluginRepository, PluginRepository.class);
+    };
+  }
+
+  public static Supplier<Void> setPluginRepository(
+      String deploymentName,
+      String pluginRepositoryName,
+      boolean validate,
+      PluginRepository pluginRepository) {
+    return () -> {
+      ResponseUnwrapper.get(
+          getService()
+              .setPluginRepository(
+                  deploymentName, pluginRepositoryName, validate, pluginRepository));
+      return null;
+    };
+  }
+
+  public static Supplier<Void> deletePluginRepository(
+      String deploymentName, String pluginRepositoryName, boolean validate) {
+    return () -> {
+      ResponseUnwrapper.get(
+          getService().deletePluginRepository(deploymentName, pluginRepositoryName, validate));
       return null;
     };
   }

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.plugins.*;
+import com.netflix.spinnaker.halyard.cli.command.v1.repositories.PluginRepositoryCommand;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -31,6 +32,7 @@ public class PluginCommand extends AbstractConfigCommand {
   private String shortDescription = "Show Spinnaker's configured plugins.";
 
   public PluginCommand() {
+    registerSubcommand(new PluginRepositoryCommand());
     registerSubcommand(new AddPluginCommand());
     registerSubcommand(new EditPluginCommand());
     registerSubcommand(new DeletePluginCommand());

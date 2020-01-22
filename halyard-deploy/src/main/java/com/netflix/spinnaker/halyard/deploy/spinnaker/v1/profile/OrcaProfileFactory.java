@@ -23,6 +23,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsProvider;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.integrations.IntegrationsConfigWrapper;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.Data;
@@ -77,9 +78,11 @@ public class OrcaProfileFactory extends SpringProfileFactory {
     // For backward compatibility
     profile.appendContents("pipelineTemplate.enabled: " + pipelineTemplates);
 
-    Map<String, Object> pluginsYaml =
-        deploymentConfiguration.getPlugins().getPluginConfigurations();
+    Map<String, Object> pluginsYaml = deploymentConfiguration.getPlugins().pluginConfigurations();
     profile.appendContents(yamlToString(deploymentConfiguration.getName(), profile, pluginsYaml));
+    Map<String, Object> spinnakerYaml = new LinkedHashMap<>();
+    spinnakerYaml.put("spinnaker", deploymentConfiguration.getSpinnaker().toMap());
+    profile.appendContents(yamlToString(deploymentConfiguration.getName(), profile, spinnakerYaml));
   }
 
   @Data
