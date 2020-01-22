@@ -9,6 +9,7 @@ import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Highlander
 import com.netflix.spinnaker.keel.api.RedBlack
 import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
+import com.netflix.spinnaker.keel.api.StaggeredRegion
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
@@ -132,6 +133,12 @@ internal class ClusterHandlerTests : JUnit5Minutests {
           availabilityZones = listOf("a", "b", "c").map { "${subnet.region}$it" }.toSet()
         )
       }.toSet()
+    ),
+    deployWith = RedBlack(
+      stagger = listOf(
+        StaggeredRegion(region = vpcWest.region, hours = "10-14", pauseTime = Duration.ofMinutes(30)),
+        StaggeredRegion(region = vpcEast.region, hours = "16-02")
+      )
     ),
     _defaults = ServerGroupSpec(
       launchConfiguration = LaunchConfigurationSpec(
@@ -336,7 +343,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
           .containsKey("us-west-2")
       }
 
-      test("annealing a new cluster only uses a createServerGroup stage if it has no scaling policies") {
+      test("annealing a staggered cluster with simple capacity doesn't attempt to upsertScalingPolicy") {
         runBlocking {
           upsert(
             resource,
@@ -350,13 +357,28 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         val slot = slot<OrchestrationRequest>()
         coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
 
-        expectThat(slot.captured.job.size).isEqualTo(1)
+        // slot will only contain the last orchestration request made, which should
+        // always be for the second staggered region (east).
+        expectThat(slot.captured.job.size).isEqualTo(2)
         expectThat(slot.captured.job.first()) {
+          // east is waiting for west
+          get("type").isEqualTo("dependsOnExecution")
+        }
+        expectThat(slot.captured.job[1]) {
           get("type").isEqualTo("createServerGroup")
+          get("refId").isEqualTo("2")
+          get("requisiteStageRefIds")
+            .isA<List<String>>()
+            .isEqualTo(listOf("1"))
+          get("availabilityZones")
+            .isA<Map<String, Set<String>>>()
+            .hasSize(1)
+            .containsKey("us-east-1")
+          get("restrictExecutionDuringTimeWindow").isEqualTo(true)
         }
       }
 
-      test("annealing a diff creates a new server group with scaling policies upserted in the same orchestration") {
+      test("annealing a diff creates staggered server groups with scaling policies upserted in the same orchestration") {
         runBlocking {
           upsert(resource, ResourceDiff(serverGroups.byRegion(), emptyMap()))
         }
@@ -364,17 +386,30 @@ internal class ClusterHandlerTests : JUnit5Minutests {
         val slot = slot<OrchestrationRequest>()
         coVerify { orcaService.orchestrate("keel@spinnaker", capture(slot)) }
 
-        expectThat(slot.captured.job.size).isEqualTo(2)
+        expectThat(slot.captured.job.size).isEqualTo(3)
         expectThat(slot.captured.job.first()) {
-          get("type").isEqualTo("createServerGroup")
-          get("refId").isEqualTo("1")
+          // east is waiting for west
+          get("type").isEqualTo("dependsOnExecution")
         }
         expectThat(slot.captured.job[1]) {
-          get("type").isEqualTo("upsertScalingPolicy")
+          get("type").isEqualTo("createServerGroup")
           get("refId").isEqualTo("2")
           get("requisiteStageRefIds")
             .isA<List<String>>()
             .isEqualTo(listOf("1"))
+          get("availabilityZones")
+            .isA<Map<String, Set<String>>>()
+            .hasSize(1)
+            .containsKey("us-east-1")
+          get("restrictExecutionDuringTimeWindow").isEqualTo(true)
+        }
+        expectThat(slot.captured.job[2]) {
+          get("type").isEqualTo("upsertScalingPolicy")
+          get("refId").isEqualTo("3")
+          get("requisiteStageRefIds")
+            .isA<List<String>>()
+            .isEqualTo(listOf("2"))
+          get("restrictExecutionDuringTimeWindow").isNull()
         }
       }
     }
@@ -560,7 +595,7 @@ internal class ClusterHandlerTests : JUnit5Minutests {
           modified.byRegion()
         )
 
-        test("annealing resizes the current server group") {
+        test("annealing resizes the current server group with no stagger") {
           runBlocking {
             upsert(resource, diff)
           }

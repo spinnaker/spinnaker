@@ -24,6 +24,10 @@ import java.time.Duration.ZERO
 )
 sealed class ClusterDeployStrategy {
   abstract fun toOrcaJobProperties(): Map<String, Any?>
+  @get:JsonIgnore
+  open val isStaggered: Boolean = false
+  @get:JsonInclude(NON_EMPTY)
+  open val stagger: List<StaggeredRegion> = emptyList()
 }
 
 @JsonTypeName("red-black")
@@ -35,7 +39,7 @@ data class RedBlack(
   val delayBeforeScaleDown: Duration = ZERO,
   // The order of this list is important for pauseTime based staggers
   @JsonInclude(NON_EMPTY)
-  val stagger: List<StaggeredRegion> = emptyList()
+  override val stagger: List<StaggeredRegion> = emptyList()
 ) : ClusterDeployStrategy() {
   override fun toOrcaJobProperties() = mapOf(
     "strategy" to "redblack",
@@ -45,6 +49,9 @@ data class RedBlack(
     "scaleDown" to resizePreviousToZero,
     "rollback" to mapOf("onFailure" to rollbackOnFailure)
   )
+
+  override val isStaggered: Boolean
+    get() = stagger.isNotEmpty()
 }
 
 @JsonTypeName("highlander")
@@ -59,14 +66,14 @@ object Highlander : ClusterDeployStrategy() {
  *
  * @param region: The region to stagger
  * @param hours: If set, this region will only be deployed to during these hours.
- *  Supports a mix of ranges and comma separated values (i.e. "9,10-16")
+ *  Should be a single range (i.e. 9-17) The timezone will be whatever is used in
+ *  orca for for RestrictedExcutionWindows (defaults in Orca to America/Los_Angeles)
  * @param pauseTime: If set, pause for the given duration AFTER the deployment
  *  of this region completes
  *
  * Any regions omitted are expected to be deployed in parallel after the final staggered
  * region (and its optional [pauseTime]) have completed.
  *
- * TODO: Implement support in cluster resource handlers.
  */
 data class StaggeredRegion(
   val region: String,
@@ -79,7 +86,9 @@ data class StaggeredRegion(
     }
 
     if (hours != null) {
-      require(AllowedTimesConstraintEvaluator.validateHours(hours))
+      require(hours.matches(AllowedTimesConstraintEvaluator.intRange)) {
+        "hours should contain a single range, i.e. 9-17 or 22-2"
+      }
     }
   }
 

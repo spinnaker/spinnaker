@@ -49,7 +49,7 @@ internal class ClusterDeployStrategyTests : JUnit5Minutests {
         stagger = listOf(
           StaggeredRegion(
             region = "us-west-2",
-            hours = "8,10,12-18")))
+            hours = "12-18")))
 
       println(mapper.writeValueAsString(strategy))
       expectThat<ObjectNode>(mapper.valueToTree(strategy)) {
@@ -61,7 +61,7 @@ internal class ClusterDeployStrategyTests : JUnit5Minutests {
         path("delayBeforeScaleDown").isTextual().textValue() isEqualTo "PT0S"
         path("stagger").isArray().hasSize(1)
         at("/stagger/0/region").isTextual().textValue() isEqualTo "us-west-2"
-        at("/stagger/0/hours").isTextual().textValue() isEqualTo "8,10,12-18"
+        at("/stagger/0/hours").isTextual().textValue() isEqualTo "12-18"
         at("/stagger/0/allowedHours").isMissing()
         at("/stagger/0/pauseTime").isMissing()
       }

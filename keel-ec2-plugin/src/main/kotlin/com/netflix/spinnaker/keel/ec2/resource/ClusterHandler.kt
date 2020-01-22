@@ -49,6 +49,9 @@ import com.netflix.spinnaker.keel.events.ArtifactVersionDeployed
 import com.netflix.spinnaker.keel.events.Task
 import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.orca.OrcaService
+import com.netflix.spinnaker.keel.orca.dependsOn
+import com.netflix.spinnaker.keel.orca.restrictedExecutionWindow
+import com.netflix.spinnaker.keel.orca.waitStage
 import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.SupportedKind
@@ -61,6 +64,7 @@ import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.springframework.context.ApplicationEventPublisher
@@ -95,36 +99,192 @@ class ClusterHandler(
     resourceDiff: ResourceDiff<Map<String, ServerGroup>>
   ): List<Task> =
     coroutineScope {
-      resourceDiff
+      val diffs = resourceDiff
         .toIndividualDiffs()
         .filter { diff -> diff.hasChanges() }
-        .mapNotNull { diff ->
-          val desired = diff.desired
-          val job = when {
-            diff.isCapacityOnly() -> listOf(diff.resizeServerGroupJob())
-            diff.isAutoScalingOnly() -> diff.modifyScalingPolicyJob()
-            diff.isCapacityAndAutoScalingOnly() -> listOf(diff.resizeServerGroupJob()) + diff.modifyScalingPolicyJob(1)
-            diff.shouldDeployAndModifyScalingPolicies() -> listOf(diff.createServerGroupJob() +
-              resource.spec.deployWith.toOrcaJobProperties()) + diff.modifyScalingPolicyJob(1)
-            else -> listOf(diff.createServerGroupJob() + resource.spec.deployWith.toOrcaJobProperties())
-          }
 
-          if (job.isEmpty()) {
-            null
-          } else {
-            log.info("Upserting server group using task: {}", job)
+      val deferred: MutableList<Deferred<Task>> = mutableListOf()
+      val modifyDiffs = diffs.filter { it.isCapacityOrAutoScalingOnly() }
+      val createDiffs = diffs - modifyDiffs
 
-            async {
-              taskLauncher.submitJobToOrca(
-                resource = resource,
-                description = "Upsert server group ${desired.moniker.name} in ${desired.location.account}/${desired.location.region}",
-                correlationId = "${resource.id}:${desired.location.region}",
-                stages = job
-              )
-            }
+      if (modifyDiffs.isNotEmpty()) {
+        deferred.addAll(
+          modifyInPlace(resource, modifyDiffs))
+      }
+
+      if (resource.spec.deployWith.isStaggered && createDiffs.isNotEmpty()) {
+        val tasks = upsertStaggered(resource, createDiffs)
+        return@coroutineScope tasks + deferred.map { it.await() }
+      }
+
+      deferred.addAll(
+        upsertUnstaggered(resource, createDiffs)
+      )
+
+      return@coroutineScope deferred.map { it.await() }
+    }
+
+  private suspend fun modifyInPlace(
+    resource: Resource<ClusterSpec>,
+    diffs: List<ResourceDiff<ServerGroup>>
+  ): List<Deferred<Task>> =
+    coroutineScope {
+      diffs.mapNotNull { diff ->
+        val job = when {
+          diff.isCapacityOnly() -> listOf(diff.resizeServerGroupJob())
+          diff.isAutoScalingOnly() -> diff.modifyScalingPolicyJob()
+          else -> listOf(diff.resizeServerGroupJob()) + diff.modifyScalingPolicyJob(1)
+        }
+
+        if (job.isEmpty()) {
+          null
+        } else {
+          log.info("Modifying server group in-place using task: {}", job)
+
+          async {
+            taskLauncher.submitJobToOrca(
+              resource = resource,
+              description = "Upsert server group ${diff.desired.moniker.name} in " +
+                "${diff.desired.location.account}/${diff.desired.location.region}",
+              correlationId = "${resource.id}:${diff.desired.location.region}",
+              stages = job)
           }
         }
-        .map { it.await() }
+      }
+    }
+
+  private suspend fun upsertUnstaggered(
+    resource: Resource<ClusterSpec>,
+    diffs: List<ResourceDiff<ServerGroup>>,
+    dependsOn: String? = null
+  ): List<Deferred<Task>> =
+    coroutineScope {
+      diffs.mapNotNull { diff ->
+        val stages: MutableList<Map<String, Any?>> = mutableListOf()
+        var refId = 0
+
+        if (dependsOn != null) {
+          stages.add(dependsOn(dependsOn))
+          refId++
+        }
+        when {
+          diff.shouldDeployAndModifyScalingPolicies() -> {
+            stages.add(diff.createServerGroupJob(refId) + resource.spec.deployWith.toOrcaJobProperties())
+            refId++
+            stages.addAll(diff.modifyScalingPolicyJob(refId))
+          }
+          else -> stages.add(diff.createServerGroupJob(refId) + resource.spec.deployWith.toOrcaJobProperties())
+        }
+
+        if (stages.isEmpty()) {
+          null
+        } else {
+          log.info("Upserting server group using task: {}", stages)
+
+          async {
+            taskLauncher.submitJobToOrca(
+              resource = resource,
+              description = "Upsert server group ${diff.desired.moniker.name} in " +
+                "${diff.desired.location.account}/${diff.desired.location.region}",
+              correlationId = "${resource.id}:${diff.desired.location.region}",
+              stages = stages)
+          }
+        }
+      }
+    }
+
+  private suspend fun upsertStaggered(
+    resource: Resource<ClusterSpec>,
+    diffs: List<ResourceDiff<ServerGroup>>
+  ): List<Task> =
+    coroutineScope {
+      val regionalDiffs = diffs.associateBy { it.desired.location.region }
+      val tasks: MutableList<Task> = mutableListOf()
+      var priorExecutionId: String? = null
+      val staggeredRegions = resource.spec.deployWith.stagger.map {
+        it.region
+      }
+        .toSet()
+
+      // If any, these are deployed in-parallel after all regions with a defined stagger
+      val unstaggeredRegions = regionalDiffs.keys - staggeredRegions
+
+      for (stagger in resource.spec.deployWith.stagger) {
+        if (!regionalDiffs.containsKey(stagger.region)) {
+          continue
+        }
+
+        val diff = regionalDiffs[stagger.region] as ResourceDiff<ServerGroup>
+        val stages: MutableList<Map<String, Any?>> = mutableListOf()
+        var refId = 0
+
+        /**
+         * Given regions staggered as [A, B, C], this makes the execution of the B
+         * `createServerGroup` task dependent on the A task, and C dependent on B,
+         * while preserving the unstaggered behavior of an orca task per region.
+         */
+        if (priorExecutionId != null) {
+          stages.add(dependsOn(priorExecutionId))
+          refId++
+        }
+
+        val stage = (diff.createServerGroupJob(refId) + resource.spec.deployWith.toOrcaJobProperties())
+          .toMutableMap()
+
+        refId++
+
+        /**
+         * If regions are staggered by time windows, add a `restrictedExecutionWindow`
+         * to the `createServerGroup` stage.
+         */
+        if (stagger.hours != null) {
+          val hours = stagger.hours!!.split("-").map { it.toInt() }
+          stage.putAll(restrictedExecutionWindow(hours[0], hours[1]))
+        }
+
+        stages.add(stage)
+
+        if (diff.shouldDeployAndModifyScalingPolicies()) {
+          stages.addAll(diff.modifyScalingPolicyJob(refId))
+        }
+
+        if (stagger.pauseTime != null) {
+          stages.add(
+            waitStage(stagger.pauseTime!!, stages.size))
+        }
+
+        val deferred = async {
+          taskLauncher.submitJobToOrca(
+            resource = resource,
+            description = "Upsert server group ${diff.desired.moniker.name} in " +
+              "${diff.desired.location.account}/${diff.desired.location.region}",
+            correlationId = "${resource.id}:${diff.desired.location.region}",
+            stages = stages
+          )
+        }
+
+        val task = deferred.await()
+        priorExecutionId = task.id
+        tasks.add(task)
+      }
+
+      /**
+       * `ClusterSpec.stagger` doesn't have to define a stagger for all of the regions clusters.
+       * If a cluster deploys into 4 regions [A, B, C, D] but only defines a stagger for [A, B],
+       * [C, D] will deploy in parallel after the completion of B and any pauseTime it defines.
+       */
+      if (unstaggeredRegions.isNotEmpty()) {
+        val unstaggeredDiffs = regionalDiffs
+          .filter { unstaggeredRegions.contains(it.key) }
+          .map { it.value }
+
+        tasks.addAll(
+          upsertUnstaggered(resource, unstaggeredDiffs, priorExecutionId)
+            .map { it.await() }
+        )
+      }
+
+      return@coroutineScope tasks
     }
 
   override suspend fun export(exportable: Exportable): SubmittedResource<ClusterSpec> {
@@ -208,6 +368,11 @@ class ClusterHandler(
         ResourceDiff(desired, current?.get(region))
       }
 
+  private fun List<ResourceDiff<ServerGroup>>.createsNewServerGroups() =
+    any {
+      !it.isCapacityOrAutoScalingOnly()
+    }
+
   private fun ClusterSpec.generateOverrides(account: String, application: String, serverGroups: Map<String, ServerGroup>) =
     serverGroups.forEach { (region, serverGroup) ->
       val workingSpec = serverGroup.exportSpec(account, application)
@@ -255,12 +420,12 @@ class ClusterHandler(
    */
   private fun ResourceDiff<ServerGroup>.shouldDeployAndModifyScalingPolicies(): Boolean =
     (current == null && desired.scaling.hasScalingPolicies()) ||
-      (current != null && !isCapacityAndAutoScalingOnly() && hasScalingPolicyDiff())
+      (current != null && !isCapacityOrAutoScalingOnly() && hasScalingPolicyDiff())
 
   /**
    * @return `true` if [current] exists and the diff impacts scaling policies or capacity only.
    */
-  private fun ResourceDiff<ServerGroup>.isCapacityAndAutoScalingOnly(): Boolean =
+  private fun ResourceDiff<ServerGroup>.isCapacityOrAutoScalingOnly(): Boolean =
     current != null &&
       affectedRootPropertyTypes.all { it == Capacity::class.java || it == Scaling::class.java } &&
       current!!.scaling.suspendedProcesses == desired.scaling.suspendedProcesses
@@ -273,12 +438,16 @@ class ClusterHandler(
       (current!!.scaling.targetTrackingPolicies != desired.scaling.targetTrackingPolicies ||
         current!!.scaling.stepScalingPolicies != desired.scaling.stepScalingPolicies)
 
-  private fun ResourceDiff<ServerGroup>.createServerGroupJob(): Map<String, Any?> =
+  private fun ResourceDiff<ServerGroup>.createServerGroupJob(startingRefId: Int = 0): Map<String, Any?> =
     with(desired) {
       mutableMapOf(
         "application" to moniker.app,
         "credentials" to location.account,
-        "refId" to "1",
+        "refId" to (startingRefId + 1).toString(),
+        "requisiteStageRefIds" to when (startingRefId) {
+          0 -> emptyList()
+          else -> listOf(startingRefId.toString())
+        },
         // the 2hr default timeout sort-of? makes sense in an imperative
         // pipeline world where maybe within 2 hours the environment around
         // the instances will fix itself and the stage will succeed. Since
