@@ -2,29 +2,31 @@ name: Build Cop
 
 on:
   schedule:
-  # - cron: "*/5 * * * *"
-  - cron: 0 11 * * MON-FRI
+  - cron: 0 11 * * MON-FRI # Rotate weekdays at 11:00 UTC
 
 jobs:
   rotate:
+    # Don't run this job on forks.
     if: github.repository == 'spinnaker/spinnaker'
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - id: checkout
+      uses: actions/checkout@v2
     - id: assigned
       uses: "lee-dohm/last-assigned@76c68f419feb4d70efaae2a83b2f04bba8977eb1"
       with:
         query: 'label:build-cop-rotation'
         token: ${{ secrets.SPINNAKERRELEASE_GHA_BUILD_COP_TOKEN }}
-    - id: rotation
+    - id: rotate
       uses: lee-dohm/team-rotation@v1
       with:
         teamName: "@spinnaker/build-cops"
         token: ${{ secrets.SPINNAKERRELEASE_GHA_BUILD_COP_TOKEN }}
         last: ${{ steps.assigned.outputs.last }}
-    - uses: JasonEtco/create-an-issue@v2
+    - id: createIssue
+      uses: JasonEtco/create-an-issue@v2
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         filename: .github/build-cop-template.md
-        assignees: ${{ steps.rotation.outputs.next }}
+        assignees: ${{ steps.rotate.outputs.next }}
