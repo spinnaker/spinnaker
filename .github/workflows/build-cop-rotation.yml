@@ -6,7 +6,8 @@ on:
   - cron: 0 11 * * MON-FRI
 
 jobs:
-  stuff:
+  rotate:
+    if: github.repository == 'spinnaker/spinnaker'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -23,7 +24,7 @@ jobs:
         last: ${{ steps.assigned.outputs.last }}
     - uses: JasonEtco/create-an-issue@v2
       env:
-        GITHUB_TOKEN: ${{ secrets.SPINNAKERRELEASE_GHA_BUILD_COP_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         filename: .github/build-cop-template.md
         assignees: ${{ steps.rotation.outputs.next }}
