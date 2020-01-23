@@ -48,6 +48,7 @@ class KeysSpec extends Specification {
     'test-account-7' | 'us-west-7' | SCALABLE_TARGETS.ns    | 'service/test-cluster/test-service'                          | buildParsedKey(account, region, namespace, [resource: identifier])
     'test-account-8' | 'us-west-8' | SECRETS.ns             | 'my-secret'                                                                                       | buildParsedKey(account, region, namespace, [secretName: identifier])
     'test-account-9' | 'us-west-9' | SERVICE_DISCOVERY_REGISTRIES.ns | 'srv-123'                                                                                  | buildParsedKey(account, region, namespace, [serviceId: identifier])
+    'test-account-10' | 'us-west-10' | TARGET_HEALTHS.ns | 'arn:aws:elasticloadbalancing' + region + ':012345678910:targetgroup/ECSTG/htgbfvv' | buildParsedKey(account, region, namespace, [targetGroupArn: identifier])
   }
 
   def 'should parse a given iam role key properly'() {
@@ -158,5 +159,15 @@ class KeysSpec extends Specification {
     region      | account          | serviceId
     'us-west-1' | 'test-account-1' | 'my-first-service'
     'us-west-2' | 'test-account-2' | 'my-second-service'
+  }
+
+  def 'should generate the proper target health key'() {
+    expect:
+    Keys.getTargetHealthKey(account, region, targetGroupArn) == buildKey(TARGET_HEALTHS.ns, account, region, targetGroupArn)
+
+    where:
+    region      | account          | targetGroupArn
+    'us-west-1' | 'test-account-1' | 'arn:aws:elasticloadbalancing' + region + ':012345678910:targetgroup/ECSTG/htgbfvv'
+    'us-west-2' | 'test-account-2' | 'arn:aws:elasticloadbalancing' + region + ':012345678910:targetgroup/ECSTG/eognasm'
   }
 }

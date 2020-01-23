@@ -159,6 +159,13 @@ public class EcsProviderConfig {
                   amazonClientProvider,
                   awsCredentialsProvider,
                   objectMapper));
+          newAgents.add(
+              new TargetHealthCachingAgent(
+                  credentials,
+                  region.getName(),
+                  amazonClientProvider,
+                  awsCredentialsProvider,
+                  objectMapper));
         }
       }
     }

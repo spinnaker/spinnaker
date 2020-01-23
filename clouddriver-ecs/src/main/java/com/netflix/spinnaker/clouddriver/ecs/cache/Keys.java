@@ -35,7 +35,8 @@ public class Keys implements KeyParser {
     ALARMS,
     SCALABLE_TARGETS,
     SECRETS,
-    SERVICE_DISCOVERY_REGISTRIES;
+    SERVICE_DISCOVERY_REGISTRIES,
+    TARGET_HEALTHS;
 
     public final String ns;
 
@@ -130,6 +131,9 @@ public class Keys implements KeyParser {
       case SCALABLE_TARGETS:
         result.put("resource", parts[4]);
         break;
+      case TARGET_HEALTHS:
+        result.put("targetGroupArn", parts[4]);
+        break;
       default:
         break;
     }
@@ -156,6 +160,10 @@ public class Keys implements KeyParser {
 
   public static String getTaskHealthKey(String account, String region, String taskId) {
     return buildKey(HEALTH.getNs(), account, region, taskId);
+  }
+
+  public static String getTargetHealthKey(String account, String region, String targetGroupArn) {
+    return buildKey(Namespace.TARGET_HEALTHS.ns, account, region, targetGroupArn);
   }
 
   public static String getContainerInstanceKey(
