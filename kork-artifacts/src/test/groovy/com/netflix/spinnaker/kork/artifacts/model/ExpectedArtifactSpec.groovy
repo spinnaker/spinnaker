@@ -53,7 +53,7 @@ class ExpectedArtifactSpec extends Specification {
 
   def "test regex matching"() {
     when:
-    def expectedArtifact = ExpectedArtifact.builder().matchArtifact(Artifact.builder().name(expectedName).build()).build()
+    def expectedArtifact = ExpectedArtifact.builder().id("test").matchArtifact(Artifact.builder().name(expectedName).build()).build()
     def incomingArtifact = Artifact.builder().name(incomingName).build()
 
     then:
@@ -75,7 +75,7 @@ class ExpectedArtifactSpec extends Specification {
 
   def "each considered field must match"() {
     when:
-    def expectedArtifact = ExpectedArtifact.builder().matchArtifact(factory(MATCH_STRING)).build()
+    def expectedArtifact = ExpectedArtifact.builder().id("test").matchArtifact(factory(MATCH_STRING)).build()
 
     then:
     expectedArtifact.matches(factory(MATCH_STRING))

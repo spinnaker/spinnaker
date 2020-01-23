@@ -5,6 +5,7 @@ apply from: "$rootDir/gradle/lombok.gradle"
 dependencies {
   api(platform(project(":spinnaker-dependencies")))
 
+  implementation project(":kork-annotations")
   implementation "com.fasterxml.jackson.core:jackson-databind"
   api "com.hubspot.jinjava:jinjava"
 

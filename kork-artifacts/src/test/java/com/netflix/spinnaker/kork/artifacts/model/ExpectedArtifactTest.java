@@ -32,6 +32,7 @@ final class ExpectedArtifactTest {
   public void deserialize() throws IOException {
     ExpectedArtifact originalArtifact =
         ExpectedArtifact.builder()
+            .id("test")
             .usePriorArtifact(true)
             .useDefaultArtifact(false)
             .matchArtifact(Artifact.builder().type("gcs/object").name("my-artifact").build())
