@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.aws.provider.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.AgentProvider
@@ -45,7 +46,6 @@ import com.netflix.spinnaker.clouddriver.aws.provider.agent.InstanceCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.LaunchConfigCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.ReservationReportCachingAgent
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
-import com.netflix.spinnaker.kork.threads.NamedThreadFactory
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
@@ -95,7 +95,11 @@ class AwsProviderConfig {
 
   @Bean
   ExecutorService reservationReportPool(ReservationReportConfigurationProperties reservationReportConfigurationProperties) {
-    return Executors.newFixedThreadPool(reservationReportConfigurationProperties.threadPoolSize, new NamedThreadFactory(ReservationReport.class.getSimpleName()))
+    return Executors.newFixedThreadPool(
+        reservationReportConfigurationProperties.threadPoolSize,
+        new ThreadFactoryBuilder()
+          .setNameFormat(ReservationReport.class.getSimpleName() + "-%d")
+          .build());
   }
 
   private void synchronizeAwsProvider(AwsProvider awsProvider,

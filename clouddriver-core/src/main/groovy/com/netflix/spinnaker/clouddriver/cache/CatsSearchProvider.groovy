@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.cache
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.provider.ProviderRegistry
 import com.netflix.spinnaker.clouddriver.search.SearchProvider
 import com.netflix.spinnaker.clouddriver.search.SearchResultSet
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
-import com.netflix.spinnaker.kork.threads.NamedThreadFactory
 import groovy.text.SimpleTemplateEngine
 import groovy.text.Template
 import org.slf4j.Logger
@@ -88,7 +88,12 @@ class CatsSearchProvider implements SearchProvider, Runnable {
     }
 
     if (catsInMemorySearchProperties.enabled) {
-      scheduledExecutorService = Executors.newScheduledThreadPool(1, new NamedThreadFactory(CatsSearchProvider.class.getSimpleName()))
+      scheduledExecutorService =
+        Executors.newScheduledThreadPool(
+          1,
+          new ThreadFactoryBuilder()
+            .setNameFormat(CatsSearchProvider.class.getSimpleName() + "-%d")
+            .build());
     }
   }
 
