@@ -22,8 +22,10 @@ import lombok.Data;
 
 @Data
 public class DeliveryConfig {
+  String apiVersion;
   String name;
   String application;
+  String serviceAccount;
   Collection<Map<String, Object>> artifacts;
   Collection<Environment> environments;
 }
