@@ -49,9 +49,11 @@ abstract class AbstractEurekaSupport {
                                          Task task,
                                          String phaseName,
                                          DiscoveryStatus discoveryStatus,
-                                         List<String> instanceIds) {
+                                         List<String> instanceIds,
+                                         boolean strict = false) {
     updateDiscoveryStatusForInstances(
-      description, task, phaseName, discoveryStatus, instanceIds, eurekaSupportConfigurationProperties.retryMax, eurekaSupportConfigurationProperties.retryMax
+      description, task, phaseName, discoveryStatus, instanceIds,
+      eurekaSupportConfigurationProperties.retryMax, eurekaSupportConfigurationProperties.retryMax, strict
     )
   }
 
@@ -62,7 +64,8 @@ abstract class AbstractEurekaSupport {
                                          DiscoveryStatus discoveryStatus,
                                          List<String> instanceIds,
                                          int findApplicationNameRetryMax,
-                                         int updateEurekaRetryMax) {
+                                         int updateEurekaRetryMax,
+                                         boolean strict = false) {
 
     if (eurekaSupportConfigurationProperties == null) {
       throw new IllegalStateException("eureka configuration not supplied")
@@ -146,8 +149,20 @@ abstract class AbstractEurekaSupport {
           }
         }
       } catch (RetrofitError retrofitError) {
-        if (retrofitError.response?.status == 404 && discoveryStatus == DiscoveryStatus.Disable) {
-          task.updateStatus phaseName, "Could not find ${instanceId} in application $applicationName in discovery, skipping disable operation."
+        if (discoveryStatus == DiscoveryStatus.Disable) {
+          def alwaysSkippable = retrofitError.response?.status == 404
+          def willSkip = alwaysSkippable || !strict
+          def skippingOrNot = willSkip ? "skipping" : "not skipping"
+
+          String errorMessage = "Failed updating status of ${instanceId} in application $applicationName in discovery" +
+            " and strict=$strict, $skippingOrNot disable operation."
+
+          // in strict mode, only 404 errors on disable are ignored
+          if (!willSkip) {
+            errors[instanceId] = retrofitError
+          }
+
+          task.updateStatus phaseName, errorMessage
         } else {
           errors[instanceId] = retrofitError
         }

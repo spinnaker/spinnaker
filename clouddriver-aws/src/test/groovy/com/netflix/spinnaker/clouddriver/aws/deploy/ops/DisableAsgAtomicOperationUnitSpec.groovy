@@ -31,6 +31,7 @@ import com.netflix.spinnaker.clouddriver.data.task.DefaultTaskStatus
 import com.netflix.spinnaker.clouddriver.data.task.TaskState
 import com.netflix.spinnaker.clouddriver.eureka.model.EurekaApplication
 import com.netflix.spinnaker.clouddriver.eureka.model.EurekaInstance
+import retrofit.RetrofitError
 import retrofit.client.Response
 import spock.lang.Unroll
 
@@ -124,6 +125,36 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
     1 * eureka.updateInstanceStatus('asg1', 'i1', 'OUT_OF_SERVICE')
   }
 
+  def 'should not fail because of discovery errors on disable'() {
+    given:
+    def asg = Mock(AutoScalingGroup)
+    asg.getInstances() >> [new com.amazonaws.services.autoscaling.model.Instance().withInstanceId("i1").withLifecycleState("InService")]
+    def instance = new Instance().withState(new InstanceState().withName("running")).withInstanceId("i1")
+    def describeInstanceResult = Mock(DescribeInstancesResult)
+    describeInstanceResult.getReservations() >> [new Reservation().withInstances(instance)]
+
+    eureka.updateInstanceStatus('asg1', 'i1', 'OUT_OF_SERVICE') >> {
+      throw new RetrofitError("error", "url",
+        new Response("url", 503, "service unavailable", [], null),
+        null, null, null, null)
+    }
+
+    when:
+    op.operate([])
+
+    then:
+    _ * amazonEc2.describeInstances(_) >> describeInstanceResult
+    _ * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
+    _ * asgService.getAutoScalingGroup(_) >> asg
+    _ * eureka.getInstanceInfo('i1') >>
+      [
+        instance: [
+          app: "asg1"
+        ]
+      ]
+    0 * task.fail()
+  }
+
   def 'should skip discovery if not enabled for account'() {
     given:
     def noDiscovery = new EnableDisableAsgDescription([
@@ -198,7 +229,7 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
     null       | null               || 4
   }
 
-  @Unroll("Should invoke supend process #invocations times when desiredPercentage is #desiredPercentage")
+  @Unroll("Should invoke suspend process #invocations times when desiredPercentage is #desiredPercentage")
   void 'should suspend processes only if desired percentage is null or 100'() {
     given:
     def asg = Mock(AutoScalingGroup)

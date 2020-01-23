@@ -21,7 +21,7 @@ package com.netflix.spinnaker.clouddriver.data.task
  * may be used for more complex requirements, like querying a database or centralized task system in a multi-threaded/
  * multi-service environment.
  *
- * A psuedo-composite key of a Status is its phase and status strings.
+ * A pseudo-composite key of a Status is its phase and status strings.
  *
  *
  */
@@ -43,7 +43,7 @@ public interface Status {
   Boolean isCompleted()
 
   /**
-   * Informs whether the task has failed or not. A "failed" state is always indicitive of a "completed" state.
+   * Informs whether the task has failed or not. A "failed" state is always indicative of a "completed" state.
    */
   Boolean isFailed()
 

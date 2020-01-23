@@ -65,7 +65,7 @@ class EnableDisableInstancesInDiscoveryAtomicOperationUnitSpec extends Specifica
 
     then:
     1 * operation.discoverySupport.updateDiscoveryStatusForInstances(
-      _, _, _, expectedDiscoveryStatus, description.instanceIds
+      _, _, _, expectedDiscoveryStatus, description.instanceIds, true
     )
 
     where:

@@ -94,6 +94,8 @@ abstract class EnableDisableAtomicOperationUnitSpecSupport extends Specification
     }
     op.discoverySupport.regionScopedProviderFactory = regionScopedProviderFactory
     op.discoverySupport.eurekaSupportConfigurationProperties = new EurekaSupportConfigurationProperties()
+    op.discoverySupport.eurekaSupportConfigurationProperties.retryIntervalMillis = 0
+    op.discoverySupport.eurekaSupportConfigurationProperties.throttleMillis = 0
     op.regionScopedProviderFactory = regionScopedProviderFactory
   }
 }
