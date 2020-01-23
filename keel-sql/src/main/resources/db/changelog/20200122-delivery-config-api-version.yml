@@ -1,0 +1,18 @@
+databaseChangeLog:
+  - changeSet:
+      id: delivery-config-api-version
+      author: emjburns
+      changes:
+        - addColumn:
+            tableName: delivery_config
+            columns:
+              - column:
+                  name: api_version
+                  type: varchar(255)
+                  defaultValue: delivery.config.spinnaker.netflix.com/v1
+                  constraints:
+                    nullable: false
+      rollback:
+        - dropColumn:
+            tableName: delivery_config
+            columnName: api_version

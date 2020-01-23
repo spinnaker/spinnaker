@@ -83,3 +83,7 @@ databaseChangeLog:
   - include:
       file: changelog/20200122-service-account-on-delivery-config.yml
       relativeToChangelogFile: true
+  - include:
+     file: changelog/20200122-delivery-config-api-version.yml
+     relativeToChangelogFile: true
+
