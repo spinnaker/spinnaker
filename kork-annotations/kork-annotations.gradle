@@ -15,3 +15,8 @@
  */
 
 apply plugin: "java-library"
+
+dependencies {
+  api(platform(project(":spinnaker-dependencies")))
+  api("com.google.code.findbugs:jsr305")
+}
