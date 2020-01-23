@@ -4,6 +4,12 @@ import { ArtifactTypePatterns } from 'core/artifact';
 import { IArtifact } from 'core/domain/IArtifact';
 import { Registry } from 'core/registry';
 
+controllerFn.$inject = ['artifact'];
+function controllerFn(artifact: IArtifact) {
+  this.artifact = artifact;
+  this.artifact.type = 'docker/image';
+}
+
 export const DOCKER_ARTIFACT = 'spinnaker.core.pipeline.trigger.artifact.docker';
 module(DOCKER_ARTIFACT, []).config(() => {
   Registry.pipeline.mergeArtifactKind({
@@ -14,10 +20,7 @@ module(DOCKER_ARTIFACT, []).config(() => {
     isMatch: true,
     description: 'A Docker image to be deployed.',
     key: 'docker',
-    controller: function(artifact: IArtifact) {
-      this.artifact = artifact;
-      this.artifact.type = 'docker/image';
-    },
+    controller: controllerFn,
     controllerAs: 'ctrl',
     template: `
 <div class="col-md-12">

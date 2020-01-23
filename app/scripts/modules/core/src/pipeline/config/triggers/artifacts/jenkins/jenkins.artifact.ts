@@ -4,6 +4,12 @@ import { ArtifactTypePatterns } from 'core/artifact';
 import { IArtifact } from 'core/domain/IArtifact';
 import { Registry } from 'core/registry';
 
+controllerFn.$inject = ['artifact'];
+function controllerFn(artifact: IArtifact) {
+  this.artifact = artifact;
+  this.artifact.type = 'ivy/file';
+}
+
 export const JENKINS_ARTIFACT = 'spinnaker.core.pipeline.trigger.jenkins.artifact';
 module(JENKINS_ARTIFACT, []).config(() => {
   Registry.pipeline.mergeArtifactKind({
@@ -14,10 +20,7 @@ module(JENKINS_ARTIFACT, []).config(() => {
     key: 'jenkins',
     isDefault: false,
     isMatch: true,
-    controller: function(artifact: IArtifact) {
-      this.artifact = artifact;
-      this.artifact.type = 'ivy/file';
-    },
+    controller: controllerFn,
     controllerAs: 'ctrl',
     template: `
 <div class="col-md-12">

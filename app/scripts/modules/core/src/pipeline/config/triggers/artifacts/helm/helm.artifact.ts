@@ -9,6 +9,51 @@ import { ArtifactService } from '../ArtifactService';
 
 export const HELM_ARTIFACT = 'spinnaker.core.pipeline.trigger.artifact.helm';
 
+controllerFn.$inject = ['artifact'];
+function controllerFn(artifact: IArtifact) {
+  this.artifact = artifact;
+  this.artifact.type = 'helm/chart';
+
+  this.onAccountChange = () => {
+    this.artifact.artifactAccount = this.selectedArtifactAccount;
+    this.artifact.reference = this.selectedArtifactAccount;
+    ArtifactService.getArtifactNames('helm/chart', this.artifact.artifactAccount).then(names => {
+      this.chartNames = names;
+    });
+    this.chartVersions = [];
+  };
+  this.onNameChange = () => {
+    ArtifactService.getArtifactVersions('helm/chart', this.artifact.artifactAccount, this.artifact.name).then(
+      versions => {
+        this.chartVersions = versions;
+      },
+    );
+  };
+  AccountService.getArtifactAccounts().then(accounts => {
+    this.artifactAccounts = accounts
+      .filter(account => account.types.includes('helm/chart'))
+      .map(account => account.name);
+    if (artifact.artifactAccount) {
+      this.selectedArtifactAccount = accounts.filter(
+        account => account.types.includes('helm/chart') && account.name === this.artifact.artifactAccount,
+      )[0].name;
+    }
+  });
+
+  if (artifact.artifactAccount) {
+    ArtifactService.getArtifactNames('helm/chart', this.artifact.artifactAccount).then(names => {
+      this.chartNames = names;
+    });
+    if (artifact.name) {
+      ArtifactService.getArtifactVersions('helm/chart', this.artifact.artifactAccount, this.artifact.name).then(
+        versions => {
+          this.chartVersions = versions;
+        },
+      );
+    }
+  }
+}
+
 module(HELM_ARTIFACT, []).config(() => {
   const helmArtifact = {
     label: 'Helm',
@@ -18,49 +63,7 @@ module(HELM_ARTIFACT, []).config(() => {
     isMatch: false,
     description: 'A helm chart to be deployed',
     key: 'helm',
-    controller: function(artifact: IArtifact) {
-      this.artifact = artifact;
-      this.artifact.type = 'helm/chart';
-
-      this.onAccountChange = () => {
-        this.artifact.artifactAccount = this.selectedArtifactAccount;
-        this.artifact.reference = this.selectedArtifactAccount;
-        ArtifactService.getArtifactNames('helm/chart', this.artifact.artifactAccount).then(names => {
-          this.chartNames = names;
-        });
-        this.chartVersions = [];
-      };
-      this.onNameChange = () => {
-        ArtifactService.getArtifactVersions('helm/chart', this.artifact.artifactAccount, this.artifact.name).then(
-          versions => {
-            this.chartVersions = versions;
-          },
-        );
-      };
-      AccountService.getArtifactAccounts().then(accounts => {
-        this.artifactAccounts = accounts
-          .filter(account => account.types.includes('helm/chart'))
-          .map(account => account.name);
-        if (artifact.artifactAccount) {
-          this.selectedArtifactAccount = accounts.filter(
-            account => account.types.includes('helm/chart') && account.name === this.artifact.artifactAccount,
-          )[0].name;
-        }
-      });
-
-      if (artifact.artifactAccount) {
-        ArtifactService.getArtifactNames('helm/chart', this.artifact.artifactAccount).then(names => {
-          this.chartNames = names;
-        });
-        if (artifact.name) {
-          ArtifactService.getArtifactVersions('helm/chart', this.artifact.artifactAccount, this.artifact.name).then(
-            versions => {
-              this.chartVersions = versions;
-            },
-          );
-        }
-      }
-    },
+    controller: controllerFn,
     controllerAs: 'ctrl',
     template: `
 <div class="col-md-12">

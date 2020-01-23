@@ -6,6 +6,12 @@ import { Registry } from 'core/registry';
 
 import './base64.artifact.less';
 
+controllerFn.$inject = ['artifact'];
+function controllerFn(artifact: IArtifact) {
+  this.artifact = artifact;
+  this.artifact.type = 'embedded/base64';
+}
+
 export const BASE64_ARTIFACT = 'spinnaker.core.pipeline.trigger.artifact.base64';
 module(BASE64_ARTIFACT, []).config(() => {
   Registry.pipeline.mergeArtifactKind({
@@ -16,10 +22,7 @@ module(BASE64_ARTIFACT, []).config(() => {
     key: 'base64',
     isDefault: false,
     isMatch: true,
-    controller: function(artifact: IArtifact) {
-      this.artifact = artifact;
-      this.artifact.type = 'embedded/base64';
-    },
+    controller: controllerFn,
     controllerAs: 'ctrl',
     template: `
 <div class="col-md-12">

@@ -4,6 +4,12 @@ import { ArtifactTypePatterns } from 'core/artifact';
 import { IArtifact } from 'core/domain/IArtifact';
 import { Registry } from 'core/registry';
 
+controllerFn.$inject = ['artifact'];
+function controllerFn(artifact: IArtifact) {
+  this.artifact = artifact;
+  this.artifact.type = 'bitbucket/file';
+}
+
 export const BITBUCKET_ARTIFACT = 'spinnaker.core.pipeline.trigger.bitbucket.artifact';
 module(BITBUCKET_ARTIFACT, []).config(() => {
   Registry.pipeline.mergeArtifactKind({
@@ -14,10 +20,7 @@ module(BITBUCKET_ARTIFACT, []).config(() => {
     key: 'bitbucket',
     isDefault: false,
     isMatch: true,
-    controller: function(artifact: IArtifact) {
-      this.artifact = artifact;
-      this.artifact.type = 'bitbucket/file';
-    },
+    controller: controllerFn,
     controllerAs: 'ctrl',
     template: `
 <div class="col-md-12">

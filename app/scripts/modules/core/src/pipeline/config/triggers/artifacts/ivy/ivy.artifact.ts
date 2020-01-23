@@ -9,6 +9,12 @@ class IvyArtifactController implements IController {
   constructor(public artifact: IArtifact) {}
 }
 
+controllerFn.$inject = ['artifact'];
+function controllerFn(artifact: IArtifact) {
+  this.artifact = artifact;
+  this.artifact.type = 'ivy/file';
+}
+
 export const IVY_ARTIFACT = 'spinnaker.core.pipeline.trigger.ivy.artifact';
 module(IVY_ARTIFACT, [])
   .config(() => {
@@ -20,10 +26,7 @@ module(IVY_ARTIFACT, [])
       key: 'ivy',
       isDefault: false,
       isMatch: true,
-      controller: function(artifact: IArtifact) {
-        this.artifact = artifact;
-        this.artifact.type = 'ivy/file';
-      },
+      controller: controllerFn,
       controllerAs: 'ctrl',
       template: `
 <div class="col-md-12">

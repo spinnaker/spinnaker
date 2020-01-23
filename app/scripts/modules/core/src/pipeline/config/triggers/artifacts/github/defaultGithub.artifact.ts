@@ -4,6 +4,20 @@ import { ArtifactTypePatterns } from 'core/artifact';
 import { IArtifact } from 'core/domain/IArtifact';
 import { Registry } from 'core/registry';
 
+controllerFn.$inject = ['artifact'];
+function controllerFn(artifact: IArtifact) {
+  this.artifact = artifact;
+  this.artifact.type = 'github/file';
+  const pathRegex = new RegExp('/repos/[^/]*/[^/]*/contents/(.*)$');
+
+  this.onReferenceChange = () => {
+    const results = pathRegex.exec(this.artifact.reference);
+    if (results !== null) {
+      this.artifact.name = results[1];
+    }
+  };
+}
+
 export const DEFAULT_GITHUB_ARTIFACT = 'spinnaker.core.pipeline.trigger.artifact.defaultGithub';
 module(DEFAULT_GITHUB_ARTIFACT, []).config(() => {
   Registry.pipeline.mergeArtifactKind({
@@ -14,18 +28,7 @@ module(DEFAULT_GITHUB_ARTIFACT, []).config(() => {
     key: 'default.github',
     isDefault: true,
     isMatch: false,
-    controller: function(artifact: IArtifact) {
-      this.artifact = artifact;
-      this.artifact.type = 'github/file';
-      const pathRegex = new RegExp('/repos/[^/]*/[^/]*/contents/(.*)$');
-
-      this.onReferenceChange = () => {
-        const results = pathRegex.exec(this.artifact.reference);
-        if (results !== null) {
-          this.artifact.name = results[1];
-        }
-      };
-    },
+    controller: controllerFn,
     controllerAs: 'ctrl',
     template: `
 <div class="col-md-12">

@@ -4,6 +4,12 @@ import { ArtifactTypePatterns } from 'core/artifact';
 import { IArtifact } from 'core/domain/IArtifact';
 import { Registry } from 'core/registry';
 
+controllerFn.$inject = ['artifact'];
+function controllerFn(artifact: IArtifact) {
+  this.artifact = artifact;
+  this.artifact.type = 'github/file';
+}
+
 export const GITHUB_ARTIFACT = 'spinnaker.core.pipeline.trigger.github.artifact';
 module(GITHUB_ARTIFACT, []).config(() => {
   Registry.pipeline.mergeArtifactKind({
@@ -14,10 +20,7 @@ module(GITHUB_ARTIFACT, []).config(() => {
     type: 'github/file',
     isDefault: false,
     isMatch: true,
-    controller: function(artifact: IArtifact) {
-      this.artifact = artifact;
-      this.artifact.type = 'github/file';
-    },
+    controller: controllerFn,
     controllerAs: 'ctrl',
     template: `
 <div class="col-md-12">

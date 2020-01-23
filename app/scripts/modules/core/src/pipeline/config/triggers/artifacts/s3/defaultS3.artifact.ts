@@ -5,6 +5,27 @@ import { ArtifactTypePatterns } from 'core/artifact';
 import { IArtifact } from 'core/domain/IArtifact';
 import { Registry } from 'core/registry';
 
+controllerFn.$inject = ['artifact'];
+function controllerFn(artifact: IArtifact) {
+  this.artifact = artifact;
+  this.artifact.type = 's3/object';
+
+  this.onReferenceChange = () => {
+    const ref = this.artifact.reference;
+    if (isNil(ref)) {
+      return;
+    }
+
+    if (ref.indexOf('#') >= 0) {
+      const split = ref.split('#');
+      this.artifact.name = split[0];
+      this.artifact.version = split[1];
+    } else {
+      this.artifact.name = ref;
+    }
+  };
+}
+
 export const DEFAULT_S3_ARTIFACT = 'spinnaker.core.pipeline.trigger.artifact.defaultS3';
 module(DEFAULT_S3_ARTIFACT, []).config(() => {
   Registry.pipeline.registerArtifactKind({
@@ -15,25 +36,7 @@ module(DEFAULT_S3_ARTIFACT, []).config(() => {
     key: 'default.s3',
     isDefault: true,
     isMatch: false,
-    controller: function(artifact: IArtifact) {
-      this.artifact = artifact;
-      this.artifact.type = 's3/object';
-
-      this.onReferenceChange = () => {
-        const ref = this.artifact.reference;
-        if (isNil(ref)) {
-          return;
-        }
-
-        if (ref.indexOf('#') >= 0) {
-          const split = ref.split('#');
-          this.artifact.name = split[0];
-          this.artifact.version = split[1];
-        } else {
-          this.artifact.name = ref;
-        }
-      };
-    },
+    controller: controllerFn,
     controllerAs: 'ctrl',
     template: `
 <div class="col-md-12">

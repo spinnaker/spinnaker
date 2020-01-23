@@ -4,6 +4,12 @@ import { ArtifactTypePatterns } from 'core/artifact';
 import { IArtifact } from 'core/domain/IArtifact';
 import { Registry } from 'core/registry';
 
+controllerFn.$inject = ['artifact'];
+function controllerFn(artifact: IArtifact) {
+  this.artifact = artifact;
+  this.artifact.type = 's3/object';
+}
+
 export const S3_ARTIFACT = 'spinnaker.core.pipeline.trigger.s3.artifact';
 module(S3_ARTIFACT, []).config(() => {
   Registry.pipeline.mergeArtifactKind({
@@ -14,10 +20,7 @@ module(S3_ARTIFACT, []).config(() => {
     key: 's3',
     isDefault: false,
     isMatch: true,
-    controller: function(artifact: IArtifact) {
-      this.artifact = artifact;
-      this.artifact.type = 's3/object';
-    },
+    controller: controllerFn,
     controllerAs: 'ctrl',
     template: `
 <div class="col-md-12">

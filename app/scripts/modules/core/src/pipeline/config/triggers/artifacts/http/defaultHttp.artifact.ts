@@ -4,6 +4,15 @@ import { ArtifactTypePatterns } from 'core/artifact';
 import { IArtifact } from 'core/domain/IArtifact';
 import { Registry } from 'core/registry';
 
+controllerFn.$inject = ['artifact'];
+function controllerFn(artifact: IArtifact) {
+  this.artifact = artifact;
+  this.artifact.type = 'http/file';
+  if (this.artifact.name && !this.artifact.reference) {
+    this.artifact.reference = this.artifact.name;
+  }
+}
+
 export const DEFAULT_HTTP_ARTIFACT = 'spinnaker.core.pipeline.trigger.defaultHttp.artifact';
 module(DEFAULT_HTTP_ARTIFACT, []).config(() => {
   Registry.pipeline.mergeArtifactKind({
@@ -14,13 +23,7 @@ module(DEFAULT_HTTP_ARTIFACT, []).config(() => {
     key: 'default.http',
     isDefault: true,
     isMatch: false,
-    controller: function(artifact: IArtifact) {
-      this.artifact = artifact;
-      this.artifact.type = 'http/file';
-      if (this.artifact.name && !this.artifact.reference) {
-        this.artifact.reference = this.artifact.name;
-      }
-    },
+    controller: controllerFn,
     controllerAs: 'ctrl',
     template: `
 <div class="col-md-12">

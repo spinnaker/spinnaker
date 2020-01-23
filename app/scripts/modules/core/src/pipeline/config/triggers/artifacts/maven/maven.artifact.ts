@@ -9,6 +9,12 @@ class MavenArtifactController implements IController {
   constructor(public artifact: IArtifact) {}
 }
 
+controllerFn.$inject = ['artifact'];
+function controllerFn(artifact: IArtifact) {
+  this.artifact = artifact;
+  this.artifact.type = 'maven/file';
+}
+
 export const MAVEN_ARTIFACT = 'spinnaker.core.pipeline.trigger.maven.artifact';
 module(MAVEN_ARTIFACT, [])
   .config(() => {
@@ -20,10 +26,7 @@ module(MAVEN_ARTIFACT, [])
       key: 'maven',
       isDefault: false,
       isMatch: true,
-      controller: function(artifact: IArtifact) {
-        this.artifact = artifact;
-        this.artifact.type = 'maven/file';
-      },
+      controller: controllerFn,
       controllerAs: 'ctrl',
       template: `
 <div class="col-md-12">

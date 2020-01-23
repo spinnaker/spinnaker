@@ -14,6 +14,42 @@ const DOMBase64Errors: { [key: string]: string } = {
   5: 'The string to encode contains characters outside the latin1 range.',
 };
 
+controllerFn.$inject = ['artifact'];
+function controllerFn(artifact: IArtifact) {
+  this.artifact = artifact;
+  this.artifact.type = 'embedded/base64';
+  this.decoded = '';
+  this.encodeDecodeError = '';
+
+  this.convert = (fn: (s: string) => string, str: string): string => {
+    this.encodeDecodeError = '';
+    try {
+      return fn(str);
+    } catch (e) {
+      if (has(DOMBase64Errors, e.code)) {
+        this.encodeDecodeError = DOMBase64Errors[e.code];
+      } else {
+        this.encodeDecodeError = e.message;
+      }
+      return '';
+    }
+  };
+
+  this.onContentChange = () => {
+    const encoded = this.convert(btoa, this.decoded);
+    if (!this.encodeDecodeError) {
+      this.artifact.reference = encoded;
+    }
+  };
+
+  if (this.artifact.reference) {
+    const decoded = this.convert(atob, this.artifact.reference);
+    if (!this.encodeDecodeError) {
+      this.decoded = decoded;
+    }
+  }
+}
+
 module(DEFAULT_BASE64_ARTIFACT, []).config(() => {
   Registry.pipeline.mergeArtifactKind({
     label: 'Base64',
@@ -23,40 +59,7 @@ module(DEFAULT_BASE64_ARTIFACT, []).config(() => {
     key: 'default.base64',
     isDefault: true,
     isMatch: false,
-    controller: function(artifact: IArtifact) {
-      this.artifact = artifact;
-      this.artifact.type = 'embedded/base64';
-      this.decoded = '';
-      this.encodeDecodeError = '';
-
-      this.convert = (fn: (s: string) => string, str: string): string => {
-        this.encodeDecodeError = '';
-        try {
-          return fn(str);
-        } catch (e) {
-          if (has(DOMBase64Errors, e.code)) {
-            this.encodeDecodeError = DOMBase64Errors[e.code];
-          } else {
-            this.encodeDecodeError = e.message;
-          }
-          return '';
-        }
-      };
-
-      this.onContentChange = () => {
-        const encoded = this.convert(btoa, this.decoded);
-        if (!this.encodeDecodeError) {
-          this.artifact.reference = encoded;
-        }
-      };
-
-      if (this.artifact.reference) {
-        const decoded = this.convert(atob, this.artifact.reference);
-        if (!this.encodeDecodeError) {
-          this.decoded = decoded;
-        }
-      }
-    },
+    controller: controllerFn,
     controllerAs: 'ctrl',
     template: `
 <div class="col-md-12">

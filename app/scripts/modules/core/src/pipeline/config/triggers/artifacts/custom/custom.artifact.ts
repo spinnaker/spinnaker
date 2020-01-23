@@ -8,6 +8,11 @@ class CustomArtifactController implements IController {
   constructor(public artifact: IArtifact) {}
 }
 
+controllerFn.$inject = ['artifact'];
+function controllerFn(artifact: IArtifact) {
+  this.artifact = artifact;
+}
+
 export const CUSTOM_ARTIFACT = 'spinnaker.core.pipeline.trigger.custom.artifact';
 module(CUSTOM_ARTIFACT, [])
   .config(() => {
@@ -18,9 +23,7 @@ module(CUSTOM_ARTIFACT, [])
       customKind: true,
       isDefault: true,
       isMatch: true,
-      controller: function(artifact: IArtifact) {
-        this.artifact = artifact;
-      },
+      controller: controllerFn,
       controllerAs: 'ctrl',
       typePattern: /UNMATCHABLE/,
       template: `

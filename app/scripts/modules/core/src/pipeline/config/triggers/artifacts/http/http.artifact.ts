@@ -9,6 +9,15 @@ class HttpArtifactController implements IController {
   constructor(public artifact: IArtifact) {}
 }
 
+controllerFn.$inject = ['artifact'];
+function controllerFn(artifact: IArtifact) {
+  this.artifact = artifact;
+  this.artifact.type = 'http/file';
+  if (this.artifact.name && !this.artifact.reference) {
+    this.artifact.reference = this.artifact.name;
+  }
+}
+
 export const HTTP_ARTIFACT = 'spinnaker.core.pipeline.trigger.http.artifact';
 module(HTTP_ARTIFACT, [])
   .config(() => {
@@ -20,13 +29,7 @@ module(HTTP_ARTIFACT, [])
       key: 'http',
       isDefault: false,
       isMatch: true,
-      controller: function(artifact: IArtifact) {
-        this.artifact = artifact;
-        this.artifact.type = 'http/file';
-        if (this.artifact.name && !this.artifact.reference) {
-          this.artifact.reference = this.artifact.name;
-        }
-      },
+      controller: controllerFn,
       controllerAs: 'ctrl',
       template: `
 <div class="col-md-12">
