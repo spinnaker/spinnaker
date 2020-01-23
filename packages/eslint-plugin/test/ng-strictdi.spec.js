@@ -1,7 +1,7 @@
 'use strict';
 
 const ruleTester = require('../utils/ruleTester');
-const rule = require('./ng-strictdi');
+const rule = require('../rules/ng-strictdi');
 ruleTester.run('ng-strictdi', rule, {
   valid: [
     {
@@ -52,7 +52,7 @@ ruleTester.run('ng-strictdi', rule, {
           constructor($scope) {
           }
         };
-        
+
         module('foo', []).controller('myClassController', MyClass);
       `,
     },

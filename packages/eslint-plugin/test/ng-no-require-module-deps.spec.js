@@ -1,7 +1,7 @@
 'use strict';
 
 const ruleTester = require('../utils/ruleTester');
-const rule = require('./ng-no-require-module-deps');
+const rule = require('../rules/ng-no-require-module-deps');
 
 ruleTester.run('ng-no-require-module-deps', rule, {
   valid: [

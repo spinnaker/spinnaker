@@ -4,6 +4,10 @@ module.exports = {
   plugins: ['@typescript-eslint', '@spinnaker/eslint-plugin'],
   extends: ['eslint:recommended', 'prettier', 'prettier/@typescript-eslint', 'plugin:@typescript-eslint/recommended'],
   rules: {
+    '@spinnaker/import-from-alias-not-npm': 2,
+    '@spinnaker/import-from-npm-not-alias': 2,
+    '@spinnaker/import-from-npm-not-relative': 2,
+    '@spinnaker/import-relative-within-subpackage': 2,
     '@spinnaker/ng-no-component-class': 2,
     '@spinnaker/ng-no-module-export': 2,
     '@spinnaker/ng-no-require-angularjs': 2,

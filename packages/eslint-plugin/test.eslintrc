@@ -1,6 +1,5 @@
 {
   "rules": {
-    "prefer-bare-module": 2
   },
   "parserOptions": {
     "ecmaVersion": 8,
