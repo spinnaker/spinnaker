@@ -80,6 +80,7 @@ Describes how to judge a metric, see the [Netflix Automated Canary Analysis Judg
 - `critical` **true** (boolean, optional) - Use to fail the entire canary if this metric fails (recommended for important metrics that signal service outages or severe problems).
 - `mustHaveData` **true** (boolean, optional) - Use to fail a metric if data is missing.
 - `effectSize` ([EffectSize](#effectsize), optional) - Controls how much different the metric needs to be to fail or fail critically.
+- `outliers` ([Outliers](#outliers), optional) - Controls how to classify and handle outliers.
 
 ## EffectSize
 
@@ -93,6 +94,37 @@ See the [Netflix Automated Canary Analysis Judge] and [Mann Whitney Classifier] 
 - `allowedDecrease` **0.90** (number, optional) - Defaults to 1. The multiplier decrease that must be met for the metric to fail. This example makes the metric fail when the metric has decreased 10% from the baseline.
 - `criticalIncrease` **5.0** (number, optional) - Defaults to 1. The multiplier increase that must be met for the metric to be a critical failure and fail the entire analysis with a score of 0. This example make the canary fail critically if there is a 5x increase.
 - `criticalDecrease` **0.5** (number, optional) - Defaults to 1. The multiplier decrease that must be met for the metric to be a critical failure and fail the entire analysis with a score of 0. This example make the canary fail critically if there is a 50% decrease.
+
+## Outliers
+
+Controls how to classify and handle outliers.
+Outliers are determined based on the interquartile range (IQR) which is the middle 50% of the data.
+Conceptually, the IQR measures where the bulk of the values lie within a distribution
+
+The low outlier boundary is calculated using the equation: `Q1 - factor * IQR`.
+The high outlier boundary is calculated using the equation: `Q3 + factor * IQR`. 
+`Q1` and `Q3` are the data values of the lower and upper quartiles respectively.
+`factor` is `outlierFactor` as explained below.
+`IQR` is `Q3 - Q1`.
+
+>Given a latency graph where `Q1` is 50 ms and `Q3` is 100 ms and the `factor` is 3:
+`IQR` is `Q3 - Q1` which is 100 - 50 = 50.
+The low outlier boundary is `Q1 - factor * IQR` which is `50 - 3 * 50 = -100`.
+The high outlier boundary is `Q3 + factor * IQR` which is `100 + 3 * 50 = 250`. So for a data point to be
+classified as an outlier in this example, it must be less than -100 ms or greater than 250 ms.
+
+Here is a visual example:
+![IQR Example](./assets/iqr-example.png)
+<sup>The above image is a crop of <a href="https://en.wikipedia.org/wiki/Interquartile_range#/media/File:Boxplot_vs_PDF.svg">Boxplot_vs_PDF.svg</a> by <a href="https://en.wikipedia.org/wiki/User:Jhguch">Jhguch</a> at <a href="https://en.wikipedia.org/">en.wikipedia</a> licensed by <a href="https://creativecommons.org/licenses/by-sa/2.5">CC BY-SA 2.5</a>.</sup>
+
+See the [Netflix Automated Canary Analysis Judge] and [Interquartile Range Detector] classes for more information.
+
+### Properties
+
+- `strategy` (enum[string], optional) - Remove or keep outliers.
+  - `remove` - Use when you want to classify and remove outliers.
+  - `keep` (default) - Use when you want to keep outliers.
+- `outlierFactor` (number, optional) - Defaults to 3.0. The degree of significance a data point has to differ from other observations to be considered an outlier. If Q1 and Q3 are the lower and upper quartiles respectively then the values which fall below `Q1 - factor * IQR` or above `Q3 + factor * IQR` are considered outliers.
 
 ## CanaryClassifierConfig
 
@@ -114,3 +146,4 @@ See the [Netflix Automated Canary Analysis Judge] and [Mann Whitney Classifier] 
 [Canary analysis: Lessons learned and best practices from Google and Waze]: https://cloud.google.com/blog/products/devops-sre/canary-analysis-lessons-learned-and-best-practices-from-google-and-waze
 [Netflix Automated Canary Analysis Judge]: https://github.com/spinnaker/kayenta/blob/master/kayenta-judge/src/main/scala/com/netflix/kayenta/judge/NetflixACAJudge.scala
 [Mann Whitney Classifier]: https://github.com/spinnaker/kayenta/blob/master/kayenta-judge/src/main/scala/com/netflix/kayenta/judge/classifiers/metric/MannWhitneyClassifier.scala
+[Interquartile Range Detector]: https://github.com/spinnaker/kayenta/blob/master/kayenta-judge/src/main/scala/com/netflix/kayenta/judge/detectors/IQRDetector.scala
