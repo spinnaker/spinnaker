@@ -1,8 +1,10 @@
 ---
-title: Build Cop Log {{ date | date('ddd, D MMM YYYY') }}
+title: Build Cop Log - {{ date | date('ddd, D MMM YYYY') }}
 labels: build-cop-rotation
 ---
 
-1. Login to https://builds.spinnaker.io and ensure all builds are green
-2. If failing, comment on this issue any actions you had to perform to get it back to green.
-3. Close this issue when finished.
+1. Login to [builds.spinnaker.io](https://builds.spinnaker.io).
+1. Comment on this issue with:
+  1. The status of the build.
+  1. Any steps taken to return the build to green, if any.
+1. Close this issue when finished.
