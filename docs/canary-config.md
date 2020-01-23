@@ -74,8 +74,8 @@ Describes how to judge a metric, see the [Netflix Automated Canary Analysis Judg
   - `increase` - Use when you want the canary to fail only if it is significantly higher than the baseline (error counts, memory usage, etc, where a decrease is not a failure).
   - `decrease` - Use when you want the canary to fail only if it is significantly lower than the baseline (success counts, etc, where a larger number is not a failure).
   - `either` - Use when you want the canary to fail if it is significantly higher or lower than the baseline.
-- `nanStrategy` (enum[string], required) - How to handle NaN values which can occur if the metric does not return data for a particular time interval.
-  - `remove` - Use when you expect a metric to always have data and you want the NaNs removed from your data set (usage metrics).
+- `nanStrategy` (enum[string], optional) - How to handle NaN values which can occur if the metric does not return data for a particular time interval.
+  - `remove` (default) - Use when you expect a metric to always have data and you want the NaNs removed from your data set (usage metrics).
   - `replace` - Use when you expect a metric to return no data in certain use cases and you want the NaNs replaced with zeros (for example: count metrics, if no errors happened, then metric will return no data for that time interval).
 - `critical` **true** (boolean, optional) - Use to fail the entire canary if this metric fails (recommended for important metrics that signal service outages or severe problems).
 - `mustHaveData` **true** (boolean, optional) - Use to fail a metric if data is missing.
