@@ -49,6 +49,8 @@ public class DeploymentConfigurationValidator extends Validator<DeploymentConfig
           .setRemediation(
               "Pick a timezone from those listed here: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones");
     }
+
+    validateVersions(p, n);
   }
 
   private void validateVersions(ConfigProblemSetBuilder p, DeploymentConfiguration n) {
