@@ -4,7 +4,7 @@ import * as angular from 'angular';
 import _ from 'lodash';
 
 import { AccountService, LOAD_BALANCER_READ_SERVICE } from '@spinnaker/core';
-import { GCE_HTTP_LOAD_BALANCER_UTILS } from 'google/loadBalancer/httpLoadBalancerUtils.service';
+import { GCE_HTTP_LOAD_BALANCER_UTILS } from '../httpLoadBalancerUtils.service';
 import { GCE_LOAD_BALANCER_TYPE_TO_WIZARD_CONSTANT } from '../configure/choice/loadBalancerTypeToWizardMap.constant';
 import { GCE_BACKEND_SERVICE_DETAILS_COMPONENT } from './backendService/backendService.component';
 import { SESSION_AFFINITY_FILTER } from './backendService/sessionAffinity.filter';

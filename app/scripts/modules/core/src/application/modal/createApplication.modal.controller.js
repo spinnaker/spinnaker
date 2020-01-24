@@ -2,8 +2,8 @@
 
 import _ from 'lodash';
 import { AccountService } from 'core/account/AccountService';
-import { ApplicationReader } from 'core/application/service/ApplicationReader';
-import { ApplicationWriter } from 'core/application/service/ApplicationWriter';
+import { ApplicationReader } from '../service/ApplicationReader';
+import { ApplicationWriter } from '../service/ApplicationWriter';
 import { APPLICATION_NAME_VALIDATION_MESSAGES } from './validation/applicationNameValidationMessages.component';
 import { TaskReader } from 'core/task/task.read.service';
 import { VALIDATE_APPLICATION_NAME } from './validation/validateApplicationName.directive';

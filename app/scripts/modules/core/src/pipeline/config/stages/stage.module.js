@@ -11,7 +11,7 @@ import { BASE_EXECUTION_DETAILS_CTRL } from './common/baseExecutionDetails.contr
 import { SETTINGS } from 'core/config';
 import { ConfirmationModalService } from 'core/confirmationModal';
 import { STAGE_NAME } from './StageName';
-import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
+import { PipelineConfigService } from '../services/PipelineConfigService';
 import { Registry } from 'core/registry';
 import { StageConfigWrapper } from './StageConfigWrapper';
 import { EditStageJsonModal } from './common/EditStageJsonModal';

@@ -1,7 +1,7 @@
 'use strict';
 
 import _ from 'lodash';
-import { GCE_ADDRESS_SELECTOR } from 'google/loadBalancer/configure/common/addressSelector.component';
+import { GCE_ADDRESS_SELECTOR } from '../../common/addressSelector.component';
 import { module } from 'angular';
 
 export const GOOGLE_LOADBALANCER_CONFIGURE_HTTP_LISTENERS_LISTENER_COMPONENT =

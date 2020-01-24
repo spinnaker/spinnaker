@@ -4,7 +4,7 @@ import { module } from 'angular';
 
 import { CREATE_PIPELINE_COMPONENT } from './createPipeline.component';
 import { PIPELINE_GRAPH_COMPONENT } from './graph/pipeline.graph.component';
-import { TARGET_SELECT_COMPONENT } from 'core/pipeline/config/targetSelect.component';
+import { TARGET_SELECT_COMPONENT } from './targetSelect.component';
 import { TRIGGERS } from './triggers/triggers.module';
 import './triggers';
 import './validation/requiredField.validator';

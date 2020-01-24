@@ -8,7 +8,7 @@ import { AccountService, LOAD_BALANCER_READ_SERVICE } from '@spinnaker/core';
 import { GCE_ADDRESS_READER } from 'google/address/address.reader';
 import { GCE_CERTIFICATE_READER } from 'google/certificate/certificate.reader';
 import { GCE_HEALTH_CHECK_READER } from 'google/healthCheck/healthCheck.read.service';
-import { GCE_HTTP_LOAD_BALANCER_UTILS } from 'google/loadBalancer/httpLoadBalancerUtils.service';
+import { GCE_HTTP_LOAD_BALANCER_UTILS } from '../../httpLoadBalancerUtils.service';
 import { GCEProviderSettings } from 'google/gce.settings';
 import { sessionAffinityModelToViewMap } from '../common/sessionAffinityNameMaps';
 import { HttpLoadBalancerTemplate, ListenerTemplate } from './templates';

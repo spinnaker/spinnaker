@@ -1,7 +1,7 @@
 'use strict';
 
 import { module } from 'angular';
-import { AccountService } from 'core/account/AccountService';
+import { AccountService } from './AccountService';
 
 export const CORE_ACCOUNT_PROVIDERTOGGLES_DIRECTIVE = 'spinnaker.core.account.providerToggle.directive';
 export const name = CORE_ACCOUNT_PROVIDERTOGGLES_DIRECTIVE; // for backwards compatibility

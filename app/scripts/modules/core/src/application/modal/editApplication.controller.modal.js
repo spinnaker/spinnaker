@@ -3,7 +3,7 @@
 import _ from 'lodash';
 
 import { AccountService } from 'core/account/AccountService';
-import { ApplicationWriter } from 'core/application/service/ApplicationWriter';
+import { ApplicationWriter } from '../service/ApplicationWriter';
 import { TaskReader } from 'core/task/task.read.service';
 import { SETTINGS } from 'core/config/settings';
 import { CORE_APPLICATION_MODAL_APPLICATIONPROVIDERFIELDS_COMPONENT } from './applicationProviderFields.component';

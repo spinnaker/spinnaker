@@ -13,7 +13,7 @@ import {
   FirewallLabels,
 } from '@spinnaker/core';
 
-import { AMAZON_INSTANCE_WRITE_SERVICE } from 'amazon/instance/amazon.instance.write.service';
+import { AMAZON_INSTANCE_WRITE_SERVICE } from '../amazon.instance.write.service';
 import { AMAZON_VPC_VPCTAG_DIRECTIVE } from '../../vpc/vpcTag.directive';
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';

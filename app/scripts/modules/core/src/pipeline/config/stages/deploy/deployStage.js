@@ -5,7 +5,7 @@ import { CloudProviderRegistry, ProviderSelectionService } from 'core/cloudProvi
 import { NameUtils } from 'core/naming';
 import { Registry } from 'core/registry';
 import { SERVER_GROUP_COMMAND_BUILDER_SERVICE } from 'core/serverGroup/configure/common/serverGroupCommandBuilder.service';
-import { StageConstants } from 'core/pipeline/config/stages/stageConstants';
+import { StageConstants } from '../stageConstants';
 
 import * as angular from 'angular';
 

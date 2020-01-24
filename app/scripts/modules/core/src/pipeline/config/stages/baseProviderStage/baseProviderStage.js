@@ -8,7 +8,7 @@ import ReactDOM from 'react-dom';
 import { AccountService } from 'core/account/AccountService';
 import { Registry } from 'core/registry';
 import { SETTINGS } from 'core/config/settings';
-import { StageConfigWrapper } from 'core/pipeline/config/stages/StageConfigWrapper';
+import { StageConfigWrapper } from '../StageConfigWrapper';
 
 export const CORE_PIPELINE_CONFIG_STAGES_BASEPROVIDERSTAGE_BASEPROVIDERSTAGE =
   'spinnaker.core.pipeline.stage.baseProviderStage';

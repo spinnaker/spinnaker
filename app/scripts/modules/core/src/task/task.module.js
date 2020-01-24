@@ -3,7 +3,7 @@
 import { module } from 'angular';
 
 import { PLATFORM_HEALTH_OVERRIDE_MESSAGE } from './platformHealthOverrideMessage.component';
-import { STATUS_GLYPH_COMPONENT } from 'core/task/statusGlyph.component';
+import { STATUS_GLYPH_COMPONENT } from './statusGlyph.component';
 import { TASK_STATES } from './task.states';
 
 import './tasks.less';

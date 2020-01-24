@@ -8,7 +8,7 @@ import { FirewallLabels } from 'core/securityGroup/label';
 import { SEARCH_RANK_FILTER } from '../searchRank.filter';
 import { OVERRIDE_REGISTRY } from 'core/overrideRegistry/override.registry';
 import { PAGE_TITLE_SERVICE } from 'core/pageTitle/pageTitle.service';
-import { INFRASTRUCTURE_SEARCH_SERVICE } from 'core/search/infrastructure/infrastructureSearch.service';
+import { INFRASTRUCTURE_SEARCH_SERVICE } from './infrastructureSearch.service';
 import { SPINNER_COMPONENT } from 'core/widgets/spinners/spinner.component';
 import { SEARCH_RESULT_COMPONENT } from '../infrastructure/searchResult.component';
 import { PROJECT_SUMMARY_POD_COMPONENT } from '../infrastructure/projectSummaryPod.component';

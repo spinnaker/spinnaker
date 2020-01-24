@@ -2,7 +2,7 @@
 
 import { module } from 'angular';
 
-import { InstanceTemplates } from 'core/instance/templates';
+import { InstanceTemplates } from '../../templates';
 
 import './consoleOutput.modal.less';
 import { CORE_INSTANCE_DETAILS_CONSOLE_CONSOLEOUTPUT_MODAL_CONTROLLER } from './consoleOutput.modal.controller';

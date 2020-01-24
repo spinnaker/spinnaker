@@ -2,7 +2,7 @@
 
 import { module } from 'angular';
 
-import { PIPELINE_BAKE_STAGE_CHOOSE_OS } from 'core/pipeline/config/stages/bake/bakeStageChooseOs.component';
+import { PIPELINE_BAKE_STAGE_CHOOSE_OS } from './bakeStageChooseOs.component';
 import { CORE_PIPELINE_CONFIG_STAGES_BAKE_BAKESTAGE } from './bakeStage';
 import { CORE_PIPELINE_CONFIG_STAGES_BAKE_MODAL_ADDEXTENDEDATTRIBUTE_CONTROLLER_MODAL } from './modal/addExtendedAttribute.controller.modal';
 

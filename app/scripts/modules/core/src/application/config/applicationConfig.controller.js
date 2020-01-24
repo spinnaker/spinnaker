@@ -4,7 +4,7 @@ import { APPLICATION_DATA_SOURCE_EDITOR } from './dataSources/applicationDataSou
 import { CHAOS_MONKEY_CONFIG_COMPONENT } from 'core/chaosMonkey/chaosMonkeyConfig.component';
 import { TRAFFIC_GUARD_CONFIG_COMPONENT } from './trafficGuard/trafficGuardConfig.component';
 import { SETTINGS } from 'core/config/settings';
-import { ApplicationWriter } from 'core/application/service/ApplicationWriter';
+import { ApplicationWriter } from '../service/ApplicationWriter';
 import { DELETE_APPLICATION_SECTION } from './deleteApplicationSection.module';
 import { CORE_APPLICATION_CONFIG_APPLICATIONATTRIBUTES_DIRECTIVE } from './applicationAttributes.directive';
 import { CORE_APPLICATION_CONFIG_APPLICATIONNOTIFICATIONS_DIRECTIVE } from './applicationNotifications.directive';

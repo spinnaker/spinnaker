@@ -4,7 +4,7 @@ import * as angular from 'angular';
 
 import { PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider/providerService.delegate';
 import { ConfirmationModalService } from 'core/confirmationModal';
-import { SERVER_GROUP_WRITER } from 'core/serverGroup/serverGroupWriter.service';
+import { SERVER_GROUP_WRITER } from '../serverGroupWriter.service';
 import { ClusterState } from 'core/state';
 import { CORE_SERVERGROUP_DETAILS_MULTIPLESERVERGROUP_COMPONENT } from './multipleServerGroup.component';
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';

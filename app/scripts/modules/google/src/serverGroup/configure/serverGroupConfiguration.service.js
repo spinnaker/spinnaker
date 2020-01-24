@@ -18,7 +18,7 @@ import { getHealthCheckOptions } from 'google/healthCheck/healthCheckUtils';
 import { GCE_HTTP_LOAD_BALANCER_UTILS } from 'google/loadBalancer/httpLoadBalancerUtils.service';
 import { LOAD_BALANCER_SET_TRANSFORMER } from 'google/loadBalancer/loadBalancer.setTransformer';
 import { GceImageReader } from 'google/image';
-import { GceAcceleratorService } from 'google/serverGroup/configure/wizard/advancedSettings/gceAccelerator.service';
+import { GceAcceleratorService } from './wizard/advancedSettings/gceAccelerator.service';
 import { GOOGLE_INSTANCE_GCEINSTANCETYPE_SERVICE } from '../../instance/gceInstanceType.service';
 import { GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCEBUILDER_GCE_SERVICE } from './../../instance/custom/customInstanceBuilder.gce.service';
 import { GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGMANAGER_SERVICE } from './wizard/securityGroups/tagManager.service';

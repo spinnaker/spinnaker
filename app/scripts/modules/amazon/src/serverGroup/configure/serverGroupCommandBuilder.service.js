@@ -6,7 +6,7 @@ import _ from 'lodash';
 import { AccountService, INSTANCE_TYPE_SERVICE, NameUtils, SubnetReader } from '@spinnaker/core';
 
 import { AWSProviderSettings } from 'amazon/aws.settings';
-import { AWS_SERVER_GROUP_CONFIGURATION_SERVICE } from 'amazon/serverGroup/configure/serverGroupConfiguration.service';
+import { AWS_SERVER_GROUP_CONFIGURATION_SERVICE } from './serverGroupConfiguration.service';
 
 export const AMAZON_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE =
   'spinnaker.amazon.serverGroupCommandBuilder.service';

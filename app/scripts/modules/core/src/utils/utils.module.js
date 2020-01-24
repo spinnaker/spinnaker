@@ -3,7 +3,7 @@
 import { RENDER_IF_FEATURE } from './renderIfFeature.component';
 import { COPY_TO_CLIPBOARD_COMPONENT } from './clipboard/copyToClipboard.component';
 import { TIME_FORMATTERS } from './timeFormatters';
-import { SELECT_ON_DOUBLE_CLICK_DIRECTIVE } from 'core/utils/selectOnDblClick.directive';
+import { SELECT_ON_DOUBLE_CLICK_DIRECTIVE } from './selectOnDblClick.directive';
 import { UIB_MODAL_REJECTIONS } from './uibModalRejections';
 import { CORE_UTILS_INFINITESCROLL_DIRECTIVE } from './infiniteScroll.directive';
 import { CORE_UTILS_WAYPOINTS_WAYPOINT_DIRECTIVE } from './waypoints/waypoint.directive';

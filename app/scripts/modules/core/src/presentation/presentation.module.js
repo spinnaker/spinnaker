@@ -2,7 +2,7 @@
 
 import { module } from 'angular';
 
-import { AUTO_SCROLL_DIRECTIVE } from 'core/presentation/autoScroll/autoScroll.directive';
+import { AUTO_SCROLL_DIRECTIVE } from './autoScroll/autoScroll.directive';
 import { ANY_FIELD_FILTER } from './anyFieldFilter/anyField.filter';
 import { PAGE_NAVIGATOR_COMPONENT } from './navigation/pageNavigator.component';
 import { PAGE_SECTION_COMPONENT } from './navigation/pageSection.component';

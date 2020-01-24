@@ -1,7 +1,7 @@
 'use strict';
 
 import { ConfirmationModalService } from 'core/confirmationModal';
-import { INSTANCE_WRITE_SERVICE } from 'core/instance/instance.write.service';
+import { INSTANCE_WRITE_SERVICE } from '../instance.write.service';
 import { ClusterState } from 'core/state';
 import { CORE_INSTANCE_DETAILS_MULTIPLEINSTANCESERVERGROUP_DIRECTIVE } from './multipleInstanceServerGroup.directive';
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';

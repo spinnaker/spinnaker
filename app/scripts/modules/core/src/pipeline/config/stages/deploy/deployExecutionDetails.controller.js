@@ -5,7 +5,7 @@ import _ from 'lodash';
 
 import { CloudProviderRegistry } from 'core/cloudProvider';
 import { NameUtils } from 'core/naming';
-import { EXECUTION_DETAILS_SECTION_SERVICE } from 'core/pipeline/details/executionDetailsSection.service';
+import { EXECUTION_DETAILS_SECTION_SERVICE } from '../../../details/executionDetailsSection.service';
 import { ServerGroupReader } from 'core/serverGroup/serverGroupReader.service';
 import { UrlBuilder } from 'core/navigation';
 import { ClusterState } from 'core/state';

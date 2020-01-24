@@ -1,5 +1,5 @@
 import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
-import { TaskReader } from 'core/task/task.read.service';
+import { TaskReader } from './task.read.service';
 import { CLUSTER_SERVICE } from 'core/cluster/cluster.service';
 
 import * as angular from 'angular';

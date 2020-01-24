@@ -1,6 +1,6 @@
 'use strict';
 
-import { InstanceReader } from 'core/instance/InstanceReader';
+import { InstanceReader } from '../../InstanceReader';
 
 import { module } from 'angular';
 

@@ -4,7 +4,7 @@ import { ApplicationDataSourceRegistry } from 'core/application/service/Applicat
 import { DELIVERY_KEY } from 'core/application/nav/defaultCategories';
 import { EntityTagsReader } from 'core/entityTag/EntityTagsReader';
 import { EXECUTION_SERVICE } from './service/execution.service';
-import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
+import { PipelineConfigService } from './config/services/PipelineConfigService';
 import { SETTINGS } from 'core/config/settings';
 import { CLUSTER_SERVICE } from 'core/cluster/cluster.service';
 
