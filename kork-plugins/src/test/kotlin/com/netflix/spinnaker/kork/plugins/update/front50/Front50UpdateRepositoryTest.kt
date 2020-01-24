@@ -40,7 +40,7 @@ class Front50UpdateRepositoryTest : JUnit5Minutests {
     fixture { Fixture() }
 
     test("getPlugins populates the plugins cache, subsequent getPlugin returns cached item") {
-      every { front50Service.list(applicationName).execute() } returns response
+      every { front50Service.listAll().execute() } returns response
 
       val plugins = subject.getPlugins()
 
@@ -58,7 +58,7 @@ class Front50UpdateRepositoryTest : JUnit5Minutests {
     }
 
     test("Response error results in thrown SystemException") {
-      every { front50Service.list(applicationName).execute() } returns Response.error(500, mockk(relaxed = true))
+      every { front50Service.listAll().execute() } returns Response.error(500, mockk(relaxed = true))
       assertThrows<SystemException> { (subject.getPlugins()) }
     }
 
@@ -71,14 +71,12 @@ class Front50UpdateRepositoryTest : JUnit5Minutests {
   private inner class Fixture {
     val front50Service: Front50Service = mockk(relaxed = true)
     val pluginId = "netflix.custom-stage"
-    val applicationName = "orca"
     val repositoryName = "front50"
     val front50Url = URL("https://front50.com")
     val pluginReleaseState = State.CANDIDATE
 
     val subject = Front50UpdateRepository(
       repositoryName,
-      applicationName,
       front50Url,
       SimpleFileDownloader(),
       CompoundVerifier(),

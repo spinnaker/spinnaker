@@ -30,12 +30,11 @@ import java.net.URL
  * Optional [UpdateRepository].
  *
  * Wired up if the property `spinnaker.extensibility.repositories.front50.enabled` is `true`.
- * Pulls Front50 plugin info objects for the relevant service and populates the available plugin
- * info cache in [org.pf4j.update.UpdateManager].
+ * Pulls Front50 plugin info objects and populates the available plugin info cache in
+ * [org.pf4j.update.UpdateManager].
  */
 class Front50UpdateRepository(
   private val repositoryName: String,
-  private val applicationName: String,
   private val url: URL,
   private val downloader: FileDownloader = SimpleFileDownloader(),
   private val verifier: FileVerifier = CompoundVerifier(),
@@ -57,7 +56,7 @@ class Front50UpdateRepository(
   override fun getPlugins(): MutableMap<String, SpinnakerPluginInfo> {
     return plugins.ifEmpty {
       log.debug("Populating plugin info cache from front50")
-      val response = front50Service.list(applicationName).execute()
+      val response = front50Service.listAll().execute()
 
       if (!response.isSuccessful) {
         throw SystemException("Unable to list front50 plugin info", response.message())

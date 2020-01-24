@@ -28,7 +28,6 @@ import com.netflix.spinnaker.kork.plugins.update.front50.Front50UpdateRepository
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import java.net.URL;
 import java.util.Map;
-import java.util.Objects;
 import okhttp3.OkHttpClient;
 import org.pf4j.update.UpdateRepository;
 import org.pf4j.update.verifier.CompoundVerifier;
@@ -97,7 +96,6 @@ public class Front50UpdateRepositoryConfiguration {
 
     return new Front50UpdateRepository(
         PluginsConfigurationProperties.FRONT5O_REPOSITORY,
-        Objects.requireNonNull(environment.getProperty("spring.application.name")),
         front50Url,
         FileDownloaderProvider.get(front50RepositoryProps.fileDownloader),
         new CompoundVerifier(),

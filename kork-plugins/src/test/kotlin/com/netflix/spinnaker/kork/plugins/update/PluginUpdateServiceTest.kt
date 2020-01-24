@@ -59,6 +59,7 @@ class PluginUpdateServiceTest : JUnit5Minutests {
           listOf(DefaultUpdateRepository("testing", paths.repository.toUri().toURL()))
         ),
         pluginManager,
+        "kork",
         mockk(relaxed = true)
       )
     }
@@ -240,6 +241,7 @@ class PluginUpdateServiceTest : JUnit5Minutests {
       provider = "Spinnaker"
       releases = listOf(
         PluginInfo.PluginRelease().apply {
+          requires = "kork"
           version = pluginBuilder.version
           date = Date.from(Instant.now())
           url = releasePath.toUri().toURL().toString()

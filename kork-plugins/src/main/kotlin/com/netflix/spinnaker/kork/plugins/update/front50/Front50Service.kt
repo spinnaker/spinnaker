@@ -21,7 +21,6 @@ import com.netflix.spinnaker.kork.plugins.update.SpinnakerPluginInfo
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Path
-import retrofit2.http.Query
 
 /**
  * List and get plugin info objects from Front50. Used in conjunction with [Front50UpdateRepository]
@@ -33,5 +32,5 @@ interface Front50Service {
   fun getById(@Path("id") id: String): Call<SpinnakerPluginInfo>
 
   @GET("/pluginInfo")
-  fun list(@Query("service") service: String): Call<Collection<SpinnakerPluginInfo>>
+  fun listAll(): Call<Collection<SpinnakerPluginInfo>>
 }

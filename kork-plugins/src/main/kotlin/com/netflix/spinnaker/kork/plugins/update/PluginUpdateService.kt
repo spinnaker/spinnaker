@@ -37,17 +37,16 @@ import java.nio.file.StandardCopyOption
  * The current behavior is that the latest plugin release (according to semver) will always be selected as the
  * most desirable plugin.
  *
- * All plugins that are returned by the repository will be downloaded and installed.
+ * Plugins that require the Spinnaker service will be downloaded and installed.
  *
  * Plugins will not be loaded or started from this service.  All plugin loading and starting occurs
  * via [com.netflix.spinnaker.kork.plugins.ExtensionBeanDefinitionRegistryPostProcessor].
  *
- * TODO(rz): Look to a local config or front50 (depending on spinnaker setup) to determine if there are specific
- *  plugin versions to use. We may not want the most recent release of a plugin.
  */
 class PluginUpdateService(
   internal val updateManager: SpinnakerUpdateManager,
   internal val pluginManager: SpinnakerPluginManager,
+  private val spinnakerServiceName: String,
   private val applicationEventPublisher: ApplicationEventPublisher
 ) {
 
@@ -56,13 +55,6 @@ class PluginUpdateService(
   fun checkForUpdates() {
     updateExistingPlugins()
     installNewPlugins()
-  }
-
-  /**
-   * This is used in Gate to download Deck plugin artifacts - do not remove and must remain public.
-   */
-  fun download(pluginId: String, version: String): Path {
-    return updateManager.downloadPluginRelease(pluginId, version)
   }
 
   internal fun updateExistingPlugins() {
@@ -74,10 +66,12 @@ class PluginUpdateService(
     val updates = updateManager.updates
     log.debug("Found {} plugin updates", updates.size)
 
-    updates.forEach { plugin ->
+    updates.forEach updates@{ plugin ->
       log.debug("Found update for plugin '{}'", plugin.id)
 
-      val lastRelease = updateManager.getLastPluginRelease(plugin.id)
+      val lastRelease =
+        updateManager.getLastPluginRelease(plugin.id, spinnakerServiceName) ?: return@updates
+
       val installedVersion = pluginManager.getPlugin(plugin.id).descriptor.version
 
       log.debug("Update plugin '{}' from version {} to {}", plugin.id, installedVersion, lastRelease.version)
@@ -88,7 +82,7 @@ class PluginUpdateService(
 
       val hasUpdate = updateManager.hasPluginUpdate(plugin.id)
       val updated: Boolean = if (hasUpdate) {
-        val downloaded = download(plugin.id, lastRelease.version)
+        val downloaded = updateManager.downloadPluginRelease(plugin.id, lastRelease.version)
 
         if (!pluginManager.deletePlugin(plugin.id)) {
           false
@@ -124,14 +118,15 @@ class PluginUpdateService(
     val availablePlugins = updateManager.availablePlugins
     log.info("Found {} available plugins", availablePlugins.size)
 
-    availablePlugins.forEach { plugin ->
+    availablePlugins.forEach availablePlugins@{ plugin ->
       log.debug("Found new plugin '{}'", plugin.id)
 
-      val lastRelease = updateManager.getLastPluginRelease(plugin.id)
+      val lastRelease =
+        updateManager.getLastPluginRelease(plugin.id, spinnakerServiceName) ?: return@availablePlugins
       log.debug("Installing plugin '{}' with version {}", plugin.id, lastRelease.version)
 
       // Download to temporary location
-      val downloaded = download(plugin.id, lastRelease.version)
+      val downloaded = updateManager.downloadPluginRelease(plugin.id, lastRelease.version)
 
       val installed = pluginManager.pluginsRoot.write(downloaded)
 

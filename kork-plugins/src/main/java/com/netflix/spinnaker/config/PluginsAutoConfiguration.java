@@ -37,6 +37,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import org.pf4j.PluginStatusProvider;
 import org.pf4j.update.UpdateRepository;
@@ -135,8 +136,13 @@ public class PluginsAutoConfiguration {
   public static PluginUpdateService pluginUpdateManagerAgent(
       SpinnakerUpdateManager updateManager,
       SpinnakerPluginManager pluginManager,
+      Environment environment,
       ApplicationEventPublisher applicationEventPublisher) {
-    return new PluginUpdateService(updateManager, pluginManager, applicationEventPublisher);
+    return new PluginUpdateService(
+        updateManager,
+        pluginManager,
+        Objects.requireNonNull(environment.getProperty("spring.application.name")),
+        applicationEventPublisher);
   }
 
   @Bean
