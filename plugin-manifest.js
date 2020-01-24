@@ -1,0 +1,2 @@
+const plugins = [];
+export { plugins };

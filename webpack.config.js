@@ -193,6 +193,10 @@ function configure(env, webpackOpts) {
           from: `${NODE_MODULE_PATH}/@spinnaker/styleguide/public/styleguide.html`,
           to: `./styleguide.html`,
         },
+        {
+          from: `./plugin-manifest.js`,
+          to: `./plugin-manifest.js`,
+        },
       ]),
       new HtmlWebpackPlugin({
         title: 'Spinnaker',
