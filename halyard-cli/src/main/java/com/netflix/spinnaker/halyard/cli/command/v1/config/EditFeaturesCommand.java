@@ -91,12 +91,6 @@ public class EditFeaturesCommand extends AbstractConfigCommand {
   private Boolean wercker = null;
 
   @Parameter(
-      names = "--managed-pipeline-templates-v2-ui",
-      description = "Enable managed pipeline templates v2 UI support.",
-      arity = 1)
-  private Boolean managedPipelineTemplatesV2UI = null;
-
-  @Parameter(
       names = "--gremlin",
       description = "Enable Gremlin fault-injection support.",
       arity = 1)
@@ -129,10 +123,6 @@ public class EditFeaturesCommand extends AbstractConfigCommand {
             : features.getAppengineContainerImageUrlDeployments());
     features.setTravis(travis != null ? travis : features.getTravis());
     features.setWercker(wercker != null ? wercker : features.getWercker());
-    features.setManagedPipelineTemplatesV2UI(
-        managedPipelineTemplatesV2UI != null
-            ? managedPipelineTemplatesV2UI
-            : features.getManagedPipelineTemplatesV2UI());
     features.setGremlin(gremlin != null ? gremlin : features.getGremlin());
 
     if (originalHash == features.hashCode()) {
