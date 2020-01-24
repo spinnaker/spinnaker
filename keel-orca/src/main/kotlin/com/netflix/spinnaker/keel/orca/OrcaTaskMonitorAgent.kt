@@ -55,8 +55,7 @@ class OrcaTaskMonitorAgent(
         .mapValues { it.value.await() }
         .filterValues { it.status.isComplete() }
         .map { (resourceId, taskDetails) ->
-
-          // only resource events are supported currently
+          // only resource events are currently supported
           if (resourceId.startsWith(SubjectType.RESOURCE.toString())) {
             val id = resourceId.substringAfter(":")
             try {
@@ -82,7 +81,6 @@ class OrcaTaskMonitorAgent(
       if (this.isNullOrEmpty()) {
         return ""
       }
-      // since this is a single task, we expecting to get only 1 error message
       val context: OrcaContext? = this.first()["context"]?.let { mapper.convertValue(it) }
 
       return context?.exception?.details?.errors?.joinToString(",")

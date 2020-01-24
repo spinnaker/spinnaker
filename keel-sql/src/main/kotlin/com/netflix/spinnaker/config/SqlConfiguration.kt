@@ -88,7 +88,7 @@ class SqlConfiguration {
   fun taskTrackingRepository(
     jooq: DSLContext,
     clock: Clock
-  ) = SqlTaskTrackingRepository(jooq, clock)
+  ) = SqlTaskTrackingRepository(jooq, clock, SqlRetry(sqlRetryProperties))
 
   @Bean
   fun agentLockRepository(
@@ -96,5 +96,5 @@ class SqlConfiguration {
     clock: Clock,
     properties: SqlProperties,
     agents: List<ScheduledAgent>
-  ) = SqlAgentLockRepository(jooq, clock, properties.retries.transactions, agents)
+  ) = SqlAgentLockRepository(jooq, clock, agents, SqlRetry(sqlRetryProperties))
 }

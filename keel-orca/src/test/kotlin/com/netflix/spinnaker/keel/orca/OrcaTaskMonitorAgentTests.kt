@@ -31,7 +31,7 @@ internal class OrcaTaskMonitorAgentTests : JUnit5Minutests {
         event = TaskCreatedEvent(
           TaskRecord(
             id = "123",
-            subject = "bla",
+            subject = "titus:cluster:titustestvpc:app-env13",
             name = "upsert server group")
         )
       )
