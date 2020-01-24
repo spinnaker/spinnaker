@@ -37,7 +37,18 @@ public class LocalRedisDynomiteClient {
         StringUtils.isBlank(System.getenv("EC2_REGION")) ? "local" : System.getenv("EC2_REGION");
     HostSupplier localHostSupplier =
         new HostSupplier() {
-          final Host hostSupplierHost = new Host("localhost", rack, Host.Status.Up);
+          final Host hostSupplierHost =
+              new Host(
+                  "localhost",
+                  null,
+                  port,
+                  port,
+                  Host.DEFAULT_DATASTORE_PORT,
+                  rack,
+                  null,
+                  Host.Status.Up,
+                  null,
+                  null);
 
           @Override
           public List<Host> getHosts() {
@@ -47,7 +58,18 @@ public class LocalRedisDynomiteClient {
 
     TokenMapSupplier tokenMapSupplier =
         new TokenMapSupplier() {
-          final Host tokenHost = new Host("localhost", port, rack, Host.Status.Up);
+          final Host tokenHost =
+              new Host(
+                  "localhost",
+                  null,
+                  port,
+                  port,
+                  Host.DEFAULT_DATASTORE_PORT,
+                  rack,
+                  null,
+                  Host.Status.Up,
+                  null,
+                  null);
           final HostToken localHostToken = new HostToken(100000L, tokenHost);
 
           @Override

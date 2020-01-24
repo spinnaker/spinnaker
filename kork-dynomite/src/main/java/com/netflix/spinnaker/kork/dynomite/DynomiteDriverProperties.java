@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.kork.dynomite;
 
+import static com.netflix.dyno.connectionpool.Host.DEFAULT_DATASTORE_PORT;
 import static com.netflix.dyno.connectionpool.Host.DEFAULT_PORT;
 import static com.netflix.dyno.connectionpool.Host.Status;
 
@@ -49,10 +50,13 @@ public class DynomiteDriverProperties {
                     it.hostname,
                     it.ipAddress,
                     it.port,
+                    it.securePort,
+                    it.datastorePort,
                     it.rack,
                     it.datacenter,
                     it.status,
-                    it.hashtag))
+                    it.hashtag,
+                    it.password))
         .collect(Collectors.toList());
   }
 
@@ -69,10 +73,13 @@ public class DynomiteDriverProperties {
     public String hostname;
     public String ipAddress;
     public int port = DEFAULT_PORT;
+    public int securePort = DEFAULT_PORT;
+    public int datastorePort = DEFAULT_DATASTORE_PORT;
     public Status status = Status.Up;
     public String rack = LOCAL_RACK;
     public String datacenter = LOCAL_DATACENTER;
     public Long token = 1000000L;
     public String hashtag = "{}";
+    public String password;
   }
 }

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.kork.plugins.update.downloader
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.netflix.spinnaker.config.PluginsConfigurationProperties.PluginRepositoryProperties.FileDownloaderProperties
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import com.netflix.spinnaker.kork.plugins.config.Configurable
@@ -26,7 +27,7 @@ import org.pf4j.update.UpdateRepository
 
 object FileDownloaderProvider {
 
-  private val mapper: ObjectMapper = ObjectMapper()
+  private val mapper: ObjectMapper = ObjectMapper().registerModule(KotlinModule())
 
   /**
    * Get a [FileDownloader] for the [UpdateRepository].
