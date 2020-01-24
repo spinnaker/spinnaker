@@ -36,6 +36,8 @@ module(AMAZON_SECURITYGROUP_CONFIGURE_CONFIGSECURITYGROUP_MIXIN_CONTROLLER, [
   function($scope, $state, $uibModalInstance, application, securityGroup, securityGroupReader, cacheInitializer) {
     let allSecurityGroups;
     const ctrl = this;
+    $scope.self = $scope;
+    $scope.application = application;
 
     $scope.state = {
       submitting: false,

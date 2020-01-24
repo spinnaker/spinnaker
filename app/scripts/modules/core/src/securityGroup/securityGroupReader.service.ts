@@ -42,6 +42,7 @@ export interface IRangeRule {
     endPort: number;
   }>;
   protocol: string;
+  description: string;
 }
 
 export interface ISecurityGroupRule extends IRangeRule {
