@@ -1,6 +1,6 @@
 import { IValidator } from './validation';
 import { isNumber } from 'lodash';
-import { robotToHuman } from '@spinnaker/core';
+import { robotToHuman } from 'core';
 
 const THIS_FIELD = 'This field';
 

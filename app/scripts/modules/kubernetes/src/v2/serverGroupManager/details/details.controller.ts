@@ -12,7 +12,7 @@ import {
   IOwnerOption,
   IEntityTags,
 } from '@spinnaker/core';
-import { IKubernetesServerGroupManager } from 'kubernetes/v2/serverGroupManager/IKubernetesServerGroupManager';
+import { IKubernetesServerGroupManager } from '../IKubernetesServerGroupManager';
 import { KubernetesManifestService } from 'kubernetes/v2/manifest/manifest.service';
 import { KubernetesManifestCommandBuilder } from 'kubernetes/v2/manifest/manifestCommandBuilder.service';
 import { ManifestWizard } from 'kubernetes/v2/manifest/wizard/ManifestWizard';

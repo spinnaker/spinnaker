@@ -4,14 +4,14 @@ import { Option } from 'react-select';
 import { IPromise } from 'angular';
 
 import { IExecution, IPipeline, IPipelineTrigger } from 'core/domain';
-import { ITriggerTemplateComponentProps } from 'core/pipeline/manualExecution/TriggerTemplate';
-import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
+import { ITriggerTemplateComponentProps } from '../../../manualExecution/TriggerTemplate';
+import { PipelineConfigService } from '../../services/PipelineConfigService';
 import { ReactInjector } from 'core/reactShims';
 import { Spinner } from 'core/widgets/spinners/Spinner';
-import { ExecutionBuildTitle } from 'core/pipeline/executionBuild/ExecutionBuildTitle';
+import { ExecutionBuildTitle } from '../../../executionBuild/ExecutionBuildTitle';
 import { timestamp } from 'core/utils/timeFormatters';
 import { TetheredSelect } from 'core/presentation/TetheredSelect';
-import { ExecutionsTransformer } from 'core/pipeline/service/ExecutionsTransformer';
+import { ExecutionsTransformer } from '../../../service/ExecutionsTransformer';
 
 export interface IPipelineTriggerTemplateState {
   executions: IExecution[];

@@ -11,12 +11,9 @@ import {
   ManifestWriter,
 } from '@spinnaker/core';
 
-import {
-  KubernetesManifestCommandBuilder,
-  IKubernetesManifestCommandData,
-} from 'kubernetes/v2/manifest/manifestCommandBuilder.service';
-import { WizardManifestBasicSettings } from 'kubernetes/v2/manifest/wizard/BasicSettings';
-import { ManifestEntry } from 'kubernetes/v2/manifest/wizard/ManifestEntry';
+import { KubernetesManifestCommandBuilder, IKubernetesManifestCommandData } from '../manifestCommandBuilder.service';
+import { WizardManifestBasicSettings } from './BasicSettings';
+import { ManifestEntry } from './ManifestEntry';
 
 export interface IKubernetesManifestModalProps extends IModalComponentProps {
   title: string;

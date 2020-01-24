@@ -3,7 +3,7 @@ import { Subject } from 'rxjs';
 import { isEqual } from 'lodash';
 
 import { IServerGroup, IInstance } from 'core/domain';
-import { InstanceListBody } from 'core/instance/InstanceListBody';
+import { InstanceListBody } from './InstanceListBody';
 import { SortToggle } from 'core/presentation/sortToggle/SortToggle';
 import { ReactInjector } from 'core/reactShims';
 import { ClusterState } from 'core/state';

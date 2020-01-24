@@ -6,7 +6,7 @@ import { Application, IStage, IStageConfigProps } from '@spinnaker/core';
 import { ManifestSelector } from 'kubernetes/v2/manifest/selector/ManifestSelector';
 import { IManifestSelector, SelectorMode } from 'kubernetes/v2/manifest/selector/IManifestSelector';
 import { IDeleteOptions } from 'kubernetes/v2/manifest/delete/delete.controller';
-import DeleteManifestOptionsForm from 'kubernetes/v2/pipelines/stages/deleteManifest/DeleteManifestOptionsForm';
+import DeleteManifestOptionsForm from './DeleteManifestOptionsForm';
 
 export interface IKubernetesManifestStageConfigProps extends IStageConfigProps {
   application: Application;

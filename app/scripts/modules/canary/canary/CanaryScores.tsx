@@ -1,7 +1,7 @@
 import React from 'react';
 import { isString } from 'lodash';
 
-import { HelpField } from 'core/help/HelpField';
+import { HelpField } from '@spinnaker/core';
 
 export interface IScoreConfig {
   successfulScore: string;

@@ -1,4 +1,4 @@
-import { FormValidator, IContextualValidator, IStage } from '@spinnaker/core';
+import { FormValidator, IContextualValidator, IStage } from 'core';
 import { BuildDefinitionSource } from './IGoogleCloudBuildStage';
 
 export const validate: IContextualValidator = (stage: IStage) => {

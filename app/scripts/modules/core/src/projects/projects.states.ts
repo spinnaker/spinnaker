@@ -2,7 +2,7 @@ import { module } from 'angular';
 import { StateParams } from '@uirouter/angularjs';
 import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from 'core/application/application.state.provider';
 import { INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider } from 'core/navigation/state.provider';
-import { ProjectHeader } from 'core/projects/ProjectHeader';
+import { ProjectHeader } from './ProjectHeader';
 import { IProject } from '../domain/IProject';
 import { ProjectReader } from './service/ProjectReader';
 import { CORE_PROJECTS_PROJECTS_CONTROLLER } from './projects.controller';

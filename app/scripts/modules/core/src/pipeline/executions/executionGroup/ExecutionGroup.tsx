@@ -17,13 +17,13 @@ import {
   IPipelineCommand,
   IPipelineTemplateConfigV2,
 } from 'core/domain';
-import { NextRunTag } from 'core/pipeline/triggers/NextRunTag';
+import { NextRunTag } from '../../triggers/NextRunTag';
 import { Popover } from 'core/presentation/Popover';
 import { ExecutionState } from 'core/state';
 import { IRetryablePromise } from 'core/utils/retryablePromise';
 import { RenderWhenVisible } from 'core/utils/RenderWhenVisible';
 
-import { TriggersTag } from 'core/pipeline/triggers/TriggersTag';
+import { TriggersTag } from '../../triggers/TriggersTag';
 import { AccountTag } from 'core/account';
 import { ReactInjector } from 'core/reactShims';
 import { ManualExecutionModal, PipelineTemplateReader, PipelineTemplateV2Service } from 'core/pipeline';

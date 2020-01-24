@@ -11,7 +11,7 @@ import {
   trueKeyObjectToLabelFilters,
   ILabelFilter,
   ILabelsMap,
-} from 'core/cluster/filter/labelFilterUtils';
+} from './labelFilterUtils';
 import { CORE_CLUSTER_FILTER_COLLAPSIBLEFILTERSECTION_DIRECTIVE } from './collapsibleFilterSection.directive';
 import { CORE_CLUSTER_FILTER_CLUSTERDEPENDENTFILTERHELPER_SERVICE } from './clusterDependentFilterHelper.service';
 

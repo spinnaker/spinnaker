@@ -1,4 +1,4 @@
-import { IArtifact, IStage } from '@spinnaker/core';
+import { IArtifact, IStage } from 'core';
 
 export interface IGoogleCloudBuildStage extends IStage {
   account?: string;

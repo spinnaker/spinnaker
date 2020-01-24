@@ -1,7 +1,7 @@
 import React from 'react';
 import { cloneDeep } from 'lodash';
 
-import { FormikStageConfig, IFormikStageConfigInjectedProps, IStageConfigProps } from '@spinnaker/core';
+import { FormikStageConfig, IFormikStageConfigInjectedProps, IStageConfigProps } from 'core';
 
 import { GoogleCloudBuildStageForm } from './GoogleCloudBuildStageForm';
 import { validate } from './googleCloudBuildValidators';

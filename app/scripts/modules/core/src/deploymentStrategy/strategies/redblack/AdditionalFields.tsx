@@ -1,7 +1,7 @@
 import React from 'react';
 import { set } from 'lodash';
 
-import { IDeploymentStrategyAdditionalFieldsProps } from 'core/deploymentStrategy/deploymentStrategy.registry';
+import { IDeploymentStrategyAdditionalFieldsProps } from '../../deploymentStrategy.registry';
 import { HelpField } from 'core/help/HelpField';
 
 import { IRedBlackCommand } from './redblack.strategy';

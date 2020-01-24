@@ -8,12 +8,12 @@ import classNames from 'classnames';
 
 import { Application } from 'core/application/application.model';
 import { ConfirmationModalService } from 'core/confirmationModal';
-import { StageExecutionDetails } from 'core/pipeline/details/StageExecutionDetails';
-import { ExecutionStatus } from 'core/pipeline/status/ExecutionStatus';
-import { ParametersAndArtifacts } from 'core/pipeline/status/ParametersAndArtifacts';
-import { ExecutionCancellationReason } from 'core/pipeline/status/ExecutionCancellationReason';
+import { StageExecutionDetails } from '../../details/StageExecutionDetails';
+import { ExecutionStatus } from '../../status/ExecutionStatus';
+import { ParametersAndArtifacts } from '../../status/ParametersAndArtifacts';
+import { ExecutionCancellationReason } from '../../status/ExecutionCancellationReason';
 import { IExecution, IRestartDetails, IPipeline } from 'core/domain';
-import { IExecutionViewState, IPipelineGraphNode } from 'core/pipeline/config/graph/pipelineGraph.service';
+import { IExecutionViewState, IPipelineGraphNode } from '../../config/graph/pipelineGraph.service';
 import { OrchestratedItemRunningTime } from './OrchestratedItemRunningTime';
 import { SETTINGS } from 'core/config/settings';
 import { AccountTag } from 'core/account';
@@ -24,7 +24,7 @@ import { ExecutionState } from 'core/state';
 
 // react components
 import { ExecutionMarker } from './ExecutionMarker';
-import { PipelineGraph } from 'core/pipeline/config/graph/PipelineGraph';
+import { PipelineGraph } from '../../config/graph/PipelineGraph';
 import { Tooltip } from 'core/presentation/Tooltip';
 import { CancelModal } from 'core/cancelModal/CancelModal';
 import { ExecutionPermalink } from './ExecutionPermalink';

@@ -10,7 +10,7 @@ import { Application } from 'core/application';
 import { ReactInjector } from 'core/reactShims';
 
 import './ManagedResourceDetailsIndicator.css';
-import { toggleResourcePause } from 'core/managed/toggleResourceManagement';
+import { toggleResourcePause } from './toggleResourceManagement';
 import { HelpField } from 'core/help';
 
 export interface IManagedResourceDetailsIndicatorProps {

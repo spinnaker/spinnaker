@@ -4,7 +4,7 @@ import { EXECUTION_ARTIFACT_TAB, ExecutionDetailsTasks, IStage, Registry } from 
 
 import { ManifestTrafficStageConfig } from './ManifestTrafficStageConfig';
 import { manifestSelectorValidators } from '../validators/manifestSelectorValidators';
-import { manifestExecutionDetails } from 'kubernetes/v2/pipelines/stages/ManifestExecutionDetails';
+import { manifestExecutionDetails } from '../ManifestExecutionDetails';
 
 const STAGE_NAME = 'Enable (Manifest)';
 const STAGE_KEY = 'enableManifest';

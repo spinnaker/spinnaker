@@ -1,6 +1,6 @@
 import { defaultsDeep } from 'lodash';
 
-import { DeploymentStrategyRegistry } from 'core/deploymentStrategy/deploymentStrategy.registry';
+import { DeploymentStrategyRegistry } from '../../deploymentStrategy.registry';
 import { IServerGroupCommand } from 'core/serverGroup';
 
 import { AdditionalFields } from './AdditionalFields';

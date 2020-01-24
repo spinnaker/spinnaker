@@ -1,5 +1,5 @@
 import { module } from 'angular';
-import { Notifier } from 'core/widgets/notifier/Notifier';
+import { Notifier } from './Notifier';
 import { react2angular } from 'react2angular';
 
 import './notifier.component.less';

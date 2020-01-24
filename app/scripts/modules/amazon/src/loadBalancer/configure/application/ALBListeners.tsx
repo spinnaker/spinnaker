@@ -30,7 +30,7 @@ import {
   IListenerActionType,
 } from 'amazon/domain';
 import { AmazonCertificateReader } from 'amazon/certificates/AmazonCertificateReader';
-import { IAuthenticateOidcActionConfig, OidcConfigReader } from 'amazon/loadBalancer/OidcConfigReader';
+import { IAuthenticateOidcActionConfig, OidcConfigReader } from '../../OidcConfigReader';
 
 import { ConfigureOidcConfigModal } from './ConfigureOidcConfigModal';
 import { AmazonCertificateSelectField } from '../common/AmazonCertificateSelectField';

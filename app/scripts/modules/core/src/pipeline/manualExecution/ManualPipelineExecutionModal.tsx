@@ -35,7 +35,7 @@ import { UrlParser } from 'core/navigation/urlParser';
 
 import { ManualExecutionFieldLayout } from './layout/ManualExecutionFieldLayout';
 import { PipelineOptions } from './PipelineOptions';
-import { PipelineTemplateReader } from 'core/pipeline/config/templates/PipelineTemplateReader';
+import { PipelineTemplateReader } from '../config/templates/PipelineTemplateReader';
 import { CurrentlyRunningExecutions } from './CurrentlyRunningExecutions';
 import { StageManualComponents } from './StageManualComponents';
 import { Triggers } from './Triggers';

@@ -11,7 +11,7 @@ import { LoadBalancerPod } from './LoadBalancerPod';
 import { Spinner } from 'core/widgets/spinners/Spinner';
 
 import { NgReact, ReactInjector } from 'core/reactShims';
-import { CreateLoadBalancerButton } from 'core/loadBalancer/CreateLoadBalancerButton';
+import { CreateLoadBalancerButton } from './CreateLoadBalancerButton';
 
 export interface ILoadBalancersProps {
   app: Application;

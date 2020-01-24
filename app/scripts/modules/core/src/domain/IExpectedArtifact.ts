@@ -1,4 +1,4 @@
-import { IArtifact } from 'core/domain/IArtifact';
+import { IArtifact } from './IArtifact';
 
 export interface IExpectedArtifact {
   matchArtifact: IArtifact;

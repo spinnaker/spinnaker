@@ -3,7 +3,7 @@ import { uniq } from 'lodash';
 
 import { Application, AppListExtractor, StageConstants } from '@spinnaker/core';
 
-import { IAppengineAllocationDescription } from 'appengine/loadBalancer/transformer';
+import { IAppengineAllocationDescription } from '../../transformer';
 
 class AppengineStageAllocationLabelCtrl implements IController {
   public inputViewValue: string;

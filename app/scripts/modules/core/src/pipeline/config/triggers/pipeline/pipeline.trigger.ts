@@ -3,7 +3,7 @@
 import { ArtifactTypePatterns } from 'core/artifact';
 import { PipelineTrigger } from './PipelineTrigger';
 import { PipelineTriggerTemplate } from './PipelineTriggerTemplate';
-import { ExecutionUserStatus } from 'core/pipeline/status/ExecutionUserStatus';
+import { ExecutionUserStatus } from '../../../status/ExecutionUserStatus';
 import { Registry } from 'core/registry';
 
 Registry.pipeline.registerTrigger({

@@ -1,4 +1,4 @@
-import { DeploymentStrategyRegistry } from 'core/deploymentStrategy/deploymentStrategy.registry';
+import { DeploymentStrategyRegistry } from '../../deploymentStrategy.registry';
 
 DeploymentStrategyRegistry.registerStrategy({
   label: 'Highlander',

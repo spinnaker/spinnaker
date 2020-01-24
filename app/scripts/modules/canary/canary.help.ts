@@ -1,4 +1,4 @@
-import { HelpContentsRegistry } from 'core/help/helpContents.registry';
+import { HelpContentsRegistry } from '@spinnaker/core';
 
 const helpContents: { [key: string]: string } = {
   'pipeline.config.canary.clusterPairs': `

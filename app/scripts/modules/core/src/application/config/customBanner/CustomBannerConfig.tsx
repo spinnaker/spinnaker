@@ -2,11 +2,8 @@ import React from 'react';
 import { isEqual } from 'lodash';
 import Select, { Option } from 'react-select';
 
-import { ConfigSectionFooter } from 'core/application/config/footer/ConfigSectionFooter';
-import {
-  bannerBackgroundColorOptions,
-  bannerTextColorOptions,
-} from 'core/application/config/customBanner/customBannerColors';
+import { ConfigSectionFooter } from '../footer/ConfigSectionFooter';
+import { bannerBackgroundColorOptions, bannerTextColorOptions } from './customBannerColors';
 
 import { noop } from 'core/utils';
 import { Markdown } from 'core/presentation/Markdown';

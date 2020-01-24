@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
-import { IExecution, IExecutionStage } from 'core/domain';
-import { Application } from 'core/application/application.model';
+import { IExecution, IExecutionStage } from '@spinnaker/core';
+import { Application } from '@spinnaker/core';
 import { NgReact } from '@spinnaker/core';
 import { AwsReactInjector } from 'amazon/reactShims';
 

@@ -10,7 +10,7 @@ import { IServerGroup } from 'core/domain';
 import { Tooltip } from 'core/presentation';
 import { IClusterSubgroup, IServerGroupSubgroup } from './filter/ClusterFilterService';
 import { ISortFilter } from 'core/filterModel';
-import { ClusterPodTitleWrapper } from 'core/cluster/ClusterPodTitleWrapper';
+import { ClusterPodTitleWrapper } from './ClusterPodTitleWrapper';
 import { ServerGroupManager } from 'core/serverGroupManager/ServerGroupManager';
 import { ManagedResourceStatusIndicator } from 'core/managed';
 

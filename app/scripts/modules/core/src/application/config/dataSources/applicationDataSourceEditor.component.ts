@@ -2,8 +2,8 @@ import { IController, module } from 'angular';
 
 import { Application } from '../../application.model';
 import { ApplicationDataSource } from '../../service/applicationDataSource';
-import { ApplicationWriter } from 'core/application/service/ApplicationWriter';
-import { ApplicationReader } from 'core/application/service/ApplicationReader';
+import { ApplicationWriter } from '../../service/ApplicationWriter';
+import { ApplicationReader } from '../../service/ApplicationReader';
 
 import './applicationDataSourceEditor.component.less';
 

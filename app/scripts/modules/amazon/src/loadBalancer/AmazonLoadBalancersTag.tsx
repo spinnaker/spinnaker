@@ -16,7 +16,7 @@ import {
   Spinner,
 } from '@spinnaker/core';
 
-import { AmazonLoadBalancerDataUtils } from 'amazon/loadBalancer/amazonLoadBalancerDataUtils';
+import { AmazonLoadBalancerDataUtils } from './amazonLoadBalancerDataUtils';
 import { IAmazonServerGroup, ITargetGroup } from 'amazon/domain';
 
 interface ILoadBalancerListItemProps {

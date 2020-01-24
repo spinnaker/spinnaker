@@ -1,8 +1,8 @@
 import { Registry, IStage, ExecutionDetailsTasks } from '@spinnaker/core';
 
-import { manifestExecutionDetails } from 'kubernetes/v2/pipelines/stages/ManifestExecutionDetails';
+import { manifestExecutionDetails } from '../ManifestExecutionDetails';
 import { manifestSelectorValidators } from '../validators/manifestSelectorValidators';
-import { DeleteManifestStageConfig } from 'kubernetes/v2/pipelines/stages/deleteManifest/DeleteManifestStageConfig';
+import { DeleteManifestStageConfig } from './DeleteManifestStageConfig';
 
 const STAGE_NAME = 'Delete (Manifest)';
 const STAGE_KEY = 'deleteManifest';

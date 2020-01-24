@@ -20,7 +20,7 @@ import { CloudFoundryServerGroupBasicSettings } from './sections/basicSettings/B
 import { CloudFoundryServerGroupArtifactSettings } from './sections/artifactSettings/ArtifactSettings.cf';
 import { CloudFoundryServerGroupConfigurationSettings } from './sections/configurationSettings/ConfigurationSettings.cf';
 import { ICloudFoundryServerGroup } from 'cloudfoundry/domain';
-import { ServerGroupTemplateSelection } from 'cloudfoundry/serverGroup/configure/wizard/ServerGroupTemplateSelection';
+import { ServerGroupTemplateSelection } from './ServerGroupTemplateSelection';
 import { CloudFoundryServerGroupConstantArtifactSettings } from './sections/artifactSettings/ConstantArtifactSettings.cf';
 import { CloudFoundryServerGroupCloneSettings } from './sections/cloneSettings/CloneSettings.cf';
 

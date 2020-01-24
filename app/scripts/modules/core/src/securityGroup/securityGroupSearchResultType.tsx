@@ -1,4 +1,4 @@
-import { FirewallLabels } from 'core/securityGroup/label';
+import { FirewallLabels } from './label';
 import React from 'react';
 
 import {

@@ -1,4 +1,4 @@
-import { IGceHealthCheckKind } from 'google/domain/healthCheck';
+import { IGceHealthCheckKind } from './healthCheck';
 
 export interface IGceAutoHealingPolicy {
   healthCheck?: string; // received from server as health check URL, but posted as health check name

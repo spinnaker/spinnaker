@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { IStageConfigProps, StageConfigField } from 'core/pipeline';
-import { IArtifact, IExpectedArtifact, StageArtifactSelector } from '@spinnaker/core';
+import { IArtifact, IExpectedArtifact, StageArtifactSelector } from 'core';
 
 export const SavePipelinesStageConfig: React.SFC<IStageConfigProps> = props => {
   const { stage, pipeline } = props;

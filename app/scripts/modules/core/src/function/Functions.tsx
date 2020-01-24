@@ -7,7 +7,7 @@ import { IFunctionGroup } from 'core/domain';
 import { FunctionState } from 'core/state';
 import { Spinner } from 'core/widgets/spinners/Spinner';
 import { FunctionGroupings } from './FunctionGroupings';
-import { CreateFunctionButton } from 'core/function/CreateFunctionButton';
+import { CreateFunctionButton } from './CreateFunctionButton';
 
 export interface IFunctionsProps {
   app: Application;

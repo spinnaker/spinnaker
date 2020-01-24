@@ -16,7 +16,7 @@ import {
 } from '@spinnaker/core';
 
 import { ICloudFoundryServerGroup } from 'cloudfoundry/domain';
-import { CloudFoundryCreateServerGroupModal } from 'cloudfoundry/serverGroup/configure/wizard/CreateServerGroupModal';
+import { CloudFoundryCreateServerGroupModal } from '../configure/wizard/CreateServerGroupModal';
 import { CloudFoundryResizeServerGroupModal } from './resize/CloudFoundryResizeServerGroupModal';
 import { CloudFoundryRollbackServerGroupModal } from './rollback/CloudFoundryRollbackServerGroupModal';
 import { CloudFoundryMapLoadBalancersModal } from './mapLoadBalancers/CloudFoundryMapLoadBalancersModal';

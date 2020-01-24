@@ -2,8 +2,8 @@ import { duration } from 'core/utils/timeFormatters';
 import { find, findLast, get, has, maxBy, uniq, sortBy, Dictionary } from 'lodash';
 
 import { Application } from 'core/application';
-import { ExecutionBarLabel } from 'core/pipeline/config/stages/common/ExecutionBarLabel';
-import { ExecutionMarkerIcon } from 'core/pipeline/config/stages/common/ExecutionMarkerIcon';
+import { ExecutionBarLabel } from '../config/stages/common/ExecutionBarLabel';
+import { ExecutionMarkerIcon } from '../config/stages/common/ExecutionMarkerIcon';
 import { IExecution, IExecutionStage, IExecutionStageSummary, IOrchestratedItem, IStage } from 'core/domain';
 import { OrchestratedItemTransformer } from 'core/orchestratedItem/orchestratedItem.transformer';
 import { Registry } from 'core/registry';

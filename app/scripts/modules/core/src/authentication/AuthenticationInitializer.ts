@@ -2,7 +2,7 @@ import { Observable, Subscription } from 'rxjs';
 import { IHttpPromiseCallbackArg } from 'angular';
 import { $location, $rootScope, $http } from 'ngimport';
 
-import { LoggedOutModal } from 'core/authentication/LoggedOutModal';
+import { LoggedOutModal } from './LoggedOutModal';
 import { ModalInjector } from 'core/reactShims/modal.injector';
 import { SETTINGS } from 'core/config/settings';
 

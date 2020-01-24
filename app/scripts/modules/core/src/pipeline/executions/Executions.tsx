@@ -1,5 +1,5 @@
 import { IPromise } from 'angular';
-import { CreatePipelineButton } from 'core/pipeline/create/CreatePipelineButton';
+import { CreatePipelineButton } from '../create/CreatePipelineButton';
 import { IScheduler } from 'core/scheduler/SchedulerFactory';
 import React from 'react';
 import ReactGA from 'react-ga';
@@ -13,9 +13,9 @@ import { ReactInjector } from 'core/reactShims';
 import { ManualExecutionModal } from 'core/pipeline';
 import { Tooltip } from 'core/presentation/Tooltip';
 
-import { CreatePipeline } from 'core/pipeline/config/CreatePipeline';
-import { ExecutionFilters } from 'core/pipeline/filter/ExecutionFilters';
-import { ExecutionFilterService } from 'core/pipeline/filter/executionFilter.service';
+import { CreatePipeline } from '../config/CreatePipeline';
+import { ExecutionFilters } from '../filter/ExecutionFilters';
+import { ExecutionFilterService } from '../filter/executionFilter.service';
 import { ExecutionGroups } from './executionGroup/ExecutionGroups';
 import { FilterTags, IFilterTag, ISortFilter } from 'core/filterModel';
 import { Spinner } from 'core/widgets/spinners/Spinner';

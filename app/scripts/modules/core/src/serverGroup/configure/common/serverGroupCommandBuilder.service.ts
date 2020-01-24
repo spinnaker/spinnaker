@@ -3,7 +3,7 @@ import { module } from 'angular';
 import { Application } from 'core/application/application.model';
 import { IMoniker } from 'core/naming/IMoniker';
 import { ILoadBalancer, ISecurityGroup, ISubnet, IPipeline, IStage, IManagedResourceSummary } from 'core/domain';
-import { ICapacity } from 'core/serverGroup/serverGroupWriter.service';
+import { ICapacity } from '../../serverGroupWriter.service';
 import { IDeploymentStrategy } from 'core/deploymentStrategy';
 import { ISecurityGroupsByAccountSourceData } from 'core/securityGroup/securityGroupReader.service';
 import { IRegion, IAggregatedAccounts } from 'core/account/AccountService';

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { IDeploymentStrategyAdditionalFieldsProps } from 'core/deploymentStrategy/deploymentStrategy.registry';
+import { IDeploymentStrategyAdditionalFieldsProps } from '../../deploymentStrategy.registry';
 import { HelpField } from 'core/help/HelpField';
 import { NgReact } from 'core/reactShims';
 import { IServerGroupCommand } from 'core/serverGroup';

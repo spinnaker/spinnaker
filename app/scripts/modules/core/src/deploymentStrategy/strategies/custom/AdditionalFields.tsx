@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { IDeploymentStrategyAdditionalFieldsProps } from 'core/deploymentStrategy/deploymentStrategy.registry';
+import { IDeploymentStrategyAdditionalFieldsProps } from '../../deploymentStrategy.registry';
 import { PipelineSelector } from '../PipelineSelector';
 
 export class AdditionalFields extends React.Component<IDeploymentStrategyAdditionalFieldsProps> {

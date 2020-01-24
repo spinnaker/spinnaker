@@ -4,7 +4,7 @@ import { StateParams } from '@uirouter/angularjs';
 import {
   EXECUTION_DETAILS_SECTION_SERVICE,
   ExecutionDetailsSectionService,
-} from 'core/pipeline/details/executionDetailsSection.service';
+} from '../../../details/executionDetailsSection.service';
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export interface IExecutionDetailsScope extends IScope {

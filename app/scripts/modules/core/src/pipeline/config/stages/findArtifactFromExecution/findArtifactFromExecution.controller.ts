@@ -7,7 +7,7 @@ import {
   IPipeline,
   IStage,
   PipelineConfigService,
-} from '@spinnaker/core';
+} from 'core';
 
 export interface IFindArtifactFromExecutionStage {
   application: string;

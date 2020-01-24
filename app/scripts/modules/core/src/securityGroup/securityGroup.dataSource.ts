@@ -3,7 +3,7 @@ import { module } from 'angular';
 import { ApplicationDataSourceRegistry } from 'core/application/service/ApplicationDataSourceRegistry';
 import { INFRASTRUCTURE_KEY } from 'core/application/nav/defaultCategories';
 import { Application } from 'core/application/application.model';
-import { SECURITY_GROUP_READER, SecurityGroupReader } from 'core/securityGroup/securityGroupReader.service';
+import { SECURITY_GROUP_READER, SecurityGroupReader } from './securityGroupReader.service';
 import { EntityTagsReader } from 'core/entityTag/EntityTagsReader';
 import { ISecurityGroup } from 'core/domain';
 import { addManagedResourceMetadataToSecurityGroups } from 'core/managed';

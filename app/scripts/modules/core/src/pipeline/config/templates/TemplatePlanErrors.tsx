@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { IPipelineTemplatePlanError } from 'core/pipeline/config/templates/PipelineTemplateReader';
+import { IPipelineTemplatePlanError } from './PipelineTemplateReader';
 
 export interface ITemplatePlanErrorsProps {
   errors: IPipelineTemplatePlanError[];

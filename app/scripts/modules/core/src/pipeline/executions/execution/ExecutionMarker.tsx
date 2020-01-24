@@ -6,7 +6,7 @@ import { OrchestratedItemRunningTime } from './OrchestratedItemRunningTime';
 import { duration } from 'core/utils/timeFormatters';
 
 import { Application } from 'core/application/application.model';
-import { ExecutionBarLabel } from 'core/pipeline/config/stages/common/ExecutionBarLabel';
+import { ExecutionBarLabel } from '../../config/stages/common/ExecutionBarLabel';
 
 import './executionMarker.less';
 

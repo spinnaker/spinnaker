@@ -1,4 +1,4 @@
-import { IDeploymentStrategy } from 'core/deploymentStrategy';
+import { IDeploymentStrategy } from '@spinnaker/core';
 
 export const strategyRedBlack: IDeploymentStrategy = {
   label: 'Red/Black',

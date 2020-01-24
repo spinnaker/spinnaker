@@ -4,7 +4,7 @@ import { dump } from 'js-yaml';
 
 import { Application, YamlEditor } from '@spinnaker/core';
 
-import { IKubernetesManifestCommandData } from 'kubernetes/v2/manifest/manifestCommandBuilder.service';
+import { IKubernetesManifestCommandData } from '../manifestCommandBuilder.service';
 
 export interface IManifestBasicSettingsProps {
   app: Application;

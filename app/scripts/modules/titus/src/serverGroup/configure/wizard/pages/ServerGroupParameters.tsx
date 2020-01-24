@@ -15,7 +15,7 @@ import {
 
 import { ITitusServerGroupCommand } from '../../../configure/serverGroupConfiguration.service';
 import { intersection, set, union } from 'lodash';
-import { enabledProcesses, processesList } from 'titus/serverGroup/details/serviceJobProcesses/ServiceJobProcesses';
+import { enabledProcesses, processesList } from '../../../details/serviceJobProcesses/ServiceJobProcesses';
 import { ITitusServiceJobProcesses } from 'titus/domain/ITitusServiceJobProcesses';
 
 export interface IServerGroupParametersProps {

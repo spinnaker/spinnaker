@@ -2,7 +2,7 @@ import React from 'react';
 import { UISref } from '@uirouter/react';
 import { UIRouterContext } from '@uirouter/react-hybrid';
 
-import { ISearchResult } from 'core/search/infrastructure/SearchResultPods';
+import { ISearchResult } from './SearchResultPods';
 import { Tooltip } from 'core/presentation';
 
 import { SearchResult } from './SearchResult';

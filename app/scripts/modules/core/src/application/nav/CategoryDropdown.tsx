@@ -1,4 +1,4 @@
-import { MenuTitle } from 'core/application/nav/MenuTitle';
+import { MenuTitle } from './MenuTitle';
 import React from 'react';
 import { UIRouterContext } from '@uirouter/react-hybrid';
 import { UISref, UISrefActive } from '@uirouter/react';

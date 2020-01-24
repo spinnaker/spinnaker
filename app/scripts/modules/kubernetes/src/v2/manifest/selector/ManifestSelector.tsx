@@ -20,14 +20,10 @@ import {
   IServerGroup,
 } from '@spinnaker/core';
 
-import {
-  IManifestSelector,
-  SelectorMode,
-  SelectorModeDataMap,
-} from 'kubernetes/v2/manifest/selector/IManifestSelector';
-import { ManifestKindSearchService } from 'kubernetes/v2/manifest/ManifestKindSearch';
-import LabelEditor from 'kubernetes/v2/manifest/selector/labelEditor/LabelEditor';
-import { IManifestLabelSelector } from 'kubernetes/v2/manifest/selector/IManifestLabelSelector';
+import { IManifestSelector, SelectorMode, SelectorModeDataMap } from './IManifestSelector';
+import { ManifestKindSearchService } from '../ManifestKindSearch';
+import LabelEditor from './labelEditor/LabelEditor';
+import { IManifestLabelSelector } from './IManifestLabelSelector';
 
 export interface IManifestSelectorProps {
   selector: IManifestSelector;

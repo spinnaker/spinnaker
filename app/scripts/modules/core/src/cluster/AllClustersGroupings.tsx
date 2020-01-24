@@ -5,7 +5,7 @@ import { Subscription } from 'rxjs';
 
 import { ReactInjector } from 'core/reactShims';
 import { Application } from 'core/application';
-import { ClusterPod } from 'core/cluster/ClusterPod';
+import { ClusterPod } from './ClusterPod';
 import { ISortFilter } from 'core/filterModel';
 import { ClusterState } from 'core/state';
 

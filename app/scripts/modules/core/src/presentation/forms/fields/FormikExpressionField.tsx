@@ -1,4 +1,4 @@
-import { ICommonFormFieldProps } from 'core/presentation/forms/fields/interface';
+import { ICommonFormFieldProps } from './interface';
 import { firstDefined } from 'core/utils';
 import React from 'react';
 

@@ -12,7 +12,7 @@ import {
   IPipelineTemplateV2Collections,
   IPipelineTemplateV2VersionSelections,
 } from 'core/domain/IPipelineTemplateV2';
-import { ShowPipelineTemplateJsonModal } from 'core/pipeline/config/actions/templateJson/ShowPipelineTemplateJsonModal';
+import { ShowPipelineTemplateJsonModal } from '../../actions/templateJson/ShowPipelineTemplateJsonModal';
 import { ReactInjector, IStateChange } from 'core/reactShims';
 import { PipelineTemplateReader } from '../PipelineTemplateReader';
 import { DeletePipelineTemplateV2Modal } from './DeletePipelineTemplateV2Modal';

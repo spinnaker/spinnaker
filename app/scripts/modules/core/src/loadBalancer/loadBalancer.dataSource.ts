@@ -5,7 +5,7 @@ import { INFRASTRUCTURE_KEY } from 'core/application/nav/defaultCategories';
 import { Application } from 'core/application/application.model';
 import { EntityTagsReader } from 'core/entityTag/EntityTagsReader';
 import { ILoadBalancer } from 'core/domain';
-import { LOAD_BALANCER_READ_SERVICE, LoadBalancerReader } from 'core/loadBalancer/loadBalancer.read.service';
+import { LOAD_BALANCER_READ_SERVICE, LoadBalancerReader } from './loadBalancer.read.service';
 import { addManagedResourceMetadataToLoadBalancers } from 'core/managed';
 
 export const LOAD_BALANCER_DATA_SOURCE = 'spinnaker.core.loadBalancer.dataSource';

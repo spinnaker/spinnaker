@@ -1,7 +1,7 @@
 import React from 'react';
 import classNames from 'classnames';
 
-import { IPipelineTemplate } from 'core/pipeline/config/templates/PipelineTemplateReader';
+import { IPipelineTemplate } from '../config/templates/PipelineTemplateReader';
 import { IPipelineTemplateV2 } from 'core/domain/IPipelineTemplateV2';
 import { SETTINGS } from 'core/config/settings';
 import { Spinner } from 'core/widgets/spinners/Spinner';

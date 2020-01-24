@@ -1,5 +1,5 @@
 import React from 'react';
-import { Application } from '@spinnaker/core';
+import { Application } from 'core';
 import { IFunctionGroup } from 'core/domain';
 import { FunctionPod } from './FunctionPod';
 

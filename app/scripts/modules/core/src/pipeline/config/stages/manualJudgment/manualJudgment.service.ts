@@ -1,6 +1,6 @@
 import { IPromise, module } from 'angular';
 
-import { EXECUTION_SERVICE, ExecutionService } from 'core/pipeline/service/execution.service';
+import { EXECUTION_SERVICE, ExecutionService } from '../../../service/execution.service';
 import { IExecution, IExecutionStage } from 'core/domain';
 import { Application } from 'core/application';
 

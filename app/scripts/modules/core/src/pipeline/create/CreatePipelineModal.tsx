@@ -16,10 +16,10 @@ import {
   IPipelineTemplateConfig,
   IPipelineTemplate,
   PipelineTemplateReader,
-} from 'core/pipeline/config/templates/PipelineTemplateReader';
+} from '../config/templates/PipelineTemplateReader';
 import { Spinner } from 'core/widgets/spinners/Spinner';
 import { IPipelineTemplateV2 } from 'core/domain/IPipelineTemplateV2';
-import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
+import { PipelineConfigService } from '../config/services/PipelineConfigService';
 import { PipelineTemplateV2Service } from 'core/pipeline';
 
 import { TemplateDescription } from './TemplateDescription';

@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { SERVER_GROUP_CONFIGURATION_SERVICE } from 'core/serverGroup/configure/common/serverGroupConfiguration.service';
+import { SERVER_GROUP_CONFIGURATION_SERVICE } from './configure/common/serverGroupConfiguration.service';
 import { SERVER_GROUP_STATES } from './serverGroup.states';
 import { SERVER_GROUP_DATA_SOURCE } from './serverGroup.dataSource';
 import './serverGroupSearchResultType';

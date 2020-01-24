@@ -21,7 +21,7 @@ import {
   useData,
   yamlDocumentsToString,
   YamlEditor,
-} from '@spinnaker/core';
+} from 'core';
 
 import { BuildDefinitionSource, TriggerType } from './IGoogleCloudBuildStage';
 

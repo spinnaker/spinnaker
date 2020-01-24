@@ -5,7 +5,7 @@ import { Option } from 'react-select';
 import { timestamp } from 'core/utils/timeFormatters';
 import { BaseBuildTriggerTemplate } from '../baseBuild/BaseBuildTriggerTemplate';
 import { BuildServiceType } from 'core/ci';
-import { ITriggerTemplateComponentProps } from 'core/pipeline/manualExecution/TriggerTemplate';
+import { ITriggerTemplateComponentProps } from '../../../manualExecution/TriggerTemplate';
 
 export class ConcourseTriggerTemplate extends React.Component<ITriggerTemplateComponentProps> {
   private optionRenderer = (build: Option) => {

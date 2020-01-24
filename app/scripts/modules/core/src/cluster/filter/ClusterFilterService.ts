@@ -8,7 +8,7 @@ import { ICluster, IEntityTags, IInstance, IManagedResourceSummary, IServerGroup
 import { ClusterState } from 'core/state';
 import { FilterModelService, ISortFilter } from 'core/filterModel';
 import { ReactInjector } from 'core/reactShims';
-import { ILabelFilter, trueKeyObjectToLabelFilters } from 'core/cluster/filter/labelFilterUtils';
+import { ILabelFilter, trueKeyObjectToLabelFilters } from './labelFilterUtils';
 
 export interface IParentGrouping {
   subgroups: IClusterSubgroup[] | IServerGroupSubgroup[];

@@ -1,6 +1,6 @@
 import React from 'react';
 import { startCase } from 'lodash';
-import { ICapacity } from '@spinnaker/core';
+import { ICapacity } from 'core';
 
 export interface IMinMaxDesiredChangesProps {
   current: ICapacity;

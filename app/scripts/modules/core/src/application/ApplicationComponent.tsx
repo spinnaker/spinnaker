@@ -1,4 +1,4 @@
-import { ApplicationHeader } from 'core/application/nav/ApplicationHeader';
+import { ApplicationHeader } from './nav/ApplicationHeader';
 import React from 'react';
 import { UIView } from '@uirouter/react';
 

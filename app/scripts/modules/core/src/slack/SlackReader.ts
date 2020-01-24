@@ -1,5 +1,5 @@
 import { IPromise } from 'angular';
-import { API } from '@spinnaker/core';
+import { API } from 'core';
 
 export interface ISlackChannel {
   id: string;

@@ -6,7 +6,7 @@ import { IExecution, IPipeline, IStage } from 'core/domain';
 import { FormField, IStageForSpelPreview, ReactSelectInput, useData } from 'core/presentation';
 import { ReactInjector } from 'core/reactShims';
 import { timestamp, relativeTime } from 'core/utils';
-import { ExecutionStatus } from 'core/pipeline/status/ExecutionStatus';
+import { ExecutionStatus } from '../../../status/ExecutionStatus';
 
 export interface IExecutionAndStagePickerProps {
   pipeline: IPipeline;

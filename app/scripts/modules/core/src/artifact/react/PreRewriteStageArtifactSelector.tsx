@@ -18,7 +18,7 @@ import {
   IStage,
   Registry,
   StageConfigField,
-} from '@spinnaker/core';
+} from 'core';
 
 export interface IPreRewriteArtifactSelectorProps {
   excludedArtifactTypePatterns?: RegExp[];

@@ -3,7 +3,7 @@ import { AccountTag } from 'core/account';
 import { ISecurityGroupGroup } from 'core/domain';
 import { ManagedResourceStatusIndicator } from 'core/managed';
 import { Application } from 'core/application';
-import { SecurityGroup } from 'core/securityGroup/SecurityGroup';
+import { SecurityGroup } from './SecurityGroup';
 
 interface ISecurityGroupPodProps {
   grouping: ISecurityGroupGroup;

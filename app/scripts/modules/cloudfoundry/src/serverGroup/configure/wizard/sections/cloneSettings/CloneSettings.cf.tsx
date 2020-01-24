@@ -16,7 +16,7 @@ import {
   StageConstants,
 } from '@spinnaker/core';
 
-import { ICloudFoundryCreateServerGroupCommand } from 'cloudfoundry/serverGroup/configure/serverGroupConfigurationModel.cf';
+import { ICloudFoundryCreateServerGroupCommand } from '../../../serverGroupConfigurationModel.cf';
 import { FormikAccountRegionClusterSelector } from 'cloudfoundry/presentation';
 
 import 'cloudfoundry/common/cloudFoundry.less';

@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactGA from 'react-ga';
 
-import { Key } from 'core/widgets/Keys';
+import { Key } from '../Keys';
 import { DeleteType, ITag, Tag } from './Tag';
 
 import './taglist.less';

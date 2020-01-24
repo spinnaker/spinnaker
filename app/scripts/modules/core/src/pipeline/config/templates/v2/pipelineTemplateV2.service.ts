@@ -1,7 +1,7 @@
 import { hri as HumanReadableIds } from 'human-readable-ids';
 
 import { IPipeline, IPipelineTemplateConfigV2, IPipelineTemplateV2 } from 'core/domain';
-import { PipelineJSONService } from 'core/pipeline/config/services/pipelineJSON.service';
+import { PipelineJSONService } from '../../services/pipelineJSON.service';
 import { UUIDGenerator } from 'core/utils';
 
 enum InheritedItem {

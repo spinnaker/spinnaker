@@ -15,8 +15,8 @@ import {
   YamlEditor,
 } from '@spinnaker/core';
 
-import { ManifestBindArtifactsSelectorDelegate } from 'kubernetes/v2/pipelines/stages/deployManifest/ManifestBindArtifactsSelectorDelegate';
-import { IManifestBindArtifact } from 'kubernetes/v2/pipelines/stages/deployManifest/ManifestBindArtifactsSelector';
+import { ManifestBindArtifactsSelectorDelegate } from '../deployManifest/ManifestBindArtifactsSelectorDelegate';
+import { IManifestBindArtifact } from '../deployManifest/ManifestBindArtifactsSelector';
 import { ManifestSelector } from 'kubernetes/v2/manifest/selector/ManifestSelector';
 import { SelectorMode } from 'kubernetes/v2/manifest/selector/IManifestSelector';
 import { PatchManifestOptionsForm } from './PatchManifestOptionsForm';

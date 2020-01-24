@@ -2,7 +2,7 @@ import React from 'react';
 import Select, { Option } from 'react-select';
 import { set } from 'lodash';
 
-import { IDeploymentStrategyAdditionalFieldsProps } from 'core/deploymentStrategy/deploymentStrategy.registry';
+import { IDeploymentStrategyAdditionalFieldsProps } from '../../deploymentStrategy.registry';
 import { HelpField } from 'core/help/HelpField';
 import { NgReact } from 'core/reactShims';
 import { IServerGroupCommand } from 'core/serverGroup';

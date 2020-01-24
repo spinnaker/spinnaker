@@ -3,10 +3,7 @@ import ANGULAR_UI_BOOTSTRAP, { IModalInstanceService } from 'angular-ui-bootstra
 
 import { Application, ILoadBalancerDeleteCommand, LoadBalancerWriter, TaskMonitor } from '@spinnaker/core';
 
-import {
-  GCE_HTTP_LOAD_BALANCER_UTILS,
-  GceHttpLoadBalancerUtils,
-} from 'google/loadBalancer/httpLoadBalancerUtils.service';
+import { GCE_HTTP_LOAD_BALANCER_UTILS, GceHttpLoadBalancerUtils } from '../../httpLoadBalancerUtils.service';
 import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_HTTPLOADBALANCER_WRITE_SERVICE } from '../../configure/http/httpLoadBalancer.write.service';
 
 class Verification {

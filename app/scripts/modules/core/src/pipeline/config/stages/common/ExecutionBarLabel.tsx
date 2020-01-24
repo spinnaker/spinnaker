@@ -2,8 +2,8 @@ import React from 'react';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 
 import { IExecutionStageLabelProps } from 'core/domain';
-import { ExecutionWindowActions } from 'core/pipeline/config/stages/executionWindows/ExecutionWindowActions';
-import { SkipConditionWait } from 'core/pipeline/config/stages/waitForCondition/SkipConditionWait';
+import { ExecutionWindowActions } from '../executionWindows/ExecutionWindowActions';
+import { SkipConditionWait } from '../waitForCondition/SkipConditionWait';
 import { HoverablePopover } from 'core/presentation/HoverablePopover';
 import { ReactInjector } from 'core/reactShims';
 import { Spinner } from 'core/widgets';

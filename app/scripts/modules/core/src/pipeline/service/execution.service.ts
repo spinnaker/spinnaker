@@ -4,7 +4,7 @@ import { StateService } from '@uirouter/core';
 
 import { API } from 'core/api/ApiService';
 import { Application } from 'core/application/application.model';
-import { ExecutionsTransformer } from 'core/pipeline/service/ExecutionsTransformer';
+import { ExecutionsTransformer } from './ExecutionsTransformer';
 import { IExecution, IExecutionStage, IExecutionStageSummary } from 'core/domain';
 import { JsonUtils } from 'core/utils';
 import { SETTINGS } from 'core/config/settings';
@@ -15,7 +15,7 @@ import { ISortFilter } from 'core/filterModel';
 import { ExecutionState } from 'core/state';
 import { IRetryablePromise, retryablePromise } from 'core/utils/retryablePromise';
 import { ReactInjector } from 'core/reactShims';
-import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
+import { PipelineConfigService } from '../config/services/PipelineConfigService';
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 
 export class ExecutionService {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Overridable, IOverridableProps } from 'core/overrideRegistry';
-import { FirewallLabels } from 'core/securityGroup/label/FirewallLabels';
+import { FirewallLabels } from './label/FirewallLabels';
 
 export interface ISecurityGroupDetailsProps extends IOverridableProps {}
 

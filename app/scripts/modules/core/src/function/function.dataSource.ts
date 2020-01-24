@@ -4,7 +4,7 @@ import { INFRASTRUCTURE_KEY } from 'core/application/nav/defaultCategories';
 import { Application } from 'core/application/application.model';
 import { EntityTagsReader } from 'core/entityTag/EntityTagsReader';
 import { IFunction } from 'core/domain';
-import { FUNCTION_READ_SERVICE, FunctionReader } from 'core/function/function.read.service';
+import { FUNCTION_READ_SERVICE, FunctionReader } from './function.read.service';
 import { SETTINGS } from 'core/config/settings';
 
 export const FUNCTION_DATA_SOURCE = 'spinnaker.core.functions.dataSource';

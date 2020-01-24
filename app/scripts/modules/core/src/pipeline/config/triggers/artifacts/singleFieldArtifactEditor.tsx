@@ -1,6 +1,6 @@
 import React from 'react';
 import { cloneDeep } from 'lodash';
-import { StageConfigField } from 'core/pipeline/config/stages/common';
+import { StageConfigField } from '../../stages/common';
 import { IArtifact, IArtifactEditorProps } from 'core/domain';
 import { SpelText } from 'core/widgets';
 import { ArtifactEditor } from './ArtifactEditor';

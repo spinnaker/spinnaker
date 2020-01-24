@@ -3,8 +3,8 @@ import { StateParams } from '@uirouter/angularjs';
 
 import { INestedState, StateConfigProvider } from 'core/navigation';
 import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from 'core/application';
-import { filterModelConfig } from 'core/loadBalancer/filter/LoadBalancerFilterModel';
-import { LoadBalancers } from 'core/loadBalancer/LoadBalancers';
+import { filterModelConfig } from './filter/LoadBalancerFilterModel';
+import { LoadBalancers } from './LoadBalancers';
 
 import { LoadBalancerDetails } from './LoadBalancerDetails';
 import { LoadBalancerFilters } from './filter/LoadBalancerFilters';

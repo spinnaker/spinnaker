@@ -16,7 +16,7 @@ import {
 import {
   ICloudFoundryCreateServerGroupCommand,
   ICloudFoundryManifest,
-} from 'cloudfoundry/serverGroup/configure/serverGroupConfigurationModel.cf';
+} from '../../../serverGroupConfigurationModel.cf';
 
 import { ICloudFoundryEnvVar } from 'cloudfoundry/domain';
 import {

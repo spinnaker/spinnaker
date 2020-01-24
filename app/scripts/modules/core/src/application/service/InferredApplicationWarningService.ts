@@ -1,4 +1,4 @@
-import { Application } from 'core/application/application.model';
+import { Application } from '../application.model';
 import { NotifierService } from 'core/widgets/notifier/notifier.service';
 
 export class InferredApplicationWarningService {

@@ -2,7 +2,7 @@ import React from 'react';
 import { set } from 'lodash';
 
 import { HelpField, IDeploymentStrategyAdditionalFieldsProps } from '@spinnaker/core';
-import { IRedBlackCommand } from 'cloudfoundry/deploymentStrategy/strategies/redblack/redblack.strategy';
+import { IRedBlackCommand } from './redblack.strategy';
 
 export interface IRedBlackStrategyAdditionalFieldsProps extends IDeploymentStrategyAdditionalFieldsProps {
   command: IRedBlackCommand;

@@ -28,10 +28,7 @@ import {
   LoadBalancingPolicy,
 } from 'oracle/domain/IOracleLoadBalancer';
 
-import {
-  ORACLE_LOAD_BALANCER_TRANSFORMER,
-  OracleLoadBalancerTransformer,
-} from 'oracle/loadBalancer/loadBalancer.transformer';
+import { ORACLE_LOAD_BALANCER_TRANSFORMER, OracleLoadBalancerTransformer } from '../loadBalancer.transformer';
 
 export class OracleLoadBalancerController implements IController {
   public oracle = 'oracle';

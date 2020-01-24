@@ -4,7 +4,7 @@ import { Form, FormikErrors } from 'formik';
 
 import { TextInput, FormikFormField, ModalClose, ReactModal, SpinFormik, SubmitButton, noop } from '@spinnaker/core';
 
-import { IAuthenticateOidcActionConfig } from 'amazon/loadBalancer/OidcConfigReader';
+import { IAuthenticateOidcActionConfig } from '../../OidcConfigReader';
 
 import './ConfigureConfigModal.css';
 

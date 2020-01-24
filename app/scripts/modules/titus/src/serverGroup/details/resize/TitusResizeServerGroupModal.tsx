@@ -17,7 +17,7 @@ import {
   UserVerification,
   ValidationMessage,
 } from '@spinnaker/core';
-import { useTaskMonitor } from 'titus/serverGroup/details/resize/useTaskMonitor';
+import { useTaskMonitor } from './useTaskMonitor';
 
 const { useState, useEffect, useMemo } = React;
 

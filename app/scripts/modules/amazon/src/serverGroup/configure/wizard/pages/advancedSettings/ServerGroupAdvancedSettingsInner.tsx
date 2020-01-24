@@ -3,7 +3,7 @@ import { FormikErrors } from 'formik';
 
 import { IWizardPageComponent, Overridable } from '@spinnaker/core';
 
-import { IAmazonServerGroupCommand } from 'amazon/serverGroup/configure/serverGroupConfiguration.service';
+import { IAmazonServerGroupCommand } from '../../../serverGroupConfiguration.service';
 import { ServerGroupAdvancedSettingsCommon } from './ServerGroupAdvancedSettingsCommon';
 import { IServerGroupAdvancedSettingsProps } from './ServerGroupAdvancedSettings';
 

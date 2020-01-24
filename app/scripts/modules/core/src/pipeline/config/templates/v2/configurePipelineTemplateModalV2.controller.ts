@@ -13,7 +13,7 @@ import {
   IPipelineTemplatePlanResponse,
   IPipelineTemplate,
   IPipelineTemplatePlanError,
-} from 'core/pipeline/config/templates/PipelineTemplateReader';
+} from '../PipelineTemplateReader';
 import { IVariable } from '../inputs/variableInput.service';
 
 export interface IVariableMetadataGroup {

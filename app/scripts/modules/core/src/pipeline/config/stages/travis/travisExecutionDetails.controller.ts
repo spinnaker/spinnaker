@@ -4,7 +4,7 @@ import { StateParams } from '@uirouter/angularjs';
 import {
   EXECUTION_DETAILS_SECTION_SERVICE,
   ExecutionDetailsSectionService,
-} from 'core/pipeline/details/executionDetailsSection.service';
+} from '../../../details/executionDetailsSection.service';
 
 export class TravisExecutionDetailsCtrl implements IController {
   public configSections = ['travisConfig', 'taskStatus'];

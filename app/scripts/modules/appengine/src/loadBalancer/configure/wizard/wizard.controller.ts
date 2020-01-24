@@ -9,7 +9,7 @@ import {
   AppengineLoadBalancerTransformer,
   AppengineLoadBalancerUpsertDescription,
   IAppengineTrafficSplitDescription,
-} from 'appengine/loadBalancer/transformer';
+} from '../../transformer';
 
 import './wizard.less';
 

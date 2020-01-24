@@ -1,7 +1,7 @@
 import * as lodash from 'lodash';
 import * as react from 'react';
 import * as reactDOM from 'react-dom';
-import * as spinnakerCore from '@spinnaker/core';
+import * as spinnakerCore from 'core';
 
 export const sharedLibraries = {
   sharedLibraryNames: [

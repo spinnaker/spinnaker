@@ -2,9 +2,9 @@ import { ArtifactReferenceService, ExpectedArtifactService } from 'core/artifact
 import { ExecutionArtifactTab } from 'core/artifact/react/ExecutionArtifactTab';
 import { SETTINGS } from 'core/config/settings';
 import { Registry } from 'core/registry';
-import { SavePipelinesResultsTab } from 'core/pipeline/config/stages/savePipelines/SavePipelinesResultsTab';
-import { ExecutionDetailsTasks } from 'core/pipeline/config/stages/common/ExecutionDetailsTasks';
-import { SavePipelinesStageConfig } from 'core/pipeline/config/stages/savePipelines/SavePipelinesStageConfig';
+import { SavePipelinesResultsTab } from './SavePipelinesResultsTab';
+import { ExecutionDetailsTasks } from '../common/ExecutionDetailsTasks';
+import { SavePipelinesStageConfig } from './SavePipelinesStageConfig';
 
 if (SETTINGS.feature.versionedProviders) {
   Registry.pipeline.registerStage({

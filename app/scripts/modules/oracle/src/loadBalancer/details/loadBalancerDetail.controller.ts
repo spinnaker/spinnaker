@@ -14,7 +14,7 @@ import UIROUTER_ANGULARJS, { StateService } from '@uirouter/angularjs';
 import ANGULAR_UI_BOOTSTRAP, { IModalService } from 'angular-ui-bootstrap';
 import { IOracleLoadBalancer, ILoadBalancerDetails } from 'oracle/domain/IOracleLoadBalancer';
 import { sortBy } from 'lodash';
-import { OracleLoadBalancerController } from 'oracle/loadBalancer/configure/createLoadBalancer.controller';
+import { OracleLoadBalancerController } from '../configure/createLoadBalancer.controller';
 
 export class OracleLoadBalancerDetailController implements IController {
   public static $inject = [

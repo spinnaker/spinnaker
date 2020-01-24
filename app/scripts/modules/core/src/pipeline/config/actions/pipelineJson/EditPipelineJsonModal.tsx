@@ -7,7 +7,7 @@ import 'brace/mode/json';
 import { IPipeline, IPipelineLock, IStage } from 'core/domain';
 import { JsonUtils, noop } from 'core/utils';
 import { IModalComponentProps, JsonEditor } from 'core/presentation';
-import { PipelineJSONService } from 'core/pipeline/config/services/pipelineJSON.service';
+import { PipelineJSONService } from '../../services/pipelineJSON.service';
 
 export interface IEditPipelineJsonModalProps extends IModalComponentProps {
   pipeline: IPipeline;

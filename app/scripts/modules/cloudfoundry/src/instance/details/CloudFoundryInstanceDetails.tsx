@@ -12,8 +12,8 @@ import {
 } from '@spinnaker/core';
 
 import { ICloudFoundryInstance } from 'cloudfoundry/domain';
-import { CloudFoundryInstanceDetailsSection } from 'cloudfoundry/instance/details/sections';
-import { CloudFoundryInstanceActions } from 'cloudfoundry/instance/details/CloudFoundryInstanceActions';
+import { CloudFoundryInstanceDetailsSection } from './sections';
+import { CloudFoundryInstanceActions } from './CloudFoundryInstanceActions';
 import { flattenDeep } from 'lodash';
 
 interface InstanceFromStateParams {

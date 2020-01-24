@@ -11,7 +11,7 @@ import { Application } from 'core/application';
 import { FilterSection } from 'core/cluster/filter/FilterSection';
 import { IFilterTag } from 'core/filterModel';
 import { IExecution, IPipeline } from 'core/domain';
-import { PipelineConfigService } from 'core/pipeline/config/services/PipelineConfigService';
+import { PipelineConfigService } from '../config/services/PipelineConfigService';
 import { ReactInjector } from 'core/reactShims';
 import { ExecutionState } from 'core/state';
 import { ExecutionFilterService } from './executionFilter.service';

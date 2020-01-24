@@ -1,6 +1,6 @@
 import { IStage } from './IStage';
 import { ITrigger } from './ITrigger';
-import { IExpectedArtifact } from 'core/domain/IExpectedArtifact';
+import { IExpectedArtifact } from './IExpectedArtifact';
 import { IEntityTags } from './IEntityTags';
 import { INotification } from './INotification';
 

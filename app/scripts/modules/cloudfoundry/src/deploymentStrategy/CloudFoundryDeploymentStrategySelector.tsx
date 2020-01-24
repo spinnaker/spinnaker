@@ -10,12 +10,12 @@ import {
   Markdown,
 } from '@spinnaker/core';
 
-import { IRedBlackCommand } from 'cloudfoundry/deploymentStrategy/strategies/redblack/redblack.strategy';
-import { AdditionalFields as AdditionalRedBlackFields } from 'cloudfoundry/deploymentStrategy/strategies/redblack/AdditionalFields';
+import { IRedBlackCommand } from './strategies/redblack/redblack.strategy';
+import { AdditionalFields as AdditionalRedBlackFields } from './strategies/redblack/AdditionalFields';
 import {
   AdditionalFields as AdditionalRollingRedBlackFields,
   IRollingRedBlackCommand,
-} from 'cloudfoundry/deploymentStrategy/strategies/rollingredblack/AdditionalFields';
+} from './strategies/rollingredblack/AdditionalFields';
 
 export interface ICloudFoundryDeploymentStrategySelectorProps {
   command: IServerGroupCommand;

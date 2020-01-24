@@ -7,7 +7,7 @@ import {
   IExecutionDetailsSectionProps,
   ManifestYaml,
   StageFailureMessage,
-} from '@spinnaker/core';
+} from 'core';
 
 export class BakeManifestDetailsTab extends React.Component<IExecutionDetailsSectionProps> {
   public static title = 'bakedManifest';

@@ -4,7 +4,7 @@ import { get } from 'lodash';
 import { NgReact } from 'core/reactShims';
 import { Application } from 'core/application';
 import { IServerGroup } from 'core/domain';
-import { IJenkinsViewModel, IDockerViewModel } from 'core/serverGroup/ServerGroup';
+import { IJenkinsViewModel, IDockerViewModel } from './ServerGroup';
 import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';
 import { HealthCounts } from 'core/healthCounts';
 import { NameUtils } from 'core/naming';

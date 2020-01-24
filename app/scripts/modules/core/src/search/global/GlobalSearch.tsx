@@ -6,13 +6,13 @@ import { flatten } from 'lodash';
 import ReactGA from 'react-ga';
 import { Observable, Subject } from 'rxjs';
 
-import { ISearchResultSet } from 'core/search/infrastructure/infrastructureSearch.service';
-import { ISearchResult } from 'core/search/search.service';
+import { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
+import { ISearchResult } from '../search.service';
 import { ReactInjector } from 'core/reactShims';
 import { Tooltip } from 'core/presentation/Tooltip';
 import { Spinner } from 'core/widgets/spinners/Spinner';
-import { searchRank } from 'core/search/searchRank.filter';
-import { RecentlyViewedItems, IChildComponentProps } from 'core/search/infrastructure/RecentlyViewedItems';
+import { searchRank } from '../searchRank.filter';
+import { RecentlyViewedItems, IChildComponentProps } from '../infrastructure/RecentlyViewedItems';
 import { ClusterState } from 'core/state';
 
 import { GlobalSearchResults } from './GlobalSearchResults';

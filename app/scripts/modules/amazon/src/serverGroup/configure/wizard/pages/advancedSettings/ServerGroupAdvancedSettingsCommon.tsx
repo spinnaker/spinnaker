@@ -5,7 +5,7 @@ import Select, { Option } from 'react-select';
 import { HelpField, MapEditor, PlatformHealthOverride } from '@spinnaker/core';
 
 import { AWSProviderSettings } from 'amazon/aws.settings';
-import { IAmazonServerGroupCommand } from 'amazon/serverGroup/configure/serverGroupConfiguration.service';
+import { IAmazonServerGroupCommand } from '../../../serverGroupConfiguration.service';
 
 import { IServerGroupAdvancedSettingsProps } from './ServerGroupAdvancedSettings';
 

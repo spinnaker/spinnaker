@@ -1,3 +1,3 @@
-import { buildUpstreamHasFlagValidator } from 'core/pipeline/config/validation/upstreamHasFlagValidator.builder';
+import { buildUpstreamHasFlagValidator } from './upstreamHasFlagValidator.builder';
 
 buildUpstreamHasFlagValidator('providesRepositoryInformation', 'repositoryInformationProvided');

@@ -1,5 +1,5 @@
 import { IController, module } from 'angular';
-import { INSIGHT_LAYOUT_COMPONENT } from 'core/insight/insightLayout.component';
+import { INSIGHT_LAYOUT_COMPONENT } from './insightLayout.component';
 import { InsightFilterStateModel } from './insightFilterState.model';
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 

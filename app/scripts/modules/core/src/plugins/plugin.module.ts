@@ -1,6 +1,6 @@
 import { module } from 'angular';
 import { UIRouter } from '@uirouter/core';
-import { IPluginManifest, PluginRegistry } from 'core/plugins/plugin.registry';
+import { IPluginManifest, PluginRegistry } from './plugin.registry';
 
 export const PLUGINS_MODULE = 'netflix.spinnaker.plugins';
 module(PLUGINS_MODULE, ['ui.router']).config([

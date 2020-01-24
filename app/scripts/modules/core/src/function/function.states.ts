@@ -3,8 +3,8 @@ import { StateParams } from '@uirouter/angularjs';
 
 import { INestedState, StateConfigProvider } from 'core/navigation';
 import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from 'core/application';
-import { filterModelConfig } from 'core/function/filter/FunctionFilterModel';
-import { Functions } from 'core/function/Functions';
+import { filterModelConfig } from './filter/FunctionFilterModel';
+import { Functions } from './Functions';
 
 import { FunctionDetails } from './FunctionDetails';
 import { FunctionFilters } from './filter/FunctionFilters';

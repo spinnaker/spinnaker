@@ -1,6 +1,6 @@
 import { CloudfoundryResizeAsgStageConfig } from './CloudfoundryResizeAsgStageConfig';
 import { IStage, Registry } from '@spinnaker/core';
-import { IInstanceFieldSizeValidationConfig } from 'cloudfoundry/pipeline/config/validation/instanceSize.validator';
+import { IInstanceFieldSizeValidationConfig } from '../../config/validation/instanceSize.validator';
 
 const diskValidator: IInstanceFieldSizeValidationConfig = {
   type: 'cfInstanceSizeField',

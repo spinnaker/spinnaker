@@ -3,10 +3,7 @@ import { get, isEmpty } from 'lodash';
 
 import { StageFailureMessage, IExecutionDetailsSectionProps, ExecutionDetailsSection } from 'core/pipeline';
 import { IExecutionStage } from 'core/domain';
-import {
-  DeploymentMonitorReader,
-  IDeploymentMonitorDefinition,
-} from 'core/pipeline/config/stages/monitoreddeploy/DeploymentMonitorReader';
+import { DeploymentMonitorReader, IDeploymentMonitorDefinition } from './DeploymentMonitorReader';
 
 interface IAdditionalData {
   link: string;

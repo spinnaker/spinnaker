@@ -1,7 +1,7 @@
 import { IController, module } from 'angular';
 import { difference } from 'lodash';
 
-import { AppengineLoadBalancerUpsertDescription } from 'appengine/loadBalancer/transformer';
+import { AppengineLoadBalancerUpsertDescription } from '../../transformer';
 
 class AppengineLoadBalancerSettingsController implements IController {
   public loadBalancer: AppengineLoadBalancerUpsertDescription;

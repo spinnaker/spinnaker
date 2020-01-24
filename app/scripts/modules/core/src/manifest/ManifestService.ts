@@ -1,4 +1,4 @@
-import { Application, IManifest } from '@spinnaker/core';
+import { Application, IManifest } from 'core';
 import { ManifestReader } from './ManifestReader';
 
 export interface IManifestContainer {

@@ -5,7 +5,7 @@ import { get } from 'lodash';
 import {
   EXECUTION_DETAILS_SECTION_SERVICE,
   ExecutionDetailsSectionService,
-} from 'core/pipeline/details/executionDetailsSection.service';
+} from '../../../details/executionDetailsSection.service';
 
 import { EXECUTION_ARTIFACT_TAB } from 'core/artifact/artifactTab';
 

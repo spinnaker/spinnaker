@@ -18,7 +18,7 @@ import {
 } from '@spinnaker/core';
 
 import { IAmazonServerGroup, IAmazonServerGroupView } from 'amazon/domain';
-import { AmazonCloneServerGroupModal } from 'amazon/serverGroup/configure/wizard/AmazonCloneServerGroupModal';
+import { AmazonCloneServerGroupModal } from '../configure/wizard/AmazonCloneServerGroupModal';
 import { AwsReactInjector } from 'amazon/reactShims';
 import { IAmazonServerGroupCommand } from '../configure';
 import {

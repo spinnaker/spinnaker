@@ -2,7 +2,7 @@ import { IController, module } from 'angular';
 import _ from 'lodash';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
 
-import { ServerGroupReader } from 'core/serverGroup/serverGroupReader.service';
+import { ServerGroupReader } from '../../serverGroupReader.service';
 import { IServerGroup } from 'core/domain';
 
 export interface IScalingActivitiesViewState {

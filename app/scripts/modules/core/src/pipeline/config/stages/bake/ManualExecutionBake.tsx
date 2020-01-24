@@ -3,7 +3,7 @@ import { get } from 'lodash';
 
 import { FormField, CheckboxInput } from 'core/presentation';
 import { HelpField } from 'core/help/HelpField';
-import { ITriggerTemplateComponentProps } from 'core/pipeline/manualExecution/TriggerTemplate';
+import { ITriggerTemplateComponentProps } from '../../../manualExecution/TriggerTemplate';
 
 export class ManualExecutionBake extends React.Component<ITriggerTemplateComponentProps> {
   private handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Option } from 'react-select';
-import { ReactSelectInput, useLatestPromise } from '@spinnaker/core';
+import { ReactSelectInput, useLatestPromise } from 'core';
 
 import { ISlackChannel, SlackReader } from './SlackReader';
 

@@ -1,6 +1,6 @@
 import { module, IController, IComponentOptions } from 'angular';
 
-import { AccountService } from 'core/account/AccountService';
+import { AccountService } from './AccountService';
 
 import './accountTag.less';
 

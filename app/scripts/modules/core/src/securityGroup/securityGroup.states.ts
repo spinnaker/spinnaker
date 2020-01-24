@@ -9,7 +9,7 @@ import {
   ApplicationModelBuilder,
 } from 'core/application';
 import { SkinService } from 'core/cloudProvider';
-import { FirewallLabels } from 'core/securityGroup/label';
+import { FirewallLabels } from './label';
 
 import { SecurityGroupReader } from './securityGroupReader.service';
 import { filterModelConfig } from './filter/SecurityGroupFilterModel';

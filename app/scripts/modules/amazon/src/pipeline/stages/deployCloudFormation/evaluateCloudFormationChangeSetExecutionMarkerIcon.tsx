@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { IExecutionMarkerIconProps } from 'core/pipeline/config/stages/common/ExecutionMarkerIcon';
+import { IExecutionMarkerIconProps } from '@spinnaker/core';
 
 export class EvaluateCloudFormationChangeSetExecutionMarkerIcon extends React.Component<IExecutionMarkerIconProps> {
   constructor(props: IExecutionMarkerIconProps) {

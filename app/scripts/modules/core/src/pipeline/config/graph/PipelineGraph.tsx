@@ -7,7 +7,7 @@ import { clone, find, flatten, forOwn, groupBy, max, maxBy, sortBy, sum, sumBy, 
 import { Subscription } from 'rxjs';
 
 import { IExecution, IPipeline } from 'core/domain';
-import { IPipelineValidationResults } from 'core/pipeline/config/validation/PipelineConfigValidator';
+import { IPipelineValidationResults } from '../validation/PipelineConfigValidator';
 import { UUIDGenerator } from 'core/utils/uuid.service';
 import { PipelineConfigValidator } from '../validation/PipelineConfigValidator';
 

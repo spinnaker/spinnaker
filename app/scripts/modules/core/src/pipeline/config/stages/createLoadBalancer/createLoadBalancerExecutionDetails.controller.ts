@@ -5,7 +5,7 @@ import { StateParams } from '@uirouter/angularjs';
 import {
   EXECUTION_DETAILS_SECTION_SERVICE,
   ExecutionDetailsSectionService,
-} from 'core/pipeline/details/executionDetailsSection.service';
+} from '../../../details/executionDetailsSection.service';
 
 import { BaseExecutionDetailsCtrl, IExecutionDetailsScope } from '../common/baseExecutionDetails.controller';
 import UIROUTER_ANGULARJS from '@uirouter/angularjs';

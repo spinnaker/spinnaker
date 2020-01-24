@@ -4,7 +4,7 @@ import {
   ExecutionDetailsTasks,
   ExpectedArtifactService,
   Registry,
-} from '@spinnaker/core';
+} from 'core';
 
 import { GoogleCloudBuildStageConfig } from './GoogleCloudBuildStageConfig';
 import { GoogleCloudBuildExecutionDetails } from './GoogleCloudBuildExecutionDetails';

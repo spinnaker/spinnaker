@@ -4,7 +4,7 @@ import classNames from 'classnames';
 import { get } from 'lodash';
 
 import { IExecutionStageSummary } from 'core/domain';
-import { GroupExecutionPopover } from 'core/pipeline/config/stages/group/GroupExecutionPopover';
+import { GroupExecutionPopover } from '../stages/group/GroupExecutionPopover';
 import { LabelComponent, Markdown } from 'core/presentation';
 import { Popover } from 'core/presentation/Popover';
 

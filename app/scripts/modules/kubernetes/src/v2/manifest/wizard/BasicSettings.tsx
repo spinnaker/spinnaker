@@ -3,7 +3,7 @@ import { FormikProps } from 'formik';
 
 import { AccountSelectInput, Application, HelpField, IAccount } from '@spinnaker/core';
 
-import { IKubernetesManifestCommandData } from 'kubernetes/v2/manifest/manifestCommandBuilder.service';
+import { IKubernetesManifestCommandData } from '../manifestCommandBuilder.service';
 
 export interface IManifestBasicSettingsProps {
   app: Application;

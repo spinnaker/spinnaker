@@ -1,5 +1,5 @@
-import { strategyHighlander } from 'kubernetes/v2/rolloutStrategy/highlander.strategy';
-import { strategyNone } from 'kubernetes/v2/rolloutStrategy/none.strategy';
-import { strategyRedBlack } from 'kubernetes/v2/rolloutStrategy/redblack.strategy';
+import { strategyHighlander } from './highlander.strategy';
+import { strategyNone } from './none.strategy';
+import { strategyRedBlack } from './redblack.strategy';
 
 export const rolloutStrategies = [strategyNone, strategyRedBlack, strategyHighlander];

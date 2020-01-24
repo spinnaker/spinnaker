@@ -5,9 +5,9 @@ import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from 'core/appli
 import { INestedState, StateConfigProvider } from 'core/navigation/state.provider';
 import { filterModelConfig } from './filter/ExecutionFilterModel';
 
-import { Executions } from 'core/pipeline/executions/Executions';
-import { ExecutionNotFound } from 'core/pipeline/executions/ExecutionNotFound';
-import { SingleExecutionDetails } from 'core/pipeline/details/SingleExecutionDetails';
+import { Executions } from './executions/Executions';
+import { ExecutionNotFound } from './executions/ExecutionNotFound';
+import { SingleExecutionDetails } from './details/SingleExecutionDetails';
 import { ExecutionService } from './service/execution.service';
 
 export const PIPELINE_STATES = 'spinnaker.core.pipeline.states';

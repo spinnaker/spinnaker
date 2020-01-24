@@ -1,6 +1,6 @@
 import { IPromise } from 'angular';
 import React from 'react';
-import { AccountService } from 'core/account/AccountService';
+import { AccountService } from './AccountService';
 
 export interface IAccountTagProps {
   account: string;

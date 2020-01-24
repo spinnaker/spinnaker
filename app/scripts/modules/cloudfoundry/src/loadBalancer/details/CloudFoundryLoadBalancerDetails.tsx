@@ -3,11 +3,11 @@ import { UISref } from '@uirouter/react';
 import { UIRouterContext } from '@uirouter/react-hybrid';
 
 import { Application, LoadBalancerWriter, Spinner } from '@spinnaker/core';
-import { CloudFoundryLoadBalancerActions } from 'cloudfoundry/loadBalancer/details/CloudFoundryLoadBalancerActions';
-import { CloudFoundryLoadBalancerDetailsSection } from 'cloudfoundry/loadBalancer/details/sections';
+import { CloudFoundryLoadBalancerActions } from './CloudFoundryLoadBalancerActions';
+import { CloudFoundryLoadBalancerDetailsSection } from './sections';
 import { ICloudFoundryLoadBalancer } from 'cloudfoundry/domain';
-import { CloudFoundryLoadBalancerStatusSection } from 'cloudfoundry/loadBalancer/details/sections/CloudFoundryLoadBalancerStatusSection';
-import { CloudFoundryLoadBalancerLinksSection } from 'cloudfoundry/loadBalancer/details/sections/CloudFoundryLoadBalancerLinksSection';
+import { CloudFoundryLoadBalancerStatusSection } from './sections/CloudFoundryLoadBalancerStatusSection';
+import { CloudFoundryLoadBalancerLinksSection } from './sections/CloudFoundryLoadBalancerLinksSection';
 
 interface ILoadBalancer {
   name: string;

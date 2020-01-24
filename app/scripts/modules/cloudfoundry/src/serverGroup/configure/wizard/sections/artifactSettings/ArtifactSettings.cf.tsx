@@ -12,7 +12,7 @@ import {
   ArtifactTypePatterns,
 } from '@spinnaker/core';
 
-import { ICloudFoundryCreateServerGroupCommand } from 'cloudfoundry/serverGroup/configure/serverGroupConfigurationModel.cf';
+import { ICloudFoundryCreateServerGroupCommand } from '../../../serverGroupConfigurationModel.cf';
 import { FormikConfigField } from 'cloudfoundry/presentation';
 
 export interface ICloudFoundryCreateServerGroupArtifactSettingsProps {

@@ -3,7 +3,7 @@ import { ExecutionDetailsTasks } from 'core/pipeline';
 
 import { ImportDeliveryConfigStageConfig } from './ImportDeliveryConfigStageConfig';
 import { ImportDeliveryConfigExecutionDetails } from './ImportDeliveryConfigExecutionDetails';
-import { IUpstreamFlagProvidedValidationConfig } from 'core/pipeline/config/validation/upstreamHasFlagValidator.builder';
+import { IUpstreamFlagProvidedValidationConfig } from '../../validation/upstreamHasFlagValidator.builder';
 import { SETTINGS } from 'core/config';
 
 if (SETTINGS.feature.managedDelivery) {
