@@ -324,10 +324,10 @@
   dependencies:
     jest "^24.9.0"
 
-"@spinnaker/kayenta@0.0.88":
-  version "0.0.88"
-  resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-0.0.88.tgz#6a8f33dd9d704d0e35673626441c737aa2517832"
-  integrity sha512-7jbqPHFO7ICKgUmoF4+ZysyPyTEqmhrlpsMnxul9GgToVecUGPTmeiDDfaiIJwPy1a0KsvNs+2asl/KGtu8u9g==
+"@spinnaker/kayenta@^0.0.89":
+  version "0.0.89"
+  resolved "https://registry.yarnpkg.com/@spinnaker/kayenta/-/kayenta-0.0.89.tgz#c0e8ff84f48376faea89c7fe1c4239e048bda9f4"
+  integrity sha512-4PmFFsYkT7yyPRGQVcA+glhgf7gqR+LUekY1lT6JA8qUEuAx4hhpypW75ySZwUR/cK0t4JtFSY/GBKaTWsuCBw==
   dependencies:
     "@fortawesome/fontawesome-free" "5.5.0"
     "@uirouter/angularjs" "^1.0.15"
