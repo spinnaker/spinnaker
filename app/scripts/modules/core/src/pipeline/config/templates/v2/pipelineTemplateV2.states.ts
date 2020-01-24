@@ -1,5 +1,4 @@
 import { module } from 'angular';
-import { SETTINGS } from 'core/config';
 import { INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider } from 'core/navigation';
 import { PipelineTemplatesV2 } from './PipelineTemplatesV2';
 
@@ -35,8 +34,6 @@ module(PIPELINE_TEMPLATES_V2_STATES_CONFIG, [STATE_CONFIG_PROVIDER]).config([
       children: [pipelineTemplateDetail],
     };
 
-    if (SETTINGS.feature.managedPipelineTemplatesV2UI) {
-      stateConfigProvider.addToRootState(pipelineTemplatesList);
-    }
+    stateConfigProvider.addToRootState(pipelineTemplatesList);
   },
 ]);

@@ -3,7 +3,6 @@ import { hri as HumanReadableIds } from 'human-readable-ids';
 import { IPipeline, IPipelineTemplateConfigV2, IPipelineTemplateV2 } from 'core/domain';
 import { PipelineJSONService } from 'core/pipeline/config/services/pipelineJSON.service';
 import { UUIDGenerator } from 'core/utils';
-import { SETTINGS } from 'core/config';
 
 enum InheritedItem {
   Triggers = 'triggers',
@@ -31,10 +30,6 @@ export class PipelineTemplateV2Service {
 
   public static isV2PipelineConfig(pipelineConfig: Partial<IPipeline>): boolean {
     return pipelineConfig.schema === PipelineTemplateV2Service.schema;
-  }
-
-  public static getUnsupportedCopy(task: string): string {
-    return `${task} of templated v2 pipelines through the UI is unsupported. Use Spin CLI instead.`;
   }
 
   public static idForTemplate(template: { id: string; digest?: string }): string {
@@ -73,10 +68,6 @@ export class PipelineTemplateV2Service {
   private static prefixSource(source = ''): string {
     const referencePrefix = 'spinnaker://';
     return source.startsWith(referencePrefix) ? source : `${referencePrefix}${source}`;
-  }
-
-  public static isConfigurable(pipelineConfig: IPipeline): boolean {
-    return SETTINGS.feature.managedPipelineTemplatesV2UI || !this.isV2PipelineConfig(pipelineConfig);
   }
 
   public static filterInheritedConfig(pipelineConfig: Partial<IPipeline>) {

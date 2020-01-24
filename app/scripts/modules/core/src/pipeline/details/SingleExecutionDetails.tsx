@@ -1,15 +1,13 @@
 import React from 'react';
-import { get } from 'lodash';
 import ReactGA from 'react-ga';
 import { Subscription } from 'rxjs';
 import { UISref } from '@uirouter/react';
 
 import { Application } from 'core/application/application.model';
-import { SETTINGS } from 'core/config';
 import { IExecution, IPipeline } from 'core/domain';
 import { Execution } from 'core/pipeline/executions/execution/Execution';
 import { IScheduler, SchedulerFactory } from 'core/scheduler';
-import { PipelineTemplateV2Service, ManualExecutionModal } from 'core/pipeline';
+import { ManualExecutionModal } from 'core/pipeline';
 import { ReactInjector, IStateChange } from 'core/reactShims';
 import { Tooltip } from 'core/presentation';
 import { ISortFilter } from 'core/filterModel';
@@ -156,10 +154,6 @@ export class SingleExecutionDetails extends React.Component<
 
     const defaultExecutionParams = { application: app.name, executionId: execution ? execution.id : '' };
     const executionParams = ReactInjector.$state.params.executionParams || defaultExecutionParams;
-    const isFromMPTV2Pipeline = PipelineTemplateV2Service.isV2PipelineConfig(
-      get(execution, 'pipelineConfig', {}) as IPipeline,
-    );
-    const showConfigButton = SETTINGS.feature.managedPipelineTemplatesV2UI || !isFromMPTV2Pipeline;
 
     return (
       <div style={{ width: '100%', paddingTop: 0 }}>
@@ -189,22 +183,20 @@ export class SingleExecutionDetails extends React.Component<
                       <span> stage durations</span>
                     </label>
                   </div>
-                  {showConfigButton && (
-                    <Tooltip value="Navigate to Pipeline Configuration">
-                      <UISref
-                        to="^.pipelineConfig"
-                        params={{ application: this.props.app.name, pipelineId: this.state.execution.pipelineConfigId }}
+                  <Tooltip value="Navigate to Pipeline Configuration">
+                    <UISref
+                      to="^.pipelineConfig"
+                      params={{ application: this.props.app.name, pipelineId: this.state.execution.pipelineConfigId }}
+                    >
+                      <button
+                        className="btn btn-sm btn-default single-execution-details__configure"
+                        onClick={this.handleConfigureClicked}
                       >
-                        <button
-                          className="btn btn-sm btn-default single-execution-details__configure"
-                          onClick={this.handleConfigureClicked}
-                        >
-                          <span className="glyphicon glyphicon-cog" />
-                          <span className="visible-md-inline visible-lg-inline"> Configure</span>
-                        </button>
-                      </UISref>
-                    </Tooltip>
-                  )}
+                        <span className="glyphicon glyphicon-cog" />
+                        <span className="visible-md-inline visible-lg-inline"> Configure</span>
+                      </button>
+                    </UISref>
+                  </Tooltip>
                 </div>
               </div>
             </div>

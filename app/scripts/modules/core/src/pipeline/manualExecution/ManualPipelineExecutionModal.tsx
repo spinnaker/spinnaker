@@ -28,12 +28,7 @@ import {
   ITrigger,
 } from 'core/domain';
 import { AppNotificationsService } from 'core/notification/AppNotificationsService';
-import {
-  ArtifactList,
-  IPipelineTemplateConfig,
-  ITriggerTemplateComponentProps,
-  PipelineTemplateV2Service,
-} from 'core/pipeline';
+import { ArtifactList, IPipelineTemplateConfig, ITriggerTemplateComponentProps } from 'core/pipeline';
 import { Registry } from 'core/registry';
 import { SETTINGS } from 'core/config/settings';
 import { UrlParser } from 'core/navigation/urlParser';
@@ -133,9 +128,7 @@ export class ManualExecutionModal extends React.Component<IManualExecutionModalP
       const triggers = this.formatTriggers(pipelineTriggers);
       this.updateTriggerOptions(triggers);
     } else {
-      pipelineOptions = application.pipelineConfigs.data.filter(
-        (c: any) => !c.disabled && PipelineTemplateV2Service.isConfigurable(c),
-      );
+      pipelineOptions = application.pipelineConfigs.data.filter((c: any) => !c.disabled);
     }
 
     this.triggerChanged(trigger);

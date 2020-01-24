@@ -2,7 +2,6 @@ import React from 'react';
 import { Dropdown } from 'react-bootstrap';
 
 import { IPipeline } from 'core/domain';
-import { SETTINGS } from 'core/config/settings';
 import { PipelineConfigAction } from './PipelineConfigAction';
 
 export interface IPipelineConfigActionsProps {
@@ -35,7 +34,6 @@ export function PipelineConfigActions(props: IPipelineConfigActionsProps) {
     showHistory,
     exportPipelineTemplate,
   } = props;
-  const managedPipelineTemplatesV2UI = SETTINGS.feature.managedPipelineTemplatesV2UI;
 
   return (
     <Dropdown className="dropdown" id="pipeline-actions-dropdown">
@@ -56,9 +54,7 @@ export function PipelineConfigActions(props: IPipelineConfigActionsProps) {
         {loadingHistory && <PipelineConfigAction name="Loading History..." />}
         {!loadingHistory && hasHistory && <PipelineConfigAction name="Show Revision History" action={showHistory} />}
         {!loadingHistory && !hasHistory && <PipelineConfigAction name="No version history found" />}
-        {managedPipelineTemplatesV2UI && (
-          <PipelineConfigAction name="Export as Pipeline Template" action={exportPipelineTemplate} />
-        )}
+        <PipelineConfigAction name="Export as Pipeline Template" action={exportPipelineTemplate} />
       </Dropdown.Menu>
     </Dropdown>
   );

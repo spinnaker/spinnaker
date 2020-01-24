@@ -39,7 +39,6 @@ export interface IFeatures {
   // whether stages affecting infrastructure (like "Create Load Balancer") should be enabled or not
   infrastructureStages?: boolean;
   managedDelivery?: boolean;
-  managedPipelineTemplatesV2UI?: boolean;
   managedServiceAccounts?: boolean;
   managedResources?: boolean;
   notifications?: boolean;

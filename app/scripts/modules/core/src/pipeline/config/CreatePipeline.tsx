@@ -4,9 +4,7 @@ import { get } from 'lodash';
 import { Dropdown } from 'react-bootstrap';
 
 import { Application } from 'core/application';
-import { SETTINGS } from 'core/config';
 import { IPipeline } from 'core/domain';
-import { PipelineTemplateV2Service } from 'core/pipeline';
 import { ReactInjector } from 'core/reactShims';
 import { Tooltip } from 'core/presentation/Tooltip';
 
@@ -24,11 +22,7 @@ export class CreatePipeline extends React.Component<ICreatePipelineProps> {
   public render() {
     const { application } = this.props;
 
-    const pipelineConfigs = SETTINGS.feature.managedPipelineTemplatesV2UI
-      ? get(application, 'pipelineConfigs.data', [])
-      : get(application, 'pipelineConfigs.data', []).filter(
-          (pipelineConfig: IPipeline) => !PipelineTemplateV2Service.isV2PipelineConfig(pipelineConfig),
-        );
+    const pipelineConfigs = get(application, 'pipelineConfigs.data', []);
     const hasPipelineConfigs = pipelineConfigs.length > 0;
 
     const hasStrategyConfigs = get(application, 'strategyConfigs.data', []).length > 0;

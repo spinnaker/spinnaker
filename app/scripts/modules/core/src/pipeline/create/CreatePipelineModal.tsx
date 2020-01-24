@@ -5,6 +5,7 @@ import { Debounce } from 'lodash-decorators';
 import { $log } from 'ngimport';
 import { IHttpPromiseCallbackArg } from 'angular';
 import { cloneDeep, get, uniqBy } from 'lodash';
+import { UISref } from '@uirouter/react';
 
 import { Overridable } from 'core/overrideRegistry';
 import { Application } from 'core/application/application.model';
@@ -530,18 +531,14 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
                       loadingError={this.state.loadingTemplateFromSourceError}
                       template={this.state.command.template || preselectedTemplate}
                     />
-                    {!SETTINGS.feature.managedPipelineTemplatesV2UI && (
+                    {!preselectedTemplate && (
                       <div className="form-group clearfix">
                         <div className="col-md-12">
                           <em>
-                            * v1 templates only. For creating pipelines from v2 templates, use{' '}
-                            <a
-                              href="https://www.spinnaker.io/guides/spin/pipeline/"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              Spin CLI.
-                            </a>
+                            * v1 templates only. For creating pipelines from v2 templates, use the{' '}
+                            <UISref to="home.pipeline-templates">
+                              <a>Pipeline Templates view.</a>
+                            </UISref>
                           </em>
                         </div>
                       </div>
