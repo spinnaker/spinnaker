@@ -64,6 +64,7 @@ import io.mockk.every
 import io.mockk.mockk
 import java.util.UUID.randomUUID
 import kotlinx.coroutines.runBlocking
+import org.springframework.context.ApplicationEventPublisher
 import strikt.api.Assertion
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
@@ -85,9 +86,11 @@ internal class SecurityGroupHandlerTests : JUnit5Minutests {
     // we're just using this to get notifications
     every { environmentFor(any()) } returns Environment("test")
   }
+  private val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
   private val taskLauncher = TaskLauncher(
     orcaService,
-    deliveryConfigRepository
+    deliveryConfigRepository,
+    publisher
   )
   private val objectMapper = configuredObjectMapper()
   private val normalizers = emptyList<Resolver<SecurityGroupSpec>>()

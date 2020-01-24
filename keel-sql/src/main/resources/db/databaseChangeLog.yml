@@ -87,3 +87,9 @@ databaseChangeLog:
      file: changelog/20200122-delivery-config-api-version.yml
      relativeToChangelogFile: true
 
+  - include:
+      file: changelog/20200109-create-task-tracking-table.yml
+      relativeToChangelogFile: true
+  - include:
+      file: changelog/20200116-create-agent-lock-table.yml
+      relativeToChangelogFile: true

@@ -39,6 +39,7 @@ import io.mockk.mockk
 import io.mockk.slot
 import java.time.Clock
 import kotlinx.coroutines.runBlocking
+import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectThat
 import strikt.assertions.first
 import strikt.assertions.hasSize
@@ -50,7 +51,8 @@ class TaskLauncherTests : JUnit5Minutests {
     val clock = Clock.systemDefaultZone()
     val orcaService: OrcaService = mockk()
     val deliveryConfigRepository = InMemoryDeliveryConfigRepository(clock)
-    val taskLauncher = TaskLauncher(orcaService, deliveryConfigRepository)
+    val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
+    val taskLauncher = TaskLauncher(orcaService, deliveryConfigRepository, publisher)
     val resource: Resource<DummyResourceSpec> = resource()
     val request = slot<OrchestrationRequest>()
   }

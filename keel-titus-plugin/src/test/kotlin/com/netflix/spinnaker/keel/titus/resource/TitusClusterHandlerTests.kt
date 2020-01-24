@@ -105,11 +105,12 @@ class TitusClusterHandlerTests : JUnit5Minutests {
   val objectMapper = ObjectMapper().registerKotlinModule()
   val resolvers = emptyList<Resolver<TitusClusterSpec>>()
   val deliveryConfigRepository: InMemoryDeliveryConfigRepository = mockk()
+  val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
   val taskLauncher = TaskLauncher(
     orcaService,
-    deliveryConfigRepository
+    deliveryConfigRepository,
+    publisher
   )
-  val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
   val clock = Clock.systemDefaultZone()
 
   val sg1West = SecurityGroupSummary("keel", "sg-325234532", "vpc-1")

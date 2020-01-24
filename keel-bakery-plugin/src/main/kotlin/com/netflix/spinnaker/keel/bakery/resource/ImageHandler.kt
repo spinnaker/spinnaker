@@ -20,14 +20,13 @@ import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.events.Task
 import com.netflix.spinnaker.keel.model.Job
-import com.netflix.spinnaker.keel.model.OrchestrationRequest
-import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
 import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.SupportedKind
+import com.netflix.spinnaker.keel.plugin.TaskLauncher
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import kotlinx.coroutines.runBlocking
 import org.springframework.context.ApplicationEventPublisher
@@ -40,6 +39,7 @@ class ImageHandler(
   private val igorService: ArtifactService,
   private val imageService: ImageService,
   private val publisher: ApplicationEventPublisher,
+  private val taskLauncher: TaskLauncher,
   objectMapper: ObjectMapper,
   resolvers: List<Resolver<*>>
 ) : ResourceHandler<ImageSpec, Image>(objectMapper, resolvers) {
@@ -123,36 +123,38 @@ class ImageHandler(
 
     log.info("baking new image for {}", resource.spec.artifactName)
     val description = "Bake ${resourceDiff.desired.appVersion}"
-    val taskRef = orcaService.orchestrate(
-      resource.serviceAccount,
-      OrchestrationRequest(
-        name = description,
-        application = resource.application,
-        description = description,
-        job = listOf(
-          Job(
-            "bake",
-            mapOf(
-              "amiSuffix" to "",
-              "baseOs" to resource.spec.baseOs,
-              "baseLabel" to resource.spec.baseLabel.name.toLowerCase(),
-              "cloudProviderType" to "aws",
-              "package" to artifact.reference.substringAfterLast("/"),
-              "regions" to resource.spec.regions,
-              "storeType" to resource.spec.storeType.name.toLowerCase(),
-              "user" to "keel",
-              "vmType" to "hvm"
-            )
+
+    try {
+      val taskRef = taskLauncher.submitJobToOrca(
+      user = resource.serviceAccount,
+      application = resource.application,
+      notifications = emptyList(),
+      subject = description,
+      description = description,
+      correlationId = resource.id.toString(),
+      stages = listOf(
+        Job(
+          "bake",
+          mapOf(
+            "amiSuffix" to "",
+            "baseOs" to resource.spec.baseOs,
+            "baseLabel" to resource.spec.baseLabel.name.toLowerCase(),
+            "cloudProviderType" to "aws",
+            "package" to artifact.reference.substringAfterLast("/"),
+            "regions" to resource.spec.regions,
+            "storeType" to resource.spec.storeType.name.toLowerCase(),
+            "user" to "keel",
+            "vmType" to "hvm"
           )
-        ),
-        trigger = OrchestrationTrigger(
-          correlationId = resource.id.toString(),
-          notifications = emptyList(),
-          artifacts = listOf(artifact)
         )
-      )
+      ),
+      artifacts = listOf(artifact)
     )
-    return listOf(Task(id = taskRef.taskId, name = description)) // TODO: wow, this is ugly
+      return listOf(Task(id = taskRef.id, name = description)) // TODO: wow, this is ugly
+    } catch (e: Exception) {
+      log.error("Error launching orca bake for: ${description.toLowerCase()}")
+      return emptyList()
+    }
   }
 
   override suspend fun actuationInProgress(resource: Resource<ImageSpec>): Boolean =

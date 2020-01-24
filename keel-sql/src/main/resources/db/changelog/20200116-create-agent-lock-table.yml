@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-agent-lock-table
+      author: gyardeni
+      changes:
+        - createTable:
+            tableName: agent_lock
+            columns:
+              - column:
+                  name: lock_name
+                  type: varchar(256)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: expiry
+                  type: bigint(13)
+                  constraints:
+                    nullable: false

@@ -47,6 +47,7 @@ import io.mockk.mockk
 import io.mockk.slot
 import java.util.UUID
 import kotlinx.coroutines.runBlocking
+import org.springframework.context.ApplicationEventPublisher
 import strikt.api.Assertion
 import strikt.api.DescribeableBuilder
 import strikt.api.expectThat
@@ -67,9 +68,11 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
     // we're just using this to get notifications
     every { environmentFor(any()) } returns Environment("test")
   }
+  private val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
   private val taskLauncher = TaskLauncher(
     orcaService,
-    deliveryConfigRepository
+    deliveryConfigRepository,
+    publisher
   )
   private val mapper = ObjectMapper().registerKotlinModule()
   private val yamlMapper = configuredYamlMapper()

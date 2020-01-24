@@ -3,14 +3,18 @@ package com.netflix.spinnaker.config
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.events.ResourceEvent.Companion.clock
 import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
+import com.netflix.spinnaker.keel.scheduled.ScheduledAgent
+import com.netflix.spinnaker.keel.sql.SqlAgentLockRepository
 import com.netflix.spinnaker.keel.sql.SqlArtifactRepository
 import com.netflix.spinnaker.keel.sql.SqlDeliveryConfigRepository
 import com.netflix.spinnaker.keel.sql.SqlDiffFingerprintRepository
 import com.netflix.spinnaker.keel.sql.SqlPausedRepository
 import com.netflix.spinnaker.keel.sql.SqlResourceRepository
 import com.netflix.spinnaker.keel.sql.SqlRetry
+import com.netflix.spinnaker.keel.sql.SqlTaskTrackingRepository
 import com.netflix.spinnaker.keel.sql.SqlUnhappyVetoRepository
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
+import com.netflix.spinnaker.kork.sql.config.SqlProperties
 import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import java.time.Clock
 import javax.annotation.PostConstruct
@@ -79,4 +83,18 @@ class SqlConfiguration {
   fun pausedRepository(
     jooq: DSLContext
   ) = SqlPausedRepository(jooq, SqlRetry(sqlRetryProperties))
+
+  @Bean
+  fun taskTrackingRepository(
+    jooq: DSLContext,
+    clock: Clock
+  ) = SqlTaskTrackingRepository(jooq, clock)
+
+  @Bean
+  fun agentLockRepository(
+    jooq: DSLContext,
+    clock: Clock,
+    properties: SqlProperties,
+    agents: List<ScheduledAgent>
+  ) = SqlAgentLockRepository(jooq, clock, properties.retries.transactions, agents)
 }

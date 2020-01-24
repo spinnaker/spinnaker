@@ -11,6 +11,7 @@ import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.plugin.Resolver
+import com.netflix.spinnaker.keel.plugin.TaskLauncher
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -32,6 +33,7 @@ class BakeryConfiguration {
     igorService: ArtifactService,
     imageService: ImageService,
     publisher: ApplicationEventPublisher,
+    taskLauncher: TaskLauncher,
     normalizers: List<Resolver<*>>
   ) = ImageHandler(
     artifactRepository,
@@ -41,6 +43,7 @@ class BakeryConfiguration {
     igorService,
     imageService,
     publisher,
+    taskLauncher,
     objectMapper,
     normalizers
   )

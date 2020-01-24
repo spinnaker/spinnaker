@@ -42,6 +42,7 @@ import io.mockk.mockk
 import io.mockk.slot
 import java.util.UUID
 import kotlinx.coroutines.runBlocking
+import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectThat
 import strikt.assertions.get
 import strikt.assertions.isEqualTo
@@ -53,13 +54,15 @@ internal class ApplicationLoadBalancerHandlerTests : JUnit5Minutests {
   private val cloudDriverService = mockk<CloudDriverService>()
   private val cloudDriverCache = mockk<CloudDriverCache>()
   private val orcaService = mockk<OrcaService>()
+  private val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
   private val deliveryConfigRepository: InMemoryDeliveryConfigRepository = mockk() {
     // we're just using this to get notifications
     every { environmentFor(any()) } returns Environment("test")
   }
   private val taskLauncher = TaskLauncher(
     orcaService,
-    deliveryConfigRepository
+    deliveryConfigRepository,
+    publisher
   )
   private val mapper = ObjectMapper().registerKotlinModule()
   private val yamlMapper = configuredYamlMapper()

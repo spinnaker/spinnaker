@@ -32,4 +32,5 @@ enum class OrcaExecutionStatus {
   fun isFailure() = listOf(TERMINAL, FAILED_CONTINUE, STOPPED, CANCELED).contains(this)
   fun isSuccess() = listOf(SUCCEEDED).contains(this)
   fun isIncomplete() = listOf(NOT_STARTED, RUNNING, PAUSED, SUSPENDED).contains(this)
+  fun isComplete() = isFailure() || isSuccess()
 }

@@ -19,6 +19,8 @@ import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
+import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
+import com.netflix.spinnaker.keel.plugin.TaskLauncher
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
@@ -46,6 +48,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
     val baseImageCache = mockk<BaseImageCache>()
     val imageService = mockk<ImageService>()
     val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
+    val taskLauncher = TaskLauncher(orcaService, InMemoryDeliveryConfigRepository(), publisher)
     val handler = ImageHandler(
       artifactRepository,
       baseImageCache,
@@ -54,6 +57,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
       igorService,
       imageService,
       publisher,
+      taskLauncher,
       configuredObjectMapper(),
       emptyList()
     )
