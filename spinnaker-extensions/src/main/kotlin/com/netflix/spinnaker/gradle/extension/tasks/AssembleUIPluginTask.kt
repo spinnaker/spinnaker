@@ -15,14 +15,23 @@
  */
 package com.netflix.spinnaker.gradle.extension.tasks
 
-import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.TaskAction
+import com.netflix.spinnaker.gradle.extension.Plugins
+import org.gradle.api.tasks.bundling.Zip
 
-class AssembleUIPluginTask : DefaultTask() {
+open class AssembleUIPluginTask : Zip() {
 
-    @TaskAction
-    fun doAction() {
-        project.logger.warn("Assembling UI plugin")
+  override fun getGroup(): String? = Plugins.GROUP
+
+  init {
+    this.archiveBaseName.set("deck")
+    this.archiveVersion.set("")
+    this.archiveExtension.set("zip")
+
+    this.from(project.files("${project.buildDir}/dist"))
+      .into("/")
+
+    project.afterEvaluate {
+      dependsOn(project.tasks.getByName("build"))
     }
-
+  }
 }

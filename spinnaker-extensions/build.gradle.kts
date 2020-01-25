@@ -16,38 +16,40 @@
 
 
 plugins {
-    // Apply the Kotlin JVM plugin to add support for Kotlin.
-    id("org.jetbrains.kotlin.jvm").version("1.3.31")
+  // Apply the Kotlin JVM plugin to add support for Kotlin.
+  id("org.jetbrains.kotlin.jvm").version("1.3.31")
 }
 
-
 dependencies {
-    // Kotlin JDK 8 standard library.
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+  implementation("org.gradle.crypto.checksum:org.gradle.crypto.checksum.gradle.plugin:1.2.0")
+  implementation("com.moowork.gradle:gradle-node-plugin:1.1.0")
 
-    // Kotlin test library.
-    testImplementation("org.jetbrains.kotlin:kotlin-test")
+  // Kotlin JDK 8 standard library.
+  implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
-    // Kotlin JUnit integration.
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit")
+  // Kotlin test library.
+  testImplementation("org.jetbrains.kotlin:kotlin-test")
+
+  // Kotlin JUnit integration.
+  testImplementation("org.jetbrains.kotlin:kotlin-test-junit")
 }
 
 gradlePlugin {
-    // Define the plugin
-    val serviceExtension by plugins.creating {
-        id = "io.spinnaker.plugin.service-extension"
-        implementationClass = "com.netflix.spinnaker.gradle.extension.SpinnakerServiceExtensionPlugin"
-    }
+  // Define the plugin
+  val serviceExtension by plugins.creating {
+    id = "io.spinnaker.plugin.service-extension"
+    implementationClass = "com.netflix.spinnaker.gradle.extension.SpinnakerServiceExtensionPlugin"
+  }
 
-    val uiExtension by plugins.creating {
-        id = "io.spinnaker.plugin.ui-extension"
-        implementationClass = "com.netflix.spinnaker.gradle.extension.SpinnakerUIExtensionPlugin"
-    }
+  val uiExtension by plugins.creating {
+    id = "io.spinnaker.plugin.ui-extension"
+    implementationClass = "com.netflix.spinnaker.gradle.extension.SpinnakerUIExtensionPlugin"
+  }
 
-    val bundler by plugins.creating {
-        id = "io.spinnaker.plugin.bundler"
-        implementationClass = "com.netflix.spinnaker.gradle.extension.SpinnakerExtensionsBundlerPlugin"
-    }
+  val bundler by plugins.creating {
+    id = "io.spinnaker.plugin.bundler"
+    implementationClass = "com.netflix.spinnaker.gradle.extension.SpinnakerExtensionsBundlerPlugin"
+  }
 }
 
 // Add a source set for the functional test suite
@@ -59,12 +61,12 @@ configurations.getByName("functionalTestImplementation").extendsFrom(configurati
 
 // Add a task to run the functional tests
 val functionalTest by tasks.creating(Test::class) {
-    testClassesDirs = functionalTestSourceSet.output.classesDirs
-    classpath = functionalTestSourceSet.runtimeClasspath
+  testClassesDirs = functionalTestSourceSet.output.classesDirs
+  classpath = functionalTestSourceSet.runtimeClasspath
 }
 
 val check by tasks.getting(Task::class) {
-    // Run the functional tests as part of `check`
-    dependsOn(functionalTest)
+  // Run the functional tests as part of `check`
+  dependsOn(functionalTest)
 }
 

@@ -16,44 +16,71 @@
 
 package com.netflix.spinnaker.gradle.extension
 
+import com.netflix.spinnaker.gradle.extension.Plugins.ASSEMBLE_PLUGIN_TASK_NAME
+import com.netflix.spinnaker.gradle.extension.Plugins.BUNDLE_PLUGINS_TASK_NAME
+import com.netflix.spinnaker.gradle.extension.Plugins.CHECKSUM_BUNDLE_TASK_NAME
+import com.netflix.spinnaker.gradle.extension.Plugins.COLLECT_PLUGIN_ZIPS_TASK_NAME
+import com.netflix.spinnaker.gradle.extension.Plugins.RELEASE_BUNDLE_TASK_NAME
+import com.netflix.spinnaker.gradle.extension.extensions.SpinnakerBundleExtension
+import com.netflix.spinnaker.gradle.extension.extensions.SpinnakerPluginExtension
+import com.netflix.spinnaker.gradle.extension.tasks.BundlePluginsTask
+import com.netflix.spinnaker.gradle.extension.tasks.CreatePluginInfoTask
 import org.gradle.api.AntBuilder
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.logging.LogLevel
+import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.bundling.Zip
+import org.gradle.crypto.checksum.Checksum
+import org.gradle.crypto.checksum.ChecksumPlugin
+import java.io.File
 
 /**
  * Bundles all plugin artifacts into single zip.
  */
 class SpinnakerExtensionsBundlerPlugin : Plugin<Project> {
 
-    override fun apply(project: Project) {
+  override fun apply(project: Project) {
+    project.plugins.apply(JavaPlugin::class.java)
+    project.plugins.apply(ChecksumPlugin::class.java)
 
-        val allBuildDirs: MutableList<String> = mutableListOf()
-        project.subprojects.forEach { subProject ->
-            if (subProject.plugins.hasPlugin(SpinnakerServiceExtensionPlugin::class.java)
-                || subProject.plugins.hasPlugin(SpinnakerUIExtensionPlugin::class.java)) {
-                allBuildDirs.add("${subProject.name}/build/libs")
-            }
+    project.extensions.create("spinnakerBundle", SpinnakerBundleExtension::class.java)
+
+    project.tasks.register(COLLECT_PLUGIN_ZIPS_TASK_NAME, Copy::class.java) {
+      it.dependsOn(project.getTasksByName(ASSEMBLE_PLUGIN_TASK_NAME, true))
+      it.group = Plugins.GROUP
+
+      val distributions = project.subprojects
+        .filter { subproject ->
+          subproject.plugins.hasPlugin(SpinnakerServiceExtensionPlugin::class.java) ||
+            subproject.plugins.hasPlugin(SpinnakerUIExtensionPlugin::class.java)
         }
+        .map { subproject -> project.file("${subproject.buildDir}/distributions") }
 
-        // Register distPluginZip for root project.
-        project.tasks.register<Zip>("distPluginZip", Zip::class.java) {
-            it.from(allBuildDirs).into("/")
-            it.archiveFileName.set("${project.name}-${project.version}.zip")
-            it.include("*")
-            it.destinationDirectory.set(project.rootDir)
-            it.doLast {
-                project.logger.log(LogLevel.WARN, "Computing Checksum for.." + it.outputs.files.singleFile.absolutePath)
-                project.ant { ant: AntBuilder ->
-                    ant.invokeMethod("checksum", mapOf("file" to it.outputs.files.singleFile))
-                }
-            }
-        }
-
-        val distPluginZip: Task = project.tasks.getByName("distPluginZip")
-        distPluginZip.dependsOn(project.tasks.getByName("build"))
+      it.from(distributions)
+        .into("${project.buildDir}/zips")
     }
 
+    project.tasks.register(BUNDLE_PLUGINS_TASK_NAME, Zip::class.java) {
+      it.dependsOn(COLLECT_PLUGIN_ZIPS_TASK_NAME)
+      it.group = Plugins.GROUP
+      it.from("${project.buildDir}/zips")
+    }
+
+    project.tasks.register(CHECKSUM_BUNDLE_TASK_NAME, Checksum::class.java) {
+      it.dependsOn(BUNDLE_PLUGINS_TASK_NAME)
+      it.group = Plugins.GROUP
+
+      it.files = project.tasks.getByName(BUNDLE_PLUGINS_TASK_NAME).outputs.files
+      it.outputDir = File(project.buildDir, "checksums")
+      it.algorithm = Checksum.Algorithm.SHA512
+    }
+
+    project.tasks.register(RELEASE_BUNDLE_TASK_NAME, CreatePluginInfoTask::class.java) {
+      it.dependsOn(CHECKSUM_BUNDLE_TASK_NAME)
+      it.group = Plugins.GROUP
+    }
+  }
 }

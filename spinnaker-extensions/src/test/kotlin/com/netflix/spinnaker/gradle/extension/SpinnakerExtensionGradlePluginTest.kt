@@ -16,12 +16,14 @@
 package com.netflix.spinnaker.gradle.extension
 
 import org.gradle.testfixtures.ProjectBuilder
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertNotNull
 
 /**
  * Unit test for the 'com.netflix.spinnaker.gradle.extension.spinnakerextension' plugin.
  */
+@Ignore
 class SpinnakerExtensionGradlePluginTest {
 
     @Test fun `spinnakerserviceextension plugin registers task`() {

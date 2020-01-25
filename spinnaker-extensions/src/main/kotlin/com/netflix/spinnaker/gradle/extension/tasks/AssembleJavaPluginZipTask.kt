@@ -15,25 +15,44 @@
  */
 package com.netflix.spinnaker.gradle.extension.tasks
 
-import org.gradle.api.file.CopySpec
+import com.netflix.spinnaker.gradle.extension.Plugins
+import com.netflix.spinnaker.gradle.extension.SpinnakerServiceExtensionPlugin
+import com.netflix.spinnaker.gradle.extension.extensions.SpinnakerPluginExtension
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.tasks.bundling.Jar
+import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.tasks.bundling.Zip
+import java.io.File
+import java.lang.IllegalStateException
 
 /**
  * Task to assemble plugin related files(dependency jars, class files etc) into a zip.
  */
-open class AssembleJavaPluginZipTask : Jar() {
+open class AssembleJavaPluginZipTask : Zip() {
 
-    init {
-        project.afterEvaluate {
-            archiveBaseName.set(project.name)
-            archiveExtension.set("zip")
-            val jar = project.tasks.getByName(JavaPlugin.JAR_TASK_NAME)
-            this.dependsOn(jar)
-            val childSpec: CopySpec = project.copySpec().with(this).into("classes")
-            val libSpec: CopySpec = project.copySpec().from(project.configurations.getByName("runtimeClasspath")).into("lib")
-            this.with(childSpec, libSpec)
-        }
-    }
+  override fun getGroup(): String? = Plugins.GROUP
 
+  init {
+    val ext = project.extensions.findByType(SpinnakerPluginExtension::class.java)
+      ?: throw IllegalStateException("A 'spinnakerPlugin' configuration block is required")
+
+    this.archiveBaseName.set(ext.serviceName)
+    this.archiveVersion.set("")
+    this.archiveExtension.set("zip")
+
+    val sourceSets = project.convention.getPlugin(JavaPluginConvention::class.java).sourceSets
+
+    this.with(
+      // TODO(rz): Make sure kork / service deps are not included (compileOnly)
+      project.copySpec().from(sourceSets.getByName("main").compileClasspath)
+        .into("libs/"),
+      project.copySpec()
+        .from(sourceSets.getByName("main").runtimeClasspath)
+        .from(sourceSets.getByName("main").resources)
+        .into("classes/"),
+      project.copySpec().from(File(project.buildDir, "tmp/jar"))
+        .into("classes/META-INF/")
+    )
+
+    this.dependsOn(JavaPlugin.JAR_TASK_NAME)
+  }
 }

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gradle.extension
 
 import java.io.File
 import org.gradle.testkit.runner.GradleRunner
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
@@ -26,6 +27,7 @@ import kotlin.test.assertTrue
  */
 class SpinnakerExtensionGradlePluginFunctionalTest {
 
+  @Ignore
     @Test fun `can run task`() {
         // Setup the test build
         val projectDir = File("build/functionaltest")

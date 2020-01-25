@@ -16,19 +16,39 @@
 
 package com.netflix.spinnaker.gradle.extension
 
-import com.netflix.spinnaker.gradle.extension.tasks.RegistrationTask
+import com.moowork.gradle.node.NodePlugin
+import com.netflix.spinnaker.gradle.extension.Plugins.ASSEMBLE_PLUGIN_TASK_NAME
+import com.netflix.spinnaker.gradle.extension.tasks.AssembleUIPluginTask
+import com.netflix.spinnaker.gradle.extension.tasks.BuildUIExtensionTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.tasks.bundling.Zip
+import org.gradle.api.plugins.JavaPlugin
 
 /**
  * Gradle plugin to support spinnaker UI plugin bundling aspects.
+ *
+ * TODO(rz): Need a setup command for scaffolding out all of the various node/rollup/yarn/npm/whatever tool configs
  */
 class SpinnakerUIExtensionPlugin : Plugin<Project> {
 
-    override fun apply(project: Project) {
-        project.tasks.register("assemblePluginZip", Zip::class.java)
-        project.tasks.register("registerPlugin", RegistrationTask::class.java)
-    }
+  override fun apply(project: Project) {
+    // Include JavaPlugin as a hack to get the Zip tasks to actually work. For whatever reason, when the JavaPlugin
+    // is not applied, Zip tasks fail to bind their configurations, or something.
+    project.pluginManager.apply(JavaPlugin::class.java)
 
+    project.pluginManager.apply(NodePlugin::class.java)
+
+    project.tasks.create(ASSEMBLE_PLUGIN_TASK_NAME, AssembleUIPluginTask::class.java)
+    project.tasks.create("buildUi", BuildUIExtensionTask::class.java)
+
+    project.afterEvaluate {
+      project.tasks.getByName("build").dependsOn("buildUi")
+      project.tasks
+        .getByName("clean")
+        .dependsOn("yarn_cache_clean")
+        .doLast {
+          project.delete(project.files("${project.projectDir}/node_modules"))
+        }
+    }
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Netflix, Inc.
+ * Copyright 2020 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.netflix.spinnaker.gradle.extension.tasks
 
 import com.netflix.spinnaker.gradle.extension.Plugins
 import org.gradle.api.DefaultTask
-import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.TaskAction
 
-/**
- * Task to register a spinnaker plugin.
- * This task will invoke a spinnaker API to register 'spinnaker plugin' metadata with Front50.
- */
-open class RegistrationTask : DefaultTask() {
+open class BuildUIExtensionTask : DefaultTask() {
 
   override fun getGroup(): String? = Plugins.GROUP
 
+  init {
+    this.dependsOn("yarn", "yarn_install", "yarn_build")
+  }
+
   @TaskAction
   fun doAction() {
-    project.logger.log(LogLevel.INFO, "Registration with spinnaker is not complete!!")
+    // Do nothing, this is just a synthetic task.
   }
 }
