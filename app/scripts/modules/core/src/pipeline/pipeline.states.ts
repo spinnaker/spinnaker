@@ -98,12 +98,12 @@ module(PIPELINE_STATES, [APPLICATION_STATE_PROVIDER]).config([
 
     const executionsLookup: INestedState = {
       name: 'executionLookup',
-      url: '/executions/:executionId',
+      url: '/executions/:executionId?refId&stage&subStage&step&details&stageId',
       params: {
         executionId: { dynamic: true },
       },
       redirectTo: transition => {
-        const { executionId } = transition.params();
+        const { executionId, refId, stage, subStage, step, details, stageId } = transition.params();
         const executionService: ExecutionService = transition.injector().get('executionService');
 
         if (!executionId) {
@@ -117,6 +117,12 @@ module(PIPELINE_STATES, [APPLICATION_STATE_PROVIDER]).config([
               {
                 application: execution.application,
                 executionId: execution.id,
+                refId,
+                stage,
+                subStage,
+                step,
+                details,
+                stageId,
               },
             ),
           )
