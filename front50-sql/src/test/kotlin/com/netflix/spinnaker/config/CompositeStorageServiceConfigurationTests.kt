@@ -33,7 +33,8 @@ import strikt.assertions.isA
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(
-  classes = [CompositeStorageServiceConfigurationTestApp::class]
+  classes = [CompositeStorageServiceConfigurationTestApp::class],
+  properties = ["spring.application.name=front50"]
   )
 internal class CompositeStorageServiceConfigurationTests {
 
