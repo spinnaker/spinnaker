@@ -31,10 +31,6 @@ import com.amazonaws.services.ecs.model.NetworkBinding;
 import com.amazonaws.services.ecs.model.NetworkInterface;
 import com.amazonaws.services.ecs.model.PortMapping;
 import com.amazonaws.services.ecs.model.TaskDefinition;
-import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetHealthRequest;
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetHealthResult;
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetDescription;
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetHealthDescription;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
@@ -45,14 +41,8 @@ import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.core.provider.agent.HealthProvidingCachingAgent;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
-import com.netflix.spinnaker.clouddriver.ecs.cache.client.ContainerInstanceCacheClient;
-import com.netflix.spinnaker.clouddriver.ecs.cache.client.ServiceCacheClient;
-import com.netflix.spinnaker.clouddriver.ecs.cache.client.TaskCacheClient;
-import com.netflix.spinnaker.clouddriver.ecs.cache.client.TaskDefinitionCacheClient;
-import com.netflix.spinnaker.clouddriver.ecs.cache.model.ContainerInstance;
-import com.netflix.spinnaker.clouddriver.ecs.cache.model.Service;
-import com.netflix.spinnaker.clouddriver.ecs.cache.model.Task;
-import com.netflix.spinnaker.clouddriver.ecs.cache.model.TaskHealth;
+import com.netflix.spinnaker.clouddriver.ecs.cache.client.*;
+import com.netflix.spinnaker.clouddriver.ecs.cache.model.*;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -107,8 +97,8 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
         new TaskDefinitionCacheClient(providerCache, objectMapper);
     ServiceCacheClient serviceCacheClient = new ServiceCacheClient(providerCache, objectMapper);
 
-    AmazonElasticLoadBalancing amazonloadBalancing =
-        amazonClientProvider.getAmazonElasticLoadBalancingV2(account, region, false);
+    TargetHealthCacheClient targetHealthCacheClient =
+        new TargetHealthCacheClient(providerCache, objectMapper);
 
     ContainerInstanceCacheClient containerInstanceCacheClient =
         new ContainerInstanceCacheClient(providerCache);
@@ -148,7 +138,7 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
         if (task.getContainers().get(0).getNetworkBindings().size() >= 1) {
           taskHealth =
               inferHealthNetworkBindedContainer(
-                  amazonloadBalancing,
+                  targetHealthCacheClient,
                   task,
                   containerInstance,
                   serviceName,
@@ -157,7 +147,7 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
         } else {
           taskHealth =
               inferHealthNetworkInterfacedContainer(
-                  amazonloadBalancing, task, serviceName, service, taskDefinition);
+                  targetHealthCacheClient, task, serviceName, service, taskDefinition);
         }
         log.debug("Task Health contains the following elements: {}", taskHealth);
 
@@ -172,7 +162,7 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
   }
 
   private TaskHealth inferHealthNetworkInterfacedContainer(
-      AmazonElasticLoadBalancing amazonloadBalancing,
+      TargetHealthCacheClient targetHealthCacheClient,
       Task task,
       String serviceName,
       Service loadBalancerService,
@@ -205,7 +195,7 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
 
       overallTaskHealth =
           describeTargetHealth(
-              amazonloadBalancing,
+              targetHealthCacheClient,
               task,
               loadBalancerService,
               serviceName,
@@ -231,12 +221,14 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
 
   private TaskHealth makeTaskHealth(
       Task task, String serviceName, TargetHealthDescription healthDescription) {
-    log.debug("Task target health is: {}", healthDescription.getTargetHealth());
-    String targetHealth =
-        healthDescription.getTargetHealth().getState().equals("healthy")
-            ? STATUS_UP
-            : STATUS_UNKNOWN;
-
+    String targetHealth = STATUS_UNKNOWN;
+    if (healthDescription != null) {
+      log.debug("Task target health is: {}", healthDescription.getTargetHealth());
+      targetHealth =
+          healthDescription.getTargetHealth().getState().equals("healthy")
+              ? STATUS_UP
+              : STATUS_UNKNOWN;
+    }
     TaskHealth taskHealth = new TaskHealth();
     taskHealth.setType("loadBalancer");
     taskHealth.setState(targetHealth);
@@ -249,7 +241,7 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
   }
 
   private TaskHealth inferHealthNetworkBindedContainer(
-      AmazonElasticLoadBalancing amazonloadBalancing,
+      TargetHealthCacheClient targetHealthCacheClient,
       Task task,
       ContainerInstance containerInstance,
       String serviceName,
@@ -286,7 +278,7 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
 
       overallTaskHealth =
           describeTargetHealth(
-              amazonloadBalancing,
+              targetHealthCacheClient,
               task,
               loadBalancerService,
               serviceName,
@@ -299,8 +291,20 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
     return overallTaskHealth;
   }
 
+  private TargetHealthDescription findHealthDescription(
+      List<TargetHealthDescription> targetHealths, String targetId, Integer targetPort) {
+
+    return targetHealths.stream()
+        .filter(
+            h ->
+                h.getTarget().getId().equals(targetId)
+                    && h.getTarget().getPort().equals(targetPort))
+        .findFirst()
+        .orElse(null);
+  }
+
   private TaskHealth describeTargetHealth(
-      AmazonElasticLoadBalancing amazonloadBalancing,
+      TargetHealthCacheClient targetHealthCacheClient,
       Task task,
       Service loadBalancerService,
       String serviceName,
@@ -308,25 +312,31 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
       String targetId,
       Integer targetPort,
       TaskHealth overallTaskHealth) {
-    DescribeTargetHealthResult describeTargetHealthResult =
-        amazonloadBalancing.describeTargetHealth(
-            new DescribeTargetHealthRequest()
-                .withTargetGroupArn(targetGroupArn)
-                .withTargets(new TargetDescription().withId(targetId).withPort(targetPort)));
 
-    if (describeTargetHealthResult.getTargetHealthDescriptions().isEmpty()) {
-      log.debug("Target health description is empty");
+    String targetHealthKey = Keys.getTargetHealthKey(accountName, region, targetGroupArn);
+    EcsTargetHealth targetHealth = targetHealthCacheClient.get(targetHealthKey);
+
+    if (targetHealth == null) {
+      log.debug("Cached EcsTargetHealth is empty for targetGroup {}", targetGroupArn);
       evictStaleData(task, loadBalancerService);
-      return overallTaskHealth;
+      return makeTaskHealth(task, serviceName, null);
+    }
+    TargetHealthDescription targetHealthDescription =
+        findHealthDescription(targetHealth.getTargetHealthDescriptions(), targetId, targetPort);
+
+    if (targetHealthDescription == null) {
+      log.debug(
+          "TargetHealthDescription is empty on targetGroup '{}' for {}:{}",
+          targetGroupArn,
+          targetId,
+          targetPort);
+      evictStaleData(task, loadBalancerService);
+      return makeTaskHealth(task, serviceName, null);
     }
 
-    log.debug(
-        "Target health description is not empty and has a size of {}",
-        describeTargetHealthResult.getTargetHealthDescriptions().size());
-    TargetHealthDescription healthDescription =
-        describeTargetHealthResult.getTargetHealthDescriptions().get(0);
+    log.debug("Retrieved health of targetId {} for targetGroup {}", targetId, targetGroupArn);
 
-    TaskHealth taskHealth = makeTaskHealth(task, serviceName, healthDescription);
+    TaskHealth taskHealth = makeTaskHealth(task, serviceName, targetHealthDescription);
     if ((overallTaskHealth == null) || (taskHealth.getState().equals(STATUS_UNKNOWN))) {
       return taskHealth;
     }
