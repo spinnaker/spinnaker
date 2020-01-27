@@ -44,6 +44,7 @@ dependencies {
   testImplementation "io.strikt:strikt-core"
   testImplementation "dev.minutest:minutest"
   testImplementation "io.mockk:mockk"
+  testImplementation "com.fasterxml.jackson.module:jackson-module-kotlin"
 
   testRuntimeOnly "org.junit.platform:junit-platform-launcher"
   testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"

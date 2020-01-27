@@ -146,7 +146,7 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
           "{}: On demand entry contents overwriting load data entry: {}",
           getAgentType(),
           onDemandResultsJson);
-      Map<String, Collection<CacheData>> onDemandResults;
+      Map<String, List<DefaultCacheData>> onDemandResults;
       try {
         onDemandResults =
             objectMapper.readValue(
@@ -171,10 +171,11 @@ public abstract class KubernetesV2OnDemandCachingAgent extends KubernetesV2Cachi
   }
 
   protected void mergeCacheResults(
-      Map<String, Collection<CacheData>> current, Map<String, Collection<CacheData>> added) {
+      Map<String, Collection<CacheData>> current,
+      Map<String, ? extends Collection<? extends CacheData>> added) {
     for (String group : added.keySet()) {
       Collection<CacheData> currentByGroup = current.get(group);
-      Collection<CacheData> addedByGroup = added.get(group);
+      Collection<? extends CacheData> addedByGroup = added.get(group);
 
       currentByGroup = currentByGroup == null ? new ArrayList<>() : currentByGroup;
       addedByGroup = addedByGroup == null ? new ArrayList<>() : addedByGroup;

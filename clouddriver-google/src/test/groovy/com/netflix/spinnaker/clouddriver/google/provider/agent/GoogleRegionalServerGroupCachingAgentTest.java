@@ -532,7 +532,7 @@ final class GoogleRegionalServerGroupCachingAgentTest {
 
     CacheData cacheData =
         providerCache.get(ON_DEMAND.getNs(), serverGroupKey("myservergroup-v001"));
-    Map<String, Collection<CacheData>> cacheResults =
+    Map<String, Collection<DefaultCacheData>> cacheResults =
         objectMapper.readValue(
             (String) cacheData.getAttributes().get("cacheResults"),
             new TypeReference<Map<String, Collection<DefaultCacheData>>>() {});
