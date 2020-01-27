@@ -16,8 +16,10 @@ import com.netflix.spinnaker.keel.persistence.ResourceRepository.Companion.DEFAU
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import java.time.Instant
 import org.slf4j.LoggerFactory
-import org.springframework.http.HttpStatus
+import org.springframework.http.HttpStatus.BAD_REQUEST
+import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
+import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.GetMapping
@@ -122,14 +124,20 @@ class DeliveryConfigController(
   }
 
   @ExceptionHandler(InvalidConstraintException::class)
-  @ResponseStatus(HttpStatus.NOT_FOUND)
+  @ResponseStatus(NOT_FOUND)
   fun onConstraintNotFound(e: InvalidConstraintException) {
     log.info(e.message)
   }
 
   @ExceptionHandler(NoSuchDeliveryConfigException::class)
-  @ResponseStatus(HttpStatus.NOT_FOUND)
+  @ResponseStatus(NOT_FOUND)
   fun onDeliveryConfigNotFound(e: NoSuchDeliveryConfigException) {
+    log.info(e.message)
+  }
+
+  @ExceptionHandler(HttpMessageNotReadableException::class)
+  @ResponseStatus(BAD_REQUEST)
+  fun onHttpMessageNotReadable(e: HttpMessageNotReadableException) {
     log.info(e.message)
   }
 
