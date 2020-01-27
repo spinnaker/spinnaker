@@ -63,7 +63,13 @@ public class KubernetesV2ClouddriverProfileFactory extends ClouddriverProfileFac
       return;
     }
 
+    // If kubeconfigFile is remote, clouddriver will download it at runtime instead of using a
+    // halyard-generated version
     String kubeconfigFile = account.getKubeconfigFile();
+    if (StringUtils.isEmpty(kubeconfigFile) || fileService.isRemoteFile(kubeconfigFile)) {
+      return;
+    }
+
     String kubeconfigContents = getKubconfigFileContents(kubeconfigFile);
     String context = account.getContext();
 

@@ -91,6 +91,18 @@ public class FileService {
     return readFromLocalFilesystem(fileReference);
   }
 
+  /**
+   * Indicates if the given file reference is for a remote (secret reference, config server) or
+   * local file.
+   *
+   * @param fileReference to be checked.
+   * @return true if it's a remote file.
+   */
+  public boolean isRemoteFile(String fileReference) {
+    return CloudConfigResourceService.isCloudConfigResource(fileReference)
+        || EncryptedSecret.isEncryptedFile(fileReference);
+  }
+
   private byte[] readFromLocalFilesystem(String path) throws IOException {
     Path absolutePath = absolutePath(path);
     if (absolutePath == null) {
