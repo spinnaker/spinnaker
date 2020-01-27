@@ -16,9 +16,9 @@
 
 buildscript {
   ext {
-    clouddriverVersion = "5.8.0"
-    front50Version = "2.1.0"
-    fiatVersion = "1.0.5"
+    clouddriverVersion = "5.47.1"
+    front50Version = "2.15.0"
+    fiatVersion = "1.13.1"
   }
   repositories {
     jcenter()
@@ -76,6 +76,15 @@ def createScript(project, mainClass, name) {
     into("bin") {
       from(project.tasks[name])
       fileMode = 0755
+    }
+  }
+}
+
+subprojects { project ->
+  if ([korkVersion, fiatVersion, clouddriverVersion, front50Version].any { it.endsWith("-SNAPSHOT") }) {
+    logger.info("Enabling mavenLocal")
+    repositories {
+      mavenLocal()
     }
   }
 }

@@ -4,7 +4,7 @@ dependencies {
 
   implementation "com.netflix.spinnaker.clouddriver:clouddriver-docker:$clouddriverVersion"
   implementation "com.netflix.spinnaker.clouddriver:clouddriver-google:$clouddriverVersion"
-  implementation "com.netflix.spinnaker.clouddriver:clouddriver-kubernetes:$clouddriverVersion"
+  implementation "com.netflix.spinnaker.clouddriver:clouddriver-kubernetes-v1:$clouddriverVersion"
   implementation "com.netflix.spinnaker.clouddriver:clouddriver-appengine:$clouddriverVersion"
   implementation "com.netflix.spinnaker.clouddriver:clouddriver-azure:$clouddriverVersion"
   implementation "com.netflix.spinnaker.clouddriver:clouddriver-cloudfoundry:$clouddriverVersion"
