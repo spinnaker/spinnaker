@@ -27,29 +27,27 @@ import kotlin.test.assertTrue
  */
 class SpinnakerExtensionGradlePluginFunctionalTest {
 
-  @Ignore
-    @Test fun `can run task`() {
-        // Setup the test build
-        val projectDir = File("build/functionaltest")
-        projectDir.mkdirs()
-        projectDir.resolve("settings.gradle").writeText("")
-        projectDir.resolve("build.gradle").writeText("""
-            plugins {
-                id('java')
-                id('io.spinnaker.plugin.service-extension')
-            }
-        """)
+  @Test fun `can run task`() {
+    // Setup the test build
+    val projectDir = File("build/functionaltest")
+    projectDir.mkdirs()
+    projectDir.resolve("settings.gradle").writeText("")
+    projectDir.resolve("build.gradle").writeText("""
+        plugins {
+            id('io.spinnaker.plugin.bundler')
+        }
+    """)
 
-        // Run the build
-        val runner = GradleRunner.create()
-        runner.forwardOutput()
-        runner.withPluginClasspath()
-        runner.withArguments("assemblePluginZip")
-        runner.withProjectDir(projectDir)
-        val result = runner.build()
+    // Run the build
+    val runner = GradleRunner.create()
+    runner.forwardOutput()
+    runner.withPluginClasspath()
+    runner.withArguments("collectPluginZips")
+    runner.withProjectDir(projectDir)
+    val result = runner.build()
 
-        // Verify the result
-        assertTrue(result.output.contains("BUILD SUCCESSFUL"))
-    }
+    // Verify the result
+    assertTrue(result.output.contains("BUILD SUCCESSFUL"))
+  }
 
 }
