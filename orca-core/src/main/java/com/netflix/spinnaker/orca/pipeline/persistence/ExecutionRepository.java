@@ -257,14 +257,15 @@ public interface ExecutionRepository {
         Long aStartTime = a.getStartTime();
         Long bStartTime = b.getStartTime();
 
+        int startCompare;
         if (aStartTime == null) {
-          return -1;
-        }
-        if (bStartTime == null) {
-          return 0;
+          startCompare = bStartTime == null ? 0 : -1;
+        } else if (bStartTime == null) {
+          startCompare = 1;
+        } else {
+          startCompare = bStartTime.compareTo(aStartTime);
         }
 
-        int startCompare = bStartTime.compareTo(aStartTime);
         if (startCompare == 0) {
           return b.getId().compareTo(a.getId());
         }
