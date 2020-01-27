@@ -232,7 +232,7 @@ public class AuthenticatedRequest {
     return Optional.ofNullable(MDC.get(Header.EXECUTION_ID.getHeader()));
   }
 
-  private static Optional<String> getSpinnakerApplication() {
+  public static Optional<String> getSpinnakerApplication() {
     return Optional.ofNullable(MDC.get(Header.APPLICATION.getHeader()));
   }
 
