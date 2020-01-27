@@ -98,7 +98,7 @@ public class ConfigBinStorageService implements StorageService {
     }
 
     try {
-      return kayentaObjectMapper.readValue(json, objectType.getTypeReference());
+      return kayentaObjectMapper.readValue(json, (TypeReference<T>) objectType.getTypeReference());
     } catch (Throwable e) {
       log.error("Read failed on path {}: {}", objectKey, e);
       throw new IllegalStateException(e);
@@ -350,7 +350,7 @@ public class ConfigBinStorageService implements StorageService {
 
     CanaryConfig config;
     try {
-      config = kayentaObjectMapper.readValue(json, ObjectType.CANARY_CONFIG.getTypeReference());
+      config = kayentaObjectMapper.readValue(json, CanaryConfig.class);
     } catch (Throwable e) {
       log.error("Read failed on path {}: {}", id, e);
       throw new IllegalStateException(e);

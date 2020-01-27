@@ -80,7 +80,7 @@ public class BlobsStorageService implements StorageService {
     }
 
     try {
-      return deserialize(blobItem, objectType.getTypeReference());
+      return deserialize(blobItem, (TypeReference<T>) objectType.getTypeReference());
     } catch (IOException | StorageException e) {
       throw new IllegalStateException("Unable to deserialize object (key: " + objectKey + ")", e);
     }
@@ -401,7 +401,7 @@ public class BlobsStorageService implements StorageService {
     return credentials.getRootFolder() + '/' + daoTypeName;
   }
 
-  private <T> T deserialize(CloudBlockBlob blob, TypeReference typeReference)
+  private <T> T deserialize(CloudBlockBlob blob, TypeReference<T> typeReference)
       throws IOException, StorageException {
     String json = downloadText(blob);
     return kayentaObjectMapper.readValue(json, typeReference);

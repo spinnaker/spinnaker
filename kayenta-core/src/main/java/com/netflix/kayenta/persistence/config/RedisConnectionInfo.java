@@ -20,7 +20,7 @@ import java.net.URI;
 import lombok.Builder;
 import lombok.Data;
 import redis.clients.jedis.Protocol;
-import redis.clients.util.JedisURIHelper;
+import redis.clients.jedis.util.JedisURIHelper;
 
 @Builder
 @Data

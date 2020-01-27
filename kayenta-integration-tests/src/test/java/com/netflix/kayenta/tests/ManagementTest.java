@@ -55,7 +55,7 @@ public class ManagementTest extends BaseIntegrationTest {
                 .assertThat()
                 .statusCode(HttpStatus.OK.value())
                 .body("status", is("UP"))
-                .body("details.canaryConfigIndexingAgent.status", is("UP"))
-                .body("details.redisHealth.status", is("UP")));
+                .body("components.canaryConfigIndexingAgent.status", is("UP"))
+                .body("components.redisHealth.status", is("UP")));
   }
 }

@@ -46,7 +46,7 @@ public class CanaryConfigControllerTest extends BaseControllerTest {
                 CONFIGS_ACCOUNT))
         .andDo(print())
         .andExpect(status().isOk())
-        .andExpect(content().contentType("application/json;charset=UTF-8"))
+        .andExpect(content().contentType("application/json"))
         .andExpect(jsonPath("$.applications.length()").value(is(1)))
         .andExpect(jsonPath("$.applications[0]").value(is("test-app")));
   }
@@ -65,7 +65,7 @@ public class CanaryConfigControllerTest extends BaseControllerTest {
                 CONFIGS_ACCOUNT))
         .andDo(print())
         .andExpect(status().isNotFound())
-        .andExpect(content().contentType("application/json;charset=UTF-8"))
+        .andExpect(content().contentType("application/json"))
         .andExpect(jsonPath("$.message").value(is("dummy message")));
   }
 
@@ -81,7 +81,7 @@ public class CanaryConfigControllerTest extends BaseControllerTest {
                 CONFIGS_ACCOUNT))
         .andDo(print())
         .andExpect(status().isBadRequest())
-        .andExpect(content().contentType("application/json;charset=UTF-8"))
+        .andExpect(content().contentType("application/json"))
         .andExpect(
             jsonPath("$.message")
                 .value(containsString("Unable to resolve account " + CONFIGS_ACCOUNT)));

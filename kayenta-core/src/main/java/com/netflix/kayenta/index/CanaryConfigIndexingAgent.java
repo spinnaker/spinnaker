@@ -38,6 +38,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.exceptions.JedisException;
+import redis.clients.jedis.params.SetParams;
 
 @Slf4j
 public class CanaryConfigIndexingAgent extends AbstractHealthIndicator {
@@ -97,7 +98,10 @@ public class CanaryConfigIndexingAgent extends AbstractHealthIndicator {
     try (Jedis jedis = jedisPool.getResource()) {
       long startTime = System.currentTimeMillis();
       String acquiredIndexingLock =
-          jedis.set(INDEXING_INSTANCE_KEY, currentInstanceId, "NX", "EX", indexingLockTTLSec);
+          jedis.set(
+              INDEXING_INSTANCE_KEY,
+              currentInstanceId,
+              SetParams.setParams().nx().ex(indexingLockTTLSec));
 
       if (!"OK".equals(acquiredIndexingLock)) {
         String lockHolderInstanceId = jedis.get(INDEXING_INSTANCE_KEY);

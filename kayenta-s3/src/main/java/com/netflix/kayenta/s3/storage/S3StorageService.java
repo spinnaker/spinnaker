@@ -127,7 +127,7 @@ public class S3StorageService implements StorageService {
     try {
       S3Object s3Object = amazonS3.getObject(bucket, path);
 
-      return deserialize(s3Object, objectType.getTypeReference());
+      return deserialize(s3Object, (TypeReference<T>) objectType.getTypeReference());
     } catch (AmazonS3Exception e) {
       log.error("Failed to load {} {}: {}", objectType.getGroup(), objectKey, e.getStatusCode());
       if (e.getStatusCode() == 404) {
@@ -164,7 +164,7 @@ public class S3StorageService implements StorageService {
     }
   }
 
-  private <T> T deserialize(S3Object s3Object, TypeReference typeReference) throws IOException {
+  private <T> T deserialize(S3Object s3Object, TypeReference<T> typeReference) throws IOException {
     return objectMapper.readValue(s3Object.getObjectContent(), typeReference);
   }
 

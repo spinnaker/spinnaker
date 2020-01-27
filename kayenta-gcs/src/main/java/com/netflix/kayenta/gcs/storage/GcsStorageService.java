@@ -139,8 +139,7 @@ public class GcsStorageService implements StorageService {
 
     try {
       StorageObject storageObject = storage.objects().get(bucketName, item.getName()).execute();
-
-      return deserialize(storage, storageObject, objectType.getTypeReference());
+      return deserialize(storage, storageObject, (TypeReference<T>) objectType.getTypeReference());
     } catch (IOException e) {
       if (e instanceof HttpResponseException) {
         HttpResponseException hre = (HttpResponseException) e;
@@ -189,7 +188,7 @@ public class GcsStorageService implements StorageService {
     }
   }
 
-  private <T> T deserialize(Storage storage, StorageObject object, TypeReference typeReference)
+  private <T> T deserialize(Storage storage, StorageObject object, TypeReference<T> typeReference)
       throws IOException {
     ByteArrayOutputStream output = new java.io.ByteArrayOutputStream();
     Storage.Objects.Get getter = storage.objects().get(object.getBucket(), object.getName());
