@@ -1607,7 +1607,7 @@
               "Date": "Tue, 26 Feb 2019 18:29:46 GMT",
               "Connection": "close"
             },
-            "body": "[{\"application\":\"compute\",\"id\":\"d6e7e0bc-83f5-461f-a95c-568080b49b6e\",\"index\":0,\"keepWaitingPipelines\":false,\"lastModifiedBy\":\"anonymous\",\"limitConcurrent\":true,\"name\":\"Simple Wait Pipeline\",\"stages\":[{\"name\":\"Wait\",\"refId\":\"1\",\"requisiteStageRefIds\":[],\"type\":\"wait\",\"waitTime\":2}],\"triggers\":[],\"updateTs\":\"1551204837863\"}]",
+            "body": "[{\"application\":\"compute\",\"id\":\"d6e7e0bc-83f5-461f-a95c-568080b49b6e\",\"index\":0,\"parameterConfig\":[{\"default\":\"123\",\"description\":\"param1\",\"hasOptions\":false,\"label\":\"labeled param1\",\"name\":\"param1\",\"options\":[{\"value\":\"\"}],\"pinned\":true,\"required\":true},{\"default\":\"abc\",\"description\":\"param2\",\"hasOptions\":false,\"label\":\"\",\"name\":\"param2\",\"options\":[{\"value\":\"\"}],\"pinned\":true,\"required\":true}],\"keepWaitingPipelines\":false,\"lastModifiedBy\":\"anonymous\",\"limitConcurrent\":true,\"name\":\"Simple Wait Pipeline\",\"stages\":[{\"name\":\"Wait\",\"refId\":\"1\",\"requisiteStageRefIds\":[],\"type\":\"wait\",\"waitTime\":2}],\"triggers\":[],\"updateTs\":\"1551204837863\"}]",
             "_mode": "text"
           }
         }
