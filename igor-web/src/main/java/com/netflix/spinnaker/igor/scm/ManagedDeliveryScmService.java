@@ -25,7 +25,6 @@ import com.netflix.spinnaker.igor.scm.bitbucket.client.BitBucketMaster;
 import com.netflix.spinnaker.igor.scm.github.client.GitHubMaster;
 import com.netflix.spinnaker.igor.scm.gitlab.client.GitLabMaster;
 import com.netflix.spinnaker.igor.scm.stash.client.StashMaster;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -116,8 +115,7 @@ public class ManagedDeliveryScmService {
       final String repository,
       final String directory,
       final String manifest,
-      final String ref)
-      throws IOException {
+      final String ref) {
 
     if (scmType == null || project == null || repository == null) {
       throw new IllegalArgumentException("scmType, project and repository are required arguments");

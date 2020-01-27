@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.igor.gcb
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.cloudbuild.v1.model.Build
 import com.google.api.services.cloudbuild.v1.model.BuildOptions
 import com.google.api.services.cloudbuild.v1.model.BuildStep
@@ -35,13 +34,11 @@ class GoogleCloudBuildAccountSpec extends Specification {
   GoogleCloudBuildArtifactFetcher artifactFetcher = new GoogleCloudBuildArtifactFetcher(client)
   GoogleCloudBuildAccount googleCloudBuildAccount = new GoogleCloudBuildAccount(client, cache, parser, artifactFetcher)
 
-  static ObjectMapper objectMapper = new ObjectMapper()
-
   def "listTriggers returns the trigger list correctly"() {
     given:
     def expectedTriggers = [getBuildTrigger("id1"), getBuildTrigger("id2")]
     when:
-    def result = googleCloudBuildAccount.listTriggers();
+    def result = googleCloudBuildAccount.listTriggers()
     then:
     1 * client.listTriggers() >> getListBuildTriggersResponse(expectedTriggers)
     result == expectedTriggers
@@ -94,7 +91,7 @@ class GoogleCloudBuildAccountSpec extends Specification {
     def queuedBuild = getBuild().setStatus("QUEUED").setOptions(new BuildOptions().setLogging("LEGACY")).setTags(finalTags)
 
     when:
-    def result = googleCloudBuildAccount.createBuild(inputBuild)
+    googleCloudBuildAccount.createBuild(inputBuild)
 
     then:
     1 * client.createBuild(startedBuild) >> createBuildOperation(queuedBuild)
@@ -173,39 +170,39 @@ class GoogleCloudBuildAccountSpec extends Specification {
   }
 
   private static Build getBuild(String status) {
-    List<String> args = new ArrayList<>();
-    args.add("echo");
-    args.add("Hello, world!");
+    List<String> args = new ArrayList<>()
+    args.add("echo")
+    args.add("Hello, world!")
 
-    BuildStep buildStep = new BuildStep().setArgs(args).setName("hello");
-    BuildOptions buildOptions = new BuildOptions().setLogging("LEGACY");
+    BuildStep buildStep = new BuildStep().setArgs(args).setName("hello")
+    BuildOptions buildOptions = new BuildOptions().setLogging("LEGACY")
 
     return new Build()
       .setStatus(status)
       .setSteps(Collections.singletonList(buildStep))
-      .setOptions(buildOptions);
+      .setOptions(buildOptions)
   }
 
   private static BuildTrigger getBuildTrigger(String id) {
-    return new BuildTrigger().setId(id).setDescription("Description for ${id}");
+    return new BuildTrigger().setId(id).setDescription("Description for ${id}")
   }
 
   private static ListBuildTriggersResponse getListBuildTriggersResponse(List<BuildTrigger> triggers) {
-    return new ListBuildTriggersResponse().setTriggers(triggers);
+    return new ListBuildTriggersResponse().setTriggers(triggers)
   }
 
   private static RepoSource getRepoSource() {
     return new RepoSource().setBranchName("master")
   }
 
-  private static createBuildOperation(Build inputBuild) {
-    Map<String, Object> metadata = new HashMap<>();
-    metadata.put("@type", "type.googleapis.com/google.devtools.cloudbuild.v1.BuildOperationMetadata");
-    metadata.put("build", objectMapper.convertValue(inputBuild, Map.class));
+  private createBuildOperation(Build inputBuild) {
+    Map<String, Object> metadata = new HashMap<>()
+    metadata.put("@type", "type.googleapis.com/google.devtools.cloudbuild.v1.BuildOperationMetadata")
+    metadata.put("build", GoogleCloudBuildTestSerializationHelper.serializeBuild(inputBuild))
 
-    Operation operation = new Operation();
-    operation.setName("operations/build/spinnaker-gcb-test/operationid");
-    operation.setMetadata(metadata);
-    return operation;
+    Operation operation = new Operation()
+    operation.setName("operations/build/spinnaker-gcb-test/operationid")
+    operation.setMetadata(metadata)
+    return operation
   }
 }
