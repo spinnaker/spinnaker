@@ -25,9 +25,11 @@ import org.springframework.stereotype.Component
 class AssociateElasticIpTask extends AbstractElasticIpTask {
   @Override
   ElasticIpResult performRequest(StageData stageData) {
-    stageData.with {
-      flexService.associateElasticIp(application, account, cluster, region, elasticIp)
-    }
+    flexService.associateElasticIp(stageData.application,
+            stageData.account,
+            stageData.cluster,
+            stageData.region,
+            stageData.elasticIp)
   }
 
   @Override

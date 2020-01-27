@@ -40,7 +40,7 @@ import redis.clients.jedis.HostAndPort
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisCluster
 import redis.clients.jedis.Protocol
-import redis.clients.util.Pool
+import redis.clients.jedis.util.Pool
 import java.net.URI
 import java.time.Clock
 import java.time.Duration

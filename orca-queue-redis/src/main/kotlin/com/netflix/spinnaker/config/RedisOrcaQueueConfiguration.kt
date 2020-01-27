@@ -40,7 +40,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Primary
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisCluster
-import redis.clients.util.Pool
+import redis.clients.jedis.util.Pool
 import java.time.Clock
 import java.util.Optional
 

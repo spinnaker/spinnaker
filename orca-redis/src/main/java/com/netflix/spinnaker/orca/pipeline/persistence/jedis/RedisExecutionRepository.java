@@ -27,8 +27,8 @@ import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
 import static java.util.Collections.*;
 import static net.logstash.logback.argument.StructuredArguments.value;
-import static redis.clients.jedis.BinaryClient.LIST_POSITION.AFTER;
-import static redis.clients.jedis.BinaryClient.LIST_POSITION.BEFORE;
+import static redis.clients.jedis.ListPosition.AFTER;
+import static redis.clients.jedis.ListPosition.BEFORE;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -58,7 +58,7 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import redis.clients.jedis.BinaryClient;
+import redis.clients.jedis.ListPosition;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.ScanResult;
@@ -786,7 +786,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
                   });
             }
 
-            cursor = chunk.getStringCursor();
+            cursor = chunk.getCursor();
             if (cursor.equals("0")) {
               break;
             }
@@ -1360,8 +1360,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
             tx.hdel(key, keysToRemove.toArray(new String[0]));
           }
           if (updateIndex) {
-            BinaryClient.LIST_POSITION pos =
-                stage.getSyntheticStageOwner() == STAGE_BEFORE ? BEFORE : AFTER;
+            ListPosition pos = stage.getSyntheticStageOwner() == STAGE_BEFORE ? BEFORE : AFTER;
             tx.linsert(indexKey, pos, stage.getParentStageId(), stage.getId());
           }
           tx.exec();

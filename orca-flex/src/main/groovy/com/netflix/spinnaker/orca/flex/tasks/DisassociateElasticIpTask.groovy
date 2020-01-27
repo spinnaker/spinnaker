@@ -25,9 +25,11 @@ import org.springframework.stereotype.Component
 class DisassociateElasticIpTask extends AbstractElasticIpTask {
   @Override
   ElasticIpResult performRequest(StageData stageData) {
-    stageData.with {
-      flexService.disassociateElasticIp(application, account, cluster, region, elasticIp.address)
-    }
+      flexService.disassociateElasticIp(stageData.application,
+              stageData.account,
+              stageData.cluster,
+              stageData.region,
+              stageData.elasticIp.address)
   }
 
   @Override

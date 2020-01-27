@@ -175,6 +175,7 @@ class DependentPipelineStarterSpec extends Specification {
       name             : "triggered",
       id               : "triggered",
       expectedArtifacts: [[
+                            id: "id1",
                             matchArtifact: [
                               kind: "gcs",
                               name: "gs://test/file.yaml",
@@ -234,6 +235,7 @@ class DependentPipelineStarterSpec extends Specification {
       name             : "triggered",
       id               : "triggered",
       expectedArtifacts: [[
+                            id: "id1",
                             matchArtifact: [
                               kind: "gcs",
                               name: "gs://test/file.yaml",
@@ -303,6 +305,7 @@ class DependentPipelineStarterSpec extends Specification {
       name             : "triggered",
       id               : "triggered",
       expectedArtifacts: [[
+                            id: "id1",
                             matchArtifact: [
                               kind: "gcs",
                               name: "gs://test/file.yaml",

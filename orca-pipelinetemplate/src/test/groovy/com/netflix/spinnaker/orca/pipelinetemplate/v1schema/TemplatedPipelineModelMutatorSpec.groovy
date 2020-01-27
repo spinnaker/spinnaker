@@ -67,6 +67,44 @@ class TemplatedPipelineModelMutatorSpec extends Specification {
     0 * subject.applyConfigurationsFromTemplate(_, _, pipeline)
   }
 
+  def "should merge expectedArtifacts when configured to inherit them"() {
+    given:
+    def pipeline = [
+      config: [
+        schema: '1',
+        pipeline: [
+          template: [
+            source: 'static-template'
+          ]
+        ],
+        configuration: [
+          inherit: ['expectedArtifacts'],
+          expectedArtifacts: [
+            [
+              id: 'artifact1'
+            ] as NamedHashMap
+          ]
+        ]
+      ]
+    ]
+
+    when:
+    subject.mutate(pipeline)
+
+    then:
+    1 * templateLoader.load(_) >> { [new PipelineTemplate(
+      schema: '1',
+      configuration: new Configuration(
+        expectedArtifacts: [
+          [
+            id: 'artifact2'
+          ] as NamedHashMap
+        ]
+      )
+    )]}
+    pipeline.expectedArtifacts.size() == 2
+  }
+
   def "should apply configurations from template if template is statically sourced"() {
     given:
     def pipeline = [

@@ -27,7 +27,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepositoryTck
 import redis.clients.jedis.Jedis
-import redis.clients.util.Pool
+import redis.clients.jedis.util.Pool
 import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Unroll

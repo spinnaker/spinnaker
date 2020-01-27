@@ -24,9 +24,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class PluginInfo {
   @Nonnull private String id;
   private String description;
@@ -34,8 +34,6 @@ public class PluginInfo {
   @Nonnull private List<Release> releases;
 
   @Data
-  @NoArgsConstructor
-  @AllArgsConstructor
   public static class Release {
     private String version;
     private String date;
