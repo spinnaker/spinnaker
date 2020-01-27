@@ -1,3 +1,7 @@
+[![Build Status](https://api.travis-ci.org/spinnaker/igor.svg?branch=master)](https://travis-ci.org/spinnaker/igor)
+
+[![](https://github.com/spinnaker/igor/workflows/Igor%20CI/badge.svg)](https://github.com/spinnaker/igor/actions?query=workflow%3A%22Igor+CI%22+branch%3Amaster)
+
 Igor is a service that provides a single point of integration with Continuous Integration (CI) and Source Control Management (SCM) services for Spinnaker.
 
 # Common Polling Architecture
