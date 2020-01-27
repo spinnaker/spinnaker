@@ -10,7 +10,12 @@ RUN apk --no-cache add --update \
   bash \
   curl \
   openjdk8-jre \
+  py-pip \
+  python
+RUN pip install --upgrade awscli==${AWS_CLI_VERSION}
+RUN apk --purge del \
   py-pip
+RUN rm -rf /var/cache/apk
 
 RUN echo '#!/usr/bin/env bash' > /usr/local/bin/hal && \
   echo '/opt/halyard/bin/hal "$@"' > /usr/local/bin/hal && \
@@ -25,14 +30,6 @@ RUN curl -o aws-iam-authenticator https://amazon-eks.s3-us-west-2.amazonaws.com/
   mv ./aws-iam-authenticator /usr/local/bin/aws-iam-authenticator
 
 ENV PATH "$PATH:/usr/local/bin/aws-iam-authenticator"
-
-RUN apk --no-cache add --update py-pip
-RUN pip install --upgrade awscli==${AWS_CLI_VERSION}
-
-RUN apk --purge del \
-  curl \
-  py-pip
-RUN rm -rf /var/cache/apk
 
 RUN addgroup -S -g 1000 spinnaker
 RUN adduser -D -S -G spinnaker -u 1000 spinnaker
