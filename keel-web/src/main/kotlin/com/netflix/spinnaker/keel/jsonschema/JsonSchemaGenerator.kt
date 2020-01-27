@@ -286,24 +286,24 @@ private object ObjectTypeHandler : TypeHandler() {
   private inline fun <reified T : Annotation> KAnnotatedElement.hasAnnotation() =
     annotations.any { it is T }
 
-  private val KType.preferredConstructor: KFunction<*>
+  private val KType.preferredConstructor: KFunction<*>?
     get() = jvmErasure.run {
       constructors
         .find { it.hasAnnotation<JsonCreator>() }
         ?: primaryConstructor
-        ?: error("$qualifiedName has no primary constructor or @JsonCreator")
     }
 
-  private fun HandlerContext.buildProperties(constructor: KFunction<*>): Map<String, Any?> =
-    constructor.parameters.associate { property ->
+  private fun HandlerContext.buildProperties(constructor: KFunction<*>?): Map<String, Any?> =
+    constructor?.parameters?.associate { property ->
       checkNotNull(property.name) to build(property.type)
-    }
+    } ?: emptyMap()
 
-  private fun buildRequired(constructor: KFunction<*>): List<String> =
+  private fun buildRequired(constructor: KFunction<*>?): List<String> =
     constructor
-      .parameters
-      .filterNot { it.type.isMarkedNullable || it.isOptional }
-      .map { checkNotNull(it.name) }
+      ?.parameters
+      ?.filterNot { it.type.isMarkedNullable || it.isOptional }
+      ?.map { checkNotNull(it.name) }
+      ?: emptyList()
 }
 
 private object AbstractTypeHandler : TypeHandler() {

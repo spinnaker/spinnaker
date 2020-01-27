@@ -646,7 +646,8 @@ internal class JsonSchemaGeneratorTests : JUnit5Minutests {
           }
           .containsExactlyInAnyOrder(
             "#/\$defs/Whisky",
-            "#/\$defs/Gin"
+            "#/\$defs/Gin",
+            "#/\$defs/Vodka"
           )
       }
 
@@ -654,6 +655,7 @@ internal class JsonSchemaGeneratorTests : JUnit5Minutests {
         expectThat(schema) {
           at("/\$defs/Whisky").isObject()
           at("/\$defs/Gin").isObject()
+          at("/\$defs/Vodka").isObject()
         }
       }
     }
@@ -883,6 +885,8 @@ data class Whisky(
 data class Gin(
   val floral: Boolean
 ) : Liquor()
+
+object Vodka : Liquor()
 
 private data class MultiLevelObjectProperties(
   val firstLevel: NestedObjectProperties

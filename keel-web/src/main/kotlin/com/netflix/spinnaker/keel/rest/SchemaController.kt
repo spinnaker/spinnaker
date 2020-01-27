@@ -3,7 +3,6 @@ package com.netflix.spinnaker.keel.rest
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.api.DeliveryConfig
-import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.jsonschema.JsonSchemaGenerator
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import javax.servlet.http.HttpServletRequest
@@ -21,17 +20,6 @@ class SchemaController(
   private val generator = JsonSchemaGenerator(objectMapper)
 
   @GetMapping(
-    path = ["/resource"],
-    produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
-  )
-  fun resource(request: HttpServletRequest): Map<String, Any?> {
-    val schema = generator
-      .generate<SubmittedResource<*>>(request.requestURL.toString())
-    return objectMapper.convertValue(schema)
-  }
-
-  @GetMapping(
-    path = ["/manifest"],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
   fun manifest(request: HttpServletRequest): Map<String, Any?> {
