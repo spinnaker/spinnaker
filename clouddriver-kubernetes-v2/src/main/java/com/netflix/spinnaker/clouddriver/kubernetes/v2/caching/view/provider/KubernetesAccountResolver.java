@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.v2.description;
+package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKindRegistry;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.ResourcePropertyRegistry;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesKindRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
@@ -28,12 +29,12 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
-public class KubernetesAccountResolver {
+class KubernetesAccountResolver {
   private final AccountCredentialsRepository credentialsRepository;
   private final ResourcePropertyRegistry globalResourcePropertyRegistry;
   private final KubernetesKindRegistry.Factory kindRegistryFactory;
 
-  public KubernetesAccountResolver(
+  KubernetesAccountResolver(
       AccountCredentialsRepository credentialsRepository,
       ResourcePropertyRegistry globalResourcePropertyRegistry,
       KubernetesKindRegistry.Factory kindRegistryFactory) {
@@ -42,7 +43,7 @@ public class KubernetesAccountResolver {
     this.kindRegistryFactory = kindRegistryFactory;
   }
 
-  public Optional<KubernetesV2Credentials> getCredentials(String account) {
+  Optional<KubernetesV2Credentials> getCredentials(String account) {
     return Optional.ofNullable(credentialsRepository.getOne(account))
         .filter(c -> c instanceof KubernetesNamedAccountCredentials)
         .map(c -> (KubernetesNamedAccountCredentials) c)
@@ -52,14 +53,14 @@ public class KubernetesAccountResolver {
   }
 
   @Nonnull
-  public ResourcePropertyRegistry getResourcePropertyRegistry(String account) {
+  ResourcePropertyRegistry getResourcePropertyRegistry(String account) {
     return getCredentials(account)
         .map(KubernetesV2Credentials::getResourcePropertyRegistry)
         .orElse(globalResourcePropertyRegistry);
   }
 
   @Nonnull
-  public KubernetesKindRegistry getKindRegistry(String account) {
+  KubernetesKindRegistry getKindRegistry(String account) {
     return getCredentials(account)
         .map(KubernetesV2Credentials::getKindRegistry)
         .orElseGet(kindRegistryFactory::create);

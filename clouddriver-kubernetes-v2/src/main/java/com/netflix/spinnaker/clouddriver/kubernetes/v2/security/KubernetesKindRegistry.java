@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest;
+package com.netflix.spinnaker.clouddriver.kubernetes.v2.security;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKindProperties;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;

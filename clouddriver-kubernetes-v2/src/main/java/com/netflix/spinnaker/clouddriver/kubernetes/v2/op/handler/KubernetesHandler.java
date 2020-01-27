@@ -27,10 +27,9 @@ import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAcco
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacer;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.ArtifactReplacer.ReplaceResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.artifact.Replacer;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys.InfrastructureCacheKey;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgentFactory;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.KubernetesCacheUtils;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.model.Manifest.Status;
@@ -112,8 +111,7 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatc
     sensitiveKeys.forEach(manifest::remove);
   }
 
-  public Map<String, Object> hydrateSearchResult(
-      Keys.InfrastructureCacheKey key, KubernetesCacheUtils cacheUtils) {
+  public Map<String, Object> hydrateSearchResult(InfrastructureCacheKey key) {
     Map<String, Object> result =
         objectMapper.convertValue(key, new TypeReference<Map<String, Object>>() {});
     result.put("region", key.getNamespace());

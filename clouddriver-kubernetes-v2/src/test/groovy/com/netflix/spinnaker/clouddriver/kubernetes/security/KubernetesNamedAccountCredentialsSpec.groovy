@@ -21,7 +21,7 @@ import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.AccountResourcePropertyRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKindRegistry
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesKindRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.names.KubernetesManifestNamer
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials

@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.kubernetes.v2.description
+package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider
 
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKindRegistry
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.GlobalResourcePropertyRegistry
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.ResourcePropertyRegistry
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesKindRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository

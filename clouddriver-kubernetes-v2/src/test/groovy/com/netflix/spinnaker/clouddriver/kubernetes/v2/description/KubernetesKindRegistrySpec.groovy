@@ -18,6 +18,8 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.description
 
 import com.google.common.collect.ImmutableList
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.*
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.GlobalKubernetesKindRegistry
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesKindRegistry
 import spock.lang.Specification
 import spock.lang.Subject
 

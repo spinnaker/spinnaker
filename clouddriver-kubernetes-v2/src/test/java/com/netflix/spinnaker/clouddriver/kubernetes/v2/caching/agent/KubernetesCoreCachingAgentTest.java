@@ -47,6 +47,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.GlobalResourc
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.ResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.*;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesUnregisteredCustomResourceHandler;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.GlobalKubernetesKindRegistry;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesKindRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
 import java.io.IOException;

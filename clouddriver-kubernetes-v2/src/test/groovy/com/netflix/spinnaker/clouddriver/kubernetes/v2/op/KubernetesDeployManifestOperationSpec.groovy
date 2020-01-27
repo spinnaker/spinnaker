@@ -31,6 +31,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.names.KubernetesManifestN
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesReplicaSetHandler
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesServiceHandler
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.manifest.KubernetesDeployManifestOperation
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.GlobalKubernetesKindRegistry
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesKindRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
