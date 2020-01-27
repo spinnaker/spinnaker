@@ -33,7 +33,7 @@ class DeckPluginsController(
 ) {
 
   @ApiOperation(value = "Retrieve a plugin manifest")
-  @GetMapping
+  @GetMapping("/plugin-manifest.json")
   fun getPluginManifest(): List<DeckPluginVersion> {
     return deckPluginService.getPluginsManifests()
   }

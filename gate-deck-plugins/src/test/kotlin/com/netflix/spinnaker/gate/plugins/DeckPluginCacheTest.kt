@@ -18,7 +18,6 @@ package com.netflix.spinnaker.gate.plugins
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.plugins.bundle.PluginBundleExtractor
-import com.netflix.spinnaker.kork.plugins.update.PluginUpdateService
 import com.netflix.spinnaker.kork.plugins.update.SpinnakerUpdateManager
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -59,10 +58,9 @@ class DeckPluginCacheTest : JUnit5Minutests {
 
   private inner class Fixture {
     val updateManager: SpinnakerUpdateManager = mockk(relaxed = true)
-    val updateService: PluginUpdateService = mockk(relaxed = true)
     val pluginBundleExtractor: PluginBundleExtractor = mockk(relaxed = true)
     val registry: Registry = NoopRegistry()
-    val subject = DeckPluginCache(updateManager, updateService, pluginBundleExtractor, registry)
+    val subject = DeckPluginCache(updateManager, pluginBundleExtractor, registry)
 
     init {
       val plugins = listOf(
@@ -93,13 +91,13 @@ class DeckPluginCacheTest : JUnit5Minutests {
       every { updateManager.plugins } returns plugins
 
       val pluginIdSlot = slot<String>()
-      every { updateManager.getLastPluginRelease(capture(pluginIdSlot)) } answers {
+      every { updateManager.getLastPluginRelease(capture(pluginIdSlot), "deck") } answers {
         PluginInfo.PluginRelease().apply {
           version = plugins.find { it.id == pluginIdSlot.captured }!!.releases.last().version
         }
       }
 
-      every { updateService.download(any(), any()) } returns Paths.get("/dev/null")
+      every { updateManager.downloadPluginRelease(any(), any()) } returns Paths.get("/dev/null")
 
       every { pluginBundleExtractor.extractService(any(), any()) } answers {
         val temp = Files.createTempDirectory("downloaded-plugins")

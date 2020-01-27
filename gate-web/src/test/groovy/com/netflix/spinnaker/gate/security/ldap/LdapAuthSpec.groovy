@@ -48,7 +48,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 @Slf4j
 @GateSystemTest
 @SpringBootTest(
-    properties = ['ldap.enabled=true'])
+    properties = ['ldap.enabled=true', 'spring.application.name=gate'])
 @ContextConfiguration(
   classes = [LdapSsoConfig, Main, LdapTestConfig, RedisTestConfig],
   initializers = YamlFileApplicationContextInitializer

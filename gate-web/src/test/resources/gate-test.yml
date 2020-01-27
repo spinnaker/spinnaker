@@ -1,3 +1,7 @@
+spring:
+  application:
+    name: gate
+
 services:
   clouddriver.baseUrl: "http://localhost:7002"
 

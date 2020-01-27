@@ -51,6 +51,7 @@ allprojects {
 
       implementation "org.codehaus.groovy:groovy-all"
       implementation "net.logstash.logback:logstash-logback-encoder"
+      implementation "org.jetbrains.kotlin:kotlin-reflect"
       runtimeOnly "org.springframework.boot:spring-boot-properties-migrator"
       testRuntime "org.springframework.boot:spring-boot-properties-migrator"
 

@@ -59,6 +59,7 @@ dependencies {
   testImplementation "com.squareup.retrofit:retrofit-mock"
   testImplementation "org.springframework.security:spring-security-test"
   testImplementation "org.springframework.security:spring-security-ldap"
+  testImplementation "org.springframework.security:spring-security-oauth2-jose"
   testImplementation "com.unboundid:unboundid-ldapsdk"
   testImplementation "com.netflix.spinnaker.kork:kork-jedis-test"
 
