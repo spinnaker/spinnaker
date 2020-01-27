@@ -16,10 +16,9 @@
 
 package com.netflix.spinnaker.filters
 
-
+import com.netflix.spinnaker.security.AuthenticatedRequest
 import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
-import org.slf4j.MDC
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.context.SecurityContextImpl
 
@@ -32,7 +31,7 @@ import javax.servlet.ServletResponse
 import javax.servlet.http.HttpServletRequest
 import java.security.cert.X509Certificate
 
-import static com.netflix.spinnaker.security.AuthenticatedRequest.*
+import static com.netflix.spinnaker.security.AuthenticatedRequest.Header
 
 @Slf4j
 class AuthenticatedRequestFilter implements Filter {
@@ -78,6 +77,7 @@ class AuthenticatedRequestFilter implements Filter {
       if (!securityContext) {
         securityContext = SecurityContextHolder.getContext()
       }
+
       def principal = securityContext?.authentication?.principal
       if (principal && principal instanceof User) {
         spinnakerUser = principal.username
@@ -102,12 +102,14 @@ class AuthenticatedRequestFilter implements Filter {
         }
       }
     }
+
     if (extractSpinnakerUserOriginHeader) {
       otherSpinnakerHeaders.put(
         Header.USER_ORIGIN.getHeader(),
         "deck".equalsIgnoreCase(((HttpServletRequest) request).getHeader("X-RateLimit-App")) ? "deck" : "api"
       )
     }
+
     if (forceNewSpinnakerRequestId) {
       otherSpinnakerHeaders.put(
         Header.REQUEST_ID.getHeader(),
@@ -128,24 +130,20 @@ class AuthenticatedRequestFilter implements Filter {
 
     try {
       if (spinnakerUser) {
-        MDC.put(Header.USER.getHeader(), spinnakerUser)
+        AuthenticatedRequest.setUser(spinnakerUser)
       }
+
       if (spinnakerAccounts) {
-        MDC.put(Header.ACCOUNTS.getHeader(), spinnakerAccounts)
+        AuthenticatedRequest.setAccounts(spinnakerAccounts)
       }
+
       for (header in otherSpinnakerHeaders) {
-        MDC.put(header.key, header.value)
+        AuthenticatedRequest.set(header.key, header.value)
       }
 
       chain.doFilter(request, response)
     } finally {
-      MDC.clear()
-
-      try {
-        // force clear to avoid the potential for a memory leak if log4j is being used
-        def log4jMDC = Class.forName("org.apache.log4j.MDC")
-        log4jMDC.clear()
-      } catch (Exception ignored) {}
+      AuthenticatedRequest.clear()
     }
   }
 

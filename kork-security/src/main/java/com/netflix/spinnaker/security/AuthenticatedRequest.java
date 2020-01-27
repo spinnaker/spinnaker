@@ -18,6 +18,7 @@ package com.netflix.spinnaker.security;
 
 import static java.lang.String.format;
 
+import com.google.common.base.Preconditions;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -65,6 +66,11 @@ public class AuthenticatedRequest {
 
     public static String makeCustomHeader(String header) {
       return XSpinnakerPrefix + header.toUpperCase();
+    }
+
+    @Override
+    public String toString() {
+      return "Header{" + "header='" + header + '\'' + '}';
     }
   }
 
@@ -126,28 +132,13 @@ public class AuthenticatedRequest {
 
         return closure.call();
       } finally {
-        MDC.clear();
-
-        try {
-          // force clear to avoid the potential for a memory leak if log4j is being used
-          Class log4jMDC = Class.forName("org.apache.log4j.MDC");
-          log4jMDC.getDeclaredMethod("clear").invoke(null);
-        } catch (Exception ignored) {
-        }
+        clear();
 
         if (restoreOriginalContext && originalMdc != null) {
           MDC.setContextMap(originalMdc);
         }
       }
     };
-  }
-
-  private static void setOrRemoveMdc(String key, String value) {
-    if (value != null) {
-      MDC.put(key, value);
-    } else {
-      MDC.remove(key);
-    }
   }
 
   public static Map<String, Optional<String>> getAuthenticationHeaders() {
@@ -182,13 +173,9 @@ public class AuthenticatedRequest {
   }
 
   public static Optional<String> getSpinnakerUser(Object principal) {
-    Object spinnakerUser = MDC.get(Header.USER.getHeader());
-
-    if (principal != null && principal instanceof User) {
-      spinnakerUser = ((User) principal).getUsername();
-    }
-
-    return Optional.ofNullable((String) spinnakerUser);
+    return (principal instanceof User)
+        ? Optional.ofNullable(((User) principal).getUsername())
+        : get(Header.USER);
   }
 
   public static Optional<String> getSpinnakerAccounts() {
@@ -196,13 +183,10 @@ public class AuthenticatedRequest {
   }
 
   public static Optional<String> getSpinnakerAccounts(Object principal) {
-    Object spinnakerAccounts = MDC.get(Header.ACCOUNTS.getHeader());
-
-    if (principal instanceof User && !CollectionUtils.isEmpty(((User) principal).allowedAccounts)) {
-      spinnakerAccounts = String.join(",", ((User) principal).getAllowedAccounts());
-    }
-
-    return Optional.ofNullable((String) spinnakerAccounts);
+    return (principal instanceof User
+            && !CollectionUtils.isEmpty(((User) principal).allowedAccounts))
+        ? Optional.of(String.join(",", ((User) principal).getAllowedAccounts()))
+        : get(Header.ACCOUNTS);
   }
 
   /**
@@ -217,7 +201,7 @@ public class AuthenticatedRequest {
    */
   public static Optional<String> getSpinnakerRequestId() {
     return Optional.of(
-        Optional.ofNullable(MDC.get(Header.REQUEST_ID.getHeader()))
+        get(Header.REQUEST_ID)
             .orElse(
                 getSpinnakerExecutionId()
                     .map(id -> format("%s:%s", id, UUID.randomUUID().toString()))
@@ -225,15 +209,66 @@ public class AuthenticatedRequest {
   }
 
   public static Optional<String> getSpinnakerUserOrigin() {
-    return Optional.ofNullable(MDC.get(Header.USER_ORIGIN.getHeader()));
+    return get(Header.USER_ORIGIN);
   }
 
   public static Optional<String> getSpinnakerExecutionId() {
-    return Optional.ofNullable(MDC.get(Header.EXECUTION_ID.getHeader()));
+    return get(Header.EXECUTION_ID);
   }
 
   public static Optional<String> getSpinnakerApplication() {
-    return Optional.ofNullable(MDC.get(Header.APPLICATION.getHeader()));
+    return get(Header.APPLICATION);
+  }
+
+  public static Optional<String> get(Header header) {
+    return Optional.ofNullable(MDC.get(header.getHeader()));
+  }
+
+  public static void setAccounts(String accounts) {
+    set(Header.ACCOUNTS, accounts);
+  }
+
+  public static void setUser(String user) {
+    set(Header.USER, user);
+  }
+
+  public static void setUserOrigin(String value) {
+    set(Header.USER_ORIGIN, value);
+  }
+
+  public static void setRequestId(String value) {
+    set(Header.REQUEST_ID, value);
+  }
+
+  public static void setExecutionId(String value) {
+    set(Header.EXECUTION_ID, value);
+  }
+
+  public static void setApplication(String value) {
+    set(Header.APPLICATION, value);
+  }
+
+  public static void set(Header header, String value) {
+    set(header.getHeader(), value);
+  }
+
+  public static void set(String header, String value) {
+    Preconditions.checkArgument(
+        header.startsWith(Header.XSpinnakerPrefix),
+        "Header '%s' does not start with 'X-SPINNAKER-'",
+        header);
+    MDC.put(header, value);
+  }
+
+  public static void clear() {
+    MDC.clear();
+
+    try {
+      // force clear to avoid the potential for a memory leak if log4j is being used
+      Class log4jMDC = Class.forName("org.apache.log4j.MDC");
+      log4jMDC.getDeclaredMethod("clear").invoke(null);
+    } catch (Exception ignored) {
+    }
   }
 
   /** @return the Spring Security principal or null if there is no authority. */
@@ -241,5 +276,13 @@ public class AuthenticatedRequest {
     return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
         .map(Authentication::getPrincipal)
         .orElse(null);
+  }
+
+  private static void setOrRemoveMdc(String key, String value) {
+    if (value != null) {
+      MDC.put(key, value);
+    } else {
+      MDC.remove(key);
+    }
   }
 }
