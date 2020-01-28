@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.kork.web.selector;
 
-public interface ServiceSelector {
-  Object getService();
+public interface ServiceSelector<T> {
+  T getService();
 
   int getPriority();
 

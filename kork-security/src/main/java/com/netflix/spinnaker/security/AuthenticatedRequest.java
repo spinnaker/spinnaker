@@ -43,6 +43,7 @@ public class AuthenticatedRequest {
     USER_ORIGIN("X-SPINNAKER-USER-ORIGIN", false),
     REQUEST_ID("X-SPINNAKER-REQUEST-ID", false),
     EXECUTION_ID("X-SPINNAKER-EXECUTION-ID", false),
+    EXECUTION_TYPE("X-SPINNAKER-EXECUTION-TYPE", false),
     APPLICATION("X-SPINNAKER-APPLICATION", false);
 
     private String header;
@@ -208,6 +209,10 @@ public class AuthenticatedRequest {
                     .orElse(UUID.randomUUID().toString())));
   }
 
+  public static Optional<String> getSpinnakerExecutionType() {
+    return get(Header.EXECUTION_TYPE);
+  }
+
   public static Optional<String> getSpinnakerUserOrigin() {
     return get(Header.USER_ORIGIN);
   }
@@ -246,6 +251,10 @@ public class AuthenticatedRequest {
 
   public static void setApplication(String value) {
     set(Header.APPLICATION, value);
+  }
+
+  public static void setExecutionType(String value) {
+    set(Header.EXECUTION_TYPE, value);
   }
 
   public static void set(Header header, String value) {

@@ -19,14 +19,14 @@ package com.netflix.spinnaker.kork.web.selector;
 import java.util.List;
 import org.springframework.util.Assert;
 
-public class SelectableService {
-  private final List<ServiceSelector> serviceSelectors;
+public class SelectableService<T> {
+  private final List<ServiceSelector<T>> serviceSelectors;
 
-  public SelectableService(List<ServiceSelector> serviceSelectors) {
+  public SelectableService(List<ServiceSelector<T>> serviceSelectors) {
     this.serviceSelectors = serviceSelectors;
   }
 
-  public Object getService(Criteria criteria) {
+  public T getService(Criteria criteria) {
     Assert.notNull(criteria);
 
     return serviceSelectors.stream()
