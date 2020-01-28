@@ -57,7 +57,7 @@ class LoadBalancerService {
         def service = clouddriverServiceSelector.select(selectorKey)
         def accountDetails = objectMapper.convertValue(service.getAccount(account), Map)
         def loadBalancerDetails = service.getLoadBalancerDetails(provider, account, region, name)
-        
+
         loadBalancerDetails = loadBalancerDetails.collect { loadBalancerDetail ->
           def loadBalancerContext = loadBalancerDetail.collectEntries {
             return it.value instanceof String ? [it.key, it.value] : [it.key, ""]

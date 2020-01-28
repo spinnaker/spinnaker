@@ -40,6 +40,7 @@ import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.dynamicconfig.SpringDynamicConfigService
 import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers
+import com.netflix.spinnaker.kork.web.selector.SelectableService
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
@@ -90,7 +91,7 @@ class FunctionalSpec extends Specification {
     executorService = Mock(ExecutorService)
     taskService = Mock(TaskService)
     clouddriverService = Mock(ClouddriverService)
-    clouddriverServiceSelector = new ClouddriverServiceSelector(clouddriverService)
+    clouddriverServiceSelector = new ClouddriverServiceSelector(Mock(SelectableService), new SpringDynamicConfigService())
     orcaService = Mock(OrcaService)
     credentialsService = Mock(CredentialsService)
     accountLookupService = Mock(AccountLookupService)

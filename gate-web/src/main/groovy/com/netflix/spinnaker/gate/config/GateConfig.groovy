@@ -31,9 +31,6 @@ import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.gate.config.PostConnectionConfiguringJedisConnectionFactory.ConnectionPostProcessor
 import com.netflix.spinnaker.gate.converters.JsonHttpMessageConverter
 import com.netflix.spinnaker.gate.converters.YamlHttpMessageConverter
-import com.netflix.spinnaker.gate.filters.CorsFilter
-import com.netflix.spinnaker.gate.filters.GateOriginValidator
-import com.netflix.spinnaker.gate.filters.OriginValidator
 import com.netflix.spinnaker.gate.plugins.DeckPluginConfiguration
 import com.netflix.spinnaker.gate.retrofit.EurekaOkClient
 import com.netflix.spinnaker.gate.retrofit.Slf4jRetrofitLogger
@@ -82,7 +79,7 @@ import static retrofit.Endpoints.newFixedEndpoint
 @CompileStatic
 @Configuration
 @Slf4j
-@EnableConfigurationProperties(FiatClientConfigurationProperties)
+@EnableConfigurationProperties([FiatClientConfigurationProperties, DynamicRoutingConfigProperties])
 @Import([PluginsAutoConfiguration, DeckPluginConfiguration])
 class GateConfig extends RedisHttpSessionConfiguration {
 
@@ -191,17 +188,40 @@ class GateConfig extends RedisHttpSessionConfiguration {
   }
 
   @Bean
-  ClouddriverServiceSelector clouddriverServiceSelector(ClouddriverService defaultClouddriverService, OkHttpClient okHttpClient) {
-    // support named clouddriver service clients
-    Map<String, ClouddriverService> dynamicServices = [:]
+  ClouddriverServiceSelector clouddriverServiceSelector(ClouddriverService defaultClouddriverService,
+                                                        OkHttpClient okHttpClient,
+                                                        DynamicConfigService dynamicConfigService,
+                                                        DynamicRoutingConfigProperties properties) {
     if (serviceConfiguration.getService("clouddriver").getConfig().containsKey("dynamicEndpoints")) {
       def endpoints = (Map<String, String>) serviceConfiguration.getService("clouddriver").getConfig().get("dynamicEndpoints")
-      dynamicServices = (Map<String, ClouddriverService>) endpoints.collectEntries { k, v ->
-        [k, createClient("clouddriver", ClouddriverService, okHttpClient, k, false)]
+      // translates the following config:
+      //   dynamicEndpoints:
+      //     deck: url
+
+      // into a SelectableService that would be produced by an equivalent config:
+      //   baseUrl: url
+      //   config:
+      //     selectorClass: com.netflix.spinnaker.kork.web.selector.ByUserOriginSelector
+      //     priority: 2
+      //     origin: deck
+
+      def defaultSelector = new DefaultServiceSelector(
+        defaultClouddriverService,
+        1,
+        null)
+
+      List<ServiceSelector> selectors = []
+      endpoints.each { sourceApp, url ->
+        def client = new EurekaOkClient(okHttpClient, registry, "clouddriver", eurekaLookupService)
+        def service = buildService(client, ClouddriverService, newFixedEndpoint(url))
+        selectors << new ByUserOriginSelector(service, 2, sourceApp)
       }
+
+      return new ClouddriverServiceSelector(new SelectableService(selectors + defaultSelector), dynamicConfigService)
     }
 
-    return new ClouddriverServiceSelector(defaultClouddriverService, dynamicServices)
+    SelectableService selectableService = createClientSelector("clouddriver", ClouddriverService, okHttpClient)
+    return new ClouddriverServiceSelector(selectableService, dynamicConfigService)
   }
 
   //---- semi-optional components:
