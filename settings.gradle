@@ -29,12 +29,14 @@ def cloudProviderProjects = [
   'oracle': [':clouddriver-oracle']
 ]
 cloudProviderProjects.put('gcp', cloudProviderProjects['appengine'] + cloudProviderProjects['gce'] + cloudProviderProjects['kubernetes'])
-cloudProviderProjects.put('titus', cloudProviderProjects['aws'] + ':clouddriver-titus')
+cloudProviderProjects.put('titus', cloudProviderProjects['aws'] + ':clouddriver-titus' + ':clouddriver-docker')
 cloudProviderProjects.put('all', cloudProviderProjects.collectMany {_, proj -> proj}) // Include all cloud providers.
 
 // Set as an ext variable so that build scripts can access it
 gradle.ext.includedCloudProviderProjects = includeCloudProviders.split(',')
   .collectMany { cloudProviderProjects[it.toLowerCase()] }
+  .toSet()
+  .toList()
 
 include 'cats:cats-core',
   'cats:cats-redis',
