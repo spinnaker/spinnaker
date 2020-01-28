@@ -31,7 +31,7 @@ ext {
     okhttp3        : "3.14.2",
     resilience4j   : "1.0.0",
     retrofit       : "1.9.0",
-    retrofit2      : "2.6.2",
+    retrofit2      : "2.7.1",
     spectator      : "0.75.0",
     spek           : "1.2.1",
     springBoot     : "2.2.4.RELEASE",
@@ -51,7 +51,7 @@ dependencies {
    */
   api(platform("org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.3.3"))
   api(platform("org.jetbrains.kotlin:kotlin-bom:1.3.61"))
-  api(platform("org.junit:junit-bom:5.5.2"))
+  api(platform("org.junit:junit-bom:5.6.0"))
   api(platform("com.fasterxml.jackson:jackson-bom:2.10.2"))
   api(platform("org.springframework.boot:spring-boot-dependencies:${versions.springBoot}"))
   api(platform("org.springframework.cloud:spring-cloud-dependencies:${versions.springCloud}"))
@@ -59,7 +59,7 @@ dependencies {
   api(platform("io.strikt:strikt-bom:0.23.4"))
   api(platform("org.spockframework:spock-bom:1.3-groovy-2.5"))
   api(platform("com.oracle.oci.sdk:oci-java-sdk-bom:1.5.17"))
-  api(platform("org.testcontainers:testcontainers-bom:1.12.4"))
+  api(platform("org.testcontainers:testcontainers-bom:1.12.5"))
   api(platform("com.google.protobuf:protobuf-bom:${versions.protobuf}"))
 
   constraints {
@@ -97,7 +97,7 @@ dependencies {
     api("com.netflix.spinnaker.moniker:moniker:0.2.0")
     api("com.nhaarman.mockitokotlin2:mockito-kotlin:1.5.0")
     api("com.nhaarman:mockito-kotlin:1.5.0")
-    api("com.ninja-squad:springmockk:1.1.2")
+    api("com.ninja-squad:springmockk:2.0.0")
     api("com.squareup.okhttp3:logging-interceptor:${versions.okhttp3}")
     api("com.squareup.okhttp3:mockwebserver:${versions.okhttp3}")
     api("com.squareup.okhttp3:okhttp-sse:${versions.okhttp3}")
