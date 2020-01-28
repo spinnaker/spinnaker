@@ -45,6 +45,8 @@ import retrofit.RestAdapter
 import retrofit.client.OkClient
 import retrofit.converter.JacksonConverter
 
+import javax.net.ssl.KeyManager
+import javax.net.ssl.KeyManagerFactory
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
 import javax.net.ssl.TrustManagerFactory
@@ -130,27 +132,40 @@ class JenkinsConfig {
             })
         }
 
-        if (host.trustStore) {
-            TrustManager[] trustManagers
+        TrustManager[] trustManagers = null
+        KeyManager[] keyManagers = null
 
+        if (host.trustStore) {
             if (host.trustStore.equals("*")) {
                 trustManagers = [new TrustAllTrustManager()]
             } else {
                 def trustStorePassword = host.trustStorePassword
-
                 def trustStore = KeyStore.getInstance(host.trustStoreType)
                 new File(host.trustStore).withInputStream {
                     trustStore.load(it, trustStorePassword.toCharArray())
                 }
-
                 def trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
                 trustManagerFactory.init(trustStore)
 
                 trustManagers = trustManagerFactory.trustManagers
             }
+        }
 
+        if (host.keyStore) {
+            def keyStorePassword = host.keyStorePassword
+            def keyStore = KeyStore.getInstance(host.keyStoreType)
+            new File(host.keyStore).withInputStream {
+                keyStore.load(it, keyStorePassword.toCharArray())
+            }
+            def keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm())
+            keyManagerFactory.init(keyStore, keyStorePassword.toCharArray())
+
+            keyManagers = keyManagerFactory.keyManagers
+        }
+
+        if (trustManagers || keyManagers) {
             def sslContext = SSLContext.getInstance("TLS")
-            sslContext.init(null, trustManagers, null);
+            sslContext.init(keyManagers, trustManagers, null)
 
             client.setSslSocketFactory(sslContext.socketFactory)
         }
@@ -158,12 +173,12 @@ class JenkinsConfig {
         new RestAdapter.Builder()
             .setEndpoint(Endpoints.newFixedEndpoint(host.address))
             .setRequestInterceptor(new RequestInterceptor() {
-            @Override
-            void intercept(RequestInterceptor.RequestFacade request) {
-                request.addHeader("User-Agent", "Spinnaker-igor")
-                requestInterceptor.intercept(request)
-            }
-        })
+                @Override
+                void intercept(RequestInterceptor.RequestFacade request) {
+                    request.addHeader("User-Agent", "Spinnaker-igor")
+                    requestInterceptor.intercept(request)
+                }
+            })
             .setClient(new OkClient(client))
             .setConverter(new JacksonConverter(getObjectMapper()))
             .build()

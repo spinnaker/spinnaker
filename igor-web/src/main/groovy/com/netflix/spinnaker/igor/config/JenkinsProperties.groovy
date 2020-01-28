@@ -61,6 +61,10 @@ class JenkinsProperties implements BuildServerProperties<JenkinsProperties.Jenki
         String trustStoreType = KeyStore.getDefaultType()
         String trustStorePassword
 
+        String keyStore
+        String keyStoreType = KeyStore.getDefaultType()
+        String keyStorePassword
+
         Boolean skipHostnameVerification = false
 
         Permissions.Builder permissions = new Permissions.Builder()
