@@ -11,17 +11,12 @@ import com.netflix.spinnaker.keel.diff.EnvironmentDiff
 import com.netflix.spinnaker.keel.exceptions.InvalidConstraintException
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
-import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigException
 import com.netflix.spinnaker.keel.persistence.ResourceRepository.Companion.DEFAULT_MAX_EVENTS
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import java.time.Instant
 import org.slf4j.LoggerFactory
-import org.springframework.http.HttpStatus.BAD_REQUEST
-import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
-import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.bind.annotation.DeleteMapping
-import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -29,7 +24,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -121,24 +115,6 @@ class DeliveryConfigController(
         comment = status.comment ?: currentState.comment,
         judgedAt = Instant.now(),
         judgedBy = user))
-  }
-
-  @ExceptionHandler(InvalidConstraintException::class)
-  @ResponseStatus(NOT_FOUND)
-  fun onConstraintNotFound(e: InvalidConstraintException) {
-    log.info(e.message)
-  }
-
-  @ExceptionHandler(NoSuchDeliveryConfigException::class)
-  @ResponseStatus(NOT_FOUND)
-  fun onDeliveryConfigNotFound(e: NoSuchDeliveryConfigException) {
-    log.info(e.message)
-  }
-
-  @ExceptionHandler(HttpMessageNotReadableException::class)
-  @ResponseStatus(BAD_REQUEST)
-  fun onHttpMessageNotReadable(e: HttpMessageNotReadableException) {
-    log.info(e.message)
   }
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }

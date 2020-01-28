@@ -3,12 +3,9 @@ package com.netflix.spinnaker.keel.rest
 import com.netflix.spinnaker.keel.pause.ResourcePauser
 import com.netflix.spinnaker.keel.persistence.Cleaner
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
-import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
 import org.slf4j.LoggerFactory.getLogger
-import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatus.NO_CONTENT
 import org.springframework.web.bind.annotation.DeleteMapping
-import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
@@ -35,12 +32,6 @@ class AdminController(
     deliveryConfigRepository.getByApplication(application).forEach { config ->
       cleaner.delete(config.name)
     }
-  }
-
-  @ExceptionHandler(NoSuchResourceException::class)
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  fun onNotFound(e: NoSuchResourceException) {
-    log.error(e.message)
   }
 
   @GetMapping(

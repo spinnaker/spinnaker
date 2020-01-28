@@ -21,31 +21,22 @@ import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.diff.AdHocDiffer
 import com.netflix.spinnaker.keel.diff.DiffResult
-import com.netflix.spinnaker.keel.exceptions.FailedNormalizationException
 import com.netflix.spinnaker.keel.pause.ResourcePauser
-import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceStatus
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.PAUSED
-import com.netflix.spinnaker.keel.plugin.UnsupportedKind
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
-import org.springframework.http.HttpStatus.BAD_REQUEST
-import org.springframework.http.HttpStatus.NOT_FOUND
-import org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
-import org.springframework.http.converter.HttpMessageConversionException
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.DeleteMapping
-import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -104,32 +95,5 @@ class ResourceController(
   fun diff(@RequestHeader("X-SPINNAKER-USER") user: String, @RequestBody resource: SubmittedResource<*>): DiffResult {
     log.debug("Diffing: $resource")
     return runBlocking { adHocDiffer.calculate(resource) }
-  }
-
-  @ExceptionHandler(NoSuchResourceException::class)
-  @ResponseStatus(NOT_FOUND)
-  fun onNotFound(e: NoSuchResourceException) {
-    log.error(e.message)
-  }
-
-  @ExceptionHandler(HttpMessageConversionException::class)
-  @ResponseStatus(BAD_REQUEST)
-  fun onParseFailure(e: HttpMessageConversionException): Map<String, Any?> {
-    log.error(e.message)
-    return mapOf("message" to (e.cause?.message ?: e.message))
-  }
-
-  @ExceptionHandler(FailedNormalizationException::class)
-  @ResponseStatus(UNPROCESSABLE_ENTITY)
-  fun onParseFailure(e: FailedNormalizationException): Map<String, Any?> {
-    log.error(e.message)
-    return mapOf("message" to (e.cause?.message ?: e.message))
-  }
-
-  @ExceptionHandler(UnsupportedKind::class)
-  @ResponseStatus(UNPROCESSABLE_ENTITY)
-  fun onUnsupportedKind(e: UnsupportedKind): Map<String, Any?> {
-    log.error(e.message)
-    return mapOf("message" to e.message)
   }
 }

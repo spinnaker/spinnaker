@@ -7,18 +7,13 @@ import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.events.ArtifactEvent
 import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.events.ArtifactSyncEvent
-import com.netflix.spinnaker.keel.persistence.ArtifactAlreadyRegistered
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
-import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.HttpStatus.ACCEPTED
-import org.springframework.http.HttpStatus.CONFLICT
-import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
-import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -78,18 +73,6 @@ class ArtifactController(
     @PathVariable type: ArtifactType
   ): List<String> =
     artifactRepository.versions(name, type)
-
-  @ExceptionHandler(NoSuchArtifactException::class)
-  @ResponseStatus(NOT_FOUND)
-  fun onNotFound(e: NoSuchArtifactException) {
-    log.error(e.message)
-  }
-
-  @ExceptionHandler(ArtifactAlreadyRegistered::class)
-  @ResponseStatus(CONFLICT)
-  fun onAlreadyRegistered(e: ArtifactAlreadyRegistered) {
-    log.error(e.message)
-  }
 
   // Debian Artifacts should contain a releaseStatus in the metadata
   private fun Artifact.isFromArtifactEvent() =
