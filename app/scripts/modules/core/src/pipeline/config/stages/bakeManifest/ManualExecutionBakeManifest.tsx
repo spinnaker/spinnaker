@@ -9,7 +9,7 @@ import { BAKE_MANIFEST_STAGE_KEY } from './bakeManifestStage';
 const HelmEditor = HelmMatch.editCmp;
 
 export function ManualExecutionBakeManifest(props: ITriggerTemplateComponentProps) {
-  const [overrideArtifact, setOverrideArtifact] = React.useState(false);
+  const [overrideArtifact, setOverrideArtifact] = React.useState(true);
 
   const updateHelmArtifact = (artifact: IArtifact) => {
     const updatedArtifacts = (props.command.extraFields.artifacts || []).filter(
