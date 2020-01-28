@@ -62,6 +62,7 @@ public class Applications {
   private final String metricsUri;
   private final ApplicationService api;
   private final Spaces spaces;
+  private final Integer resultsPerPage;
 
   private final LoadingCache<String, CloudFoundryServerGroup> serverGroupCache =
       CacheBuilder.newBuilder()
@@ -95,7 +96,7 @@ public class Applications {
 
   public List<CloudFoundryApplication> all() {
     List<Application> newCloudFoundryAppList =
-        collectPages("applications", page -> api.all(page, 500, null, null));
+        collectPages("applications", page -> api.all(page, resultsPerPage, null, null));
 
     // Evict Records from `cache` that are no longer in the foundation
     List<String> availableAppIds =

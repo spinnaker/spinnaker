@@ -85,7 +85,7 @@ class AbstractLoadBalancersAtomicOperationConverterTest {
   }
 
   private final CloudFoundryCredentials cloudFoundryCredentials =
-      new CloudFoundryCredentials("test", "", "", "", "", "", "", false) {
+      new CloudFoundryCredentials("test", "", "", "", "", "", "", false, 500) {
         public CloudFoundryClient getClient() {
           return cloudFoundryClient;
         }

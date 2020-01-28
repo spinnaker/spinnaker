@@ -51,6 +51,8 @@ public class CloudFoundryCredentials implements AccountCredentials<CloudFoundryC
   @Deprecated private final List<String> requiredGroupMembership = Collections.emptyList();
   private final boolean skipSslValidation;
 
+  @Nullable private final Integer resultsPerPage;
+
   private CloudFoundryClient credentials;
 
   public CloudFoundryCredentials(
@@ -61,7 +63,8 @@ public class CloudFoundryCredentials implements AccountCredentials<CloudFoundryC
       String userName,
       String password,
       String environment,
-      boolean skipSslValidation) {
+      boolean skipSslValidation,
+      Integer resultsPerPage) {
     this.name = name;
     this.appsManagerUri = appsManagerUri;
     this.metricsUri = metricsUri;
@@ -70,13 +73,21 @@ public class CloudFoundryCredentials implements AccountCredentials<CloudFoundryC
     this.password = password;
     this.environment = Optional.ofNullable(environment).orElse("dev");
     this.skipSslValidation = skipSslValidation;
+    this.resultsPerPage = Optional.ofNullable(resultsPerPage).orElse(500);
   }
 
   public CloudFoundryClient getCredentials() {
     if (this.credentials == null) {
       this.credentials =
           new HttpCloudFoundryClient(
-              name, appsManagerUri, metricsUri, apiHost, userName, password, skipSslValidation);
+              name,
+              appsManagerUri,
+              metricsUri,
+              apiHost,
+              userName,
+              password,
+              skipSslValidation,
+              resultsPerPage);
     }
     return credentials;
   }
@@ -109,12 +120,20 @@ public class CloudFoundryCredentials implements AccountCredentials<CloudFoundryC
         && Objects.equals(userName, that.userName)
         && Objects.equals(password, that.password)
         && Objects.equals(environment, that.environment)
-        && Objects.equals(skipSslValidation, that.skipSslValidation);
+        && Objects.equals(skipSslValidation, that.skipSslValidation)
+        && Objects.equals(resultsPerPage, that.resultsPerPage);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(
-        name, appsManagerUri, metricsUri, userName, password, environment, skipSslValidation);
+        name,
+        appsManagerUri,
+        metricsUri,
+        userName,
+        password,
+        environment,
+        skipSslValidation,
+        resultsPerPage);
   }
 }
