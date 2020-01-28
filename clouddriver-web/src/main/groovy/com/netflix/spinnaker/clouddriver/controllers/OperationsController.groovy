@@ -124,7 +124,7 @@ class OperationsController {
    */
   @PostMapping("/task/{id}:resume")
   StartOperationResult resumeTask(@PathVariable("id") String id) {
-    Task t = taskRepository.get(id);
+    Task t = taskRepository.get(id)
     if (t == null) {
       throw new NotFoundException("Task not found (id: $id)")
     }
@@ -136,7 +136,11 @@ class OperationsController {
       }
     }
 
-    List<AtomicOperation> atomicOperations = operationsService.collectAtomicOperationsFromSagas(t.getSagaIds());
+    List<AtomicOperation> atomicOperations = operationsService.collectAtomicOperationsFromSagas(t.getSagaIds())
+    if (atomicOperations.isEmpty()) {
+      throw new NotFoundException("No saga was found for this task id: $id - can't resume")
+    }
+    
     return start(atomicOperations, t.requestId)
   }
 

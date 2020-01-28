@@ -16,10 +16,10 @@
 package com.netflix.spinnaker.clouddriver.data.task;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import java.util.*;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,12 +31,14 @@ public class DualTaskRepository implements TaskRepository {
   private final TaskRepository previous;
   private final ExecutorService executorService;
   private final long asyncTimeoutSeconds;
+  private final DynamicConfigService dynamicConfigService;
 
   public DualTaskRepository(
       TaskRepository primary,
       TaskRepository previous,
       int threadPoolSize,
-      long asyncTimeoutSeconds) {
+      long asyncTimeoutSeconds,
+      DynamicConfigService dynamicConfigService) {
     this(
         primary,
         previous,
@@ -45,18 +47,21 @@ public class DualTaskRepository implements TaskRepository {
             new ThreadFactoryBuilder()
                 .setNameFormat(DualTaskRepository.class.getSimpleName() + "-%d")
                 .build()),
-        asyncTimeoutSeconds);
+        asyncTimeoutSeconds,
+        dynamicConfigService);
   }
 
   public DualTaskRepository(
       TaskRepository primary,
       TaskRepository previous,
       ExecutorService executorService,
-      long asyncTimeoutSeconds) {
+      long asyncTimeoutSeconds,
+      DynamicConfigService dynamicConfigService) {
     this.primary = primary;
     this.previous = previous;
     this.executorService = executorService;
     this.asyncTimeoutSeconds = asyncTimeoutSeconds;
+    this.dynamicConfigService = dynamicConfigService;
   }
 
   @Override
@@ -71,24 +76,44 @@ public class DualTaskRepository implements TaskRepository {
 
   @Override
   public Task get(String id) {
-    return Optional.ofNullable(primary.get(id)).orElse(previous.get(id));
+    Task task = primary.get(id);
+
+    if (task == null && dynamicConfigService.isEnabled("dualtaskrepo.previous", true)) {
+      task = previous.get(id);
+    }
+
+    return task;
   }
 
   @Override
   public Task getByClientRequestId(String clientRequestId) {
-    return Optional.ofNullable(primary.getByClientRequestId(clientRequestId))
-        .orElse(previous.getByClientRequestId(clientRequestId));
+    Task task = primary.getByClientRequestId(clientRequestId);
+
+    if (task == null && dynamicConfigService.isEnabled("dualtaskrepo.previous", true)) {
+      task = previous.getByClientRequestId(clientRequestId);
+    }
+
+    return task;
   }
 
   @Override
   public List<Task> list() {
-    Future<List<Task>> primaryList = executorService.submit(primary::list);
-    Future<List<Task>> previousList = executorService.submit(previous::list);
-
     List<Task> tasks = new ArrayList<>();
+
     try {
+      Future<List<Task>> primaryList = executorService.submit(primary::list);
+      List<Task> tasksFromPrevious = Collections.emptyList();
+
       tasks.addAll(primaryList.get(asyncTimeoutSeconds, TimeUnit.SECONDS));
-      tasks.addAll(previousList.get(asyncTimeoutSeconds, TimeUnit.SECONDS));
+      if (dynamicConfigService.isEnabled("dualtaskrepo.previous", true)) {
+        Future<List<Task>> previousList = executorService.submit(previous::list);
+        tasksFromPrevious = previousList.get(asyncTimeoutSeconds, TimeUnit.SECONDS);
+      }
+
+      Set<String> primaryTasks = tasks.stream().map(Task::getId).collect(Collectors.toSet());
+      tasksFromPrevious.stream()
+          .filter(task -> !primaryTasks.contains(task.getId()))
+          .forEach(tasks::add);
     } catch (TimeoutException | InterruptedException | ExecutionException e) {
       log.error("Could not retrieve list of tasks by timeout", e);
       // Return tasks so we can still get data in partial failures

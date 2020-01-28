@@ -31,6 +31,7 @@ import com.netflix.spinnaker.kork.sql.config.SqlProperties
 import com.netflix.spinnaker.kork.telemetry.InstrumentedProxy
 import com.netflix.spinnaker.kork.version.ServiceVersion
 import org.jooq.DSLContext
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -52,7 +53,17 @@ class SqlConfiguration {
     jooq: DSLContext,
     clock: Clock
   ): TaskRepository =
-    SqlTaskRepository(jooq, ObjectMapper(), clock)
+    SqlTaskRepository(jooq, ObjectMapper(), clock, ConnectionPools.TASKS.value)
+
+  @Bean
+  @ConditionalOnProperty("sql.task-repository.enabled", "sql.task-repository.secondary.enabled")
+  fun secondarySqlTaskRepository(
+    jooq: DSLContext,
+    clock: Clock,
+    @Value("\${sql.task-repository.secondary.pool-name}") poolName: String
+
+  ): TaskRepository =
+    SqlTaskRepository(jooq, ObjectMapper(), clock, poolName)
 
   @Bean
   @ConditionalOnProperty("sql.task-repository.enabled")

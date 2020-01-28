@@ -34,6 +34,7 @@ dependencies {
   implementation "org.springframework.cloud:spring-cloud-context"
   implementation "org.springframework.cloud:spring-cloud-config-server"
   implementation "redis.clients:jedis"
+  implementation "org.jooq:jooq"
 
   testImplementation project(":cats:cats-test")
   testImplementation project(":clouddriver-core-tck")

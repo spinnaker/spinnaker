@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.clouddriver.data.task
 
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -24,7 +25,7 @@ class DualTaskRepositorySpec extends Specification {
   TaskRepository previous = Mock()
 
   @Subject
-  TaskRepository subject = new DualTaskRepository(primary, previous, 4, 1)
+  TaskRepository subject = new DualTaskRepository(primary, previous, 4, 1, DynamicConfigService.NOOP)
 
   void "always creates tasks from primary"() {
     when:

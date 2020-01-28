@@ -23,7 +23,6 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.data.task.TaskState
 import com.netflix.spinnaker.clouddriver.data.task.TaskState.FAILED
 import com.netflix.spinnaker.clouddriver.data.task.TaskState.STARTED
-import com.netflix.spinnaker.config.ConnectionPools
 import com.netflix.spinnaker.kork.sql.routing.withPool
 import de.huxhorn.sulky.ulid.ULID
 import org.jooq.Condition
@@ -39,13 +38,14 @@ import java.time.Clock
 class SqlTaskRepository(
   private val jooq: DSLContext,
   private val mapper: ObjectMapper,
-  private val clock: Clock
+  private val clock: Clock,
+  private val poolName: String
 ) : TaskRepository {
 
   private val log = LoggerFactory.getLogger(javaClass)
 
   init {
-    log.info("Using ${javaClass.simpleName}")
+    log.info("Using ${javaClass.simpleName} with pool $poolName")
   }
 
   override fun create(phase: String, status: String): Task {
@@ -56,7 +56,7 @@ class SqlTaskRepository(
     var task = SqlTask(ulid.nextULID(), ClouddriverHostname.ID, clientRequestId, clock.millis(), mutableSetOf(), this)
     val historyId = ulid.nextULID()
 
-    withPool(POOL_NAME) {
+    withPool(poolName) {
       jooq.transactional { ctx ->
         val existingTask = getByClientRequestId(clientRequestId)
         if (existingTask != null) {
@@ -83,7 +83,7 @@ class SqlTaskRepository(
   }
 
   fun updateSagaIds(task: Task) {
-    return withPool(POOL_NAME) {
+    return withPool(poolName) {
       jooq.transactional { ctx ->
         ctx.update(tasksTable)
           .set(field("saga_ids"), mapper.writeValueAsString(task.sagaIds))
@@ -98,7 +98,7 @@ class SqlTaskRepository(
   }
 
   override fun getByClientRequestId(clientRequestId: String): Task? {
-    return withPool(POOL_NAME) {
+    return withPool(poolName) {
       jooq.read {
         it.select(field("id"))
           .from(tasksTable)
@@ -112,7 +112,7 @@ class SqlTaskRepository(
   }
 
   override fun list(): MutableList<Task> {
-    return withPool(POOL_NAME) {
+    return withPool(poolName) {
       jooq.read {
         runningTaskIds(it, false).let { taskIds ->
           retrieveInternal(field("id").`in`(*taskIds), field("task_id").`in`(*taskIds)).toMutableList()
@@ -122,7 +122,7 @@ class SqlTaskRepository(
   }
 
   override fun listByThisInstance(): MutableList<Task> {
-    return withPool(POOL_NAME) {
+    return withPool(poolName) {
       jooq.read {
         runningTaskIds(it, true).let { taskIds ->
           retrieveInternal(field("id").`in`(*taskIds), field("task_id").`in`(*taskIds)).toMutableList()
@@ -134,7 +134,7 @@ class SqlTaskRepository(
   internal fun addResultObjects(results: List<Any>, task: Task) {
     val resultIdPairs = results.map { ulid.nextULID() to it }.toMap()
 
-    withPool(POOL_NAME) {
+    withPool(poolName) {
       jooq.transactional { ctx ->
         ctx.select(taskStatesFields)
           .from(taskStatesTable)
@@ -161,7 +161,7 @@ class SqlTaskRepository(
 
   internal fun updateCurrentStatus(task: Task, phase: String, status: String) {
     val historyId = ulid.nextULID()
-    withPool(POOL_NAME) {
+    withPool(poolName) {
       jooq.transactional { ctx ->
         val state = selectLatestState(ctx, task.id)
         addToHistory(ctx, historyId, task.id, state?.state ?: STARTED, phase, status.take(MAX_STATUS_LENGTH))
@@ -181,7 +181,7 @@ class SqlTaskRepository(
 
   internal fun updateState(task: Task, state: TaskState) {
     val historyId = ulid.nextULID()
-    withPool(POOL_NAME) {
+    withPool(poolName) {
       jooq.transactional { ctx ->
         selectLatestState(ctx, task.id)?.let {
           addToHistory(ctx, historyId, task.id, state, it.phase, it.status)
@@ -200,7 +200,7 @@ class SqlTaskRepository(
     // TODO: AWS Aurora enforces REPEATABLE_READ on replicas. Kork's dataSourceConnectionProvider sets READ_COMMITTED
     //  on every connection acquire - need to change this so running on !aurora will behave consistently.
     //  REPEATABLE_READ is correct here.
-    withPool(POOL_NAME) {
+    withPool(poolName) {
       jooq.transactional { ctx ->
         /**
          *  (select id as task_id, owner_id, request_id, created_at, saga_ids, null as body, null as state, null as phase, null as status from tasks_copy where id = '01D2H4H50VTF7CGBMP0D6HTGTF')
@@ -265,7 +265,7 @@ class SqlTaskRepository(
   }
 
   private fun selectLatestState(ctx: DSLContext, taskId: String): DefaultTaskStatus? {
-    return withPool(POOL_NAME) {
+    return withPool(poolName) {
       ctx.select(taskStatesFields)
         .from(taskStatesTable)
         .where(field("task_id").eq(taskId))
@@ -281,7 +281,7 @@ class SqlTaskRepository(
    * down to the ones that are running.
    */
   private fun runningTaskIds(ctx: DSLContext, thisInstance: Boolean): Array<String> {
-    return withPool(POOL_NAME) {
+    return withPool(poolName) {
       val baseQuery = ctx.select()
         .from(taskStatesTable.`as`("a"))
         .innerJoin(
@@ -319,7 +319,6 @@ class SqlTaskRepository(
 
   companion object {
     private val ulid = ULID()
-    private val POOL_NAME = ConnectionPools.TASKS.value
     private val MAX_STATUS_LENGTH = 10_000
   }
 }
