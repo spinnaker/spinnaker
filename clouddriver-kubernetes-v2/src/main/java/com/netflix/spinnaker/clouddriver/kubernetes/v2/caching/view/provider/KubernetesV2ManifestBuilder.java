@@ -19,68 +19,29 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.model.KubernetesV2Manifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesPodMetric;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesResourceProperties;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.ResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestAnnotater;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.model.ManifestProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesHandler;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesKindRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.moniker.Moniker;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
-public abstract class KubernetesV2AbstractManifestProvider
-    implements ManifestProvider<KubernetesV2Manifest> {
-  private final KubernetesAccountResolver resourcePropertyResolver;
-
-  public KubernetesV2AbstractManifestProvider(KubernetesAccountResolver resourcePropertyResolver) {
-    this.resourcePropertyResolver = resourcePropertyResolver;
-  }
-
-  @Nonnull
-  protected final ResourcePropertyRegistry getRegistry(String account) {
-    return resourcePropertyResolver.getResourcePropertyRegistry(account);
-  }
-
-  protected Optional<KubernetesV2Credentials> getCredentials(String account) {
-    return resourcePropertyResolver.getCredentials(account);
-  }
-
-  @Nonnull
-  protected KubernetesKindRegistry getKindRegistry(String account) {
-    return resourcePropertyResolver.getKindRegistry(account);
-  }
-
-  protected boolean isAccountRelevant(String account) {
-    return getCredentials(account).isPresent();
-  }
-
-  protected boolean makesLiveCalls(String account) {
-    return getCredentials(account)
-        .map(KubernetesV2Credentials::isLiveManifestCalls)
-        .orElseThrow(
-            () ->
-                new IllegalArgumentException(
-                    "Account " + account + " is not a Kubernetess v2 account"));
-  }
-
-  protected KubernetesV2Manifest buildManifest(
-      String account,
+@NonnullByDefault
+final class KubernetesV2ManifestBuilder {
+  static KubernetesV2Manifest buildManifest(
+      KubernetesV2Credentials credentials,
       KubernetesManifest manifest,
       List<KubernetesManifest> events,
       List<KubernetesPodMetric.ContainerMetric> metrics) {
     String namespace = manifest.getNamespace();
     KubernetesKind kind = manifest.getKind();
 
-    KubernetesResourceProperties properties = getRegistry(account).get(kind);
+    KubernetesResourceProperties properties = credentials.getResourcePropertyRegistry().get(kind);
 
     Function<KubernetesManifest, String> lastEventTimestamp =
         (m) -> (String) m.getOrDefault("lastTimestamp", m.getOrDefault("firstTimestamp", "n/a"));
@@ -95,7 +56,7 @@ public abstract class KubernetesV2AbstractManifestProvider
     KubernetesHandler handler = properties.getHandler();
 
     return KubernetesV2Manifest.builder()
-        .account(account)
+        .account(credentials.getAccountName())
         .name(manifest.getFullResourceName())
         .location(namespace)
         .manifest(manifest)
