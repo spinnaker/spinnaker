@@ -18,14 +18,14 @@ package com.netflix.kayenta.canary.providers.metrics;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig;
-import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.springframework.util.StringUtils;
 
-@Builder
+@Builder(toBuilder = true)
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
@@ -34,7 +34,22 @@ public class DatadogCanaryMetricSetQueryConfig implements CanaryMetricSetQueryCo
 
   public static final String SERVICE_TYPE = "datadog";
 
-  @NotNull @Getter private String metricName;
+  @Getter private String metricName;
+
+  @Getter private String customInlineTemplate;
+
+  @Getter private String customFilterTemplate;
+
+  @Override
+  public CanaryMetricSetQueryConfig cloneWithEscapedInlineTemplate() {
+    if (StringUtils.isEmpty(customInlineTemplate)) {
+      return this;
+    } else {
+      return this.toBuilder()
+          .customInlineTemplate(customInlineTemplate.replace("${", "$\\{"))
+          .build();
+    }
+  }
 
   @Override
   public String getServiceType() {
