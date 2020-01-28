@@ -87,7 +87,7 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
     def tasksId = registry.createId('tasks')
 
     // Get the task (either an existing one, or a new one). If the task already exists, `shouldExecute` will be false
-    // if the task is in a non-failed state, or is not retryable.
+    // if the task is in a failed state and the failure is not retryable.
     def result = getTask(clientRequestId)
     def task = result.task
     if (!result.shouldExecute) {
@@ -228,7 +228,7 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
       if (!existingTask.isRetryable()) {
         return new GetTaskResult(existingTask, false)
       }
-      existingTask.updateStatus(TASK_PHASE, "Re-initializing Orchestration Task")
+      existingTask.updateStatus(TASK_PHASE, "Re-initializing Orchestration Task (failure is retryable)")
       existingTask.retry()
       return new GetTaskResult(existingTask, true)
     }

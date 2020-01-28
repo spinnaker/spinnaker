@@ -114,6 +114,7 @@ class SqlTask(
   }
 
   override fun retry() {
+    this.dirty.set(true)
     repository.updateState(this, TaskState.STARTED)
   }
 
