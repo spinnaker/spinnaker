@@ -1,12 +1,8 @@
 import { module } from 'angular';
 
-import {
-  ArtifactReferenceService,
-  ExecutionDetailsTasks,
-  ExpectedArtifactService,
-  IStage,
-  Registry,
-} from '@spinnaker/core';
+import { ArtifactReferenceService, ExpectedArtifactService, IStage, Registry } from '@spinnaker/core';
+
+import { DeployExecutionDetails } from './deployCloudFormationExecutionDetails';
 
 import { EvaluateCloudFormationChangeSetExecutionMarkerIcon } from './evaluateCloudFormationChangeSetExecutionMarkerIcon';
 import { EvaluateCloudFormationChangeSetExecutionLabel } from './evaluateCloudFormationChangeSetExecutionLabel';
@@ -27,7 +23,7 @@ module(DEPLOY_CLOUDFORMATION_STACK_STAGE, [])
       controller: 'DeployCloudFormationStackConfigController',
       controllerAs: 'ctrl',
       useCustomTooltip: true,
-      executionDetailsSections: [ExecutionDetailsTasks, EvaluateCloudFormationChangeSetExecutionDetails],
+      executionDetailsSections: [DeployExecutionDetails, EvaluateCloudFormationChangeSetExecutionDetails],
       executionLabelComponent: EvaluateCloudFormationChangeSetExecutionLabel,
       producesArtifacts: true,
       supportsCustomTimeout: true,
