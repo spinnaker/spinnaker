@@ -22,7 +22,6 @@ plugins {
 
 dependencies {
   implementation("org.gradle.crypto.checksum:org.gradle.crypto.checksum.gradle.plugin:1.2.0")
-  implementation("com.moowork.gradle:gradle-node-plugin:1.1.0")
 
   // Kotlin JDK 8 standard library.
   implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")

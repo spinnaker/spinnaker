@@ -33,6 +33,8 @@ import java.time.Instant
  */
 open class CreatePluginInfoTask : DefaultTask() {
 
+  override fun getGroup(): String? = Plugins.GROUP
+
   @TaskAction
   fun doAction() {
     val allPluginExts = project.rootProject
