@@ -144,5 +144,4 @@ public class GateWebConfig implements WebMvcConfigurer {
   void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
     configurer.favorPathExtension(false)
   }
-
 }

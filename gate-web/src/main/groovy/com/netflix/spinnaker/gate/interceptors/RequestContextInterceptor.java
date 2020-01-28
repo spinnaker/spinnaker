@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.gate.interceptors;
 
-import com.netflix.spinnaker.gate.security.RequestContext;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -32,18 +31,14 @@ public class RequestContextInterceptor extends HandlerInterceptorAdapter {
   @Override
   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
       throws Exception {
-    RequestContext.set(
-        new RequestContext(
-            AuthenticatedRequest.getSpinnakerUserOrigin().orElse(null),
-            AuthenticatedRequest.getSpinnakerUser().orElse(null)));
-
-    Matcher m = applicationPattern.matcher(request.getRequestURI());
+    String requestURI = request.getRequestURI();
+    Matcher m = applicationPattern.matcher(requestURI);
     if (m.find()) {
-      RequestContext.setApplication(m.group(1));
+      AuthenticatedRequest.setApplication(m.group(1));
     }
 
-    if (orchestrationMatch.matcher(request.getRequestURI()).matches()) {
-      RequestContext.setExecutionType("orchestration");
+    if (orchestrationMatch.matcher(requestURI).matches()) {
+      AuthenticatedRequest.setExecutionType("orchestration");
     }
 
     return true;
@@ -53,6 +48,6 @@ public class RequestContextInterceptor extends HandlerInterceptorAdapter {
   public void afterCompletion(
       HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
       throws Exception {
-    RequestContext.clear();
+    AuthenticatedRequest.clear();
   }
 }

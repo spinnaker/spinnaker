@@ -20,6 +20,7 @@ import com.netflix.spinnaker.gate.security.RequestContext
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
+import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -39,20 +40,20 @@ class TaskService {
 
   Map create(Map body) {
     if (body.containsKey("application")) {
-      RequestContext.setApplication(body.get("application").toString())
+      AuthenticatedRequest.setApplication(body.get("application").toString())
     }
     orcaServiceSelector.withContext(RequestContext.get()).doOperation(body)
   }
 
   Map createAppTask(String app, Map body) {
     body.application = app
-    RequestContext.setApplication(app)
+    AuthenticatedRequest.setApplication(app)
     orcaServiceSelector.withContext(RequestContext.get()).doOperation(body)
   }
 
   Map createAppTask(Map body) {
     if (body.containsKey("application")) {
-      RequestContext.setApplication(body.get("application").toString())
+      AuthenticatedRequest.setApplication(body.get("application").toString())
     }
     orcaServiceSelector.withContext(RequestContext.get()).doOperation(body)
   }
@@ -98,7 +99,7 @@ class TaskService {
     log.info("Creating and waiting for completion: ${body}")
 
     if (body.containsKey("application")) {
-      RequestContext.setApplication(body.get("application").toString())
+      AuthenticatedRequest.setApplication(body.get("application").toString())
     }
 
     Map createResult = create(body)
@@ -144,7 +145,7 @@ class TaskService {
     try {
       Map task = getTask(id)
       if (task.containsKey("application")) {
-        RequestContext.setApplication(task.get("application").toString())
+        AuthenticatedRequest.setApplication(task.get("application").toString())
       }
     } catch (Exception e) {
       log.error("Error loading execution {} from orca", id, e)

@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.gate.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.gate.security.RequestContext
 import com.netflix.spinnaker.gate.services.PipelineService
 import com.netflix.spinnaker.gate.services.TaskService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
@@ -36,7 +35,6 @@ import io.swagger.annotations.Example
 import io.swagger.annotations.ExampleProperty
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpEntity
-import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -185,7 +183,7 @@ class PipelineController {
   @PostMapping('/start')
   ResponseEntity start(@RequestBody Map map) {
     if (map.containsKey("application")) {
-      RequestContext.setApplication(map.get("application").toString())
+      AuthenticatedRequest.setApplication(map.get("application").toString())
     }
     String authenticatedUser = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous")
     maybePropagateTemplatedPipelineErrors(map, {
@@ -204,7 +202,7 @@ class PipelineController {
     trigger.user = trigger.user ?: AuthenticatedRequest.getSpinnakerUser().orElse('anonymous')
     trigger.notifications = trigger.notifications ?: [];
 
-    RequestContext.setApplication(application)
+    AuthenticatedRequest.setApplication(application)
     try {
       pipelineService.trigger(application, pipelineNameOrId, trigger)
     } catch (NotFoundException e) {
@@ -223,7 +221,7 @@ class PipelineController {
                                          @PathVariable("pipelineNameOrId") String pipelineNameOrId,
                                          @RequestBody(required = false) Map trigger) {
     trigger = trigger ?: [:]
-    RequestContext.setApplication(application)
+    AuthenticatedRequest.setApplication(application)
     try {
       def body = pipelineService.triggerViaEcho(application, pipelineNameOrId, trigger)
       return new ResponseEntity(body, HttpStatus.ACCEPTED)

@@ -20,10 +20,9 @@ import com.netflix.spinnaker.gate.security.RequestContext;
 import com.netflix.spinnaker.kork.web.selector.SelectableService;
 
 public class OrcaServiceSelector {
+  private final SelectableService<OrcaService> selectableService;
 
-  private final SelectableService selectableService;
-
-  public OrcaServiceSelector(SelectableService selectableService) {
+  public OrcaServiceSelector(SelectableService<OrcaService> selectableService) {
     this.selectableService = selectableService;
   }
 
@@ -38,7 +37,6 @@ public class OrcaServiceSelector {
               .withOrigin(context.getOrigin())
               .withExecutionType(context.getExecutionType());
     }
-
-    return (OrcaService) selectableService.getService(criteria);
+    return selectableService.getService(criteria);
   }
 }

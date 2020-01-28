@@ -16,61 +16,71 @@
 
 package com.netflix.spinnaker.gate.security;
 
-public class RequestContext {
-  private static final ThreadLocal<RequestContext> threadLocal = new ThreadLocal<>();
+import com.netflix.spinnaker.security.AuthenticatedRequest;
+import lombok.extern.slf4j.Slf4j;
 
-  private String application;
-  private String authenticatedUser;
-  private String executionType;
-  private String executionId;
-  private String origin;
+/**
+ * No longer backed by a thread local, this is now a readonly proxy to {@link AuthenticatedRequest},
+ * which is the only source of truth for context values. This is to avoid the situation where
+ * RequestContext and {@link AuthenticatedRequest} provide an inconsistent view of the context or
+ * lose it across thread boundaries.
+ */
+@Slf4j
+public class RequestContext {
+  private static final RequestContext placeholder = new RequestContext();
+
+  private RequestContext() {}
 
   public RequestContext(String origin, String authenticatedUser) {
-    this.origin = origin;
-    this.authenticatedUser = authenticatedUser != null ? authenticatedUser : "anonymous";
+    log.warn("call to deprecated RequestContext's constructor");
   }
 
+  @Deprecated
   public static void set(RequestContext requestContext) {
-    threadLocal.set(requestContext);
+    log.warn("call to deprecated method RequestContext::set");
   }
 
+  @Deprecated
   public static void setApplication(String application) {
-    threadLocal.get().application = application;
+    log.warn("call to deprecated method RequestContext::setApplication");
   }
 
+  @Deprecated
   public static void setExecutionType(String executionType) {
-    threadLocal.get().executionType = executionType;
+    log.warn("call to deprecated method RequestContext::setExecutionType");
   }
 
+  @Deprecated
   public static void setExecutionId(String executionId) {
-    threadLocal.get().executionId = executionId;
+    log.warn("call to deprecated method RequestContext::setExecutionId");
+  }
+
+  @Deprecated
+  public static void clear() {
+    log.warn("call to deprecated method RequestContext::clear");
   }
 
   public static RequestContext get() {
-    return threadLocal.get();
-  }
-
-  public static void clear() {
-    threadLocal.remove();
+    return placeholder;
   }
 
   public String getApplication() {
-    return application;
+    return AuthenticatedRequest.getSpinnakerApplication().orElse(null);
   }
 
   public String getAuthenticatedUser() {
-    return authenticatedUser;
+    return AuthenticatedRequest.getSpinnakerUser().orElse(null);
   }
 
   public String getExecutionType() {
-    return executionType;
+    return AuthenticatedRequest.getSpinnakerExecutionType().orElse(null);
   }
 
   public String getExecutionId() {
-    return executionId;
+    return AuthenticatedRequest.getSpinnakerExecutionId().orElse(null);
   }
 
   public String getOrigin() {
-    return origin;
+    return AuthenticatedRequest.getSpinnakerUserOrigin().orElse(null);
   }
 }

@@ -173,15 +173,16 @@ class PipelineService {
   }
 
   /**
-   * Retrieve an orca execution by id to populate RequestContext application
+   * Retrieve an orca execution by id to populate the application in AuthenticatedRequest
    *
    * @param id
    */
   void setApplicationForExecution(String id) {
     try {
       Map execution = retrySupport.retry({ -> getPipeline(id) }, 5, 1000, false)
-      if (execution.containsKey("application")) {
-        RequestContext.setApplication(execution.get("application").toString())
+      Object application = execution.get("application")
+      if (application != null) {
+        AuthenticatedRequest.setApplication(application.toString())
       }
     } catch (Exception e) {
       log.error("Error loading execution {} from orca", id, e)
