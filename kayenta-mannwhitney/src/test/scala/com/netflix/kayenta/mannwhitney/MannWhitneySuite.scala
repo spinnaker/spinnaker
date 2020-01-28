@@ -17,9 +17,10 @@
 package com.netflix.kayenta.mannwhitney
 
 import junit.framework.TestCase.assertEquals
-import org.scalatest.FunSuite
-import org.apache.commons.math3.distribution.NormalDistribution
 import org.apache.commons.math3.analysis.UnivariateFunction
+import org.apache.commons.math3.distribution.NormalDistribution
+import org.scalatest.FunSuite
+
 
 class MannWhitneySuite extends FunSuite {
 
@@ -456,11 +457,10 @@ class MannWhitneySuite extends FunSuite {
       0.033333333333333333, 0.033333333333333333, 0.033333832480541337, 0.033332890601851725,
       0.033333276917606923, 0.033332834202763284
     )
-    val xLen = x.length.toDouble
-    val yLen = y.length.toDouble
 
-    assertEquals(-1.229416, MannWhitney.wilcoxonDiff(0, 0, x, y), E)
-    assertEquals(-35.80606, MannWhitney.wilcoxonDiff(5, 0, x, y), E)
+    val mannWhitney = new MannWhitney()
+    assertEquals(-1.229416, mannWhitney.wilcoxonDiff(0, 0, x, y), E)
+    assertEquals(-35.80606, mannWhitney.wilcoxonDiff(5, 0, x, y), E)
   }
 
   test("Test zQuant") {
@@ -472,9 +472,8 @@ class MannWhitneySuite extends FunSuite {
     val experimentData = Array(10.0, 20.0, 30.0, 40.0)
     val controlData = Array(1.0, 2.0, 3.0, 4.0)
 
-    val params = MannWhitneyParams(mu = 0.0, confidenceLevel = 0.95, controlData, experimentData )
     val mw = new MannWhitney
-    val result = mw.eval(params)
+    val result = mw.mannWhitneyUTest(experimentData, controlData)
 
     assertEquals(6.0, result.confidenceInterval.head, E)
     assertEquals(39.0, result.confidenceInterval.last, E)
@@ -913,9 +912,8 @@ class MannWhitneySuite extends FunSuite {
       0.033333276917606923, 0.033332834202763284
     )
 
-    val params = MannWhitneyParams(mu = 0.0, confidenceLevel = 0.98, controlData = control, experimentData = experiment)
     val mw = new MannWhitney
-    val result = mw.eval(params)
+    val result = mw.mannWhitneyUTest(experiment, control, confidenceLevel = 0.98)
 
     assertEquals(-1.4808028936386108E-5, result.confidenceInterval.head, E)
     assertEquals(1.808255910873413E-5, result.confidenceInterval.last, E)
@@ -938,9 +936,8 @@ class MannWhitneySuite extends FunSuite {
       3.0, 1.5, 5.0, 3.0, 2.5, 5.5, 3.0, 1.5, 2.5, 6.0
     )
 
-    val params = MannWhitneyParams(mu = 0.0, confidenceLevel = 0.95, controlData = control, experimentData = experiment)
     val mw = new MannWhitney
-    val result = mw.eval(params)
+    val result = mw.mannWhitneyUTest(experiment, control)
 
     val rCiLow = -0.500002521696696
     val rCiHigh = -3.486287505871302E-5
@@ -975,9 +972,8 @@ class MannWhitneySuite extends FunSuite {
       2.0, 3.0, 1.5, 1.5, 2.0, 1.5, 2.0, 1.5, 4.0, 2.0, 1.5, 1.5, 1.5, 1.5, 1.5, 0.5, 2.0, 1.0, 1.5, 0.5
     )
 
-    val params = MannWhitneyParams(mu = 0.0, confidenceLevel = 0.98, controlData = control, experimentData = experiment)
     val mw = new MannWhitney
-    val result = mw.eval(params)
+    val result = mw.mannWhitneyUTest(experiment, control, confidenceLevel = 0.98)
 
     val rCiLow = -0.4999173250549087
     val rCiHigh = -6.912685789769486E-6
@@ -1043,25 +1039,24 @@ class MannWhitneySuite extends FunSuite {
     val rEst = 2.6279243045155653E-5
 
     val confidenceLevel = 0.95
-    val xLen = x.length.toDouble
-    val yLen = y.length.toDouble
+    val mw = new MannWhitney()
 
     val alpha: Double = 1.0 - confidenceLevel
     val muMin: Double = x.min - y.max
     val muMax: Double = x.max - y.min
 
     val wilcoxonDiffWrapper = (zq: Double) => new UnivariateFunction {
-      override def value(input: Double): Double = MannWhitney.wilcoxonDiff(input, zq, x, y)
+      override def value(input: Double): Double = mw.wilcoxonDiff(input, zq, x, y)
     }
 
     val zqLower = new NormalDistribution(0,1).inverseCumulativeProbability(alpha/2) * -1
     val zqUpper = new NormalDistribution(0,1).inverseCumulativeProbability(alpha/2)
-    val fLower0 = MannWhitney.wilcoxonDiff(muMin, 0, x, y)
-    val fUpper0 = MannWhitney.wilcoxonDiff(muMax, 0, x, y)
-    val fLower1 = MannWhitney.wilcoxonDiff(muMin, zqLower, x, y)
-    val fUpper1 = MannWhitney.wilcoxonDiff(muMax, zqLower, x, y)
-    val fLower2 = MannWhitney.wilcoxonDiff(muMin, zqUpper, x, y)
-    val fUpper2 = MannWhitney.wilcoxonDiff(muMax, zqUpper, x, y)
+    val fLower0 = mw.wilcoxonDiff(muMin, 0, x, y)
+    val fUpper0 = mw.wilcoxonDiff(muMax, 0, x, y)
+    val fLower1 = mw.wilcoxonDiff(muMin, zqLower, x, y)
+    val fUpper1 = mw.wilcoxonDiff(muMax, zqLower, x, y)
+    val fLower2 = mw.wilcoxonDiff(muMin, zqUpper, x, y)
+    val fUpper2 = mw.wilcoxonDiff(muMax, zqUpper, x, y)
     val ciLower = BrentSolver.solve(muMin, muMax, fLower1, fUpper1, wilcoxonDiffWrapper(zqLower))
     val ciUpper = BrentSolver.solve(muMin, muMax, fLower2, fUpper2, wilcoxonDiffWrapper(zqUpper))
     val estimate = BrentSolver.solve(muMin, muMax, fLower0, fUpper0, wilcoxonDiffWrapper(0))
