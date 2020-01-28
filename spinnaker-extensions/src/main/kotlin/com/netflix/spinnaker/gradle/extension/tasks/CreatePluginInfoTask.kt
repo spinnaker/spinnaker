@@ -21,7 +21,6 @@ import com.netflix.spinnaker.gradle.extension.extensions.SpinnakerBundleExtensio
 import com.netflix.spinnaker.gradle.extension.extensions.SpinnakerPluginExtension
 import groovy.json.JsonOutput
 import org.gradle.api.DefaultTask
-import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
 import org.gradle.crypto.checksum.Checksum
 import org.gradle.crypto.checksum.ChecksumPlugin

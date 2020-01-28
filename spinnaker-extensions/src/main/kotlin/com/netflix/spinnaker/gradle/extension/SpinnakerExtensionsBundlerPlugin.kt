@@ -49,8 +49,16 @@ class SpinnakerExtensionsBundlerPlugin : Plugin<Project> {
     project.extensions.create("spinnakerBundle", SpinnakerBundleExtension::class.java)
 
     project.tasks.register(COLLECT_PLUGIN_ZIPS_TASK_NAME, Copy::class.java) {
-      it.dependsOn(project.getTasksByName(ASSEMBLE_PLUGIN_TASK_NAME, true))
+
       it.group = Plugins.GROUP
+
+      // Look for assemblePlugin task.
+      if (it.project.subprojects.isNotEmpty()) { // Safe guard this in case if project structure is not set correctly.
+        val assemblePluginTasks: Set<Task> = it.project.getTasksByName(ASSEMBLE_PLUGIN_TASK_NAME, true)
+        if (assemblePluginTasks.isNotEmpty()) {
+          it.dependsOn(assemblePluginTasks)
+        }
+      }
 
       val distributions = project.subprojects
         .filter { subproject ->

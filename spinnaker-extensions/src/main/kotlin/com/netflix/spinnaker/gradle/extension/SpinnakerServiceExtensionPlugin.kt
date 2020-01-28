@@ -20,15 +20,10 @@ import com.netflix.spinnaker.gradle.extension.Plugins.ASSEMBLE_PLUGIN_TASK_NAME
 import com.netflix.spinnaker.gradle.extension.extensions.SpinnakerBundleExtension
 import com.netflix.spinnaker.gradle.extension.extensions.SpinnakerPluginExtension
 import com.netflix.spinnaker.gradle.extension.tasks.AssembleJavaPluginZipTask
-import com.netflix.spinnaker.gradle.extension.tasks.RegistrationTask
-import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.bundling.Jar
-import org.gradle.api.tasks.bundling.Zip
-import java.io.File
 import java.lang.IllegalStateException
 
 /**

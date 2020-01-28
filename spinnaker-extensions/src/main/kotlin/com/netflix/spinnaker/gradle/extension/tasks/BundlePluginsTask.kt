@@ -19,7 +19,6 @@ import com.netflix.spinnaker.gradle.extension.Plugins
 import com.netflix.spinnaker.gradle.extension.Plugins.ASSEMBLE_PLUGIN_TASK_NAME
 import com.netflix.spinnaker.gradle.extension.SpinnakerServiceExtensionPlugin
 import com.netflix.spinnaker.gradle.extension.SpinnakerUIExtensionPlugin
-import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.bundling.Zip
 
