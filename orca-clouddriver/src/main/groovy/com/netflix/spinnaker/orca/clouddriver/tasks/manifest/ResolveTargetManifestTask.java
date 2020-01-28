@@ -36,14 +36,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class DynamicResolveManifestTask extends AbstractCloudProviderAwareTask implements Task {
+public class ResolveTargetManifestTask extends AbstractCloudProviderAwareTask implements Task {
   @Autowired OortService oortService;
 
   @Autowired ObjectMapper objectMapper;
 
   @Autowired RetrySupport retrySupport;
 
-  public static final String TASK_NAME = "resolveDynamicManifest";
+  public static final String TASK_NAME = "resolveTargetManifest";
 
   @Nonnull
   @Override

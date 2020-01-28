@@ -19,8 +19,8 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.manifest;
 
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.DisableManifestTask;
-import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.DynamicResolveManifestTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestForceCacheRefreshTask;
+import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ResolveTargetManifestTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.WaitForManifestStableTask;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
@@ -34,7 +34,7 @@ public class DisableManifestStage implements StageDefinitionBuilder {
   @Override
   public void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder
-        .withTask(DynamicResolveManifestTask.TASK_NAME, DynamicResolveManifestTask.class)
+        .withTask(ResolveTargetManifestTask.TASK_NAME, ResolveTargetManifestTask.class)
         .withTask(DisableManifestTask.TASK_NAME, DisableManifestTask.class)
         .withTask("monitorDisable", MonitorKatoTask.class)
         .withTask(ManifestForceCacheRefreshTask.TASK_NAME, ManifestForceCacheRefreshTask.class)

@@ -17,10 +17,10 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.manifest;
 
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask;
-import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.DynamicResolveManifestTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestForceCacheRefreshTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.PatchManifestTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.PromoteManifestKatoOutputsTask;
+import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ResolveTargetManifestTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.WaitForManifestStableTask;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
@@ -35,7 +35,7 @@ public class PatchManifestStage implements StageDefinitionBuilder {
   @Override
   public void taskGraph(Stage stage, TaskNode.Builder builder) {
     builder
-        .withTask(DynamicResolveManifestTask.TASK_NAME, DynamicResolveManifestTask.class)
+        .withTask(ResolveTargetManifestTask.TASK_NAME, ResolveTargetManifestTask.class)
         .withTask(PatchManifestTask.TASK_NAME, PatchManifestTask.class)
         .withTask("monitorPatch", MonitorKatoTask.class)
         .withTask(PromoteManifestKatoOutputsTask.TASK_NAME, PromoteManifestKatoOutputsTask.class)
