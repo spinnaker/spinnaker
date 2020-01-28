@@ -107,18 +107,21 @@ class SecurityGroupIngressConverter {
         it.groupName = null
         it.peeringStatus = null
         it.vpcPeeringConnectionId = null
+        it.description = null // not passed in via the UI
         new IpPermission()
           .withFromPort(ipPermission.fromPort)
           .withToPort(ipPermission.toPort)
           .withIpProtocol(ipPermission.ipProtocol)
           .withUserIdGroupPairs(it)
       } + ipPermission.ipv4Ranges.collect {
+        it.description = null // not passed in via the UI
         new IpPermission()
           .withFromPort(ipPermission.fromPort)
           .withToPort(ipPermission.toPort)
           .withIpProtocol(ipPermission.ipProtocol)
           .withIpv4Ranges(it)
       } + ipPermission.ipv6Ranges.collect {
+        it.description = null // not passed in via the UI
         new IpPermission()
           .withFromPort(ipPermission.fromPort)
           .withToPort(ipPermission.toPort)
