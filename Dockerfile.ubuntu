@@ -2,9 +2,9 @@ FROM ubuntu:bionic
 LABEL maintainer="delivery-engineering@netflix.com"
 COPY --from=halyard.compile /compiled_sources/halyard-web/build/install/halyard /opt/halyard
 
-ENV KUBECTL_RELEASE=1.12.7
-ENV AWS_BINARY_RELEASE_DATE=2019-03-27
-ENV AWS_CLI_VERSION=1.16.208
+ENV KUBECTL_RELEASE=1.14.10
+ENV AWS_BINARY_RELEASE_DATE=2019-08-22
+ENV AWS_CLI_VERSION=1.17.9
 
 RUN apt-get update && \
     apt-get upgrade -y && \
