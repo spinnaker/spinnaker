@@ -60,7 +60,11 @@ class PreconfiguredWebhookStageSpec extends Specification {
       terminalStatuses: "h",
       parameterValues: null,
       parameterData: null,
-      permissions: null
+      permissions: null,
+      signalCancellation: true,
+      cancelEndpoint: "i",
+      cancelMethod: HttpMethod.POST,
+      cancelPayload: "j"
     ]
   }
 
@@ -81,7 +85,11 @@ class PreconfiguredWebhookStageSpec extends Specification {
       canceledStatuses: "g",
       terminalStatuses: "h",
       parameterValues: null,
-      permissions: null
+      permissions: null,
+      signalCancellation: true,
+      cancelEndpoint: "i",
+      cancelMethod: HttpMethod.POST,
+      cancelPayload: "j"
     ])
 
     when:
@@ -105,7 +113,11 @@ class PreconfiguredWebhookStageSpec extends Specification {
       terminalStatuses: "h",
       parameterValues: null,
       parameterData: null,
-      permissions: null
+      permissions: null,
+      signalCancellation: true,
+      cancelEndpoint: "i",
+      cancelMethod: HttpMethod.POST,
+      cancelPayload: "j"
     ]
   }
 
@@ -115,7 +127,8 @@ class PreconfiguredWebhookStageSpec extends Specification {
     return new WebhookProperties.PreconfiguredWebhook(
       label: label, description: description, type: type, url: "a", customHeaders: customHeaders, method: HttpMethod.POST, payload: "b",
       failFastStatusCodes: [500, 501], waitForCompletion: true, statusUrlResolution: WebhookProperties.StatusUrlResolution.locationHeader,
-      statusUrlJsonPath: "c", statusJsonPath: "d", progressJsonPath: "e", successStatuses: "f", canceledStatuses: "g", terminalStatuses: "h"
+      statusUrlJsonPath: "c", statusJsonPath: "d", progressJsonPath: "e", successStatuses: "f", canceledStatuses: "g", terminalStatuses: "h",
+      signalCancellation: true, cancelEndpoint: "i", cancelMethod: HttpMethod.POST, cancelPayload: "j"
     )
   }
 }

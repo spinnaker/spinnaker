@@ -89,6 +89,10 @@ public class WebhookProperties {
     public String canceledStatuses;
     public String terminalStatuses;
     public Map<String, List<String>> permissions;
+    public Boolean signalCancellation;
+    public String cancelEndpoint;
+    public HttpMethod cancelMethod;
+    public String cancelPayload;
 
     public List<String> getPreconfiguredProperties() {
       return ALL_FIELDS.stream()

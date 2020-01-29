@@ -35,7 +35,8 @@ class PreconfiguredWebhookSpec extends Specification {
 
     then:
     fields == ["url", "customHeaders", "method", "payload", "failFastStatusCodes", "waitForCompletion", "statusUrlResolution", "statusUrlJsonPath",
-      "statusJsonPath", "progressJsonPath", "successStatuses", "canceledStatuses", "terminalStatuses"]
+      "statusJsonPath", "progressJsonPath", "successStatuses", "canceledStatuses", "terminalStatuses",
+      "signalCancellation", "cancelEndpoint", "cancelMethod", "cancelPayload"]
   }
 
   def "getPreconfiguredFields should return empty list if no stage configuration fields are populated"() {
@@ -84,7 +85,8 @@ class PreconfiguredWebhookSpec extends Specification {
       url: "url", customHeaders: customHeaders, method: HttpMethod.POST, payload: "payload",
       failFastStatusCodes: [500, 501], waitForCompletion: true, statusUrlResolution: webhookResponse,
       statusUrlJsonPath: "statusUrlJsonPath", statusJsonPath: "statusJsonPath", progressJsonPath: "progressJsonPath",
-      successStatuses: "successStatuses", canceledStatuses: "canceledStatuses", terminalStatuses: "terminalStatuses"
+      successStatuses: "successStatuses", canceledStatuses: "canceledStatuses", terminalStatuses: "terminalStatuses",
+      signalCancellation: true, cancelEndpoint: "cancelEndpoint", cancelMethod: HttpMethod.POST, cancelPayload: "cancelPayload"
     )
   }
 }

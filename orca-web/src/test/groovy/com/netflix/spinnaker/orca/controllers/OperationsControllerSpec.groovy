@@ -634,7 +634,8 @@ class OperationsControllerSpec extends Specification {
   def "should call webhookService and return correct information"() {
     given:
     def preconfiguredProperties = ["url", "customHeaders", "method", "payload", "failFastStatusCodes", "waitForCompletion", "statusUrlResolution",
-                                   "statusUrlJsonPath", "statusJsonPath", "progressJsonPath", "successStatuses", "canceledStatuses", "terminalStatuses"]
+                                   "statusUrlJsonPath", "statusJsonPath", "progressJsonPath", "successStatuses", "canceledStatuses", "terminalStatuses",
+                                   "signalCancellation", "cancelEndpoint", "cancelMethod", "cancelPayload"]
 
     when:
     def preconfiguredWebhooks = controller.preconfiguredWebhooks()
@@ -653,7 +654,8 @@ class OperationsControllerSpec extends Specification {
   def "should not return protected preconfigured webhooks if user don't have the role"() {
     given:
     def preconfiguredProperties = ["url", "customHeaders", "method", "payload", "failFastStatusCodes", "waitForCompletion", "statusUrlResolution",
-                                   "statusUrlJsonPath", "statusJsonPath", "progressJsonPath", "successStatuses", "canceledStatuses", "terminalStatuses"]
+                                   "statusUrlJsonPath", "statusJsonPath", "progressJsonPath", "successStatuses", "canceledStatuses", "terminalStatuses",
+                                   "signalCancellation", "cancelEndpoint", "cancelMethod", "cancelPayload"]
     executionLauncher.start(*_) >> { ExecutionType type, String json ->
       startedPipeline = mapper.readValue(json, Execution)
       startedPipeline.id = UUID.randomUUID().toString()
@@ -686,7 +688,8 @@ class OperationsControllerSpec extends Specification {
   def "should return protected preconfigured webhooks if user have the role"() {
     given:
     def preconfiguredProperties = ["url", "customHeaders", "method", "payload", "failFastStatusCodes", "waitForCompletion", "statusUrlResolution",
-                                   "statusUrlJsonPath", "statusJsonPath", "progressJsonPath", "successStatuses", "canceledStatuses", "terminalStatuses"]
+                                   "statusUrlJsonPath", "statusJsonPath", "progressJsonPath", "successStatuses", "canceledStatuses", "terminalStatuses",
+                                   "signalCancellation", "cancelEndpoint", "cancelMethod", "cancelPayload"]
     executionLauncher.start(*_) >> { ExecutionType type, String json ->
       startedPipeline = mapper.readValue(json, Execution)
       startedPipeline.id = UUID.randomUUID().toString()
@@ -772,7 +775,7 @@ class OperationsControllerSpec extends Specification {
       url: "a", customHeaders: customHeaders, method: HttpMethod.POST, payload: "b",
       failFastStatusCodes: [500, 501], waitForCompletion: true, statusUrlResolution: WebhookProperties.StatusUrlResolution.webhookResponse,
       statusUrlJsonPath: "c", statusJsonPath: "d", progressJsonPath: "e", successStatuses: "f", canceledStatuses: "g", terminalStatuses: "h", parameters: null, parameterData: null,
-      permissions: permissions
+      permissions: permissions, signalCancellation: true, cancelEndpoint: "i", cancelMethod: HttpMethod.POST, cancelPayload: "j"
     )
   }
 }

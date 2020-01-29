@@ -92,6 +92,10 @@ integrations:
 #      failFastStatusCodes:
 #        - 404
 #        - 501
+#      signalCancellation: true
+#      cancelEndpoint: https://my.webhook.com/cancel
+#      cancelMethod: POST
+#      cancelPayload: "{}"
 #      waitForCompletion: true
 #      # The rest of the properties are only used if waitForCompletion == true
 #      statusUrlResolution: webhookResponse # getMethod, locationHeader, webhookResponse
