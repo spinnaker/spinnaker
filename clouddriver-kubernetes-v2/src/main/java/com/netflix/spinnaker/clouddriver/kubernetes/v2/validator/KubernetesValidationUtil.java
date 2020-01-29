@@ -125,16 +125,11 @@ public class KubernetesValidationUtil {
   }
 
   private boolean validateKind(KubernetesKind kind, KubernetesV2Credentials credentials) {
-    if (!credentials.isValidKind(kind)) {
-      KubernetesKindStatus kindStatus = credentials.getKindStatus(kind);
-      if (kindStatus != KubernetesKindStatus.VALID) {
-        reject(kindStatus.getErrorMessage(kind), kind.toString());
-      } else {
-        reject("notValidKind", kind.toString());
-      }
+    KubernetesKindStatus kindStatus = credentials.getKindStatus(kind);
+    if (kindStatus != KubernetesKindStatus.VALID) {
+      reject(kindStatus.getErrorMessage(kind), kind.toString());
       return false;
     }
-
     return true;
   }
 

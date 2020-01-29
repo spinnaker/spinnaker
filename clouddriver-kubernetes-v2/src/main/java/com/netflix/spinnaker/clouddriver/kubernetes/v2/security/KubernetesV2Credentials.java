@@ -130,7 +130,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
 
   private String cachedDefaultNamespace;
   @Getter private final ResourcePropertyRegistry resourcePropertyRegistry;
-  @Getter private final KubernetesKindRegistry kindRegistry;
+  private final KubernetesKindRegistry kindRegistry;
   private final KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap;
   private final PermissionValidator permissionValidator;
   private final Supplier<ImmutableMap<KubernetesKind, KubernetesKindProperties>> crdSupplier =
@@ -245,7 +245,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     }
   }
 
-  public boolean isValidKind(@Nonnull KubernetesKind kind) {
+  private boolean isValidKind(@Nonnull KubernetesKind kind) {
     return getKindStatus(kind) == KubernetesKindStatus.VALID;
   }
 
@@ -277,7 +277,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
 
   private Optional<KubernetesKindProperties> getCrdProperties(
       @Nonnull KubernetesKind kubernetesKind) {
-    return Optional.ofNullable(getCrds().get(kubernetesKind));
+    return Optional.ofNullable(crdSupplier.get().get(kubernetesKind));
   }
 
   public String getDefaultNamespace() {
@@ -286,6 +286,18 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     }
 
     return cachedDefaultNamespace;
+  }
+
+  @Nonnull
+  public ImmutableList<KubernetesKind> getGlobalKinds() {
+    return kindRegistry.getGlobalKinds().stream()
+        .filter(this::isValidKind)
+        .collect(toImmutableList());
+  }
+
+  @Nonnull
+  public KubernetesKindProperties getKindProperties(@Nonnull KubernetesKind kind) {
+    return kindRegistry.getKindPropertiesOrDefault(kind);
   }
 
   private Optional<String> serviceAccountNamespace() {
@@ -324,8 +336,8 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
   }
 
   @Nonnull
-  public ImmutableMap<KubernetesKind, KubernetesKindProperties> getCrds() {
-    return crdSupplier.get();
+  public ImmutableList<KubernetesKind> getCrds() {
+    return crdSupplier.get().keySet().stream().filter(this::isValidKind).collect(toImmutableList());
   }
 
   @Nonnull
@@ -676,7 +688,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
       }
       log.info("Checking if {} is readable in account '{}'...", kind, accountName);
       try {
-        if (kindRegistry.getKindProperties(kind).isNamespaced()) {
+        if (kindRegistry.getKindPropertiesOrDefault(kind).isNamespaced()) {
           list(kind, checkNamespace.get());
         } else {
           list(kind, null);

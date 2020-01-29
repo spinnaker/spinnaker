@@ -120,8 +120,7 @@ public abstract class KubernetesV2CachingAgent
     return primaryKinds().stream()
         .collect(
             ImmutableSetMultimap.toImmutableSetMultimap(
-                k -> credentials.getKindRegistry().getKindProperties(k).getResourceScope(),
-                Function.identity()));
+                k -> credentials.getKindProperties(k).getResourceScope(), Function.identity()));
   }
 
   protected Map<KubernetesKind, List<KubernetesManifest>> loadPrimaryResourceList() {
@@ -203,7 +202,7 @@ public abstract class KubernetesV2CachingAgent
                 KubernetesCacheDataConverter.convertAsResource(
                     kubernetesCacheData,
                     accountName,
-                    credentials.getKindRegistry(),
+                    credentials.getKindProperties(rs.getKind()),
                     rs,
                     relationships.get(rs),
                     credentials.isOnlySpinnakerManaged());

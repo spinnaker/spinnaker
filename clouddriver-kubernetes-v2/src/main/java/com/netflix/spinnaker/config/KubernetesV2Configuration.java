@@ -21,10 +21,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurati
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.KubernetesV2Provider;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.KubernetesV2ProviderSynchronizable;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV2CachingAgentDispatcher;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKindProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.model.ManifestProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.model.NoopManifestProvider;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.GlobalKubernetesKindRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -44,11 +42,6 @@ public class KubernetesV2Configuration {
   @Bean
   public KubernetesV2Provider kubernetesV2Provider() {
     return new KubernetesV2Provider();
-  }
-
-  @Bean
-  public GlobalKubernetesKindRegistry globalKubernetesKindRegistry() {
-    return new GlobalKubernetesKindRegistry(KubernetesKindProperties.getGlobalKindProperties());
   }
 
   @Bean

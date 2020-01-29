@@ -26,11 +26,9 @@ import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKindProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 
@@ -59,9 +57,6 @@ public class KubernetesCoreCachingAgent extends KubernetesV2OnDemandCachingAgent
 
   @Override
   protected List<KubernetesKind> primaryKinds() {
-    return credentials.getKindRegistry().getGlobalKinds().stream()
-        .map(KubernetesKindProperties::getKubernetesKind)
-        .filter(credentials::isValidKind)
-        .collect(Collectors.toList());
+    return credentials.getGlobalKinds();
   }
 }

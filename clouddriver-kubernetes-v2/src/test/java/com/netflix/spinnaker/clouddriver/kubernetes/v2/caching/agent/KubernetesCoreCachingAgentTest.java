@@ -47,8 +47,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.GlobalResourc
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.ResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.*;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler.KubernetesUnregisteredCustomResourceHandler;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.GlobalKubernetesKindRegistry;
-import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesKindRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import com.netflix.spinnaker.clouddriver.security.ProviderVersion;
 import java.io.IOException;
@@ -73,11 +71,24 @@ final class KubernetesCoreCachingAgentTest {
   private static final String DEPLOYMENT_KIND = KubernetesKind.DEPLOYMENT.toString();
   private static final String STORAGE_CLASS_KIND = KubernetesKind.STORAGE_CLASS.toString();
 
+  private static final ImmutableMap<KubernetesKind, KubernetesKindProperties> kindProperties =
+      ImmutableMap.<KubernetesKind, KubernetesKindProperties>builder()
+          .put(
+              KubernetesKind.DEPLOYMENT,
+              KubernetesKindProperties.create(KubernetesKind.DEPLOYMENT, true))
+          .put(
+              KubernetesKind.STORAGE_CLASS,
+              KubernetesKindProperties.create(KubernetesKind.STORAGE_CLASS, false))
+          .put(
+              KubernetesKind.NAMESPACE,
+              KubernetesKindProperties.create(KubernetesKind.NAMESPACE, false))
+          .put(KubernetesKind.POD, KubernetesKindProperties.create(KubernetesKind.POD, true))
+          .put(
+              KubernetesKind.REPLICA_SET,
+              KubernetesKindProperties.create(KubernetesKind.REPLICA_SET, true))
+          .build();
+
   private static final ObjectMapper objectMapper = new ObjectMapper();
-  private static final KubernetesKindRegistry kindRegistry =
-      new KubernetesKindRegistry.Factory(
-              new GlobalKubernetesKindRegistry(KubernetesKindProperties.getGlobalKindProperties()))
-          .create();
   private static final ResourcePropertyRegistry resourcePropertyRegistry =
       new GlobalResourcePropertyRegistry(
           ImmutableList.of(), new KubernetesUnregisteredCustomResourceHandler());
@@ -107,8 +118,9 @@ final class KubernetesCoreCachingAgentTest {
   private static KubernetesV2Credentials mockKubernetesV2Credentials() {
     KubernetesV2Credentials v2Credentials = mock(KubernetesV2Credentials.class);
     when(v2Credentials.isLiveManifestCalls()).thenReturn(false);
-    when(v2Credentials.getKindRegistry()).thenReturn(kindRegistry);
-    when(v2Credentials.isValidKind(any(KubernetesKind.class))).thenReturn(true);
+    when(v2Credentials.getGlobalKinds()).thenReturn(kindProperties.keySet().asList());
+    when(v2Credentials.getKindProperties(any(KubernetesKind.class)))
+        .thenAnswer(invocation -> kindProperties.get(invocation.getArgument(0)));
     when(v2Credentials.getDeclaredNamespaces())
         .thenReturn(ImmutableList.of(NAMESPACE1, NAMESPACE2));
     when(v2Credentials.getResourcePropertyRegistry()).thenReturn(resourcePropertyRegistry);

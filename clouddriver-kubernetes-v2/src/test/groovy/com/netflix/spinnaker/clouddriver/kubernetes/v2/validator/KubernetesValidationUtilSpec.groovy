@@ -55,6 +55,7 @@ class KubernetesValidationUtilSpec extends Specification {
     manifest.getNamespace() >> testNamespace
     manifest.getKind() >> kind
     credentials.isValidKind(kind) >> true
+    credentials.getKindStatus(kind) >> KubernetesV2Credentials.KubernetesKindStatus.VALID
     judgement == expectedResult
 
     where:

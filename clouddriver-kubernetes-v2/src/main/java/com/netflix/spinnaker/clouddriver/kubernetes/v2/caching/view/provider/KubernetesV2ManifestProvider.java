@@ -76,8 +76,7 @@ public class KubernetesV2ManifestProvider implements ManifestProvider<Kubernetes
     }
 
     KubernetesKind kind = parsedName.getLeft();
-    if (!credentials.getKindRegistry().getKindProperties(kind).isNamespaced()
-        && StringUtils.isNotEmpty(location)) {
+    if (!credentials.getKindProperties(kind).isNamespaced() && StringUtils.isNotEmpty(location)) {
       log.warn(
           "Kind {} is not namespaced, but namespace {} was provided (ignoring)", kind, location);
       location = "";

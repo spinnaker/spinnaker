@@ -20,6 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent;
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
@@ -27,7 +28,6 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
@@ -52,9 +52,7 @@ public class KubernetesUnregisteredCustomResourceCachingAgent
   }
 
   @Override
-  protected List<KubernetesKind> primaryKinds() {
-    return credentials.getCrds().keySet().stream()
-        .filter(credentials::isValidKind)
-        .collect(Collectors.toList());
+  protected ImmutableList<KubernetesKind> primaryKinds() {
+    return credentials.getCrds();
   }
 }

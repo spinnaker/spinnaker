@@ -16,32 +16,45 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.security;
 
-import com.google.common.collect.ImmutableCollection;
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
+
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKindProperties;
-import java.util.Collection;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import java.util.Optional;
-import javax.annotation.Nonnull;
+import java.util.stream.StreamSupport;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * A class representing the Kubernetes kind properties that are built into Spinnaker. By design,
  * this class does not support updating any of the properties in the registry; by making instances
  * immutable, they can be shared across threads without need for further synchronization.
  */
-public class GlobalKubernetesKindRegistry {
+@Component
+@NonnullByDefault
+final class GlobalKubernetesKindRegistry {
   private final ImmutableMap<KubernetesKind, KubernetesKindProperties> nameMap;
+
+  /**
+   * Creates a {@link GlobalKubernetesKindRegistry} populated with default {@link
+   * KubernetesKindProperties}.
+   */
+  @Autowired
+  GlobalKubernetesKindRegistry() {
+    this(KubernetesKindProperties.getGlobalKindProperties());
+  }
 
   /**
    * Creates a {@link GlobalKubernetesKindRegistry} populated with the supplied {@link
    * KubernetesKindProperties}.
    */
-  public GlobalKubernetesKindRegistry(
-      @Nonnull Collection<KubernetesKindProperties> kubernetesKindProperties) {
-    ImmutableMap.Builder<KubernetesKind, KubernetesKindProperties> mapBuilder =
-        new ImmutableMap.Builder<>();
-    kubernetesKindProperties.forEach(kp -> mapBuilder.put(kp.getKubernetesKind(), kp));
-    this.nameMap = mapBuilder.build();
+  GlobalKubernetesKindRegistry(Iterable<KubernetesKindProperties> kubernetesKindProperties) {
+    this.nameMap =
+        StreamSupport.stream(kubernetesKindProperties.spliterator(), false)
+            .collect(toImmutableMap(KubernetesKindProperties::getKubernetesKind, p -> p));
   }
 
   /**
@@ -49,14 +62,12 @@ public class GlobalKubernetesKindRegistry {
    * KubernetesKind}. If the kind has been registered, returns the {@link KubernetesKindProperties}
    * that were registered for the kind; otherwise, returns an empty {@link Optional}.
    */
-  @Nonnull
-  public Optional<KubernetesKindProperties> getKindProperties(@Nonnull KubernetesKind kind) {
+  Optional<KubernetesKindProperties> getKindProperties(KubernetesKind kind) {
     return Optional.ofNullable(nameMap.get(kind));
   }
 
   /** Returns a list of all registered kinds */
-  @Nonnull
-  public ImmutableCollection<KubernetesKindProperties> getRegisteredKinds() {
-    return nameMap.values();
+  ImmutableSet<KubernetesKind> getRegisteredKinds() {
+    return nameMap.keySet();
   }
 }

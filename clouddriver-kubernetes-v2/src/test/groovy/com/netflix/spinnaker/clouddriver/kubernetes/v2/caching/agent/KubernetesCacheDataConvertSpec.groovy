@@ -48,10 +48,6 @@ class KubernetesCacheDataConvertSpec extends Specification {
     return mapper.convertValue(yaml.load(input), KubernetesManifest.class)
   }
 
-  KubernetesKindRegistry.Factory kindRegistryFactory = new KubernetesKindRegistry.Factory(
-    new GlobalKubernetesKindRegistry(KubernetesKindProperties.getGlobalKindProperties())
-  )
-
   @Unroll
   def "given a correctly annotated manifest, build attributes & infer relationships"() {
     setup:
@@ -79,7 +75,7 @@ metadata:
 
     when:
     KubernetesCacheData kubernetesCacheData = new KubernetesCacheData()
-    KubernetesCacheDataConverter.convertAsResource(kubernetesCacheData, account, kindRegistryFactory.create(), manifest, [], false)
+    KubernetesCacheDataConverter.convertAsResource(kubernetesCacheData, account, KubernetesKindProperties.create(kind, true), manifest, [], false)
     def optional = kubernetesCacheData.toCacheData().stream().filter({
       cd -> cd.id == Keys.InfrastructureCacheKey.createKey(kind, account, namespace, name)
     }).findFirst()
