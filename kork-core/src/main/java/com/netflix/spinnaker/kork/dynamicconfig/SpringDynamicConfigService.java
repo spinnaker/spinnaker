@@ -87,6 +87,6 @@ public class SpringDynamicConfigService implements DynamicConfigService, Environ
   }
 
   private static String flagPropertyName(String flagName) {
-    return format("%s.enabled", flagName);
+    return flagName.endsWith(".enabled") ? flagName : format("%s.enabled", flagName);
   }
 }

@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.okhttp;
 
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.security.AuthenticatedRequest;
+import com.netflix.spinnaker.kork.common.Header;
 import com.squareup.okhttp.Interceptor;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
@@ -55,10 +55,10 @@ class MetricsInterceptor {
     URL url = null;
 
     try {
-      String xSpinAnonymous = MDC.get(AuthenticatedRequest.Header.XSpinnakerAnonymous);
+      String xSpinAnonymous = MDC.get(Header.XSpinnakerAnonymous);
 
       if (xSpinAnonymous == null && !skipHeaderCheck) {
-        for (AuthenticatedRequest.Header header : AuthenticatedRequest.Header.values()) {
+        for (Header header : Header.values()) {
           String headerValue =
               (request != null)
                   ? request.header(header.getHeader())

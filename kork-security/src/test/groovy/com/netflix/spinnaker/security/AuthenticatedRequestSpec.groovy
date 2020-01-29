@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.security
 
+import com.netflix.spinnaker.kork.common.Header
 import org.slf4j.MDC
 import spock.lang.Specification
 
@@ -23,7 +24,7 @@ class AuthenticatedRequestSpec extends Specification {
   void "should extract user details by priority (Principal > MDC)"() {
     when:
     MDC.clear()
-    MDC.put(AuthenticatedRequest.Header.USER.header, "spinnaker-user")
+    MDC.put(Header.USER.header, "spinnaker-user")
 
     then:
     AuthenticatedRequest.getSpinnakerUser().get() == "spinnaker-user"
@@ -33,7 +34,7 @@ class AuthenticatedRequestSpec extends Specification {
   void "should extract allowed account details by priority (Principal > MDC"() {
     when:
     MDC.clear()
-    MDC.put(AuthenticatedRequest.Header.ACCOUNTS.header, "account1,account2")
+    MDC.put(Header.ACCOUNTS.header, "account1,account2")
 
     then:
     AuthenticatedRequest.getSpinnakerAccounts().get() == "account1,account2"
@@ -51,8 +52,8 @@ class AuthenticatedRequestSpec extends Specification {
 
   void "should propagate user/allowed account details"() {
     when:
-    MDC.put(AuthenticatedRequest.Header.USER.header, "spinnaker-user")
-    MDC.put(AuthenticatedRequest.Header.ACCOUNTS.header, "account1,account2")
+    MDC.put(Header.USER.header, "spinnaker-user")
+    MDC.put(Header.ACCOUNTS.header, "account1,account2")
 
     def closure = AuthenticatedRequest.propagate({
       assert AuthenticatedRequest.getSpinnakerUser().get() == "spinnaker-user"
@@ -60,14 +61,14 @@ class AuthenticatedRequestSpec extends Specification {
       return true
     })
 
-    MDC.put(AuthenticatedRequest.Header.USER.header, "spinnaker-another-user")
-    MDC.put(AuthenticatedRequest.Header.ACCOUNTS.header, "account1,account3")
+    MDC.put(Header.USER.header, "spinnaker-another-user")
+    MDC.put(Header.ACCOUNTS.header, "account1,account3")
     closure.call()
 
     then:
     // ensure MDC context is restored
-    MDC.get(AuthenticatedRequest.Header.USER.header) == "spinnaker-another-user"
-    MDC.get(AuthenticatedRequest.Header.ACCOUNTS.header) == "account1,account3"
+    MDC.get(Header.USER.header) == "spinnaker-another-user"
+    MDC.get(Header.ACCOUNTS.header) == "account1,account3"
 
     when:
     MDC.clear()
@@ -80,8 +81,8 @@ class AuthenticatedRequestSpec extends Specification {
   void "should propagate headers"() {
     when:
     MDC.clear()
-    MDC.put(AuthenticatedRequest.Header.USER.header, "spinnaker-another-user")
-    MDC.put(AuthenticatedRequest.Header.makeCustomHeader("cloudprovider"), "aws")
+    MDC.put(Header.USER.header, "spinnaker-another-user")
+    MDC.put(Header.makeCustomHeader("cloudprovider"), "aws")
 
     then:
     Map allheaders = AuthenticatedRequest.getAuthenticationHeaders()

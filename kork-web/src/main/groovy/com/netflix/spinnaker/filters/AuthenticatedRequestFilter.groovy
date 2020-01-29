@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.filters
 
+import com.netflix.spinnaker.kork.common.Header
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
@@ -30,8 +31,6 @@ import javax.servlet.ServletRequest
 import javax.servlet.ServletResponse
 import javax.servlet.http.HttpServletRequest
 import java.security.cert.X509Certificate
-
-import static com.netflix.spinnaker.security.AuthenticatedRequest.Header
 
 @Slf4j
 class AuthenticatedRequestFilter implements Filter {

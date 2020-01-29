@@ -5,6 +5,8 @@ apply from: "$rootDir/gradle/lombok.gradle"
 dependencies {
   api(platform(project(":spinnaker-dependencies")))
 
+  api project(":kork-core")
+
   api "org.springframework.security:spring-security-core"
   api "org.codehaus.groovy:groovy-all"
   api "com.hubspot.jinjava:jinjava"
