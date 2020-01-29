@@ -31,7 +31,10 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.events.DeleteServerGroupEvent
 import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEvent
+import com.netflix.spinnaker.kork.core.RetrySupport
 import org.springframework.beans.factory.annotation.Autowired
+
+import java.time.Duration
 
 class DestroyAsgAtomicOperation implements AtomicOperation<Void> {
   protected static final MAX_SIMULTANEOUS_TERMINATIONS = 100
@@ -46,6 +49,7 @@ class DestroyAsgAtomicOperation implements AtomicOperation<Void> {
 
   private final DestroyAsgDescription description
   private final Collection<DeleteServerGroupEvent> events = []
+  private final RetrySupport retrySupport = new RetrySupport()
 
   DestroyAsgAtomicOperation(DestroyAsgDescription description) {
     this.description = description
@@ -94,16 +98,18 @@ class DestroyAsgAtomicOperation implements AtomicOperation<Void> {
 
     if (autoScalingGroup.launchConfigurationName) {
       task.updateStatus BASE_PHASE, "Deleting launch config ${autoScalingGroup.launchConfigurationName} in $region."
-      try {
-        autoScaling.deleteLaunchConfiguration(
-          new DeleteLaunchConfigurationRequest(launchConfigurationName: autoScalingGroup.launchConfigurationName)
-        )
-      } catch (AmazonAutoScalingException e) {
-        // Ignore not found exception
-        if (!e.message.toLowerCase().contains("launch configuration name not found")) {
-          throw e
+      retrySupport.retry({
+        try {
+          autoScaling.deleteLaunchConfiguration(
+            new DeleteLaunchConfigurationRequest(launchConfigurationName: autoScalingGroup.launchConfigurationName)
+          )
+        } catch (AmazonAutoScalingException e) {
+          // Ignore not found exception
+          if (!e.message.toLowerCase().contains("launch configuration name not found")) {
+            throw e
+          }
         }
-      }
+      }, 5, Duration.ofSeconds(1), true)
     }
     def ec2 = amazonClientProvider.getAmazonEC2(credentials, region, true)
 
