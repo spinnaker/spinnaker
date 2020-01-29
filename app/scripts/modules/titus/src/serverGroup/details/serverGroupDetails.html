@@ -81,8 +81,9 @@
       Job is Disabled
     </div>
     <managed-resource-details-indicator
+      ng-if="!state.loading && serverGroup.isManaged"
       resource-summary="serverGroup.managedResourceSummary"
-      app="ctrl.application"
+      application="ctrl.application"
     ></managed-resource-details-indicator>
     <server-group-running-tasks-details
       server-group="serverGroup"
