@@ -106,6 +106,7 @@ abstract class AbstractEurekaSupport {
 
     def errors = [:]
     def fatals = []
+    List<String> skipped = []
     int index = 0
     for (String instanceId : instanceIds) {
       if (index > 0) {
@@ -160,6 +161,8 @@ abstract class AbstractEurekaSupport {
           // in strict mode, only 404 errors on disable are ignored
           if (!willSkip) {
             errors[instanceId] = retrofitError
+          } else {
+            skipped.add(instanceId)
           }
 
           task.updateStatus phaseName, errorMessage
@@ -188,6 +191,11 @@ abstract class AbstractEurekaSupport {
         task.fail()
         AbstractEurekaSupport.log.info("[$phaseName] - Failed marking discovery $discoveryStatus.value for instances ${errors}")
       }
+    }
+    if (!skipped.isEmpty()) {
+      task.addResultObjects([
+        ["discoverySkippedInstanceIds": instanceIds]
+      ])
     }
   }
 
