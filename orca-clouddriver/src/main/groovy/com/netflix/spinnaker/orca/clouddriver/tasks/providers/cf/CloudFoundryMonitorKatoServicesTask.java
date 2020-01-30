@@ -64,7 +64,7 @@ public class CloudFoundryMonitorKatoServicesTask extends AbstractCloudProviderAw
             .orElse(new ArrayList<>());
     Map<String, Object> stageContext = stage.getContext();
 
-    Task katoTask = kato.lookupTask(taskId.getId(), true).toBlocking().first();
+    Task katoTask = kato.lookupTask(taskId.getId(), true);
     ExecutionStatus status = katoStatusToTaskStatus(katoTask);
     List<Map> results =
         Optional.ofNullable(katoTask.getResultObjects()).orElse(Collections.emptyList());

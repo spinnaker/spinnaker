@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks
 
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.KatoService
@@ -27,7 +28,6 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.mime.TypedByteArray
-import rx.Observable
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -39,21 +39,19 @@ import java.time.ZoneId
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class MonitorKatoTaskSpec extends Specification {
-  static final long TASK_NOT_FOUND_TIMEOUT = 120000
-
   def now = Instant.now()
-
+  def retrySupport = Spy(RetrySupport) {
+    _ * sleep(_) >> { /* do nothing */ }
+  }
   KatoService kato = Mock(KatoService)
   DynamicConfigService dynamicConfigService = Mock()
 
-  @Subject task = new MonitorKatoTask(kato, new NoopRegistry(), Clock.fixed(now, ZoneId.of("UTC")), dynamicConfigService) {{
-    taskNotFoundTimeoutMs = TASK_NOT_FOUND_TIMEOUT
-  }}
+  @Subject task = new MonitorKatoTask(kato, new NoopRegistry(), Clock.fixed(now, ZoneId.of("UTC")), dynamicConfigService, retrySupport)
 
   @Unroll("result is #expectedResult if kato task is #katoStatus")
   def "result depends on Kato task status"() {
     given:
-    kato.lookupTask(taskId, false) >> Observable.from(new Task(taskId, new Task.Status(completed: completed, failed: failed), [], []))
+    kato.lookupTask(taskId, false) >> new Task(taskId, new Task.Status(completed: completed, failed: failed), [], [])
 
     and:
     def stage = new Stage(Execution.newPipeline("orca"), "whatever", [
@@ -76,7 +74,7 @@ class MonitorKatoTaskSpec extends Specification {
   @Unroll("result is #expectedResult if katoResultExpected is #katoResultExpected and resultObject is #resultObjects")
   def "result depends on Kato task status and result object size for create/upsert operations"() {
     given:
-    kato.lookupTask(taskId, false) >> Observable.from(new Task(taskId, new Task.Status(completed: true), resultObjects, []))
+    kato.lookupTask(taskId, false) >> new Task(taskId, new Task.Status(completed: true), resultObjects, [])
 
     and:
     def stage = new Stage(Execution.newPipeline("orca"), "whatever", [
@@ -119,61 +117,43 @@ class MonitorKatoTaskSpec extends Specification {
     [:]                         | _
   }
 
-  @Unroll
-  def "should retry if the task is not found in clouddriver until timeout #desc"() {
-    given:
-    def ctx = [
-      "kato.last.task.id": new TaskId(taskId)
-    ]
-    if (previousRetry) {
-      ctx.put('kato.task.firstNotFoundRetry', now.minusMillis(elapsed).toEpochMilli())
-    } else {
-      if (previousRetryFlag != null) {
-        ctx.put('kato.task.firstNotFoundRetry', previousRetryFlag)
-      }
-    }
-    def stage = new Stage(Execution.newPipeline("orca"), "whatever", ctx)
-    kato.lookupTask(taskId, false) >> { retrofit404() }
-
-    when:
-    def result = task.execute(stage)
-
-    then:
-    result.status == ExecutionStatus.RUNNING
-    result.context['kato.task.notFoundRetryCount'] == 1
-
-    where:
-    taskId = "katoTaskId"
-    desc                 | elapsed                                    | previousRetry | previousRetryFlag
-    "first failure"      | 0                                          |  false        | null
-    "first failure w -1" | 0                                          |  false        | -1
-    "first retry"        | 1                                          |  true         | 'N/A'
-    "about to fail"      | TASK_NOT_FOUND_TIMEOUT                     |  true         | 'N/A'
-  }
-
-  def "should set kato.task.skipReplica=true when getting a task from clouddriver times out"() {
+  def "should increment retry count when can't find the task"() {
     given:
     def taskId = "katoTaskId"
-    def elapsed = task.TASK_NOT_FOUND_TIMEOUT + 1
 
     def stage = stage {
       type = "type"
       context = [
         "kato.last.task.id": new TaskId(taskId),
-        "kato.task.firstNotFoundRetry": now.minusMillis(elapsed).toEpochMilli()
       ]
     }
 
-    when:
+    when: 'task is not found'
     def result = task.execute(stage)
 
-    then:
-    result.context['kato.task.skipReplica'] == true
+    then: 'should set the retry count'
+    MonitorKatoTask.MAX_HTTP_INTERNAL_RETRIES * kato.lookupTask(taskId, false) >> { retrofit404() }
+    result.context['kato.task.notFoundRetryCount'] == 1
+    result.status == ExecutionStatus.RUNNING
     notThrown(RetrofitError)
-    with(kato) {
-      1 * lookupTask(taskId, false) >> { retrofit404() }
-      0 * lookupTask(taskId, true)
-    }
+
+    when: 'task is not found'
+    stage.context.put('kato.task.notFoundRetryCount', 1)
+    result = task.execute(stage)
+
+    then: 'should increment task count'
+    MonitorKatoTask.MAX_HTTP_INTERNAL_RETRIES * kato.lookupTask(taskId, false) >> { retrofit404() }
+    result.context['kato.task.notFoundRetryCount'] == 2
+    result.status == ExecutionStatus.RUNNING
+    notThrown(RetrofitError)
+
+    when: 'task is found, but not completed'
+    1 * kato.lookupTask(taskId, false) >> new Task(taskId, new Task.Status(completed: false, failed: false), [], [])
+    result = task.execute(stage)
+
+    then: 'should reset the retry count'
+    result.context['kato.task.notFoundRetryCount'] == 0
+    result.status == ExecutionStatus.RUNNING
   }
 
   def "should retry clouddriver task if classified as retryable"() {
@@ -195,7 +175,7 @@ class MonitorKatoTaskSpec extends Specification {
     notThrown(RetrofitError)
     dynamicConfigService.isEnabled("tasks.monitor-kato-task.terminal-retries", _) >> true
     with(kato) {
-      1 * lookupTask(katoTask.id, false) >> { Observable.just(katoTask) }
+      1 * lookupTask(katoTask.id, false) >> { katoTask }
       1 * resumeTask(katoTask.id) >> { new TaskId(katoTask.id) }
     }
 
@@ -205,50 +185,23 @@ class MonitorKatoTaskSpec extends Specification {
     result.context['kato.task.terminalRetryCount'] == 9
   }
 
-  def "should get task from master when kato.task.skipReplica=true"() {
-    given:
-    def taskId = "katoTaskId"
-    def elapsed = TASK_NOT_FOUND_TIMEOUT + 1
-    def stage = stage {
-      context = [
-        "kato.last.task.id": new TaskId(taskId),
-        "kato.task.firstNotFoundRetry": now.minusMillis(elapsed).toEpochMilli(),
-        "kato.task.skipReplica": true
-      ]
-    }
-
-    when:
-    task.execute(stage)
-
-    then:
-    notThrown(RetrofitError)
-    with(kato) {
-      1 * lookupTask(taskId, true) >> Observable.from(new Task(taskId, new Task.Status(completed: true, failed: false), [], []))
-      0 * lookupTask(taskId, false)
-    }
-  }
-
-  def "should timeout if task not not found after timeout period"() {
+  def "should timeout if task not not found after too many retries"() {
     given:
     def taskId = "katoTaskId"
     def stage = stage {
       context = [
         "kato.last.task.id": new TaskId(taskId),
-        "kato.task.firstNotFoundRetry": now.minusMillis(elapsed).toEpochMilli(),
-        "kato.task.skipReplica": true
+        "kato.task.notFoundRetryCount": 1000,
       ]
     }
 
-    kato.lookupTask(taskId, true) >> { retrofit404() }
+    kato.lookupTask(taskId, false) >> { retrofit404() }
 
     when:
     task.execute(stage)
 
     then:
     thrown(RetrofitError)
-
-    where:
-    elapsed = TASK_NOT_FOUND_TIMEOUT + 1
   }
 
   def retrofit404() {

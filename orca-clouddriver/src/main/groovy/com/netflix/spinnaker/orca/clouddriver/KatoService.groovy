@@ -47,12 +47,12 @@ class KatoService {
     return Observable.from(katoRestService.requestOperations(requestId(operations), cloudProvider, operations))
   }
 
-  Observable<Task> lookupTask(String id, boolean skipReplica = false) {
+  Task lookupTask(String id, boolean skipReplica = false) {
     if (skipReplica) {
-      return Observable.from(katoRestService.lookupTask(id))
+      return katoRestService.lookupTask(id)
     }
 
-    return Observable.from(cloudDriverTaskStatusService.lookupTask(id))
+    return cloudDriverTaskStatusService.lookupTask(id)
   }
 
   @Nonnull

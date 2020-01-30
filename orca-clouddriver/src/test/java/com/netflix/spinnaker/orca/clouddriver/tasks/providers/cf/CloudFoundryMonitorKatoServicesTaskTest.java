@@ -34,7 +34,6 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.util.*;
 import javax.annotation.Nullable;
 import org.junit.jupiter.api.Test;
-import rx.Observable;
 
 class CloudFoundryMonitorKatoServicesTaskTest {
   private void testKatoServiceStatus(
@@ -49,14 +48,11 @@ class CloudFoundryMonitorKatoServicesTaskTest {
     String region = "org > space";
     when(katoService.lookupTask(matches(taskIdString), eq(true)))
         .thenReturn(
-            Observable.from(
-                new Task[] {
-                  new Task(
-                      taskIdString,
-                      new Task.Status(completed, failed, false),
-                      resultObjects,
-                      Collections.emptyList())
-                }));
+            new Task(
+                taskIdString,
+                new Task.Status(completed, failed, false),
+                resultObjects,
+                Collections.emptyList()));
 
     CloudFoundryMonitorKatoServicesTask task = new CloudFoundryMonitorKatoServicesTask(katoService);
 
