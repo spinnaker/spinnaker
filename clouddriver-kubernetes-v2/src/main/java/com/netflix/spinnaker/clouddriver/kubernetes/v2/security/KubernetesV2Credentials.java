@@ -231,6 +231,7 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
     EXPLICITLY_OMITTED_BY_CONFIGURATION(
         "Kind [%s] included in 'omitKinds' of kubernetes account configuration"),
     MISSING_FROM_ALLOWED_KINDS("Kind [%s] missing in 'kinds' of kubernetes account configuration"),
+    UNKNOWN("Kind [%s] is has not been registered and is not a valid CRD installed in the cluster"),
     READ_ERROR(
         "Error reading kind [%s]. Please check connectivity and access permissions to the cluster");
 
@@ -270,9 +271,15 @@ public class KubernetesV2Credentials implements KubernetesCredentials {
       return KubernetesKindStatus.EXPLICITLY_OMITTED_BY_CONFIGURATION;
     }
 
-    return permissionValidator.isKindReadable(kind)
-        ? KubernetesKindStatus.VALID
-        : KubernetesKindStatus.READ_ERROR;
+    if (!kindRegistry.isKindRegistered(kind)) {
+      return KubernetesKindStatus.UNKNOWN;
+    }
+
+    if (!permissionValidator.isKindReadable(kind)) {
+      return KubernetesKindStatus.READ_ERROR;
+    }
+
+    return KubernetesKindStatus.VALID;
   }
 
   private Optional<KubernetesKindProperties> getCrdProperties(

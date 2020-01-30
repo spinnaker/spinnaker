@@ -21,12 +21,15 @@ import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.AccountResourcePropertyRegistry
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesApiGroupSpec
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.KubernetesSpinnakerKindMap
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesApiGroup
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKindProperties
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.names.KubernetesManifestNamer
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.op.job.KubectlJobExecutor
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials.KubernetesKindStatus
 import com.netflix.spinnaker.kork.configserver.ConfigFileService
 import spock.lang.Specification
 
@@ -63,8 +66,8 @@ class KubernetesV2CredentialsSpec extends Specification {
       ))
 
     then:
-    credentials.isValidKind(KubernetesKind.DEPLOYMENT) == true
-    credentials.isValidKind(KubernetesKind.REPLICA_SET) == true
+    credentials.getKindStatus(KubernetesKind.DEPLOYMENT) == KubernetesKindStatus.VALID
+    credentials.getKindStatus(KubernetesKind.REPLICA_SET) == KubernetesKindStatus.VALID
   }
 
   void "Built-in Kubernetes kinds are considered valid by default when kinds is empty"() {
@@ -77,8 +80,8 @@ class KubernetesV2CredentialsSpec extends Specification {
       ))
 
     then:
-    credentials.isValidKind(KubernetesKind.DEPLOYMENT) == true
-    credentials.isValidKind(KubernetesKind.REPLICA_SET) == true
+    credentials.getKindStatus(KubernetesKind.DEPLOYMENT) == KubernetesKindStatus.VALID
+    credentials.getKindStatus(KubernetesKind.REPLICA_SET) == KubernetesKindStatus.VALID
   }
 
   void "Only explicitly listed kinds are valid when kinds is not empty"() {
@@ -91,8 +94,8 @@ class KubernetesV2CredentialsSpec extends Specification {
       ))
 
     then:
-    credentials.isValidKind(KubernetesKind.DEPLOYMENT) == true
-    credentials.isValidKind(KubernetesKind.REPLICA_SET) == false
+    credentials.getKindStatus(KubernetesKind.DEPLOYMENT) == KubernetesKindStatus.VALID
+    credentials.getKindStatus(KubernetesKind.REPLICA_SET) == KubernetesKindStatus.MISSING_FROM_ALLOWED_KINDS
   }
 
   void "Explicitly omitted kinds are not valid"() {
@@ -105,8 +108,21 @@ class KubernetesV2CredentialsSpec extends Specification {
       ))
 
     then:
-    credentials.isValidKind(KubernetesKind.DEPLOYMENT) == false
-    credentials.isValidKind(KubernetesKind.REPLICA_SET) == true
+    credentials.getKindStatus(KubernetesKind.DEPLOYMENT) == KubernetesKindStatus.EXPLICITLY_OMITTED_BY_CONFIGURATION
+    credentials.getKindStatus(KubernetesKind.REPLICA_SET) == KubernetesKindStatus.VALID
+  }
+
+  void "CRDs that are not installed return unknown"() {
+    given:
+    KubernetesApiGroup customGroup = KubernetesApiGroup.fromString("deployment.stable.example.com")
+    KubernetesV2Credentials credentials = credentialFactory.build(new KubernetesConfigurationProperties.ManagedAccount(
+      name: "k8s",
+      namespaces: [NAMESPACE],
+      checkPermissionsOnStartup: true,
+    ))
+
+    expect:
+    credentials.getKindStatus(KubernetesKind.from("my-kind", customGroup)) == KubernetesKindStatus.UNKNOWN
   }
 
   void "Kinds that are not readable are considered invalid"() {
@@ -124,8 +140,8 @@ class KubernetesV2CredentialsSpec extends Specification {
     }
 
     expect:
-    credentials.isValidKind(KubernetesKind.DEPLOYMENT) == false
-    credentials.isValidKind(KubernetesKind.REPLICA_SET) == true
+    credentials.getKindStatus(KubernetesKind.DEPLOYMENT) == KubernetesKindStatus.READ_ERROR
+    credentials.getKindStatus(KubernetesKind.REPLICA_SET) == KubernetesKindStatus.VALID
   }
 
   void "Metrics are properly set on the account when not checking permissions"() {

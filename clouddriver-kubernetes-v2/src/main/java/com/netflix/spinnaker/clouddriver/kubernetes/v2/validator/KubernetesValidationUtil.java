@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.validator;
 
+import com.google.common.collect.ImmutableSet;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
@@ -124,9 +125,15 @@ public class KubernetesValidationUtil {
     return true;
   }
 
+  // When validating a kind, we'll allow kinds that are either valid or unknown. This is to support
+  // the case where a user is deploying a multi-manifest (perhaps from a Helm chart) that contains
+  // a CRD and an object using that CRD.
+  private static ImmutableSet<KubernetesKindStatus> validKindStatuses =
+      ImmutableSet.of(KubernetesKindStatus.VALID, KubernetesKindStatus.UNKNOWN);
+
   private boolean validateKind(KubernetesKind kind, KubernetesV2Credentials credentials) {
     KubernetesKindStatus kindStatus = credentials.getKindStatus(kind);
-    if (kindStatus != KubernetesKindStatus.VALID) {
+    if (!validKindStatuses.contains(kindStatus)) {
       reject(kindStatus.getErrorMessage(kind), kind.toString());
       return false;
     }
