@@ -241,6 +241,8 @@ class WaitForRequiredInstancesDownTaskSpec extends Specification {
     100        | []                                                                                   || []
     100        | [id: 100, resultObjects: [[:]]]                                                      || []
     100        | [id: 100, resultObjects: [[instanceIdsToDisable: ["i-1234"]]]]                       || ["i-1234"]
+    100        | [id: 100, resultObjects: [[instanceIdsToDisable: ["i-1234", "i-5678"]],
+                                           [discoverySkippedInstanceIds: ["i-1234"]]]]                || ["i-5678"]
     100        | [id: 100, resultObjects: [[instanceIdsToDisable: ["i-1234", "i-5678", "i-123456"]]]] || ["i-1234", "i-5678"]
   }
 }
