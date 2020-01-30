@@ -55,7 +55,7 @@ class KubernetesDeploymentCachingAgent extends KubernetesV1CachingAgent {
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
-    log.info("Loading deployemnts in $agentType")
+    log.info("Loading deployments in $agentType")
     reloadNamespaces()
 
     def deployments = namespaces.collect { String namespace ->
