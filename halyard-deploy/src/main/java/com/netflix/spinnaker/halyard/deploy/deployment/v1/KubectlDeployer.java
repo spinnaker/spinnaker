@@ -34,6 +34,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kub
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v2.KubernetesV2Service;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.v2.KubernetesV2Utils;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +51,8 @@ public class KubectlDeployer
       AccountDeploymentDetails<KubernetesAccount> deploymentDetails,
       GenerateService.ResolvedConfiguration resolvedConfiguration,
       List<SpinnakerService.Type> serviceTypes,
-      boolean waitForCompletion) {
+      boolean waitForCompletion,
+      Optional<Integer> waitForCompletionTimeoutMinutes) {
     List<KubernetesV2Service> services = serviceProvider.getServicesByPriority(serviceTypes);
     services.stream()
         .forEach(
@@ -122,7 +124,7 @@ public class KubectlDeployer
               DaemonTaskHandler.submitTask(
                   builder::build,
                   "Deploy " + service.getServiceName(),
-                  TimeUnit.MINUTES.toMillis(10));
+                  TimeUnit.MINUTES.toMillis(waitForCompletionTimeoutMinutes.orElse(10)));
             });
 
     DaemonTaskHandler.message("Waiting on deployments to complete");

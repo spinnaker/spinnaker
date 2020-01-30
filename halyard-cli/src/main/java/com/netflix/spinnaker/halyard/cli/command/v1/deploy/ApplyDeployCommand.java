@@ -97,6 +97,11 @@ public class ApplyDeployCommand extends AbstractRemoteActionCommand {
           "When supplied, wait for all containers to be ready before returning (only applies to Kubernetes V2 provider).")
   boolean waitForCompletion;
 
+  @Parameter(
+      names = "--wait-for-completion-timeout-minutes",
+      description = "Specify timeout for deploy apply command.")
+  Integer waitForCompletionTimeoutMinutes;
+
   @Override
   protected OperationHandler<RemoteAction> getRemoteAction() {
     List<DeployOption> deployOptions = new ArrayList<>();
@@ -131,7 +136,12 @@ public class ApplyDeployCommand extends AbstractRemoteActionCommand {
           .setSuccessMessage("Run `hal deploy connect` to connect to Spinnaker.")
           .setOperation(
               Daemon.deployDeployment(
-                  getCurrentDeployment(), false, deployOptions, serviceNames, excludeServiceNames));
+                  getCurrentDeployment(),
+                  false,
+                  deployOptions,
+                  serviceNames,
+                  excludeServiceNames,
+                  waitForCompletionTimeoutMinutes));
     }
   }
 }

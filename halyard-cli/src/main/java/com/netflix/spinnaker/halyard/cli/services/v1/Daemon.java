@@ -831,7 +831,8 @@ public class Daemon {
       boolean validate,
       List<DeployOption> deployOptions,
       List<String> serviceNames,
-      List<String> excludeServiceNames) {
+      List<String> excludeServiceNames,
+      Integer waitForCompletionTimeoutMinutes) {
     return () -> {
       Object rawDeployResult =
           ResponseUnwrapper.get(
@@ -842,6 +843,7 @@ public class Daemon {
                       deployOptions,
                       serviceNames,
                       excludeServiceNames,
+                      waitForCompletionTimeoutMinutes,
                       ""));
       return getObjectMapper().convertValue(rawDeployResult, RemoteAction.class);
     };

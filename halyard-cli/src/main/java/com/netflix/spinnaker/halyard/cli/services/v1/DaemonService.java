@@ -101,6 +101,7 @@ public interface DaemonService {
       @Query("deployOptions") List<DeployOption> deployOptions,
       @Query("serviceNames") List<String> serviceNames,
       @Query("excludeServiceNames") List<String> excludeServiceNames,
+      @Query("waitForCompletionTimeoutMinutes") Integer waitForCompletionTimeoutMinutes,
       @Body String _ignore);
 
   @POST("/v1/config/deployments/{deploymentName}/prep/")

@@ -50,6 +50,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerServic
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -251,7 +252,8 @@ public class DeployService {
       String deploymentName,
       List<DeployOption> deployOptions,
       List<String> serviceNames,
-      List<String> excludeServiceNames) {
+      List<String> excludeServiceNames,
+      Optional<Integer> waitForCompletionTimeoutMinutes) {
     if (deployOptions.contains(DeployOption.DELETE_ORPHANED_SERVICES) && !serviceNames.isEmpty()) {
       throw new IllegalArgumentException(
           "Cannot delete orphaned services when services to include are explicitly supplied.");
@@ -310,7 +312,8 @@ public class DeployService {
             deploymentDetails,
             resolvedConfiguration,
             serviceTypes,
-            waitForCompletion);
+            waitForCompletion,
+            waitForCompletionTimeoutMinutes);
     halconfigParser.backupConfig();
 
     if (deployOptions.contains(DeployOption.FLUSH_INFRASTRUCTURE_CACHES)) {

@@ -23,6 +23,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSetting
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerServiceProvider;
 import java.util.List;
+import java.util.Optional;
 
 public interface Deployer<S extends SpinnakerServiceProvider<D>, D extends DeploymentDetails> {
   RemoteAction deploy(
@@ -30,7 +31,8 @@ public interface Deployer<S extends SpinnakerServiceProvider<D>, D extends Deplo
       D deploymentDetails,
       ResolvedConfiguration resolvedConfiguration,
       List<SpinnakerService.Type> serviceTypes,
-      boolean waitForCompletion);
+      boolean waitForCompletion,
+      Optional<Integer> waitForCompletionTimeoutMinutes);
 
   void rollback(
       S serviceProvider,

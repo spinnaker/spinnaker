@@ -30,6 +30,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.LocalServ
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -44,7 +45,8 @@ public class LocalDeployer implements Deployer<LocalServiceProvider, DeploymentD
       DeploymentDetails deploymentDetails,
       GenerateService.ResolvedConfiguration resolvedConfiguration,
       List<SpinnakerService.Type> serviceTypes,
-      boolean waitForCompletion) {
+      boolean waitForCompletion,
+      Optional<Integer> waitForCompletionTimeoutMinutes) {
     List<LocalService> enabledServices =
         serviceProvider.getLocalServices(serviceTypes).stream()
             .filter(i -> resolvedConfiguration.getServiceSettings(i.getService()) != null)

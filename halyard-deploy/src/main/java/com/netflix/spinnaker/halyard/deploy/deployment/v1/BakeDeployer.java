@@ -26,10 +26,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.bake.BakeService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.bake.BakeServiceProvider;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
@@ -41,7 +38,8 @@ public class BakeDeployer implements Deployer<BakeServiceProvider, DeploymentDet
       DeploymentDetails deploymentDetails,
       GenerateService.ResolvedConfiguration resolvedConfiguration,
       List<SpinnakerService.Type> serviceTypes,
-      boolean waitForCompletion) {
+      boolean waitForCompletion,
+      Optional<Integer> waitForCompletionTimeoutMinutes) {
     List<BakeService> enabledServices =
         serviceProvider.getPrioritizedBakeableServices(serviceTypes).stream()
             .filter(
