@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.netflix.spinnaker.halyard.config.model.v1.plugins.Plugin;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -27,6 +28,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
+@JsonIgnoreProperties({"pluginConfigurations"})
 public class Plugins extends Node {
   private List<Plugin> plugins = new ArrayList<>();
   private boolean enabled;
