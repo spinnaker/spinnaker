@@ -3,7 +3,7 @@ package com.netflix.spinnaker.keel.integration
 import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.Network
-import com.netflix.spinnaker.security.AuthenticatedRequest.Header.USER
+import com.netflix.spinnaker.kork.common.Header.USER
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import kotlinx.coroutines.runBlocking
