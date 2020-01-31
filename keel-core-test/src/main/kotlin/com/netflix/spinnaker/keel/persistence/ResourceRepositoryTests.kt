@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.keel.persistence
 
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
@@ -87,13 +86,13 @@ abstract class ResourceRepositoryTests<T : ResourceRepository> : JUnit5Minutests
 
       test("getting state history throws an exception") {
         expectThrows<NoSuchResourceId> {
-          subject.eventHistory(ResourceId("whatever"))
+          subject.eventHistory("whatever")
         }
       }
 
       test("deleting a non-existent resource throws an exception") {
         expectThrows<NoSuchResourceId> {
-          subject.delete(ResourceId("whatever"))
+          subject.delete("whatever")
         }
       }
     }

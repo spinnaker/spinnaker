@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.keel.persistence
 
 import com.netflix.spinnaker.keel.api.id
-import com.netflix.spinnaker.keel.diff.ResourceDiff
+import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
@@ -47,13 +47,13 @@ abstract class DiffFingerprintRepositoryTests<T : DiffFingerprintRepository> : J
 
     context("storing hash") {
       test("succeeds when new") {
-        val diff = ResourceDiff(mapOf("spec" to "hi"), mapOf("spec" to "bye"))
+        val diff = DefaultResourceDiff(mapOf("spec" to "hi"), mapOf("spec" to "bye"))
         subject.store(r.id, diff)
         expectThat(subject.diffCount(r.id)).isEqualTo(1)
       }
 
       test("updates count") {
-        val diff = ResourceDiff(mapOf("spec" to "hi"), mapOf("spec" to "bye"))
+        val diff = DefaultResourceDiff(mapOf("spec" to "hi"), mapOf("spec" to "bye"))
         subject.store(r.id, diff)
         subject.store(r.id, diff)
         subject.store(r.id, diff)
@@ -63,11 +63,11 @@ abstract class DiffFingerprintRepositoryTests<T : DiffFingerprintRepository> : J
       }
 
       test("resets count when different hash") {
-        val diff = ResourceDiff(mapOf("spec" to "hi"), mapOf("spec" to "bye"))
+        val diff = DefaultResourceDiff(mapOf("spec" to "hi"), mapOf("spec" to "bye"))
         subject.store(r.id, diff)
         subject.store(r.id, diff)
         expectThat(subject.diffCount(r.id)).isEqualTo(2)
-        val diff2 = ResourceDiff(mapOf("spec" to "hi"), mapOf("spec" to "byeBYEbyeee"))
+        val diff2 = DefaultResourceDiff(mapOf("spec" to "hi"), mapOf("spec" to "byeBYEbyeee"))
         subject.store(r.id, diff2)
         expectThat(subject.diffCount(r.id)).isEqualTo(1)
       }

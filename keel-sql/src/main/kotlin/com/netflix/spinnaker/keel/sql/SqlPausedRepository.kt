@@ -17,7 +17,6 @@
  */
 package com.netflix.spinnaker.keel.sql
 
-import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.persistence.PausedRepository
 import com.netflix.spinnaker.keel.persistence.PausedRepository.Scope
 import com.netflix.spinnaker.keel.persistence.PausedRepository.Scope.APPLICATION
@@ -43,22 +42,22 @@ class SqlPausedRepository(
   override fun applicationPaused(application: String): Boolean =
     exists(APPLICATION, application)
 
-  override fun pauseResource(id: ResourceId) {
-    insert(RESOURCE, id.value)
+  override fun pauseResource(id: String) {
+    insert(RESOURCE, id)
   }
 
-  override fun resumeResource(id: ResourceId) {
-    remove(RESOURCE, id.value)
+  override fun resumeResource(id: String) {
+    remove(RESOURCE, id)
   }
 
-  override fun resourcePaused(id: ResourceId): Boolean =
-    exists(RESOURCE, id.value)
+  override fun resourcePaused(id: String): Boolean =
+    exists(RESOURCE, id)
 
   override fun getPausedApplications(): List<String> =
     get(APPLICATION)
 
-  override fun getPausedResources(): List<ResourceId> =
-    get(RESOURCE).map { ResourceId(it) }
+  override fun getPausedResources(): List<String> =
+    get(RESOURCE)
 
   private fun insert(scope: Scope, name: String) {
     sqlRetry.withRetry(WRITE) {

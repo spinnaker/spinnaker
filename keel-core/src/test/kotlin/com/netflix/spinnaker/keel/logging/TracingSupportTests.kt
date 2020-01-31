@@ -1,10 +1,10 @@
 package com.netflix.spinnaker.keel.logging
 
 import com.netflix.spinnaker.keel.api.Exportable
+import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.logging.TracingSupport.Companion.X_SPINNAKER_RESOURCE_ID
 import com.netflix.spinnaker.keel.logging.TracingSupport.Companion.withTracingContext
-import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -42,7 +42,7 @@ class TracingSupportTests : JUnit5Minutests {
           launch {
             withTracingContext(resource) {
               expectThat(MDC.get(X_SPINNAKER_RESOURCE_ID))
-                .isEqualTo(resource.id.toString())
+                .isEqualTo(resource.id)
             }
           }
         }
@@ -53,7 +53,7 @@ class TracingSupportTests : JUnit5Minutests {
           launch {
             withTracingContext(exportable) {
               expectThat(MDC.get(X_SPINNAKER_RESOURCE_ID))
-                .isEqualTo(exportable.toResourceId().toString())
+                .isEqualTo(exportable.toResourceId())
             }
           }
         }
@@ -65,7 +65,7 @@ class TracingSupportTests : JUnit5Minutests {
           launch {
             withTracingContext(resource) {
               expectThat(MDC.get(X_SPINNAKER_RESOURCE_ID))
-                .isEqualTo(resource.id.toString())
+                .isEqualTo(resource.id)
             }
           }.join()
           expectThat(MDC.get(X_SPINNAKER_RESOURCE_ID))
@@ -81,7 +81,7 @@ class TracingSupportTests : JUnit5Minutests {
             withTracingContext(resource) {
               println("X-SPINNAKER-RESOURCE-ID: ${MDC.get(X_SPINNAKER_RESOURCE_ID)}")
               expectThat(MDC.get(X_SPINNAKER_RESOURCE_ID))
-                .isEqualTo(resource.id.toString())
+                .isEqualTo(resource.id)
             }
           }
           val coroutine2 = async {
@@ -89,7 +89,7 @@ class TracingSupportTests : JUnit5Minutests {
             withTracingContext(anotherResource) {
               println("X-SPINNAKER-RESOURCE-ID: ${MDC.get(X_SPINNAKER_RESOURCE_ID)}")
               expectThat(MDC.get(X_SPINNAKER_RESOURCE_ID))
-                .isEqualTo(anotherResource.id.toString())
+                .isEqualTo(anotherResource.id)
             }
           }
           coroutine1.await()

@@ -18,11 +18,11 @@
 package com.netflix.spinnaker.keel.diff
 
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.id
+import com.netflix.spinnaker.keel.api.normalize
 import com.netflix.spinnaker.keel.diff.DiffStatus.DIFF
 import com.netflix.spinnaker.keel.diff.DiffStatus.ERROR
 import com.netflix.spinnaker.keel.diff.DiffStatus.MISSING
@@ -41,14 +41,14 @@ class AdHocDiffer(
   private val handlers: List<ResourceHandler<*, *>>
 ) {
   suspend fun <T : ResourceSpec> calculate(submittedResource: SubmittedResource<T>): DiffResult {
-    var resourceId: ResourceId? = null
+    var resourceId: String? = null
     var resource: Resource<T>? = null
     return try {
       val plugin = handlerFor(submittedResource)
-      resource = plugin.normalize(submittedResource)
+      resource = submittedResource.normalize()
       resourceId = resource.id
       val (desired, current) = plugin.resolve(resource)
-      val diff = ResourceDiff(desired, current)
+      val diff = DefaultResourceDiff(desired, current)
 
       when {
         current == null -> DiffResult(status = MISSING, resourceId = resourceId, resource = resource)

@@ -1,11 +1,11 @@
 package com.netflix.spinnaker.keel.actuation
 
+import com.netflix.spinnaker.keel.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
-import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.api.SubmittedEnvironment
 import com.netflix.spinnaker.keel.api.SubmittedResource
@@ -21,7 +21,6 @@ import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepos
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.plugin.SimpleResourceHandler
 import com.netflix.spinnaker.keel.plugin.SupportedKind
-import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import dev.minutest.MinutestFixture
 import dev.minutest.Tests
@@ -109,7 +108,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
           before {
             create(SubmittedResource(
               metadata = mapOf("serviceAccount" to "keel@spinnaker"),
-              apiVersion = SPINNAKER_API_V1.subApi("test"),
+              apiVersion = "test.$SPINNAKER_API_V1",
               kind = "whatever",
               spec = DummyResourceSpec(data = "o hai")
             ))
@@ -203,7 +202,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
                   name = "test",
                   resources = setOf(
                     SubmittedResource(
-                      apiVersion = SPINNAKER_API_V1.subApi("test"),
+                      apiVersion = "test.$SPINNAKER_API_V1",
                       kind = "whatever",
                       spec = DummyResourceSpec("test", "resource in test")
                     )
@@ -214,7 +213,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
                   name = "prod",
                   resources = setOf(
                     SubmittedResource(
-                      apiVersion = SPINNAKER_API_V1.subApi("test"),
+                      apiVersion = "test.$SPINNAKER_API_V1",
                       kind = "whatever",
                       spec = DummyResourceSpec("prod", "resource in prod")
                     )
@@ -255,7 +254,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
             }
 
           val resource1 = SubmittedResource(
-            apiVersion = SPINNAKER_API_V1.subApi("test"),
+            apiVersion = "test.$SPINNAKER_API_V1",
             kind = "whatever",
             metadata = mapOf("serviceAccount" to "keel@spinnaker"),
             spec = DummyResourceSpec("test", "resource in test")
@@ -267,7 +266,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
             }
 
           val resource2 = SubmittedResource(
-            apiVersion = SPINNAKER_API_V1.subApi("test"),
+            apiVersion = "test.$SPINNAKER_API_V1",
             kind = "whatever",
             metadata = mapOf("serviceAccount" to "keel@spinnaker"),
             spec = DummyResourceSpec("prod", "resource in prod")
@@ -324,11 +323,9 @@ internal class ResourcePersisterTests : JUnit5Minutests {
   }
 }
 
-internal object DummyResourceHandler : SimpleResourceHandler<DummyResourceSpec>(
-  configuredObjectMapper(), emptyList()
-) {
+internal object DummyResourceHandler : SimpleResourceHandler<DummyResourceSpec>(emptyList()) {
   override val supportedKind =
-    SupportedKind(SPINNAKER_API_V1.subApi("test"), "whatever", DummyResourceSpec::class.java)
+    SupportedKind("test.$SPINNAKER_API_V1", "whatever", DummyResourceSpec::class.java)
 
   override suspend fun current(resource: Resource<DummyResourceSpec>): DummyResourceSpec? {
     TODO("not implemented")

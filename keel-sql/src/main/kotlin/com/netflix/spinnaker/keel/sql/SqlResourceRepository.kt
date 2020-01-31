@@ -2,9 +2,7 @@ package com.netflix.spinnaker.keel.sql
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.ResourceSummary
 import com.netflix.spinnaker.keel.api.application
@@ -66,18 +64,18 @@ open class SqlResourceRepository(
         .from(RESOURCE)
         .fetch()
         .map { (apiVersion, kind, id) ->
-          ResourceHeader(ResourceId(id), ApiVersion(apiVersion), kind)
+          ResourceHeader(id, apiVersion, kind)
         }
         .forEach(callback)
     }
   }
 
-  override fun get(id: ResourceId): Resource<out ResourceSpec> {
+  override fun get(id: String): Resource<out ResourceSpec> {
     return sqlRetry.withRetry(READ) {
       jooq
         .select(RESOURCE.API_VERSION, RESOURCE.KIND, RESOURCE.METADATA, RESOURCE.SPEC)
         .from(RESOURCE)
-        .where(RESOURCE.ID.eq(id.value))
+        .where(RESOURCE.ID.eq(id))
         .fetchOne()
         ?.let { (apiVersion, kind, metadata, spec) ->
           constructResource(apiVersion, kind, metadata, spec)
@@ -103,10 +101,10 @@ open class SqlResourceRepository(
    */
   private fun constructResource(apiVersion: String, kind: String, metadata: String, spec: String) =
     Resource(
-      ApiVersion(apiVersion),
+      apiVersion,
       kind,
       objectMapper.readValue<Map<String, Any?>>(metadata).asResourceMetadata(),
-      objectMapper.readValue(spec, resourceTypeIdentifier.identify(apiVersion.let(::ApiVersion), kind))
+      objectMapper.readValue(spec, resourceTypeIdentifier.identify(apiVersion, kind))
     )
 
   override fun hasManagedResources(application: String): Boolean {
@@ -149,10 +147,10 @@ open class SqlResourceRepository(
         .fetch()
         .map { (apiVersion, kind, metadata, spec) ->
           Resource(
-            ApiVersion(apiVersion),
+            apiVersion,
             kind,
             objectMapper.readValue<Map<String, Any?>>(metadata).asResourceMetadata(),
-            objectMapper.readValue(spec, resourceTypeIdentifier.identify(apiVersion.let(::ApiVersion), kind))
+            objectMapper.readValue(spec, resourceTypeIdentifier.identify(apiVersion, kind))
           )
         }
     }
@@ -163,14 +161,14 @@ open class SqlResourceRepository(
   override fun store(resource: Resource<*>) {
     val uid = jooq.select(RESOURCE.UID)
       .from(RESOURCE)
-      .where(RESOURCE.ID.eq(resource.id.value))
+      .where(RESOURCE.ID.eq(resource.id))
       .fetchOne(RESOURCE.UID)
       ?: randomUID().toString()
 
     val updatePairs = mapOf(
-      RESOURCE.API_VERSION to resource.apiVersion.toString(),
+      RESOURCE.API_VERSION to resource.apiVersion,
       RESOURCE.KIND to resource.kind,
-      RESOURCE.ID to resource.id.value,
+      RESOURCE.ID to resource.id,
       RESOURCE.METADATA to objectMapper.writeValueAsString(resource.metadata + ("uid" to uid)),
       RESOURCE.SPEC to objectMapper.writeValueAsString(resource.spec),
       RESOURCE.APPLICATION to resource.application
@@ -192,13 +190,13 @@ open class SqlResourceRepository(
       .execute()
   }
 
-  override fun eventHistory(id: ResourceId, limit: Int): List<ResourceEvent> {
+  override fun eventHistory(id: String, limit: Int): List<ResourceEvent> {
     require(limit > 0) { "limit must be a positive integer" }
     return sqlRetry.withRetry(READ) {
       jooq
         .select(RESOURCE_EVENT.JSON)
         .from(RESOURCE_EVENT, RESOURCE)
-        .where(RESOURCE.ID.eq(id.toString()))
+        .where(RESOURCE.ID.eq(id))
         .and(RESOURCE.UID.eq(RESOURCE_EVENT.UID))
         .orderBy(RESOURCE_EVENT.TIMESTAMP.desc())
         .limit(limit)
@@ -238,11 +236,11 @@ open class SqlResourceRepository(
       .execute()
   }
 
-  override fun delete(id: ResourceId) {
+  override fun delete(id: String) {
     val uid = sqlRetry.withRetry(READ) {
       jooq.select(RESOURCE.UID)
         .from(RESOURCE)
-        .where(RESOURCE.ID.eq(id.value))
+        .where(RESOURCE.ID.eq(id))
         .fetchOne(RESOURCE.UID)
         ?.let(ULID::parseULID)
         ?: throw NoSuchResourceId(id)

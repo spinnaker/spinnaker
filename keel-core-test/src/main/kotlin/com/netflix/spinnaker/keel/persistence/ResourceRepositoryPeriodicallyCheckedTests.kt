@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.keel.persistence
 
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.resource
@@ -21,7 +20,7 @@ abstract class ResourceRepositoryPeriodicallyCheckedTests<S : ResourceRepository
 
   override val updateOne: Fixture<Resource<out ResourceSpec>, S>.() -> Resource<DummyResourceSpec> = {
     subject
-      .get<DummyResourceSpec>(ResourceId("test:whatever:fnord-1"))
+      .get<DummyResourceSpec>("test:whatever:fnord-1")
       .let {
         it.copy(spec = it.spec.copy(data = randomString()))
       }

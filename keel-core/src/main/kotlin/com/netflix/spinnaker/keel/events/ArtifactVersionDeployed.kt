@@ -17,14 +17,12 @@
  */
 package com.netflix.spinnaker.keel.events
 
-import com.netflix.spinnaker.keel.api.ResourceId
-
 /**
  * An event fired while we check a server group that lets us know
  * what version of software is running in that server group
  */
 data class ArtifactVersionDeployed(
-  val resourceId: ResourceId,
+  val resourceId: String,
   val artifactVersion: String,
   val provider: String = "aws"
 )

@@ -6,12 +6,12 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.DockerArtifact
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.id
-import com.netflix.spinnaker.keel.diff.ResourceDiff
+import com.netflix.spinnaker.keel.api.normalize
+import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceDeleted
@@ -81,7 +81,7 @@ class ResourcePersister(
     return new
   }
 
-  fun delete(deliveryConfigName: String) {
+  fun deleteDeliveryConfig(deliveryConfigName: String) {
     cleaner.delete(deliveryConfigName)
   }
 
@@ -95,8 +95,8 @@ class ResourcePersister(
     }
 
   fun <T : ResourceSpec> create(resource: SubmittedResource<T>): Resource<T> =
-    handlerFor(resource)
-      .normalize(resource)
+    resource
+      .normalize()
       .also {
         log.debug("Creating $it")
         resourceRepository.store(it)
@@ -110,14 +110,14 @@ class ResourcePersister(
       resource.kind
     ) as ResourceHandler<T, *>
 
-  fun <T : ResourceSpec> update(id: ResourceId, updated: SubmittedResource<T>): Resource<T> {
+  fun <T : ResourceSpec> update(id: String, updated: SubmittedResource<T>): Resource<T> {
     log.debug("Updating $id")
     val handler = handlerFor(updated)
     @Suppress("UNCHECKED_CAST")
     val existing = resourceRepository.get(id) as Resource<T>
     val resource = existing.withSpec(updated.spec, handler.supportedKind.specClass)
 
-    val diff = ResourceDiff(resource.spec, existing.spec)
+    val diff = DefaultResourceDiff(resource.spec, existing.spec)
 
     return if (diff.hasChanges()) {
       log.debug("Resource {} updated: {}", resource.id, diff.toDebug())
@@ -139,7 +139,7 @@ class ResourcePersister(
     return copy(spec = spec as T)
   }
 
-  fun delete(id: ResourceId): Resource<out ResourceSpec> =
+  fun deleteResource(id: String): Resource<out ResourceSpec> =
     resourceRepository
       .get<ResourceSpec>(id)
       .also {
@@ -147,7 +147,7 @@ class ResourcePersister(
         publisher.publishEvent(ResourceDeleted(it, clock))
       }
 
-  private fun ResourceId.isRegistered(): Boolean =
+  private fun String.isRegistered(): Boolean =
     try {
       resourceRepository.get(this)
       true

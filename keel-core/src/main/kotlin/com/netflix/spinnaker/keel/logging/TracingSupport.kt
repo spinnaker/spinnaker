@@ -2,7 +2,6 @@ package com.netflix.spinnaker.keel.logging
 
 import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.id
 import kotlinx.coroutines.CoroutineScope
@@ -32,11 +31,11 @@ class TracingSupport {
     }
 
     private suspend fun <R> withTracingContext(
-      resourceId: ResourceId,
+      resourceId: String,
       block: suspend CoroutineScope.() -> R
     ): R {
       try {
-        MDC.put(X_SPINNAKER_RESOURCE_ID, resourceId.toString())
+        MDC.put(X_SPINNAKER_RESOURCE_ID, resourceId)
         return withContext(MDCContext(), block)
       } finally {
         MDC.remove(X_SPINNAKER_RESOURCE_ID)

@@ -40,8 +40,9 @@ class ResourcePauserTests : JUnit5Minutests {
     val resource2 = resource()
 
     val resourceRepository: ResourceRepository = mockk() {
-      every { get(resource1.id) } returns resource1
-      every { get(resource2.id) } returns resource2
+      // TODO: ugh, this is hideous
+      every { this@mockk.get(resource1.id) } returns resource1
+      every { this@mockk.get(resource2.id) } returns resource2
       every { getResourcesByApplication(resource1.application) } returns listOf(resource1, resource2)
     }
     val pausedRepository = InMemoryPausedRepository()

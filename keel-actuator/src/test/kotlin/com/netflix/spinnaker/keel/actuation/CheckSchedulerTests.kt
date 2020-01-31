@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.keel.actuation
 
-import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.api.id
+import com.netflix.spinnaker.keel.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.test.resource
@@ -24,13 +23,13 @@ internal object CheckSchedulerTests : JUnit5Minutests {
   private val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
   private val resources = listOf(
     resource(
-      apiVersion = SPINNAKER_API_V1.subApi("ec2"),
+      apiVersion = "ec2.$SPINNAKER_API_V1",
       kind = "security-group",
       id = "ec2:security-group:prod:ap-south-1:keel-sg",
       application = "keel"
     ),
     resource(
-      apiVersion = SPINNAKER_API_V1.subApi("ec2"),
+      apiVersion = "ec2.$SPINNAKER_API_V1",
       kind = "cluster",
       id = "ec2:cluster:prod:keel",
       application = "keel"

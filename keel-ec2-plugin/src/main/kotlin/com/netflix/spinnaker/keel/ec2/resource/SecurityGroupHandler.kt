@@ -15,12 +15,11 @@
  */
 package com.netflix.spinnaker.keel.ec2.resource
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.Exportable
+import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
-import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.ec2.CidrRule
 import com.netflix.spinnaker.keel.api.ec2.CrossAccountReferenceRule
 import com.netflix.spinnaker.keel.api.ec2.PortRange
@@ -37,12 +36,13 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ResourceNotFound
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel
+import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.diff.ResourceDiff
+import com.netflix.spinnaker.keel.diff.toIndividualDiffs
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
 import com.netflix.spinnaker.keel.events.Task
 import com.netflix.spinnaker.keel.model.Job
-import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
@@ -58,9 +58,8 @@ class SecurityGroupHandler(
   private val cloudDriverCache: CloudDriverCache,
   private val orcaService: OrcaService,
   private val taskLauncher: TaskLauncher,
-  objectMapper: ObjectMapper,
   resolvers: List<Resolver<*>>
-) : ResourceHandler<SecurityGroupSpec, Map<String, SecurityGroup>>(objectMapper, resolvers) {
+) : ResourceHandler<SecurityGroupSpec, Map<String, SecurityGroup>>(resolvers) {
 
   override val supportedKind =
     SupportedKind(SPINNAKER_EC2_API_V1, "security-group", SecurityGroupSpec::class.java)
@@ -111,9 +110,9 @@ class SecurityGroupHandler(
           log.info("${verb.first} security group using task: $job")
 
           async {
-            taskLauncher.submitJobToOrca(
+            taskLauncher.submitJob(
               resource = resource,
-              description = "${verb.first} security group ${spec.moniker.name} in ${spec.location.account}/${spec.location.region}",
+              description = "${verb.first} security group ${spec.moniker} in ${spec.location.account}/${spec.location.region}",
               correlationId = "${resource.id}:${spec.location.region}",
               job = job
             )
@@ -122,13 +121,13 @@ class SecurityGroupHandler(
         .map { it.await() }
     }
 
-  override suspend fun export(exportable: Exportable): SubmittedResource<SecurityGroupSpec> {
+  override suspend fun export(exportable: Exportable): SecurityGroupSpec {
     val summaries = exportable.regions.associateWith { region ->
       try {
         cloudDriverCache.securityGroupByName(
           account = exportable.account,
           region = region,
-          name = exportable.moniker.name
+          name = exportable.moniker.toString()
         )
       } catch (e: ResourceNotFound) {
         null
@@ -164,7 +163,7 @@ class SecurityGroupHandler(
       }
 
     if (securityGroups.isEmpty()) {
-      throw ResourceNotFound("Could not find security group: ${exportable.moniker.name} " +
+      throw ResourceNotFound("Could not find security group: ${exportable.moniker} " +
         "in account: ${exportable.account}")
     }
 
@@ -186,24 +185,15 @@ class SecurityGroupHandler(
 
     spec.generateOverrides(securityGroups)
 
-    return SubmittedResource(
-      apiVersion = supportedKind.apiVersion,
-      kind = supportedKind.kind,
-      spec = spec
-    )
+    return spec
   }
-
-  private fun ResourceDiff<Map<String, SecurityGroup>>.toIndividualDiffs() =
-    desired.map { (region, desire) ->
-      ResourceDiff(desire, current?.getOrDefault(region, null))
-    }
 
   private fun SecurityGroupSpec.generateOverrides(
     regionalGroups: Map<String, SecurityGroup>
   ) =
     regionalGroups.forEach { (region, securityGroup) ->
       val inboundDiff =
-        ResourceDiff(securityGroup.inboundRules, this.inboundRules)
+        DefaultResourceDiff(securityGroup.inboundRules, this.inboundRules)
           .hasChanges()
       val vpcDiff = securityGroup.location.vpc != this.locations.vpc
       val descriptionDiff = securityGroup.description != this.description
@@ -253,7 +243,7 @@ class SecurityGroupHandler(
               serviceAccount,
               spec.locations.account,
               CLOUD_PROVIDER,
-              spec.moniker.name,
+              spec.moniker.toString(),
               region.name,
               cloudDriverCache.networkBy(spec.locations.vpc, spec.locations.account, region.name).id
             )
@@ -330,7 +320,7 @@ class SecurityGroupHandler(
         "application" to moniker.app,
         "credentials" to location.account,
         "cloudProvider" to CLOUD_PROVIDER,
-        "name" to moniker.name,
+        "name" to moniker.toString(),
         "regions" to listOf(location.region),
         "vpcId" to cloudDriverCache.networkBy(location.vpc, location.account, location.region).id,
         "description" to description,
@@ -356,7 +346,7 @@ class SecurityGroupHandler(
         "application" to moniker.app,
         "credentials" to location.account,
         "cloudProvider" to CLOUD_PROVIDER,
-        "name" to moniker.name,
+        "name" to moniker.toString(),
         "regions" to listOf(location.region),
         "vpcId" to cloudDriverCache.networkBy(location.vpc, location.account, location.region).id,
         "description" to description,
@@ -382,7 +372,7 @@ class SecurityGroupHandler(
         "type" to protocol.name.toLowerCase(),
         "startPort" to portRange.startPort,
         "endPort" to portRange.endPort,
-        "name" to securityGroup.moniker.name
+        "name" to securityGroup.moniker.toString()
       )
       is CrossAccountReferenceRule -> mapOf(
         "type" to protocol.name.toLowerCase(),

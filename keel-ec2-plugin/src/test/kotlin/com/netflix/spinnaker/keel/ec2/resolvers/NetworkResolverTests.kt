@@ -6,6 +6,7 @@ import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.LocationConstants.DEFAULT_SUBNET_PURPOSE
 import com.netflix.spinnaker.keel.api.LocationConstants.DEFAULT_VPC_NAME
+import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.RegionSpec
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
@@ -25,7 +26,6 @@ import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
-import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.plugin.supporting
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests

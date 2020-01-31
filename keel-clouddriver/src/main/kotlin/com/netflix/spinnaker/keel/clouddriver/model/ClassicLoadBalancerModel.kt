@@ -17,7 +17,7 @@ package com.netflix.spinnaker.keel.clouddriver.model
 
 import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonAnyGetter
-import com.netflix.spinnaker.keel.model.Moniker
+import com.netflix.spinnaker.keel.api.Moniker
 
 data class ClassicLoadBalancerModel(
   override val moniker: Moniker?,

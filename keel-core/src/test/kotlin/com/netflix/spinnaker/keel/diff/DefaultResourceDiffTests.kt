@@ -24,7 +24,7 @@ import dev.minutest.rootContext
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
-internal class ResourceDiffTests : JUnit5Minutests {
+internal class DefaultResourceDiffTests : JUnit5Minutests {
   private data class Container(val prop: Parent)
 
   private interface Parent {
@@ -41,7 +41,7 @@ internal class ResourceDiffTests : JUnit5Minutests {
     val anotherProp: String
   ) : Parent
 
-  fun tests() = rootContext<ResourceDiff<Any>> {
+  fun tests() = rootContext<DefaultResourceDiff<Any>> {
     /**
      * Diffing should work between objects of the same parent, but different sub classes.
      *
@@ -51,7 +51,7 @@ internal class ResourceDiffTests : JUnit5Minutests {
       fixture {
         val obj1 = Container(Child1("common", "myprop"))
         val obj2 = Container(Child2("common", "anotherProp"))
-        ResourceDiff(obj1, obj2)
+        DefaultResourceDiff(obj1, obj2)
       }
 
       test("the delta is detected") {
@@ -63,7 +63,7 @@ internal class ResourceDiffTests : JUnit5Minutests {
       fixture {
         val obj1 = emptyMap<Any, Any>()
         val obj2 = LinkedHashMap<Any, Any>()
-        ResourceDiff(obj1, obj2)
+        DefaultResourceDiff(obj1, obj2)
       }
 
       test("no delta is detected") {

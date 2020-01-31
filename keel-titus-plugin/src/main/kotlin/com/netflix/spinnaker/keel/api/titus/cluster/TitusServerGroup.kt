@@ -19,11 +19,11 @@ package com.netflix.spinnaker.keel.api.titus.cluster
 
 import com.netflix.spinnaker.keel.api.Capacity
 import com.netflix.spinnaker.keel.api.ClusterDependencies
+import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.clouddriver.model.Constraints
 import com.netflix.spinnaker.keel.clouddriver.model.MigrationPolicy
 import com.netflix.spinnaker.keel.clouddriver.model.Resources
 import com.netflix.spinnaker.keel.docker.DigestProvider
-import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.model.parseMoniker
 import de.danielbechler.diff.inclusion.Inclusion
 import de.danielbechler.diff.introspection.ObjectDiffProperty

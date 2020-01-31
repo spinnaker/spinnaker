@@ -2,7 +2,6 @@ package com.netflix.spinnaker.keel.persistence
 
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.resources
@@ -38,7 +37,7 @@ class Cleaner(
       environment.resources.forEach { resource ->
         // resources must be removed from the environment then deleted
         deliveryConfigRepository.deleteResourceFromEnv(deliveryConfig.name, environment.name, resource.id)
-        delete(resource.id)
+        deleteResource(resource.id)
       }
       deliveryConfigRepository.deleteEnvironment(deliveryConfig.name, environment.name)
     }
@@ -73,7 +72,7 @@ class Cleaner(
             deliveryConfigRepository.deleteResourceFromEnv(
               deliveryConfigName = old.name, environmentName = environment.name, resourceId = resource.id
             )
-            delete(resource.id)
+            deleteResource(resource.id)
           }
         }
         if (environment.name !in new.environments.map { it.name }) {
@@ -83,7 +82,7 @@ class Cleaner(
       }
   }
 
-  fun delete(id: ResourceId): Resource<out ResourceSpec> =
+  fun deleteResource(id: String): Resource<out ResourceSpec> =
     resourceRepository
       .get<ResourceSpec>(id)
       .also {

@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.rest
 
+import com.netflix.spinnaker.keel.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.Exportable
-import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.logging.TracingSupport.Companion.withTracingContext
@@ -67,7 +67,7 @@ class ExportController(
     @RequestHeader("X-SPINNAKER-USER") user: String
   ): SubmittedResource<*> {
     val provider = cloudProviderOverrides[cloudProvider] ?: cloudProvider
-    val apiVersion = SPINNAKER_API_V1.subApi(provider)
+    val apiVersion = "$provider.$SPINNAKER_API_V1"
     val kind = typeToKind.getOrDefault(type.toLowerCase(), type.toLowerCase())
     val handler = handlers.supporting(apiVersion, kind)
     val exportable = Exportable(
@@ -88,7 +88,11 @@ class ExportController(
     return runBlocking {
       withTracingContext(exportable) {
         log.info("Exporting resource ${exportable.toResourceId()}")
-        handler.export(exportable)
+        SubmittedResource(
+          apiVersion = apiVersion,
+          kind = kind,
+          spec = handler.export(exportable)
+        )
       }
     }
   }

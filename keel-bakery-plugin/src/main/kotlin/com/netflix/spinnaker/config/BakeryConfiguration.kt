@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.config
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.igor.ArtifactService
 import com.netflix.spinnaker.keel.bakery.BaseImageCache
 import com.netflix.spinnaker.keel.bakery.BaseImageCacheProperties
@@ -25,7 +24,6 @@ import org.springframework.context.annotation.Configuration
 class BakeryConfiguration {
   @Bean
   fun imageHandler(
-    objectMapper: ObjectMapper,
     artifactRepository: ArtifactRepository,
     baseImageCache: BaseImageCache,
     clouddriverService: CloudDriverService,
@@ -44,7 +42,6 @@ class BakeryConfiguration {
     imageService,
     publisher,
     taskLauncher,
-    objectMapper,
     normalizers
   )
 

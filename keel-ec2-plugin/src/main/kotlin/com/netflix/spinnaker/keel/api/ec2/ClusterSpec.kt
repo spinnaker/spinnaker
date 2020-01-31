@@ -10,11 +10,11 @@ import com.netflix.spinnaker.keel.api.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ClusterDeployStrategy
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.Locations
+import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.RedBlack
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
-import com.netflix.spinnaker.keel.model.Moniker
 import java.time.Duration
 
 /**
@@ -23,7 +23,7 @@ import java.time.Duration
 fun ClusterSpec.resolve(): Set<ServerGroup> =
   locations.regions.map {
     ServerGroup(
-      name = moniker.name,
+      name = moniker.toString(),
       location = Location(
         account = locations.account,
         region = it.name,
@@ -108,7 +108,7 @@ data class ClusterSpec(
   val overrides: Map<String, ServerGroupSpec> = emptyMap()
 ) : Monikered, Locatable<SubnetAwareLocations> {
   @JsonIgnore
-  override val id = "${locations.account}:${moniker.name}"
+  override val id = "${locations.account}:$moniker"
 
   /**
    * I have no idea why, but if I annotate the constructor property with @get:JsonUnwrapped, the

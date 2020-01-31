@@ -17,7 +17,6 @@
  */
 package com.netflix.spinnaker.keel.persistence.memory
 
-import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.persistence.PausedRepository
 import com.netflix.spinnaker.keel.persistence.PausedRepository.Scope
 import com.netflix.spinnaker.keel.persistence.PausedRepository.Scope.APPLICATION
@@ -34,19 +33,19 @@ class InMemoryPausedRepository : PausedRepository {
     paused.remove(Record(APPLICATION, application))
   }
 
-  override fun pauseResource(id: ResourceId) {
-    paused.add(Record(RESOURCE, id.value))
+  override fun pauseResource(id: String) {
+    paused.add(Record(RESOURCE, id))
   }
 
-  override fun resumeResource(id: ResourceId) {
-    paused.remove(Record(RESOURCE, id.value))
+  override fun resumeResource(id: String) {
+    paused.remove(Record(RESOURCE, id))
   }
 
-  override fun resourcePaused(id: ResourceId): Boolean =
-    paused.contains(Record(RESOURCE, id.value))
+  override fun resourcePaused(id: String): Boolean =
+    paused.contains(Record(RESOURCE, id))
 
-  override fun getPausedResources(): List<ResourceId> =
-    paused.filter { it.scope == RESOURCE }.map { ResourceId(it.name) }.toList()
+  override fun getPausedResources(): List<String> =
+    paused.filter { it.scope == RESOURCE }.map { it.name }.toList()
 
   override fun applicationPaused(application: String): Boolean =
     paused.contains(Record(APPLICATION, application))

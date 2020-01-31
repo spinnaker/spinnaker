@@ -17,10 +17,10 @@ import de.danielbechler.diff.introspection.IntrospectionService
 import de.danielbechler.diff.node.DiffNode
 import de.danielbechler.diff.node.DiffNode.State.CHANGED
 
-data class ResourceDiff<T : Any>(
-  val desired: T,
-  val current: T?
-) {
+data class DefaultResourceDiff<T : Any>(
+  override val desired: T,
+  override val current: T?
+) : ResourceDiff<T> {
   val diff: DiffNode by lazy {
     differ.compare(
       desired,
@@ -28,12 +28,12 @@ data class ResourceDiff<T : Any>(
     )
   }
 
-  fun hasChanges(): Boolean = diff.hasChanges()
+  override fun hasChanges(): Boolean = diff.hasChanges()
 
-  val affectedRootPropertyTypes: List<Class<*>>
+  override val affectedRootPropertyTypes: List<Class<*>>
     get() = children.map { it.valueType }.toList()
 
-  val affectedRootPropertyNames: Set<String>
+  override val affectedRootPropertyNames: Set<String>
     get() = children.map { it.propertyName }.toSet()
 
   val children: Set<DiffNode>
@@ -45,22 +45,22 @@ data class ResourceDiff<T : Any>(
         }
       }
 
-  fun toDeltaJson(): Map<String, Any?> =
+  override fun toDeltaJson(): Map<String, Any?> =
     JsonVisitor(desired, current, "desired", "current")
       .also { diff.visit(it) }
       .messages
 
-  fun toUpdateJson(): Map<String, Any?> =
+  override fun toUpdateJson(): Map<String, Any?> =
     JsonVisitor(desired, current, "updated", "previous")
       .also { diff.visit(it) }
       .messages
 
-  fun toDebug(): String =
+  override fun toDebug(): String =
     DebugVisitor(desired, current)
       .also { diff.visit(it) }
       .toString()
 
-  private fun T?.toMap(): Map<String, Any?>? =
+  override fun T?.toMap(): Map<String, Any?>? =
     when (this) {
       null -> null
       else -> mapper.convertValue(this)
@@ -76,6 +76,12 @@ data class ResourceDiff<T : Any>(
     val mapper: ObjectMapper = configuredObjectMapper()
   }
 }
+
+fun <T : Any> ResourceDiff<Map<String, T>>.toIndividualDiffs(): List<ResourceDiff<T>> =
+  desired
+    .map { (key, desired) ->
+      DefaultResourceDiff(desired, current?.get(key))
+    }
 
 private class PolymorphismAwareDifferFactory(
   private val objectDifferBuilder: ObjectDifferBuilder

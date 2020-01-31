@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.config
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ImageService
@@ -50,7 +49,6 @@ class EC2Config {
     orcaService: OrcaService,
     taskLauncher: TaskLauncher,
     clock: Clock,
-    objectMapper: ObjectMapper,
     normalizers: List<Resolver<*>>,
     publisher: ApplicationEventPublisher
   ): ClusterHandler =
@@ -61,7 +59,6 @@ class EC2Config {
       taskLauncher,
       clock,
       publisher,
-      objectMapper,
       normalizers
     )
 
@@ -71,7 +68,6 @@ class EC2Config {
     cloudDriverCache: CloudDriverCache,
     orcaService: OrcaService,
     taskLauncher: TaskLauncher,
-    objectMapper: ObjectMapper,
     normalizers: List<Resolver<*>>
   ): SecurityGroupHandler =
     SecurityGroupHandler(
@@ -79,7 +75,6 @@ class EC2Config {
       cloudDriverCache,
       orcaService,
       taskLauncher,
-      objectMapper,
       normalizers
     )
 
@@ -89,7 +84,6 @@ class EC2Config {
     cloudDriverCache: CloudDriverCache,
     orcaService: OrcaService,
     taskLauncher: TaskLauncher,
-    objectMapper: ObjectMapper,
     normalizers: List<Resolver<*>>
   ): ClassicLoadBalancerHandler =
     ClassicLoadBalancerHandler(
@@ -97,7 +91,6 @@ class EC2Config {
       cloudDriverCache,
       orcaService,
       taskLauncher,
-      objectMapper,
       normalizers
     )
 
@@ -107,7 +100,6 @@ class EC2Config {
     cloudDriverCache: CloudDriverCache,
     orcaService: OrcaService,
     taskLauncher: TaskLauncher,
-    objectMapper: ObjectMapper,
     normalizers: List<Resolver<*>>
   ): ApplicationLoadBalancerHandler =
     ApplicationLoadBalancerHandler(
@@ -115,7 +107,6 @@ class EC2Config {
       cloudDriverCache,
       orcaService,
       taskLauncher,
-      objectMapper,
       normalizers
     )
 

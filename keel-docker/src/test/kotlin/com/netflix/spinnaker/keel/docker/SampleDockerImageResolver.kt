@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.keel.docker
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
@@ -32,7 +31,7 @@ class SampleDockerImageResolver(
   artifactRepository
 ) {
 
-  override val apiVersion: ApiVersion = SAMPLE_API_VERSION
+  override val apiVersion: String = SAMPLE_API_VERSION
   override val supportedKind: String = "sample"
 
   override fun getContainerFromSpec(resource: Resource<SampleSpecWithContainer>) =
@@ -71,4 +70,4 @@ data class SampleSpecWithContainer(
   override val application: String = "myapp"
 }
 
-val SAMPLE_API_VERSION = ApiVersion("sample.resource", "v1")
+val SAMPLE_API_VERSION = "sample.resource/v1"

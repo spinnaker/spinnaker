@@ -18,7 +18,6 @@
 
 package com.netflix.spinnaker.keel.plugin
 
-import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
 
@@ -27,7 +26,7 @@ import com.netflix.spinnaker.keel.api.ResourceSpec
  * opinions, or resolving references.
  */
 interface Resolver<T : ResourceSpec> : (Resource<T>) -> Resource<T> {
-  val apiVersion: ApiVersion
+  val apiVersion: String
   val supportedKind: String
 }
 

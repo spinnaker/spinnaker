@@ -17,7 +17,6 @@
  */
 package com.netflix.spinnaker.keel.sql
 
-import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DIFF_FINGERPRINT
@@ -31,13 +30,13 @@ class SqlDiffFingerprintRepository(
   private val clock: Clock,
   private val sqlRetry: SqlRetry
 ) : DiffFingerprintRepository {
-  override fun store(resourceId: ResourceId, diff: ResourceDiff<*>) {
+  override fun store(resourceId: String, diff: ResourceDiff<*>) {
     val hash = diff.generateHash()
     val record = sqlRetry.withRetry(READ) {
       jooq
         .select(DIFF_FINGERPRINT.COUNT, DIFF_FINGERPRINT.FIRST_DETECTION_TIME, DIFF_FINGERPRINT.HASH)
         .from(DIFF_FINGERPRINT)
-        .where(DIFF_FINGERPRINT.RESOURCE_ID.eq(resourceId.toString()))
+        .where(DIFF_FINGERPRINT.RESOURCE_ID.eq(resourceId))
         .fetchOne()
     }
     record?.let { (count, firstDetectionTime, existingHash) ->
@@ -52,7 +51,7 @@ class SqlDiffFingerprintRepository(
           .set(DIFF_FINGERPRINT.HASH, hash)
           .set(DIFF_FINGERPRINT.COUNT, newCount)
           .set(DIFF_FINGERPRINT.FIRST_DETECTION_TIME, newTime)
-          .where(DIFF_FINGERPRINT.RESOURCE_ID.eq(resourceId.toString()))
+          .where(DIFF_FINGERPRINT.RESOURCE_ID.eq(resourceId))
           .execute()
       }
       return
@@ -62,7 +61,7 @@ class SqlDiffFingerprintRepository(
     // or multiple instances are checking the resource at the same time
     sqlRetry.withRetry(WRITE) {
       jooq.insertInto(DIFF_FINGERPRINT)
-        .set(DIFF_FINGERPRINT.RESOURCE_ID, resourceId.toString())
+        .set(DIFF_FINGERPRINT.RESOURCE_ID, resourceId)
         .set(DIFF_FINGERPRINT.HASH, hash)
         .set(DIFF_FINGERPRINT.COUNT, 1)
         .set(DIFF_FINGERPRINT.FIRST_DETECTION_TIME, clock.instant().toEpochMilli())
@@ -70,12 +69,12 @@ class SqlDiffFingerprintRepository(
     }
   }
 
-  override fun diffCount(resourceId: ResourceId): Int {
+  override fun diffCount(resourceId: String): Int {
     val count = sqlRetry.withRetry(READ) {
       jooq
         .select(DIFF_FINGERPRINT.COUNT)
         .from(DIFF_FINGERPRINT)
-        .where(DIFF_FINGERPRINT.RESOURCE_ID.eq(resourceId.toString()))
+        .where(DIFF_FINGERPRINT.RESOURCE_ID.eq(resourceId))
         .fetchOne()
         ?.let { (count) ->
           count

@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.keel.veto
 
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceId
 
 /**
  * Implement this interface to create a veto that will be consulted
@@ -43,7 +42,7 @@ interface Veto {
    * by id and application. Application is not always calculable from the resourceId,
    * so it needs to be passed in
    */
-  fun check(resourceId: ResourceId, application: String): VetoResponse
+  fun check(resourceId: String, application: String): VetoResponse
 
   /**
    * The message format a veto accepts
@@ -63,7 +62,7 @@ interface Veto {
   /**
    * What's currently being vetoed for an app
    */
-  fun currentRejectionsByApp(application: String): List<ResourceId>
+  fun currentRejectionsByApp(application: String): List<String>
 
   fun allowedResponse(): VetoResponse =
     VetoResponse(allowed = true, vetoName = name())

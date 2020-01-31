@@ -17,7 +17,6 @@
  */
 package com.netflix.spinnaker.keel.persistence.memory
 
-import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
 import java.time.Clock
@@ -26,9 +25,9 @@ import java.time.Instant
 class InMemoryDiffFingerprintRepository(
   private val clock: Clock = Clock.systemDefaultZone()
 ) : DiffFingerprintRepository {
-  private val hashes: MutableMap<ResourceId, Record> = mutableMapOf()
+  private val hashes: MutableMap<String, Record> = mutableMapOf()
 
-  override fun store(resourceId: ResourceId, diff: ResourceDiff<*>) {
+  override fun store(resourceId: String, diff: ResourceDiff<*>) {
     val existing = hashes[resourceId]
     val hash = diff.generateHash()
 
@@ -39,7 +38,7 @@ class InMemoryDiffFingerprintRepository(
     }
   }
 
-  override fun diffCount(resourceId: ResourceId): Int =
+  override fun diffCount(resourceId: String): Int =
     hashes[resourceId]?.count ?: 0
 
   private data class Record(

@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.keel.ec2.resolvers
 
-import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
@@ -15,7 +14,7 @@ import org.springframework.stereotype.Component
  * missing key pair details in the [ClusterSpec].
  */
 class KeyPairResolver(private val cloudDriverCache: CloudDriverCache) : Resolver<ClusterSpec> {
-  override val apiVersion: ApiVersion = SPINNAKER_EC2_API_V1
+  override val apiVersion: String = SPINNAKER_EC2_API_V1
   override val supportedKind: String = "cluster"
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 

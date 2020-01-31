@@ -17,17 +17,15 @@
  */
 package com.netflix.spinnaker.keel.titus.resource
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.netflix.spinnaker.keel.api.Capacity
 import com.netflix.spinnaker.keel.api.ClusterDependencies
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Highlander
+import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.RedBlack
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
-import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.TagVersionStrategy.BRANCH_JOB_COMMIT_BY_JOB
 import com.netflix.spinnaker.keel.api.TagVersionStrategy.INCREASING_TAG
 import com.netflix.spinnaker.keel.api.TagVersionStrategy.SEMVER_JOB_COMMIT_BY_SEMVER
@@ -51,17 +49,16 @@ import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.ServiceJobProcesses
 import com.netflix.spinnaker.keel.clouddriver.model.TitusActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.TitusActiveServerGroupImage
-import com.netflix.spinnaker.keel.diff.ResourceDiff
+import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.docker.DigestProvider
 import com.netflix.spinnaker.keel.docker.VersionedTagProvider
-import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.parseMoniker
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
+import com.netflix.spinnaker.keel.plugin.OrcaTaskLauncher
 import com.netflix.spinnaker.keel.plugin.Resolver
-import com.netflix.spinnaker.keel.plugin.TaskLauncher
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -102,11 +99,10 @@ class TitusClusterHandlerTests : JUnit5Minutests {
   val cloudDriverService = mockk<CloudDriverService>()
   val cloudDriverCache = mockk<CloudDriverCache>()
   val orcaService = mockk<OrcaService>()
-  val objectMapper = ObjectMapper().registerKotlinModule()
   val resolvers = emptyList<Resolver<TitusClusterSpec>>()
   val deliveryConfigRepository: InMemoryDeliveryConfigRepository = mockk()
   val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
-  val taskLauncher = TaskLauncher(
+  val taskLauncher = OrcaTaskLauncher(
     orcaService,
     deliveryConfigRepository,
     publisher
@@ -215,7 +211,6 @@ class TitusClusterHandlerTests : JUnit5Minutests {
         clock,
         taskLauncher,
         publisher,
-        objectMapper,
         resolvers
       )
     }
@@ -266,7 +261,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
 
       test("resolving diff a diff creates a new server group") {
         runBlocking {
-          upsert(resource, ResourceDiff(serverGroups.byRegion(), emptyMap()))
+          upsert(resource, DefaultResourceDiff(serverGroups.byRegion(), emptyMap()))
         }
 
         val slot = slot<OrchestrationRequest>()
@@ -316,7 +311,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
           serverGroupEast.copy(name = activeServerGroupResponseEast.name),
           serverGroupWest.copy(name = activeServerGroupResponseWest.name).withDoubleCapacity()
         )
-        val diff = ResourceDiff(
+        val diff = DefaultResourceDiff(
           serverGroups.byRegion(),
           modified.byRegion()
         )
@@ -351,7 +346,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
           serverGroupEast.copy(name = activeServerGroupResponseEast.name),
           serverGroupWest.copy(name = activeServerGroupResponseWest.name).withDoubleCapacity().withDifferentRuntimeOptions()
         )
-        val diff = ResourceDiff(
+        val diff = DefaultResourceDiff(
           serverGroups.byRegion(),
           modified.byRegion()
         )
@@ -444,7 +439,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
           serverGroupEast.copy(name = activeServerGroupResponseEast.name).withDifferentRuntimeOptions(),
           serverGroupWest.copy(name = activeServerGroupResponseWest.name).withDoubleCapacity()
         )
-        val diff = ResourceDiff(
+        val diff = DefaultResourceDiff(
           serverGroups.byRegion(),
           modified.byRegion()
         )
@@ -483,7 +478,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
           coEvery { cloudDriverService.getAccountInformation(titusAccount) } returns mapOf("registry" to "testregistry")
         }
 
-        derivedContext<SubmittedResource<TitusClusterSpec>>("exported titus cluster spec") {
+        derivedContext<TitusClusterSpec>("exported titus cluster spec") {
           deriveFixture {
             runBlocking {
               export(exportable)
@@ -491,13 +486,9 @@ class TitusClusterHandlerTests : JUnit5Minutests {
           }
 
           test("has the expected basic properties") {
-            expectThat(resource.kind)
-              .isEqualTo("cluster")
-            expectThat(resource.apiVersion)
-              .isEqualTo(SPINNAKER_TITUS_API_V1)
-            expectThat(spec.locations.regions)
+            expectThat(locations.regions)
               .hasSize(2)
-            expectThat(spec.overrides)
+            expectThat(overrides)
               .hasSize(0)
           }
         }
@@ -537,7 +528,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
           coEvery { cloudDriverService.getAccountInformation(titusAccount) } returns mapOf("registry" to "testregistry")
         }
 
-        derivedContext<SubmittedResource<TitusClusterSpec>>("exported titus cluster spec") {
+        derivedContext<TitusClusterSpec>("exported titus cluster spec") {
           deriveFixture {
             runBlocking {
               export(exportable)
@@ -545,20 +536,16 @@ class TitusClusterHandlerTests : JUnit5Minutests {
           }
 
           test("has overrides matching differences in the server groups") {
-            val overrideDiff = ResourceDiff(spec.overrides["us-west-2"]!!, spec.defaults)
+            val overrideDiff = DefaultResourceDiff(overrides["us-west-2"]!!, defaults)
             val addedOrChangedProps = overrideDiff.children
               .filter { it.isAdded || it.isChanged }
               .map { it.propertyName }
               .toSet()
-            expectThat(resource.kind)
-              .isEqualTo("cluster")
-            expectThat(resource.apiVersion)
-              .isEqualTo(SPINNAKER_TITUS_API_V1)
-            expectThat(spec.locations.regions)
+            expectThat(locations.regions)
               .hasSize(2)
-            expectThat(spec.overrides)
+            expectThat(overrides)
               .hasSize(1)
-            expectThat(spec.overrides)
+            expectThat(overrides)
               .containsKey("us-west-2")
             expectThat(overrideDiff.hasChanges())
               .isTrue()
@@ -567,21 +554,16 @@ class TitusClusterHandlerTests : JUnit5Minutests {
           }
 
           test("has default values in overrides omitted") {
-            val override = spec.overrides["us-west-2"]!!
-            expectThat(override.constraints)
-              .isNull()
-            expectThat(override.migrationPolicy)
-              .isNull()
-            expectThat(override.resources)
-              .isNull()
-            expectThat(override.iamProfile)
-              .isNull()
-            expectThat(override.capacityGroup)
-              .isNull()
-            expectThat(override.containerAttributes)
-              .isNull()
-            expectThat(override.tags)
-              .isNull()
+            val override = overrides["us-west-2"]!!
+            expectThat(override) {
+              get { constraints }.isNull()
+              get { migrationPolicy }.isNull()
+              get { resources }.isNull()
+              get { iamProfile }.isNull()
+              get { capacityGroup }.isNull()
+              get { containerAttributes }.isNull()
+              get { tags }.isNull()
+            }
           }
         }
       }
@@ -642,7 +624,7 @@ class TitusClusterHandlerTests : JUnit5Minutests {
     user = user,
     app = spec.moniker.app,
     account = spec.locations.account,
-    cluster = spec.moniker.name,
+    cluster = spec.moniker.toString(),
     region = region,
     cloudProvider = CLOUD_PROVIDER
   )

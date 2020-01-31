@@ -1,15 +1,13 @@
 package com.netflix.spinnaker.keel.telemetry
 
-import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.ArtifactType
-import com.netflix.spinnaker.keel.api.ResourceId
 
 sealed class TelemetryEvent
 
 data class ResourceCheckSkipped(
-  val apiVersion: ApiVersion,
+  val apiVersion: String,
   val kind: String,
-  val id: ResourceId,
+  val id: String,
   val skipper: String = "unknown"
 ) : TelemetryEvent()
 

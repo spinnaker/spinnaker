@@ -17,7 +17,6 @@
  */
 package com.netflix.spinnaker.keel.api.titus.cluster
 
-import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.titus.SPINNAKER_TITUS_API_V1
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
@@ -43,7 +42,7 @@ class TitusImageResolver(
   deliveryConfigRepository,
   artifactRepository
 ) {
-  override val apiVersion: ApiVersion = SPINNAKER_TITUS_API_V1
+  override val apiVersion: String = SPINNAKER_TITUS_API_V1
   override val supportedKind: String = "cluster"
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }

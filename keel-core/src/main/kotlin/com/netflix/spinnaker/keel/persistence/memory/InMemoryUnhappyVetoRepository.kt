@@ -17,7 +17,6 @@
  */
 package com.netflix.spinnaker.keel.persistence.memory
 
-import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.persistence.UnhappyVetoRepository
 import java.time.Clock
 import java.time.Instant
@@ -26,17 +25,17 @@ class InMemoryUnhappyVetoRepository(
   override val clock: Clock
 ) : UnhappyVetoRepository(clock) {
 
-  private val resources: MutableMap<ResourceId, Record> = mutableMapOf()
+  private val resources: MutableMap<String, Record> = mutableMapOf()
 
-  override fun markUnhappyForWaitingTime(resourceId: ResourceId, application: String) {
+  override fun markUnhappyForWaitingTime(resourceId: String, application: String) {
     resources[resourceId] = Record(application, calculateExpirationTime())
   }
 
-  override fun markHappy(resourceId: ResourceId) {
+  override fun markHappy(resourceId: String) {
     resources.remove(resourceId)
   }
 
-  override fun getVetoStatus(resourceId: ResourceId): UnhappyVetoStatus {
+  override fun getVetoStatus(resourceId: String): UnhappyVetoStatus {
     val record = resources[resourceId] ?: return UnhappyVetoStatus()
     return UnhappyVetoStatus(
       shouldSkip = record.recheckTime > clock.instant(),
@@ -44,12 +43,12 @@ class InMemoryUnhappyVetoRepository(
     )
   }
 
-  override fun getAll(): Set<ResourceId> {
+  override fun getAll(): Set<String> {
     val now = clock.instant()
     return resources.filter { it.value.recheckTime > now }.keys.toSet()
   }
 
-  override fun getAllForApp(application: String): Set<ResourceId> {
+  override fun getAllForApp(application: String): Set<String> {
     val now = clock.instant()
     return resources.filter { (_, record) ->
       record.recheckTime > now && record.application == application

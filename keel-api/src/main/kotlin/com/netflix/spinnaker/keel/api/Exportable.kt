@@ -1,7 +1,5 @@
 package com.netflix.spinnaker.keel.api
 
-import com.netflix.spinnaker.keel.model.Moniker
-
 data class Exportable(
   val cloudProvider: String,
   val account: String,
@@ -11,5 +9,5 @@ data class Exportable(
   val kind: String
 ) {
   fun toResourceId() =
-    "$cloudProvider:$kind:$account:${moniker.name}".let(::ResourceId)
+    "$cloudProvider:$kind:$account:$moniker"
 }

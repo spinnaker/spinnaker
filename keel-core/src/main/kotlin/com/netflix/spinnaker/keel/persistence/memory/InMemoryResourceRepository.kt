@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.keel.persistence.memory
 
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.ResourceSummary
 import com.netflix.spinnaker.keel.api.application
@@ -34,9 +33,9 @@ class InMemoryResourceRepository(
   private val clock: Clock = Clock.systemDefaultZone()
 ) : ResourceRepository {
 
-  private val resources = mutableMapOf<ResourceId, Resource<*>>()
-  private val events = mutableMapOf<ResourceId, MutableList<ResourceEvent>>()
-  private val lastCheckTimes = mutableMapOf<ResourceId, Instant>()
+  private val resources = mutableMapOf<String, Resource<*>>()
+  private val events = mutableMapOf<String, MutableList<ResourceEvent>>()
+  private val lastCheckTimes = mutableMapOf<String, Instant>()
 
   override fun deleteByApplication(application: String): Int {
     val size = resources.count { it.value.application == application }
@@ -61,7 +60,7 @@ class InMemoryResourceRepository(
   }
 
   @Suppress("UNCHECKED_CAST")
-  override fun get(id: ResourceId): Resource<out ResourceSpec> =
+  override fun get(id: String): Resource<out ResourceSpec> =
     resources.values.find { it.id == id } ?: throw NoSuchResourceId(id)
 
   override fun hasManagedResources(application: String): Boolean =
@@ -70,7 +69,7 @@ class InMemoryResourceRepository(
   override fun getResourceIdsByApplication(application: String): List<String> =
     resources
       .filterValues { it.application == application }
-      .map { it.value.id.toString() }
+      .map { it.value.id }
 
   override fun getResourcesByApplication(application: String): List<Resource<*>> =
     resources
@@ -90,7 +89,7 @@ class InMemoryResourceRepository(
     lastCheckTimes[resource.id] = EPOCH
   }
 
-  override fun delete(id: ResourceId) {
+  override fun delete(id: String) {
     resources
       .values
       .filter { it.id == id }
@@ -103,13 +102,13 @@ class InMemoryResourceRepository(
       ?: throw NoSuchResourceId(id)
   }
 
-  override fun eventHistory(id: ResourceId, limit: Int): List<ResourceEvent> {
+  override fun eventHistory(id: String, limit: Int): List<ResourceEvent> {
     require(limit > 0) { "limit must be a positive integer" }
     return events[id]?.take(limit) ?: throw NoSuchResourceId(id)
   }
 
   override fun appendHistory(event: ResourceEvent) {
-    events.computeIfAbsent(event.resourceId) {
+    events.computeIfAbsent(event.id) {
       mutableListOf()
     }
       .let {

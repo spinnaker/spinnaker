@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.plugin
 
-import com.netflix.spinnaker.keel.diff.ResourceDiff
+import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
 
@@ -17,7 +17,7 @@ inline fun <reified T : Any, reified S : Any> buildSpecFromDiff(
   allowedProperties: Set<String>? = null,
   forcedProperties: Set<String> = emptySet()
 ): S? {
-  val diff = ResourceDiff(working, base)
+  val diff = DefaultResourceDiff(working, base)
 
   if (!diff.hasChanges()) {
     return null

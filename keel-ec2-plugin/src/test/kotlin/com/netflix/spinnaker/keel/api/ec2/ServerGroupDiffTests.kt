@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.api.ec2
 
-import com.netflix.spinnaker.keel.diff.ResourceDiff
+import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import de.danielbechler.diff.node.DiffNode
 import de.danielbechler.diff.node.DiffNode.State.ADDED
 import de.danielbechler.diff.node.DiffNode.State.CHANGED
@@ -19,8 +19,8 @@ internal class ServerGroupDiffTests : JUnit5Minutests {
     val current: Map<String, ServerGroup>? = null
   )
 
-  val Fixture.diff: ResourceDiff<Map<String, ServerGroup>>
-    get() = ResourceDiff(desired, current)
+  val Fixture.diff: DefaultResourceDiff<Map<String, ServerGroup>>
+    get() = DefaultResourceDiff(desired, current)
 
   val Fixture.state: DiffNode.State
     get() = diff.diff.state

@@ -1,23 +1,21 @@
 package com.netflix.spinnaker.keel.test
 
-import com.netflix.spinnaker.keel.api.ApiVersion
+import com.netflix.spinnaker.keel.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
-import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.plugin.SimpleResourceHandler
 import com.netflix.spinnaker.keel.plugin.SupportedKind
-import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import java.util.UUID
 
-val TEST_API = SPINNAKER_API_V1.subApi("test")
+const val TEST_API = "test.$SPINNAKER_API_V1"
 
 fun resource(
-  apiVersion: ApiVersion = TEST_API,
+  apiVersion: String = TEST_API,
   kind: String = "whatever",
   id: String = randomString(),
   application: String = "fnord"
@@ -34,7 +32,7 @@ fun resource(
     }
 
 fun submittedResource(
-  apiVersion: ApiVersion = TEST_API,
+  apiVersion: String = TEST_API,
   kind: String = "whatever",
   application: String = "fnord"
 ): SubmittedResource<DummyResourceSpec> =
@@ -48,7 +46,7 @@ fun submittedResource(
     }
 
 fun locatableResource(
-  apiVersion: ApiVersion = TEST_API,
+  apiVersion: String = TEST_API,
   kind: String = "locatable",
   id: String = randomString(),
   application: String = "fnord",
@@ -70,19 +68,19 @@ fun locatableResource(
     }
 
 fun <T : Monikered> resource(
-  apiVersion: ApiVersion = TEST_API,
+  apiVersion: String = TEST_API,
   kind: String = "whatever",
   spec: T
 ): Resource<T> = resource(
   apiVersion = apiVersion,
   kind = kind,
   spec = spec,
-  id = spec.moniker.name,
+  id = spec.moniker.toString(),
   application = spec.application
 )
 
 fun <T : ResourceSpec> resource(
-  apiVersion: ApiVersion = TEST_API,
+  apiVersion: String = TEST_API,
   kind: String = "whatever",
   spec: T,
   id: String = spec.id,
@@ -93,20 +91,23 @@ fun <T : ResourceSpec> resource(
     kind = kind,
     spec = spec,
     metadata = mapOf(
-      "id" to "${apiVersion.prefix}:$kind:$id",
+      "id" to "${apiVersion.substringBefore(".")}:$kind:$id",
       "application" to application,
       "serviceAccount" to "keel@spinnaker"
     )
   )
 
 fun <T : ResourceSpec> submittedResource(
-  apiVersion: ApiVersion = TEST_API,
+  apiVersion: String = TEST_API,
   kind: String = "whatever",
   spec: T
 ): SubmittedResource<T> =
   SubmittedResource(
     apiVersion = apiVersion,
     kind = kind,
+    metadata = mapOf(
+      "serviceAccount" to "keel@spinnaker"
+    ),
     spec = spec
   )
 
@@ -141,11 +142,9 @@ fun randomString(length: Int = 8) =
     .joinToString("")
     .substring(0 until length)
 
-object DummyResourceHandler : SimpleResourceHandler<DummyResourceSpec>(
-  configuredObjectMapper(), emptyList()
-) {
+object DummyResourceHandler : SimpleResourceHandler<DummyResourceSpec>(emptyList()) {
   override val supportedKind =
-    SupportedKind(SPINNAKER_API_V1.subApi("test"), "whatever", DummyResourceSpec::class.java)
+    SupportedKind(TEST_API, "whatever", DummyResourceSpec::class.java)
 
   override suspend fun current(resource: Resource<DummyResourceSpec>): DummyResourceSpec? {
     TODO("not implemented")

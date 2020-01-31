@@ -1,14 +1,12 @@
 package com.netflix.spinnaker.keel.sql
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.ArtifactType
 import com.netflix.spinnaker.keel.api.ConstraintState
 import com.netflix.spinnaker.keel.api.ConstraintStatus
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
@@ -129,7 +127,7 @@ class SqlDeliveryConfigRepository(
     }
   }
 
-  override fun deleteResourceFromEnv(deliveryConfigName: String, environmentName: String, resourceId: ResourceId) {
+  override fun deleteResourceFromEnv(deliveryConfigName: String, environmentName: String, resourceId: String) {
     sqlRetry.withRetry(WRITE) {
       jooq.deleteFrom(ENVIRONMENT_RESOURCE)
         .where(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(envUid(deliveryConfigName, environmentName)))
@@ -243,7 +241,7 @@ class SqlDeliveryConfigRepository(
         environment.resources.forEach { resource ->
           jooq.insertInto(ENVIRONMENT_RESOURCE)
             .set(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID, environmentUID)
-            .set(ENVIRONMENT_RESOURCE.RESOURCE_UID, select(RESOURCE.UID).from(RESOURCE).where(RESOURCE.ID.eq(resource.id.value)))
+            .set(ENVIRONMENT_RESOURCE.RESOURCE_UID, select(RESOURCE.UID).from(RESOURCE).where(RESOURCE.ID.eq(resource.id)))
             .onDuplicateKeyIgnore()
             .execute()
         }
@@ -312,12 +310,12 @@ class SqlDeliveryConfigRepository(
         }
       }
 
-  override fun environmentFor(resourceId: ResourceId): Environment =
+  override fun environmentFor(resourceId: String): Environment =
     sqlRetry.withRetry(READ) {
       jooq
         .select(ENVIRONMENT.UID, ENVIRONMENT.NAME, ENVIRONMENT.CONSTRAINTS, ENVIRONMENT.NOTIFICATIONS)
         .from(ENVIRONMENT, ENVIRONMENT_RESOURCE, RESOURCE)
-        .where(RESOURCE.ID.eq(resourceId.value))
+        .where(RESOURCE.ID.eq(resourceId))
         .and(ENVIRONMENT_RESOURCE.RESOURCE_UID.eq(RESOURCE.UID))
         .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(ENVIRONMENT.UID))
         .fetchOne { (uid, name, constraintsJson, notificationsJson) ->
@@ -330,13 +328,13 @@ class SqlDeliveryConfigRepository(
         }
     } ?: throw OrphanedResourceException(resourceId)
 
-  override fun deliveryConfigFor(resourceId: ResourceId): DeliveryConfig =
+  override fun deliveryConfigFor(resourceId: String): DeliveryConfig =
     // TODO: this implementation could be more efficient by sharing code with get(name)
     sqlRetry.withRetry(READ) {
       jooq
         .select(DELIVERY_CONFIG.NAME)
         .from(ENVIRONMENT, ENVIRONMENT_RESOURCE, RESOURCE, DELIVERY_CONFIG)
-        .where(RESOURCE.ID.eq(resourceId.value))
+        .where(RESOURCE.ID.eq(resourceId))
         .and(ENVIRONMENT_RESOURCE.RESOURCE_UID.eq(RESOURCE.UID))
         .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(ENVIRONMENT.UID))
         .and(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(DELIVERY_CONFIG.UID))
@@ -595,10 +593,10 @@ class SqlDeliveryConfigRepository(
         .and(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(uid))
         .fetch { (apiVersion, kind, metadata, spec) ->
           Resource(
-            ApiVersion(apiVersion),
+            apiVersion,
             kind,
             mapper.readValue<Map<String, Any?>>(metadata).asResourceMetadata(),
-            mapper.readValue(spec, resourceTypeIdentifier.identify(ApiVersion(apiVersion), kind))
+            mapper.readValue(spec, resourceTypeIdentifier.identify(apiVersion, kind))
           )
         }
     }
@@ -634,10 +632,10 @@ class SqlDeliveryConfigRepository(
     }
   }
 
-  private val ResourceId.uid: Select<Record1<String>>
+  private val String.uid: Select<Record1<String>>
     get() = select(RESOURCE.UID)
       .from(RESOURCE)
-      .where(RESOURCE.ID.eq(this.value))
+      .where(RESOURCE.ID.eq(this))
 
   private fun environmentUidByName(deliveryConfigName: String, environmentName: String): String? =
     sqlRetry.withRetry(READ) {

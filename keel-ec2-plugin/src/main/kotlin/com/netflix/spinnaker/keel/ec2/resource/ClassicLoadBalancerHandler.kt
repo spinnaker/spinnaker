@@ -1,9 +1,8 @@
 package com.netflix.spinnaker.keel.ec2.resource
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.Exportable
+import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancer
@@ -18,12 +17,13 @@ import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ResourceNotFound
+import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.diff.ResourceDiff
+import com.netflix.spinnaker.keel.diff.toIndividualDiffs
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
 import com.netflix.spinnaker.keel.events.Task
 import com.netflix.spinnaker.keel.model.Job
-import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.model.parseMoniker
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.plugin.Resolver
@@ -41,9 +41,8 @@ class ClassicLoadBalancerHandler(
   private val cloudDriverCache: CloudDriverCache,
   private val orcaService: OrcaService,
   private val taskLauncher: TaskLauncher,
-  objectMapper: ObjectMapper,
   resolvers: List<Resolver<*>>
-) : ResourceHandler<ClassicLoadBalancerSpec, Map<String, ClassicLoadBalancer>>(objectMapper, resolvers) {
+) : ResourceHandler<ClassicLoadBalancerSpec, Map<String, ClassicLoadBalancer>>(resolvers) {
 
   override val supportedKind =
     SupportedKind(SPINNAKER_EC2_API_V1, "classic-load-balancer", ClassicLoadBalancerSpec::class.java)
@@ -88,10 +87,10 @@ class ClassicLoadBalancerHandler(
             resourceDiff.current == null -> "Creating"
             else -> "Upserting"
           }
-          val description = "$action ${resource.kind} load balancer ${desired.moniker.name} in ${desired.location.account}/${desired.location.region}"
+          val description = "$action ${resource.kind} load balancer ${desired.moniker} in ${desired.location.account}/${desired.location.region}"
 
           async {
-            taskLauncher.submitJobToOrca(
+            taskLauncher.submitJob(
               resource = resource,
               description = description,
               correlationId = "${resource.id}:${desired.location.region}",
@@ -102,15 +101,15 @@ class ClassicLoadBalancerHandler(
         .map { it.await() }
     }
 
-  override suspend fun export(exportable: Exportable): SubmittedResource<ClassicLoadBalancerSpec> {
+  override suspend fun export(exportable: Exportable): ClassicLoadBalancerSpec {
     val clbs = cloudDriverService.getClassicLoadBalancer(
       account = exportable.account,
-      name = exportable.moniker.name,
+      name = exportable.moniker.toString(),
       regions = exportable.regions,
       serviceAccount = exportable.user)
 
     if (clbs.isEmpty()) {
-      throw ResourceNotFound("Could not find classic load balancer: ${exportable.moniker.name} " +
+      throw ResourceNotFound("Could not find classic load balancer: ${exportable.moniker} " +
         "in account: ${exportable.account} for ")
     }
     val zonesByRegion = clbs.map { (region, clb) ->
@@ -162,11 +161,7 @@ class ClassicLoadBalancerHandler(
 
     spec.generateOverrides(clbs)
 
-    return SubmittedResource(
-      apiVersion = supportedKind.apiVersion,
-      kind = supportedKind.kind,
-      spec = spec
-    )
+    return spec
   }
 
   override suspend fun actuationInProgress(resource: Resource<ClassicLoadBalancerSpec>): Boolean =
@@ -186,7 +181,7 @@ class ClassicLoadBalancerHandler(
     serviceAccount: String
   ) = getClassicLoadBalancer(
     account = spec.locations.account,
-    name = spec.moniker.name,
+    name = spec.moniker.toString(),
     regions = spec.locations.regions.map { it.name }.toSet(),
     serviceAccount = serviceAccount
   )
@@ -270,19 +265,13 @@ class ClassicLoadBalancerHandler(
       .mapNotNull { it.await() }
       .associateBy { it.location.region }
 
-  private fun ResourceDiff<Map<String, ClassicLoadBalancer>>.toIndividualDiffs() =
-    desired
-      .map { (region, desired) ->
-        ResourceDiff(desired, current?.get(region))
-      }
-
   private fun ClassicLoadBalancerSpec.generateOverrides(
     regionalClbs: Map<String, ClassicLoadBalancer>
   ) =
     regionalClbs.forEach { (region, clb) ->
-      val dependenciesDiff = ResourceDiff(clb.dependencies, dependencies).hasChanges()
-      val listenersDiff = ResourceDiff(clb.listeners, listeners).hasChanges()
-      val healthCheckDiff = ResourceDiff(clb.healthCheck, healthCheck).hasChanges()
+      val dependenciesDiff = DefaultResourceDiff(clb.dependencies, dependencies).hasChanges()
+      val listenersDiff = DefaultResourceDiff(clb.listeners, listeners).hasChanges()
+      val healthCheckDiff = DefaultResourceDiff(clb.healthCheck, healthCheck).hasChanges()
 
       if (dependenciesDiff || listenersDiff || healthCheckDiff) {
         (overrides as MutableMap)[region] = ClassicLoadBalancerOverride(
@@ -313,7 +302,7 @@ class ClassicLoadBalancerHandler(
           "application" to moniker.app,
           "credentials" to location.account,
           "cloudProvider" to CLOUD_PROVIDER,
-          "name" to moniker.name,
+          "name" to moniker.toString(),
           "region" to location.region,
           "availabilityZones" to mapOf(location.region to location.availabilityZones),
           "loadBalancerType" to loadBalancerType.toString().toLowerCase(),

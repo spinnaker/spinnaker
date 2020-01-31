@@ -1,8 +1,8 @@
 package com.netflix.spinnaker.keel.api.ec2
 
+import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.ec2.SecurityGroupRule.Protocol.TCP
-import com.netflix.spinnaker.keel.diff.ResourceDiff
-import com.netflix.spinnaker.keel.model.Moniker
+import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import de.danielbechler.diff.node.DiffNode.State.CHANGED
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -34,9 +34,9 @@ internal object SecurityGroupTests : JUnit5Minutests {
       )
     }
 
-    derivedContext<ResourceDiff<SecurityGroup>>("identical security groups") {
+    derivedContext<DefaultResourceDiff<SecurityGroup>>("identical security groups") {
       deriveFixture {
-        ResourceDiff(this, copy())
+        DefaultResourceDiff(this, copy())
       }
 
       test("diff contains no changes") {
@@ -46,9 +46,9 @@ internal object SecurityGroupTests : JUnit5Minutests {
       }
     }
 
-    derivedContext<ResourceDiff<SecurityGroup>>("security groups that differ in basic fields") {
+    derivedContext<DefaultResourceDiff<SecurityGroup>>("security groups that differ in basic fields") {
       deriveFixture {
-        ResourceDiff(this,
+        DefaultResourceDiff(this,
           copy(
             location = SecurityGroup.Location(
               account = location.account,
@@ -70,9 +70,9 @@ internal object SecurityGroupTests : JUnit5Minutests {
       }
     }
 
-    derivedContext<ResourceDiff<SecurityGroup>>("security groups that differ in ignored fields") {
+    derivedContext<DefaultResourceDiff<SecurityGroup>>("security groups that differ in ignored fields") {
       deriveFixture {
-        ResourceDiff(this, copy(description = "We can't actually make changes to this so it should be ignored by the diff"))
+        DefaultResourceDiff(this, copy(description = "We can't actually make changes to this so it should be ignored by the diff"))
       }
 
       test("diff does not contain changes") {
@@ -80,9 +80,9 @@ internal object SecurityGroupTests : JUnit5Minutests {
       }
     }
 
-    derivedContext<ResourceDiff<SecurityGroup>>("security groups that differ in ignored and non-ignored fields") {
+    derivedContext<DefaultResourceDiff<SecurityGroup>>("security groups that differ in ignored and non-ignored fields") {
       deriveFixture {
-        ResourceDiff(this, copy(
+        DefaultResourceDiff(this, copy(
           location = SecurityGroup.Location(
             account = location.account,
             vpc = "vpc0",
@@ -109,9 +109,9 @@ internal object SecurityGroupTests : JUnit5Minutests {
       }
     }
 
-    derivedContext<ResourceDiff<SecurityGroup>>("desired state has differing inbound rules") {
+    derivedContext<DefaultResourceDiff<SecurityGroup>>("desired state has differing inbound rules") {
       deriveFixture {
-        ResourceDiff(
+        DefaultResourceDiff(
           this,
           copy(inboundRules = inboundRules.map {
             when (it) {
@@ -137,9 +137,9 @@ internal object SecurityGroupTests : JUnit5Minutests {
       }
     }
 
-    derivedContext<ResourceDiff<SecurityGroup>>("desired state has fewer inbound rules") {
+    derivedContext<DefaultResourceDiff<SecurityGroup>>("desired state has fewer inbound rules") {
       deriveFixture {
-        ResourceDiff(this, copy(inboundRules = inboundRules.take(1).toSet()))
+        DefaultResourceDiff(this, copy(inboundRules = inboundRules.take(1).toSet()))
       }
 
       test("diff contains changes") {
@@ -155,9 +155,9 @@ internal object SecurityGroupTests : JUnit5Minutests {
       }
     }
 
-    derivedContext<ResourceDiff<SecurityGroup>>("desired state has a new inbound rule") {
+    derivedContext<DefaultResourceDiff<SecurityGroup>>("desired state has a new inbound rule") {
       deriveFixture {
-        ResourceDiff(
+        DefaultResourceDiff(
           this,
           copy(
             inboundRules = inboundRules
@@ -180,13 +180,13 @@ internal object SecurityGroupTests : JUnit5Minutests {
       }
     }
 
-    derivedContext<ResourceDiff<SecurityGroup>>("desired state has a new inbound rule with only a different port range") {
+    derivedContext<DefaultResourceDiff<SecurityGroup>>("desired state has a new inbound rule with only a different port range") {
       deriveFixture {
-        ResourceDiff(
+        DefaultResourceDiff(
           this,
           copy(
             inboundRules = inboundRules
-              .plus(ReferenceRule(TCP, moniker.name, PortRange(80, 80)))
+              .plus(ReferenceRule(TCP, moniker.toString(), PortRange(80, 80)))
               .toSet()
           )
         )

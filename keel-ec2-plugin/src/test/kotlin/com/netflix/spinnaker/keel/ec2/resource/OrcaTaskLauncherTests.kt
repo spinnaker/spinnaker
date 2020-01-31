@@ -29,7 +29,7 @@ import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
-import com.netflix.spinnaker.keel.plugin.TaskLauncher
+import com.netflix.spinnaker.keel.plugin.OrcaTaskLauncher
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
@@ -46,13 +46,13 @@ import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEmpty
 
-class TaskLauncherTests : JUnit5Minutests {
+class OrcaTaskLauncherTests : JUnit5Minutests {
   class Fixture {
     val clock = Clock.systemDefaultZone()
     val orcaService: OrcaService = mockk()
     val deliveryConfigRepository = InMemoryDeliveryConfigRepository(clock)
     val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
-    val taskLauncher = TaskLauncher(orcaService, deliveryConfigRepository, publisher)
+    val taskLauncher = OrcaTaskLauncher(orcaService, deliveryConfigRepository, publisher)
     val resource: Resource<DummyResourceSpec> = resource()
     val request = slot<OrchestrationRequest>()
   }
@@ -83,7 +83,7 @@ class TaskLauncherTests : JUnit5Minutests {
         deliveryConfigRepository.store(deliveryConfig)
 
         runBlocking {
-          taskLauncher.submitJobToOrca(resource, "task description", "correlate this", mapOf())
+          taskLauncher.submitJob(resource, "task description", "correlate this", mapOf())
         }
       }
 

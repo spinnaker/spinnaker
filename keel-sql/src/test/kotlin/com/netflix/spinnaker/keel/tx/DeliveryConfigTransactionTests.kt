@@ -1,11 +1,10 @@
 package com.netflix.spinnaker.keel.tx
 
 import com.netflix.spinnaker.keel.KeelApplication
+import com.netflix.spinnaker.keel.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.actuation.ResourcePersister
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DebianArtifact
-import com.netflix.spinnaker.keel.api.ResourceId
-import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.api.SubmittedEnvironment
 import com.netflix.spinnaker.keel.api.SubmittedResource
@@ -67,8 +66,8 @@ internal class DeliveryConfigTransactionTests : JUnit5Minutests {
   @Autowired
   lateinit var jooq: DSLContext
 
-  private fun ResourceRepository.allResourceNames(): List<ResourceId> =
-    mutableListOf<ResourceId>()
+  private fun ResourceRepository.allResourceNames(): List<String> =
+    mutableListOf<String>()
       .also { list ->
         allResources { list.add(it.id) }
       }
@@ -83,7 +82,7 @@ internal class DeliveryConfigTransactionTests : JUnit5Minutests {
         SubmittedEnvironment(
           name = "test",
           resources = setOf(SubmittedResource(
-            apiVersion = SPINNAKER_API_V1.subApi("test"),
+            apiVersion = "test.$SPINNAKER_API_V1",
             kind = "whatever",
             metadata = mapOf("serviceAccount" to "keel@spinnaker"),
             spec = DummyResourceSpec("test", "resource in test", "keel")
@@ -92,7 +91,7 @@ internal class DeliveryConfigTransactionTests : JUnit5Minutests {
         SubmittedEnvironment(
           name = "prod",
           resources = setOf(SubmittedResource(
-            apiVersion = SPINNAKER_API_V1.subApi("test"),
+            apiVersion = "test.$SPINNAKER_API_V1",
             kind = "whatever",
             metadata = mapOf("serviceAccount" to "keel@spinnaker"),
             spec = DummyResourceSpec("prod", "resource in prod", "keel")
@@ -114,7 +113,7 @@ internal class DeliveryConfigTransactionTests : JUnit5Minutests {
       before {
         every {
           resourceRepository.store(match {
-            it.id == ResourceId("test:whatever:prod")
+            it.id == "test:whatever:prod"
           })
         } throws DataAccessException("o noes")
 

@@ -17,7 +17,6 @@
  */
 package com.netflix.spinnaker.keel.persistence
 
-import com.netflix.spinnaker.keel.api.ResourceId
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
@@ -38,27 +37,27 @@ abstract class UnhappyVetoRepository(
   /**
    * Marks [resourceId] as unhappy for [waitingTime]
    */
-  abstract fun markUnhappyForWaitingTime(resourceId: ResourceId, application: String)
+  abstract fun markUnhappyForWaitingTime(resourceId: String, application: String)
 
   /**
    * Clears unhappy marking for [resourceId]
    */
-  abstract fun markHappy(resourceId: ResourceId)
+  abstract fun markHappy(resourceId: String)
 
   /**
    * Calculates whether a resource should be skipped or rechecked at this instant
    */
-  abstract fun getVetoStatus(resourceId: ResourceId): UnhappyVetoStatus
+  abstract fun getVetoStatus(resourceId: String): UnhappyVetoStatus
 
   /**
    * Returns all currently vetoed resources
    */
-  abstract fun getAll(): Set<ResourceId>
+  abstract fun getAll(): Set<String>
 
   /**
    * Returns all currently vetoed resources for an [application]
    */
-  abstract fun getAllForApp(application: String): Set<ResourceId>
+  abstract fun getAllForApp(application: String): Set<String>
 
   fun calculateExpirationTime(): Instant =
     clock.instant().plus(Duration.parse(waitingTime))

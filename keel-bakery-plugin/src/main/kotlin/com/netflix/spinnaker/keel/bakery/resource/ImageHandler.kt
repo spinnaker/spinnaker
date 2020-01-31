@@ -1,16 +1,15 @@
 package com.netflix.spinnaker.keel.bakery.resource
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.igor.ArtifactService
 import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.NoKnownArtifactVersions
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.serviceAccount
+import com.netflix.spinnaker.keel.bakery.BAKERY_API_V1
 import com.netflix.spinnaker.keel.bakery.BaseImageCache
 import com.netflix.spinnaker.keel.bakery.api.ImageSpec
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
@@ -40,12 +39,11 @@ class ImageHandler(
   private val imageService: ImageService,
   private val publisher: ApplicationEventPublisher,
   private val taskLauncher: TaskLauncher,
-  objectMapper: ObjectMapper,
   resolvers: List<Resolver<*>>
-) : ResourceHandler<ImageSpec, Image>(objectMapper, resolvers) {
+) : ResourceHandler<ImageSpec, Image>(resolvers) {
 
   override val supportedKind =
-    SupportedKind(SPINNAKER_API_V1.subApi("bakery"), "image", ImageSpec::class.java)
+    SupportedKind(BAKERY_API_V1, "image", ImageSpec::class.java)
 
   override suspend fun toResolvedType(resource: Resource<ImageSpec>): Image =
     with(resource) {
@@ -125,13 +123,13 @@ class ImageHandler(
     val description = "Bake ${resourceDiff.desired.appVersion}"
 
     try {
-      val taskRef = taskLauncher.submitJobToOrca(
+      val taskRef = taskLauncher.submitJob(
       user = resource.serviceAccount,
       application = resource.application,
       notifications = emptyList(),
       subject = description,
       description = description,
-      correlationId = resource.id.toString(),
+      correlationId = resource.id,
       stages = listOf(
         Job(
           "bake",
@@ -159,7 +157,7 @@ class ImageHandler(
 
   override suspend fun actuationInProgress(resource: Resource<ImageSpec>): Boolean =
     orcaService
-      .getCorrelatedExecutions(resource.id.toString())
+      .getCorrelatedExecutions(resource.id)
       .isNotEmpty()
 
   private suspend fun findBaseAmi(baseImage: String, serviceAccount: String): String {

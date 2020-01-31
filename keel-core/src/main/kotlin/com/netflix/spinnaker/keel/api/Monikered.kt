@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.keel.api
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.netflix.spinnaker.keel.model.Moniker
 
 /**
  * An object which has a moniker

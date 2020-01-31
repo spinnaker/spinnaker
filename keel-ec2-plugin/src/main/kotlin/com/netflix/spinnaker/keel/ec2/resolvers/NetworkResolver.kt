@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.keel.ec2.resolvers
 
-import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.LocationConstants
 import com.netflix.spinnaker.keel.api.Resource
@@ -42,7 +41,7 @@ abstract class NetworkResolver<T : Locatable<SubnetAwareLocations>>(
 
 @Component
 class ClusterNetworkResolver(cloudDriverCache: CloudDriverCache) : NetworkResolver<ClusterSpec>(cloudDriverCache) {
-  override val apiVersion: ApiVersion = SPINNAKER_EC2_API_V1
+  override val apiVersion: String = SPINNAKER_EC2_API_V1
   override val supportedKind: String = "cluster"
 
   override fun invoke(resource: Resource<ClusterSpec>): Resource<ClusterSpec> =
@@ -59,7 +58,7 @@ class ClusterNetworkResolver(cloudDriverCache: CloudDriverCache) : NetworkResolv
 
 @Component
 class ClassicLoadBalancerNetworkResolver(cloudDriverCache: CloudDriverCache) : NetworkResolver<ClassicLoadBalancerSpec>(cloudDriverCache) {
-  override val apiVersion: ApiVersion = SPINNAKER_EC2_API_V1
+  override val apiVersion: String = SPINNAKER_EC2_API_V1
   override val supportedKind: String = "classic-load-balancer"
 
   override fun invoke(resource: Resource<ClassicLoadBalancerSpec>): Resource<ClassicLoadBalancerSpec> =
@@ -76,7 +75,7 @@ class ClassicLoadBalancerNetworkResolver(cloudDriverCache: CloudDriverCache) : N
 
 @Component
 class ApplicationLoadBalancerNetworkResolver(cloudDriverCache: CloudDriverCache) : NetworkResolver<ApplicationLoadBalancerSpec>(cloudDriverCache) {
-  override val apiVersion: ApiVersion = SPINNAKER_EC2_API_V1
+  override val apiVersion: String = SPINNAKER_EC2_API_V1
   override val supportedKind: String = "application-load-balancer"
 
   override fun invoke(resource: Resource<ApplicationLoadBalancerSpec>): Resource<ApplicationLoadBalancerSpec> =

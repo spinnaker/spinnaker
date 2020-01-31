@@ -17,14 +17,13 @@
  */
 package com.netflix.spinnaker.keel.api.titus.cluster
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.Capacity
 import com.netflix.spinnaker.keel.api.ClusterDependencies
 import com.netflix.spinnaker.keel.api.Exportable
+import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
-import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.TagVersionStrategy
 import com.netflix.spinnaker.keel.api.TagVersionStrategy.BRANCH_JOB_COMMIT_BY_JOB
 import com.netflix.spinnaker.keel.api.TagVersionStrategy.INCREASING_TAG
@@ -45,12 +44,14 @@ import com.netflix.spinnaker.keel.clouddriver.model.MigrationPolicy
 import com.netflix.spinnaker.keel.clouddriver.model.Resources
 import com.netflix.spinnaker.keel.clouddriver.model.TitusActiveServerGroup
 import com.netflix.spinnaker.keel.diff.ResourceDiff
+import com.netflix.spinnaker.keel.diff.toIndividualDiffs
 import com.netflix.spinnaker.keel.docker.ContainerProvider
 import com.netflix.spinnaker.keel.docker.DigestProvider
 import com.netflix.spinnaker.keel.docker.VersionedTagProvider
 import com.netflix.spinnaker.keel.events.ArtifactVersionDeployed
 import com.netflix.spinnaker.keel.events.Task
-import com.netflix.spinnaker.keel.model.Moniker
+import com.netflix.spinnaker.keel.model.orcaClusterMoniker
+import com.netflix.spinnaker.keel.model.serverGroup
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
@@ -78,9 +79,8 @@ class TitusClusterHandler(
   private val clock: Clock,
   private val taskLauncher: TaskLauncher,
   private val publisher: ApplicationEventPublisher,
-  objectMapper: ObjectMapper,
   resolvers: List<Resolver<*>>
-) : ResourceHandler<TitusClusterSpec, Map<String, TitusServerGroup>>(objectMapper, resolvers) {
+) : ResourceHandler<TitusClusterSpec, Map<String, TitusServerGroup>>(resolvers) {
 
   override val supportedKind =
     SupportedKind(SPINNAKER_TITUS_API_V1, "cluster", TitusClusterSpec::class.java)
@@ -125,9 +125,9 @@ class TitusClusterHandler(
           log.info("Upserting server group using task: {}", job)
 
           async {
-            taskLauncher.submitJobToOrca(
+            taskLauncher.submitJob(
               resource = resource,
-              description = "Upsert server group ${desired.moniker.name} in ${desired.location.account}/${desired.location.region}",
+              description = "Upsert server group ${desired.moniker} in ${desired.location.account}/${desired.location.region}",
               correlationId = "${resource.id}:${desired.location.region}",
               job = job
             )
@@ -136,7 +136,7 @@ class TitusClusterHandler(
         .map { it.await() }
     }
 
-  override suspend fun export(exportable: Exportable): SubmittedResource<TitusClusterSpec> {
+  override suspend fun export(exportable: Exportable): TitusClusterSpec {
     val serverGroups = cloudDriverService.getServerGroups(
       exportable.account,
       exportable.moniker,
@@ -145,7 +145,7 @@ class TitusClusterHandler(
     ).byRegion()
 
     if (serverGroups.isEmpty()) {
-      throw ResourceNotFound("Could not find cluster: ${exportable.moniker.name} " +
+      throw ResourceNotFound("Could not find cluster: ${exportable.moniker} " +
         "in account: ${exportable.account} for export")
     }
 
@@ -170,11 +170,7 @@ class TitusClusterHandler(
         .filter { it.value.location.region != base.location.region }
     )
 
-    return SubmittedResource(
-      apiVersion = supportedKind.apiVersion,
-      kind = supportedKind.kind,
-      spec = spec
-    )
+    return spec
   }
 
   // todo eb: this should generate a reference...
@@ -298,12 +294,6 @@ class TitusClusterHandler(
   private fun ResourceDiff<TitusServerGroup>.isCapacityOnly(): Boolean =
     current != null && affectedRootPropertyTypes.all { it == Capacity::class.java }
 
-  private fun ResourceDiff<Map<String, TitusServerGroup>>.toIndividualDiffs() =
-    desired
-      .map { (region, desired) ->
-        ResourceDiff(desired, current?.get(region))
-      }
-
   private fun TitusClusterSpec.generateOverrides(serverGroups: Map<String, TitusServerGroup>) =
     serverGroups.forEach { (region, serverGroup) ->
       val workingSpec = serverGroup.exportSpec(moniker.app)
@@ -350,7 +340,7 @@ class TitusClusterHandler(
               serviceAccount,
               moniker.app,
               account,
-              moniker.name,
+              moniker.toString(),
               it,
               CLOUD_PROVIDER
             )

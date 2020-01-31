@@ -3,12 +3,12 @@ package com.netflix.spinnaker.keel.api.ec2
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY
+import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.ec2.LoadBalancerType.APPLICATION
 import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel.Action
 import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel.Rule
 import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel.TargetGroupAttributes
-import com.netflix.spinnaker.keel.model.Moniker
 import java.time.Duration
 
 data class ApplicationLoadBalancerSpec(
@@ -24,7 +24,7 @@ data class ApplicationLoadBalancerSpec(
 ) : LoadBalancerSpec {
 
   init {
-    require(moniker.name.length <= 32) {
+    require(moniker.toString().length <= 32) {
       "load balancer names have a 32 character limit"
     }
   }
@@ -33,7 +33,7 @@ data class ApplicationLoadBalancerSpec(
   override val loadBalancerType: LoadBalancerType = APPLICATION
 
   @JsonIgnore
-  override val id: String = "${locations.account}:${moniker.name}"
+  override val id: String = "${locations.account}:$moniker"
 
   data class Listener(
     val port: Int,

@@ -1,9 +1,8 @@
 package com.netflix.spinnaker.keel.ec2.resource
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.Exportable
+import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.ec2.ApplicationLoadBalancer
@@ -16,12 +15,13 @@ import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ResourceNotFound
+import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.diff.ResourceDiff
+import com.netflix.spinnaker.keel.diff.toIndividualDiffs
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
 import com.netflix.spinnaker.keel.events.Task
 import com.netflix.spinnaker.keel.model.Job
-import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
@@ -38,9 +38,8 @@ class ApplicationLoadBalancerHandler(
   private val cloudDriverCache: CloudDriverCache,
   private val orcaService: OrcaService,
   private val taskLauncher: TaskLauncher,
-  objectMapper: ObjectMapper,
   resolvers: List<Resolver<*>>
-) : ResourceHandler<ApplicationLoadBalancerSpec, Map<String, ApplicationLoadBalancer>>(objectMapper, resolvers) {
+) : ResourceHandler<ApplicationLoadBalancerSpec, Map<String, ApplicationLoadBalancer>>(resolvers) {
 
   override val supportedKind =
     SupportedKind(SPINNAKER_EC2_API_V1, "application-load-balancer", ApplicationLoadBalancerSpec::class.java)
@@ -86,10 +85,10 @@ class ApplicationLoadBalancerHandler(
             resourceDiff.current == null -> "Creating"
             else -> "Upserting"
           }
-          val description = "$action ${resource.kind} load balancer ${desired.moniker.name} in ${desired.location.account}/${desired.location.region}"
+          val description = "$action ${resource.kind} load balancer ${desired.moniker} in ${desired.location.account}/${desired.location.region}"
 
           async {
-            taskLauncher.submitJobToOrca(
+            taskLauncher.submitJob(
               resource = resource,
               description = description,
               correlationId = "${resource.id}:${desired.location.region}",
@@ -100,16 +99,16 @@ class ApplicationLoadBalancerHandler(
         .map { it.await() }
     }
 
-  override suspend fun export(exportable: Exportable): SubmittedResource<ApplicationLoadBalancerSpec> {
+  override suspend fun export(exportable: Exportable): ApplicationLoadBalancerSpec {
     val albs = cloudDriverService.getApplicationLoadBalancer(
       account = exportable.account,
-      name = exportable.moniker.name,
+      name = exportable.moniker.toString(),
       regions = exportable.regions,
       serviceAccount = exportable.user
     )
 
     if (albs.isEmpty()) {
-      throw ResourceNotFound("Could not find application load balancer: ${exportable.moniker.name} " +
+      throw ResourceNotFound("Could not find application load balancer: ${exportable.moniker} " +
         "in account: ${exportable.account}")
     }
 
@@ -162,11 +161,7 @@ class ApplicationLoadBalancerHandler(
 
     spec.generateOverrides(albs)
 
-    return SubmittedResource(
-      apiVersion = supportedKind.apiVersion,
-      kind = supportedKind.kind,
-      spec = spec
-    )
+    return spec
   }
 
   override suspend fun actuationInProgress(resource: Resource<ApplicationLoadBalancerSpec>): Boolean =
@@ -186,7 +181,7 @@ class ApplicationLoadBalancerHandler(
     serviceAccount: String
   ) = getApplicationLoadBalancer(
     account = spec.locations.account,
-    name = spec.moniker.name,
+    name = spec.moniker.toString(),
     regions = spec.locations.regions.map { it.name }.toSet(),
     serviceAccount = serviceAccount
   )
@@ -278,12 +273,6 @@ class ApplicationLoadBalancerHandler(
       .mapNotNull { it.await() }
       .associateBy { it.location.region }
 
-  private fun ResourceDiff<Map<String, ApplicationLoadBalancer>>.toIndividualDiffs() =
-    desired
-      .map { (region, desired) ->
-        ResourceDiff(desired, current?.get(region))
-      }
-
   private fun ResourceDiff<ApplicationLoadBalancer>.toUpsertJob(): Job =
     with(desired) {
       Job(
@@ -292,7 +281,7 @@ class ApplicationLoadBalancerHandler(
           "application" to moniker.app,
           "credentials" to location.account,
           "cloudProvider" to CLOUD_PROVIDER,
-          "name" to moniker.name,
+          "name" to moniker.toString(),
           "region" to location.region,
           "availabilityZones" to mapOf(location.region to location.availabilityZones),
           "loadBalancerType" to loadBalancerType.toString().toLowerCase(),
@@ -328,9 +317,9 @@ class ApplicationLoadBalancerHandler(
     regionalAlbs: Map<String, ApplicationLoadBalancer>
   ) =
     regionalAlbs.forEach { (region, alb) ->
-      val dependenciesDiff = ResourceDiff(alb.dependencies, dependencies).hasChanges()
-      val listenersDiff = ResourceDiff(alb.listeners, listeners).hasChanges()
-      val targetGroupDiff = ResourceDiff(alb.targetGroups, targetGroups).hasChanges()
+      val dependenciesDiff = DefaultResourceDiff(alb.dependencies, dependencies).hasChanges()
+      val listenersDiff = DefaultResourceDiff(alb.listeners, listeners).hasChanges()
+      val targetGroupDiff = DefaultResourceDiff(alb.targetGroups, targetGroups).hasChanges()
 
       if (dependenciesDiff || listenersDiff || targetGroupDiff) {
         (overrides as MutableMap)[region] = ApplicationLoadBalancerOverride(

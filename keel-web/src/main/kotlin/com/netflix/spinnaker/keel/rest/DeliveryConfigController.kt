@@ -55,7 +55,7 @@ class DeliveryConfigController(
   fun delete(@PathVariable("name") name: String) {
     val deliveryConfig = deliveryConfigRepository.get(name)
     log.info("Deleting delivery config $name: $deliveryConfig")
-    resourcePersister.delete(name)
+    resourcePersister.deleteDeliveryConfig(name)
   }
 
   // todo eb: make this work with artifact references

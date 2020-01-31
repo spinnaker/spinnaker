@@ -4,6 +4,7 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceCurrentlyUnresolvable
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.id
+import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceActuationVetoed
@@ -63,7 +64,7 @@ class ResourceActuator(
 
       try {
         val (desired, current) = plugin.resolve(resource)
-        val diff = ResourceDiff(desired, current)
+        val diff = DefaultResourceDiff(desired, current)
         if (diff.hasChanges()) {
           diffFingerprintRepository.store(id, diff)
         }
@@ -153,7 +154,7 @@ class ResourceActuator(
         ResourceActuationVetoed(
           resource.apiVersion,
           resource.kind,
-          resource.id.value,
+          resource.id,
           resource.spec.application,
           response.message,
           clock.instant()))

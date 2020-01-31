@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.api.ec2
 
+import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.ec2.LoadBalancerType.CLASSIC
-import com.netflix.spinnaker.keel.model.Moniker
 import java.time.Duration
 
 data class ClassicLoadBalancer(

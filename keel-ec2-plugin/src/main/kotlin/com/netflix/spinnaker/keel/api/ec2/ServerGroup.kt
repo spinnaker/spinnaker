@@ -20,8 +20,8 @@ package com.netflix.spinnaker.keel.api.ec2
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.keel.api.Capacity
 import com.netflix.spinnaker.keel.api.ClusterDependencies
+import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.clouddriver.model.BuildInfo
-import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.model.parseMoniker
 import de.danielbechler.diff.inclusion.Inclusion.EXCLUDED
 import de.danielbechler.diff.introspection.ObjectDiffProperty

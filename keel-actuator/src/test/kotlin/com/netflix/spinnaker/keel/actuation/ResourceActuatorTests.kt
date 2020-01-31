@@ -1,9 +1,8 @@
 package com.netflix.spinnaker.keel.actuation
 
+import com.netflix.spinnaker.keel.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceCurrentlyUnresolvable
-import com.netflix.spinnaker.keel.api.ResourceId
-import com.netflix.spinnaker.keel.api.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
@@ -54,7 +53,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
     val resourceRepository = InMemoryResourceRepository()
     val diffFingerprintRepository = InMemoryDiffFingerprintRepository()
     val resourcePauser: ResourcePauser = mockk() {
-      every { isPaused(any<ResourceId>()) } returns false
+      every { isPaused(any<String>()) } returns false
       every { isPaused(any<Resource<*>>()) } returns false
     }
     val plugin1 = mockk<ResourceHandler<DummyResourceSpec, DummyResource>>(relaxUnitFun = true)
@@ -71,9 +70,9 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
     before {
       every { plugin1.name } returns "plugin1"
-      every { plugin1.supportedKind } returns SupportedKind(SPINNAKER_API_V1.subApi("plugin1"), "foo", DummyResourceSpec::class.java)
+      every { plugin1.supportedKind } returns SupportedKind("plugin1.$SPINNAKER_API_V1", "foo", DummyResourceSpec::class.java)
       every { plugin2.name } returns "plugin2"
-      every { plugin2.supportedKind } returns SupportedKind(SPINNAKER_API_V1.subApi("plugin2"), "bar", DummyResourceSpec::class.java)
+      every { plugin2.supportedKind } returns SupportedKind("plugin2.$SPINNAKER_API_V1", "bar", DummyResourceSpec::class.java)
     }
 
     after {
@@ -82,7 +81,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
     context("a managed resource exists") {
       val resource = resource(
-        apiVersion = SPINNAKER_API_V1.subApi("plugin1"),
+        apiVersion = "plugin1.$SPINNAKER_API_V1",
         kind = "foo"
       )
 

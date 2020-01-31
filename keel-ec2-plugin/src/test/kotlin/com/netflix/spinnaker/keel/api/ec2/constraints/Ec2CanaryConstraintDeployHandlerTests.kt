@@ -112,7 +112,7 @@ internal class Ec2CanaryConstraintDeployHandlerTests : JUnit5Minutests {
         } returns sourceServerGroup("us-west-2")
 
         coEvery {
-          taskLauncher.submitJobToOrca(any(), any(), any(), any(), any(), any(), any())
+          taskLauncher.submitJob(any(), any(), any(), any(), any(), any(), any())
         } returns Task(randomUID().toString(), "fnord canary")
 
         coEvery {
@@ -152,7 +152,7 @@ internal class Ec2CanaryConstraintDeployHandlerTests : JUnit5Minutests {
           cloudDriverService.activeServerGroup(any(), any(), any(), any(), "us-west-2", any())
         }
         coVerify(exactly = 2) {
-          taskLauncher.submitJobToOrca(any(), any(), any(), any(), any(), any(), capture(slot))
+          taskLauncher.submitJob(any(), any(), any(), any(), any(), any(), capture(slot))
         }
 
         expectThat(tasks)

@@ -4,7 +4,6 @@ import com.netflix.spinnaker.keel.api.ArtifactType
 import com.netflix.spinnaker.keel.api.ConstraintState
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
-import com.netflix.spinnaker.keel.api.ResourceId
 
 interface DeliveryConfigRepository : PeriodicallyCheckedRepository<DeliveryConfig> {
 
@@ -24,12 +23,12 @@ interface DeliveryConfigRepository : PeriodicallyCheckedRepository<DeliveryConfi
   /**
    * Retrieve the [Environment] a resource belongs to, by the resource [id].
    */
-  fun environmentFor(resourceId: ResourceId): Environment
+  fun environmentFor(resourceId: String): Environment
 
   /**
    * Retrieve the [DeliveryConfig] a resource belongs to (the parent of its environment).
    */
-  fun deliveryConfigFor(resourceId: ResourceId): DeliveryConfig
+  fun deliveryConfigFor(resourceId: String): DeliveryConfig
 
   /**
    * @return All [DeliveryConfig] instances associated with [application], or an empty collection if
@@ -54,7 +53,7 @@ interface DeliveryConfigRepository : PeriodicallyCheckedRepository<DeliveryConfi
   /**
    * Removes a resource from an environment
    */
-  fun deleteResourceFromEnv(deliveryConfigName: String, environmentName: String, resourceId: ResourceId)
+  fun deleteResourceFromEnv(deliveryConfigName: String, environmentName: String, resourceId: String)
 
   /**
    * Deletes an environment from a delivery config.
@@ -119,4 +118,4 @@ class NoSuchDeliveryConfigName(name: String) : NoSuchDeliveryConfigException("No
 class NoMatchingArtifactException(deliveryConfigName: String, type: ArtifactType, reference: String) :
   RuntimeException("No artifact with reference $reference and type $type found in delivery config $deliveryConfigName")
 
-class OrphanedResourceException(id: ResourceId) : RuntimeException("Resource $id exists without being a part of a delivery config")
+class OrphanedResourceException(id: String) : RuntimeException("Resource $id exists without being a part of a delivery config")

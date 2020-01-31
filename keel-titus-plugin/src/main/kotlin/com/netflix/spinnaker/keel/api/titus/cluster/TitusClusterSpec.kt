@@ -24,6 +24,7 @@ import com.netflix.spinnaker.keel.api.Capacity
 import com.netflix.spinnaker.keel.api.ClusterDependencies
 import com.netflix.spinnaker.keel.api.ClusterDeployStrategy
 import com.netflix.spinnaker.keel.api.Locatable
+import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.RedBlack
 import com.netflix.spinnaker.keel.api.SimpleLocations
@@ -33,7 +34,6 @@ import com.netflix.spinnaker.keel.clouddriver.model.MigrationPolicy
 import com.netflix.spinnaker.keel.clouddriver.model.Resources
 import com.netflix.spinnaker.keel.docker.ContainerProvider
 import com.netflix.spinnaker.keel.docker.DigestProvider
-import com.netflix.spinnaker.keel.model.Moniker
 
 /**
  * "Simplified" representation of
@@ -48,7 +48,7 @@ data class TitusClusterSpec(
 ) : Monikered, Locatable<SimpleLocations> {
 
   @JsonIgnore
-  override val id = "${locations.account}:${moniker.name}"
+  override val id = "${locations.account}:$moniker"
 
   val defaults: TitusServerGroupSpec
     @JsonUnwrapped get() = _defaults
@@ -181,7 +181,7 @@ internal fun TitusClusterSpec.resolveDependencies(region: String): ClusterDepend
 fun TitusClusterSpec.resolve(): Set<TitusServerGroup> =
   locations.regions.map {
     TitusServerGroup(
-      name = moniker.name,
+      name = moniker.toString(),
       location = Location(
         account = locations.account,
         region = it.name

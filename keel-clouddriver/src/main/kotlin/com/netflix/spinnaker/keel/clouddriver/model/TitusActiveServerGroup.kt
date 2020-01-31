@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.keel.clouddriver.model
 
 import com.netflix.spinnaker.keel.api.Capacity
-import com.netflix.spinnaker.keel.model.Moniker
+import com.netflix.spinnaker.keel.api.Moniker
 
 data class TitusActiveServerGroup(
   val name: String,

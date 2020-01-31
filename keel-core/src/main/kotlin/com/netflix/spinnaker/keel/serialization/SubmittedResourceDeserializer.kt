@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.deser.std.StdNodeBasedDeserializer
 import com.fasterxml.jackson.databind.introspect.AnnotatedClassResolver
 import com.fasterxml.jackson.databind.type.TypeFactory
 import com.fasterxml.jackson.module.kotlin.convertValue
-import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.SubmittedResource
 
@@ -15,7 +14,7 @@ class SubmittedResourceDeserializer : StdNodeBasedDeserializer<SubmittedResource
   override fun convert(root: JsonNode, context: DeserializationContext): SubmittedResource<*> {
     with(context) {
       try {
-        val apiVersion = root.path("apiVersion").textValue().let(::ApiVersion)
+        val apiVersion = root.path("apiVersion").textValue()
         val kind = root.path("kind").textValue()
         val specType = resolveResourceSpecType(apiVersion, kind)
         val metadata = mapper.convertValue<Map<String, Any?>?>(root.path("metadata")) ?: emptyMap()
@@ -28,7 +27,7 @@ class SubmittedResourceDeserializer : StdNodeBasedDeserializer<SubmittedResource
     }
   }
 
-  private fun DeserializationContext.resolveResourceSpecType(apiVersion: ApiVersion, kind: String): Class<*> {
+  private fun DeserializationContext.resolveResourceSpecType(apiVersion: String, kind: String): Class<*> {
     val specBaseType = typeFactory.constructType<ResourceSpec>()
 
     // Yeah, this is the Jackson API for retrieving the registered sub-types of a class. 😬😱🤐😵

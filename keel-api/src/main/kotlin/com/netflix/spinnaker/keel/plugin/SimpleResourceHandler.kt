@@ -15,14 +15,12 @@
  */
 package com.netflix.spinnaker.keel.plugin
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
 
 abstract class SimpleResourceHandler<T : ResourceSpec>(
-  objectMapper: ObjectMapper,
   resolvers: List<Resolver<*>>
-) : ResourceHandler<T, T>(objectMapper, resolvers) {
+) : ResourceHandler<T, T>(resolvers) {
 
   /**
    * If you need to do any resolution of the desired value into a different type you should

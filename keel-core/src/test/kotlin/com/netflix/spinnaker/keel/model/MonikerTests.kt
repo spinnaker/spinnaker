@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.model
 
+import com.netflix.spinnaker.keel.api.Moniker
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectThat

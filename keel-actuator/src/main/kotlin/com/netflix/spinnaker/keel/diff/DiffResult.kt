@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.keel.diff
 
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceId
 
 /**
  * The result of diffing a submitted resource
@@ -31,7 +30,7 @@ import com.netflix.spinnaker.keel.api.ResourceId
  */
 data class DiffResult(
   val status: DiffStatus,
-  val resourceId: ResourceId? = null,
+  val resourceId: String? = null,
   val resource: Resource<*>? = null,
   val diff: Map<String, Any?>? = null,
   val errorMsg: String? = null

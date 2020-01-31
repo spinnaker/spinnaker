@@ -71,7 +71,7 @@ class SampleDockerImageResolverTests : JUnit5Minutests {
       kind = "sample",
       spec = spec,
       metadata = mapOf(
-        "id" to "${SAMPLE_API_VERSION.prefix}:sample:sample-resource",
+        "id" to "${SAMPLE_API_VERSION.substringBefore(".")}:sample:sample-resource",
         "application" to "myapp",
         "serviceAccount" to "keel@spinnaker"
       ))

@@ -15,11 +15,9 @@
  */
 package com.netflix.spinnaker.keel.persistence
 
-import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.ResourceSummary
 import com.netflix.spinnaker.keel.api.SimpleLocations
@@ -50,8 +48,8 @@ import com.netflix.spinnaker.keel.persistence.ResourceStatus.VETOED
 import java.time.Duration
 
 data class ResourceHeader(
-  val id: ResourceId,
-  val apiVersion: ApiVersion,
+  val id: String,
+  val apiVersion: String,
   val kind: String
 ) {
   constructor(resource: Resource<*>) : this(
@@ -73,7 +71,7 @@ interface ResourceRepository : PeriodicallyCheckedRepository<Resource<out Resour
    * @return The resource represented by [id] or `null` if [id] is unknown.
    * @throws NoSuchResourceException if [id] does not map to a resource in the repository.
    */
-  fun get(id: ResourceId): Resource<out ResourceSpec>
+  fun get(id: String): Resource<out ResourceSpec>
 
   fun hasManagedResources(application: String): Boolean
 
@@ -102,7 +100,7 @@ interface ResourceRepository : PeriodicallyCheckedRepository<Resource<out Resour
   /**
    * Deletes the resource represented by [id].
    */
-  fun delete(id: ResourceId)
+  fun delete(id: String)
 
   /**
    * Deletes the resource associated with [application].
@@ -115,7 +113,7 @@ interface ResourceRepository : PeriodicallyCheckedRepository<Resource<out Resour
    * @param id the resource id.
    * @param limit the maximum number of events to return.
    */
-  fun eventHistory(id: ResourceId, limit: Int = DEFAULT_MAX_EVENTS): List<ResourceEvent>
+  fun eventHistory(id: String, limit: Int = DEFAULT_MAX_EVENTS): List<ResourceEvent>
 
   /**
    * Retrieves the last event from the history of state change events for the resource represented by [id] or null if
@@ -123,7 +121,7 @@ interface ResourceRepository : PeriodicallyCheckedRepository<Resource<out Resour
    *
    * @param id the resource id.
    */
-  fun lastEvent(id: ResourceId): ResourceEvent? = eventHistory(id, 1).firstOrNull()
+  fun lastEvent(id: String): ResourceEvent? = eventHistory(id, 1).firstOrNull()
 
   /**
    * Records an event associated with a resource.
@@ -139,7 +137,7 @@ interface ResourceRepository : PeriodicallyCheckedRepository<Resource<out Resour
    */
   override fun itemsDueForCheck(minTimeSinceLastCheck: Duration, limit: Int): Collection<Resource<out ResourceSpec>>
 
-  fun getStatus(id: ResourceId): ResourceStatus {
+  fun getStatus(id: String): ResourceStatus {
     val history = eventHistory(id, 10)
     return when {
       history.isHappy() -> HAPPY
@@ -206,15 +204,15 @@ interface ResourceRepository : PeriodicallyCheckedRepository<Resource<out Resour
       kind = kind,
       status = getStatus(id), // todo eb: this will become expensive
       moniker = if (spec is Monikered) {
-        spec.moniker
+        (spec as Monikered).moniker
       } else {
         null
       },
       locations = if (spec is Locatable<*>) {
         SimpleLocations(
-          account = spec.locations.account,
-          vpc = spec.locations.vpc,
-          regions = spec.locations.regions.map { SimpleRegionSpec(it.name) }.toSet()
+          account = (spec as Locatable<*>).locations.account,
+          vpc = (spec as Locatable<*>).locations.vpc,
+          regions = (spec as Locatable<*>).locations.regions.map { SimpleRegionSpec(it.name) }.toSet()
         )
       } else {
         null
@@ -227,12 +225,12 @@ interface ResourceRepository : PeriodicallyCheckedRepository<Resource<out Resour
 }
 
 @Suppress("UNCHECKED_CAST", "EXTENSION_SHADOWED_BY_MEMBER")
-inline fun <reified T : ResourceSpec> ResourceRepository.get(id: ResourceId): Resource<T> =
+inline fun <reified T : ResourceSpec> ResourceRepository.get(id: String): Resource<T> =
   get(id).also { check(it.spec is T) } as Resource<T>
 
 sealed class NoSuchResourceException(override val message: String?) : RuntimeException(message)
 
-class NoSuchResourceId(id: ResourceId) : NoSuchResourceException("No resource with id $id exists in the repository")
+class NoSuchResourceId(id: String) : NoSuchResourceException("No resource with id $id exists in the repository")
 class NoSuchApplication(application: String) : NoSuchResourceException("No resource with application name $application exists in the repository")
 
 enum class ResourceStatus {

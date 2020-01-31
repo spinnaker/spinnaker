@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.keel.pause
 
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.events.ResourceActuationResumed
@@ -42,7 +41,7 @@ class ResourcePauser(
   fun isPaused(resource: Resource<*>): Boolean =
     getPauseScope(resource) != null
 
-  fun isPaused(id: ResourceId): Boolean {
+  fun isPaused(id: String): Boolean {
     val resource = resourceRepository.get(id)
     return isPaused(resource)
   }
@@ -57,7 +56,7 @@ class ResourcePauser(
   fun applicationIsPaused(application: String): Boolean =
     pausedRepository.applicationPaused(application)
 
-  fun resourceIsPaused(id: ResourceId): Boolean =
+  fun resourceIsPaused(id: String): Boolean =
     pausedRepository.resourcePaused(id)
 
   fun pauseApplication(application: String) {
@@ -75,12 +74,12 @@ class ResourcePauser(
       }
   }
 
-  fun pauseResource(id: ResourceId) {
+  fun pauseResource(id: String) {
     log.info("Pausing resource $id")
     pausedRepository.pauseResource(id)
   }
 
-  fun resumeResource(id: ResourceId) {
+  fun resumeResource(id: String) {
     log.info("Resuming resource $id")
     pausedRepository.resumeResource(id)
     // helps a user not be confused by an out of date status from before a pause

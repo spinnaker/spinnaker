@@ -14,14 +14,13 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.Image
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
-import com.netflix.spinnaker.keel.diff.ResourceDiff
+import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
-import com.netflix.spinnaker.keel.plugin.TaskLauncher
-import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
+import com.netflix.spinnaker.keel.plugin.OrcaTaskLauncher
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -48,7 +47,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
     val baseImageCache = mockk<BaseImageCache>()
     val imageService = mockk<ImageService>()
     val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
-    val taskLauncher = TaskLauncher(orcaService, InMemoryDeliveryConfigRepository(), publisher)
+    val taskLauncher = OrcaTaskLauncher(orcaService, InMemoryDeliveryConfigRepository(), publisher)
     val handler = ImageHandler(
       artifactRepository,
       baseImageCache,
@@ -58,7 +57,6 @@ internal class ImageHandlerTests : JUnit5Minutests {
       imageService,
       publisher,
       taskLauncher,
-      configuredObjectMapper(),
       emptyList()
     )
     val resource = resource(
@@ -245,7 +243,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
         coEvery { orcaService.orchestrate("keel@spinnaker", capture(request)) } returns randomTaskRef()
 
         runBlocking {
-          handler.upsert(resource, ResourceDiff(image, null))
+          handler.upsert(resource, DefaultResourceDiff(image, null))
         }
 
         expectThat(request.captured.trigger.artifacts)
@@ -257,7 +255,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
         coEvery { orcaService.orchestrate("keel@spinnaker", capture(request)) } returns randomTaskRef()
 
         runBlocking {
-          handler.upsert(resource, ResourceDiff(image, null))
+          handler.upsert(resource, DefaultResourceDiff(image, null))
         }
 
         expectThat(request.captured.job.first())

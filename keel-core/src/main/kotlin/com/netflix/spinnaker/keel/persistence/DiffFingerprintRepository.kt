@@ -17,7 +17,6 @@
  */
 package com.netflix.spinnaker.keel.persistence
 
-import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.diff.ResourceDiff
 import java.security.MessageDigest
 import javax.xml.bind.DatatypeConverter
@@ -26,9 +25,9 @@ import javax.xml.bind.DatatypeConverter
  * Stores a hash of the diff
  */
 interface DiffFingerprintRepository {
-  fun store(resourceId: ResourceId, diff: ResourceDiff<*>)
+  fun store(resourceId: String, diff: ResourceDiff<*>)
 
-  fun diffCount(resourceId: ResourceId): Int
+  fun diffCount(resourceId: String): Int
 
   fun ResourceDiff<*>.generateHash(): String {
     val bytes = MessageDigest

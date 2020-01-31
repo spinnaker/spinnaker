@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.keel.ec2.resolvers
 
 import com.netflix.frigga.ami.AppVersion
-import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.Resource
@@ -38,7 +37,7 @@ class ImageResolver(
   private val imageService: ImageService
 ) : Resolver<ClusterSpec> {
 
-  override val apiVersion: ApiVersion = SPINNAKER_EC2_API_V1
+  override val apiVersion: String = SPINNAKER_EC2_API_V1
   override val supportedKind: String = "cluster"
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 

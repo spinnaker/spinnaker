@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.events.ResourceActuationPaused
 import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.pause.ResourcePauser
@@ -29,7 +28,7 @@ class EventController(
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
   fun eventHistory(
-    @PathVariable("id") id: ResourceId,
+    @PathVariable("id") id: String,
     @RequestParam("limit") limit: Int?
   ): List<ResourceEvent> {
     log.debug("Getting state history for: $id")

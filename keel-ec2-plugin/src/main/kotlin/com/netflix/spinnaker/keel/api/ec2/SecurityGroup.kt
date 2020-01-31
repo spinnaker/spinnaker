@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.api.ec2
 
-import com.netflix.spinnaker.keel.model.Moniker
+import com.netflix.spinnaker.keel.api.Moniker
 import de.danielbechler.diff.inclusion.Inclusion.EXCLUDED
 import de.danielbechler.diff.introspection.ObjectDiffProperty
 

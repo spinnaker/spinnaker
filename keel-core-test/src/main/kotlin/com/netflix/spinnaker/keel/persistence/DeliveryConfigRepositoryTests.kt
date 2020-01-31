@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.keel.persistence
 
-import com.netflix.spinnaker.keel.api.ApiVersion
 import com.netflix.spinnaker.keel.api.ConstraintState
 import com.netflix.spinnaker.keel.api.ConstraintStatus
 import com.netflix.spinnaker.keel.api.DebianArtifact
@@ -49,7 +48,7 @@ abstract class DeliveryConfigRepositoryTests<T : DeliveryConfigRepository, R : R
   ) {
     private val resourceTypeIdentifier: ResourceTypeIdentifier =
       object : ResourceTypeIdentifier {
-        override fun identify(apiVersion: ApiVersion, kind: String): Class<out ResourceSpec> {
+        override fun identify(apiVersion: String, kind: String): Class<out ResourceSpec> {
           return when (kind) {
             "security-group" -> DummyResourceSpec::class.java
             "cluster" -> DummyResourceSpec::class.java

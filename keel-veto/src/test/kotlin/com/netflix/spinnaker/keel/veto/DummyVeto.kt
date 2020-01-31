@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.keel.veto
 
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.id
 
@@ -28,7 +27,7 @@ class DummyVeto(
   override fun check(resource: Resource<*>): VetoResponse =
     check(resource.id, resource.application)
 
-  override fun check(resourceId: ResourceId, application: String): VetoResponse =
+  override fun check(resourceId: String, application: String): VetoResponse =
     if (allowAll) {
       allowedResponse()
     } else {
@@ -47,7 +46,7 @@ class DummyVeto(
     TODO("not implemented")
   }
 
-  override fun currentRejectionsByApp(application: String): List<ResourceId> {
+  override fun currentRejectionsByApp(application: String): List<String> {
     TODO("not implemented")
   }
 }

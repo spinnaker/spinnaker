@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.keel.veto.unhappy
 
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
@@ -51,7 +50,7 @@ class UnhappyVeto(
   override fun check(resource: Resource<*>) =
     check(resource.id, resource.spec.application)
 
-  override fun check(resourceId: ResourceId, application: String): VetoResponse {
+  override fun check(resourceId: String, application: String): VetoResponse {
     if (diffFingerprintRepository.diffCount(resourceId) <= maxDiffCount()) {
       // if we haven't generated the same diff 10 times, we should keep trying
       return allowedResponse()
@@ -86,7 +85,7 @@ class UnhappyVeto(
   }
 
   override fun currentRejections(): List<String> =
-    unhappyVetoRepository.getAll().map { it.toString() }.toList()
+    unhappyVetoRepository.getAll().toList()
 
   override fun currentRejectionsByApp(application: String) =
     unhappyVetoRepository.getAllForApp(application).toList()

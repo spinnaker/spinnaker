@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.keel
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.jsontype.NamedType
 import com.netflix.spinnaker.keel.bakery.BaseImageCache
 import com.netflix.spinnaker.keel.info.InstanceIdSupplier
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
@@ -23,6 +24,7 @@ import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.plugin.KeelPlugin
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
+import com.netflix.spinnaker.keel.plugin.SupportedKind
 import com.netflix.spinnaker.kork.PlatformComponents
 import javax.annotation.PostConstruct
 import org.slf4j.LoggerFactory
@@ -85,7 +87,11 @@ class KeelApplication {
     plugins
       .filterIsInstance<ResourceHandler<*, *>>()
       .forEach { handler ->
-        handler.registerResourceKind(objectMappers)
+        with<SupportedKind<*>, Unit>(handler.supportedKind) {
+          log.info("Registering ResourceSpec sub-type {}: {}", typeId, specClass.simpleName)
+          val namedType = NamedType(specClass, typeId)
+          objectMappers.forEach { it.registerSubtypes(namedType) }
+        }
       }
   }
 

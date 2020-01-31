@@ -84,7 +84,7 @@ class Ec2CanaryConstraintDeployHandler(
 
       scope.async {
         try {
-          taskLauncher.submitJobToOrca(
+          taskLauncher.submitJob(
             user = deliveryConfig.serviceAccount,
             application = deliveryConfig.application,
             notifications = targetEnvironment.notifications.map { it.toEchoNotification() },

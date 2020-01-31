@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.clouddriver.model
 
+import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
-import com.netflix.spinnaker.keel.model.Moniker
 import com.netflix.spinnaker.keel.retrofit.model.ModelParsingTestSupport
 
 object SecurityGroupTest : ModelParsingTestSupport<CloudDriverService, SecurityGroupModel>(CloudDriverService::class.java) {

@@ -3,9 +3,9 @@ package com.netflix.spinnaker.keel.api.ec2
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY
+import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.ec2.LoadBalancerType.CLASSIC
-import com.netflix.spinnaker.keel.model.Moniker
 import java.time.Duration
 
 data class ClassicLoadBalancerSpec(
@@ -21,7 +21,7 @@ data class ClassicLoadBalancerSpec(
 ) : LoadBalancerSpec {
 
   init {
-    require(moniker.name.length <= 32) {
+    require(moniker.toString().length <= 32) {
       "load balancer names have a 32 character limit"
     }
   }
@@ -30,7 +30,7 @@ data class ClassicLoadBalancerSpec(
   override val loadBalancerType: LoadBalancerType = CLASSIC
 
   @JsonIgnore
-  override val id: String = "${locations.account}:${moniker.name}"
+  override val id: String = "${locations.account}:$moniker"
 }
 
 data class ClassicLoadBalancerOverride(

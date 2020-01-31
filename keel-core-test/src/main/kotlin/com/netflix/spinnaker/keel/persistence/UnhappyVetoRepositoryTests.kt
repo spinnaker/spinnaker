@@ -17,7 +17,6 @@
  */
 package com.netflix.spinnaker.keel.persistence
 
-import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -35,7 +34,7 @@ abstract class UnhappyVetoRepositoryTests<T : UnhappyVetoRepository> : JUnit5Min
   open fun T.flush() {}
 
   val clock = MutableClock()
-  val resourceId = ResourceId("ec2:securityGroup:test:us-west-2:keeldemo-managed")
+  val resourceId = "ec2:securityGroup:test:us-west-2:keeldemo-managed"
   val application = "keeldemo"
 
   data class Fixture<T : UnhappyVetoRepository>(
@@ -113,10 +112,10 @@ abstract class UnhappyVetoRepositoryTests<T : UnhappyVetoRepository> : JUnit5Min
     }
 
     context("getting all by app name") {
-      val bake1 = ResourceId("bakery:image:keeldemo")
-      val bake2 = ResourceId("bakery:image:keel")
-      val resource1 = ResourceId("ec2:securityGroup:test:us-west-2:keeldemo-managed")
-      val resource2 = ResourceId("ec2:securityGroup:test:us-west-2:keel-managed")
+      val bake1 = "bakery:image:keeldemo"
+      val bake2 = "bakery:image:keel"
+      val resource1 = "ec2:securityGroup:test:us-west-2:keeldemo-managed"
+      val resource2 = "ec2:securityGroup:test:us-west-2:keel-managed"
       before {
         subject.markUnhappyForWaitingTime(bake1, "keeldemo")
         subject.markUnhappyForWaitingTime(bake2, "keel")

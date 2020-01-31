@@ -1,12 +1,11 @@
 package com.netflix.spinnaker.keel.ec2.resource
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.Capacity
 import com.netflix.spinnaker.keel.api.ClusterDependencies
 import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.Exportable
+import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
@@ -43,11 +42,13 @@ import com.netflix.spinnaker.keel.clouddriver.model.StepAdjustmentModel
 import com.netflix.spinnaker.keel.clouddriver.model.Tag
 import com.netflix.spinnaker.keel.clouddriver.model.subnet
 import com.netflix.spinnaker.keel.diff.ResourceDiff
+import com.netflix.spinnaker.keel.diff.toIndividualDiffs
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
 import com.netflix.spinnaker.keel.events.ArtifactVersionDeployed
 import com.netflix.spinnaker.keel.events.Task
-import com.netflix.spinnaker.keel.model.Moniker
+import com.netflix.spinnaker.keel.model.orcaClusterMoniker
+import com.netflix.spinnaker.keel.model.serverGroup
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.dependsOn
 import com.netflix.spinnaker.keel.orca.restrictedExecutionWindow
@@ -77,9 +78,8 @@ class ClusterHandler(
   private val taskLauncher: TaskLauncher,
   private val clock: Clock,
   private val publisher: ApplicationEventPublisher,
-  objectMapper: ObjectMapper,
   resolvers: List<Resolver<*>>
-) : ResourceHandler<ClusterSpec, Map<String, ServerGroup>>(objectMapper, resolvers) {
+) : ResourceHandler<ClusterSpec, Map<String, ServerGroup>>(resolvers) {
 
   override val supportedKind =
     SupportedKind(SPINNAKER_EC2_API_V1, "cluster", ClusterSpec::class.java)
@@ -142,9 +142,9 @@ class ClusterHandler(
           log.info("Modifying server group in-place using task: {}", job)
 
           async {
-            taskLauncher.submitJobToOrca(
+            taskLauncher.submitJob(
               resource = resource,
-              description = "Upsert server group ${diff.desired.moniker.name} in " +
+              description = "Upsert server group ${diff.desired.moniker} in " +
                 "${diff.desired.location.account}/${diff.desired.location.region}",
               correlationId = "${resource.id}:${diff.desired.location.region}",
               stages = job)
@@ -182,9 +182,9 @@ class ClusterHandler(
           log.info("Upserting server group using task: {}", stages)
 
           async {
-            taskLauncher.submitJobToOrca(
+            taskLauncher.submitJob(
               resource = resource,
-              description = "Upsert server group ${diff.desired.moniker.name} in " +
+              description = "Upsert server group ${diff.desired.moniker} in " +
                 "${diff.desired.location.account}/${diff.desired.location.region}",
               correlationId = "${resource.id}:${diff.desired.location.region}",
               stages = stages)
@@ -254,9 +254,9 @@ class ClusterHandler(
         }
 
         val deferred = async {
-          taskLauncher.submitJobToOrca(
+          taskLauncher.submitJob(
             resource = resource,
-            description = "Upsert server group ${diff.desired.moniker.name} in " +
+            description = "Upsert server group ${diff.desired.moniker} in " +
               "${diff.desired.location.account}/${diff.desired.location.region}",
             correlationId = "${resource.id}:${diff.desired.location.region}",
             stages = stages
@@ -287,7 +287,7 @@ class ClusterHandler(
       return@coroutineScope tasks
     }
 
-  override suspend fun export(exportable: Exportable): SubmittedResource<ClusterSpec> {
+  override suspend fun export(exportable: Exportable): ClusterSpec {
     val serverGroups = cloudDriverService.getServerGroups(
       account = exportable.account,
       moniker = exportable.moniker,
@@ -297,7 +297,7 @@ class ClusterHandler(
       .byRegion()
 
     if (serverGroups.isEmpty()) {
-      throw ResourceNotFound("Could not find cluster: ${exportable.moniker.name} " +
+      throw ResourceNotFound("Could not find cluster: ${exportable.moniker} " +
         "in account: ${exportable.account} for export")
     }
 
@@ -354,18 +354,8 @@ class ClusterHandler(
         .filter { it.value.location.region != base.location.region }
     )
 
-    return SubmittedResource(
-      apiVersion = supportedKind.apiVersion,
-      kind = supportedKind.kind,
-      spec = spec
-    )
+    return spec
   }
-
-  private fun ResourceDiff<Map<String, ServerGroup>>.toIndividualDiffs() =
-    desired
-      .map { (region, desired) ->
-        ResourceDiff(desired, current?.get(region))
-      }
 
   private fun List<ResourceDiff<ServerGroup>>.createsNewServerGroups() =
     any {
@@ -725,12 +715,12 @@ class ClusterHandler(
         async {
           try {
             activeServerGroup(
-              serviceAccount,
-              moniker.app,
-              account,
-              moniker.name,
-              it,
-              CLOUD_PROVIDER
+              user = serviceAccount,
+              app = moniker.app,
+              account = account,
+              cluster = moniker.toString(),
+              region = it,
+              cloudProvider = CLOUD_PROVIDER
             )
               .toServerGroup()
           } catch (e: HttpException) {

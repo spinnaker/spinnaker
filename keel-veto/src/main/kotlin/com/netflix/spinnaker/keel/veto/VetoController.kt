@@ -73,7 +73,7 @@ class VetoController(
   fun getVetoRejectionsByApp(@PathVariable application: String): List<String> =
     vetos.map { veto ->
       veto.currentRejectionsByApp(application)
-    }.flatten().map { it.value }.toList()
+    }.flatten()
 
   @PostMapping(
     path = ["/{name}"],

@@ -17,7 +17,6 @@
  */
 package com.netflix.spinnaker.config
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.keel.api.titus.cluster.TitusClusterHandler
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
@@ -41,7 +40,6 @@ class TitusConfig {
     clock: Clock,
     taskLauncher: TaskLauncher,
     publisher: ApplicationEventPublisher,
-    objectMapper: ObjectMapper,
     resolvers: List<Resolver<*>>
   ): TitusClusterHandler = TitusClusterHandler(
     cloudDriverService,
@@ -50,7 +48,6 @@ class TitusConfig {
     clock,
     taskLauncher,
     publisher,
-    objectMapper,
     resolvers
   )
 }

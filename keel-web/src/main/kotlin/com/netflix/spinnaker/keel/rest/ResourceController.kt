@@ -17,7 +17,6 @@ package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.actuation.ResourcePersister
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceId
 import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.diff.AdHocDiffer
 import com.netflix.spinnaker.keel.diff.DiffResult
@@ -54,7 +53,7 @@ class ResourceController(
     path = ["/{id}"],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
-  fun get(@PathVariable("id") id: ResourceId): Resource<*> {
+  fun get(@PathVariable("id") id: String): Resource<*> {
     log.debug("Getting: $id")
     return resourceRepository.get(id)
   }
@@ -63,7 +62,7 @@ class ResourceController(
     path = ["/{id}/status"],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
-  fun getStatus(@PathVariable("id") id: ResourceId): ResourceStatus =
+  fun getStatus(@PathVariable("id") id: String): ResourceStatus =
     if (resourcePauser.isPaused(id)) { // todo eb: we could make determining status easier and more straight forward.
       PAUSED
     } else {
@@ -74,7 +73,7 @@ class ResourceController(
     path = ["/{id}/pause"],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
-  fun pauseResource(@PathVariable("id") id: ResourceId) {
+  fun pauseResource(@PathVariable("id") id: String) {
     resourcePauser.pauseResource(id)
   }
 
@@ -82,7 +81,7 @@ class ResourceController(
     path = ["/{id}/pause"],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
-  fun resumeResource(@PathVariable("id") id: ResourceId) {
+  fun resumeResource(@PathVariable("id") id: String) {
     resourcePauser.resumeResource(id)
   }
 

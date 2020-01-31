@@ -12,7 +12,7 @@ data class DeliveryConfig(
   val serviceAccount: String,
   val artifacts: Set<DeliveryArtifact> = emptySet(),
   val environments: Set<Environment> = emptySet(),
-  val apiVersion: ApiVersion = ApiVersion("delivery.config.spinnaker.netflix.com", "v1")
+  val apiVersion: String = "delivery.config.spinnaker.netflix.com/v1"
 )
 
 data class SubmittedDeliveryConfig(

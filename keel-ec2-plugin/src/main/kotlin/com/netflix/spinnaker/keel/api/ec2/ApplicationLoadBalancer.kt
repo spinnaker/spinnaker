@@ -1,8 +1,8 @@
 package com.netflix.spinnaker.keel.api.ec2
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.ec2.LoadBalancerType.APPLICATION
-import com.netflix.spinnaker.keel.model.Moniker
 import java.time.Duration
 
 data class ApplicationLoadBalancer(
