@@ -16,182 +16,230 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.manifest;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.util.Collections.emptyList;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Streams;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.core.RetrySupport;
-import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.TaskResult;
-import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
-import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
+import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestContext.BindArtifact;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.pipeline.expressions.PipelineExpressionEvaluator;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import java.io.InputStream;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.time.Duration;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 import retrofit.client.Response;
 
+/** This class handles resolving a list of manifests and associated artifacts. */
 @Component
-@Slf4j
-@RequiredArgsConstructor
+@NonnullByDefault
 public class ManifestEvaluator implements CloudProviderAware {
   private static final ThreadLocal<Yaml> yamlParser =
       ThreadLocal.withInitial(() -> new Yaml(new SafeConstructor()));
+  private static final ObjectMapper objectMapper = OrcaObjectMapper.getInstance();
 
   private final ArtifactUtils artifactUtils;
-  private final OortService oort;
-  private final ObjectMapper objectMapper;
   private final ContextParameterProcessor contextParameterProcessor;
-  private final KatoService kato;
+  private final OortService oortService;
+  private final RetrySupport retrySupport;
 
-  private final RetrySupport retrySupport = new RetrySupport();
+  @Autowired
+  public ManifestEvaluator(
+      ArtifactUtils artifactUtils,
+      ContextParameterProcessor contextParameterProcessor,
+      OortService oortService,
+      RetrySupport retrySupport) {
+    this.artifactUtils = artifactUtils;
+    this.contextParameterProcessor = contextParameterProcessor;
+    this.oortService = oortService;
+    this.retrySupport = retrySupport;
+  }
 
   @RequiredArgsConstructor
   @Getter
   public static class Result {
-    private final List<Map<Object, Object>> manifests;
-    private final List<Artifact> requiredArtifacts;
-    private final List<Artifact> optionalArtifacts;
+    private final ImmutableList<Map<Object, Object>> manifests;
+    private final ImmutableList<Artifact> requiredArtifacts;
+    private final ImmutableList<Artifact> optionalArtifacts;
   }
 
+  /**
+   * Resolves manifests and associated artifacts as a {@link Result}. Handles determining the input
+   * source of a manifest, downloading the manifest if it is an artifact, optionally processing it
+   * for SpEL, and composing the required and optional artifacts associated with the manifest.
+   *
+   * @param stage The stage to consider when resolving manifests and artifacts.
+   * @param context The stage-specific manifest context to consider when resolving manifests and
+   *     artifacts.
+   * @return The result of the manifest and artifact resolution {@link Result}.
+   */
   public Result evaluate(Stage stage, ManifestContext context) {
-    Iterable<Object> rawManifests;
-    List<Map<Object, Object>> manifests = Collections.emptyList();
-    if (ManifestContext.Source.Artifact.equals(context.getSource())) {
-      Artifact manifestArtifact =
-          artifactUtils.getBoundArtifactForStage(
-              stage, context.getManifestArtifactId(), context.getManifestArtifact());
-
-      if (manifestArtifact == null) {
-        throw new IllegalArgumentException("No manifest artifact was specified.");
-      }
-
-      // Once the legacy artifacts feature is removed, all trigger expected artifacts will be
-      // required to define an account up front.
-      if (context.getManifestArtifactAccount() != null) {
-        manifestArtifact.setArtifactAccount(context.getManifestArtifactAccount());
-      }
-
-      if (manifestArtifact.getArtifactAccount() == null) {
-        throw new IllegalArgumentException("No manifest artifact account was specified.");
-      }
-
-      log.info("Using {} as the manifest", manifestArtifact);
-
-      rawManifests =
-          retrySupport.retry(
-              () -> {
-                Response manifestText = oort.fetchArtifact(manifestArtifact);
-                try (InputStream body = manifestText.getBody().in()) {
-                  return yamlParser.get().loadAll(body);
-                } catch (Exception e) {
-                  log.warn("Failure fetching/parsing manifests from {}", manifestArtifact, e);
-                  // forces a retry
-                  throw new IllegalStateException(e);
-                }
-              },
-              10,
-              200,
-              true); // retry 10x, starting at .2s intervals);
-
-      List<Object> unevaluatedManifests =
-          StreamSupport.stream(rawManifests.spliterator(), false)
-              .map(
-                  m -> {
-                    try {
-                      return Collections.singletonList(objectMapper.convertValue(m, Map.class));
-                    } catch (Exception e) {
-                      return objectMapper.convertValue(
-                          m, new TypeReference<List<Map<Object, Object>>>() {});
-                    }
-                  })
-              .flatMap(Collection::stream)
-              .collect(Collectors.toList());
-
-      if (!unevaluatedManifests.isEmpty()) {
-        Map<String, Object> manifestWrapper = new HashMap<>();
-        manifestWrapper.put("manifests", unevaluatedManifests);
-
-        if (!context.isSkipExpressionEvaluation()) {
-          manifestWrapper =
-              contextParameterProcessor.process(
-                  manifestWrapper, contextParameterProcessor.buildExecutionContext(stage), true);
-
-          if (manifestWrapper.containsKey(PipelineExpressionEvaluator.SUMMARY)) {
-            throw new IllegalStateException(
-                "Failure evaluating manifest expressions: "
-                    + manifestWrapper.get(PipelineExpressionEvaluator.SUMMARY));
-          }
-        }
-        manifests = (List<Map<Object, Object>>) manifestWrapper.get("manifests");
-      }
-    } else {
-      manifests = context.getManifests();
-    }
-
-    List<Artifact> requiredArtifacts = new ArrayList<>();
-    for (String id : Optional.ofNullable(context.getRequiredArtifactIds()).orElse(emptyList())) {
-      Artifact requiredArtifact = artifactUtils.getBoundArtifactForId(stage, id);
-      if (requiredArtifact == null) {
-        throw new IllegalStateException(
-            "No artifact with id '" + id + "' could be found in the pipeline context.");
-      }
-
-      requiredArtifacts.add(requiredArtifact);
-    }
-
-    // resolve SpEL expressions in artifacts defined inline in the stage
-    for (ManifestContext.BindArtifact artifact :
-        Optional.ofNullable(context.getRequiredArtifacts()).orElse(emptyList())) {
-      Artifact requiredArtifact =
-          artifactUtils.getBoundArtifactForStage(
-              stage, artifact.getExpectedArtifactId(), artifact.getArtifact());
-
-      if (requiredArtifact == null) {
-        throw new IllegalStateException(
-            "No artifact with id '"
-                + artifact.getExpectedArtifactId()
-                + "' could be found in the pipeline context.");
-      }
-
-      requiredArtifacts.add(requiredArtifact);
-    }
-
-    log.info("Artifacts {} are bound to the manifest", requiredArtifacts);
-
-    return new Result(manifests, requiredArtifacts, artifactUtils.getArtifacts(stage));
+    return new Result(
+        getManifests(stage, context),
+        getRequiredArtifacts(stage, context),
+        getOptionalArtifacts(stage));
   }
 
-  public TaskResult buildTaskResult(String taskName, Stage stage, Map<String, Object> task) {
-    Map<String, Map> operation =
-        new ImmutableMap.Builder<String, Map>().put(taskName, task).build();
+  private ImmutableList<Map<Object, Object>> getManifests(Stage stage, ManifestContext context) {
+    switch (context.getSource()) {
+      case Artifact:
+        return getManifestsFromArtifact(stage, context);
+      case Text:
+        return getManifestsFromText(context);
+    }
+    throw new IllegalStateException("Unknown ManifestContext.Source " + context.getSource());
+  }
 
-    TaskId taskId =
-        kato.requestOperations(getCloudProvider(stage), Collections.singletonList(operation))
-            .toBlocking()
-            .first();
+  private ImmutableList<Map<Object, Object>> getManifestsFromText(ManifestContext context) {
+    List<Map<Object, Object>> textManifests =
+        Optional.ofNullable(context.getManifests())
+            .orElseThrow(() -> new IllegalArgumentException("No text manifest was specified."));
+    return ImmutableList.copyOf(textManifests);
+  }
 
-    Map<String, Object> outputs =
-        new ImmutableMap.Builder<String, Object>()
-            .put("kato.result.expected", true)
-            .put("kato.last.task.id", taskId)
-            .put("deploy.account.name", getCredentials(stage))
-            .build();
+  private ImmutableList<Map<Object, Object>> getManifestsFromArtifact(
+      Stage stage, ManifestContext context) {
+    Artifact manifestArtifact = getManifestArtifact(stage, context);
 
-    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build();
+    Iterable<Object> rawManifests =
+        retrySupport.retry(
+            fetchAndParseManifestYaml(manifestArtifact), 10, Duration.ofMillis(200), true);
+
+    ImmutableList<Map<Object, Object>> unevaluatedManifests =
+        StreamSupport.stream(rawManifests.spliterator(), false)
+            .map(this::coerceManifestToList)
+            .flatMap(Collection::stream)
+            .collect(toImmutableList());
+
+    if (context.isSkipExpressionEvaluation()) {
+      return unevaluatedManifests;
+    }
+
+    return getSpelEvaluatedManifests(unevaluatedManifests, stage);
+  }
+
+  private ImmutableList<ImmutableMap<Object, Object>> coerceManifestToList(Object manifest) {
+    if (manifest instanceof List) {
+      return ImmutableList.copyOf(
+          objectMapper.convertValue(
+              manifest, new TypeReference<List<ImmutableMap<Object, Object>>>() {}));
+    }
+    ImmutableMap<Object, Object> singleManifest =
+        objectMapper.convertValue(manifest, new TypeReference<ImmutableMap<Object, Object>>() {});
+    return ImmutableList.of(singleManifest);
+  }
+
+  private Supplier<Iterable<Object>> fetchAndParseManifestYaml(Artifact manifestArtifact) {
+    return () -> {
+      Response manifestText = oortService.fetchArtifact(manifestArtifact);
+      try (InputStream body = manifestText.getBody().in()) {
+        return yamlParser.get().loadAll(body);
+      } catch (Exception e) {
+        throw new IllegalStateException(e);
+      }
+    };
+  }
+
+  private Artifact getManifestArtifact(Stage stage, ManifestContext context) {
+    Artifact manifestArtifact =
+        Optional.ofNullable(
+                artifactUtils.getBoundArtifactForStage(
+                    stage, context.getManifestArtifactId(), context.getManifestArtifact()))
+            .orElseThrow(() -> new IllegalArgumentException("No manifest artifact was specified."));
+
+    // Once the legacy artifacts feature is removed, all trigger expected artifacts will be
+    // required to define an account up front.
+    if (context.getManifestArtifactAccount() != null) {
+      manifestArtifact.setArtifactAccount(context.getManifestArtifactAccount());
+    }
+
+    checkArgument(
+        manifestArtifact.getArtifactAccount() != null,
+        "No manifest artifact account was specified.");
+
+    return manifestArtifact;
+  }
+
+  private ImmutableList<Map<Object, Object>> getSpelEvaluatedManifests(
+      ImmutableList<Map<Object, Object>> unevaluatedManifests, Stage stage) {
+    Map<String, Object> processorInput = ImmutableMap.of("manifests", unevaluatedManifests);
+
+    Map<String, Object> processorResult =
+        contextParameterProcessor.process(
+            processorInput,
+            contextParameterProcessor.buildExecutionContext(stage),
+            /* allowUnknownKeys= */ true);
+
+    if (processorResult.containsKey(PipelineExpressionEvaluator.SUMMARY)) {
+      throw new IllegalStateException(
+          String.format(
+              "Failure evaluating manifest expressions: %s",
+              processorResult.get(PipelineExpressionEvaluator.SUMMARY)));
+    }
+
+    List<Map<Object, Object>> evaluatedManifests =
+        (List<Map<Object, Object>>) processorResult.get("manifests");
+    return ImmutableList.copyOf(evaluatedManifests);
+  }
+
+  private ImmutableList<Artifact> getRequiredArtifacts(Stage stage, ManifestContext context) {
+    Stream<Artifact> requiredArtifactsFromId =
+        Optional.ofNullable(context.getRequiredArtifactIds()).orElse(emptyList()).stream()
+            .map(artifactId -> resolveRequiredArtifactById(stage, artifactId));
+
+    Stream<Artifact> requiredArtifacts =
+        Optional.ofNullable(context.getRequiredArtifacts()).orElse(emptyList()).stream()
+            .map(artifact -> resolveRequiredArtifact(stage, artifact));
+
+    return Streams.concat(requiredArtifactsFromId, requiredArtifacts).collect(toImmutableList());
+  }
+
+  private Artifact resolveRequiredArtifactById(Stage stage, String artifactId) {
+    return Optional.ofNullable(artifactUtils.getBoundArtifactForId(stage, artifactId))
+        .orElseThrow(
+            () ->
+                new IllegalStateException(
+                    String.format(
+                        "No artifact with id %s could be found in the pipeline context.",
+                        artifactId)));
+  }
+
+  private Artifact resolveRequiredArtifact(Stage stage, BindArtifact artifact) {
+    return Optional.ofNullable(
+            artifactUtils.getBoundArtifactForStage(
+                stage, artifact.getExpectedArtifactId(), artifact.getArtifact()))
+        .orElseThrow(
+            () ->
+                new IllegalStateException(
+                    String.format(
+                        "No artifact with id %s could be found in the pipeline context.",
+                        artifact.getExpectedArtifactId())));
+  }
+
+  private ImmutableList<Artifact> getOptionalArtifacts(Stage stage) {
+    return ImmutableList.copyOf(artifactUtils.getArtifacts(stage));
   }
 }

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.kubernetes
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
+import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestEvaluator
@@ -110,9 +111,9 @@ class KubernetesJobRunnerSpec extends Specification {
     ObjectMapper objectMapper = new ObjectMapper()
     OortService oortService = Mock(OortService)
     ContextParameterProcessor contextParameterProcessor = Mock(ContextParameterProcessor)
-    KatoService katoService = Mock(KatoService)
+    RetrySupport retrySupport = new RetrySupport()
     ManifestEvaluator manifestEvaluator = new ManifestEvaluator(
-      artifactUtils, oortService, objectMapper, contextParameterProcessor, katoService
+      artifactUtils, contextParameterProcessor, oortService, retrySupport
     )
     def stage = new Stage(Execution.newPipeline("test"), "runJob", [
       credentials: "abc", cloudProvider: "kubernetes",
@@ -142,8 +143,11 @@ class KubernetesJobRunnerSpec extends Specification {
     1 * artifactUtils.getBoundArtifactForStage(_, _, _) >> {
       return Artifact.builder().build()
     }
+    1 * artifactUtils.getArtifacts(_) >> {
+      return []
+    }
     op.manifest == manifest
     op.requiredArtifacts == []
-    op.optionalArtifacts == null
+    op.optionalArtifacts == []
   }
 }

@@ -21,6 +21,7 @@ import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.ManifestEvaluator;
@@ -61,8 +62,8 @@ class CloudFoundryDeployServiceTaskTest {
         .thenReturn(Observable.just(new TaskId("taskid")));
 
     ManifestEvaluator manifestEvaluator = mock(ManifestEvaluator.class);
-    List<Map<Object, Object>> returnedManifests =
-        Collections.singletonList(Collections.singletonMap("serviceNameInstance", "foo"));
+    ImmutableList<Map<Object, Object>> returnedManifests =
+        ImmutableList.of(Collections.singletonMap("serviceNameInstance", "foo"));
     when(manifestEvaluator.evaluate(any(), any()))
         .thenReturn(new ManifestEvaluator.Result(returnedManifests, null, null));
 

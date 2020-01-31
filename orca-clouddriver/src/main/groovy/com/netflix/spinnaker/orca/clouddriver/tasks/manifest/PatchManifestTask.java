@@ -16,36 +16,50 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.manifest;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.Task;
 import com.netflix.spinnaker.orca.TaskResult;
+import com.netflix.spinnaker.orca.clouddriver.KatoService;
+import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.manifest.PatchManifestContext.MergeStrategy;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Nonnull;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.Objects;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-@Slf4j
-@RequiredArgsConstructor
-public class PatchManifestTask extends AbstractCloudProviderAwareTask implements Task {
+@NonnullByDefault
+public final class PatchManifestTask extends AbstractCloudProviderAwareTask implements Task {
   public static final String TASK_NAME = "patchManifest";
 
-  private final ManifestEvaluator manifestEvaluator;
+  private final KatoService katoService;
 
-  @Nonnull
+  @Autowired
+  public PatchManifestTask(KatoService katoService) {
+    this.katoService = katoService;
+  }
+
   @Override
-  public TaskResult execute(@Nonnull Stage stage) {
+  public TaskResult execute(Stage stage) {
+    ImmutableMap<String, Map> operation = getOperation(stage);
+    TaskId taskId = executeOperation(stage, operation);
+    ImmutableMap<String, Object> outputs = getOutputs(stage, taskId);
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build();
+  }
+
+  private ImmutableMap<String, Map> getOperation(Stage stage) {
     PatchManifestContext context = stage.mapTo(PatchManifestContext.class);
     MergeStrategy mergeStrategy = context.getOptions().getMergeStrategy();
-    ManifestEvaluator.Result result = manifestEvaluator.evaluate(stage, context);
-    List<Map<Object, Object>> patchBody = result.getManifests();
+    List<Map<Object, Object>> patchBody = context.getManifests();
 
-    if (patchBody == null || patchBody.isEmpty()) {
+    if (patchBody.isEmpty()) {
       throw new IllegalArgumentException(
           "The Patch (Manifest) stage requires a valid patch body. Please add a patch body inline or with an artifact.");
     }
@@ -57,9 +71,22 @@ public class PatchManifestTask extends AbstractCloudProviderAwareTask implements
     Map<String, Object> task = new HashMap<>(stage.getContext());
     task.put("source", "text");
     task.put("patchBody", mergeStrategy == MergeStrategy.JSON ? patchBody : patchBody.get(0));
-    task.put("requiredArtifacts", result.getRequiredArtifacts());
-    task.put("allArtifacts", result.getOptionalArtifacts());
 
-    return manifestEvaluator.buildTaskResult(TASK_NAME, stage, task);
+    return ImmutableMap.of(TASK_NAME, task);
+  }
+
+  private TaskId executeOperation(Stage stage, ImmutableMap<String, Map> operation) {
+    return katoService
+        .requestOperations(getCloudProvider(stage), ImmutableList.of(operation))
+        .toBlocking()
+        .first();
+  }
+
+  private ImmutableMap<String, Object> getOutputs(Stage stage, TaskId taskId) {
+    return new ImmutableMap.Builder<String, Object>()
+        .put("kato.result.expected", true)
+        .put("kato.last.task.id", taskId)
+        .put("deploy.account.name", Objects.requireNonNull(getCredentials(stage)))
+        .build();
   }
 }
