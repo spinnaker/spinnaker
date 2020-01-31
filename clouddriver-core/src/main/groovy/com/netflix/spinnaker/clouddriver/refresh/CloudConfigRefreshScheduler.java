@@ -37,7 +37,7 @@ public class CloudConfigRefreshScheduler implements Runnable {
             new ThreadFactoryBuilder()
                 .setNameFormat(CloudConfigRefreshScheduler.class.getSimpleName() + "-%d")
                 .build())
-        .scheduleAtFixedRate(this, interval, interval, TimeUnit.SECONDS);
+        .scheduleWithFixedDelay(this, interval, interval, TimeUnit.SECONDS);
   }
 
   @Override

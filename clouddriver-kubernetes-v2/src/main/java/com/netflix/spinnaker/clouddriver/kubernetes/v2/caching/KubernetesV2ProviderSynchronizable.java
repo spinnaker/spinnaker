@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.caching;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.module.CatsModule;
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesCloudProvider;
@@ -29,9 +28,8 @@ import com.netflix.spinnaker.clouddriver.security.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
@@ -59,16 +57,23 @@ public class KubernetesV2ProviderSynchronizable implements CredentialsInitialize
     this.kubernetesConfigurationProperties = kubernetesConfigurationProperties;
     this.credentialFactory = credentialFactory;
     this.catsModule = catsModule;
+  }
 
-    ScheduledExecutorService poller =
-        Executors.newSingleThreadScheduledExecutor(
-            new ThreadFactoryBuilder()
-                .setNameFormat(KubernetesV2ProviderSynchronizable.class.getSimpleName() + "-%d")
-                .build());
+  @PostConstruct
+  public void setup() {
+    Set<KubernetesNamedAccountCredentials<KubernetesV2Credentials>> allAccounts =
+        kubernetesConfigurationProperties.getAccounts().stream()
+            .filter(a -> ProviderVersion.v2.equals(a.getProviderVersion()))
+            .map(
+                managedAccount ->
+                    new KubernetesNamedAccountCredentials<>(managedAccount, credentialFactory))
+            .peek(a -> accountCredentialsRepository.save(a.getName(), a))
+            .collect(Collectors.toSet());
+
+    synchronizeKubernetesV2Provider(allAccounts);
   }
 
   @Override
-  @PostConstruct
   public void synchronize() {
     Set<String> newAndChangedAccounts = synchronizeAccountCredentials();
 
@@ -102,7 +107,7 @@ public class KubernetesV2ProviderSynchronizable implements CredentialsInitialize
 
     kubernetesConfigurationProperties.getAccounts().stream()
         .filter(a -> ProviderVersion.v2.equals(a.getProviderVersion()))
-        .forEach(
+        .map(
             managedAccount -> {
               KubernetesNamedAccountCredentials credentials =
                   new KubernetesNamedAccountCredentials<>(managedAccount, credentialFactory);
@@ -117,15 +122,36 @@ public class KubernetesV2ProviderSynchronizable implements CredentialsInitialize
                 // account exists but has changed
                 changedAccounts.add(managedAccount.getName());
                 newAndChangedAccounts.add(managedAccount.getName());
+              } else {
+                // Current credentials may contain memoized namespaces, we should keep if the
+                // definition has not changed
+                return null;
               }
-
-              accountCredentialsRepository.save(managedAccount.getName(), credentials);
-            });
+              return credentials;
+            })
+        .filter(Objects::nonNull)
+        .forEach(a -> saveToCredentialsRepository(a));
 
     ProviderUtils.unscheduleAndDeregisterAgents(deletedAccounts, catsModule);
     ProviderUtils.unscheduleAndDeregisterAgents(changedAccounts, catsModule);
 
     return newAndChangedAccounts;
+  }
+
+  /**
+   * Validate and save credentials to repository
+   *
+   * @param account
+   */
+  private void saveToCredentialsRepository(KubernetesNamedAccountCredentials account) {
+    // Attempt to get namespaces to resolve any connectivity error without blocking /credentials
+    List<String> namespaces = account.getCredentials().getDeclaredNamespaces();
+    if (namespaces.isEmpty()) {
+      log.warn(
+          "New or modified account {} did not return any namespace and could be unreachable or misconfigured",
+          account.getName());
+    }
+    accountCredentialsRepository.save(account.getName(), account);
   }
 
   private List<String> getDeletedAccountNames() {
