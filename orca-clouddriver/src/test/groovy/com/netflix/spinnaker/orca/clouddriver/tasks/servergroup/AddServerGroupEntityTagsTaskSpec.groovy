@@ -52,7 +52,7 @@ class AddServerGroupEntityTagsTaskSpec extends Specification {
     1 * katoService.requestOperations(_) >> { throw new RuntimeException("something went wrong") }
   }
 
-  void "skips tagging when no tag generators or generators do not produce any tags"() {
+  void "just completes when no tag generators or generators do not produce any tags"() {
     given:
     AddServerGroupEntityTagsTask emptyTask = new AddServerGroupEntityTagsTask(kato: katoService, tagGenerators: [])
 
@@ -65,7 +65,7 @@ class AddServerGroupEntityTagsTaskSpec extends Specification {
     def result = emptyTask.execute(stage)
 
     then:
-    result.status == ExecutionStatus.SKIPPED
+    result.status == ExecutionStatus.SUCCEEDED
     0 * _
   }
 }

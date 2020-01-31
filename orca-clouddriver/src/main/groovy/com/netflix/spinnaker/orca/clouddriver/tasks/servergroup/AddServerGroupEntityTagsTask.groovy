@@ -46,7 +46,7 @@ class AddServerGroupEntityTagsTask extends AbstractCloudProviderAwareTask implem
     try {
       List<Map> tagOperations = buildTagOperations(stage)
       if (!tagOperations) {
-        return TaskResult.ofStatus(ExecutionStatus.SKIPPED)
+        return TaskResult.ofStatus(ExecutionStatus.SUCCEEDED)
       }
       TaskId taskId = kato.requestOperations(tagOperations).toBlocking().first()
       return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(new HashMap<String, Object>() {
