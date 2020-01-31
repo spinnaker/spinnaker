@@ -37,6 +37,8 @@ import com.netflix.spinnaker.gate.retrofit.Slf4jRetrofitLogger
 import com.netflix.spinnaker.gate.services.EurekaLookupService
 import com.netflix.spinnaker.gate.services.internal.*
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.kork.web.context.AuthenticatedRequestContextProvider
+import com.netflix.spinnaker.kork.web.context.RequestContextProvider
 import com.netflix.spinnaker.kork.web.selector.DefaultServiceSelector
 import com.netflix.spinnaker.kork.web.selector.SelectableService
 import com.netflix.spinnaker.kork.web.selector.ServiceSelector
@@ -161,8 +163,13 @@ class GateConfig extends RedisHttpSessionConfiguration {
   }
 
   @Bean
-  OrcaServiceSelector orcaServiceSelector(OkHttpClient okHttpClient) {
-    return new OrcaServiceSelector(createClientSelector("orca", OrcaService, okHttpClient))
+  RequestContextProvider requestContextProvider() {
+    return new AuthenticatedRequestContextProvider();
+  }
+
+  @Bean
+  OrcaServiceSelector orcaServiceSelector(OkHttpClient okHttpClient, RequestContextProvider contextProvider) {
+    return new OrcaServiceSelector(createClientSelector("orca", OrcaService, okHttpClient), contextProvider)
   }
 
   @Bean
@@ -191,7 +198,9 @@ class GateConfig extends RedisHttpSessionConfiguration {
   ClouddriverServiceSelector clouddriverServiceSelector(ClouddriverService defaultClouddriverService,
                                                         OkHttpClient okHttpClient,
                                                         DynamicConfigService dynamicConfigService,
-                                                        DynamicRoutingConfigProperties properties) {
+                                                        DynamicRoutingConfigProperties properties,
+                                                        RequestContextProvider contextProvider
+  ) {
     if (serviceConfiguration.getService("clouddriver").getConfig().containsKey("dynamicEndpoints")) {
       def endpoints = (Map<String, String>) serviceConfiguration.getService("clouddriver").getConfig().get("dynamicEndpoints")
       // translates the following config:
@@ -217,11 +226,12 @@ class GateConfig extends RedisHttpSessionConfiguration {
         selectors << new ByUserOriginSelector(service, 2, sourceApp)
       }
 
-      return new ClouddriverServiceSelector(new SelectableService(selectors + defaultSelector), dynamicConfigService)
+      return new ClouddriverServiceSelector(
+          new SelectableService(selectors + defaultSelector), dynamicConfigService, contextProvider)
     }
 
     SelectableService selectableService = createClientSelector("clouddriver", ClouddriverService, okHttpClient)
-    return new ClouddriverServiceSelector(selectableService, dynamicConfigService)
+    return new ClouddriverServiceSelector(selectableService, dynamicConfigService, contextProvider)
   }
 
   //---- semi-optional components:
@@ -347,6 +357,7 @@ class GateConfig extends RedisHttpSessionConfiguration {
 
         def selectorClass = it.config?.selectorClass as Class<ServiceSelector>
         if (selectorClass) {
+          log.debug("Initializing selector class {} with baseUrl={}, priority={}, config={}", selectorClass, it.baseUrl, it.priority, it.config)
           selector = selectorClass.getConstructors()[0].newInstance(
             selector.service, it.priority, it.config
           )

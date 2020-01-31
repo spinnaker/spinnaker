@@ -39,7 +39,7 @@ class PipelineServiceSpec extends Specification {
     service.trigger('app', 'p-id', [notifications: [[type: 'sms']]])
 
     then:
-    1 * orcaServiceSelector.withContext(_) >> { orcaService }
+    1 * orcaServiceSelector.select() >> { orcaService }
     1 * orcaService.startPipeline({ p -> p.notifications.type == ['email', 'sms'] }, _)
   }
 
@@ -60,7 +60,7 @@ class PipelineServiceSpec extends Specification {
     service.trigger('app', 'p-id', [notifications: trigger])
 
     then:
-    1 * orcaServiceSelector.withContext(_) >> { orcaService }
+    1 * orcaServiceSelector.select() >> { orcaService }
     1 * orcaService.startPipeline({ p -> p.notifications == expected }, _)
 
     where:
@@ -91,7 +91,7 @@ class PipelineServiceSpec extends Specification {
       orcaServiceSelector: orcaServiceSelector
     )
     when:
-    orcaServiceSelector.withContext(_) >> { orcaService }
+    orcaServiceSelector.select() >> { orcaService }
     def didThrow = false
     try {
       service.trigger('app', 'p-id', trigger)

@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.gate.services
 
-import com.netflix.spinnaker.gate.security.RequestContext
+
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import com.netflix.spinnaker.gate.services.internal.Front50Service
@@ -55,15 +55,14 @@ class ProjectService {
   }
 
   List<Map> getAllPipelines(String projectId, int limit, String statuses) {
-    RequestContext requestContext = RequestContext.get()
     HystrixFactory.newListCommand(GROUP, "getAllPipelines") {
-      return orcaServiceSelector.withContext(requestContext).getPipelinesForProject(projectId, limit, statuses)
+      return orcaServiceSelector.select().getPipelinesForProject(projectId, limit, statuses)
     } execute()
   }
 
   List getClusters(String projectId, String selectorKey) {
     HystrixFactory.newListCommand(GROUP, "getClusters") {
-      return clouddriverServiceSelector.select(selectorKey).getProjectClusters(projectId)
+      return clouddriverServiceSelector.select().getProjectClusters(projectId)
     } execute()
   }
 }

@@ -16,26 +16,31 @@
 
 package com.netflix.spinnaker.gate.services.internal;
 
-import com.netflix.spinnaker.gate.security.RequestContext;
+import com.netflix.spinnaker.kork.web.context.RequestContext;
+import com.netflix.spinnaker.kork.web.context.RequestContextProvider;
 import com.netflix.spinnaker.kork.web.selector.SelectableService;
 
 public class OrcaServiceSelector {
   private final SelectableService<OrcaService> selectableService;
+  private final RequestContextProvider contextProvider;
 
-  public OrcaServiceSelector(SelectableService<OrcaService> selectableService) {
+  public OrcaServiceSelector(
+      SelectableService<OrcaService> selectableService, RequestContextProvider contextProvider) {
     this.selectableService = selectableService;
+    this.contextProvider = contextProvider;
   }
 
-  public OrcaService withContext(RequestContext context) {
+  public OrcaService select() {
     SelectableService.Criteria criteria = new SelectableService.Criteria();
+    RequestContext context = contextProvider.get();
     if (context != null) {
       criteria =
           criteria
-              .withApplication(context.getApplication())
-              .withAuthenticatedUser(context.getAuthenticatedUser())
-              .withExecutionId(context.getExecutionId())
-              .withOrigin(context.getOrigin())
-              .withExecutionType(context.getExecutionType());
+              .withApplication(context.getApplication().orElse(null))
+              .withAuthenticatedUser(context.getUser().orElse(null))
+              .withExecutionId(context.getExecutionId().orElse(null))
+              .withOrigin(context.getUserOrigin().orElse(null))
+              .withExecutionType(context.getExecutionType().orElse(null));
     }
     return selectableService.getService(criteria);
   }

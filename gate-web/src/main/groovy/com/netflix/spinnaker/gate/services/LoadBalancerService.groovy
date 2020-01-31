@@ -41,20 +41,20 @@ class LoadBalancerService {
 
   List getAll(String provider = "aws", String selectorKey) {
     HystrixFactory.newListCommand(GROUP, "getAllLoadBalancersForProvider-$provider") {
-      clouddriverServiceSelector.select(selectorKey).getLoadBalancers(provider)
+      clouddriverServiceSelector.select().getLoadBalancers(provider)
     } execute()
   }
 
   Map get(String name, String selectorKey, String provider = "aws") {
     HystrixFactory.newMapCommand(GROUP, "getLoadBalancer-$provider") {
-      clouddriverServiceSelector.select(selectorKey).getLoadBalancer(provider, name)
+      clouddriverServiceSelector.select().getLoadBalancer(provider, name)
     } execute()
   }
 
   List getDetailsForAccountAndRegion(String account, String region, String name, String selectorKey, String provider = "aws") {
     HystrixFactory.newListCommand(GROUP, "getLoadBalancerDetails-$provider") {
       try {
-        def service = clouddriverServiceSelector.select(selectorKey)
+        def service = clouddriverServiceSelector.select()
         def accountDetails = objectMapper.convertValue(service.getAccount(account), Map)
         def loadBalancerDetails = service.getLoadBalancerDetails(provider, account, region, name)
 
@@ -82,14 +82,14 @@ class LoadBalancerService {
   List getClusterLoadBalancers(String appName, String account, String provider, String clusterName, String selectorKey) {
     HystrixFactory.newListCommand(GROUP,
         "getClusterLoadBalancers-$provider") {
-      clouddriverServiceSelector.select(selectorKey).getClusterLoadBalancers(appName, account, clusterName, provider)
+      clouddriverServiceSelector.select().getClusterLoadBalancers(appName, account, clusterName, provider)
     } execute()
   }
 
   List getApplicationLoadBalancers(String appName, String selectorKey) {
     HystrixFactory.newListCommand(GROUP,
       "getApplicationLoadBalancers") {
-      clouddriverServiceSelector.select(selectorKey).getApplicationLoadBalancers(appName)
+      clouddriverServiceSelector.select().getApplicationLoadBalancers(appName)
     } execute()
   }
 }

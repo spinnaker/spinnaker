@@ -40,20 +40,20 @@ class ClusterService {
 
   Map getClusters(String app, String selectorKey) {
     HystrixFactory.newMapCommand(GROUP, "getClustersForApplication") {
-      clouddriverServiceSelector.select(selectorKey).getClusters(app)
+      clouddriverServiceSelector.select().getClusters(app)
     } execute()
   }
 
   List<Map> getClustersForAccount(String app, String account, String selectorKey) {
     HystrixFactory.newListCommand(GROUP, "getClustersForApplicationInAccount-${providerLookupService.providerForAccount(account)}") {
-      clouddriverServiceSelector.select(selectorKey).getClustersForAccount(app, account)
+      clouddriverServiceSelector.select().getClustersForAccount(app, account)
     } execute()
   }
 
   Map getCluster(String app, String account, String clusterName, String selectorKey) {
     HystrixFactory.newMapCommand(GROUP, "getCluster-${providerLookupService.providerForAccount(account)}") {
       try {
-        clouddriverServiceSelector.select(selectorKey).getCluster(app, account, clusterName)?.getAt(0) as Map
+        clouddriverServiceSelector.select().getCluster(app, account, clusterName)?.getAt(0) as Map
       } catch (RetrofitError e) {
         if (e.response?.status == 404) {
           return [:]
@@ -70,14 +70,14 @@ class ClusterService {
 
   List<Map> getScalingActivities(String app, String account, String clusterName, String serverGroupName, String provider, String region, String selectorKey) {
     HystrixFactory.newListCommand(GROUP, "getScalingActivitiesForCluster-${providerLookupService.providerForAccount(account)}") {
-      clouddriverServiceSelector.select(selectorKey).getScalingActivities(app, account, clusterName, provider, serverGroupName, region)
+      clouddriverServiceSelector.select().getScalingActivities(app, account, clusterName, provider, serverGroupName, region)
     } execute()
   }
 
   Map getTargetServerGroup(String app, String account, String clusterName, String cloudProviderType, String scope, String target, Boolean onlyEnabled, Boolean validateOldest, String selectorKey) {
     HystrixFactory.newMapCommand(GROUP, "getTargetServerGroup-${providerLookupService.providerForAccount(account)}") {
       try {
-        return clouddriverServiceSelector.select(selectorKey).getTargetServerGroup(app, account, clusterName, cloudProviderType, scope, target, onlyEnabled, validateOldest)
+        return clouddriverServiceSelector.select().getTargetServerGroup(app, account, clusterName, cloudProviderType, scope, target, onlyEnabled, validateOldest)
       } catch (RetrofitError re) {
         if (re.kind == RetrofitError.Kind.HTTP && re.response?.status == 404) {
           throw new ServerGroupNotFound("unable to find $target in $cloudProviderType/$account/$scope/$clusterName")

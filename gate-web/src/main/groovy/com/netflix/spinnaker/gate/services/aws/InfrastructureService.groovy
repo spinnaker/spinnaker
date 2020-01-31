@@ -40,39 +40,39 @@ class InfrastructureService {
 
   List<Map> getInstanceTypes(String selectorKey = null) {
     command("instanceTypes") {
-      clouddriverServiceSelector.select(selectorKey).instanceTypes
+      clouddriverServiceSelector.select().instanceTypes
     } execute()
   }
 
   List<Map> getKeyPairs(String selectorKey = null) {
     command("keyPairs") {
-      clouddriverServiceSelector.select(selectorKey).keyPairs
+      clouddriverServiceSelector.select().keyPairs
     } execute()
   }
 
   @Deprecated
   List<Map> getSubnets(String selectorKey = null) {
     command("subnets") {
-      clouddriverServiceSelector.select(selectorKey).getSubnets('aws')
+      clouddriverServiceSelector.select().getSubnets('aws')
     } execute()
   }
 
   @Deprecated
   List<Map> getVpcs(String selectorKey = null) {
     command("vpcs") {
-      clouddriverServiceSelector.select(selectorKey).getNetworks('aws')
+      clouddriverServiceSelector.select().getNetworks('aws')
     } execute()
   }
 
   List<Map> getFunctions(String selectorKey = null, String functionName, String region, String account) {
     command("functions") {
-      clouddriverServiceSelector.select(selectorKey).getFunctions(functionName,region, account)
+      clouddriverServiceSelector.select().getFunctions(functionName,region, account)
     } execute()
   }
 
   List<Map> getApplicationFunctions(String selectorKey = null, String application) {
     command("functions") {
-      clouddriverServiceSelector.select(selectorKey).getApplicationFunctions(application)
+      clouddriverServiceSelector.select().getApplicationFunctions(application)
     } execute()
   }
 }

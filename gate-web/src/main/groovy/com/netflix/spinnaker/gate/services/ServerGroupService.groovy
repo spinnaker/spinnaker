@@ -47,26 +47,26 @@ class ServerGroupService {
   List getForApplication(String applicationName, String expand, String cloudProvider, String clusters, String selectorKey) {
     String commandKey = Boolean.valueOf(expand) ? "getExpandedServerGroupsForApplication" : "getServerGroupsForApplication"
     HystrixFactory.newListCommand(GROUP, commandKey) {
-      clouddriverServiceSelector.select(selectorKey).getServerGroups(applicationName, expand, cloudProvider, clusters)
+      clouddriverServiceSelector.select().getServerGroups(applicationName, expand, cloudProvider, clusters)
     } execute()
   }
 
   List getForApplications(List<String> applications, String cloudProvider, String selectorKey) {
     HystrixFactory.newListCommand(GROUP, "getServerGroupsForApplications") {
-      clouddriverServiceSelector.select(selectorKey).getServerGroups(applications, null, cloudProvider)
+      clouddriverServiceSelector.select().getServerGroups(applications, null, cloudProvider)
     } execute()
   }
 
   List getForIds(List<String> ids, String cloudProvider, String selectorKey) {
     HystrixFactory.newListCommand(GROUP, "getServerGroupsForIds") {
-      clouddriverServiceSelector.select(selectorKey).getServerGroups(null, ids, cloudProvider)
+      clouddriverServiceSelector.select().getServerGroups(null, ids, cloudProvider)
     } execute()
   }
 
   Map getForApplicationAndAccountAndRegion(String applicationName, String account, String region, String serverGroupName, String selectorKey, String includeDetails) {
     HystrixFactory.newMapCommand(GROUP, "getServerGroupsForApplicationAccountAndRegion-${providerLookupService.providerForAccount(account)}") {
       try {
-        def service = clouddriverServiceSelector.select(selectorKey)
+        def service = clouddriverServiceSelector.select()
         def accountDetails = objectMapper.convertValue(service.getAccount(account), Map)
         def serverGroupDetails = service.getServerGroupDetails(applicationName, account, region, serverGroupName, includeDetails)
         def serverGroupContext = serverGroupDetails.collectEntries {

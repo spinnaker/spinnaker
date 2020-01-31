@@ -16,13 +16,14 @@
 
 package com.netflix.spinnaker.gate.controllers;
 
-import com.netflix.spinnaker.gate.security.RequestContext;
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector;
 import io.swagger.annotations.ApiOperation;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/capabilities")
@@ -34,7 +35,7 @@ public class CapabilitiesController {
   @ApiOperation(value = "Retrieve the list configured deployment monitors", response = List.class)
   @GetMapping(value = "/deploymentMonitors")
   List<Object> getDeploymentMonitors() {
-    return orcaService.withContext(RequestContext.get()).getDeploymentMonitors();
+    return orcaService.select().getDeploymentMonitors();
   }
 
   @ApiOperation(
@@ -42,6 +43,6 @@ public class CapabilitiesController {
       response = Map.class)
   @GetMapping(value = "/expressions")
   Map getExpressionCapabilities() {
-    return orcaService.withContext(RequestContext.get()).getExpressionCapabilities();
+    return orcaService.select().getExpressionCapabilities();
   }
 }

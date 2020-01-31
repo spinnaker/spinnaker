@@ -29,7 +29,7 @@ class InstanceServiceSpec extends Specification {
     def service = new InstanceService(
         objectMapper: new ObjectMapper(),
         clouddriverServiceSelector: Mock(ClouddriverServiceSelector) {
-          1 * select(_) >> {
+          1 * select() >> {
             Mock(ClouddriverService) {
               1 * getInstanceDetails(_, _, _) >> { return [privateIpAddress: "10.0.0.1", map: [:]] }
               1 * getAccount(_) >> { return [awsAccount: "prod"] }

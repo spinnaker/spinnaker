@@ -39,14 +39,14 @@ class DataService {
 
   void getStaticData(String id, Map<String, String> filters, OutputStream outputStream) {
     voidCommand("static", {
-      def response = clouddriverServiceSelector.select(null).getStaticData(id, filters)
+      def response = clouddriverServiceSelector.select().getStaticData(id, filters)
       outputStream << response.getBody().in()
     }).execute()
   }
 
   void getAdhocData(String groupId, String bucketId, String objectId, OutputStream outputStream) {
     voidCommand("adhoc", {
-      def response = clouddriverServiceSelector.select(null).getAdhocData(groupId, bucketId, objectId)
+      def response = clouddriverServiceSelector.select().getAdhocData(groupId, bucketId, objectId)
       outputStream << response.getBody().in()
     }).execute()
   }

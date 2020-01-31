@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.config.InsightConfiguration
-import com.netflix.spinnaker.gate.security.RequestContext
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
@@ -45,9 +44,8 @@ class JobService {
   ProviderLookupService providerLookupService
 
   List getPreconfiguredJobs() {
-    RequestContext requestContext = RequestContext.get()
     HystrixFactory.newListCommand(GROUP, "getPreconfiguredJobs") {
-        orcaServiceSelector.withContext(requestContext).getPreconfiguredJobs()
+        orcaServiceSelector.select().getPreconfiguredJobs()
     } execute()
   }
 
@@ -55,7 +53,7 @@ class JobService {
     HystrixFactory.newMapCommand(GROUP, "getJobsForApplicationAccountAndRegion-${providerLookupService.providerForAccount(account)}", {
       try {
         def context = getContext(applicationName, account, region, name)
-        return clouddriverServiceSelector.select(selectorKey).getJobDetails(applicationName, account, region, name, "") + [
+        return clouddriverServiceSelector.select().getJobDetails(applicationName, account, region, name, "") + [
             "insightActions": insightConfiguration.job.collect { it.applyContext(context) }
         ]
       } catch (RetrofitError e) {

@@ -35,7 +35,7 @@ class SecurityGroupService {
    */
   Map getAll(String selectorKey) {
     HystrixFactory.newMapCommand(GROUP, "getAllSecurityGroups") {
-      clouddriverServiceSelector.select(selectorKey).securityGroups
+      clouddriverServiceSelector.select().securityGroups
     } execute()
   }
 
@@ -47,7 +47,7 @@ class SecurityGroupService {
    */
   Map getById(String id, String selectorKey) {
     HystrixFactory.newMapCommand(GROUP, "getSecurityGroupById".toString()) {
-      def result = clouddriverServiceSelector.select(selectorKey).search(id, "securityGroups", null, 10000, 1, [:])[0]
+      def result = clouddriverServiceSelector.select().search(id, "securityGroups", null, 10000, 1, [:])[0]
       if (result.results) {
         Map firstResult = ((List<Map>)result.results)[0]
         String uriString = firstResult.url
@@ -74,13 +74,13 @@ class SecurityGroupService {
    */
   Map getForAccountAndProvider(String account, String provider, String selectorKey) {
     HystrixFactory.newMapCommand(GROUP, "getSecurityGroupsForAccountAndProvider-$provider") {
-      clouddriverServiceSelector.select(selectorKey).getSecurityGroups(account, provider)
+      clouddriverServiceSelector.select().getSecurityGroups(account, provider)
     } execute()
   }
 
   List getForAccountAndProviderAndRegion(String account, String provider, String region, String selectorKey) {
     HystrixFactory.newListCommand(GROUP, "getSecurityGroupsForAccountAndProvider-$provider") {
-      clouddriverServiceSelector.select(selectorKey).getSecurityGroupsForRegion(account, provider, region)
+      clouddriverServiceSelector.select().getSecurityGroupsForRegion(account, provider, region)
     } execute()
   }
 
@@ -92,7 +92,7 @@ class SecurityGroupService {
    */
   Map getSecurityGroup(String account, String provider, String name, String region, String selectorKey, String vpcId = null) {
     HystrixFactory.newMapCommand(GROUP, "getSecurityGroupByIdentifiers-$provider") {
-      clouddriverServiceSelector.select(selectorKey).getSecurityGroup(account, provider, name, region, vpcId)
+      clouddriverServiceSelector.select().getSecurityGroup(account, provider, name, region, vpcId)
     } execute()
   }
 }

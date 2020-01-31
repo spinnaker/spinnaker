@@ -17,12 +17,11 @@
 
 package com.netflix.spinnaker.gate.services
 
-import com.netflix.spinnaker.gate.security.RequestContext
+import com.google.common.base.Preconditions
+import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
-import com.google.common.base.Preconditions
-import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -36,18 +35,16 @@ class ExecutionHistoryService {
   List getTasks(String app, Integer page, Integer limit, String statuses) {
     Preconditions.checkNotNull(app)
 
-    RequestContext requestContext = RequestContext.get()
     def command = HystrixFactory.newListCommand("taskExecutionHistory", "getTasksForApp") {
-      orcaServiceSelector.withContext(requestContext).getTasks(app, page, limit, statuses)
+      orcaServiceSelector.select().getTasks(app, page, limit, statuses)
     }
     return command.execute()
   }
 
   List getPipelines(String app, Integer limit, String statuses, Boolean expand) {
     Preconditions.checkNotNull(app)
-    RequestContext requestContext = RequestContext.get()
     def command = HystrixFactory.newListCommand("pipelineExecutionHistory", "getPipelinesForApp-$app") {
-      orcaServiceSelector.withContext(requestContext).getPipelines(app, limit, statuses, expand)
+      orcaServiceSelector.select().getPipelines(app, limit, statuses, expand)
     }
     return command.execute()
   }

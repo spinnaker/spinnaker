@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.gate.controllers
 
-import com.netflix.spinnaker.gate.security.RequestContext
+
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
@@ -67,7 +67,7 @@ class PipelineConfigController {
     if (pipelineConfig == null) {
       throw new NotFoundException("Pipeline config '${pipelineConfigId}' could not be found")
     }
-    String template = orcaServiceSelector.withContext(RequestContext.get()).convertToPipelineTemplate(pipelineConfig).body.in().text
+    String template = orcaServiceSelector.select().convertToPipelineTemplate(pipelineConfig).body.in().text
     return template
   }
 }

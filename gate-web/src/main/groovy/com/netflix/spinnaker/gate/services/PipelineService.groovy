@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.gate.services
 
-import com.netflix.spinnaker.gate.security.RequestContext
+
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.EchoService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
@@ -95,7 +95,7 @@ class PipelineService {
         }
       }
     }
-    orcaServiceSelector.withContext(RequestContext.get()).startPipeline(pipelineConfig, trigger.user?.toString())
+    orcaServiceSelector.select().startPipeline(pipelineConfig, trigger.user?.toString())
   }
 
   Map triggerViaEcho(String application, String pipelineNameOrId, Map parameters) {
@@ -123,53 +123,53 @@ class PipelineService {
   }
 
   Map startPipeline(Map pipelineConfig, String user) {
-    orcaServiceSelector.withContext(RequestContext.get()).startPipeline(pipelineConfig, user)
+    orcaServiceSelector.select().startPipeline(pipelineConfig, user)
   }
 
   Map getPipeline(String id) {
-    orcaServiceSelector.withContext(RequestContext.get()).getPipeline(id)
+    orcaServiceSelector.select().getPipeline(id)
   }
 
   Map cancelPipeline(String id, String reason, boolean force) {
     setApplicationForExecution(id)
-    orcaServiceSelector.withContext(RequestContext.get()).cancelPipeline(id, reason, force, "")
+    orcaServiceSelector.select().cancelPipeline(id, reason, force, "")
   }
 
   Map pausePipeline(String id) {
     setApplicationForExecution(id)
-    orcaServiceSelector.withContext(RequestContext.get()).pausePipeline(id, "")
+    orcaServiceSelector.select().pausePipeline(id, "")
   }
 
   Map resumePipeline(String id) {
     setApplicationForExecution(id)
-    orcaServiceSelector.withContext(RequestContext.get()).resumePipeline(id, "")
+    orcaServiceSelector.select().resumePipeline(id, "")
   }
 
   Map deletePipeline(String id) {
     setApplicationForExecution(id)
-    orcaServiceSelector.withContext(RequestContext.get()).deletePipeline(id)
+    orcaServiceSelector.select().deletePipeline(id)
   }
 
   Map updatePipelineStage(String executionId, String stageId, Map context) {
     setApplicationForExecution(executionId)
-    orcaServiceSelector.withContext(RequestContext.get()).updatePipelineStage(executionId, stageId, context)
+    orcaServiceSelector.select().updatePipelineStage(executionId, stageId, context)
   }
 
   Map restartPipelineStage(String executionId, String stageId, Map context) {
     setApplicationForExecution(executionId)
-    orcaServiceSelector.withContext(RequestContext.get()).restartPipelineStage(executionId, stageId, context)
+    orcaServiceSelector.select().restartPipelineStage(executionId, stageId, context)
   }
 
   Map evaluateExpressionForExecution(String executionId, String pipelineExpression) {
-    orcaServiceSelector.withContext(RequestContext.get()).evaluateExpressionForExecution(executionId, pipelineExpression)
+    orcaServiceSelector.select().evaluateExpressionForExecution(executionId, pipelineExpression)
   }
 
   Map evaluateExpressionForExecutionAtStage(String executionId, String stageId, String pipelineExpression) {
-    orcaServiceSelector.withContext(RequestContext.get()).evaluateExpressionForExecutionAtStage(executionId, stageId, pipelineExpression)
+    orcaServiceSelector.select().evaluateExpressionForExecutionAtStage(executionId, stageId, pipelineExpression)
   }
 
   Map evaluateVariables(String executionId, String requisiteStageRefIds, String spelVersionOverride, List<Map<String, String>> expressions) {
-    orcaServiceSelector.withContext(RequestContext.get()).evaluateVariables(executionId, requisiteStageRefIds, spelVersionOverride, expressions)
+    orcaServiceSelector.select().evaluateVariables(executionId, requisiteStageRefIds, spelVersionOverride, expressions)
   }
 
   /**

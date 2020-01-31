@@ -15,55 +15,47 @@
  */
 package com.netflix.spinnaker.gate.services.internal;
 
+import static com.netflix.spinnaker.gate.config.DynamicRoutingConfigProperties.ClouddriverConfigProperties;
+
 import com.netflix.spinnaker.gate.config.DynamicRoutingConfigProperties;
-import com.netflix.spinnaker.gate.security.RequestContext;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import com.netflix.spinnaker.kork.web.context.RequestContext;
+import com.netflix.spinnaker.kork.web.context.RequestContextProvider;
 import com.netflix.spinnaker.kork.web.selector.SelectableService;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ClouddriverServiceSelector {
-  private final SelectableService selectableService;
+  private final SelectableService<ClouddriverService> selectableService;
   private final DynamicConfigService dynamicConfigService;
+  private final RequestContextProvider contextProvider;
 
   public ClouddriverServiceSelector(
-      SelectableService selectableService, DynamicConfigService dynamicConfigService) {
+      SelectableService<ClouddriverService> selectableService,
+      DynamicConfigService dynamicConfigService,
+      RequestContextProvider contextProvider) {
     this.selectableService = selectableService;
     this.dynamicConfigService = dynamicConfigService;
+    this.contextProvider = contextProvider;
   }
 
-  /** @deprecated see {@link #withContext(RequestContext)} */
-  @Deprecated
-  public ClouddriverService select(String key) {
+  public ClouddriverService select() {
     SelectableService.Criteria criteria = new SelectableService.Criteria();
-
-    if (key != null && shouldSelect()) {
-      criteria = criteria.withOrigin(key);
-    }
-
-    ClouddriverService selected = (ClouddriverService) selectableService.getService(criteria);
-    return selected;
-  }
-
-  public ClouddriverService withContext(RequestContext context) {
-    SelectableService.Criteria criteria = new SelectableService.Criteria();
-
+    RequestContext context = contextProvider.get();
     if (context != null && shouldSelect()) {
       criteria =
           criteria
-              .withApplication(context.getApplication())
-              .withAuthenticatedUser(context.getAuthenticatedUser())
-              .withExecutionId(context.getExecutionId())
-              .withOrigin(context.getOrigin())
-              .withExecutionType(context.getExecutionType());
+              .withApplication(context.getApplication().orElse(null))
+              .withAuthenticatedUser(context.getUser().orElse(null))
+              .withExecutionId(context.getExecutionId().orElse(null))
+              .withOrigin(context.getUserOrigin().orElse(null))
+              .withExecutionType(context.getExecutionType().orElse(null));
     }
-
-    return (ClouddriverService) selectableService.getService(criteria);
+    return selectableService.getService(criteria);
   }
 
   private boolean shouldSelect() {
     return dynamicConfigService.isEnabled(DynamicRoutingConfigProperties.ENABLED_PROPERTY, false)
-        && dynamicConfigService.isEnabled(
-            DynamicRoutingConfigProperties.ClouddriverConfigProperties.ENABLED_PROPERTY, false);
+        && dynamicConfigService.isEnabled(ClouddriverConfigProperties.ENABLED_PROPERTY, false);
   }
 }

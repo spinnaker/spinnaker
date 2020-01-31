@@ -41,8 +41,7 @@ public class StorageAccountService {
 
   public List<String> getAppengineStorageAccounts(String selectorKey) {
     return listCommand(
-            "appengineStorageAccounts",
-            clouddriverServiceSelector.select(selectorKey)::getStorageAccounts)
+            "appengineStorageAccounts", clouddriverServiceSelector.select()::getStorageAccounts)
         .execute();
   }
 }

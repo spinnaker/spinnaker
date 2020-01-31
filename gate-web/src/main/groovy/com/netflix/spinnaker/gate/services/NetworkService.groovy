@@ -44,13 +44,13 @@ class NetworkService {
 
   Map getNetworks(String selectorKey) {
     mapCommand("networks") {
-      clouddriverServiceSelector.select(selectorKey).getNetworks()
+      clouddriverServiceSelector.select().getNetworks()
     } execute()
   }
 
   List<Map> getNetworks(String cloudProvider, String selectorKey) {
     listCommand("networks-$cloudProvider") {
-      clouddriverServiceSelector.select(selectorKey).getNetworks(cloudProvider)
+      clouddriverServiceSelector.select().getNetworks(cloudProvider)
     } execute()
   }
 }

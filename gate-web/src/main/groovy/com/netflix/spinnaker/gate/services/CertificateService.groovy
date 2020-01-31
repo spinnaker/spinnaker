@@ -44,13 +44,13 @@ class CertificateService {
 
   List<Map> getCertificates(String selectorKey) {
     listCommand("certificates") {
-      clouddriverServiceSelector.select(selectorKey).getCertificates()
+      clouddriverServiceSelector.select().getCertificates()
     } execute()
   }
 
   List<Map> getCertificates(String cloudProvider, String selectorKey) {
     listCommand("certificates-$cloudProvider") {
-      clouddriverServiceSelector.select(selectorKey).getCertificates(cloudProvider)
+      clouddriverServiceSelector.select().getCertificates(cloudProvider)
     } execute()
   }
 }

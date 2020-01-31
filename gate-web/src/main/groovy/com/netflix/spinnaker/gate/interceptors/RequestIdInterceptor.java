@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.gate.interceptors;
 
-import static com.netflix.spinnaker.security.AuthenticatedRequest.Header.REQUEST_ID;
+import static com.netflix.spinnaker.kork.common.Header.REQUEST_ID;
 
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import javax.servlet.http.HttpServletRequest;

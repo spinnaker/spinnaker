@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.gate.services
 
-import com.netflix.spinnaker.gate.security.RequestContext
+
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
@@ -42,56 +42,52 @@ class TaskService {
     if (body.containsKey("application")) {
       AuthenticatedRequest.setApplication(body.get("application").toString())
     }
-    orcaServiceSelector.withContext(RequestContext.get()).doOperation(body)
+    orcaServiceSelector.select().doOperation(body)
   }
 
   Map createAppTask(String app, Map body) {
     body.application = app
     AuthenticatedRequest.setApplication(app)
-    orcaServiceSelector.withContext(RequestContext.get()).doOperation(body)
+    orcaServiceSelector.select().doOperation(body)
   }
 
   Map createAppTask(Map body) {
     if (body.containsKey("application")) {
       AuthenticatedRequest.setApplication(body.get("application").toString())
     }
-    orcaServiceSelector.withContext(RequestContext.get()).doOperation(body)
+    orcaServiceSelector.select().doOperation(body)
   }
 
   Map getTask(String id) {
-    RequestContext requestContext = RequestContext.get()
     HystrixFactory.newMapCommand(GROUP, "getTask") {
-      orcaServiceSelector.withContext(requestContext).getTask(id)
+      orcaServiceSelector.select().getTask(id)
     } execute()
   }
 
   Map deleteTask(String id) {
     setApplicationForTask(id)
-    RequestContext requestContext = RequestContext.get()
     HystrixFactory.newMapCommand(GROUP, "deleteTask") {
-      orcaServiceSelector.withContext(requestContext)deleteTask(id)
+      orcaServiceSelector.select().deleteTask(id)
     } execute()
   }
 
   Map getTaskDetails(String taskDetailsId, String selectorKey) {
     HystrixFactory.newMapCommand(GROUP, "getTaskDetails") {
-      clouddriverServiceSelector.select(selectorKey).getTaskDetails(taskDetailsId)
+      clouddriverServiceSelector.select().getTaskDetails(taskDetailsId)
     } execute()
   }
 
   Map cancelTask(String id) {
     setApplicationForTask(id)
-    RequestContext requestContext = RequestContext.get()
     HystrixFactory.newMapCommand(GROUP, "cancelTask") {
-      orcaServiceSelector.withContext(requestContext).cancelTask(id, "")
+      orcaServiceSelector.select().cancelTask(id, "")
     } execute()
   }
 
   Map cancelTasks(List<String> taskIds) {
     setApplicationForTask(taskIds.get(0))
-    RequestContext requestContext = RequestContext.get()
     HystrixFactory.newMapCommand(GROUP, "cancelTasks") {
-      orcaServiceSelector.withContext(requestContext).cancelTasks(taskIds)
+      orcaServiceSelector.select().cancelTasks(taskIds)
     } execute()
   }
 
@@ -130,9 +126,8 @@ class TaskService {
    */
   @Deprecated
   Map cancelPipeline(String id, String reason) {
-    RequestContext requestContext = RequestContext.get()
     HystrixFactory.newMapCommand(GROUP, "cancelPipeline") {
-      orcaServiceSelector.withContext(requestContext).cancelPipeline(id, reason, false, "")
+      orcaServiceSelector.select().cancelPipeline(id, reason, false, "")
     } execute()
   }
 

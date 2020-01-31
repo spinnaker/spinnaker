@@ -33,14 +33,14 @@ class CloudMetricService {
 
   List<Map> findAll(String cloudProvider, String account, String region, Map<String, String> filters, String selectorKey) {
     HystrixFactory.newListCommand(GROUP, "$GROUP:$account:$region:findAll") {
-      clouddriverServiceSelector.select(selectorKey).findAllCloudMetrics(cloudProvider, account, region, filters)
+      clouddriverServiceSelector.select().findAllCloudMetrics(cloudProvider, account, region, filters)
     } execute()
   }
 
   Map getStatistics(String cloudProvider, String account, String region, String metricName,
                     Long startTime, Long endTime, Map<String, String> filters, String selectorKey) {
     HystrixFactory.newMapCommand(GROUP, "$GROUP:$account:$region:getStatistics") {
-      clouddriverServiceSelector.select(selectorKey).getCloudMetricStatistics(cloudProvider, account, region, metricName, startTime, endTime, filters)
+      clouddriverServiceSelector.select().getCloudMetricStatistics(cloudProvider, account, region, metricName, startTime, endTime, filters)
     } execute()
   }
 }

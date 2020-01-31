@@ -23,24 +23,14 @@ import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.controllers.ApplicationController
 import com.netflix.spinnaker.gate.controllers.PipelineController
-import com.netflix.spinnaker.gate.services.AccountLookupService
-import com.netflix.spinnaker.gate.services.ApplicationService
-import com.netflix.spinnaker.gate.services.CredentialsService
-import com.netflix.spinnaker.gate.services.ExecutionHistoryService
-import com.netflix.spinnaker.gate.services.PipelineService
-import com.netflix.spinnaker.gate.services.TaskService
+import com.netflix.spinnaker.gate.services.*
 import com.netflix.spinnaker.gate.services.commands.ServerErrorException
 import com.netflix.spinnaker.gate.services.commands.ServiceUnavailableException
 import com.netflix.spinnaker.gate.services.commands.ThrottledRequestException
-import com.netflix.spinnaker.gate.services.internal.ClouddriverService
-import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
-import com.netflix.spinnaker.gate.services.internal.Front50Service
-import com.netflix.spinnaker.gate.services.internal.OrcaService
-import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
+import com.netflix.spinnaker.gate.services.internal.*
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.dynamicconfig.SpringDynamicConfigService
 import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers
-import com.netflix.spinnaker.kork.web.selector.SelectableService
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
@@ -91,7 +81,7 @@ class FunctionalSpec extends Specification {
     executorService = Mock(ExecutorService)
     taskService = Mock(TaskService)
     clouddriverService = Mock(ClouddriverService)
-    clouddriverServiceSelector = new ClouddriverServiceSelector(Mock(SelectableService), new SpringDynamicConfigService())
+    clouddriverServiceSelector = Mock(ClouddriverServiceSelector)
     orcaService = Mock(OrcaService)
     credentialsService = Mock(CredentialsService)
     accountLookupService = Mock(AccountLookupService)
@@ -204,7 +194,7 @@ class FunctionalSpec extends Specification {
       api.getTasks(name, null, null, "RUNNING,TERMINAL")
 
     then:
-      1 * orcaServiceSelector.withContext(_) >> { orcaService }
+      1 * orcaServiceSelector.select() >> { orcaService }
       1 * orcaService.getTasks(name, null, null, "RUNNING,TERMINAL") >> []
 
     where:
@@ -228,7 +218,7 @@ class FunctionalSpec extends Specification {
     def tasks = executionHistoryService.getTasks("app", null, 5, null)
 
     then:
-    1 * orcaServiceSelector.withContext(_) >> { orcaService }
+    1 * orcaServiceSelector.select() >> { orcaService }
     1 * orcaService.getTasks("app", null, 5, null) >> { return ["1"] }
     tasks == ["1"]
 
@@ -236,7 +226,7 @@ class FunctionalSpec extends Specification {
       executionHistoryService.getTasks("app", null, 10, "RUNNING")
 
     then:
-    1 * orcaServiceSelector.withContext(_) >> { orcaService }
+    1 * orcaServiceSelector.select() >> { orcaService }
     1 * orcaService.getTasks("app", null, 10, "RUNNING") >> { throw new IllegalStateException() }
       thrown(ServerErrorException)
 
@@ -244,7 +234,7 @@ class FunctionalSpec extends Specification {
     executionHistoryService.getPipelines("app", 5, "TERMINAL", false)
 
     then:
-    1 * orcaServiceSelector.withContext(_) >> { orcaService }
+    1 * orcaServiceSelector.select() >> { orcaService }
     1 * orcaService.getPipelines("app", 5, "TERMINAL", false) >> { throw new IllegalStateException() }
     thrown(ServerErrorException)
   }

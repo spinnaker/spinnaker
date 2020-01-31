@@ -15,18 +15,13 @@
  */
 package com.netflix.spinnaker.gate.controllers;
 
-import com.netflix.spinnaker.gate.security.RequestContext;
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import java.util.Collections;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class ExecutionsController {
@@ -74,7 +69,7 @@ public class ExecutionsController {
     }
 
     return orcaServiceSelector
-        .withContext(RequestContext.get())
+        .select()
         .getSubsetOfExecutions(pipelineConfigIds, executionIds, limit, statuses, expand);
   }
 
@@ -151,7 +146,7 @@ public class ExecutionsController {
           @RequestParam(value = "expand", defaultValue = "false")
           boolean expand) {
     return orcaServiceSelector
-        .withContext(RequestContext.get())
+        .select()
         .searchForPipelineExecutionsByTrigger(
             application,
             triggerTypes,

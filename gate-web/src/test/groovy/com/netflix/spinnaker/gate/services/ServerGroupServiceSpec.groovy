@@ -29,7 +29,7 @@ class ServerGroupServiceSpec extends Specification {
     def service = new ServerGroupService(
       objectMapper: new ObjectMapper(),
         clouddriverServiceSelector: Mock(ClouddriverServiceSelector) {
-          1 * select(_) >> {
+          1 * select() >> {
             Mock(ClouddriverService) {
               1 * getServerGroupDetails(_, _, _, _ ,_) >> { return [cloudProvider: "aws"] }
               1 * getAccount(_) >> { return [awsAccount: "prod"] }

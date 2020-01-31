@@ -34,13 +34,13 @@ class EntityTagsService {
 
   List<Map> list(@RequestParam Map<String, Object> allParameters, String selectorKey) {
     HystrixFactory.newListCommand(GROUP, "listEntityTags") {
-      clouddriverServiceSelector.select(selectorKey).listEntityTags(allParameters)
+      clouddriverServiceSelector.select().listEntityTags(allParameters)
     } execute()
   }
 
   Map get(String id, String selectorKey) {
     HystrixFactory.newMapCommand(GROUP, "getEntityTags") {
-      clouddriverServiceSelector.select(selectorKey).getEntityTags(id)
+      clouddriverServiceSelector.select().getEntityTags(id)
     } execute()
   }
 }

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.gate.controllers;
 
-import com.netflix.spinnaker.gate.security.RequestContext;
 import com.netflix.spinnaker.gate.services.internal.IgorService;
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector;
 import io.swagger.annotations.ApiOperation;
@@ -81,8 +80,6 @@ public class ConcourseController {
       @RequestParam("stageId") String stageId,
       @RequestParam("job") String job,
       @RequestParam("buildNumber") Integer buildNumber) {
-    orcaService
-        .withContext(RequestContext.get())
-        .concourseStageExecution(stageId, job, buildNumber, "");
+    orcaService.select().concourseStageExecution(stageId, job, buildNumber, "");
   }
 }

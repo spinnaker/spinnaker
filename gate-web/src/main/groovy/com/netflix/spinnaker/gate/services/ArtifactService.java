@@ -66,16 +66,14 @@ public class ArtifactService {
 
   public List<Map> getArtifactCredentials(String selectorKey) {
     return mapListCommand(
-            "artifactCredentials",
-            clouddriverServiceSelector.select(selectorKey)::getArtifactCredentials)
+            "artifactCredentials", clouddriverServiceSelector.select()::getArtifactCredentials)
         .execute();
   }
 
   public List<String> getArtifactNames(String selectorKey, String accountName, String type) {
     return stringListCommand(
             "artifactNames",
-            () ->
-                clouddriverServiceSelector.select(selectorKey).getArtifactNames(accountName, type))
+            () -> clouddriverServiceSelector.select().getArtifactNames(accountName, type))
         .execute();
   }
 
@@ -85,7 +83,7 @@ public class ArtifactService {
             "artifactVersions",
             () ->
                 clouddriverServiceSelector
-                    .select(selectorKey)
+                    .select()
                     .getArtifactVersions(accountName, type, artifactName))
         .execute();
   }
@@ -96,7 +94,7 @@ public class ArtifactService {
             "artifactContents",
             () -> {
               Response contentResponse =
-                  clouddriverServiceSelector.select(selectorKey).getArtifactContent(artifact);
+                  clouddriverServiceSelector.select().getArtifactContent(artifact);
               IOUtils.copy(contentResponse.getBody().in(), outputStream);
               return null;
             })

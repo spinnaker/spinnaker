@@ -30,8 +30,7 @@ class SubnetController {
 
   @ApiOperation(value = "Retrieve a list of subnets for a given cloud provider", response = List.class)
   @RequestMapping(value = "/{cloudProvider}", method = RequestMethod.GET)
-  List<Map> allByCloudProvider(@PathVariable String cloudProvider,
-                               @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
-    clouddriverServiceSelector.select(sourceApp).getSubnets(cloudProvider)
+  List<Map> allByCloudProvider(@PathVariable String cloudProvider) {
+    clouddriverServiceSelector.select().getSubnets(cloudProvider)
   }
 }

@@ -33,7 +33,7 @@ class SearchService {
 
   List<Map> search(String query, String type, String platform, String selectorKey, int pageSize = 10000, int page = 1, Map<String, String> filters) {
     HystrixFactory.newListCommand(GROUP, "search-${type}") {
-      return clouddriverServiceSelector.select(selectorKey).search(query, type, platform, pageSize, page, filters)
+      return clouddriverServiceSelector.select().search(query, type, platform, pageSize, page, filters)
     } execute()
   }
 }
