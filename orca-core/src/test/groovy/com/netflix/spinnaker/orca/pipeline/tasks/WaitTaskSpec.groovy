@@ -39,6 +39,7 @@ class WaitTaskSpec extends Specification {
       refId = "1"
       type = "wait"
       context["waitTime"] = wait
+      startTime = clock.instant().toEpochMilli()
     }
 
     when:
@@ -46,8 +47,6 @@ class WaitTaskSpec extends Specification {
 
     then:
     result.status == RUNNING
-    result.context.startTime != null
-    stage.context.putAll(result.context)
 
     when:
     clock.incrementBy(Duration.ofSeconds(10))
@@ -57,8 +56,6 @@ class WaitTaskSpec extends Specification {
 
     then:
     result.status == SUCCEEDED
-    result.context.startTime == null
-
   }
 
   void "should return backoff based on waitTime"() {
@@ -67,19 +64,18 @@ class WaitTaskSpec extends Specification {
       refId = "1"
       type = "wait"
       context["waitTime"] = wait
+      startTime = clock.instant().toEpochMilli()
     }
 
     when:
     def result = task.execute(stage)
 
     and:
-    stage.context.putAll(result.context)
     def backOff = task.getDynamicBackoffPeriod(stage, null)
 
     then:
     result.status == RUNNING
     backOff == TimeUnit.SECONDS.toMillis(wait)
-
   }
 
   void "should skip waiting when marked in context"() {
@@ -88,6 +84,7 @@ class WaitTaskSpec extends Specification {
       refId = "1"
       type = "wait"
       context["waitTime"] = 1_000_000
+      startTime = clock.instant().toEpochMilli()
     }
 
     when:
@@ -95,7 +92,6 @@ class WaitTaskSpec extends Specification {
 
     then:
     result.status == RUNNING
-    stage.context.putAll(result.context)
 
     when:
     clock.incrementBy(Duration.ofSeconds(10))

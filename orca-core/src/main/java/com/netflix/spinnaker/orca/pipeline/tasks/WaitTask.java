@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.orca.pipeline.tasks;
 
-import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING;
-import static java.util.Collections.singletonMap;
-
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.pipeline.WaitStage;
@@ -44,17 +41,14 @@ public class WaitTask implements RetryableTask {
   public @Nonnull TaskResult execute(@Nonnull Stage stage) {
     WaitStage.WaitStageContext context = stage.mapTo(WaitStage.WaitStageContext.class);
 
-    if (context.getWaitTime() == null) {
-      return TaskResult.SUCCEEDED;
-    }
-
     Instant now = clock.instant();
 
     if (context.isSkipRemainingWait()) {
       return TaskResult.SUCCEEDED;
-    } else if (context.getStartTime() == null || context.getStartTime() == Instant.EPOCH) {
-      return TaskResult.builder(RUNNING).context(singletonMap("startTime", now)).build();
-    } else if (context.getStartTime().plus(context.getWaitDuration()).isBefore(now)) {
+    } else if (stage.getStartTime() != null
+        && Instant.ofEpochMilli(stage.getStartTime())
+            .plus(context.getWaitDuration())
+            .isBefore(now)) {
       return TaskResult.SUCCEEDED;
     } else {
       return TaskResult.RUNNING;
@@ -73,10 +67,12 @@ public class WaitTask implements RetryableTask {
     if (context.isSkipRemainingWait()) {
       return 0L;
     }
+
     // Return a backoff time that reflects the requested waitTime
-    if (context.getStartTime() != null && context.getWaitDuration() != null) {
+    if (stage.getStartTime() != null) {
       Instant now = clock.instant();
-      Instant completion = context.getStartTime().plus(context.getWaitDuration());
+      Instant completion =
+          Instant.ofEpochMilli(stage.getStartTime()).plus(context.getWaitDuration());
 
       if (completion.isAfter(now)) {
         return completion.toEpochMilli() - now.toEpochMilli();
