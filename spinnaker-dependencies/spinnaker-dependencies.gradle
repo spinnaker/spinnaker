@@ -144,7 +144,7 @@ dependencies {
     api("org.jooq:jooq:3.12.3")
     api("org.objenesis:objenesis:2.5.1")
     api("org.pf4j:pf4j:3.2.0")
-    api("org.pf4j:pf4j-update:2.2.0")
+    api("org.pf4j:pf4j-update:2.3.0")
     api("org.springframework.boot:spring-boot-configuration-processor:${versions.springBoot}")
     api("org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure:2.1.5.RELEASE")
     api("org.springframework.security.extensions:spring-security-saml-dsl-core:1.0.5.RELEASE")
