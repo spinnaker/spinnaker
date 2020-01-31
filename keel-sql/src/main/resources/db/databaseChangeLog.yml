@@ -93,3 +93,6 @@ databaseChangeLog:
   - include:
       file: changelog/20200116-create-agent-lock-table.yml
       relativeToChangelogFile: true
+  - include:
+      file: changelog/20200127-environment-artifact-pin-table.yml
+      relativeToChangelogFile: true

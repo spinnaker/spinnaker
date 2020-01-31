@@ -10,7 +10,9 @@ import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.DockerArtifact
 import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.api.EnvironmentArtifactsSummary
+import com.netflix.spinnaker.keel.api.PinnedEnvironment
 import com.netflix.spinnaker.keel.api.PromotionStatus
 import com.netflix.spinnaker.keel.api.PromotionStatus.APPROVED
 import com.netflix.spinnaker.keel.api.PromotionStatus.CURRENT
@@ -19,6 +21,7 @@ import com.netflix.spinnaker.keel.api.PromotionStatus.PENDING
 import com.netflix.spinnaker.keel.api.PromotionStatus.PREVIOUS
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.persistence.ArtifactNotFoundException
+import com.netflix.spinnaker.keel.persistence.ArtifactReferenceNotFoundException
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ARTIFACT_VERSIONS
@@ -26,6 +29,7 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_ARTIFACT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG_ARTIFACT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_PIN
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
@@ -39,6 +43,7 @@ import org.jooq.Select
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.select
 import org.jooq.impl.DSL.selectOne
+import org.jooq.util.mysql.MySQLDSL
 import org.slf4j.LoggerFactory
 
 class SqlArtifactRepository(
@@ -123,6 +128,23 @@ class SqlArtifactRepository(
       ?.let { (details, reference) ->
         mapToArtifact(name, type, details, reference, deliveryConfigName)
       } ?: throw ArtifactNotFoundException(name, type, reference, deliveryConfigName)
+  }
+
+  override fun get(deliveryConfigName: String, reference: String, type: ArtifactType): DeliveryArtifact {
+    return sqlRetry.withRetry(READ) {
+      jooq
+        .select(DELIVERY_ARTIFACT.NAME, DELIVERY_ARTIFACT.DETAILS, DELIVERY_ARTIFACT.REFERENCE)
+        .from(DELIVERY_ARTIFACT)
+        .where(
+          DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(deliveryConfigName),
+          DELIVERY_ARTIFACT.REFERENCE.eq(reference),
+          DELIVERY_ARTIFACT.TYPE.eq(type.name)
+        )
+        .fetchOne()
+    }
+      ?.let { (name, details, reference) ->
+        mapToArtifact(name, type, details, reference, deliveryConfigName)
+      } ?: throw ArtifactReferenceNotFoundException(deliveryConfigName, reference, type)
   }
 
   override fun store(artifact: DeliveryArtifact, version: String, status: ArtifactStatus?): Boolean =
@@ -221,18 +243,27 @@ class SqlArtifactRepository(
     val environment = deliveryConfig.environmentNamed(targetEnvironment)
     val envUid = deliveryConfig.getUidFor(environment)
     val artifactId = artifact.uid
-    val versions: List<String> = sqlRetry.withRetry(READ) {
-      jooq
-        .select(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION)
-        .from(ENVIRONMENT_ARTIFACT_VERSIONS)
-        .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(envUid))
-        .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifactId))
-        .orderBy(ENVIRONMENT_ARTIFACT_VERSIONS.APPROVED_AT.desc())
-        .fetch()
-        .getValues(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION)
-    }
 
-    return versions.firstOrNull()
+    /**
+     * If [targetEnvironment] has been pinned to an artifact version, return
+     * the pinned version. Otherwise return the most recently approved version.
+     */
+    return sqlRetry.withRetry(READ) {
+      jooq.select(ENVIRONMENT_ARTIFACT_PIN.ARTIFACT_VERSION)
+        .from(ENVIRONMENT_ARTIFACT_PIN)
+        .where(
+          ENVIRONMENT_ARTIFACT_PIN.ENVIRONMENT_UID.eq(envUid),
+          ENVIRONMENT_ARTIFACT_PIN.ARTIFACT_UID.eq(artifactId))
+        .fetchOne(ENVIRONMENT_ARTIFACT_PIN.ARTIFACT_VERSION)
+        ?: jooq
+          .select(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION)
+          .from(ENVIRONMENT_ARTIFACT_VERSIONS)
+          .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(envUid))
+          .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifactId))
+          .orderBy(ENVIRONMENT_ARTIFACT_VERSIONS.APPROVED_AT.desc())
+          .limit(1)
+          .fetchOne(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION)
+    }
   }
 
   override fun approveVersionFor(
@@ -431,6 +462,112 @@ class SqlArtifactRepository(
       }
       EnvironmentArtifactsSummary(environment.name, artifactVersions)
     }
+  }
+
+  override fun pinEnvironment(deliveryConfig: DeliveryConfig, environmentArtifactPin: EnvironmentArtifactPin) {
+    with(environmentArtifactPin) {
+      val environment = deliveryConfig.environmentNamed(targetEnvironment)
+      val artifact = get(deliveryConfigName, reference, ArtifactType.valueOf(type.toUpperCase()))
+
+      sqlRetry.withRetry(WRITE) {
+        jooq.insertInto(ENVIRONMENT_ARTIFACT_PIN)
+          .set(ENVIRONMENT_ARTIFACT_PIN.ENVIRONMENT_UID, deliveryConfig.getUidFor(environment))
+          .set(ENVIRONMENT_ARTIFACT_PIN.ARTIFACT_UID, artifact.uid)
+          .set(ENVIRONMENT_ARTIFACT_PIN.ARTIFACT_VERSION, version)
+          .set(ENVIRONMENT_ARTIFACT_PIN.PINNED_AT, clock.millis())
+          .set(ENVIRONMENT_ARTIFACT_PIN.PINNED_BY, pinnedBy ?: "anonymous")
+          .set(ENVIRONMENT_ARTIFACT_PIN.COMMENT, comment)
+          .onDuplicateKeyUpdate()
+          .set(ENVIRONMENT_ARTIFACT_PIN.ARTIFACT_VERSION, version)
+          .set(ENVIRONMENT_ARTIFACT_PIN.PINNED_AT, clock.millis())
+          .set(ENVIRONMENT_ARTIFACT_PIN.PINNED_BY, pinnedBy ?: "anonymous")
+          .set(ENVIRONMENT_ARTIFACT_PIN.COMMENT, MySQLDSL.values(ENVIRONMENT_ARTIFACT_PIN.COMMENT))
+          .execute()
+      }
+    }
+  }
+
+  override fun pinnedEnvironments(deliveryConfig: DeliveryConfig): List<PinnedEnvironment> {
+    return sqlRetry.withRetry(READ) {
+      jooq.select(
+        ENVIRONMENT.NAME,
+        ENVIRONMENT_ARTIFACT_PIN.ARTIFACT_VERSION,
+        DELIVERY_ARTIFACT.NAME,
+        DELIVERY_ARTIFACT.TYPE,
+        DELIVERY_ARTIFACT.DETAILS,
+        DELIVERY_ARTIFACT.REFERENCE
+      )
+        .from(ENVIRONMENT)
+        .innerJoin(ENVIRONMENT_ARTIFACT_PIN)
+        .on(ENVIRONMENT_ARTIFACT_PIN.ENVIRONMENT_UID.eq(ENVIRONMENT.UID))
+        .innerJoin(DELIVERY_ARTIFACT)
+        .on(DELIVERY_ARTIFACT.UID.eq(ENVIRONMENT_ARTIFACT_PIN.ARTIFACT_UID))
+        .innerJoin(DELIVERY_CONFIG)
+        .on(DELIVERY_CONFIG.UID.eq(ENVIRONMENT.DELIVERY_CONFIG_UID))
+        .where(DELIVERY_CONFIG.NAME.eq(deliveryConfig.name))
+        .fetch { (environmentName, version, artifactName, type, details, reference) ->
+          PinnedEnvironment(
+            deliveryConfigName = deliveryConfig.name,
+            targetEnvironment = environmentName,
+            artifact = mapToArtifact(
+              artifactName,
+              ArtifactType.valueOf(type.toUpperCase()),
+              details,
+              reference,
+              deliveryConfig.name),
+            version = version)
+        }
+    }
+  }
+
+  override fun deletePin(deliveryConfig: DeliveryConfig, targetEnvironment: String) {
+    sqlRetry.withRetry(WRITE) {
+      jooq.select(ENVIRONMENT_ARTIFACT_PIN.ENVIRONMENT_UID, ENVIRONMENT_ARTIFACT_PIN.ARTIFACT_UID)
+        .from(ENVIRONMENT_ARTIFACT_PIN)
+        .innerJoin(ENVIRONMENT)
+        .on(ENVIRONMENT_ARTIFACT_PIN.ENVIRONMENT_UID.eq(ENVIRONMENT.UID))
+        .where(
+          ENVIRONMENT.NAME.eq(targetEnvironment),
+          ENVIRONMENT.DELIVERY_CONFIG_UID.eq(deliveryConfig.uid))
+        .fetch { (envUid, artUid) ->
+          deletePin(envUid, artUid)
+        }
+    }
+  }
+
+  override fun deletePin(
+    deliveryConfig: DeliveryConfig,
+    targetEnvironment: String,
+    reference: String,
+    type: ArtifactType
+  ) {
+    sqlRetry.withRetry(WRITE) {
+      jooq.select(ENVIRONMENT_ARTIFACT_PIN.ENVIRONMENT_UID, ENVIRONMENT_ARTIFACT_PIN.ARTIFACT_UID)
+        .from(DELIVERY_ARTIFACT)
+        .innerJoin(ENVIRONMENT_ARTIFACT_PIN)
+        .on(ENVIRONMENT_ARTIFACT_PIN.ARTIFACT_UID.eq(DELIVERY_ARTIFACT.UID))
+        .innerJoin(ENVIRONMENT)
+        .on(ENVIRONMENT_ARTIFACT_PIN.ENVIRONMENT_UID.eq(ENVIRONMENT.UID))
+        .where(
+          DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(deliveryConfig.name),
+          DELIVERY_ARTIFACT.REFERENCE.eq(reference),
+          DELIVERY_ARTIFACT.TYPE.eq(type.value()),
+          ENVIRONMENT.NAME.eq(targetEnvironment),
+          ENVIRONMENT.DELIVERY_CONFIG_UID.eq(deliveryConfig.uid))
+        .fetch { (envUid, artUid) ->
+          deletePin(envUid, artUid)
+        }
+    }
+  }
+
+  private fun deletePin(envUid: String, artUid: String) {
+    // Deletes rows by primary key
+    jooq.deleteFrom(ENVIRONMENT_ARTIFACT_PIN)
+      .where(
+        ENVIRONMENT_ARTIFACT_PIN.ENVIRONMENT_UID.eq(envUid),
+        ENVIRONMENT_ARTIFACT_PIN.ARTIFACT_UID.eq(artUid)
+      )
+      .execute()
   }
 
   private fun DeliveryConfig.environmentNamed(name: String): Environment =

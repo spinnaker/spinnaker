@@ -7,6 +7,7 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.ManualJudgementConstraint
+import com.netflix.spinnaker.keel.api.PinnedEnvironment
 import com.netflix.spinnaker.keel.constraints.ConstraintEvaluator
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
@@ -64,6 +65,9 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
         every {
           artifactRepository.versions(artifact)
         } returns emptyList()
+        every {
+          artifactRepository.pinnedEnvironments(any())
+        } returns emptyList()
       }
 
       test("the check does not throw an exception") {
@@ -83,6 +87,10 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
         every {
           artifactRepository.approveVersionFor(deliveryConfig, artifact, "2.0", environment.name)
         } returns true
+
+        every {
+          artifactRepository.pinnedEnvironments(any())
+        } returns emptyList()
       }
 
       context("there are no constraints on the environment") {
@@ -152,6 +160,10 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
           } returns true
 
           every {
+            artifactRepository.pinnedEnvironments(any())
+          } returns emptyList()
+
+          every {
             deliveryConfigRepository.getConstraintState(any(), any(), "2.0", "manual-judgement")
           } returns ConstraintState(
             deliveryConfig.name,
@@ -211,6 +223,44 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
         }
       }
 
+      context("the environment has a pinned artifact version") {
+        deriveFixture {
+          copy(environment = Environment(
+            name = "staging",
+            constraints = setOf(DependsOnConstraint("test"), ManualJudgementConstraint())
+          ))
+        }
+        before {
+          every {
+            artifactRepository.versions(artifact)
+          } returns listOf("2.0", "1.2", "1.1", "1.0")
+
+          every {
+            artifactRepository.approveVersionFor(deliveryConfig, artifact, "1.1", environment.name)
+          } returns true
+
+          every {
+            artifactRepository.pinnedEnvironments(any())
+          } returns listOf(PinnedEnvironment(deliveryConfig.name, environment.name, artifact, "1.1"))
+
+          runBlocking {
+            subject.checkEnvironments(deliveryConfig)
+          }
+        }
+
+        test("the pinned version is picked up and constraint evaluation bypassed") {
+          verify(exactly = 1) {
+            // 1.1 == the older but pinned version
+            artifactRepository.approveVersionFor(deliveryConfig, artifact, "1.1", environment.name)
+          }
+          verify(inverse = true) {
+            artifactRepository.approveVersionFor(deliveryConfig, artifact, "1.2", environment.name)
+            statelessEvaluator.canPromote(any(), any(), any(), any())
+            statefulEvaluator.canPromote(any(), any(), any(), any())
+          }
+        }
+      }
+
       context("the environment has constraints and a version cannot be found") {
         deriveFixture {
           copy(environment = Environment(
@@ -224,6 +274,8 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
           every {
             artifactRepository.versions(artifact)
           } returns listOf("1.0")
+
+          every { artifactRepository.pinnedEnvironments(any()) } returns emptyList()
 
           every { statelessEvaluator.canPromote(artifact, "1.0", deliveryConfig, environment) } returns false
         }

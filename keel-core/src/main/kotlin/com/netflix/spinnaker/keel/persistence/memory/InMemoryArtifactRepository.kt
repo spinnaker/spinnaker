@@ -7,12 +7,15 @@ import com.netflix.spinnaker.keel.api.ArtifactVersions
 import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.api.EnvironmentArtifactsSummary
+import com.netflix.spinnaker.keel.api.PinnedEnvironment
 import com.netflix.spinnaker.keel.api.PromotionStatus
 import com.netflix.spinnaker.keel.api.PromotionStatus.CURRENT
 import com.netflix.spinnaker.keel.api.PromotionStatus.DEPLOYING
 import com.netflix.spinnaker.keel.api.PromotionStatus.PREVIOUS
 import com.netflix.spinnaker.keel.persistence.ArtifactNotFoundException
+import com.netflix.spinnaker.keel.persistence.ArtifactReferenceNotFoundException
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
 import java.util.UUID
@@ -28,6 +31,7 @@ class InMemoryArtifactRepository : ArtifactRepository {
 
   private val approvedVersions = mutableMapOf<EnvironmentVersionsKey, MutableList<String>>()
   private val deployedVersions = mutableMapOf<EnvironmentVersionsKey, MutableList<String>>()
+  private val pinnedVersions = mutableMapOf<EnvironmentVersionsKey, EnvironmentArtifactPin>()
   private val statusByEnvironment = mutableMapOf<EnvironmentVersionsKey, MutableMap<String, PromotionStatus>>()
   private val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -92,6 +96,15 @@ class InMemoryArtifactRepository : ArtifactRepository {
           it.deliveryConfigName == deliveryConfigName &&
           it.reference == reference
       } ?: throw ArtifactNotFoundException(name, type, reference, deliveryConfigName)
+
+  override fun get(deliveryConfigName: String, reference: String, type: ArtifactType): DeliveryArtifact =
+    artifacts
+      .values
+      .firstOrNull {
+        it.deliveryConfigName == deliveryConfigName &&
+          it.reference == reference &&
+          it.type == type
+      } ?: throw ArtifactReferenceNotFoundException(deliveryConfigName, reference, type)
 
   override fun store(artifact: DeliveryArtifact, version: String, status: ArtifactStatus?): Boolean =
     store(artifact.name, artifact.type, version, status)
@@ -172,9 +185,10 @@ class InMemoryArtifactRepository : ArtifactRepository {
   ): String? {
     val artifactId = getId(artifact) ?: throw NoSuchArtifactException(artifact)
     val key = EnvironmentVersionsKey(artifactId, deliveryConfig, targetEnvironment)
-    return approvedVersions
+    return pinnedVersions[key]?.version ?: approvedVersions
       .getOrDefault(key, mutableListOf())
-      .sortedWith(artifact.versioningStrategy.comparator).firstOrNull()
+      .sortedWith(artifact.versioningStrategy.comparator)
+      .firstOrNull()
   }
 
   override fun wasSuccessfullyDeployedTo(
@@ -246,6 +260,53 @@ class InMemoryArtifactRepository : ArtifactRepository {
           }
         EnvironmentArtifactsSummary(environment.name, artifactVersions)
       }
+
+  override fun pinEnvironment(deliveryConfig: DeliveryConfig, environmentArtifactPin: EnvironmentArtifactPin) {
+    val artifact = get(
+      deliveryConfig.name,
+      environmentArtifactPin.reference,
+      ArtifactType.valueOf(environmentArtifactPin.type.toUpperCase()))
+
+    val artifactId = getId(artifact) ?: throw NoSuchArtifactException(artifact)
+
+    val key = EnvironmentVersionsKey(artifactId, deliveryConfig, environmentArtifactPin.targetEnvironment)
+    pinnedVersions[key] = environmentArtifactPin
+  }
+
+  override fun pinnedEnvironments(deliveryConfig: DeliveryConfig): List<PinnedEnvironment> =
+    pinnedVersions
+      .filterKeys { it.deliveryConfig == deliveryConfig }
+      .map {
+        PinnedEnvironment(
+          deliveryConfigName = deliveryConfig.name,
+          targetEnvironment = it.value.targetEnvironment,
+          artifact = get(deliveryConfig.name, it.value.reference, ArtifactType.valueOf(it.value.type.toUpperCase())),
+          version = it.value.version!!)
+      }
+
+  override fun deletePin(deliveryConfig: DeliveryConfig, targetEnvironment: String) {
+    pinnedVersions
+      .filterKeys {
+        it.deliveryConfig == deliveryConfig &&
+          it.environment == targetEnvironment
+      }
+      .forEach { pinnedVersions.remove(it.key) }
+  }
+
+  override fun deletePin(
+    deliveryConfig: DeliveryConfig,
+    targetEnvironment: String,
+    reference: String,
+    type: ArtifactType
+  ) {
+    pinnedVersions.filter { (k, v) ->
+      k.deliveryConfig == deliveryConfig &&
+        k.environment == targetEnvironment &&
+        v.reference == reference &&
+        v.type == type.value()
+    }
+      .forEach { pinnedVersions.remove(it.key) }
+  }
 
   fun dropAll() {
     artifacts.clear()

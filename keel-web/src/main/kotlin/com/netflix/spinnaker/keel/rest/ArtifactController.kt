@@ -3,21 +3,26 @@ package com.netflix.spinnaker.keel.rest
 import com.netflix.spinnaker.keel.api.ArtifactType
 import com.netflix.spinnaker.keel.api.ArtifactType.DEB
 import com.netflix.spinnaker.keel.api.ArtifactType.DOCKER
+import com.netflix.spinnaker.keel.api.ArtifactType.valueOf
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.events.ArtifactEvent
 import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.events.ArtifactSyncEvent
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
+import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.HttpStatus.ACCEPTED
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
@@ -26,7 +31,8 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping(path = ["/artifacts"])
 class ArtifactController(
   private val publisher: ApplicationEventPublisher,
-  private val artifactRepository: ArtifactRepository
+  private val artifactRepository: ArtifactRepository,
+  private val deliveryConfigRepository: DeliveryConfigRepository
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -62,6 +68,43 @@ class ArtifactController(
   @ResponseStatus(ACCEPTED)
   fun sync() {
     publisher.publishEvent(ArtifactSyncEvent(true))
+  }
+
+  @PostMapping(
+    path = ["/pin"]
+  )
+  @ResponseStatus(ACCEPTED)
+  fun pin(
+    @RequestHeader("X-SPINNAKER-USER") user: String,
+    @RequestBody pin: EnvironmentArtifactPin
+  ) {
+    checkNotNull(pin.version) {
+      "A version to pin is required."
+    }
+
+    val deliveryConfig = deliveryConfigRepository.get(pin.deliveryConfigName)
+    artifactRepository.pinEnvironment(deliveryConfig, pin.copy(pinnedBy = user))
+  }
+
+  @DeleteMapping(
+    path = ["/pin"]
+  )
+  @ResponseStatus(ACCEPTED)
+  fun deletePin(@RequestBody pin: EnvironmentArtifactPin) {
+    val deliveryConfig = deliveryConfigRepository.get(pin.deliveryConfigName)
+    artifactRepository.deletePin(deliveryConfig, pin.targetEnvironment, pin.reference, valueOf(pin.type.toUpperCase()))
+  }
+
+  @DeleteMapping(
+    path = ["/pin/{deliveryConfig}/{targetEnvironment}"]
+  )
+  @ResponseStatus(ACCEPTED)
+  fun deletePin(
+    @PathVariable("deliveryConfig") deliveryConfigName: String,
+    @PathVariable("targetEnvironment") targetEnvironment: String
+  ) {
+    val deliveryConfig = deliveryConfigRepository.get(deliveryConfigName)
+    artifactRepository.deletePin(deliveryConfig, targetEnvironment)
   }
 
   @GetMapping(

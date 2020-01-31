@@ -4,7 +4,9 @@ import com.netflix.spinnaker.keel.api.ArtifactStatus
 import com.netflix.spinnaker.keel.api.ArtifactType
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.api.EnvironmentArtifactsSummary
+import com.netflix.spinnaker.keel.api.PinnedEnvironment
 
 interface ArtifactRepository {
 
@@ -16,6 +18,8 @@ interface ArtifactRepository {
   fun get(name: String, type: ArtifactType, deliveryConfigName: String): List<DeliveryArtifact>
 
   fun get(name: String, type: ArtifactType, reference: String, deliveryConfigName: String): DeliveryArtifact
+
+  fun get(deliveryConfigName: String, reference: String, type: ArtifactType): DeliveryArtifact
 
   fun isRegistered(name: String, type: ArtifactType): Boolean
 
@@ -123,12 +127,36 @@ interface ArtifactRepository {
    * Fetches the status of artifact versions in the environments of [deliveryConfig].
    */
   fun versionsByEnvironment(deliveryConfig: DeliveryConfig): List<EnvironmentArtifactsSummary>
+
+  /**
+   * Pin an environment to only deploy a specific DeliveryArtifact version
+   */
+  fun pinEnvironment(deliveryConfig: DeliveryConfig, environmentArtifactPin: EnvironmentArtifactPin)
+
+  /**
+   * @return list of [PinnedEnvironment]'s if any of the environments in
+   * [deliveryConfig] have been pinned to a specific artifact version.
+   */
+  fun pinnedEnvironments(deliveryConfig: DeliveryConfig): List<PinnedEnvironment>
+
+  /**
+   * Removes all artifact pins from [targetEnvironment].
+   */
+  fun deletePin(deliveryConfig: DeliveryConfig, targetEnvironment: String)
+
+  /**
+   * Removes a specific pin from [targetEnvironment], by [reference] and [type].
+   */
+  fun deletePin(deliveryConfig: DeliveryConfig, targetEnvironment: String, reference: String, type: ArtifactType)
 }
 
 class NoSuchArtifactException(name: String, type: ArtifactType) :
   RuntimeException("No $type artifact named $name is registered") {
   constructor(artifact: DeliveryArtifact) : this(artifact.name, artifact.type)
 }
+
+class ArtifactReferenceNotFoundException(deliveryConfig: String, reference: String, type: ArtifactType) :
+  RuntimeException("No $type artifact with reference $reference in delivery config $deliveryConfig is registered")
 
 class ArtifactNotFoundException(name: String, type: ArtifactType, reference: String, deliveryConfig: String?) :
   RuntimeException("No $type artifact named $name with reference $reference in delivery config $deliveryConfig is registered") {

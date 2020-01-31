@@ -11,6 +11,7 @@ import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.DockerArtifact
 import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.time.MutableClock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -26,6 +27,7 @@ import strikt.assertions.hasSize
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
+import strikt.assertions.isNotEqualTo
 import strikt.assertions.isNull
 import strikt.assertions.isTrue
 import strikt.assertions.succeeded
@@ -60,6 +62,15 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
     val version4 = "keeldemo-1.0.0-h11.518aea2" // release
     val version5 = "keeldemo-1.0.0-h12.4ea8a9d" // release
     val version6 = "master-h12.4ea8a9d"
+
+    val pin1 = EnvironmentArtifactPin(
+      deliveryConfigName = manifest.name,
+      targetEnvironment = environment2.name, // staging
+      reference = artifact2.reference,
+      type = artifact2.type.value(),
+      version = version4, // the older release build
+      pinnedBy = "keel@spinnaker",
+      comment = "fnord")
   }
 
   open fun Fixture<T>.persist() {
@@ -396,6 +407,29 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
             expectThat(subject.latestVersionApprovedIn(manifest, artifact1, environment2.name))
               .isEqualTo(version2)
           }
+        }
+      }
+
+      context("a version has been pinned to an environment") {
+        before {
+          clock.incrementBy(Duration.ofHours(1))
+          subject.approveVersionFor(manifest, artifact2, version4, environment2.name)
+          subject.markAsSuccessfullyDeployedTo(manifest, artifact2, version4, environment2.name)
+          subject.approveVersionFor(manifest, artifact2, version5, environment2.name)
+          subject.markAsSuccessfullyDeployedTo(manifest, artifact2, version5, environment2.name)
+        }
+
+        test("without a pin, latestVersionApprovedIn returns the latest approved version") {
+          expectThat(subject.latestVersionApprovedIn(manifest, artifact2, environment2.name))
+            .isEqualTo(version5)
+            .isNotEqualTo(pin1.version)
+        }
+
+        test("latestVersionApprovedIn prefers a pinned version over the latest approved version") {
+          subject.pinEnvironment(manifest, pin1)
+          expectThat(subject.latestVersionApprovedIn(manifest, artifact2, environment2.name))
+            .isEqualTo(version4)
+            .isEqualTo(pin1.version)
         }
       }
     }

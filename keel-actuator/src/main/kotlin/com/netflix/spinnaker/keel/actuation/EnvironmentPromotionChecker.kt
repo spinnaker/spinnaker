@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.actuation
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.PinnedEnvironment
 import com.netflix.spinnaker.keel.constraints.ConstraintEvaluator
 import com.netflix.spinnaker.keel.constraints.StatefulConstraintEvaluator
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
@@ -22,6 +23,10 @@ class EnvironmentPromotionChecker(
   private val statelessEvaluators = constraints - statefulEvaluators
 
   suspend fun checkEnvironments(deliveryConfig: DeliveryConfig) {
+    val pinnedEnvs: Map<String, PinnedEnvironment> = artifactRepository
+      .pinnedEnvironments(deliveryConfig)
+      .associateBy { envPinKey(it.targetEnvironment, it.artifact) }
+
     deliveryConfig
       .artifacts
       .associateWith { artifactRepository.versions(it) }
@@ -30,17 +35,23 @@ class EnvironmentPromotionChecker(
           log.warn("No versions for ${artifact.type} artifact ${artifact.name} are known")
         } else {
           deliveryConfig.environments.forEach { environment ->
-            val version = if (environment.constraints.isEmpty()) {
-              versions.firstOrNull()
-            } else {
-              versions.firstOrNull { v ->
-                /**
-                 * Only check stateful evaluators if all stateless evaluators pass. We don't
-                 * want to request judgement or deploy a canary for artifacts that aren't
-                 * deployed to a required environment or outside of an allowed time.
-                 */
-                checkConstraints(statelessEvaluators, artifact, deliveryConfig, v, environment) &&
-                  checkConstraints(statefulEvaluators, artifact, deliveryConfig, v, environment)
+            val version = when {
+              pinnedEnvs.hasPinFor(environment.name, artifact) -> {
+                pinnedEnvs.versionFor(environment.name, artifact)
+              }
+              environment.constraints.isEmpty() -> {
+                versions.firstOrNull()
+              }
+              else -> {
+                versions.firstOrNull { v ->
+                  /**
+                   * Only check stateful evaluators if all stateless evaluators pass. We don't
+                   * want to request judgement or deploy a canary for artifacts that aren't
+                   * deployed to a required environment or outside of an allowed time.
+                   */
+                  checkConstraints(statelessEvaluators, artifact, deliveryConfig, v, environment) &&
+                    checkConstraints(statefulEvaluators, artifact, deliveryConfig, v, environment)
+                }
               }
             }
 
@@ -95,6 +106,27 @@ class EnvironmentPromotionChecker(
 
   private fun Environment.hasSupportedConstraint(constraintEvaluator: ConstraintEvaluator<*>) =
     constraints.any { it.javaClass.isAssignableFrom(constraintEvaluator.constraintType) }
+
+  private fun Map<String, PinnedEnvironment>.hasPinFor(
+    environmentName: String,
+    artifact: DeliveryArtifact
+  ): Boolean {
+    if (isEmpty()) {
+      return false
+    }
+
+    val key = envPinKey(environmentName, artifact)
+    return containsKey(key) && checkNotNull(get(key)).artifact == artifact
+  }
+
+  private fun Map<String, PinnedEnvironment>.versionFor(
+    environmentName: String,
+    artifact: DeliveryArtifact
+  ): String? =
+    get(envPinKey(environmentName, artifact))?.version
+
+  private fun envPinKey(environmentName: String, artifact: DeliveryArtifact): String =
+    "$environmentName:${artifact.name}:${artifact.type.name.toLowerCase()}"
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }
