@@ -7,7 +7,7 @@ interface ResourceSpec {
 
   /**
    * The formal resource name. This is combined with the resource's API version prefix and kind to
-   * form the fully-qualified [ResourceId].
+   * form the fully-qualified resource id.
    *
    * This can be a property that is part of the spec, or derived from other properties. If the
    * latter remember to annotate the overridden property with

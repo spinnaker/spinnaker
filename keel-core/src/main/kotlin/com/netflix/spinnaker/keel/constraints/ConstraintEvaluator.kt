@@ -29,8 +29,7 @@ interface ConstraintEvaluator<T : Constraint> {
     }
   }
 
-  // TODO: can we do this via an annotation on the constraint or here?
-  val constraintType: Class<T>
+  val supportedType: SupportedConstraintType<T>
 
   fun canPromote(
     artifact: DeliveryArtifact,
@@ -39,6 +38,14 @@ interface ConstraintEvaluator<T : Constraint> {
     targetEnvironment: Environment
   ): Boolean
 }
+
+data class SupportedConstraintType<T : Constraint>(
+  val name: String,
+  val type: Class<T>
+)
+
+inline fun <reified T : Constraint> SupportedConstraintType(name: String): SupportedConstraintType<T> =
+  SupportedConstraintType(name, T::class.java)
 
 abstract class StatefulConstraintEvaluator<T : Constraint> : ConstraintEvaluator<T> {
   abstract val deliveryConfigRepository: DeliveryConfigRepository
@@ -49,7 +56,7 @@ abstract class StatefulConstraintEvaluator<T : Constraint> : ConstraintEvaluator
     deliveryConfig: DeliveryConfig,
     targetEnvironment: Environment
   ): Boolean {
-    val constraint = getConstraintForEnvironment(deliveryConfig, targetEnvironment.name, constraintType)
+    val constraint = getConstraintForEnvironment(deliveryConfig, targetEnvironment.name, supportedType.type)
     val state = deliveryConfigRepository
       .getConstraintState(
         deliveryConfig.name,

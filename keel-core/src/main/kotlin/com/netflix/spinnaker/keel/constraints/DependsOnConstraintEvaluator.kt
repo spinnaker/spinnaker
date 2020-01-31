@@ -13,7 +13,7 @@ class DependsOnConstraintEvaluator(
   private val artifactRepository: ArtifactRepository
 ) : ConstraintEvaluator<DependsOnConstraint> {
 
-  override val constraintType = DependsOnConstraint::class.java
+  override val supportedType = SupportedConstraintType<DependsOnConstraint>("depends-on")
 
   override fun canPromote(
     artifact: DeliveryArtifact,
@@ -21,7 +21,7 @@ class DependsOnConstraintEvaluator(
     deliveryConfig: DeliveryConfig,
     targetEnvironment: Environment
   ): Boolean {
-    val constraint = getConstraintForEnvironment(deliveryConfig, targetEnvironment.name, constraintType)
+    val constraint = getConstraintForEnvironment(deliveryConfig, targetEnvironment.name, supportedType.type)
 
     val requiredEnvironment = deliveryConfig
       .environments

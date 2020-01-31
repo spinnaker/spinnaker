@@ -105,7 +105,7 @@ class EnvironmentPromotionChecker(
   }
 
   private fun Environment.hasSupportedConstraint(constraintEvaluator: ConstraintEvaluator<*>) =
-    constraints.any { it.javaClass.isAssignableFrom(constraintEvaluator.constraintType) }
+    constraints.any { it.javaClass.isAssignableFrom(constraintEvaluator.supportedType.type) }
 
   private fun Map<String, PinnedEnvironment>.hasPinFor(
     environmentName: String,

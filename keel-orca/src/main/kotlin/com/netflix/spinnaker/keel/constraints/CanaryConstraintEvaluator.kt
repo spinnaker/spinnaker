@@ -64,7 +64,7 @@ class CanaryConstraintEvaluator(
   override val deliveryConfigRepository: DeliveryConfigRepository,
   private val clock: Clock
 ) : StatefulConstraintEvaluator<CanaryConstraint>() {
-  override val constraintType = CanaryConstraint::class.java
+  override val supportedType = SupportedConstraintType<CanaryConstraint>("canary")
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
   private val correlatedMessagePrefix = "Correlated canary tasks found"
 

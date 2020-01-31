@@ -42,7 +42,7 @@ class PipelineConstraintEvaluator(
   override val deliveryConfigRepository: DeliveryConfigRepository,
   private val clock: Clock
 ) : StatefulConstraintEvaluator<PipelineConstraint>() {
-  override val constraintType = PipelineConstraint::class.java
+  override val supportedType = SupportedConstraintType<PipelineConstraint>("pipeline")
   private val log by lazy { getLogger(javaClass) }
 
   override fun canPromote(

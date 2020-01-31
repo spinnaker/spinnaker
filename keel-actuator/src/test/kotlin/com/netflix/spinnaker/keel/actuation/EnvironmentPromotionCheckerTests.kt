@@ -9,6 +9,7 @@ import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.api.PinnedEnvironment
 import com.netflix.spinnaker.keel.constraints.ConstraintEvaluator
+import com.netflix.spinnaker.keel.constraints.SupportedConstraintType
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.telemetry.ArtifactVersionApproved
@@ -33,10 +34,10 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
     // TODO: add stateful constraint specific tests
     val deliveryConfigRepository = mockk<DeliveryConfigRepository>(relaxUnitFun = true)
     val statelessEvaluator = mockk<ConstraintEvaluator<*>>() {
-      every { constraintType } returns DependsOnConstraint::class.java
+      every { supportedType } returns SupportedConstraintType<DependsOnConstraint>("depends-on")
     }
     val statefulEvaluator = mockk<ConstraintEvaluator<*>>() {
-      every { constraintType } returns ManualJudgementConstraint::class.java
+      every { supportedType } returns SupportedConstraintType<ManualJudgementConstraint>("manual-judgment")
     }
     val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
     val subject = EnvironmentPromotionChecker(

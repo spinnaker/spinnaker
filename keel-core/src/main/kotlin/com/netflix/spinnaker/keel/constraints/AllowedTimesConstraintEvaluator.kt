@@ -115,7 +115,7 @@ class AllowedTimesConstraintEvaluator(
     }
   }
 
-  override val constraintType = TimeWindowConstraint::class.java
+  override val supportedType = SupportedConstraintType<TimeWindowConstraint>("allowed-times")
 
   override fun canPromote(
     artifact: DeliveryArtifact,
@@ -123,7 +123,7 @@ class AllowedTimesConstraintEvaluator(
     deliveryConfig: DeliveryConfig,
     targetEnvironment: Environment
   ): Boolean {
-    val constraint = getConstraintForEnvironment(deliveryConfig, targetEnvironment.name, constraintType)
+    val constraint = getConstraintForEnvironment(deliveryConfig, targetEnvironment.name, supportedType.type)
 
     val tz: ZoneId = if (constraint.tz != null) {
       ZoneId.of(constraint.tz)

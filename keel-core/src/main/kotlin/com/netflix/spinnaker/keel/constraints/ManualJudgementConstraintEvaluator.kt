@@ -16,7 +16,7 @@ class ManualJudgementConstraintEvaluator(
   private val clock: Clock
 ) : StatefulConstraintEvaluator<ManualJudgementConstraint>() {
 
-  override val constraintType = ManualJudgementConstraint::class.java
+  override val supportedType = SupportedConstraintType<ManualJudgementConstraint>("manual-judgement")
 
   override fun canPromote(
     artifact: DeliveryArtifact,
