@@ -17,3 +17,7 @@ monitor:
 executionRepository:
   redis:
     enabled: false
+
+spring:
+  application:
+    name: orcaTest

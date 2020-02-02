@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.orca.events;
 
+import com.netflix.spinnaker.kork.common.Header;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.listeners.DefaultPersister;
 import com.netflix.spinnaker.orca.listeners.ExecutionListener;
 import com.netflix.spinnaker.orca.listeners.Persister;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
-import com.netflix.spinnaker.security.AuthenticatedRequest;
 import org.slf4j.MDC;
 import org.springframework.context.ApplicationListener;
 
@@ -42,14 +42,14 @@ public final class ExecutionListenerAdapter implements ApplicationListener<Execu
   @Override
   public void onApplicationEvent(ExecutionEvent event) {
     try {
-      MDC.put(AuthenticatedRequest.Header.EXECUTION_ID.getHeader(), event.getExecutionId());
+      MDC.put(Header.EXECUTION_ID.getHeader(), event.getExecutionId());
       if (event instanceof ExecutionStarted) {
         onExecutionStarted((ExecutionStarted) event);
       } else if (event instanceof ExecutionComplete) {
         onExecutionComplete((ExecutionComplete) event);
       }
     } finally {
-      MDC.remove(AuthenticatedRequest.Header.EXECUTION_ID.getHeader());
+      MDC.remove(Header.EXECUTION_ID.getHeader());
     }
   }
 

@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.orca.echo.spring
 
+import com.netflix.spinnaker.kork.common.Header
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.listeners.Persister
@@ -126,14 +127,14 @@ class EchoNotifyingStageListener implements StageListener {
       }
 
       try {
-        MDC.put(AuthenticatedRequest.Header.EXECUTION_ID.header, stage.execution.id)
-        MDC.put(AuthenticatedRequest.Header.USER.header, stage.execution?.authentication?.user ?: "anonymous")
+        MDC.put(Header.EXECUTION_ID.header, stage.execution.id)
+        MDC.put(Header.USER.header, stage.execution?.authentication?.user ?: "anonymous")
         AuthenticatedRequest.allowAnonymous({
           echoService.recordEvent(event)
         })
       } finally {
-        MDC.remove(AuthenticatedRequest.Header.EXECUTION_ID.header)
-        MDC.remove(AuthenticatedRequest.Header.USER.header)
+        MDC.remove(Header.EXECUTION_ID.header)
+        MDC.remove(Header.USER.header)
       }
     } catch (Exception e) {
       log.error("Failed to send ${type} event ${phase} ${stage.execution.id} ${maybeTask.map { Task task -> task.name }}", e)

@@ -25,6 +25,7 @@ import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
 
 import javax.servlet.http.HttpServletResponse
+import com.netflix.spinnaker.kork.common.Header
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import com.netflix.spinnaker.kork.web.exceptions.ValidationException
 import com.netflix.spinnaker.orca.igor.BuildService
@@ -264,7 +265,7 @@ class OperationsControllerSpec extends Specification {
     buildService.getBuild(buildNumber, master, job) >> buildInfo
 
     if (queryUser) {
-      MDC.put(AuthenticatedRequest.Header.USER.header, queryUser)
+      MDC.put(Header.USER.header, queryUser)
     }
     when:
     controller.orchestrate(requestedPipeline, Mock(HttpServletResponse))

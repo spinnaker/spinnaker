@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.echo.spring
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.common.Header
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.front50.Front50Service
@@ -24,7 +25,6 @@ import com.netflix.spinnaker.orca.front50.model.ApplicationNotifications
 import com.netflix.spinnaker.orca.front50.model.ApplicationNotifications.Notification
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
-import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.slf4j.MDC
 import spock.lang.Shared
 import spock.lang.Specification
@@ -223,8 +223,8 @@ class EchoNotifyingExecutionListenerSpec extends Specification {
     pipeline.notifications == [slackPipes]
 
     1 * front50Service.getApplicationNotifications("myapp") >> {
-      assert MDC.get(AuthenticatedRequest.Header.USER.header) == "user@schibsted.com"
-      assert MDC.get(AuthenticatedRequest.Header.ACCOUNTS.header) == "someAccount,anotherAccount"
+      assert MDC.get(Header.USER.header) == "user@schibsted.com"
+      assert MDC.get(Header.ACCOUNTS.header) == "someAccount,anotherAccount"
       return notifications
     }
     1 * echoService.recordEvent(_)
