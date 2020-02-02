@@ -36,9 +36,15 @@ import com.netflix.spinnaker.orca.q.StartStage
 import com.netflix.spinnaker.orca.q.TaskLevel
 import com.netflix.spinnaker.q.Message
 import com.netflix.spinnaker.q.MessageHandler
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.time.Duration
 
 internal interface OrcaMessageHandler<M : Message> : MessageHandler<M> {
+  companion object {
+    val log: Logger = LoggerFactory.getLogger(this::class.java)
+  }
+
   val repository: ExecutionRepository
 
   fun Collection<ExceptionHandler>.shouldRetry(ex: Exception, taskName: String?): ExceptionHandler.Response? {
@@ -52,6 +58,7 @@ internal interface OrcaMessageHandler<M : Message> : MessageHandler<M> {
         .taskById(taskId)
         .let { task ->
           if (task == null) {
+            log.error("InvalidTaskId: Unable to find task {} in existing tasks {} while processing message {}", taskId, stage.tasks.map { it.id }, this.javaClass)
             queue.push(InvalidTaskId(this))
           } else {
             block.invoke(stage, task)
