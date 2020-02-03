@@ -63,9 +63,10 @@ class SqlConfiguration {
   fun deliveryConfigRepository(
     jooq: DSLContext,
     clock: Clock,
-    resourceTypeIdentifier: ResourceTypeIdentifier
+    resourceTypeIdentifier: ResourceTypeIdentifier,
+    objectMapper: ObjectMapper
   ) =
-    SqlDeliveryConfigRepository(jooq, clock, resourceTypeIdentifier, SqlRetry(sqlRetryProperties))
+    SqlDeliveryConfigRepository(jooq, clock, resourceTypeIdentifier, objectMapper, SqlRetry(sqlRetryProperties))
 
   @Bean
   fun diffFingerprintRepository(

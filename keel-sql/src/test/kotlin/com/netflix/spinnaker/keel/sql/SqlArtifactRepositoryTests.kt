@@ -11,7 +11,7 @@ import java.time.Clock
 class SqlArtifactRepositoryTests : ArtifactRepositoryTests<SqlArtifactRepository>() {
   private val testDatabase = initTestDatabase()
   private val jooq = testDatabase.context
-  private val objectmapper = configuredObjectMapper()
+  private val objectMapper = configuredObjectMapper()
   private val retryProperties = RetryProperties(1, 0)
   private val sqlRetry = SqlRetry(SqlRetryProperties(retryProperties, retryProperties))
 
@@ -19,11 +19,12 @@ class SqlArtifactRepositoryTests : ArtifactRepositoryTests<SqlArtifactRepository
     jooq,
     Clock.systemDefaultZone(),
     DummyResourceTypeIdentifier,
+    objectMapper,
     sqlRetry
   )
 
   override fun factory(clock: Clock): SqlArtifactRepository =
-    SqlArtifactRepository(jooq, clock, objectmapper, sqlRetry)
+    SqlArtifactRepository(jooq, clock, objectMapper, sqlRetry)
 
   override fun SqlArtifactRepository.flush() {
     cleanupDb(jooq)

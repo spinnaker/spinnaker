@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.sql
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.api.ArtifactType
 import com.netflix.spinnaker.keel.api.ConstraintState
@@ -23,7 +24,6 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_ARTIF
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ENVIRONMENT_RESOURCE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
-import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
 import java.time.Clock
@@ -43,10 +43,9 @@ class SqlDeliveryConfigRepository(
   private val jooq: DSLContext,
   private val clock: Clock,
   private val resourceTypeIdentifier: ResourceTypeIdentifier,
+  private val mapper: ObjectMapper,
   private val sqlRetry: SqlRetry
 ) : DeliveryConfigRepository {
-
-  private val mapper = configuredObjectMapper()
 
   override fun getByApplication(application: String): Collection<DeliveryConfig> =
     sqlRetry.withRetry(READ) {

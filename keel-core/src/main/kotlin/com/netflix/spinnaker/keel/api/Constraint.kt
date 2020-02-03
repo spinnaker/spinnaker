@@ -1,9 +1,6 @@
 package com.netflix.spinnaker.keel.api
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.fasterxml.jackson.annotation.JsonSubTypes
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type
-import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.netflix.spinnaker.keel.constraints.AllowedTimesConstraintEvaluator
 import java.lang.Exception
 import java.time.DateTimeException
@@ -11,17 +8,6 @@ import java.time.Duration
 import java.time.ZoneId
 import java.time.zone.ZoneRulesException
 
-@JsonTypeInfo(
-  include = JsonTypeInfo.As.EXISTING_PROPERTY,
-  use = JsonTypeInfo.Id.NAME,
-  property = "type")
-@JsonSubTypes(
-  Type(value = DependsOnConstraint::class, name = "depends-on"),
-  Type(value = TimeWindowConstraint::class, name = "allowed-times"),
-  Type(value = ManualJudgementConstraint::class, name = "manual-judgement"),
-  Type(value = PipelineConstraint::class, name = "pipeline"),
-  Type(value = CanaryConstraint::class, name = "canary")
-)
 abstract class Constraint(val type: String)
 
 abstract class StatefulConstraint(type: String) : Constraint(type)
