@@ -93,13 +93,7 @@ public class WavefrontMetricsService implements MetricsService {
       throws IOException {
     WavefrontCanaryScope wavefrontCanaryScope = (WavefrontCanaryScope) canaryScope;
     WavefrontNamedAccountCredentials accountCredentials =
-        (WavefrontNamedAccountCredentials)
-            accountCredentialsRepository
-                .getOne(accountName)
-                .orElseThrow(
-                    () ->
-                        new IllegalArgumentException(
-                            "Unable to resolve account " + accountName + "."));
+        accountCredentialsRepository.getRequiredOne(accountName);
     WavefrontCredentials credentials = accountCredentials.getCredentials();
     WavefrontRemoteService wavefrontRemoteService = accountCredentials.getWavefrontRemoteService();
 

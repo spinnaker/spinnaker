@@ -22,7 +22,6 @@ import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.spectator.api.NoopRegistry;
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -63,7 +62,7 @@ public class CanaryAnalysisPrometheusMetricsMixerServiceIntegrationTest {
 
     metricSetMixerService = new MetricSetMixerService();
 
-    when(accountCredentialsRepository.getOne(anyString())).thenReturn(Optional.of(credentials));
+    when(accountCredentialsRepository.getRequiredOne(anyString())).thenReturn(credentials);
     when(credentials.getPrometheusRemoteService()).thenReturn(prometheusRemoteService);
   }
 

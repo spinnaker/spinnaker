@@ -20,7 +20,13 @@ import java.util.Optional;
 import java.util.Set;
 
 public interface AccountCredentialsRepository {
-  Optional<AccountCredentials> getOne(String accountName);
+  <T extends AccountCredentials> Optional<T> getOne(String accountName);
+
+  default <T extends AccountCredentials> T getRequiredOne(String accountName) {
+    Optional<T> one = getOne(accountName);
+    return one.orElseThrow(
+        () -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
+  }
 
   Optional<AccountCredentials> getOne(AccountCredentials.Type credentialsType);
 

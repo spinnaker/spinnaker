@@ -84,12 +84,7 @@ public class AtlasMetricsService implements MetricsService {
   }
 
   private AtlasNamedAccountCredentials getCredentials(String accountName) {
-    return (AtlasNamedAccountCredentials)
-        accountCredentialsRepository
-            .getOne(accountName)
-            .orElseThrow(
-                () ->
-                    new IllegalArgumentException("Unable to resolve account " + accountName + "."));
+    return accountCredentialsRepository.getRequiredOne(accountName);
   }
 
   @Override

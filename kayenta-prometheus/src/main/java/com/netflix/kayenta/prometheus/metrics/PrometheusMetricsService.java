@@ -249,13 +249,7 @@ public class PrometheusMetricsService implements MetricsService {
     }
 
     PrometheusNamedAccountCredentials credentials =
-        (PrometheusNamedAccountCredentials)
-            accountCredentialsRepository
-                .getOne(accountName)
-                .orElseThrow(
-                    () ->
-                        new IllegalArgumentException(
-                            "Unable to resolve account " + accountName + "."));
+        accountCredentialsRepository.getRequiredOne(accountName);
     PrometheusRemoteService prometheusRemoteService = credentials.getPrometheusRemoteService();
 
     if (StringUtils.isEmpty(canaryScope.getStart())) {

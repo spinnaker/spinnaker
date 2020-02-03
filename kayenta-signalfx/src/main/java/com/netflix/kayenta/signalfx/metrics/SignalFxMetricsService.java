@@ -123,13 +123,7 @@ public class SignalFxMetricsService implements MetricsService {
         Optional.ofNullable(queryConfig.getQueryPairs()).orElse(new LinkedList<>());
 
     SignalFxNamedAccountCredentials accountCredentials =
-        (SignalFxNamedAccountCredentials)
-            accountCredentialsRepository
-                .getOne(metricsAccountName)
-                .orElseThrow(
-                    () ->
-                        new IllegalArgumentException(
-                            "Unable to resolve account " + metricsAccountName + "."));
+        accountCredentialsRepository.getRequiredOne(metricsAccountName);
 
     String accessToken = accountCredentials.getCredentials().getAccessToken();
     SignalFxSignalFlowRemoteService signalFlowService = accountCredentials.getSignalFlowService();

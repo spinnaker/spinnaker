@@ -64,13 +64,7 @@ public class BlobsStorageService implements StorageService {
   public <T> T loadObject(String accountName, ObjectType objectType, String objectKey)
       throws IllegalArgumentException, NotFoundException {
     AzureNamedAccountCredentials credentials =
-        (AzureNamedAccountCredentials)
-            accountCredentialsRepository
-                .getOne(accountName)
-                .orElseThrow(
-                    () ->
-                        new IllegalArgumentException(
-                            "Unable to resolve account " + accountName + "."));
+        accountCredentialsRepository.getRequiredOne(accountName);
     CloudBlobContainer azureContainer = credentials.getAzureContainer();
     CloudBlockBlob blobItem;
     try {
@@ -142,13 +136,7 @@ public class BlobsStorageService implements StorageService {
       String filename,
       boolean isAnUpdate) {
     AzureNamedAccountCredentials credentials =
-        (AzureNamedAccountCredentials)
-            accountCredentialsRepository
-                .getOne(accountName)
-                .orElseThrow(
-                    () ->
-                        new IllegalArgumentException(
-                            "Unable to resolve account " + accountName + "."));
+        accountCredentialsRepository.getRequiredOne(accountName);
     CloudBlobContainer azureContainer = credentials.getAzureContainer();
     String path = keyToPath(credentials, objectType, objectKey, filename);
 
@@ -260,13 +248,7 @@ public class BlobsStorageService implements StorageService {
   @Override
   public void deleteObject(String accountName, ObjectType objectType, String objectKey) {
     AzureNamedAccountCredentials credentials =
-        (AzureNamedAccountCredentials)
-            accountCredentialsRepository
-                .getOne(accountName)
-                .orElseThrow(
-                    () ->
-                        new IllegalArgumentException(
-                            "Unable to resolve account " + accountName + "."));
+        accountCredentialsRepository.getRequiredOne(accountName);
     CloudBlobContainer azureContainer = credentials.getAzureContainer();
     CloudBlockBlob item = resolveSingularBlob(objectType, objectKey, credentials, azureContainer);
 
@@ -335,13 +317,7 @@ public class BlobsStorageService implements StorageService {
   public List<Map<String, Object>> listObjectKeys(
       String accountName, ObjectType objectType, List<String> applications, boolean skipIndex) {
     AzureNamedAccountCredentials credentials =
-        (AzureNamedAccountCredentials)
-            accountCredentialsRepository
-                .getOne(accountName)
-                .orElseThrow(
-                    () ->
-                        new IllegalArgumentException(
-                            "Unable to resolve account " + accountName + "."));
+        accountCredentialsRepository.getRequiredOne(accountName);
 
     if (!skipIndex && objectType == ObjectType.CANARY_CONFIG) {
       Set<Map<String, Object>> canaryConfigSet =

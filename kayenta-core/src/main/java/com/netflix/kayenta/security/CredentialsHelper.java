@@ -29,13 +29,7 @@ public class CredentialsHelper {
     AccountCredentials credentials;
 
     if (StringUtils.hasLength(accountName)) {
-      credentials =
-          accountCredentialsRepository
-              .getOne(accountName)
-              .orElseThrow(
-                  () ->
-                      new IllegalArgumentException(
-                          "Unable to resolve account " + accountName + "."));
+      credentials = accountCredentialsRepository.getRequiredOne(accountName);
     } else {
       credentials =
           accountCredentialsRepository

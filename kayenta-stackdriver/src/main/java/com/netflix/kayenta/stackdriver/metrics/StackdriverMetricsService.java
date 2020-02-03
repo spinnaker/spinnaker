@@ -279,13 +279,7 @@ public class StackdriverMetricsService implements MetricsService {
 
     StackdriverCanaryScope stackdriverCanaryScope = (StackdriverCanaryScope) canaryScope;
     GoogleNamedAccountCredentials stackdriverCredentials =
-        (GoogleNamedAccountCredentials)
-            accountCredentialsRepository
-                .getOne(metricsAccountName)
-                .orElseThrow(
-                    () ->
-                        new IllegalArgumentException(
-                            "Unable to resolve account " + metricsAccountName + "."));
+        accountCredentialsRepository.getRequiredOne(metricsAccountName);
     Monitoring monitoring = stackdriverCredentials.getMonitoring();
     StackdriverCanaryMetricSetQueryConfig stackdriverMetricSetQuery =
         (StackdriverCanaryMetricSetQueryConfig) canaryMetricConfig.getQuery();
@@ -452,13 +446,7 @@ public class StackdriverMetricsService implements MetricsService {
 
     if (StringUtils.isEmpty(projectId)) {
       GoogleNamedAccountCredentials stackdriverCredentials =
-          (GoogleNamedAccountCredentials)
-              accountCredentialsRepository
-                  .getOne(metricsAccountName)
-                  .orElseThrow(
-                      () ->
-                          new IllegalArgumentException(
-                              "Unable to resolve account " + metricsAccountName + "."));
+          accountCredentialsRepository.getRequiredOne(metricsAccountName);
 
       projectId = stackdriverCredentials.getProject();
     }

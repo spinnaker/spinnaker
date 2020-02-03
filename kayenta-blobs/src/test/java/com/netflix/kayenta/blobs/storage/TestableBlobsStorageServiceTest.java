@@ -94,11 +94,6 @@ public class TestableBlobsStorageServiceTest {
       String testItemKey,
       List<String> applications,
       String exceptionKey) {
-    AccountCredentialsRepository mockCredentialsRepository =
-        mock(AccountCredentialsRepository.class);
-    doReturn(credentialsRepository.getOne(accountName))
-        .when(mockCredentialsRepository)
-        .getOne(anyString());
     try {
       log.info(
           String.format(
@@ -134,11 +129,6 @@ public class TestableBlobsStorageServiceTest {
       String application,
       boolean isAnUpdate) {
     String testItemKey = "some(GUID)";
-    AccountCredentialsRepository mockCredentialsRepository =
-        mock(AccountCredentialsRepository.class);
-    doReturn(credentialsRepository.getOne(accountName))
-        .when(mockCredentialsRepository)
-        .getOne(anyString());
 
     when(mockedCanaryConfigIndex.getRedisTime()).thenReturn(1163643740L);
     when(mockedCanaryConfigIndex.getIdFromName(
@@ -166,11 +156,6 @@ public class TestableBlobsStorageServiceTest {
   @Test
   @UseDataProvider("deleteObjectDataset")
   public void deleteObject(String accountName, ObjectType objectType, String testItemKey) {
-    AccountCredentialsRepository mockCredentialsRepository =
-        mock(AccountCredentialsRepository.class);
-    doReturn(credentialsRepository.getOne(accountName))
-        .when(mockCredentialsRepository)
-        .getOne(anyString());
 
     String fakeBlobName =
         rootFolder + "/" + objectType.getGroup() + "/" + testItemKey + "/canary_test.json";
@@ -202,11 +187,6 @@ public class TestableBlobsStorageServiceTest {
   @UseDataProvider("listObjectKeysDataset")
   public void listObjectKeys(
       String accountName, ObjectType objectType, List<String> applications, boolean skipIndex) {
-    AccountCredentialsRepository mockCredentialsRepository =
-        mock(AccountCredentialsRepository.class);
-    doReturn(credentialsRepository.getOne(accountName))
-        .when(mockCredentialsRepository)
-        .getOne(anyString());
 
     try {
       log.info("Running listObjectKeysTest for rootFolder" + "/" + objectType.getGroup() + "/");

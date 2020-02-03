@@ -1,7 +1,7 @@
 package com.netflix.kayenta.controllers;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.StringContains.containsString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -28,7 +28,7 @@ public class CanaryConfigControllerTest extends BaseControllerTest {
   @Before
   public void setUp() {
     super.setUp();
-    when(accountCredentialsRepository.getOne(CONFIGS_ACCOUNT)).thenReturn(Optional.of(CREDENTIALS));
+    when(accountCredentialsRepository.getRequiredOne(CONFIGS_ACCOUNT)).thenReturn(CREDENTIALS);
     when(storageServiceRepository.getOne(CONFIGS_ACCOUNT)).thenReturn(Optional.of(storageService));
   }
 
@@ -71,7 +71,8 @@ public class CanaryConfigControllerTest extends BaseControllerTest {
 
   @Test
   public void getCanaryConfig_returnsBadRequestResponseForNotResolvedAccount() throws Exception {
-    when(accountCredentialsRepository.getOne(CONFIGS_ACCOUNT)).thenReturn(Optional.empty());
+    when(accountCredentialsRepository.getRequiredOne(CONFIGS_ACCOUNT))
+        .thenThrow(new IllegalArgumentException("test message"));
 
     this.mockMvc
         .perform(
@@ -82,9 +83,7 @@ public class CanaryConfigControllerTest extends BaseControllerTest {
         .andDo(print())
         .andExpect(status().isBadRequest())
         .andExpect(content().contentType("application/json"))
-        .andExpect(
-            jsonPath("$.message")
-                .value(containsString("Unable to resolve account " + CONFIGS_ACCOUNT)));
+        .andExpect(jsonPath("$.message", equalTo("test message")));
   }
 
   private static AccountCredentials getCredentials(String accountName) {

@@ -96,13 +96,7 @@ public class NewRelicMetricsService implements MetricsService {
       CanaryScope canaryScope)
       throws IOException {
     NewRelicNamedAccountCredentials accountCredentials =
-        (NewRelicNamedAccountCredentials)
-            accountCredentialsRepository
-                .getOne(accountName)
-                .orElseThrow(
-                    () ->
-                        new IllegalArgumentException(
-                            "Unable to resolve account " + accountName + "."));
+        accountCredentialsRepository.getRequiredOne(accountName);
 
     NewRelicCredentials credentials = accountCredentials.getCredentials();
     NewRelicRemoteService remoteService = accountCredentials.getNewRelicRemoteService();

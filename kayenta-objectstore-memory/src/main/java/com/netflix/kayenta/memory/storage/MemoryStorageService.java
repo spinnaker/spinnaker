@@ -48,13 +48,7 @@ public class MemoryStorageService implements StorageService {
 
   private MemoryNamedAccountCredentials getCredentials(String accountName, ObjectType objectType) {
     MemoryNamedAccountCredentials credentials =
-        (MemoryNamedAccountCredentials)
-            accountCredentialsRepository
-                .getOne(accountName)
-                .orElseThrow(
-                    () ->
-                        new IllegalArgumentException(
-                            "Unable to resolve account " + accountName + "."));
+        accountCredentialsRepository.getRequiredOne(accountName);
     credentials.getObjects().putIfAbsent(objectType, new ConcurrentHashMap<>());
     credentials.getMetadata().putIfAbsent(objectType, new ConcurrentHashMap<>());
     return credentials;

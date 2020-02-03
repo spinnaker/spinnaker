@@ -70,13 +70,7 @@ public class InfluxDbMetricsService implements MetricsService {
       CanaryScope canaryScope) {
 
     InfluxDbNamedAccountCredentials accountCredentials =
-        (InfluxDbNamedAccountCredentials)
-            accountCredentialsRepository
-                .getOne(accountName)
-                .orElseThrow(
-                    () ->
-                        new IllegalArgumentException(
-                            "Unable to resolve account " + accountName + "."));
+        accountCredentialsRepository.getRequiredOne(accountName);
 
     InfluxDbRemoteService remoteService = accountCredentials.getInfluxDbRemoteService();
     InfluxdbCanaryMetricSetQueryConfig queryConfig =

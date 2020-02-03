@@ -71,13 +71,7 @@ public class S3StorageService implements StorageService {
   /** Check to see if the bucket exists, creating it if it is not there. */
   public void ensureBucketExists(String accountName) {
     AwsNamedAccountCredentials credentials =
-        (AwsNamedAccountCredentials)
-            accountCredentialsRepository
-                .getOne(accountName)
-                .orElseThrow(
-                    () ->
-                        new IllegalArgumentException(
-                            "Unable to resolve account " + accountName + "."));
+        accountCredentialsRepository.getRequiredOne(accountName);
 
     AmazonS3 amazonS3 = credentials.getAmazonS3();
     String bucket = credentials.getBucket();
@@ -107,13 +101,7 @@ public class S3StorageService implements StorageService {
   public <T> T loadObject(String accountName, ObjectType objectType, String objectKey)
       throws IllegalArgumentException, NotFoundException {
     AwsNamedAccountCredentials credentials =
-        (AwsNamedAccountCredentials)
-            accountCredentialsRepository
-                .getOne(accountName)
-                .orElseThrow(
-                    () ->
-                        new IllegalArgumentException(
-                            "Unable to resolve account " + accountName + "."));
+        accountCredentialsRepository.getRequiredOne(accountName);
     AmazonS3 amazonS3 = credentials.getAmazonS3();
     String bucket = credentials.getBucket();
     String path;
@@ -177,13 +165,7 @@ public class S3StorageService implements StorageService {
       String filename,
       boolean isAnUpdate) {
     AwsNamedAccountCredentials credentials =
-        (AwsNamedAccountCredentials)
-            accountCredentialsRepository
-                .getOne(accountName)
-                .orElseThrow(
-                    () ->
-                        new IllegalArgumentException(
-                            "Unable to resolve account " + accountName + "."));
+        accountCredentialsRepository.getRequiredOne(accountName);
     AmazonS3 amazonS3 = credentials.getAmazonS3();
     String bucket = credentials.getBucket();
     String group = objectType.getGroup();
@@ -300,13 +282,7 @@ public class S3StorageService implements StorageService {
   @Override
   public void deleteObject(String accountName, ObjectType objectType, String objectKey) {
     AwsNamedAccountCredentials credentials =
-        (AwsNamedAccountCredentials)
-            accountCredentialsRepository
-                .getOne(accountName)
-                .orElseThrow(
-                    () ->
-                        new IllegalArgumentException(
-                            "Unable to resolve account " + accountName + "."));
+        accountCredentialsRepository.getRequiredOne(accountName);
     AmazonS3 amazonS3 = credentials.getAmazonS3();
     String bucket = credentials.getBucket();
     String path = resolveSingularPath(objectType, objectKey, credentials, amazonS3, bucket);
@@ -379,13 +355,7 @@ public class S3StorageService implements StorageService {
   public List<Map<String, Object>> listObjectKeys(
       String accountName, ObjectType objectType, List<String> applications, boolean skipIndex) {
     AwsNamedAccountCredentials credentials =
-        (AwsNamedAccountCredentials)
-            accountCredentialsRepository
-                .getOne(accountName)
-                .orElseThrow(
-                    () ->
-                        new IllegalArgumentException(
-                            "Unable to resolve account " + accountName + "."));
+        accountCredentialsRepository.getRequiredOne(accountName);
 
     if (!skipIndex && objectType == ObjectType.CANARY_CONFIG) {
       Set<Map<String, Object>> canaryConfigSet =

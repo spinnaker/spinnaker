@@ -73,13 +73,7 @@ public class ConfigBinStorageService implements StorageService {
   public <T> T loadObject(String accountName, ObjectType objectType, String objectKey)
       throws IllegalArgumentException, NotFoundException {
     ConfigBinNamedAccountCredentials credentials =
-        (ConfigBinNamedAccountCredentials)
-            accountCredentialsRepository
-                .getOne(accountName)
-                .orElseThrow(
-                    () ->
-                        new IllegalArgumentException(
-                            "Unable to resolve account " + accountName + "."));
+        accountCredentialsRepository.getRequiredOne(accountName);
     String ownerApp = credentials.getOwnerApp();
     String configType = credentials.getConfigType();
     ConfigBinRemoteService remoteService = credentials.getRemoteService();
@@ -114,13 +108,7 @@ public class ConfigBinStorageService implements StorageService {
       String filename,
       boolean isAnUpdate) {
     ConfigBinNamedAccountCredentials credentials =
-        (ConfigBinNamedAccountCredentials)
-            accountCredentialsRepository
-                .getOne(accountName)
-                .orElseThrow(
-                    () ->
-                        new IllegalArgumentException(
-                            "Unable to resolve account " + accountName + "."));
+        accountCredentialsRepository.getRequiredOne(accountName);
     String ownerApp = credentials.getOwnerApp();
     String configType = credentials.getConfigType();
     ConfigBinRemoteService remoteService = credentials.getRemoteService();
@@ -217,13 +205,7 @@ public class ConfigBinStorageService implements StorageService {
   @Override
   public void deleteObject(String accountName, ObjectType objectType, String objectKey) {
     ConfigBinNamedAccountCredentials credentials =
-        (ConfigBinNamedAccountCredentials)
-            accountCredentialsRepository
-                .getOne(accountName)
-                .orElseThrow(
-                    () ->
-                        new IllegalArgumentException(
-                            "Unable to resolve account " + accountName + "."));
+        accountCredentialsRepository.getRequiredOne(accountName);
     String ownerApp = credentials.getOwnerApp();
     String configType = credentials.getConfigType();
 
@@ -292,13 +274,7 @@ public class ConfigBinStorageService implements StorageService {
   public List<Map<String, Object>> listObjectKeys(
       String accountName, ObjectType objectType, List<String> applications, boolean skipIndex) {
     ConfigBinNamedAccountCredentials credentials =
-        (ConfigBinNamedAccountCredentials)
-            accountCredentialsRepository
-                .getOne(accountName)
-                .orElseThrow(
-                    () ->
-                        new IllegalArgumentException(
-                            "Unable to resolve account " + accountName + "."));
+        accountCredentialsRepository.getRequiredOne(accountName);
 
     if (!skipIndex && objectType == ObjectType.CANARY_CONFIG) {
       Set<Map<String, Object>> canaryConfigSet =
