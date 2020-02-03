@@ -64,7 +64,9 @@ class AdHocDiffer(
     submittedDeliveryConfig.environments.map { env ->
       val resourceDiffs = runBlocking {
         env.resources.map { resource ->
-          calculate(resource)
+          val metadata = resource.metadata.toMutableMap()
+          metadata["serviceAccount"] = submittedDeliveryConfig.serviceAccount
+          calculate(resource.copy(metadata = metadata))
         }
       }
 
