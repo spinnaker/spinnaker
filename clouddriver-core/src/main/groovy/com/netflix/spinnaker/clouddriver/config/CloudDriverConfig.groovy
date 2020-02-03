@@ -73,10 +73,7 @@ import com.netflix.spinnaker.clouddriver.model.SubnetProvider
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry
 import com.netflix.spinnaker.clouddriver.names.NamingStrategy
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationConverter
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationDescriptionPreProcessor
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationsRegistry
 import com.netflix.spinnaker.clouddriver.orchestration.ExceptionClassifier
-import com.netflix.spinnaker.clouddriver.orchestration.OperationsService
 import com.netflix.spinnaker.clouddriver.saga.SagaEvent
 import com.netflix.spinnaker.clouddriver.search.ApplicationSearchProvider
 import com.netflix.spinnaker.clouddriver.search.NoopSearchProvider
@@ -85,7 +82,6 @@ import com.netflix.spinnaker.clouddriver.search.SearchProvider
 import com.netflix.spinnaker.clouddriver.search.executor.SearchExecutorConfig
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
-import com.netflix.spinnaker.clouddriver.security.AllowedAccountsValidator
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.config.SecurityConfig
@@ -94,12 +90,15 @@ import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.cloud.context.scope.refresh.RefreshScope
 import org.springframework.context.ApplicationContext
+import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
@@ -360,5 +359,14 @@ class CloudDriverConfig {
   ExceptionClassifier exceptionClassifier(ExceptionClassifierConfigurationProperties properties,
                                           DynamicConfigService dynamicConfigService) {
     return new ExceptionClassifier(properties, dynamicConfigService)
+  }
+
+  @Bean
+  @ConditionalOnExpression("\${dynamic-config.enabled:false}")
+  ModifiableFilePropertySources modifiableFilePropertySources(
+      ConfigurableApplicationContext applicationContext,
+      RefreshScope refreshScope,
+      @Value("\${dynamic-config.files}") List<String> dynamicFiles) {
+      return new ModifiableFilePropertySources(applicationContext, refreshScope, dynamicFiles)
   }
 }

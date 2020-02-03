@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -33,6 +34,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @ComponentScan({"com.netflix.spinnaker.clouddriver.kubernetes"})
 public class KubernetesConfiguration {
   @Bean
+  @RefreshScope
   @ConfigurationProperties("kubernetes")
   public KubernetesConfigurationProperties kubernetesConfigurationProperties() {
     return new KubernetesConfigurationProperties();
