@@ -61,7 +61,7 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
       Fixture(
         clock = businessHoursClock,
         constraint = TimeWindowConstraint(
-          listOf(
+          windows = listOf(
             TimeWindow(
               days = "Monday-Tuesday,Thursday-Friday",
               hours = "09-16"
@@ -83,7 +83,7 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
           // In America/Los_Angeles, this was 1pm on a Thursday
           clock = businessHoursClock,
           constraint = TimeWindowConstraint(
-            listOf(
+            windows = listOf(
               TimeWindow(
                 days = "Monday",
                 hours = "11-16"
@@ -109,7 +109,7 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
         Fixture(
           clock = weekendClock,
           constraint = TimeWindowConstraint(
-            listOf(
+            windows = listOf(
               TimeWindow(
                 days = "Monday-Friday",
                 hours = "11-16"
@@ -131,7 +131,7 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
         Fixture(
           clock = weekendClock,
           constraint = TimeWindowConstraint(
-            listOf(
+            windows = listOf(
               TimeWindow(
                 days = "weekdays"
               )
@@ -152,7 +152,7 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
         Fixture(
           clock = weekendClock,
           constraint = TimeWindowConstraint(
-            listOf(
+            windows = listOf(
               TimeWindow(
                 days = "weekends"
               )
@@ -173,7 +173,7 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
         Fixture(
           clock = businessHoursClock,
           constraint = TimeWindowConstraint(
-            listOf(
+            windows = listOf(
               TimeWindow(
                 days = "mon-fri",
                 hours = "11-16"
@@ -195,7 +195,7 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
         Fixture(
           clock = businessHoursClock,
           constraint = TimeWindowConstraint(
-            listOf(
+            windows = listOf(
               TimeWindow(
                 days = "mon-fri",
                 hours = "11-16"
@@ -216,7 +216,7 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
         Fixture(
           clock = mondayClock,
           constraint = TimeWindowConstraint(
-            listOf(
+            windows = listOf(
               TimeWindow(
                 days = "sat-tue",
                 hours = "23-10"
@@ -238,7 +238,7 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
         Fixture(
           clock = mondayClock,
           constraint = TimeWindowConstraint(
-            listOf(
+            windows = listOf(
               TimeWindow(
                 days = "sat-tue",
                 hours = "9-11"
@@ -259,7 +259,7 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
       test("invalid day range") {
         expectCatching {
           TimeWindowConstraint(
-            listOf(
+            windows = listOf(
               TimeWindow(
                 days = "mon-frizzay",
                 hours = "11-16"
@@ -275,7 +275,7 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
       test("invalid hour range") {
         expectCatching {
           TimeWindowConstraint(
-            listOf(
+            windows = listOf(
               TimeWindow(
                 days = "weekdays",
                 hours = "11-161"
@@ -291,7 +291,7 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
       test("invalid tz") {
         expectCatching {
           TimeWindowConstraint(
-            listOf(
+            windows = listOf(
               TimeWindow(
                 days = "weekdays",
                 hours = "11-16"

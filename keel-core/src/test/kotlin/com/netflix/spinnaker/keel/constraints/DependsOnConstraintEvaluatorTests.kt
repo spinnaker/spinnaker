@@ -25,7 +25,7 @@ internal class DependsOnConstraintEvaluatorTests : JUnit5Minutests {
     val constrainedEnvironment = Environment(
       name = "staging",
       constraints = setOf(
-        DependsOnConstraint("test")
+        DependsOnConstraint(environment = "test")
       )
     )
     val previousEnvironment = Environment(
