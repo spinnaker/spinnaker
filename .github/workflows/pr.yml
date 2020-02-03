@@ -1,6 +1,11 @@
-name: PR
+name: Keel CI
 
-on: [pull_request]
+on:
+  pull_request:
+  push:
+    branches:
+    - master
+    - release-*
 
 jobs:
   build:
@@ -20,4 +25,4 @@ jobs:
     - name: Build
       env:
         GRADLE_OPTS: -Xmx6g -Xms6g -Dorg.gradle.daemon=false
-      run: ./gradlew build javadoc
+      run: ./gradlew build
