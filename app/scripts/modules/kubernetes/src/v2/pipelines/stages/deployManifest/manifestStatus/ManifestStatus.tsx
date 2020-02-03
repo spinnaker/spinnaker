@@ -1,7 +1,7 @@
 import React from 'react';
 import { dump } from 'js-yaml';
 
-import { CopyToClipboard, IManifest, ManifestYaml } from '@spinnaker/core';
+import { CopyToClipboard, IManifest, ManifestYaml, Overridable } from '@spinnaker/core';
 
 import { DeployManifestStatusPills } from './DeployStatusPills';
 import { ManifestDetailsLink } from './ManifestDetailsLink';
@@ -14,6 +14,7 @@ export interface IManifestStatusProps {
   stage: any;
 }
 
+@Overridable('kubernetes.v2.pipeline.stages.deployManifest.manifestStatus')
 export class ManifestStatus extends React.Component<IManifestStatusProps> {
   public render() {
     const { manifest, stage } = this.props;
