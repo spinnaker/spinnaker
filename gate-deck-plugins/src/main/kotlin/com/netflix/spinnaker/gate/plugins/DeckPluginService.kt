@@ -17,6 +17,7 @@ package com.netflix.spinnaker.gate.plugins
 
 import com.netflix.spectator.api.Registry
 import org.slf4j.LoggerFactory
+import java.io.File
 
 /**
  * Provides Deck with means of discovering what plugins it needs to download and a standard interface for
@@ -51,7 +52,7 @@ class DeckPluginService(
    * If the plugin does not exist on the filesystem, it will be downloaded and cached to a standard location so that
    * subsequent asset requests for the plugin version will be faster.
    */
-  fun getPluginAsset(pluginId: String, pluginVersion: String, assetPath: String): String? {
+  fun getPluginAsset(pluginId: String, pluginVersion: String, assetPath: String): PluginAsset? {
     if (!pluginCache.isCachePopulated()) {
       throw CacheNotReadyException()
     }
@@ -66,6 +67,28 @@ class DeckPluginService(
     }
     registry.counter(assetHitsId).increment()
 
-    return localAsset.readText()
+    return PluginAsset.from(localAsset)
+  }
+
+  data class PluginAsset(val contentType: String, val content: String) {
+
+    companion object {
+      private val log by lazy { LoggerFactory.getLogger(PluginAsset::class.java) }
+
+      fun from(file: File): PluginAsset {
+        return PluginAsset(
+            contentType = when {
+              file.toString().endsWith(".js") -> { "application/javascript" }
+              file.toString().endsWith(".css") -> { "text/css" }
+              file.toString().endsWith(".html") -> { "text/html" }
+              else -> {
+                log.warn("Unhandled file extension to content-type mapping for file `{}`, falling back to text/plain", file.toString())
+                "text/plain"
+              }
+            },
+            content = file.readText()
+        )
+      }
+    }
   }
 }

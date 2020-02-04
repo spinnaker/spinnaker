@@ -17,12 +17,15 @@ package com.netflix.spinnaker.gate.plugins
 
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import io.swagger.annotations.ApiOperation
+import org.springframework.http.CacheControl
 import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.util.concurrent.TimeUnit
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
@@ -44,9 +47,19 @@ class DeckPluginsController(
     @PathVariable pluginId: String,
     @PathVariable pluginVersion: String,
     @PathVariable asset: String
-  ): String {
-    return deckPluginService.getPluginAsset(pluginId, pluginVersion, asset)
-      ?: throw NotFoundException("Unable to find asset for plugin version")
+  ): ResponseEntity<String> {
+    val pluginAsset = deckPluginService.getPluginAsset(pluginId, pluginVersion, asset) ?: throw NotFoundException("Unable to find asset for plugin version")
+
+    return ResponseEntity.ok()
+        .header("Content-Type", pluginAsset.contentType)
+        .header("Cache-Control",
+            CacheControl
+                .maxAge(1, TimeUnit.DAYS)
+                .mustRevalidate()
+                .cachePrivate()
+                .headerValue
+        )
+        .body(pluginAsset.content)
   }
 
   @ExceptionHandler(CacheNotReadyException::class)
