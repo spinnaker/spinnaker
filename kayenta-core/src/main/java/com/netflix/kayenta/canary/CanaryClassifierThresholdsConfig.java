@@ -17,6 +17,8 @@
 package com.netflix.kayenta.canary;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import javax.validation.constraints.NotNull;
 import lombok.*;
 
@@ -25,9 +27,20 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@ApiModel(description = "Sets thresholds for canary score.")
 public class CanaryClassifierThresholdsConfig {
 
-  @NotNull @Getter private Double pass;
+  @ApiModelProperty(
+      value = "If canary score is higher than this value -- canary is considered successful.",
+      example = "75.0")
+  @NotNull
+  @Getter
+  private Double pass;
 
-  @NotNull @Getter private Double marginal;
+  @ApiModelProperty(
+      value = "If canary score is lower than this value -- canary is considered marginal (failed).",
+      example = "50.0")
+  @NotNull
+  @Getter
+  private Double marginal;
 }

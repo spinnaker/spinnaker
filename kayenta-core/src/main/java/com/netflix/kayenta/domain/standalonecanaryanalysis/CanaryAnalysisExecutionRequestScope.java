@@ -39,7 +39,7 @@ import lombok.ToString;
 public class CanaryAnalysisExecutionRequestScope {
 
   @Builder.Default
-  @ApiModelProperty(value = "TODO: needs to be updated", example = "default")
+  @ApiModelProperty(value = "Specifies unique name of the metrics scope.", example = "default")
   String scopeName = "default";
 
   @ApiModelProperty(
