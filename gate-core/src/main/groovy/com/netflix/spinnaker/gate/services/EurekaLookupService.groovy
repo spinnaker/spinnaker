@@ -18,21 +18,23 @@ package com.netflix.spinnaker.gate.services
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.jakewharton.retrofit.Ok3Client
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.model.discovery.DiscoveryApplication
 import com.netflix.spinnaker.gate.retrofit.Slf4jRetrofitLogger
 import com.netflix.spinnaker.gate.services.internal.EurekaService
-import com.squareup.okhttp.OkHttpClient
 import groovy.transform.Immutable
-import java.util.concurrent.*
-import javax.annotation.PostConstruct
+import okhttp3.OkHttpClient
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RestAdapter
 import retrofit.RetrofitError
-import retrofit.client.OkClient
 import retrofit.converter.JacksonConverter
 
+import javax.annotation.PostConstruct
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 import static retrofit.Endpoints.newFixedEndpoint
 
@@ -93,7 +95,7 @@ class EurekaLookupService {
         .setEndpoint(endpoint)
         .setConverter(new JacksonConverter(new ObjectMapper().configure(DeserializationFeature.UNWRAP_ROOT_VALUE, true)
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true)))
-        .setClient(new OkClient(okHttpClient))
+        .setClient(new Ok3Client(okHttpClient))
         .setLogLevel(RestAdapter.LogLevel.BASIC)
         .setLog(new Slf4jRetrofitLogger(EurekaService))
         .build()

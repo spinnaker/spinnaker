@@ -16,10 +16,8 @@
 
 package com.netflix.spinnaker.gate.config
 
-import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.config.OkHttpClientConfiguration
-import com.squareup.okhttp.OkHttpClient
-import org.springframework.beans.factory.annotation.Autowired
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
+import okhttp3.OkHttpClient
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -27,13 +25,9 @@ import org.springframework.context.annotation.Scope
 
 @Configuration
 class RetrofitConfig {
-  @Autowired
-  OkHttpClientConfiguration okHttpClientConfig
-
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  OkHttpClient okHttpClient(Registry registry) {
-    return okHttpClientConfig.create()
+  OkHttpClient okHttpClient(OkHttp3ClientConfiguration okHttpClientConfig) {
+    return okHttpClientConfig.create().build()
   }
-
 }

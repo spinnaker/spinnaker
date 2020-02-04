@@ -20,6 +20,8 @@ dependencies {
   api "org.springframework.boot:spring-boot-starter-security"
 
   api "com.squareup.retrofit:retrofit"
+
+  implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0"
   implementation "com.squareup.retrofit:converter-jackson"
   implementation "com.squareup.okhttp:okhttp"
   implementation "com.squareup.okhttp:okhttp-urlconnection"

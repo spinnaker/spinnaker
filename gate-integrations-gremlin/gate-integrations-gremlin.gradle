@@ -2,7 +2,8 @@ dependencies {
   implementation project(":gate-core")
   implementation "com.netflix.spinnaker.kork:kork-swagger"
   implementation "com.netflix.spectator:spectator-api"
-  implementation "com.squareup.okhttp:okhttp"
+  implementation "com.squareup.okhttp3:okhttp"
   implementation "com.squareup.retrofit:retrofit"
   implementation "com.squareup.retrofit:converter-jackson"
+  implementation "com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0"
 }

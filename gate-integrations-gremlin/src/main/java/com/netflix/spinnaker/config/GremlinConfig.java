@@ -20,16 +20,16 @@ import static retrofit.Endpoints.newFixedEndpoint;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jakewharton.retrofit.Ok3Client;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.gate.config.Service;
 import com.netflix.spinnaker.gate.config.ServiceConfiguration;
-import com.netflix.spinnaker.gate.retrofit.EurekaOkClient;
 import com.netflix.spinnaker.gate.retrofit.Slf4jRetrofitLogger;
 import com.netflix.spinnaker.gate.services.EurekaLookupService;
 import com.netflix.spinnaker.gate.services.gremlin.GremlinService;
-import com.squareup.okhttp.OkHttpClient;
 import groovy.transform.CompileStatic;
 import groovy.util.logging.Slf4j;
+import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -83,14 +83,12 @@ class GremlinConfig {
     }
 
     Endpoint endpoint = newFixedEndpoint(service.getBaseUrl());
-
-    EurekaOkClient client =
-        new EurekaOkClient(okHttpClient, registry, serviceName, eurekaLookupService);
-    return buildService(client, type, endpoint, spinnakerRequestInterceptor, retrofitLogLevel);
+    return buildService(
+        okHttpClient, type, endpoint, spinnakerRequestInterceptor, retrofitLogLevel);
   }
 
   private <T> T buildService(
-      EurekaOkClient client,
+      OkHttpClient client,
       Class<T> type,
       Endpoint endpoint,
       RequestInterceptor spinnakerRequestInterceptor,
@@ -103,7 +101,7 @@ class GremlinConfig {
     return new RestAdapter.Builder()
         .setRequestInterceptor(spinnakerRequestInterceptor)
         .setEndpoint(endpoint)
-        .setClient(client)
+        .setClient(new Ok3Client(client))
         .setConverter(new JacksonConverter(objectMapper))
         .setLogLevel(RestAdapter.LogLevel.valueOf(retrofitLogLevel))
         .setLog(new Slf4jRetrofitLogger(type))
