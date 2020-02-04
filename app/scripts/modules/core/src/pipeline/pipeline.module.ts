@@ -50,6 +50,7 @@ import { ARTIFACT_LIST } from './status/artifactList.component';
 import { PIPELINE_TEMPLATES_V2_STATES_CONFIG } from './config/templates/v2/pipelineTemplateV2.states';
 import './config/stages/googleCloudBuild/googleCloudBuildStage';
 import { STAGE_STATUS_PRECONDITION } from './config/preconditions/types/stageStatus/stageStatus.precondition.type.module';
+import './config/stages/awsCodeBuild/awsCodeBuildStage';
 
 import './pipeline.less';
 import 'angular-ui-sortable';

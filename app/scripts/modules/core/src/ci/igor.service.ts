@@ -70,4 +70,10 @@ export class IgorService {
       .one(account)
       .get();
   }
+
+  public static getCodeBuildAccounts(): IPromise<string[]> {
+    return API.one('codebuild')
+      .one('accounts')
+      .get();
+  }
 }
