@@ -122,6 +122,12 @@ public class ManagedController {
     return keelService.upsertManifest(manifest);
   }
 
+  @ApiOperation(value = "Delete a delivery config manifest", response = DeliveryConfig.class)
+  @DeleteMapping(path = "/delivery-configs/{name}")
+  DeliveryConfig deleteManifest(@PathVariable("name") String name) {
+    return keelService.deleteManifest(name);
+  }
+
   @ApiOperation(value = "Ad-hoc validate and diff a config manifest", response = Map.class)
   @PostMapping(
       path = "/delivery-configs/diff",

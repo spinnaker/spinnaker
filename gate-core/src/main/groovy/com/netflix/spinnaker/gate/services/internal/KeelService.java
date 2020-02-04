@@ -61,6 +61,9 @@ public interface KeelService {
   @POST("/delivery-configs")
   DeliveryConfig upsertManifest(@Body DeliveryConfig manifest);
 
+  @DELETE("/delivery-configs/{name}")
+  DeliveryConfig deleteManifest(@Path("name") String name);
+
   @POST("/delivery-configs/diff")
   List<Map> diffManifest(@Body DeliveryConfig manifest);
 
