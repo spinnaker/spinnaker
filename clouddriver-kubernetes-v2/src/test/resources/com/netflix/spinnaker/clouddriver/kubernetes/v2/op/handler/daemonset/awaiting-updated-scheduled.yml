@@ -1,0 +1,9 @@
+# Current number scheduled is as desired, but updated number scheduled is less than desired
+status:
+  currentNumberScheduled: 1
+  desiredNumberScheduled: 1
+  numberMisscheduled: 0
+  numberReady: 0
+  numberUnavailable: 1
+  observedGeneration: 2
+  updatedNumberScheduled: 0

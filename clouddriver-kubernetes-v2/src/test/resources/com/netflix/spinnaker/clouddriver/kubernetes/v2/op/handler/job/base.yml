@@ -1,0 +1,21 @@
+# Base job without completions set
+apiVersion: batch/v1
+kind: Job
+metadata:
+  creationTimestamp: "2020-01-31T16:43:33Z"
+  labels:
+    job-name: hello
+  name: hello
+spec:
+  template:
+    metadata:
+      labels:
+        job-name: hello
+    spec:
+      containers:
+        - command:
+            - echo
+            - Hello world
+          image: busybox
+          name: hello
+      restartPolicy: Never

@@ -1,0 +1,11 @@
+# Job has failed
+status:
+  conditions:
+    - lastProbeTime: "2020-01-31T19:13:13Z"
+      lastTransitionTime: "2020-01-31T19:13:13Z"
+      message: Job has reached the specified backoff limit
+      reason: BackoffLimitExceeded
+      status: "True"
+      type: Failed
+  failed: 2
+  startTime: "2020-01-31T19:13:02Z"

@@ -1,0 +1,9 @@
+# All replicas ready, but fewer than desired number
+status:
+  collisionCount: 0
+  currentReplicas: 3
+  currentRevision: web-b486b4959
+  observedGeneration: 2
+  readyReplicas: 3
+  replicas: 3
+  updateRevision: web-849bd7f5f9

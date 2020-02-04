@@ -1,0 +1,27 @@
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  generation: 2
+  name: my-daemonset
+spec:
+  selector:
+    matchLabels:
+      name: my-daemonset
+  template:
+    metadata:
+      labels:
+        name: my-daemonset
+    spec:
+      containers:
+        - image: nginx:1.7.9
+          imagePullPolicy: IfNotPresent
+          name: my-daemonset
+      dnsPolicy: ClusterFirst
+      nodeSelector:
+        type: prod
+      restartPolicy: Always
+  templateGeneration: 1
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 1
+    type: RollingUpdate

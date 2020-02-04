@@ -1,0 +1,26 @@
+# Base replicaset with no desired replicas
+apiVersion: extensions/v1beta1
+kind: ReplicaSet
+metadata:
+  creationTimestamp: "2020-01-30T16:34:22Z"
+  generation: 2
+  name: my-rs
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - image: nginx
+          imagePullPolicy: IfNotPresent
+          name: nginx
+          ports:
+            - containerPort: 4000
+              protocol: TCP
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always

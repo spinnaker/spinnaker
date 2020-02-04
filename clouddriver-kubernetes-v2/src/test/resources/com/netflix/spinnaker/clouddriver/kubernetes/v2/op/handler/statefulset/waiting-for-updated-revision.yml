@@ -1,0 +1,8 @@
+status:
+  collisionCount: 0
+  currentRevision: web-c5f4bdc97
+  observedGeneration: 2
+  readyReplicas: 4
+  replicas: 4
+  currentReplicas: 4
+  updateRevision: web-b46f789c4

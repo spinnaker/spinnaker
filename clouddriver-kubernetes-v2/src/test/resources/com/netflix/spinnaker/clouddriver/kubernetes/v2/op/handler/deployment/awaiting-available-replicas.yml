@@ -1,0 +1,21 @@
+# Status reports minimum availability, but replica counts show not all replicas available
+status:
+  availableReplicas: 62
+  conditions:
+    - lastTransitionTime: "2020-01-31T00:01:24Z"
+      lastUpdateTime: "2020-01-31T16:16:55Z"
+      message: ReplicaSet "nginx-deployment-6685876674" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    - lastTransitionTime: "2020-01-31T16:20:03Z"
+      lastUpdateTime: "2020-01-31T16:20:03Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+  observedGeneration: 3
+  readyReplicas: 62
+  replicas: 100
+  unavailableReplicas: 38
+  updatedReplicas: 100

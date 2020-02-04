@@ -1,0 +1,21 @@
+# Awaiting termination of old replicas
+status:
+  availableReplicas: 75
+  conditions:
+    - lastTransitionTime: "2020-01-31T16:35:32Z"
+      lastUpdateTime: "2020-01-31T16:35:32Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    - lastTransitionTime: "2020-01-31T16:35:30Z"
+      lastUpdateTime: "2020-01-31T16:38:57Z"
+      message: ReplicaSet "nginx-deployment-7cc75c7b9d" is progressing.
+      reason: ReplicaSetUpdated
+      status: "True"
+      type: Progressing
+  observedGeneration: 3
+  readyReplicas: 75
+  replicas: 114
+  unavailableReplicas: 39
+  updatedReplicas: 100

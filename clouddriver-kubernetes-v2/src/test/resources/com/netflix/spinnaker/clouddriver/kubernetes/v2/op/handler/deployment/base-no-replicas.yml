@@ -1,0 +1,18 @@
+# Deployment with spec of 0 replicas
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  generation: 3
+  name: nginx-deployment
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 0
+  template:
+    spec:
+      containers:
+        - image: nginx:1.7.9
+          imagePullPolicy: IfNotPresent
+          name: nginx
+          ports:
+            - containerPort: 80
+              protocol: TCP

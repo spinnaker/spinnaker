@@ -1,0 +1,9 @@
+# All are scheduled and available, but not ready
+status:
+  currentNumberScheduled: 1
+  desiredNumberScheduled: 1
+  numberAvailable: 1
+  numberMisscheduled: 0
+  numberReady: 0
+  observedGeneration: 2
+  updatedNumberScheduled: 1

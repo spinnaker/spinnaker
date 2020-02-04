@@ -1,0 +1,32 @@
+# Base statefulset with partition set to 1
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  creationTimestamp: "2020-01-31T19:49:29Z"
+  generation: 2
+  name: my-stateful-set
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: my-app
+  serviceName: my-service
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+        - image: nginx
+          imagePullPolicy: Always
+          name: nginx
+          ports:
+            - containerPort: 80
+              name: web
+              protocol: TCP
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+  updateStrategy:
+    rollingUpdate:
+      partition: 2
+    type: RollingUpdate

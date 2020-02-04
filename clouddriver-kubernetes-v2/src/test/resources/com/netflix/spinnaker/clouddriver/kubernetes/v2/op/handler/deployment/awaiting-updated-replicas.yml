@@ -1,0 +1,21 @@
+# Rollout in progress, waiting for all replicas to be updated to new spec
+status:
+  availableReplicas: 75
+  conditions:
+    - lastTransitionTime: "2020-01-31T16:02:59Z"
+      lastUpdateTime: "2020-01-31T16:02:59Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    - lastTransitionTime: "2020-01-31T00:01:24Z"
+      lastUpdateTime: "2020-01-31T16:14:39Z"
+      message: ReplicaSet "nginx-deployment-6685876674" is progressing.
+      reason: ReplicaSetUpdated
+      status: "True"
+      type: Progressing
+  observedGeneration: 3
+  readyReplicas: 75
+  replicas: 125
+  unavailableReplicas: 50
+  updatedReplicas: 50

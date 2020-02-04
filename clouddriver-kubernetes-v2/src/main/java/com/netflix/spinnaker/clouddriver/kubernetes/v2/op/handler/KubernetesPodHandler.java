@@ -79,6 +79,9 @@ public class KubernetesPodHandler extends KubernetesHandler {
     // https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/
     String phase = status.getPhase();
 
+    // This code appears to be broken, as Kubernetes always reports pod status in initial caps
+    // and we're comparing to lower-case strings. We'll thus never enter any of the else-if cases.
+    // TODO(ezimanyi): Fix this when cleaning up status reporting code
     if (phase == null) {
       result.unstable("No phase reported yet").unavailable("No availability reported");
     } else if (phase.equals("pending")) {

@@ -1,0 +1,21 @@
+# Paused when awaiting termination of old replicas
+status:
+  availableReplicas: 75
+  conditions:
+    - lastTransitionTime: "2020-01-31T16:35:32Z"
+      lastUpdateTime: "2020-01-31T16:35:32Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    - lastTransitionTime: "2020-01-31T16:34:44Z"
+      lastUpdateTime: "2020-01-31T16:34:44Z"
+      message: Deployment is paused
+      reason: DeploymentPaused
+      status: Unknown
+      type: Progressing
+  observedGeneration: 3
+  readyReplicas: 75
+  replicas: 114
+  unavailableReplicas: 39
+  updatedReplicas: 100

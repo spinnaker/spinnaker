@@ -1,0 +1,10 @@
+# All replicas up to date but observed generation is old
+status:
+  collisionCount: 0
+  currentReplicas: 4
+  currentRevision: web-b486b4959
+  observedGeneration: 1
+  readyReplicas: 4
+  replicas: 4
+  updateRevision: web-b486b4959
+  updatedReplicas: 4

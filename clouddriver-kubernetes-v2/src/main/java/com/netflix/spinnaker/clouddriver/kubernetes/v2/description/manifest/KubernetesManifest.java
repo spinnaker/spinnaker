@@ -288,7 +288,7 @@ public class KubernetesManifest extends HashMap<String, Object> {
   }
 
   @JsonIgnore
-  public Double getObservedGeneration() {
+  public int getObservedGeneration() {
     Object statusObj = getStatus();
     if (!(statusObj instanceof Map)) {
       throw new IllegalStateException(
@@ -299,24 +299,23 @@ public class KubernetesManifest extends HashMap<String, Object> {
 
     Object observedGenObj = status.get("observedGeneration");
 
-    if (!(observedGenObj instanceof Double)) {
+    if (!(observedGenObj instanceof Number)) {
       throw new IllegalStateException(
-          "Expected status.observedGeneration to be an Double but was actually a "
+          "Expected status.observedGeneration to be a Number but was actually a "
               + observedGenObj.getClass());
     }
-    return (Double) observedGenObj;
+    return ((Number) observedGenObj).intValue();
   }
 
   @JsonIgnore
-  public Double getGeneration() {
+  public int getGeneration() {
     Object generationObj = getMetadata().get("generation");
-
-    if (!(generationObj instanceof Double)) {
+    if (!(generationObj instanceof Number)) {
       throw new IllegalStateException(
-          "Expected metadata.generation to be an Double but was actually a "
+          "Expected metadata.generation to be a Number but was actually a "
               + generationObj.getClass());
     }
-    return (Double) generationObj;
+    return ((Number) generationObj).intValue();
   }
 
   @JsonIgnore
@@ -330,8 +329,8 @@ public class KubernetesManifest extends HashMap<String, Object> {
 
   @JsonIgnore
   public boolean isNewerThanObservedGeneration() {
-    Double generation = getGeneration();
-    Double observedGeneration = getObservedGeneration();
+    int generation = getGeneration();
+    int observedGeneration = getObservedGeneration();
 
     return generation > observedGeneration;
   }
