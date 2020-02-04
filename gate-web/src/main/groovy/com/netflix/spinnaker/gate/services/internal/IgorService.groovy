@@ -74,6 +74,9 @@ interface IgorService {
   @GET('/gcb/triggers/{account}')
   List<GoogleCloudBuildTrigger> getGoogleCloudBuildTriggers(@Path("account") String account);
 
+  @GET('/codebuild/accounts')
+  List<String> getAwsCodeBuildAccounts();
+
   @GET('/artifacts/{provider}/{packageName}')
   List<String> getArtifactVersions(@Path("provider") String provider,
                                    @Path("packageName") String packageName,
