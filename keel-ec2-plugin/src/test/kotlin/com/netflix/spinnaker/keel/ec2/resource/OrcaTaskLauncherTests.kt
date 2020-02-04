@@ -20,8 +20,8 @@ package com.netflix.spinnaker.keel.ec2.resource
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.NotificationConfig
-import com.netflix.spinnaker.keel.api.NotificationFrequency.QUIET
-import com.netflix.spinnaker.keel.api.NotificationType.SLACK
+import com.netflix.spinnaker.keel.api.NotificationFrequency.quiet
+import com.netflix.spinnaker.keel.api.NotificationType.slack
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.model.NotificationEvent.ORCHESTRATION_FAILED
@@ -68,7 +68,7 @@ class OrcaTaskLauncherTests : JUnit5Minutests {
 
     context("an environment exists") {
       before {
-        val notification = NotificationConfig(SLACK, "#my-channel", QUIET)
+        val notification = NotificationConfig(slack, "#my-channel", quiet)
         val env = Environment(
           name = "test",
           resources = setOf(resource),

@@ -19,9 +19,9 @@ package com.netflix.spinnaker.keel.model
 
 import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.api.NotificationFrequency
-import com.netflix.spinnaker.keel.api.NotificationFrequency.NORMAL
-import com.netflix.spinnaker.keel.api.NotificationFrequency.QUIET
-import com.netflix.spinnaker.keel.api.NotificationFrequency.VERBOSE
+import com.netflix.spinnaker.keel.api.NotificationFrequency.normal
+import com.netflix.spinnaker.keel.api.NotificationFrequency.quiet
+import com.netflix.spinnaker.keel.api.NotificationFrequency.verbose
 import com.netflix.spinnaker.keel.model.NotificationEvent.ORCHESTRATION_COMPLETE
 import com.netflix.spinnaker.keel.model.NotificationEvent.ORCHESTRATION_FAILED
 import com.netflix.spinnaker.keel.model.NotificationEvent.ORCHESTRATION_STARTING
@@ -69,9 +69,9 @@ fun NotificationConfig.toEchoNotification() =
 
 fun translateFrequencyToEvents(frequency: NotificationFrequency): List<NotificationEvent> =
   when (frequency) {
-    VERBOSE -> listOf(ORCHESTRATION_FAILED, ORCHESTRATION_STARTING, ORCHESTRATION_COMPLETE)
-    NORMAL -> listOf(ORCHESTRATION_FAILED, ORCHESTRATION_COMPLETE)
-    QUIET -> listOf(ORCHESTRATION_FAILED)
+    verbose -> listOf(ORCHESTRATION_FAILED, ORCHESTRATION_STARTING, ORCHESTRATION_COMPLETE)
+    normal -> listOf(ORCHESTRATION_FAILED, ORCHESTRATION_COMPLETE)
+    quiet -> listOf(ORCHESTRATION_FAILED)
   }
 
 fun generateCustomMessages(frequency: NotificationFrequency): Map<String, NotificationMessage> =
