@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.orca.igor;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.orca.igor.model.AwsCodeBuildExecution;
 import com.netflix.spinnaker.orca.igor.model.GoogleCloudBuild;
 import com.netflix.spinnaker.orca.igor.model.GoogleCloudBuildRepoSource;
 import java.util.List;
@@ -86,6 +87,14 @@ public interface IgorService {
       @Path("account") String account,
       @Path("triggerId") String triggerId,
       @Body GoogleCloudBuildRepoSource repoSource);
+
+  @POST("/codebuild/builds/start/{account}")
+  AwsCodeBuildExecution startAwsCodeBuild(
+      @Path("account") String account, @Body Map<String, Object> requestInput);
+
+  @GET("/codebuild/builds/{account}/{buildId}")
+  AwsCodeBuildExecution getAwsCodeBuildExecution(
+      @Path("account") String account, @Path("buildId") String buildId);
 
   @GET("/delivery-config/manifest")
   Map<String, Object> getDeliveryConfigManifest(
