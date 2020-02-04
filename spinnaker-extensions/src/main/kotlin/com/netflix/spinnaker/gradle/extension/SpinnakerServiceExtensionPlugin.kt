@@ -20,10 +20,13 @@ import com.netflix.spinnaker.gradle.extension.Plugins.ASSEMBLE_PLUGIN_TASK_NAME
 import com.netflix.spinnaker.gradle.extension.extensions.SpinnakerBundleExtension
 import com.netflix.spinnaker.gradle.extension.extensions.SpinnakerPluginExtension
 import com.netflix.spinnaker.gradle.extension.tasks.AssembleJavaPluginZipTask
+import groovy.json.JsonOutput
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.bundling.Jar
+import java.io.File
 import java.lang.IllegalStateException
 
 /**
@@ -64,6 +67,27 @@ class SpinnakerServiceExtensionPlugin : Plugin<Project> {
     applyAttributeIfSet(attributes, "Plugin-License", bundleExt.license)
 
     manifest.attributes(attributes)
+
+    //TODO: Generation of the plugin ref can be conditional and also make the location of the file configurable.
+    createPluginRef(project, pluginExt.serviceName, this.temporaryDir.absolutePath)
+
+  }
+
+  private fun createPluginRef(project: Project, pluginExtensionName: String?, manifestLocation: String) {
+    val sourceSets = project.convention.getPlugin(JavaPluginConvention::class.java).sourceSets
+
+    val classesDirs: List<String>  = sourceSets.getByName("main").runtimeClasspath.files.map { it ->
+      it.absolutePath
+    }
+    val pluginRelInfo = mapOf(
+      "pluginPath" to manifestLocation,
+      "classesDirs" to classesDirs,
+      "libsDirs" to listOf("${project.buildDir}/libs")
+    )
+
+    File(project.buildDir, "${pluginExtensionName ?: project.name}.plugin-ref").writeText(
+      JsonOutput.prettyPrint(JsonOutput.toJson(pluginRelInfo))
+    )
   }
 
   private fun applyAttributeIfSet(attributes: MutableMap<String, String>, key: String, value: String?) {
