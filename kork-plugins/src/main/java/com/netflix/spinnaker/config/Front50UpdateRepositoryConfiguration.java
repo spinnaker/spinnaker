@@ -58,14 +58,15 @@ public class Front50UpdateRepositoryConfiguration {
                         "Unable to bind ok-http-client property to "
                             + OkHttpClientConfigurationProperties.class.getSimpleName()));
 
+    // We are a bit inconsistent with how we configure service URLs, so this tries to lookup the
+    // front50 URL at front50.base-url and services.front50.base-url.
     URL defaultFront50Url =
         Binder.get(environment)
             .bind("front50.base-url", Bindable.of(URL.class))
-            .orElseThrow(
-                () ->
-                    new BeanCreationException(
-                        "Unable to bind front50.base-url property to "
-                            + URL.class.getSimpleName()));
+            .orElse(
+                Binder.get(environment)
+                    .bind("services.front50.base-url", Bindable.of(URL.class))
+                    .get());
 
     PluginRepositoryProperties front50RepositoryProps =
         pluginRepositoriesConfig.get(PluginsConfigurationProperties.FRONT5O_REPOSITORY);
