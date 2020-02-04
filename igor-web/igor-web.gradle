@@ -65,6 +65,7 @@ dependencies {
     implementation "org.springframework.security:spring-security-config"
     implementation "org.springframework.security:spring-security-web"
 
+    implementation "com.amazonaws:aws-java-sdk"
     implementation "com.google.apis:google-api-services-cloudbuild"
     implementation "com.google.apis:google-api-services-storage"
     implementation 'com.google.auth:google-auth-library-oauth2-http'
