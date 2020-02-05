@@ -65,7 +65,7 @@ module(APPENGINE_MODULE, [
       detailsController: 'appengineLoadBalancerDetailsCtrl',
     },
     logo: {
-      path: require('./logo/appengine.logo.svg'),
+      path: require('./logo/appengine.logo.png'),
     },
   });
 });
