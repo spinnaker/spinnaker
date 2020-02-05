@@ -72,7 +72,7 @@ public class Front50UpdateRepositoryConfiguration {
                 () ->
                     Binder.get(environment)
                         .bind("services.front50.base-url", Bindable.of(URL.class))
-                        .orElse(front50RepositoryProps.getUrl()));
+                        .orElseGet(front50RepositoryProps::getUrl));
 
     OkHttpClient okHttpClient =
         new OkHttp3ClientConfiguration(okHttpClientProperties)
