@@ -11,6 +11,9 @@ import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Account
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.fiat.shared.FiatStatus
+import com.netflix.spinnaker.kork.web.context.AuthenticatedRequestContextProvider
+import com.netflix.spinnaker.kork.web.context.RequestContext
+import com.netflix.spinnaker.kork.web.context.RequestContextProvider
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.slf4j.MDC
 import spock.lang.Specification
@@ -26,6 +29,7 @@ class PipelineInitiatorSpec extends Specification {
   def fiatStatus = Mock(FiatStatus)
   def objectMapper = Mock(ObjectMapper)
   def quietPeriodIndicator = Mock(QuietPeriodIndicator)
+  def contextProvider = new AuthenticatedRequestContextProvider()
 
   Optional<String> capturedSpinnakerUser
   Optional<String> capturedSpinnakerAccounts
@@ -100,6 +104,7 @@ class PipelineInitiatorSpec extends Specification {
 
   def "propages auth headers to orca calls without runAs"() {
     given:
+    RequestContext context = contextProvider.get()
     def executor = Executors.newFixedThreadPool(2)
     def pipelineInitiator = new PipelineInitiator(
       registry, orca, Optional.of(fiatPermissionEvaluator), fiatStatus, executor, objectMapper, quietPeriodIndicator, true, 5, 5000
@@ -120,11 +125,10 @@ class PipelineInitiatorSpec extends Specification {
     def account = "super-duper-account"
 
     when:
-    MDC.put(AuthenticatedRequest.Header.USER.header, user)
-    MDC.put(AuthenticatedRequest.Header.ACCOUNTS.header, account)
+    context.setUser(user)
+    context.setAccounts(account)
     pipelineInitiator.startPipeline(pipeline, PipelineInitiator.TriggerSource.SCHEDULER)
-    MDC.remove(AuthenticatedRequest.Header.ACCOUNTS.header)
-    MDC.remove(AuthenticatedRequest.Header.USER.header)
+    context.clear()
 
     // Wait for the trigger to actually be invoked (happens on separate thread)
     executor.shutdown()
@@ -182,8 +186,8 @@ class PipelineInitiatorSpec extends Specification {
   }
 
   private captureAuthorizationContext() {
-      capturedSpinnakerUser = AuthenticatedRequest.getSpinnakerUser()
-      capturedSpinnakerAccounts = AuthenticatedRequest.getSpinnakerAccounts()
+      capturedSpinnakerUser = contextProvider.get().getUser()
+      capturedSpinnakerAccounts = contextProvider.get().getAccounts()
   }
 
   private static Account.View account(String name, Collection<String> authorizations) {

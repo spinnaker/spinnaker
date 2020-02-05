@@ -18,7 +18,7 @@ package com.netflix.spinnaker.echo.pipelinetriggers.orca;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.netflix.spinnaker.echo.model.Pipeline;
-import com.netflix.spinnaker.security.AuthenticatedRequest;
+import com.netflix.spinnaker.kork.common.Header;
 import java.util.Collection;
 import java.util.Map;
 import retrofit.client.Response;
@@ -51,7 +51,7 @@ public interface OrcaService {
 
     static {
       // TODO(cf): if this actually fails you will all thank me I swear
-      if (!X_SPINNAKER_USER.equals(AuthenticatedRequest.Header.USER.getHeader())) {
+      if (!X_SPINNAKER_USER.equals(Header.USER.getHeader())) {
         throw new IllegalStateException("The header changed. Why did the header change. Whyyy");
       }
     }

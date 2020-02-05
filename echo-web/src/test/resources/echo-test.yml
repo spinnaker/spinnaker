@@ -12,3 +12,7 @@ resilience4j.circuitbreaker:
     telemetry:
       # This needs to stay false, because if the telemetry endpoint goes down, Echo goes unhealthy (no good!)
       registerHealthIndicator: false
+
+spring:
+  application:
+    name: echoTest
