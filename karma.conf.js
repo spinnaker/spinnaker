@@ -40,8 +40,8 @@ module.exports = function(config) {
     },
 
     customLaunchers: {
-      Chrome_travis_ci: {
-        base: 'Chrome',
+      ChromeCI: {
+        base: 'ChromeHeadless',
         flags: ['--no-sandbox'],
       },
       ChromeActive: {
@@ -66,7 +66,7 @@ module.exports = function(config) {
     // web server port
     port: 8081,
 
-    browsers: [process.env.TRAVIS ? 'Chrome_travis_ci' : 'ChromeActive'],
+    browsers: [process.env.TRAVIS || process.env.GITHUB_ACTIONS ? 'ChromeCI' : 'ChromeActive'],
 
     colors: true,
 
