@@ -16,9 +16,11 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.ext.parent
+import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Task
@@ -43,6 +45,7 @@ import java.time.Duration
 internal interface OrcaMessageHandler<M : Message> : MessageHandler<M> {
   companion object {
     val log: Logger = LoggerFactory.getLogger(this::class.java)
+    val mapper: ObjectMapper = OrcaObjectMapper.getInstance()
   }
 
   val repository: ExecutionRepository
@@ -58,7 +61,7 @@ internal interface OrcaMessageHandler<M : Message> : MessageHandler<M> {
         .taskById(taskId)
         .let { task ->
           if (task == null) {
-            log.error("InvalidTaskId: Unable to find task {} in existing tasks {} while processing message {}", taskId, stage.tasks.map { it.id }, this)
+            log.error("InvalidTaskId: Unable to find task {} in stage '{}' while processing message {}", taskId, mapper.writeValueAsString(stage), this)
             queue.push(InvalidTaskId(this))
           } else {
             block.invoke(stage, task)
