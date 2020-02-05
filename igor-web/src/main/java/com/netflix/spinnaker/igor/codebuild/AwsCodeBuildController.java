@@ -50,4 +50,9 @@ public class AwsCodeBuildController {
   Build getBuild(@PathVariable String account, @PathVariable String buildId) {
     return awsCodeBuildAccountRepository.getAccount(account).getBuild(buildId);
   }
+
+  @RequestMapping(value = "/builds/stop/{account}/{buildId}", method = RequestMethod.POST)
+  Build stopBuild(@PathVariable String account, @PathVariable String buildId) {
+    return awsCodeBuildAccountRepository.getAccount(account).stopBuild(buildId);
+  }
 }

@@ -22,6 +22,7 @@ import com.amazonaws.services.codebuild.AWSCodeBuildClientBuilder;
 import com.amazonaws.services.codebuild.model.BatchGetBuildsRequest;
 import com.amazonaws.services.codebuild.model.Build;
 import com.amazonaws.services.codebuild.model.StartBuildRequest;
+import com.amazonaws.services.codebuild.model.StopBuildRequest;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -57,6 +58,10 @@ public class AwsCodeBuildAccount {
 
   public Build getBuild(String buildId) {
     return client.batchGetBuilds(new BatchGetBuildsRequest().withIds(buildId)).getBuilds().get(0);
+  }
+
+  public Build stopBuild(String buildId) {
+    return client.stopBuild(new StopBuildRequest().withId(buildId)).getBuild();
   }
 
   private String getRoleArn(String accountId, String assumeRole) {
