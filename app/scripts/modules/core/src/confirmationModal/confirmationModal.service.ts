@@ -42,8 +42,6 @@ export class ConfirmationModalService {
       extendedParams.bodyContent = toMarkdown(params.body);
     }
 
-    const deferred = $q.defer();
-
     const { taskMonitorConfig, taskMonitorConfigs } = params;
     if (taskMonitorConfig) {
       extendedParams.taskMonitor = new TaskMonitor(taskMonitorConfig);
@@ -52,11 +50,12 @@ export class ConfirmationModalService {
       extendedParams.taskMonitors = taskMonitorConfigs.map(m => new TaskMonitor(m));
     }
 
-    ReactModal.show(ConfirmModal, extendedParams).then(deferred.resolve, deferred.reject);
+    const { promise, resolve, reject } = $q.defer();
+    ReactModal.show(ConfirmModal, extendedParams).then(resolve, reject);
 
     // modal was dismissed
-    deferred.promise.catch(() => {});
+    promise.catch(() => {});
 
-    return deferred.promise;
+    return promise;
   }
 }

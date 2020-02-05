@@ -171,9 +171,9 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
 
     ConfirmationModalService.confirm(confirmationModalParams)
       .then(() => this.rollbackServerGroup())
-      .catch(({ source }) => {
+      .catch(error => {
         // don't show the enable modal if the user cancels with the header button
-        if (source === 'footer') {
+        if (error?.source === 'footer') {
           this.showEnableServerGroupModal();
         }
       });

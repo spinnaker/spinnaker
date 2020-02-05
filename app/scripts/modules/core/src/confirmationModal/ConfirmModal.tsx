@@ -75,7 +75,8 @@ export const ConfirmModal = (props: IConfirmModalProps) => {
   };
 
   const { TaskMonitorWrapper, ButtonBusyIndicator } = NgReact;
-  const includeBody =
+  const showReasonInput = ((taskMonitor || taskMonitors) && props.askForReason) || props.submitJustWithReason;
+  const showBody =
     (isRetry && props.retryBody) ||
     props.bodyContent ||
     error.isError ||
@@ -86,12 +87,16 @@ export const ConfirmModal = (props: IConfirmModalProps) => {
   return (
     <div>
       <TaskMonitorWrapper monitor={taskMonitor} />
-      <MultiTaskMonitor monitors={taskMonitors} title={props.multiTaskTitle} closeModal={dismissModal} />
-      <ModalClose dismiss={dismissModal} />
+      <MultiTaskMonitor
+        monitors={taskMonitors}
+        title={props.multiTaskTitle}
+        closeModal={() => dismissModal({ source: 'taskmonitor' })}
+      />
+      <ModalClose dismiss={() => dismissModal({ source: 'header' })} />
       <Modal.Header>
         <Modal.Title>{props.header}</Modal.Title>
       </Modal.Header>
-      {includeBody && (
+      {showBody && (
         <Modal.Body>
           {props.bodyContent}
           {props.platformHealthOnlyShowOverride && (
@@ -109,8 +114,7 @@ export const ConfirmModal = (props: IConfirmModalProps) => {
             </div>
           )}
           {isRetry && props.retryBody && <Markdown message={props.retryBody} />}
-          {((taskMonitor || taskMonitors) && props.askForReason) ||
-            (props.submitJustWithReason && <TaskReason reason={reason} onChange={setReason} />)}
+          {showReasonInput && <TaskReason reason={reason} onChange={setReason} />}
         </Modal.Body>
       )}
       <Modal.Footer>
@@ -122,7 +126,7 @@ export const ConfirmModal = (props: IConfirmModalProps) => {
             label={verificationLabel}
           />
         )}
-        <button className="btn btn-default" type="button" onClick={dismissModal}>
+        <button className="btn btn-default" type="button" onClick={() => dismissModal({ source: 'footer' })}>
           {props.cancelButtonText}
         </button>
         <button className="btn btn-primary" type="button" onClick={submit} disabled={isDisabled}>
