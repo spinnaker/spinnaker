@@ -59,7 +59,7 @@ class SpinnakerServiceExtensionPlugin : Plugin<Project> {
     val attributes = mutableMapOf<String, String>()
 
     applyAttributeIfSet(attributes, "Plugin-Class", pluginExt.pluginClass)
-    applyAttributeIfSet(attributes, "Plugin-Id", "${bundleExt.pluginId}-${pluginExt.serviceName}")
+    applyAttributeIfSet(attributes, "Plugin-Id", bundleExt.pluginId)
     applyAttributeIfSet(attributes, "Plugin-Version", bundleExt.version)
     applyAttributeIfSet(attributes, "Plugin-Dependencies", pluginExt.dependencies)
     applyAttributeIfSet(attributes, "Plugin-Description", bundleExt.description)
