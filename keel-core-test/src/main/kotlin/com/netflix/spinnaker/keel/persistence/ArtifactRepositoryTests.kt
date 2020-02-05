@@ -3,8 +3,8 @@ package com.netflix.spinnaker.keel.persistence
 import com.netflix.spinnaker.keel.api.ArtifactStatus.FINAL
 import com.netflix.spinnaker.keel.api.ArtifactStatus.RELEASE
 import com.netflix.spinnaker.keel.api.ArtifactStatus.SNAPSHOT
-import com.netflix.spinnaker.keel.api.ArtifactType.DEB
-import com.netflix.spinnaker.keel.api.ArtifactType.DOCKER
+import com.netflix.spinnaker.keel.api.ArtifactType.deb
+import com.netflix.spinnaker.keel.api.ArtifactType.docker
 import com.netflix.spinnaker.keel.api.ArtifactVersionStatus
 import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
@@ -67,7 +67,7 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
       deliveryConfigName = manifest.name,
       targetEnvironment = environment2.name, // staging
       reference = artifact2.reference,
-      type = artifact2.type.value(),
+      type = artifact2.type.name,
       version = version4, // the older release build
       pinnedBy = "keel@spinnaker",
       comment = "fnord")
@@ -461,8 +461,8 @@ abstract class ArtifactRepositoryTests<T : ArtifactRepository> : JUnit5Minutests
       test("querying works") {
         expect {
           that(subject.getAll().size).isEqualTo(3)
-          that(subject.getAll(DOCKER).size).isEqualTo(1)
-          that(subject.getAll(DEB).size).isEqualTo(2)
+          that(subject.getAll(docker).size).isEqualTo(1)
+          that(subject.getAll(deb).size).isEqualTo(2)
         }
       }
     }

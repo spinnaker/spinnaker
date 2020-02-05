@@ -63,7 +63,7 @@ internal class ArtifactControllerTests {
 
   @Test
   fun `versions empty for an artifact we're not tracking`() {
-    val request = get("/artifacts/unregistered/DEB")
+    val request = get("/artifacts/unregistered/deb")
       .accept(APPLICATION_YAML)
     mvc
       .perform(request)

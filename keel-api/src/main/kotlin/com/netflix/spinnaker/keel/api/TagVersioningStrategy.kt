@@ -17,24 +17,18 @@
  */
 package com.netflix.spinnaker.keel.api
 
-import com.fasterxml.jackson.annotation.JsonProperty
 import com.netflix.spinnaker.keel.api.SortType.INCREASING
 import com.netflix.spinnaker.keel.api.SortType.SEMVER
 
 /**
  * Different options for versioning for tags
  */
-enum class TagVersionStrategy(val regex: String, val sortType: SortType) {
-  @JsonProperty("increasing-tag")
-  INCREASING_TAG("""(^.*$)""", INCREASING),
-  @JsonProperty("semver-tag")
-  SEMVER_TAG("""(^.*$)""", SEMVER),
-  @JsonProperty("branch-job-commit-by-job")
-  BRANCH_JOB_COMMIT_BY_JOB("""^master-h(\d+).*$""", INCREASING), // popular netflix strategy
-  @JsonProperty("semver-job-commit-by-job")
-  SEMVER_JOB_COMMIT_BY_JOB("""^v.*-h(\d+).*$""", INCREASING), // popular netflix strategy
-  @JsonProperty("semver-job-commit-by-semver")
-  SEMVER_JOB_COMMIT_BY_SEMVER("""^v(.*)-h\d+.*$""", SEMVER); // popular netflix strategy
+enum class TagVersionStrategy(val regex: String, val sortType: SortType, val friendlyName: String) {
+  INCREASING_TAG("""(^.*$)""", INCREASING, "increasing-tag"),
+  SEMVER_TAG("""(^.*$)""", SEMVER, "semver-tag"),
+  BRANCH_JOB_COMMIT_BY_JOB("""^master-h(\d+).*$""", INCREASING, "branch-job-commit-by-job"), // popular netflix strategy
+  SEMVER_JOB_COMMIT_BY_JOB("""^v.*-h(\d+).*$""", INCREASING, "semver-job-commit-by-job"), // popular netflix strategy
+  SEMVER_JOB_COMMIT_BY_SEMVER("""^v(.*)-h\d+.*$""", SEMVER, "semver-job-commit-by-semver"); // popular netflix strategy
 }
 
 enum class SortType {

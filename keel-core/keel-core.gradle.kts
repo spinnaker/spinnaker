@@ -21,6 +21,7 @@ plugins {
 
 dependencies {
   api(project(":keel-api"))
+  api(project(":keel-api-jackson"))
   api("com.fasterxml.jackson.core:jackson-databind")
   api("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
   api("com.fasterxml.jackson.module:jackson-module-kotlin")

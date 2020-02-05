@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.ec2.resolvers
 
 import com.netflix.frigga.ami.AppVersion
-import com.netflix.spinnaker.keel.api.ArtifactType.DEB
+import com.netflix.spinnaker.keel.api.ArtifactType.deb
 import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
@@ -62,8 +62,8 @@ class ImageResolver(
     imageProvider: ReferenceArtifactImageProvider
   ): NamedImage {
     val deliveryConfig = deliveryConfigRepository.deliveryConfigFor(resource.id)
-    val artifact = deliveryConfig.artifacts.find { it.reference == imageProvider.reference && it.type == DEB }
-      ?: throw NoMatchingArtifactException(deliveryConfig.name, DEB, imageProvider.reference)
+    val artifact = deliveryConfig.artifacts.find { it.reference == imageProvider.reference && it.type == deb }
+      ?: throw NoMatchingArtifactException(deliveryConfig.name, deb, imageProvider.reference)
 
     return resolveFromArtifact(resource, artifact as DebianArtifact)
   }

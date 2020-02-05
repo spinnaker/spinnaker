@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.api.titus.image
 
-import com.netflix.spinnaker.keel.api.ArtifactType.DOCKER
+import com.netflix.spinnaker.keel.api.ArtifactType.docker
 import com.netflix.spinnaker.keel.api.matchingArtifact
 import com.netflix.spinnaker.keel.api.titus.cluster.TitusClusterSpec
 import com.netflix.spinnaker.keel.docker.ReferenceProvider
@@ -32,7 +32,7 @@ class CurrentlyDeployedDockerImageApprover(
       (resource.spec as? TitusClusterSpec)?.let { spec ->
         if (spec.defaults.container != null && spec.defaults.container is ReferenceProvider) {
           val container = spec.defaults.container as ReferenceProvider
-          val artifact = deliveryConfig.matchingArtifact(container.reference, DOCKER)
+          val artifact = deliveryConfig.matchingArtifact(container.reference, docker)
 
           val approvedForEnv = artifactRepository.isApprovedFor(
             deliveryConfig = deliveryConfig,

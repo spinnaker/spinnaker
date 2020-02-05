@@ -24,4 +24,4 @@ class ArtifactParsingException(
   val type: ArtifactType,
   val json: String,
   val e: Exception?
-) : RuntimeException("Unable to construct a delivery artifact from entry with name $name, type ${type.value()}, and json $json", e)
+) : RuntimeException("Unable to construct a delivery artifact from entry with name $name, type ${type.name}, and json $json", e)

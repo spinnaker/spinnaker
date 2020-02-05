@@ -9,3 +9,7 @@ plugins {
  * avoid dependency conflicts we should bring the bare minimum of transitive
  * dependencies along for the ride -- ideally nothing at all.
  */
+dependencies {
+  testImplementation("io.strikt:strikt-core")
+  testImplementation("dev.minutest:minutest")
+}

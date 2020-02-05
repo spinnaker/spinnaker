@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.keel.actuation
 
 import com.netflix.spinnaker.keel.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.api.ArtifactType.DEB
+import com.netflix.spinnaker.keel.api.ArtifactType.deb
 import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Resource
@@ -231,7 +231,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
         }
 
         test("artifacts are persisted") {
-          expectThat(artifactRepository.isRegistered("keel", DEB)).isTrue()
+          expectThat(artifactRepository.isRegistered("keel", deb)).isTrue()
           verify { publisher.publishEvent(ArtifactRegisteredEvent(DebianArtifact(name = "keel", deliveryConfigName = "keel-manifest"))) }
         }
 

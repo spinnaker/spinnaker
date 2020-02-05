@@ -24,8 +24,8 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.exceptions.ArtifactParsingException
 import com.netflix.spinnaker.keel.api.ArtifactStatus
 import com.netflix.spinnaker.keel.api.ArtifactType
-import com.netflix.spinnaker.keel.api.ArtifactType.DEB
-import com.netflix.spinnaker.keel.api.ArtifactType.DOCKER
+import com.netflix.spinnaker.keel.api.ArtifactType.deb
+import com.netflix.spinnaker.keel.api.ArtifactType.docker
 import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DockerArtifact
@@ -46,7 +46,7 @@ fun mapToArtifact(
   try {
     val details = objectMapper.readValue<Map<String, Any>>(json)
     return when (type) {
-      DEB -> {
+      deb -> {
         val statuses: List<ArtifactStatus> = details["statuses"]?.let { it ->
           try {
             objectMapper.convertValue<List<ArtifactStatus>>(it)
@@ -61,7 +61,7 @@ fun mapToArtifact(
           deliveryConfigName = deliveryConfigName
         )
       }
-      DOCKER -> {
+      docker -> {
         val tagVersionStrategy = details.getOrDefault("tagVersionStrategy", "semver-tag")
         DockerArtifact(
           name = name,

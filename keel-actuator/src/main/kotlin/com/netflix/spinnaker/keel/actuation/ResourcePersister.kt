@@ -16,7 +16,6 @@ import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceDeleted
 import com.netflix.spinnaker.keel.events.ResourceUpdated
-import com.netflix.spinnaker.keel.exceptions.UnsupportedArtifactTypeException
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.Cleaner
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
@@ -161,11 +160,10 @@ class ResourcePersister(
   }
 
   private fun Set<DeliveryArtifact>.transform(deliveryConfigName: String) =
-    this.map { artifact ->
+    map { artifact ->
       when (artifact) {
         is DockerArtifact -> artifact.copy(deliveryConfigName = deliveryConfigName)
         is DebianArtifact -> artifact.copy(deliveryConfigName = deliveryConfigName)
-        else -> throw UnsupportedArtifactTypeException(artifact.type.value())
       }
     }.toSet()
 

@@ -19,6 +19,7 @@ import com.netflix.spinnaker.keel.api.PromotionStatus.CURRENT
 import com.netflix.spinnaker.keel.api.PromotionStatus.DEPLOYING
 import com.netflix.spinnaker.keel.api.PromotionStatus.PENDING
 import com.netflix.spinnaker.keel.api.PromotionStatus.PREVIOUS
+import com.netflix.spinnaker.keel.api.comparator
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.persistence.ArtifactNotFoundException
 import com.netflix.spinnaker.keel.persistence.ArtifactReferenceNotFoundException
@@ -158,7 +159,7 @@ class SqlArtifactRepository(
     return sqlRetry.withRetry(WRITE) {
       jooq.insertInto(ARTIFACT_VERSIONS)
         .set(ARTIFACT_VERSIONS.NAME, name)
-        .set(ARTIFACT_VERSIONS.TYPE, type.value())
+        .set(ARTIFACT_VERSIONS.TYPE, type.name)
         .set(ARTIFACT_VERSIONS.VERSION, version)
         .set(ARTIFACT_VERSIONS.RELEASE_STATUS, status?.toString())
         .onDuplicateKeyIgnore()
@@ -211,7 +212,7 @@ class SqlArtifactRepository(
       jooq.select(ARTIFACT_VERSIONS.VERSION)
         .from(ARTIFACT_VERSIONS)
         .where(ARTIFACT_VERSIONS.NAME.eq(name))
-        .and(ARTIFACT_VERSIONS.TYPE.eq(type.value()))
+        .and(ARTIFACT_VERSIONS.TYPE.eq(type.name))
         .fetch()
         .getValues(ARTIFACT_VERSIONS.VERSION)
     }
@@ -224,7 +225,7 @@ class SqlArtifactRepository(
           .select(ARTIFACT_VERSIONS.VERSION, ARTIFACT_VERSIONS.RELEASE_STATUS)
           .from(ARTIFACT_VERSIONS)
           .where(ARTIFACT_VERSIONS.NAME.eq(artifact.name))
-          .and(ARTIFACT_VERSIONS.TYPE.eq(artifact.type.value()))
+          .and(ARTIFACT_VERSIONS.TYPE.eq(artifact.type.name))
           .apply { if (artifact is DebianArtifact && artifact.statuses.isNotEmpty()) and(ARTIFACT_VERSIONS.RELEASE_STATUS.`in`(*artifact.statuses.map { it.toString() }.toTypedArray())) }
           .fetch()
           .getValues(ARTIFACT_VERSIONS.VERSION)
@@ -467,7 +468,7 @@ class SqlArtifactRepository(
   override fun pinEnvironment(deliveryConfig: DeliveryConfig, environmentArtifactPin: EnvironmentArtifactPin) {
     with(environmentArtifactPin) {
       val environment = deliveryConfig.environmentNamed(targetEnvironment)
-      val artifact = get(deliveryConfigName, reference, ArtifactType.valueOf(type.toUpperCase()))
+      val artifact = get(deliveryConfigName, reference, ArtifactType.valueOf(type.toLowerCase()))
 
       sqlRetry.withRetry(WRITE) {
         jooq.insertInto(ENVIRONMENT_ARTIFACT_PIN)
@@ -511,7 +512,7 @@ class SqlArtifactRepository(
             targetEnvironment = environmentName,
             artifact = mapToArtifact(
               artifactName,
-              ArtifactType.valueOf(type.toUpperCase()),
+              ArtifactType.valueOf(type.toLowerCase()),
               details,
               reference,
               deliveryConfig.name),
@@ -551,7 +552,7 @@ class SqlArtifactRepository(
         .where(
           DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(deliveryConfig.name),
           DELIVERY_ARTIFACT.REFERENCE.eq(reference),
-          DELIVERY_ARTIFACT.TYPE.eq(type.value()),
+          DELIVERY_ARTIFACT.TYPE.eq(type.name),
           ENVIRONMENT.NAME.eq(targetEnvironment),
           ENVIRONMENT.DELIVERY_CONFIG_UID.eq(deliveryConfig.uid))
         .fetch { (envUid, artUid) ->

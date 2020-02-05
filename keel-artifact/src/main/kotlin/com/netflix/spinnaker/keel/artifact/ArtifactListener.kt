@@ -3,16 +3,16 @@ package com.netflix.spinnaker.keel.artifact
 import com.netflix.spinnaker.igor.ArtifactService
 import com.netflix.spinnaker.keel.api.ArtifactStatus
 import com.netflix.spinnaker.keel.api.ArtifactType
-import com.netflix.spinnaker.keel.api.ArtifactType.DEB
-import com.netflix.spinnaker.keel.api.ArtifactType.DOCKER
+import com.netflix.spinnaker.keel.api.ArtifactType.deb
+import com.netflix.spinnaker.keel.api.ArtifactType.docker
 import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DockerArtifact
+import com.netflix.spinnaker.keel.api.comparator
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.events.ArtifactEvent
 import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.events.ArtifactSyncEvent
-import com.netflix.spinnaker.keel.exceptions.UnsupportedArtifactTypeException
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.telemetry.ArtifactVersionUpdated
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
@@ -37,20 +37,19 @@ class ArtifactListener(
     log.debug("Received artifact event: {}", event)
     event
       .artifacts
-      .filter { it.type.toUpperCase() in artifactTypeNames }
+      .filter { it.type.toLowerCase() in artifactTypeNames }
       .forEach { artifact ->
         if (artifactRepository.isRegistered(artifact.name, artifact.type())) {
           val version: String
           var status: ArtifactStatus? = null
           when (artifact.type()) {
-            DEB -> {
+            deb -> {
               version = "${artifact.name}-${artifact.version}"
               status = debStatus(artifact)
             }
-            DOCKER -> {
+            docker -> {
               version = artifact.version
             }
-            else -> throw UnsupportedArtifactTypeException(artifact.type)
           }
           log.info("Registering version {} ({}) of {} {}", version, status, artifact.name, artifact.type)
           artifactRepository.store(artifact.name, artifact.type(), version, status)
@@ -72,7 +71,6 @@ class ArtifactListener(
       when (artifact) {
         is DebianArtifact -> storeLatestDebVersion(artifact)
         is DockerArtifact -> storeLatestDockerVersion(artifact)
-        else -> throw UnsupportedArtifactTypeException(artifact.type.value())
       }
     }
   }
@@ -98,7 +96,6 @@ class ArtifactListener(
           val latestVersion = when (artifact) {
             is DebianArtifact -> getLatestDeb(artifact)?.let { "${artifact.name}-$it" }
             is DockerArtifact -> getLatestDockerTag(artifact)
-            else -> throw UnsupportedArtifactTypeException(artifact.type.value())
           }
           if (latestVersion != null) {
             val hasNew = when {
@@ -112,9 +109,9 @@ class ArtifactListener(
             if (hasNew) {
               log.debug("Artifact {} has a missing version {}, persisting..", artifact, latestVersion)
               val status = when (artifact.type) {
-                DEB -> debStatus(artifactService.getArtifact(artifact.name, latestVersion.removePrefix("${artifact.name}-")))
+                deb -> debStatus(artifactService.getArtifact(artifact.name, latestVersion.removePrefix("${artifact.name}-")))
                 // todo eb: is there a better way to think of docker status?
-                DOCKER -> null
+                docker -> null
               }
               artifactRepository.store(artifact.name, artifact.type, latestVersion, status)
             }
@@ -171,7 +168,7 @@ class ArtifactListener(
     return ArtifactStatus.valueOf(status)
   }
 
-  private fun Artifact.type() = ArtifactType.valueOf(type.toUpperCase())
+  private fun Artifact.type() = ArtifactType.valueOf(type.toLowerCase())
 
   private val artifactTypeNames by lazy { ArtifactType.values().map(ArtifactType::name) }
 

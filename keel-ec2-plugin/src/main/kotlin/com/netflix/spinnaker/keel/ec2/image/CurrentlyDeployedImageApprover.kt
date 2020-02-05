@@ -17,7 +17,7 @@
  */
 package com.netflix.spinnaker.keel.ec2.image
 
-import com.netflix.spinnaker.keel.api.ArtifactType.DEB
+import com.netflix.spinnaker.keel.api.ArtifactType.deb
 import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ReferenceArtifactImageProvider
@@ -53,7 +53,7 @@ class CurrentlyDeployedImageApprover(
             spec.imageProvider.deliveryArtifact
           }
           is ReferenceArtifactImageProvider -> {
-            deliveryConfig.matchingArtifact(spec.imageProvider.reference, DEB)
+            deliveryConfig.matchingArtifact(spec.imageProvider.reference, deb)
           }
           else -> {
             null

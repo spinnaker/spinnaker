@@ -8,6 +8,8 @@ import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
 import com.netflix.spinnaker.keel.api.TagVersionStrategy.BRANCH_JOB_COMMIT_BY_JOB
 import com.netflix.spinnaker.keel.api.id
+import com.netflix.spinnaker.keel.api.image
+import com.netflix.spinnaker.keel.api.organization
 import com.netflix.spinnaker.keel.api.titus.SPINNAKER_TITUS_API_V1
 import com.netflix.spinnaker.keel.api.titus.cluster.TitusClusterSpec
 import com.netflix.spinnaker.keel.api.titus.cluster.TitusServerGroupSpec

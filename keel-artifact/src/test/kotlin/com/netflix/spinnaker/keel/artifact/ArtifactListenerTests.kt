@@ -2,7 +2,7 @@ package com.netflix.spinnaker.keel.artifact
 
 import com.netflix.spinnaker.igor.ArtifactService
 import com.netflix.spinnaker.keel.api.ArtifactStatus.FINAL
-import com.netflix.spinnaker.keel.api.ArtifactType.DEB
+import com.netflix.spinnaker.keel.api.ArtifactType.deb
 import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DockerArtifact
@@ -33,8 +33,8 @@ internal class ArtifactListenerTests : JUnit5Minutests {
     .provenance("https://my.jenkins.master/jobs/fnord-release/58")
     .build()
 
-  val deb = DebianArtifact(name = "fnord", deliveryConfigName = "fnord-config")
-  val docker = DockerArtifact(name = "fnord/myimage", tagVersionStrategy = BRANCH_JOB_COMMIT_BY_JOB, deliveryConfigName = "fnord-config")
+  val debianArtifact = DebianArtifact(name = "fnord", deliveryConfigName = "fnord-config")
+  val dockerArtifact = DockerArtifact(name = "fnord/myimage", tagVersionStrategy = BRANCH_JOB_COMMIT_BY_JOB, deliveryConfigName = "fnord-config")
 
   data class ArtifactFixture(
     val event: ArtifactEvent,
@@ -137,7 +137,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
 
     context("artifact is already registered") {
       before {
-        every { repository.isRegistered("fnord", DEB) } returns true
+        every { repository.isRegistered("fnord", deb) } returns true
         every { repository.get(artifact.name, artifact.type, "fnord-config") } returns listOf(artifact)
         every { repository.versions(any()) } returns listOf("0.227.0-h141.bd97556")
         listener.onArtifactRegisteredEvent(event)
@@ -150,7 +150,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
 
     context("the artifact is not already registered") {
       before {
-        every { repository.isRegistered("fnord", DEB) } returns false
+        every { repository.isRegistered("fnord", deb) } returns false
       }
 
       context("there are versions of the artifact") {
@@ -171,7 +171,7 @@ internal class ArtifactListenerTests : JUnit5Minutests {
 
         test("the newest version is saved") {
           verify(exactly = 1) {
-            repository.store("fnord", DEB, "fnord-0.227.0-h141.bd97556", FINAL)
+            repository.store("fnord", deb, "fnord-0.227.0-h141.bd97556", FINAL)
           }
         }
       }
@@ -217,8 +217,8 @@ internal class ArtifactListenerTests : JUnit5Minutests {
   fun syncArtifactsFixture() = rootContext<SyncArtifactsFixture> {
     fixture {
       SyncArtifactsFixture(
-        debArtifact = deb,
-        dockerArtifact = docker
+        debArtifact = debianArtifact,
+        dockerArtifact = dockerArtifact
       )
     }
 

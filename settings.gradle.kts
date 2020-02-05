@@ -17,6 +17,7 @@
 include(
   "keel-actuator",
   "keel-api",
+  "keel-api-jackson",
   "keel-artifact",
   "keel-bakery-plugin",
   "keel-bom",

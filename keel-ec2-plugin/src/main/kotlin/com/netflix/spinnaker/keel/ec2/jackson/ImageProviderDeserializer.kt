@@ -22,7 +22,7 @@ import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ImageProvider
 import com.netflix.spinnaker.keel.api.ec2.JenkinsImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ReferenceArtifactImageProvider
-import com.netflix.spinnaker.keel.serialization.PropertyNamePolymorphicDeserializer
+import com.netflix.spinnaker.keel.json.PropertyNamePolymorphicDeserializer
 
 internal class ImageProviderDeserializer :
   PropertyNamePolymorphicDeserializer<ImageProvider>(ImageProvider::class.java) {
