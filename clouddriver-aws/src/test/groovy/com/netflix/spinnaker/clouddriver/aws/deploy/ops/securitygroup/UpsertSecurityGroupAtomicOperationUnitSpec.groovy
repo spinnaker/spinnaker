@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup
 
 import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.ec2.model.IpPermission
+import com.amazonaws.services.ec2.model.IpRange
 import com.amazonaws.services.ec2.model.SecurityGroup
 import com.amazonaws.services.ec2.model.UserIdGroupPair
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertSecurityGroupDescription
@@ -27,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.ops.securitygroup.SecurityGr
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.model.securitygroups.IpRangeRule
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -426,6 +428,135 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
     ])
     0 * _
 
+  }
+
+  void "should update ingress and add by name for missing ingress security group in EC2 classic"() {
+    final existingSecurityGroup = Mock(SecurityGroupUpdater)
+    final ingressSecurityGroup = Mock(SecurityGroupUpdater)
+    description.securityGroupIngress = [
+      new SecurityGroupIngress(name: "bar", startPort: 111, endPort: 112, vpcId: "vpc-123", ipProtocol: "tcp", accountName: "test")
+    ]
+    description.vpcId = null
+    description.ipIngress = [
+      new IpIngress(cidr: "123.23.45.6/12", startPort: 7002, endPort: 7004, description: "foo", ipProtocol: "tcp")
+    ]
+
+    when:
+    op.operate([])
+
+    then:
+    1 * securityGroupLookup.getAccountIdForName("test") >> "accountId1"
+    1 * securityGroupLookup.getSecurityGroupByName("test", "bar", "vpc-123") >> Optional.of(ingressSecurityGroup)
+
+    then:
+    1 * securityGroupLookup.getSecurityGroupByName("test", "foo", null) >> Optional.of(existingSecurityGroup)
+    1 * ingressSecurityGroup.getSecurityGroup() >> new SecurityGroup(groupName: "bar", groupId: "124", vpcId: "vpc-123")
+    1 * existingSecurityGroup.getSecurityGroup() >> new SecurityGroup(groupName: "foo", groupId: "123", ipPermissions: [
+      new IpPermission(ipProtocol: "tcp", fromPort: 7002, toPort: 7004, ipv4Ranges: [new IpRange(description: "foo", cidrIp:"123.23.45.6/12")])
+    ])
+
+    then:
+    1 * existingSecurityGroup.addIngress(_)
+    1 * existingSecurityGroup.updateIngress(_)
+    2 * existingSecurityGroup.updateTags(description)
+  }
+
+  void "should only update ingress of existing ingress when description is not null in the input"() {
+    final existingSecurityGroup = Mock(SecurityGroupUpdater)
+    final ingressSecurityGroup = Mock(SecurityGroupUpdater)
+    description.vpcId = null
+    description.ipIngress = [
+      new IpIngress(cidr: "123.23.45.6/12", startPort: 7002, endPort: 7004, description: "foo", ipProtocol: "tcp")
+    ]
+
+    when:
+    op.operate([])
+
+    then:
+    1 * securityGroupLookup.getSecurityGroupByName("test", "foo", null) >> Optional.of(existingSecurityGroup)
+    1 * existingSecurityGroup.getSecurityGroup() >> new SecurityGroup(groupName: "foo", groupId: "123", ipPermissions: [
+      new IpPermission(ipProtocol: "tcp", fromPort: 7002, toPort: 7004, ipv4Ranges: [new IpRange(description: "foo", cidrIp:"123.23.45.6/12")])
+    ])
+
+    then:
+    1 * existingSecurityGroup.updateIngress(_)
+    1 * existingSecurityGroup.updateTags(description)
+  }
+
+  void "should update existing ingress with description when description is null for existing rule"() {
+    final existingSecurityGroup = Mock(SecurityGroupUpdater)
+    final ingressSecurityGroup = Mock(SecurityGroupUpdater)
+    description.vpcId = null
+    description.ipIngress = [
+      new IpIngress(cidr: "123.23.45.6/12", startPort: 7002, endPort: 7004, description: "foo", ipProtocol: "tcp")
+    ]
+
+    when:
+    op.operate([])
+
+    then:
+    1 * securityGroupLookup.getSecurityGroupByName("test", "foo", null) >> Optional.of(existingSecurityGroup)
+    1 * existingSecurityGroup.getSecurityGroup() >> new SecurityGroup(groupName: "foo", groupId: "123", ipPermissions: [
+      new IpPermission(ipProtocol: "tcp", fromPort: 7002, toPort: 7004, ipv4Ranges: [new IpRange(description: null, cidrIp:"123.23.45.6/12")])
+    ])
+
+    then:
+    1 * existingSecurityGroup.updateIngress(_)
+    1 * existingSecurityGroup.updateTags(description)
+  }
+
+  void "should not update ingress existing ingress with description for the same rule"() {
+    final existingSecurityGroup = Mock(SecurityGroupUpdater)
+    final ingressSecurityGroup = Mock(SecurityGroupUpdater)
+    description.vpcId = null
+    description.ipIngress = [
+      new IpIngress(cidr: "123.23.45.6/12", startPort: 7002, endPort: 7004, description: null, ipProtocol: "tcp")
+    ]
+
+    when:
+    op.operate([])
+
+    then:
+    1 * securityGroupLookup.getSecurityGroupByName("test", "foo", null) >> Optional.of(existingSecurityGroup)
+    1 * existingSecurityGroup.getSecurityGroup() >> new SecurityGroup(groupName: "foo", groupId: "123", ipPermissions: [
+      new IpPermission(ipProtocol: "tcp", fromPort: 7002, toPort: 7004, ipv4Ranges: [new IpRange(description: "foo", cidrIp:"123.23.45.6/12")])
+    ])
+
+    then:
+    0 * existingSecurityGroup.updateIngress(_)
+    0 * existingSecurityGroup.updateTags(description)
+  }
+  void "should add, remove and update security group ingress rules"() {
+    final existingSecurityGroup = Mock(SecurityGroupUpdater)
+    final ingressSecurityGroup = Mock(SecurityGroupUpdater)
+    description.securityGroupIngress = [
+      new SecurityGroupIngress(name: "bar", startPort: 111, endPort: 112, vpcId: "vpc-123", ipProtocol: "tcp", accountName: "test")
+    ]
+    description.vpcId = null
+    description.ipIngress = [
+      new IpIngress(cidr: "123.23.45.6/12", startPort: 7002, endPort: 7004, description: "foo", ipProtocol: "tcp")
+    ]
+
+    when:
+    op.operate([])
+
+    then:
+    1 * securityGroupLookup.getAccountIdForName("test") >> "accountId1"
+    1 * securityGroupLookup.getSecurityGroupByName("test", "bar", "vpc-123") >> Optional.of(ingressSecurityGroup)
+
+    then:
+    1 * securityGroupLookup.getSecurityGroupByName("test", "foo", null) >> Optional.of(existingSecurityGroup)
+    1 * ingressSecurityGroup.getSecurityGroup() >> new SecurityGroup(groupName: "bar", groupId: "124", vpcId: "vpc-123")
+    1 * existingSecurityGroup.getSecurityGroup() >> new SecurityGroup(groupName: "foo", groupId: "123", ipPermissions: [
+      new IpPermission(ipProtocol: "tcp", fromPort: 7002, toPort: 7004, ipv4Ranges: [new IpRange(description: "foo", cidrIp:"123.23.45.6/12")]),
+      new IpPermission(ipProtocol: "tcp", fromPort: 7002, toPort: 7004, ipv4Ranges: [new IpRange(description: "baz", cidrIp:"103.23.45.6/12")])
+    ])
+
+    then:
+    1 * existingSecurityGroup.addIngress(_)
+    1 * existingSecurityGroup.updateIngress(_)
+    3 * existingSecurityGroup.updateTags(description)
+    1 * existingSecurityGroup.removeIngress(_)
   }
 
 }

@@ -101,8 +101,36 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
       ipPermissionsFromDescription = convertDescriptionToIngress(securityGroupLookup, description, false)
     }
 
-    List<IpPermission> ipPermissionsToAdd = ipPermissionsFromDescription.converted - existingIpPermissions
-    List<IpPermission> ipPermissionsToRemove = existingIpPermissions - ipPermissionsFromDescription.converted
+    SecurityGroupIngressConverter.IpRuleDelta ipRuleDelta = SecurityGroupIngressConverter.computeIpRuleDelta(ipPermissionsFromDescription.converted, existingIpPermissions)
+
+    List<IpPermission> ipPermissionsToAdd = ipRuleDelta.toAdd
+    List<IpPermission> userIdGroupPermissions = SecurityGroupIngressConverter.userIdGroupPairsDiff(ipPermissionsFromDescription.converted,existingIpPermissions)
+    ipPermissionsToAdd = ipPermissionsToAdd + userIdGroupPermissions
+
+    List<IpPermission> ipPermissionsToRemove = ipRuleDelta.toRemove
+    List<IpPermission> userIdGroupPermissionsToRemove = SecurityGroupIngressConverter.userIdGroupPairsDiff(existingIpPermissions,ipPermissionsFromDescription.converted)
+    ipPermissionsToRemove = ipPermissionsToRemove + userIdGroupPermissionsToRemove
+
+    List<IpPermission> tobeUpdated = ipRuleDelta.toUpdate
+
+    //Update rules that are already present on the security group
+    if(tobeUpdated) {
+      String status = "Permissions updated to '${description.name}'"
+      if (tobeUpdated.size() > MAX_RULES_FOR_STATUS) {
+        status = "$status (${tobeUpdated.size()} rules updated)."
+      } else {
+        status = "$status ($tobeUpdated)."
+      }
+      try {
+        securityGroupUpdater.updateIngress(tobeUpdated)
+        //Update tags to ensure they are consistent with rule changes
+        securityGroupUpdater.updateTags(description)
+        task.updateStatus BASE_PHASE, status
+      } catch (AmazonServiceException e) {
+        task.updateStatus BASE_PHASE, "Error updating ingress to '${description.name}' - ${e.errorMessage}"
+        throw e
+      }
+    }
 
     // Converge on the desired final set of security group rules
     if (ipPermissionsToAdd) {
@@ -123,6 +151,7 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
         throw e
       }
     }
+
     if (ipPermissionsToRemove && !description.ingressAppendOnly) {
       String status = "Permissions removed from '${description.name}'"
       if (ipPermissionsToRemove.size() > MAX_RULES_FOR_STATUS) {
