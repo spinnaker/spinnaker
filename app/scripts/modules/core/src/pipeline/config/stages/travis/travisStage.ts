@@ -163,6 +163,7 @@ module(TRAVIS_STAGE, [])
         restartable: true,
         controller: 'TravisStageCtrl',
         controllerAs: '$ctrl',
+        producesArtifacts: true,
         templateUrl: require('./travisStage.html'),
         executionDetailsUrl: require('./travisExecutionDetails.html'),
         executionLabelComponent: TravisExecutionLabel,
