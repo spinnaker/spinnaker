@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.orca.igor.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.ImmutableList;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
 import java.util.Collections;
 import java.util.List;
@@ -29,6 +31,7 @@ public class CIStageDefinition implements RetryableStageDefinition {
   private final String job;
   private final String propertyFile;
   private final Integer buildNumber;
+  private final BuildInfo buildInfo;
   private final boolean waitForCompletion;
   private final List<ExpectedArtifact> expectedArtifacts;
   private final int consecutiveErrors;
@@ -41,6 +44,7 @@ public class CIStageDefinition implements RetryableStageDefinition {
       @JsonProperty("job") String job,
       @JsonProperty("property") String propertyFile,
       @JsonProperty("buildNumber") Integer buildNumber,
+      @JsonProperty("buildInfo") BuildInfo buildInfo,
       @JsonProperty("waitForCompletion") Boolean waitForCompletion,
       @JsonProperty("expectedArtifacts") List<ExpectedArtifact> expectedArtifacts,
       @JsonProperty("consecutiveErrors") Integer consecutiveErrors) {
@@ -48,10 +52,21 @@ public class CIStageDefinition implements RetryableStageDefinition {
     this.job = job;
     this.propertyFile = propertyFile;
     this.buildNumber = buildNumber;
+    this.buildInfo = Optional.ofNullable(buildInfo).orElse(new BuildInfo(null));
     this.waitForCompletion = Optional.ofNullable(waitForCompletion).orElse(true);
     this.expectedArtifacts =
         Collections.unmodifiableList(
             Optional.ofNullable(expectedArtifacts).orElse(Collections.emptyList()));
     this.consecutiveErrors = Optional.ofNullable(consecutiveErrors).orElse(0);
+  }
+
+  @Getter
+  public static class BuildInfo {
+    private final ImmutableList<Artifact> artifacts;
+
+    public BuildInfo(@JsonProperty("artifacts") List<Artifact> artifacts) {
+      this.artifacts =
+          Optional.ofNullable(artifacts).map(ImmutableList::copyOf).orElse(ImmutableList.of());
+    }
   }
 }
