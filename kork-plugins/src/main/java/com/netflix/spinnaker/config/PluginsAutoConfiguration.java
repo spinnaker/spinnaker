@@ -90,7 +90,8 @@ public class PluginsAutoConfiguration {
     return new SpinnakerPluginManager(
         pluginStatusProvider,
         configResolver,
-        applicationContext.getApplicationName(),
+        Objects.requireNonNull(
+            applicationContext.getEnvironment().getProperty("spring.application.name")),
         Paths.get(
             applicationContext
                 .getEnvironment()
