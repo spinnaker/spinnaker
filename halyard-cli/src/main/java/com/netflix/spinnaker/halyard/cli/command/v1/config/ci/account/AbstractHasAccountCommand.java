@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.ci.master;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.ci.account;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
@@ -25,7 +25,7 @@ import java.util.List;
 /** An abstract definition for commands that accept 'account' as a main parameter */
 @Parameters(separators = "=")
 public abstract class AbstractHasAccountCommand extends AbstractCiCommand {
-  @Parameter(description = "The name of the master to operate on.", arity = 1)
+  @Parameter(description = "The name of the account to operate on.", arity = 1)
   List<String> accounts = new ArrayList<>();
 
   @Override

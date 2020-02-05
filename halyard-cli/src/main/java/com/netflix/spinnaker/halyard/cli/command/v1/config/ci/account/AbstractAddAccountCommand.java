@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Google, Inc.
+ * Copyright 2020 Amazon.com, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -12,49 +12,47 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.ci.gcb;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.ci.account;
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.master.AbstractHasAccountCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
-import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
+import com.netflix.spinnaker.halyard.config.model.v1.node.CIAccount;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-/** Delete a specific Google Cloud Build account */
 @Parameters(separators = "=")
-public class GooglecloudBuildDeleteAccountCommand extends AbstractHasAccountCommand {
+public abstract class AbstractAddAccountCommand extends AbstractHasAccountCommand {
   @Getter(AccessLevel.PROTECTED)
   private Map<String, NestableCommand> subcommands = new HashMap<>();
 
   @Getter(AccessLevel.PUBLIC)
-  private String commandName = "delete";
+  private String commandName = "add";
 
-  protected String getCiName() {
-    return "gcb";
-  }
+  protected abstract CIAccount buildAccount(String accountName);
 
   public String getShortDescription() {
-    return "Delete a Google Cloud Build account.";
+    return "Add a " + getCiFullName() + " account.";
   }
 
   @Override
   protected void executeThis() {
     String accountName = getAccountName();
-    String currentDeployment = getCurrentDeployment();
+    CIAccount account = buildAccount(accountName);
     String ciName = getCiName();
+
+    String currentDeployment = getCurrentDeployment();
     new OperationHandler<Void>()
-        .setOperation(Daemon.deleteMaster(currentDeployment, ciName, accountName, !noValidate))
-        .setSuccessMessage(String.format("Deleted Google Cloud Build account %s.", accountName))
+        .setOperation(Daemon.addMaster(currentDeployment, ciName, !noValidate, account))
+        .setSuccessMessage(String.format("Added %s account %s.", getCiFullName(), accountName))
         .setFailureMesssage(
-            String.format("Failed to delete Google Cloud Build account %s.", accountName))
+            String.format("Failed to add %s account %s.", getCiFullName(), accountName))
         .get();
-    AnsiUi.success("Deleted " + accountName);
   }
 }

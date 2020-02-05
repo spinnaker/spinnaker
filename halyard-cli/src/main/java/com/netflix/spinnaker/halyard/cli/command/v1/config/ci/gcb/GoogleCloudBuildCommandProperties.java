@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Google, Inc.
+ * Copyright 2020 Amazon.com, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,15 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.ci;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.ci.gcb;
 
-import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
+public class GoogleCloudBuildCommandProperties {
+  static final String PROJECT_DESCRIPTION =
+      "The name of the GCP project in which to trigger and monitor builds.";
 
-@Parameters(separators = "=")
-public abstract class AbstractCiCommand extends AbstractConfigCommand {
-  protected abstract String getCiName();
+  static final String JSON_KEY_DESCRIPTION =
+      "The path to a JSON service account that Spinnaker will use as credentials.";
 
-  protected String getCiFullName() {
-    return getCiName();
-  }
+  static final String SUBSCRIPTION_NAME_DESCRIPTION =
+      "The name of the PubSub subscription on which to listen for build changes.";
 }

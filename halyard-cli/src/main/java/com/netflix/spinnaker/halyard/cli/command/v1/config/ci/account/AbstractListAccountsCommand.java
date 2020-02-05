@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Google, Inc.
+ * Copyright 2020 Amazon.com, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -12,9 +12,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.ci.gcb;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.ci.account;
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.AbstractCiCommand;
@@ -27,14 +28,9 @@ import java.util.List;
 import lombok.Getter;
 
 @Parameters(separators = "=")
-class GoogleCloudBuildListAccountsCommand extends AbstractCiCommand {
+abstract class AbstractListAccountsCommand extends AbstractCiCommand {
   public String getShortDescription() {
-    return "List the Google Cloud Build accounts.";
-  }
-
-  @Override
-  protected String getCiName() {
-    return "gcb";
+    return "List the " + getCiFullName() + " accounts.";
   }
 
   @Getter private String commandName = "list";
@@ -44,7 +40,7 @@ class GoogleCloudBuildListAccountsCommand extends AbstractCiCommand {
     String ciName = getCiName();
     return new OperationHandler<Ci>()
         .setOperation(Daemon.getCi(currentDeployment, ciName, !noValidate))
-        .setFailureMesssage("Failed to get Google Cloud Build account.")
+        .setFailureMesssage("Failed to list " + getCiFullName() + " accounts.")
         .get();
   }
 
@@ -53,9 +49,9 @@ class GoogleCloudBuildListAccountsCommand extends AbstractCiCommand {
     Ci ci = getCi();
     List<CIAccount> account = ci.listAccounts();
     if (account.isEmpty()) {
-      AnsiUi.success("No configured Google Cloud Build accounts.");
+      AnsiUi.success("No configured " + getCiFullName() + " accounts.");
     } else {
-      AnsiUi.success("Google Cloud Build accounts:");
+      AnsiUi.success(getCiFullName() + " accounts:");
       account.forEach(master -> AnsiUi.listItem(master.getName()));
     }
   }

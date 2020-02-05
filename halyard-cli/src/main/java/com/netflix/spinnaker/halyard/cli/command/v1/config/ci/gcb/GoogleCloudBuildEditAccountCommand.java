@@ -18,49 +18,37 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.ci.gcb;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.master.AbstractHasAccountCommand;
-import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
-import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
-import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.account.AbstractEditAccountCommand;
 import com.netflix.spinnaker.halyard.config.model.v1.ci.gcb.GoogleCloudBuildAccount;
-import com.netflix.spinnaker.halyard.config.model.v1.node.CIAccount;
-import java.util.HashMap;
-import java.util.Map;
-import lombok.AccessLevel;
-import lombok.Getter;
 
 @Parameters(separators = "=")
-public class GoogleCloudBuildEditAccountCommand extends AbstractHasAccountCommand {
-  @Getter(AccessLevel.PROTECTED)
-  private Map<String, NestableCommand> subcommands = new HashMap<>();
-
+public class GoogleCloudBuildEditAccountCommand
+    extends AbstractEditAccountCommand<GoogleCloudBuildAccount> {
   protected String getCiName() {
     return "gcb";
   }
 
-  public String getShortDescription() {
-    return "Add a Google Cloud Build account";
+  @Override
+  protected String getCiFullName() {
+    return "Google Cloud Build";
   }
-
-  @Getter(AccessLevel.PUBLIC)
-  private String commandName = "edit";
 
   @Parameter(
       names = "--project",
-      description = "The name of the GCP project in which to trigger and monitor builds")
+      description = GoogleCloudBuildCommandProperties.PROJECT_DESCRIPTION)
   private String project;
 
   @Parameter(
       names = "--subscription-name",
-      description = "The name of the PubSub subscription on which to listen for build changes")
+      description = GoogleCloudBuildCommandProperties.SUBSCRIPTION_NAME_DESCRIPTION)
   public String subscriptionName;
 
   @Parameter(
       names = "--json-key",
-      description = "The path to a JSON service account that Spinnaker will use as credentials")
+      description = GoogleCloudBuildCommandProperties.JSON_KEY_DESCRIPTION)
   public String jsonKey;
 
+  @Override
   protected GoogleCloudBuildAccount editAccount(GoogleCloudBuildAccount account) {
     if (isSet(project)) {
       account.setProject(project);
@@ -75,37 +63,5 @@ public class GoogleCloudBuildEditAccountCommand extends AbstractHasAccountComman
     }
 
     return account;
-  }
-
-  @Override
-  protected void executeThis() {
-    String accountName = getAccountName();
-    String ciName = getCiName();
-    String currentDeployment = getCurrentDeployment();
-    // Disable validation here, since we don't want an illegal config to prevent us from fixing it.
-    GoogleCloudBuildAccount account =
-        (GoogleCloudBuildAccount)
-            new OperationHandler<CIAccount>()
-                .setOperation(Daemon.getMaster(currentDeployment, ciName, accountName, false))
-                .setFailureMesssage(
-                    String.format("Failed to get Google Cloud Build Account %s.", accountName))
-                .get();
-
-    int originalHash = account.hashCode();
-
-    account = editAccount(account);
-
-    if (originalHash == account.hashCode()) {
-      AnsiUi.failure("No changes supplied.");
-      return;
-    }
-
-    new OperationHandler<Void>()
-        .setOperation(
-            Daemon.setMaster(currentDeployment, ciName, accountName, !noValidate, account))
-        .setSuccessMessage(String.format("Edited Google Cloud Build account %s.", accountName))
-        .setFailureMesssage(
-            String.format("Failed to edit Google Cloud Build account %s.", accountName))
-        .get();
   }
 }

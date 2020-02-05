@@ -17,13 +17,18 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config.ci.gcb;
 
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.master.AbstractHasAccountCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.AbstractAccountCommand;
 
 /** Interact with Google Cloud Build accounts */
 @Parameters(separators = "=")
-public class GoogleCloudBuildAccountCommand extends AbstractHasAccountCommand {
+public class GoogleCloudBuildAccountCommand extends AbstractAccountCommand {
   protected String getCiName() {
     return "gcb";
+  }
+
+  @Override
+  protected String getCiFullName() {
+    return "Google Cloud Build";
   }
 
   @Override
@@ -33,19 +38,7 @@ public class GoogleCloudBuildAccountCommand extends AbstractHasAccountCommand {
 
   public GoogleCloudBuildAccountCommand() {
     super();
-    registerSubcommand(new GoogleCloudBuildListAccountsCommand());
     registerSubcommand(new GoogleCloudBuildAddAccountCommand());
     registerSubcommand(new GoogleCloudBuildEditAccountCommand());
-    registerSubcommand(new GooglecloudBuildDeleteAccountCommand());
-  }
-
-  @Override
-  public String getShortDescription() {
-    return "Manage and view Spinnaker configuration for the Google Cloud Build service account.";
-  }
-
-  @Override
-  protected void executeThis() {
-    showHelp();
   }
 }
