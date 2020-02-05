@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.igor.pipeline
 
+import com.netflix.spinnaker.orca.igor.tasks.MonitorAwsCodeBuildTask
 import com.netflix.spinnaker.orca.igor.tasks.StartAwsCodeBuildTask
 import spock.lang.Specification
 
@@ -43,6 +44,27 @@ class AwsCodeBuildStageSpec extends Specification {
     then:
     tasks.findAll {
       it.implementingClass == StartAwsCodeBuildTask
+    }.size() == 1
+  }
+
+  def "should wait for completion"() {
+    given:
+    def awsCodeBuildStage = new AwsCodeBuildStage()
+
+    def stage = stage {
+      type = "awsCodeBuild"
+      context = [
+          account: ACCOUNT,
+          projectName: PROJECT_NAME,
+      ]
+    }
+
+    when:
+    def tasks = awsCodeBuildStage.buildTaskGraph(stage)
+
+    then:
+    tasks.findAll {
+      it.implementingClass == MonitorAwsCodeBuildTask
     }.size() == 1
   }
 }

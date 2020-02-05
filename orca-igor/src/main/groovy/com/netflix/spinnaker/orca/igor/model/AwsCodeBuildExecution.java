@@ -64,7 +64,7 @@ public class AwsCodeBuildExecution {
     FAILED(ExecutionStatus.TERMINAL),
     FAULT(ExecutionStatus.TERMINAL),
     TIMED_OUT(ExecutionStatus.TERMINAL),
-    STOPPED(ExecutionStatus.CANCELED),
+    STOPPED(ExecutionStatus.TERMINAL),
     UNKNOWN(ExecutionStatus.TERMINAL);
 
     @Getter private ExecutionStatus executionStatus;
