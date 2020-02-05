@@ -222,7 +222,7 @@ class GateConfig extends RedisHttpSessionConfiguration {
       List<ServiceSelector> selectors = []
       endpoints.each { sourceApp, url ->
         def service = buildService(okHttpClient, ClouddriverService, newFixedEndpoint(url))
-        selectors << new ByUserOriginSelector(service, 2, sourceApp)
+        selectors << new ByUserOriginSelector(service, 2, ['origin': (Object) sourceApp])
       }
 
       return new ClouddriverServiceSelector(

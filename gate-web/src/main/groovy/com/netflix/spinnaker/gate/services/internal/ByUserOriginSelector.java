@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.gate.services.internal;
 
-import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.kork.web.selector.SelectableService;
 import com.netflix.spinnaker.kork.web.selector.ServiceSelector;
 import java.util.Map;
@@ -38,10 +37,6 @@ public class ByUserOriginSelector implements ServiceSelector {
     if (origin == null) {
       log.warn("ByUserOriginSelector created for service {} has null origin", service);
     }
-  }
-
-  public ByUserOriginSelector(Object service, Integer priority, String origin) {
-    this(service, priority, ImmutableMap.of("origin", origin));
   }
 
   @Override
