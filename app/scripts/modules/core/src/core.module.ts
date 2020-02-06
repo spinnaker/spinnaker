@@ -27,7 +27,6 @@ import { RECENT_HISTORY_SERVICE } from 'core/history';
 require('root/app/fonts/spinnaker/icons.css');
 
 import './analytics/GoogleAnalyticsInitializer';
-import { sharedLibraries } from './plugins/sharedLibraries';
 import { ANALYTICS_MODULE } from './analytics/angulartics.module';
 import { APPLICATION_BOOTSTRAP_MODULE } from './bootstrap';
 import { APPLICATION_MODULE } from './application/application.module';
@@ -94,8 +93,6 @@ const templates = require.context('./', true, /\.html$/);
 templates.keys().forEach(function(key) {
   templates(key);
 });
-
-sharedLibraries.exposeSharedLibraries();
 
 export const CORE_MODULE = 'spinnaker.core';
 module(CORE_MODULE, [

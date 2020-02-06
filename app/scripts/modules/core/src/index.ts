@@ -62,6 +62,7 @@ export * from './overrideRegistry';
 export * from './pageTitle';
 export * from './pagerDuty';
 export * from './pipeline';
+export * from './plugins';
 export * from './presentation';
 export * from './projects';
 export * from './pubsub';
