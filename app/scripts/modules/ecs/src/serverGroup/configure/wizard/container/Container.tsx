@@ -7,8 +7,9 @@ import {
   IEcsServerGroupCommand,
   IEcsTargetGroupMapping,
 } from '../../serverGroupConfiguration.service';
-import { HelpField } from '@spinnaker/core';
+import { HelpField, TetheredSelect } from '@spinnaker/core';
 import { Alert } from 'react-bootstrap';
+import { Option } from 'react-select';
 
 export interface IContainerProps {
   command: IEcsServerGroupCommand;
@@ -101,9 +102,9 @@ export class Container extends React.Component<IContainerProps, IContainerState>
     this.setState({ targetGroupMappings: targetMaps });
   };
 
-  private updateContainerMappingImage = (newImage: string) => {
+  private updateContainerMappingImage = (newImage: Option<string>) => {
     const imageMap = this.getIdToImageMap();
-    let newImageDescription = imageMap.get(newImage);
+    let newImageDescription = imageMap.get(newImage.value);
     if (!newImageDescription) {
       newImageDescription = this.getEmptyImageDescription();
     }
@@ -112,10 +113,10 @@ export class Container extends React.Component<IContainerProps, IContainerState>
     this.setState({ imageDescription: newImageDescription });
   };
 
-  private updateTargetGroupMappingTargetGroup = (index: number, newTargetGroup: string) => {
+  private updateTargetGroupMappingTargetGroup = (index: number, newTargetGroup: Option<string>) => {
     const currentMappings = this.state.targetGroupMappings;
     const targetMapping = currentMappings[index];
-    targetMapping.targetGroup = newTargetGroup;
+    targetMapping.targetGroup = newTargetGroup.value;
     this.props.notifyAngular('targetGroupMappings', currentMappings);
     this.setState({ targetGroupMappings: currentMappings });
   };
@@ -141,17 +142,12 @@ export class Container extends React.Component<IContainerProps, IContainerState>
     const updateTargetGroupMappingTargetGroup = this.updateTargetGroupMappingTargetGroup;
     const updateTargetGroupMappingPort = this.updateTargetGroupMappingPort;
 
-    const dockerImages = this.state.dockerImages.map(function(image, index) {
+    const dockerImageOptions = this.state.dockerImages.map(function(image) {
       let msg = '';
       if (image.fromTrigger || image.fromContext) {
         msg = image.fromTrigger ? '(TRIGGER) ' : '(FIND IMAGE RESULT) ';
       }
-      return (
-        <option key={index} value={image.imageId}>
-          {msg}
-          {image.imageId}
-        </option>
-      );
+      return { label: `${msg} (${image.imageId})`, value: image.imageId };
     });
 
     const newTargetGroupMapping = this.state.targetGroupsAvailable.length ? (
@@ -165,27 +161,21 @@ export class Container extends React.Component<IContainerProps, IContainerState>
       </div>
     );
 
-    const targetGroupsAvailable = this.state.targetGroupsAvailable.map(function(targetGroup, index) {
-      return (
-        <option key={index} value={targetGroup}>
-          {targetGroup}
-        </option>
-      );
+    const targetGroupsAvailable = this.state.targetGroupsAvailable.map(function(targetGroup) {
+      return { label: `${targetGroup}`, value: targetGroup };
     });
 
     const targetGroupInputs = this.state.targetGroupMappings.map(function(mapping, index) {
       return (
         <tr key={index}>
           <td>
-            <select
-              className="form-control input-sm"
+            <TetheredSelect
+              placeholder="Select a target group to use..."
+              options={targetGroupsAvailable}
               value={mapping.targetGroup.toString()}
-              required={true}
-              onChange={e => updateTargetGroupMappingTargetGroup(index, e.target.value)}
-            >
-              <option value={''}>Select a target group to use...</option>
-              {targetGroupsAvailable}
-            </select>
+              onChange={(e: Option) => updateTargetGroupMappingTargetGroup(index, e as Option<string>)}
+              clearable={false}
+            />
           </td>
           <td>
             <input
@@ -216,15 +206,15 @@ export class Container extends React.Component<IContainerProps, IContainerState>
             <HelpField id="ecs.containerMappingImage" />
           </div>
           <div className="col-md-9">
-            <select
-              className="form-control input-sm"
+            <TetheredSelect
+              placeholder="Select an image to use..."
+              options={dockerImageOptions}
               value={this.state.imageDescription.imageId}
-              required={true}
-              onChange={e => updateContainerMappingImage(e.target.value)}
-            >
-              <option value={''}>Select an image to use...</option>
-              {dockerImages}
-            </select>
+              onChange={(e: Option) => {
+                updateContainerMappingImage(e as Option<string>);
+              }}
+              clearable={false}
+            />
           </div>
         </div>
         <div className="form-group">

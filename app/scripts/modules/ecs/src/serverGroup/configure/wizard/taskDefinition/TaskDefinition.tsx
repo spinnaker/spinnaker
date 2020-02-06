@@ -2,6 +2,8 @@ import React from 'react';
 import { module, IPromise } from 'angular';
 import { concat, uniq, uniqWith, isEqual } from 'lodash';
 import { react2angular } from 'react2angular';
+import { Alert } from 'react-bootstrap';
+import { Option } from 'react-select';
 import {
   IEcsContainerMapping,
   IEcsDockerImage,
@@ -16,8 +18,8 @@ import {
   IExpectedArtifact,
   IPipeline,
   StageArtifactSelectorDelegate,
+  TetheredSelect,
 } from '@spinnaker/core';
-import { Alert } from 'react-bootstrap';
 
 export interface ITaskDefinitionProps {
   command: IEcsServerGroupCommand;
@@ -149,9 +151,9 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
     this.setState({ containerMappings: currentMappings });
   };
 
-  private updateContainerMappingImage = (index: number, newImage: string) => {
+  private updateContainerMappingImage = (index: number, newImage: Option<string>) => {
     const imageMap = this.getIdToImageMap();
-    let newImageDescription = imageMap.get(newImage);
+    let newImageDescription = imageMap.get(newImage.value);
 
     if (!newImageDescription) {
       newImageDescription = this.getEmptyImageDescription();
@@ -163,10 +165,10 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
     this.setState({ containerMappings: currentMappings });
   };
 
-  private updateTargetGroupMappingTargetGroup = (index: number, newTargetGroup: string) => {
+  private updateTargetGroupMappingTargetGroup = (index: number, newTargetGroup: Option<string>) => {
     const currentMappings = this.state.targetGroupMappings;
     const targetMapping = currentMappings[index];
-    targetMapping.targetGroup = newTargetGroup;
+    targetMapping.targetGroup = newTargetGroup.value;
     this.props.notifyAngular('targetGroupMappings', currentMappings);
     this.setState({ targetGroupMappings: currentMappings });
   };
@@ -220,25 +222,16 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
     const updateTargetGroupMappingTargetGroup = this.updateTargetGroupMappingTargetGroup;
     const updateTargetGroupMappingPort = this.updateTargetGroupMappingPort;
 
-    const dockerImages = this.state.dockerImages.map(function(image, index) {
+    const dockerImageOptions = this.state.dockerImages.map(function(image) {
       let msg = '';
       if (image.fromTrigger || image.fromContext) {
         msg = image.fromTrigger ? '(TRIGGER) ' : '(FIND IMAGE RESULT) ';
       }
-      return (
-        <option key={index} value={image.imageId}>
-          {msg}
-          {image.imageId}
-        </option>
-      );
+      return { label: `${msg} (${image.imageId})`, value: image.imageId };
     });
 
-    const targetGroupsAvailable = this.state.targetGroupsAvailable.map(function(targetGroup, index) {
-      return (
-        <option key={index} value={targetGroup}>
-          {targetGroup}
-        </option>
-      );
+    const targetGroupsAvailable = this.state.targetGroupsAvailable.map(function(targetGroup) {
+      return { label: `${targetGroup}`, value: targetGroup };
     });
 
     const mappingInputs = this.state.containerMappings.map(function(mapping, index) {
@@ -254,15 +247,15 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
             />
           </td>
           <td>
-            <select
-              className="form-control input-sm"
+            <TetheredSelect
+              placeholder="Select an image to use..."
+              options={dockerImageOptions}
               value={mapping.imageDescription.imageId}
-              required={true}
-              onChange={e => updateContainerMappingImage(index, e.target.value)}
-            >
-              <option value={''}>Select an image to use...</option>
-              {dockerImages}
-            </select>
+              onChange={(e: Option) => {
+                updateContainerMappingImage(index, e as Option<string>);
+              }}
+              clearable={false}
+            />
           </td>
           <td>
             <div className="form-control-static">
@@ -289,15 +282,13 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
             />
           </td>
           <td>
-            <select
-              className="form-control input-sm"
+            <TetheredSelect
+              placeholder="Select a target group to use..."
+              options={targetGroupsAvailable}
               value={mapping.targetGroup.toString()}
-              required={true}
-              onChange={e => updateTargetGroupMappingTargetGroup(index, e.target.value)}
-            >
-              <option value={''}>Select a target group to use...</option>
-              {targetGroupsAvailable}
-            </select>
+              onChange={(e: Option) => updateTargetGroupMappingTargetGroup(index, e as Option<string>)}
+              clearable={false}
+            />
           </td>
           <td>
             <input
