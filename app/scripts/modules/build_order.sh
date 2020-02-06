@@ -9,6 +9,7 @@ ModuleDeps () {
   case "$1" in
       amazon) echo "core" ;;
       appengine) echo "core" ;;
+      azure) echo "core" ;;
       cloudfoundry) echo "core" ;;
       core) echo "core";;
       docker) echo "core" ;;

@@ -40,14 +40,8 @@ module.exports = function(config) {
     },
 
     customLaunchers: {
-      ChromeCI: {
-        base: 'ChromeHeadless',
-        flags: ['--no-sandbox'],
-      },
-      ChromeActive: {
-        base: 'Chrome',
-        flags: ['--override-plugin-power-saver-for-testing=0'],
-      },
+      ChromeCI: { base: 'ChromeHeadless', flags: ['--no-sandbox'] },
+      ChromeActive: { base: 'Chrome', flags: ['--override-plugin-power-saver-for-testing=0'] },
     },
 
     plugins: [

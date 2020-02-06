@@ -6,14 +6,14 @@ PKGJSONCHANGED="Version change detected in package.json"
 ONLYVERSIONCHANGED="Version change must be the only line changed in package.json"
 ONLYPKGJSONCHANGED="package.json (in app/scripts/modules) must be the only files changed in a pull request with version bumps"
 
-echo "TRAVIS_BRANCH=$TRAVIS_BRANCH"
-TARGET_BRANCH=${TRAVIS_BRANCH:-master}
+TARGET_BRANCH=origin/master
 echo "TARGET_BRANCH=$TARGET_BRANCH"
 
 # Tests are run against an ephemeral merge commit so we don't have to merge in $TARGET_BRANCH
 
 for PKGJSON in `ls app/scripts/modules/*/package.json` ; do
   MODULE=`basename $(dirname $PKGJSON)`
+  echo "::group::Checking $MODULE"
   echo "==================================================="
   echo "Checking $MODULE"
   echo "==================================================="
@@ -36,6 +36,7 @@ for PKGJSON in `ls app/scripts/modules/*/package.json` ; do
       exit 2
     else
       echo " [ PASS ] $ONLYVERSIONCHANGED"
+      echo "::endgroup::"
     fi
 
     # checking that the only files changed are app/scripts/modules/*/package.json
