@@ -21,9 +21,8 @@ import com.netflix.spinnaker.gradle.extension.extensions.SpinnakerBundleExtensio
 import com.netflix.spinnaker.gradle.extension.extensions.SpinnakerPluginExtension
 import groovy.json.JsonOutput
 import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
-import org.gradle.crypto.checksum.Checksum
-import org.gradle.crypto.checksum.ChecksumPlugin
 import java.io.File
 import java.lang.IllegalStateException
 import java.time.Instant
@@ -34,6 +33,9 @@ import java.time.Instant
 open class CreatePluginInfoTask : DefaultTask() {
 
   override fun getGroup(): String? = Plugins.GROUP
+
+  @Internal
+  val rootProjectVersion: String = project.rootProject.version.toString()
 
   @TaskAction
   fun doAction() {
@@ -61,7 +63,7 @@ open class CreatePluginInfoTask : DefaultTask() {
       "provider" to bundleExt.provider,
       "releases" to listOf(
         mapOf(
-          "version" to bundleExt.version,
+          "version" to if (isVersionSpecified(bundleExt.version)) bundleExt.version else rootProjectVersion,
           "date" to Instant.now().toString(),
           "requires" to requires,
           "sha512sum" to getChecksum(),
@@ -74,6 +76,10 @@ open class CreatePluginInfoTask : DefaultTask() {
     File(project.buildDir, "distributions/plugin-info.json").writeText(
       JsonOutput.prettyPrint(JsonOutput.toJson(pluginInfo))
     )
+  }
+
+  private fun isVersionSpecified(version: String): Boolean {
+    return version.isNotBlank() && version.isNotEmpty() && version != "unspecified"
   }
 
   private fun getChecksum(): String {
