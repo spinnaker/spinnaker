@@ -15,6 +15,8 @@
  */
 package com.netflix.spinnaker.kork.plugins
 
+import com.netflix.spinnaker.kork.plugins.api.ConfigurableExtension
+import com.netflix.spinnaker.kork.plugins.api.SpinnakerExtension
 import com.netflix.spinnaker.kork.plugins.api.spring.PrivilegedSpringPlugin
 import com.netflix.spinnaker.kork.plugins.events.ExtensionLoaded
 import com.netflix.spinnaker.kork.plugins.proxy.aspects.InvocationAspect

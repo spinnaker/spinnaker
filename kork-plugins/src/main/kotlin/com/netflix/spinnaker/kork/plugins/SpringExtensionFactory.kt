@@ -17,6 +17,8 @@ package com.netflix.spinnaker.kork.plugins
 
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import com.netflix.spinnaker.kork.exceptions.SystemException
+import com.netflix.spinnaker.kork.plugins.api.ConfigurableExtension
+import com.netflix.spinnaker.kork.plugins.api.SpinnakerExtension
 import com.netflix.spinnaker.kork.plugins.api.spring.SpringPlugin
 import com.netflix.spinnaker.kork.plugins.config.ConfigCoordinates
 import com.netflix.spinnaker.kork.plugins.config.ConfigResolver

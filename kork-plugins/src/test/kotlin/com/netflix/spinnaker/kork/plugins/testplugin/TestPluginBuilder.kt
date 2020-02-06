@@ -167,7 +167,7 @@ class TestPluginBuilder(
     """
     package $packageName;
 
-    import com.netflix.spinnaker.kork.plugins.SpinnakerExtension;
+    import com.netflix.spinnaker.kork.plugins.api.SpinnakerExtension;
     import com.netflix.spinnaker.kork.plugins.testplugin.api.TestExtension;
     import org.pf4j.Extension;
 

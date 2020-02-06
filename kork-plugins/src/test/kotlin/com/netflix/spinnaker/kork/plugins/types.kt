@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.kork.plugins
 
+import com.netflix.spinnaker.kork.plugins.api.SpinnakerExtension
 import com.netflix.spinnaker.kork.plugins.api.spring.SpringPlugin
 import org.pf4j.PluginWrapper
 import org.springframework.beans.factory.annotation.Autowired
