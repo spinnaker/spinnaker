@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.ci;
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.codebuild.AwsCodeBuildCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.concourse.ConcourseCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.gcb.GoogleCloudBuildCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.jenkins.JenkinsCommand;
@@ -42,6 +43,7 @@ public class CiCommand extends NestableCommand {
       "Configure, validate, and view the specified Continuous Integration service.";
 
   public CiCommand() {
+    registerSubcommand(new AwsCodeBuildCommand());
     registerSubcommand(new ConcourseCommand());
     registerSubcommand(new GoogleCloudBuildCommand());
     registerSubcommand(new JenkinsCommand());

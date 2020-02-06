@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.ci;
 
+import com.netflix.spinnaker.halyard.config.model.v1.ci.codebuild.AwsCodeBuild;
+import com.netflix.spinnaker.halyard.config.model.v1.ci.codebuild.AwsCodeBuildAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.ci.concourse.ConcourseCi;
 import com.netflix.spinnaker.halyard.config.model.v1.ci.concourse.ConcourseMaster;
 import com.netflix.spinnaker.halyard.config.model.v1.ci.gcb.GoogleCloudBuild;
@@ -34,7 +36,8 @@ public enum CiType {
   travis(TravisCi.class, TravisMaster.class),
   wercker(WerckerCi.class, WerckerMaster.class),
   concourse(ConcourseCi.class, ConcourseMaster.class),
-  gcb(GoogleCloudBuild.class, GoogleCloudBuildAccount.class);
+  gcb(GoogleCloudBuild.class, GoogleCloudBuildAccount.class),
+  codebuild(AwsCodeBuild.class, AwsCodeBuildAccount.class);
 
   public final Class<? extends Ci> ciClass;
   public final Class<? extends CIAccount> accountClass;

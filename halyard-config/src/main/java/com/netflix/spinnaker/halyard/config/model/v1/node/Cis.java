@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
+import com.netflix.spinnaker.halyard.config.model.v1.ci.codebuild.AwsCodeBuild;
 import com.netflix.spinnaker.halyard.config.model.v1.ci.concourse.ConcourseCi;
 import com.netflix.spinnaker.halyard.config.model.v1.ci.gcb.GoogleCloudBuild;
 import com.netflix.spinnaker.halyard.config.model.v1.ci.jenkins.JenkinsCi;
@@ -32,6 +33,7 @@ public class Cis extends Node implements Cloneable {
   WerckerCi wercker = new WerckerCi();
   ConcourseCi concourse = new ConcourseCi();
   GoogleCloudBuild gcb = new GoogleCloudBuild();
+  AwsCodeBuild codebuild = new AwsCodeBuild();
 
   public boolean ciEnabled() {
     NodeIterator iterator = getChildren();

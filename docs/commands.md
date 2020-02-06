@@ -176,6 +176,15 @@
  * [**hal config canary signalfx disable**](#hal-config-canary-signalfx-disable)
  * [**hal config canary signalfx enable**](#hal-config-canary-signalfx-enable)
  * [**hal config ci**](#hal-config-ci)
+ * [**hal config ci codebuild**](#hal-config-ci-codebuild)
+ * [**hal config ci codebuild account**](#hal-config-ci-codebuild-account)
+ * [**hal config ci codebuild account add**](#hal-config-ci-codebuild-account-add)
+ * [**hal config ci codebuild account delete**](#hal-config-ci-codebuild-account-delete)
+ * [**hal config ci codebuild account edit**](#hal-config-ci-codebuild-account-edit)
+ * [**hal config ci codebuild account get**](#hal-config-ci-codebuild-account-get)
+ * [**hal config ci codebuild account list**](#hal-config-ci-codebuild-account-list)
+ * [**hal config ci codebuild disable**](#hal-config-ci-codebuild-disable)
+ * [**hal config ci codebuild enable**](#hal-config-ci-codebuild-enable)
  * [**hal config ci concourse**](#hal-config-ci-concourse)
  * [**hal config ci concourse disable**](#hal-config-ci-concourse-disable)
  * [**hal config ci concourse enable**](#hal-config-ci-concourse-enable)
@@ -3667,11 +3676,172 @@ hal config ci [subcommands]
 ```
 
 #### Subcommands
+ * `codebuild`: Manage and view Spinnaker configuration for AWS CodeBuild
  * `concourse`: Manage and view Spinnaker configuration for the concourse ci
  * `gcb`: Manage and view Spinnaker configuration for Google Cloud Build
  * `jenkins`: Manage and view Spinnaker configuration for the jenkins ci
  * `travis`: Manage and view Spinnaker configuration for the travis ci
  * `wercker`: Manage and view Spinnaker configuration for the wercker ci
+
+---
+## hal config ci codebuild
+
+Manage and view Spinnaker configuration for AWS CodeBuild
+
+#### Usage
+```
+hal config ci codebuild [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `account`: Manage and view Spinnaker configuration for AWS CodeBuild service account.
+ * `disable`: Set the codebuild ci as disabled
+ * `enable`: Set the codebuild ci as enabled
+
+---
+## hal config ci codebuild account
+
+Manage and view Spinnaker configuration for AWS CodeBuild service account.
+
+#### Usage
+```
+hal config ci codebuild account ACCOUNT [parameters] [subcommands]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `add`: Add a AWS CodeBuild account.
+ * `delete`: Delete a AWS CodeBuild account.
+ * `edit`: Edit a AWS CodeBuild account.
+ * `get`: Get the account details for AWS CodeBuild.
+ * `list`: List the AWS CodeBuild accounts.
+
+---
+## hal config ci codebuild account add
+
+Add a AWS CodeBuild account.
+
+#### Usage
+```
+hal config ci codebuild account add ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--account-id`: (*Required*) The AWS account ID that will be used to trigger CodeBuild build.
+ * `--assume-role`: (*Required*) If set, Halyard will configure a credentials provider that uses AWS Security Token Service to assume the specified role.
+
+Example: "user/spinnaker" or "role/spinnakerManaged"
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--region`: (*Required*) The AWS region in which your CodeBuild projects live.
+
+
+---
+## hal config ci codebuild account delete
+
+Delete a AWS CodeBuild account.
+
+#### Usage
+```
+hal config ci codebuild account delete ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config ci codebuild account edit
+
+Edit a AWS CodeBuild account.
+
+#### Usage
+```
+hal config ci codebuild account edit ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--account-id`: The AWS account ID that will be used to trigger CodeBuild build.
+ * `--assume-role`: If set, Halyard will configure a credentials provider that uses AWS Security Token Service to assume the specified role.
+
+Example: "user/spinnaker" or "role/spinnakerManaged"
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--region`: The AWS region in which your CodeBuild projects live.
+
+
+---
+## hal config ci codebuild account get
+
+Get the account details for AWS CodeBuild.
+
+#### Usage
+```
+hal config ci codebuild account get ACCOUNT [parameters]
+```
+
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config ci codebuild account list
+
+List the AWS CodeBuild accounts.
+
+#### Usage
+```
+hal config ci codebuild account list [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config ci codebuild disable
+
+Set the codebuild ci as disabled
+
+#### Usage
+```
+hal config ci codebuild disable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config ci codebuild enable
+
+Set the codebuild ci as enabled
+
+#### Usage
+```
+hal config ci codebuild enable [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config ci concourse
