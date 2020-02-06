@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.persistence.memory
 import com.netflix.spinnaker.keel.api.ConstraintState
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.UID
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.resources
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
@@ -116,6 +117,9 @@ class InMemoryDeliveryConfigRepository(
     type: String
   ): ConstraintState? =
     constraints["$deliveryConfigName:$environmentName:$artifactVersion:$type"]
+
+  override fun getConstraintStateById(uid: UID) =
+    constraints[uid.toString()]
 
   override fun constraintStateFor(
     deliveryConfigName: String,

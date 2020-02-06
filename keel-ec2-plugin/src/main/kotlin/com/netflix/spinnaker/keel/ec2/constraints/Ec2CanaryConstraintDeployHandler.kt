@@ -16,7 +16,7 @@ import com.netflix.spinnaker.keel.constraints.toStageBase
 import com.netflix.spinnaker.keel.ec2.resolvers.ImageResolver
 import com.netflix.spinnaker.keel.events.Task
 import com.netflix.spinnaker.keel.model.parseMoniker
-import com.netflix.spinnaker.keel.model.toEchoNotification
+import com.netflix.spinnaker.keel.model.toOrcaNotification
 import com.netflix.spinnaker.keel.plugin.TaskLauncher
 import com.netflix.spinnaker.keel.retrofit.isNotFound
 import kotlinx.coroutines.CoroutineScope
@@ -87,7 +87,7 @@ class Ec2CanaryConstraintDeployHandler(
           taskLauncher.submitJob(
             user = deliveryConfig.serviceAccount,
             application = deliveryConfig.application,
-            notifications = targetEnvironment.notifications.map { it.toEchoNotification() },
+            notifications = targetEnvironment.notifications.map { it.toOrcaNotification() },
             subject = description,
             description = description,
             correlationId = "$judge:$region",

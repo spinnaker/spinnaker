@@ -13,6 +13,7 @@ dependencies {
   api(project(":keel-veto"))
   api(project(":keel-sql"))
   api(project(":keel-docker"))
+  api(project(":keel-echo"))
 
   implementation(project(":keel-bakery-plugin"))
   implementation(project(":keel-ec2-plugin"))

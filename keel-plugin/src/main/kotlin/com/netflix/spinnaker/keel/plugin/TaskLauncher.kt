@@ -3,7 +3,7 @@ package com.netflix.spinnaker.keel.plugin
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SubjectType
 import com.netflix.spinnaker.keel.events.Task
-import com.netflix.spinnaker.keel.model.EchoNotification
+import com.netflix.spinnaker.keel.model.OrcaNotification
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 
 interface TaskLauncher {
@@ -30,7 +30,7 @@ interface TaskLauncher {
   suspend fun submitJob(
     user: String,
     application: String,
-    notifications: List<EchoNotification>,
+    notifications: List<OrcaNotification>,
     subject: String,
     description: String,
     correlationId: String,
@@ -52,7 +52,7 @@ interface TaskLauncher {
   suspend fun submitJob(
     user: String,
     application: String,
-    notifications: List<EchoNotification>,
+    notifications: List<OrcaNotification>,
     subject: String,
     description: String,
     correlationId: String,

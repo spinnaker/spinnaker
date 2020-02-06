@@ -8,7 +8,9 @@ import com.netflix.spinnaker.keel.api.ConstraintStatus
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.UID
 import com.netflix.spinnaker.keel.api.id
+import com.netflix.spinnaker.keel.api.parseUID
 import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigName
@@ -392,6 +394,8 @@ class SqlDeliveryConfigRepository(
               .set(CURRENT_CONSTRAINT.CONSTRAINT_UID, MySQLDSL.values(CURRENT_CONSTRAINT.CONSTRAINT_UID))
               .execute()
           }
+          // Store generated UID in constraint state object so it can be used by caller
+          state.uid = parseUID(uid)
         }
       }
   }
@@ -424,6 +428,54 @@ class SqlDeliveryConfigRepository(
           ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_VERSION.eq(artifactVersion),
           ENVIRONMENT_ARTIFACT_CONSTRAINT.TYPE.eq(type)
         )
+        .fetchOne { (deliveryConfigName,
+                      environmentName,
+                      artifactVersion,
+                      constraintType,
+                      status,
+                      createdAt,
+                      judgedBy,
+                      judgedAt,
+                      comment,
+                      attributes) ->
+          ConstraintState(
+            deliveryConfigName,
+            environmentName,
+            artifactVersion,
+            constraintType,
+            ConstraintStatus.valueOf(status),
+            createdAt.toInstant(ZoneOffset.UTC),
+            judgedBy,
+            when (judgedAt) {
+              null -> null
+              else -> judgedAt.toInstant(ZoneOffset.UTC)
+            },
+            comment,
+            mapper.readValue(attributes)
+          )
+        }
+    }
+  }
+
+  override fun getConstraintStateById(uid: UID): ConstraintState? {
+    return sqlRetry.withRetry(READ) {
+      jooq
+        .select(
+          DELIVERY_CONFIG.NAME,
+          ENVIRONMENT.NAME,
+          ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_VERSION,
+          ENVIRONMENT_ARTIFACT_CONSTRAINT.TYPE,
+          ENVIRONMENT_ARTIFACT_CONSTRAINT.STATUS,
+          ENVIRONMENT_ARTIFACT_CONSTRAINT.CREATED_AT,
+          ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_BY,
+          ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_AT,
+          ENVIRONMENT_ARTIFACT_CONSTRAINT.COMMENT,
+          ENVIRONMENT_ARTIFACT_CONSTRAINT.ATTRIBUTES
+        )
+        .from(ENVIRONMENT_ARTIFACT_CONSTRAINT, DELIVERY_CONFIG, ENVIRONMENT)
+        .where(ENVIRONMENT_ARTIFACT_CONSTRAINT.UID.eq(uid.toString()))
+        .and(ENVIRONMENT.UID.eq(ENVIRONMENT_ARTIFACT_CONSTRAINT.ENVIRONMENT_UID))
+        .and(DELIVERY_CONFIG.UID.eq(ENVIRONMENT.DELIVERY_CONFIG_UID))
         .fetchOne { (deliveryConfigName,
                       environmentName,
                       artifactVersion,

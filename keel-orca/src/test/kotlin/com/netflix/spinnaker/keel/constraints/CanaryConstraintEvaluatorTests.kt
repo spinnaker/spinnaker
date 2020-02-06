@@ -24,10 +24,12 @@ import io.mockk.Runs
 import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import java.time.Clock
 import java.time.Duration
+import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectThat
 import strikt.assertions.all
 import strikt.assertions.contains
@@ -44,6 +46,7 @@ internal class CanaryConstraintEvaluatorTests : JUnit5Minutests {
     val clock: Clock = Clock.systemUTC()
     val deliveryConfigRepository = InMemoryDeliveryConfigRepository(clock)
     val orcaService: OrcaService = mockk(relaxed = true)
+    val eventPublisher: ApplicationEventPublisher = mockk(relaxed = true)
     val type: String = "canary"
   }
 
@@ -92,7 +95,8 @@ internal class CanaryConstraintEvaluatorTests : JUnit5Minutests {
       handlers = handlers,
       orcaService = orcaService,
       deliveryConfigRepository = deliveryConfigRepository,
-      clock = clock
+      clock = clock,
+      eventPublisher = eventPublisher
     )
   }
 
@@ -104,6 +108,9 @@ internal class CanaryConstraintEvaluatorTests : JUnit5Minutests {
     context("promotion is gated on launching a canary and its status") {
       before {
         deliveryConfigRepository.store(deliveryConfig)
+        every {
+          eventPublisher.publishEvent(any())
+        } just Runs
       }
 
       after {

@@ -8,12 +8,14 @@ import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import java.time.Clock
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 
 @Component
 class ManualJudgementConstraintEvaluator(
   override val deliveryConfigRepository: DeliveryConfigRepository,
-  private val clock: Clock
+  private val clock: Clock,
+  override val eventPublisher: ApplicationEventPublisher
 ) : StatefulConstraintEvaluator<ManualJudgementConstraint>() {
 
   override val supportedType = SupportedConstraintType<ManualJudgementConstraint>("manual-judgement")

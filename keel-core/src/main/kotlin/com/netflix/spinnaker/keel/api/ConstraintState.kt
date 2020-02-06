@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.api
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import com.fasterxml.jackson.annotation.JsonTypeInfo
@@ -16,7 +17,9 @@ data class ConstraintState(
   val judgedBy: String? = null,
   val judgedAt: Instant? = null,
   val comment: String? = null,
-  val attributes: ConstraintStateAttributes? = null
+  val attributes: ConstraintStateAttributes? = null,
+  @JsonIgnore
+  var uid: UID? = null
 ) {
   fun passed() = status.passes()
 

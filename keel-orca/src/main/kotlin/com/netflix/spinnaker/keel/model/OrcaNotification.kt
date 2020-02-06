@@ -26,7 +26,8 @@ import com.netflix.spinnaker.keel.model.NotificationEvent.ORCHESTRATION_COMPLETE
 import com.netflix.spinnaker.keel.model.NotificationEvent.ORCHESTRATION_FAILED
 import com.netflix.spinnaker.keel.model.NotificationEvent.ORCHESTRATION_STARTING
 
-data class EchoNotification(
+// This gets translated into an echo notification format in orca
+data class OrcaNotification(
   val type: String,
   val address: String,
   val `when`: List<String>,
@@ -59,8 +60,8 @@ data class NotificationMessage(
 const val RAINBOW = "\uD83C\uDF08"
 const val THUNDERCLOUD = "\u26c8\ufe0f"
 
-fun NotificationConfig.toEchoNotification() =
-  EchoNotification(
+fun NotificationConfig.toOrcaNotification() =
+  OrcaNotification(
     type = this.type.toString().toLowerCase(),
     address = this.address,
     `when` = translateFrequencyToEvents(frequency).map { it.text() },

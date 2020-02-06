@@ -41,7 +41,7 @@ internal class DependsOnConstraintEvaluatorTests : JUnit5Minutests {
 
     val artifactRepository: ArtifactRepository = mockk(relaxUnitFun = true)
 
-    val subject = DependsOnConstraintEvaluator(artifactRepository)
+    val subject = DependsOnConstraintEvaluator(artifactRepository, mockk())
   }
 
   fun tests() = rootContext<Fixture> {

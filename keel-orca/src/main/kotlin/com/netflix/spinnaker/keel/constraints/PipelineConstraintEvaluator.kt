@@ -8,7 +8,7 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.PipelineConstraint
 import com.netflix.spinnaker.keel.api.PipelineConstraintStateAttributes
-import com.netflix.spinnaker.keel.model.toEchoNotification
+import com.netflix.spinnaker.keel.model.toOrcaNotification
 import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
@@ -17,6 +17,7 @@ import java.time.Clock
 import java.util.HashMap
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory.getLogger
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 
 /**
@@ -40,6 +41,7 @@ import org.springframework.stereotype.Component
 class PipelineConstraintEvaluator(
   private val orcaService: OrcaService,
   override val deliveryConfigRepository: DeliveryConfigRepository,
+  override val eventPublisher: ApplicationEventPublisher,
   private val clock: Clock
 ) : StatefulConstraintEvaluator<PipelineConstraint>() {
   override val supportedType = SupportedConstraintType<PipelineConstraint>("pipeline")
@@ -166,7 +168,7 @@ class PipelineConstraintEvaluator(
     if (environment.notifications.isNotEmpty() && !trigger.containsKey("notifications")) {
       trigger["notifications"] = environment.notifications
         .map {
-          it.toEchoNotification()
+          it.toOrcaNotification()
         }
     }
 

@@ -26,6 +26,7 @@ include(
   "keel-core-test",
   "keel-docker",
   "keel-ec2-plugin",
+  "keel-echo",
   "keel-eureka",
   "keel-front50",
   "keel-igor",

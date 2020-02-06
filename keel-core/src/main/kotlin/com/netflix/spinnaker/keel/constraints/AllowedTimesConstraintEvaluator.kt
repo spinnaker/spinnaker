@@ -14,6 +14,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 
 /**
@@ -41,7 +42,8 @@ import org.springframework.stereotype.Component
 @Component
 class AllowedTimesConstraintEvaluator(
   private val clock: Clock,
-  private val dynamicConfigService: DynamicConfigService
+  private val dynamicConfigService: DynamicConfigService,
+  override val eventPublisher: ApplicationEventPublisher
 ) : ConstraintEvaluator<TimeWindowConstraint> {
   companion object {
     const val CONSTRAINT_NAME = "allowed-times"

@@ -24,11 +24,11 @@ import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.events.Task
 import com.netflix.spinnaker.keel.events.TaskCreatedEvent
-import com.netflix.spinnaker.keel.model.EchoNotification
 import com.netflix.spinnaker.keel.model.Job
+import com.netflix.spinnaker.keel.model.OrcaNotification
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
-import com.netflix.spinnaker.keel.model.toEchoNotification
+import com.netflix.spinnaker.keel.model.toOrcaNotification
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.TaskRecord
@@ -66,7 +66,7 @@ class OrcaTaskLauncher(
   override suspend fun submitJob(
     user: String,
     application: String,
-    notifications: List<EchoNotification>,
+    notifications: List<OrcaNotification>,
     subject: String,
     description: String,
     correlationId: String,
@@ -96,11 +96,11 @@ class OrcaTaskLauncher(
         Task(id = it.taskId, name = description)
       }
 
-  private val Resource<*>.notifications: List<EchoNotification>
+  private val Resource<*>.notifications: List<OrcaNotification>
     get() = deliveryConfigRepository
       .environmentFor(id)
       .notifications
-      .map { it.toEchoNotification() }
+      .map { it.toOrcaNotification() }
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }

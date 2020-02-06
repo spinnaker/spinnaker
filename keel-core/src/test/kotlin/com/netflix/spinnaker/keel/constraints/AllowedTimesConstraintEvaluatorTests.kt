@@ -53,7 +53,7 @@ internal class AllowedTimesConstraintEvaluatorTests : JUnit5Minutests {
       } returns "UTC"
     }
 
-    val subject = AllowedTimesConstraintEvaluator(clock, dynamicConfigService)
+    val subject = AllowedTimesConstraintEvaluator(clock, dynamicConfigService, mockk())
   }
 
   fun tests() = rootContext<Fixture> {
