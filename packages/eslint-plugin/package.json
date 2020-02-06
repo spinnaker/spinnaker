@@ -2,6 +2,7 @@
   "name": "@spinnaker/eslint-plugin",
   "version": "1.0.2",
   "main": "eslint-plugin.js",
+  "license": "Apache-2.0",
   "scripts": {
     "test": "jest",
     "test:debug": "node --inspect ./node_modules/.bin/jest --runInBand --watch"
