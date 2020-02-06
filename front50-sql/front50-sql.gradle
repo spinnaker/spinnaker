@@ -9,6 +9,7 @@ dependencies {
 
   implementation "com.netflix.spinnaker.kork:kork-sql"
   implementation "com.netflix.spinnaker.kork:kork-exceptions"
+  implementation "com.netflix.spinnaker.kork:kork-web"
 
   implementation "io.strikt:strikt-core"
   implementation "com.netflix.hystrix:hystrix-core"
@@ -28,7 +29,6 @@ dependencies {
 
   // Only used for Initializing Datasource. For actual CRUD, test containers preferred.
   testImplementation "com.h2database:h2"
-
 }
 
 test {

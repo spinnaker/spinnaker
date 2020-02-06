@@ -20,12 +20,16 @@ import com.netflix.spinnaker.front50.config.StorageServiceConfigurationPropertie
 import com.netflix.spinnaker.front50.migrations.StorageServiceMigrator
 import com.netflix.spinnaker.front50.model.CompositeStorageService
 import com.netflix.spinnaker.front50.model.SqlStorageService
+import com.netflix.spinnaker.kork.web.context.AuthenticatedRequestContextProvider
+import com.netflix.spinnaker.kork.web.context.RequestContextProvider
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import strikt.api.expectThat
@@ -62,4 +66,8 @@ internal class CompositeStorageServiceConfigurationTests {
 @SpringBootApplication
 @Import(CompositeStorageServiceConfiguration::class, SqlConfiguration::class)
 @EnableConfigurationProperties(StorageServiceConfigurationProperties::class)
-internal class CompositeStorageServiceConfigurationTestApp
+internal class CompositeStorageServiceConfigurationTestApp {
+  @Bean
+  @ConditionalOnMissingBean
+  fun contextProvider(): RequestContextProvider = AuthenticatedRequestContextProvider()
+}

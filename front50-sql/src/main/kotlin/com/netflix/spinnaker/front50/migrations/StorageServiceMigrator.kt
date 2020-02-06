@@ -22,7 +22,7 @@ import com.netflix.spinnaker.front50.model.StorageService
 import com.netflix.spinnaker.front50.model.Timestamped
 import com.netflix.spinnaker.front50.model.tag.EntityTagsDAO
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
-import com.netflix.spinnaker.security.AuthenticatedRequest
+import com.netflix.spinnaker.kork.web.context.RequestContextProvider
 import java.util.concurrent.TimeUnit
 import kotlin.system.measureTimeMillis
 import kotlinx.coroutines.GlobalScope
@@ -30,7 +30,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
-import org.slf4j.MDC
 import org.springframework.scheduling.annotation.Scheduled
 
 class StorageServiceMigrator(
@@ -38,7 +37,8 @@ class StorageServiceMigrator(
   private val registry: Registry,
   private val target: StorageService,
   private val source: StorageService,
-  private val entityTagsDAO: EntityTagsDAO
+  private val entityTagsDAO: EntityTagsDAO,
+  private val contextProvider: RequestContextProvider
 ) {
 
   companion object {
@@ -141,7 +141,7 @@ class StorageServiceMigrator(
 
           objectVersions.reversed().forEach { obj ->
             try {
-              MDC.put(AuthenticatedRequest.Header.USER.header, obj.lastModifiedBy)
+              contextProvider.get().setUser(obj.lastModifiedBy)
               target.storeObject(objectType, key, obj)
               registry.counter(
                 migratorObjectsId.withTag("objectType", objectType.name).withTag("success", true)
@@ -153,7 +153,7 @@ class StorageServiceMigrator(
 
               throw e
             } finally {
-              MDC.remove(AuthenticatedRequest.Header.USER.header)
+              contextProvider.get().setUser(null)
             }
           }
         } catch (e: Exception) {

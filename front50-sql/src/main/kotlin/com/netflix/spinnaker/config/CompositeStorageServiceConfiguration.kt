@@ -22,6 +22,7 @@ import com.netflix.spinnaker.front50.model.CompositeStorageService
 import com.netflix.spinnaker.front50.model.StorageService
 import com.netflix.spinnaker.front50.model.tag.EntityTagsDAO
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.kork.web.context.RequestContextProvider
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -53,14 +54,16 @@ class CompositeStorageServiceConfiguration(
   @Bean
   @ConditionalOnProperty("spinnaker.migration.compositeStorageService.enabled")
   fun storageServiceMigrator(
-    entityTagsDAO: EntityTagsDAO
+    entityTagsDAO: EntityTagsDAO,
+    contextProvider: RequestContextProvider
   ) =
     StorageServiceMigrator(
       dynamicConfigService,
       registry,
       findStorageService(properties.primaryClass, properties.primaryName),
       findStorageService(properties.previousClass, properties.previousName),
-      entityTagsDAO
+      entityTagsDAO,
+      contextProvider
     )
 
   private fun findStorageService(

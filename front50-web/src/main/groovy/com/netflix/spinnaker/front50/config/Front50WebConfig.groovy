@@ -29,6 +29,8 @@ import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO
 import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplateDAO
 import com.netflix.spinnaker.front50.model.project.ProjectDAO
 import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccountDAO
+import com.netflix.spinnaker.kork.web.context.AuthenticatedRequestContextProvider
+import com.netflix.spinnaker.kork.web.context.RequestContextProvider
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
@@ -135,6 +137,11 @@ public class Front50WebConfig extends WebMvcConfigurerAdapter {
   @Bean
   FiatAccessDeniedExceptionHandler fiatAccessDeniedExceptionHandler() {
     return new FiatAccessDeniedExceptionHandler()
+  }
+
+  @Bean
+  RequestContextProvider requestContextProvider() {
+    return new AuthenticatedRequestContextProvider()
   }
 
   @ControllerAdvice
