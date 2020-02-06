@@ -1,4 +1,4 @@
-import { flatten, keyBy, isNumber } from 'lodash';
+import { flatten, keyBy, isNil } from 'lodash';
 import { IAmazonApplicationLoadBalancer, IAmazonNetworkLoadBalancer, ITargetGroup, IAmazonHealth } from 'amazon/domain';
 
 export const getAllTargetGroups = (
@@ -17,7 +17,8 @@ export const applyHealthCheckInfoToTargetGroups = (
     if (metric.type === 'TargetGroup') {
       metric.targetGroups.forEach((tg: ITargetGroup) => {
         const group = targetGroups[tg.name] ?? ({} as ITargetGroup);
-        const port = group.healthCheckPort && isNumber(group.healthCheckPort) ? group.healthCheckPort : group.port;
+        const useTrafficPort = group.healthCheckPort === 'traffic-port' || isNil(group.healthCheckPort);
+        const port = useTrafficPort ? group.port : group.healthCheckPort;
         tg.healthCheckProtocol = group.healthCheckProtocol.toLowerCase();
         tg.healthCheckPath = `:${port}${group.healthCheckPath}`;
       });
