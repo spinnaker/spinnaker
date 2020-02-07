@@ -183,64 +183,44 @@
       <dl class="horizontal-when-filters-collapsed">
         <dt ng-if="instance.privateDnsName">Private DNS Name</dt>
         <dd ng-if="instance.privateDnsName">
-          <a href="http://{{instance.privateDnsName}}:{{state.instancePort}}" target="_blank"
-            >{{instance.privateDnsName}}</a
-          >
-          <copy-to-clipboard
-            class="copy-to-clipboard copy-to-clipboard-sm"
+          <link-with-clipboard
+            url="'http://' + instance.privateDnsName + ':' + state.instancePort"
             text="instance.privateDnsName"
-            tool-tip="'Copy to clipboard'"
           >
-          </copy-to-clipboard>
+          </link-with-clipboard>
         </dd>
         <dt ng-if="instance.publicDnsName">Public DNS Name</dt>
         <dd ng-if="instance.publicDnsName">
-          <a href="http://{{instance.publicDnsName}}:{{state.instancePort}}" target="_blank"
-            >{{instance.publicDnsName}}</a
-          >
-          <copy-to-clipboard
-            class="copy-to-clipboard copy-to-clipboard-sm"
+          <link-with-clipboard
+            url="'http://' + instance.publicDnsName + ':' + state.instancePort"
             text="instance.publicDnsName"
-            tool-tip="'Copy to clipboard'"
           >
-          </copy-to-clipboard>
+          </link-with-clipboard>
         </dd>
         <dt ng-if="instance.privateIpAddress">Private IP Address</dt>
         <dd ng-if="instance.privateIpAddress">
-          <a href="http://{{instance.privateIpAddress}}:{{state.instancePort}}" target="_blank"
-            >{{instance.privateIpAddress}}</a
-          >
-          <copy-to-clipboard
-            class="copy-to-clipboard copy-to-clipboard-sm"
+          <link-with-clipboard
+            url="'http://' + instance.privateIpAddress + ':' + state.instancePort"
             text="instance.privateIpAddress"
-            tool-tip="'Copy to clipboard'"
           >
-          </copy-to-clipboard>
+          </link-with-clipboard>
         </dd>
         <dt ng-if="instance.permanentIps">Permanent IP Address</dt>
         <dd ng-if="instance.permanentIps" ng-repeat="ip in instance.permanentIps">
-          <a href="http://{{ip}}:{{state.instancePort}}" target="_blank">{{ip}}</a>
-          <copy-to-clipboard class="copy-to-clipboard copy-to-clipboard-sm" text="ip" tool-tip="'Copy to clipboard'">
-          </copy-to-clipboard>
+          <link-with-clipboard url="'http://' + ip + ':' + state.instancePort" text="ip"> </link-with-clipboard>
         </dd>
         <dt ng-if="instance.publicIpAddress || instance.ipv6Addresses.length">
           Public IP Address<span ng-if="instance.ipv6Addresses.length > 1">es</span>
         </dt>
         <dd ng-if="instance.publicIpAddress">
-          <a href="http://{{instance.publicIpAddress}}:{{state.instancePort}}" target="_blank"
-            >{{instance.publicIpAddress}}</a
-          >
-          <copy-to-clipboard
-            class="copy-to-clipboard copy-to-clipboard-sm"
+          <link-with-clipboard
+            url="'http://' + instance.publicIpAddress + ':' + state.instancePort"
             text="instance.publicIpAddress"
-            tool-tip="'Copy to clipboard'"
           >
-          </copy-to-clipboard>
+          </link-with-clipboard>
         </dd>
         <dd ng-if="instance.ipv6Addresses.length" ng-repeat="ip in instance.ipv6Addresses">
-          <a href="http://{{ip}}:{{state.instancePort}}" target="_blank">{{ip}}</a>
-          <copy-to-clipboard class="copy-to-clipboard copy-to-clipboard-sm" text="ip" tool-tip="'Copy to clipboard'">
-          </copy-to-clipboard>
+          <link-with-clipboard url="'http://' + ip + ':' + state.instancePort" text="ip"> </link-with-clipboard>
         </dd>
       </dl>
     </collapsible-section>

@@ -4,6 +4,7 @@ import { module } from 'angular';
 
 import { AUTO_SCROLL_DIRECTIVE } from './autoScroll/autoScroll.directive';
 import { ANY_FIELD_FILTER } from './anyFieldFilter/anyField.filter';
+import { LINK_WITH_CLIPBOARD } from './linkWithClipboard.component';
 import { PAGE_NAVIGATOR_COMPONENT } from './navigation/pageNavigator.component';
 import { PAGE_SECTION_COMPONENT } from './navigation/pageSection.component';
 import { REPLACE_FILTER } from './replace.filter';
@@ -24,6 +25,7 @@ export const name = CORE_PRESENTATION_PRESENTATION_MODULE; // for backwards comp
 module(CORE_PRESENTATION_PRESENTATION_MODULE, [
   ANY_FIELD_FILTER,
   AUTO_SCROLL_DIRECTIVE,
+  LINK_WITH_CLIPBOARD,
   PAGE_NAVIGATOR_COMPONENT,
   PAGE_SECTION_COMPONENT,
   CORE_PRESENTATION_COLLAPSIBLESECTION_COLLAPSIBLESECTION_DIRECTIVE,
