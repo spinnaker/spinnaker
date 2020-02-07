@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.igor.codebuild;
 
 import com.amazonaws.services.codebuild.model.Build;
+import com.amazonaws.services.codebuild.model.StartBuildRequest;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +32,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping(value = "/codebuild")
 public class AwsCodeBuildController {
   private final AwsCodeBuildAccountRepository awsCodeBuildAccountRepository;
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
   @RequestMapping(value = "/accounts", method = RequestMethod.GET)
   List<String> getAccounts() {
@@ -43,7 +46,7 @@ public class AwsCodeBuildController {
   Build startBuild(@PathVariable String account, @RequestBody Map<String, Object> requestBody) {
     return awsCodeBuildAccountRepository
         .getAccount(account)
-        .startBuild(AwsCodeBuildMapper.toStartBuildRequest(requestBody));
+        .startBuild(objectMapper.convertValue(requestBody, StartBuildRequest.class));
   }
 
   @RequestMapping(value = "/builds/{account}/{buildId}", method = RequestMethod.GET)
