@@ -1,7 +1,0 @@
-PyYAML>=3.13
-PyGithub>=1.32
-google-cloud-pubsub>=0.40.0
-google-cloud-storage>=1.14.0
-google-auth>=1.6.3
-requests>=2.21.0
-requests_toolbelt>=0.9.1
