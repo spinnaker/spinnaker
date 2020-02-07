@@ -80,6 +80,8 @@ public class PrepareTitusDeploy extends AbstractTitusDeployAction
           "PST");
   private static final String USE_APPLICATION_DEFAULT_SG_LABEL =
       "spinnaker.useApplicationDefaultSecurityGroup";
+  private static final String SKIP_SECURITY_GROUP_VALIDATION_LABEL =
+      "spinnaker.skipSecurityGroupValidation";
   private static final String LABEL_TARGET_GROUPS = "spinnaker.targetGroups";
 
   private final AwsLookupUtil awsLookupUtil;
@@ -414,47 +416,61 @@ public class PrepareTitusDeploy extends AbstractTitusDeployAction
     // TODO(rz): Seems kinda odd that we'd do resolution & validation here and not in... a validator
     // or preprocessor?
     Set<String> securityGroups = new HashSet<>();
-    description
-        .getSecurityGroups()
-        .forEach(
-            providedSecurityGroup -> {
-              saga.log("Resolving Security Group '%s'", providedSecurityGroup);
+    // TODO(aravindd) Used to skip validation for cross account SG's
+    // Remove this workaround when we have support for multi account setup
+    boolean skipSecurityGroupValidation =
+        Boolean.valueOf(
+            description
+                .getLabels()
+                .getOrDefault(SKIP_SECURITY_GROUP_VALIDATION_LABEL, String.valueOf(false)));
+    if (skipSecurityGroupValidation) {
+      saga.log("Skipping Security Group Validation");
+      description
+          .getSecurityGroups()
+          .forEach(providedSecurityGroup -> securityGroups.add(providedSecurityGroup));
+    } else {
+      description
+          .getSecurityGroups()
+          .forEach(
+              providedSecurityGroup -> {
+                saga.log("Resolving Security Group '%s'", providedSecurityGroup);
 
-              if (awsLookupUtil.securityGroupIdExists(
-                  description.getAccount(), description.getRegion(), providedSecurityGroup)) {
-                securityGroups.add(providedSecurityGroup);
-              } else {
-                String convertedSecurityGroup =
-                    awsLookupUtil.convertSecurityGroupNameToId(
-                        description.getAccount(), description.getRegion(), providedSecurityGroup);
-                if (isNullOrEmpty(convertedSecurityGroup)) {
-                  throw new SecurityGroupNotFoundException(
-                      format("Security Group '%s' cannot be found", providedSecurityGroup));
+                if (awsLookupUtil.securityGroupIdExists(
+                    description.getAccount(), description.getRegion(), providedSecurityGroup)) {
+                  securityGroups.add(providedSecurityGroup);
+                } else {
+                  String convertedSecurityGroup =
+                      awsLookupUtil.convertSecurityGroupNameToId(
+                          description.getAccount(), description.getRegion(), providedSecurityGroup);
+                  if (isNullOrEmpty(convertedSecurityGroup)) {
+                    throw new SecurityGroupNotFoundException(
+                        format("Security Group '%s' cannot be found", providedSecurityGroup));
+                  }
+                  securityGroups.add(convertedSecurityGroup);
                 }
-                securityGroups.add(convertedSecurityGroup);
-              }
-            });
+              });
 
-    if (JobType.SERVICE.isEqual(description.getJobType())
-        && deployDefaults.getAddAppGroupToServerGroup()
-        && securityGroups.size() < deployDefaults.getMaxSecurityGroups()
-        && useApplicationDefaultSecurityGroup) {
-      String applicationSecurityGroup =
-          awsLookupUtil.convertSecurityGroupNameToId(
-              description.getAccount(), description.getRegion(), description.getApplication());
-      if (isNullOrEmpty(applicationSecurityGroup)) {
-        applicationSecurityGroup =
-            (String)
-                OperationPoller.retryWithBackoff(
-                    op ->
-                        awsLookupUtil.createSecurityGroupForApplication(
-                            description.getAccount(),
-                            description.getRegion(),
-                            description.getApplication()),
-                    1_000,
-                    5);
+      if (JobType.SERVICE.isEqual(description.getJobType())
+          && deployDefaults.getAddAppGroupToServerGroup()
+          && securityGroups.size() < deployDefaults.getMaxSecurityGroups()
+          && useApplicationDefaultSecurityGroup) {
+        String applicationSecurityGroup =
+            awsLookupUtil.convertSecurityGroupNameToId(
+                description.getAccount(), description.getRegion(), description.getApplication());
+        if (isNullOrEmpty(applicationSecurityGroup)) {
+          applicationSecurityGroup =
+              (String)
+                  OperationPoller.retryWithBackoff(
+                      op ->
+                          awsLookupUtil.createSecurityGroupForApplication(
+                              description.getAccount(),
+                              description.getRegion(),
+                              description.getApplication()),
+                      1_000,
+                      5);
+        }
+        securityGroups.add(applicationSecurityGroup);
       }
-      securityGroups.add(applicationSecurityGroup);
     }
 
     if (!securityGroups.isEmpty()) {
