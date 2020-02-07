@@ -33,6 +33,7 @@ import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Component
 
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.*
@@ -46,6 +47,7 @@ class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalan
   private final AwsProvider awsProvider
 
   @Autowired(required = false)
+  @Lazy
   List<TargetGroupServerGroupProvider> targetGroupServerGroupProviders = Collections.EMPTY_LIST;
 
   @Autowired
