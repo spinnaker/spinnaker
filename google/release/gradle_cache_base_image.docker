@@ -1,7 +1,0 @@
-# Provides a Docker image to start our Google Container Builder builds from.
-# Includes an updated Gradle cache in the produced image to decrease the traffic to Bintray.
-FROM openjdk:8-jdk
-
-# Docker can only manipulate directories within the root it is invoked in,
-# so the gradle cache needs copied to the CWD before executing the Docker build.
-ADD .gradle /gradle_cache/.gradle

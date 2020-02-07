@@ -1,6 +1,0 @@
-consul:
-  version: 0.7.5
-redis:
-  version: 2:2.8.4-2
-vault:
-  version: 0.7.0
