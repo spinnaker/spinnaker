@@ -1,4 +1,0 @@
-pygithub>=1.40a
-influxdb
-pyyaml
-google-cloud-storage
