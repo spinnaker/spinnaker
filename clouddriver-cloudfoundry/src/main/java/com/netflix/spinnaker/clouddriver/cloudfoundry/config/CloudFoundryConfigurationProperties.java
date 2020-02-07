@@ -61,5 +61,6 @@ public class CloudFoundryConfigurationProperties implements DisposableBean {
     private String environment;
     private boolean skipSslValidation;
     private Integer resultsPerPage;
+    private Integer maxCapiConnectionsForCache;
   }
 }

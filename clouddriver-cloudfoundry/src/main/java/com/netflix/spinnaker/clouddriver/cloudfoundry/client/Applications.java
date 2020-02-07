@@ -42,10 +42,10 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -54,7 +54,6 @@ import retrofit.client.Response;
 import retrofit.mime.TypedFile;
 import retrofit.mime.TypedInput;
 
-@RequiredArgsConstructor
 @Slf4j
 public class Applications {
   private final String account;
@@ -64,18 +63,38 @@ public class Applications {
   private final Spaces spaces;
   private final Integer resultsPerPage;
 
-  private final LoadingCache<String, CloudFoundryServerGroup> serverGroupCache =
-      CacheBuilder.newBuilder()
-          .build(
-              new CacheLoader<String, CloudFoundryServerGroup>() {
-                @Override
-                public CloudFoundryServerGroup load(@Nonnull String guid)
-                    throws ResourceNotFoundException {
-                  return safelyCall(() -> api.findById(guid))
-                      .map(Applications.this::map)
-                      .orElseThrow(ResourceNotFoundException::new);
-                }
-              });
+  private final ForkJoinPool forkJoinPool;
+  private final LoadingCache<String, CloudFoundryServerGroup> serverGroupCache;
+
+  public Applications(
+      String account,
+      String appsManagerUri,
+      String metricsUri,
+      ApplicationService api,
+      Spaces spaces,
+      Integer resultsPerPage,
+      int maxConnections) {
+    this.account = account;
+    this.appsManagerUri = appsManagerUri;
+    this.metricsUri = metricsUri;
+    this.api = api;
+    this.spaces = spaces;
+    this.resultsPerPage = resultsPerPage;
+
+    this.forkJoinPool = new ForkJoinPool(maxConnections);
+    this.serverGroupCache =
+        CacheBuilder.newBuilder()
+            .build(
+                new CacheLoader<String, CloudFoundryServerGroup>() {
+                  @Override
+                  public CloudFoundryServerGroup load(@Nonnull String guid)
+                      throws ResourceNotFoundException {
+                    return safelyCall(() -> api.findById(guid))
+                        .map(Applications.this::map)
+                        .orElseThrow(ResourceNotFoundException::new);
+                  }
+                });
+  }
 
   @Nullable
   public CloudFoundryServerGroup findById(String guid) {
@@ -114,17 +133,28 @@ public class Applications {
 
     // if the update time doesn't match then we need to update the cache
     // if the app is not found in the cache we need to process with `map` and update the cache
-    List<Application> appsToBeUpdated =
-        newCloudFoundryAppList.stream()
-            .filter(
-                a ->
-                    Optional.ofNullable(findById(a.getGuid()))
-                        .map(
-                            r ->
-                                !r.getUpdatedTime()
-                                    .equals(a.getUpdatedAt().toInstant().toEpochMilli()))
-                        .orElse(true))
-            .collect(Collectors.toList());
+    List<Application> appsToBeUpdated;
+    try {
+      appsToBeUpdated =
+          forkJoinPool
+              .submit(
+                  () ->
+                      newCloudFoundryAppList
+                          .parallelStream()
+                          .filter(
+                              a ->
+                                  Optional.ofNullable(findById(a.getGuid()))
+                                      .map(
+                                          r ->
+                                              !r.getUpdatedTime()
+                                                  .equals(
+                                                      a.getUpdatedAt().toInstant().toEpochMilli()))
+                                      .orElse(true))
+                          .collect(Collectors.toList()))
+              .get();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
 
     List<CloudFoundryServerGroup> serverGroups =
         appsToBeUpdated.stream().map(this::map).collect(toList());

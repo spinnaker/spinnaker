@@ -95,6 +95,10 @@ public class CloudFoundryLoadBalancerCachingAgent extends AbstractCloudFoundryCa
     onDemandCacheData.forEach(this::processOnDemandCacheData);
     results.put(ON_DEMAND.getNs(), toKeep.values());
 
+    log.debug(
+        "LoadBalancer cache loaded for Cloud Foundry account {}, ({} sec)",
+        accountName,
+        (getInternalClock().millis() - loadDataStart) / 1000);
     return new DefaultCacheResult(results, Collections.singletonMap(ON_DEMAND.getNs(), toEvict));
   }
 

@@ -47,7 +47,7 @@ class ApplicationsTest {
   private Spaces spaces = mock(Spaces.class);
   private Applications apps =
       new Applications(
-          "pws", "some-apps-man-uri", "some-metrics-uri", applicationService, spaces, 500);
+          "pws", "some-apps-man-uri", "some-metrics-uri", applicationService, spaces, 500, 16);
   private String spaceId = "space-guid";
   private CloudFoundrySpace cloudFoundrySpace =
       CloudFoundrySpace.builder()
@@ -67,7 +67,8 @@ class ApplicationsTest {
             "baduser",
             "badpassword",
             false,
-            500);
+            500,
+            16);
 
     assertThatThrownBy(() -> client.getApplications().all())
         .isInstanceOf(CloudFoundryApiException.class);

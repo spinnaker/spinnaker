@@ -57,7 +57,7 @@ class RoutesTest {
     when(routeService.all(any(), any(), any())).thenReturn(Page.singleton(route, "abc123"));
     when(routeService.routeMappings(any(), any())).thenReturn(new Page<>());
 
-    Routes routes = new Routes("pws", routeService, null, domains, spaces, 500);
+    Routes routes = new Routes("pws", routeService, null, domains, spaces, 500, 16);
     RouteId routeId = routes.toRouteId("demo1-prod.apps.calabasas.cf-app.com/path");
     assertThat(routeId).isNotNull();
     assertThat(routeId.getHost()).isEqualTo("demo1-prod");
@@ -67,7 +67,7 @@ class RoutesTest {
 
   @Test
   void toRouteIdReturnsNullForInvalidRoute() {
-    Routes routes = new Routes(null, null, null, null, null, 500);
+    Routes routes = new Routes(null, null, null, null, null, 500, 16);
     assertNull(routes.toRouteId("demo1-pro cf-app.com/path"));
   }
 
@@ -127,7 +127,7 @@ class RoutesTest {
     when(routeService.all(any(), any(), any())).thenReturn(routePage);
     when(routeService.routeMappings(any(), any())).thenReturn(routeMappingPage);
 
-    Routes routes = new Routes("pws", routeService, null, domains, spaces, 500);
+    Routes routes = new Routes("pws", routeService, null, domains, spaces, 500, 16);
 
     CloudFoundryLoadBalancer loadBalancer =
         routes.find(new RouteId().setHost("somehost").setDomainGuid("domain-guid"), "space-guid");

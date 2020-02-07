@@ -60,7 +60,7 @@ class ScaleCloudFoundryServerGroupAtomicOperationConverterTest {
   }
 
   private final CloudFoundryCredentials cloudFoundryCredentials =
-      new CloudFoundryCredentials("test", "", "", "", "", "", "", false, 500) {
+      new CloudFoundryCredentials("test", "", "", "", "", "", "", false, 500, 16) {
         public CloudFoundryClient getClient() {
           return cloudFoundryClient;
         }

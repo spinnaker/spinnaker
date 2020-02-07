@@ -36,16 +36,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@RequiredArgsConstructor
 @Slf4j
 public class Routes {
   private static final Pattern VALID_ROUTE_REGEX =
@@ -58,20 +57,40 @@ public class Routes {
   private final Spaces spaces;
   private final Integer resultsPerPage;
 
-  private LoadingCache<String, List<RouteMapping>> routeMappings =
-      CacheBuilder.newBuilder()
-          .expireAfterWrite(3, TimeUnit.MINUTES)
-          .build(
-              new CacheLoader<String, List<RouteMapping>>() {
-                @Override
-                public List<RouteMapping> load(@Nonnull String guid)
-                    throws CloudFoundryApiException, ResourceNotFoundException {
-                  return collectPageResources("route mappings", pg -> api.routeMappings(guid, pg))
-                      .stream()
-                      .map(Resource::getEntity)
-                      .collect(Collectors.toList());
-                }
-              });
+  private final ForkJoinPool forkJoinPool;
+  private LoadingCache<String, List<RouteMapping>> routeMappings;
+
+  public Routes(
+      String account,
+      RouteService api,
+      Applications applications,
+      Domains domains,
+      Spaces spaces,
+      Integer resultsPerPage,
+      int maxConnections) {
+    this.account = account;
+    this.api = api;
+    this.applications = applications;
+    this.domains = domains;
+    this.spaces = spaces;
+    this.resultsPerPage = resultsPerPage;
+
+    this.forkJoinPool = new ForkJoinPool(maxConnections);
+    this.routeMappings =
+        CacheBuilder.newBuilder()
+            .expireAfterWrite(3, TimeUnit.MINUTES)
+            .build(
+                new CacheLoader<String, List<RouteMapping>>() {
+                  @Override
+                  public List<RouteMapping> load(@Nonnull String guid)
+                      throws CloudFoundryApiException, ResourceNotFoundException {
+                    return collectPageResources("route mappings", pg -> api.routeMappings(guid, pg))
+                        .stream()
+                        .map(Resource::getEntity)
+                        .collect(Collectors.toList());
+                  }
+                });
+  }
 
   private CloudFoundryLoadBalancer map(Resource<Route> res) throws CloudFoundryApiException {
     Route route = res.getEntity();
@@ -143,13 +162,18 @@ public class Routes {
   }
 
   public List<CloudFoundryLoadBalancer> all() throws CloudFoundryApiException {
-    List<Resource<Route>> routeResources =
-        collectPageResources("routes", pg -> api.all(pg, resultsPerPage, null));
-    List<CloudFoundryLoadBalancer> loadBalancers = new ArrayList<>(routeResources.size());
-    for (Resource<Route> routeResource : routeResources) {
-      loadBalancers.add(map(routeResource));
+    try {
+      return forkJoinPool
+          .submit(
+              () ->
+                  collectPageResources("routes", pg -> api.all(pg, resultsPerPage, null))
+                      .parallelStream()
+                      .map(this::map)
+                      .collect(Collectors.toList()))
+          .get();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
-    return loadBalancers;
   }
 
   public CloudFoundryLoadBalancer createRoute(RouteId routeId, String spaceId)

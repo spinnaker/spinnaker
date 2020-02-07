@@ -181,7 +181,8 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
       String user,
       String password,
       boolean skipSslValidation,
-      Integer resultsPerPage) {
+      Integer resultsPerPage,
+      int maxCapiConnectionsForCache) {
     this.apiHost = apiHost;
     this.user = user;
     this.password = password;
@@ -215,7 +216,8 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
             metricsUri,
             createService(ApplicationService.class),
             spaces,
-            resultsPerPage);
+            resultsPerPage,
+            maxCapiConnectionsForCache);
     this.domains = new Domains(createService(DomainService.class), organizations);
     this.serviceInstances =
         new ServiceInstances(
@@ -230,7 +232,8 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
             applications,
             domains,
             spaces,
-            resultsPerPage);
+            resultsPerPage,
+            maxCapiConnectionsForCache);
     this.serviceKeys = new ServiceKeys(createService(ServiceKeyService.class), spaces);
     this.tasks = new Tasks(createService(TaskService.class));
 

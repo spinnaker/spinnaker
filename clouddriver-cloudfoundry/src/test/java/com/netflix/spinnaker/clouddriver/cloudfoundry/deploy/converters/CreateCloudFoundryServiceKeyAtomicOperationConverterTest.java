@@ -52,7 +52,7 @@ class CreateCloudFoundryServiceKeyAtomicOperationConverterTest {
   }
 
   private final CloudFoundryCredentials cloudFoundryCredentials =
-      new CloudFoundryCredentials("my-account", "", "", "", "", "", "", false, 500) {
+      new CloudFoundryCredentials("my-account", "", "", "", "", "", "", false, 500, 16) {
         public CloudFoundryClient getClient() {
           return cloudFoundryClient;
         }

@@ -119,6 +119,10 @@ public class CloudFoundryServerGroupCachingAgent extends AbstractCloudFoundryCac
     onDemandCacheData.forEach(this::processOnDemandCacheData);
     results.put(ON_DEMAND.getNs(), toKeep.values());
 
+    log.debug(
+        "Cache loaded for Cloud Foundry account {}, ({} sec)",
+        accountName,
+        (getInternalClock().millis() - loadDataStart) / 1000);
     return new DefaultCacheResult(results, Collections.singletonMap(ON_DEMAND.getNs(), toEvict));
   }
 
