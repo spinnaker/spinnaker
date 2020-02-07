@@ -22,7 +22,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-@JsonIgnoreProperties({"jobs", "managedPipelineTemplatesV2UI"})
+@JsonIgnoreProperties({"jobs"})
 public class Features extends Node {
   @Override
   public String getNodeName() {
@@ -86,6 +86,11 @@ public class Features extends Node {
       lowerBound = "1.9.0",
       tooLowMessage = "Wercker stage is not available prior to this release.")
   private Boolean wercker;
+
+  @ValidForSpinnakerVersion(
+      lowerBound = "1.13.0",
+      tooLowMessage = "Managed Pipeline Templates v2 UI is not available prior to this release.")
+  private Boolean managedPipelineTemplatesV2UI;
 
   @ValidForSpinnakerVersion(
       lowerBound = "1.13.0",
