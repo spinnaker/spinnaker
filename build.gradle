@@ -33,8 +33,8 @@ buildscript {
 // this override is needed to omit compileOnly dependencies from generated pom.xml
       classpath "com.netflix.nebula:nebula-publishing-plugin:14.1.1"
     }
-    classpath("com.netflix.nebula:nebula-kotlin-plugin:1.3.50")
-    classpath("org.jetbrains.kotlin:kotlin-allopen:1.3.50")
+    classpath("com.netflix.nebula:nebula-kotlin-plugin:$kotlinVersion")
+    classpath("org.jetbrains.kotlin:kotlin-allopen:$kotlinVersion")
     classpath("io.gitlab.arturbosch.detekt:detekt-gradle-plugin:1.2.2")
   }
 }
@@ -53,5 +53,16 @@ allprojects {
 
   repositories {
     jcenter()
+  }
+}
+
+subprojects {
+  afterEvaluate {
+    if (name != "kork-bom" && name != "spinnaker-dependencies") {
+      dependencies {
+        annotationProcessor(platform(project(":spinnaker-dependencies")))
+        annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+      }
+    }
   }
 }

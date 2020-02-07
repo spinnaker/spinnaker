@@ -18,9 +18,7 @@ apply plugin: "groovy"
 
 dependencies {
   api(platform(project(":spinnaker-dependencies")))
-  annotationProcessor(platform(project(":spinnaker-dependencies")))
 
-  annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
   api "org.springframework.boot:spring-boot-autoconfigure"
   api "com.netflix.spectator:spectator-api"
   api "com.amazonaws:aws-java-sdk-core"
