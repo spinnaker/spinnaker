@@ -13,7 +13,7 @@ ModuleDeps () {
       cloudfoundry) echo "core" ;;
       core) echo "core";;
       docker) echo "core" ;;
-      ecs) echo "amazon core" ;;
+      ecs) echo "amazon docker core" ;;
       google) echo "core" ;;
       huaweicloud) echo "core" ;;
       kubernetes) echo "core" ;;
