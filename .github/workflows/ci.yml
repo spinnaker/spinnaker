@@ -11,30 +11,28 @@ env:
   NODE_VERSION: 10.15.1
 
 jobs:
-  purebump:
-    name: Ensure package bumps are pure
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Ensure package bumps are pure
-        run: app/scripts/modules/assert_package_bumps_standalone.sh
-
   test:
     name: Unit tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
 
+      - name: Ensure package bumps are pure
+        id: purebump
+        run: app/scripts/modules/assert_package_bumps_standalone.sh
+
       - uses: actions/setup-node@v1
+        if: steps.purebump.outputs.ispurebump != 'true'
         with:
           node-version: ${{ env.NODE_VERSION  }}
 
       - name: Get yarn cache
+        if: steps.purebump.outputs.ispurebump != 'true'
         id: yarn-cache
         run: echo "::set-output name=dir::$(yarn cache dir)"
 
       - uses: actions/cache@v1
+        if: steps.purebump.outputs.ispurebump != 'true'
         with:
           path: ${{ steps.yarn-cache.outputs.dir }}
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
@@ -42,9 +40,11 @@ jobs:
             ${{ runner.os }}-yarn-
 
       - name: Install Dependencies
+        if: steps.purebump.outputs.ispurebump != 'true'
         run: yarn --frozen-lockfile
 
       - name: Unit Tests
+        if: steps.purebump.outputs.ispurebump != 'true'
         run: yarn test --single-run
 
   build:
@@ -53,15 +53,22 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Ensure package bumps are pure
+        id: purebump
+        run: app/scripts/modules/assert_package_bumps_standalone.sh
+
       - uses: actions/setup-node@v1
+        if: steps.purebump.outputs.ispurebump != 'true'
         with:
           node-version: ${{ env.NODE_VERSION  }}
 
       - name: Get yarn cache
+        if: steps.purebump.outputs.ispurebump != 'true'
         id: yarn-cache
         run: echo "::set-output name=dir::$(yarn cache dir)"
 
       - uses: actions/cache@v1
+        if: steps.purebump.outputs.ispurebump != 'true'
         with:
           path: ${{ steps.yarn-cache.outputs.dir }}
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
@@ -69,14 +76,17 @@ jobs:
             ${{ runner.os }}-yarn-
 
       - name: Install Dependencies
+        if: steps.purebump.outputs.ispurebump != 'true'
         run: yarn --frozen-lockfile
 
       - name: Yarn Build
+        if: steps.purebump.outputs.ispurebump != 'true'
         run: yarn build
 
   packages:
     name: Build Packages
     runs-on: ubuntu-latest
+
     strategy:
       matrix:
         packages:
@@ -85,15 +95,22 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Ensure package bumps are pure
+        id: purebump
+        run: app/scripts/modules/assert_package_bumps_standalone.sh
+
       - uses: actions/setup-node@v1
+        if: steps.purebump.outputs.ispurebump != 'true'
         with:
           node-version: ${{ env.NODE_VERSION  }}
 
       - name: Get yarn cache
+        if: steps.purebump.outputs.ispurebump != 'true'
         id: yarn-cache
         run: echo "::set-output name=dir::$(yarn cache dir)"
 
       - uses: actions/cache@v1
+        if: steps.purebump.outputs.ispurebump != 'true'
         with:
           path: ${{ steps.yarn-cache.outputs.dir }}
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
@@ -101,7 +118,9 @@ jobs:
             ${{ runner.os }}-yarn-
 
       - name: Install Dependencies
+        if: steps.purebump.outputs.ispurebump != 'true'
         run: yarn --frozen-lockfile
 
       - name: Build NPM Packages
+        if: steps.purebump.outputs.ispurebump != 'true'
         run: app/scripts/modules/build_modules.sh ${{ matrix.packages }}
