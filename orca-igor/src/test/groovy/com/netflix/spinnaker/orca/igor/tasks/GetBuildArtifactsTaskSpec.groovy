@@ -114,8 +114,9 @@ class GetBuildArtifactsTaskSpec extends Specification {
 
     then:
     1 * buildService.getArtifacts(BUILD_NUMBER, null, MASTER, JOB)  >> [testArtifact]
-    artifacts.size() == 2
-    artifacts*.name == ["my-artifact", "another-artifact"]
+    // Modified to reflect a fix to avoid mixing build and kork artifacts in outputs.artifacts.
+    artifacts.size() == 1
+    artifacts*.name == ["my-artifact"]
   }
 
   def createStage(String propertyFile) {
