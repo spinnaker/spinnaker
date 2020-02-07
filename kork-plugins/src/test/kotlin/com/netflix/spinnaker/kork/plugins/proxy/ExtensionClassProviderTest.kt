@@ -36,6 +36,11 @@ class ExtensionClassProviderTest : JUnit5Minutests {
       val proxiedClass = ExtensionClassProvider.getExtensionClass(proxiedExtension)
       expectThat(proxiedClass == extension.javaClass)
     }
+
+    test("Passes through the class if not proxied") {
+      val extensionClass = ExtensionClassProvider.getExtensionClass(extension)
+      expectThat(extensionClass == extension.javaClass)
+    }
   }
 
   private inner class Fixture {

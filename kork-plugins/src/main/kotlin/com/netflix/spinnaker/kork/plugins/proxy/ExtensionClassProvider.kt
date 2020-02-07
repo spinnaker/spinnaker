@@ -25,7 +25,10 @@ import java.lang.reflect.Proxy
 object ExtensionClassProvider {
   @JvmStatic
   fun getExtensionClass(extensionPoint: ExtensionPoint): Class<*> {
-    val extensionInvocationProxy = Proxy.getInvocationHandler(extensionPoint) as ExtensionInvocationProxy
-    return extensionInvocationProxy.getTargetClass()
+    if (Proxy.isProxyClass(extensionPoint.javaClass)) {
+      val extensionInvocationProxy = Proxy.getInvocationHandler(extensionPoint) as ExtensionInvocationProxy
+      return extensionInvocationProxy.getTargetClass()
+    }
+    return extensionPoint.javaClass
   }
 }
