@@ -177,7 +177,8 @@ public class SubmitTitusJob extends AbstractTitusDeployAction
   private static boolean isStatusCodeRetryable(Status.Code code) {
     return code == Status.UNAVAILABLE.getCode()
         || code == Status.INTERNAL.getCode()
-        || code == Status.DEADLINE_EXCEEDED.getCode();
+        || code == Status.DEADLINE_EXCEEDED.getCode()
+        || code == Status.RESOURCE_EXHAUSTED.getCode();
   }
 
   @Builder(builderClassName = "SubmitTitusJobCommandBuilder", toBuilder = true)
