@@ -2,7 +2,14 @@
 
 import { module } from 'angular';
 
-import { AccountService, AuthenticationService, BakeryReader, Registry, PipelineTemplates } from '@spinnaker/core';
+import {
+  AccountService,
+  AuthenticationService,
+  BakeryReader,
+  BakeExecutionLabel,
+  Registry,
+  PipelineTemplates,
+} from '@spinnaker/core';
 import { ORACLE_PIPELINE_STAGES_BAKE_BAKEEXECUTIONDETAILS_CONTROLLER } from './bakeExecutionDetails.controller';
 
 export const ORACLE_PIPELINE_STAGES_BAKE_OCIBAKESTAGE = 'spinnaker.oracle.pipeline.stage.bakeStage';
@@ -16,7 +23,7 @@ module(ORACLE_PIPELINE_STAGES_BAKE_OCIBAKESTAGE, [ORACLE_PIPELINE_STAGES_BAKE_BA
       description: 'Bakes an image',
       templateUrl: require('./bakeStage.html'),
       executionDetailsUrl: require('./bakeExecutionDetails.html'),
-      executionLabelTemplateUrl: require('core/pipeline/config/stages/bake/BakeExecutionLabel'),
+      executionLabelComponent: BakeExecutionLabel,
       supportsCustomTimeout: true,
       validators: [
         { type: 'requiredField', fieldName: 'accountName' },
