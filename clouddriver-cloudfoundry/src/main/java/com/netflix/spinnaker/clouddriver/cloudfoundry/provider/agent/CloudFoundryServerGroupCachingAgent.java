@@ -111,6 +111,7 @@ public class CloudFoundryServerGroupCachingAgent extends AbstractCloudFoundryCac
         SERVER_GROUPS.getNs(),
         serverGroups.stream()
             .map(sg -> setServerGroupCacheData(toKeep, sg, loadDataStart))
+            .filter(c -> c != null && c.getId() != null)
             .collect(Collectors.toSet()));
     results.put(
         INSTANCES.getNs(),
