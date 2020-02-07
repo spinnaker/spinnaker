@@ -35,9 +35,16 @@ class ExtensionInvocationProxy(
   private val pluginDescriptor: SpinnakerPluginDescriptor
 ) : InvocationHandler {
 
+  /**
+   * Target class is exposed here so we can determine extension type via [ExtensionClassProvider]
+   */
+  internal fun getTargetClass(): Class<*> {
+    return target.javaClass
+  }
+
   override fun invoke(proxy: Any, method: Method, args: Array<out Any>?): Any {
     val invocationStates: MutableSet<InvocationState> = mutableSetOf()
-    invocationStates.create(proxy, method, args)
+    invocationStates.before(proxy, method, args)
 
     val result: Any
     try {
@@ -51,7 +58,7 @@ class ExtensionInvocationProxy(
     return result
   }
 
-  private fun MutableSet<InvocationState>.create(proxy: Any, method: Method, args: Array<out Any>?) {
+  private fun MutableSet<InvocationState>.before(proxy: Any, method: Method, args: Array<out Any>?) {
     invocationAspects.forEach {
       this.add(it.before(target, proxy, method, args, pluginDescriptor))
     }
