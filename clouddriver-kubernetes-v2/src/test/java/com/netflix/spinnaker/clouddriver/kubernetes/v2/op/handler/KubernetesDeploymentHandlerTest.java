@@ -103,13 +103,34 @@ final class KubernetesDeploymentHandlerTest {
   }
 
   @Test
+  void progressDeadlineExceededUnavailable() {
+    KubernetesManifest deployment =
+        ManifestFetcher.getManifest(
+            "deployment/base.yml", "deployment/progress-deadline-exceeded-unavailable.yml");
+    Status status = handler.status(deployment);
+
+    assertThat(status.getStable().isState()).isFalse();
+    assertThat(status.getStable().getMessage())
+        .isEqualTo("Waiting for all replicas to be available");
+    assertThat(status.getAvailable().isState()).isFalse();
+    assertThat(status.getAvailable().getMessage())
+        .isEqualTo("Deployment does not have minimum availability.");
+    assertThat(status.getPaused().isState()).isFalse();
+    assertThat(status.getFailed().isState()).isTrue();
+    assertThat(status.getFailed().getMessage())
+        .isEqualTo("Deployment exceeded its progress deadline");
+  }
+
+  @Test
   void progressDeadlineExceeded() {
     KubernetesManifest deployment =
         ManifestFetcher.getManifest(
             "deployment/base.yml", "deployment/progress-deadline-exceeded.yml");
     Status status = handler.status(deployment);
 
-    assertThat(status.getStable().isState()).isTrue();
+    assertThat(status.getStable().isState()).isFalse();
+    assertThat(status.getStable().getMessage())
+        .isEqualTo("Waiting for all replicas to be available");
     assertThat(status.getAvailable().isState()).isTrue();
     assertThat(status.getPaused().isState()).isFalse();
     assertThat(status.getFailed().isState()).isTrue();

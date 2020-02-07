@@ -55,7 +55,7 @@ public class KubernetesUnregisteredCustomResourceHandler extends KubernetesHandl
 
   @Override
   public Status status(KubernetesManifest manifest) {
-    return new Status();
+    return Status.defaultStatus();
   }
 
   @Override

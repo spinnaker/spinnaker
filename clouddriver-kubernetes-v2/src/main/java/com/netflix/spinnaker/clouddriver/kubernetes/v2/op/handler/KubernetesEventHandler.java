@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.model.Manifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.model.Manifest.Status;
 import io.kubernetes.client.openapi.models.V1Event;
 import io.kubernetes.client.openapi.models.V1ObjectReference;
 import java.util.ArrayList;
@@ -66,7 +67,7 @@ public class KubernetesEventHandler extends KubernetesHandler {
 
   @Override
   public Manifest.Status status(KubernetesManifest manifest) {
-    return new Manifest.Status();
+    return Status.defaultStatus();
   }
 
   @Override

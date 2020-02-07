@@ -1,0 +1,21 @@
+# Condition reports progress deadline exceeded and deployment is not available
+status:
+  availableReplicas: 98
+  conditions:
+    - lastTransitionTime: "2020-01-31T16:02:23Z"
+      lastUpdateTime: "2020-01-31T16:02:23Z"
+      message: Deployment does not have minimum availability.
+      reason: MinimumReplicasUnavailable
+      status: "False"
+      type: Available
+    - lastTransitionTime: "2020-01-31T17:27:49Z"
+      lastUpdateTime: "2020-01-31T17:27:49Z"
+      message: ReplicaSet "nginx-deployment-5754944d6c" has timed out progressing.
+      reason: ProgressDeadlineExceeded
+      status: "False"
+      type: Progressing
+  observedGeneration: 3
+  readyReplicas: 98
+  replicas: 100
+  unavailableReplicas: 2
+  updatedReplicas: 100

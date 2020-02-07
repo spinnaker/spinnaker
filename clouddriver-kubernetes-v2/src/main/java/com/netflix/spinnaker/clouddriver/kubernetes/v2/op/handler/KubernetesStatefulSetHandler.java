@@ -97,7 +97,7 @@ public class KubernetesStatefulSetHandler extends KubernetesHandler
   @Override
   public Status status(KubernetesManifest manifest) {
     if (manifest.isNewerThanObservedGeneration()) {
-      return (new Status()).unknown();
+      return Status.defaultStatus().unknown();
     }
     V1beta2StatefulSet v1beta2StatefulSet =
         KubernetesCacheDataConverter.getResource(manifest, V1beta2StatefulSet.class);
@@ -119,27 +119,27 @@ public class KubernetesStatefulSetHandler extends KubernetesHandler
   }
 
   private Status status(V1beta2StatefulSet statefulSet) {
-    Status result = new Status();
-
     if (statefulSet.getSpec().getUpdateStrategy().getType().equalsIgnoreCase("ondelete")) {
-      return result;
+      return Status.defaultStatus();
     }
 
     V1beta2StatefulSetStatus status = statefulSet.getStatus();
     if (status == null) {
-      result.unstable("No status reported yet").unavailable("No availability reported");
-      return result;
+      return Status.defaultStatus()
+          .unstable("No status reported yet")
+          .unavailable("No availability reported");
     }
 
     int desiredReplicas = defaultToZero(statefulSet.getSpec().getReplicas());
     int existing = defaultToZero(status.getReplicas());
     if (desiredReplicas > existing) {
-      return result.unstable("Waiting for at least the desired replica count to be met");
+      return Status.defaultStatus()
+          .unstable("Waiting for at least the desired replica count to be met");
     }
 
     existing = defaultToZero(status.getReadyReplicas());
     if (desiredReplicas > existing) {
-      return result.unstable("Waiting for all updated replicas to be ready");
+      return Status.defaultStatus().unstable("Waiting for all updated replicas to be ready");
     }
 
     String updateType = statefulSet.getSpec().getUpdateStrategy().getType();
@@ -152,26 +152,26 @@ public class KubernetesStatefulSetHandler extends KubernetesHandler
       Integer partition = rollingUpdate.getPartition();
       Integer replicas = status.getReplicas();
       if (replicas != null && partition != null && (updated < (replicas - partition))) {
-        return result.unstable("Waiting for partitioned roll out to finish");
+        return Status.defaultStatus().unstable("Waiting for partitioned roll out to finish");
       }
-      result.setStable(new Status.Condition(true, "Partitioned roll out complete"));
-      return result;
+      return Status.defaultStatus().stable("Partitioned roll out complete");
     }
 
     existing = defaultToZero(status.getCurrentReplicas());
     if (desiredReplicas > existing) {
-      return result.unstable("Waiting for all updated replicas to be scheduled");
+      return Status.defaultStatus().unstable("Waiting for all updated replicas to be scheduled");
     }
 
     if (!status.getCurrentRevision().equals(status.getUpdateRevision())) {
-      return result.unstable("Waiting for the updated revision to match the current revision");
+      return Status.defaultStatus()
+          .unstable("Waiting for the updated revision to match the current revision");
     }
 
-    return result;
+    return Status.defaultStatus();
   }
 
   // Unboxes an Integer, returning 0 if the input is null
-  private int defaultToZero(@Nullable Integer input) {
+  private static int defaultToZero(@Nullable Integer input) {
     return input == null ? 0 : input;
   }
 

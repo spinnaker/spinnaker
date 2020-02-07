@@ -54,7 +54,7 @@ public class KubernetesServiceAccountHandler extends KubernetesHandler {
 
   @Override
   public Status status(KubernetesManifest manifest) {
-    return new Status();
+    return Status.defaultStatus();
   }
 
   @Override

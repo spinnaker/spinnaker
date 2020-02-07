@@ -88,7 +88,7 @@ public class KubernetesDaemonSetHandler extends KubernetesHandler
   @Override
   public Status status(KubernetesManifest manifest) {
     if (manifest.isNewerThanObservedGeneration()) {
-      return (new Status()).unknown();
+      return Status.defaultStatus().unknown();
     }
     V1beta2DaemonSet v1beta2DaemonSet =
         KubernetesCacheDataConverter.getResource(manifest, V1beta2DaemonSet.class);
@@ -104,46 +104,45 @@ public class KubernetesDaemonSetHandler extends KubernetesHandler
   }
 
   private Status status(V1beta2DaemonSet daemonSet) {
-    Status result = new Status();
-
     V1beta2DaemonSetStatus status = daemonSet.getStatus();
     if (status == null) {
-      result.unstable("No status reported yet").unavailable("No availability reported");
-      return result;
+      return Status.defaultStatus()
+          .unstable("No status reported yet")
+          .unavailable("No availability reported");
     }
 
     if (!daemonSet.getSpec().getUpdateStrategy().getType().equalsIgnoreCase("rollingupdate")) {
-      return result;
+      return Status.defaultStatus();
     }
 
     Long observedGeneration = status.getObservedGeneration();
     if (observedGeneration != null
         && !observedGeneration.equals(daemonSet.getMetadata().getGeneration())) {
-      return result.unstable("Waiting for daemonset spec update to be observed");
+      return Status.defaultStatus().unstable("Waiting for daemonset spec update to be observed");
     }
 
     int desiredReplicas = defaultToZero(status.getDesiredNumberScheduled());
     int existing = defaultToZero(status.getCurrentNumberScheduled());
     if (desiredReplicas > existing) {
-      return result.unstable("Waiting for all replicas to be scheduled");
+      return Status.defaultStatus().unstable("Waiting for all replicas to be scheduled");
     }
 
     existing = defaultToZero(status.getUpdatedNumberScheduled());
     if (desiredReplicas > existing) {
-      return result.unstable("Waiting for all updated replicas to be scheduled");
+      return Status.defaultStatus().unstable("Waiting for all updated replicas to be scheduled");
     }
 
     existing = defaultToZero(status.getNumberAvailable());
     if (desiredReplicas > existing) {
-      return result.unstable("Waiting for all replicas to be available");
+      return Status.defaultStatus().unstable("Waiting for all replicas to be available");
     }
 
     existing = defaultToZero(status.getNumberReady());
     if (desiredReplicas > existing) {
-      return result.unstable("Waiting for all replicas to be ready");
+      return Status.defaultStatus().unstable("Waiting for all replicas to be ready");
     }
 
-    return result;
+    return Status.defaultStatus();
   }
 
   // Unboxes an Integer, returning 0 if the input is null

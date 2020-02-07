@@ -67,13 +67,13 @@ public class KubernetesPodHandler extends KubernetesHandler {
 
   @Override
   public Status status(KubernetesManifest manifest) {
-    Status result = new Status();
     V1Pod pod = KubernetesCacheDataConverter.getResource(manifest, V1Pod.class);
     V1PodStatus status = pod.getStatus();
 
     if (status == null) {
-      result.unstable("No status reported yet").unavailable("No availability reported");
-      return result;
+      return Status.defaultStatus()
+          .unstable("No status reported yet")
+          .unavailable("No availability reported");
     }
 
     // https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/
@@ -83,16 +83,22 @@ public class KubernetesPodHandler extends KubernetesHandler {
     // and we're comparing to lower-case strings. We'll thus never enter any of the else-if cases.
     // TODO(ezimanyi): Fix this when cleaning up status reporting code
     if (phase == null) {
-      result.unstable("No phase reported yet").unavailable("No availability reported");
+      return Status.defaultStatus()
+          .unstable("No phase reported yet")
+          .unavailable("No availability reported");
     } else if (phase.equals("pending")) {
-      result.unstable("Pod is 'pending'").unavailable("Pod has not been scheduled yet");
+      return Status.defaultStatus()
+          .unstable("Pod is 'pending'")
+          .unavailable("Pod has not been scheduled yet");
     } else if (phase.equals("unknown")) {
-      result.unstable("Pod has 'unknown' phase").unavailable("No availability reported");
+      return Status.defaultStatus()
+          .unstable("Pod has 'unknown' phase")
+          .unavailable("No availability reported");
     } else if (phase.equals("failed")) {
-      result.failed("Pod has 'failed'").unavailable("Pod is not running");
+      return Status.defaultStatus().failed("Pod has 'failed'").unavailable("Pod is not running");
     }
 
-    return result;
+    return Status.defaultStatus();
   }
 
   @Override

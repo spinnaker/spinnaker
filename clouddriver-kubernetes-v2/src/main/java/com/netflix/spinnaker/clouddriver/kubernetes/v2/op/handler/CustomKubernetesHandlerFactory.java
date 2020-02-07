@@ -33,6 +33,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.view.provider.dat
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.model.Manifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.model.Manifest.Status;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
@@ -88,7 +89,7 @@ public class CustomKubernetesHandlerFactory {
 
     @Override
     public Manifest.Status status(KubernetesManifest manifest) {
-      return new Manifest.Status();
+      return Status.defaultStatus();
     }
 
     @Override

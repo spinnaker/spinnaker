@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.model.Manifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.v2.model.Manifest.Status;
 import javax.annotation.Nonnull;
 import org.springframework.stereotype.Component;
 
@@ -51,7 +52,7 @@ public class KubernetesMutatingWebhookConfigurationHandler extends KubernetesHan
 
   @Override
   public Manifest.Status status(KubernetesManifest manifest) {
-    return new Manifest.Status();
+    return Status.defaultStatus();
   }
 
   @Override

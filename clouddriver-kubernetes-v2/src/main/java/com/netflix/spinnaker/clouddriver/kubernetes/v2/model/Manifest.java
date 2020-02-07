@@ -17,12 +17,16 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.model;
 
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.moniker.Moniker;
 import java.util.List;
-import lombok.AllArgsConstructor;
+import javax.annotation.Nullable;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
+import lombok.Value;
 
 public interface Manifest {
   Moniker getMoniker();
@@ -37,55 +41,68 @@ public interface Manifest {
 
   List<Warning> getWarnings();
 
-  @Data
+  @Getter
+  @EqualsAndHashCode
+  @NonnullByDefault
+  @ToString
   class Status {
-    Condition stable = Condition.builder().state(true).build();
-    Condition paused = Condition.builder().state(false).build();
-    Condition available = Condition.builder().state(true).build();
-    Condition failed = Condition.builder().state(false).build();
+    private @Nullable Condition stable = Condition.withState(true);
+    private Condition paused = Condition.withState(false);
+    private Condition available = Condition.withState(true);
+    private @Nullable Condition failed = Condition.withState(false);
+
+    public static Status defaultStatus() {
+      return new Status();
+    }
 
     public Status unknown() {
       stable = null;
       failed = null;
-
       return this;
     }
 
-    public Status failed(String message) {
-      failed.setMessage(message);
-      failed.setState(true);
-
+    public Status failed(@Nullable String message) {
+      failed = new Condition(true, message);
       return this;
     }
 
-    public Status unstable(String message) {
-      stable.setMessage(message);
-      stable.setState(false);
-
+    public Status stable(@Nullable String message) {
+      stable = new Condition(true, message);
       return this;
     }
 
-    public Status paused(String message) {
-      paused.setMessage(message);
-      paused.setState(true);
-
+    public Status unstable(@Nullable String message) {
+      stable = new Condition(false, message);
       return this;
     }
 
-    public Status unavailable(String message) {
-      available.setMessage(message);
-      available.setState(false);
-
+    public Status paused(@Nullable String message) {
+      paused = new Condition(true, message);
       return this;
     }
 
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class Condition {
-      boolean state;
-      String message;
+    public Status unavailable(@Nullable String message) {
+      available = new Condition(false, message);
+      return this;
+    }
+
+    @NonnullByDefault
+    @Value
+    public static final class Condition {
+      private static final Condition TRUE = new Condition(true, null);
+      private static final Condition FALSE = new Condition(false, null);
+
+      private final boolean state;
+      @Nullable private final String message;
+
+      private static Condition withState(boolean state) {
+        return state ? TRUE : FALSE;
+      }
+
+      private Condition(boolean state, @Nullable String message) {
+        this.state = state;
+        this.message = message;
+      }
     }
   }
 

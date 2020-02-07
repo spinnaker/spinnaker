@@ -34,13 +34,18 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.model.Manifest.Status;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1DeploymentCondition;
 import io.kubernetes.client.openapi.models.V1DeploymentStatus;
-import javax.annotation.Nonnull;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import javax.annotation.Nullable;
 import org.springframework.stereotype.Component;
 
 @Component
+@NonnullByDefault
 public class KubernetesDeploymentHandler extends KubernetesHandler
     implements CanResize,
         CanScale,
@@ -53,7 +58,6 @@ public class KubernetesDeploymentHandler extends KubernetesHandler
   private static final ImmutableSet<KubernetesApiVersion> SUPPORTED_API_VERSIONS =
       ImmutableSet.of(EXTENSIONS_V1BETA1, APPS_V1BETA1, APPS_V1BETA2, APPS_V1);
 
-  @Nonnull
   @Override
   protected ImmutableList<Replacer> artifactReplacers() {
     return ImmutableList.of(
@@ -71,7 +75,6 @@ public class KubernetesDeploymentHandler extends KubernetesHandler
     return WORKLOAD_CONTROLLER_PRIORITY.getValue();
   }
 
-  @Nonnull
   @Override
   public KubernetesKind kind() {
     return KubernetesKind.DEPLOYMENT;
@@ -82,7 +85,6 @@ public class KubernetesDeploymentHandler extends KubernetesHandler
     return false;
   }
 
-  @Nonnull
   @Override
   public SpinnakerKind spinnakerKind() {
     return SpinnakerKind.SERVER_GROUP_MANAGERS;
@@ -94,7 +96,7 @@ public class KubernetesDeploymentHandler extends KubernetesHandler
       throw new UnsupportedVersionException(manifest);
     }
     if (manifest.isNewerThanObservedGeneration()) {
-      return (new Status()).unknown();
+      return Status.defaultStatus().unknown();
     }
     V1Deployment appsV1Deployment =
         KubernetesCacheDataConverter.getResource(manifest, V1Deployment.class);
@@ -107,68 +109,80 @@ public class KubernetesDeploymentHandler extends KubernetesHandler
   }
 
   private Status status(V1Deployment deployment) {
-    Status result = new Status();
     V1DeploymentStatus status = deployment.getStatus();
     if (status == null) {
-      result.unstable("No status reported yet").unavailable("No availability reported");
-      return result;
+      return Status.defaultStatus()
+          .unstable("No status reported yet")
+          .unavailable("No availability reported");
     }
 
-    V1DeploymentCondition paused =
-        status.getConditions().stream()
-            .filter(c -> c.getReason().equalsIgnoreCase("deploymentpaused"))
-            .findAny()
-            .orElse(null);
+    List<V1DeploymentCondition> conditions =
+        Optional.ofNullable(status.getConditions()).orElse(ImmutableList.of());
 
-    V1DeploymentCondition available =
-        status.getConditions().stream()
-            .filter(c -> c.getType().equalsIgnoreCase("available"))
-            .findAny()
-            .orElse(null);
-
-    if (paused != null) {
-      result.paused(paused.getMessage());
-    }
-
-    if (available != null && available.getStatus().equalsIgnoreCase("false")) {
-      result.unstable(available.getMessage()).unavailable(available.getMessage());
-    }
-
-    V1DeploymentCondition condition =
-        status.getConditions().stream()
-            .filter(c -> c.getType().equalsIgnoreCase("progressing"))
-            .findAny()
-            .orElse(null);
-    if (condition != null && condition.getReason().equalsIgnoreCase("progressdeadlineexceeded")) {
-      return result.failed("Deployment exceeded its progress deadline");
-    }
-
-    Integer desiredReplicas = deployment.getSpec().getReplicas();
-    Integer statusReplicas = status.getReplicas();
-    if ((desiredReplicas == null || desiredReplicas == 0)
-        && (statusReplicas == null || statusReplicas == 0)) {
-      return result;
-    }
-
-    Integer updatedReplicas = status.getUpdatedReplicas();
-    if (updatedReplicas == null || (desiredReplicas != null && desiredReplicas > updatedReplicas)) {
-      return result.unstable("Waiting for all replicas to be updated");
-    }
-
-    if (statusReplicas != null && statusReplicas > updatedReplicas) {
-      return result.unstable("Waiting for old replicas to finish termination");
-    }
-
-    Integer availableReplicas = status.getAvailableReplicas();
-    if (availableReplicas == null || availableReplicas < updatedReplicas) {
-      return result.unstable("Waiting for all replicas to be available");
-    }
-
-    Integer readyReplicas = status.getReadyReplicas();
-    if (readyReplicas == null || (desiredReplicas != null && desiredReplicas > readyReplicas)) {
-      return result.unstable("Waiting for all replicas to be ready");
-    }
-
+    Status result = Status.defaultStatus();
+    getPausedReason(conditions).ifPresent(result::paused);
+    getUnavailableReason(conditions)
+        .ifPresent(reason -> result.unstable(reason).unavailable(reason));
+    getFailedReason(conditions).ifPresent(result::failed);
+    checkReplicaCounts(deployment, status)
+        .ifPresent(reason -> result.unstable(reason.getMessage()));
     return result;
+  }
+
+  private static Optional<String> getUnavailableReason(
+      Collection<V1DeploymentCondition> conditions) {
+    return conditions.stream()
+        .filter(c -> c.getType().equalsIgnoreCase("available"))
+        .filter(c -> c.getStatus().equalsIgnoreCase("false"))
+        .map(V1DeploymentCondition::getMessage)
+        .findAny();
+  }
+
+  private static Optional<String> getPausedReason(Collection<V1DeploymentCondition> conditions) {
+    return conditions.stream()
+        .filter(c -> c.getReason() != null)
+        .filter(c -> c.getReason().equalsIgnoreCase("deploymentpaused"))
+        .map(V1DeploymentCondition::getMessage)
+        .findAny();
+  }
+
+  private static Optional<String> getFailedReason(Collection<V1DeploymentCondition> conditions) {
+    return conditions.stream()
+        .filter(c -> c.getType().equalsIgnoreCase("progressing"))
+        .filter(c -> c.getReason() != null)
+        .filter(c -> c.getReason().equalsIgnoreCase("progressdeadlineexceeded"))
+        .map(c -> "Deployment exceeded its progress deadline")
+        .findAny();
+  }
+
+  // Unboxes an Integer, returning 0 if the input is null
+  private static int defaultToZero(@Nullable Integer input) {
+    return input == null ? 0 : input;
+  }
+
+  private static Optional<UnstableReason> checkReplicaCounts(
+      V1Deployment deployment, V1DeploymentStatus status) {
+    int desiredReplicas = defaultToZero(deployment.getSpec().getReplicas());
+    int updatedReplicas = defaultToZero(status.getUpdatedReplicas());
+    if (updatedReplicas < desiredReplicas) {
+      return Optional.of(UnstableReason.UPDATED_REPLICAS);
+    }
+
+    int statusReplicas = defaultToZero(status.getReplicas());
+    if (statusReplicas > updatedReplicas) {
+      return Optional.of(UnstableReason.OLD_REPLICAS);
+    }
+
+    int availableReplicas = defaultToZero(status.getAvailableReplicas());
+    if (availableReplicas < desiredReplicas) {
+      return Optional.of(UnstableReason.AVAILABLE_REPLICAS);
+    }
+
+    int readyReplicas = defaultToZero(status.getReadyReplicas());
+    if (readyReplicas < desiredReplicas) {
+      return Optional.of(UnstableReason.READY_REPLICAS);
+    }
+
+    return Optional.empty();
   }
 }

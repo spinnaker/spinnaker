@@ -36,7 +36,10 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.Kube
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifestSelector;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.model.Manifest.Status;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.security.KubernetesV2Credentials;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1ReplicaSet;
+import io.kubernetes.client.openapi.models.V1ReplicaSetSpec;
 import io.kubernetes.client.openapi.models.V1ReplicaSetStatus;
 import io.kubernetes.client.openapi.models.V1beta1ReplicaSet;
 import io.kubernetes.client.openapi.models.V1beta2ReplicaSet;
@@ -44,16 +47,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.springframework.stereotype.Component;
 
 @Component
+@NonnullByDefault
 public class KubernetesReplicaSetHandler extends KubernetesHandler
     implements CanResize, CanScale, HasPods, ServerGroupHandler {
   private static final ImmutableSet<KubernetesApiVersion> SUPPORTED_API_VERSIONS =
       ImmutableSet.of(EXTENSIONS_V1BETA1, APPS_V1BETA2, APPS_V1);
 
-  @Nonnull
   @Override
   protected ImmutableList<Replacer> artifactReplacers() {
     return ImmutableList.of(
@@ -71,7 +74,6 @@ public class KubernetesReplicaSetHandler extends KubernetesHandler
     return WORKLOAD_CONTROLLER_PRIORITY.getValue();
   }
 
-  @Nonnull
   @Override
   public KubernetesKind kind() {
     return KubernetesKind.REPLICA_SET;
@@ -82,7 +84,6 @@ public class KubernetesReplicaSetHandler extends KubernetesHandler
     return true;
   }
 
-  @Nonnull
   @Override
   public SpinnakerKind spinnakerKind() {
     return SpinnakerKind.SERVER_GROUPS;
@@ -104,51 +105,61 @@ public class KubernetesReplicaSetHandler extends KubernetesHandler
   }
 
   private Status status(V1ReplicaSet replicaSet) {
-    Status result = new Status();
     V1ReplicaSetStatus status = replicaSet.getStatus();
     if (status == null) {
-      result.unstable("No status reported yet").unavailable("No availability reported");
-      return result;
+      return Status.defaultStatus()
+          .unstable("No status reported yet")
+          .unavailable("No availability reported");
     }
 
-    Long observedGeneration = status.getObservedGeneration();
-    if (observedGeneration != null
-        && !observedGeneration.equals(replicaSet.getMetadata().getGeneration())) {
-      result.unstable("Waiting for replicaset spec update to be observed");
+    Optional<UnstableReason> unstableReason = checkReplicaCounts(replicaSet, status);
+    if (unstableReason.isPresent()) {
+      return Status.defaultStatus()
+          .unstable(unstableReason.get().getMessage())
+          .unavailable(unstableReason.get().getMessage());
     }
 
-    int desired = replicaSet.getSpec().getReplicas();
-    int fullyLabeled = Optional.ofNullable(status.getFullyLabeledReplicas()).orElse(0);
-    int available = Optional.ofNullable(status.getAvailableReplicas()).orElse(0);
-    int ready = Optional.ofNullable(status.getReadyReplicas()).orElse(0);
-
-    if (desired == 0 && fullyLabeled == 0 && available == 0 && ready == 0) {
-      return result;
+    if (!generationMatches(replicaSet, status)) {
+      return Status.defaultStatus().unstable("Waiting for replicaset spec update to be observed");
     }
+
+    return Status.defaultStatus();
+  }
+
+  private Optional<UnstableReason> checkReplicaCounts(
+      V1ReplicaSet replicaSet, V1ReplicaSetStatus status) {
+    int desired =
+        Optional.ofNullable(replicaSet.getSpec()).map(V1ReplicaSetSpec::getReplicas).orElse(0);
+    int fullyLabeled = defaultToZero(status.getFullyLabeledReplicas());
+    int available = defaultToZero(status.getAvailableReplicas());
+    int ready = defaultToZero(status.getReadyReplicas());
 
     if (desired > fullyLabeled) {
-      return result
-          .unstable("Waiting for all replicas to be fully-labeled")
-          .unavailable("Not all replicas have become labeled yet");
+      return Optional.of(UnstableReason.FULLY_LABELED_REPLICAS);
+    }
+
+    if (desired > ready) {
+      return Optional.of(UnstableReason.READY_REPLICAS);
     }
 
     if (desired > available) {
-      return result
-          .unstable("Waiting for all replicas to be available")
-          .unavailable("Not all replicas have become available yet");
+      return Optional.of(UnstableReason.AVAILABLE_REPLICAS);
     }
 
-    // Unclear that we can ever go into this if statement this state (at least in a meaningful way,
-    // setting aside a bug or inconsistency in kubernetes); availableReplicas is defined as replicas
-    // that have been ready for > minReadySeconds which means ready >= available.  If we reach this
-    // point, we also know that available >= desired, which by the transitive property of >= implies
-    // ready >= desired and the if condition will always be false.
-    // TODO(ezimanyi): Consider removing this condition, or moving it above the available check
-    if (desired > ready) {
-      return result.unstable("Waiting for all replicas to be ready");
-    }
+    return Optional.empty();
+  }
 
-    return result;
+  // Unboxes an Integer, returning 0 if the input is null
+  private static int defaultToZero(@Nullable Integer input) {
+    return input == null ? 0 : input;
+  }
+
+  private boolean generationMatches(V1ReplicaSet replicaSet, V1ReplicaSetStatus status) {
+    Optional<Long> metadataGeneration =
+        Optional.ofNullable(replicaSet.getMetadata()).map(V1ObjectMeta::getGeneration);
+    Optional<Long> statusGeneration = Optional.ofNullable(status.getObservedGeneration());
+
+    return statusGeneration.isPresent() && statusGeneration.equals(metadataGeneration);
   }
 
   public static Map<String, String> getPodTemplateLabels(KubernetesManifest manifest) {

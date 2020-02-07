@@ -61,7 +61,7 @@ public class KubernetesSecretHandler extends KubernetesHandler {
 
   @Override
   public Status status(KubernetesManifest manifest) {
-    return new Status();
+    return Status.defaultStatus();
   }
 
   @Override

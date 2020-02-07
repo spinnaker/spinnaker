@@ -75,7 +75,7 @@ final class KubernetesReplicaSetHandlerTest {
         .isEqualTo("Waiting for all replicas to be fully-labeled");
     assertThat(status.getAvailable().isState()).isFalse();
     assertThat(status.getAvailable().getMessage())
-        .isEqualTo("Not all replicas have become labeled yet");
+        .isEqualTo("Waiting for all replicas to be fully-labeled");
     assertThat(status.getPaused().isState()).isFalse();
     assertThat(status.getFailed().isState()).isFalse();
   }
@@ -91,7 +91,7 @@ final class KubernetesReplicaSetHandlerTest {
         .isEqualTo("Waiting for all replicas to be available");
     assertThat(status.getAvailable().isState()).isFalse();
     assertThat(status.getAvailable().getMessage())
-        .isEqualTo("Not all replicas have become available yet");
+        .isEqualTo("Waiting for all replicas to be available");
     assertThat(status.getPaused().isState()).isFalse();
     assertThat(status.getFailed().isState()).isFalse();
   }
@@ -103,11 +103,10 @@ final class KubernetesReplicaSetHandlerTest {
     Status status = handler.status(replicaSet);
 
     assertThat(status.getStable().isState()).isFalse();
-    assertThat(status.getStable().getMessage())
-        .isEqualTo("Waiting for all replicas to be available");
+    assertThat(status.getStable().getMessage()).isEqualTo("Waiting for all replicas to be ready");
     assertThat(status.getAvailable().isState()).isFalse();
     assertThat(status.getAvailable().getMessage())
-        .isEqualTo("Not all replicas have become available yet");
+        .isEqualTo("Waiting for all replicas to be ready");
     assertThat(status.getPaused().isState()).isFalse();
     assertThat(status.getFailed().isState()).isFalse();
   }
@@ -123,7 +122,7 @@ final class KubernetesReplicaSetHandlerTest {
         .isEqualTo("Waiting for all replicas to be fully-labeled");
     assertThat(status.getAvailable().isState()).isFalse();
     assertThat(status.getAvailable().getMessage())
-        .isEqualTo("Not all replicas have become labeled yet");
+        .isEqualTo("Waiting for all replicas to be fully-labeled");
     assertThat(status.getPaused().isState()).isFalse();
     assertThat(status.getFailed().isState()).isFalse();
   }

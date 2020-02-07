@@ -87,11 +87,11 @@ public class KubernetesJobHandler extends KubernetesHandler implements ServerGro
   }
 
   private Status status(V1Job job) {
-    Status result = new Status();
     V1JobStatus status = job.getStatus();
     if (status == null) {
-      result.unstable("No status reported yet").unavailable("No availability reported");
-      return result;
+      return Status.defaultStatus()
+          .unstable("No status reported yet")
+          .unavailable("No availability reported");
     }
 
     int completions = 1;
@@ -109,13 +109,13 @@ public class KubernetesJobHandler extends KubernetesHandler implements ServerGro
       conditions = conditions != null ? conditions : Collections.emptyList();
       Optional<V1JobCondition> condition = conditions.stream().filter(this::jobFailed).findAny();
       if (condition.isPresent()) {
-        return result.failed(condition.get().getMessage());
+        return Status.defaultStatus().failed(condition.get().getMessage());
       } else {
-        return result.unstable("Waiting for jobs to finish");
+        return Status.defaultStatus().unstable("Waiting for jobs to finish");
       }
     }
 
-    return result;
+    return Status.defaultStatus();
   }
 
   private boolean jobFailed(V1JobCondition condition) {
