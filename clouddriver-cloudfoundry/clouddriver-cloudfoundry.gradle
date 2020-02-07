@@ -1,4 +1,5 @@
 apply plugin: 'com.google.protobuf'
+apply plugin: "org.junit.platform.gradle.plugin"
 
 buildscript {
   repositories {
@@ -20,12 +21,17 @@ protobuf {
   }
 }
 
-test {
-  useJUnitPlatform()
-}
 
 configurations {
   all*.exclude group: 'junit', module: 'junit'
+}
+
+junitPlatform {
+  filters {
+    engines {
+      include "junit-jupiter"
+    }
+  }
 }
 
 dependencies {

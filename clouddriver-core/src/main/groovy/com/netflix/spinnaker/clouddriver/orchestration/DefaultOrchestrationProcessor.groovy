@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.metrics.TimedCallable
 import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEvent
 import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEventHandler
 import com.netflix.spinnaker.kork.exceptions.ExceptionSummary
+import com.netflix.spinnaker.kork.web.context.RequestContextProvider
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.Canonical
 import groovy.util.logging.Slf4j
@@ -51,7 +52,7 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
     new ThreadFactoryBuilder().setNameFormat(DefaultOrchestrationProcessor.class.getSimpleName() + "-%d").build()) {
     @Override
     protected void afterExecute(Runnable r, Throwable t) {
-      resetMDC()
+      clearRequestContext()
       super.afterExecute(r, t)
     }
   }
@@ -62,6 +63,7 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
   private final Collection<OperationEventHandler> operationEventHandlers
   private final ObjectMapper objectMapper
   private final ExceptionClassifier exceptionClassifier
+  private final RequestContextProvider contextProvider
 
   DefaultOrchestrationProcessor(
     TaskRepository taskRepository,
@@ -69,7 +71,8 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
     Registry registry,
     Optional<Collection<OperationEventHandler>> operationEventHandlers,
     ObjectMapper objectMapper,
-    ExceptionClassifier exceptionClassifier
+    ExceptionClassifier exceptionClassifier,
+    RequestContextProvider contextProvider
   ) {
     this.taskRepository = taskRepository
     this.applicationContext = applicationContext
@@ -77,6 +80,7 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
     this.operationEventHandlers = operationEventHandlers.orElse([])
     this.objectMapper = objectMapper
     this.exceptionClassifier = exceptionClassifier
+    this.contextProvider = contextProvider
   }
 
   @Override
@@ -183,17 +187,18 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
   }
 
   /**
-   * Ensure that the Spinnaker-related MDC values are cleared.
+   * Ensure that the Spinnaker-related context values are cleared.
    *
-   * This is particularly important for the inheritable MDC variables that are commonly to transmit the auth context.
+   * This is particularly important for the inheritable values that are used to transmit the auth context.
    */
-  static void resetMDC() {
+  void clearRequestContext() {
     try {
-      MDC.remove(AuthenticatedRequest.Header.USER.header)
-      MDC.remove(AuthenticatedRequest.Header.ACCOUNTS.header)
-      MDC.remove(AuthenticatedRequest.Header.EXECUTION_ID.header)
+      def context = contextProvider.get()
+      context.setUser(null)
+      context.setAccounts(null as String)
+      context.setExecutionId(null)
     } catch (Exception e) {
-      log.error("Unable to clear thread locals, reason: ${e.message}")
+      log.error("Unable to clear request context", e)
     }
   }
 

@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.data.task.DefaultTask
 import com.netflix.spinnaker.clouddriver.data.task.SagaId
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.kork.web.context.AuthenticatedRequestContextProvider
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.slf4j.MDC
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory
@@ -47,6 +48,7 @@ class DefaultOrchestrationProcessorSpec extends Specification {
   DynamicConfigService dynamicConfigService
 
   String taskKey
+  private AuthenticatedRequestContextProvider contextProvider
 
   def setup() {
     taskKey = UUID.randomUUID().toString()
@@ -55,6 +57,7 @@ class DefaultOrchestrationProcessorSpec extends Specification {
     applicationContext = Mock(ApplicationContext)
     applicationContext.getAutowireCapableBeanFactory() >> Mock(AutowireCapableBeanFactory)
     dynamicConfigService = Mock(DynamicConfigService)
+    contextProvider = new AuthenticatedRequestContextProvider()
 
     processor = new DefaultOrchestrationProcessor(
       taskRepository,
@@ -64,7 +67,8 @@ class DefaultOrchestrationProcessorSpec extends Specification {
       new ObjectMapper(),
       new ExceptionClassifier(new ExceptionClassifierConfigurationProperties(
         retryableClasses: [RetryableException.class.getName()]
-      ), dynamicConfigService)
+      ), dynamicConfigService),
+      contextProvider
     )
   }
 
@@ -151,17 +155,18 @@ class DefaultOrchestrationProcessorSpec extends Specification {
 
   void "should clear MDC thread local"() {
     given:
+    def context = contextProvider.get()
     MDC.put("myKey", "myValue")
-    MDC.put(AuthenticatedRequest.Header.ACCOUNTS.header, "myAccounts")
-    MDC.put(AuthenticatedRequest.Header.USER.header, "myUser")
+    context.setAccounts("myAccounts")
+    context.setUser( "myUser")
 
     when:
-    DefaultOrchestrationProcessor.resetMDC()
+    processor.clearRequestContext()
 
     then:
     MDC.get("myKey") == "myValue"
-    MDC.get(AuthenticatedRequest.Header.ACCOUNTS.header) == null
-    MDC.get(AuthenticatedRequest.Header.USER.header) == null
+    !context.getAccounts().isPresent()
+    !context.getUser().isPresent()
   }
 
   private void submitAndWait(AtomicOperation atomicOp) {

@@ -36,6 +36,7 @@ import com.netflix.spinnaker.clouddriver.orchestration.events.OperationEventHand
 import com.netflix.spinnaker.clouddriver.saga.persistence.SagaRepository
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.AllowedAccountsValidator
+import com.netflix.spinnaker.kork.web.context.RequestContextProvider
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
@@ -65,7 +66,8 @@ class DeployConfiguration {
     Registry registry,
     Optional<Collection<OperationEventHandler>> operationEventHandlers,
     ObjectMapper objectMapper,
-    ExceptionClassifier exceptionClassifier
+    ExceptionClassifier exceptionClassifier,
+    RequestContextProvider contextProvider
   ) {
     new DefaultOrchestrationProcessor(
       taskRepository,
@@ -73,7 +75,8 @@ class DeployConfiguration {
       registry,
       operationEventHandlers,
       objectMapper,
-      exceptionClassifier
+      exceptionClassifier,
+      contextProvider
     )
   }
 

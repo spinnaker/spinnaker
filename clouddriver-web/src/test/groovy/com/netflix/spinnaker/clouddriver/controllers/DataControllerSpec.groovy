@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.clouddriver.controllers
 
 import com.netflix.spinnaker.clouddriver.model.DataProvider
-import com.netflix.spinnaker.security.AuthenticatedRequest
-import org.slf4j.MDC
+import com.netflix.spinnaker.kork.web.context.AuthenticatedRequestContextProvider
+import com.netflix.spinnaker.kork.web.context.RequestContextProvider
 import org.springframework.security.access.AccessDeniedException
 import spock.lang.Shared
 import spock.lang.Specification
@@ -34,6 +34,8 @@ class DataControllerSpec extends Specification {
   @Subject
   def dataController = new DataController(dataProviders)
 
+  RequestContextProvider contextProvider = new AuthenticatedRequestContextProvider()
+
   void setupSpec() {
     DataProvider dataProvider = Mock(DataProvider) {
       supportsIdentifier(_ as DataProvider.IdentifierType, _ as String) >> { return true }
@@ -44,7 +46,7 @@ class DataControllerSpec extends Specification {
   }
 
   void setup() {
-    MDC.remove(AuthenticatedRequest.Header.ACCOUNTS.header)
+    contextProvider.get().setAccounts(null as String)
   }
 
 
@@ -56,7 +58,7 @@ class DataControllerSpec extends Specification {
     thrown(AccessDeniedException)
 
     when:
-    MDC.put(AuthenticatedRequest.Header.ACCOUNTS.header, "restricted")
+    contextProvider.get().setAccounts("restricted")
     dataController.getStaticData("restricted", [:])
 
     then:
@@ -77,7 +79,7 @@ class DataControllerSpec extends Specification {
   def "should allow access to account when fetching adhoc data with correct account"() {
     given:
     def httpServletRequest = Mock(HttpServletRequest)
-    MDC.put(AuthenticatedRequest.Header.ACCOUNTS.header, "restricted")
+    contextProvider.get().setAccounts("restricted")
 
     when:
     dataController.getAdhocData("groupId", "restricted", httpServletRequest)
@@ -89,11 +91,11 @@ class DataControllerSpec extends Specification {
   }
 
   // If the wrong slf4j is on the classpath, this fails. So leaving this test in here for sanity.
-  def "mdc works"() {
+  def "request context works"() {
     given:
-    MDC.put(AuthenticatedRequest.Header.ACCOUNTS.header, "restricted")
+    contextProvider.get().setAccounts("restricted")
 
     expect:
-    MDC.get(AuthenticatedRequest.Header.ACCOUNTS.header) == "restricted"
+    "restricted".equals(contextProvider.get().getAccounts().get())
   }
 }

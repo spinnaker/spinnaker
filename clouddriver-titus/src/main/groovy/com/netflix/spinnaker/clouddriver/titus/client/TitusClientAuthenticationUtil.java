@@ -23,7 +23,6 @@ import io.grpc.stub.AbstractStub;
 import io.grpc.stub.MetadataUtils;
 import java.util.List;
 import javax.annotation.Nonnull;
-import org.slf4j.MDC;
 
 public class TitusClientAuthenticationUtil {
 
@@ -43,7 +42,7 @@ public class TitusClientAuthenticationUtil {
             "Invoked by Spinnaker execution %s, Application name %s",
             getSpinnakerExecutionId(
                 AuthenticatedRequest.getSpinnakerExecutionId().orElse("unknown")),
-            MDC.get(AuthenticatedRequest.Header.APPLICATION.getHeader())));
+            AuthenticatedRequest.getSpinnakerApplication().orElse("unknown")));
     return serviceStub.withInterceptors(MetadataUtils.newAttachHeadersInterceptor(metadata));
   }
 
