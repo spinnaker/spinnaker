@@ -9,9 +9,10 @@ if [[ $GITHUB_ACTIONS == "true" && ( $GITHUB_BASE_REF != "master" || $GITHUB_REP
   exit 0
 fi
 
-if [[ $GITHUB_ACTIONS == "true" ]] ; then
-  echo "Fetching tags..." && git fetch -q
-  GHA_TARGET=origin/master
+if [[ -n $TRAVIS || -n $GITHUB_ACTIONS ]] ; then
+  echo "git fetch..."
+  git fetch
+  CI_TARGET_BRANCH=origin/master
   cd app/scripts/modules || exit 1;
 else
   cd "$(dirname "$0")" || exit 2;
@@ -19,7 +20,7 @@ fi
 
 # Use the command line argument, origin/master (if running on GHA) or master (in that order)
 TARGET_BRANCH=${1}
-TARGET_BRANCH=${TARGET_BRANCH:-${GHA_TARGET}}
+TARGET_BRANCH=${TARGET_BRANCH:-${CI_TARGET_BRANCH}}
 TARGET_BRANCH=${TARGET_BRANCH:-master}
 echo "TARGET_BRANCH=$TARGET_BRANCH"
 echo ""
