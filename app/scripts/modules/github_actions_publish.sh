@@ -34,30 +34,8 @@ else
   echo "Deck package publisher ---> Checking that the last commit (${LAST_PKGJSON_COMMIT}) contains a version bump ONLY..."
   HAS_PKG_BUMP=$(git diff "${LAST_PKGJSON_COMMIT}..${LAST_PKGJSON_COMMIT}~1" -- "${MODULE}/package.json" | grep -c '"version"')
   if [ "$HAS_PKG_BUMP" -ne 0 ] ; then
-    echo "Deck package publisher ---> Version bump detected indeed. Checking that it is the only file changed..."
-    OTHER_FILES_CHANGED=$(git diff --name-only "${LAST_PKGJSON_COMMIT}..${LAST_PKGJSON_COMMIT}~1" | grep -v -c "${MODULE}/package.json")
-    if [ "$OTHER_FILES_CHANGED" -ne 0 ] ; then
-      echo "Deck package publisher ---> Files other than (${MODULE}/package.json) were changed..."
-      echo "=========================================="
-      echo ""
-      git diff --name-only "${LAST_PKGJSON_COMMIT}..${LAST_PKGJSON_COMMIT}~1"
-      echo ""
-      echo "=========================================="
-      echo "Deck package publisher ---> Version bumps must be the ONLY changes..."
-      exit 11
-    fi
-    echo "Deck package publisher ---> Version bump detected indeed. Checking that it is the only line changed..."
-    PKG_JSON_OTHER_CHANGES=$(git diff --numstat "${LAST_PKGJSON_COMMIT}..${LAST_PKGJSON_COMMIT}~1" -- "${MODULE}/package.json" | cut -f 1)
-    if [ "$PKG_JSON_OTHER_CHANGES" -ne 1 ] ; then
-      echo "Deck package publisher ---> Other changes found in (${MODULE}/package.json) ..."
-      echo "=========================================="
-      echo ""
-      git diff "${LAST_PKGJSON_COMMIT}..${LAST_PKGJSON_COMMIT}~1" -- "${MODULE}/package.json"
-      echo ""
-      echo "=========================================="
-      echo "Deck package publisher ---> Version bumps must be the ONLY changes..."
-      exit 24
-    fi
+    echo "Deck package publisher ---> Version bump detected indeed. Checking that it is a pure package bump..."
+    ./assert_package_bumps_standalone.sh HEAD^ || exit 11
   else
     echo "Deck package publisher ---> The last commit (${LAST_PKGJSON_COMMIT}) did not contain a version bump..."
     echo "=========================================="
