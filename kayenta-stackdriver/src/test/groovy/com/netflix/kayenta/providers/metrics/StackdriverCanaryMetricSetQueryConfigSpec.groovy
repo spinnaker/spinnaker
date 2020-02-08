@@ -92,7 +92,6 @@ class StackdriverCanaryMetricSetQueryConfigSpec extends Specification {
     ["my-template-1": 'A test: key1=${key1}.',
      "my-template-2": 'A test: key2=${key2}.']                | "my-template-x"        | null
     [:]                                                       | "my-template-x"        | null
-    null                                                      | "my-template-x"        | null
     ["my-template": 'A test: key1=${key1} key2=${key2}.']     | "my-template"          | [key3: "value-3",
                                                                                           key4: "value-4"]
     ["my-template": 'A test: key1=$\\{key1} key2=$\\{key2}.'] | "my-template"          | [key3: "value-3",

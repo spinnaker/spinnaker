@@ -5,7 +5,6 @@ import com.netflix.kayenta.canary.providers.metrics.NewRelicCanaryMetricSetQuery
 import com.netflix.kayenta.canary.providers.metrics.QueryConfigUtils;
 import com.netflix.kayenta.newrelic.canary.NewRelicCanaryScope;
 import com.netflix.kayenta.newrelic.config.NewRelicScopeConfiguration;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -37,8 +36,7 @@ public class NewRelicQueryBuilderService {
       CanaryConfig canaryConfig,
       NewRelicCanaryScope canaryScope,
       NewRelicCanaryMetricSetQueryConfig queryConfig,
-      NewRelicScopeConfiguration scopeConfiguration)
-      throws IOException {
+      NewRelicScopeConfiguration scopeConfiguration) {
 
     String[] baseScopeAttributes = new String[] {"scope", "location", "step"};
 

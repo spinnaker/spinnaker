@@ -82,8 +82,7 @@ public class GraphiteMetricsService implements MetricsService {
       String metricsAccountName,
       CanaryConfig canaryConfig,
       CanaryMetricConfig canaryMetricConfig,
-      CanaryScope canaryScope)
-      throws IOException {
+      CanaryScope canaryScope) {
     GraphiteCanaryMetricSetQueryConfig queryConfig =
         (GraphiteCanaryMetricSetQueryConfig) canaryMetricConfig.getQuery();
 

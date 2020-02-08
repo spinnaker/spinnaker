@@ -23,6 +23,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Singular;
 
 @Data
 @Builder
@@ -40,9 +41,8 @@ public class CanaryScope {
 
   @NotNull protected Long step;
 
-  // Metric source specific parameters which may be used to further
-  // alter the canary scope.
-  Map<String, String> extendedScopeParams;
+  /** Metric source specific parameters which may be used to further alter the canary scope. */
+  @Singular Map<String, String> extendedScopeParams;
 
   public Duration calculateDuration() {
     return Duration.between(start, end);

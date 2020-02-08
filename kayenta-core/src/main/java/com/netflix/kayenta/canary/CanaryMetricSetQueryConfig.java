@@ -30,18 +30,21 @@ public interface CanaryMetricSetQueryConfig {
     return null;
   }
 
-  // Optionally defines a metric-specific query template. Takes precedence over
-  // customFilterTemplate.
-  // It is expanded by using the key/value pairs in extendedScopeParams as the variable bindings.
+  /**
+   * Optionally defines a metric-specific query template. Takes precedence over {@link
+   * #getCustomFilterTemplate}. It is expanded by using the key/value pairs in {@link
+   * CanaryScope#extendedScopeParams} as the variable bindings.
+   */
   default String getCustomInlineTemplate() {
     return null;
   }
 
-  // Optionally refers by name to a FreeMarker template defined in the canary config top-level
-  // 'templates' map. It is
-  // expanded by using the key/value pairs in extendedScopeParams as the variable bindings. Once
-  // expanded, the
-  // resulting filter is used when composing the query.
+  /**
+   * Optionally refers by name to a template defined in the canary config top-level {@link
+   * CanaryConfig#templates} map. It is expanded by using the key/value pairs in {@link
+   * CanaryScope#extendedScopeParams} as the variable bindings. Once expanded, the resulting filter
+   * is used when composing the query.
+   */
   default String getCustomFilterTemplate() {
     return null;
   }

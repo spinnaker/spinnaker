@@ -21,15 +21,10 @@ import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
 import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig;
 import com.netflix.kayenta.canary.CanaryScope;
-import freemarker.template.Configuration;
-import freemarker.template.Template;
-import freemarker.template.TemplateException;
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
-import java.io.IOException;
-import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -39,7 +34,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
+import org.apache.commons.text.StringSubstitutor;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -51,8 +46,7 @@ public class QueryConfigUtils {
       CanaryConfig canaryConfig,
       CanaryMetricSetQueryConfig metricSetQuery,
       CanaryScope canaryScope,
-      String[] baseScopeAttributes)
-      throws IOException {
+      String[] baseScopeAttributes) {
     if (metricSetQuery.getCustomFilter() != null) {
       throw new IllegalArgumentException(
           "CanaryMetricSetQueryConfig.customFilter is deprecated, use CanaryMetricSetQueryConfig.customInlineTemplate instead.");
@@ -61,7 +55,6 @@ public class QueryConfigUtils {
     String customInlineTemplate = metricSetQuery.getCustomInlineTemplate();
     String customFilterTemplate = metricSetQuery.getCustomFilterTemplate();
     String templateToExpand;
-    String expandedTemplate;
 
     log.debug("customInlineTemplate={}", customInlineTemplate);
     log.debug("customFilterTemplate={}", customFilterTemplate);
@@ -89,31 +82,33 @@ public class QueryConfigUtils {
       templateToExpand = unescapeTemplate(templates.get(customFilterTemplate));
     }
 
-    Configuration configuration = new Configuration(Configuration.VERSION_2_3_26);
-    Template template = new Template("template", new StringReader(templateToExpand), configuration);
+    log.debug("extendedScopeParams={}", canaryScope.getExtendedScopeParams());
 
-    try {
-      log.debug("extendedScopeParams={}", canaryScope.getExtendedScopeParams());
+    Map<String, String> templateBindings = new LinkedHashMap<>();
+    populateTemplateBindings(canaryScope, baseScopeAttributes, templateBindings, false);
+    populateTemplateBindings(metricSetQuery, baseScopeAttributes, templateBindings, true);
 
-      Map<String, String> templateBindings = new LinkedHashMap<>();
-      populateTemplateBindings(canaryScope, baseScopeAttributes, templateBindings, false);
-      populateTemplateBindings(metricSetQuery, baseScopeAttributes, templateBindings, true);
-
-      if (!CollectionUtils.isEmpty(canaryScope.getExtendedScopeParams())) {
-        templateBindings.putAll(canaryScope.getExtendedScopeParams());
-      }
-
-      log.debug("templateBindings={}", templateBindings);
-
-      expandedTemplate =
-          FreeMarkerTemplateUtils.processTemplateIntoString(template, templateBindings);
-    } catch (TemplateException e) {
-      throw new IllegalArgumentException("Problem evaluating custom filter template:", e);
+    if (!CollectionUtils.isEmpty(canaryScope.getExtendedScopeParams())) {
+      templateBindings.putAll(canaryScope.getExtendedScopeParams());
     }
 
-    log.debug("expandedTemplate={}", expandedTemplate);
+    return expandTemplate(templateToExpand, templateBindings);
+  }
 
-    return expandedTemplate;
+  private static String expandTemplate(
+      String templateToExpand, Map<String, String> templateBindings) {
+    try {
+      log.debug("Expanding template='{}' with variables={}", templateToExpand, templateBindings);
+      StringSubstitutor substitutor = new StringSubstitutor(templateBindings);
+      substitutor.setEnableUndefinedVariableException(true);
+      String expandedTemplate = substitutor.replace(templateToExpand);
+      log.debug("Expanded template='{}'", expandedTemplate);
+
+      return expandedTemplate;
+    } catch (Exception e) {
+      throw new IllegalArgumentException(
+          "Problem evaluating custom filter template: " + templateToExpand, e);
+    }
   }
 
   private static void populateTemplateBindings(

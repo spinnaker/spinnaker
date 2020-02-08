@@ -1,7 +1,7 @@
 /*
  * Copyright 2018 Google, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License")
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.canary.providers
+package com.netflix.kayenta.canary.providers.metrics
 
 import com.netflix.kayenta.canary.CanaryConfig
 import com.netflix.kayenta.canary.CanaryMetricConfig
-import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig
-import com.netflix.kayenta.canary.providers.metrics.QueryConfigUtils
-import org.springframework.util.StringUtils
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -44,7 +41,7 @@ class QueryConfigUtilsSpec extends Specification {
   }
 
   @Unroll
-  void "Template #template is unescaped so it can be expanded by freemarker"() {
+  void "Template #template is unescaped so it can be expanded by string substitutor"() {
     expect:
     QueryConfigUtils.unescapeTemplate(template) == expectedUnescapedTemplate
 
@@ -73,24 +70,5 @@ class QueryConfigUtilsSpec extends Specification {
     'A test: key1=val1.'                 || 'A test: key1=val1.'
     null                                 || null
     ""                                   || ""
-  }
-}
-
-class TestCanaryMetricSetQueryConfig implements CanaryMetricSetQueryConfig {
-
-  String customInlineTemplate
-
-  @Override
-  CanaryMetricSetQueryConfig cloneWithEscapedInlineTemplate() {
-    if (StringUtils.isEmpty(customInlineTemplate)) {
-      return this
-    } else {
-      return new TestCanaryMetricSetQueryConfig(customInlineTemplate: customInlineTemplate.replace('${', '$\\{'))
-    }
-  }
-
-  @Override
-  String getServiceType() {
-    "test-service"
   }
 }

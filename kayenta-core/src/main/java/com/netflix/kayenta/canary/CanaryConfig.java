@@ -51,7 +51,7 @@ public class CanaryConfig {
 
   @NotNull @Singular @Getter private List<CanaryMetricConfig> metrics;
 
-  @NotNull @Getter private Map<String, String> templates;
+  @NotNull @Singular @Getter private Map<String, String> templates;
 
   @NotNull @Getter private CanaryClassifierConfig classifier;
 }

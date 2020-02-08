@@ -17,9 +17,8 @@ dependencies {
   api "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
   api "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
 
-
+  api "org.apache.commons:commons-text:1.8"
   api "org.springframework.boot:spring-boot-starter-actuator"
-  api "org.springframework.boot:spring-boot-starter-freemarker"
   api "org.springframework.boot:spring-boot-starter-json"
   api "net.logstash.logback:logstash-logback-encoder"
 

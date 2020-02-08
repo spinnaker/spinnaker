@@ -73,8 +73,7 @@ public class NewRelicMetricsService implements MetricsService {
       String metricsAccountName,
       CanaryConfig canaryConfig,
       CanaryMetricConfig canaryMetricConfig,
-      CanaryScope canaryScope)
-      throws IOException {
+      CanaryScope canaryScope) {
 
     NewRelicScopeConfiguration scopeConfiguration =
         newrelicScopeConfigurationMap.get(metricsAccountName);
