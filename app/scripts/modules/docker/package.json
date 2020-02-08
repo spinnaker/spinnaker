@@ -1,6 +1,6 @@
 {
   "name": "@spinnaker/docker",
-  "version": "0.0.50",
+  "version": "0.0.51",
   "main": "lib/lib.js",
   "typings": "lib/index.d.ts",
   "scripts": {
