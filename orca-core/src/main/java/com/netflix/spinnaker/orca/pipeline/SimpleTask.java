@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.pipeline;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.kork.plugins.proxy.ExtensionClassProvider;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.Task;
 import com.netflix.spinnaker.orca.TaskResult;
@@ -48,15 +49,15 @@ public class SimpleTask implements Task {
 
   private SimpleStageInput getStageInput(Stage stage, ObjectMapper objectMapper) {
     try {
+      Class<?> extensionClass = ExtensionClassProvider.getExtensionClass(simpleStage);
       List<Class<?>> cArg = Arrays.asList(SimpleStageInput.class);
-      Method method = simpleStage.getClass().getMethod("execute", cArg.toArray(new Class[0]));
+      Method method = extensionClass.getMethod("execute", cArg.toArray(new Class[0]));
       Type inputType = ResolvableType.forMethodParameter(method, 0).getGeneric().getType();
       Map<TypeVariable, Type> typeVariableMap =
-          GenericTypeResolver.getTypeVariableMap(simpleStage.getClass());
+          GenericTypeResolver.getTypeVariableMap(extensionClass);
+      Class<?> resolvedType = GenericTypeResolver.resolveType(inputType, typeVariableMap);
 
-      return new SimpleStageInput(
-          objectMapper.convertValue(
-              stage.getContext(), GenericTypeResolver.resolveType(inputType, typeVariableMap)));
+      return new SimpleStageInput(objectMapper.convertValue(stage.getContext(), resolvedType));
     } catch (NoSuchMethodException exeception) {
       throw new NoSuchStageException(exeception.getMessage());
     }
