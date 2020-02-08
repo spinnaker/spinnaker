@@ -40,7 +40,7 @@ module.exports = {
               ecma: 6,
               mangle: false,
               output: {
-                comments: false,
+                comments: /webpackIgnore/,
               },
             },
           }),

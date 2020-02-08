@@ -61,7 +61,7 @@ function configure(env, webpackOpts) {
                 ecma: 6,
                 mangle: false,
                 output: {
-                  comments: false,
+                  comments: /webpackIgnore/,
                 },
               },
             }),
