@@ -4,8 +4,8 @@
 # (default: origin/master if running in a Github Action, master otherwise)
 
 # Reports if package bumps are combined with other changes (not allowed). Package bumps must be standalone.
-if [[ $GITHUB_ACTIONS == "true" && ( $GITHUB_BASE_REF != "master" || $GITHUB_REPOSITORY != 'spinnaker/deck' ) ]] ; then
-  echo "Not a pull request to master -- exiting"
+if [[ $GITHUB_EVENT_NAME == "pull_request" && ( $GITHUB_BASE_REF != "master" || $GITHUB_REPOSITORY != 'spinnaker/deck' ) ]] ; then
+  echo "This is a pull request, but not to master -- exiting"
   exit 0
 fi
 
