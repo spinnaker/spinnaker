@@ -10,8 +10,8 @@ if [[ $GITHUB_ACTIONS == "true" && ( $GITHUB_BASE_REF != "master" || $GITHUB_REP
 fi
 
 if [[ -n $TRAVIS || -n $GITHUB_ACTIONS ]] ; then
-  echo "git fetch..."
-  git fetch
+  echo "git fetch -q..."
+  git fetch -q
   CI_TARGET_BRANCH=origin/master
   cd app/scripts/modules || exit 1;
 else
