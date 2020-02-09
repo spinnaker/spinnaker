@@ -1,0 +1,46 @@
+name: Deck CI
+
+on:
+  pull_request:
+    paths:
+      - 'app/scripts/modules/amazon/package.json'
+      - 'app/scripts/modules/appengine/package.json'
+      - 'app/scripts/modules/azure/package.json'
+      - 'app/scripts/modules/cloudfoundry/package.json'
+      - 'app/scripts/modules/core/package.json'
+      - 'app/scripts/modules/docker/package.json'
+      - 'app/scripts/modules/ecs/package.json'
+      - 'app/scripts/modules/google/package.json'
+      - 'app/scripts/modules/huaweicloud/package.json'
+      - 'app/scripts/modules/kubernetes/package.json'
+      - 'app/scripts/modules/oracle/package.json'
+      - 'app/scripts/modules/titus/package.json'
+
+env:
+  NODE_VERSION: 10.15.1
+
+jobs:
+  test:
+    name: Approve package bumps
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Ensure package bumps are pure
+        id: purebump
+        run: app/scripts/modules/assert_package_bumps_standalone.sh
+
+      - name: Approve package bump
+        if: steps.purebump.outputs.ispurebump == 'true'
+        # pin to v2.0.0 tag by commit hash
+        uses: hmarr/auto-approve-action@7782c7e
+        with:
+          github-token: '${{ secrets.GITHUB_TOKEN }}'
+
+      - name: ready to merge label
+        if: steps.purebump.outputs.ispurebump == 'true'
+        uses: actions/github@v1.0.0
+        with:
+          args: label 'ready to merge'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
