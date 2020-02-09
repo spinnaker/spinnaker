@@ -8,8 +8,15 @@ pull_request_rules:
       merge:
         method: squash
         strict: smart
-      label:
-        add: ['auto merged']
+  - name: Automatically self merge on CI success
+    conditions:
+      - status-success=continuous-integration/travis-ci/pr
+      - 'label=ready to merge'
+      - 'label=self merge'
+    actions:
+      merge:
+        method: squash
+        strict: smart
   - name: Automatically rebase and merge on CI success and review
     conditions:
       - status-success=continuous-integration/travis-ci/pr
@@ -19,5 +26,12 @@ pull_request_rules:
       merge:
         method: rebase
         strict: smart
-      label:
-        add: ['auto merged']
+  - name: Automatically rebase and self merge on CI success
+    conditions:
+      - status-success=continuous-integration/travis-ci/pr
+      - 'label=ready to rebase'
+      - 'label=self merge'
+    actions:
+      merge:
+        method: rebase
+        strict: smart
