@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.kork.secrets.engines;
 
 import com.amazonaws.AmazonClientException;
+import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
@@ -25,11 +26,19 @@ import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import com.netflix.spinnaker.kork.secrets.SecretException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Optional;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 @Component
 public class S3SecretEngine extends AbstractStorageSecretEngine {
   private static String IDENTIFIER = "s3";
+
+  public S3SecretEngine(Optional<S3ConfigurationProperties> s3ConfigurationProperties) {
+    this.s3ConfigurationProperties = s3ConfigurationProperties;
+  }
+
+  private final Optional<S3ConfigurationProperties> s3ConfigurationProperties;
 
   public String identifier() {
     return S3SecretEngine.IDENTIFIER;
@@ -41,7 +50,23 @@ public class S3SecretEngine extends AbstractStorageSecretEngine {
     String bucket = encryptedSecret.getParams().get(STORAGE_BUCKET);
     String objName = encryptedSecret.getParams().get(STORAGE_FILE_URI);
 
-    AmazonS3ClientBuilder s3ClientBuilder = AmazonS3ClientBuilder.standard().withRegion(region);
+    AmazonS3ClientBuilder s3ClientBuilder = AmazonS3ClientBuilder.standard();
+    if (this.s3ConfigurationProperties.isPresent()) {
+      S3ConfigurationProperties s3ConfigurationProperties = this.s3ConfigurationProperties.get();
+      if (!StringUtils.isBlank(s3ConfigurationProperties.getEndpointUrl())) {
+        s3ClientBuilder.setEndpointConfiguration(
+            new AwsClientBuilder.EndpointConfiguration(
+                s3ConfigurationProperties.getEndpointUrl(), region));
+        s3ClientBuilder.setPathStyleAccessEnabled(
+            s3ConfigurationProperties.isPathStyleAccessEnabled());
+      } else {
+        throw new SecretException(
+            String.format("Endpoint not found in properties: s3.secret.endpoint-url"));
+      }
+
+    } else {
+      s3ClientBuilder = s3ClientBuilder.withRegion(region);
+    }
 
     AmazonS3 s3Client = s3ClientBuilder.build();
 
