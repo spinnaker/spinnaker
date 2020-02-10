@@ -41,6 +41,8 @@ subprojects {
     }
 
     dependencies {
+      "annotationProcessor"(platform("com.netflix.spinnaker.kork:kork-bom:${property("korkVersion")}"))
+      "annotationProcessor"("org.springframework.boot:spring-boot-configuration-processor")
       "implementation"(platform("com.netflix.spinnaker.kork:kork-bom:${property("korkVersion")}"))
 
       "implementation"("org.slf4j:slf4j-api")
