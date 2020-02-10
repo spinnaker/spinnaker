@@ -77,6 +77,7 @@ allprojects {
 
       annotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
       annotationProcessor "org.projectlombok:lombok"
+      annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
       testAnnotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
       testAnnotationProcessor "org.projectlombok:lombok"
       testRuntimeOnly "org.junit.vintage:junit-vintage-engine" // Required for Spock tests to execute along with Junit5 tests.
