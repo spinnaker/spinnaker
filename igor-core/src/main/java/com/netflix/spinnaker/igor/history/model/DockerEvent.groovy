@@ -18,7 +18,7 @@ package com.netflix.spinnaker.igor.history.model
 
 import com.netflix.spinnaker.igor.build.model.GenericArtifact
 
-class DockerEvent extends Event {
+class DockerEvent implements Event {
     Content content
     GenericArtifact artifact
 

@@ -40,8 +40,7 @@ class ArtifactExtractorSpec extends Specification {
       messageFormat: 'JAR',
       customFormat: 'false'
     ]
-    def build = new GenericBuild()
-    build.properties = properties
+    def build = GenericBuild.builder().properties(properties).build()
 
     when:
     def artifacts = artifactExtractor.extractArtifacts(build)

@@ -22,9 +22,9 @@ import com.netflix.spinnaker.igor.build.model.GenericProject
 import com.netflix.spinnaker.igor.build.model.Result
 import com.netflix.spinnaker.igor.config.WerckerProperties
 import com.netflix.spinnaker.igor.history.EchoService
-import com.netflix.spinnaker.igor.history.model.GenericBuildContent
+import com.netflix.spinnaker.igor.history.model.EmptyBuildContent
 import com.netflix.spinnaker.igor.history.model.GenericBuildEvent
-import com.netflix.spinnaker.igor.model.BuildServiceProvider
+import com.netflix.spinnaker.igor.service.BuildServiceProvider
 import com.netflix.spinnaker.igor.polling.CommonPollingMonitor
 import com.netflix.spinnaker.igor.polling.DeltaItem
 import com.netflix.spinnaker.igor.polling.LockService
@@ -212,15 +212,15 @@ class WerckerBuildMonitor extends CommonPollingMonitor<PipelineDelta, PipelinePo
     }
 
     private GenericBuild toBuild(String master, String pipeline, Run run) {
-        Result res = (run.finishedAt == null) ? Result.BUILDING : (run.result.equals("passed")? Result.SUCCESS : Result.FAILURE)
-        return new GenericBuild (
-                building: (run.finishedAt == null),
-                result: res,
-                number: cache.getBuildNumber(master, pipeline, run.id),
-                timestamp: run.startedAt.fastTime as String,
-                id: run.id,
-                url: run.url
-                )
+      Result res = (run.finishedAt == null) ? Result.BUILDING : (run.result == "passed" ? Result.SUCCESS : Result.FAILURE)
+      return GenericBuild.builder()
+        .building(run.finishedAt == null)
+        .result(res)
+        .number(cache.getBuildNumber(master, pipeline, run.id).toInteger())
+        .timestamp(run.startedAt.fastTime as String)
+        .id(run.id)
+        .url(run.url)
+        .build()
     }
 
     @Override
@@ -256,15 +256,15 @@ class WerckerBuildMonitor extends CommonPollingMonitor<PipelineDelta, PipelinePo
     }
 
     private boolean postEvent(GenericProject project, String master) {
-        if (!echoService.isPresent()) {
-            log.warn("Cannot send build notification: Echo is not configured")
-            registry.counter(missedNotificationId.withTag("monitor", getClass().simpleName)).increment()
-            return false
-        }
-        AuthenticatedRequest.allowAnonymous {
-            echoService.get().postEvent(new GenericBuildEvent(content: new GenericBuildContent(project: project, master: master, type: "wercker")))
-        }
-        return true
+      if (!echoService.isPresent()) {
+        log.warn("Cannot send build notification: Echo is not configured")
+        registry.counter(missedNotificationId.withTag("monitor", getClass().simpleName)).increment()
+        return false
+      }
+      AuthenticatedRequest.allowAnonymous {
+        echoService.get().postEvent(new WerckerBuildEvent(new WerckerBuildContent(master, project)))
+      }
+      return true
     }
 
     private static class PipelinePollingDelta implements PollingDelta<PipelineDelta> {

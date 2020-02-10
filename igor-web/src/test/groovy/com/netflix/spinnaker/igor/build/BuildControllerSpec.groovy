@@ -18,34 +18,27 @@ package com.netflix.spinnaker.igor.build
 
 import com.netflix.spinnaker.igor.build.model.GenericBuild
 import com.netflix.spinnaker.igor.config.JenkinsConfig
+import com.netflix.spinnaker.igor.jenkins.JenkinsService
 import com.netflix.spinnaker.igor.jenkins.client.model.Build
 import com.netflix.spinnaker.igor.jenkins.client.model.BuildArtifact
-import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
-import com.netflix.spinnaker.igor.jenkins.client.model.ParameterDefinition
 import com.netflix.spinnaker.igor.jenkins.client.model.QueuedJob
-import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
-import com.netflix.spinnaker.igor.model.BuildServiceProvider
+import com.netflix.spinnaker.igor.service.BuildServiceProvider
 import com.netflix.spinnaker.igor.service.BuildOperations
 import com.netflix.spinnaker.igor.service.BuildServices
 import com.netflix.spinnaker.igor.travis.service.TravisService
-import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.squareup.okhttp.mockwebserver.MockWebServer
-import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import retrofit.client.Header
-import retrofit.client.Response
 import spock.lang.Shared
 import spock.lang.Specification
 
-import static com.netflix.spinnaker.igor.build.BuildController.*
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+
 /**
  * Tests for BuildController
  */
@@ -58,10 +51,6 @@ class BuildControllerSpec extends Specification {
     JenkinsService jenkinsService
     BuildOperations service
     TravisService travisService
-    Map<String, BuildOperations> serviceList
-    def retrySupport = Spy(RetrySupport) {
-        _ * sleep(_) >> { /* do nothing */ }
-    }
 
     @Shared
     MockWebServer server
@@ -69,12 +58,10 @@ class BuildControllerSpec extends Specification {
     final SERVICE = 'SERVICE'
     final JENKINS_SERVICE = 'JENKINS_SERVICE'
     final TRAVIS_SERVICE = 'TRAVIS_SERVICE'
-    final HTTP_201 = 201
     final BUILD_NUMBER = 123
     final BUILD_ID = 654321
     final QUEUED_JOB_NUMBER = 123456
     final JOB_NAME = "job/name/can/have/slashes"
-    final JOB_NAME_LEGACY = "job"
     final FILE_NAME = "test.yml"
 
     GenericBuild genericBuild
@@ -95,7 +82,7 @@ class BuildControllerSpec extends Specification {
             (JENKINS_SERVICE): jenkinsService,
             (TRAVIS_SERVICE): travisService,
         ])
-        genericBuild = new GenericBuild()
+        genericBuild = GenericBuild.builder().build()
         genericBuild.number = BUILD_NUMBER
         genericBuild.id = BUILD_ID
 
@@ -110,7 +97,7 @@ class BuildControllerSpec extends Specification {
 
     void 'get the status of a build'() {
         given:
-        1 * service.getGenericBuild(JOB_NAME, BUILD_NUMBER) >> new GenericBuild(building: false, number: BUILD_NUMBER)
+        1 * service.getGenericBuild(JOB_NAME, BUILD_NUMBER) >> GenericBuild.builder().building(false).number(BUILD_NUMBER).build()
 
         when:
         MockHttpServletResponse response = mockMvc.perform(get("/builds/status/${BUILD_NUMBER}/${SERVICE}/${JOB_NAME}")
@@ -122,7 +109,7 @@ class BuildControllerSpec extends Specification {
 
     void 'get an item from the queue'() {
         given:
-        1 * jenkinsService.queuedBuild(QUEUED_JOB_NUMBER) >> new QueuedJob(executable: [number: QUEUED_JOB_NUMBER])
+        1 * jenkinsService.getQueuedBuild(QUEUED_JOB_NUMBER.toString()) >> new QueuedJob(executable: [number: QUEUED_JOB_NUMBER])
 
         when:
         MockHttpServletResponse response = mockMvc.perform(get("/builds/queue/${JENKINS_SERVICE}/${QUEUED_JOB_NUMBER}")
@@ -227,123 +214,4 @@ class BuildControllerSpec extends Specification {
         then:
         response.contentAsString == "{\"foo\":\"bar\"}"
     }
-
-    void 'trigger a build without parameters'() {
-        given:
-        1 * jenkinsService.getJobConfig(JOB_NAME) >> new JobConfig(buildable: true)
-        1 * jenkinsService.build(JOB_NAME) >> new Response("http://test.com", HTTP_201, "", [new Header("Location", "foo/${BUILD_NUMBER}")], null)
-
-        when:
-        MockHttpServletResponse response = mockMvc.perform(put("/masters/${JENKINS_SERVICE}/jobs/${JOB_NAME}")
-            .accept(MediaType.APPLICATION_JSON)).andReturn().response
-
-        then:
-        response.contentAsString == BUILD_NUMBER.toString()
-
-    }
-
-    void 'trigger a build with parameters to a job with parameters'() {
-        given:
-        1 * jenkinsService.getJobConfig(JOB_NAME) >> new JobConfig(buildable: true, parameterDefinitionList: [new ParameterDefinition(defaultParameterValue: [name: "name", value: null], description: "description")])
-        1 * jenkinsService.buildWithParameters(JOB_NAME, [name: "myName"]) >> new Response("http://test.com", HTTP_201, "", [new Header("Location", "foo/${BUILD_NUMBER}")], null)
-
-        when:
-        MockHttpServletResponse response = mockMvc.perform(put("/masters/${JENKINS_SERVICE}/jobs/${JOB_NAME}")
-            .contentType(MediaType.APPLICATION_JSON).param("name", "myName")).andReturn().response
-
-        then:
-        response.contentAsString == BUILD_NUMBER.toString()
-    }
-
-    void 'trigger a build without parameters to a job with parameters with default values'() {
-        given:
-        1 * jenkinsService.getJobConfig(JOB_NAME) >> new JobConfig(buildable: true, parameterDefinitionList: [new ParameterDefinition(defaultParameterValue: [name: "name", value: "value"], description: "description")])
-        1 * jenkinsService.buildWithParameters(JOB_NAME, ['startedBy': "igor"]) >> new Response("http://test.com", HTTP_201, "", [new Header("Location", "foo/${BUILD_NUMBER}")], null)
-
-        when:
-        MockHttpServletResponse response = mockMvc.perform(put("/masters/${JENKINS_SERVICE}/jobs/${JOB_NAME}", "")
-            .accept(MediaType.APPLICATION_JSON)).andReturn().response
-
-        then:
-        response.contentAsString == BUILD_NUMBER.toString()
-    }
-
-    void 'trigger a build with parameters to a job without parameters'() {
-        given:
-        1 * jenkinsService.getJobConfig(JOB_NAME) >> new JobConfig(buildable: true)
-
-        when:
-        MockHttpServletResponse response = mockMvc.perform(put("/masters/${JENKINS_SERVICE}/jobs/${JOB_NAME}")
-            .contentType(MediaType.APPLICATION_JSON).param("foo", "bar")).andReturn().response
-
-        then:
-        response.status == HttpStatus.INTERNAL_SERVER_ERROR.value()
-    }
-
-    void 'trigger a build with an invalid choice'() {
-        given:
-        JobConfig config = new JobConfig(buildable: true)
-        config.parameterDefinitionList = [
-            new ParameterDefinition(type: "ChoiceParameterDefinition", name: "foo", choices: ["bar", "baz"])
-        ]
-        1 * jenkinsService.getJobConfig(JOB_NAME) >> config
-
-        when:
-        MockHttpServletResponse response = mockMvc.perform(put("/masters/${JENKINS_SERVICE}/jobs/${JOB_NAME}")
-            .contentType(MediaType.APPLICATION_JSON).param("foo", "bat")).andReturn().response
-
-        then:
-
-        response.status == HttpStatus.BAD_REQUEST.value()
-        response.errorMessage == "`bat` is not a valid choice for `foo`. Valid choices are: bar, baz"
-    }
-
-    void 'trigger a disabled build'() {
-        given:
-        JobConfig config = new JobConfig()
-        1 * jenkinsService.getJobConfig(JOB_NAME) >> config
-
-        when:
-        MockHttpServletResponse response = mockMvc.perform(put("/masters/${JENKINS_SERVICE}/jobs/${JOB_NAME}")
-            .contentType(MediaType.APPLICATION_JSON).param("foo", "bat")).andReturn().response
-
-        then:
-        response.status == HttpStatus.BAD_REQUEST.value()
-        response.errorMessage == "Job '${JOB_NAME}' is not buildable. It may be disabled."
-    }
-
-  void 'validation successful for null list of choices'() {
-    given:
-    Map<String, String> requestParams = ["hey" : "you"]
-    ParameterDefinition parameterDefinition = new ParameterDefinition()
-    parameterDefinition.choices = null
-    parameterDefinition.type = "ChoiceParameterDefinition"
-    parameterDefinition.name = "hey"
-    JobConfig jobConfig = new JobConfig()
-    jobConfig.parameterDefinitionList = [parameterDefinition]
-
-    when:
-    validateJobParameters(jobConfig, requestParams)
-
-    then:
-    noExceptionThrown()
-  }
-
-  void 'validation failed for option not in list of choices'() {
-    given:
-    Map<String, String> requestParams = ["hey" : "you"]
-    ParameterDefinition parameterDefinition = new ParameterDefinition()
-    parameterDefinition.choices = ["why", "not"]
-    parameterDefinition.type = "ChoiceParameterDefinition"
-    parameterDefinition.name = "hey"
-    JobConfig jobConfig = new JobConfig()
-    jobConfig.parameterDefinitionList = [parameterDefinition]
-
-    when:
-    validateJobParameters(jobConfig, requestParams)
-
-    then:
-    thrown(InvalidJobParameterException)
-  }
-
 }

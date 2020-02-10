@@ -1,4 +1,7 @@
 dependencies {
+  implementation "org.springframework.boot:spring-boot-starter-web"
+
+  implementation "com.netflix.spinnaker.fiat:fiat-core:$fiatVersion"
   implementation "com.netflix.spinnaker.kork:kork-artifacts"
   implementation "com.netflix.spinnaker.kork:kork-core"
 

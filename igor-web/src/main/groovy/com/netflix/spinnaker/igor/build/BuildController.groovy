@@ -19,19 +19,13 @@ package com.netflix.spinnaker.igor.build
 
 import com.netflix.spinnaker.igor.artifacts.ArtifactExtractor
 import com.netflix.spinnaker.igor.build.model.GenericBuild
-import com.netflix.spinnaker.igor.exceptions.BuildJobError
-import com.netflix.spinnaker.igor.exceptions.QueuedJobDeterminationError
-import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
-import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.service.ArtifactDecorator
 import com.netflix.spinnaker.igor.service.BuildOperations
 import com.netflix.spinnaker.igor.service.BuildProperties
 import com.netflix.spinnaker.igor.service.BuildServices
-import com.netflix.spinnaker.igor.travis.service.TravisService
+import com.netflix.spinnaker.igor.service.BuildQueueOperations
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
-import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
-import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.PathVariable
@@ -118,12 +112,8 @@ class BuildController {
     @PreAuthorize("hasPermission(#master, 'BUILD_SERVICE', 'READ')")
     Object getQueueLocation(@PathVariable String master, @PathVariable int item) {
         def buildService = getBuildService(master)
-        if (buildService instanceof JenkinsService) {
-            JenkinsService jenkinsService = (JenkinsService) buildService
-            return jenkinsService.queuedBuild(item)
-        } else if (buildService instanceof TravisService) {
-            TravisService travisService = (TravisService) buildService
-            return travisService.queuedBuild(item)
+        if (buildService instanceof BuildQueueOperations) {
+          return buildService.getQueuedBuild(String.valueOf(item));
         }
         throw new UnsupportedOperationException(String.format("Queued builds are not supported for build service %s", master))
     }
@@ -146,28 +136,11 @@ class BuildController {
         @PathVariable Integer buildNumber) {
 
         def buildService = getBuildService(master)
-        if (buildService instanceof JenkinsService) {
-            // Jobs that haven't been started yet won't have a buildNumber
-            // (They're still in the queue). We use 0 to denote that case
-            if (buildNumber != 0 &&
-                buildService.metaClass.respondsTo(buildService, 'stopRunningBuild')) {
-                buildService.stopRunningBuild(jobName, buildNumber)
-            }
-
-            // The jenkins api for removing a job from the queue (http://<Jenkins_URL>/queue/cancelItem?id=<queuedBuild>)
-            // always returns a 404. This try catch block insures that the exception is eaten instead
-            // of being handled by the handleOtherException handler and returning a 500 to orca
-            try {
-                if (buildService.metaClass.respondsTo(buildService, 'stopQueuedBuild')) {
-                    buildService.stopQueuedBuild(queuedBuild)
-                }
-            } catch (RetrofitError e) {
-                if (e.response?.status != NOT_FOUND.value()) {
-                    throw e
-                }
-            }
+        if (buildService instanceof BuildQueueOperations) {
+          buildService.stopQueuedBuild(jobName, queuedBuild, buildNumber)
         }
 
+        // TODO(rz): lol, for real?
         "true"
     }
 
@@ -178,58 +151,7 @@ class BuildController {
         @RequestParam Map<String, String> requestParams, HttpServletRequest request) {
         def job = ((String) request.getAttribute(
             HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE)).split('/').drop(4).join('/')
-        def buildService = getBuildService(master)
-        if (buildService instanceof JenkinsService) {
-            def response
-            JenkinsService jenkinsService = (JenkinsService) buildService
-            JobConfig jobConfig = jenkinsService.getJobConfig(job)
-            if (!jobConfig.buildable) {
-                throw new BuildJobError("Job '${job}' is not buildable. It may be disabled.")
-            }
-
-            if (jobConfig.parameterDefinitionList?.size() > 0) {
-                validateJobParameters(jobConfig, requestParams)
-            }
-            if (requestParams && jobConfig.parameterDefinitionList?.size() > 0) {
-                response = jenkinsService.buildWithParameters(job, requestParams)
-            } else if (!requestParams && jobConfig.parameterDefinitionList?.size() > 0) {
-                // account for when you just want to fire a job with the default parameter values by adding a dummy param
-                response = jenkinsService.buildWithParameters(job, ['startedBy': "igor"])
-            } else if (!requestParams && (!jobConfig.parameterDefinitionList || jobConfig.parameterDefinitionList.size() == 0)) {
-                response = jenkinsService.build(job)
-            } else { // Jenkins will reject the build, so don't even try
-                // we should throw a BuildJobError, but I get a bytecode error : java.lang.VerifyError: Bad <init> method call from inside of a branch
-                throw new RuntimeException("job : ${job}, passing params to a job which doesn't need them")
-            }
-
-            if (response.status != 201) {
-                throw new BuildJobError("Received a non-201 status when submitting job '${job}' to master '${master}'")
-            }
-
-            log.info("Submitted build job '{}'", kv("job", job))
-            def locationHeader = response.headers.find { it.name.toLowerCase() == "location" }
-            if (!locationHeader) {
-                throw new QueuedJobDeterminationError("Could not find Location header for job '${job}'")
-            }
-            def queuedLocation = locationHeader.value
-
-            queuedLocation.split('/')[-1]
-        } else {
-            return buildService.triggerBuildWithParameters(job, requestParams)
-        }
-    }
-
-    static void validateJobParameters(JobConfig jobConfig, Map<String, String> requestParams) {
-        jobConfig.parameterDefinitionList.each { parameterDefinition ->
-            String matchingParam = requestParams[parameterDefinition.name]
-            if (matchingParam != null &&
-                parameterDefinition.type == 'ChoiceParameterDefinition' &&
-                parameterDefinition.choices != null &&
-                !parameterDefinition.choices.contains(matchingParam)) {
-                throw new InvalidJobParameterException("`${matchingParam}` is not a valid choice " +
-                    "for `${parameterDefinition.name}`. Valid choices are: ${parameterDefinition.choices.join(', ')}")
-            }
-        }
+        return getBuildService(master).triggerBuildWithParameters(job, requestParams)
     }
 
     @RequestMapping(value = '/builds/properties/{buildNumber}/{fileName}/{master:.+}/**')
@@ -256,8 +178,4 @@ class BuildController {
         }
         return buildService
     }
-
-    @InheritConstructors
-    static class InvalidJobParameterException extends InvalidRequestException {}
-
 }

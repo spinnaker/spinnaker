@@ -18,11 +18,8 @@ package com.netflix.spinnaker.igor.health;
 
 import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.patterns.PolledMeter;
-import com.netflix.spinnaker.igor.build.model.GenericBuild;
-import com.netflix.spinnaker.igor.build.model.GenericProject;
 import com.netflix.spinnaker.igor.history.EchoService;
-import com.netflix.spinnaker.igor.history.model.GenericBuildContent;
-import com.netflix.spinnaker.igor.history.model.GenericBuildEvent;
+import com.netflix.spinnaker.igor.history.model.Event;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -42,13 +39,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Component
 @ConditionalOnBean(EchoService.class)
 public class EchoServiceHealthIndicator implements HealthIndicator {
+
+  private static final Event EVENT = new HealthCheckEvent();
+
   private Logger log = LoggerFactory.getLogger(EchoServiceHealthIndicator.class);
   private final AtomicReference<Exception> lastException = new AtomicReference<>(null);
   private final AtomicBoolean upOnce;
   private final Optional<EchoService> echoService;
   private final AtomicLong errors;
-
-  static final GenericBuildEvent event = buildGenericEvent();
 
   @Autowired
   EchoServiceHealthIndicator(Registry registry, Optional<EchoService> echoService) {
@@ -78,7 +76,7 @@ public class EchoServiceHealthIndicator implements HealthIndicator {
     echoService.ifPresent(
         s -> {
           try {
-            AuthenticatedRequest.allowAnonymous(() -> s.postEvent(event));
+            AuthenticatedRequest.allowAnonymous(() -> s.postEvent(EVENT));
             upOnce.set(true);
             errors.set(0);
             lastException.set(null);
@@ -90,20 +88,13 @@ public class EchoServiceHealthIndicator implements HealthIndicator {
         });
   }
 
-  private static GenericBuildEvent buildGenericEvent() {
-    final GenericBuildEvent event = new GenericBuildEvent();
-    final GenericBuildContent buildContent = new GenericBuildContent();
-    final GenericProject project = new GenericProject("spinnaker", new GenericBuild());
-    buildContent.setMaster("IgorHealthCheck");
-    buildContent.setProject(project);
-    event.setContent(buildContent);
-    return event;
-  }
-
   @ResponseStatus(value = HttpStatus.SERVICE_UNAVAILABLE, reason = "Could not reach Echo.")
   static class EchoUnreachableException extends RuntimeException {
     public EchoUnreachableException(Throwable cause) {
       super(cause);
     }
   }
+
+  /** No need to send anything across the wire. */
+  private static class HealthCheckEvent implements Event {}
 }

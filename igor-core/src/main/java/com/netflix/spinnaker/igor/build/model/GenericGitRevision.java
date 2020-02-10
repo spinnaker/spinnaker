@@ -22,6 +22,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.experimental.Wither;
 
+/** TODO(rz): Rename to GitRevision. */
 @Getter
 @EqualsAndHashCode(of = "sha1")
 @Builder

@@ -10,7 +10,6 @@ package com.netflix.spinnaker.igor.wercker
 
 import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.hystrix.SimpleHystrixCommand
-import com.netflix.spinnaker.igor.build.BuildController
 import com.netflix.spinnaker.igor.build.model.GenericBuild
 import com.netflix.spinnaker.igor.build.model.GenericGitRevision
 import com.netflix.spinnaker.igor.build.model.GenericJobConfiguration
@@ -18,23 +17,25 @@ import com.netflix.spinnaker.igor.build.model.JobConfiguration
 import com.netflix.spinnaker.igor.build.model.Result
 import com.netflix.spinnaker.igor.config.WerckerProperties.WerckerHost
 import com.netflix.spinnaker.igor.exceptions.BuildJobError
-import com.netflix.spinnaker.igor.model.BuildServiceProvider
+import com.netflix.spinnaker.igor.service.BuildServiceProvider
 import com.netflix.spinnaker.igor.service.BuildOperations
+import com.netflix.spinnaker.igor.service.JobNamesProvider
 import com.netflix.spinnaker.igor.wercker.model.Application
 import com.netflix.spinnaker.igor.wercker.model.Pipeline
 import com.netflix.spinnaker.igor.wercker.model.QualifiedPipelineName
 import com.netflix.spinnaker.igor.wercker.model.Run
 import com.netflix.spinnaker.igor.wercker.model.RunPayload
+import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import groovy.util.logging.Slf4j
 import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.mime.TypedByteArray
 
-import static com.netflix.spinnaker.igor.model.BuildServiceProvider.WERCKER
+import static com.netflix.spinnaker.igor.service.BuildServiceProvider.WERCKER
 import static net.logstash.logback.argument.StructuredArguments.kv
 
 @Slf4j
-class WerckerService implements BuildOperations {
+class WerckerService implements BuildOperations, JobNamesProvider {
 
     String groupKey
     WerckerClient werckerClient
@@ -96,7 +97,7 @@ class WerckerService implements BuildOperations {
         Run run = getRunById(runId)
         String addr = address.endsWith("/") ? address.substring(0, address.length()-1) : address
 
-        GenericBuild genericBuild = new GenericBuild()
+        GenericBuild genericBuild = GenericBuild.builder().build()
         genericBuild.name = job
         genericBuild.building = true
         genericBuild.fullDisplayName = "Wercker Job " + job + " [" + buildNumber + "]"
@@ -185,7 +186,7 @@ class WerckerService implements BuildOperations {
                 "Failed to trigger build for pipeline ${pipelineName}! Error from Wercker is: ${wkrMsg}")
             }
         } else {
-            throw new BuildController.InvalidJobParameterException(
+            throw new InvalidJobParameterException(
             "Could not retrieve pipeline ${pipelineName} for application ${appName} from Wercker!")
         }
     }
@@ -353,5 +354,16 @@ class WerckerService implements BuildOperations {
     @Override
     JobConfiguration getJobConfig(String jobName) {
         return new GenericJobConfiguration('WerckerPipeline ' + jobName, jobName)
+    }
+
+  @Override
+  List<String> getJobNames() {
+    return getJobs();
+  }
+
+  class InvalidJobParameterException extends InvalidRequestException {
+        InvalidJobParameterException(String message) {
+            super(message)
+        }
     }
 }
