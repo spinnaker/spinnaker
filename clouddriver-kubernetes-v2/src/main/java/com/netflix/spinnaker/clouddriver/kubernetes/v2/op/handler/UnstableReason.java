@@ -21,6 +21,7 @@ import lombok.Getter;
 enum UnstableReason {
   AVAILABLE_REPLICAS("Waiting for all replicas to be available"),
   FULLY_LABELED_REPLICAS("Waiting for all replicas to be fully-labeled"),
+  OLD_GENERATION("Waiting for status generation to match updated object generation"),
   OLD_REPLICAS("Waiting for old replicas to finish termination"),
   READY_REPLICAS("Waiting for all replicas to be ready"),
   UPDATED_REPLICAS("Waiting for all replicas to be updated");

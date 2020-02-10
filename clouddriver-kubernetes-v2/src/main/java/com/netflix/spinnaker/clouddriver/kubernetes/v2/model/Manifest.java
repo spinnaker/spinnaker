@@ -46,19 +46,19 @@ public interface Manifest {
   @NonnullByDefault
   @ToString
   class Status {
-    private @Nullable Condition stable = Condition.withState(true);
+    private Condition stable = Condition.withState(true);
     private Condition paused = Condition.withState(false);
     private Condition available = Condition.withState(true);
-    private @Nullable Condition failed = Condition.withState(false);
+    private Condition failed = Condition.withState(false);
 
     public static Status defaultStatus() {
       return new Status();
     }
 
-    public Status unknown() {
-      stable = null;
-      failed = null;
-      return this;
+    public static Status noneReported() {
+      return defaultStatus()
+          .unstable("No status reported yet")
+          .unavailable("No availability reported");
     }
 
     public Status failed(@Nullable String message) {

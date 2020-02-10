@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.v2.op.handler;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.model.Manifest.Status;
@@ -32,9 +31,14 @@ final class KubernetesStatefulSetHandlerTest {
   @Test
   void noStatus() {
     KubernetesManifest statefulSet = ManifestFetcher.getManifest("statefulset/base.yml");
-    // Documenting the existing behavior before refactoring
-    assertThatExceptionOfType(NullPointerException.class)
-        .isThrownBy(() -> handler.status(statefulSet));
+    Status status = handler.status(statefulSet);
+
+    assertThat(status.getStable().isState()).isFalse();
+    assertThat(status.getStable().getMessage()).isEqualTo("No status reported yet");
+    assertThat(status.getAvailable().isState()).isFalse();
+    assertThat(status.getAvailable().getMessage()).isEqualTo("No availability reported");
+    assertThat(status.getPaused().isState()).isFalse();
+    assertThat(status.getFailed().isState()).isFalse();
   }
 
   @Test
@@ -43,10 +47,12 @@ final class KubernetesStatefulSetHandlerTest {
         ManifestFetcher.getManifest("statefulset/base.yml", "statefulset/old-generation.yml");
     Status status = handler.status(statefulSet);
 
-    assertThat(status.getStable()).isNull();
+    assertThat(status.getStable().isState()).isFalse();
+    assertThat(status.getStable().getMessage())
+        .isEqualTo("Waiting for status generation to match updated object generation");
     assertThat(status.getAvailable().isState()).isTrue();
     assertThat(status.getPaused().isState()).isFalse();
-    assertThat(status.getFailed()).isNull();
+    assertThat(status.getFailed().isState()).isFalse();
   }
 
   @Test

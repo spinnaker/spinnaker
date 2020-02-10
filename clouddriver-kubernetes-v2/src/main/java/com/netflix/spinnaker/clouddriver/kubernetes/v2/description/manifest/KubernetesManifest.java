@@ -287,6 +287,9 @@ public class KubernetesManifest extends HashMap<String, Object> {
     return get("status");
   }
 
+  // Consumers should convert to a strongly-typed object and implement type-specific logic instead
+  // of calling this function.
+  @Deprecated
   @JsonIgnore
   public int getObservedGeneration() {
     Object statusObj = getStatus();
@@ -307,6 +310,9 @@ public class KubernetesManifest extends HashMap<String, Object> {
     return ((Number) observedGenObj).intValue();
   }
 
+  // Consumers should convert to a strongly-typed object and implement type-specific logic instead
+  // of calling this function.
+  @Deprecated
   @JsonIgnore
   public int getGeneration() {
     Object generationObj = getMetadata().get("generation");
@@ -327,6 +333,9 @@ public class KubernetesManifest extends HashMap<String, Object> {
     return String.join(" ", kind.toString(), name);
   }
 
+  // Consumers should convert to a strongly-typed object and implement type-specific logic instead
+  // of calling this function.
+  @Deprecated
   @JsonIgnore
   public boolean isNewerThanObservedGeneration() {
     int generation = getGeneration();

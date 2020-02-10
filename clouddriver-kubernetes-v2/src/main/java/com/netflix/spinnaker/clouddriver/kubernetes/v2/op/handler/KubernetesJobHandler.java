@@ -89,9 +89,7 @@ public class KubernetesJobHandler extends KubernetesHandler implements ServerGro
   private Status status(V1Job job) {
     V1JobStatus status = job.getStatus();
     if (status == null) {
-      return Status.defaultStatus()
-          .unstable("No status reported yet")
-          .unavailable("No availability reported");
+      return Status.noneReported();
     }
 
     int completions = 1;

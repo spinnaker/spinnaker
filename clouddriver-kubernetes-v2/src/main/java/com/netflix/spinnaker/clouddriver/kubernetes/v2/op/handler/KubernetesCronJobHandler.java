@@ -87,9 +87,7 @@ public class KubernetesCronJobHandler extends KubernetesHandler
   private Status status(V2alpha1CronJob job) {
     V2alpha1CronJobStatus status = job.getStatus();
     if (status == null) {
-      return Status.defaultStatus()
-          .unstable("No status reported yet")
-          .unavailable("No availability reported");
+      return Status.noneReported();
     }
 
     return Status.defaultStatus();

@@ -29,9 +29,11 @@ import com.netflix.spinnaker.clouddriver.kubernetes.v2.caching.agent.KubernetesV
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.v2.model.Manifest.Status;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1beta2DaemonSet;
 import io.kubernetes.client.openapi.models.V1beta2DaemonSetStatus;
 import java.util.Map;
+import java.util.Optional;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.springframework.stereotype.Component;
@@ -87,9 +89,6 @@ public class KubernetesDaemonSetHandler extends KubernetesHandler
 
   @Override
   public Status status(KubernetesManifest manifest) {
-    if (manifest.isNewerThanObservedGeneration()) {
-      return Status.defaultStatus().unknown();
-    }
     V1beta2DaemonSet v1beta2DaemonSet =
         KubernetesCacheDataConverter.getResource(manifest, V1beta2DaemonSet.class);
     return status(v1beta2DaemonSet);
@@ -106,9 +105,11 @@ public class KubernetesDaemonSetHandler extends KubernetesHandler
   private Status status(V1beta2DaemonSet daemonSet) {
     V1beta2DaemonSetStatus status = daemonSet.getStatus();
     if (status == null) {
-      return Status.defaultStatus()
-          .unstable("No status reported yet")
-          .unavailable("No availability reported");
+      return Status.noneReported();
+    }
+
+    if (!generationMatches(daemonSet, status)) {
+      return Status.defaultStatus().unstable(UnstableReason.OLD_GENERATION.getMessage());
     }
 
     if (!daemonSet.getSpec().getUpdateStrategy().getType().equalsIgnoreCase("rollingupdate")) {
@@ -143,6 +144,14 @@ public class KubernetesDaemonSetHandler extends KubernetesHandler
     }
 
     return Status.defaultStatus();
+  }
+
+  private boolean generationMatches(V1beta2DaemonSet daemonSet, V1beta2DaemonSetStatus status) {
+    Optional<Long> metadataGeneration =
+        Optional.ofNullable(daemonSet.getMetadata()).map(V1ObjectMeta::getGeneration);
+    Optional<Long> statusGeneration = Optional.ofNullable(status.getObservedGeneration());
+
+    return statusGeneration.isPresent() && statusGeneration.equals(metadataGeneration);
   }
 
   // Unboxes an Integer, returning 0 if the input is null

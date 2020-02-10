@@ -3,7 +3,7 @@ status:
   collisionCount: 0
   currentReplicas: 2
   currentRevision: web-b46f789c4
-  observedGeneration: 3
+  observedGeneration: 2
   readyReplicas: 4
   replicas: 4
   updateRevision: web-c5f4bdc97

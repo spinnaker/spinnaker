@@ -38,6 +38,7 @@ import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1DeploymentCondition;
 import io.kubernetes.client.openapi.models.V1DeploymentStatus;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -95,9 +96,6 @@ public class KubernetesDeploymentHandler extends KubernetesHandler
     if (!SUPPORTED_API_VERSIONS.contains(manifest.getApiVersion())) {
       throw new UnsupportedVersionException(manifest);
     }
-    if (manifest.isNewerThanObservedGeneration()) {
-      return Status.defaultStatus().unknown();
-    }
     V1Deployment appsV1Deployment =
         KubernetesCacheDataConverter.getResource(manifest, V1Deployment.class);
     return status(appsV1Deployment);
@@ -111,9 +109,11 @@ public class KubernetesDeploymentHandler extends KubernetesHandler
   private Status status(V1Deployment deployment) {
     V1DeploymentStatus status = deployment.getStatus();
     if (status == null) {
-      return Status.defaultStatus()
-          .unstable("No status reported yet")
-          .unavailable("No availability reported");
+      return Status.noneReported();
+    }
+
+    if (!generationMatches(deployment, status)) {
+      return Status.defaultStatus().unstable(UnstableReason.OLD_GENERATION.getMessage());
     }
 
     List<V1DeploymentCondition> conditions =
@@ -153,6 +153,14 @@ public class KubernetesDeploymentHandler extends KubernetesHandler
         .filter(c -> c.getReason().equalsIgnoreCase("progressdeadlineexceeded"))
         .map(c -> "Deployment exceeded its progress deadline")
         .findAny();
+  }
+
+  private boolean generationMatches(V1Deployment deployment, V1DeploymentStatus status) {
+    Optional<Long> metadataGeneration =
+        Optional.ofNullable(deployment.getMetadata()).map(V1ObjectMeta::getGeneration);
+    Optional<Long> statusGeneration = Optional.ofNullable(status.getObservedGeneration());
+
+    return statusGeneration.isPresent() && statusGeneration.equals(metadataGeneration);
   }
 
   // Unboxes an Integer, returning 0 if the input is null

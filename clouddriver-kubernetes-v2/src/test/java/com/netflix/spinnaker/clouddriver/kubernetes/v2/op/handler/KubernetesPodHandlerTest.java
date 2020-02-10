@@ -44,9 +44,9 @@ final class KubernetesPodHandlerTest {
     Status status = handler.status(pod);
 
     assertThat(status.getStable().isState()).isFalse();
-    assertThat(status.getStable().getMessage()).isEqualTo("No phase reported yet");
+    assertThat(status.getStable().getMessage()).isEqualTo("Pod phase is unknown");
     assertThat(status.getAvailable().isState()).isFalse();
-    assertThat(status.getAvailable().getMessage()).isEqualTo("No availability reported");
+    assertThat(status.getAvailable().getMessage()).isEqualTo("Pod phase is unknown");
     assertThat(status.getPaused().isState()).isFalse();
     assertThat(status.getFailed().isState()).isFalse();
   }
@@ -56,9 +56,10 @@ final class KubernetesPodHandlerTest {
     KubernetesManifest pod = ManifestFetcher.getManifest("pod/base.yml", "pod/pending-phase.yml");
     Status status = handler.status(pod);
 
-    // TODO(ezimanyi): Should be unstable; see comment in KubernetesPodHandler.status
-    assertThat(status.getStable().isState()).isTrue();
-    assertThat(status.getAvailable().isState()).isTrue();
+    assertThat(status.getStable().isState()).isFalse();
+    assertThat(status.getStable().getMessage()).isEqualTo("Pod is pending");
+    assertThat(status.getAvailable().isState()).isFalse();
+    assertThat(status.getAvailable().getMessage()).isEqualTo("Pod is pending");
     assertThat(status.getPaused().isState()).isFalse();
     assertThat(status.getFailed().isState()).isFalse();
   }
@@ -90,9 +91,10 @@ final class KubernetesPodHandlerTest {
     KubernetesManifest pod = ManifestFetcher.getManifest("pod/base.yml", "pod/failed-phase.yml");
     Status status = handler.status(pod);
 
-    // TODO(ezimanyi): Should be unstable; see comment in KubernetesPodHandler.status
-    assertThat(status.getStable().isState()).isTrue();
-    assertThat(status.getAvailable().isState()).isTrue();
+    assertThat(status.getStable().isState()).isFalse();
+    assertThat(status.getStable().getMessage()).isEqualTo("Pod has failed");
+    assertThat(status.getAvailable().isState()).isFalse();
+    assertThat(status.getAvailable().getMessage()).isEqualTo("Pod has failed");
     assertThat(status.getPaused().isState()).isFalse();
     assertThat(status.getFailed().isState()).isFalse();
   }
@@ -102,9 +104,10 @@ final class KubernetesPodHandlerTest {
     KubernetesManifest pod = ManifestFetcher.getManifest("pod/base.yml", "pod/unknown-phase.yml");
     Status status = handler.status(pod);
 
-    // TODO(ezimanyi): Should be unstable; see comment in KubernetesPodHandler.status
-    assertThat(status.getStable().isState()).isTrue();
-    assertThat(status.getAvailable().isState()).isTrue();
+    assertThat(status.getStable().isState()).isFalse();
+    assertThat(status.getStable().getMessage()).isEqualTo("Pod phase is unknown");
+    assertThat(status.getAvailable().isState()).isFalse();
+    assertThat(status.getAvailable().getMessage()).isEqualTo("Pod phase is unknown");
     assertThat(status.getPaused().isState()).isFalse();
     assertThat(status.getFailed().isState()).isFalse();
   }
