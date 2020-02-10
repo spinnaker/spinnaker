@@ -50,7 +50,6 @@ allprojects {
     apply plugin: "groovy"
     apply plugin: 'jacoco'
 
-
     test {
       testLogging {
         exceptionFormat = 'full'
@@ -74,6 +73,7 @@ subprojects {
     dependencies {
       implementation platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
       annotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+      annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
       testAnnotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
       compileOnly "org.projectlombok:lombok"
       annotationProcessor "org.projectlombok:lombok"
