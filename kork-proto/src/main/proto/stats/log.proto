@@ -16,6 +16,21 @@ message Event {
 message SpinnakerInstance {
   string id = 1;
   string version = 2;
+  DeploymentMethod deploymentMethod = 3;
+}
+
+message DeploymentMethod {
+  Type type = 1;
+  string version = 2;
+
+  enum Type {
+    NONE = 0;
+    OTHER = 1;
+    HALYARD = 2;
+    ARMORY_HALYARD = 3;
+    KUBERNETES_OPERATOR = 4;
+    MINNAKER = 5;
+  }
 }
 
 message Application {
