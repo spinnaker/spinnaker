@@ -27,9 +27,9 @@ import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.model.NotificationEvent.ORCHESTRATION_FAILED
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
+import com.netflix.spinnaker.keel.orca.OrcaTaskLauncher
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
-import com.netflix.spinnaker.keel.plugin.OrcaTaskLauncher
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests

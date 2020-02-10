@@ -15,8 +15,9 @@
  * limitations under the License.
  *
  */
-package com.netflix.spinnaker.keel.plugin
+package com.netflix.spinnaker.keel.orca
 
+import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SubjectType
 import com.netflix.spinnaker.keel.api.application
@@ -25,14 +26,12 @@ import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.events.Task
 import com.netflix.spinnaker.keel.events.TaskCreatedEvent
 import com.netflix.spinnaker.keel.model.Job
-import com.netflix.spinnaker.keel.model.OrcaNotification
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.model.toOrcaNotification
-import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.TaskRecord
-import com.netflix.spinnaker.kork.artifacts.model.Artifact
+import com.netflix.spinnaker.keel.plugin.TaskLauncher
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
@@ -66,13 +65,13 @@ class OrcaTaskLauncher(
   override suspend fun submitJob(
     user: String,
     application: String,
-    notifications: List<OrcaNotification>,
+    notifications: Set<NotificationConfig>,
     subject: String,
     description: String,
     correlationId: String,
     stages: List<Map<String, Any?>>,
     type: SubjectType,
-    artifacts: List<Artifact>
+    artifacts: List<Map<String, Any?>>
   ) =
     orcaService
       .orchestrate(
@@ -84,7 +83,7 @@ class OrcaTaskLauncher(
           job = stages.map { Job(it["type"].toString(), it) },
           trigger = OrchestrationTrigger(
             correlationId = correlationId,
-            notifications = notifications,
+            notifications = notifications.map { it.toOrcaNotification() },
             artifacts = artifacts
           )
         )
@@ -96,11 +95,11 @@ class OrcaTaskLauncher(
         Task(id = it.taskId, name = description)
       }
 
-  private val Resource<*>.notifications: List<OrcaNotification>
+  private val Resource<*>.notifications: Set<NotificationConfig>
     get() = deliveryConfigRepository
       .environmentFor(id)
       .notifications
-      .map { it.toOrcaNotification() }
+      .toSet()
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 }

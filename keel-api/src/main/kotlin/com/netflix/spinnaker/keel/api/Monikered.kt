@@ -17,14 +17,15 @@
  */
 package com.netflix.spinnaker.keel.api
 
-import com.fasterxml.jackson.annotation.JsonIgnore
-
 /**
- * An object which has a moniker
+ * A resource that has a moniker-compliant name.
  */
 interface Monikered : ResourceSpec {
   val moniker: Moniker
 
+  /**
+   * Application is derived from the moniker.
+   */
   override val application: String
-    @JsonIgnore get() = moniker.app
+    get() = moniker.app
 }

@@ -15,7 +15,6 @@
  */
 
 include(
-  "keel-actuator",
   "keel-api",
   "keel-api-jackson",
   "keel-artifact",
@@ -31,14 +30,12 @@ include(
   "keel-front50",
   "keel-igor",
   "keel-orca",
-  "keel-plugin",
   "keel-retrofit",
   "keel-retrofit-test-support",
   "keel-spring-test-support",
   "keel-sql",
   "keel-test",
   "keel-titus-plugin",
-  "keel-veto",
   "keel-web"
 )
 

@@ -17,7 +17,6 @@
  */
 package com.netflix.spinnaker.keel.ec2.jackson
 
-import com.netflix.spinnaker.keel.api.InvalidPayload
 import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ImageProvider
 import com.netflix.spinnaker.keel.api.ec2.JenkinsImageProvider
@@ -34,3 +33,5 @@ internal class ImageProviderDeserializer :
       else -> throw InvalidPayload("ImageProvider")
     }
 }
+
+class InvalidPayload(strategy: String) : RuntimeException("Payload is not valid for $strategy")

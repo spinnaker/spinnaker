@@ -15,8 +15,6 @@
  */
 package com.netflix.spinnaker.keel.model
 
-import com.netflix.spinnaker.kork.artifacts.model.Artifact
-
 data class OrchestrationRequest(
   val name: String,
   val application: String,
@@ -32,5 +30,5 @@ data class OrchestrationTrigger(
   val notifications: List<OrcaNotification>,
   val type: String = "keel",
   val user: String = "keel",
-  val artifacts: List<Artifact> = emptyList()
+  val artifacts: List<Map<String, Any?>> = emptyList()
 )

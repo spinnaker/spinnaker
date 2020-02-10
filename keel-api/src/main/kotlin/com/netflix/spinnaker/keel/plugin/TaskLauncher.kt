@@ -1,10 +1,9 @@
 package com.netflix.spinnaker.keel.plugin
 
+import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SubjectType
 import com.netflix.spinnaker.keel.events.Task
-import com.netflix.spinnaker.keel.model.OrcaNotification
-import com.netflix.spinnaker.kork.artifacts.model.Artifact
 
 interface TaskLauncher {
   suspend fun submitJob(
@@ -30,12 +29,12 @@ interface TaskLauncher {
   suspend fun submitJob(
     user: String,
     application: String,
-    notifications: List<OrcaNotification>,
+    notifications: Set<NotificationConfig>,
     subject: String,
     description: String,
     correlationId: String,
     stages: List<Map<String, Any?>>,
-    artifacts: List<Artifact> = emptyList()
+    artifacts: List<Map<String, Any?>> = emptyList()
   ): Task =
     submitJob(
       user = user,
@@ -52,12 +51,12 @@ interface TaskLauncher {
   suspend fun submitJob(
     user: String,
     application: String,
-    notifications: List<OrcaNotification>,
+    notifications: Set<NotificationConfig>,
     subject: String,
     description: String,
     correlationId: String,
     stages: List<Map<String, Any?>>,
     type: SubjectType,
-    artifacts: List<Artifact> = emptyList()
+    artifacts: List<Map<String, Any?>> = emptyList()
   ): Task
 }

@@ -17,10 +17,10 @@ import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService
+import com.netflix.spinnaker.keel.orca.OrcaTaskLauncher
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
-import com.netflix.spinnaker.keel.plugin.OrcaTaskLauncher
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext

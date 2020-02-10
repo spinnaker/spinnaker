@@ -15,12 +15,11 @@
  * limitations under the License.
  *
  */
-package com.netflix.spinnaker.keel
+package com.netflix.spinnaker.keel.pause
 
 import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.events.ResourceActuationResumed
-import com.netflix.spinnaker.keel.pause.ResourcePauser
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryPausedRepository
 import com.netflix.spinnaker.keel.test.resource

@@ -26,7 +26,6 @@ import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.SupportedKind
 import com.netflix.spinnaker.keel.plugin.TaskLauncher
-import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import kotlinx.coroutines.runBlocking
 import org.springframework.context.ApplicationEventPublisher
 
@@ -108,16 +107,17 @@ class ImageHandler(
     val appVersion = AppVersion.parseName(resourceDiff.desired.appVersion)
     val packageName = appVersion.packageName
     val version = resourceDiff.desired.appVersion.substringAfter("$packageName-")
-    val artifact = Artifact.builder()
-      .type("DEB")
-      .customKind(false)
-      .name(resource.spec.artifactName)
-      .version(version)
-      .location("rocket")
-      .reference("/${packageName}_${version}_all.deb")
-      .metadata(mapOf())
-      .provenance("n/a")
-      .build()
+    val artifactRef = "/${packageName}_${version}_all.deb"
+    val artifact = mapOf(
+      "type" to "DEB",
+      "customKind" to false,
+      "name" to resource.spec.artifactName,
+      "version" to version,
+      "location" to "rocket",
+      "reference" to artifactRef,
+      "metadata" to emptyMap<String, Any>(),
+      "provenance" to "n/a"
+      )
 
     log.info("baking new image for {}", resource.spec.artifactName)
     val description = "Bake ${resourceDiff.desired.appVersion}"
@@ -126,7 +126,7 @@ class ImageHandler(
       val taskRef = taskLauncher.submitJob(
       user = resource.serviceAccount,
       application = resource.application,
-      notifications = emptyList(),
+      notifications = emptySet(),
       subject = description,
       description = description,
       correlationId = resource.id,
@@ -138,7 +138,7 @@ class ImageHandler(
             "baseOs" to resource.spec.baseOs,
             "baseLabel" to resource.spec.baseLabel.name.toLowerCase(),
             "cloudProviderType" to "aws",
-            "package" to artifact.reference.substringAfterLast("/"),
+            "package" to artifactRef.substringAfterLast("/"),
             "regions" to resource.spec.regions,
             "storeType" to resource.spec.storeType.name.toLowerCase(),
             "user" to "keel",
@@ -148,7 +148,7 @@ class ImageHandler(
       ),
       artifacts = listOf(artifact)
     )
-      return listOf(Task(id = taskRef.id, name = description)) // TODO: wow, this is ugly
+      return listOf(Task(id = taskRef.id, name = description))
     } catch (e: Exception) {
       log.error("Error launching orca bake for: ${description.toLowerCase()}")
       return emptyList()

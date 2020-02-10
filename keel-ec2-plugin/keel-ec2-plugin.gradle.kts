@@ -4,7 +4,9 @@ plugins {
 }
 
 dependencies {
-  api(project(":keel-plugin"))
+  api(project(":keel-api"))
+  implementation(project(":keel-api-jackson"))
+  implementation(project(":keel-core")) // TODO: ideally not
   implementation(project(":keel-clouddriver"))
   implementation(project(":keel-orca"))
   implementation(project(":keel-retrofit"))

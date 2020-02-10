@@ -5,7 +5,6 @@ plugins {
 
 dependencies {
   implementation(project(":keel-core"))
-  implementation(project(":keel-actuator"))
   implementation(project(":keel-igor"))
   implementation(project(":keel-clouddriver"))
   implementation("org.springframework:spring-context")

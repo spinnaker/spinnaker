@@ -25,8 +25,15 @@ import com.netflix.spinnaker.keel.api.DebianSemVerVersioningStrategy
 import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DockerArtifact
 import com.netflix.spinnaker.keel.api.DockerVersioningStrategy
+import com.netflix.spinnaker.keel.api.Locatable
+import com.netflix.spinnaker.keel.api.Monikered
+import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.TagVersionStrategy
 import com.netflix.spinnaker.keel.api.VersioningStrategy
+import com.netflix.spinnaker.keel.json.mixins.DeliveryArtifactMixin
+import com.netflix.spinnaker.keel.json.mixins.LocatableMixin
+import com.netflix.spinnaker.keel.json.mixins.MonikeredMixin
+import com.netflix.spinnaker.keel.json.mixins.SubnetAwareRegionSpecMixin
 
 fun ObjectMapper.registerKeelApiModule(): ObjectMapper = registerModule(KeelApiModule)
 
@@ -38,6 +45,9 @@ object KeelApiModule : SimpleModule("Keel API") {
       addSerializers(KeelApiSerializers)
       addDeserializers(KeelApiDeserializers)
       setMixInAnnotations<DeliveryArtifact, DeliveryArtifactMixin>()
+      setMixInAnnotations<Locatable<*>, LocatableMixin<*>>()
+      setMixInAnnotations<Monikered, MonikeredMixin>()
+      setMixInAnnotations<SubnetAwareRegionSpec, SubnetAwareRegionSpecMixin>()
 
       registerSubtypes(
         NamedType<DebianArtifact>(ArtifactType.deb.name),
