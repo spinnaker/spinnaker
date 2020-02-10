@@ -81,7 +81,7 @@ public class JenkinsBuildMonitor
   }
 
   /**
-   * Gets a list of jobs for this master & processes builds between last poll stamp and a sliding
+   * Gets a list of jobs for this master and processes builds between last poll stamp and a sliding
    * upper bound stamp, the cursor will be used to advanced to the upper bound when all builds are
    * completed in the commit phase.
    */

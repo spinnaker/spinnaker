@@ -21,8 +21,16 @@ import retrofit.http.POST;
 
 public interface KeelService {
   /**
-   * Events should be sent with this format (inherited from echo events): [ payload: [artifacts:
-   * List<Artifact>, details: Map], eventName: String ]
+   * Events should be sent with this format (inherited from echo events):
+   *
+   * <pre>{@code
+   * [
+   *   payload: [
+   *     artifacts: List<Artifact>, details: Map
+   *   ],
+   *   eventName: String
+   * ]
+   * }</pre>
    */
   @POST("/artifacts/events")
   Void sendArtifactEvent(@Body Map event);

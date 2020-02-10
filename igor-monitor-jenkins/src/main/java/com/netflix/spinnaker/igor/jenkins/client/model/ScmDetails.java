@@ -13,15 +13,23 @@ import javax.xml.bind.annotation.XmlElement;
  * <p>The serialization of these details in the Jenkins build XML changed in version 4.0.0 of the
  * jenkins-git plugin.
  *
- * <p>Prior to 4.0.0, the format was: <action _class="hudson.plugins.git.util.BuildData">
+ * <p>Prior to 4.0.0, the format was:
+ *
+ * <pre>{@code
+ * <action _class="hudson.plugins.git.util.BuildData">
  * <lastBuiltRevision> <branch> <SHA1>943a702d06f34599aee1f8da8ef9f7296031d699</SHA1>
  * <name>refs/remotes/origin/master</name> </branch> </lastBuiltRevision>
  * <remoteUrl>some-url</remoteUrl> </action>
+ * }</pre>
  *
- * <p>As of version 4.0.0, the format is: <action _class="hudson.plugins.git.util.BuildDetails">
+ * <p>As of version 4.0.0, the format is:
+ *
+ * <pre>{@code
+ * <action _class="hudson.plugins.git.util.BuildDetails">
  * <build> <revision> <branch> <SHA1>943a702d06f34599aee1f8da8ef9f7296031d699</SHA1>
  * <name>refs/remotes/origin/master</name> </branch> </revision> <remoteUrl>some-url</remoteUrl>
  * </build> </action>
+ * }</pre>
  *
  * <p>The code in this module should remain compatible with both formats to ensure that SCM info is
  * populated in Spinnaker regardless of which version of the jenkins-git plugin is being used.
