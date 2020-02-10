@@ -44,6 +44,7 @@ subprojects {
 
     annotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
     annotationProcessor "org.projectlombok:lombok"
+    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
     testAnnotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
     testAnnotationProcessor "org.projectlombok:lombok"
   }
