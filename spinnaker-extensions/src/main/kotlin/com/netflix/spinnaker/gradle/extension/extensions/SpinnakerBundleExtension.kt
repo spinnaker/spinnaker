@@ -23,10 +23,6 @@ import java.lang.IllegalStateException
 open class SpinnakerBundleExtension {
   /**
    * The Spinnaker plugin ID.
-   *
-   * Individual plugins contained within the bundle will be assigned a plugin ID derived from this value, following
-   * the format "{pluginId}-{serviceName}". For example, if `pluginId` is set to "io.spinnaker.helloworld" and there
-   * is an Orca plugin in the bundle, the Orca plugin will be assigned the ID "io.spinnaker.helloworld-orca".
    */
   var pluginId: String
     set(value) {
