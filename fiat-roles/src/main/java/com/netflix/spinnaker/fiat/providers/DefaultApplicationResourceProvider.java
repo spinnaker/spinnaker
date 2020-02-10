@@ -71,7 +71,7 @@ public class DefaultApplicationResourceProvider extends BaseResourceProvider<App
   @Override
   protected Set<Application> loadAll() throws ProviderException {
     try {
-      List<Application> front50Applications = front50Service.getAllApplicationPermissions();
+      List<Application> front50Applications = front50Service.getAllApplications();
       List<Application> clouddriverApplications = clouddriverService.getApplications();
 
       // Stream front50 first so that if there's a name collision, we'll keep that one instead of

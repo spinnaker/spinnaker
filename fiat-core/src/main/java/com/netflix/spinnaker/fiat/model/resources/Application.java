@@ -16,8 +16,11 @@
 
 package com.netflix.spinnaker.fiat.model.resources;
 
+import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.fiat.model.Authorization;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -30,6 +33,13 @@ public class Application extends BaseAccessControlled implements Viewable {
 
   private String name;
   private Permissions permissions = Permissions.EMPTY;
+
+  private Map<String, Object> details = new HashMap<>();
+
+  @JsonAnySetter
+  public void setDetails(String name, Object value) {
+    this.details.put(name, value);
+  }
 
   @JsonIgnore
   public View getView(Set<Role> userRoles, boolean isAdmin) {

@@ -17,8 +17,11 @@
 package com.netflix.spinnaker.fiat.config;
 
 import com.netflix.spinnaker.fiat.model.Authorization;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 @Data
 @ConfigurationProperties("fiat")
@@ -36,6 +39,14 @@ public class FiatServerConfigurationProperties {
   private boolean restrictApplicationCreation = false;
 
   private WriteMode writeMode = new WriteMode();
+
+  @NestedConfigurationProperty
+  private ChaosMonkeyConfigurationProperties chaosMonkey = new ChaosMonkeyConfigurationProperties();
+
+  @Data
+  static class ChaosMonkeyConfigurationProperties {
+    private List<String> roles = new ArrayList<>();
+  }
 
   @Data
   static class WriteMode {

@@ -71,7 +71,7 @@ class RolesControllerSpec extends Specification {
   def "should put user in the repo"() {
     setup:
     stubFront50Service.getAllServiceAccounts() >> []
-    stubFront50Service.getAllApplicationPermissions() >> [unrestrictedApp, restrictedApp]
+    stubFront50Service.getAllApplications() >> [unrestrictedApp, restrictedApp]
     stubClouddriverService.getAccounts() >> [unrestrictedAccount, restrictedAccount]
     stubIgorService.allBuildServices >> []
 
@@ -120,7 +120,7 @@ class RolesControllerSpec extends Specification {
     mockMvc.perform(put("/roles/expectedError").content('["batman"]')).andExpect(status().is5xxServerError())
 
     then:
-    stubFront50Service.getAllApplicationPermissions() >> {
+    stubFront50Service.getAllApplications() >> {
       throw RetrofitError.networkError("test1", new IOException("test2"))
     }
 

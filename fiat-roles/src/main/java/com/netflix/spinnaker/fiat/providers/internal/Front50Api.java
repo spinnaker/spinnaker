@@ -25,6 +25,9 @@ public interface Front50Api {
   @GET("/permissions/applications")
   List<Application> getAllApplicationPermissions();
 
+  @GET("/v2/applications")
+  List<Application> getAllApplications();
+
   @GET("/serviceAccounts")
   List<ServiceAccount> getAllServiceAccounts();
 }

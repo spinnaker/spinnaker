@@ -52,12 +52,12 @@ public class Front50Service implements HealthTrackable, InitializingBean {
     refreshCache();
   }
 
-  public List<Application> getAllApplicationPermissions() {
+  public List<Application> getAllApplications() {
     return new SimpleJava8HystrixCommand<>(
             GROUP_KEY,
-            "getAllApplicationPermissions",
+            "getAllApplications",
             () -> {
-              applicationCache.set(allowAnonymous(front50Api::getAllApplicationPermissions));
+              applicationCache.set(allowAnonymous(front50Api::getAllApplications));
               healthTracker.success();
               return applicationCache.get();
             },
@@ -101,7 +101,7 @@ public class Front50Service implements HealthTrackable, InitializingBean {
   private void refreshCache() {
     try {
       // Initialize caches (also indicates service is healthy)
-      getAllApplicationPermissions();
+      getAllApplications();
       getAllServiceAccounts();
     } catch (Exception e) {
       log.warn("Cache prime failed: ", e);

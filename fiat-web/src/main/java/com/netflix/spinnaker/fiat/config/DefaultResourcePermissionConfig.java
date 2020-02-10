@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.fiat.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.fiat.model.resources.Account;
 import com.netflix.spinnaker.fiat.model.resources.Application;
 import com.netflix.spinnaker.fiat.model.resources.BuildService;
@@ -91,5 +92,13 @@ class DefaultResourcePermissionConfig {
   @ConfigurationProperties("auth.permissions.source.application.prefix")
   ResourcePermissionSource<Application> applicationPrefixResourcePermissionSource() {
     return new ResourcePrefixPermissionSource<Application>();
+  }
+
+  @Bean
+  @ConditionalOnProperty(value = "auth.permissions.source.application.chaos-monkey.enabled")
+  public ResourcePermissionSource<Application> chaosMonkeyApplicationResourcePermissionSource(
+      ObjectMapper objectMapper, FiatServerConfigurationProperties configurationProperties) {
+    return new ChaosMonkeyApplicationResourcePermissionSource(
+        configurationProperties.getChaosMonkey().getRoles(), objectMapper);
   }
 }
