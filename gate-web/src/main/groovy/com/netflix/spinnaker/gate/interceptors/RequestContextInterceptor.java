@@ -47,7 +47,5 @@ public class RequestContextInterceptor extends HandlerInterceptorAdapter {
   @Override
   public void afterCompletion(
       HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
-      throws Exception {
-    AuthenticatedRequest.clear();
-  }
+      throws Exception {}
 }
