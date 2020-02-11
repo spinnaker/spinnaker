@@ -19,6 +19,7 @@ package com.netflix.spinnaker.config;
 import static com.google.common.base.Predicates.or;
 
 import com.google.common.base.Predicate;
+import groovy.lang.MetaClass;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -53,7 +54,8 @@ public class SwaggerConfig {
         .apis(RequestHandlerSelectors.any())
         .paths(paths())
         .build()
-        .apiInfo(apiInfo());
+        .apiInfo(apiInfo())
+        .ignoredParameterTypes(MetaClass.class);
   }
 
   private Predicate<String> paths() {
