@@ -155,37 +155,26 @@ class DependentPipelineStarter implements ApplicationContextAware {
     log.debug("Source thread: MDC user: " + AuthenticatedRequest.getAuthenticationHeaders() +
       ", principal: " + principal?.toString())
 
-    def pipeline
-    def callable
+    Callable<Execution> callable
     if (artifactError == null) {
       callable = AuthenticatedRequest.propagate({
         log.debug("Destination thread user: " + AuthenticatedRequest.getAuthenticationHeaders())
-        pipeline = executionLauncher().start(PIPELINE, json)
-
-        Id id = registry.createId("pipelines.triggered")
-          .withTag("application", Optional.ofNullable(pipeline.getApplication()).orElse("null"))
-          .withTag("monitor", "DependentPipelineStarter")
-        registry.counter(id).increment()
-
-      } as Callable<Void>, true, principal)
+        return executionLauncher().start(PIPELINE, json).with {
+          Id id = registry.createId("pipelines.triggered")
+              .withTag("application", Optional.ofNullable(it.getApplication()).orElse("null"))
+              .withTag("monitor", "DependentPipelineStarter")
+          registry.counter(id).increment()
+          return it
+        }
+      } as Callable<Execution>, true, principal)
     } else {
       callable = AuthenticatedRequest.propagate({
         log.debug("Destination thread user: " + AuthenticatedRequest.getAuthenticationHeaders())
-        pipeline = executionLauncher().fail(PIPELINE, json, artifactError)
-      } as Callable<Void>, true, principal)
+        return executionLauncher().fail(PIPELINE, json, artifactError)
+      } as Callable<Execution>, true, principal)
     }
 
-    //This needs to run in a separate thread to not bork the batch TransactionManager
-    //TODO(rfletcher) - should be safe to kill this off once nu-orca merges down
-    def t1 = Thread.start {
-      callable.call()
-    }
-
-    try {
-      t1.join()
-    } catch (InterruptedException e) {
-      log.warn("Thread interrupted", e)
-    }
+    def pipeline = callable.call()
 
     log.info('executing dependent pipeline {}', pipeline.id)
     return pipeline
