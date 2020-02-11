@@ -161,12 +161,14 @@ data class ClusterSpec(
     val tags: Map<String, String>? = null
   ) {
     init {
+      // Require capacity.desired or scaling policies, or let them both be blank for constructing overrides
       require(
         capacity == null ||
           (capacity.desired == null && scaling != null && scaling.hasScalingPolicies()) ||
-          (capacity.desired != null && (scaling == null || !scaling.hasScalingPolicies()))
+          (capacity.desired != null && (scaling == null || !scaling.hasScalingPolicies())) ||
+          (capacity.desired == null && (scaling == null || !scaling.hasScalingPolicies()))
       ) {
-        "capacity.desired and auto-scaling policies are mutually exclusive"
+        "capacity.desired and auto-scaling policies are mutually exclusive: current = $capacity, $scaling"
       }
     }
   }

@@ -60,24 +60,3 @@ inline fun <reified T : Any, reified S : Any> buildSpecFromDiff(
     ctor.callBy(params)
   }
 }
-
-/**
- * Given an input object of an arbitrary type I, and an output type O whose structure resembles that of the input
- * object's class, convert the input object to the output type by building a map of constructor parameters for the
- * output type matching properties with the same name in the input object. This is similar to Jackson's
- * ObjectMapper.convertValue(from, to), but should be cheaper.
- */
-inline fun <reified I : Any, reified O : Any> convert(obj: I): O {
-  val ctor = O::class.primaryConstructor!!
-  val params = ctor.parameters
-    .filter { param ->
-      I::class.memberProperties.any { prop -> prop.name == param.name }
-    }
-    .map { param ->
-      val prop = I::class.memberProperties.find { prop -> prop.name == param.name }
-      param to prop!!.get(obj)
-    }
-    .toMap()
-
-  return ctor.callBy(params)
-}

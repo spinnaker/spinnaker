@@ -17,6 +17,7 @@
  */
 package com.netflix.spinnaker.keel.api.titus.cluster
 
+import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.api.Capacity
 import com.netflix.spinnaker.keel.api.ClusterDependencies
 import com.netflix.spinnaker.keel.api.Exportable
@@ -50,6 +51,7 @@ import com.netflix.spinnaker.keel.docker.DigestProvider
 import com.netflix.spinnaker.keel.docker.VersionedTagProvider
 import com.netflix.spinnaker.keel.events.ArtifactVersionDeployed
 import com.netflix.spinnaker.keel.events.Task
+import com.netflix.spinnaker.keel.exceptions.ExportError
 import com.netflix.spinnaker.keel.model.orcaClusterMoniker
 import com.netflix.spinnaker.keel.model.serverGroup
 import com.netflix.spinnaker.keel.orca.OrcaService
@@ -58,8 +60,8 @@ import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.SupportedKind
 import com.netflix.spinnaker.keel.plugin.TaskLauncher
 import com.netflix.spinnaker.keel.plugin.buildSpecFromDiff
-import com.netflix.spinnaker.keel.plugin.convert
 import com.netflix.spinnaker.keel.retrofit.isNotFound
+import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
@@ -81,6 +83,8 @@ class TitusClusterHandler(
   private val publisher: ApplicationEventPublisher,
   resolvers: List<Resolver<*>>
 ) : ResourceHandler<TitusClusterSpec, Map<String, TitusServerGroup>>(resolvers) {
+
+  private val mapper = configuredObjectMapper()
 
   override val supportedKind =
     SupportedKind(SPINNAKER_TITUS_API_V1, "cluster", TitusClusterSpec::class.java)
@@ -149,7 +153,9 @@ class TitusClusterHandler(
         "in account: ${exportable.account} for export")
     }
 
-    val base = serverGroups.values.first()
+    // let's assume that the largest server group is the most important and should be the base
+    val base = serverGroups.values.maxBy { it.capacity.desired ?: it.capacity.max }
+      ?: throw ExportError("Unable to calculate the server group with the largest capacity from server groups $serverGroups")
 
     val locations = SimpleLocations(
       account = exportable.account,
@@ -416,7 +422,7 @@ class TitusClusterHandler(
     val defaults = TitusServerGroupSpec(
       capacity = Capacity(1, 1, 1),
       iamProfile = application + "InstanceProfile",
-      resources = convert(Resources()),
+      resources = mapper.convertValue(Resources()),
       entryPoint = "",
       constraints = Constraints(),
       migrationPolicy = MigrationPolicy(),
@@ -447,7 +453,7 @@ class TitusClusterHandler(
 
   private fun Resources.exportSpec(): ResourcesSpec? {
     val defaults = Resources()
-    val thisSpec: ResourcesSpec = convert(this)
+    val thisSpec: ResourcesSpec = mapper.convertValue(this)
     return buildSpecFromDiff(defaults, thisSpec)
   }
 }

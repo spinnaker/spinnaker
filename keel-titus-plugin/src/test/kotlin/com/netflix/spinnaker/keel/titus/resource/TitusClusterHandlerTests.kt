@@ -38,22 +38,16 @@ import com.netflix.spinnaker.keel.api.titus.cluster.TitusClusterSpec
 import com.netflix.spinnaker.keel.api.titus.cluster.TitusServerGroup
 import com.netflix.spinnaker.keel.api.titus.cluster.TitusServerGroupSpec
 import com.netflix.spinnaker.keel.api.titus.cluster.byRegion
-import com.netflix.spinnaker.keel.api.titus.cluster.moniker
 import com.netflix.spinnaker.keel.api.titus.cluster.resolve
 import com.netflix.spinnaker.keel.api.titus.cluster.resolveCapacity
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.DockerImage
-import com.netflix.spinnaker.keel.clouddriver.model.Placement
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
-import com.netflix.spinnaker.keel.clouddriver.model.ServiceJobProcesses
-import com.netflix.spinnaker.keel.clouddriver.model.TitusActiveServerGroup
-import com.netflix.spinnaker.keel.clouddriver.model.TitusActiveServerGroupImage
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.docker.DigestProvider
 import com.netflix.spinnaker.keel.docker.VersionedTagProvider
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
-import com.netflix.spinnaker.keel.model.parseMoniker
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.OrcaTaskLauncher
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
@@ -75,7 +69,6 @@ import java.util.UUID
 import kotlinx.coroutines.runBlocking
 import okhttp3.MediaType
 import okhttp3.ResponseBody
-import org.apache.commons.lang3.RandomStringUtils
 import org.springframework.context.ApplicationEventPublisher
 import retrofit2.HttpException
 import retrofit2.Response
@@ -89,8 +82,6 @@ import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEmpty
-import strikt.assertions.isNull
-import strikt.assertions.isTrue
 import strikt.assertions.map
 
 // todo eb: we could probably have generic cluster tests
@@ -141,8 +132,8 @@ class TitusClusterHandlerTests : JUnit5Minutests {
   val serverGroupEast = serverGroups.first { it.location.region == "us-east-1" }
   val serverGroupWest = serverGroups.first { it.location.region == "us-west-2" }
 
-  val activeServerGroupResponseEast = serverGroupEast.toClouddriverResponse(listOf(sg1East, sg2East))
-  val activeServerGroupResponseWest = serverGroupWest.toClouddriverResponse(listOf(sg1West, sg2West))
+  val activeServerGroupResponseEast = serverGroupEast.toClouddriverResponse(listOf(sg1East, sg2East), awsAccount)
+  val activeServerGroupResponseWest = serverGroupWest.toClouddriverResponse(listOf(sg1West, sg2West), awsAccount)
 
   val resource = resource(
     apiVersion = SPINNAKER_TITUS_API_V1,
@@ -173,34 +164,6 @@ class TitusClusterHandlerTests : JUnit5Minutests {
       digest = "sha:3333"
     )
   )
-
-  private fun TitusServerGroup.toClouddriverResponse(
-    securityGroups: List<SecurityGroupSummary>
-  ): TitusActiveServerGroup =
-    RandomStringUtils.randomNumeric(3).padStart(3, '0').let { sequence ->
-      TitusActiveServerGroup(
-        name = "$name-v$sequence",
-        awsAccount = awsAccount,
-        placement = Placement(location.account, location.region, emptyList()),
-        region = location.region,
-        image = TitusActiveServerGroupImage("${container.organization}/${container.image}", "", container.digest),
-        iamProfile = moniker.app + "InstanceProfile",
-        entryPoint = entryPoint,
-        targetGroups = dependencies.targetGroups,
-        loadBalancers = dependencies.loadBalancerNames,
-        securityGroups = securityGroups.map(SecurityGroupSummary::id).toSet(),
-        capacity = capacity,
-        cloudProvider = CLOUD_PROVIDER,
-        moniker = parseMoniker("$name-v$sequence"),
-        env = env,
-        constraints = constraints,
-        migrationPolicy = migrationPolicy,
-        serviceJobProcesses = ServiceJobProcesses(),
-        tags = emptyMap(),
-        resources = resources,
-        capacityGroup = moniker.app
-      )
-    }
 
   fun tests() = rootContext<TitusClusterHandler> {
     fixture {
@@ -470,103 +433,6 @@ class TitusClusterHandlerTests : JUnit5Minutests {
             .containsDistinctElements()
         }
       }
-      context("export without overrides") {
-        before {
-          coEvery { cloudDriverService.titusActiveServerGroup(any(), "us-east-1") } returns activeServerGroupResponseEast
-          coEvery { cloudDriverService.titusActiveServerGroup(any(), "us-west-2") } returns activeServerGroupResponseWest
-          coEvery { cloudDriverService.findDockerImages("testregistry", (spec.defaults.container!! as DigestProvider).repository()) } returns images
-          coEvery { cloudDriverService.getAccountInformation(titusAccount) } returns mapOf("registry" to "testregistry")
-        }
-
-        derivedContext<TitusClusterSpec>("exported titus cluster spec") {
-          deriveFixture {
-            runBlocking {
-              export(exportable)
-            }
-          }
-
-          test("has the expected basic properties") {
-            expectThat(locations.regions)
-              .hasSize(2)
-            expectThat(overrides)
-              .hasSize(0)
-          }
-        }
-
-        test("has default values in defaults omitted") {
-          expectThat(spec.defaults.constraints)
-            .isNull()
-          expectThat(spec.defaults.entryPoint)
-            .isNull()
-          expectThat(spec.defaults.migrationPolicy)
-            .isNull()
-          expectThat(spec.defaults.resources)
-            .isNull()
-          expectThat(spec.defaults.iamProfile)
-            .isNull()
-          expectThat(spec.defaults.capacityGroup)
-            .isNull()
-          expectThat(spec.defaults.env)
-            .isNull()
-          expectThat(spec.defaults.containerAttributes)
-            .isNull()
-          expectThat(spec.defaults.tags)
-            .isNull()
-        }
-      }
-
-      context("export with overrides") {
-        before {
-          coEvery { cloudDriverService.titusActiveServerGroup(any(), "us-east-1") } returns
-            activeServerGroupResponseEast
-          coEvery { cloudDriverService.titusActiveServerGroup(any(), "us-west-2") } returns
-            activeServerGroupResponseWest
-              .withDifferentEntryPoint()
-              .withDifferentEnv()
-              .withDoubleCapacity()
-          coEvery { cloudDriverService.findDockerImages("testregistry", (spec.defaults.container!! as DigestProvider).repository()) } returns images
-          coEvery { cloudDriverService.getAccountInformation(titusAccount) } returns mapOf("registry" to "testregistry")
-        }
-
-        derivedContext<TitusClusterSpec>("exported titus cluster spec") {
-          deriveFixture {
-            runBlocking {
-              export(exportable)
-            }
-          }
-
-          test("has overrides matching differences in the server groups") {
-            val overrideDiff = DefaultResourceDiff(overrides["us-west-2"]!!, defaults)
-            val addedOrChangedProps = overrideDiff.children
-              .filter { it.isAdded || it.isChanged }
-              .map { it.propertyName }
-              .toSet()
-            expectThat(locations.regions)
-              .hasSize(2)
-            expectThat(overrides)
-              .hasSize(1)
-            expectThat(overrides)
-              .containsKey("us-west-2")
-            expectThat(overrideDiff.hasChanges())
-              .isTrue()
-            expectThat(addedOrChangedProps)
-              .isEqualTo(setOf("entryPoint", "capacity", "env"))
-          }
-
-          test("has default values in overrides omitted") {
-            val override = overrides["us-west-2"]!!
-            expectThat(override) {
-              get { constraints }.isNull()
-              get { migrationPolicy }.isNull()
-              get { resources }.isNull()
-              get { iamProfile }.isNull()
-              get { capacityGroup }.isNull()
-              get { containerAttributes }.isNull()
-              get { tags }.isNull()
-            }
-          }
-        }
-      }
     }
 
     context("figuring out tagging strategy") {
@@ -641,21 +507,6 @@ private fun TitusServerGroup.withDoubleCapacity(): TitusServerGroup =
 
 private fun TitusServerGroup.withDifferentRuntimeOptions(): TitusServerGroup =
   copy(capacityGroup = "aDifferentGroup")
-
-private fun TitusActiveServerGroup.withDoubleCapacity(): TitusActiveServerGroup =
-  copy(
-    capacity = Capacity(
-      min = capacity.min * 2,
-      max = capacity.max * 2,
-      desired = capacity.desired!! * 2
-    )
-  )
-
-private fun TitusActiveServerGroup.withDifferentEnv(): TitusActiveServerGroup =
-  copy(env = mapOf("foo" to "bar"))
-
-private fun TitusActiveServerGroup.withDifferentEntryPoint(): TitusActiveServerGroup =
-  copy(entryPoint = "/bin/blah")
 
 private fun <E, T : Iterable<E>> Assertion.Builder<T>.containsDistinctElements() =
   assert("contains distinct elements") { subject ->

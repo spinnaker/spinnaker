@@ -19,6 +19,8 @@ package com.netflix.spinnaker.keel.api.ec2
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.HealthSpec
+import com.netflix.spinnaker.keel.plugin.buildSpecFromDiff
 import java.time.Duration
 
 @JsonInclude(NON_EMPTY)
@@ -30,4 +32,13 @@ data class Health(
   // Note: the default for this in Deck is currently setOf(TerminationPolicy.Default), but we were advised by Netflix
   // SRE to change the default to OldestInstance
   val terminationPolicies: Set<TerminationPolicy> = setOf(TerminationPolicy.OldestInstance)
-)
+) {
+
+  /**
+   * Translates a Health object to a ClusterSpec.HealthSpec with default values omitted for export.
+   */
+  fun toSpecWithoutDefaults(): HealthSpec? {
+    val default = Health()
+    return buildSpecFromDiff(default, this)
+  }
+}

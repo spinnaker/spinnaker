@@ -1,15 +1,16 @@
 package com.netflix.spinnaker.keel.ec2.resource
 
+import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.api.Capacity
 import com.netflix.spinnaker.keel.api.ClusterDependencies
-import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
-import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
+import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.CustomizedMetricSpecification
 import com.netflix.spinnaker.keel.api.ec2.Health
 import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
@@ -18,6 +19,7 @@ import com.netflix.spinnaker.keel.api.ec2.Location
 import com.netflix.spinnaker.keel.api.ec2.Metric
 import com.netflix.spinnaker.keel.api.ec2.MetricDimension
 import com.netflix.spinnaker.keel.api.ec2.PredefinedMetricSpecification
+import com.netflix.spinnaker.keel.api.ec2.ReferenceArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.Scaling
 import com.netflix.spinnaker.keel.api.ec2.ScalingProcess
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup
@@ -47,6 +49,7 @@ import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
 import com.netflix.spinnaker.keel.events.ArtifactVersionDeployed
 import com.netflix.spinnaker.keel.events.Task
+import com.netflix.spinnaker.keel.exceptions.ExportError
 import com.netflix.spinnaker.keel.model.orcaClusterMoniker
 import com.netflix.spinnaker.keel.model.serverGroup
 import com.netflix.spinnaker.keel.orca.OrcaService
@@ -58,8 +61,8 @@ import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.keel.plugin.SupportedKind
 import com.netflix.spinnaker.keel.plugin.TaskLauncher
 import com.netflix.spinnaker.keel.plugin.buildSpecFromDiff
-import com.netflix.spinnaker.keel.plugin.convert
 import com.netflix.spinnaker.keel.retrofit.isNotFound
+import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
@@ -80,6 +83,8 @@ class ClusterHandler(
   private val publisher: ApplicationEventPublisher,
   resolvers: List<Resolver<*>>
 ) : ResourceHandler<ClusterSpec, Map<String, ServerGroup>>(resolvers) {
+
+  private val mapper = configuredObjectMapper()
 
   override val supportedKind =
     SupportedKind(SPINNAKER_EC2_API_V1, "cluster", ClusterSpec::class.java)
@@ -288,6 +293,7 @@ class ClusterHandler(
     }
 
   override suspend fun export(exportable: Exportable): ClusterSpec {
+    // Get existing infrastructure
     val serverGroups = cloudDriverService.getServerGroups(
       account = exportable.account,
       moniker = exportable.moniker,
@@ -325,8 +331,11 @@ class ClusterHandler(
     }
       .toSet()
 
-    val base = serverGroups.values.first()
+    // let's assume that the largest server group is the most important and should be the base
+    val base = serverGroups.values.maxBy { it.capacity.desired ?: it.capacity.max }
+      ?: throw ExportError("Unable to calculate the server group with the largest capacity from server groups $serverGroups")
 
+    // Construct the minimal locations object
     val locations = SubnetAwareLocations(
       account = exportable.account,
       subnet = base.location.subnet,
@@ -337,8 +346,7 @@ class ClusterHandler(
     val spec = ClusterSpec(
       moniker = exportable.moniker,
       imageProvider = if (base.buildInfo?.packageName != null) {
-        ArtifactImageProvider(
-          deliveryArtifact = DebianArtifact(name = base.buildInfo.packageName!!))
+        ReferenceArtifactImageProvider(reference = base.buildInfo.packageName.toString())
       } else {
         null
       },
@@ -365,7 +373,7 @@ class ClusterHandler(
   private fun ClusterSpec.generateOverrides(account: String, application: String, serverGroups: Map<String, ServerGroup>) =
     serverGroups.forEach { (region, serverGroup) ->
       val workingSpec = serverGroup.exportSpec(account, application)
-      val override: ClusterSpec.ServerGroupSpec? = buildSpecFromDiff(
+      val override: ServerGroupSpec? = buildSpecFromDiff(
         defaults,
         workingSpec,
         OVERRIDABLE_SERVER_GROUP_PROPERTIES
@@ -888,20 +896,20 @@ class ClusterHandler(
   /**
    * Translates a ServerGroup object to a ClusterSpec.ServerGroupSpec with default values omitted for export.
    */
-  private fun ServerGroup.exportSpec(account: String, application: String): ClusterSpec.ServerGroupSpec {
-    val defaults = ClusterSpec.ServerGroupSpec(
+  private fun ServerGroup.exportSpec(account: String, application: String): ServerGroupSpec {
+    val defaults = ServerGroupSpec(
       capacity = Capacity(1, 1, 1),
       dependencies = ClusterDependencies(),
-      health = Health().exportSpec(),
+      health = Health().toSpecWithoutDefaults(),
       scaling = Scaling(),
       tags = emptyMap()
     )
 
-    val thisSpec = ClusterSpec.ServerGroupSpec(
-      launchConfiguration = launchConfiguration.exportSpec(account, application),
+    val thisSpec = ServerGroupSpec(
+      launchConfiguration = launchConfiguration.exportSpec(account, location.region, application, launchConfiguration.instanceType),
       capacity = capacity,
       dependencies = dependencies,
-      health = health.exportSpec(),
+      health = health.toSpecWithoutDefaults(),
       scaling = if (!scaling.hasScalingPolicies()) {
         null
       } else {
@@ -916,24 +924,25 @@ class ClusterHandler(
   /**
    * Translates a LaunchConfiguration object to a ClusterSpec.LaunchConfigurationSpec with default values omitted for export.
    */
-  private fun LaunchConfiguration.exportSpec(account: String, application: String): ClusterSpec.LaunchConfigurationSpec? {
-    val defaults = ClusterSpec.LaunchConfigurationSpec(
+  private fun LaunchConfiguration.exportSpec(
+    account: String,
+    region: String,
+    application: String,
+    instanceType: String
+  ): LaunchConfigurationSpec? {
+    val defaults = LaunchConfigurationSpec(
       ebsOptimized = false,
       iamRole = LaunchConfiguration.defaultIamRoleFor(application),
       instanceMonitoring = false,
-      keyPair = cloudDriverCache.defaultKeyPairForAccount(account)
+      keyPair = defaultKeypair(account, region),
+      instanceType = instanceType
     )
-    val thisSpec: ClusterSpec.LaunchConfigurationSpec = convert(this)
+    val thisSpec: LaunchConfigurationSpec = mapper.convertValue(this)
     return buildSpecFromDiff(defaults, thisSpec)
   }
 
-  /**
-   * Translates a Health object to a ClusterSpec.HealthSpec with default values omitted for export.
-   */
-  private fun Health.exportSpec(): ClusterSpec.HealthSpec? {
-    val defaults = Health()
-    return buildSpecFromDiff(defaults, this)
-  }
+  private fun defaultKeypair(account: String, region: String) =
+    cloudDriverCache.defaultKeyPairForAccount(account).replace(REGION_PLACEHOLDER, region)
 
   companion object {
     // these tags are auto-applied by CloudDriver so we should not consider them in a diff as they
@@ -948,7 +957,8 @@ class ClusterHandler(
       "health",
       "launchConfiguration",
       "dependencies",
-      "scaling"
+      "scaling",
+      "capacity"
     )
 
     private const val REGION_PLACEHOLDER = "{{region}}"

@@ -18,13 +18,10 @@ import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.ServerGroupSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.VirtualMachineImage
 import com.netflix.spinnaker.keel.api.ec2.CustomizedMetricSpecification
-import com.netflix.spinnaker.keel.api.ec2.HealthCheckType
 import com.netflix.spinnaker.keel.api.ec2.LaunchConfiguration
-import com.netflix.spinnaker.keel.api.ec2.Metric
 import com.netflix.spinnaker.keel.api.ec2.Scaling
 import com.netflix.spinnaker.keel.api.ec2.ServerGroup
 import com.netflix.spinnaker.keel.api.ec2.TargetTrackingPolicy
-import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
 import com.netflix.spinnaker.keel.api.ec2.byRegion
 import com.netflix.spinnaker.keel.api.ec2.resolve
 import com.netflix.spinnaker.keel.api.ec2.resolveCapacity
@@ -33,25 +30,15 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroupImage
-import com.netflix.spinnaker.keel.clouddriver.model.AutoScalingGroup
 import com.netflix.spinnaker.keel.clouddriver.model.CustomizedMetricSpecificationModel
-import com.netflix.spinnaker.keel.clouddriver.model.InstanceMonitoring
-import com.netflix.spinnaker.keel.clouddriver.model.LaunchConfig
-import com.netflix.spinnaker.keel.clouddriver.model.MetricDimensionModel
 import com.netflix.spinnaker.keel.clouddriver.model.Network
-import com.netflix.spinnaker.keel.clouddriver.model.ScalingPolicy
-import com.netflix.spinnaker.keel.clouddriver.model.ScalingPolicyAlarm
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
-import com.netflix.spinnaker.keel.clouddriver.model.SuspendedProcess
-import com.netflix.spinnaker.keel.clouddriver.model.Tag
-import com.netflix.spinnaker.keel.clouddriver.model.TargetTrackingConfiguration
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.ec2.RETROFIT_NOT_FOUND
 import com.netflix.spinnaker.keel.events.ArtifactVersionDeployed
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
-import com.netflix.spinnaker.keel.model.parseMoniker
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.OrcaTaskLauncher
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
@@ -72,7 +59,6 @@ import java.time.Clock
 import java.time.Duration
 import java.util.UUID.randomUUID
 import kotlinx.coroutines.runBlocking
-import org.apache.commons.lang3.RandomStringUtils.randomNumeric
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.Assertion
 import strikt.api.expectCatching
@@ -84,7 +70,6 @@ import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotEmpty
-import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.isTrue
 import strikt.assertions.map
@@ -194,86 +179,6 @@ internal class ClusterHandlerTests : JUnit5Minutests {
     regions = spec.locations.regions.map { it.name }.toSet(),
     kind = "cluster"
   )
-
-  private fun ServerGroup.toCloudDriverResponse(
-    vpc: Network,
-    subnets: List<Subnet>,
-    securityGroups: List<SecurityGroupSummary>
-  ): ActiveServerGroup =
-    randomNumeric(3).padStart(3, '0').let { sequence ->
-      ActiveServerGroup(
-        "$name-v$sequence",
-        location.region,
-        location.availabilityZones,
-        ActiveServerGroupImage(
-          launchConfiguration.imageId,
-          launchConfiguration.appVersion,
-          launchConfiguration.baseImageVersion
-        ),
-        LaunchConfig(
-          launchConfiguration.ramdiskId,
-          launchConfiguration.ebsOptimized,
-          launchConfiguration.imageId,
-          launchConfiguration.instanceType,
-          launchConfiguration.keyPair,
-          launchConfiguration.iamRole,
-          InstanceMonitoring(launchConfiguration.instanceMonitoring)
-        ),
-        AutoScalingGroup(
-          "$name-v$sequence",
-          health.cooldown.seconds,
-          health.healthCheckType.let(HealthCheckType::toString),
-          health.warmup.seconds,
-          scaling.suspendedProcesses.map { SuspendedProcess(it.name) }.toSet(),
-          health.enabledMetrics.map(Metric::toString).toSet(),
-          tags.map { Tag(it.key, it.value) }.toSet(),
-          health.terminationPolicies.map(TerminationPolicy::toString).toSet(),
-          subnets.map(Subnet::id).joinToString(",")
-        ),
-        listOf(ScalingPolicy(
-          autoScalingGroupName = "$name-v$sequence",
-          policyName = "$name-target-tracking-policy",
-          policyType = "TargetTrackingScaling",
-          estimatedInstanceWarmup = 300,
-          adjustmentType = null,
-          minAdjustmentStep = null,
-          minAdjustmentMagnitude = null,
-          stepAdjustments = null,
-          metricAggregationType = null,
-          targetTrackingConfiguration = TargetTrackingConfiguration(
-            560.0,
-            true,
-            CustomizedMetricSpecificationModel(
-              "RPS per instance",
-              "SPIN/ACH",
-              "Average",
-              null,
-              listOf(MetricDimensionModel("AutoScalingGroupName", "$name-v$sequence"))
-            ),
-            null
-          ),
-          alarms = listOf(ScalingPolicyAlarm(
-            true,
-            "GreaterThanThreshold",
-            listOf(MetricDimensionModel("AutoScalingGroupName", "$name-v$sequence")),
-            3,
-            60,
-            560,
-            "RPS per instance",
-            "SPIN/ACH",
-            "Average"
-          ))
-        )),
-        vpc.id,
-        dependencies.targetGroups,
-        dependencies.loadBalancerNames,
-        capacity.let { Capacity(it.min, it.max, it.desired) },
-        CLOUD_PROVIDER,
-        securityGroups.map(SecurityGroupSummary::id).toSet(),
-        location.account,
-        parseMoniker("$name-v$sequence")
-      )
-    }
 
   fun tests() = rootContext<ClusterHandler> {
     fixture {
@@ -442,72 +347,6 @@ internal class ClusterHandlerTests : JUnit5Minutests {
 
         test("an event is fired if all server groups have the same artifact version") {
           verify { publisher.publishEvent(ofType<ArtifactVersionDeployed>()) }
-        }
-      }
-
-      derivedContext<ClusterSpec>("exported cluster spec") {
-        deriveFixture {
-          runBlocking {
-            export(exportable)
-          }
-        }
-
-        test("has the expected basic properties") {
-          expectThat(locations.regions)
-            .hasSize(2)
-          expectThat(defaults.scaling!!.targetTrackingPolicies)
-            .hasSize(1)
-          expectThat(overrides)
-            .hasSize(0)
-        }
-
-        test("omits complex fields altogether when all their properties have default values") {
-          expectThat(spec.defaults.health)
-            .isNull()
-        }
-      }
-
-      context("other handling of default properties in cluster export") {
-        before {
-          coEvery { cloudDriverService.activeServerGroup(any(), "us-east-1") } returns activeServerGroupResponseEast
-          coEvery { cloudDriverService.activeServerGroup(any(), "us-west-2") } returns activeServerGroupResponseWest
-            .withNonDefaultHealthProps()
-            .withNonDefaultLaunchConfigProps()
-        }
-
-        test("export omits properties with default values from complex fields") {
-          val exported = runBlocking {
-            export(exportable)
-          }
-          expectThat(exported.locations.vpc)
-            .isNull()
-          expectThat(exported.locations.subnet)
-            .isNull()
-          expectThat(exported.defaults.health)
-            .isNotNull()
-          expectThat(exported.defaults.health!!.cooldown)
-            .isNull()
-          expectThat(exported.defaults.health!!.warmup)
-            .isNull()
-          expectThat(exported.defaults.health!!.healthCheckType)
-            .isNull()
-          expectThat(exported.defaults.health!!.enabledMetrics)
-            .isNull()
-          expectThat(exported.defaults.health!!.cooldown)
-            .isNull()
-          expectThat(exported.defaults.health!!.terminationPolicies)
-            .isEqualTo(setOf(TerminationPolicy.NewestInstance))
-
-          expectThat(exported.defaults.launchConfiguration!!.ebsOptimized)
-            .isNull()
-          expectThat(exported.defaults.launchConfiguration!!.instanceMonitoring)
-            .isNull()
-          expectThat(exported.defaults.launchConfiguration!!.ramdiskId)
-            .isNull()
-          expectThat(exported.defaults.launchConfiguration!!.iamRole)
-            .isNotNull()
-          expectThat(exported.defaults.launchConfiguration!!.keyPair)
-            .isNotNull()
         }
       }
     }
@@ -963,17 +802,6 @@ private fun ActiveServerGroup.withOlderAppVersion(): ActiveServerGroup =
     launchConfig = launchConfig.copy(
       imageId = "ami-573e1b2650a5"
     )
-  )
-
-private fun ActiveServerGroup.withNonDefaultHealthProps(): ActiveServerGroup =
-  copy(
-    asg = asg.copy(terminationPolicies = setOf(TerminationPolicy.NewestInstance.name)
-    )
-  )
-
-private fun ActiveServerGroup.withNonDefaultLaunchConfigProps(): ActiveServerGroup =
-  copy(
-    launchConfig = launchConfig.copy(iamInstanceProfile = "NotTheDefaultInstanceProfile", keyName = "not-the-default-key")
   )
 
 private fun ActiveServerGroup.withMissingAppVersion(): ActiveServerGroup =
