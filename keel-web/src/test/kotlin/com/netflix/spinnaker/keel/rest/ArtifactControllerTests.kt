@@ -1,8 +1,8 @@
 package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.KeelApplication
-import com.netflix.spinnaker.keel.api.ArtifactStatus.FINAL
-import com.netflix.spinnaker.keel.api.DebianArtifact
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.FINAL
+import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
 import com.netflix.spinnaker.keel.spring.test.MockEurekaConfiguration
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML

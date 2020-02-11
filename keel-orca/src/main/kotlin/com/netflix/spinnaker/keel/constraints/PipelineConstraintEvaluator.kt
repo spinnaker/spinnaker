@@ -1,13 +1,11 @@
 package com.netflix.spinnaker.keel.constraints
 
-import com.netflix.spinnaker.keel.api.ConstraintState
-import com.netflix.spinnaker.keel.api.ConstraintStatus.FAIL
-import com.netflix.spinnaker.keel.api.ConstraintStatus.PASS
-import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
-import com.netflix.spinnaker.keel.api.PipelineConstraint
-import com.netflix.spinnaker.keel.api.PipelineConstraintStateAttributes
+import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.constraints.ConstraintStatus.FAIL
+import com.netflix.spinnaker.keel.constraints.ConstraintStatus.PASS
+import com.netflix.spinnaker.keel.core.api.PipelineConstraint
 import com.netflix.spinnaker.keel.model.toOrcaNotification
 import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus
 import com.netflix.spinnaker.keel.orca.OrcaService

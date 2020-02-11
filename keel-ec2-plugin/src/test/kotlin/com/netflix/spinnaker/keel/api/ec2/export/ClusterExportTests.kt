@@ -1,15 +1,9 @@
 package com.netflix.spinnaker.keel.api.ec2.export
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.netflix.spinnaker.keel.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.api.Capacity
-import com.netflix.spinnaker.keel.api.ClusterDependencies
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.Moniker
-import com.netflix.spinnaker.keel.api.RedBlack
-import com.netflix.spinnaker.keel.api.StaggeredRegion
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
@@ -22,6 +16,7 @@ import com.netflix.spinnaker.keel.api.ec2.Scaling
 import com.netflix.spinnaker.keel.api.ec2.TargetTrackingPolicy
 import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
 import com.netflix.spinnaker.keel.api.ec2.resolve
+import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
@@ -29,6 +24,10 @@ import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.Network
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
+import com.netflix.spinnaker.keel.core.api.Capacity
+import com.netflix.spinnaker.keel.core.api.ClusterDependencies
+import com.netflix.spinnaker.keel.core.api.RedBlack
+import com.netflix.spinnaker.keel.core.api.StaggeredRegion
 import com.netflix.spinnaker.keel.ec2.CLOUD_PROVIDER
 import com.netflix.spinnaker.keel.ec2.resource.ClusterHandler
 import com.netflix.spinnaker.keel.ec2.resource.toCloudDriverResponse
@@ -36,7 +35,6 @@ import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.OrcaTaskLauncher
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
-import com.netflix.spinnaker.keel.plugin.Resolver
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -63,7 +61,6 @@ internal class ClusterExportTests : JUnit5Minutests {
   val cloudDriverService = mockk<CloudDriverService>()
   val cloudDriverCache = mockk<CloudDriverCache>()
   val orcaService = mockk<OrcaService>()
-  val objectMapper = ObjectMapper().registerKotlinModule()
   val normalizers = emptyList<Resolver<ClusterSpec>>()
   val clock = Clock.systemDefaultZone()
   val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)

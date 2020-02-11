@@ -17,14 +17,13 @@ package com.netflix.spinnaker.keel
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.jsontype.NamedType
+import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.bakery.BaseImageCache
 import com.netflix.spinnaker.keel.constraints.ConstraintEvaluator
 import com.netflix.spinnaker.keel.info.InstanceIdSupplier
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
-import com.netflix.spinnaker.keel.plugin.KeelPlugin
-import com.netflix.spinnaker.keel.plugin.ResourceHandler
 import com.netflix.spinnaker.kork.PlatformComponents
 import javax.annotation.PostConstruct
 import org.slf4j.LoggerFactory
@@ -77,7 +76,7 @@ class KeelApplication {
   lateinit var instanceIdSupplier: InstanceIdSupplier
 
   @Autowired(required = false)
-  var plugins: List<KeelPlugin> = emptyList()
+  var handlers: List<ResourceHandler<*, *>> = emptyList()
 
   @Autowired(required = false)
   var constraintEvaluators: List<ConstraintEvaluator<*>> = emptyList()
@@ -87,8 +86,7 @@ class KeelApplication {
 
   @PostConstruct
   fun registerResourceSpecSubtypes() {
-    plugins
-      .filterIsInstance<ResourceHandler<*, *>>()
+    handlers
       .map { it.supportedKind }
       .forEach { kind ->
         log.info("Registering ResourceSpec sub-type {}: {}", kind, kind.specClass.simpleName)
@@ -121,7 +119,7 @@ class KeelApplication {
         log.info("{} implementation: {}", type.simpleName, implementation?.simpleName)
       }
 
-    log.info("Using plugins: {}", plugins.joinToString { it.name })
+    log.info("Using handlers: {}", handlers.joinToString { it.name })
   }
 }
 

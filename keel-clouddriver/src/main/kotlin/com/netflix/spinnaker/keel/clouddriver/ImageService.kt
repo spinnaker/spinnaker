@@ -18,12 +18,12 @@
 package com.netflix.spinnaker.keel.clouddriver
 
 import com.netflix.frigga.ami.AppVersion
-import com.netflix.spinnaker.keel.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.clouddriver.model.Image
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImageComparator
 import com.netflix.spinnaker.keel.clouddriver.model.appVersion
 import com.netflix.spinnaker.keel.clouddriver.model.hasAppVersion
+import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 

@@ -17,22 +17,20 @@
  */
 package com.netflix.spinnaker.keel.docker
 
-import com.netflix.spinnaker.keel.api.ArtifactType.docker
-import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
-import com.netflix.spinnaker.keel.api.DockerArtifact
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
-import com.netflix.spinnaker.keel.api.TagComparator
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.docker
+import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.api.id
-import com.netflix.spinnaker.keel.api.image
-import com.netflix.spinnaker.keel.api.organization
+import com.netflix.spinnaker.keel.api.plugins.Resolver
+import com.netflix.spinnaker.keel.core.TagComparator
 import com.netflix.spinnaker.keel.exceptions.NoDockerImageSatisfiesConstraints
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.NoMatchingArtifactException
-import com.netflix.spinnaker.keel.plugin.Resolver
 
 /**
  * Provides the basic functionality for deciding what digest is desired.

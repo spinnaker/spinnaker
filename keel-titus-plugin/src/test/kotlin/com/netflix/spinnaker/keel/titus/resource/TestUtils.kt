@@ -8,7 +8,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.ServiceJobProcesses
 import com.netflix.spinnaker.keel.clouddriver.model.TitusActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.TitusActiveServerGroupImage
-import com.netflix.spinnaker.keel.model.parseMoniker
+import com.netflix.spinnaker.keel.core.parseMoniker
 import org.apache.commons.lang3.RandomStringUtils
 
 fun TitusServerGroup.toClouddriverResponse(

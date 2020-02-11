@@ -2,9 +2,12 @@ package com.netflix.spinnaker.keel.actuation
 
 import com.netflix.spinnaker.keel.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.ResourceCurrentlyUnresolvable
+import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.id
-import com.netflix.spinnaker.keel.api.randomUID
+import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
+import com.netflix.spinnaker.keel.api.plugins.SupportedKind
+import com.netflix.spinnaker.keel.core.ResourceCurrentlyUnresolvable
+import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.events.ResourceActuationLaunched
 import com.netflix.spinnaker.keel.events.ResourceActuationPaused
 import com.netflix.spinnaker.keel.events.ResourceActuationVetoed
@@ -16,14 +19,11 @@ import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
 import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
 import com.netflix.spinnaker.keel.events.ResourceMissing
 import com.netflix.spinnaker.keel.events.ResourceValid
-import com.netflix.spinnaker.keel.events.Task
 import com.netflix.spinnaker.keel.pause.ResourcePauser
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDiffFingerprintRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.plugin.CannotResolveCurrentState
 import com.netflix.spinnaker.keel.plugin.CannotResolveDesiredState
-import com.netflix.spinnaker.keel.plugin.ResourceHandler
-import com.netflix.spinnaker.keel.plugin.SupportedKind
 import com.netflix.spinnaker.keel.telemetry.ResourceCheckSkipped
 import com.netflix.spinnaker.keel.test.DummyResource
 import com.netflix.spinnaker.keel.test.DummyResourceSpec

@@ -7,9 +7,9 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
-import com.netflix.spinnaker.keel.api.SubmittedResource
-import com.netflix.spinnaker.keel.plugin.SimpleResourceHandler
-import com.netflix.spinnaker.keel.plugin.SupportedKind
+import com.netflix.spinnaker.keel.api.plugins.SimpleResourceHandler
+import com.netflix.spinnaker.keel.api.plugins.SupportedKind
+import com.netflix.spinnaker.keel.core.api.SubmittedResource
 import java.util.UUID
 
 const val TEST_API = "test.$SPINNAKER_API_V1"

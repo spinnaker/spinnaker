@@ -1,8 +1,8 @@
 package com.netflix.spinnaker.keel.sql
 
 import com.fasterxml.jackson.databind.jsontype.NamedType
-import com.netflix.spinnaker.keel.api.DependsOnConstraint
-import com.netflix.spinnaker.keel.api.ManualJudgementConstraint
+import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
+import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepositoryTests
 import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper

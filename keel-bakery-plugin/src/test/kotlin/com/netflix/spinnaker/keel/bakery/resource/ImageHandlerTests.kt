@@ -1,10 +1,9 @@
 package com.netflix.spinnaker.keel.bakery.resource
 
 import com.netflix.spinnaker.igor.ArtifactService
-import com.netflix.spinnaker.keel.api.ArtifactStatus.FINAL
-import com.netflix.spinnaker.keel.api.ArtifactStatus.SNAPSHOT
-import com.netflix.spinnaker.keel.api.DebianArtifact
-import com.netflix.spinnaker.keel.api.NoKnownArtifactVersions
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.FINAL
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus.SNAPSHOT
+import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.bakery.BaseImageCache
 import com.netflix.spinnaker.keel.bakery.UnknownBaseImage
 import com.netflix.spinnaker.keel.bakery.api.BaseLabel.RELEASE
@@ -14,6 +13,7 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.Image
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
+import com.netflix.spinnaker.keel.core.NoKnownArtifactVersions
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.orca.OrcaService

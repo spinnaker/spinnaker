@@ -1,8 +1,8 @@
 package com.netflix.spinnaker.keel.events
 
 import com.netflix.spinnaker.keel.api.Constraint
-import com.netflix.spinnaker.keel.api.ConstraintState
 import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.constraints.ConstraintState
 
 sealed class ConstraintEvent(
   open val environment: Environment,

@@ -1,12 +1,12 @@
 package com.netflix.spinnaker.keel.persistence
 
-import com.netflix.spinnaker.keel.api.ArtifactStatus
-import com.netflix.spinnaker.keel.api.ArtifactType
-import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
-import com.netflix.spinnaker.keel.api.EnvironmentArtifactPin
-import com.netflix.spinnaker.keel.api.EnvironmentArtifactsSummary
-import com.netflix.spinnaker.keel.api.PinnedEnvironment
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
+import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
+import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactsSummary
+import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
 
 interface ArtifactRepository {
 

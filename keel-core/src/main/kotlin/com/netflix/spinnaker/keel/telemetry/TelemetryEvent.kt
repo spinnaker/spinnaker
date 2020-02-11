@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.telemetry
 
-import com.netflix.spinnaker.keel.api.ArtifactType
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 
 sealed class TelemetryEvent
 

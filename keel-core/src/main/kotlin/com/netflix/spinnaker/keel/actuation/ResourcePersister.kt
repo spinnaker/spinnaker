@@ -1,16 +1,19 @@
 package com.netflix.spinnaker.keel.actuation
 
-import com.netflix.spinnaker.keel.api.DebianArtifact
-import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
-import com.netflix.spinnaker.keel.api.DockerArtifact
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
-import com.netflix.spinnaker.keel.api.SubmittedDeliveryConfig
-import com.netflix.spinnaker.keel.api.SubmittedResource
+import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
+import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.api.id
-import com.netflix.spinnaker.keel.api.normalize
+import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
+import com.netflix.spinnaker.keel.api.plugins.supporting
+import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
+import com.netflix.spinnaker.keel.core.api.SubmittedResource
+import com.netflix.spinnaker.keel.core.api.id
+import com.netflix.spinnaker.keel.core.api.normalize
 import com.netflix.spinnaker.keel.diff.DefaultResourceDiff
 import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.events.ResourceCreated
@@ -23,8 +26,6 @@ import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigException
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.get
-import com.netflix.spinnaker.keel.plugin.ResourceHandler
-import com.netflix.spinnaker.keel.plugin.supporting
 import java.time.Clock
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher

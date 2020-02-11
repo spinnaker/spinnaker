@@ -17,7 +17,7 @@
  */
 package com.netflix.spinnaker.keel.persistence
 
-import com.netflix.spinnaker.keel.diff.ResourceDiff
+import com.netflix.spinnaker.keel.api.ResourceDiff
 import java.security.MessageDigest
 import javax.xml.bind.DatatypeConverter
 

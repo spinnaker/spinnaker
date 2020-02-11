@@ -17,12 +17,12 @@
  */
 package com.netflix.spinnaker.config
 
+import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
+import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.api.titus.cluster.TitusClusterHandler
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.orca.OrcaService
-import com.netflix.spinnaker.keel.plugin.Resolver
-import com.netflix.spinnaker.keel.plugin.TaskLauncher
 import java.time.Clock
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.ApplicationEventPublisher

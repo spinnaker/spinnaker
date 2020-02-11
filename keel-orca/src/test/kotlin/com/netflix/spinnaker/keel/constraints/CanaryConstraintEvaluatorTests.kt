@@ -1,16 +1,13 @@
 package com.netflix.spinnaker.keel.constraints
 
-import com.netflix.spinnaker.keel.api.CanaryConstraint
-import com.netflix.spinnaker.keel.api.CanaryConstraintAttributes
-import com.netflix.spinnaker.keel.api.CanarySource
-import com.netflix.spinnaker.keel.api.ConstraintStatus
-import com.netflix.spinnaker.keel.api.DebianArtifact
-import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
-import com.netflix.spinnaker.keel.api.RegionalExecutionId
-import com.netflix.spinnaker.keel.api.randomUID
-import com.netflix.spinnaker.keel.events.Task
+import com.netflix.spinnaker.keel.api.actuation.Task
+import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
+import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.core.api.CanaryConstraint
+import com.netflix.spinnaker.keel.core.api.CanarySource
+import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.orca.ExecutionDetailResponse
 import com.netflix.spinnaker.keel.orca.OrcaExecutionStages
 import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus

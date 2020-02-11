@@ -3,12 +3,12 @@ package com.netflix.spinnaker.keel.tx
 import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.SPINNAKER_API_V1
 import com.netflix.spinnaker.keel.actuation.ResourcePersister
-import com.netflix.spinnaker.keel.api.ArtifactType.deb
-import com.netflix.spinnaker.keel.api.DebianArtifact
-import com.netflix.spinnaker.keel.api.SubmittedDeliveryConfig
-import com.netflix.spinnaker.keel.api.SubmittedEnvironment
-import com.netflix.spinnaker.keel.api.SubmittedResource
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.deb
+import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.id
+import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
+import com.netflix.spinnaker.keel.core.api.SubmittedEnvironment
+import com.netflix.spinnaker.keel.core.api.SubmittedResource
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigName

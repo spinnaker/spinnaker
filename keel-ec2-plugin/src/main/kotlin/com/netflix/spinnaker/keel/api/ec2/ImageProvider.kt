@@ -21,8 +21,8 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY
 import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import com.netflix.spinnaker.keel.api.ArtifactStatus
-import com.netflix.spinnaker.keel.api.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
+import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.ec2.jackson.ImageProviderDeserializer
 
 /**

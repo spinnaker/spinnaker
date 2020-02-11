@@ -1,15 +1,15 @@
 package com.netflix.spinnaker.keel.actuation
 
-import com.netflix.spinnaker.keel.api.ConstraintState
-import com.netflix.spinnaker.keel.api.ConstraintStatus
-import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
-import com.netflix.spinnaker.keel.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.api.Environment
-import com.netflix.spinnaker.keel.api.ManualJudgementConstraint
-import com.netflix.spinnaker.keel.api.PinnedEnvironment
+import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.constraints.ConstraintEvaluator
+import com.netflix.spinnaker.keel.constraints.ConstraintState
+import com.netflix.spinnaker.keel.constraints.ConstraintStatus
 import com.netflix.spinnaker.keel.constraints.SupportedConstraintType
+import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
+import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
+import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.telemetry.ArtifactVersionApproved

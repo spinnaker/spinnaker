@@ -1,15 +1,15 @@
 package com.netflix.spinnaker.keel.artifact
 
 import com.netflix.spinnaker.igor.ArtifactService
-import com.netflix.spinnaker.keel.api.ArtifactStatus
-import com.netflix.spinnaker.keel.api.ArtifactType
-import com.netflix.spinnaker.keel.api.ArtifactType.deb
-import com.netflix.spinnaker.keel.api.ArtifactType.docker
-import com.netflix.spinnaker.keel.api.DebianArtifact
-import com.netflix.spinnaker.keel.api.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.DockerArtifact
-import com.netflix.spinnaker.keel.api.comparator
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.deb
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.docker
+import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
+import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
+import com.netflix.spinnaker.keel.core.comparator
 import com.netflix.spinnaker.keel.events.ArtifactEvent
 import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.events.ArtifactSyncEvent

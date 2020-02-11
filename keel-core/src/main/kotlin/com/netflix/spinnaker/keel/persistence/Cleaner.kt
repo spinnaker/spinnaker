@@ -4,7 +4,7 @@ import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.id
-import com.netflix.spinnaker.keel.api.resources
+import com.netflix.spinnaker.keel.core.api.resources
 import com.netflix.spinnaker.keel.events.ResourceDeleted
 import java.time.Clock
 import org.slf4j.LoggerFactory

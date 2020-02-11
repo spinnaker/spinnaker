@@ -1,11 +1,9 @@
 package com.netflix.spinnaker.keel.constraints
 
 import com.netflix.spinnaker.keel.api.Constraint
-import com.netflix.spinnaker.keel.api.ConstraintState
-import com.netflix.spinnaker.keel.api.ConstraintStatus
-import com.netflix.spinnaker.keel.api.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.constraints.ConstraintEvaluator.Companion.getConstraintForEnvironment
 import com.netflix.spinnaker.keel.events.ConstraintStateChanged
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository

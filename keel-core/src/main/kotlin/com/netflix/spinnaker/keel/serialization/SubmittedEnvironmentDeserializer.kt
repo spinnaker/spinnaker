@@ -11,10 +11,10 @@ import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.api.Constraint
 import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.api.SimpleLocations
-import com.netflix.spinnaker.keel.api.SubmittedEnvironment
-import com.netflix.spinnaker.keel.api.SubmittedResource
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.toSimpleLocations
+import com.netflix.spinnaker.keel.core.api.SubmittedEnvironment
+import com.netflix.spinnaker.keel.core.api.SubmittedResource
 import java.lang.IllegalArgumentException
 
 /**

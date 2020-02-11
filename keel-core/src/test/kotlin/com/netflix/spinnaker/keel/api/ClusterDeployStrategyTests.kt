@@ -1,6 +1,9 @@
 package com.netflix.spinnaker.keel.api
 
 import com.fasterxml.jackson.databind.node.ObjectNode
+import com.netflix.spinnaker.keel.core.api.Highlander
+import com.netflix.spinnaker.keel.core.api.RedBlack
+import com.netflix.spinnaker.keel.core.api.StaggeredRegion
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext

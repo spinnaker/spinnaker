@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.diff
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
+import com.netflix.spinnaker.keel.api.ResourceDiff
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import de.danielbechler.diff.NodeQueryService
 import de.danielbechler.diff.ObjectDiffer

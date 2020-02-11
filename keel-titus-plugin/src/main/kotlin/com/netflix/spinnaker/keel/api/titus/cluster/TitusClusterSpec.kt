@@ -20,18 +20,18 @@ package com.netflix.spinnaker.keel.api.titus.cluster
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonUnwrapped
-import com.netflix.spinnaker.keel.api.Capacity
-import com.netflix.spinnaker.keel.api.ClusterDependencies
-import com.netflix.spinnaker.keel.api.ClusterDeployStrategy
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.Monikered
-import com.netflix.spinnaker.keel.api.RedBlack
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.titus.exceptions.ErrorResolvingContainerException
 import com.netflix.spinnaker.keel.clouddriver.model.Constraints
 import com.netflix.spinnaker.keel.clouddriver.model.MigrationPolicy
 import com.netflix.spinnaker.keel.clouddriver.model.Resources
+import com.netflix.spinnaker.keel.core.api.Capacity
+import com.netflix.spinnaker.keel.core.api.ClusterDependencies
+import com.netflix.spinnaker.keel.core.api.ClusterDeployStrategy
+import com.netflix.spinnaker.keel.core.api.RedBlack
 import com.netflix.spinnaker.keel.docker.ContainerProvider
 import com.netflix.spinnaker.keel.docker.DigestProvider
 

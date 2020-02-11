@@ -17,7 +17,7 @@
  */
 package com.netflix.spinnaker.keel.exceptions
 
-import com.netflix.spinnaker.keel.api.ResourceCurrentlyUnresolvable
+import com.netflix.spinnaker.keel.core.ResourceCurrentlyUnresolvable
 
 /**
  * The regex provided produced too many capture groups.

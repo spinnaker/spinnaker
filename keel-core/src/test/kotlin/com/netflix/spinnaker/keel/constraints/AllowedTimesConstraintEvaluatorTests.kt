@@ -1,10 +1,10 @@
 package com.netflix.spinnaker.keel.constraints
 
-import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
-import com.netflix.spinnaker.keel.api.TimeWindow
-import com.netflix.spinnaker.keel.api.TimeWindowConstraint
+import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
+import com.netflix.spinnaker.keel.core.api.TimeWindow
+import com.netflix.spinnaker.keel.core.api.TimeWindowConstraint
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext

@@ -17,11 +17,12 @@
  */
 package com.netflix.spinnaker.keel.api
 
-import com.netflix.spinnaker.keel.api.TagVersionStrategy.BRANCH_JOB_COMMIT_BY_JOB
-import com.netflix.spinnaker.keel.api.TagVersionStrategy.INCREASING_TAG
-import com.netflix.spinnaker.keel.api.TagVersionStrategy.SEMVER_JOB_COMMIT_BY_JOB
-import com.netflix.spinnaker.keel.api.TagVersionStrategy.SEMVER_JOB_COMMIT_BY_SEMVER
-import com.netflix.spinnaker.keel.api.TagVersionStrategy.SEMVER_TAG
+import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.BRANCH_JOB_COMMIT_BY_JOB
+import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.INCREASING_TAG
+import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_JOB_COMMIT_BY_JOB
+import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_JOB_COMMIT_BY_SEMVER
+import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_TAG
+import com.netflix.spinnaker.keel.core.TagComparator
 import com.netflix.spinnaker.keel.exceptions.InvalidRegexException
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext

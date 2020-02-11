@@ -1,10 +1,13 @@
 package com.netflix.spinnaker.keel.api
 
-import com.netflix.spinnaker.keel.api.TagVersionStrategy.BRANCH_JOB_COMMIT_BY_JOB
-import com.netflix.spinnaker.keel.api.TagVersionStrategy.INCREASING_TAG
-import com.netflix.spinnaker.keel.api.TagVersionStrategy.SEMVER_JOB_COMMIT_BY_JOB
-import com.netflix.spinnaker.keel.api.TagVersionStrategy.SEMVER_JOB_COMMIT_BY_SEMVER
-import com.netflix.spinnaker.keel.api.TagVersionStrategy.SEMVER_TAG
+import com.netflix.spinnaker.keel.api.artifacts.DockerVersioningStrategy
+import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.BRANCH_JOB_COMMIT_BY_JOB
+import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.INCREASING_TAG
+import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_JOB_COMMIT_BY_JOB
+import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_JOB_COMMIT_BY_SEMVER
+import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_TAG
+import com.netflix.spinnaker.keel.core.DEBIAN_VERSION_COMPARATOR
+import com.netflix.spinnaker.keel.core.comparator
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expectThat

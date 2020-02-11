@@ -1,8 +1,8 @@
 package com.netflix.spinnaker.keel.api.titus.image
 
-import com.netflix.spinnaker.keel.api.ArtifactType.docker
-import com.netflix.spinnaker.keel.api.matchingArtifact
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.docker
 import com.netflix.spinnaker.keel.api.titus.cluster.TitusClusterSpec
+import com.netflix.spinnaker.keel.core.api.matchingArtifact
 import com.netflix.spinnaker.keel.docker.ReferenceProvider
 import com.netflix.spinnaker.keel.events.ArtifactVersionDeployed
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository

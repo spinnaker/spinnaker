@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.igor
 
-import com.netflix.spinnaker.keel.api.ArtifactStatus
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import retrofit2.http.GET
 import retrofit2.http.Path

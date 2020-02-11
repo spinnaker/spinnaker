@@ -17,7 +17,7 @@
  */
 package com.netflix.spinnaker.keel.persistence.memory
 
-import com.netflix.spinnaker.keel.diff.ResourceDiff
+import com.netflix.spinnaker.keel.api.ResourceDiff
 import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
 import java.time.Clock
 import java.time.Instant

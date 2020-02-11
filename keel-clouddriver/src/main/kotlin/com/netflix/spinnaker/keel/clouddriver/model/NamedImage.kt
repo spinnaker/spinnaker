@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.clouddriver.model
 
-import com.netflix.spinnaker.keel.api.DEBIAN_VERSION_COMPARATOR
+import com.netflix.spinnaker.keel.core.DEBIAN_VERSION_COMPARATOR
 import java.time.Instant
 import java.time.Period
 

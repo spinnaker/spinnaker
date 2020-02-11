@@ -17,7 +17,7 @@
  */
 package com.netflix.spinnaker.keel.api.titus.cluster
 
-import com.netflix.spinnaker.keel.api.ResourceCurrentlyUnresolvable
+import com.netflix.spinnaker.keel.core.ResourceCurrentlyUnresolvable
 
 class NoDigestFound(repository: String, tag: String) :
   ResourceCurrentlyUnresolvable("No digest found for docker image $repository:$tag in any registry")

@@ -1,12 +1,10 @@
 package com.netflix.spinnaker.keel.constraints
 
-import com.netflix.spinnaker.keel.api.ConstraintStatus
-import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
-import com.netflix.spinnaker.keel.api.PipelineConstraint
-import com.netflix.spinnaker.keel.api.PipelineConstraintStateAttributes
-import com.netflix.spinnaker.keel.api.randomUID
+import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
+import com.netflix.spinnaker.keel.core.api.PipelineConstraint
+import com.netflix.spinnaker.keel.core.api.randomUID
 import com.netflix.spinnaker.keel.orca.ExecutionDetailResponse
 import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus
 import com.netflix.spinnaker.keel.orca.OrcaService

@@ -22,13 +22,13 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.exceptions.ArtifactParsingException
-import com.netflix.spinnaker.keel.api.ArtifactStatus
-import com.netflix.spinnaker.keel.api.ArtifactType
-import com.netflix.spinnaker.keel.api.ArtifactType.deb
-import com.netflix.spinnaker.keel.api.ArtifactType.docker
-import com.netflix.spinnaker.keel.api.DebianArtifact
-import com.netflix.spinnaker.keel.api.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.DockerArtifact
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.deb
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.docker
+import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
+import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 
 private val objectMapper: ObjectMapper = configuredObjectMapper()

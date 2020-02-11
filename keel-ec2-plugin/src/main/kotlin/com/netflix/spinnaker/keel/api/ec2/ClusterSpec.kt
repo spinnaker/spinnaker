@@ -5,16 +5,16 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY
 import com.fasterxml.jackson.annotation.JsonUnwrapped
-import com.netflix.spinnaker.keel.api.Capacity
-import com.netflix.spinnaker.keel.api.ClusterDependencies
-import com.netflix.spinnaker.keel.api.ClusterDeployStrategy
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.Locations
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.Monikered
-import com.netflix.spinnaker.keel.api.RedBlack
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
 import com.netflix.spinnaker.keel.api.SubnetAwareRegionSpec
+import com.netflix.spinnaker.keel.core.api.Capacity
+import com.netflix.spinnaker.keel.core.api.ClusterDependencies
+import com.netflix.spinnaker.keel.core.api.ClusterDeployStrategy
+import com.netflix.spinnaker.keel.core.api.RedBlack
 import java.time.Duration
 
 /**

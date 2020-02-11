@@ -1,10 +1,10 @@
 package com.netflix.spinnaker.keel.persistence
 
-import com.netflix.spinnaker.keel.api.ArtifactType
-import com.netflix.spinnaker.keel.api.ConstraintState
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
-import com.netflix.spinnaker.keel.api.UID
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
+import com.netflix.spinnaker.keel.constraints.ConstraintState
+import com.netflix.spinnaker.keel.core.api.UID
 
 interface DeliveryConfigRepository : PeriodicallyCheckedRepository<DeliveryConfig> {
 

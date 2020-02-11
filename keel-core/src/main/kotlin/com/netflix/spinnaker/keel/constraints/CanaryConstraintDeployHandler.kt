@@ -1,9 +1,9 @@
 package com.netflix.spinnaker.keel.constraints
 
-import com.netflix.spinnaker.keel.api.CanaryConstraint
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
-import com.netflix.spinnaker.keel.events.Task
+import com.netflix.spinnaker.keel.api.actuation.Task
+import com.netflix.spinnaker.keel.core.api.CanaryConstraint
 
 interface CanaryConstraintDeployHandler {
   val supportedClouds: Set<String>

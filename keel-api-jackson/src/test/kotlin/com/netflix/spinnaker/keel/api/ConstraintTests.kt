@@ -2,6 +2,8 @@ package com.netflix.spinnaker.keel.api
 
 import com.fasterxml.jackson.databind.jsontype.NamedType
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
+import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext

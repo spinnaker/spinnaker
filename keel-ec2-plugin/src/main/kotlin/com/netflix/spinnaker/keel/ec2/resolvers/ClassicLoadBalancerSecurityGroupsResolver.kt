@@ -2,8 +2,8 @@ package com.netflix.spinnaker.keel.ec2.resolvers
 
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerSpec
+import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
-import com.netflix.spinnaker.keel.plugin.Resolver
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 

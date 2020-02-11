@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.rest
 
+import com.netflix.spinnaker.keel.api.plugins.UnsupportedKind
 import com.netflix.spinnaker.keel.clouddriver.ResourceNotFound
 import com.netflix.spinnaker.keel.exceptions.FailedNormalizationException
 import com.netflix.spinnaker.keel.exceptions.InvalidConstraintException
@@ -7,7 +8,6 @@ import com.netflix.spinnaker.keel.persistence.ArtifactAlreadyRegistered
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigException
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
-import com.netflix.spinnaker.keel.plugin.UnsupportedKind
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus.BAD_REQUEST
 import org.springframework.http.HttpStatus.CONFLICT

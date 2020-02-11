@@ -18,15 +18,15 @@
 package com.netflix.spinnaker.keel.diff
 
 import com.netflix.spinnaker.keel.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.api.DebianArtifact
-import com.netflix.spinnaker.keel.api.DependsOnConstraint
-import com.netflix.spinnaker.keel.api.SubmittedDeliveryConfig
-import com.netflix.spinnaker.keel.api.SubmittedEnvironment
+import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.id
-import com.netflix.spinnaker.keel.api.normalize
+import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
+import com.netflix.spinnaker.keel.api.plugins.SupportedKind
+import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
+import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
+import com.netflix.spinnaker.keel.core.api.SubmittedEnvironment
+import com.netflix.spinnaker.keel.core.api.normalize
 import com.netflix.spinnaker.keel.plugin.CannotResolveCurrentState
-import com.netflix.spinnaker.keel.plugin.ResourceHandler
-import com.netflix.spinnaker.keel.plugin.SupportedKind
 import com.netflix.spinnaker.keel.test.DummyResource
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import com.netflix.spinnaker.keel.test.submittedResource

@@ -17,7 +17,7 @@
  */
 package com.netflix.spinnaker.exceptions
 
-import com.netflix.spinnaker.keel.api.ArtifactType
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 
 class ArtifactParsingException(
   val name: String,

@@ -1,11 +1,11 @@
 package com.netflix.spinnaker.keel.rest
 
-import com.netflix.spinnaker.keel.api.ArtifactType
-import com.netflix.spinnaker.keel.api.ArtifactType.deb
-import com.netflix.spinnaker.keel.api.ArtifactType.docker
-import com.netflix.spinnaker.keel.api.ArtifactType.valueOf
-import com.netflix.spinnaker.keel.api.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.EnvironmentArtifactPin
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.deb
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.docker
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.valueOf
+import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
 import com.netflix.spinnaker.keel.events.ArtifactEvent
 import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.events.ArtifactSyncEvent

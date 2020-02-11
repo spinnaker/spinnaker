@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.keel.clouddriver
 
-import com.netflix.spinnaker.keel.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.clouddriver.model.ActiveServerGroup
 import com.netflix.spinnaker.keel.clouddriver.model.ApplicationLoadBalancerModel
 import com.netflix.spinnaker.keel.clouddriver.model.ClassicLoadBalancerModel
@@ -27,6 +26,7 @@ import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupModel
 import com.netflix.spinnaker.keel.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import com.netflix.spinnaker.keel.clouddriver.model.TitusActiveServerGroup
+import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.tags.EntityTags
 import retrofit2.http.GET
 import retrofit2.http.Header

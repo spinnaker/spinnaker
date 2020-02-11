@@ -1,13 +1,11 @@
 package com.netflix.spinnaker.keel.api.ec2.constraints
 
 import com.netflix.frigga.ami.AppVersion
-import com.netflix.spinnaker.keel.api.CanaryConstraint
-import com.netflix.spinnaker.keel.api.CanarySource
-import com.netflix.spinnaker.keel.api.Capacity
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
+import com.netflix.spinnaker.keel.api.actuation.Task
+import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
 import com.netflix.spinnaker.keel.api.ec2.TerminationPolicy
-import com.netflix.spinnaker.keel.api.randomUID
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ImageService
@@ -21,11 +19,13 @@ import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.Subnet
 import com.netflix.spinnaker.keel.clouddriver.model.SuspendedProcess
 import com.netflix.spinnaker.keel.constraints.CanaryConstraintConfigurationProperties
+import com.netflix.spinnaker.keel.core.api.CanaryConstraint
+import com.netflix.spinnaker.keel.core.api.CanarySource
+import com.netflix.spinnaker.keel.core.api.Capacity
+import com.netflix.spinnaker.keel.core.api.randomUID
+import com.netflix.spinnaker.keel.core.parseMoniker
 import com.netflix.spinnaker.keel.ec2.constraints.Ec2CanaryConstraintDeployHandler
 import com.netflix.spinnaker.keel.ec2.resolvers.ImageResolver
-import com.netflix.spinnaker.keel.events.Task
-import com.netflix.spinnaker.keel.model.parseMoniker
-import com.netflix.spinnaker.keel.plugin.TaskLauncher
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.CapturingSlot

@@ -3,7 +3,7 @@ package com.netflix.spinnaker.keel.serialization
 import com.fasterxml.jackson.databind.node.JsonNodeType.MISSING
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.netflix.spinnaker.keel.api.randomUID
+import com.netflix.spinnaker.keel.core.api.randomUID
 import de.huxhorn.sulky.ulid.ULID
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext

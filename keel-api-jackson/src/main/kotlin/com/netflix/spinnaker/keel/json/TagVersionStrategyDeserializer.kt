@@ -3,7 +3,7 @@ package com.netflix.spinnaker.keel.json
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
-import com.netflix.spinnaker.keel.api.TagVersionStrategy
+import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy
 
 internal object TagVersionStrategyDeserializer : StdDeserializer<TagVersionStrategy>(TagVersionStrategy::class.java) {
   override fun deserialize(p: JsonParser, ctxt: DeserializationContext): TagVersionStrategy {

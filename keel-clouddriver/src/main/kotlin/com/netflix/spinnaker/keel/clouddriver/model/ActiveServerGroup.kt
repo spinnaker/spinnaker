@@ -2,9 +2,9 @@ package com.netflix.spinnaker.keel.clouddriver.model
 
 import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonCreator
-import com.netflix.spinnaker.keel.api.Capacity
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
+import com.netflix.spinnaker.keel.core.api.Capacity
 
 // todo eb: this should be more general so that it works for all server groups, not just ec2
 data class ActiveServerGroup(

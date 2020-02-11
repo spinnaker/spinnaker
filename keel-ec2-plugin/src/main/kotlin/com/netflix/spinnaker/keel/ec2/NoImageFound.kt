@@ -17,7 +17,7 @@
  */
 package com.netflix.spinnaker.keel.ec2
 
-import com.netflix.spinnaker.keel.api.ResourceCurrentlyUnresolvable
+import com.netflix.spinnaker.keel.core.ResourceCurrentlyUnresolvable
 
 class NoImageFound(artifactName: String) :
   ResourceCurrentlyUnresolvable("No image found for artifact $artifactName")

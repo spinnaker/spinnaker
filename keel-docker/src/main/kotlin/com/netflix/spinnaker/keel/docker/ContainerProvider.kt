@@ -19,7 +19,7 @@ package com.netflix.spinnaker.keel.docker
 
 import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import com.netflix.spinnaker.keel.api.TagVersionStrategy
+import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy
 
 @JsonDeserialize(using = ContainerProviderDeserializer::class)
 sealed class ContainerProvider

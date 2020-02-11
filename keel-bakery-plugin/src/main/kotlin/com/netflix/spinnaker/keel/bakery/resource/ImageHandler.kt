@@ -2,12 +2,17 @@ package com.netflix.spinnaker.keel.bakery.resource
 
 import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.igor.ArtifactService
-import com.netflix.spinnaker.keel.api.DebianArtifact
-import com.netflix.spinnaker.keel.api.DeliveryArtifact
-import com.netflix.spinnaker.keel.api.NoKnownArtifactVersions
 import com.netflix.spinnaker.keel.api.Resource
+import com.netflix.spinnaker.keel.api.ResourceDiff
+import com.netflix.spinnaker.keel.api.actuation.Task
+import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
 import com.netflix.spinnaker.keel.api.application
+import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
+import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.id
+import com.netflix.spinnaker.keel.api.plugins.Resolver
+import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
+import com.netflix.spinnaker.keel.api.plugins.SupportedKind
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.bakery.BAKERY_API_V1
 import com.netflix.spinnaker.keel.bakery.BaseImageCache
@@ -15,17 +20,12 @@ import com.netflix.spinnaker.keel.bakery.api.ImageSpec
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
 import com.netflix.spinnaker.keel.clouddriver.ImageService
 import com.netflix.spinnaker.keel.clouddriver.model.Image
-import com.netflix.spinnaker.keel.diff.ResourceDiff
+import com.netflix.spinnaker.keel.core.NoKnownArtifactVersions
 import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
-import com.netflix.spinnaker.keel.events.Task
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
-import com.netflix.spinnaker.keel.plugin.Resolver
-import com.netflix.spinnaker.keel.plugin.ResourceHandler
-import com.netflix.spinnaker.keel.plugin.SupportedKind
-import com.netflix.spinnaker.keel.plugin.TaskLauncher
 import kotlinx.coroutines.runBlocking
 import org.springframework.context.ApplicationEventPublisher
 

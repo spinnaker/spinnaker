@@ -17,7 +17,7 @@ package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.actuation.ResourcePersister
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.SubmittedResource
+import com.netflix.spinnaker.keel.core.api.SubmittedResource
 import com.netflix.spinnaker.keel.diff.AdHocDiffer
 import com.netflix.spinnaker.keel.diff.DiffResult
 import com.netflix.spinnaker.keel.pause.ResourcePauser

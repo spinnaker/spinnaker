@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.introspect.AnnotatedClassResolver
 import com.fasterxml.jackson.databind.type.TypeFactory
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.api.ResourceSpec
-import com.netflix.spinnaker.keel.api.SubmittedResource
+import com.netflix.spinnaker.keel.core.api.SubmittedResource
 
 class SubmittedResourceDeserializer : StdNodeBasedDeserializer<SubmittedResource<*>>(SubmittedResource::class.java) {
 

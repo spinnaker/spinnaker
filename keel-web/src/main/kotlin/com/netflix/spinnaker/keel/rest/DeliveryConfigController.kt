@@ -1,11 +1,11 @@
 package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.actuation.ResourcePersister
-import com.netflix.spinnaker.keel.api.ConstraintState
 import com.netflix.spinnaker.keel.api.DeliveryConfig
-import com.netflix.spinnaker.keel.api.EnvironmentArtifactsSummary
-import com.netflix.spinnaker.keel.api.SubmittedDeliveryConfig
-import com.netflix.spinnaker.keel.api.UpdatedConstraintStatus
+import com.netflix.spinnaker.keel.constraints.ConstraintState
+import com.netflix.spinnaker.keel.constraints.UpdatedConstraintStatus
+import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactsSummary
+import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.diff.AdHocDiffer
 import com.netflix.spinnaker.keel.diff.EnvironmentDiff
 import com.netflix.spinnaker.keel.exceptions.InvalidConstraintException

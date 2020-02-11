@@ -19,11 +19,11 @@ package com.netflix.spinnaker.keel.clouddriver
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.frigga.ami.AppVersion
-import com.netflix.spinnaker.keel.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImage
 import com.netflix.spinnaker.keel.clouddriver.model.NamedImageComparator
 import com.netflix.spinnaker.keel.clouddriver.model.appVersion
 import com.netflix.spinnaker.keel.clouddriver.model.creationDate
+import com.netflix.spinnaker.keel.core.api.DEFAULT_SERVICE_ACCOUNT
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext

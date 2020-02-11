@@ -1,5 +1,7 @@
 package com.netflix.spinnaker.keel.api
 
+import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
+
 data class DeliveryConfig(
   val name: String,
   val application: String,

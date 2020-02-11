@@ -17,7 +17,7 @@
  */
 package com.netflix.spinnaker.keel.sql
 
-import com.netflix.spinnaker.keel.diff.ResourceDiff
+import com.netflix.spinnaker.keel.api.ResourceDiff
 import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DIFF_FINGERPRINT
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ

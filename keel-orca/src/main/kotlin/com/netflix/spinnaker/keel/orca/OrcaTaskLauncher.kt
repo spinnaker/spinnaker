@@ -19,11 +19,12 @@ package com.netflix.spinnaker.keel.orca
 
 import com.netflix.spinnaker.keel.api.NotificationConfig
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.SubjectType
+import com.netflix.spinnaker.keel.api.actuation.SubjectType
+import com.netflix.spinnaker.keel.api.actuation.Task
+import com.netflix.spinnaker.keel.api.actuation.TaskLauncher
 import com.netflix.spinnaker.keel.api.application
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.serviceAccount
-import com.netflix.spinnaker.keel.events.Task
 import com.netflix.spinnaker.keel.events.TaskCreatedEvent
 import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
@@ -31,7 +32,6 @@ import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.model.toOrcaNotification
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.TaskRecord
-import com.netflix.spinnaker.keel.plugin.TaskLauncher
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component

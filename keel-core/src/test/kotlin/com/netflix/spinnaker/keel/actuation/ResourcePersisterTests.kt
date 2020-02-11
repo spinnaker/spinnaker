@@ -1,16 +1,18 @@
 package com.netflix.spinnaker.keel.actuation
 
 import com.netflix.spinnaker.keel.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.api.ArtifactType.deb
-import com.netflix.spinnaker.keel.api.DebianArtifact
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
-import com.netflix.spinnaker.keel.api.SubmittedDeliveryConfig
-import com.netflix.spinnaker.keel.api.SubmittedEnvironment
-import com.netflix.spinnaker.keel.api.SubmittedResource
+import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.deb
+import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.id
-import com.netflix.spinnaker.keel.api.resources
+import com.netflix.spinnaker.keel.api.plugins.SimpleResourceHandler
+import com.netflix.spinnaker.keel.api.plugins.SupportedKind
+import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
+import com.netflix.spinnaker.keel.core.api.SubmittedEnvironment
+import com.netflix.spinnaker.keel.core.api.SubmittedResource
+import com.netflix.spinnaker.keel.core.api.resources
 import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceUpdated
@@ -19,8 +21,6 @@ import com.netflix.spinnaker.keel.persistence.get
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
-import com.netflix.spinnaker.keel.plugin.SimpleResourceHandler
-import com.netflix.spinnaker.keel.plugin.SupportedKind
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
 import dev.minutest.MinutestFixture
 import dev.minutest.Tests
