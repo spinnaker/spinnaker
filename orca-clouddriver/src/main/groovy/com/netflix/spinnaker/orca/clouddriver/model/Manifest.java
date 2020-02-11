@@ -17,28 +17,89 @@
 
 package com.netflix.spinnaker.orca.clouddriver.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.List;
 import java.util.Map;
-import lombok.Data;
+import java.util.Optional;
+import javax.annotation.ParametersAreNullableByDefault;
+import lombok.Builder;
+import lombok.Value;
 
-@Data
-public class Manifest {
-  private Map<String, Object> manifest;
-  private List<Artifact> artifacts;
-  private Status status;
-  private String name;
-  private List warnings;
+@JsonDeserialize(builder = Manifest.ManifestBuilder.class)
+@NonnullByDefault
+@Value
+public final class Manifest {
+  private final ImmutableMap<String, Object> manifest;
+  private final ImmutableList<Artifact> artifacts;
+  private final Status status;
+  private final String name;
+  private final ImmutableList<String> warnings;
 
-  @Data
-  public static class Status {
-    Condition stable;
-    Condition failed;
+  @Builder(toBuilder = true)
+  @ParametersAreNullableByDefault
+  private Manifest(
+      Map<String, Object> manifest,
+      List<Artifact> artifacts,
+      Status status,
+      String name,
+      List<String> warnings) {
+    this.manifest =
+        Optional.ofNullable(manifest).map(ImmutableMap::copyOf).orElseGet(ImmutableMap::of);
+    this.artifacts =
+        Optional.ofNullable(artifacts).map(ImmutableList::copyOf).orElseGet(ImmutableList::of);
+    this.status = Optional.ofNullable(status).orElseGet(() -> Status.builder().build());
+    this.name = Optional.ofNullable(name).orElse("");
+    this.warnings =
+        Optional.ofNullable(warnings).map(ImmutableList::copyOf).orElseGet(ImmutableList::of);
   }
 
-  @Data
-  public static class Condition {
-    boolean state;
-    String message;
+  @JsonDeserialize(builder = Manifest.Status.StatusBuilder.class)
+  @Value
+  public static final class Status {
+    private final Condition stable;
+    private final Condition failed;
+
+    @Builder(toBuilder = true)
+    @ParametersAreNullableByDefault
+    private Status(Condition stable, Condition failed) {
+      this.stable = Optional.ofNullable(stable).orElseGet(Condition::emptyFalse);
+      this.failed = Optional.ofNullable(failed).orElseGet(Condition::emptyFalse);
+    }
+
+    @JsonPOJOBuilder(withPrefix = "")
+    public static final class StatusBuilder {}
   }
+
+  @Value
+  public static final class Condition {
+    private static final Condition TRUE = new Condition(true, "");
+    private static final Condition FALSE = new Condition(false, "");
+
+    private final boolean state;
+    private final String message;
+
+    @ParametersAreNullableByDefault
+    public Condition(
+        @JsonProperty("state") boolean state, @JsonProperty("message") String message) {
+      this.state = state;
+      this.message = Optional.ofNullable(message).orElse("");
+    }
+
+    public static Condition emptyFalse() {
+      return FALSE;
+    }
+
+    public static Condition emptyTrue() {
+      return TRUE;
+    }
+  }
+
+  @JsonPOJOBuilder(withPrefix = "")
+  public static final class ManifestBuilder {}
 }

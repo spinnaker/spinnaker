@@ -1,0 +1,35 @@
+{
+  "account" : "k8s",
+  "status" : {
+    "failed" : {
+      "state" : false
+    },
+    "stable" : {
+      "state" : true
+    },
+    "paused" : {
+      "state" : false
+    },
+    "available" : {
+      "state" : true
+    }
+  },
+  "manifest" : {
+    "metadata" : {
+      "generation" : 1,
+      "creationTimestamp" : "2020-02-05T00:56:48Z"
+    },
+    "spec" : {}
+  },
+  "warnings" : [],
+  "events" : [],
+  "artifacts" : [
+    {
+      "name" : "gcr.io/test-repo/test-image",
+      "reference" : "gcr.io/test-repo/test-image@sha256:17016d5124f95c63aeccdb3a1eeffa135ac6e34215273bc46f57a8e346cabf97",
+      "type" : "docker/image"
+    }
+  ],
+  "name" : "replicaSet test-rs-v016",
+  "location" : "my-namespace"
+}

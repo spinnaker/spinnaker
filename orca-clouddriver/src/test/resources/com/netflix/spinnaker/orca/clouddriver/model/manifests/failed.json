@@ -1,0 +1,12 @@
+{
+  "account" : "k8s",
+  "status" : {
+    "failed": {
+      "state": true,
+      "message": "Manifest failed"
+    },
+    "stable": {
+      "state": false
+    }
+  }
+}
