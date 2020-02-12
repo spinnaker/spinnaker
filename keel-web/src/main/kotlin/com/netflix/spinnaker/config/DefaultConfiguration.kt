@@ -83,7 +83,7 @@ class DefaultConfiguration {
 
   @Bean
   @ConditionalOnMissingBean
-  fun agentLockRepository(): AgentLockRepository = InMemoryAgentLockRepository()
+  fun agentLockRepository(): AgentLockRepository = InMemoryAgentLockRepository(emptyList())
 
   @Bean
   fun resourceTypeIdentifier(

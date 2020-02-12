@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.keel.orca
 
+import com.fasterxml.jackson.annotation.JsonAlias
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import java.time.Instant
 import java.util.HashMap
@@ -89,7 +90,16 @@ data class OrcaException(
   val details: GeneralErrorsDetails
 )
 
+data class ClouddriverException(
+  val cause: String?,
+  val message: String,
+  val type: String,
+  val operation: String?
+)
+
 data class OrcaContext(
-  // fetching only exception for now
-  val exception: OrcaException
+  // fetching only orca general and kato exceptions for now
+  val exception: OrcaException?,
+  @JsonAlias("kato.tasks")
+  val clouddriverException: List<Map<String, Any>>?
 )
