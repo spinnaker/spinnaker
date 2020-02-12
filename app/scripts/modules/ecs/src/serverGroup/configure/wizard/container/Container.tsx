@@ -113,6 +113,16 @@ export class Container extends React.Component<IContainerProps, IContainerState>
     this.setState({ imageDescription: newImageDescription });
   };
 
+  private updateComputeUnits = (newComputeUnits: number) => {
+    this.props.notifyAngular('computeUnits', newComputeUnits);
+    this.setState({ computeUnits: newComputeUnits });
+  };
+
+  private updateReservedMemory = (newReservedMemory: number) => {
+    this.props.notifyAngular('reservedMemory', newReservedMemory);
+    this.setState({ reservedMemory: newReservedMemory });
+  };
+
   private updateTargetGroupMappingTargetGroup = (index: number, newTargetGroup: Option<string>) => {
     const currentMappings = this.state.targetGroupMappings;
     const targetMapping = currentMappings[index];
@@ -141,6 +151,8 @@ export class Container extends React.Component<IContainerProps, IContainerState>
     const updateContainerMappingImage = this.updateContainerMappingImage;
     const updateTargetGroupMappingTargetGroup = this.updateTargetGroupMappingTargetGroup;
     const updateTargetGroupMappingPort = this.updateTargetGroupMappingPort;
+    const updateComputeUnits = this.updateComputeUnits;
+    const updateReservedMemory = this.updateReservedMemory;
 
     const dockerImageOptions = this.state.dockerImages.map(function(image) {
       let msg = '';
@@ -218,7 +230,36 @@ export class Container extends React.Component<IContainerProps, IContainerState>
           </div>
         </div>
         <div className="form-group">
-          <hr />
+          <div className="col-md-3 sm-label-right">
+            <b>Compute Units</b>
+            <HelpField id="ecs.capacity.reserved.computeUnits" />
+          </div>
+          <div className="col-md-9" style={{ width: '100px' }}>
+            <input
+              type="number"
+              className="form-control input-sm no-spel"
+              required={false}
+              value={this.state.computeUnits}
+              onChange={e => updateComputeUnits(e.target.valueAsNumber)}
+            />
+          </div>
+        </div>
+        <div className="form-group">
+          <div className="col-md-3 sm-label-right">
+            <b>Reserved Memory</b>
+            <HelpField id="ecs.capacity.reserved.memory" />
+          </div>
+          <div className="col-md-9" style={{ width: '100px' }}>
+            <input
+              type="number"
+              className="form-control input-sm no-spel"
+              required={false}
+              value={this.state.reservedMemory}
+              onChange={e => updateReservedMemory(e.target.valueAsNumber)}
+            />
+          </div>
+        </div>
+        <div className="form-group">
           <div className="sm-label-left">
             <b>Target Group Mappings</b>
             <HelpField id="ecs.targetGroupMappings" />
