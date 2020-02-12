@@ -8,7 +8,7 @@ Registry.pipeline.registerStage({
   label: 'AWS CodeBuild',
   description: 'Trigger a build in AWS CodeBuild',
   key: 'awsCodeBuild',
-  producesArtifacts: false,
+  producesArtifacts: true,
   component: AwsCodeBuildStageConfig,
   validateFn: validate,
   executionDetailsSections: [AwsCodeBuildExecutionDetails, ExecutionDetailsTasks],
