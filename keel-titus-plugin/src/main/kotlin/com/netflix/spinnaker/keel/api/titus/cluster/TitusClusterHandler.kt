@@ -318,16 +318,21 @@ class TitusClusterHandler(
       .also { them ->
         if (them.distinctBy { it.container.digest }.size == 1) {
           val container = them.first().container
-          val image = cloudDriverService.findDockerImages(
+          val images = cloudDriverService.findDockerImages(
             account = getRegistryForTitusAccount(resource.spec.locations.account),
             repository = container.repository()
-          ).find { it.digest == container.digest }
-          if (image != null) {
-            publisher.publishEvent(ArtifactVersionDeployed(
-              resourceId = resource.id,
-              artifactVersion = image.tag,
-              provider = "titus"
-            ))
+          ).filter { it.digest == container.digest }
+          if (images.isNotEmpty()) {
+            images.forEach { image ->
+              // We publish an event for each tag that matches the digest
+              // so that we handle the tags like `latest` where more than one tags have the same digest
+              // and we don't care about some of them.
+              publisher.publishEvent(ArtifactVersionDeployed(
+                resourceId = resource.id,
+                artifactVersion = image.tag,
+                provider = "titus"
+              ))
+            }
           }
         }
       }
