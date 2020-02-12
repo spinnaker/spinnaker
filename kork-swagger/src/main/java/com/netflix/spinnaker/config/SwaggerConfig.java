@@ -19,9 +19,11 @@ package com.netflix.spinnaker.config;
 import static com.google.common.base.Predicates.or;
 
 import com.google.common.base.Predicate;
-import groovy.lang.MetaClass;
+import com.google.common.collect.ImmutableList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -46,6 +48,9 @@ public class SwaggerConfig {
   private String basePath = "";
   private String documentationPath = "/";
 
+  private static final ImmutableList<String> IGNORED_CLASS_NAMES =
+      ImmutableList.of("groovy.lang.MetaClass");
+
   @Bean
   public Docket gateApi() {
     return new Docket(DocumentationType.SWAGGER_2)
@@ -55,7 +60,23 @@ public class SwaggerConfig {
         .paths(paths())
         .build()
         .apiInfo(apiInfo())
-        .ignoredParameterTypes(MetaClass.class);
+        .ignoredParameterTypes(ignoredClasses());
+  }
+
+  private static Class[] ignoredClasses() {
+    return IGNORED_CLASS_NAMES.stream()
+        .map(SwaggerConfig::getClassIfPresent)
+        .filter(Objects::nonNull)
+        .toArray(Class[]::new);
+  }
+
+  @Nullable
+  private static Class<?> getClassIfPresent(String name) {
+    try {
+      return Class.forName(name);
+    } catch (ClassNotFoundException e) {
+      return null;
+    }
   }
 
   private Predicate<String> paths() {
