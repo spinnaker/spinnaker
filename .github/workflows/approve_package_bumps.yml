@@ -37,10 +37,10 @@ jobs:
         with:
           github-token: '${{ secrets.SPINNAKERBOT_TOKEN }}'
 
-      - name: ready to merge label
+      - name: Add ready to merge label
         if: steps.purebump.outputs.ispurebump == 'true'
         uses: actions/github@v1.0.0
         with:
-          args: label 'ready to merge'
+          args: label "ready to merge"
         env:
           GITHUB_TOKEN: ${{ secrets.SPINNAKERBOT_TOKEN }}
