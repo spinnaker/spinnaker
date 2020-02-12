@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.api.plugins.UnsupportedKind
 import com.netflix.spinnaker.keel.clouddriver.ResourceNotFound
+import com.netflix.spinnaker.keel.exceptions.DuplicateResourceIdException
 import com.netflix.spinnaker.keel.exceptions.FailedNormalizationException
 import com.netflix.spinnaker.keel.exceptions.InvalidConstraintException
 import com.netflix.spinnaker.keel.persistence.ArtifactAlreadyRegistered
@@ -46,6 +47,13 @@ class ExceptionHandler {
   @ExceptionHandler(ArtifactAlreadyRegistered::class)
   @ResponseStatus(CONFLICT)
   fun onAlreadyRegistered(e: ArtifactAlreadyRegistered): ApiError {
+    log.error(e.message)
+    return ApiError(e)
+  }
+
+  @ExceptionHandler(DuplicateResourceIdException::class)
+  @ResponseStatus(BAD_REQUEST)
+  fun onDuplicateResourceIds(e: DuplicateResourceIdException): ApiError {
     log.error(e.message)
     return ApiError(e)
   }

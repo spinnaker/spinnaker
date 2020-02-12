@@ -12,10 +12,12 @@ import com.netflix.spinnaker.keel.api.plugins.SupportedKind
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.core.api.SubmittedEnvironment
 import com.netflix.spinnaker.keel.core.api.SubmittedResource
+import com.netflix.spinnaker.keel.core.api.normalize
 import com.netflix.spinnaker.keel.core.api.resources
 import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.events.ResourceCreated
 import com.netflix.spinnaker.keel.events.ResourceUpdated
+import com.netflix.spinnaker.keel.exceptions.DuplicateResourceIdException
 import com.netflix.spinnaker.keel.persistence.Cleaner
 import com.netflix.spinnaker.keel.persistence.get
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
@@ -34,6 +36,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.context.ApplicationEventPublisher
 import strikt.api.expectCatching
 import strikt.api.expectThat
+import strikt.assertions.failed
 import strikt.assertions.first
 import strikt.assertions.hasSize
 import strikt.assertions.isA
@@ -54,7 +57,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
   ) {
     private val clock: Clock = Clock.systemDefaultZone()
     val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
-    private val cleaner: Cleaner = mockk(relaxUnitFun = true)
+    val cleaner: Cleaner = mockk(relaxUnitFun = true)
     private val subject: ResourcePersister = ResourcePersister(
       deliveryConfigRepository,
       artifactRepository,
@@ -69,18 +72,13 @@ internal class ResourcePersisterTests : JUnit5Minutests {
     lateinit var deliveryConfig: DeliveryConfig
 
     @Suppress("UNCHECKED_CAST")
-    fun create(submittedResource: SubmittedResource<DummyResourceSpec>) {
-      resource = subject.upsert(submittedResource)
+    fun create(r: Resource<DummyResourceSpec>) {
+      resource = subject.upsert(r)
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun update(updatedSpec: DummyResourceSpec) {
-      resource = subject.upsert(SubmittedResource(
-        metadata = mapOf("serviceAccount" to "keel@spinnaker"),
-        apiVersion = resource.apiVersion,
-        kind = resource.kind,
-        spec = updatedSpec
-      ))
+    fun update(newResource: Resource<DummyResourceSpec>) {
+      resource = subject.upsert(newResource)
     }
 
     fun resourcesDueForCheck() =
@@ -111,10 +109,10 @@ internal class ResourcePersisterTests : JUnit5Minutests {
               apiVersion = "test.$SPINNAKER_API_V1",
               kind = "whatever",
               spec = DummyResourceSpec(data = "o hai")
-            ))
+            ).normalize())
           }
 
-          test("stores the normalized resource") {
+          test("stores the resource") {
             val persistedResource = resourceRepository.get<DummyResourceSpec>(resource.id)
             expectThat(persistedResource) {
               get { id }.isEqualTo(resource.id)
@@ -138,7 +136,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
           context("after an update") {
             before {
               resourcesDueForCheck()
-              update(DummyResourceSpec(id = resource.spec.id, data = "kthxbye"))
+              update(resource.copy(spec = DummyResourceSpec(id = resource.spec.id, data = "kthxbye")))
             }
 
             test("stores the updated resource") {
@@ -164,7 +162,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
           context("after a no-op update") {
             before {
               resourcesDueForCheck()
-              update(resource.spec)
+              update(resource)
             }
 
             test("does not record that the resource was updated") {
@@ -258,9 +256,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
             kind = "whatever",
             metadata = mapOf("serviceAccount" to "keel@spinnaker"),
             spec = DummyResourceSpec("test", "resource in test")
-          ).also {
-            create(it)
-          }
+          )
             .run {
               copy(spec = spec.copy(data = "updated resource in test"))
             }
@@ -270,9 +266,7 @@ internal class ResourcePersisterTests : JUnit5Minutests {
             kind = "whatever",
             metadata = mapOf("serviceAccount" to "keel@spinnaker"),
             spec = DummyResourceSpec("prod", "resource in prod")
-          ).also {
-            create(it)
-          }
+          )
             .run {
               copy(spec = spec.copy(data = "updated resource in prod"))
             }
@@ -317,6 +311,48 @@ internal class ResourcePersisterTests : JUnit5Minutests {
               .get { data }
               .startsWith("updated")
           }
+        }
+      }
+
+      context("a delivery config with non-unique resource ids errors while persisting ") {
+        test("an error is thrown and config is deleted") {
+          expectCatching {
+            create(
+              SubmittedDeliveryConfig(
+                name = "keel-manifest",
+                application = "keel",
+                serviceAccount = "keel@spinnaker",
+                artifacts = setOf(DebianArtifact(name = "keel")),
+                environments = setOf(
+                  SubmittedEnvironment(
+                    name = "test",
+                    resources = setOf(
+                      SubmittedResource(
+                        apiVersion = "test.$SPINNAKER_API_V1",
+                        kind = "whatever",
+                        spec = DummyResourceSpec("test", "im a twin", "keel")
+                      )
+                    ),
+                    constraints = emptySet()
+                  ),
+                  SubmittedEnvironment(
+                    name = "prod",
+                    resources = setOf(
+                      SubmittedResource(
+                        apiVersion = "test.$SPINNAKER_API_V1",
+                        kind = "whatever",
+                        spec = DummyResourceSpec("test", "im a twin", "keel")
+                      )
+                    ),
+                    constraints = emptySet()
+                  )
+                )
+              )
+            )
+          }.failed()
+            .isA<DuplicateResourceIdException>()
+
+          expectThat(resourceRepository.size()).isEqualTo(0)
         }
       }
     }
