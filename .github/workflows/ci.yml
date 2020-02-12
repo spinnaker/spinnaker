@@ -11,6 +11,13 @@ env:
   NODE_VERSION: 10.15.1
 
 jobs:
+  ci:
+    name: Deck CI
+    needs: [test, build, packages]
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo test, build, packages successful
+
   test:
     name: Unit tests
     runs-on: ubuntu-latest

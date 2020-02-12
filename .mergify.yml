@@ -1,7 +1,7 @@
 pull_request_rules:
   - name: Automatically merge on CI success and review
     conditions:
-      - status-success=continuous-integration/travis-ci/pr
+      - status-success=Deck CI
       - 'label=ready to merge'
       - 'approved-reviews-by=@oss-approvers'
     actions:
@@ -10,7 +10,7 @@ pull_request_rules:
         strict: smart
   - name: Automatically self merge on CI success
     conditions:
-      - status-success=continuous-integration/travis-ci/pr
+      - status-success=Deck CI
       - 'label=ready to merge'
       - 'label=self merge'
     actions:
@@ -19,7 +19,7 @@ pull_request_rules:
         strict: smart
   - name: Automatically rebase and merge on CI success and review
     conditions:
-      - status-success=continuous-integration/travis-ci/pr
+      - status-success=Deck CI
       - 'label=ready to rebase'
       - 'approved-reviews-by=@oss-approvers'
     actions:
@@ -28,7 +28,7 @@ pull_request_rules:
         strict: smart
   - name: Automatically rebase and self merge on CI success
     conditions:
-      - status-success=continuous-integration/travis-ci/pr
+      - status-success=Deck CI
       - 'label=ready to rebase'
       - 'label=self merge'
     actions:
