@@ -18,10 +18,12 @@ package com.netflix.spinnaker.igor.build.model;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.Map;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 @ToString
 @Data
+@NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class GenericArtifact {
   public GenericArtifact(String fileName, String displayPath, String relativePath) {
@@ -45,4 +47,5 @@ public class GenericArtifact {
   private String type;
   private String version;
   private Map<String, String> metadata;
+  private boolean decorated;
 }

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.igor.build.artifact.decorator
 
 import com.netflix.spinnaker.igor.build.model.GenericArtifact
+import org.codehaus.groovy.runtime.InvokerHelper
 
 class ConfigurableFileDecorator implements ArtifactDetailsDecorator {
 
@@ -32,16 +33,19 @@ class ConfigurableFileDecorator implements ArtifactDetailsDecorator {
 
     @Override
     GenericArtifact decorate(GenericArtifact genericArtifact) {
+        GenericArtifact copy = new GenericArtifact()
+        InvokerHelper.setProperties(copy, genericArtifact.properties)
+
         def m
 
         if ((m = genericArtifact.fileName =~ decoratorRegex)) {
-            genericArtifact.name = m.group(1)
-            genericArtifact.version = m.group(2)
-            genericArtifact.type = m.groupCount() > 2 ? m.group(3) : type
-            genericArtifact.reference = genericArtifact.fileName
+            copy.name = m.group(1)
+            copy.version = m.group(2)
+            copy.type = m.groupCount() > 2 ? m.group(3) : type
+            copy.reference = genericArtifact.fileName
         }
 
-        return genericArtifact
+        return copy
     }
 
     @Override

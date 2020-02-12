@@ -26,7 +26,7 @@ class ConfigurableFileDecoratorSpec extends Specification {
         when:
         GenericArtifact genericArtifact = new GenericArtifact(reference, reference, reference)
         ConfigurableFileDecorator configurableFileDecorator = new ConfigurableFileDecorator(artifactType, decoratorRegex, decoratorRegex)
-        configurableFileDecorator.decorate(genericArtifact)
+        genericArtifact = configurableFileDecorator.decorate(genericArtifact)
 
         then:
         genericArtifact.name      == name
@@ -52,7 +52,7 @@ class ConfigurableFileDecoratorSpec extends Specification {
         when:
         GenericArtifact genericArtifact = new GenericArtifact(reference, reference, reference)
         ConfigurableFileDecorator configurableFileDecorator = new ConfigurableFileDecorator("dummy", identifier, identifier)
-        configurableFileDecorator.decorate(genericArtifact)
+        genericArtifact = configurableFileDecorator.decorate(genericArtifact)
 
         then:
         configurableFileDecorator.handles(genericArtifact) == knownArtifact

@@ -50,17 +50,26 @@ class ArtifactDecorator {
         }
     }
 
-    void decorate(GenericArtifact genericArtifact) {
-        ArtifactDetailsDecorator artifactDetailsDecorator = artifactDetailsDecorators.find { it.handles(genericArtifact) }
-
-        if (artifactDetailsDecorator) {
-            artifactDetailsDecorator.decorate(genericArtifact)
-            log.debug "Decorated artifact with decorator [${artifactDetailsDecorator.decoratorName()}]: ${genericArtifact.toString()}"
+    List<GenericArtifact> decorate(GenericArtifact genericArtifact) {
+        List<ArtifactDetailsDecorator> filteredDecorators = artifactDetailsDecorators.findAll { it.handles(genericArtifact) }
+        if (!filteredDecorators || genericArtifact.isDecorated()) {
+            return [genericArtifact]
+        }
+        if (filteredDecorators.size() > 1) {
+            // We want to be able to define multiple decorators of the same type, but we also want to be able to
+            // override the built in decorators, so if any custom decorators are found, remove the ones built in.
+            filteredDecorators = filteredDecorators.findAll { it instanceof ConfigurableFileDecorator }
+        }
+        filteredDecorators.collect {
+            log.debug "Decorated artifact with decorator [${it.decoratorName()}]: ${genericArtifact.toString()}"
+            def decoratedArtifact = it.decorate(genericArtifact)
+            decoratedArtifact.decorated = true
+            decoratedArtifact
         }
     }
 
     void decorate(GenericBuild genericBuild) {
-        genericBuild.artifacts?.each {
+        genericBuild.artifacts = genericBuild.artifacts?.collectMany {
             decorate(it)
         }
     }

@@ -43,7 +43,7 @@ class ArtifactDecoratorSpec extends Specification {
 
         when:
         GenericArtifact genericArtifact = new GenericArtifact(reference, reference, reference)
-        artifactDecorator.decorate(genericArtifact)
+        genericArtifact = artifactDecorator.decorate(genericArtifact)?.first()
 
         then:
         genericArtifact.name    == name
@@ -62,7 +62,6 @@ class ArtifactDecoratorSpec extends Specification {
 
     @Unroll
     def "Override the included parser with a parser defined in configuration"() {
-
         given:
         List<ArtifactDetailsDecorator> artifactDetailsDecorators = new ArrayList<>()
         artifactDetailsDecorators.add (new DebDetailsDecorator())
@@ -78,7 +77,7 @@ class ArtifactDecoratorSpec extends Specification {
 
         when:
         GenericArtifact genericArtifact = new GenericArtifact(reference, reference, reference)
-        artifactDecorator.decorate(genericArtifact)
+        genericArtifact = artifactDecorator.decorate(genericArtifact).first()
 
         then:
         genericArtifact.name    == name
@@ -89,6 +88,62 @@ class ArtifactDecoratorSpec extends Specification {
         reference                      || name   | version            | type
         "api_1.1.1-h01.sha123_all.deb" || "api"  | "1.1.1-h01.sha123" | "deb"
         "api_1.1.1.deb"                || "api"  | "1.1.1"            | "deb-override"
+    }
 
+    def "should support multiple configurable parsers"() {
+        given:
+        List<ArtifactDetailsDecorator> artifactDetailsDecorators = new ArrayList<>()
+        artifactDetailsDecorators.add(new DebDetailsDecorator())
+        artifactDetailsDecorators.add(new RpmDetailsDecorator())
+        def oldDockerDecorator = new ArtifactDecorationProperties.FileDecorator()
+        oldDockerDecorator.type = "docker"
+        oldDockerDecorator.identifierRegex = /(.+\/.+:.+)/
+        oldDockerDecorator.decoratorRegex = /[a-zA-Z0-9.]+\/(.+):(.+)/
+        def newDockerDecorator = new ArtifactDecorationProperties.FileDecorator()
+        newDockerDecorator.type = "docker/image"
+        newDockerDecorator.identifierRegex = /(.+\/.+:.+)/
+        newDockerDecorator.decoratorRegex = /(.+):(.+)/
+        ArtifactDecorationProperties artifactDecorationProperties = new ArtifactDecorationProperties()
+        artifactDecorationProperties.fileDecorators = [newDockerDecorator, oldDockerDecorator]
+        ArtifactDecorator artifactDecorator = new ArtifactDecorator(artifactDetailsDecorators, artifactDecorationProperties)
+
+        when:
+        def reference = "gcr.io/my-images/nginx:0cce25b9a55"
+        GenericArtifact genericArtifact = new GenericArtifact(reference, reference, reference)
+        def genericArtifacts = artifactDecorator.decorate(genericArtifact)
+
+        then:
+        genericArtifacts*.name == ["gcr.io/my-images/nginx", "my-images/nginx"]
+        genericArtifacts*.version == ["0cce25b9a55", "0cce25b9a55"]
+        genericArtifacts*.type == ["docker/image", "docker"]
+    }
+
+    def "should only decorate artifacts once"() {
+        given:
+        List<ArtifactDetailsDecorator> artifactDetailsDecorators = new ArrayList<>()
+        artifactDetailsDecorators.add(new DebDetailsDecorator())
+        artifactDetailsDecorators.add(new RpmDetailsDecorator())
+        def oldDockerDecorator = new ArtifactDecorationProperties.FileDecorator()
+        oldDockerDecorator.type = "docker"
+        oldDockerDecorator.identifierRegex = /(.+\/.+:.+)/
+        oldDockerDecorator.decoratorRegex = /[a-zA-Z0-9.]+\/(.+):(.+)/
+        def newDockerDecorator = new ArtifactDecorationProperties.FileDecorator()
+        newDockerDecorator.type = "docker/image"
+        newDockerDecorator.identifierRegex = /(.+\/.+:.+)/
+        newDockerDecorator.decoratorRegex = /(.+):(.+)/
+        ArtifactDecorationProperties artifactDecorationProperties = new ArtifactDecorationProperties()
+        artifactDecorationProperties.fileDecorators = [newDockerDecorator, oldDockerDecorator]
+        ArtifactDecorator artifactDecorator = new ArtifactDecorator(artifactDetailsDecorators, artifactDecorationProperties)
+
+        when:
+        def reference = "gcr.io/my-images/nginx:0cce25b9a55"
+        GenericArtifact genericArtifact = new GenericArtifact(reference, reference, reference)
+        def genericArtifacts = artifactDecorator.decorate(genericArtifact)
+        genericArtifacts = genericArtifacts.collectMany { artifactDecorator.decorate(it) }
+
+        then:
+        genericArtifacts*.name == ["gcr.io/my-images/nginx", "my-images/nginx"]
+        genericArtifacts*.version == ["0cce25b9a55", "0cce25b9a55"]
+        genericArtifacts*.type == ["docker/image", "docker"]
     }
 }
