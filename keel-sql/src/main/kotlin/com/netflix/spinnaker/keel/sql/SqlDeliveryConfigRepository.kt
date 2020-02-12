@@ -103,6 +103,24 @@ class SqlDeliveryConfigRepository(
           .where(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(uid))
           .execute()
       }
+      sqlRetry.withRetry(WRITE) {
+        jooq
+          .select(CURRENT_CONSTRAINT.APPLICATION, CURRENT_CONSTRAINT.TYPE)
+          .from(CURRENT_CONSTRAINT)
+          .where(CURRENT_CONSTRAINT.ENVIRONMENT_UID.eq(uid))
+          .fetch { (application, type) ->
+            jooq.deleteFrom(CURRENT_CONSTRAINT)
+              .where(
+                CURRENT_CONSTRAINT.APPLICATION.eq(application),
+                CURRENT_CONSTRAINT.ENVIRONMENT_UID.eq(uid),
+                CURRENT_CONSTRAINT.TYPE.eq(type))
+              .execute()
+          }
+        jooq
+          .deleteFrom(ENVIRONMENT_ARTIFACT_CONSTRAINT)
+          .where(ENVIRONMENT_ARTIFACT_CONSTRAINT.ENVIRONMENT_UID.eq(uid))
+          .execute()
+      }
     }
     return deliveryConfigUIDs.size
   }
@@ -149,10 +167,6 @@ class SqlDeliveryConfigRepository(
       jooq.transaction { config ->
         val txn = DSL.using(config)
         txn
-          .deleteFrom(ENVIRONMENT_ARTIFACT_CONSTRAINT)
-          .where(ENVIRONMENT_ARTIFACT_CONSTRAINT.ENVIRONMENT_UID.eq(envUid))
-          .execute()
-        txn
           .select(CURRENT_CONSTRAINT.APPLICATION, CURRENT_CONSTRAINT.TYPE)
           .from(CURRENT_CONSTRAINT)
           .where(CURRENT_CONSTRAINT.ENVIRONMENT_UID.eq(envUid))
@@ -164,6 +178,10 @@ class SqlDeliveryConfigRepository(
                 CURRENT_CONSTRAINT.TYPE.eq(type))
               .execute()
           }
+        txn
+          .deleteFrom(ENVIRONMENT_ARTIFACT_CONSTRAINT)
+          .where(ENVIRONMENT_ARTIFACT_CONSTRAINT.ENVIRONMENT_UID.eq(envUid))
+          .execute()
         txn
           .deleteFrom(ENVIRONMENT_ARTIFACT_VERSIONS)
           .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(envUid))
