@@ -305,17 +305,7 @@ class GateConfig extends RedisHttpSessionConfiguration {
       return null
     }
 
-    Endpoint endpoint
-    if (dynamicName == null) {
-      endpoint = serviceConfiguration.discoveryHosts && service.vipAddress ?
-        newFixedEndpoint("niws://${service.vipAddress}")
-        : newFixedEndpoint(service.baseUrl)
-    } else {
-      if (!service.getConfig().containsKey("dynamicEndpoints")) {
-        throw new IllegalArgumentException("Unknown dynamicEndpoint ${dynamicName} for service ${serviceName} of type ${type}")
-      }
-      endpoint = newFixedEndpoint(((Map<String, String>) service.getConfig().get("dynamicEndpoints")).get(dynamicName))
-    }
+    Endpoint endpoint = serviceConfiguration.getServiceEndpoint(serviceName, dynamicName)
 
     buildService(okHttpClient, type, endpoint)
   }

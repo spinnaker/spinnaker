@@ -22,8 +22,13 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Component
+import retrofit.Endpoint
 
 import javax.annotation.PostConstruct
+
+import static retrofit.Endpoints.newFixedEndpoint
+import static retrofit.Endpoints.newFixedEndpoint
+import static retrofit.Endpoints.newFixedEndpoint
 
 @CompileStatic
 @Component
@@ -48,4 +53,29 @@ class ServiceConfiguration {
   Service getService(String name) {
     (services + integrations)[name]
   }
+
+  Endpoint getServiceEndpoint(String serviceName, String dynamicName = null) {
+    Service service = getService(serviceName)
+
+    if (service == null) {
+      throw new IllegalArgumentException("Unknown service ${serviceName}")
+    }
+
+    Endpoint endpoint
+    if (dynamicName == null) {
+      // TODO: move Netflix-specific logic out of the OSS implementation
+      endpoint = discoveryHosts && service.vipAddress ?
+        newFixedEndpoint("niws://${service.vipAddress}")
+        : newFixedEndpoint(service.baseUrl)
+    } else {
+      if (!service.getConfig().containsKey("dynamicEndpoints")) {
+        throw new IllegalArgumentException("Unknown dynamicEndpoint ${dynamicName} for service ${serviceName}")
+      }
+      endpoint = newFixedEndpoint(((Map<String, String>) service.getConfig().get("dynamicEndpoints")).get(dynamicName))
+    }
+
+    return endpoint
+  }
+
+
 }

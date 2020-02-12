@@ -30,4 +30,5 @@ class RetrofitConfig {
   OkHttpClient okHttpClient(OkHttp3ClientConfiguration okHttpClientConfig) {
     return okHttpClientConfig.create().build()
   }
+
 }
