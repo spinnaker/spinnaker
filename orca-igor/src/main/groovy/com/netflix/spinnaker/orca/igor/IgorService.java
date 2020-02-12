@@ -96,6 +96,10 @@ public interface IgorService {
   AwsCodeBuildExecution getAwsCodeBuildExecution(
       @Path("account") String account, @Path("buildId") String buildId);
 
+  @GET("/codebuild/builds/artifacts/{account}/{buildId}")
+  List<Artifact> getAwsCodeBuildArtifacts(
+      @Path("account") String account, @Path("buildId") String buildId);
+
   @POST("/codebuild/builds/stop/{account}/{buildId}")
   AwsCodeBuildExecution stopAwsCodeBuild(
       @Path("account") String account, @Path("buildId") String buildId);
