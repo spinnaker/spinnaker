@@ -19,6 +19,7 @@ package com.netflix.spinnaker.igor.codebuild;
 import com.amazonaws.services.codebuild.model.Build;
 import com.amazonaws.services.codebuild.model.StartBuildRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -52,6 +53,11 @@ public class AwsCodeBuildController {
   @RequestMapping(value = "/builds/{account}/{buildId}", method = RequestMethod.GET)
   Build getBuild(@PathVariable String account, @PathVariable String buildId) {
     return awsCodeBuildAccountRepository.getAccount(account).getBuild(buildId);
+  }
+
+  @RequestMapping(value = "/builds/artifacts/{account}/{buildId}", method = RequestMethod.GET)
+  List<Artifact> getArtifacts(@PathVariable String account, @PathVariable String buildId) {
+    return awsCodeBuildAccountRepository.getAccount(account).getArtifacts(buildId);
   }
 
   @RequestMapping(value = "/builds/stop/{account}/{buildId}", method = RequestMethod.POST)

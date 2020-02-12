@@ -21,9 +21,13 @@ import com.amazonaws.services.codebuild.AWSCodeBuildClient;
 import com.amazonaws.services.codebuild.AWSCodeBuildClientBuilder;
 import com.amazonaws.services.codebuild.model.BatchGetBuildsRequest;
 import com.amazonaws.services.codebuild.model.Build;
+import com.amazonaws.services.codebuild.model.BuildArtifacts;
 import com.amazonaws.services.codebuild.model.StartBuildRequest;
 import com.amazonaws.services.codebuild.model.StopBuildRequest;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,6 +64,11 @@ public class AwsCodeBuildAccount {
     return client.batchGetBuilds(new BatchGetBuildsRequest().withIds(buildId)).getBuilds().get(0);
   }
 
+  public List<Artifact> getArtifacts(String buildId) {
+    Build build = getBuild(buildId);
+    return extractArtifactsFromBuild(build);
+  }
+
   public Build stopBuild(String buildId) {
     return client.stopBuild(new StopBuildRequest().withId(buildId)).getBuild();
   }
@@ -77,5 +86,29 @@ public class AwsCodeBuildAccount {
               Objects.requireNonNull(accountId, "accountId"), assumeRoleValue);
     }
     return assumeRoleValue;
+  }
+
+  private List<Artifact> extractArtifactsFromBuild(Build build) {
+    ArrayList<Artifact> artifactsList = new ArrayList<>();
+    BuildArtifacts primaryArtifacts = build.getArtifacts();
+    List<BuildArtifacts> secondaryArtifacts = build.getSecondaryArtifacts();
+    if (primaryArtifacts != null) {
+      artifactsList.add(getS3Artifact(primaryArtifacts.getLocation()));
+    }
+    if (secondaryArtifacts != null) {
+      secondaryArtifacts.forEach(
+          artifacts -> artifactsList.add(getS3Artifact(artifacts.getLocation())));
+    }
+    return artifactsList;
+  }
+
+  private Artifact getS3Artifact(String s3Arn) {
+    String reference = getS3ArtifactReference(s3Arn);
+    return Artifact.builder().type("s3/object").reference(reference).name(reference).build();
+  }
+
+  private String getS3ArtifactReference(String s3Arn) {
+    String[] s3ArnSplit = s3Arn.split(":");
+    return "s3://" + s3ArnSplit[s3ArnSplit.length - 1];
   }
 }

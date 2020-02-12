@@ -20,6 +20,7 @@ import com.amazonaws.services.codebuild.AWSCodeBuildClient
 import com.amazonaws.services.codebuild.model.BatchGetBuildsRequest
 import com.amazonaws.services.codebuild.model.BatchGetBuildsResult
 import com.amazonaws.services.codebuild.model.Build
+import com.amazonaws.services.codebuild.model.BuildArtifacts
 import com.amazonaws.services.codebuild.model.StartBuildRequest
 import com.amazonaws.services.codebuild.model.StartBuildResult
 import spock.lang.Specification
@@ -53,6 +54,95 @@ class AwsCodeBuildAccountSpec extends Specification {
     then:
     1 * client.batchGetBuilds(inputRequest) >> new BatchGetBuildsResult().withBuilds(mockOutputBuild)
     result == mockOutputBuild
+  }
+
+  def "getArtifacts returns empty list if no artifact exists"() {
+    given:
+    String buildId = "test:c7715bbf-5c12-44d6-87ef-8149473e02f7"
+    def inputRequest = getBatchGetBuildsInput(buildId)
+    def mockOutputBuild = getOutputBuild("test")
+
+    when:
+    def result = awsCodeBuildAccount.getArtifacts(buildId)
+
+    then:
+    1 * client.batchGetBuilds(inputRequest) >> new BatchGetBuildsResult().withBuilds(mockOutputBuild)
+    result.size() == 0
+  }
+
+  def "getArtifacts returns primary artifacts"() {
+    given:
+    String buildId = "test:c7715bbf-5c12-44d6-87ef-8149473e02f7"
+    def inputRequest = getBatchGetBuildsInput(buildId)
+    def mockOutputBuild = getOutputBuild("test")
+    mockOutputBuild.setArtifacts(
+      new BuildArtifacts()
+        .withLocation("arn:aws:s3:::bucket/path/file.zip")
+    )
+
+    when:
+    def result = awsCodeBuildAccount.getArtifacts(buildId)
+
+    then:
+    1 * client.batchGetBuilds(inputRequest) >> new BatchGetBuildsResult().withBuilds(mockOutputBuild)
+    result.size() == 1
+    result.get(0).getType() == "s3/object"
+    result.get(0).getReference() == "s3://bucket/path/file.zip"
+    result.get(0).getName() == "s3://bucket/path/file.zip"
+  }
+
+  def "getArtifacts returns secondary artifacts"() {
+    given:
+    String buildId = "test:c7715bbf-5c12-44d6-87ef-8149473e02f7"
+    def inputRequest = getBatchGetBuildsInput(buildId)
+    def mockOutputBuild = getOutputBuild("test")
+    mockOutputBuild.setSecondaryArtifacts([
+      new BuildArtifacts()
+        .withLocation("arn:aws:s3:::bucket/path/file.zip"),
+      new BuildArtifacts()
+        .withLocation("arn:aws:s3:::another-bucket/another/path/file.zip"),
+    ])
+
+    when:
+    def result = awsCodeBuildAccount.getArtifacts(buildId)
+
+    then:
+    1 * client.batchGetBuilds(inputRequest) >> new BatchGetBuildsResult().withBuilds(mockOutputBuild)
+    result.size() == 2
+    result.get(0).getType() == "s3/object"
+    result.get(0).getReference() == "s3://bucket/path/file.zip"
+    result.get(0).getName() == "s3://bucket/path/file.zip"
+    result.get(1).getType() == "s3/object"
+    result.get(1).getReference() == "s3://another-bucket/another/path/file.zip"
+    result.get(1).getName() == "s3://another-bucket/another/path/file.zip"
+  }
+
+  def "getArtifacts returns both primary and secondary artifacts"() {
+    given:
+    String buildId = "test:c7715bbf-5c12-44d6-87ef-8149473e02f7"
+    def inputRequest = getBatchGetBuildsInput(buildId)
+    def mockOutputBuild = getOutputBuild("test")
+    mockOutputBuild.setArtifacts(
+      new BuildArtifacts()
+        .withLocation("arn:aws:s3:::bucket/path/file.zip")
+    )
+    mockOutputBuild.setSecondaryArtifacts([
+      new BuildArtifacts()
+        .withLocation("arn:aws:s3:::another-bucket/another/path/file.zip")
+    ])
+
+    when:
+    def result = awsCodeBuildAccount.getArtifacts(buildId)
+
+    then:
+    1 * client.batchGetBuilds(inputRequest) >> new BatchGetBuildsResult().withBuilds(mockOutputBuild)
+    result.size() == 2
+    result.get(0).getType() == "s3/object"
+    result.get(0).getReference() == "s3://bucket/path/file.zip"
+    result.get(0).getName() == "s3://bucket/path/file.zip"
+    result.get(1).getType() == "s3/object"
+    result.get(1).getReference() == "s3://another-bucket/another/path/file.zip"
+    result.get(1).getName() == "s3://another-bucket/another/path/file.zip"
   }
 
   private static StartBuildRequest getStartBuildInput(String projectName) {
