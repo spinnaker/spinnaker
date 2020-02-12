@@ -16,29 +16,34 @@
 
 package com.netflix.spinnaker.orca.igor.tasks
 
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.igor.IgorService
 import com.netflix.spinnaker.orca.igor.model.AwsCodeBuildExecution
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class StartAwsCodeBuildTaskSpec extends Specification {
   def ACCOUNT = "codebuild-account"
   def PROJECT_NAME = "test"
+  def ARTIFACT_ID = "edceed55-29a5-45d3-9ed8-45871e3f026a"
   def ARN = "arn:aws:codebuild:us-west-2:123456789012:build/test:c7715bbf-5c12-44d6-87ef-8149473e02f7"
 
   Execution execution = Mock(Execution)
   IgorService igorService = Mock(IgorService)
+  ArtifactUtils artifactUtils = Mock(ArtifactUtils)
 
   @Subject
-  StartAwsCodeBuildTask task = new StartAwsCodeBuildTask(igorService)
+  StartAwsCodeBuildTask task = new StartAwsCodeBuildTask(igorService, artifactUtils)
+  def igorResponse = new AwsCodeBuildExecution(ARN, null, null)
 
   def "should start a build"() {
     given:
-    def igorResponse = new AwsCodeBuildExecution(ARN, null, null)
     def stage = new Stage(execution, "awsCodeBuild", [account: ACCOUNT, projectName: PROJECT_NAME])
 
     when:
@@ -48,5 +53,231 @@ class StartAwsCodeBuildTaskSpec extends Specification {
     1 * igorService.startAwsCodeBuild(ACCOUNT, _) >> igorResponse
     result.status == ExecutionStatus.SUCCEEDED
     result.context.buildInfo.arn == igorResponse.arn
+  }
+
+  def "should not override source if sourceOverride is false"() {
+    given:
+    def stage = new Stage(
+        execution,
+        "awsCodeBuild",
+        getDefaultContext(false)
+    )
+
+    when:
+    task.execute(stage)
+
+    then:
+    1 * igorService.startAwsCodeBuild(ACCOUNT, {
+      it.get("sourceLocationOverride") == null
+      it.get("sourceTypeOverride") == null
+    }) >> igorResponse
+  }
+
+  @Unroll
+  def "should correctly override #sourceType source"() {
+    given:
+    def artifact = Artifact.builder()
+        .type(artifactType)
+        .reference(artifactReference)
+        .version("master")
+        .artifactAccount("my-codebuild-account").build()
+    def stage = new Stage(
+        execution,
+        "awsCodeBuild",
+        getDefaultContext()
+    )
+
+    when:
+    task.execute(stage)
+
+    then:
+    1 * artifactUtils.getBoundArtifactForStage(stage, ARTIFACT_ID, null) >> artifact
+    1 * igorService.startAwsCodeBuild(ACCOUNT, {
+      it.get("sourceLocationOverride") == sourceLocation
+      it.get("sourceTypeOverride") == sourceType
+      it.get("sourceVersion") == "master"
+    }) >> igorResponse
+
+    where:
+    artifactType | artifactReference                          | sourceType  | sourceLocation
+    "s3/object"  | "s3://bucket/path/source.zip"              | "S3"        | "bucket/path/source.zip"
+    "git/repo"   | "https://github.com/codebuild/repo.git"    | "GITHUB"    | "https://github.com/codebuild/repo.git"
+    "git/repo"   | "https://bitbucket.org/codebuild/repo.git" | "BITBUCKET" | "https://bitbucket.org/codebuild/repo.git"
+  }
+
+  def "should explicitly use sourceType if type could be inferred"() {
+    given:
+    def context = getDefaultContext()
+    context.source.put("sourceType", "GITHUB_ENTERPRISE")
+    def artifact = Artifact.builder()
+        .type("git/repo")
+        .reference("https://github.com/codebuild/repo.git")
+        .artifactAccount("my-codebuild-account").build()
+    def stage = new Stage(
+        execution,
+        "awsCodeBuild",
+        context
+    )
+
+    when:
+    task.execute(stage)
+
+    then:
+    1 * artifactUtils.getBoundArtifactForStage(stage, ARTIFACT_ID, null) >> artifact
+    1 * igorService.startAwsCodeBuild(ACCOUNT, {
+      it.get("sourceLocationOverride") == "https://github.com/codebuild/repo.git"
+      it.get("sourceTypeOverride") == "GITHUB_ENTERPRISE"
+    }) >> igorResponse
+  }
+
+  def "should use sourceType if type couldn't be inferred"() {
+    given:
+    def context = getDefaultContext()
+    context.source.put("sourceType", "GITHUB_ENTERPRISE")
+    def artifact = Artifact.builder()
+        .type("git/repo")
+        .reference("http://enterprise.com/repo.git")
+        .artifactAccount("my-codebuild-account").build()
+    def stage = new Stage(
+        execution,
+        "awsCodeBuild",
+        context
+    )
+
+    when:
+    task.execute(stage)
+
+    then:
+    1 * artifactUtils.getBoundArtifactForStage(stage, ARTIFACT_ID, null) >> artifact
+    1 * igorService.startAwsCodeBuild(ACCOUNT, {
+      it.get("sourceLocationOverride") == "http://enterprise.com/repo.git"
+      it.get("sourceTypeOverride") == "GITHUB_ENTERPRISE"
+    }) >> igorResponse
+  }
+
+  def "should throw exception if artifact type is unknown"() {
+    given:
+    def artifact = Artifact.builder()
+        .type("unknown")
+        .reference("location")
+        .artifactAccount("my-codebuild-account").build()
+    def stage = new Stage(
+        execution,
+        "awsCodeBuild",
+        getDefaultContext()
+    )
+
+    when:
+    task.execute(stage)
+
+    then:
+    1 * artifactUtils.getBoundArtifactForStage(stage, ARTIFACT_ID, null) >> artifact
+    IllegalStateException ex = thrown()
+    ex.getMessage() == "Unexpected value: unknown"
+  }
+
+  def "should throw exception if artifact reference is unknown"() {
+    given:
+    def artifact = Artifact.builder()
+        .type("git/repo")
+        .reference("location")
+        .artifactAccount("my-codebuild-account").build()
+    def stage = new Stage(
+        execution,
+        "awsCodeBuild",
+        getDefaultContext()
+    )
+
+    when:
+    task.execute(stage)
+
+    then:
+    1 * artifactUtils.getBoundArtifactForStage(stage, ARTIFACT_ID, null) >> artifact
+    IllegalStateException ex = thrown()
+    ex.getMessage() == "Source type could not be inferred from location"
+  }
+
+  def "should throw exception if subpath is set"() {
+    given:
+    def artifact = Artifact.builder()
+        .type("git/repo")
+        .reference("location")
+        .artifactAccount("my-codebuild-account")
+        .metadata([subPath: "path"]).build()
+    def stage = new Stage(
+        execution,
+        "awsCodeBuild",
+        getDefaultContext()
+    )
+
+    when:
+    task.execute(stage)
+
+    then:
+    1 * artifactUtils.getBoundArtifactForStage(stage, ARTIFACT_ID, null) >> artifact
+    IllegalArgumentException ex = thrown()
+    ex.getMessage() == "Subpath is not supported by AWS CodeBuild stage"
+  }
+
+  def "should use sourceVersion if presents"() {
+    given:
+    def context = getDefaultContext()
+    context.put("sourceVersion", "not-master")
+    def artifact = Artifact.builder()
+        .type("git/repo")
+        .reference("https://github.com/codebuild/repo.git")
+        .version("master")
+        .artifactAccount("my-codebuild-account").build()
+    def stage = new Stage(
+        execution,
+        "awsCodeBuild",
+        context
+    )
+
+    when:
+    task.execute(stage)
+
+    then:
+    1 * artifactUtils.getBoundArtifactForStage(stage, ARTIFACT_ID, null) >> artifact
+    1 * igorService.startAwsCodeBuild(ACCOUNT, {
+      it.get("sourceVersion") == "not-master"
+    }) >> igorResponse
+  }
+
+  def "should correctly append env vars"() {
+    given:
+    def stage = new Stage(
+        execution,
+        "awsCodeBuild",
+        getDefaultContext(false)
+    )
+
+    when:
+    task.execute(stage)
+
+    then:
+    1 * igorService.startAwsCodeBuild(ACCOUNT, {
+      it.get("environmentVariablesOverride") == [
+          [
+              type: "PLAINTEXT",
+              name: "foo",
+              value: "bar",
+          ]
+      ]
+    }) >> igorResponse
+  }
+
+  def getDefaultContext(Boolean sourceOverride = true) {
+    [
+        account       : ACCOUNT,
+        projectName   : PROJECT_NAME,
+        sourceOverride: sourceOverride,
+        source        : [
+            artifactId: ARTIFACT_ID
+        ],
+        environmentVariables: [
+            "foo": "bar",
+        ],
+    ]
   }
 }
