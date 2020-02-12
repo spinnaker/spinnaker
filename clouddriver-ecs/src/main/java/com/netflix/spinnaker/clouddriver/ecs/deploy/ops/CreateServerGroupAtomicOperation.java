@@ -310,8 +310,7 @@ public class CreateServerGroupAtomicOperation
     }
 
     if (!NO_IAM_ROLE.equals(description.getIamRole()) && description.getIamRole() != null) {
-      checkRoleTrustRelations(description.getIamRole());
-      request.setTaskRoleArn(description.getIamRole());
+      request.setTaskRoleArn(checkRoleTrustRelations(description.getIamRole()).getRole().getArn());
     }
 
     if (!StringUtils.isEmpty(description.getLaunchType())) {
@@ -674,7 +673,7 @@ public class CreateServerGroupAtomicOperation
     return String.format("arn:aws:iam::%s:%s", credentials.getAccountId(), role);
   }
 
-  private void checkRoleTrustRelations(String roleName) {
+  private GetRoleResult checkRoleTrustRelations(String roleName) {
     updateTaskStatus("Checking role trust relations for: " + roleName);
     AmazonIdentityManagement iamClient = getAmazonIdentityManagementClient();
 
@@ -696,6 +695,7 @@ public class CreateServerGroupAtomicOperation
               + roleName
               + " role does not have a trust relationship to ecs-tasks.amazonaws.com.");
     }
+    return response;
   }
 
   private DeploymentResult makeDeploymentResult(Service service) {

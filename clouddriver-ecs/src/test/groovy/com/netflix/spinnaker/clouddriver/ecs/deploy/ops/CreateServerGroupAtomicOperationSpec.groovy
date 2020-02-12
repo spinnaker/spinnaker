@@ -1011,8 +1011,13 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     ecs.describeServices(_) >> new DescribeServicesResult().withServices(
       new Service(serviceName: "${serviceName}-v007", createdAt: new Date(), desiredCount: 3))
 
-    ecs.registerTaskDefinition(_) >> new RegisterTaskDefinitionResult().withTaskDefinition(taskDefinition)
-    iamClient.getRole(_) >> new GetRoleResult().withRole(role)
+    1 * ecs.registerTaskDefinition(_) >> { arguments ->
+      RegisterTaskDefinitionRequest request = arguments.get(0)
+      assert request.getTaskRoleArn() == "arn:aws:iam::test:path/test-role"
+      new RegisterTaskDefinitionResult().withTaskDefinition(taskDefinition)
+    }
+
+    iamClient.getRole(_) >> new GetRoleResult().withRole(role.withArn("arn:aws:iam::test:path/test-role"))
     iamPolicyReader.getTrustedEntities(_) >> trustRelationships
     loadBalancingV2.describeTargetGroups(_) >> new DescribeTargetGroupsResult().withTargetGroups(targetGroup)
     ecs.createService({ CreateServiceRequest request ->
