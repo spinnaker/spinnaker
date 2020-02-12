@@ -26,5 +26,5 @@ export function NumberInput(props: INumberInputProps) {
   useInternalValidator(validation, minMaxValidator);
 
   const className = `NumberInput form-control ${orEmptyString(inputClassName)} ${validationClassName(validation)}`;
-  return <input className={className} type="number" value={orEmptyString(value)} {...otherProps} />;
+  return <input className={className} type="number" value={value} {...otherProps} />;
 }
