@@ -28,7 +28,6 @@ import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup;
 import com.netflix.spinnaker.clouddriver.titus.TitusCloudProvider;
 import com.netflix.spinnaker.clouddriver.titus.caching.Keys;
-import com.netflix.spinnaker.clouddriver.titus.caching.utils.AwsLookupUtil;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -40,16 +39,13 @@ import org.springframework.stereotype.Component;
 public class TitusTargetGroupServerGroupProvider implements TargetGroupServerGroupProvider {
 
   private final Cache cacheView;
-  AwsLookupUtil awsLookupUtil;
   private final Registry registry;
 
   private final Id inconsistentCacheId;
 
   @Autowired
-  public TitusTargetGroupServerGroupProvider(
-      Cache cacheView, AwsLookupUtil awsLookupUtil, Registry registry) {
+  public TitusTargetGroupServerGroupProvider(Cache cacheView, Registry registry) {
     this.cacheView = cacheView;
-    this.awsLookupUtil = awsLookupUtil;
     this.registry = registry;
 
     inconsistentCacheId =
