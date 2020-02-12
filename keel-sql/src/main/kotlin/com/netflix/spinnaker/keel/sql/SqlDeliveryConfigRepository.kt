@@ -40,6 +40,7 @@ import org.jooq.impl.DSL
 import org.jooq.impl.DSL.inline
 import org.jooq.impl.DSL.select
 import org.jooq.util.mysql.MySQLDSL
+import org.slf4j.LoggerFactory
 
 class SqlDeliveryConfigRepository(
   private val jooq: DSLContext,
@@ -48,6 +49,7 @@ class SqlDeliveryConfigRepository(
   private val mapper: ObjectMapper,
   private val sqlRetry: SqlRetry
 ) : DeliveryConfigRepository {
+  private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   override fun getByApplication(application: String): Collection<DeliveryConfig> =
     sqlRetry.withRetry(READ) {
@@ -580,31 +582,41 @@ class SqlDeliveryConfigRepository(
         }
     }
 
-    return constraintResult.map { (envId,
-                                    artifactVersion,
-                                    type,
-                                    createdAt,
-                                    status,
-                                    judgedBy,
-                                    judgedAt,
-                                    comment,
-                                    attributes) ->
-      ConstraintState(
-        deliveryConfigsByEnv[envId]
-          ?: error("Environment id $envId does not belong to a delivery-config"),
-        environmentNames[envId] ?: error("Invalid environment id $envId"),
-        artifactVersion,
-        type,
-        ConstraintStatus.valueOf(status),
-        createdAt.toInstant(ZoneOffset.UTC),
-        judgedBy,
-        when (judgedAt) {
-          null -> null
-          else -> judgedAt.toInstant(ZoneOffset.UTC)
-        },
-        comment,
-        mapper.readValue(attributes)
-      )
+    return constraintResult.mapNotNull { (envId,
+                                           artifactVersion,
+                                           type,
+                                           createdAt,
+                                           status,
+                                           judgedBy,
+                                           judgedAt,
+                                           comment,
+                                           attributes) ->
+      if (deliveryConfigsByEnv.containsKey(envId) && environmentNames.containsKey(envId)) {
+        ConstraintState(
+          deliveryConfigsByEnv[envId]
+            ?: error("Environment id $envId does not belong to a delivery-config"),
+          environmentNames[envId] ?: error("Invalid environment id $envId"),
+          artifactVersion,
+          type,
+          ConstraintStatus.valueOf(status),
+          createdAt.toInstant(ZoneOffset.UTC),
+          judgedBy,
+          when (judgedAt) {
+            null -> null
+            else -> judgedAt.toInstant(ZoneOffset.UTC)
+          },
+          comment,
+          mapper.readValue(attributes)
+        )
+      } else {
+        log.warn(
+          "constraint state for " +
+            "envId=$envId, " +
+            "artifactVersion=$artifactVersion, " +
+            "type=$type, " +
+            " does not belong to a valid environment.")
+        null
+      }
     }
   }
 
