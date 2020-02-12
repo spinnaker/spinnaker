@@ -87,9 +87,8 @@ public class ManagedDeliveryScmController {
         status = HttpStatus.BAD_REQUEST;
       } else if (e instanceof RetrofitError) {
         RetrofitError re = (RetrofitError) e;
-        if (re.getKind() == RetrofitError.Kind.HTTP
-            && re.getResponse().getStatus() == HttpStatus.NOT_FOUND.value()) {
-          status = HttpStatus.NOT_FOUND;
+        if (re.getKind() == RetrofitError.Kind.HTTP) {
+          status = HttpStatus.valueOf(re.getResponse().getStatus());
           errorDetails = re.getBodyAs(Map.class);
         } else {
           errorDetails = "Error calling downstream system: " + re.getMessage();
