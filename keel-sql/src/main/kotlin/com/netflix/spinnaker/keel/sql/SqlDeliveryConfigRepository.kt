@@ -153,6 +153,18 @@ class SqlDeliveryConfigRepository(
           .where(ENVIRONMENT_ARTIFACT_CONSTRAINT.ENVIRONMENT_UID.eq(envUid))
           .execute()
         txn
+          .select(CURRENT_CONSTRAINT.APPLICATION, CURRENT_CONSTRAINT.TYPE)
+          .from(CURRENT_CONSTRAINT)
+          .where(CURRENT_CONSTRAINT.ENVIRONMENT_UID.eq(envUid))
+          .fetch { (application, type) ->
+            txn.deleteFrom(CURRENT_CONSTRAINT)
+              .where(
+                CURRENT_CONSTRAINT.APPLICATION.eq(application),
+                CURRENT_CONSTRAINT.ENVIRONMENT_UID.eq(envUid),
+                CURRENT_CONSTRAINT.TYPE.eq(type))
+              .execute()
+          }
+        txn
           .deleteFrom(ENVIRONMENT_ARTIFACT_VERSIONS)
           .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(envUid))
           .execute()
@@ -524,6 +536,7 @@ class SqlDeliveryConfigRepository(
         .from(CURRENT_CONSTRAINT)
         .innerJoin(ENVIRONMENT_ARTIFACT_CONSTRAINT)
         .on(CURRENT_CONSTRAINT.CONSTRAINT_UID.eq(ENVIRONMENT_ARTIFACT_CONSTRAINT.UID))
+        .where(CURRENT_CONSTRAINT.APPLICATION.eq(application))
         .fetch()
     }
 
