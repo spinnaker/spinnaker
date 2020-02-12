@@ -20,10 +20,10 @@ import com.google.common.base.CaseFormat;
 import com.netflix.frigga.Names;
 import com.netflix.spinnaker.clouddriver.cache.KeyParser;
 import com.netflix.spinnaker.clouddriver.huaweicloud.HuaweiCloudProvider;
+import com.netflix.spinnaker.clouddriver.huaweicloud.HuaweiCloudUtils;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 @Component("HuaweiCloudKeys")
@@ -76,7 +76,18 @@ public class Keys implements KeyParser {
     return HuaweiCloudProvider.ID;
   }
 
+  public static Map<String, String> parse(String key, Namespace targetType) {
+    Map<String, String> keys = parse(key);
+    return (!keys.isEmpty() && !targetType.ns.equals(keys.get("type")))
+        ? Collections.emptyMap()
+        : keys;
+  }
+
   public static Map<String, String> parse(String key) {
+    if (HuaweiCloudUtils.isEmptyStr(key)) {
+      return Collections.emptyMap();
+    }
+
     String[] parts = key.split(SEPARATOR);
     if ((parts.length < 2) || (!getCloudProviderId().equals(parts[0]))) {
       return Collections.emptyMap();
@@ -95,7 +106,7 @@ public class Keys implements KeyParser {
       case SECURITY_GROUPS:
         if (parts.length == 6) {
           Names names = Names.parseName(parts[4]);
-          if (StringUtils.isEmpty(names.getApp())) {
+          if (HuaweiCloudUtils.isEmptyStr(names.getApp())) {
             break;
           }
           result.put("application", names.getApp());

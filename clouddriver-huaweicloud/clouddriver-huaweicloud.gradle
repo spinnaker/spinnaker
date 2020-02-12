@@ -21,4 +21,17 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation 'org.apache.commons:commons-lang3'
+
+  testImplementation "cglib:cglib-nodep"
+  testImplementation "commons-fileupload:commons-fileupload:1.4"
+  testImplementation "org.apache.httpcomponents:httpmime"
+  testImplementation "org.assertj:assertj-core"
+  testImplementation "org.junit.jupiter:junit-jupiter-api"
+  testImplementation "org.junit.platform:junit-platform-runner"
+  testImplementation "org.mockito:mockito-core"
+  testImplementation "org.mockito:mockito-junit-jupiter"
+  testImplementation "org.objenesis:objenesis"
+  testImplementation "org.spockframework:spock-core"
+  testImplementation "org.spockframework:spock-spring"
+  testImplementation "org.springframework:spring-test"
 }

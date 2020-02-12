@@ -16,11 +16,23 @@
 
 package com.netflix.spinnaker.clouddriver.huaweicloud.exception;
 
+import com.huawei.openstack4j.model.common.ActionResponse;
 import com.netflix.spinnaker.kork.exceptions.IntegrationException;
 
 public class HuaweiCloudException extends IntegrationException {
 
   public HuaweiCloudException(String message) {
     super(message);
+  }
+
+  public HuaweiCloudException(String doWhat, Exception e) {
+    super(String.format("Error %s, error is: %s", doWhat, e.getMessage()));
+  }
+
+  public HuaweiCloudException(String doWhat, ActionResponse actionResponse) {
+    super(
+        String.format(
+            "Error %s, error is: %s and error code is: %d",
+            doWhat, actionResponse.getFault(), actionResponse.getCode()));
   }
 }

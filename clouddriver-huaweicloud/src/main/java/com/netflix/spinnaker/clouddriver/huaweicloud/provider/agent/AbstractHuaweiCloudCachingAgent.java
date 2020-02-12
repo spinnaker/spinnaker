@@ -46,7 +46,14 @@ public abstract class AbstractHuaweiCloudCachingAgent implements CachingAgent, A
     return HuaweiCloudInfrastructureProvider.class.getName();
   }
 
+  @Override
+  public String getAgentType() {
+    return String.format("%s/%s/%s", getAccountName(), region, getAgentName());
+  }
+
   HuaweiCloudClient getCloudClient() {
     return credentials.getCloudClient();
   }
+
+  abstract String getAgentName();
 }
