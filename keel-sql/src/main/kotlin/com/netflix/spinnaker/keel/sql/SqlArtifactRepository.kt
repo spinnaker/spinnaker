@@ -203,7 +203,7 @@ class SqlArtifactRepository(
         .from(DELIVERY_ARTIFACT)
         .apply { if (type != null) where(DELIVERY_ARTIFACT.TYPE.eq(type.toString())) }
         .fetch { (name, storedType, details, reference, configName) ->
-          mapToArtifact(name, ArtifactType.valueOf(storedType), details, reference, configName)
+          mapToArtifact(name, ArtifactType.valueOf(storedType.toLowerCase()), details, reference, configName)
         }
     }
 

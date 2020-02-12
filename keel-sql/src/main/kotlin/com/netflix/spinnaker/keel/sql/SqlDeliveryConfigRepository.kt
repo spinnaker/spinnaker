@@ -284,7 +284,7 @@ class SqlDeliveryConfigRepository(
         .where(DELIVERY_CONFIG_ARTIFACT.ARTIFACT_UID.eq(DELIVERY_ARTIFACT.UID))
         .and(DELIVERY_CONFIG_ARTIFACT.DELIVERY_CONFIG_UID.eq(uid))
         .fetch { (name, type, details, reference, configName) ->
-          mapToArtifact(name, ArtifactType.valueOf(type), details, reference, configName)
+          mapToArtifact(name, ArtifactType.valueOf(type.toLowerCase()), details, reference, configName)
         }
     }
       .toSet()
