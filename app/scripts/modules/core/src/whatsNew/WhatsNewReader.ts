@@ -38,12 +38,17 @@ export class WhatsNewReader {
       return $q.resolve(null);
     }
 
-    let url = `https://api.github.com/gists/${gistId}`;
+    const url = `https://api.github.com/gists/${gistId}`;
+    const config = {
+      headers: {},
+    };
     if (accessToken) {
-      url += '?access_token=' + accessToken;
+      config.headers = {
+        Authorization: `token ${accessToken}`,
+      };
     }
     return $http
-      .get(url)
+      .get(url, config)
       .then((result: IHttpPromiseCallbackArg<IGistApiResponse>) => {
         return {
           contents: WhatsNewReader.extractFileContent(result.data),
