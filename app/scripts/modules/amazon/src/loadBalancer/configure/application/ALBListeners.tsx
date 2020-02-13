@@ -771,6 +771,13 @@ const Action = (props: {
       (props.oidcConfigs &&
         props.oidcConfigs.length > 0 &&
         (!clientId || props.oidcConfigs.find(c => c.clientId === clientId)));
+
+    const oidcOptions = props.oidcConfigs?.length ? (
+      props.oidcConfigs.map(config => <option key={config.clientId}>{config.clientId}</option>)
+    ) : (
+      <option disabled>No {CustomLabels.get('OIDC client')} config found</option>
+    );
+
     return (
       <div className="horizontal middle" style={{ height: '30px' }}>
         <span style={{ whiteSpace: 'pre' }}>auth with {CustomLabels.get('OIDC client')} </span>
@@ -783,9 +790,7 @@ const Action = (props: {
             required={true}
           >
             <option value="" />
-            {(props.oidcConfigs || []).map(config => (
-              <option key={config.clientId}>{config.clientId}</option>
-            ))}
+            {oidcOptions}
           </select>
         )}
         {!showOidcConfigs && (
