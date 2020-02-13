@@ -22,8 +22,6 @@ import com.netflix.spinnaker.igor.build.model.GenericProject
 import com.netflix.spinnaker.igor.build.model.Result
 import com.netflix.spinnaker.igor.config.WerckerProperties
 import com.netflix.spinnaker.igor.history.EchoService
-import com.netflix.spinnaker.igor.history.model.EmptyBuildContent
-import com.netflix.spinnaker.igor.history.model.GenericBuildEvent
 import com.netflix.spinnaker.igor.service.BuildServiceProvider
 import com.netflix.spinnaker.igor.polling.CommonPollingMonitor
 import com.netflix.spinnaker.igor.polling.DeltaItem

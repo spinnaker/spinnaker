@@ -21,6 +21,6 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class TravisBuildEvent implements BuildEvent<TravisBuildContent> {
+public class TravisBuildEvent extends BuildEvent<TravisBuildContent> {
   private TravisBuildContent content;
 }

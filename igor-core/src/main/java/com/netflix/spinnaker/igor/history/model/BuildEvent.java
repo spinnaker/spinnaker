@@ -15,18 +15,17 @@
  */
 package com.netflix.spinnaker.igor.history.model;
 
-import java.util.HashMap;
+import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 
-/** TODO(rz): Documnt. */
-public interface BuildEvent<T extends BuildContent> extends Event {
+public abstract class BuildEvent<T extends BuildContent> implements Event {
 
-  T getContent();
+  private static final Map<String, String> BUILD_DETAILS =
+      ImmutableMap.<String, String>builder().put("type", "build").put("source", "igor").build();
 
-  default Map<?, ?> getDetails() {
-    Map<String, String> d = new HashMap<>();
-    d.put("type", "build");
-    d.put("source", "igor");
-    return d;
+  public abstract T getContent();
+
+  public final Map<String, String> getDetails() {
+    return BUILD_DETAILS;
   }
 }

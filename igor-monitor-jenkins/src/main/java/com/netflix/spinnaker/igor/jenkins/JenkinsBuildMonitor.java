@@ -2,6 +2,8 @@ package com.netflix.spinnaker.igor.jenkins;
 
 import static net.logstash.logback.argument.StructuredArguments.kv;
 
+import com.google.common.base.Charsets;
+import com.google.common.io.ByteSource;
 import com.netflix.discovery.DiscoveryClient;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
@@ -16,6 +18,7 @@ import com.netflix.spinnaker.igor.polling.*;
 import com.netflix.spinnaker.igor.service.BuildServiceProvider;
 import com.netflix.spinnaker.igor.service.BuildServices;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
+import java.io.*;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
@@ -28,6 +31,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import retrofit.RetrofitError;
+import retrofit.client.Response;
 
 /** Monitors new jenkins builds */
 @Slf4j
@@ -279,14 +283,50 @@ public class JenkinsBuildMonitor
       return;
     }
 
+    JenkinsBuildEvent event = new JenkinsBuildEvent(new JenkinsBuildContent(project, master));
     AuthenticatedRequest.allowAnonymous(
         () -> {
           echoService.ifPresent(
-              echo ->
-                  echo.postEvent(new JenkinsBuildEvent(new JenkinsBuildContent(project, master))));
+              echo -> {
+                try {
+                  echo.postEvent(event);
+                } catch (RetrofitError e) {
+                  String rawResponse = "failed to retrieve response body";
+                  try {
+                    rawResponse = getResponseBody(e);
+                  } catch (IOException ioe) {
+                    log.error(
+                        "Failed to read response while handling error communicating with Echo",
+                        ioe);
+                  }
+                  log.error(
+                      "Failed to post jenkins build event to Echo ({}:{}): {}",
+                      master,
+                      project.getName(),
+                      rawResponse,
+                      e);
+                  throw e;
+                }
+              });
           // TODO(rz): Add allowAnonymous(Runnable)
           return null;
         });
+  }
+
+  private String getResponseBody(RetrofitError e) throws IOException {
+    Response re = e.getResponse();
+    if (re != null && re.getBody() != null) {
+      ByteSource byteSource =
+          new ByteSource() {
+            @Override
+            public InputStream openStream() throws IOException {
+              return e.getResponse().getBody().in();
+            }
+          };
+      return byteSource.asCharSource(Charsets.UTF_8).read();
+    } else {
+      return "<empty response body>";
+    }
   }
 
   /** TODO(jc): First pass, not sure what this cursor actually is. Document. */

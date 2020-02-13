@@ -19,7 +19,7 @@ import com.netflix.spinnaker.igor.history.model.BuildEvent;
 import lombok.Data;
 
 @Data
-public class ConcourseBuildEvent implements BuildEvent<ConcourseBuildContent> {
+public class ConcourseBuildEvent extends BuildEvent<ConcourseBuildContent> {
   private ConcourseBuildContent content;
 
   public ConcourseBuildEvent(ConcourseBuildContent content) {
