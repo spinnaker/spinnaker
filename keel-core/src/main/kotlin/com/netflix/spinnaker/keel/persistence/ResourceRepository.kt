@@ -33,6 +33,8 @@ import com.netflix.spinnaker.keel.events.ResourceDeltaDetected
 import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
 import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.events.ResourceMissing
+import com.netflix.spinnaker.keel.events.ResourceTaskFailed
+import com.netflix.spinnaker.keel.events.ResourceTaskSucceeded
 import com.netflix.spinnaker.keel.events.ResourceValid
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.ACTUATING
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.CREATED
@@ -157,7 +159,9 @@ interface ResourceRepository : PeriodicallyCheckedRepository<Resource<out Resour
   }
 
   private fun List<ResourceEvent>.isActuating(): Boolean {
-    return first() is ResourceActuationLaunched
+    return first() is ResourceActuationLaunched || first() is ResourceTaskSucceeded ||
+      // we might want to move ResourceTaskFailed to isError later on
+      first() is ResourceTaskFailed
   }
 
   private fun List<ResourceEvent>.isError(): Boolean {
