@@ -62,6 +62,7 @@ class NotificationService {
   }
 
   ResponseEntity<String> processNotificationCallback(String source, RequestEntity<String> request) {
+    log.debug("Processing notification callback: ${request.getMethod()} ${request.getUrl()}, ${request.getHeaders()}")
     String contentType = request.getHeaders().getFirst("Content-Type")?.toLowerCase()
 
     if (!contentType) {
