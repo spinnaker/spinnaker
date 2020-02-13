@@ -114,6 +114,8 @@ const helpContents: { [key: string]: string } = {
   'aws.targetGroup.healthCheckProtocol': 'TCP health checks only support 10s and 30s intervals',
   'aws.targetGroup.healthCheckTimeout':
     'Target groups with TCP or TLS protocol must have a 6s timeout for HTTP health checks or a 10s timeout for HTTPS/TLS health checks.',
+  'aws.targetGroup.nlbHealthcheckThreshold':
+    'The healthy and unhealthy threshold for NLBs must be equal. This represents the number of successful and failed healthchecks required for healthy and unhealthy targets, respectively.',
   'aws.serverGroup.capacityConstraint': `
       <p>Ensures that the capacity of this server group has not changed in the background (i.e. due to autoscaling activity).</p>
       <p>If the capacity has changed, this resize operation will be rejected.</p>`,

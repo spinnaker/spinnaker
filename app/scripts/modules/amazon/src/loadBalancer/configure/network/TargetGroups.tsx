@@ -346,7 +346,10 @@ export class TargetGroups extends React.Component<ITargetGroupsProps, ITargetGro
                       </div>
                     </div>
                     <div className="wizard-pod-row">
-                      <div className="wizard-pod-row-title">Healthcheck Threshold</div>
+                      <div className="wizard-pod-row-title">
+                        <HelpField id="aws.targetGroup.nlbHealthcheckThreshold" />{' '}
+                        <span>Healthcheck Threshold&nbsp;</span>
+                      </div>
                       <div className="wizard-pod-row-contents">
                         <div className="wizard-pod-row-data">
                           <span className="wizard-pod-content">
