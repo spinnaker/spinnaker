@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.gate.model.manageddelivery;
 
-import java.time.Instant;
 import java.util.Map;
 import lombok.Data;
 
@@ -27,9 +26,9 @@ public class ConstraintState {
   String artifactVersion;
   String type;
   String status;
-  Instant createdAt;
+  String createdAt;
   String judgedBy;
-  Instant judgedAt;
+  String judgedAt;
   String comment;
   Map<String, Object> attributes;
 }

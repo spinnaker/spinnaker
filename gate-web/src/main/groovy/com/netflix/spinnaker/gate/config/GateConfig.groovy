@@ -19,6 +19,7 @@ package com.netflix.spinnaker.gate.config
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.jakewharton.retrofit.Ok3Client
 import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext
 import com.netflix.spectator.api.Registry
@@ -153,6 +154,7 @@ class GateConfig extends RedisHttpSessionConfiguration {
     ObjectMapper objectMapper = new ObjectMapper()
       .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL)
       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+      .registerModule(new JavaTimeModule())
 
     return new JsonHttpMessageConverter(objectMapper)
   }
@@ -226,7 +228,7 @@ class GateConfig extends RedisHttpSessionConfiguration {
       }
 
       return new ClouddriverServiceSelector(
-          new SelectableService(selectors + defaultSelector), dynamicConfigService, contextProvider)
+        new SelectableService(selectors + defaultSelector), dynamicConfigService, contextProvider)
     }
 
     SelectableService selectableService = createClientSelector("clouddriver", ClouddriverService, okHttpClient)
@@ -315,6 +317,7 @@ class GateConfig extends RedisHttpSessionConfiguration {
     ObjectMapper objectMapper = new ObjectMapper()
       .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL)
       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+      .registerModule(new JavaTimeModule())
 
     new RestAdapter.Builder()
       .setRequestInterceptor(spinnakerRequestInterceptor)

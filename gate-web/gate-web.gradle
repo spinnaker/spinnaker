@@ -26,6 +26,7 @@ dependencies {
   implementation "com.squareup.retrofit:retrofit"
   implementation "com.squareup.retrofit:converter-jackson"
   implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
+  implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
 
   implementation "com.squareup.okhttp:okhttp"
   implementation "com.squareup.okhttp:okhttp-urlconnection"
