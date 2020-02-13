@@ -103,7 +103,7 @@ class SlackNotificationAgent extends AbstractEventNotificationAgent {
 
     Response response
     if (sendCompactMessages) {
-      response = slackService.sendCompactMessage(token, new CompactSlackMessage(body, color), address, true)
+      response = slackService.sendCompactMessage(new CompactSlackMessage(body, color), address, true)
     } else {
       String title = getNotificationTitle(config.type, application, status)
       response = slackService.sendMessage(new SlackAttachment(title, body, color), address, true)

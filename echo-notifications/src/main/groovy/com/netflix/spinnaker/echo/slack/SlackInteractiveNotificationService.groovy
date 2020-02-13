@@ -99,12 +99,11 @@ class SlackInteractiveNotificationService extends SlackNotificationService imple
 
   @Override
   Notification.InteractiveActionCallback parseInteractionCallback(RequestEntity<String> request) {
-    // TODO(lfp): This currently doesn't work -- troubleshooting with Slack support.
-    //slack.verifySignature(request)
+    // Before anything else, verify the signature on the request
+    slackAppService.verifySignature(request)
 
     Map payload = parseSlackPayload(request.getBody())
     log.debug("Received callback event from Slack of type ${payload.type}")
-    slackAppService.verifyToken(payload.token)
 
     if (payload.actions.size > 1) {
       log.warn("Expected a single selected action from Slack, but received ${payload.actions.size}")

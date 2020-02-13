@@ -1,11 +1,16 @@
 package com.netflix.spinnaker.echo.slack
 
 import com.netflix.spinnaker.echo.api.Notification
+import com.netflix.spinnaker.echo.config.SlackAppProperties
 import com.netflix.spinnaker.echo.config.SlackConfig
 import com.netflix.spinnaker.echo.config.SlackLegacyProperties
+import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import groovy.json.JsonSlurper
 import org.apache.http.NameValuePair
 import org.apache.http.client.utils.URLEncodedUtils
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpMethod
+import org.springframework.http.RequestEntity
 import retrofit.client.Client
 import retrofit.client.Request
 import retrofit.client.Response
@@ -26,6 +31,7 @@ class SlackServiceSpec extends Specification {
   @Subject BlockingVariable<String> actualUrl
   @Subject BlockingVariable<String> actualPayload
   SlackLegacyProperties configProperties
+  SlackAppProperties appProperties
 
   def setup() {
     actualUrl = new BlockingVariable<String>()
@@ -40,6 +46,7 @@ class SlackServiceSpec extends Specification {
     }
 
     configProperties = new SlackLegacyProperties()
+    appProperties = new SlackAppProperties()
   }
 
   def 'test sending Slack notification using incoming web hook'() {
@@ -141,6 +148,33 @@ class SlackServiceSpec extends Specification {
       text: "OK",
       value: "ok"
     ]
+  }
+
+  def "verifying a Slack notification callback"() {
+    given: "a SlackAppService configured with a signing secret and an incoming callback"
+    appProperties.signingSecret = "d41090bb6ec741bb9f68f4d77d34fa0ad897c5af"
+
+    def slackAppService = slackConfig.slackAppService(appProperties, mockHttpClient, LogLevel.FULL)
+
+    String timestamp = "1581528126"
+    String payload = getClass().getResource("/slack/callbackRequestBody.txt").text
+    String slackRequestBody = "payload=" + URLEncoder.encode(payload, "UTF-8")
+    String signature = slackAppService.calculateSignature(timestamp, slackRequestBody)
+
+    RequestEntity<String> request = new RequestEntity<>(
+      slackRequestBody,
+      new HttpHeaders(
+        "X-Slack-Signature": signature,
+        "X-Slack-Request-Timestamp": timestamp
+      ),
+      HttpMethod.POST,
+      new URI("/notifications/callbacks"))
+
+    when: "the verifySignature method is called"
+    slackAppService.verifySignature(request, false)
+
+    then: "the calculated signature matches the received signature"
+    notThrown(InvalidRequestException)
   }
 
 

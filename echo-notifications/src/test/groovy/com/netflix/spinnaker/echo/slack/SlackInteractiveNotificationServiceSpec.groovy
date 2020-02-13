@@ -52,7 +52,7 @@ class SlackInteractiveNotificationServiceSpec extends Specification {
       URLEncoder.encode(getClass().getResource("/slack/callbackRequestBody.txt").text)
 
     RequestEntity<String> request = new RequestEntity<>(
-      slackRequestBody, new HttpHeaders(), HttpMethod.POST, new URI("/notifications/callbaks"))
+      slackRequestBody, new HttpHeaders(), HttpMethod.POST, new URI("/notifications/callbacks"))
 
     slackAppService.verifyToken(*_) >> { }
     slackAppService.getUserInfo(*_) >> new SlackService.SlackUserInfo(email: "john@doe.com")
@@ -80,7 +80,7 @@ class SlackInteractiveNotificationServiceSpec extends Specification {
       URLEncoder.encode(getClass().getResource("/slack/callbackRequestBody.txt").text)
 
     RequestEntity<String> request = new RequestEntity<>(
-      slackRequestBody, new HttpHeaders(), HttpMethod.POST, new URI("/notifications/callbaks"))
+      slackRequestBody, new HttpHeaders(), HttpMethod.POST, new URI("/notifications/callbacks"))
 
     slackAppService.verifyToken(*_) >> { }
     slackAppService.getUserInfo(*_) >> { throw new Exception("oops!") }
@@ -106,7 +106,7 @@ class SlackInteractiveNotificationServiceSpec extends Specification {
     given:
     String slackRequestBody = "content=suspicious"
     RequestEntity<String> request = new RequestEntity<>(
-      slackRequestBody, new HttpHeaders(), HttpMethod.POST, new URI("/notifications/callbaks"))
+      slackRequestBody, new HttpHeaders(), HttpMethod.POST, new URI("/notifications/callbacks"))
 
     when:
     service.parseInteractionCallback(request)
@@ -115,15 +115,15 @@ class SlackInteractiveNotificationServiceSpec extends Specification {
     thrown(InvalidRequestException)
   }
 
-  def "failing to verify the token from Slack throws an exception"() {
+  def "failing to verify the signature from Slack throws an exception"() {
     given:
     String slackRequestBody = "payload=" +
       URLEncoder.encode(getClass().getResource("/slack/callbackRequestBody.txt").text)
 
     RequestEntity<String> request = new RequestEntity<>(
-      slackRequestBody, new HttpHeaders(), HttpMethod.POST, new URI("/notifications/callbaks"))
+      slackRequestBody, new HttpHeaders(), HttpMethod.POST, new URI("/notifications/callbacks"))
 
-    slackAppService.verifyToken(*_) >> { throw new InvalidRequestException() }
+    slackAppService.verifySignature(*_) >> { throw new InvalidRequestException() }
     slackAppService.getUserInfo(*_) >> { }
 
     when:
@@ -139,7 +139,7 @@ class SlackInteractiveNotificationServiceSpec extends Specification {
     String slackRequestBody = "payload=" + URLEncoder.encode(payload, "UTF-8")
 
     RequestEntity<String> request = new RequestEntity<>(
-      slackRequestBody, new HttpHeaders(), HttpMethod.POST, new URI("/notifications/callbaks"))
+      slackRequestBody, new HttpHeaders(), HttpMethod.POST, new URI("/notifications/callbacks"))
 
     slackAppService.verifyToken(*_) >> { }
     slackAppService.getUserInfo(*_) >> { }

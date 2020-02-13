@@ -22,7 +22,7 @@ import groovy.transform.Canonical
 import groovy.util.logging.Slf4j
 import org.springframework.http.HttpHeaders
 import org.springframework.http.RequestEntity
-import org.springframework.security.crypto.codec.Hex
+import org.apache.commons.codec.binary.Hex
 
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
@@ -42,29 +42,35 @@ class SlackAppService extends SlackService {
   // FIXME (lfp): this algorithm works as I've validated it against the sample data provided in the Slack documentation,
   //  but it doesn't work with our requests and signing secret for some reason. I've reached out to Slack support but
   //  have not received any definitive answers yet.
-  void verifySignature(RequestEntity<String> request) {
+  void verifySignature(RequestEntity<String> request, boolean preventReplays = true) {
     HttpHeaders headers = request.getHeaders()
     String body = request.getBody()
     String timestamp = headers['X-Slack-Request-Timestamp'].first()
     String signature = headers['X-Slack-Signature'].first()
 
-    if ((Instant.ofEpochSecond(Long.valueOf(timestamp)) + Duration.ofMinutes(5)).isBefore(Instant.now())) {
+    if (preventReplays &&
+      (Instant.ofEpochSecond(Long.valueOf(timestamp)) + Duration.ofMinutes(5)).isBefore(Instant.now())) {
       // The request timestamp is more than five minutes from local time. It could be a replay attack.
       throw new InvalidRequestException("Slack request timestamp is older than 5 minutes. Replay attack?")
     }
 
-    String signatureBaseString = 'v0:' + timestamp + ':' + body
+    String calculatedSignature = calculateSignature(timestamp, body)
 
+    if (calculatedSignature != signature) {
+      throw new InvalidRequestException("Invalid Slack signature header.")
+    }
+  }
+
+  String calculateSignature(String timestamp, String body, String version = "v0") {
     try {
+      // For some reason, Spring URL-decodes asterisks in the body (but not other URL-encoded characters :-P)
+      body = body.replaceAll(/\*/, "%2A")
+      String signatureBaseString = "$version:$timestamp:$body"
       Mac mac = Mac.getInstance("HmacSHA256")
       SecretKeySpec secretKeySpec = new SecretKeySpec(config.signingSecret.getBytes(), "HmacSHA256")
       mac.init(secretKeySpec)
       byte[] digest = mac.doFinal(signatureBaseString.getBytes())
-      String calculatedSignature = "v0=" + Hex.encode(digest).toString()
-
-      if (calculatedSignature != signature) {
-        throw new InvalidRequestException("Invalid Slack signature header.")
-      }
+      return "$version=${Hex.encodeHex(digest).toString()}"
     } catch (InvalidKeyException e) {
       throw new InvalidRequestException("Invalid key exception verifying Slack request signature.")
     }
