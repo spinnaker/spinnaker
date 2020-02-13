@@ -52,7 +52,7 @@ public class EventPropagator {
               try {
                 callable.call();
               } catch (Exception e) {
-                log.error("failed processing event: {}", event.content, e);
+                log.error("failed processing event: {}", event, e);
               }
             });
   }
