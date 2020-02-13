@@ -12,8 +12,8 @@ fi
 if [[ -n $TRAVIS || -n $GITHUB_ACTIONS ]] ; then
   echo "git fetch -q..."
   git fetch -q
-  CI_TARGET_BRANCH=origin/master
-  cd app/scripts/modules || exit 1;
+  CI_TARGET_BRANCH=origin/master # dirname should maybe work in both cases?
+  cd "$(dirname "$0")" || exit 1;
 else
   cd "$(dirname "$0")" || exit 2;
 fi
