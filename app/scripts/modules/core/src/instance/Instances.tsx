@@ -1,6 +1,6 @@
 import React from 'react';
-import { Transition } from '@uirouter/core';
-import { UIRouterConsumer, UIRouterReact, UIViewConsumer, UIViewAddress } from '@uirouter/react';
+import { UIRouter, Transition } from '@uirouter/core';
+import { UIViewAddress, useRouter, useParentView } from '@uirouter/react';
 import { Subscription } from 'rxjs';
 import { IInstance } from 'core/domain';
 import { Instance } from './Instance';
@@ -14,18 +14,14 @@ export interface IInstancesState {
   detailsInstanceId: string;
 }
 
-export const Instances = (props: IInstancesProps) => (
-  <UIRouterConsumer>
-    {(router: UIRouterReact) => (
-      <UIViewConsumer>
-        {(uiview: UIViewAddress) => <InstancesInternal {...props} router={router} uiview={uiview} />}
-      </UIViewConsumer>
-    )}
-  </UIRouterConsumer>
-);
+export const Instances = (props: IInstancesProps) => {
+  const router = useRouter();
+  const uiview = useParentView();
+  return <InstancesInternal {...props} router={router} uiview={uiview} />;
+};
 
 export interface IInstancesInternalProps extends IInstancesProps {
-  router: UIRouterReact;
+  router: UIRouter;
   uiview: UIViewAddress;
 }
 
