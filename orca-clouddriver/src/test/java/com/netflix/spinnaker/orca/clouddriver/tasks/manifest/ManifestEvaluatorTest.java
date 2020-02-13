@@ -58,6 +58,14 @@ final class ManifestEvaluatorTest {
   private final TypedString manifestString =
       new TypedString("{'metadata': {'name': 'my-manifest'}}");
 
+  private final String manifestsWithEmptyDocument =
+      "---\n"
+          + "metadata:\n"
+          + "  name: my-manifest\n"
+          + "---\n"
+          + "# Source: k8s_namespaces/templates/00-namespaces.yaml\n"
+          + "# this is an empty yaml document\n";
+
   @BeforeEach
   void setup() {
     manifestEvaluator =
@@ -83,6 +91,42 @@ final class ManifestEvaluatorTest {
 
     assertThatThrownBy(() -> manifestEvaluator.evaluate(stage, context))
         .isInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test
+  void artifactManifestIgnoreNullYAMLDocuments() {
+
+    Stage stage = new Stage();
+    Artifact manifestArtifact =
+        Artifact.builder()
+            .artifactAccount("my-artifact-account")
+            .type("embedded/base64")
+            .customKind(false)
+            .name("somename")
+            .reference(
+                "LS0tCm1ldGFkYXRhOgogIG5hbWU6IG15LW1hbmlmZXN0Ci0tLQojIFNvdXJjZTogazhzX25hbWVzcGFjZXMvdGVtcGxhdGVzLzAwLW5hbWVzcGFjZXMueWFtbAoK")
+            .build();
+
+    DeployManifestContext context =
+        DeployManifestContext.builder()
+            .source(Source.Artifact)
+            .manifestArtifact(manifestArtifact)
+            .skipExpressionEvaluation(true)
+            .build();
+
+    when(artifactUtils.getBoundArtifactForStage(stage, null, manifestArtifact))
+        .thenReturn(manifestArtifact);
+    when(oortService.fetchArtifact(manifestArtifact))
+        .thenReturn(
+            new Response(
+                "http://my-url",
+                200,
+                "",
+                ImmutableList.of(),
+                new TypedString(manifestsWithEmptyDocument)));
+
+    ManifestEvaluator.Result result = manifestEvaluator.evaluate(stage, context);
+    assertThat(result.getManifests()).isEqualTo(manifests);
   }
 
   @Test

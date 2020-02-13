@@ -41,6 +41,7 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -130,6 +131,7 @@ public class ManifestEvaluator implements CloudProviderAware {
 
     ImmutableList<Map<Object, Object>> unevaluatedManifests =
         StreamSupport.stream(rawManifests.spliterator(), false)
+            .filter(Objects::nonNull)
             .map(this::coerceManifestToList)
             .flatMap(Collection::stream)
             .collect(toImmutableList());
