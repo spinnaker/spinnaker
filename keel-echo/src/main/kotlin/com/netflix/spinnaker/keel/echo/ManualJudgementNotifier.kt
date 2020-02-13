@@ -8,6 +8,7 @@ import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.echo.model.EchoNotification
 import com.netflix.spinnaker.keel.events.ConstraintStateChanged
 import kotlinx.coroutines.runBlocking
+import org.slf4j.LoggerFactory
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.event.EventListener
@@ -29,8 +30,11 @@ class ManualJudgementNotifier(
       "https://www.spinnaker.io/guides/user/managed-delivery/environment-constraints/#manual-judgement"
   }
 
+  private val log by lazy { LoggerFactory.getLogger(javaClass) }
+
   @EventListener(ConstraintStateChanged::class)
   fun constraintStateChanged(event: ConstraintStateChanged) {
+    log.debug("Received constraint state changed event: $event")
     // if this is the first time the constraint was evaluated, send a notification
     // so the user can react via other interfaces outside the UI (e.g. e-mail, Slack)
     if (event.constraint is ManualJudgementConstraint &&
@@ -39,6 +43,7 @@ class ManualJudgementNotifier(
       event.environment.notifications.map {
         // TODO: run in parallel
         runBlocking {
+          log.debug("Sending notification for manual judgement with config $it")
           echoService.sendNotification(event.toEchoNotification(it))
         }
       }
