@@ -22,22 +22,21 @@ import com.netflix.spinnaker.kork.plugins.ExtensionBeanDefinitionRegistryPostPro
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginManager;
 import com.netflix.spinnaker.kork.plugins.SpringPluginStatusProvider;
 import com.netflix.spinnaker.kork.plugins.config.ConfigResolver;
+import com.netflix.spinnaker.kork.plugins.config.ExtensionConfigFactory;
 import com.netflix.spinnaker.kork.plugins.config.RepositoryConfigCoordinates;
 import com.netflix.spinnaker.kork.plugins.config.SpringEnvironmentConfigResolver;
 import com.netflix.spinnaker.kork.plugins.proxy.aspects.InvocationAspect;
 import com.netflix.spinnaker.kork.plugins.proxy.aspects.InvocationState;
 import com.netflix.spinnaker.kork.plugins.proxy.aspects.LogInvocationAspect;
 import com.netflix.spinnaker.kork.plugins.proxy.aspects.MetricInvocationAspect;
+import com.netflix.spinnaker.kork.plugins.sdk.SdkFactory;
 import com.netflix.spinnaker.kork.plugins.spring.actuator.SpinnakerPluginEndpoint;
 import com.netflix.spinnaker.kork.plugins.update.ConfigurableUpdateRepository;
 import com.netflix.spinnaker.kork.plugins.update.PluginUpdateService;
 import com.netflix.spinnaker.kork.plugins.update.SpinnakerUpdateManager;
 import com.netflix.spinnaker.kork.plugins.update.downloader.FileDownloaderProvider;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import org.pf4j.PluginStatusProvider;
 import org.pf4j.update.UpdateRepository;
@@ -75,6 +74,11 @@ public class PluginsAutoConfiguration {
   }
 
   @Bean
+  ExtensionConfigFactory extensionConfigInitializer(ConfigResolver configResolver) {
+    return new ExtensionConfigFactory(configResolver);
+  }
+
+  @Bean
   public static Map<String, PluginRepositoryProperties> pluginRepositoriesConfig(
       ConfigResolver configResolver) {
     return configResolver.resolve(
@@ -86,10 +90,12 @@ public class PluginsAutoConfiguration {
   public static SpinnakerPluginManager pluginManager(
       PluginStatusProvider pluginStatusProvider,
       ApplicationContext applicationContext,
-      ConfigResolver configResolver) {
+      ExtensionConfigFactory extensionConfigFactory,
+      List<SdkFactory> sdkFactories) {
     return new SpinnakerPluginManager(
         pluginStatusProvider,
-        configResolver,
+        extensionConfigFactory,
+        sdkFactories,
         Objects.requireNonNull(
             applicationContext.getEnvironment().getProperty("spring.application.name")),
         Paths.get(

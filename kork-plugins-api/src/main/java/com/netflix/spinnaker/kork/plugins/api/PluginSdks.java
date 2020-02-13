@@ -12,27 +12,24 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 package com.netflix.spinnaker.kork.plugins.api;
 
-import com.netflix.spinnaker.kork.annotations.Alpha;
-
 /**
- * Marks an Extension as being capable of accepting a configuration.
+ * A convenience interface for accessing plugin SDK services.
  *
- * <p>TODO(rz): Remove entirely. Move to ExtensionConfiguration instead
+ * <p>If an extension needs any services, this interface can be included as a constructor parameter
+ * and the implementation will be injected into the extension.
  *
- * @param <T> The configuration class type
+ * <pre>{@code
+ * public class MyExtension {
+ *
+ *   private final PluginServices pluginServices;
+ *
+ *   public MyExtension(PluginServices pluginServices) {
+ *     this.pluginServices = pluginServices;
+ *   }
+ * }
+ * }</pre>
  */
-@Alpha
-public interface ConfigurableExtension<T> {
-  /**
-   * Sets the extension configuration. This is called by the plugin framework upon extension
-   * creation; it should not be called again by user-land code.
-   *
-   * @deprecated Configs are now injected via constructors
-   */
-  @Deprecated
-  void setConfiguration(T configuration);
-}
+public interface PluginSdks {}

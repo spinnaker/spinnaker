@@ -18,7 +18,9 @@ package com.netflix.spinnaker.kork.plugins
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import com.netflix.spinnaker.kork.plugins.api.ConfigurableExtension
 import com.netflix.spinnaker.kork.plugins.api.SpinnakerExtension
+import com.netflix.spinnaker.kork.plugins.config.ExtensionConfigFactory
 import com.netflix.spinnaker.kork.plugins.config.ConfigResolver
+import com.netflix.spinnaker.kork.plugins.sdk.SdkFactory
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
@@ -32,7 +34,7 @@ import strikt.api.expectThrows
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 
-class SpringExtensionFactoryTest : JUnit5Minutests {
+class SpinnakerExtensionFactoryTest : JUnit5Minutests {
 
   fun tests() = rootContext<Fixture> {
     fixture {
@@ -90,7 +92,10 @@ class SpringExtensionFactoryTest : JUnit5Minutests {
   private inner class Fixture {
     val configResolver: ConfigResolver = mockk(relaxed = true)
     val pluginManager: SpinnakerPluginManager = mockk(relaxed = true)
-    val subject = SpringExtensionFactory(pluginManager, configResolver)
+    val extensionConfigFactory: ExtensionConfigFactory = ExtensionConfigFactory(configResolver)
+    val sdkFactories: List<SdkFactory> = listOf()
+
+    val subject = SpinnakerExtensionFactory(pluginManager, extensionConfigFactory, sdkFactories)
     val pluginWrapper: PluginWrapper = mockk(relaxed = true)
   }
 
@@ -106,10 +111,11 @@ class SpringExtensionFactoryTest : JUnit5Minutests {
   class NoConfigSystemExtension : TheExtensionPoint
 
   @SpinnakerExtension(id = "kork.configured")
-  class ConfiguredSystemExtension : TheExtensionPoint, ConfigurableExtension<ConfiguredSystemExtension.TheConfig> {
-    lateinit var config: Any
+  class ConfiguredSystemExtension(
+    private val config: TheConfig
+  ) : TheExtensionPoint, ConfigurableExtension<ConfiguredSystemExtension.TheConfig> {
     override fun setConfiguration(configuration: TheConfig) {
-      config = configuration
+      // Do nothing. Deprecated.
     }
 
     class TheConfig
@@ -124,10 +130,11 @@ class SpringExtensionFactoryTest : JUnit5Minutests {
     class NoConfigExtension : TheExtensionPoint
 
     @SpinnakerExtension(id = "plugin.configured")
-    class ConfiguredExtension : TheExtensionPoint, ConfigurableExtension<ConfiguredExtension.TheConfig> {
-      lateinit var config: Any
+    class ConfiguredExtension(
+      private val config: TheConfig
+    ) : TheExtensionPoint, ConfigurableExtension<ConfiguredExtension.TheConfig> {
       override fun setConfiguration(configuration: TheConfig) {
-        config = configuration
+        // Do nothing. Deprecated.
       }
 
       class TheConfig

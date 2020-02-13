@@ -49,6 +49,7 @@ class PluginUpdateServiceTest : JUnit5Minutests {
       val pluginManager = SpinnakerPluginManager(
         DefaultPluginStatusProvider(paths.plugins),
         mockk(),
+        listOf(),
         "kork",
         paths.plugins
       )

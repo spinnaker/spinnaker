@@ -20,6 +20,7 @@ import com.netflix.spinnaker.kork.plugins.config.ConfigCoordinates
 import com.netflix.spinnaker.kork.plugins.config.ConfigResolver
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
+import io.mockk.mockk
 import java.lang.reflect.ParameterizedType
 import java.nio.file.Paths
 import org.pf4j.DefaultPluginDescriptor
@@ -35,7 +36,8 @@ class SpinnakerPluginManagerTest : JUnit5Minutests {
     fixture {
       SpinnakerPluginManager(
         FakePluginStatusProvider(),
-        FakeConfigResolver(),
+        mockk(),
+        listOf(),
         "kork",
         Paths.get("plugins")
       )

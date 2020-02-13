@@ -17,13 +17,14 @@ package com.netflix.spinnaker.kork.plugins
 
 import com.netflix.spinnaker.kork.annotations.Beta
 import com.netflix.spinnaker.kork.plugins.bundle.PluginBundleExtractor
-import com.netflix.spinnaker.kork.plugins.config.ConfigResolver
+import com.netflix.spinnaker.kork.plugins.config.ExtensionConfigFactory
 import com.netflix.spinnaker.kork.plugins.finders.SpinnakerPluginDescriptorFinder
 import com.netflix.spinnaker.kork.plugins.loaders.PluginRefPluginLoader
 import com.netflix.spinnaker.kork.plugins.loaders.SpinnakerDefaultPluginLoader
 import com.netflix.spinnaker.kork.plugins.loaders.SpinnakerDevelopmentPluginLoader
 import com.netflix.spinnaker.kork.plugins.loaders.SpinnakerJarPluginLoader
 import com.netflix.spinnaker.kork.plugins.repository.PluginRefPluginRepository
+import com.netflix.spinnaker.kork.plugins.sdk.SdkFactory
 import org.pf4j.CompoundPluginLoader
 import org.pf4j.CompoundPluginRepository
 import org.pf4j.DefaultPluginManager
@@ -39,18 +40,24 @@ import java.nio.file.Path
  * The primary entry-point to the plugins system from a provider-side (services, libs, CLIs, and so-on).
  *
  * @param statusProvider A Spring Environment-aware plugin status provider.
+ * @param extensionInitializer The extension initialization strategy used by the extension factory.
  * @param configResolver The config resolver for extensions.
  * @param pluginsRoot The root path to search for in-process plugin artifacts.
  */
 @Beta
 open class SpinnakerPluginManager(
   private val statusProvider: PluginStatusProvider,
-  private val configResolver: ConfigResolver,
+  extensionConfigFactory: ExtensionConfigFactory,
+  sdkFactories: List<SdkFactory>,
   private val serviceName: String,
   pluginsRoot: Path
 ) : DefaultPluginManager(pluginsRoot) {
 
-  private val springExtensionFactory: ExtensionFactory = SpringExtensionFactory(this, configResolver)
+  private val springExtensionFactory: ExtensionFactory = SpinnakerExtensionFactory(
+    this,
+    extensionConfigFactory,
+    sdkFactories
+  )
   private val bundleExtractor = PluginBundleExtractor()
 
   private inner class ExtensionFactoryDelegate : ExtensionFactory {
