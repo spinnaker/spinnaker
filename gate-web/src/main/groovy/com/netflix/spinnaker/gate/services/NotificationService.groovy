@@ -17,15 +17,14 @@
 
 package com.netflix.spinnaker.gate.services
 
-import com.netflix.spinnaker.gate.config.GateConfig
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
-import com.squareup.okhttp.MediaType
-import com.squareup.okhttp.OkHttpClient
-import com.squareup.okhttp.Request
-import com.squareup.okhttp.RequestBody
-import com.squareup.okhttp.Response
+import okhttp3.MediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
+import okhttp3.Response
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -43,7 +42,7 @@ class NotificationService {
   @Autowired(required = false)
   Front50Service front50Service
 
-  @Autowired(required = false)
+  @Autowired
   OkHttpClient okHttpClient
 
   @Autowired

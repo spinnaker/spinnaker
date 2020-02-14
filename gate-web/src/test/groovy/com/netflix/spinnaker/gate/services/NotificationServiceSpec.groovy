@@ -17,14 +17,14 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
-import com.squareup.okhttp.Call
-import com.squareup.okhttp.MediaType
-import com.squareup.okhttp.OkHttpClient
-import com.squareup.okhttp.Protocol
-import com.squareup.okhttp.Request
-import com.squareup.okhttp.RequestBody
-import com.squareup.okhttp.Response
-import com.squareup.okhttp.ResponseBody
+import okhttp3.Call
+import okhttp3.MediaType
+import okhttp3.OkHttpClient
+import okhttp3.Protocol
+import okhttp3.Request
+import okhttp3.RequestBody
+import okhttp3.Response
+import okhttp3.ResponseBody
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
@@ -96,6 +96,7 @@ class NotificationServiceSpec extends Specification {
     .request(request)
     .protocol(Protocol.HTTP_1_1)
     .code(200)
+    .message("nada")
     .body(ResponseBody.create(MediaType.parse("application/json"), '{ "status": "ok" }'))
     .build()
   }
