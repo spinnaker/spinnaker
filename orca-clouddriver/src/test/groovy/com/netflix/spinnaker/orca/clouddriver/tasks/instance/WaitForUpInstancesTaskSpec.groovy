@@ -177,11 +177,13 @@ class WaitForUpInstancesTaskSpec extends Specification {
     89      | 9       | 10    || true
     90      | 9       | 10    || true
     90      | 8       | 10    || false
-    91      | 9       | 10    || false
+    91      | 9       | 10    || true
+    95      | 9       | 10    || false
 
-    // verify ceiling
+    // verify round
     90      | 10      | 11    || true
-    90      | 8       | 9     || false
+    90      | 8       | 9     || true
+    95      | 8       | 9     || false
 
   }
 

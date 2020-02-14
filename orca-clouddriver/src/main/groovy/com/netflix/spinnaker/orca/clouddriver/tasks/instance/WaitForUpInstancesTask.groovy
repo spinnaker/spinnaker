@@ -141,7 +141,7 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
         throw new NumberFormatException("targetHealthyDeployPercentage must be an integer between 0 and 100")
       }
 
-      def newTargetDesiredSize = Math.ceil(percentage * targetDesiredSize / 100D) as Integer
+      def newTargetDesiredSize = Math.max(Math.round(percentage * targetDesiredSize / 100D), 1) as Integer
       splainer.add("setting targetDesiredSize=${newTargetDesiredSize} based on configured targetHealthyDeployPercentage=${percentage}% of previous targetDesiredSize=${targetDesiredSize}")
       targetDesiredSize = newTargetDesiredSize
     } else if (stage.context.desiredPercentage != null) {
