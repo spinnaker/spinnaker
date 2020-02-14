@@ -45,35 +45,41 @@ deploymentConfigurations:
 - name: $DEPLOYMENT
   version: 1
   providers: null
-  plugins:
-    plugins:
-    - name: test-plugin
-      manifestLocation: /home/user/test-plugin.yaml
-      options:
-        foo: bar
-        nested:
-          key: value
+  spinnaker:
+    extensibility:
+      plugins:
+        test.Plugin:
+          version: 1.2.3
+          enabled: true
+          extensions:
+            test.randomWaitStage:
+              enabled: true
+              config:
+                foo: bar
 """
     def pluginService = makePluginService(config)
 
     when:
-    def result = pluginService.getAllPlugins(DEPLOYMENT)
+    def result = pluginService.getPlugins(DEPLOYMENT)
 
     then:
     result != null
     result.size() == 1
-    result[0].getName() == "test-plugin"
-    result[0].getManifestLocation() == "/home/user/test-plugin.yaml"
-    result[0].getOptions().get("foo") == "bar"
-    result[0].getOptions().get("nested").get("key") == "value"
+    def plugin = result.get("test.Plugin")
+    plugin != null
+    plugin.getVersion() == "1.2.3"
+    plugin.getExtensions().get("test.randomWaitStage").getEnabled() == true
+    plugin.getEnabled() == true
 
     when:
-    result = pluginService.getPlugin(DEPLOYMENT, "test-plugin")
+    result = pluginService.getPlugin(DEPLOYMENT, "test.Plugin")
 
     then:
     result != null
-    result.getName() == "test-plugin"
-    result.getManifestLocation() == "/home/user/test-plugin.yaml"
+    result.getVersion() == "1.2.3"
+    plugin.getExtensions().get("test.randomWaitStage").getEnabled() == true
+    plugin.getExtensions().get("test.randomWaitStage").getConfig().get("foo") == "bar"
+    plugin.getEnabled() == true
 
     when:
     pluginService.getPlugin(DEPLOYMENT, 'non-existent-plugin')
@@ -91,13 +97,14 @@ deploymentConfigurations:
 - name: $DEPLOYMENT
   version: 1
   providers: null
-  plugins:
-    plugins: []
+  spinnaker:
+    extensibility: 
+      plugins: {}
 """
     def pluginService = makePluginService(config)
 
     when:
-    def result = pluginService.getAllPlugins(DEPLOYMENT)
+    def result = pluginService.getPlugins(DEPLOYMENT)
 
     then:
     result != null
@@ -119,12 +126,14 @@ deploymentConfigurations:
 - name: $DEPLOYMENT
   version: 1
   providers: null
-  plugins:
+  spinnaker:
+    extensibility:
+      plugins:
 """
     def pluginService = makePluginService(config)
 
     when:
-    def result = pluginService.getAllPlugins(DEPLOYMENT)
+    def result = pluginService.getPlugins(DEPLOYMENT)
 
     then:
     result != null
@@ -147,17 +156,18 @@ deploymentConfigurations:
 - name: $DEPLOYMENT
   version: 1
   providers: null
-  plugins:
-    plugins:
-    - name: test-plugin
-      manifestLocation: /home/user/test-plugin.yaml
-    - name: test-plugin-2
-      manifestLocation: /home/user/test-plugin-2.yaml
+  spinnaker:
+    extensibility:
+      plugins:
+        test-plugin:
+          enabled: true
+        test-plugin-2:
+          enabled: true
 """
     def pluginService = makePluginService(config)
 
     when:
-    def result = pluginService.getAllPlugins(DEPLOYMENT)
+    def result = pluginService.getPlugins(DEPLOYMENT)
 
     then:
     result != null
@@ -168,15 +178,13 @@ deploymentConfigurations:
 
     then:
     result != null
-    result.getName() == "test-plugin"
-    result.getManifestLocation() == "/home/user/test-plugin.yaml"
+    result.getEnabled() == true
 
     when:
     result = pluginService.getPlugin(DEPLOYMENT, "test-plugin-2")
 
     then:
     result != null
-    result.getName() == "test-plugin-2"
-    result.getManifestLocation() == "/home/user/test-plugin-2.yaml"
+    result.getEnabled() == true
   }
 }

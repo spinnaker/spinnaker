@@ -23,6 +23,8 @@ import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.plugins.Plugin;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -36,10 +38,12 @@ public class ListPluginsCommand extends AbstractConfigCommand {
 
   private List<Plugin> getPlugins() {
     String currentDeployment = getCurrentDeployment();
-    return new OperationHandler<List<Plugin>>()
-        .setFailureMesssage("Failed to get plugins.")
-        .setOperation(Daemon.getPlugins(currentDeployment, !noValidate))
-        .get();
+    Map<String, Plugin> plugins =
+        new OperationHandler<Map<String, Plugin>>()
+            .setFailureMesssage("Failed to get plugins.")
+            .setOperation(Daemon.getPlugins(currentDeployment, !noValidate))
+            .get();
+    return plugins.entrySet().stream().map(r -> r.getValue()).collect(Collectors.toList());
   }
 
   @Override
@@ -49,7 +53,7 @@ public class ListPluginsCommand extends AbstractConfigCommand {
       AnsiUi.success("No configured plugins.");
     } else {
       AnsiUi.success("Plugins:");
-      plugins.forEach(plugin -> AnsiUi.listItem(plugin.getName()));
+      plugins.forEach(plugin -> AnsiUi.listItem(plugin.getId()));
     }
   }
 }

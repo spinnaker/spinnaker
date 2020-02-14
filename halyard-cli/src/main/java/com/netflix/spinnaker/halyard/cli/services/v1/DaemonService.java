@@ -942,20 +942,20 @@ public interface DaemonService {
   @GET("/v1/config/deployments/{deploymentName}/pluginRepositories/{repositoryName}/")
   DaemonTask<Halconfig, Object> getPluginRepository(
       @Path("deploymentName") String deploymentName,
-      @Path("repositoryName") String pluginName,
+      @Path("repositoryName") String pluginRepositoryName,
       @Query("validate") boolean validate);
 
   @PUT("/v1/config/deployments/{deploymentName}/pluginRepositories/{repositoryName}/")
   DaemonTask<Halconfig, Void> setPluginRepository(
       @Path("deploymentName") String deploymentName,
-      @Path("repositoryName") String pluginName,
+      @Path("repositoryName") String pluginRepositoryName,
       @Query("validate") boolean validate,
       @Body PluginRepository pluginRepository);
 
   @DELETE("/v1/config/deployments/{deploymentName}/pluginRepositories/{repositoryName}/")
   DaemonTask<Halconfig, Void> deletePluginRepository(
       @Path("deploymentName") String deploymentName,
-      @Path("repositoryName") String pluginName,
+      @Path("repositoryName") String pluginRepositoryName,
       @Query("validate") boolean validate);
 
   @GET("/v1/config/deployments/{deploymentName}/telemetry/")

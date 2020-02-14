@@ -78,8 +78,7 @@ public class OrcaProfileFactory extends SpringProfileFactory {
     // For backward compatibility
     profile.appendContents("pipelineTemplate.enabled: " + pipelineTemplates);
 
-    Map<String, Object> pluginsYaml = deploymentConfiguration.getPlugins().pluginConfigurations();
-    profile.appendContents(yamlToString(deploymentConfiguration.getName(), profile, pluginsYaml));
+    // TODO(link108): need to apply this to all services, must take into account duplicate keys
     Map<String, Object> spinnakerYaml = new LinkedHashMap<>();
     spinnakerYaml.put("spinnaker", deploymentConfiguration.getSpinnaker().toMap());
     profile.appendContents(yamlToString(deploymentConfiguration.getName(), profile, spinnakerYaml));

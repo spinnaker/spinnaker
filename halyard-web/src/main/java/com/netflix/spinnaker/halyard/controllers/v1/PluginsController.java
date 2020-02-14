@@ -24,10 +24,9 @@ import com.netflix.spinnaker.halyard.config.services.v1.PluginService;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.models.v1.ValidationSettings;
 import com.netflix.spinnaker.halyard.util.v1.GenericDeleteRequest;
-import com.netflix.spinnaker.halyard.util.v1.GenericEnableDisableRequest;
 import com.netflix.spinnaker.halyard.util.v1.GenericGetRequest;
 import com.netflix.spinnaker.halyard.util.v1.GenericUpdateRequest;
-import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,10 +39,10 @@ public class PluginsController {
   private final HalconfigParser halconfigParser;
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
-  DaemonTask<Halconfig, List<Plugin>> getPlugins(
+  DaemonTask<Halconfig, Map<String, Plugin>> getPlugins(
       @PathVariable String deploymentName, @ModelAttribute ValidationSettings validationSettings) {
-    return GenericGetRequest.<List<Plugin>>builder()
-        .getter(() -> pluginService.getAllPlugins(deploymentName))
+    return GenericGetRequest.<Map<String, Plugin>>builder()
+        .getter(() -> pluginService.getPlugins(deploymentName))
         .validator(() -> pluginService.validateAllPlugins(deploymentName))
         .description("Get plugins")
         .build()
@@ -86,8 +85,8 @@ public class PluginsController {
     return GenericUpdateRequest.<Plugin>builder(halconfigParser)
         .stagePath(halconfigDirectoryStructure.getStagingPath(deploymentName))
         .updater(t -> pluginService.addPlugin(deploymentName, t))
-        .validator(() -> pluginService.validatePlugin(deploymentName, plugin.getName()))
-        .description("Add the " + plugin.getName() + " plugin")
+        .validator(() -> pluginService.validatePlugin(deploymentName, plugin.getId()))
+        .description("Add the " + plugin.getId() + " plugin")
         .build()
         .execute(validationSettings, plugin);
   }
@@ -104,31 +103,5 @@ public class PluginsController {
         .description("Delete the " + pluginName + " plugin")
         .build()
         .execute(validationSettings);
-  }
-
-  @RequestMapping(value = "/enabled", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setPluginsEnabled(
-      @PathVariable String deploymentName,
-      @ModelAttribute ValidationSettings validationSettings,
-      @RequestBody Boolean enabled) {
-    return GenericEnableDisableRequest.builder(halconfigParser)
-        .updater(t -> pluginService.setPluginsEnabled(deploymentName, false, enabled))
-        .validator(() -> pluginService.validateAllPlugins(deploymentName))
-        .description("Enable or disable plugins")
-        .build()
-        .execute(validationSettings, enabled);
-  }
-
-  @RequestMapping(value = "/downloadingEnabled", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> setPluginsDownloadingEnabled(
-      @PathVariable String deploymentName,
-      @ModelAttribute ValidationSettings validationSettings,
-      @RequestBody Boolean enabled) {
-    return GenericEnableDisableRequest.builder(halconfigParser)
-        .updater(t -> pluginService.setPluginsDownloadingEnabled(deploymentName, false, enabled))
-        .validator(() -> pluginService.validateAllPlugins(deploymentName))
-        .description("Enable or disable downloading plugins")
-        .build()
-        .execute(validationSettings, enabled);
   }
 }

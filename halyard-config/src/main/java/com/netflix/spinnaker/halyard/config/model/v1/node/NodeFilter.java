@@ -333,31 +333,30 @@ public class NodeFilter implements Cloneable {
     return this;
   }
 
-  public NodeFilter setPlugins() {
-    matchers.add(Node.thisNodeAcceptor(Plugins.class));
-    return this;
-  }
-
   public NodeFilter setPlugin(String name) {
-    matchers.add(Node.thisNodeAcceptor(Plugins.class));
+    matchers.add(Node.thisNodeAcceptor(Spinnaker.class));
+    matchers.add(Node.thisNodeAcceptor(Extensibility.class));
     matchers.add(Node.namedNodeAcceptor(Plugin.class, name));
     return this;
   }
 
   public NodeFilter withAnyPlugin() {
-    matchers.add(Node.thisNodeAcceptor(Plugins.class));
+    matchers.add(Node.thisNodeAcceptor(Spinnaker.class));
+    matchers.add(Node.thisNodeAcceptor(Extensibility.class));
     matchers.add(Node.thisNodeAcceptor(Plugin.class));
     return this;
   }
 
   public NodeFilter setPluginRepository(String name) {
-    matchers.add(Node.thisNodeAcceptor(Plugins.class));
+    matchers.add(Node.thisNodeAcceptor(Spinnaker.class));
+    matchers.add(Node.thisNodeAcceptor(Extensibility.class));
     matchers.add(Node.namedNodeAcceptor(PluginRepository.class, name));
     return this;
   }
 
   public NodeFilter withAnyPluginRepository() {
-    matchers.add(Node.thisNodeAcceptor(Plugins.class));
+    matchers.add(Node.thisNodeAcceptor(Spinnaker.class));
+    matchers.add(Node.thisNodeAcceptor(Extensibility.class));
     matchers.add(Node.thisNodeAcceptor(PluginRepository.class));
     return this;
   }

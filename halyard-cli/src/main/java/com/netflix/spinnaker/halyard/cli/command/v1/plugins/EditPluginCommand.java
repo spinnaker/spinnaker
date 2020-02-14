@@ -21,6 +21,7 @@ import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.config.model.v1.plugins.Plugin;
+import com.netflix.spinnaker.halyard.config.model.v1.plugins.PluginExtension;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -33,12 +34,19 @@ public class EditPluginCommand extends AbstractHasPluginCommand {
   private String shortDescription = "Edit a plugin";
 
   @Parameter(
-      names = "--manifest-location",
-      description = "The location of the plugin's manifest file.")
-  private String manifestLocation;
+      names = "--ui-resource-location",
+      description = "The location of the plugin's ui resource.",
+      required = false)
+  private String uiResourceLocation;
+
+  @Parameter(names = "--version", description = "The plugin version to use", required = false)
+  private String version;
 
   @Parameter(names = "--enabled", description = "To enable or disable the plugin.")
   private String enabled;
+
+  @Parameter(names = "--extensions", description = "A comma separated list of extensions to create")
+  private String extensions;
 
   @Override
   protected void executeThis() {
@@ -46,13 +54,20 @@ public class EditPluginCommand extends AbstractHasPluginCommand {
     Plugin plugin = getPlugin();
 
     plugin.setEnabled(isSet(enabled) ? Boolean.parseBoolean(enabled) : plugin.getEnabled());
-    plugin.setManifestLocation(
-        isSet(manifestLocation) ? manifestLocation : plugin.getManifestLocation());
+    plugin.setUiResourceLocation(
+        isSet(uiResourceLocation) ? uiResourceLocation : plugin.getUiResourceLocation());
+    plugin.setVersion(isSet(version) ? version : plugin.getVersion());
+
+    for (String pluginExtensionName : extensions.split(",")) {
+      plugin
+          .getExtensions()
+          .putIfAbsent(pluginExtensionName, new PluginExtension().setId(pluginExtensionName));
+    }
 
     new OperationHandler<Void>()
-        .setFailureMesssage("Failed to edit plugin " + plugin.getName() + ".")
-        .setSuccessMessage("Successfully edited plugin " + plugin.getName() + ".")
-        .setOperation(Daemon.setPlugin(currentDeployment, plugin.getName(), !noValidate, plugin))
+        .setFailureMesssage("Failed to edit plugin " + plugin.getId() + ".")
+        .setSuccessMessage("Successfully edited plugin " + plugin.getId() + ".")
+        .setOperation(Daemon.setPlugin(currentDeployment, plugin.getId(), !noValidate, plugin))
         .get();
   }
 }

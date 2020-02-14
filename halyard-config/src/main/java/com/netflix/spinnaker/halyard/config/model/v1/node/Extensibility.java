@@ -16,30 +16,23 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
+import com.netflix.spinnaker.halyard.config.model.v1.plugins.Plugin;
 import com.netflix.spinnaker.halyard.config.model.v1.plugins.PluginRepository;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class Extensibility extends Node {
+  private Map<String, Plugin> plugins = new HashMap<>();
   private Map<String, PluginRepository> repositories = new HashMap<>();
 
   @Override
   public String getNodeName() {
     return "extensibility";
-  }
-
-  @Override
-  public NodeIterator getChildren() {
-    return NodeIteratorFactory.makeListIterator(
-        repositories.entrySet().stream()
-            .map(a -> (Node) a.getValue())
-            .collect(Collectors.toList()));
   }
 
   public Map<String, Object> repositoriesConfig() {
@@ -50,8 +43,17 @@ public class Extensibility extends Node {
     return repositoriesYaml;
   }
 
+  public Map<String, Object> pluginsConfig() {
+    Map<String, Object> pluginsYaml = new LinkedHashMap<>();
+    for (Map.Entry<String, Plugin> entry : plugins.entrySet()) {
+      pluginsYaml.put(entry.getKey(), entry.getValue().toMap());
+    }
+    return pluginsYaml;
+  }
+
   public Map<String, Object> toMap() {
     Map<String, Object> extensibilityYaml = new LinkedHashMap<>();
+    extensibilityYaml.put("plugins", pluginsConfig());
     extensibilityYaml.put("repositories", repositoriesConfig());
     return extensibilityYaml;
   }

@@ -14,26 +14,31 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.config.model.v1.node;
+package com.netflix.spinnaker.halyard.config.model.v1.plugins;
 
+import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
-@EqualsAndHashCode(callSuper = false)
-public class Spinnaker extends Node {
-  private Extensibility extensibility = new Extensibility();
+@EqualsAndHashCode(callSuper = true)
+public class PluginExtension extends Node {
+  private String id;
+  private Boolean enabled = true;
+  private Map<String, Object> config = new HashMap<>();
 
   @Override
   public String getNodeName() {
-    return "spinnaker";
+    return id;
   }
 
   public Map<String, Object> toMap() {
-    Map<String, Object> spinnakerYaml = new LinkedHashMap<>();
-    spinnakerYaml.put("extensibility", extensibility.toMap());
-    return spinnakerYaml;
+    Map<String, Object> pluginExtensionYaml = new LinkedHashMap<>();
+    pluginExtensionYaml.put("enabled", enabled);
+    pluginExtensionYaml.put("config", config);
+    return pluginExtensionYaml;
   }
 }

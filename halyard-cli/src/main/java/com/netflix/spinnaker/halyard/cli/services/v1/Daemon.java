@@ -1316,10 +1316,10 @@ public class Daemon {
     };
   }
 
-  public static Supplier<List<Plugin>> getPlugins(String deploymentName, boolean validate) {
+  public static Supplier<Map<String, Plugin>> getPlugins(String deploymentName, boolean validate) {
     return () -> {
       Object rawPlugin = ResponseUnwrapper.get(getService().getPlugins(deploymentName, validate));
-      return getObjectMapper().convertValue(rawPlugin, new TypeReference<List<Plugin>>() {});
+      return getObjectMapper().convertValue(rawPlugin, new TypeReference<Map<String, Plugin>>() {});
     };
   }
 

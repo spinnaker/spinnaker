@@ -35,7 +35,7 @@ public class DeletePluginCommand extends AbstractHasPluginCommand {
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
     Plugin plugin = getPlugin();
-    String name = plugin.getName();
+    String name = plugin.getId();
 
     new OperationHandler<Void>()
         .setFailureMesssage("Failed to delete plugin " + name + ".")

@@ -17,16 +17,13 @@
 package com.netflix.spinnaker.halyard.config.services.v1;
 
 import com.netflix.spinnaker.halyard.config.error.v1.ConfigNotFoundException;
-import com.netflix.spinnaker.halyard.config.error.v1.IllegalConfigException;
-import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Plugins;
 import com.netflix.spinnaker.halyard.config.model.v1.plugins.Plugin;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
-import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -37,68 +34,42 @@ public class PluginService {
   private final ValidateService validateService;
   private final DeploymentService deploymentService;
 
-  public Plugins getPlugins(String deploymentName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setPlugins();
-
-    return lookupService.getSingularNodeOrDefault(
-        filter, Plugins.class, Plugins::new, n -> setPlugins(deploymentName, n));
-  }
-
-  private void setPlugins(String deploymentName, Plugins newPlugins) {
-    DeploymentConfiguration deploymentConfiguration =
-        deploymentService.getDeploymentConfiguration(deploymentName);
-    deploymentConfiguration.setPlugins(newPlugins);
-  }
-
-  public List<Plugin> getAllPlugins(String deploymentName) {
-    return getPlugins(deploymentName).getPlugins();
+  public Map<String, Plugin> getPlugins(String deploymentName) {
+    return deploymentService
+        .getDeploymentConfiguration(deploymentName)
+        .getSpinnaker()
+        .getExtensibility()
+        .getPlugins();
   }
 
   public Plugin getPlugin(String deploymentName, String pluginName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setPlugin(pluginName);
-    List<Plugin> matchingPlugins = lookupService.getMatchingNodesOfType(filter, Plugin.class);
-
-    switch (matchingPlugins.size()) {
-      case 0:
-        throw new ConfigNotFoundException(
-            new ConfigProblemBuilder(
-                    Problem.Severity.FATAL, "No plugin with name \"" + pluginName + "\" was found")
-                .setRemediation("Create a new plugin with name \"" + pluginName + "\"")
-                .build());
-      case 1:
-        return matchingPlugins.get(0);
-      default:
-        throw new IllegalConfigException(
-            new ConfigProblemBuilder(
-                    Problem.Severity.FATAL,
-                    "More than one plugin named \"" + pluginName + "\" was found")
-                .setRemediation(
-                    "Manually delete/rename duplicate plugins with name \""
-                        + pluginName
-                        + "\" in your halconfig file")
-                .build());
+    Plugin plugin = getPlugins(deploymentName).get(pluginName);
+    if (plugin == null) {
+      throw new ConfigNotFoundException(
+          new ConfigProblemBuilder(
+                  Problem.Severity.FATAL, "No plugin with name \"" + pluginName + "\" was found")
+              .setRemediation("Create a new plugin with name \"" + pluginName + "\"")
+              .build());
     }
+    return plugin;
   }
 
   public void setPlugin(String deploymentName, String pluginName, Plugin newPlugin) {
-    List<Plugin> plugins = getAllPlugins(deploymentName);
-    for (int i = 0; i < plugins.size(); i++) {
-      if (plugins.get(i).getNodeName().equals(pluginName)) {
-        plugins.set(i, newPlugin);
-        return;
-      }
+    Map<String, Plugin> plugins = getPlugins(deploymentName);
+    if (plugins.get(pluginName) == null) {
+      throw new HalException(
+          new ConfigProblemBuilder(
+                  Problem.Severity.FATAL, "Plugin \"" + pluginName + "\" wasn't found")
+              .build());
     }
-    throw new HalException(
-        new ConfigProblemBuilder(
-                Problem.Severity.FATAL, "Plugin \"" + pluginName + "\" wasn't found")
-            .build());
+    plugins.put(pluginName, newPlugin);
   }
 
   public void deletePlugin(String deploymentName, String pluginName) {
-    List<Plugin> plugins = getAllPlugins(deploymentName);
-    boolean removed = plugins.removeIf(plugin -> plugin.getName().equals(pluginName));
+    Map<String, Plugin> plugins = getPlugins(deploymentName);
+    Plugin plugin = plugins.remove(pluginName);
 
-    if (!removed) {
+    if (plugin == null) {
       throw new HalException(
           new ConfigProblemBuilder(
                   Problem.Severity.FATAL, "Plugin \"" + pluginName + "\" wasn't found")
@@ -107,32 +78,14 @@ public class PluginService {
   }
 
   public void addPlugin(String deploymentName, Plugin newPlugin) {
-    String newPluginName = newPlugin.getName();
-    List<Plugin> plugins = getAllPlugins(deploymentName);
-    for (Plugin plugin : plugins) {
-      if (plugin.getName().equals(newPluginName)) {
-        throw new HalException(
-            new ConfigProblemBuilder(
-                    Problem.Severity.FATAL, "Plugin \"" + newPluginName + "\" already exists")
-                .build());
-      }
+    Map<String, Plugin> plugins = getPlugins(deploymentName);
+    if (plugins.containsKey(newPlugin.getId())) {
+      throw new HalException(
+          new ConfigProblemBuilder(
+                  Problem.Severity.FATAL, "Plugin \"" + newPlugin.getId() + "\" already exists")
+              .build());
     }
-    plugins.add(newPlugin);
-  }
-
-  public void setPluginsEnabled(String deploymentName, boolean validate, boolean enable) {
-    DeploymentConfiguration deploymentConfiguration =
-        deploymentService.getDeploymentConfiguration(deploymentName);
-    Plugins plugins = deploymentConfiguration.getPlugins();
-    plugins.setEnabled(enable);
-  }
-
-  public void setPluginsDownloadingEnabled(
-      String deploymentName, boolean validate, boolean enable) {
-    DeploymentConfiguration deploymentConfiguration =
-        deploymentService.getDeploymentConfiguration(deploymentName);
-    Plugins plugins = deploymentConfiguration.getPlugins();
-    plugins.setDownloadingEnabled(enable);
+    plugins.put(newPlugin.getId(), newPlugin);
   }
 
   public ProblemSet validateAllPlugins(String deploymentName) {
