@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer
 
 import com.amazonaws.AmazonServiceException
+import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
 import com.amazonaws.services.elasticloadbalancing.model.*
 import com.amazonaws.services.shield.AWSShield
 import com.amazonaws.services.shield.model.CreateProtectionRequest
@@ -36,6 +37,9 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.config.AwsConfiguration.DeployDefaults
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+
+import static com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerClassicDescription.Listener.ListenerType.HTTP
+import static com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerClassicDescription.Listener.ListenerType.HTTPS
 
 /**
  * An AtomicOperation for creating an Elastic Load Balancer from the description of {@link UpsertAmazonLoadBalancerClassicDescription}.
@@ -196,6 +200,13 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
         task.updateStatus BASE_PHASE, "Healthcheck configured."
       }
 
+      try {
+        ensureSetLoadBalancerListenerPolicies(description, loadBalancing)
+      } catch(Exception e) {
+        log.error("Failed to apply listener policy names for {}", loadBalancer, e)
+        task.updateStatus BASE_PHASE, "Failed while applying listener policies."
+      }
+
       CrossZoneLoadBalancing crossZoneLoadBalancing = null
       ConnectionDraining connectionDraining = null
       ConnectionSettings connectionSettings = null
@@ -258,8 +269,32 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
     operationResult
   }
 
+  /**
+   * Ensures policies set in the request are applied to the load balancer
+   */
+  private static void ensureSetLoadBalancerListenerPolicies(
+    UpsertAmazonLoadBalancerClassicDescription loadBalancer, AmazonElasticLoadBalancing loadBalancing) {
+    for (UpsertAmazonLoadBalancerClassicDescription.Listener listener :  loadBalancer.listeners) {
+      final List<String> policyNames = listener.policyNames ?: []
+      if (policyNames.isEmpty() || listener.externalProtocol != HTTP && listener.externalProtocol != HTTPS) {
+        // only applicable to http and https listeners
+        continue
+      }
+
+      final SetLoadBalancerPoliciesOfListenerRequest policyRequest = new SetLoadBalancerPoliciesOfListenerRequest()
+        .withLoadBalancerName(loadBalancer.name)
+        .withLoadBalancerPort(listener.externalPort)
+      try {
+        loadBalancing.setLoadBalancerPoliciesOfListener(
+          policyRequest.withPolicyNames(policyNames)
+        )
+      } catch(Exception e) {
+        log.error("Failed to set listener policies on loadbalancer {}", loadBalancer.name, e)
+      }
+    }
+  }
+
   private static String loadBalancerArn(String accountId, String region, String name) {
     return "arn:aws:elasticloadbalancing:$accountId:$region:loadbalancer/$name"
   }
-
 }

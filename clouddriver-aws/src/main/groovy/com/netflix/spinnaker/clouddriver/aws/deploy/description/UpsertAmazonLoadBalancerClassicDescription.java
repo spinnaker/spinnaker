@@ -136,6 +136,7 @@ public class UpsertAmazonLoadBalancerClassicDescription
     private Integer internalPort;
 
     private String sslCertificateId;
+    private List<String> policyNames;
 
     public ListenerType getExternalProtocol() {
       return externalProtocol;
@@ -175,6 +176,14 @@ public class UpsertAmazonLoadBalancerClassicDescription
 
     public void setSslCertificateId(String sslCertificateId) {
       this.sslCertificateId = sslCertificateId;
+    }
+
+    public List<String> getPolicyNames() {
+      return policyNames;
+    }
+
+    public void setPolicyNames(List<String> policyNames) {
+      this.policyNames = policyNames;
     }
   }
 }

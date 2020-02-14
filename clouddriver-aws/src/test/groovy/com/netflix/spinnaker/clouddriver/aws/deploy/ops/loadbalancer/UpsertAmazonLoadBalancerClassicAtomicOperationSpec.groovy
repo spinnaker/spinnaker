@@ -396,6 +396,53 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
     }
   }
 
+  void "should set listener policies"() {
+    given:
+    description.subnetType = "internal"
+    description.setIsInternal(true)
+    description.vpcId = "vpcId"
+
+    and:
+    1 * mockSubnetAnalyzer.getSubnetIdsForZones(['us-east-1a'], 'internal', SubnetTarget.ELB, 1) >> ["subnet-1"]
+    1 * ingressLoadBalancerBuilder.ingressApplicationLoadBalancerGroup(_, _, _, _, _, _, _) >>
+      new IngressLoadBalancerBuilder.IngressLoadBalancerGroupResult("sg-1234", "kato-elb")
+    1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(loadBalancerNames: [description.name])) >>
+      new DescribeLoadBalancersResult(loadBalancerDescriptions: [])
+    1 * loadBalancing.createLoadBalancer(_) >> new CreateLoadBalancerResult(dNSName: "dnsName1")
+
+    when:
+    operation.operate([])
+
+    then:
+    0 * loadBalancing.setLoadBalancerPoliciesOfListener(_)
+
+    description.listeners.add(
+      new UpsertAmazonLoadBalancerClassicDescription.Listener(
+        externalProtocol: UpsertAmazonLoadBalancerClassicDescription.Listener.ListenerType.HTTP,
+        externalPort: 80,
+        internalPort: 8502,
+        policyNames: ["test-policy"]
+      )
+    )
+
+    when:
+    operation.operate([])
+
+    then:
+    1 * mockSubnetAnalyzer.getSubnetIdsForZones(['us-east-1a'], 'internal', SubnetTarget.ELB, 1) >> ["subnet-1"]
+    1 * ingressLoadBalancerBuilder.ingressApplicationLoadBalancerGroup(_, _, _, _, _, _, _) >>
+      new IngressLoadBalancerBuilder.IngressLoadBalancerGroupResult("sg-1234", "kato-elb")
+    1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(loadBalancerNames: [description.name])) >>
+      new DescribeLoadBalancersResult(loadBalancerDescriptions: [])
+    1 * loadBalancing.createLoadBalancer(_) >> new CreateLoadBalancerResult(dNSName: "dnsName1")
+    1 * loadBalancing.setLoadBalancerPoliciesOfListener(*_) >> { args ->
+      def request = args[0] as SetLoadBalancerPoliciesOfListenerRequest
+      assert request.loadBalancerName == description.name
+      assert request.policyNames == ["test-policy"]
+      assert request.loadBalancerPort == 80
+    }
+  }
+
   void "should handle VPC ELB creation backward compatibility"() {
     given:
     description.subnetType = "internal"
