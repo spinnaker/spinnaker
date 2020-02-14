@@ -239,6 +239,7 @@ export interface IAmazonLoadBalancerDeleteCommand extends ILoadBalancerDeleteCom
 export interface IClassicListenerDescription extends IClassicListener {
   sslCertificateId?: string;
   sslCertificateName?: string;
+  policyNames?: string[];
 }
 
 export interface IAmazonClassicLoadBalancerUpsertCommand extends IAmazonLoadBalancerUpsertCommand {

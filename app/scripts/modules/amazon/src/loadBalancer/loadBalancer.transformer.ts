@@ -238,6 +238,7 @@ export class AwsLoadBalancerTransformer {
               sslCertificateId: listener.sslcertificateId,
               sslCertificateName: listener.sslcertificateId,
               sslCertificateType: listener.sslCertificateType,
+              policyNames: description.policyNames,
             };
           },
         );
