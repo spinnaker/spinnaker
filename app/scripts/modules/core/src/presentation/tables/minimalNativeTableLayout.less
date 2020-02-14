@@ -1,0 +1,36 @@
+.MinimalNativeTableLayout {
+  text-align: left;
+  font-size: 13px;
+  overflow: hidden;
+
+  .header-row {
+    height: 24px;
+  }
+
+  .header-cell {
+    color: var(--color-charcoal);
+    font-weight: 400;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--color-porcelain);
+
+    &:first-child {
+      font-weight: 900;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      color: var(--color-black);
+    }
+  }
+
+  .cell {
+    color: var(--color-charcoal);
+    padding: 6px 16px;
+    vertical-align: top;
+    min-width: 80px;
+
+    &:first-child {
+      font-weight: 600;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+  }
+}
