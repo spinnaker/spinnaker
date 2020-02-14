@@ -16,6 +16,7 @@ import {
   StageArtifactSelector,
   TextInput,
   useData,
+  YamlEditor,
 } from 'core';
 import { CheckboxInput } from 'core/presentation';
 
@@ -39,6 +40,10 @@ export function AwsCodeBuildStageForm(props: IAwsCodeBuildStageFormProps & IForm
     [],
   );
 
+  const onYamlChange = (buildspec: string, _: any): void => {
+    props.formik.setFieldValue('buildspec', buildspec);
+  };
+
   const setArtifactId = (artifactId: string): void => {
     props.formik.setFieldValue('source.artifactId', artifactId);
     props.formik.setFieldValue('source.artifact', null);
@@ -51,6 +56,7 @@ export function AwsCodeBuildStageForm(props: IAwsCodeBuildStageFormProps & IForm
 
   return (
     <div className="form-horizontal">
+      <h4>Basic Settings</h4>
       <FormikFormField
         fastField={false}
         label="Account"
@@ -71,6 +77,7 @@ export function AwsCodeBuildStageForm(props: IAwsCodeBuildStageFormProps & IForm
         name="projectName"
         input={(inputProps: IFormInputProps) => <TextInput {...inputProps} />}
       />
+      <h4>Source Configuration</h4>
       <FormikFormField
         fastField={false}
         label="Source"
@@ -114,6 +121,22 @@ export function AwsCodeBuildStageForm(props: IAwsCodeBuildStageFormProps & IForm
         name="sourceVersion"
         input={(inputProps: IFormInputProps) => <TextInput {...inputProps} />}
       />
+      <FormikFormField
+        fastField={false}
+        label="Buildspec"
+        name="buildspec"
+        input={(inputProps: IFormInputProps) => (
+          <YamlEditor {...inputProps} value={get(stage, 'buildspec')} onChange={onYamlChange} />
+        )}
+      />
+      <h4>Environment Configuration</h4>
+      <FormikFormField
+        fastField={false}
+        label="Image"
+        name="image"
+        input={(inputProps: IFormInputProps) => <TextInput {...inputProps} />}
+      />
+      <h4>Advanced Configuration</h4>
       <FormikFormField
         fastField={false}
         label="Environment Variables"
