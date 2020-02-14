@@ -18,9 +18,11 @@ package com.netflix.spinnaker.igor.travis;
 import com.netflix.spinnaker.igor.history.model.BuildEvent;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 public class TravisBuildEvent extends BuildEvent<TravisBuildContent> {
   private TravisBuildContent content;
 }

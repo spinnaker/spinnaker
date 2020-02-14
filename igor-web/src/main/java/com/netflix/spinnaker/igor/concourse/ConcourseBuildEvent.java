@@ -17,8 +17,10 @@ package com.netflix.spinnaker.igor.concourse;
 
 import com.netflix.spinnaker.igor.history.model.BuildEvent;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class ConcourseBuildEvent extends BuildEvent<ConcourseBuildContent> {
   private ConcourseBuildContent content;
 

@@ -248,7 +248,9 @@ public class JenkinsService
 
     String[] parts =
         StreamSupport.stream(QUEUED_BUILD_SPLITTER.split(queuedLocation).spliterator(), false)
+            .filter(it -> !Strings.isNullOrEmpty(it))
             .toArray(String[]::new);
+
     return Integer.parseInt(parts[parts.length - 1]);
   }
 

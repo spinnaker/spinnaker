@@ -809,4 +809,21 @@ class JenkinsServiceSpec extends Specification {
     thrown(InvalidJobParameterException)
   }
 
+  void "parses build number from response"() {
+    given:
+    Response response = new Response(
+      "whatever",
+      201,
+      "Created",
+      [new Header("Location", "https://example.net/queue/item/12/")],
+      null
+    )
+
+    when:
+    int buildNumber = JenkinsService.getBuildNumberFromResponse("hello", response)
+
+    then:
+    buildNumber == 12
+  }
+
 }
