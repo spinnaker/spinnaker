@@ -20,6 +20,7 @@ export * from './sortToggle';
 export * from './SpanDropdownTrigger';
 export * from './spel';
 export * from './TabBoundary';
+export * from './tables';
 export * from './TetheredCreatable';
 export * from './TetheredSelect';
 export * from './text';
