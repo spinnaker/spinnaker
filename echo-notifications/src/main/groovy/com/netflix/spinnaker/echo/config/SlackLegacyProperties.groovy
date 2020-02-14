@@ -30,6 +30,7 @@ class SlackLegacyProperties {
   String token
   boolean forceUseIncomingWebhook = false
   boolean sendCompactMessages = false
+  boolean expandUserNames = false
 
   boolean getUseIncomingWebhook() {
     return forceUseIncomingWebhook || isIncomingWebhookToken(token)

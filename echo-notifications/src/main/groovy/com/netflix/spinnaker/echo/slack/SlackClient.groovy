@@ -23,13 +23,20 @@ import retrofit.http.*
 
 interface SlackClient {
 
+  /**
+   * Post a message via Slack API
+   *
+   * see https://api.slack.com/methods/chat.postMessage
+   * One note: linkUserNames according to slack API is a boolean. But guess what? It doesn't work, it must be an int 0 or 1
+   */
   @FormUrlEncoded
   @POST('/api/chat.postMessage')
   Response sendMessage(
     @Field('token') String token,
     @Field('attachments') String attachments,
     @Field('channel') String channel,
-    @Field('as_user') boolean asUser)
+    @Field('as_user') boolean asUser,
+    @Field('link_names') Integer linkUserNames)
 
   /**
    * Documentation: https://api.slack.com/incoming-webhooks
