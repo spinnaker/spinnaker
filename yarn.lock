@@ -319,8 +319,10 @@
   dependencies:
     tinyqueue "^1.1.0"
 
-"@spinnaker/eslint-plugin@./packages/eslint-plugin":
-  version "1.0.2"
+"@spinnaker/eslint-plugin@latest":
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@spinnaker/eslint-plugin/-/eslint-plugin-1.0.3.tgz#566285eb055532637a416fb1f45fb5f20509c22a"
+  integrity sha512-nzC6xkXwnU6rRWFui+IEt/fn1d6jusYAR9NsW3LRU0jCsLVkz4FzCAfF0qcoYjxJppYMZnCnqmhEFIwHOz1JjA==
   dependencies:
     jest "^24.9.0"
     lodash "^4.17.15"

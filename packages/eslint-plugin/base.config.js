@@ -21,6 +21,8 @@ module.exports = {
     'one-var': ['error', { initialized: 'never' }],
     'prefer-rest-params': 'off',
     'prefer-spread': 'off',
+    // turn back on if https://github.com/eslint/eslint/issues/11899 fixes false positives
+    'require-atomic-updates': 'off',
     '@typescript-eslint/array-type': ['error', { default: 'array-simple' }],
     '@typescript-eslint/ban-ts-ignore': 'off',
     '@typescript-eslint/explicit-function-return-type': 'off',

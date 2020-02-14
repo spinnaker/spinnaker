@@ -101,7 +101,7 @@
     "webpack-dev-middleware": "^3.7.2"
   },
   "devDependencies": {
-    "@spinnaker/eslint-plugin": "./packages/eslint-plugin",
+    "@spinnaker/eslint-plugin": "latest",
     "@types/angular": "1.6.26",
     "@types/angular-mocks": "1.5.10",
     "@types/angular-ui-bootstrap": "^0.13.41",

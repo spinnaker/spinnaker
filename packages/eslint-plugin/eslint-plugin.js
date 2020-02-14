@@ -12,5 +12,6 @@ module.exports = {
   },
   configs: {
     base: require('./base.config.js'),
+    none: require('./none.config.js'),
   },
 };
