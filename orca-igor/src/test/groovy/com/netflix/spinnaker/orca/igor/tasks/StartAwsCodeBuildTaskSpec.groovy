@@ -244,7 +244,7 @@ class StartAwsCodeBuildTaskSpec extends Specification {
     }) >> igorResponse
   }
 
-  def "should correctly append env vars"() {
+  def "should correctly append image, buildspec and env vars"() {
     given:
     def stage = new Stage(
         execution,
@@ -264,6 +264,29 @@ class StartAwsCodeBuildTaskSpec extends Specification {
               value: "bar",
           ]
       ]
+      it.get("imageOverride") == "alpine"
+      it.get("buildspecOverride") == "ls"
+    }) >> igorResponse
+  }
+
+  def "should not append buildspec or image when it's empty string"() {
+    given:
+    def context = getDefaultContext(false)
+    context.buildspec = ""
+    context.image = ""
+    def stage = new Stage(
+        execution,
+        "awsCodeBuild",
+        context
+    )
+
+    when:
+    task.execute(stage)
+
+    then:
+    1 * igorService.startAwsCodeBuild(ACCOUNT, {
+      it.get("imageOverride") == null
+      it.get("buildspecOverride") == null
     }) >> igorResponse
   }
 
@@ -278,6 +301,8 @@ class StartAwsCodeBuildTaskSpec extends Specification {
         environmentVariables: [
             "foo": "bar",
         ],
+        image: "alpine",
+        buildspec: "ls",
     ]
   }
 }

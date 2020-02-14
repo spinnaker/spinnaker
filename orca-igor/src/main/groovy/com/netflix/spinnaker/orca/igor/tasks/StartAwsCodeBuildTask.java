@@ -40,6 +40,9 @@ public class StartAwsCodeBuildTask implements Task {
   private static final String SOURCE_LOCATION = "sourceLocationOverride";
   private static final String SOURCE_TYPE = "sourceTypeOverride";
   private static final String SOURCE_VERSION = "sourceVersion";
+  private static final String IMAGE_LOCATION = "imageOverride";
+  private static final String IMAGE_CREDENTIALS_TYPE = "imagePullCredentialsTypeOverride";
+  private static final String BUILDSPEC = "buildspecOverride";
   private static final String ENV_VARS = "environmentVariablesOverride";
   private static final String ENV_VAR_TYPE = "type";
   private static final String ENV_VAR_NAME = "name";
@@ -63,6 +66,8 @@ public class StartAwsCodeBuildTask implements Task {
     }
     // sourceVersion takes precedence of version in source artifact
     appendSourceVersion(requestInput, stageDefinition.getSourceVersion());
+    appendBuildSpec(requestInput, stageDefinition.getBuildspec());
+    appendImage(requestInput, stageDefinition.getImage());
     appendEnvironmentVariables(requestInput, stageDefinition.getEnvironmentVariables());
 
     AwsCodeBuildExecution execution =
@@ -116,6 +121,19 @@ public class StartAwsCodeBuildTask implements Task {
   private void appendSourceVersion(Map<String, Object> requestInput, String sourceVersion) {
     if (sourceVersion != null && !sourceVersion.equals("")) {
       requestInput.put(SOURCE_VERSION, sourceVersion);
+    }
+  }
+
+  private void appendBuildSpec(Map<String, Object> requestInput, String buildspec) {
+    if (buildspec != null && !buildspec.equals("")) {
+      requestInput.put(BUILDSPEC, buildspec);
+    }
+  }
+
+  private void appendImage(Map<String, Object> requestInput, String image) {
+    if (image != null && !image.equals("")) {
+      requestInput.put(IMAGE_LOCATION, image);
+      requestInput.put(IMAGE_CREDENTIALS_TYPE, "SERVICE_ROLE");
     }
   }
 

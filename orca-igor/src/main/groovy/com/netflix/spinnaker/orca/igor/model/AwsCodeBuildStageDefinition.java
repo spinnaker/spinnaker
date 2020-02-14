@@ -28,6 +28,8 @@ public class AwsCodeBuildStageDefinition implements RetryableStageDefinition {
   private AwsCodeBuildSourceArtifact source;
   private String sourceVersion;
   private Map<String, String> environmentVariables;
+  private String image;
+  private String buildspec;
   private AwsCodeBuildExecution buildInfo;
   private int consecutiveErrors;
 
