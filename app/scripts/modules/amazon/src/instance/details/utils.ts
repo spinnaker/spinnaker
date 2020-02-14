@@ -19,7 +19,7 @@ export const applyHealthCheckInfoToTargetGroups = (
         const group = targetGroups[tg.name] ?? ({} as ITargetGroup);
         const useTrafficPort = group.healthCheckPort === 'traffic-port' || isNil(group.healthCheckPort);
         const port = useTrafficPort ? group.port : group.healthCheckPort;
-        tg.healthCheckProtocol = group.healthCheckProtocol.toLowerCase();
+        tg.healthCheckProtocol = group.healthCheckProtocol?.toLowerCase();
         tg.healthCheckPath = `:${port}${group.healthCheckPath}`;
       });
     }
