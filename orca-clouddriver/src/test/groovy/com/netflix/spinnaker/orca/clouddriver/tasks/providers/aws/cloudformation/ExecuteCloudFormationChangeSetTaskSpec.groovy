@@ -126,6 +126,33 @@ class ExecuteCloudFormationChangeSetTaskSpec extends Specification {
 
   }
 
+  def "should end up succesfully when the changeset has been deleted in previous tasks"() {
+    given:
+    def pipeline = Execution.newPipeline('orca')
+    def context = [
+      'cloudProvider': 'aws',
+      'isChangeSet': true,
+      'deleteChangeSet': true,
+      'changeSetName': 'deletedOne'
+    ]
+    def stage = new Stage(pipeline, 'test', 'test', context)
+    def outputs = [
+      changeSets: [
+        [
+          name: 'deletedOne',
+          changes: []
+        ]
+      ]
+    ]
+    stage.setOutputs(outputs)
+
+    when:
+    def result = executeCloudFormationChangeSetTask.execute(stage)
+
+    then:
+    result.status == ExecutionStatus.SUCCEEDED
+
+  }
   def "should throw and exception when is a changeset and is set to fail"() {
     given:
     def pipeline = Execution.newPipeline('orca')

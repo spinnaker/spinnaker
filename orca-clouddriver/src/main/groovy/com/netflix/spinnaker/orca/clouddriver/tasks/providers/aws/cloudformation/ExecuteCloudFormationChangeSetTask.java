@@ -55,6 +55,9 @@ public class ExecuteCloudFormationChangeSetTask extends AbstractCloudProviderAwa
             Optional.ofNullable(stage.getContext().get("actionOnReplacement"))
                 .orElse(ACTION_ON_REPLACEMENT_FAIL);
 
+    boolean isChangeSetDeletion =
+        (boolean) Optional.ofNullable(stage.getContext().get("deleteChangeSet")).orElse(false);
+
     Optional<Map> currentChangeSet = getCurrentChangeSet(stage);
     if (currentChangeSet.isPresent()) {
       if (isAnyChangeSetReplacement(currentChangeSet.get())) {
@@ -64,7 +67,11 @@ public class ExecuteCloudFormationChangeSetTask extends AbstractCloudProviderAwa
           case ACTION_ON_REPLACEMENT_FAIL:
             throw new RuntimeException("ChangeSet has a replacement, failing!");
         }
+      } else if (isChangeSetDeletion) {
+        return TaskResult.SUCCEEDED;
       }
+    } else {
+      return TaskResult.SUCCEEDED;
     }
 
     String cloudProvider = getCloudProvider(stage);
