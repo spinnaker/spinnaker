@@ -89,7 +89,7 @@ class NotificationService {
     Response response = okHttpClient.newCall(echoRequest).execute()
 
     // convert retrofit response to Spring format
-    String body = response.body().string()
+    String body = response.body().contentLength() > 0 ? response.body().string() : null
     HttpHeaders headers = new HttpHeaders()
     headers.putAll(response.headers().toMultimap())
     return new ResponseEntity(body, headers, HttpStatus.valueOf(response.code()))

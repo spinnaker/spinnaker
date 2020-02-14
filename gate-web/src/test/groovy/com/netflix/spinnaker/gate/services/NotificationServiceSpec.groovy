@@ -70,6 +70,8 @@ class NotificationServiceSpec extends Specification {
       .addHeader("multi-value-header", "value2")
       .build()
 
+    Response expectedEchoResponse = mockEchoResponse(expectedEchoRequest)
+
     when: "a request is received for processing"
     ResponseEntity<String> response = notificationService.processNotificationCallback("someSource", incomingRequest)
 
@@ -85,7 +87,7 @@ class NotificationServiceSpec extends Specification {
       echoRequest.headers() == expectedEchoRequest.headers()
       echoCall
     }
-    1 * echoCall.execute() >> mockEchoResponse(expectedEchoRequest)
+    1 * echoCall.execute() >> expectedEchoResponse
 
     and: "returns the response from echo converted as appropriate"
     response == new ResponseEntity<String>('{ "status": "ok" }', null, HttpStatus.OK)
