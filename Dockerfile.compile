@@ -1,8 +1,13 @@
-FROM gcr.io/spinnaker-marketplace/gradle_cache
-MAINTAINER delivery-engineering@netflix.com
+FROM ubuntu:eoan
+MAINTAINER sig-platform@spinnaker.io
 
-ENV GRADLE_USER_HOME /gradle_cache/.gradle
-COPY . compiled_sources
-WORKDIR compiled_sources
+RUN apt-get update \
+    && apt-get -y upgrade \
+    && apt-get install -y \
+        git
+        openjdk-8-jdk-headless \
+    && apt-get clean
 
-RUN ./gradlew build --no-daemon -PskipTests
+ENV GRADLE_USER_HOME /workspace/.gradle
+ENV GRADLE_OPTS -Xmx2048m
+CMD ./gradlew build --no-daemon -PskipTests
