@@ -98,9 +98,9 @@ class ResourcePersister(
       val envToResources: Map<String, MutableList<String>> = config.environments
         .map { env -> env.name to env.resources.map { it.id }.toMutableList() }.toMap()
       val envsAndDuplicateResources = envToResources
-        .filterValues { rs: List<String> ->
+        .filterValues { rs: MutableList<String> ->
           // remove all the resources we don't care about from this mapping
-          rs.filter { it in duplicates }
+          rs.removeIf { it !in duplicates }
           // if there are resources left that we care about, leave it in the map
           rs.isNotEmpty()
         }
