@@ -53,7 +53,7 @@ class NotificationControllerSpec extends Specification {
       Mock(Environment)
     )
     notificationController = new NotificationController(
-      notificationServices: [ notificationService, interactiveNotificationService ],
+      notificationServices: [ interactiveNotificationService, notificationService ],
       interactiveNotificationCallbackHandler: interactiveNotificationCallbackHandler
     )
   }
@@ -96,6 +96,22 @@ class NotificationControllerSpec extends Specification {
     then:
     0 * notificationService.handle(notification)
     1 * interactiveNotificationService.handle(notification)
+  }
+
+  void 'only interactive notifications are delegated to interactive notification services'() {
+    given:
+    Notification nonInteractiveNotification = new Notification()
+    nonInteractiveNotification.notificationType = Notification.Type.PAGER_DUTY
+
+    notificationService.supportsType(Notification.Type.PAGER_DUTY) >> true
+    interactiveNotificationService.supportsType(Notification.Type.SLACK) >> true
+
+    when:
+    notificationController.create(nonInteractiveNotification)
+
+    then:
+    1 * notificationService.handle(nonInteractiveNotification)
+    0 * interactiveNotificationService.handle(nonInteractiveNotification)
   }
 
   void 'an incoming callback from the notification service delegates to the appropriate service class'() {

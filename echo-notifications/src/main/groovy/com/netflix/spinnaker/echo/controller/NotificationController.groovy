@@ -53,7 +53,7 @@ class NotificationController {
   EchoResponse create(@RequestBody Notification notification) {
     notificationServices?.find {
       it.supportsType(notification.notificationType) &&
-        !notification.isInteractive() || it instanceof InteractiveNotificationService
+        (!notification.isInteractive() || it instanceof InteractiveNotificationService)
     }?.handle(notification)
   }
 
