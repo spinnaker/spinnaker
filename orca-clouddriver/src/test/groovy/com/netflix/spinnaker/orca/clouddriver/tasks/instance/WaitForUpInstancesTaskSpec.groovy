@@ -143,7 +143,7 @@ class WaitForUpInstancesTaskSpec extends Specification {
   void 'should return #hasSucceeded for hasSucceeded when targetHealthyDeployPercentage is #percent and #healthy/#total instances are healthy'() {
     expect:
     def instances = []
-    (1..healthy).each {
+    healthy.times {
       instances << [health: [[state: 'Up']]]
     }
     def serverGroup = [
@@ -172,6 +172,7 @@ class WaitForUpInstancesTaskSpec extends Specification {
     // zero percent (should always return true)
     0       | 1       | 2     || true
     0       | 0       | 100   || true
+    100     | 0       | 0     || true
 
     // >= checks
     89      | 9       | 10    || true
@@ -184,14 +185,13 @@ class WaitForUpInstancesTaskSpec extends Specification {
     90      | 10      | 11    || true
     90      | 8       | 9     || true
     95      | 8       | 9     || false
-
   }
 
   @Unroll
   void 'should return #hasSucceeded for hasSucceeded when desiredPercentage is #percent and #healthy/#total instances are healthy'() {
     expect:
     def instances = []
-    (1..healthy).each {
+    healthy.times {
       instances << [health: [[state: 'Up']]]
     }
     def serverGroup = [
@@ -229,7 +229,7 @@ class WaitForUpInstancesTaskSpec extends Specification {
     90      | 8       | 10    | 10  | 10  || false
     91      | 9       | 10    | 10  | 10  || false
 
-    // verify ceiling
+    // verify round
     90      | 10      | 11    | 10  | 11  || true
     90      | 8       | 9     | 9   | 9   || false
 
@@ -312,7 +312,7 @@ class WaitForUpInstancesTaskSpec extends Specification {
     }
 
     def instances = []
-    (1..healthy).each {
+    healthy.times {
       instances << [health: [[state: 'Up']]]
     }
 
@@ -365,7 +365,7 @@ class WaitForUpInstancesTaskSpec extends Specification {
     }
 
     def instances = []
-    (1..healthy).each {
+    healthy.times {
       instances << [health: [[state: 'Up']]]
     }
 
