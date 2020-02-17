@@ -20,14 +20,14 @@ describe('PluginRegistry', () => {
 
   describe('.register()', () => {
     it('should validate plugin manifests', () => {
-      expect(() => pluginRegistry.registerPluginMetaData({} as any)).toThrowError(/Invalid plugin manifest/);
+      expect(() => pluginRegistry.registerPluginMetaData('deck', {} as any)).toThrowError(/Invalid plugin manifest/);
     });
 
     it('should add plugins manifests to the registry', () => {
       const plugin1 = { id: 'foo', version: '1.0.0' };
       const plugin2 = { id: 'bar', version: '1.0.0' };
-      pluginRegistry.registerPluginMetaData(plugin1);
-      pluginRegistry.registerPluginMetaData(plugin2);
+      pluginRegistry.registerPluginMetaData('deck', plugin1);
+      pluginRegistry.registerPluginMetaData('deck', plugin2);
       expect(pluginRegistry.getRegisteredPlugins().length).toBe(2);
       expect(pluginRegistry.getRegisteredPlugins()[0]).toEqual(jasmine.objectContaining(plugin1));
       expect(pluginRegistry.getRegisteredPlugins()[1]).toEqual(jasmine.objectContaining(plugin2));
@@ -61,8 +61,8 @@ describe('PluginRegistry', () => {
       const loadSpy = spyOn(pluginRegistry, 'load').and.callFake(fakePromise());
       const plugin1 = { id: 'foo', version: '1.0.0' };
       const plugin2 = { id: 'bar', version: '1.0.0' };
-      pluginRegistry.registerPluginMetaData(plugin1);
-      pluginRegistry.registerPluginMetaData(plugin2);
+      pluginRegistry.registerPluginMetaData('deck', plugin1);
+      pluginRegistry.registerPluginMetaData('deck', plugin2);
 
       expect(loadSpy.calls.count()).toBe(0);
 
@@ -77,7 +77,7 @@ describe('PluginRegistry', () => {
       loadModuleFromUrlSpy.and.callFake(fakePromise({}));
       spyOn(console, 'error').and.stub();
       const plugin1 = { id: 'foo', version: '1.0.0' };
-      pluginRegistry.registerPluginMetaData(plugin1);
+      pluginRegistry.registerPluginMetaData('deck', plugin1);
 
       await expectAsync(pluginRegistry.loadPlugins()).toBeRejected();
     });
@@ -85,29 +85,64 @@ describe('PluginRegistry', () => {
     it('should resolve to all loaded plugin modules', async () => {
       loadModuleFromUrlSpy.and.callFake(fakePromise(pluginModule));
       const plugin1 = { id: 'foo', version: '1.0.0' };
-      pluginRegistry.registerPluginMetaData(plugin1);
+      pluginRegistry.registerPluginMetaData('deck', plugin1);
 
       await expectAsync(pluginRegistry.loadPlugins()).toBeResolvedTo([pluginModule]);
     });
 
     it('should normalize the metadata object', async () => {
       loadModuleFromUrlSpy.and.callFake(fakePromise(pluginModule));
-      const plugin1 = { name: 'foo', devUrl: 'abc', version: '1.0.0' } as IPluginMetaData;
-      pluginRegistry.registerPluginMetaData(plugin1);
-      expect(pluginRegistry.getRegisteredPlugins()[0]).toEqual({ id: 'foo', url: 'abc', version: '1.0.0' });
+      const plugin1 = { name: 'io.spinnaker.test.plugin', devUrl: 'abc', version: '1.0.0' } as IPluginMetaData;
+      pluginRegistry.registerPluginMetaData('deck', plugin1);
+      expect(pluginRegistry.getRegisteredPlugins()[0]).toEqual({
+        id: 'io.spinnaker.test.plugin',
+        source: 'deck',
+        url: 'abc',
+        version: '1.0.0',
+      });
+    });
+
+    it('prefers plugins from deck manifest over plugins from gate manifest', async () => {
+      loadModuleFromUrlSpy.and.callFake(fakePromise(pluginModule));
+      const deckManifest = { id: 'io.spinnaker.test.plugin', version: '1.0.1', url: 'test' } as IPluginMetaData;
+      const gateManifest = { id: 'io.spinnaker.test.plugin', version: '1.0.0' } as IPluginMetaData;
+      pluginRegistry.registerPluginMetaData('deck', deckManifest);
+      pluginRegistry.registerPluginMetaData('gate', gateManifest);
+      expect(pluginRegistry.getRegisteredPlugins().length).toBe(1);
+      expect(pluginRegistry.getRegisteredPlugins()[0]).toEqual({
+        id: 'io.spinnaker.test.plugin',
+        source: 'deck',
+        url: 'test',
+        version: '1.0.1',
+      });
+    });
+
+    it('prefers plugins from deck manifest regardless of registration order', async () => {
+      loadModuleFromUrlSpy.and.callFake(fakePromise(pluginModule));
+      const deckManifest = { id: 'io.spinnaker.test.plugin', version: '1.0.1', url: 'test' } as IPluginMetaData;
+      const gateManifest = { id: 'io.spinnaker.test.plugin', version: '1.0.0' } as IPluginMetaData;
+      pluginRegistry.registerPluginMetaData('gate', gateManifest);
+      pluginRegistry.registerPluginMetaData('deck', deckManifest);
+      expect(pluginRegistry.getRegisteredPlugins().length).toBe(1);
+      expect(pluginRegistry.getRegisteredPlugins()[0]).toEqual({
+        id: 'io.spinnaker.test.plugin',
+        source: 'deck',
+        url: 'test',
+        version: '1.0.1',
+      });
     });
 
     it('should return the normalized metadata object', async () => {
       loadModuleFromUrlSpy.and.callFake(fakePromise(pluginModule));
       const plugin1 = { id: 'foo', version: '1.0.0' } as IPluginMetaData;
-      const normalized = pluginRegistry.registerPluginMetaData(plugin1);
+      const normalized = pluginRegistry.registerPluginMetaData('deck', plugin1);
       expect(pluginRegistry.getRegisteredPlugins()[0]).toBe(normalized);
     });
 
     it('should store the loaded module onto the metadata object', async () => {
       loadModuleFromUrlSpy.and.callFake(fakePromise(pluginModule));
       const plugin1 = { id: 'foo', version: '1.0.0' } as IPluginMetaData;
-      const normalized = pluginRegistry.registerPluginMetaData(plugin1);
+      const normalized = pluginRegistry.registerPluginMetaData('deck', plugin1);
 
       await pluginRegistry.loadPlugins();
       expect(normalized.module).toBe(pluginModule);
@@ -117,7 +152,7 @@ describe('PluginRegistry', () => {
       const registerStageSpy = spyOn(Registry.pipeline, 'registerStage');
       loadModuleFromUrlSpy.and.callFake(fakePromise(pluginModule));
       const plugin1 = { id: 'foo', version: '1.0.0' };
-      pluginRegistry.registerPluginMetaData(plugin1);
+      pluginRegistry.registerPluginMetaData('deck', plugin1);
 
       await pluginRegistry.loadPlugins();
       expect(registerStageSpy).toHaveBeenCalledTimes(1);

@@ -21,27 +21,57 @@ export interface IPluginMetaData {
   module?: any;
 }
 
+type ISource = 'gate' | 'deck';
+
+export interface INormalizedPluginMetaData {
+  id: string;
+  source: ISource;
+  version: string;
+  url?: string;
+  module?: any;
+}
+
 export class PluginRegistry {
-  private pluginManifests: IPluginMetaData[] = [];
+  private pluginManifests: INormalizedPluginMetaData[] = [];
 
   getRegisteredPlugins() {
     return this.pluginManifests.slice();
   }
 
-  registerPluginMetaData(pluginMetaData: IPluginMetaData): IPluginMetaData {
-    const normalizedMetaData = this.normalize(pluginMetaData);
-    this.validateMetaData(normalizedMetaData);
-    this.pluginManifests.push(normalizedMetaData);
-    return normalizedMetaData;
+  registerPluginMetaData(source: ISource, pluginMetaData: IPluginMetaData): INormalizedPluginMetaData | undefined {
+    const metaData = this.normalize(source, pluginMetaData);
+    const duplicateMetaData = this.pluginManifests.find(x => x.id === metaData.id);
+
+    // Handle duplicate plugin ids
+    if (duplicateMetaData) {
+      if (metaData.source === duplicateMetaData.source) {
+        console.error(`Attempted to load two copies of the same plugin from ${source}`, metaData, duplicateMetaData);
+        throw new Error(`Attempted to load two copies of the same plugin from ${source}`);
+      } else {
+        // If gate and deck both register the same plugin id, deck wins
+        // eslint-disable-next-line no-console
+        console.log(`Attempted to load plugin ${pluginMetaData.id} from gate and deck.   Using plugin from deck.`);
+        if (source === 'deck') {
+          this.pluginManifests = this.pluginManifests.filter(x => x !== duplicateMetaData);
+        } else if (source === 'gate') {
+          return undefined;
+        }
+      }
+    }
+
+    this.validateMetaData(metaData);
+    this.pluginManifests.push(metaData);
+    return metaData;
   }
 
   // Temporary backwards compat, remove in 2020 after armory has migrated
-  normalize(pluginMetaData: IPluginMetaData): IPluginMetaData {
+  normalize(source: ISource, pluginMetaData: IPluginMetaData): INormalizedPluginMetaData {
     const { devUrl, url, id, name, ...rest } = pluginMetaData;
 
     return {
       id: id ?? name,
       url: url ?? devUrl,
+      source,
       ...rest,
     };
   }
@@ -59,6 +89,7 @@ export class PluginRegistry {
 
   /** Loads plugin manifest file served as a custom deck asset */
   public loadPluginManifestFromDeck() {
+    const source = 'deck';
     const uri = '/plugin-manifest.js';
     const loadPromise = this.loadModuleFromUrl(uri)
       .then((pluginManifest: IPluginManifest) => {
@@ -68,24 +99,25 @@ export class PluginRegistry {
         return pluginManifest.plugins;
       })
       .catch(error => {
-        console.error(`Failed to load ${uri} from deck`);
+        console.error(`Failed to load ${uri} from ${source}`);
         throw error;
       });
 
-    return this.loadPluginManifest(uri, loadPromise);
+    return this.loadPluginManifest(source, uri, loadPromise);
   }
 
   /** Loads plugin manifest file served from gate */
   public loadPluginManifestFromGate() {
+    const source = 'gate';
     const uri = '/plugins/deck/plugin-manifest.json';
     const loadPromise = API.one(uri)
       .get()
       .catch((error: any) => {
-        console.error(`Failed to load ${uri} from gate`);
+        console.error(`Failed to load ${uri} from ${source}`);
         throw error;
       });
 
-    return this.loadPluginManifest(uri, loadPromise);
+    return this.loadPluginManifest(source, uri, loadPromise);
   }
 
   /**
@@ -95,12 +127,13 @@ export class PluginRegistry {
    * export const plugins = [{ 'name': 'myPlugin', 'version': '1.2.3', 'devUrl': '/plugins/index.js' }]
    */
   public async loadPluginManifest(
+    source: ISource,
     location: string,
     pluginsMetaDataPromise: Promise<IPluginMetaData[]>,
   ): Promise<IPluginMetaData[]> {
     try {
       const plugins = await pluginsMetaDataPromise;
-      return plugins.map(pluginMetaData => this.registerPluginMetaData(pluginMetaData));
+      return plugins.map(pluginMetaData => this.registerPluginMetaData(source, pluginMetaData));
     } catch (error) {
       console.error(`Error loading plugin manifest from ${location}`);
       throw error;
