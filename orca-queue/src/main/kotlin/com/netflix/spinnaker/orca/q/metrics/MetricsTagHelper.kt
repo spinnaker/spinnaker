@@ -35,6 +35,7 @@ class MetricsTagHelper : CloudProviderAware {
 
     fun detailedTaskTags(stage: Stage, taskModel: com.netflix.spinnaker.orca.pipeline.model.Task, status: ExecutionStatus): Iterable<BasicTag> =
       arrayListOf(
+        BasicTag("stageType", stage.type),
         BasicTag("taskType", taskModel.implementingClass),
         BasicTag("account", helper.getCredentials(stage).valueOrNa()),
 
