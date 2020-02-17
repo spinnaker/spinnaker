@@ -95,7 +95,7 @@ export class AccountSelectInput extends React.Component<IAccountSelectInputProps
   }
 
   private SimpleSelect = () => {
-    const { value, onChange, ...otherProps } = this.props;
+    const { name, value, onChange, ...otherProps } = this.props;
     delete otherProps.renderFilterableSelectThreshold; // not for DOM consumption
     const { primaryAccounts, secondaryAccounts } = this.state;
     const showSeparator = primaryAccounts.length > 0 && secondaryAccounts.length > 0;
@@ -103,7 +103,7 @@ export class AccountSelectInput extends React.Component<IAccountSelectInputProps
     // re-rendered the input, setting its value (the event.target.value) back to the previous value
     // This can go away once we're out of Angular land.
     const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-      onChange(createFakeReactSyntheticEvent({ value: e.target.value }));
+      onChange(createFakeReactSyntheticEvent({ value: e.target.value, name }));
     };
     return (
       <div>
@@ -135,7 +135,7 @@ export class AccountSelectInput extends React.Component<IAccountSelectInputProps
   };
 
   private FilterableSelect = () => {
-    const { value, onChange, ...otherProps } = this.props;
+    const { name, value, onChange, ...otherProps } = this.props;
     delete otherProps.renderFilterableSelectThreshold; // not for DOM consumption
     const { primaryAccounts, secondaryAccounts } = this.state;
     const showSeparator = primaryAccounts.length > 0 && secondaryAccounts.length > 0;
@@ -150,7 +150,7 @@ export class AccountSelectInput extends React.Component<IAccountSelectInputProps
         options={options}
         clearable={false}
         value={value}
-        onChange={(option: Option<string>) => onChange(createFakeReactSyntheticEvent({ value: option.value }))}
+        onChange={(option: Option<string>) => onChange(createFakeReactSyntheticEvent({ value: option.value, name }))}
         required={true}
         {...otherProps}
       />
