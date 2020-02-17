@@ -103,7 +103,7 @@ const helpContents: { [key: string]: string } = {
   'aws.targetGroup.port':
     'The port on which the targets receive traffic. Cannot be edited after being saved; if you want to use a different port, create a new target group, save the load balancer, move your targets, and then delete this target group.',
   'aws.targetGroup.attributes.deregistrationDelay':
-    'The amount of time for the load balancer to wait before changing the state of a deregistering target from draining to unused. The range is 0-3600 seconds. The default value is 300 seconds.',
+    'The amount of time for the load balancer to wait before changing the state of a deregistering target from draining to unused. The range is 0-3600 seconds. The default value is 600 seconds.',
   'aws.targetGroup.attributes.stickinessEnabled': ' Indicates whether sticky sessions are enabled.',
   'aws.targetGroup.attributes.stickinessType':
     'The type of sticky sessions. The only current possible value is <code>lb_cookie</code>.',
