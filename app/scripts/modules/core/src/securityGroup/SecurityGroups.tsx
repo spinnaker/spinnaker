@@ -11,6 +11,7 @@ import { SETTINGS } from 'core/config';
 import { FirewallLabels } from './label/FirewallLabels';
 import { SecurityGroupPod } from './SecurityGroupPod';
 import { CreateSecurityGroupButton } from './CreateSecurityGroupButton';
+import { noop } from 'core/utils';
 
 const { useEffect, useState } = React;
 
@@ -93,9 +94,16 @@ export const SecurityGroups = ({ app }: ISecurityGroupsProps) => {
     SecurityGroupState.filterModel.asFilterModel.applyParamsToUrl();
     // If we are using managed resources, wait until they are ready before updating security groups.
     // Otherwise, the managed resource fields will not be present on the security group groupings and we'll lose the
-    // badges on the group headers
+    // badges on the group headers.
+    // If the managed resources endpoint fails, then it is fine to show the security groups without managed resource
+    // fields.
     const waiter = SETTINGS.feature.managedResources ? app.managedResources.ready() : Promise.resolve();
-    waiter.then(() => SecurityGroupState.filterService.updateSecurityGroups(app));
+    waiter.catch(noop).finally(() => {
+      SecurityGroupState.filterService.updateSecurityGroups(app);
+      if (!initialized) {
+        setInitialized(true);
+      }
+    });
   };
 
   const clearFilters = () => {
@@ -109,7 +117,6 @@ export const SecurityGroups = ({ app }: ISecurityGroupsProps) => {
     const securityGroupsRefreshUnsubscribe = dataSource.onRefresh(null, updateSecurityGroupGroups);
     dataSource.ready().then(() => {
       updateSecurityGroupGroups();
-      setInitialized(true);
     });
     app.setActiveState(app.securityGroups);
     SecurityGroupState.filterModel.asFilterModel.activate();
