@@ -11,8 +11,6 @@ dependencies {
 
   api "org.springframework.cloud:spring-cloud-context"
   api "org.springframework.cloud:spring-cloud-config-server"
-  api "org.springframework.cloud:spring-cloud-starter-aws"
-  api "org.springframework.vault:spring-vault-core"
 
   testImplementation "org.springframework.boot:spring-boot-starter-test"
   testImplementation "org.assertj:assertj-core"

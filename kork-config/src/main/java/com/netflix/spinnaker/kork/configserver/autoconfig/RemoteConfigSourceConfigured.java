@@ -25,8 +25,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 
 public class RemoteConfigSourceConfigured implements Condition {
-  private static final String DEFAULT_REMOTE_REPO_TYPES =
-      "default,git,vault,jdbc,credhub,awsS3,redis";
+  private static final String DEFAULT_REMOTE_REPO_TYPES = "default,git,vault,jdbc,credhub";
 
   @Override
   public boolean matches(ConditionContext context, @NotNull AnnotatedTypeMetadata metadata) {
