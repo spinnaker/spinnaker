@@ -3,4 +3,4 @@ MAINTAINER delivery-engineering@netflix.com
 ENV GRADLE_USER_HOME /gradle_cache/.gradle
 COPY . compiled_sources
 WORKDIR compiled_sources
-RUN ./gradlew --no-daemon igor-web:installDist -x test
+RUN ./gradlew --no-daemon clean igor-web:installDist -x test
