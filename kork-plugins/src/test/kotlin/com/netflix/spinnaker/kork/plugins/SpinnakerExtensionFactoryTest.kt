@@ -16,16 +16,14 @@
 package com.netflix.spinnaker.kork.plugins
 
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
-import com.netflix.spinnaker.kork.plugins.api.ConfigurableExtension
-import com.netflix.spinnaker.kork.plugins.api.SpinnakerExtension
-import com.netflix.spinnaker.kork.plugins.config.ExtensionConfigFactory
+import com.netflix.spinnaker.kork.plugins.api.ExtensionConfiguration
+import com.netflix.spinnaker.kork.plugins.config.ConfigFactory
 import com.netflix.spinnaker.kork.plugins.config.ConfigResolver
 import com.netflix.spinnaker.kork.plugins.sdk.SdkFactory
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
 import io.mockk.mockk
-import org.pf4j.Extension
 import org.pf4j.ExtensionPoint
 import org.pf4j.Plugin
 import org.pf4j.PluginWrapper
@@ -80,11 +78,23 @@ class SpinnakerExtensionFactoryTest : JUnit5Minutests {
           .isA<MyPlugin.ConfiguredExtension>()
           .get { config }.isEqualTo(config)
       }
-    }
 
-    test("extension with pf4j annotation fails to load") {
-      expectThrows<IntegrationException> {
-        subject.create(WrongExtensionAnno::class.java)
+      test("with unsupported constructor argument") {
+        every { pluginManager.whichPlugin(any()) } returns pluginWrapper
+        every { pluginWrapper.descriptor } returns createPluginDescriptor("pluginz.bestone")
+
+        expectThrows<IntegrationException> {
+          subject.create(MyPlugin.UnsupportedArgumentExtension::class.java)
+        }
+      }
+
+      test("with multiple constructors") {
+        every { pluginManager.whichPlugin(any()) } returns pluginWrapper
+        every { pluginWrapper.descriptor } returns createPluginDescriptor("pluginz.bestone")
+
+        expectThrows<IntegrationException> {
+          subject.create(MyPlugin.MultipleConstructorsExtension::class.java)
+        }
       }
     }
   }
@@ -92,10 +102,10 @@ class SpinnakerExtensionFactoryTest : JUnit5Minutests {
   private inner class Fixture {
     val configResolver: ConfigResolver = mockk(relaxed = true)
     val pluginManager: SpinnakerPluginManager = mockk(relaxed = true)
-    val extensionConfigFactory: ExtensionConfigFactory = ExtensionConfigFactory(configResolver)
+    val configFactory: ConfigFactory = ConfigFactory(configResolver)
     val sdkFactories: List<SdkFactory> = listOf()
 
-    val subject = SpinnakerExtensionFactory(pluginManager, extensionConfigFactory, sdkFactories)
+    val subject = SpinnakerExtensionFactory(pluginManager, configFactory, sdkFactories)
     val pluginWrapper: PluginWrapper = mockk(relaxed = true)
   }
 
@@ -107,37 +117,40 @@ class SpinnakerExtensionFactoryTest : JUnit5Minutests {
 
   interface TheExtensionPoint : ExtensionPoint
 
-  @SpinnakerExtension(id = "kork.noconfig")
   class NoConfigSystemExtension : TheExtensionPoint
 
-  @SpinnakerExtension(id = "kork.configured")
   class ConfiguredSystemExtension(
     private val config: TheConfig
-  ) : TheExtensionPoint, ConfigurableExtension<ConfiguredSystemExtension.TheConfig> {
-    override fun setConfiguration(configuration: TheConfig) {
-      // Do nothing. Deprecated.
-    }
+  ) : TheExtensionPoint {
 
+    @ExtensionConfiguration("extension-point-configuration")
     class TheConfig
   }
 
-  @Extension
-  class WrongExtensionAnno : TheExtensionPoint
-
   class MyPlugin(wrapper: PluginWrapper) : Plugin(wrapper) {
 
-    @SpinnakerExtension(id = "plugin.noconfig")
     class NoConfigExtension : TheExtensionPoint
 
-    @SpinnakerExtension(id = "plugin.configured")
     class ConfiguredExtension(
       private val config: TheConfig
-    ) : TheExtensionPoint, ConfigurableExtension<ConfiguredExtension.TheConfig> {
-      override fun setConfiguration(configuration: TheConfig) {
-        // Do nothing. Deprecated.
-      }
+    ) : TheExtensionPoint {
 
+      @ExtensionConfiguration("extension-point-configuration")
       class TheConfig
+    }
+
+    class UnsupportedArgumentExtension(
+      private val bad: String
+    ) : TheExtensionPoint
+
+    class MultipleConstructorsExtension(
+      private val validConfig: ValidConfig
+    ) : TheExtensionPoint {
+
+      constructor(bad: String, validConfig: ValidConfig) : this(validConfig)
+
+      @ExtensionConfiguration("valid-config")
+      class ValidConfig
     }
   }
 }

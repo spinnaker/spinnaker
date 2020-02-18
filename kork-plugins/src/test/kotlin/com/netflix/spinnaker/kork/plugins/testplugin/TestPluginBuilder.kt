@@ -88,7 +88,8 @@ class TestPluginBuilder(
   private data class GenerateResult(
     val rootDir: File,
     val pluginFile: File,
-    val extensionFile: File
+    val extensionFile: File,
+    val extensionConfigFile: File
   )
 
   private fun generateSources(): GenerateResult {
@@ -99,6 +100,8 @@ class TestPluginBuilder(
     pluginFile.toFile().writeText(pluginSrc)
     val extensionFile = packageDir.resolve("${name}TestExtension.java")
     extensionFile.toFile().writeText(extensionSrc)
+    val extensionConfigFile = packageDir.resolve("${name}TestExtensionConfiguration.java")
+    extensionConfigFile.toFile().writeText(extensionConfigSrc)
 
     fun cleanupTemp(dir: File) {
       dir.deleteOnExit()
@@ -115,7 +118,8 @@ class TestPluginBuilder(
     return GenerateResult(
       rootDir = tempDir.toFile(),
       pluginFile = pluginFile.toFile(),
-      extensionFile = extensionFile.toFile())
+      extensionFile = extensionFile.toFile(),
+      extensionConfigFile = extensionConfigFile.toFile())
   }
 
   private fun systemClasspath(): Iterable<File> =
@@ -167,17 +171,34 @@ class TestPluginBuilder(
     """
     package $packageName;
 
-    import com.netflix.spinnaker.kork.plugins.api.SpinnakerExtension;
     import com.netflix.spinnaker.kork.plugins.testplugin.api.TestExtension;
     import org.pf4j.Extension;
 
     @Extension
-    @SpinnakerExtension(id = "spinnaker.${name.toLowerCase()}-test-extension")
     public class ${name}TestExtension implements TestExtension {
+
+      public ${name}TestExtensionConfiguration config;
+
+      public ${name}TestExtension(${name}TestExtensionConfiguration config) {
+        config = config;
+      }
+
       @Override
       public String getTestValue() {
         return getClass().getSimpleName();
       }
+    }
+    """.trimIndent()
+
+  private val extensionConfigSrc =
+    """
+    package $packageName;
+
+    import com.netflix.spinnaker.kork.plugins.api.ExtensionConfiguration;
+
+    @ExtensionConfiguration("spinnaker.${name.toLowerCase()}-test-extension")
+    public class ${name}TestExtensionConfiguration {
+      private String foo;
     }
     """.trimIndent()
 

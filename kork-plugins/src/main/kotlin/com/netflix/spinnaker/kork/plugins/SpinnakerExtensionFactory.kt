@@ -16,15 +16,14 @@
 package com.netflix.spinnaker.kork.plugins
 
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
+import com.netflix.spinnaker.kork.plugins.api.ExtensionConfiguration
 import com.netflix.spinnaker.kork.plugins.api.PluginSdks
-import com.netflix.spinnaker.kork.plugins.api.SpinnakerExtension
-import com.netflix.spinnaker.kork.plugins.config.ExtensionConfigFactory
+import com.netflix.spinnaker.kork.plugins.config.ConfigFactory
 import com.netflix.spinnaker.kork.plugins.sdk.PluginSdksImpl
 import com.netflix.spinnaker.kork.plugins.sdk.SdkFactory
 import org.pf4j.ExtensionFactory
 import org.pf4j.PluginWrapper
 import org.slf4j.LoggerFactory
-import java.lang.reflect.Constructor
 import java.lang.reflect.InvocationTargetException
 
 /**
@@ -32,16 +31,13 @@ import java.lang.reflect.InvocationTargetException
  */
 class SpinnakerExtensionFactory(
   private val pluginManager: SpinnakerPluginManager,
-  private val extensionConfigFactory: ExtensionConfigFactory,
+  private val configFactory: ConfigFactory,
   private val pluginSdkFactories: List<SdkFactory>
 ) : ExtensionFactory {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
   override fun <T> create(extensionClass: Class<T>): T {
-    extensionClass.getAnnotation(SpinnakerExtension::class.java)
-      ?: throw IntegrationException("Extensions must be defined using @SpinnakerExtension")
-
     val pluginWrapper = pluginManager.whichPlugin(extensionClass)
 
     @Suppress("UNCHECKED_CAST")
@@ -50,7 +46,6 @@ class SpinnakerExtensionFactory(
 
   private fun createWithConstructor(extensionClass: Class<*>, pluginWrapper: PluginWrapper?): Any {
     val candidates = extensionClass.declaredConstructors
-      .filter { it.hasParameters() && it.hasInjectableParameters(extensionClass) }
 
     if (candidates.isEmpty()) {
       log.debug("No injectable constructor found for '${extensionClass.simpleName}': Using no-args constructor")
@@ -68,10 +63,22 @@ class SpinnakerExtensionFactory(
     val ctor = candidates.first()
 
     val paramValues = ctor.parameterTypes.map { paramType ->
-      if (paramType == PluginSdks::class.java) {
-        PluginSdksImpl(pluginSdkFactories.map { it.create(extensionClass, pluginWrapper) })
-      } else {
-        extensionConfigFactory.provide(extensionClass, pluginWrapper)
+      when {
+          paramType == PluginSdks::class.java -> {
+            PluginSdksImpl(pluginSdkFactories.map { it.create(extensionClass, pluginWrapper) })
+          }
+          paramType.isAnnotationPresent(ExtensionConfiguration::class.java) -> {
+            configFactory.createExtensionConfig(
+              paramType,
+              paramType.getAnnotation(ExtensionConfiguration::class.java).value,
+              pluginWrapper?.descriptor?.pluginId
+            )
+          }
+          else -> {
+            throw IntegrationException("'${extensionClass.simpleName}' extension has unsupported " +
+              "constructor argument type '${paramType.simpleName}'.  Expected argument classes " +
+              "should be annotated with @ExpectedConfiguration or implement PluginSdks.")
+          }
       }
     }
 
@@ -87,12 +94,4 @@ class SpinnakerExtensionFactory(
       throw IntegrationException("Failed to instantiate extension '${extensionClass.simpleName}'", ite)
     }
   }
-
-  private fun Constructor<*>.hasInjectableParameters(extensionClass: Class<*>): Boolean =
-    parameterTypes.all { paramType ->
-      paramType == PluginSdks::class.java || extensionConfigFactory.supports(extensionClass, paramType)
-    }
-
-  private fun Constructor<*>.hasParameters(): Boolean =
-    parameterCount != 0
 }

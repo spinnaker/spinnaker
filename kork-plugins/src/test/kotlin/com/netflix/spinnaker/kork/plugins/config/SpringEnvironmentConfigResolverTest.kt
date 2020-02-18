@@ -40,9 +40,20 @@ class SpringEnvironmentConfigResolverTest : JUnit5Minutests {
       Fixture()
     }
 
+    test("plugin config with shortened config path") {
+      expectThat(subject.resolve(
+        PluginConfigCoordinates("netflix.sweet-plugin"),
+        TestPluginConfig::class.java
+      ))
+        .isA<TestPluginConfig>()
+        .and {
+          get { somestring }.isEqualTo("overridden default")
+        }
+    }
+
     test("plugin extension with shortened config path") {
       expectThat(subject.resolve(
-        PluginConfigCoordinates("netflix.sweet-plugin", "netflix.foo"),
+        ExtensionConfigCoordinates("netflix.sweet-plugin", "netflix.foo"),
         TestExtensionConfig::class.java
       ))
         .isA<TestExtensionConfig>()
@@ -57,7 +68,7 @@ class SpringEnvironmentConfigResolverTest : JUnit5Minutests {
 
     test("plugin extension with expanded path") {
       expectThat(subject.resolve(
-        PluginConfigCoordinates("netflix.very-important", "orca.stage"),
+        ExtensionConfigCoordinates("netflix.very-important", "orca.stage"),
         TestExtensionConfig::class.java
       ))
         .isA<TestExtensionConfig>()
@@ -112,6 +123,10 @@ class SpringEnvironmentConfigResolverTest : JUnit5Minutests {
     }
   }
 
+  internal class TestPluginConfig(
+    var somestring: String = "default"
+  )
+
   internal class TestExtensionConfig(
     var somestring: String = "default",
     var someint: Int = 15,
@@ -131,6 +146,7 @@ class SpringEnvironmentConfigResolverTest : JUnit5Minutests {
     "spinnaker.extensibility.plugins.netflix.very-important.extensions.orca.stage.config.optional" to "some new value",
     "spinnaker.extensibility.extensions.netflix.bar.config.somelist[0].hello" to "one",
     "spinnaker.extensibility.extensions.netflix.bar.config.somelist[1].hello" to "two",
-    "spinnaker.extensibility.repositories.foo.url" to "http://localhost:9000"
+    "spinnaker.extensibility.repositories.foo.url" to "http://localhost:9000",
+    "spinnaker.extensibility.plugins.netflix.sweet-plugin.config.somestring" to "overridden default"
   )
 }

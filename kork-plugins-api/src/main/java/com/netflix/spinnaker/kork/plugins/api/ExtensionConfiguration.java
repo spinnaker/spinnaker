@@ -12,8 +12,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
+
 package com.netflix.spinnaker.kork.plugins.api;
 
 import com.netflix.spinnaker.kork.annotations.Alpha;
@@ -22,20 +22,32 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import org.pf4j.Extension;
+import javax.annotation.Nonnull;
 
 /**
- * The primary marker annotation for extensions within Spinnaker.
+ * Denotes that a class provides extension configuration. For example:
  *
- * <p>This annotation must be used in lieu of {@link org.pf4j.Extension} as this annotation is used
- * for critical loading capabilities.
+ * <pre>{@code
+ * &#064;ExtensionConfiguration("my-extension")
+ * public class MyExtensionConfiguration {
+ *   private String someProperty;
+ * }
+ * }</pre>
  */
 @Alpha
-@Extension
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Documented
-public @interface SpinnakerExtension {
-  /** The unique canonical id of the extension. */
-  String id();
+public @interface ExtensionConfiguration {
+
+  /**
+   * The property value of the extension configuration. For example, if set to `netflix.orca-stage`
+   * the corresponding config coordinates would be:
+   *
+   * <p>`spinnaker.extensibility.plugins.pluginId.extensions.netflix.orca-stage.config`
+   *
+   * @return
+   */
+  @Nonnull
+  String value();
 }

@@ -64,8 +64,11 @@ abstract class SpinnakerPluginLoadersTCK : JUnit5Minutests {
       expectThat(pluginClass.name).isEqualTo(standardPluginDescriptor.pluginClass)
       val extensionClassName = "${pluginClass.`package`.name}.${standardPluginName}TestExtension"
       val extensionClass = classpath.loadClass(extensionClassName)
+      val extensionConfigClassName = "${pluginClass.`package`.name}.${standardPluginName}TestExtensionConfiguration"
+      val extensionConfigClass = classpath.loadClass(extensionConfigClassName)
+      val extensionConfig = extensionConfigClass.newInstance()
       expectThat(TestExtension::class.java.isAssignableFrom(extensionClass)).isTrue()
-      val extension = extensionClass.newInstance() as TestExtension
+      val extension = extensionClass.constructors.first().newInstance(extensionConfig) as TestExtension
       expectThat(extension.testValue).isEqualTo(extensionClass.simpleName)
     }
   }

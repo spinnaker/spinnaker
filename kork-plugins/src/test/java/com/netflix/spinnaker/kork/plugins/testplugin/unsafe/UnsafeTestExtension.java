@@ -16,13 +16,11 @@
 
 package com.netflix.spinnaker.kork.plugins.testplugin.unsafe;
 
-import com.netflix.spinnaker.kork.plugins.api.SpinnakerExtension;
 import com.netflix.spinnaker.kork.plugins.testplugin.api.TestExtension;
 import org.pf4j.Extension;
 
 /** An unsafe (in codebase) implementation of TestExtension. */
 @Extension
-@SpinnakerExtension(id = "spinnaker.unsafe-test-extension")
 public class UnsafeTestExtension implements TestExtension {
   @Override
   public String getTestValue() {

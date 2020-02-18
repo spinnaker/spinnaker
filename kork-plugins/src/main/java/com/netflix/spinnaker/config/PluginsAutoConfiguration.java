@@ -21,8 +21,8 @@ import com.netflix.spinnaker.config.PluginsConfigurationProperties.PluginReposit
 import com.netflix.spinnaker.kork.plugins.ExtensionBeanDefinitionRegistryPostProcessor;
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginManager;
 import com.netflix.spinnaker.kork.plugins.SpringPluginStatusProvider;
+import com.netflix.spinnaker.kork.plugins.config.ConfigFactory;
 import com.netflix.spinnaker.kork.plugins.config.ConfigResolver;
-import com.netflix.spinnaker.kork.plugins.config.ExtensionConfigFactory;
 import com.netflix.spinnaker.kork.plugins.config.RepositoryConfigCoordinates;
 import com.netflix.spinnaker.kork.plugins.config.SpringEnvironmentConfigResolver;
 import com.netflix.spinnaker.kork.plugins.proxy.aspects.InvocationAspect;
@@ -74,8 +74,8 @@ public class PluginsAutoConfiguration {
   }
 
   @Bean
-  ExtensionConfigFactory extensionConfigInitializer(ConfigResolver configResolver) {
-    return new ExtensionConfigFactory(configResolver);
+  ConfigFactory configFactory(ConfigResolver configResolver) {
+    return new ConfigFactory(configResolver);
   }
 
   @Bean
@@ -90,11 +90,11 @@ public class PluginsAutoConfiguration {
   public static SpinnakerPluginManager pluginManager(
       PluginStatusProvider pluginStatusProvider,
       ApplicationContext applicationContext,
-      ExtensionConfigFactory extensionConfigFactory,
+      ConfigFactory configFactory,
       List<SdkFactory> sdkFactories) {
     return new SpinnakerPluginManager(
         pluginStatusProvider,
-        extensionConfigFactory,
+        configFactory,
         sdkFactories,
         Objects.requireNonNull(
             applicationContext.getEnvironment().getProperty("spring.application.name")),

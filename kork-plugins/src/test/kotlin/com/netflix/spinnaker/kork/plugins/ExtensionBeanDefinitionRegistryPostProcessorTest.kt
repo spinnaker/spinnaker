@@ -15,8 +15,7 @@
  */
 package com.netflix.spinnaker.kork.plugins
 
-import com.netflix.spinnaker.kork.plugins.api.ConfigurableExtension
-import com.netflix.spinnaker.kork.plugins.api.SpinnakerExtension
+import com.netflix.spinnaker.kork.plugins.api.ExtensionConfiguration
 import com.netflix.spinnaker.kork.plugins.api.spring.PrivilegedSpringPlugin
 import com.netflix.spinnaker.kork.plugins.events.ExtensionLoaded
 import com.netflix.spinnaker.kork.plugins.internal.TestPlugin
@@ -135,14 +134,10 @@ class ExtensionBeanDefinitionRegistryPostProcessorTest : JUnit5Minutests {
     }
   }
 
-  @SpinnakerExtension(id = "netflix.foo")
-  private class FooExtension : ExampleExtensionPoint, ConfigurableExtension<FooExtension.FooExtensionConfig> {
+  private class FooExtension : ExampleExtensionPoint {
     lateinit var config: FooExtensionConfig
 
-    override fun setConfiguration(configuration: FooExtensionConfig) {
-      config = configuration
-    }
-
+    @ExtensionConfiguration("netflix.foo")
     class FooExtensionConfig
   }
 

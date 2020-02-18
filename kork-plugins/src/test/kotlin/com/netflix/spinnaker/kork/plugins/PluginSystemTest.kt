@@ -119,7 +119,8 @@ class PluginSystemTest : JUnit5Minutests {
       .withPropertyValues(
         "spring.application.name=kork",
         "spinnaker.extensibility.plugins-root-path=${pluginsDir.toAbsolutePath()}",
-        "spinnaker.extensibility.plugins.${descriptor.pluginId}.enabled=true")
+        "spinnaker.extensibility.plugins.${descriptor.pluginId}.enabled=true",
+        "spinnaker.extensibility.plugins.spinnaker.pluginsystemtesttestplugin.extensions.spinnaker.pluginsystemtest-test-extension.config.foo=foo")
       .withConfiguration(AutoConfigurations.of(
         PluginsAutoConfiguration::class.java
       ))
