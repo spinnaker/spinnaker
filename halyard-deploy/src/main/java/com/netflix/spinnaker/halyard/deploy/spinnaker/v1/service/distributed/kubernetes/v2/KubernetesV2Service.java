@@ -423,19 +423,18 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T>, Kubernete
 
   default TemplatedResource getProbe(ServiceSettings settings, Integer initialDelaySeconds) {
     TemplatedResource probe;
-    if (StringUtils.isNotEmpty(settings.getHealthEndpoint())) {
-      if (settings.getKubernetes().getUseExecHealthCheck()) {
-        probe = new JinjaJarResource("/kubernetes/manifests/execProbe.yml");
-        probe.addBinding("command", getReadinessExecCommand(settings));
-      } else {
-        probe = new JinjaJarResource("/kubernetes/manifests/httpProbe.yml");
-        probe.addBinding("port", settings.getPort());
-        probe.addBinding("path", settings.getHealthEndpoint());
-        probe.addBinding("scheme", settings.getScheme().toUpperCase());
-      }
-    } else {
+    if (StringUtils.isEmpty(settings.getHealthEndpoint())
+        || settings.getKubernetes().getUseTcpProbe()) {
       probe = new JinjaJarResource("/kubernetes/manifests/tcpSocketProbe.yml");
       probe.addBinding("port", settings.getPort());
+    } else if (settings.getKubernetes().getUseExecHealthCheck()) {
+      probe = new JinjaJarResource("/kubernetes/manifests/execProbe.yml");
+      probe.addBinding("command", getReadinessExecCommand(settings));
+    } else {
+      probe = new JinjaJarResource("/kubernetes/manifests/httpProbe.yml");
+      probe.addBinding("port", settings.getPort());
+      probe.addBinding("path", settings.getHealthEndpoint());
+      probe.addBinding("scheme", settings.getScheme().toUpperCase());
     }
     probe.addBinding("initialDelaySeconds", initialDelaySeconds);
     return probe;

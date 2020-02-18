@@ -65,6 +65,7 @@ class KubernetesV2ServiceTest extends Specification {
 
         serviceSettings = new ServiceSettings()
         serviceSettings.env = new HashMap<String, String>()
+        serviceSettings.healthEndpoint = "/health"
 
         config = new GenerateService.ResolvedConfiguration()
         config.runtimeSettings = Stub(SpinnakerRuntimeSettings) {
@@ -405,5 +406,54 @@ class KubernetesV2ServiceTest extends Specification {
 
         then:
         podSpecYaml.contains('"serviceAccountName": customServiceAccount')
+    }
+
+    def "Can we use TCP probe"() {
+        setup:
+        def settings = new KubernetesSettings()
+        settings.useTcpProbe = true
+        serviceSettings.kubernetes = settings
+        serviceSettings.port = 8000
+
+        when:
+        String yaml = testService.buildContainer("orca", details, serviceSettings, new ArrayList<>(), new HashMap<>())
+
+        then:
+        yaml.contains('''"readinessProbe": {
+  "tcpSocket": {
+    "port": 8000
+  },
+  "initialDelaySeconds": 
+}
+''')
+    }
+
+    def "Readiness probe"() {
+        setup:
+        def settings = new KubernetesSettings()
+        serviceSettings.kubernetes = settings
+        serviceSettings.port = 8000
+        serviceSettings.scheme = "http"
+        serviceSettings.healthEndpoint = "/health"
+        if (tcpProbe != null) {
+            settings.useTcpProbe = tcpProbe
+        }
+        if (execProbe != null) {
+            settings.useExecHealthCheck = execProbe
+        }
+
+        when:
+        String yaml = testService.getProbe(serviceSettings, null).toString()
+
+        then:
+        yaml.contains(readinessProbeResult)
+
+        where:
+        description         | tcpProbe   | execProbe    | readinessProbeResult
+        "default"           | null       | null         | "exec"
+        "tcpProbe on"       | true       | null         | "tcpSocket"
+        "tcpProbe off"      | false      | null         | "exec"
+        "exec probe on"     | null       | true         | "exec"
+        "exec probe off"    | null      | false       | "http"
     }
 }
