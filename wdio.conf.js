@@ -36,6 +36,8 @@ let testRun = null;
 
 const config = {
   specs: ['test/functional/tests/**/*.spec.ts'],
+  runner: 'local',
+  path: '/wd/hub',
   maxInstances: 1,
   capabilities: [
     {
@@ -64,13 +66,15 @@ const config = {
     google: ['./src/google/**/*.spec.ts'],
   },
 
-  beforeTest: function(test) {
-    browser.windowHandleSize({ width: 1280, height: 1024 });
+  beforeSession: (_config, _capabilities, specs) => {
+    if (!specs.length) {
+      return;
+    }
     if (!flags['replay-fixtures'] && !flags['record-fixtures']) {
       return;
     }
     const fixtureService = new FixtureService();
-    testRun = { fixtureFile: fixtureService.fixturePathForTestPath(test.file) };
+    testRun = { fixtureFile: fixtureService.fixturePathForTestPath(specs[0]) };
     return mountebankService.removeImposters().then(() => {
       if (flags['record-fixtures']) {
         return mountebankService.beginRecording();
@@ -81,6 +85,10 @@ const config = {
         );
       }
     });
+  },
+
+  beforeTest: function(test, context) {
+    browser.setWindowSize(1280, 1024);
   },
 
   afterTest: function(test) {
@@ -109,9 +117,9 @@ const config = {
 if (flags.headless) {
   config.capabilities.forEach(cap => {
     if (cap.browserName === 'chrome') {
-      cap.chromeOptions = cap.chromeOptions || {};
-      cap.chromeOptions.args = cap.chromeOptions.args || [];
-      cap.chromeOptions.args.push('--headless');
+      cap['goog:chromeOptions'] = cap['goog:chromeOptions'] || {};
+      cap['goog:chromeOptions'].args = cap['goog:chromeOptions'].args || [];
+      cap['goog:chromeOptions'].args.push('--headless');
     } else if (cap.browserName === 'firefox') {
       cap['moz:firefoxOptions'] = cap['moz:firefoxOptions'] || {};
       cap['moz:firefoxOptions'].args = cap['moz:firefoxOptions'].args || [];

@@ -8,7 +8,7 @@ on:
       - release-*
 
 env:
-  NODE_VERSION: 10.15.1
+  NODE_VERSION: 12.16.0
 
 jobs:
   ci:

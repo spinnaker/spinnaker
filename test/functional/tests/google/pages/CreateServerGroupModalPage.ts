@@ -1,3 +1,5 @@
+import '@wdio/sync';
+
 import { Page } from '../../core/pages/Page';
 
 export class CreateServerGroupModalPage extends Page {
@@ -30,9 +32,9 @@ export class CreateServerGroupModalPage extends Page {
     this.scrollTo(CreateServerGroupModalPage.locators.acceleratorSectionHeading);
     this.click(CreateServerGroupModalPage.locators.acceleratorTypeSelect);
     browser.pause(300); // give the dropdown a moment to appear
-    const accelerators = browser
-      .elements(CreateServerGroupModalPage.locators.acceleratorDropdownListItems)
-      .value.map((item: any) => item.getText());
+    const accelerators = $$(CreateServerGroupModalPage.locators.acceleratorDropdownListItems).map((item: any) =>
+      item.getText(),
+    );
     this.dismissDropdown();
     return accelerators;
   }
