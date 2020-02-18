@@ -4,7 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.protobuf.util.JsonFormat
 import com.netflix.spinnaker.echo.config.TelemetryConfig
 import com.netflix.spinnaker.echo.model.Event
-import com.netflix.spinnaker.kork.proto.stats.*
+import com.netflix.spinnaker.kork.proto.stats.Application
+import com.netflix.spinnaker.kork.proto.stats.CloudProvider
+import com.netflix.spinnaker.kork.proto.stats.Execution
+import com.netflix.spinnaker.kork.proto.stats.DeploymentMethod
+import com.netflix.spinnaker.kork.proto.stats.SpinnakerInstance
+import com.netflix.spinnaker.kork.proto.stats.Stage
+import com.netflix.spinnaker.kork.proto.stats.Status
 import com.netflix.spinnaker.kork.proto.stats.Event as EventProto
 import groovy.json.JsonOutput
 import groovy.util.logging.Slf4j
@@ -37,6 +43,14 @@ class TelemetryEventListenerSpec extends Specification {
       application: applicationName,
     ],
     content: [
+      spinnakerInstance : [
+        id              : instanceHash,
+        version         : spinnakerVersion,
+        deploymentMethod: [
+          type   : "kubernetes_operator",
+          version: "v3.0.0"
+        ]
+      ],
       execution: [
         id     : executionId,
         type   : "PIPELINE",
@@ -364,6 +378,84 @@ class TelemetryEventListenerSpec extends Specification {
       assert stage2.type == "createApplication"
       assert stage2.status == Status.SUCCEEDED
       assert stage2.cloudProvider.id == CloudProvider.ID.KUBERNETES
+    }
+  }
+
+  def "test event has deploy method information happy path"(String deploymentType, String deployVersion) {
+      given:
+      def deployMethod = new TelemetryConfig.TelemetryConfigProps.DeploymentMethod()
+        .setType(deploymentType)
+        .setVersion(deployVersion)
+
+      def configProps = new TelemetryConfig.TelemetryConfigProps()
+        .setInstanceId(instanceId)
+        .setSpinnakerVersion(spinnakerVersion)
+        .setDeploymentMethod(deployMethod)
+
+      def deployEnumType = DeploymentMethod.Type.valueOf(deploymentType.toUpperCase())
+
+      @Subject
+      def listener = new TelemetryEventListener(service, configProps, registry)
+
+      when:
+      listener.processEvent(validEvent)
+
+      then:
+      1 * service.log(_) >> { List args ->
+        String body = args[0]?.toString()
+        assert body != null
+
+        // Note the handy Groovy feature of import aliasing Event->EventProto
+        EventProto.Builder eventBuilder = EventProto.newBuilder()
+        JsonFormat.parser().merge(body, eventBuilder)
+
+        EventProto e = eventBuilder.build()
+        assert e != null
+
+        SpinnakerInstance s = e.spinnakerInstance
+        assert s != null
+        assert s.deploymentMethod != null
+        assert s.deploymentMethod.type == deployEnumType
+        assert s.deploymentMethod.version == deployVersion
+      }
+
+      where:
+      deploymentType        | deployVersion
+      "none"                | ""
+      "other"               | "3.2.1"
+      "halyard"             | "1.0.0"
+      "kubernetes_operator" | "0.3.0"
+  }
+
+  def "test event, with null deploy method info"() {
+    given:
+    def configProps = new TelemetryConfig.TelemetryConfigProps()
+      .setInstanceId(instanceId)
+      .setSpinnakerVersion(spinnakerVersion)
+      .setDeploymentMethod(new TelemetryConfig.TelemetryConfigProps.DeploymentMethod())
+
+    @Subject
+    def listener = new TelemetryEventListener(service, configProps, registry)
+
+    when:
+    listener.processEvent(validEvent)
+
+    then:
+    1 * service.log(_) >> { List args ->
+      String body = args[0]?.toString()
+      assert body != null
+
+      // Note the handy Groovy feature of import aliasing Event->EventProto
+      EventProto.Builder eventBuilder = EventProto.newBuilder()
+      JsonFormat.parser().merge(body, eventBuilder)
+
+      EventProto e = eventBuilder.build()
+      assert e != null
+
+      SpinnakerInstance s = e.spinnakerInstance
+      assert s != null
+      assert s.deploymentMethod.type == DeploymentMethod.Type.NONE
+      assert s.deploymentMethod.version == ""
     }
   }
 

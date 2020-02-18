@@ -31,6 +31,7 @@ import com.netflix.spinnaker.echo.model.Event;
 import com.netflix.spinnaker.kork.proto.stats.Application;
 import com.netflix.spinnaker.kork.proto.stats.CloudProvider;
 import com.netflix.spinnaker.kork.proto.stats.CloudProvider.ID;
+import com.netflix.spinnaker.kork.proto.stats.DeploymentMethod;
 import com.netflix.spinnaker.kork.proto.stats.Execution;
 import com.netflix.spinnaker.kork.proto.stats.SpinnakerInstance;
 import com.netflix.spinnaker.kork.proto.stats.Stage;
@@ -164,6 +165,7 @@ public class TelemetryEventListener implements EchoEventListener {
         SpinnakerInstance.newBuilder()
             .setId(hashedInstanceId)
             .setVersion(telemetryConfigProps.getSpinnakerVersion())
+            .setDeploymentMethod(toDeploymentMethod(telemetryConfigProps.getDeploymentMethod()))
             .build();
 
     com.netflix.spinnaker.kork.proto.stats.Event loggedEvent =
@@ -189,6 +191,24 @@ public class TelemetryEventListener implements EchoEventListener {
     } catch (Exception e) {
       log.debug("Could not send Telemetry event {}", event, e);
     }
+  }
+
+  private DeploymentMethod toDeploymentMethod(
+      TelemetryConfig.TelemetryConfigProps.DeploymentMethod deployment) {
+
+    if (!deployment.getType().isPresent() || !deployment.getVersion().isPresent()) {
+      return DeploymentMethod.getDefaultInstance();
+    }
+
+    DeploymentMethod.Type deployType =
+        DeploymentMethod.Type.valueOf(
+            parseEnum(
+                DeploymentMethod.Type.getDescriptor(), deployment.getType().get().toUpperCase()));
+
+    return DeploymentMethod.newBuilder()
+        .setType(deployType)
+        .setVersion(deployment.getVersion().get())
+        .build();
   }
 
   private Optional<List<Stage>> toStages(Holder.Stage stage) {
