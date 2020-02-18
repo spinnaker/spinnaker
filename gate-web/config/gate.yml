@@ -95,6 +95,7 @@ swagger:
     - .*pubsub.*
     - .*projects.*
     - .*functions.*
+    - .*managed.*
 
 integrations:
   gremlin:

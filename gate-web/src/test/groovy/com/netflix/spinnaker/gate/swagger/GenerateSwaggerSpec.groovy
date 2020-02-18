@@ -26,8 +26,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
   initializers = YamlFileApplicationContextInitializer
 )
 @TestPropertySource(
+  // Enable Controllers we want to document in the spec here.
   properties = [ "services.kayenta.enabled=true","services.kayenta.canary-config-store=true",
-    "spring.application.name=gate" ]) // Enable Controllers we want to document in the spec here.
+    "services.keel.enabled=true", "spring.application.name=gate" ])
 class GenerateSwaggerSpec extends Specification {
 
   @Autowired
