@@ -353,6 +353,7 @@ public class TitusStreamingUpdateAgent implements CustomScheduledAgent, CachingA
           ObserveJobsQuery.newBuilder()
               .putFilteringCriteria("jobType", "SERVICE")
               .putFilteringCriteria("attributes", "source:spinnaker")
+              .putFilteringCriteria("attributes", "spinnakerAccount:" + account.getName())
               .build());
     }
 
