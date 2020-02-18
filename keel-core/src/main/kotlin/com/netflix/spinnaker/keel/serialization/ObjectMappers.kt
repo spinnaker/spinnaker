@@ -42,6 +42,7 @@ private fun <T : ObjectMapper> T.configureMe(): T =
       .configureSaneDateTimeRepresentation()
       .disable(FAIL_ON_UNKNOWN_PROPERTIES)
       .enable(ACCEPT_CASE_INSENSITIVE_ENUMS)
+      .setSerializationInclusion(NON_NULL)
   }
 
 private fun ObjectMapper.registerULIDModule(): ObjectMapper =
@@ -52,7 +53,6 @@ private fun ObjectMapper.registerULIDModule(): ObjectMapper =
 
 private fun ObjectMapper.configureSaneDateTimeRepresentation(): ObjectMapper =
   enable(WRITE_DATES_AS_TIMESTAMPS)
-    .setSerializationInclusion(NON_NULL)
     .enable(WRITE_DATES_WITH_ZONE_ID)
     .enable(WRITE_DATE_KEYS_AS_TIMESTAMPS)
     .disable(WRITE_DURATIONS_AS_TIMESTAMPS)

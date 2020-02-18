@@ -91,7 +91,10 @@ class ResourceController(
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
   )
   @PreAuthorize("@authorizationSupport.userCanModifySpec(#user, #resource.spec)")
-  fun diff(@RequestHeader("X-SPINNAKER-USER") user: String, @RequestBody resource: SubmittedResource<*>): DiffResult {
+  fun diff(
+    @RequestHeader("X-SPINNAKER-USER") user: String,
+    @RequestBody resource: SubmittedResource<*>
+  ): DiffResult {
     log.debug("Diffing: $resource")
     return runBlocking { adHocDiffer.calculate(resource) }
   }

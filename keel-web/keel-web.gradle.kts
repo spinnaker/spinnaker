@@ -23,11 +23,11 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-actuator")
   implementation("org.springframework.boot:spring-boot-starter-web")
   implementation("org.springframework.security:spring-security-config")
-
   implementation("com.netflix.spinnaker.fiat:fiat-api:${property("fiatVersion")}")
   implementation("com.netflix.spinnaker.fiat:fiat-core:${property("fiatVersion")}")
-
   implementation("net.logstash.logback:logstash-logback-encoder")
+  implementation("org.springdoc:springdoc-openapi-webmvc-core:1.2.31")
+  implementation("org.springdoc:springdoc-openapi-kotlin:1.2.31")
 
   testImplementation("io.strikt:strikt-jackson")
   testImplementation(project(":keel-test"))

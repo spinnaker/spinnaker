@@ -132,7 +132,7 @@ data class ResourceDeleted(
   )
 }
 
-abstract class ResourceCheckResult : ResourceEvent() {
+sealed class ResourceCheckResult : ResourceEvent() {
   abstract val state: ResourceState
 
   @JsonIgnore

@@ -13,6 +13,7 @@ import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository.Companion.DEFAULT_MAX_EVENTS
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
+import io.swagger.v3.oas.annotations.Operation
 import java.time.Instant
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
@@ -34,6 +35,10 @@ class DeliveryConfigController(
   private val artifactRepository: ArtifactRepository,
   private val adHocDiffer: AdHocDiffer
 ) {
+  @Operation(
+    summary = "Registers or updates a delivery config manifest.",
+    description = "Registers or updates a delivery config manifest. This is a long description."
+  )
   @PostMapping(
     consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
