@@ -27,9 +27,7 @@ message DeploymentMethod {
     NONE = 0;
     OTHER = 1;
     HALYARD = 2;
-    ARMORY_HALYARD = 3;
-    KUBERNETES_OPERATOR = 4;
-    MINNAKER = 5;
+    KUBERNETES_OPERATOR = 3;
   }
 }
 
