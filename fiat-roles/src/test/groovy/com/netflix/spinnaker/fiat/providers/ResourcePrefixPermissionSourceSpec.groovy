@@ -34,6 +34,12 @@ class ResourcePrefixPermissionSourceSpec extends Specification {
                 new ResourcePrefixPermissionSource.PrefixEntry<Application>().setPrefix('gotham-joker').setPermissions([
                         (Authorization.CREATE): ['batman']
                 ]),
+                new ResourcePrefixPermissionSource.PrefixEntry<Application>().setPrefix('foo*').setPermissions([
+                        (Authorization.CREATE): ['police']
+                ]),
+                new ResourcePrefixPermissionSource.PrefixEntry<Application>().setPrefix('foo-joker').setPermissions([
+                        (Authorization.CREATE): ['batman']
+                ]),
         ]).setResolutionStrategy(ResourcePrefixPermissionSource.ResolutionStrategy.AGGREGATE)
 
         when:
@@ -44,9 +50,11 @@ class ResourcePrefixPermissionSourceSpec extends Specification {
 
         where:
         applicationName     | expectedCreatePermissions
-        'new york'          | ["admins"]
-        'gotham-criminals'  | ["admins", "police"]
-        'gotham-joker'      | ["admins", "police", "batman"]
+        'NEW YORK'          | ["admins"]
+        'GOTHAM-CRIMINALS'  | ["admins", "police"]
+        'GOTHAM-JOKER'      | ["admins", "police", "batman"]
+        'foo-joker'         | ["admins", "batman"]
+        'foo-test'          | ["admins"]
     }
 
     def "should apply the most specific permissions matching a resource if resolution strategy is most_specific"() {
@@ -61,6 +69,12 @@ class ResourcePrefixPermissionSourceSpec extends Specification {
                 new ResourcePrefixPermissionSource.PrefixEntry<Application>().setPrefix('gotham-joker').setPermissions([
                         (Authorization.CREATE): ['batman']
                 ]),
+                new ResourcePrefixPermissionSource.PrefixEntry<Application>().setPrefix('foo*').setPermissions([
+                        (Authorization.CREATE): ['police']
+                ]),
+                new ResourcePrefixPermissionSource.PrefixEntry<Application>().setPrefix('foo-joker').setPermissions([
+                        (Authorization.CREATE): ['batman']
+                ]),
         ]).setResolutionStrategy(ResourcePrefixPermissionSource.ResolutionStrategy.MOST_SPECIFIC)
 
         when:
@@ -71,8 +85,10 @@ class ResourcePrefixPermissionSourceSpec extends Specification {
 
         where:
         applicationName     | expectedCreatePermissions
-        'new york'          | ["admins"]
-        'gotham-criminals'  | ["police"]
-        'gotham-joker'      | ["batman"]
+        'NEW YORK'          | ["admins"]
+        'GOTHAM-CRIMINALS'  | ["police"]
+        'GOTHAM-JOKER'      | ["batman"]
+        'foo-joker'         | ["batman"]
+        'foo-test'          | ["admins"]
     }
 }

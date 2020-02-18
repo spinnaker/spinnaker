@@ -63,10 +63,11 @@ public class ResourcePrefixPermissionSource<T extends Resource.AccessControlled>
 
     public boolean contains(T resource) {
       if (isFullApplicationName) {
-        return prefix.equals(resource.getName());
+        return prefix.equalsIgnoreCase(resource.getName());
       }
 
       String prefixWithoutStar = prefix.substring(0, prefix.length() - 1);
+      prefixWithoutStar = prefixWithoutStar.toUpperCase();
       return resource.getName().startsWith(prefixWithoutStar);
     }
   }
