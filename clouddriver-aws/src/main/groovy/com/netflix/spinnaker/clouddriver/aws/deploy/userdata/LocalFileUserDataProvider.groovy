@@ -18,6 +18,10 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.userdata
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.aws.deploy.LaunchConfigurationBuilder
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service
+import com.netflix.spinnaker.clouddriver.exceptions.SpinnakerHttpException
+import com.netflix.spinnaker.clouddriver.exceptions.SpinnakerNetworkException
+import com.netflix.spinnaker.clouddriver.exceptions.SpinnakerServerException
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import org.springframework.beans.factory.annotation.Autowired
 import retrofit.RetrofitError
 
@@ -38,25 +42,27 @@ class LocalFileUserDataProvider implements UserDataProvider {
           return localFileUserDataProperties.defaultLegacyUdf
         }
         return Boolean.valueOf(application.legacyUdf)
-      } catch (RetrofitError re) {
-        if (re.kind == RetrofitError.Kind.HTTP && re.response.status == 404) {
-          return localFileUserDataProperties.defaultLegacyUdf
-        }
-        throw re
+      } catch (NotFoundException e) {
+        return localFileUserDataProperties.defaultLegacyUdf
+      } catch (SpinnakerServerException e) {
+        throw e
       }
     }
 
+    // TODO(rz) standardize retry logic
     final int maxRetry = 5
     final int retryBackoff = 500
     final Set<Integer> retryStatus = [429, 500]
     for (int i = 0; i < maxRetry; i++) {
       try {
         return result.call()
-      } catch (RetrofitError re) {
-        if (re.kind == RetrofitError.Kind.NETWORK || (re.kind == RetrofitError.Kind.HTTP && retryStatus.contains(re.response.status))) {
+      } catch (SpinnakerHttpException e) {
+        if (retryStatus.contains(e.getResponse().getStatus())) {
           Thread.sleep(retryBackoff)
         }
-      }
+      } catch (SpinnakerNetworkException e) {
+        Thread.sleep(retryBackoff)
+      } catch (SpinnakerServerException e) {}
     }
     throw new IllegalStateException("Failed to read legacyUdf preference from front50 for $account/$applicationName")
   }

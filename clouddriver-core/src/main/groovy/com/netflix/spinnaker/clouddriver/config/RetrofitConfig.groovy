@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.config
 
 import com.netflix.spinnaker.clouddriver.core.Front50ConfigurationProperties
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service
+import com.netflix.spinnaker.clouddriver.exceptions.SpinnakerRetrofitErrorHandler
 import com.netflix.spinnaker.config.OkHttpClientConfiguration
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
@@ -55,6 +56,7 @@ class RetrofitConfig {
       .setConverter(new JacksonConverter())
       .setLogLevel(retrofitLogLevel)
       .setLog(new Slf4jRetrofitLogger(Front50Service))
+      .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
       .build()
       .create(Front50Service)
   }
