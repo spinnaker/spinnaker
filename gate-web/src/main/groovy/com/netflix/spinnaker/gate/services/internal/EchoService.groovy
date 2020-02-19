@@ -42,4 +42,7 @@ interface EchoService {
 
   @POST('/')
   String postEvent(@Body Map event)
+  
+  @GET('/quietPeriod')
+  Map getQuietPeriodState()
 }
