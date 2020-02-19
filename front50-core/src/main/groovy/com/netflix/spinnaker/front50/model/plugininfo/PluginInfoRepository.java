@@ -25,6 +25,9 @@ public interface PluginInfoRepository extends ItemDAO<PluginInfo> {
    * Returns a collection of plugins that should be installed by a particular service.
    *
    * <p>This is determined by inference, using a {@link Release}'s {@code requires} field.
+   *
+   * @param service The service to retrieve plugin info for
+   * @return All available plugins for a service
    */
   @Nonnull
   Collection<PluginInfo> getByService(@Nonnull String service);
