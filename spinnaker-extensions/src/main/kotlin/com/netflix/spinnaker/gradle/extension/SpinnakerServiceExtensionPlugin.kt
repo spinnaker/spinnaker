@@ -69,7 +69,7 @@ class SpinnakerServiceExtensionPlugin : Plugin<Project> {
     manifest.attributes(attributes)
 
     //TODO: Generation of the plugin ref can be conditional and also make the location of the file configurable.
-    createPluginRef(project, pluginExt.serviceName, this.temporaryDir.absolutePath)
+    createPluginRef(project, "${bundleExt.pluginId}-${pluginExt.serviceName}", this.temporaryDir.absolutePath)
 
   }
 
