@@ -383,6 +383,8 @@
  * [**hal config provider aws disable**](#hal-config-provider-aws-disable)
  * [**hal config provider aws edit**](#hal-config-provider-aws-edit)
  * [**hal config provider aws enable**](#hal-config-provider-aws-enable)
+ * [**hal config provider aws features**](#hal-config-provider-aws-features)
+ * [**hal config provider aws features edit**](#hal-config-provider-aws-features-edit)
  * [**hal config provider azure**](#hal-config-provider-azure)
  * [**hal config provider azure account**](#hal-config-provider-azure-account)
  * [**hal config provider azure account add**](#hal-config-provider-azure-account-add)
@@ -7315,6 +7317,7 @@ hal config provider aws [parameters] [subcommands]
  * `disable`: Set the aws provider as disabled
  * `edit`: Set provider-wide properties for the AWS provider
  * `enable`: Set the aws provider as enabled
+ * `features`: Manage and view Spinnaker configuration for the aws features configuration.
 
 ---
 ## hal config provider aws account
@@ -7565,6 +7568,39 @@ hal config provider aws enable [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+
+---
+## hal config provider aws features
+
+Manage and view Spinnaker configuration for the aws features configuration.
+
+#### Usage
+```
+hal config provider aws features [parameters] [subcommands]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+#### Subcommands
+ * `edit`: Edit features for AWS provider
+
+---
+## hal config provider aws features edit
+
+Edit features for AWS provider
+
+#### Usage
+```
+hal config provider aws features edit [parameters]
+```
+
+#### Parameters
+ * `--cloud-formation`: (*Required*) Enable CloudFormation support for AWS.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 

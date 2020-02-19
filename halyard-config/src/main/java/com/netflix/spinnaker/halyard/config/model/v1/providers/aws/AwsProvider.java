@@ -37,6 +37,7 @@ public class AwsProvider extends HasImageProvider<AwsAccount, AwsBakeryDefaults>
   private List<AwsRegion> defaultRegions =
       Collections.singletonList(new AwsRegion().setName("us-west-2"));
   private AwsDefaults defaults = new AwsDefaults();
+  private Features features;
 
   @Data
   public static class AwsRegion {
@@ -55,6 +56,29 @@ public class AwsProvider extends HasImageProvider<AwsAccount, AwsBakeryDefaults>
   @Data
   public static class AwsDefaults {
     String iamRole = "BaseIAMRole";
+  }
+
+  @Data
+  public static class Features {
+
+    public Features() {}
+
+    public Features(CloudFormation cloudFormation) {
+      this.cloudFormation = cloudFormation;
+    }
+
+    CloudFormation cloudFormation;
+
+    @Data
+    public static class CloudFormation {
+      public CloudFormation() {}
+
+      public CloudFormation(Boolean enabled) {
+        this.enabled = enabled;
+      }
+
+      Boolean enabled;
+    }
   }
 
   @Override

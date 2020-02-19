@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Google, Inc.
+ * Copyright 2020 Adevinta.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -12,26 +12,22 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.aws;
 
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractNamedProviderCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractFeaturesCommand;
 
-/** Interact with the aws provider */
+/** Interact with the aws provider's features */
 @Parameters(separators = "=")
-public class AwsCommand extends AbstractNamedProviderCommand {
+public class AwsFeaturesCommand extends AbstractFeaturesCommand {
   protected String getProviderName() {
     return "aws";
   }
 
-  public AwsCommand() {
+  public AwsFeaturesCommand() {
     super();
-    registerSubcommand(new AwsAccountCommand());
-    registerSubcommand(new AwsEditProviderCommand());
-    registerSubcommand(new AwsBakeryCommand());
-    registerSubcommand(new AwsFeaturesCommand());
+    registerSubcommand(new AwsEditFeaturesCommand());
   }
 }

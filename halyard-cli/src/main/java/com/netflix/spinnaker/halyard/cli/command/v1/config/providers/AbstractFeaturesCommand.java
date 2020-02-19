@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Google, Inc.
+ * Copyright 2020 Adevinta.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,26 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.aws;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.providers;
 
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractNamedProviderCommand;
 
-/** Interact with the aws provider */
 @Parameters(separators = "=")
-public class AwsCommand extends AbstractNamedProviderCommand {
-  protected String getProviderName() {
-    return "aws";
+public abstract class AbstractFeaturesCommand extends AbstractProviderCommand {
+  @Override
+  public String getCommandName() {
+    return "features";
   }
 
-  public AwsCommand() {
-    super();
-    registerSubcommand(new AwsAccountCommand());
-    registerSubcommand(new AwsEditProviderCommand());
-    registerSubcommand(new AwsBakeryCommand());
-    registerSubcommand(new AwsFeaturesCommand());
+  @Override
+  public String getShortDescription() {
+    return "Manage and view Spinnaker configuration for the "
+        + getProviderName()
+        + " features configuration.";
+  }
+
+  @Override
+  protected void executeThis() {
+    showHelp();
   }
 }
