@@ -25,6 +25,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepositoryTck
+import org.jooq.impl.DSL
 import rx.schedulers.Schedulers
 import de.huxhorn.sulky.ulid.ULID
 import spock.lang.AutoCleanup
@@ -71,15 +72,19 @@ class SqlExecutionRepositorySpec extends ExecutionRepositoryTck<ExecutionReposit
 
   @Override
   ExecutionRepository createExecutionRepository() {
-    com.netflix.spinnaker.kork.telemetry.InstrumentedProxy.proxy(
-      new DefaultRegistry(),
-      new SqlExecutionRepository("test", currentDatabase.context, mapper, new RetryProperties(), 10, 100, "poolName"),
-      "namespace")
+    return createExecutionRepository("test")
   }
 
   @Override
   ExecutionRepository createExecutionRepositoryPrevious() {
     new SqlExecutionRepository("test", previousDatabase.context, mapper, new RetryProperties(), 10, 100, "poolName")
+  }
+
+  ExecutionRepository createExecutionRepository(String partition) {
+    return com.netflix.spinnaker.kork.telemetry.InstrumentedProxy.proxy(
+        new DefaultRegistry(),
+        new SqlExecutionRepository(partition, currentDatabase.context, mapper, new RetryProperties(), 10, 100, "poolName"),
+        "namespace")
   }
 
   def "can store a new pipeline"() {
@@ -98,6 +103,72 @@ class SqlExecutionRepositorySpec extends ExecutionRepositoryTck<ExecutionReposit
     pipelines[0].stages.size() == 1
     pipelines[0].stages[0].id == e.stages[0].id
     pipelines[0].stages[0].context.foo == 'FOO'
+    pipelines[0].partition == 'test'
+  }
+
+  def "fails to persist foreign executions"() {
+    given:
+    ExecutionRepository repo = createExecutionRepository()
+    Execution e = new Execution(PIPELINE, "myapp")
+    e.stages.add(new Stage(e, "wait", "wait stage", [foo: 'FOO']))
+    e.partition = "foreign"
+
+    when:
+    repo.store(e)
+
+    then:
+    thrown(ForeignExecutionException)
+  }
+
+  def "persists foreign executions when own partition is not set"() {
+    given:
+    ExecutionRepository repo = createExecutionRepository(null)
+    Execution e = new Execution(PIPELINE, "myapp")
+    e.stages.add(new Stage(e, "wait", "wait stage", [foo: 'FOO']))
+    e.partition = "foreign"
+
+    when:
+    repo.store(e)
+
+    then:
+    noExceptionThrown()
+  }
+
+  def "fails to operate on foreign executions"() {
+    given:
+    ExecutionRepository repo = createExecutionRepository()
+    Execution e = new Execution(PIPELINE, "myapp")
+    e.stages.add(new Stage(e, "wait", "wait stage", [foo: 'FOO']))
+    repo.store(e)
+
+    currentDatabase.context
+      .update(DSL.table("pipelines"))
+      .set(DSL.field("`partition`"), DSL.value("foreign"))
+      .execute()
+
+    when:
+    repo.pause(PIPELINE, e.id, "test@user.com")
+
+    then:
+    thrown(ForeignExecutionException)
+
+    when:
+    repo.resume(PIPELINE, e.id, "test@user.com")
+
+    then:
+    thrown(ForeignExecutionException)
+
+    when:
+    repo.cancel(PIPELINE, e.id)
+
+    then:
+    thrown(ForeignExecutionException)
+
+    when:
+    repo.delete(PIPELINE, e.id)
+
+    then:
+    thrown(ForeignExecutionException)
   }
 
   def "can store a pipeline with a provided ULID"() {

@@ -56,6 +56,7 @@ import org.jooq.impl.DSL.count
 import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.name
 import org.jooq.impl.DSL.table
+import org.jooq.impl.DSL.value
 import org.slf4j.LoggerFactory
 import rx.Observable
 import java.lang.System.currentTimeMillis
@@ -96,10 +97,14 @@ class SqlExecutionRepository(
   }
 
   override fun updateStageContext(stage: Stage) {
+    validateHandledPartitionOrThrow(stage.execution)
+
     storeStage(stage)
   }
 
   override fun removeStage(execution: Execution, stageId: String) {
+    validateHandledPartitionOrThrow(execution)
+
     withPool(poolName) {
       jooq.transactional {
         it.delete(execution.type.stagesTableName)
@@ -120,6 +125,8 @@ class SqlExecutionRepository(
   }
 
   override fun cancel(type: ExecutionType, id: String, user: String?, reason: String?) {
+    validateHandledPartitionOrThrow(type, id)
+
     withPool(poolName) {
       jooq.transactional {
         selectExecution(it, type, id)
@@ -141,6 +148,8 @@ class SqlExecutionRepository(
   }
 
   override fun pause(type: ExecutionType, id: String, user: String?) {
+    validateHandledPartitionOrThrow(type, id)
+
     withPool(poolName) {
       jooq.transactional {
         selectExecution(it, type, id)
@@ -165,6 +174,8 @@ class SqlExecutionRepository(
   }
 
   override fun resume(type: ExecutionType, id: String, user: String?, ignoreCurrentStatus: Boolean) {
+    validateHandledPartitionOrThrow(type, id)
+
     withPool(poolName) {
       jooq.transactional {
         selectExecution(it, type, id)
@@ -193,6 +204,8 @@ class SqlExecutionRepository(
   }
 
   override fun updateStatus(type: ExecutionType, id: String, status: ExecutionStatus) {
+    validateHandledPartitionOrThrow(type, id)
+
     withPool(poolName) {
       jooq.transactional {
         selectExecution(it, type, id)
@@ -211,6 +224,8 @@ class SqlExecutionRepository(
   }
 
   override fun delete(type: ExecutionType, id: String) {
+    validateHandledPartitionOrThrow(type, id)
+
     val correlationField = if (type == PIPELINE) "pipeline_id" else "orchestration_id"
     val (ulid, _) = mapLegacyId(jooq, type.tableName, id)
 
@@ -488,13 +503,17 @@ class SqlExecutionRepository(
 
   override fun countActiveExecutions(): ActiveExecutionsReport {
     withPool(poolName) {
+      val partitionPredicate = if (partitionName != null) field("`partition`").eq(partitionName) else value(1).eq(value(1))
+
       val orchestrationsQuery = jooq.selectCount()
         .from(ORCHESTRATION.tableName)
         .where(field("status").eq(RUNNING.toString()))
+        .and(partitionPredicate)
         .asField<Int>("orchestrations")
       val pipelinesQuery = jooq.selectCount()
         .from(PIPELINE.tableName)
         .where(field("status").eq(RUNNING.toString()))
+        .and(partitionPredicate)
         .asField<Int>("pipelines")
 
       val record = jooq.select(orchestrationsQuery, pipelinesQuery).fetchOne()
@@ -618,7 +637,8 @@ class SqlExecutionRepository(
   }
 
   private fun storeExecutionInternal(ctx: DSLContext, execution: Execution, storeStages: Boolean = false) {
-    // TODO rz - Nasty little hack here to save the execution without any of its stages.
+    validateHandledPartitionOrThrow(execution)
+
     val stages = execution.stages.toMutableList().toList()
     execution.stages.clear()
 
@@ -780,9 +800,6 @@ class SqlExecutionRepository(
   private fun SelectConnectByStep<out Record>.statusIn(
     statuses: Collection<ExecutionStatus>
   ): SelectConnectByStep<out Record> {
-    // jOOQ doesn't seem to play well with Kotlin here. Using the vararg interface for `in` doesn't construct the
-    // SQL clause correctly, and I can't seem to get Kotlin to use the Collection<T> interface. We can manually
-    // build this clause and it remain reasonably safe.
     if (statuses.isEmpty() || statuses.size == ExecutionStatus.values().size) {
       return this
     }
@@ -883,7 +900,7 @@ class SqlExecutionRepository(
       .from(type.tableName)
 
   private fun selectFields() =
-    listOf(field("id"), field("body"))
+    listOf(field("id"), field("body"), field("`partition`"))
 
   private fun SelectForUpdateStep<out Record>.fetchExecutions() =
     ExecutionMapper(mapper, stageReadSize).map(fetch().intoResultSet(), jooq)
@@ -896,6 +913,26 @@ class SqlExecutionRepository(
       override fun iterator(): Iterator<Execution> =
         PagedIterator(batchReadSize, Execution::getId, nextPage)
     }
+
+  private fun validateHandledPartitionOrThrow(execution: Execution) {
+    val partition = execution.partition
+
+    if (partition != null && partitionName != null && partitionName != partition) {
+      throw ForeignExecutionException(execution.id, partition, partitionName)
+    }
+  }
+
+  private fun validateHandledPartitionOrThrow(executionType: ExecutionType, id: String) {
+    // Short circuit if we are handling all partitions
+    if (partitionName != null) {
+      try {
+        val execution = retrieve(executionType, id)
+        validateHandledPartitionOrThrow(execution)
+      } catch (_: ExecutionNotFoundException) {
+        // Execution not found, we can proceed since the rest is likely a noop anyway
+      }
+    }
+  }
 
   class SyntheticStageRequired : IllegalArgumentException("Only synthetic stages can be inserted ad-hoc")
 }

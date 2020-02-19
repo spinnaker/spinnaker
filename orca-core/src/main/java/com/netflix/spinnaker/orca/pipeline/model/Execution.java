@@ -328,6 +328,16 @@ public class Execution implements Serializable {
     this.templateVariables = templateVariables;
   }
 
+  public String partition = null;
+
+  public void setPartition(@Nullable String partition) {
+    this.partition = partition;
+  }
+
+  public @Nullable String getPartition() {
+    return this.partition;
+  }
+
   @Nullable
   public Stage namedStage(String type) {
     return stages.stream().filter(it -> it.getType().equals(type)).findFirst().orElse(null);

@@ -1,7 +1,7 @@
 DROP DATABASE IF EXISTS orca;
 SET tx_isolation = 'READ-COMMITTED';
 
-CREATE DATABASE orca;
+CREATE DATABASE `orca` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE USER orca_migrate;
 CREATE USER orca_service;
 

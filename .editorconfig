@@ -8,3 +8,7 @@ trim_trailing_whitespace = true
 indent_style = space
 indent_size = 2
 continuation_indent_size = 4
+
+[{*.kt, *.kts}]
+continuation_indent_size = 2
+

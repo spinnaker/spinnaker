@@ -50,6 +50,7 @@ dependencies {
   implementation(project(":orca-keel"))
   implementation(project(":orca-migration"))
   implementation(project(":orca-mine"))
+  implementation(project(":orca-peering"))
   implementation(project(":orca-pipelinetemplate"))
   implementation(project(":orca-qos"))
   implementation(project(":orca-queue"))
