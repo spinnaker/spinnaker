@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.igor.model;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import java.util.List;
 import java.util.Map;
 import lombok.Data;
 
@@ -24,18 +25,24 @@ import lombok.Data;
 public class AwsCodeBuildStageDefinition implements RetryableStageDefinition {
   private String account;
   private String projectName;
-  private boolean sourceOverride;
-  private AwsCodeBuildSourceArtifact source;
-  private String sourceVersion;
+  private AwsCodeBuildSource source;
   private Map<String, String> environmentVariables;
   private String image;
-  private String buildspec;
+  private List<AwsCodeBuildSource> secondarySources;
   private AwsCodeBuildExecution buildInfo;
   private int consecutiveErrors;
 
   @Data
-  public static class AwsCodeBuildSourceArtifact {
+  public static class AwsCodeBuildSource {
+    private boolean sourceOverride;
     private String sourceType;
+    private AwsCodeBuildSourceArtifact sourceArtifact;
+    private String sourceVersion;
+    private String buildspec;
+  }
+
+  @Data
+  public static class AwsCodeBuildSourceArtifact {
     private String artifactId;
     private Artifact artifact;
   }

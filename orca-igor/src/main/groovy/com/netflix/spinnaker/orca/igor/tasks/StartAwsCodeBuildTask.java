@@ -23,6 +23,8 @@ import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.igor.IgorService;
 import com.netflix.spinnaker.orca.igor.model.AwsCodeBuildExecution;
 import com.netflix.spinnaker.orca.igor.model.AwsCodeBuildStageDefinition;
+import com.netflix.spinnaker.orca.igor.model.AwsCodeBuildStageDefinition.AwsCodeBuildSource;
+import com.netflix.spinnaker.orca.igor.model.AwsCodeBuildStageDefinition.AwsCodeBuildSourceArtifact;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
 import java.util.ArrayList;
@@ -43,6 +45,12 @@ public class StartAwsCodeBuildTask implements Task {
   private static final String IMAGE_LOCATION = "imageOverride";
   private static final String IMAGE_CREDENTIALS_TYPE = "imagePullCredentialsTypeOverride";
   private static final String BUILDSPEC = "buildspecOverride";
+  private static final String SECONDARY_SOURCES = "secondarySourcesOverride";
+  private static final String SECONDARY_SOURCES_VERSION = "secondarySourcesVersionOverride";
+  private static final String SECONDARY_SOURCE_TYPE = "type";
+  private static final String SECONDARY_SOURCE_LOCATION = "location";
+  private static final String SECONDARY_SOURCE_IDENTIFIER = "sourceIdentifier";
+  private static final String SECONDARY_SOURCE_VERSION = "sourceVersion";
   private static final String ENV_VARS = "environmentVariablesOverride";
   private static final String ENV_VAR_TYPE = "type";
   private static final String ENV_VAR_NAME = "name";
@@ -58,15 +66,11 @@ public class StartAwsCodeBuildTask implements Task {
 
     Map<String, Object> requestInput = new HashMap<>();
     appendProjectName(requestInput, stageDefinition.getProjectName());
-    if (stageDefinition.isSourceOverride() && stageDefinition.getSource() != null) {
-      appendSource(
-          requestInput,
-          getSourceArtifact(stage, stageDefinition),
-          stageDefinition.getSource().getSourceType());
-    }
-    // sourceVersion takes precedence of version in source artifact
-    appendSourceVersion(requestInput, stageDefinition.getSourceVersion());
-    appendBuildSpec(requestInput, stageDefinition.getBuildspec());
+
+    appendSource(requestInput, stage, stageDefinition.getSource());
+
+    appendSecondarySources(requestInput, stage, stageDefinition.getSecondarySources());
+
     appendImage(requestInput, stageDefinition.getImage());
     appendEnvironmentVariables(requestInput, stageDefinition.getEnvironmentVariables());
 
@@ -83,50 +87,73 @@ public class StartAwsCodeBuildTask implements Task {
   }
 
   private void appendSource(
-      Map<String, Object> requestInput, Artifact artifact, String sourceType) {
-    if (sourceType != null && !sourceType.equals("")) {
-      requestInput.put(SOURCE_TYPE, sourceType);
-    }
-    switch (artifact.getType()) {
-      case "s3/object":
-        requestInput.putIfAbsent(SOURCE_TYPE, "S3");
-        String s3Location = artifact.getReference();
-        requestInput.put(
-            SOURCE_LOCATION, s3Location.startsWith("s3://") ? s3Location.substring(5) : s3Location);
-        break;
-      case "git/repo":
-        requestInput.put(SOURCE_LOCATION, artifact.getReference());
-        if (!requestInput.containsKey(SOURCE_TYPE)) {
-          if (artifact.getReference().matches("^(http(s)?://)github.com/(.*)$")) {
-            requestInput.put(SOURCE_TYPE, "GITHUB");
-          } else if (artifact.getReference().matches("^(http(s)?://)(.*@)?bitbucket.org/(.*)$")) {
-            requestInput.put(SOURCE_TYPE, "BITBUCKET");
-          } else if (artifact
-              .getReference()
-              .matches("^https://git-codecommit.(.*).amazonaws.com/(.*)$")) {
-            requestInput.put(SOURCE_TYPE, "CODECOMMIT");
-          } else {
-            throw new IllegalStateException("Source type could not be inferred from location");
-          }
+      Map<String, Object> requestInput, Stage stage, AwsCodeBuildSource source) {
+    if (source != null) {
+      Artifact matchArtifact = Artifact.builder().build();
+      if (source.isSourceOverride() && source.getSourceArtifact() != null) {
+        matchArtifact = getSourceArtifact(stage, source.getSourceArtifact());
+        if (source.getSourceType() != null && !source.getSourceType().equals("")) {
+          requestInput.put(SOURCE_TYPE, source.getSourceType());
+        } else {
+          requestInput.put(SOURCE_TYPE, getSourceType(matchArtifact));
         }
-        break;
-      default:
-        throw new IllegalStateException("Unexpected value: " + artifact.getType());
-    }
-    if (artifact.getVersion() != null) {
-      requestInput.put(SOURCE_VERSION, artifact.getVersion());
+        requestInput.put(SOURCE_LOCATION, getSourceLocation(matchArtifact));
+      }
+
+      if (source.getSourceVersion() != null && !source.getSourceVersion().equals("")) {
+        requestInput.put(SOURCE_VERSION, source.getSourceVersion());
+      } else if (matchArtifact.getVersion() != null && !matchArtifact.getVersion().equals("")) {
+        requestInput.put(SOURCE_VERSION, matchArtifact.getVersion());
+      }
+
+      if (source.getBuildspec() != null && !source.getBuildspec().equals("")) {
+        requestInput.put(BUILDSPEC, source.getBuildspec());
+      }
     }
   }
 
-  private void appendSourceVersion(Map<String, Object> requestInput, String sourceVersion) {
-    if (sourceVersion != null && !sourceVersion.equals("")) {
-      requestInput.put(SOURCE_VERSION, sourceVersion);
+  private void appendSecondarySources(
+      Map<String, Object> requestInput, Stage stage, List<AwsCodeBuildSource> sources) {
+    if (sources != null) {
+      List<Map<String, String>> secondarySources = new ArrayList<>();
+      List<Map<String, String>> secondarySourcesVersion = new ArrayList<>();
+      for (AwsCodeBuildSource source : sources) {
+        Artifact matchArtifact = getSourceArtifact(stage, source.getSourceArtifact());
+        appendSecondarySource(secondarySources, secondarySourcesVersion, matchArtifact, source);
+      }
+      requestInput.put(SECONDARY_SOURCES, secondarySources);
+      requestInput.put(SECONDARY_SOURCES_VERSION, secondarySourcesVersion);
     }
   }
 
-  private void appendBuildSpec(Map<String, Object> requestInput, String buildspec) {
-    if (buildspec != null && !buildspec.equals("")) {
-      requestInput.put(BUILDSPEC, buildspec);
+  private void appendSecondarySource(
+      List<Map<String, String>> secondarySources,
+      List<Map<String, String>> secondarySourcesVersion,
+      Artifact matchArtifact,
+      AwsCodeBuildSource artifact) {
+    HashMap<String, String> source = new HashMap<>();
+    HashMap<String, String> sourceVersion = new HashMap<>();
+    if (artifact.getSourceType() != null && !artifact.getSourceType().equals("")) {
+      source.put(SECONDARY_SOURCE_TYPE, artifact.getSourceType());
+    } else {
+      source.put(SECONDARY_SOURCE_TYPE, getSourceType(matchArtifact));
+    }
+    source.put(SECONDARY_SOURCE_LOCATION, getSourceLocation(matchArtifact));
+
+    String identifier = String.valueOf(secondarySources.size());
+    source.put(SECONDARY_SOURCE_IDENTIFIER, identifier);
+
+    if (artifact.getSourceVersion() != null && !artifact.getSourceVersion().equals("")) {
+      sourceVersion.put(SECONDARY_SOURCE_IDENTIFIER, identifier);
+      sourceVersion.put(SECONDARY_SOURCE_VERSION, artifact.getSourceVersion());
+    } else if (matchArtifact.getVersion() != null && !matchArtifact.getVersion().equals("")) {
+      sourceVersion.put(SECONDARY_SOURCE_IDENTIFIER, identifier);
+      sourceVersion.put(SECONDARY_SOURCE_VERSION, matchArtifact.getVersion());
+    }
+
+    secondarySources.add(source);
+    if (!sourceVersion.isEmpty()) {
+      secondarySourcesVersion.add(sourceVersion);
     }
   }
 
@@ -153,25 +180,55 @@ public class StartAwsCodeBuildTask implements Task {
     requestInput.put(ENV_VARS, startBuildEnvVars);
   }
 
-  private Artifact getSourceArtifact(
-      @Nonnull Stage stage, AwsCodeBuildStageDefinition stageDefinition) {
-    Artifact artifact =
+  private Artifact getSourceArtifact(@Nonnull Stage stage, AwsCodeBuildSourceArtifact artifact) {
+    Artifact matchArtifact =
         artifactUtils.getBoundArtifactForStage(
-            stage,
-            stageDefinition.getSource().getArtifactId(),
-            stageDefinition.getSource().getArtifact());
+            stage, artifact.getArtifactId(), artifact.getArtifact());
 
-    if (artifact == null) {
+    if (matchArtifact == null) {
       throw new IllegalArgumentException("No artifact was specified.");
     }
 
-    if (artifact.getArtifactAccount() == null) {
+    if (matchArtifact.getArtifactAccount() == null) {
       throw new IllegalArgumentException("No artifact account was specified.");
     }
 
-    if (artifact.getMetadata() != null && artifact.getMetadata().containsKey("subPath")) {
+    if (matchArtifact.getMetadata() != null && matchArtifact.getMetadata().containsKey("subPath")) {
       throw new IllegalArgumentException("Subpath is not supported by AWS CodeBuild stage");
     }
-    return artifact;
+    return matchArtifact;
+  }
+
+  private String getSourceType(Artifact artifact) {
+    switch (artifact.getType()) {
+      case "s3/object":
+        return "S3";
+      case "git/repo":
+        if (artifact.getReference().matches("^(http(s)?://)github.com/(.*)$")) {
+          return "GITHUB";
+        } else if (artifact.getReference().matches("^(http(s)?://)(.*@)?bitbucket.org/(.*)$")) {
+          return "BITBUCKET";
+        } else if (artifact
+            .getReference()
+            .matches("^https://git-codecommit.(.*).amazonaws.com/(.*)$")) {
+          return "CODECOMMIT";
+        } else {
+          throw new IllegalStateException("Source type could not be inferred from location");
+        }
+      default:
+        throw new IllegalStateException("Unexpected value: " + artifact.getType());
+    }
+  }
+
+  private String getSourceLocation(Artifact artifact) {
+    switch (artifact.getType()) {
+      case "s3/object":
+        String s3Location = artifact.getReference();
+        return s3Location.startsWith("s3://") ? s3Location.substring(5) : s3Location;
+      case "git/repo":
+        return artifact.getReference();
+      default:
+        throw new IllegalStateException("Unexpected value: " + artifact.getType());
+    }
   }
 }
