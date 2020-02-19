@@ -25,21 +25,21 @@ import lombok.Getter;
 
 /** Provides an identity for each echo node. */
 public class NodeIdentity {
-  public static final String UNKNOWN_HOST = "UnknownHost";
+  private static final String UNKNOWN_HOST = "UnknownHost";
 
-  private String runtimeName;
-  private String hostName;
-  @Getter private String identity;
+  @Getter private final String identity;
 
   public NodeIdentity() {
     this("www.google.com", 80);
   }
 
   public NodeIdentity(String validationAddress, Integer validationPort) {
-    this.runtimeName = ManagementFactory.getRuntimeMXBean().getName();
-    this.hostName = resolveHostname(validationAddress, validationPort);
+    String runtimeName = ManagementFactory.getRuntimeMXBean().getName();
+    String hostName = resolveHostname(validationAddress, validationPort);
     if (!hostName.equals(UNKNOWN_HOST)) {
-      this.identity = String.format("%s:%s", this.hostName, this.runtimeName);
+      this.identity = String.format("%s:%s", hostName, runtimeName);
+    } else {
+      this.identity = UNKNOWN_HOST;
     }
   }
 
