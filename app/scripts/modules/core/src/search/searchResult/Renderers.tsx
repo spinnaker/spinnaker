@@ -15,19 +15,19 @@ export interface ISearchColumn {
 
 /****** Layout Renderers ******/
 
-export class TableHeader extends React.Component {
+export class SearchTableHeader extends React.Component {
   public render() {
     return <div className="table-header">{this.props.children}</div>;
   }
 }
 
-export class TableRow extends React.Component {
+export class SearchTableRow extends React.Component {
   public render() {
     return <div className="table-row small">{this.props.children}</div>;
   }
 }
 
-export class TableBody extends React.Component {
+export class SearchTableBody extends React.Component {
   public render() {
     return <div className="table-contents flex-fill">{this.props.children}</div>;
   }

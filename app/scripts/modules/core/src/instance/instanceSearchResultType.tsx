@@ -8,9 +8,9 @@ import {
   DefaultSearchResultTab,
   ISearchResult,
   HeaderCell,
-  TableBody,
-  TableHeader,
-  TableRow,
+  SearchTableBody,
+  SearchTableHeader,
+  SearchTableRow,
   ISearchColumn,
   SearchResultType,
   ISearchResultSet,
@@ -45,12 +45,12 @@ class InstancesSearchResultType extends SearchResultType<IInstanceSearchResult> 
   public TabComponent = DefaultSearchResultTab;
 
   public HeaderComponent = () => (
-    <TableHeader>
+    <SearchTableHeader>
       <HeaderCell col={this.cols.INSTANCE} />
       <HeaderCell col={this.cols.ACCOUNT} />
       <HeaderCell col={this.cols.REGION} />
       <HeaderCell col={this.cols.SERVERGROUP} />
-    </TableHeader>
+    </SearchTableHeader>
   );
 
   public DataComponent = ({ resultSet }: { resultSet: ISearchResultSet<IInstanceSearchResult> }) => {
@@ -60,19 +60,19 @@ class InstancesSearchResultType extends SearchResultType<IInstanceSearchResult> 
     const results = resultSet.results.slice().sort(itemSortFn);
 
     return (
-      <TableBody>
+      <SearchTableBody>
         {results
           .slice()
           .sort(itemSortFn)
           .map(item => (
-            <TableRow key={itemKeyFn(item)}>
+            <SearchTableRow key={itemKeyFn(item)}>
               <HrefCell item={item} col={this.cols.INSTANCE} />
               <AccountCell item={item} col={this.cols.ACCOUNT} />
               <BasicCell item={item} col={this.cols.REGION} />
               <BasicCell item={item} col={this.cols.SERVERGROUP} defaultValue="Standalone Instance" />
-            </TableRow>
+            </SearchTableRow>
           ))}
-      </TableBody>
+      </SearchTableBody>
     );
   };
 
