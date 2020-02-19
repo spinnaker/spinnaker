@@ -16,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -31,7 +30,10 @@ import retrofit.converter.JacksonConverter;
 @Slf4j
 @Configuration
 @ComponentScan(value = "com.netflix.spinnaker.echo.pipelinetriggers")
-@EnableConfigurationProperties(FiatClientConfigurationProperties.class)
+@EnableConfigurationProperties({
+  FiatClientConfigurationProperties.class,
+  QuietPeriodIndicatorConfigurationProperties.class
+})
 public class PipelineTriggerConfiguration {
   private Client retrofitClient;
   private RequestInterceptor requestInterceptor;
@@ -71,12 +73,6 @@ public class PipelineTriggerConfiguration {
       ObjectMapper objectMapper,
       FiatPermissionEvaluator fiatPermissionEvaluator) {
     return new PubsubEventHandler(registry, objectMapper, fiatPermissionEvaluator);
-  }
-
-  @Bean
-  @ConfigurationProperties(prefix = "quiet-period")
-  public QuietPeriodIndicatorConfigurationProperties quietPeriodIndicatorConfigurationProperties() {
-    return new QuietPeriodIndicatorConfigurationProperties();
   }
 
   @Bean

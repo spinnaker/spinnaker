@@ -110,15 +110,43 @@ public class PipelineInitiator {
   public void startPipeline(Pipeline pipeline, TriggerSource triggerSource) {
     if (enabled) {
       try {
-        if (pipeline.getTrigger() != null
-            && pipeline.isRespectQuietPeriod()
-            && quietPeriodIndicator.inQuietPeriod(
-                System.currentTimeMillis(), pipeline.getTrigger().getType())) {
-          log.info(
-              "Would trigger {} due to {} but pipeline is set to ignore automatic triggers during quiet periods",
-              pipeline,
-              pipeline.getTrigger());
-        } else {
+        long now = System.currentTimeMillis();
+        boolean inQuietPeriod = quietPeriodIndicator.inQuietPeriod(now);
+        boolean shouldTrigger = true;
+
+        if (inQuietPeriod) {
+          if (!pipeline.isRespectQuietPeriod()) {
+            log.info(
+                "Currently in quiet period but pipeline {} for app {} doesn't respect it, will trigger anyway",
+                pipeline.getName(),
+                pipeline.getApplication());
+          } else {
+            if (pipeline.getTrigger() != null) {
+              if (quietPeriodIndicator.inQuietPeriod(now, pipeline.getTrigger().getType())) {
+                log.info(
+                    "Currently in quiet period and pipeline {} for app {} with trigger {} respects it - will not trigger it",
+                    pipeline.getName(),
+                    pipeline.getApplication(),
+                    pipeline.getTrigger());
+
+                shouldTrigger = false;
+              } else {
+                log.info(
+                    "Currently in quiet period but pipeline trigger {} for pipeline {} for app {} is not one of suppressed trigger types, will trigger anyway",
+                    pipeline.getTrigger().getType(),
+                    pipeline.getName(),
+                    pipeline.getApplication());
+              }
+            } else {
+              log.info(
+                  "Currently in quiet period but pipeline trigger is NULL for pipeline {} for app {}, will trigger anyway",
+                  pipeline.getName(),
+                  pipeline.getApplication());
+            }
+          }
+        }
+
+        if (shouldTrigger) {
           log.info("Triggering {} due to {}", pipeline, pipeline.getTrigger());
 
           final String templatedPipelineType = "templatedPipeline";

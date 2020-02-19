@@ -18,6 +18,7 @@ package com.netflix.spinnaker.echo.pipelinetriggers
 
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.echo.config.QuietPeriodIndicatorConfigurationProperties
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import spock.lang.Specification
 
 import java.time.Instant
@@ -26,6 +27,7 @@ import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 
 class QuietPeriodIndicatorSpec extends Specification {
   def registry = new NoopRegistry()
+  def dynamicConfigService = Mock(DynamicConfigService)
   def goodStartDate = "2018-01-01T00:00:00Z"
   def goodEndDate = "2018-02-01T00:00:00Z"
   def badDate = "flarg"
@@ -39,7 +41,8 @@ class QuietPeriodIndicatorSpec extends Specification {
 
   def "is disabled if 'enabled' is false"() {
     given:
-    QuietPeriodIndicatorConfigurationProperties config = new QuietPeriodIndicatorConfigurationProperties(false, goodStartDate, goodEndDate, Collections.emptyList());
+    dynamicConfigService.isEnabled("quiet-period", true) >> false
+    QuietPeriodIndicatorConfigurationProperties config = new QuietPeriodIndicatorConfigurationProperties(dynamicConfigService)
     QuietPeriodIndicator quietPeriodIndicator = new QuietPeriodIndicator(registry, config)
 
     expect:
@@ -48,7 +51,9 @@ class QuietPeriodIndicatorSpec extends Specification {
 
   def "disabled if start date is invalid"() {
     given:
-    QuietPeriodIndicatorConfigurationProperties config = new QuietPeriodIndicatorConfigurationProperties(false, badDate, goodEndDate, Collections.emptyList());
+    dynamicConfigService.isEnabled("quiet-period", true) >> true
+    dynamicConfigService.getConfig(String.class, "quiet-period.start-iso", "") >> badDate
+    QuietPeriodIndicatorConfigurationProperties config = new QuietPeriodIndicatorConfigurationProperties(dynamicConfigService)
     QuietPeriodIndicator quietPeriodIndicator = new QuietPeriodIndicator(registry, config)
 
     expect:
@@ -57,7 +62,10 @@ class QuietPeriodIndicatorSpec extends Specification {
 
   def "disabled if end date is invalid"() {
     given:
-    QuietPeriodIndicatorConfigurationProperties config = new QuietPeriodIndicatorConfigurationProperties(false, goodStartDate, badDate, Collections.emptyList());
+    dynamicConfigService.isEnabled("quiet-period", true) >> true
+    dynamicConfigService.getConfig(String.class, "quiet-period.start-iso", "") >> goodStartDate
+    dynamicConfigService.getConfig(String.class, "quiet-period.end-iso", "") >> badDate
+    QuietPeriodIndicatorConfigurationProperties config = new QuietPeriodIndicatorConfigurationProperties(dynamicConfigService)
     QuietPeriodIndicator quietPeriodIndicator = new QuietPeriodIndicator(registry, config)
 
     expect:
@@ -66,7 +74,10 @@ class QuietPeriodIndicatorSpec extends Specification {
 
   def "ranges work"() {
     given:
-    QuietPeriodIndicatorConfigurationProperties config = new QuietPeriodIndicatorConfigurationProperties(true, goodStartDate, goodEndDate, Collections.emptyList());
+    dynamicConfigService.isEnabled("quiet-period", true) >> true
+    dynamicConfigService.getConfig(String.class, "quiet-period.start-iso", "") >> goodStartDate
+    dynamicConfigService.getConfig(String.class, "quiet-period.end-iso", "") >> goodEndDate
+    QuietPeriodIndicatorConfigurationProperties config = new QuietPeriodIndicatorConfigurationProperties(dynamicConfigService)
     QuietPeriodIndicator quietPeriodIndicator = new QuietPeriodIndicator(registry, config)
 
     expect:
@@ -77,24 +88,20 @@ class QuietPeriodIndicatorSpec extends Specification {
 
   def "trigger type list is respected"() {
     given:
-    ArrayList<String> triggerTypes = new ArrayList<>();
+    ArrayList<String> triggerTypes = new ArrayList<>()
     triggerTypes.add("inTheList")
-    QuietPeriodIndicatorConfigurationProperties config = new QuietPeriodIndicatorConfigurationProperties(true, goodStartDate, goodEndDate, triggerTypes);
+    dynamicConfigService.isEnabled("quiet-period", true) >> true
+    dynamicConfigService.getConfig(String.class, "quiet-period.start-iso", "") >> goodStartDate
+    dynamicConfigService.getConfig(String.class, "quiet-period.end-iso", "") >> goodEndDate
+    QuietPeriodIndicatorConfigurationProperties config = new QuietPeriodIndicatorConfigurationProperties(dynamicConfigService)
+    config.setSuppressedTriggerTypes(triggerTypes)
     QuietPeriodIndicator quietPeriodIndicator = new QuietPeriodIndicator(registry, config)
 
     expect:
     !quietPeriodIndicator.inQuietPeriod(parseIso(inRangeDate), "notInTheList")
     quietPeriodIndicator.inQuietPeriod(parseIso(inRangeDate), "inTheList")
-  }
 
-  def "trigger type list is case insensitive"() {
-    given:
-    ArrayList<String> triggerTypes = new ArrayList<>();
-    triggerTypes.add("inTheList")
-    QuietPeriodIndicatorConfigurationProperties config = new QuietPeriodIndicatorConfigurationProperties(true, goodStartDate, goodEndDate, triggerTypes);
-    QuietPeriodIndicator quietPeriodIndicator = new QuietPeriodIndicator(registry, config)
-
-    expect:
+    and: 'comparison is not case sensitive'
     quietPeriodIndicator.inQuietPeriod(parseIso(inRangeDate), "inthelist")
   }
 }
