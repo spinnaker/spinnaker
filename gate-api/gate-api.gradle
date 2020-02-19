@@ -13,17 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-apply from: "${project.rootDir}/gradle/kotlin.gradle"
-apply from: "${project.rootDir}/gradle/kotlin-test.gradle"
+apply plugin: 'java-library'
 
 dependencies {
-  implementation project(":gate-core")
-
-  implementation "com.netflix.spinnaker.kork:kork-plugins"
-  implementation "com.netflix.spinnaker.kork:kork-swagger"
-  implementation "com.netflix.spinnaker.kork:kork-web"
-
-  implementation "org.springframework:spring-web"
-  implementation "org.pf4j:pf4j-update"
+  implementation platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
+  api "com.netflix.spinnaker.kork:kork-plugins-api"
 }

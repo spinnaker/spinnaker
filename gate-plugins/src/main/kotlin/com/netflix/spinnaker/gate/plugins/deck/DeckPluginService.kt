@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.gate.plugins
+package com.netflix.spinnaker.gate.plugins.deck
 
 import com.netflix.spectator.api.Registry
 import org.slf4j.LoggerFactory
@@ -78,9 +78,15 @@ class DeckPluginService(
       fun from(file: File): PluginAsset {
         return PluginAsset(
             contentType = when {
-              file.toString().endsWith(".js") -> { "application/javascript" }
-              file.toString().endsWith(".css") -> { "text/css" }
-              file.toString().endsWith(".html") -> { "text/html" }
+              file.toString().endsWith(".js") -> {
+                "application/javascript"
+              }
+              file.toString().endsWith(".css") -> {
+                "text/css"
+              }
+              file.toString().endsWith(".html") -> {
+                "text/html"
+              }
               else -> {
                 log.warn("Unhandled file extension to content-type mapping for file `{}`, falling back to text/plain", file.toString())
                 "text/plain"

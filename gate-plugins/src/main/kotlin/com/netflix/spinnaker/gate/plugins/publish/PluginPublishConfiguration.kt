@@ -13,14 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.gate.plugins
+package com.netflix.spinnaker.gate.plugins.publish
 
-import com.netflix.spinnaker.kork.exceptions.SystemException
+import org.springframework.context.annotation.ComponentScan
+import org.springframework.context.annotation.Configuration
 
-/**
- * Thrown when the local cache has not been populated yet, but an external request has been made to get a manifest
- * or asset. Clients should retry the request.
- */
-class CacheNotReadyException : SystemException("Deck plugin cache has not been populated yet") {
-  override fun getRetryable(): Boolean? = true
-}
+@Configuration
+@ComponentScan("com.netflix.spinnaker.gate.plugins.publish")
+open class PluginPublishConfiguration

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.gate.services.internal
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
 import retrofit.client.Response
 import retrofit.http.*
+import retrofit.mime.TypedInput
 
 interface Front50Service {
   @GET("/credentials")
@@ -160,4 +161,13 @@ interface Front50Service {
   // Plugins related
   @GET('/pluginInfo')
   List<Map> getPluginInfo(@Query("service") String service)
+
+  @POST("/pluginBinaries/{id}/{version}")
+  @Headers(["Content-Type: application/zip,application/octet-stream"])
+  Response uploadPluginBinary(
+    @Path("id") String pluginId,
+    @Path("version") String pluginVersion,
+    @Query("sha512sum") String sha512sum,
+    @Body TypedInput pluginBinary
+  );
 }

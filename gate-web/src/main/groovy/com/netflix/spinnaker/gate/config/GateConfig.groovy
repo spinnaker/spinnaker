@@ -33,7 +33,8 @@ import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.gate.config.PostConnectionConfiguringJedisConnectionFactory.ConnectionPostProcessor
 import com.netflix.spinnaker.gate.converters.JsonHttpMessageConverter
 import com.netflix.spinnaker.gate.converters.YamlHttpMessageConverter
-import com.netflix.spinnaker.gate.plugins.DeckPluginConfiguration
+import com.netflix.spinnaker.gate.plugins.deck.DeckPluginConfiguration
+import com.netflix.spinnaker.gate.plugins.publish.PluginPublishConfiguration
 import com.netflix.spinnaker.gate.retrofit.Slf4jRetrofitLogger
 import com.netflix.spinnaker.gate.services.EurekaLookupService
 import com.netflix.spinnaker.gate.services.internal.*
@@ -83,7 +84,7 @@ import static retrofit.Endpoints.newFixedEndpoint
 @Configuration
 @Slf4j
 @EnableConfigurationProperties([FiatClientConfigurationProperties, DynamicRoutingConfigProperties])
-@Import([PluginsAutoConfiguration, DeckPluginConfiguration])
+@Import([PluginsAutoConfiguration, DeckPluginConfiguration, PluginPublishConfiguration])
 class GateConfig extends RedisHttpSessionConfiguration {
 
   @Value('${server.session.timeout-in-seconds:3600}')

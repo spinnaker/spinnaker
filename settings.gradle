@@ -16,8 +16,9 @@
 
 rootProject.name = "gate"
 
-include "gate-core",
-  "gate-deck-plugins",
+include "gate-api",
+  "gate-core",
+  "gate-plugins",
   "gate-basic",
   "gate-bom",
   "gate-iap",

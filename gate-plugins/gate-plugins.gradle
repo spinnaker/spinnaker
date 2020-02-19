@@ -13,15 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.gate.plugins
 
-/**
- * A plugin manifest used by Deck to know what plugins should be installed and at what version.
- *
- * @param id The plugin ID
- * @param version The plugin version
- */
-data class DeckPluginVersion(
-  val id: String,
-  val version: String
-)
+apply from: "${project.rootDir}/gradle/kotlin.gradle"
+apply from: "${project.rootDir}/gradle/kotlin-test.gradle"
+
+dependencies {
+  implementation project(":gate-api")
+  implementation project(":gate-core")
+
+  implementation "com.netflix.spinnaker.kork:kork-plugins"
+  implementation "com.netflix.spinnaker.kork:kork-swagger"
+  implementation "com.netflix.spinnaker.kork:kork-web"
+
+  implementation "org.springframework:spring-web"
+  implementation "org.pf4j:pf4j-update"
+}

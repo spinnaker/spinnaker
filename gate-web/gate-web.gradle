@@ -20,7 +20,7 @@ repositories {
 dependencies {
   implementation project(":gate-core")
   implementation project(":gate-proxy")
-  implementation project(":gate-deck-plugins")
+  implementation project(":gate-plugins")
   implementation project(":gate-integrations-gremlin")
 
   implementation "com.squareup.retrofit:retrofit"

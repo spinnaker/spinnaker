@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.gate.plugins
+package com.netflix.spinnaker.gate.plugins.deck
 
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import io.swagger.annotations.ApiOperation
@@ -26,7 +26,6 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.util.concurrent.TimeUnit
-import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 @RestController
@@ -65,8 +64,7 @@ class DeckPluginsController(
   @ExceptionHandler(CacheNotReadyException::class)
   fun handleCacheNotReadyException(
     e: Exception,
-    response: HttpServletResponse,
-    request: HttpServletRequest?
+    response: HttpServletResponse
   ) {
     response.sendError(HttpStatus.SERVICE_UNAVAILABLE.value(), e.message)
   }
