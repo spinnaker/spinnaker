@@ -89,6 +89,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
       application: this.props.application.name,
       limitConcurrent: true,
       keepWaitingPipelines: false,
+      spelEvaluator: 'v4',
     };
   }
 
@@ -389,10 +390,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
                     </div>
                     <div className="col-md-7">
                       <Select
-                        options={[
-                          { label: 'Pipeline', value: false },
-                          { label: 'Strategy', value: true },
-                        ]}
+                        options={[{ label: 'Pipeline', value: false }, { label: 'Strategy', value: true }]}
                         clearable={false}
                         value={this.state.command.strategy ? { label: 'Strategy' } : { label: 'Pipeline' }}
                         onChange={this.handleTypeChange}
