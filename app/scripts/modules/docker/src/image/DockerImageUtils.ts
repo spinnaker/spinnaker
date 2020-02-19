@@ -8,7 +8,12 @@ export interface IDockerImageParts {
 export class DockerImageUtils {
   // Split the image id up into the selectable parts to feed the UI
   public static splitImageId(imageId = ''): IDockerImageParts {
-    const imageParts = imageId.split(':');
+    let imageParts: string[];
+    if (imageId.includes('@')) {
+      imageParts = imageId.split('@');
+    } else {
+      imageParts = imageId.split(':');
+    }
     const repository = imageParts[0];
     const repositoryParts = repository.split('/');
     // Everything before the last slash is considered the organization
@@ -34,6 +39,14 @@ export class DockerImageUtils {
       return undefined;
     }
 
-    return `${parts.repository}:${parts.digest ? parts.digest : parts.tag}`;
+    let imageId: string;
+
+    if (parts.digest) {
+      imageId = `${parts.repository}@${parts.digest}`;
+    } else {
+      imageId = `${parts.repository}:${parts.tag}`;
+    }
+
+    return imageId;
   }
 }

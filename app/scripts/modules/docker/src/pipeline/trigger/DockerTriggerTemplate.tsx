@@ -66,12 +66,12 @@ export class DockerTriggerTemplate extends React.Component<
 
   private lookupTypeChanged = (o: Option<IDockerLookupType>) => {
     const newType = o.value;
-    this.props.updateCommand('extraFields.tag', newType === 'tag' ? this.state.selectedTag : this.state.digest);
+    this.updateArtifact(this.props.command, newType === 'tag' ? this.state.selectedTag : this.state.digest);
     this.setState({ lookupType: newType });
   };
 
-  private updateArtifact(command: IPipelineCommand, tag: string) {
-    this.props.updateCommand('extraFields.tag', tag);
+  private updateArtifact(command: IPipelineCommand, tagOrDigest: string) {
+    this.props.updateCommand('extraFields.tag', tagOrDigest);
     const trigger = command.trigger as IDockerTrigger;
     if (trigger && trigger.repository) {
       let imageName = '';
@@ -79,12 +79,20 @@ export class DockerTriggerTemplate extends React.Component<
         imageName += trigger.registry + '/';
       }
       imageName += trigger.repository;
+
+      let imageReference = '';
+      if (this.state.lookupType === 'digest') {
+        imageReference = `${imageName}@${tagOrDigest}`;
+      } else {
+        imageReference = `${imageName}:${tagOrDigest}`;
+      }
+
       this.props.updateCommand('extraFields.artifacts', [
         {
           type: 'docker/image',
           name: imageName,
-          version: tag,
-          reference: imageName + ':' + tag,
+          version: tagOrDigest,
+          reference: imageReference,
         },
       ]);
     }
