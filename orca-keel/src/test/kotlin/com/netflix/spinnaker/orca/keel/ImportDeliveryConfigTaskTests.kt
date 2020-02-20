@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.KeelService
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.igor.ScmService
 import com.netflix.spinnaker.orca.keel.task.ImportDeliveryConfigTask
+import com.netflix.spinnaker.orca.keel.task.ImportDeliveryConfigTask.Companion.UNAUTHORIZED_SCM_ACCESS_MESSAGE
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTrigger
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.GitTrigger
@@ -37,7 +38,9 @@ import retrofit.RetrofitError
 import retrofit.client.Response
 import strikt.api.expectThat
 import strikt.api.expectThrows
+import strikt.assertions.contains
 import strikt.assertions.isEqualTo
+import strikt.assertions.isNotNull
 import java.lang.IllegalArgumentException
 
 internal class ImportDeliveryConfigTaskTests : JUnit5Minutests {
@@ -264,7 +267,32 @@ internal class ImportDeliveryConfigTaskTests : JUnit5Minutests {
         }
       }
 
-      context("failure to call downstream services") {
+      context("unauthorized access to manifest") {
+        modifyFixture {
+          with(scmService) {
+            every {
+              getDeliveryConfigManifest(
+                manifestLocation.repoType,
+                manifestLocation.projectKey,
+                manifestLocation.repositorySlug,
+                manifestLocation.directory,
+                manifestLocation.manifest,
+                manifestLocation.ref
+              )
+            } throws RetrofitError.httpError("http://igor",
+              Response("http://igor", 401, "", emptyList(), null),
+              null, null)
+          }
+        }
+
+        test("task fails with a helpful error message") {
+          val result = execute(manifestLocation.toMap())
+          expectThat(result.status).isEqualTo(ExecutionStatus.TERMINAL)
+          expectThat(result.context["error"]).isEqualTo(UNAUTHORIZED_SCM_ACCESS_MESSAGE)
+        }
+      }
+
+      context("retryable failure to call downstream services") {
         modifyFixture {
           with(scmService) {
             every {
@@ -294,6 +322,15 @@ internal class ImportDeliveryConfigTaskTests : JUnit5Minutests {
         test("task fails if max retries reached") {
           val result = execute(manifestLocation.toMap().also { it["attempt"] = ImportDeliveryConfigTask.MAX_RETRIES })
           expectThat(result.status).isEqualTo(ExecutionStatus.TERMINAL)
+        }
+
+        test("task result context includes the error from the last attempt") {
+          var result: TaskResult? = null
+          for (attempt in 1..ImportDeliveryConfigTask.MAX_RETRIES) {
+            result = execute(manifestLocation.toMap().also { it["attempt"] = attempt })
+          }
+          expectThat(result!!.context["errorFromLastAttempt"]).isNotNull()
+          expectThat(result!!.context["error"] as String).contains(result!!.context["errorFromLastAttempt"] as String)
         }
       }
     }

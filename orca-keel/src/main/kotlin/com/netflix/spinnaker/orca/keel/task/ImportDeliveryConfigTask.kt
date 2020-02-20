@@ -27,9 +27,9 @@ import com.netflix.spinnaker.orca.pipeline.model.SourceCodeTrigger
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Trigger
 import org.slf4j.LoggerFactory
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
+import java.net.URL
 import java.util.concurrent.TimeUnit
 
 /**
@@ -64,7 +64,7 @@ constructor(
       handleRetryableFailures(e, context)
     } catch (e: Exception) {
       log.error("Unexpected exception while executing {}, aborting.", javaClass.simpleName, e)
-      buildError(e.message)
+      buildError(e.message ?: "Unknown error (${e.javaClass.simpleName})")
     }
   }
 
@@ -106,36 +106,49 @@ constructor(
     return when {
       e.kind == RetrofitError.Kind.NETWORK -> {
         // retry if unable to connect
-        log.error("network error talking to downstream service, attempt ${context.attempt} of ${context.maxRetries}: ${e.friendlyMessage}")
-        buildRetry(context)
+        buildRetry(context,
+          "Network error talking to downstream service, attempt ${context.attempt} of ${context.maxRetries}: ${e.friendlyMessage}")
       }
-      e.response?.status == HttpStatus.NOT_FOUND.value() -> {
-        // just give up on 404
-        val errorDetails = "404 response from downstream service, giving up: ${e.friendlyMessage}"
-        log.error(errorDetails)
-        buildError(errorDetails)
+      e.response?.status in 400..499 -> {
+        // just give up on 4xx errors, which are unlikely to resolve with retries
+        buildError(
+          // ...but give users a hint about 401 errors from igor/scm
+          if (e.response?.status == 401 && URL(e.url).host.contains("igor")) {
+            UNAUTHORIZED_SCM_ACCESS_MESSAGE
+          } else {
+            "Non-retryable HTTP response ${e.response?.status} received from downstream service: ${e.friendlyMessage}"
+          }
+        )
       }
       else -> {
         // retry on other status codes
-        log.error("HTTP error talking to downstream service, attempt ${context.attempt} of ${context.maxRetries}: ${e.friendlyMessage}")
-        buildRetry(context)
+        buildRetry(context,
+          "Retryable HTTP response ${e.response?.status} received from downstream service: ${e.friendlyMessage}")
       }
     }
   }
 
-  private fun buildRetry(context: ImportDeliveryConfigContext): TaskResult {
+  private fun buildRetry(context: ImportDeliveryConfigContext, errorMessage: String): TaskResult {
+    log.error("Handling retry failure ${context.attempt} of ${context.maxRetries}: $errorMessage")
+    context.errorFromLastAttempt = errorMessage
     context.incrementAttempt()
+
     return if (context.attempt > context.maxRetries!!) {
-      val error = "Maximum number of retries exceeded (${context.maxRetries})"
+      val error = "Maximum number of retries exceeded (${context.maxRetries}). " +
+        "The error from the last attempt was: $errorMessage"
       log.error("$error. Aborting.")
-      TaskResult.builder(ExecutionStatus.TERMINAL).context(mapOf("error" to error)).build()
+      TaskResult.builder(ExecutionStatus.TERMINAL).context(
+        mapOf("error" to error, "errorFromLastAttempt" to errorMessage)
+      ).build()
     } else {
       TaskResult.builder(ExecutionStatus.RUNNING).context(context.toMap()).build()
     }
   }
 
-  private fun buildError(errorDetails: String?) =
-    TaskResult.builder(ExecutionStatus.TERMINAL).context(mapOf("error" to errorDetails)).build()
+  private fun buildError(errorMessage: String): TaskResult {
+    log.error(errorMessage)
+    return TaskResult.builder(ExecutionStatus.TERMINAL).context(mapOf("error" to errorMessage)).build()
+  }
 
   override fun getBackoffPeriod() = TimeUnit.SECONDS.toMillis(30)
 
@@ -156,7 +169,8 @@ constructor(
     var manifest: String? = "spinnaker.yml",
     var ref: String? = null,
     var attempt: Int = 1,
-    val maxRetries: Int? = MAX_RETRIES
+    val maxRetries: Int? = MAX_RETRIES,
+    var errorFromLastAttempt: String? = null
   )
 
   fun ImportDeliveryConfigContext.incrementAttempt() = this.also { attempt += 1 }
@@ -164,5 +178,8 @@ constructor(
 
   companion object {
     const val MAX_RETRIES = 5
+    const val UNAUTHORIZED_SCM_ACCESS_MESSAGE =
+      "HTTP 401 response received while trying to read your delivery config file. " +
+      "Spinnaker may be missing permissions in your source code repository to read the file."
   }
 }
