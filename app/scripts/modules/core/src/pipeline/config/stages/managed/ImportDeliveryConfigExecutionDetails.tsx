@@ -43,7 +43,7 @@ export function ImportDeliveryConfigExecutionDetails(props: IExecutionDetailsSec
         </div>
       )}
 
-      <StageFailureMessage stage={props.stage} message={props.stage.failureMessage} />
+      {stage.failureMessage && <StageFailureMessage stage={stage} message={stage.failureMessage} />}
     </ExecutionDetailsSection>
   );
 }
