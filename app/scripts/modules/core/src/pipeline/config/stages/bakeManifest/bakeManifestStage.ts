@@ -20,7 +20,7 @@ if (SETTINGS.feature.versionedProviders) {
     _validator: IValidatorConfig,
     _config: IStageOrTriggerTypeConfig,
   ): string => {
-    if (stage.templateRenderer !== 'HELM2') {
+    if (stage.templateRenderer !== 'HELM2' && stage.templateRenderer !== 'HELM3') {
       return '';
     }
 
