@@ -2,8 +2,6 @@ import React from 'react';
 import { get } from 'lodash';
 
 import {
-  ArtifactTypePatterns,
-  excludeAllTypesExcept,
   FormikFormField,
   IArtifact,
   IExpectedArtifact,
@@ -19,17 +17,12 @@ import {
   YamlEditor,
 } from 'core';
 import { CheckboxInput } from 'core/presentation';
+import { EXCLUDED_ARTIFACT_TYPES, SOURCE_TYPES, IAwsCodeBuildSource } from './IAwsCodeBuildSource';
+import { AwsCodeBuildSourceList } from './AwsCodeBuildSourceList';
 
 interface IAwsCodeBuildStageFormProps {
   updatePipeline: (pipeline: IPipeline) => void;
 }
-
-const EXCLUDED_ARTIFACT_TYPES: RegExp[] = excludeAllTypesExcept(
-  ArtifactTypePatterns.S3_OBJECT,
-  ArtifactTypePatterns.GIT_REPO,
-);
-
-const SOURCE_TYPES: string[] = ['BITBUCKET', 'CODECOMMIT', 'GITHUB', 'GITHUB_ENTERPRISE', 'S3'];
 
 export function AwsCodeBuildStageForm(props: IAwsCodeBuildStageFormProps & IFormikStageConfigInjectedProps) {
   const stage = props.formik.values;
@@ -40,18 +33,8 @@ export function AwsCodeBuildStageForm(props: IAwsCodeBuildStageFormProps & IForm
     [],
   );
 
-  const onYamlChange = (buildspec: string, _: any): void => {
-    props.formik.setFieldValue('buildspec', buildspec);
-  };
-
-  const setArtifactId = (artifactId: string): void => {
-    props.formik.setFieldValue('source.artifactId', artifactId);
-    props.formik.setFieldValue('source.artifact', null);
-  };
-
-  const setArtifact = (artifact: IArtifact): void => {
-    props.formik.setFieldValue('source.artifact', artifact);
-    props.formik.setFieldValue('source.artifactId', null);
+  const onFieldChange = (fieldName: string, fieldValue: any): void => {
+    props.formik.setFieldValue(fieldName, fieldValue);
   };
 
   return (
@@ -81,12 +64,12 @@ export function AwsCodeBuildStageForm(props: IAwsCodeBuildStageFormProps & IForm
       <FormikFormField
         fastField={false}
         label="Source"
-        name="sourceOverride"
+        name="source.sourceOverride"
         input={(inputProps: IFormInputProps) => (
           <CheckboxInput {...inputProps} text="Override source to Spinnaker artifact" />
         )}
       />
-      {stage.sourceOverride === true && (
+      {stage.source.sourceOverride === true && (
         <FormikFormField
           fastField={false}
           label="SourceType"
@@ -96,7 +79,7 @@ export function AwsCodeBuildStageForm(props: IAwsCodeBuildStageFormProps & IForm
           )}
         />
       )}
-      {stage.sourceOverride === true && (
+      {stage.source.sourceOverride === true && (
         <FormikFormField
           fastField={false}
           label="Source Artifact Override"
@@ -104,11 +87,17 @@ export function AwsCodeBuildStageForm(props: IAwsCodeBuildStageFormProps & IForm
           input={(inputProps: IFormInputProps) => (
             <StageArtifactSelector
               {...inputProps}
-              artifact={get(stage, 'source.artifact')}
+              artifact={get(stage, 'source.sourceArtifact.artifact')}
               excludedArtifactTypePatterns={EXCLUDED_ARTIFACT_TYPES}
-              expectedArtifactId={get(stage, 'source.artifactId')}
-              onArtifactEdited={setArtifact}
-              onExpectedArtifactSelected={(artifact: IExpectedArtifact) => setArtifactId(artifact.id)}
+              expectedArtifactId={get(stage, 'source.sourceArtifact.artifactId')}
+              onArtifactEdited={(artifact: IArtifact) => {
+                onFieldChange('source.sourceArtifact.artifact', artifact);
+                onFieldChange('source.sourceArtifact.artifactId', null);
+              }}
+              onExpectedArtifactSelected={(artifact: IExpectedArtifact) => {
+                onFieldChange('source.sourceArtifact.artifact', null);
+                onFieldChange('source.sourceArtifact.artifactId', artifact.id);
+              }}
               pipeline={props.pipeline}
               stage={stage}
             />
@@ -118,15 +107,33 @@ export function AwsCodeBuildStageForm(props: IAwsCodeBuildStageFormProps & IForm
       <FormikFormField
         fastField={false}
         label="Source Version"
-        name="sourceVersion"
+        name="source.sourceVersion"
         input={(inputProps: IFormInputProps) => <TextInput {...inputProps} />}
       />
       <FormikFormField
         fastField={false}
         label="Buildspec"
-        name="buildspec"
+        name="source.buildspec"
         input={(inputProps: IFormInputProps) => (
-          <YamlEditor {...inputProps} value={get(stage, 'buildspec')} onChange={onYamlChange} />
+          <YamlEditor
+            {...inputProps}
+            value={get(stage, 'source.buildspec')}
+            onChange={(buildspec: string, _: any) => onFieldChange('source.buildspec', buildspec)}
+          />
+        )}
+      />
+      <FormikFormField
+        fastField={false}
+        label="Secondary Sources"
+        name="secondarySources"
+        input={(inputProps: IFormInputProps) => (
+          <AwsCodeBuildSourceList
+            {...inputProps}
+            sources={get(stage, 'secondarySources')}
+            updateSources={(sources: IAwsCodeBuildSource[]) => onFieldChange('secondarySources', sources)}
+            stage={stage}
+            pipeline={props.pipeline}
+          />
         )}
       />
       <h4>Environment Configuration</h4>
