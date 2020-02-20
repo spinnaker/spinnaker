@@ -27,7 +27,6 @@ import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import com.netflix.spinnaker.kork.secrets.InvalidSecretFormatException;
 import com.netflix.spinnaker.kork.secrets.SecretEngine;
 import com.netflix.spinnaker.kork.secrets.SecretException;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -56,17 +55,17 @@ public class SecretsManagerSecretEngine implements SecretEngine {
     String secretName = encryptedSecret.getParams().get(SECRET_NAME);
     String secretKey = encryptedSecret.getParams().get(SECRET_KEY);
 
-    if (secretKey != null) {
+    if (encryptedSecret.isEncryptedFile()) {
+      GetSecretValueResult secretFileValue = getSecretValue(secretRegion, secretName);
+      if (secretFileValue.getSecretBinary() != null) {
+        return secretFileValue.getSecretBinary().array();
+      } else {
+        return secretFileValue.getSecretString().getBytes();
+      }
+    } else if (secretKey != null) {
       return getSecretString(secretRegion, secretName, secretKey);
     } else {
-      return Optional.ofNullable(getSecretValue(secretRegion, secretName).getSecretBinary())
-          .orElseThrow(
-              () ->
-                  new SecretException(
-                      String.format(
-                          "Binary secret not found in AWS Secrets Manager: [secretName: %s, secretRegion: %s]",
-                          secretName, secretRegion)))
-          .array(); // it's binary;
+      return getSecretString(secretRegion, secretName);
     }
   }
 
@@ -81,11 +80,32 @@ public class SecretsManagerSecretEngine implements SecretEngine {
       throw new InvalidSecretFormatException(
           "Secret region parameter is missing (" + SECRET_REGION + "=...)");
     }
+    if (encryptedSecret.isEncryptedFile() && paramNames.contains(SECRET_KEY)) {
+      throw new InvalidSecretFormatException("Encrypted file should not specify key");
+    }
   }
 
   @Override
   public void clearCache() {
     cache.clear();
+  }
+
+  protected GetSecretValueResult getSecretValue(String secretRegion, String secretName) {
+    AWSSecretsManager client =
+        AWSSecretsManagerClientBuilder.standard().withRegion(secretRegion).build();
+
+    GetSecretValueRequest getSecretValueRequest =
+        new GetSecretValueRequest().withSecretId(secretName);
+
+    try {
+      return client.getSecretValue(getSecretValueRequest);
+    } catch (AWSSecretsManagerException e) {
+      throw new SecretException(
+          String.format(
+              "An error occurred when using AWS Secrets Manager to fetch: [secretName: %s, secretRegion: %s]",
+              secretName, secretRegion),
+          e);
+    }
   }
 
   private byte[] getSecretString(String secretRegion, String secretName, String secretKey) {
@@ -109,24 +129,10 @@ public class SecretsManagerSecretEngine implements SecretEngine {
                     String.format(
                         "Specified key not found in AWS Secrets Manager: [secretName: %s, secretRegion: %s, secretKey: %s]",
                         secretName, secretRegion, secretKey)))
-        .getBytes(StandardCharsets.UTF_8);
+        .getBytes();
   }
 
-  private GetSecretValueResult getSecretValue(String secretRegion, String secretName) {
-    AWSSecretsManager client =
-        AWSSecretsManagerClientBuilder.standard().withRegion(secretRegion).build();
-
-    GetSecretValueRequest getSecretValueRequest =
-        new GetSecretValueRequest().withSecretId(secretName);
-
-    try {
-      return client.getSecretValue(getSecretValueRequest);
-    } catch (AWSSecretsManagerException e) {
-      throw new SecretException(
-          String.format(
-              "An error occurred when using AWS Secrets Manager to fetch: [secretName: %s, secretRegion: %s]",
-              secretName, secretRegion),
-          e);
-    }
+  private byte[] getSecretString(String secretRegion, String secretName) {
+    return getSecretValue(secretRegion, secretName).getSecretString().getBytes();
   }
 }

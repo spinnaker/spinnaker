@@ -51,6 +51,8 @@ public class EncryptedSecret {
 
   @Getter private Map<String, String> params = new HashMap<>();
 
+  @Getter private boolean encryptedFile = false;
+
   EncryptedSecret(String secretConfig) {
     this.update(secretConfig);
   }
@@ -67,6 +69,7 @@ public class EncryptedSecret {
   }
 
   protected void update(String secretConfig) {
+    encryptedFile = isEncryptedFile(secretConfig);
     String[] keyValues = secretConfig.split("!");
     if (keyValues.length < 2) {
       throw new InvalidSecretFormatException(
