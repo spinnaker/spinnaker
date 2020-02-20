@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Netflix, Inc.
+ * Copyright 2020 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +15,20 @@
  */
 package com.netflix.spinnaker.front50.config;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import com.amazonaws.services.s3.AmazonS3;
+import com.netflix.spinnaker.front50.plugins.PluginBinaryStorageService;
+import com.netflix.spinnaker.front50.plugins.S3PluginBinaryStorageService;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.client.RestTemplate;
 
 @Configuration
-@EnableConfigurationProperties({
-  ChaosMonkeyEventListenerConfigurationProperties.class,
-  FiatConfigurationProperties.class
-})
-public class Front50CoreConfiguration {
+@ConditionalOnProperty("spinnaker.s3.plugin-binary-storage.enabled")
+public class S3PluginBinaryServiceConfiguration {
 
   @Bean
-  @ConditionalOnMissingBean(RestTemplate.class)
-  public RestTemplate restTemplate() {
-    return new RestTemplate();
+  PluginBinaryStorageService pluginBinaryStorageService(
+      AmazonS3 amazonS3, S3Properties properties) {
+    return new S3PluginBinaryStorageService(amazonS3, properties);
   }
 }
