@@ -13,6 +13,14 @@ RUN apk --no-cache add --update bash wget curl openssl openjdk11-jre && \
 
 ENV PATH "/packer:$PATH"
 
+# Install Helm 3
+RUN wget https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get-helm-3 && \
+  chmod +x get-helm-3 && \
+  ./get-helm-3 && \
+  rm get-helm-3 && \
+  mv /usr/local/bin/helm /usr/local/bin/helm3
+
+# Install Helm 2
 RUN wget https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get && \
   chmod +x get && \
   ./get && \
