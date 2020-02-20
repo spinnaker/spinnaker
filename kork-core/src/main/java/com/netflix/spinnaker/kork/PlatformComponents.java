@@ -19,6 +19,7 @@ package com.netflix.spinnaker.kork;
 import com.netflix.spinnaker.kork.archaius.ArchaiusConfiguration;
 import com.netflix.spinnaker.kork.dynamicconfig.TransientConfigConfiguration;
 import com.netflix.spinnaker.kork.eureka.EurekaComponents;
+import com.netflix.spinnaker.kork.eureka.EurekaStatusListener;
 import com.netflix.spinnaker.kork.metrics.SpectatorConfiguration;
 import com.netflix.spinnaker.kork.version.ManifestVersionResolver;
 import com.netflix.spinnaker.kork.version.ServiceVersion;
@@ -47,6 +48,11 @@ import org.springframework.context.annotation.Import;
       RateLimitersHealthIndicatorAutoConfiguration.class
     })
 public class PlatformComponents {
+  @Bean
+  public EurekaStatusListener eurekaStatusListener() {
+    return new EurekaStatusListener();
+  }
+
   @Bean
   ServiceVersion serviceVersion(
       ApplicationContext applicationContext, List<VersionResolver> versionResolvers) {

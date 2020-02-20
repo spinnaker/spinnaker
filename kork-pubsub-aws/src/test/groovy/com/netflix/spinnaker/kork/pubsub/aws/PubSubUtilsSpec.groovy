@@ -1,7 +1,7 @@
 /*
- * Copyright 2018 Netflix, Inc.
+ * Copyright 2020 Netflix, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License")
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -14,31 +14,31 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.kork.aws.pubsub
+package com.netflix.spinnaker.kork.pubsub.aws
 
 import com.amazonaws.services.sns.AmazonSNS
 import com.amazonaws.services.sqs.AmazonSQS
 import com.amazonaws.services.sqs.model.CreateQueueResult
+import com.amazonaws.services.sqs.model.GetQueueUrlResult
+import com.amazonaws.services.sqs.model.QueueDoesNotExistException
 import com.netflix.spinnaker.kork.aws.ARN
 import spock.lang.Specification
-import spock.lang.Subject
 
 class PubSubUtilsSpec extends Specification {
-
   AmazonSNS amazonSNS = Mock()
   AmazonSQS amazonSQS = Mock()
 
   ARN queueARN = new ARN("arn:aws:sqs:us-west-2:100:queueName")
   ARN topicARN = new ARN("arn:aws:sns:us-west-2:100:topicName")
 
-  def "should create queue if it does not exist"() {
+  def "should not create queue if it exists"() {
     when:
     def queueId = PubSubUtils.ensureQueueExists(amazonSQS, queueARN, topicARN, 1)
 
     then:
     queueId == "my-queue-url"
-
-    1 * amazonSQS.createQueue(queueARN.name) >> { new CreateQueueResult().withQueueUrl("my-queue-url") }
+    1 * amazonSQS.getQueueUrl(queueARN.name) >> { new GetQueueUrlResult().withQueueUrl("my-queue-url") }
+    0 * amazonSQS.createQueue(_)
     1 * amazonSQS.setQueueAttributes("my-queue-url", [
       "Policy": PubSubUtils.buildSQSPolicy(queueARN, topicARN).toJson(),
       "MessageRetentionPeriod": "1"
@@ -46,4 +46,18 @@ class PubSubUtilsSpec extends Specification {
     0 * _
   }
 
+  def "should create queue if it does not exist"() {
+    when:
+    def queueId = PubSubUtils.ensureQueueExists(amazonSQS, queueARN, topicARN, 1)
+
+    then:
+    queueId == "my-queue-url"
+    1 * amazonSQS.getQueueUrl(queueARN.name) >> { throw new QueueDoesNotExistException() }
+    1 * amazonSQS.createQueue(queueARN.name) >> { new CreateQueueResult().withQueueUrl("my-queue-url") }
+    1 * amazonSQS.setQueueAttributes("my-queue-url", [
+      "Policy": PubSubUtils.buildSQSPolicy(queueARN, topicARN).toJson(),
+      "MessageRetentionPeriod": "1"
+    ])
+    0 * _
+  }
 }

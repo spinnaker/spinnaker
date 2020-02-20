@@ -60,4 +60,9 @@ public class ARN {
   public String getAccount() {
     return account;
   }
+
+  @Override
+  public String toString() {
+    return "ARN{" + "arn='" + arn + '\'' + '}';
+  }
 }

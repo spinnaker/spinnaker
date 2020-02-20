@@ -33,6 +33,8 @@ include(
   "kork-plugins-api",
   "kork-plugins-spring-api",
   "kork-proto",
+  "kork-pubsub",
+  "kork-pubsub-aws",
   "kork-secrets",
   "kork-secrets-aws",
   "kork-secrets-gcp",
@@ -43,7 +45,7 @@ include(
   "kork-swagger",
   "kork-telemetry",
   "kork-test",
-  "kork-web"
+  "kork-web",
 )
 
 rootProject.name = "kork"

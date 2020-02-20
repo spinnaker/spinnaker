@@ -41,7 +41,6 @@ import org.springframework.context.annotation.*;
 @ConditionalOnProperty("eureka.enabled")
 @EnableConfigurationProperties(EurekaConfigurationProperties.class)
 public class EurekaComponents {
-
   @Bean
   public EventBus eventBus() {
     return new EventBusImpl();

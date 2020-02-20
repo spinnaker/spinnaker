@@ -77,7 +77,7 @@ class RemoteCredentialsSupport {
       channel.connect();
 
       String output = IOUtils.toString(is);
-      log.debug("Remote credentials: " + output);
+      log.debug("Remote credentials: {}", output);
 
       channel.disconnect();
       session.disconnect();
