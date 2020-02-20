@@ -21,7 +21,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteStreams;
-import com.netflix.spinnaker.front50.config.S3Properties;
+import com.netflix.spinnaker.front50.config.S3PluginStorageProperties;
 import com.netflix.spinnaker.kork.exceptions.SystemException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -34,9 +34,9 @@ import javax.annotation.Nullable;
 public class S3PluginBinaryStorageService implements PluginBinaryStorageService {
 
   private final AmazonS3 amazonS3;
-  private final S3Properties properties;
+  private final S3PluginStorageProperties properties;
 
-  public S3PluginBinaryStorageService(AmazonS3 amazonS3, S3Properties properties) {
+  public S3PluginBinaryStorageService(AmazonS3 amazonS3, S3PluginStorageProperties properties) {
     this.amazonS3 = amazonS3;
     this.properties = properties;
   }
@@ -101,7 +101,7 @@ public class S3PluginBinaryStorageService implements PluginBinaryStorageService 
   }
 
   private String buildFolder() {
-    return properties.getRootFolder() + "/pluginBinaries";
+    return (properties.getRootFolder() + "/plugins").replaceAll("//", "/");
   }
 
   private String buildObjectKey(String key) {

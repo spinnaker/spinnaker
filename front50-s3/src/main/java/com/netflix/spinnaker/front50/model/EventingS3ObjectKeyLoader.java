@@ -27,7 +27,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListenableFutureTask;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.front50.config.S3Properties;
+import com.netflix.spinnaker.front50.config.S3MetadataStorageProperties;
 import com.netflix.spinnaker.front50.model.events.S3Event;
 import com.netflix.spinnaker.front50.model.events.S3EventWrapper;
 import java.io.IOException;
@@ -78,7 +78,7 @@ public class EventingS3ObjectKeyLoader implements ObjectKeyLoader, Runnable {
   public EventingS3ObjectKeyLoader(
       ExecutorService executionService,
       ObjectMapper objectMapper,
-      S3Properties s3Properties,
+      S3MetadataStorageProperties s3Properties,
       TemporarySQSQueue temporarySQSQueue,
       StorageService storageService,
       Registry registry,

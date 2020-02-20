@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.front50.config;
 
+import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
 import com.netflix.spinnaker.front50.plugins.PluginBinaryStorageService;
 import com.netflix.spinnaker.front50.plugins.S3PluginBinaryStorageService;
@@ -23,12 +24,18 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConditionalOnProperty("spinnaker.s3.plugin-binary-storage.enabled")
-public class S3PluginBinaryServiceConfiguration {
+@ConditionalOnProperty("spinnaker.s3.plugin-storage.enabled")
+public class S3PluginStorageConfiguration {
+
+  @Bean
+  public AmazonS3 awsS3PluginClient(
+      AWSCredentialsProvider awsCredentialsProvider, S3PluginStorageProperties s3Properties) {
+    return S3ClientFactory.create(awsCredentialsProvider, s3Properties);
+  }
 
   @Bean
   PluginBinaryStorageService pluginBinaryStorageService(
-      AmazonS3 amazonS3, S3Properties properties) {
-    return new S3PluginBinaryStorageService(amazonS3, properties);
+      AmazonS3 awsS3PluginClient, S3PluginStorageProperties properties) {
+    return new S3PluginBinaryStorageService(awsS3PluginClient, properties);
   }
 }

@@ -98,6 +98,7 @@ public class CachingPluginBinaryStorageService implements PluginBinaryStorageSer
     Path binaryPath = CACHE_PATH.resolve(key);
     if (!binaryPath.toFile().exists()) {
       try {
+        Files.createDirectories(binaryPath.getParent());
         Files.write(binaryPath, binary, StandardOpenOption.CREATE_NEW);
       } catch (IOException e) {
         log.error("Failed to write plugin binary to local filesystem cache: {}", key, e);

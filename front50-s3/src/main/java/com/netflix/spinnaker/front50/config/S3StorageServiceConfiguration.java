@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.front50.config;
 
+import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.front50.model.S3StorageService;
@@ -27,13 +28,20 @@ import org.springframework.context.annotation.Configuration;
 public class S3StorageServiceConfiguration {
 
   @Bean
-  public S3StorageService s3StorageService(AmazonS3 amazonS3, S3Properties s3Properties) {
+  public AmazonS3 awsS3MetadataClient(
+      AWSCredentialsProvider awsCredentialsProvider, S3MetadataStorageProperties s3Properties) {
+    return S3ClientFactory.create(awsCredentialsProvider, s3Properties);
+  }
+
+  @Bean
+  public S3StorageService s3StorageService(
+      AmazonS3 awsS3MetadataClient, S3MetadataStorageProperties s3Properties) {
     ObjectMapper awsObjectMapper = new ObjectMapper();
 
     S3StorageService service =
         new S3StorageService(
             awsObjectMapper,
-            amazonS3,
+            awsS3MetadataClient,
             s3Properties.getBucket(),
             s3Properties.getRootFolder(),
             s3Properties.isFailoverEnabled(),

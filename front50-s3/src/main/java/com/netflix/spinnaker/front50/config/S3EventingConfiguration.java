@@ -42,7 +42,7 @@ public class S3EventingConfiguration {
 
   @Bean
   public AmazonSQS awsSQSClient(
-      AWSCredentialsProvider awsCredentialsProvider, S3Properties s3Properties) {
+      AWSCredentialsProvider awsCredentialsProvider, S3MetadataStorageProperties s3Properties) {
     return AmazonSQSClientBuilder.standard()
         .withCredentials(awsCredentialsProvider)
         .withClientConfiguration(new ClientConfiguration())
@@ -52,7 +52,7 @@ public class S3EventingConfiguration {
 
   @Bean
   public AmazonSNS awsSNSClient(
-      AWSCredentialsProvider awsCredentialsProvider, S3Properties s3Properties) {
+      AWSCredentialsProvider awsCredentialsProvider, S3MetadataStorageProperties s3Properties) {
     return AmazonSNSClientBuilder.standard()
         .withCredentials(awsCredentialsProvider)
         .withClientConfiguration(new ClientConfiguration())
@@ -65,7 +65,7 @@ public class S3EventingConfiguration {
       Optional<ApplicationInfoManager> applicationInfoManager,
       AmazonSQS amazonSQS,
       AmazonSNS amazonSNS,
-      S3Properties s3Properties) {
+      S3MetadataStorageProperties s3Properties) {
     return new TemporarySQSQueue(
         amazonSQS,
         amazonSNS,
@@ -76,7 +76,7 @@ public class S3EventingConfiguration {
   @Bean
   public ObjectKeyLoader eventingS3ObjectKeyLoader(
       ObjectMapper objectMapper,
-      S3Properties s3Properties,
+      S3MetadataStorageProperties s3Properties,
       StorageService storageService,
       TemporarySQSQueue temporaryQueueSupport,
       Registry registry) {
