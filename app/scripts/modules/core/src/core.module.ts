@@ -46,7 +46,7 @@ import { INSIGHT_MODULE } from './insight/insight.module';
 import { INTERCEPTOR_MODULE } from './interceptor/interceptor.module';
 import { LOAD_BALANCER_MODULE } from './loadBalancer/loadBalancer.module';
 import { MANAGED_RESOURCE_CONFIG } from './application/config/managedResources/ManagedResourceConfig';
-import { MANAGED_RESOURCES_DATA_SOURCE } from './managed';
+import { MANAGED_RESOURCES_DATA_SOURCE, CORE_MANAGED_MANAGED_MODULE } from './managed';
 import { FUNCTION_MODULE } from './function/function.module';
 
 import { NETWORK_INTERCEPTOR } from './api/network.interceptor';
@@ -137,6 +137,7 @@ module(CORE_MODULE, [
   FUNCTION_MODULE,
   MANAGED_RESOURCE_CONFIG,
   MANAGED_RESOURCES_DATA_SOURCE,
+  CORE_MANAGED_MANAGED_MODULE,
   CORE_MODAL_MODAL_MODULE,
 
   NETWORK_INTERCEPTOR,
