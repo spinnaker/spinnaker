@@ -155,7 +155,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_PIPELINE_PIPELINESTAGE, [])
           delete $scope.userSuppliedParameters[parameter];
           delete $scope.stage.pipelineParameters[parameter];
         } else if ($scope.userSuppliedParameters[parameter]) {
-          $scope.stage.pipelineParameters[parameter] = $scope.userSuppliedParameters[parameter];
+          $scope.stage.pipelineParameters[parameter] = $scope.userSuppliedParameters[parameter] || '';
         }
       };
 
