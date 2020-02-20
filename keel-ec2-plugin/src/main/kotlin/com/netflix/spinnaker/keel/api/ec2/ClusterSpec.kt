@@ -49,7 +49,9 @@ private fun ClusterSpec.resolveLaunchConfiguration(region: SubnetAwareRegionSpec
     baseImageVersion = image.baseImageVersion,
     imageId = image.id,
     instanceType = checkNotNull(overrides[region.name]?.launchConfiguration?.instanceType
-      ?: defaults.launchConfiguration?.instanceType),
+      ?: defaults.launchConfiguration?.instanceType) {
+      "No instance type resolved for $id (region ${region.name}) and cannot determine a default"
+    },
     ebsOptimized = checkNotNull(overrides[region.name]?.launchConfiguration?.ebsOptimized
       ?: defaults.launchConfiguration?.ebsOptimized
       ?: LaunchConfiguration.DEFAULT_EBS_OPTIMIZED),
@@ -57,7 +59,9 @@ private fun ClusterSpec.resolveLaunchConfiguration(region: SubnetAwareRegionSpec
       ?: defaults.launchConfiguration?.iamRole
       ?: LaunchConfiguration.defaultIamRoleFor(moniker.app)),
     keyPair = checkNotNull(overrides[region.name]?.launchConfiguration?.keyPair
-      ?: defaults.launchConfiguration?.keyPair),
+      ?: defaults.launchConfiguration?.keyPair) {
+      "No keypair resolved for $id (region ${region.name}) and cannot determine a default"
+    },
     instanceMonitoring = overrides[region.name]?.launchConfiguration?.instanceMonitoring
       ?: defaults.launchConfiguration?.instanceMonitoring
       ?: LaunchConfiguration.DEFAULT_INSTANCE_MONITORING,
