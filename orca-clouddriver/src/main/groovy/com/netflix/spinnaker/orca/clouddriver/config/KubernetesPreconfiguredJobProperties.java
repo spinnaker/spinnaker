@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.config;
 
+import com.netflix.spinnaker.orca.api.preconfigured.jobs.PreconfiguredJobStageProperties;
 import io.kubernetes.client.models.V1Job;
 import java.util.ArrayList;
 import java.util.Arrays;

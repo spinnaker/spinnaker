@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.job
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.clouddriver.config.PreconfiguredJobStageProperties
+import com.netflix.spinnaker.orca.api.preconfigured.jobs.PreconfiguredJobStageProperties
 import com.netflix.spinnaker.orca.clouddriver.exception.PreconfiguredJobNotFoundException
 import com.netflix.spinnaker.orca.clouddriver.service.JobService
 import com.netflix.spinnaker.orca.clouddriver.tasks.job.DestroyJobTask

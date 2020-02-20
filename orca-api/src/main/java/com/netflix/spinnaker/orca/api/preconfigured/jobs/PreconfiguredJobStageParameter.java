@@ -1,7 +1,7 @@
 /*
  * Copyright 2018 Netflix, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License")
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -14,13 +14,23 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.clouddriver.config;
+package com.netflix.spinnaker.orca.api.preconfigured.jobs;
 
-import com.netflix.spinnaker.orca.config.PreconfiguredStageParameter;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
+/** Holds configurable attributes of a job parameter. */
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
 public class PreconfiguredJobStageParameter extends PreconfiguredStageParameter {
 
-  String mapping;
+  /**
+   * represents the property name on the stage context object to which the default value of the
+   * param will be set.
+   */
+  private String mapping;
 }

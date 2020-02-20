@@ -27,6 +27,7 @@ dependencies {
   implementation(project(":orca-core"))
   implementation(project(":orca-retrofit"))
   implementation(project(":orca-front50"))
+  implementation(project(":orca-api"))
   implementation(project(":orca-bakery"))
   implementation(project(":orca-deploymentmonitor"))
   implementation("com.netflix.spinnaker.moniker:moniker")

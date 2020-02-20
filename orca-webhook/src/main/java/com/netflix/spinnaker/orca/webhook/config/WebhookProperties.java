@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.webhook.config;
 
 import com.netflix.spinnaker.fiat.model.resources.Role;
-import com.netflix.spinnaker.orca.config.PreconfiguredStageParameter;
+import com.netflix.spinnaker.orca.api.preconfigured.jobs.PreconfiguredStageParameter;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
