@@ -15,22 +15,12 @@
  */
 package com.netflix.spinnaker.front50.config;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.client.RestTemplate;
 
 @Configuration
 @EnableConfigurationProperties({
   ChaosMonkeyEventListenerConfigurationProperties.class,
   FiatConfigurationProperties.class
 })
-public class Front50CoreConfiguration {
-
-  @Bean
-  @ConditionalOnMissingBean(RestTemplate.class)
-  public RestTemplate restTemplate() {
-    return new RestTemplate();
-  }
-}
+public class Front50CoreConfiguration {}

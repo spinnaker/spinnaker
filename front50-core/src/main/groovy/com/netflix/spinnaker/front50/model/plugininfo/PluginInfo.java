@@ -126,7 +126,6 @@ public class PluginInfo implements Timestamped {
      * determine which release to select.
      *
      * @param service The service name to check against.
-     * @return Whether or not the plugin supports the given service
      */
     public boolean supportsService(@Nonnull String service) {
       return Arrays.stream(requires.split(","))
