@@ -5,6 +5,9 @@ import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.api.id
+import com.netflix.spinnaker.keel.constraints.ConstraintState
+import com.netflix.spinnaker.keel.constraints.ConstraintStatus
+import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
 import com.netflix.spinnaker.keel.core.api.resources
 import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
@@ -37,7 +40,8 @@ abstract class CleanerTests<D : DeliveryConfigRepository, R : ResourceRepository
   val newArtifact = artifact.copy(reference = "myart")
   val firstResource = resource()
   val secondResource = resource()
-  val firstEnv = Environment(name = "env1", resources = setOf(firstResource))
+  val firstConstraint = ManualJudgementConstraint()
+  val firstEnv = Environment(name = "env1", resources = setOf(firstResource), constraints = setOf(firstConstraint))
   val secondEnv = Environment(name = "env2", resources = setOf(secondResource))
   val deliveryConfig = DeliveryConfig(
     name = configName,
@@ -138,6 +142,28 @@ abstract class CleanerTests<D : DeliveryConfigRepository, R : ResourceRepository
           expectCatching {
             artifactRepository.get(name = newArtifact.name, type = newArtifact.type, reference = "myart", deliveryConfigName = configName)
           }.succeeded()
+        }
+      }
+
+      context("environment constraints have been removed") {
+        before {
+          deliveryConfigRepository.storeConstraintState(
+            ConstraintState(
+              deliveryConfigName = deliveryConfig.name,
+              environmentName = firstEnv.name,
+              artifactVersion = "fnord-42.0",
+              type = "manual-judgement",
+              status = ConstraintStatus.PENDING))
+
+          val updatedConfig = deliveryConfig.copy(
+            environments = setOf(firstEnv.copy(constraints = emptySet())))
+          persist(updatedConfig)
+          subject.removeResources(old = deliveryConfig, new = updatedConfig)
+        }
+
+        test("manual-judgement state is gone") {
+          val states = deliveryConfigRepository.constraintStateFor(deliveryConfig.name, firstEnv.name)
+          expectThat(states).isEmpty()
         }
       }
 

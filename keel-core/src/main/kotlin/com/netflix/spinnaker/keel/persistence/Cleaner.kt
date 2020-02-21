@@ -66,6 +66,7 @@ class Cleaner(
 
     old.environments
       .forEach { environment ->
+        val newEnvironment = new.environments.firstOrNull { it.name == environment.name }
         environment.resources.forEach { resource ->
           if (resource.id !in newResources) {
             log.debug("Updating config ${new.name}: removing resource ${resource.id} in environment ${environment.name}")
@@ -75,9 +76,23 @@ class Cleaner(
             deleteResource(resource.id)
           }
         }
-        if (environment.name !in new.environments.map { it.name }) {
+        if (newEnvironment == null) {
           log.debug("Updating config ${new.name}: removing environment ${environment.name}")
           deliveryConfigRepository.deleteEnvironment(new.name, environment.name)
+        } else {
+          val removedConstraints =
+            environment
+              .constraints.map { it.type }
+              .toSet() -
+              newEnvironment
+                .constraints.map { it.type }
+                .toSet()
+          removedConstraints.forEach { type ->
+            deliveryConfigRepository.deleteConstraintState(
+              deliveryConfigName = old.name,
+              environmentName = environment.name,
+              type = type)
+          }
         }
       }
   }

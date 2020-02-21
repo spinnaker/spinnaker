@@ -28,6 +28,7 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
+import com.netflix.spinnaker.keel.sql.SqlDeliveryConfigRepository.Companion.DELETE_CHUNK_SIZE
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
@@ -38,6 +39,7 @@ import org.jooq.Record1
 import org.jooq.Select
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.inline
+import org.jooq.impl.DSL.row
 import org.jooq.impl.DSL.select
 import org.jooq.util.mysql.MySQLDSL
 import org.slf4j.LoggerFactory
@@ -164,41 +166,78 @@ class SqlDeliveryConfigRepository(
         .where(DELIVERY_CONFIG.NAME.eq(deliveryConfigName))
         .fetchOne(DELIVERY_CONFIG.UID)
     }
-    val envUid = envUid(deliveryConfigName, environmentName)
-    sqlRetry.withRetry(WRITE) {
-      jooq.transaction { config ->
-        val txn = DSL.using(config)
-        txn
-          .select(CURRENT_CONSTRAINT.APPLICATION, CURRENT_CONSTRAINT.TYPE)
-          .from(CURRENT_CONSTRAINT)
-          .where(CURRENT_CONSTRAINT.ENVIRONMENT_UID.eq(envUid))
-          .fetch { (application, type) ->
-            txn.deleteFrom(CURRENT_CONSTRAINT)
-              .where(
-                CURRENT_CONSTRAINT.APPLICATION.eq(application),
-                CURRENT_CONSTRAINT.ENVIRONMENT_UID.eq(envUid),
-                CURRENT_CONSTRAINT.TYPE.eq(type))
+
+    envUidString(deliveryConfigName, environmentName)
+      ?.let { envUid ->
+        sqlRetry.withRetry(WRITE) {
+          jooq.transaction { config ->
+            val txn = DSL.using(config)
+            txn
+              .select(CURRENT_CONSTRAINT.APPLICATION, CURRENT_CONSTRAINT.TYPE)
+              .from(CURRENT_CONSTRAINT)
+              .where(CURRENT_CONSTRAINT.ENVIRONMENT_UID.eq(envUid))
+              .fetch { (application, type) ->
+                txn.deleteFrom(CURRENT_CONSTRAINT)
+                  .where(
+                    CURRENT_CONSTRAINT.APPLICATION.eq(application),
+                    CURRENT_CONSTRAINT.ENVIRONMENT_UID.eq(envUid),
+                    CURRENT_CONSTRAINT.TYPE.eq(type))
+                  .execute()
+              }
+            txn
+              .select(ENVIRONMENT_ARTIFACT_CONSTRAINT.UID)
+              .from(ENVIRONMENT_ARTIFACT_CONSTRAINT)
+              .where(ENVIRONMENT_ARTIFACT_CONSTRAINT.ENVIRONMENT_UID.eq(envUid))
+              .fetch(ENVIRONMENT_ARTIFACT_CONSTRAINT.UID)
+              .sorted()
+              .chunked(DELETE_CHUNK_SIZE)
+              .forEach {
+                txn.deleteFrom(ENVIRONMENT_ARTIFACT_CONSTRAINT)
+                  .where(ENVIRONMENT_ARTIFACT_CONSTRAINT.UID.`in`(*it.toTypedArray()))
+                  .execute()
+              }
+            txn
+              .select(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID, ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION)
+              .from(ENVIRONMENT_ARTIFACT_VERSIONS)
+              .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(envUid))
+              .fetch { (artId, artVersion) ->
+                Pair(artId, artVersion)
+              }
+              .chunked(DELETE_CHUNK_SIZE)
+              .forEach {
+                txn.deleteFrom(ENVIRONMENT_ARTIFACT_VERSIONS)
+                  .where(
+                    row(
+                      ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID,
+                      ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID,
+                      ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION)
+                      .`in`(
+                        it.map {
+                          t -> row(envUid, t.first, t.second) }))
+                  .execute()
+              }
+            txn.select(ENVIRONMENT_RESOURCE.RESOURCE_UID)
+              .from(ENVIRONMENT_RESOURCE)
+              .where(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(envUid))
+              .fetch(ENVIRONMENT_RESOURCE.RESOURCE_UID)
+              .chunked(DELETE_CHUNK_SIZE)
+              .forEach {
+                txn.deleteFrom(ENVIRONMENT_RESOURCE)
+                  .where(
+                    row(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID, ENVIRONMENT_RESOURCE.RESOURCE_UID)
+                      .`in`(
+                        it.map {
+                          resourceId -> row(envUid, resourceId) }))
+                  .execute()
+              }
+            txn
+              .deleteFrom(ENVIRONMENT)
+              .where(ENVIRONMENT.UID.eq(envUid))
+              .and(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(deliveryConfigUid))
               .execute()
           }
-        txn
-          .deleteFrom(ENVIRONMENT_ARTIFACT_CONSTRAINT)
-          .where(ENVIRONMENT_ARTIFACT_CONSTRAINT.ENVIRONMENT_UID.eq(envUid))
-          .execute()
-        txn
-          .deleteFrom(ENVIRONMENT_ARTIFACT_VERSIONS)
-          .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(envUid))
-          .execute()
-        txn
-          .deleteFrom(ENVIRONMENT_RESOURCE)
-          .where(ENVIRONMENT_RESOURCE.ENVIRONMENT_UID.eq(envUid))
-          .execute()
-        txn
-          .deleteFrom(ENVIRONMENT)
-          .where(ENVIRONMENT.UID.eq(envUid))
-          .and(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(deliveryConfigUid))
-          .execute()
+        }
       }
-    }
   }
 
   private fun getUIDsByApplication(application: String): List<String> =
@@ -537,6 +576,40 @@ class SqlDeliveryConfigRepository(
     }
   }
 
+  override fun deleteConstraintState(deliveryConfigName: String, environmentName: String, type: String) {
+    val envUidSelect = envUid(deliveryConfigName, environmentName)
+    sqlRetry.withRetry(WRITE) {
+      jooq.select(CURRENT_CONSTRAINT.APPLICATION, CURRENT_CONSTRAINT.ENVIRONMENT_UID)
+        .from(CURRENT_CONSTRAINT)
+        .where(
+          CURRENT_CONSTRAINT.ENVIRONMENT_UID.eq(envUidSelect),
+          CURRENT_CONSTRAINT.TYPE.eq(type))
+        .fetch { (application, envUid) ->
+          jooq.deleteFrom(CURRENT_CONSTRAINT)
+            .where(
+              CURRENT_CONSTRAINT.APPLICATION.eq(application),
+              CURRENT_CONSTRAINT.ENVIRONMENT_UID.eq(envUid),
+              CURRENT_CONSTRAINT.TYPE.eq(type))
+            .execute()
+        }
+
+      val ids: List<String> = jooq.select(ENVIRONMENT_ARTIFACT_CONSTRAINT.UID)
+        .from(ENVIRONMENT_ARTIFACT_CONSTRAINT)
+        .where(
+          ENVIRONMENT_ARTIFACT_CONSTRAINT.ENVIRONMENT_UID.eq(envUidSelect),
+          ENVIRONMENT_ARTIFACT_CONSTRAINT.TYPE.eq(type)
+        )
+        .fetch(ENVIRONMENT_ARTIFACT_CONSTRAINT.UID)
+        .sorted()
+
+      ids.chunked(DELETE_CHUNK_SIZE).forEach {
+        jooq.deleteFrom(ENVIRONMENT_ARTIFACT_CONSTRAINT)
+          .where(ENVIRONMENT_ARTIFACT_CONSTRAINT.UID.`in`(*it.toTypedArray()))
+          .execute()
+      }
+    }
+  }
+
   override fun constraintStateFor(application: String): List<ConstraintState> {
     val environmentNames = mutableMapOf<String, String>()
     val deliveryConfigsByEnv = mutableMapOf<String, String>()
@@ -755,6 +828,17 @@ class SqlDeliveryConfigRepository(
         ENVIRONMENT.NAME.eq(environmentName)
       )
 
+  private fun envUidString(deliveryConfigName: String, environmentName: String): String? =
+    sqlRetry.withRetry(READ) {
+      jooq.select(ENVIRONMENT.UID)
+        .from(DELIVERY_CONFIG)
+        .innerJoin(ENVIRONMENT).on(DELIVERY_CONFIG.UID.eq(ENVIRONMENT.DELIVERY_CONFIG_UID))
+        .where(
+          DELIVERY_CONFIG.NAME.eq(deliveryConfigName),
+          ENVIRONMENT.NAME.eq(environmentName))
+        .fetchOne(ENVIRONMENT.UID)
+    }
+
   private fun applicationByDeliveryConfigName(name: String): String =
     sqlRetry.withRetry(READ) {
       jooq
@@ -766,4 +850,8 @@ class SqlDeliveryConfigRepository(
       ?: throw NoSuchDeliveryConfigName(name)
 
   private fun Instant.toLocal() = atZone(clock.zone).toLocalDateTime()
+
+  companion object {
+    private const val DELETE_CHUNK_SIZE = 20
+  }
 }

@@ -121,6 +121,24 @@ class InMemoryDeliveryConfigRepository(
   override fun getConstraintStateById(uid: UID) =
     constraints[uid.toString()]
 
+  override fun deleteConstraintState(
+    deliveryConfigName: String,
+    environmentName: String,
+    type: String
+  ) {
+    val config = get(deliveryConfigName)
+    val keys = constraints.keys.filter {
+      it.startsWith("$deliveryConfigName:$environmentName:") &&
+        it.endsWith(":$type")
+    }
+    keys.forEach {
+      constraints.remove(it)
+      applicationConstraintMapper
+        .getOrPut(config.application, ::mutableSetOf)
+        .remove(it)
+    }
+  }
+
   override fun constraintStateFor(
     deliveryConfigName: String,
     environmentName: String,

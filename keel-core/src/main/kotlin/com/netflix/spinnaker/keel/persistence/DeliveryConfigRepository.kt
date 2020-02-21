@@ -90,6 +90,19 @@ interface DeliveryConfigRepository : PeriodicallyCheckedRepository<DeliveryConfi
   ): ConstraintState?
 
   /**
+   * Removes constraint states from an [Environment] by [type].
+   *
+   * @param deliveryConfigName the [DeliveryConfig] name
+   * @param environmentName the [Environment] name
+   * @param type the type of the removed constraint
+   */
+  fun deleteConstraintState(
+    deliveryConfigName: String,
+    environmentName: String,
+    type: String
+  )
+
+  /**
    * Rolls up the most recent constraint states (maximum of one per (Environment, ConstraintType))
    * related to a application retrieved by its name.
    *
