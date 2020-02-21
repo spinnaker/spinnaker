@@ -33,6 +33,12 @@ export function AwsCodeBuildStageForm(props: IAwsCodeBuildStageFormProps & IForm
     [],
   );
 
+  const { result: fetchProjectsResult, status: fetchProjectsStatus } = useData(
+    () => IgorService.getCodeBuildProjects(stage.account),
+    [],
+    [stage.account],
+  );
+
   const onFieldChange = (fieldName: string, fieldValue: any): void => {
     props.formik.setFieldValue(fieldName, fieldValue);
   };
@@ -53,12 +59,18 @@ export function AwsCodeBuildStageForm(props: IAwsCodeBuildStageFormProps & IForm
           />
         )}
       />
-      {/* TODO: Select project from a drop-down list. Behind the scene, gate calls igor to fetch projects list */}
       <FormikFormField
         fastField={false}
         label="Project Name"
         name="projectName"
-        input={(inputProps: IFormInputProps) => <TextInput {...inputProps} />}
+        input={(inputProps: IFormInputProps) => (
+          <ReactSelectInput
+            {...inputProps}
+            clearable={false}
+            isLoading={fetchProjectsStatus === 'PENDING'}
+            stringOptions={fetchProjectsResult}
+          />
+        )}
       />
       <h4>Source Configuration</h4>
       <FormikFormField
@@ -69,7 +81,7 @@ export function AwsCodeBuildStageForm(props: IAwsCodeBuildStageFormProps & IForm
           <CheckboxInput {...inputProps} text="Override source to Spinnaker artifact" />
         )}
       />
-      {stage.source.sourceOverride === true && (
+      {get(stage, 'source.sourceOverride') === true && (
         <FormikFormField
           fastField={false}
           label="SourceType"
@@ -79,7 +91,7 @@ export function AwsCodeBuildStageForm(props: IAwsCodeBuildStageFormProps & IForm
           )}
         />
       )}
-      {stage.source.sourceOverride === true && (
+      {get(stage, 'source.sourceOverride') === true && (
         <FormikFormField
           fastField={false}
           label="Source Artifact Override"
