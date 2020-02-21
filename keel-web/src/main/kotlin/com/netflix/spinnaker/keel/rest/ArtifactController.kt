@@ -6,6 +6,7 @@ import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.docker
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.valueOf
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
+import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
 import com.netflix.spinnaker.keel.events.ArtifactEvent
 import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.events.ArtifactSyncEvent
@@ -105,6 +106,42 @@ class ArtifactController(
   ) {
     val deliveryConfig = deliveryConfigRepository.get(deliveryConfigName)
     artifactRepository.deletePin(deliveryConfig, targetEnvironment)
+  }
+
+  @PostMapping(
+    path = ["/veto"]
+  )
+  @ResponseStatus(ACCEPTED)
+  fun veto(
+    @RequestHeader("X-SPINNAKER-USER") user: String,
+    @RequestBody veto: EnvironmentArtifactVeto
+  ) {
+    val deliveryConfig = deliveryConfigRepository.get(veto.deliveryConfigName)
+    val artifact = artifactRepository.get(
+      deliveryConfigName = veto.deliveryConfigName,
+      reference = veto.reference,
+      type = valueOf(veto.type))
+
+    artifactRepository.markAsVetoedIn(deliveryConfig, artifact, veto.version, veto.targetEnvironment, true)
+  }
+
+  @DeleteMapping(
+    path = ["/veto/{deliveryConfigName}/{targetEnvironment}/{type}/{reference}/{version}"]
+  )
+  fun deleteVeto(
+    @RequestHeader("X-SPINNAKER-USER") user: String,
+    @PathVariable("deliveryConfigName") deliveryConfigName: String,
+    @PathVariable("targetEnvironment") targetEnvironment: String,
+    @PathVariable("type") type: String,
+    @PathVariable("reference") reference: String,
+    @PathVariable("version") version: String
+  ) {
+    val deliveryConfig = deliveryConfigRepository.get(deliveryConfigName)
+    val artifact = artifactRepository.get(
+      deliveryConfigName = deliveryConfigName,
+      reference = reference,
+      type = valueOf(type))
+    artifactRepository.deleteVeto(deliveryConfig, artifact, version, targetEnvironment)
   }
 
   @GetMapping(

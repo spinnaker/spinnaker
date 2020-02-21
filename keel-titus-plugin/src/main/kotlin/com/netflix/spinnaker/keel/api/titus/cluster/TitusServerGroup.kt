@@ -17,7 +17,11 @@
  */
 package com.netflix.spinnaker.keel.api.titus.cluster
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.keel.api.Moniker
+import com.netflix.spinnaker.keel.api.UnhappyControl
+import com.netflix.spinnaker.keel.api.VersionedArtifact
+import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.clouddriver.model.Constraints
 import com.netflix.spinnaker.keel.clouddriver.model.MigrationPolicy
 import com.netflix.spinnaker.keel.clouddriver.model.Resources
@@ -27,6 +31,7 @@ import com.netflix.spinnaker.keel.core.parseMoniker
 import com.netflix.spinnaker.keel.docker.DigestProvider
 import de.danielbechler.diff.inclusion.Inclusion
 import de.danielbechler.diff.introspection.ObjectDiffProperty
+import java.time.Duration
 
 data class TitusServerGroup(
   /**
@@ -54,8 +59,18 @@ data class TitusServerGroup(
   val dependencies: ClusterDependencies = ClusterDependencies(),
   val deferredInitialization: Boolean = true,
   val delayBeforeDisableSec: Int = 0,
-  val delayBeforeScaleDownSec: Int = 0
-)
+  val delayBeforeScaleDownSec: Int = 0,
+  @JsonIgnore
+  @get:ObjectDiffProperty(inclusion = Inclusion.EXCLUDED)
+  override val deliveryArtifact: DeliveryArtifact? = null,
+  @JsonIgnore
+  @get:ObjectDiffProperty(inclusion = Inclusion.EXCLUDED)
+  override val artifactVersion: String? = null,
+  @get:ObjectDiffProperty(inclusion = Inclusion.EXCLUDED)
+  override val maxDiffCount: Int? = null,
+  @get:ObjectDiffProperty(inclusion = Inclusion.EXCLUDED)
+  override val unhappyWaitTime: Duration? = null
+) : VersionedArtifact, UnhappyControl
 
 val TitusServerGroup.moniker: Moniker
   get() = parseMoniker(name)

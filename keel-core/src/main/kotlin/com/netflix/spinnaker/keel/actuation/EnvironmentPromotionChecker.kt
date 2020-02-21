@@ -5,6 +5,7 @@ import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.constraints.ConstraintEvaluator
 import com.netflix.spinnaker.keel.constraints.StatefulConstraintEvaluator
+import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
 import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.telemetry.ArtifactVersionApproved
@@ -26,6 +27,9 @@ class EnvironmentPromotionChecker(
     val pinnedEnvs: Map<String, PinnedEnvironment> = artifactRepository
       .pinnedEnvironments(deliveryConfig)
       .associateBy { envPinKey(it.targetEnvironment, it.artifact) }
+    val vetoedArtifacts: Map<String, EnvironmentArtifactVetoes> = artifactRepository
+      .vetoedEnvironmentVersions(deliveryConfig)
+      .associateBy { envPinKey(it.targetEnvironment, it.artifact) }
 
     deliveryConfig
       .artifacts
@@ -35,12 +39,18 @@ class EnvironmentPromotionChecker(
           log.warn("No versions for ${artifact.type} artifact ${artifact.name} are known")
         } else {
           deliveryConfig.environments.forEach { environment ->
+            val vetoedVersions: Set<String> =
+              (vetoedArtifacts[envPinKey(environment.name, artifact)]?.versions)
+                ?: emptySet()
+
             val version = when {
               pinnedEnvs.hasPinFor(environment.name, artifact) -> {
                 pinnedEnvs.versionFor(environment.name, artifact)
               }
               environment.constraints.isEmpty() -> {
-                versions.firstOrNull()
+                versions.firstOrNull { v ->
+                  !vetoedVersions.contains(v)
+                }
               }
               else -> {
                 versions.firstOrNull { v ->
@@ -49,7 +59,8 @@ class EnvironmentPromotionChecker(
                    * want to request judgement or deploy a canary for artifacts that aren't
                    * deployed to a required environment or outside of an allowed time.
                    */
-                  checkConstraints(statelessEvaluators, artifact, deliveryConfig, v, environment) &&
+                  !vetoedVersions.contains(v) &&
+                    checkConstraints(statelessEvaluators, artifact, deliveryConfig, v, environment) &&
                     checkConstraints(statefulEvaluators, artifact, deliveryConfig, v, environment)
                 }
               }

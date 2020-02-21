@@ -18,16 +18,11 @@
 package com.netflix.spinnaker.keel.veto
 
 import com.netflix.spinnaker.keel.api.Resource
-import com.netflix.spinnaker.keel.api.application
-import com.netflix.spinnaker.keel.api.id
 
 class DummyVeto(
   private val allowAll: Boolean
 ) : Veto {
   override fun check(resource: Resource<*>): VetoResponse =
-    check(resource.id, resource.application)
-
-  override fun check(resourceId: String, application: String): VetoResponse =
     if (allowAll) {
       allowedResponse()
     } else {

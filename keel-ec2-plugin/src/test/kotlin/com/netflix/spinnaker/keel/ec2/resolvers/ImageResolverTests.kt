@@ -46,7 +46,7 @@ internal class ImageResolverTests : JUnit5Minutests {
     val imageRegion: String = "ap-south-1",
     val resourceRegion: String = imageRegion
   ) {
-    val artifact = DebianArtifact(name = "fnord", deliveryConfigName = "my-manifest", statuses = listOf(RELEASE))
+    val artifact = DebianArtifact(name = "fnord", deliveryConfigName = "my-manifest", statuses = setOf(RELEASE))
     private val account = "test"
     val version1 = "1.0.0-123456"
     val version2 = "1.1.0-123456"
@@ -162,7 +162,7 @@ internal class ImageResolverTests : JUnit5Minutests {
     }
 
     derivedContext<Fixture<ArtifactImageProvider>>("an image derived from an artifact") {
-      val artifact = DebianArtifact(name = "fnord", deliveryConfigName = "my-manifest", statuses = listOf(RELEASE))
+      val artifact = DebianArtifact(name = "fnord", deliveryConfigName = "my-manifest", statuses = setOf(RELEASE))
       fixture {
         Fixture(
           ArtifactImageProvider(artifact, listOf(RELEASE))

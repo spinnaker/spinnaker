@@ -1,8 +1,11 @@
 package com.netflix.spinnaker.keel.actuation
 
 import com.netflix.spinnaker.keel.SPINNAKER_API_V1
+import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.actuation.Task
+import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.SupportedKind
@@ -20,14 +23,15 @@ import com.netflix.spinnaker.keel.events.ResourceDeltaResolved
 import com.netflix.spinnaker.keel.events.ResourceMissing
 import com.netflix.spinnaker.keel.events.ResourceValid
 import com.netflix.spinnaker.keel.pause.ResourcePauser
+import com.netflix.spinnaker.keel.persistence.ArtifactRepository
+import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDiffFingerprintRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
 import com.netflix.spinnaker.keel.plugin.CannotResolveCurrentState
 import com.netflix.spinnaker.keel.plugin.CannotResolveDesiredState
 import com.netflix.spinnaker.keel.telemetry.ResourceCheckSkipped
-import com.netflix.spinnaker.keel.test.DummyResource
-import com.netflix.spinnaker.keel.test.DummyResourceSpec
-import com.netflix.spinnaker.keel.test.resource
+import com.netflix.spinnaker.keel.test.DummyArtifactVersionedResourceSpec
+import com.netflix.spinnaker.keel.test.artifactVersionedResource
 import com.netflix.spinnaker.keel.veto.Veto
 import com.netflix.spinnaker.keel.veto.VetoEnforcer
 import com.netflix.spinnaker.keel.veto.VetoResponse
@@ -51,17 +55,28 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
   class Fixture {
     val resourceRepository = InMemoryResourceRepository()
+    val artifactRepository = mockk<ArtifactRepository>()
+    val deliveryConfigRepository = mockk<DeliveryConfigRepository>()
     val diffFingerprintRepository = InMemoryDiffFingerprintRepository()
     val resourcePauser: ResourcePauser = mockk() {
       every { isPaused(any<String>()) } returns false
       every { isPaused(any<Resource<*>>()) } returns false
     }
-    val plugin1 = mockk<ResourceHandler<DummyResourceSpec, DummyResource>>(relaxUnitFun = true)
-    val plugin2 = mockk<ResourceHandler<DummyResourceSpec, DummyResource>>(relaxUnitFun = true)
+    val plugin1 = mockk<ResourceHandler<DummyArtifactVersionedResourceSpec, DummyArtifactVersionedResourceSpec>>(relaxUnitFun = true)
+    val plugin2 = mockk<ResourceHandler<DummyArtifactVersionedResourceSpec, DummyArtifactVersionedResourceSpec>>(relaxUnitFun = true)
     val publisher = mockk<ApplicationEventPublisher>(relaxUnitFun = true)
     val veto = mockk<Veto>()
     val vetoEnforcer = VetoEnforcer(listOf(veto))
-    val subject = ResourceActuator(resourceRepository, diffFingerprintRepository, listOf(plugin1, plugin2), resourcePauser, vetoEnforcer, publisher, Clock.systemDefaultZone())
+    val subject = ResourceActuator(
+      resourceRepository,
+      artifactRepository,
+      deliveryConfigRepository,
+      diffFingerprintRepository,
+      listOf(plugin1, plugin2),
+      resourcePauser,
+      vetoEnforcer,
+      publisher,
+      Clock.systemDefaultZone())
   }
 
   fun tests() = rootContext<Fixture> {
@@ -70,9 +85,9 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
     before {
       every { plugin1.name } returns "plugin1"
-      every { plugin1.supportedKind } returns SupportedKind("plugin1.$SPINNAKER_API_V1", "foo", DummyResourceSpec::class.java)
+      every { plugin1.supportedKind } returns SupportedKind("plugin1.$SPINNAKER_API_V1", "foo", DummyArtifactVersionedResourceSpec::class.java)
       every { plugin2.name } returns "plugin2"
-      every { plugin2.supportedKind } returns SupportedKind("plugin2.$SPINNAKER_API_V1", "bar", DummyResourceSpec::class.java)
+      every { plugin2.supportedKind } returns SupportedKind("plugin2.$SPINNAKER_API_V1", "bar", DummyArtifactVersionedResourceSpec::class.java)
     }
 
     after {
@@ -80,7 +95,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
     }
 
     context("a managed resource exists") {
-      val resource = resource(
+      val resource = artifactVersionedResource(
         apiVersion = "plugin1.$SPINNAKER_API_V1",
         kind = "foo"
       )
@@ -150,10 +165,10 @@ internal class ResourceActuatorTests : JUnit5Minutests {
             before {
               coEvery {
                 plugin1.desired(resource)
-              } returns DummyResource(resource.spec)
+              } returns DummyArtifactVersionedResourceSpec(data = "fnord")
               coEvery {
                 plugin1.current(resource)
-              } returns DummyResource(resource.spec)
+              } returns DummyArtifactVersionedResourceSpec(data = "fnord")
             }
 
             context("the resource previously had a delta") {
@@ -207,7 +222,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
           context("the current state is missing") {
             before {
-              coEvery { plugin1.desired(resource) } returns DummyResource(resource.spec)
+              coEvery { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec()
               coEvery { plugin1.current(resource) } returns null
               coEvery { plugin1.create(resource, any()) } returns listOf(Task(id = randomUID().toString(), name = "a task"))
 
@@ -230,8 +245,8 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
           context("the current state is wrong") {
             before {
-              coEvery { plugin1.desired(resource) } returns DummyResource(resource.spec)
-              coEvery { plugin1.current(resource) } returns DummyResource("some other state that does not match")
+              coEvery { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec(data = "fnord")
+              coEvery { plugin1.current(resource) } returns DummyArtifactVersionedResourceSpec()
               coEvery { plugin1.update(resource, any()) } returns listOf(Task(id = randomUID().toString(), name = "a task"))
 
               runBlocking {
@@ -253,7 +268,7 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
           context("plugin throws an exception in current state resolution") {
             before {
-              coEvery { plugin1.desired(resource) } returns DummyResource(resource.spec)
+              coEvery { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec()
               coEvery { plugin1.current(resource) } throws RuntimeException("o noes")
 
               runBlocking {
@@ -325,8 +340,8 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
           context("plugin throws an exception on resource update") {
             before {
-              coEvery { plugin1.desired(resource) } returns DummyResource(resource.spec)
-              coEvery { plugin1.current(resource) } returns DummyResource("some other state that does not match")
+              coEvery { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec()
+              coEvery { plugin1.current(resource) } returns DummyArtifactVersionedResourceSpec(artifactVersion = "fnord-41.0")
               coEvery { plugin1.update(resource, any()) } throws RuntimeException("o noes")
 
               runBlocking {
@@ -349,8 +364,8 @@ internal class ResourceActuatorTests : JUnit5Minutests {
       context("the resource check is vetoed") {
         before {
           every { veto.check(resource) } returns VetoResponse(false, "aVeto")
-          coEvery { plugin1.desired(resource) } returns DummyResource(resource.spec)
-          coEvery { plugin1.current(resource) } returns DummyResource(resource.spec)
+          coEvery { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec()
+          coEvery { plugin1.current(resource) } returns DummyArtifactVersionedResourceSpec()
           coEvery { plugin1.actuationInProgress(resource) } returns false
 
           runBlocking {
@@ -360,6 +375,30 @@ internal class ResourceActuatorTests : JUnit5Minutests {
 
         test("resource checking is skipped and resource is vetoed") {
           verify { publisher.publishEvent(ResourceCheckSkipped(resource.apiVersion, resource.kind, resource.id, "aVeto")) }
+          verify { publisher.publishEvent(ofType<ResourceActuationVetoed>()) }
+        }
+      }
+
+      context("the artifact versioned resource is vetoed and the veto response has vetoArtifact set") {
+        before {
+          every { veto.check(resource) } returns VetoResponse(allowed = false, vetoName = "aVeto", vetoArtifact = true)
+          coEvery { plugin1.desired(resource) } returns DummyArtifactVersionedResourceSpec()
+          coEvery { plugin1.current(resource) } returns DummyArtifactVersionedResourceSpec()
+          coEvery { plugin1.actuationInProgress(resource) } returns false
+          every { deliveryConfigRepository.deliveryConfigFor(any()) } returns DeliveryConfig(
+            name = "fnord-manifest",
+            application = "fnord",
+            serviceAccount = "keel@spin",
+            artifacts = setOf(DebianArtifact("fnord")),
+            environments = setOf(Environment(name = "staging", resources = setOf(resource)))
+          )
+          runBlocking {
+            subject.checkResource(resource)
+          }
+        }
+
+        test("the desired artifact version is vetoed from the target environment") {
+          verify { artifactRepository.markAsVetoedIn(any(), any(), "fnord-42.0", "staging", false) }
           verify { publisher.publishEvent(ofType<ResourceActuationVetoed>()) }
         }
       }

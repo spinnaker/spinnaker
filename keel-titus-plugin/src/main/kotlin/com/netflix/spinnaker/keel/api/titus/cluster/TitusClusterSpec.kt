@@ -19,11 +19,15 @@ package com.netflix.spinnaker.keel.api.titus.cluster
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonUnwrapped
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.Monikered
 import com.netflix.spinnaker.keel.api.SimpleLocations
+import com.netflix.spinnaker.keel.api.UnhappyControl
+import com.netflix.spinnaker.keel.api.VersionedArtifact
+import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.titus.exceptions.ErrorResolvingContainerException
 import com.netflix.spinnaker.keel.clouddriver.model.Constraints
 import com.netflix.spinnaker.keel.clouddriver.model.MigrationPolicy
@@ -34,6 +38,7 @@ import com.netflix.spinnaker.keel.core.api.ClusterDeployStrategy
 import com.netflix.spinnaker.keel.core.api.RedBlack
 import com.netflix.spinnaker.keel.docker.ContainerProvider
 import com.netflix.spinnaker.keel.docker.DigestProvider
+import java.time.Duration
 
 /**
  * "Simplified" representation of
@@ -44,8 +49,18 @@ data class TitusClusterSpec(
   val deployWith: ClusterDeployStrategy = RedBlack(),
   override val locations: SimpleLocations,
   private val _defaults: TitusServerGroupSpec,
-  val overrides: Map<String, TitusServerGroupSpec> = emptyMap()
-) : Monikered, Locatable<SimpleLocations> {
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
+  val overrides: Map<String, TitusServerGroupSpec> = emptyMap(),
+  @JsonIgnore
+  override val deliveryArtifact: DeliveryArtifact? = null,
+  @JsonIgnore
+  override val artifactVersion: String? = null,
+  @JsonIgnore
+  override val maxDiffCount: Int? = 2,
+  @JsonIgnore
+  // Once clusters go unhappy, only retry when the diff changes, or if manually unvetoed
+  override val unhappyWaitTime: Duration? = Duration.ZERO
+) : Monikered, Locatable<SimpleLocations>, VersionedArtifact, UnhappyControl {
 
   @JsonIgnore
   override val id = "${locations.account}:$moniker"
@@ -197,7 +212,9 @@ fun TitusClusterSpec.resolve(): Set<TitusServerGroup> =
       iamProfile = resolveIamProfile(it.name),
       migrationPolicy = resolveMigrationPolicy(it.name),
       resources = resolveResources(it.name),
-      tags = defaults.tags + overrides[it.name]?.tags
+      tags = defaults.tags + overrides[it.name]?.tags,
+      deliveryArtifact = deliveryArtifact,
+      artifactVersion = artifactVersion
     )
   }
     .toSet()

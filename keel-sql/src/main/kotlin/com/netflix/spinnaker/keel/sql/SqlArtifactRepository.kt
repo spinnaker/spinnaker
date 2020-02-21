@@ -11,6 +11,7 @@ import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.core.api.ArtifactVersionStatus
 import com.netflix.spinnaker.keel.core.api.ArtifactVersions
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
+import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactsSummary
 import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
 import com.netflix.spinnaker.keel.core.api.randomUID
@@ -25,6 +26,7 @@ import com.netflix.spinnaker.keel.persistence.PromotionStatus.CURRENT
 import com.netflix.spinnaker.keel.persistence.PromotionStatus.DEPLOYING
 import com.netflix.spinnaker.keel.persistence.PromotionStatus.PENDING
 import com.netflix.spinnaker.keel.persistence.PromotionStatus.PREVIOUS
+import com.netflix.spinnaker.keel.persistence.PromotionStatus.VETOED
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.ARTIFACT_VERSIONS
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_ARTIFACT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DELIVERY_CONFIG
@@ -261,6 +263,8 @@ class SqlArtifactRepository(
           .from(ENVIRONMENT_ARTIFACT_VERSIONS)
           .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(envUid))
           .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifactId))
+          .and(ENVIRONMENT_ARTIFACT_VERSIONS.APPROVED_AT.isNotNull)
+          .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.ne(VETOED.name))
           .orderBy(ENVIRONMENT_ARTIFACT_VERSIONS.APPROVED_AT.desc())
           .limit(1)
           .fetchOne(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION)
@@ -294,15 +298,16 @@ class SqlArtifactRepository(
     targetEnvironment: String
   ): Boolean {
     val environment = deliveryConfig.environmentNamed(targetEnvironment)
-    val versions = sqlRetry.withRetry(READ) {
+    return sqlRetry.withRetry(READ) {
       jooq
-        .select(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION)
-        .from(ENVIRONMENT_ARTIFACT_VERSIONS)
-        .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(deliveryConfig.getUidFor(environment)))
-        .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
-        .fetch(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION, String::class.java)
+        .fetchExists(
+          ENVIRONMENT_ARTIFACT_VERSIONS,
+          ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(deliveryConfig.getUidFor(environment))
+            .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
+            .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(version))
+            .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.ne(VETOED.name))
+        )
     }
-    return versions.contains(version)
   }
 
   override fun wasSuccessfullyDeployedTo(
@@ -320,6 +325,7 @@ class SqlArtifactRepository(
             .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid))
             .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(version))
             .and(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT.isNotNull)
+            .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.ne(VETOED.name))
         )
     }
   }
@@ -375,6 +381,200 @@ class SqlArtifactRepository(
         .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(CURRENT.name))
         .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.ne(version))
         .execute()
+    }
+  }
+
+  override fun vetoedEnvironmentVersions(deliveryConfig: DeliveryConfig): List<EnvironmentArtifactVetoes> {
+    val artifactsById = deliveryConfig.artifacts
+      .mapNotNull { artifact ->
+        when (val uid = artifact.uidString) {
+          null -> null
+          else -> uid to artifact
+        }
+      }
+      .toMap()
+
+    val vetoes: MutableMap<String, EnvironmentArtifactVetoes> = mutableMapOf()
+
+    jooq.select(
+      ENVIRONMENT.NAME,
+      ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID,
+      ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION
+    )
+      .from(ENVIRONMENT)
+      .innerJoin(ENVIRONMENT_ARTIFACT_VERSIONS)
+      .on(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(ENVIRONMENT.UID))
+      .where(
+        ENVIRONMENT.DELIVERY_CONFIG_UID.eq(deliveryConfig.uid),
+        ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.eq(VETOED.name)
+      )
+      .fetch { (envName, artifactId, version) ->
+        if (artifactsById.containsKey(artifactId)) {
+          vetoes.getOrPut(vetoKey(envName, artifactId),
+            {
+              EnvironmentArtifactVetoes(
+                deliveryConfigName = deliveryConfig.name,
+                targetEnvironment = envName,
+                artifact = artifactsById[artifactId]
+                  ?: error("Invalid artifactId $artifactId for deliveryConfig ${deliveryConfig.name}"),
+                versions = mutableSetOf())
+            })
+            .versions.add(version)
+        }
+      }
+
+    return vetoes.values.toList()
+  }
+
+  override fun markAsVetoedIn(
+    deliveryConfig: DeliveryConfig,
+    artifact: DeliveryArtifact,
+    version: String,
+    targetEnvironment: String,
+    force: Boolean
+  ): Boolean {
+
+    val (envUid, artUid) = sqlRetry.withRetry(READ) {
+      Pair(
+        deliveryConfig.getUidStringFor(
+          deliveryConfig.environmentNamed(targetEnvironment)),
+        artifact.uidString)
+    }
+
+    val isPinned = sqlRetry.withRetry(READ) {
+      jooq
+        .fetchExists(
+          ENVIRONMENT_ARTIFACT_PIN,
+          ENVIRONMENT_ARTIFACT_PIN.ENVIRONMENT_UID.eq(envUid)
+            .and(ENVIRONMENT_ARTIFACT_PIN.ARTIFACT_UID.eq(artUid))
+            .and(ENVIRONMENT_ARTIFACT_PIN.ARTIFACT_VERSION.eq(version)))
+    }
+
+    if (isPinned) {
+      log.warn(
+        "Pinned artifact version cannot be vetoed: " +
+          "deliveryConfig=${deliveryConfig.name}, " +
+          "environment=$targetEnvironment, " +
+          "artifactVersion=$version")
+      return false
+    }
+
+    return jooq
+      .select(
+        ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS,
+        ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_REFERENCE)
+      .from(ENVIRONMENT_ARTIFACT_VERSIONS)
+      .where(
+        ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(envUid),
+        ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artUid),
+        ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(version))
+      .fetchOne { (status, reference) ->
+        if (reference != null && !force) {
+          log.warn(
+            "Not vetoing artifact version as it appears to have already been an automated rollback target: " +
+              "deliveryConfig=${deliveryConfig.name}, " +
+              "environment=$targetEnvironment, " +
+              "artifactVersion=$version, " +
+              "priorVersionReference=$reference")
+          return@fetchOne false
+        }
+
+        val prior = priorVersionDeployedIn(envUid, artUid, version)
+
+        sqlRetry.withRetry(WRITE) {
+          jooq.transaction { config ->
+            val txn = DSL.using(config)
+            txn.update(ENVIRONMENT_ARTIFACT_VERSIONS)
+              .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, VETOED.name)
+              .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_REFERENCE, prior ?: version)
+              .where(
+                ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(envUid),
+                ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artUid),
+                ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(version)
+              )
+              .execute()
+
+            /**
+             * If there's a previously deployed version in [targetEnvironment], set `promotion_reference`
+             * to the version that's currently being vetoed. If that version also fails to fully deploy,
+             * this is used to short-circuit further automated vetoes. We want to avoid a cloud provider
+             * or other issue unrelated to an artifact version triggering continual automated rollbacks
+             * thru all previously deployed versions.
+             */
+            if (prior != null) {
+              txn.update(ENVIRONMENT_ARTIFACT_VERSIONS)
+                .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_REFERENCE, version)
+                .where(
+                  ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(envUid),
+                  ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artUid),
+                  ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(prior)
+                )
+                .execute()
+            }
+          }
+        }
+        return@fetchOne true
+      }
+  }
+
+  override fun deleteVeto(
+    deliveryConfig: DeliveryConfig,
+    artifact: DeliveryArtifact,
+    version: String,
+    targetEnvironment: String
+  ) {
+    val envId = deliveryConfig.getUidFor(
+      deliveryConfig.environmentNamed(targetEnvironment))
+
+    sqlRetry.withRetry(WRITE) {
+      val referenceVersion: String? = jooq.select(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_REFERENCE)
+        .from(ENVIRONMENT_ARTIFACT_VERSIONS)
+        .where(
+          ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(envId),
+          ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid),
+          ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(version))
+        .fetchOne(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_REFERENCE)
+
+      /**
+       * If there are bidirectional `PROMOTION_REFERENCE` markers between this [version]
+       * and another (i.e. the veto was applied in order to rollback from this version
+       * to the other), both sides are removed.
+       */
+      val referencesReferenceVersion: String? = when (referenceVersion) {
+        null -> null
+        else -> {
+          jooq.select(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_REFERENCE)
+            .from(ENVIRONMENT_ARTIFACT_VERSIONS)
+            .where(
+              ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(envId),
+              ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid),
+              ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(referenceVersion))
+            .fetchOne(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_REFERENCE)
+        }
+      }
+
+      jooq.transaction { config ->
+        val txn = DSL.using(config)
+
+        txn.update(ENVIRONMENT_ARTIFACT_VERSIONS)
+          .set(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS, APPROVED.name)
+          .setNull(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_REFERENCE)
+          .where(
+            ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(envId),
+            ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid),
+            ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(version))
+          .execute()
+
+        if (referencesReferenceVersion != null && referenceVersion == referencesReferenceVersion) {
+          txn.update(ENVIRONMENT_ARTIFACT_VERSIONS)
+            .setNull(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_REFERENCE)
+            .where(
+              ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(envId),
+              ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifact.uid),
+              ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.eq(referenceVersion))
+            .execute()
+        }
+      }
     }
   }
 
@@ -434,7 +634,7 @@ class SqlArtifactRepository(
               .and(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(ENVIRONMENT.UID))
               .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(DELIVERY_ARTIFACT.UID))
           )
-        val versions = sqlRetry.withRetry(READ) {
+        val unionedVersions = sqlRetry.withRetry(READ) {
           versionsInEnvironment
             .unionAll(pendingVersions)
             .fetch { (version, releaseStatus, promotionStatus) ->
@@ -444,6 +644,15 @@ class SqlArtifactRepository(
           .filter { (_, releaseStatus, _) ->
             artifact !is DebianArtifact || artifact.statuses.isEmpty() || ArtifactStatus.valueOf(releaseStatus) in artifact.statuses
           }
+        val releaseStatuses: Set<ArtifactStatus> = unionedVersions
+          .filter { (_, releaseStatus, _) ->
+            releaseStatus != null
+          }
+          .map { (_, releaseStatus, _) ->
+            ArtifactStatus.valueOf(releaseStatus)
+          }
+          .toSet()
+        val versions = unionedVersions
           .sortedWith(compareBy(artifact.versioningStrategy.comparator) { (version, _, _) -> version })
           .groupBy({ (_, _, promotionStatus) ->
             promotionStatus
@@ -453,11 +662,14 @@ class SqlArtifactRepository(
         ArtifactVersions(
           name = artifact.name,
           type = artifact.type,
+          statuses = releaseStatuses,
           versions = ArtifactVersionStatus(
             current = versions[CURRENT]?.firstOrNull(),
             deploying = versions[DEPLOYING]?.firstOrNull(),
             pending = versions[PENDING] ?: emptyList(),
-            previous = versions[PREVIOUS] ?: emptyList()
+            approved = versions[APPROVED] ?: emptyList(),
+            previous = versions[PREVIOUS] ?: emptyList(),
+            vetoed = versions[VETOED] ?: emptyList()
           )
         )
       }
@@ -561,6 +773,26 @@ class SqlArtifactRepository(
     }
   }
 
+  private fun priorVersionDeployedIn(
+    environmentId: String,
+    artifactId: String,
+    currentVersion: String
+  ): String? {
+    return sqlRetry.withRetry(READ) {
+      jooq
+        .select(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION)
+        .from(ENVIRONMENT_ARTIFACT_VERSIONS)
+        .where(ENVIRONMENT_ARTIFACT_VERSIONS.ENVIRONMENT_UID.eq(environmentId))
+        .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_UID.eq(artifactId))
+        .and(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION.ne(currentVersion))
+        .and(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT.isNotNull)
+        .and(ENVIRONMENT_ARTIFACT_VERSIONS.PROMOTION_STATUS.ne(VETOED.name))
+        .orderBy(ENVIRONMENT_ARTIFACT_VERSIONS.DEPLOYED_AT.desc())
+        .limit(1)
+        .fetchOne(ENVIRONMENT_ARTIFACT_VERSIONS.ARTIFACT_VERSION)
+    }
+  }
+
   private fun deletePin(envUid: String, artUid: String) {
     // Deletes rows by primary key
     jooq.deleteFrom(ENVIRONMENT_ARTIFACT_PIN)
@@ -582,6 +814,13 @@ class SqlArtifactRepository(
       .where(ENVIRONMENT.NAME.eq(environment.name))
       .and(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(uid))
 
+  private fun DeliveryConfig.getUidStringFor(environment: Environment): String =
+    jooq.select(ENVIRONMENT.UID)
+      .from(ENVIRONMENT)
+      .where(ENVIRONMENT.NAME.eq(environment.name))
+      .and(ENVIRONMENT.DELIVERY_CONFIG_UID.eq(uid))
+      .fetchOne(ENVIRONMENT.UID) ?: error("environment not found for $name / ${environment.name}")
+
   private val DeliveryArtifact.uid: Select<Record1<String>>
     get() = select(DELIVERY_ARTIFACT.UID)
       .from(DELIVERY_ARTIFACT)
@@ -589,6 +828,19 @@ class SqlArtifactRepository(
         .and(DELIVERY_ARTIFACT.TYPE.eq(type.name))
         .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(deliveryConfigName))
         .and(DELIVERY_ARTIFACT.REFERENCE.eq(reference)))
+
+  private val DeliveryArtifact.uidString: String
+    get() = jooq.select(DELIVERY_ARTIFACT.UID)
+      .from(DELIVERY_ARTIFACT)
+      .where(DELIVERY_ARTIFACT.NAME.eq(name)
+        .and(DELIVERY_ARTIFACT.TYPE.eq(type.name))
+        .and(DELIVERY_ARTIFACT.DELIVERY_CONFIG_NAME.eq(deliveryConfigName))
+        .and(DELIVERY_ARTIFACT.REFERENCE.eq(reference)))
+      .fetchOne(DELIVERY_ARTIFACT.UID) ?: error("artifact not found for " +
+      "name=$name, " +
+      "type=$type, " +
+      "deliveryConfig=$deliveryConfigName, " +
+      "reference=$reference")
 
   private val DeliveryConfig.uid: Select<Record1<String>>
     get() = select(DELIVERY_CONFIG.UID)
@@ -608,6 +860,8 @@ class SqlArtifactRepository(
       .digest(data.toByteArray())
     return DatatypeConverter.printHexBinary(bytes).toUpperCase()
   }
+
+  private fun vetoKey(envName: String, artifactId: String) = "$envName:$artifactId"
 
   private fun Instant.toLocal() = atZone(clock.zone).toLocalDateTime()
 

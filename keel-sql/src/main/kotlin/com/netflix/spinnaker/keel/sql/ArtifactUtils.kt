@@ -47,13 +47,13 @@ fun mapToArtifact(
     val details = objectMapper.readValue<Map<String, Any>>(json)
     return when (type) {
       deb -> {
-        val statuses: List<ArtifactStatus> = details["statuses"]?.let { it ->
+        val statuses: Set<ArtifactStatus> = details["statuses"]?.let { it ->
           try {
-            objectMapper.convertValue<List<ArtifactStatus>>(it)
+            objectMapper.convertValue<Set<ArtifactStatus>>(it)
           } catch (e: java.lang.IllegalArgumentException) {
             null
           }
-        } ?: emptyList()
+        } ?: emptySet()
         DebianArtifact(
           name = name,
           statuses = statuses,

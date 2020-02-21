@@ -1,8 +1,11 @@
 package com.netflix.spinnaker.keel.actuation
 
+import com.netflix.spinnaker.keel.api.DeliveryConfig
+import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceDiff
 import com.netflix.spinnaker.keel.api.ResourceSpec
+import com.netflix.spinnaker.keel.api.VersionedArtifact
 import com.netflix.spinnaker.keel.api.actuation.Task
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
@@ -19,6 +22,8 @@ import com.netflix.spinnaker.keel.events.ResourceMissing
 import com.netflix.spinnaker.keel.events.ResourceValid
 import com.netflix.spinnaker.keel.logging.TracingSupport.Companion.withTracingContext
 import com.netflix.spinnaker.keel.pause.ResourcePauser
+import com.netflix.spinnaker.keel.persistence.ArtifactRepository
+import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.DiffFingerprintRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.plugin.CannotResolveCurrentState
@@ -36,6 +41,8 @@ import org.springframework.stereotype.Component
 @Component
 class ResourceActuator(
   private val resourceRepository: ResourceRepository,
+  private val artifactRepository: ArtifactRepository,
+  private val deliveryConfigRepository: DeliveryConfigRepository,
   private val diffFingerprintRepository: DiffFingerprintRepository,
   private val handlers: List<ResourceHandler<*, *>>,
   private val resourcePauser: ResourcePauser,
@@ -71,6 +78,45 @@ class ResourceActuator(
 
         val response = vetoEnforcer.canCheck(resource)
         if (!response.allowed) {
+          /**
+           * [VersionedArtifact] is a special [resource] sub-type. When a veto response sets
+           * [VetoResponse.vetoArtifact] and the resource under evaluation is of type
+           * [VersionedArtifact], blacklist the desired artifact version from the environment
+           * containing [resource]. This ensures that the environment will be fully restored to
+           * a prior good-state.
+           */
+          if (response.vetoArtifact && resource.spec is VersionedArtifact) {
+            try {
+              val (version, artifact) = when (desired) {
+                is Map<*, *> -> {
+                  if (desired.size > 0) {
+                    val versioned = (desired as Map<String, VersionedArtifact>).values.first()
+                    Pair(versioned.artifactVersion, versioned.deliveryArtifact)
+                  } else {
+                    Pair(null, null)
+                  }
+                }
+                is VersionedArtifact -> Pair(desired.artifactVersion, desired.deliveryArtifact)
+                else -> Pair(null, null)
+              }
+              if (version != null && artifact != null) {
+                val deliveryConfig = deliveryConfigRepository.deliveryConfigFor(resource.id)
+                val environment = deliveryConfig.environmentFor(resource)?.name
+                  ?: error("Failed to find environment for ${resource.id} in deliveryConfig ${deliveryConfig.name} " +
+                    "while attempting to veto artifact ${artifact.name} version $version")
+
+                artifactRepository.markAsVetoedIn(
+                  deliveryConfig = deliveryConfig,
+                  artifact = artifact,
+                  version = version,
+                  targetEnvironment = environment)
+                // TODO: emit event + metric
+              }
+            } catch (e: Exception) {
+              log.warn("Failed to veto presumed bad artifact version for ${resource.id}", e)
+              // TODO: emit metric
+            }
+          }
           log.debug("Skipping actuation for resource {} because it was vetoed: {}", id, response.message)
           publisher.publishEvent(ResourceCheckSkipped(resource.apiVersion, resource.kind, id, response.vetoName))
           publishVetoedEvent(response, resource)
@@ -120,7 +166,7 @@ class ResourceActuator(
     }
   }
 
-  private suspend fun ResourceHandler<*, *>.resolve(resource: Resource<out ResourceSpec>): Pair<Any, Any?> =
+  private suspend fun <T : Any> ResourceHandler<*, T>.resolve(resource: Resource<out ResourceSpec>): Pair<T, T?> =
     supervisorScope {
       val desired = async {
         try {
@@ -159,6 +205,9 @@ class ResourceActuator(
           response.message,
           clock.instant()))
     }
+
+  private fun DeliveryConfig.environmentFor(resource: Resource<*>): Environment? =
+    environments.firstOrNull { it.resources.contains(resource) }
 
   // These extensions get round the fact tht we don't know the spec type of the resource from
   // the repository. I don't want the `ResourceHandler` interface to be untyped though.

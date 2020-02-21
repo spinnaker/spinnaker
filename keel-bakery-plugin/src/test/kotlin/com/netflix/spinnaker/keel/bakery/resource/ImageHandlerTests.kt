@@ -71,7 +71,7 @@ internal class ImageHandlerTests : JUnit5Minutests {
         application = "keel"
       )
     )
-    val resourceOnlySnapshot = resource.copy(spec = resource.spec.copy(artifactStatuses = listOf(SNAPSHOT)))
+    val resourceOnlySnapshot = resource.copy(spec = resource.spec.copy(artifactStatuses = setOf(SNAPSHOT)))
 
     val image = Image(
       baseAmiVersion = "nflx-base-5.378.0-h1230.8808866",

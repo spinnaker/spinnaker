@@ -55,7 +55,12 @@ abstract class DockerImageResolver<T : ResourceSpec>(
   /**
    * Replace exiting container with resolved container
    */
-  abstract fun updateContainerInSpec(resource: Resource<T>, container: ContainerProvider): Resource<T>
+  abstract fun updateContainerInSpec(
+    resource: Resource<T>,
+    container: ContainerProvider,
+    artifact: DockerArtifact,
+    tag: String
+  ): Resource<T>
 
   /**
    * Get all available the tags for an image
@@ -79,7 +84,7 @@ abstract class DockerImageResolver<T : ResourceSpec>(
     val tag: String = findTagGivenDeliveryConfig(deliveryConfig, environment, artifact)
 
     val newContainer = getContainer(account, artifact, tag)
-    return updateContainerInSpec(resource, newContainer)
+    return updateContainerInSpec(resource, newContainer, artifact, tag)
   }
 
   fun getArtifact(container: ContainerProvider, deliveryConfig: DeliveryConfig): DockerArtifact =

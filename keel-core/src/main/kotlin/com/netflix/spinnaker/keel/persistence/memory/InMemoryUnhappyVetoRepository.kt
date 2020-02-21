@@ -19,6 +19,7 @@ package com.netflix.spinnaker.keel.persistence.memory
 
 import com.netflix.spinnaker.keel.persistence.UnhappyVetoRepository
 import java.time.Clock
+import java.time.Duration
 import java.time.Instant
 
 class InMemoryUnhappyVetoRepository(
@@ -27,8 +28,8 @@ class InMemoryUnhappyVetoRepository(
 
   private val resources: MutableMap<String, Record> = mutableMapOf()
 
-  override fun markUnhappyForWaitingTime(resourceId: String, application: String) {
-    resources[resourceId] = Record(application, calculateExpirationTime())
+  override fun markUnhappyForWaitingTime(resourceId: String, application: String, wait: Duration) {
+    resources[resourceId] = Record(application, calculateExpirationTime(wait))
   }
 
   override fun markHappy(resourceId: String) {

@@ -66,8 +66,13 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
         every {
           artifactRepository.versions(artifact)
         } returns emptyList()
+
         every {
           artifactRepository.pinnedEnvironments(any())
+        } returns emptyList()
+
+        every {
+          artifactRepository.vetoedEnvironmentVersions(any())
         } returns emptyList()
       }
 
@@ -92,6 +97,10 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
         every {
           artifactRepository.pinnedEnvironments(any())
         } returns emptyList()
+
+        every {
+          artifactRepository.vetoedEnvironmentVersions(any())
+        } returns emptyList()
       }
 
       context("there are no constraints on the environment") {
@@ -99,6 +108,10 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
           runBlocking {
             subject.checkEnvironments(deliveryConfig)
           }
+
+          every {
+            artifactRepository.vetoedEnvironmentVersions(any())
+          } returns emptyList()
         }
 
         test("the environment is assigned the latest version of an artifact") {
@@ -126,6 +139,10 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
           every {
             artifactRepository.approveVersionFor(deliveryConfig, artifact, "2.0", environment.name)
           } returns false
+
+          every {
+            artifactRepository.vetoedEnvironmentVersions(any())
+          } returns emptyList()
 
           runBlocking {
             subject.checkEnvironments(deliveryConfig)
@@ -159,6 +176,10 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
           every {
             artifactRepository.approveVersionFor(deliveryConfig, artifact, "1.1", environment.name)
           } returns true
+
+          every {
+            artifactRepository.vetoedEnvironmentVersions(any())
+          } returns emptyList()
 
           every {
             artifactRepository.pinnedEnvironments(any())
@@ -241,6 +262,10 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
           } returns true
 
           every {
+            artifactRepository.vetoedEnvironmentVersions(any())
+          } returns emptyList()
+
+          every {
             artifactRepository.pinnedEnvironments(any())
           } returns listOf(PinnedEnvironment(deliveryConfig.name, environment.name, artifact, "1.1"))
 
@@ -275,6 +300,10 @@ internal class EnvironmentPromotionCheckerTests : JUnit5Minutests {
           every {
             artifactRepository.versions(artifact)
           } returns listOf("1.0")
+
+          every {
+            artifactRepository.vetoedEnvironmentVersions(any())
+          } returns emptyList()
 
           every { artifactRepository.pinnedEnvironments(any()) } returns emptyList()
 

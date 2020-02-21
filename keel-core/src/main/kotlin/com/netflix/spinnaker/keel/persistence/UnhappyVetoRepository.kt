@@ -37,7 +37,11 @@ abstract class UnhappyVetoRepository(
   /**
    * Marks [resourceId] as unhappy for [waitingTime]
    */
-  abstract fun markUnhappyForWaitingTime(resourceId: String, application: String)
+  abstract fun markUnhappyForWaitingTime(
+    resourceId: String,
+    application: String,
+    wait: Duration = Duration.parse(waitingTime)
+  )
 
   /**
    * Clears unhappy marking for [resourceId]
@@ -59,8 +63,11 @@ abstract class UnhappyVetoRepository(
    */
   abstract fun getAllForApp(application: String): Set<String>
 
-  fun calculateExpirationTime(): Instant =
-    clock.instant().plus(Duration.parse(waitingTime))
+  fun calculateExpirationTime(wait: Duration): Instant =
+    when (wait) {
+      Duration.ZERO -> Instant.MAX
+      else -> clock.instant().plus(wait)
+    }
 
   data class UnhappyVetoStatus(
     val shouldSkip: Boolean = false,

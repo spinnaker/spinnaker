@@ -19,12 +19,16 @@ package com.netflix.spinnaker.keel.api.ec2
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.keel.api.Moniker
+import com.netflix.spinnaker.keel.api.UnhappyControl
+import com.netflix.spinnaker.keel.api.VersionedArtifact
+import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.clouddriver.model.BuildInfo
 import com.netflix.spinnaker.keel.core.api.Capacity
 import com.netflix.spinnaker.keel.core.api.ClusterDependencies
 import com.netflix.spinnaker.keel.core.parseMoniker
 import de.danielbechler.diff.inclusion.Inclusion.EXCLUDED
 import de.danielbechler.diff.introspection.ObjectDiffProperty
+import java.time.Duration
 
 data class ServerGroup(
   /**
@@ -46,8 +50,18 @@ data class ServerGroup(
   val tags: Map<String, String> = emptyMap(),
   @JsonIgnore
   @get:ObjectDiffProperty(inclusion = EXCLUDED)
-  val buildInfo: BuildInfo? = null
-) {
+  val buildInfo: BuildInfo? = null,
+  @JsonIgnore
+  @get:ObjectDiffProperty(inclusion = EXCLUDED)
+  override val deliveryArtifact: DeliveryArtifact? = null,
+  @JsonIgnore
+  @get:ObjectDiffProperty(inclusion = EXCLUDED)
+  override val artifactVersion: String? = null,
+  @get:ObjectDiffProperty(inclusion = EXCLUDED)
+  override val maxDiffCount: Int? = null,
+  @get:ObjectDiffProperty(inclusion = EXCLUDED)
+  override val unhappyWaitTime: Duration? = null
+) : VersionedArtifact, UnhappyControl {
   init {
     require(
       capacity.desired != null && !scaling.hasScalingPolicies() ||

@@ -5,6 +5,7 @@ import com.netflix.spinnaker.keel.api.artifacts.ArtifactStatus
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
+import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactsSummary
 import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
 
@@ -117,6 +118,42 @@ interface ArtifactRepository {
    * [wasSuccessfullyDeployedTo] will return `true` for that version.
    */
   fun markAsSuccessfullyDeployedTo(
+    deliveryConfig: DeliveryConfig,
+    artifact: DeliveryArtifact,
+    version: String,
+    targetEnvironment: String
+  )
+
+  /**
+   * @return list of [EnvironmentArtifactVetoes] for all environments and artifacts defined
+   * in the [deliveryConfig].
+   */
+  fun vetoedEnvironmentVersions(deliveryConfig: DeliveryConfig): List<EnvironmentArtifactVetoes>
+
+  /**
+   * Marks [version] as vetoed from consideration for deployment to [targetEnvironment].
+   * When run against the latest approved version, the effect is a rollback to the last
+   * previously deployed version. This is in contrast to [pinEnvironment], which forces
+   * resolution of the desired artifact version to what is pinned. Only a single
+   * (artifact, artifact_version) can be pinned per environment but many can be vetoed.
+   *
+   * @param force when set, the version will be vetoed even if it became the desired
+   *  version due to a prior, potentially automated, veto.
+   *
+   * @return `true` if the veto was successfully persisted.
+   */
+  fun markAsVetoedIn(
+    deliveryConfig: DeliveryConfig,
+    artifact: DeliveryArtifact,
+    version: String,
+    targetEnvironment: String,
+    force: Boolean = false
+  ): Boolean
+
+  /**
+   * Removes any veto of [version] in [targetEnvironment]]
+   */
+  fun deleteVeto(
     deliveryConfig: DeliveryConfig,
     artifact: DeliveryArtifact,
     version: String,

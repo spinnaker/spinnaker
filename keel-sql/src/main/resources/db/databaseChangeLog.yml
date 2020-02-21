@@ -86,7 +86,6 @@ databaseChangeLog:
   - include:
      file: changelog/20200122-delivery-config-api-version.yml
      relativeToChangelogFile: true
-
   - include:
       file: changelog/20200109-create-task-tracking-table.yml
       relativeToChangelogFile: true
@@ -95,4 +94,7 @@ databaseChangeLog:
       relativeToChangelogFile: true
   - include:
       file: changelog/20200127-environment-artifact-pin-table.yml
+      relativeToChangelogFile: true
+  - include:
+      file: changelog/20200211-environment-artifact-veto.yml
       relativeToChangelogFile: true

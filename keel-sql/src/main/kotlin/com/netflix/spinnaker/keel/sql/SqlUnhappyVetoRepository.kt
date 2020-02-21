@@ -22,6 +22,7 @@ import com.netflix.spinnaker.keel.persistence.metamodel.Tables.UNHAPPY_VETO
 import com.netflix.spinnaker.keel.sql.RetryCategory.READ
 import com.netflix.spinnaker.keel.sql.RetryCategory.WRITE
 import java.time.Clock
+import java.time.Duration
 import org.jooq.DSLContext
 
 class SqlUnhappyVetoRepository(
@@ -30,14 +31,14 @@ class SqlUnhappyVetoRepository(
   private val sqlRetry: SqlRetry
 ) : UnhappyVetoRepository(clock) {
 
-  override fun markUnhappyForWaitingTime(resourceId: String, application: String) {
+  override fun markUnhappyForWaitingTime(resourceId: String, application: String, wait: Duration) {
     sqlRetry.withRetry(WRITE) {
       jooq.insertInto(UNHAPPY_VETO)
         .set(UNHAPPY_VETO.RESOURCE_ID, resourceId)
         .set(UNHAPPY_VETO.APPLICATION, application)
-        .set(UNHAPPY_VETO.RECHECK_TIME, calculateExpirationTime().toEpochMilli())
+        .set(UNHAPPY_VETO.RECHECK_TIME, calculateExpirationTime(wait).toEpochMilli())
         .onDuplicateKeyUpdate()
-        .set(UNHAPPY_VETO.RECHECK_TIME, calculateExpirationTime().toEpochMilli())
+        .set(UNHAPPY_VETO.RECHECK_TIME, calculateExpirationTime(wait).toEpochMilli())
         .execute()
     }
   }

@@ -4,6 +4,7 @@ import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.artifacts.ArtifactType.deb
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
+import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.ec2.ArtifactImageProvider
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec
 import com.netflix.spinnaker.keel.api.ec2.ClusterSpec.LaunchConfigurationSpec
@@ -41,6 +42,12 @@ class ImageResolver(
   override val supportedKind: String = "cluster"
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
+  data class VersionedNamedImage(
+    val namedImage: NamedImage,
+    val artifact: DeliveryArtifact?,
+    val version: String?
+  )
+
   override fun invoke(resource: Resource<ClusterSpec>): Resource<ClusterSpec> {
     val imageProvider = resource.spec.imageProvider ?: return resource
     val image = runBlocking {
@@ -60,7 +67,7 @@ class ImageResolver(
   private suspend fun resolveFromReference(
     resource: Resource<ClusterSpec>,
     imageProvider: ReferenceArtifactImageProvider
-  ): NamedImage {
+  ): VersionedNamedImage {
     val deliveryConfig = deliveryConfigRepository.deliveryConfigFor(resource.id)
     val artifact = deliveryConfig.artifacts.find { it.reference == imageProvider.reference && it.type == deb }
       ?: throw NoMatchingArtifactException(deliveryConfig.name, deb, imageProvider.reference)
@@ -71,7 +78,7 @@ class ImageResolver(
   private suspend fun resolveFromArtifact(
     resource: Resource<ClusterSpec>,
     artifact: DebianArtifact
-  ): NamedImage {
+  ): VersionedNamedImage {
     val deliveryConfig = deliveryConfigRepository.deliveryConfigFor(resource.id)
     val environment = deliveryConfigRepository.environmentFor(resource.id)
     val account = defaultImageAccount
@@ -82,17 +89,19 @@ class ImageResolver(
       artifact,
       environment.name
     ) ?: throw NoImageSatisfiesConstraints(artifact.name, environment.name)
-    return imageService.getLatestNamedImageWithAllRegionsForAppVersion(
+    val image = imageService.getLatestNamedImageWithAllRegionsForAppVersion(
       appVersion = AppVersion.parseName(artifactVersion),
       account = account,
       regions = regions
     ) ?: throw NoImageFoundForRegions(artifactVersion, regions)
+
+    return VersionedNamedImage(image, artifact, artifactVersion)
   }
 
   private suspend fun resolveFromJenkinsJob(
     resource: Resource<ClusterSpec>,
     imageProvider: JenkinsImageProvider
-  ): NamedImage {
+  ): VersionedNamedImage {
     val image = imageService.getNamedImageFromJenkinsInfo(
       imageProvider.packageName,
       dynamicConfigService.getConfig("images.default-account", "test"),
@@ -102,18 +111,19 @@ class ImageResolver(
     ) ?: throw NoImageFound(imageProvider.packageName)
 
     log.info("Image found for {}: {}", imageProvider.packageName, image)
-    return image
+    return VersionedNamedImage(image, null, null)
   }
 
-  private fun Resource<ClusterSpec>.withVirtualMachineImages(image: NamedImage): Resource<ClusterSpec> {
+  private fun Resource<ClusterSpec>.withVirtualMachineImages(image: VersionedNamedImage): Resource<ClusterSpec> {
     val imageIdByRegion = image
+      .namedImage
       .amis
       .filterNotNullValues()
       .filterValues { it.isNotEmpty() }
       .mapValues { it.value.first() }
     val missingRegions = spec.locations.regions.map { it.name } - imageIdByRegion.keys
     if (missingRegions.isNotEmpty()) {
-      throw NoImageFoundForRegions(image.imageName, missingRegions)
+      throw NoImageFoundForRegions(image.namedImage.imageName, missingRegions)
     }
 
     val overrides = mutableMapOf<String, ServerGroupSpec>()
@@ -123,13 +133,16 @@ class ImageResolver(
         .withVirtualMachineImage(
           VirtualMachineImage(
             imageIdByRegion.getValue(region),
-            image.appVersion,
-            image.baseImageVersion
+            image.namedImage.appVersion,
+            image.namedImage.baseImageVersion
           )
         )
     }
 
-    return copy(spec = spec.copy(overrides = overrides))
+    return copy(spec = spec.copy(
+      overrides = overrides,
+      deliveryArtifact = image.artifact,
+      artifactVersion = image.version))
   }
 
   private fun ServerGroupSpec?.withVirtualMachineImage(image: VirtualMachineImage) =

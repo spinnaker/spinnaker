@@ -7,9 +7,14 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.SimpleLocations
 import com.netflix.spinnaker.keel.api.SimpleRegionSpec
+import com.netflix.spinnaker.keel.api.VersionedArtifact
+import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
+import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.api.plugins.SimpleResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.SupportedKind
 import com.netflix.spinnaker.keel.core.api.SubmittedResource
+import de.danielbechler.diff.inclusion.Inclusion.EXCLUDED
+import de.danielbechler.diff.introspection.ObjectDiffProperty
 import java.util.UUID
 
 const val TEST_API = "test.$SPINNAKER_API_V1"
@@ -21,6 +26,23 @@ fun resource(
   application: String = "fnord"
 ): Resource<DummyResourceSpec> =
   DummyResourceSpec(id = id, application = application)
+    .let { spec ->
+      resource(
+        apiVersion = apiVersion,
+        kind = kind,
+        spec = spec,
+        id = spec.id,
+        application = application
+      )
+    }
+
+fun artifactVersionedResource(
+  apiVersion: String = TEST_API,
+  kind: String = "whatever",
+  id: String = randomString(),
+  application: String = "fnord"
+): Resource<DummyArtifactVersionedResourceSpec> =
+  DummyArtifactVersionedResourceSpec(id = id, application = application)
     .let { spec ->
       resource(
         apiVersion = apiVersion,
@@ -128,11 +150,27 @@ data class DummyLocatableResourceSpec(
   )
 ) : ResourceSpec, Locatable<SimpleLocations>
 
+data class DummyArtifactVersionedResourceSpec(
+  @get:ObjectDiffProperty(inclusion = EXCLUDED)
+  override val id: String = randomString(),
+  val data: String = randomString(),
+  override val application: String = "fnord",
+  override val artifactVersion: String? = "fnord-42.0",
+  override val deliveryArtifact: DeliveryArtifact? = DebianArtifact(name = "fnord")
+) : ResourceSpec, VersionedArtifact
+
 data class DummyResource(
   val id: String = randomString(),
   val data: String = randomString()
 ) {
   constructor(spec: DummyResourceSpec) : this(spec.id, spec.data)
+}
+
+data class DummyArtifactVersionedResource(
+  val id: String = randomString(),
+  val data: String = randomString()
+) {
+  constructor(spec: DummyArtifactVersionedResourceSpec) : this(spec.id, spec.data)
 }
 
 fun randomString(length: Int = 8) =

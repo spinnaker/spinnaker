@@ -38,13 +38,6 @@ interface Veto {
   fun check(resource: Resource<*>): VetoResponse
 
   /**
-   * Check whether the resource can be checked according to this veto,
-   * by id and application. Application is not always calculable from the resourceId,
-   * so it needs to be passed in
-   */
-  fun check(resourceId: String, application: String): VetoResponse
-
-  /**
    * The message format a veto accepts
    */
   fun messageFormat(): Map<String, Any>
@@ -67,12 +60,13 @@ interface Veto {
   fun allowedResponse(): VetoResponse =
     VetoResponse(allowed = true, vetoName = name())
 
-  fun deniedResponse(message: String): VetoResponse =
-    VetoResponse(allowed = false, vetoName = name(), message = message)
+  fun deniedResponse(message: String, vetoArtifact: Boolean = true): VetoResponse =
+    VetoResponse(allowed = false, vetoName = name(), vetoArtifact = vetoArtifact, message = message)
 }
 
 data class VetoResponse(
   val allowed: Boolean,
   val vetoName: String,
+  val vetoArtifact: Boolean = false,
   val message: String? = null
 )

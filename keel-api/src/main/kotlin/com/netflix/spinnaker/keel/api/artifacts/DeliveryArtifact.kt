@@ -20,7 +20,7 @@ data class DebianArtifact(
   override val name: String,
   override val deliveryConfigName: String? = null,
   override val reference: String = name,
-  val statuses: List<ArtifactStatus> = emptyList(),
+  val statuses: Set<ArtifactStatus> = emptySet(),
   override val versioningStrategy: VersioningStrategy = DebianSemVerVersioningStrategy
 ) : DeliveryArtifact() {
   override val type = ArtifactType.deb

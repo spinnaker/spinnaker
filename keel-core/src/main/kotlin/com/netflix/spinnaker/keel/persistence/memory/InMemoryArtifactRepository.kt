@@ -8,6 +8,7 @@ import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.core.api.ArtifactVersionStatus
 import com.netflix.spinnaker.keel.core.api.ArtifactVersions
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactPin
+import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVetoes
 import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactsSummary
 import com.netflix.spinnaker.keel.core.api.PinnedEnvironment
 import com.netflix.spinnaker.keel.core.comparator
@@ -16,9 +17,11 @@ import com.netflix.spinnaker.keel.persistence.ArtifactReferenceNotFoundException
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
 import com.netflix.spinnaker.keel.persistence.PromotionStatus
+import com.netflix.spinnaker.keel.persistence.PromotionStatus.APPROVED
 import com.netflix.spinnaker.keel.persistence.PromotionStatus.CURRENT
 import com.netflix.spinnaker.keel.persistence.PromotionStatus.DEPLOYING
 import com.netflix.spinnaker.keel.persistence.PromotionStatus.PREVIOUS
+import com.netflix.spinnaker.keel.persistence.PromotionStatus.VETOED
 import java.util.UUID
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -32,8 +35,10 @@ class InMemoryArtifactRepository : ArtifactRepository {
 
   private val approvedVersions = mutableMapOf<EnvironmentVersionsKey, MutableList<String>>()
   private val deployedVersions = mutableMapOf<EnvironmentVersionsKey, MutableList<String>>()
+  private val vetoedVersions = mutableMapOf<EnvironmentVersionsKey, MutableList<String>>()
   private val pinnedVersions = mutableMapOf<EnvironmentVersionsKey, EnvironmentArtifactPin>()
   private val statusByEnvironment = mutableMapOf<EnvironmentVersionsKey, MutableMap<String, PromotionStatus>>()
+  private val vetoReference = mutableMapOf<EnvironmentVersionsKey, MutableMap<String, String>>()
   private val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
 
   private data class VersionsKey(
@@ -164,6 +169,8 @@ class InMemoryArtifactRepository : ArtifactRepository {
     val isNew = !versions.contains(version)
     versions.add(version)
     approvedVersions[key] = versions
+    val statuses = statusByEnvironment.getOrPut(key, ::mutableMapOf)
+    statuses[version] = APPROVED
     return isNew
   }
 
@@ -223,6 +230,109 @@ class InMemoryArtifactRepository : ArtifactRepository {
     statuses[version] = CURRENT
   }
 
+  override fun vetoedEnvironmentVersions(deliveryConfig: DeliveryConfig): List<EnvironmentArtifactVetoes> {
+    val vetoes: MutableMap<EnvironmentVersionsKey, EnvironmentArtifactVetoes> = mutableMapOf()
+
+    deliveryConfig.environments.forEach { environment ->
+      deliveryConfig.artifacts.forEach { artifact ->
+        getId(artifact)
+          ?.let { artifactId ->
+            val key = EnvironmentVersionsKey(artifactId, deliveryConfig, environment.name)
+            statusByEnvironment[key]
+              ?.filter { it.value == VETOED }
+              ?.map {
+                val version = it.key
+                vetoes.getOrPut(key, {
+                  EnvironmentArtifactVetoes(
+                    deliveryConfigName = deliveryConfig.name,
+                    targetEnvironment = environment.name,
+                    artifact = artifact,
+                    versions = mutableSetOf()
+                  )
+                })
+                  .versions.add(version)
+              }
+          }
+      }
+    }
+
+    return vetoes.values.toList()
+  }
+
+  override fun markAsVetoedIn(
+    deliveryConfig: DeliveryConfig,
+    artifact: DeliveryArtifact,
+    version: String,
+    targetEnvironment: String,
+    force: Boolean
+  ): Boolean {
+    val artifactId = getId(artifact) ?: throw NoSuchArtifactException(artifact)
+    val key = EnvironmentVersionsKey(artifactId, deliveryConfig, targetEnvironment)
+    pinnedVersions[key]?.let {
+      if (it.version == version) {
+        log.warn(
+          "Pinned artifact version cannot be vetoed: " +
+            "deliveryConfig=${deliveryConfig.name}, " +
+            "environment=$targetEnvironment, " +
+            "artifactVersion=$version")
+        return false
+      }
+    }
+
+    val ref = vetoReference.getOrPut(key, ::mutableMapOf)
+    if (ref.containsKey(version) && !force) {
+      log.warn(
+        "Not vetoing artifact version as it appears to have already been an automated rollback target: " +
+          "deliveryConfig=${deliveryConfig.name}, " +
+          "environment=$targetEnvironment, " +
+          "artifactVersion=$version, " +
+          "priorVersionReference=${ref[version]}")
+      return false
+    }
+
+    val prior = approvedVersions
+      .getOrDefault(key, mutableListOf())
+      .asSequence()
+      .filter { it != version }
+      .sortedWith(artifact.versioningStrategy.comparator)
+      .firstOrNull()
+
+    if (prior != null) {
+      ref[version] = prior
+      ref[prior] = version
+    } else {
+      ref[version] = version
+    }
+
+    approvedVersions.getOrPut(key, ::mutableListOf).remove(version)
+    deployedVersions.getOrPut(key, ::mutableListOf).remove(version)
+    vetoedVersions.getOrPut(key, ::mutableListOf).add(version)
+
+    val statuses = statusByEnvironment.getOrPut(key, ::mutableMapOf)
+    statuses[version] = VETOED
+    return true
+  }
+
+  override fun deleteVeto(
+    deliveryConfig: DeliveryConfig,
+    artifact: DeliveryArtifact,
+    version: String,
+    targetEnvironment: String
+  ) {
+    val artifactId = getId(artifact) ?: throw NoSuchArtifactException(artifact)
+    val key = EnvironmentVersionsKey(artifactId, deliveryConfig, targetEnvironment)
+    vetoedVersions.getOrPut(key, ::mutableListOf).remove(version)
+    val statuses = statusByEnvironment.getOrPut(key, ::mutableMapOf)
+    statuses[version] = APPROVED
+    approvedVersions.getOrPut(key, ::mutableListOf).add(version)
+    val ref = vetoReference.getOrPut(key, ::mutableMapOf)
+    val prior = ref[version]
+    if (prior != version && ref[prior] == version) {
+      ref.remove(prior)
+    }
+    ref.remove(version)
+  }
+
   override fun markAsDeployingTo(deliveryConfig: DeliveryConfig, artifact: DeliveryArtifact, version: String, targetEnvironment: String) {
     val artifactId = getId(artifact) ?: throw NoSuchArtifactException(artifact)
     val key = EnvironmentVersionsKey(artifactId, deliveryConfig, targetEnvironment)
@@ -244,6 +354,10 @@ class InMemoryArtifactRepository : ArtifactRepository {
             ArtifactVersions(
               name = artifact.name,
               type = artifact.type,
+              statuses = when (artifact) {
+                is DebianArtifact -> artifact.statuses
+                else -> emptySet()
+              },
               versions = ArtifactVersionStatus(
                 current = statuses.filterValues { it == CURRENT }.keys.firstOrNull(),
                 deploying = statuses.filterValues { it == DEPLOYING }.keys.firstOrNull(),
@@ -255,7 +369,9 @@ class InMemoryArtifactRepository : ArtifactRepository {
                   ?.map { it.version }
                   ?.filter { it !in statuses.keys }
                   ?: emptyList(),
-                previous = statuses.filterValues { it == PREVIOUS }.keys.toList()
+                approved = statuses.filterValues { it == APPROVED }.keys.toList(),
+                previous = statuses.filterValues { it == PREVIOUS }.keys.toList(),
+                vetoed = statuses.filterValues { it == VETOED }.keys.toList()
               )
             )
           }

@@ -20,6 +20,7 @@ package com.netflix.spinnaker.keel.docker
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
+import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
 
@@ -40,7 +41,12 @@ class SampleDockerImageResolver(
   override fun getAccountFromSpec(resource: Resource<SampleSpecWithContainer>) =
     resource.spec.account
 
-  override fun updateContainerInSpec(resource: Resource<SampleSpecWithContainer>, container: ContainerProvider) =
+  override fun updateContainerInSpec(
+    resource: Resource<SampleSpecWithContainer>,
+    container: ContainerProvider,
+    artifact: DockerArtifact,
+    tag: String
+  ) =
     resource.copy(spec = resource.spec.copy(container = container))
 
   // this would normally call out to clouddriver
