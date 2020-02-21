@@ -103,6 +103,15 @@ public class EcsCreateServerGroupDescriptionValidator extends CommonValidator {
       rejectValue(errors, "ecsClusterName", "not.nullable");
     }
 
+    if (createServerGroupDescription.getServiceDiscoveryAssociations() != null) {
+      for (CreateServerGroupDescription.ServiceDiscoveryAssociation association :
+          createServerGroupDescription.getServiceDiscoveryAssociations()) {
+        if (association.getRegistry() == null) {
+          rejectValue(errors, "serviceDiscoveryAssociations", "item.invalid");
+        }
+      }
+    }
+
     boolean hasTargetGroup = StringUtils.isNotBlank(createServerGroupDescription.getTargetGroup());
 
     if (!createServerGroupDescription.isUseTaskDefinitionArtifact()) {
