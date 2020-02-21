@@ -18,12 +18,18 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
 import com.netflix.spinnaker.halyard.config.config.v1.ResourceConfig;
 import com.netflix.spinnaker.halyard.config.model.v1.ci.gcb.GoogleCloudBuild;
-import com.netflix.spinnaker.halyard.config.model.v1.node.*;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Artifacts;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Cis;
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Notifications;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Pubsubs;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Telemetry;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -101,12 +107,24 @@ public class EchoProfileFactory extends SpringProfileFactory {
         telemetryVersion = deploymentConfiguration.getVersion();
       }
       telemetry.setSpinnakerVersion(telemetryVersion);
+      telemetry.setDeploymentMethod(deploymentMethod());
       profile.appendContents(
           yamlToString(
               deploymentConfiguration.getName(), profile, new TelemetryWrapper(telemetry)));
     }
 
     profile.appendContents(profile.getBaseContents()).setRequiredFiles(files);
+  }
+
+  private Telemetry.DeploymentMethod deploymentMethod() {
+    return new Telemetry.DeploymentMethod()
+        .setType(Telemetry.DeploymentMethod.HALYARD)
+        .setVersion(halyardVersion());
+  }
+
+  private String halyardVersion() {
+    return Optional.ofNullable(EchoProfileFactory.class.getPackage().getImplementationVersion())
+        .orElse("Unknown");
   }
 
   @Data
