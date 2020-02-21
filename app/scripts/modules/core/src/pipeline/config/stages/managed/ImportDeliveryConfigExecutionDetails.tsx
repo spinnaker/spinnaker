@@ -7,7 +7,6 @@ import { SETTINGS } from 'core/config';
 export function ImportDeliveryConfigExecutionDetails(props: IExecutionDetailsSectionProps) {
   const { stage } = props;
   const trigger = props.execution.trigger as IGitTrigger;
-  const errorDetailsAvailable = stage.isFailed && !stage.failureMessage && stage.context.error;
   const manifestPath =
     SETTINGS.managedDelivery?.manifestBasePath +
     '/' +
@@ -34,16 +33,7 @@ export function ImportDeliveryConfigExecutionDetails(props: IExecutionDetailsSec
         </div>
       </div>
 
-      {errorDetailsAvailable && (
-        <div>
-          <div className="alert alert-danger">
-            Something went wrong during import:
-            <pre>{stage.context.error}</pre>
-          </div>
-        </div>
-      )}
-
-      {stage.failureMessage && <StageFailureMessage stage={stage} message={stage.failureMessage} />}
+      <StageFailureMessage stage={stage} message={stage.context.error || stage.failureMessage} />
     </ExecutionDetailsSection>
   );
 }
