@@ -21,6 +21,9 @@ import com.amazonaws.services.codebuild.model.BatchGetBuildsRequest
 import com.amazonaws.services.codebuild.model.BatchGetBuildsResult
 import com.amazonaws.services.codebuild.model.Build
 import com.amazonaws.services.codebuild.model.BuildArtifacts
+import com.amazonaws.services.codebuild.model.ListProjectsRequest
+import com.amazonaws.services.codebuild.model.ListProjectsResult
+import com.amazonaws.services.codebuild.model.ProjectSortByType
 import com.amazonaws.services.codebuild.model.StartBuildRequest
 import com.amazonaws.services.codebuild.model.StartBuildResult
 import spock.lang.Specification
@@ -143,6 +146,30 @@ class AwsCodeBuildAccountSpec extends Specification {
     result.get(1).getType() == "s3/object"
     result.get(1).getReference() == "s3://another-bucket/another/path/file.zip"
     result.get(1).getName() == "s3://another-bucket/another/path/file.zip"
+  }
+
+  def "getProjects should return all projects in the account"() {
+    given:
+    def firstPage = (1..100).collect{ it.toString() }
+    def secondPage = (101..150).collect{ it.toString() }
+
+    when:
+    def result = awsCodeBuildAccount.getProjects()
+
+    then:
+    1 * client.listProjects(new ListProjectsRequest().withSortBy(ProjectSortByType.NAME)) >> new ListProjectsResult().withProjects(firstPage).withNextToken("nextToken")
+    1 * client.listProjects(new ListProjectsRequest().withSortBy(ProjectSortByType.NAME).withNextToken("nextToken")) >> new ListProjectsResult().withProjects(secondPage)
+    result.size() == 150
+    result == (1..150).collect{ it.toString() }
+  }
+
+  def "getProjects should return empty when no project found"() {
+    when:
+    def result = awsCodeBuildAccount.getProjects()
+
+    then:
+    1 * client.listProjects(new ListProjectsRequest().withSortBy(ProjectSortByType.NAME)) >> new ListProjectsResult().withProjects([])
+    result == []
   }
 
   private static StartBuildRequest getStartBuildInput(String projectName) {

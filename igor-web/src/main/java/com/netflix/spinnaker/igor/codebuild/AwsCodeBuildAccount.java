@@ -22,6 +22,9 @@ import com.amazonaws.services.codebuild.AWSCodeBuildClientBuilder;
 import com.amazonaws.services.codebuild.model.BatchGetBuildsRequest;
 import com.amazonaws.services.codebuild.model.Build;
 import com.amazonaws.services.codebuild.model.BuildArtifacts;
+import com.amazonaws.services.codebuild.model.ListProjectsRequest;
+import com.amazonaws.services.codebuild.model.ListProjectsResult;
+import com.amazonaws.services.codebuild.model.ProjectSortByType;
 import com.amazonaws.services.codebuild.model.StartBuildRequest;
 import com.amazonaws.services.codebuild.model.StopBuildRequest;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
@@ -54,6 +57,25 @@ public class AwsCodeBuildAccount {
                 .withRequestHandlers(new AwsCodeBuildRequestHandler())
                 .withRegion(region)
                 .build();
+  }
+
+  // The number of projects has an upper limit of 5000 per region per account
+  // P99 latency could be high if user has more than 1000 projects
+  public List<String> getProjects() {
+    List<String> projects = new ArrayList<>();
+    String nextToken = null;
+
+    do {
+      ListProjectsResult result =
+          client.listProjects(
+              new ListProjectsRequest()
+                  .withSortBy(ProjectSortByType.NAME)
+                  .withNextToken(nextToken));
+      projects.addAll(result.getProjects());
+      nextToken = result.getNextToken();
+    } while (nextToken != null);
+
+    return projects;
   }
 
   public Build startBuild(StartBuildRequest request) {

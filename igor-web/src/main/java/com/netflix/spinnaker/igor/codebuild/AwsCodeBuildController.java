@@ -40,6 +40,11 @@ public class AwsCodeBuildController {
     return awsCodeBuildAccountRepository.getAccountNames();
   }
 
+  @RequestMapping(value = "/projects/{account}", method = RequestMethod.GET)
+  List<String> getProjects(@PathVariable String account) {
+    return awsCodeBuildAccountRepository.getAccount(account).getProjects();
+  }
+
   @RequestMapping(
       value = "/builds/start/{account}",
       method = RequestMethod.POST,
