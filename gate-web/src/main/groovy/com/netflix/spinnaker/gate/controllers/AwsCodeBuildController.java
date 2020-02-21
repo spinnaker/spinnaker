@@ -36,4 +36,12 @@ public class AwsCodeBuildController {
   List<String> getAccounts() {
     return igorService.getAwsCodeBuildAccounts();
   }
+
+  @ApiOperation(
+      value = "Retrieve the list of AWS CodeBuild projects in the account",
+      response = List.class)
+  @GetMapping(value = "/projects/{account}")
+  List<String> getProjects(@PathVariable String account) {
+    return igorService.getAwsCodeBuildProjects(account);
+  }
 }

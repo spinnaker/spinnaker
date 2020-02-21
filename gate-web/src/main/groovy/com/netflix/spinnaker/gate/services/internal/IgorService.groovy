@@ -77,6 +77,9 @@ interface IgorService {
   @GET('/codebuild/accounts')
   List<String> getAwsCodeBuildAccounts();
 
+  @GET('/codebuild/projects/{account}')
+  List<String> getAwsCodeBuildProjects(@Path("account") String account);
+
   @GET('/artifacts/{provider}/{packageName}')
   List<String> getArtifactVersions(@Path("provider") String provider,
                                    @Path("packageName") String packageName,
