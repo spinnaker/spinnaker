@@ -24,6 +24,7 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.rosco.jobs.BakeRecipe;
 import com.netflix.spinnaker.rosco.manifests.ArtifactDownloader;
 import com.netflix.spinnaker.rosco.manifests.BakeManifestEnvironment;
+import com.netflix.spinnaker.rosco.manifests.config.RoscoHelmConfigurationProperties;
 import java.io.IOException;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.runner.JUnitPlatform;
@@ -34,7 +35,10 @@ final class HelmTemplateUtilsTest {
   @Test
   public void nullReferenceTest() throws IOException {
     ArtifactDownloader artifactDownloader = mock(ArtifactDownloader.class);
-    HelmTemplateUtils helmTemplateUtils = new HelmTemplateUtils(artifactDownloader);
+    RoscoHelmConfigurationProperties helmConfigurationProperties =
+        mock(RoscoHelmConfigurationProperties.class);
+    HelmTemplateUtils helmTemplateUtils =
+        new HelmTemplateUtils(artifactDownloader, helmConfigurationProperties);
     Artifact chartArtifact = Artifact.builder().name("test-artifact").version("3").build();
 
     HelmBakeManifestRequest bakeManifestRequest = new HelmBakeManifestRequest();

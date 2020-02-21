@@ -14,6 +14,7 @@ public class BakeManifestRequest {
 
   public enum TemplateRenderer {
     HELM2,
+    HELM3,
     KUSTOMIZE;
 
     @JsonCreator

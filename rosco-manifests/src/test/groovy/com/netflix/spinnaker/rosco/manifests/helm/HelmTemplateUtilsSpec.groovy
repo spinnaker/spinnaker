@@ -16,7 +16,12 @@
 
 package com.netflix.spinnaker.rosco.manifests.helm
 
+import com.netflix.spinnaker.kork.artifacts.model.Artifact
+import com.netflix.spinnaker.rosco.jobs.BakeRecipe
 import com.netflix.spinnaker.rosco.manifests.ArtifactDownloader
+import com.netflix.spinnaker.rosco.manifests.BakeManifestEnvironment
+import com.netflix.spinnaker.rosco.manifests.BakeManifestRequest
+import com.netflix.spinnaker.rosco.manifests.config.RoscoHelmConfigurationProperties
 import spock.lang.Specification
 
 class HelmTemplateUtilsSpec extends Specification {
@@ -50,7 +55,8 @@ class HelmTemplateUtilsSpec extends Specification {
         """
 
         def artifactDownloader = Mock(ArtifactDownloader)
-        def helmTemplateUtils = new HelmTemplateUtils(artifactDownloader)
+        def helmProperties = Mock(RoscoHelmConfigurationProperties)
+        def helmTemplateUtils = new HelmTemplateUtils(artifactDownloader, helmProperties)
 
         when:
         def output = helmTemplateUtils.removeTestsDirectoryTemplates(inputManifests)
@@ -104,7 +110,8 @@ class HelmTemplateUtilsSpec extends Specification {
         """
 
         def artifactDownloader = Mock(ArtifactDownloader)
-        def helmTemplateUtils = new HelmTemplateUtils(artifactDownloader)
+        def helmProperties = Mock(RoscoHelmConfigurationProperties)
+        def helmTemplateUtils = new HelmTemplateUtils(artifactDownloader, helmProperties)
 
         when:
         def output = helmTemplateUtils.removeTestsDirectoryTemplates(inputManifests)
@@ -138,4 +145,31 @@ class HelmTemplateUtilsSpec extends Specification {
         output.trim() == expected.trim()
     }
 
+    def "buildBakeRecipe selects helm executable based on specified version"() {
+        given:
+        def artifactDownloader = Mock(ArtifactDownloader)
+        def helmProperties = Mock(RoscoHelmConfigurationProperties)
+        def helmTemplateUtils = new HelmTemplateUtils(artifactDownloader, helmProperties)
+        def request = new HelmBakeManifestRequest()
+        def artifact = Mock(Artifact)
+        request.inputArtifacts = [artifact]
+        request.namespace = "default"
+        request.overrides = [:]
+
+        when:
+        request.templateRenderer = templateRenderer
+        BakeRecipe recipe = BakeManifestEnvironment.create().withCloseable { env ->
+            helmTemplateUtils.buildBakeRecipe(env, request)
+        }
+
+        then:
+        (0..1) * helmProperties.v2ExecutablePath >> "helm2"
+        (0..1) * helmProperties.v3ExecutablePath >> "helm3"
+        recipe.command[0] == command
+
+        where:
+        templateRenderer                                | command
+        BakeManifestRequest.TemplateRenderer.HELM2      | "helm2"
+        BakeManifestRequest.TemplateRenderer.HELM3      | "helm3"
+    }
 }
