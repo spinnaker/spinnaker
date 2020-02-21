@@ -1,6 +1,7 @@
 export * from './useContainerClassNames.hook';
 export * from './useData.hook';
 export * from './useDebouncedValue.hook';
+export * from './useDeepObjectDiff.hook';
 export * from './useEventListener.hook';
 export * from './useForceUpdate.hook';
 export * from './useIsMobile.hook';
