@@ -4,6 +4,8 @@ import { ExecutionDetailsSection, IExecutionDetailsSectionProps, StageFailureMes
 import { IGitTrigger } from 'core/domain';
 import { SETTINGS } from 'core/config';
 
+const NOT_FOUND = 'Not found';
+
 export function ImportDeliveryConfigExecutionDetails(props: IExecutionDetailsSectionProps) {
   const { stage } = props;
   const trigger = props.execution.trigger as IGitTrigger;
@@ -18,17 +20,17 @@ export function ImportDeliveryConfigExecutionDetails(props: IExecutionDetailsSec
         <div className="col-md-12">
           <dl className="dl-narrow dl-horizontal">
             <dt>SCM</dt>
-            <dd>{trigger.source}</dd>
+            <dd>{trigger.source ?? NOT_FOUND}</dd>
             <dt>Project</dt>
-            <dd>{trigger.project}</dd>
+            <dd>{trigger.project ?? NOT_FOUND}</dd>
             <dt>Repository</dt>
-            <dd>{trigger.slug}</dd>
+            <dd>{trigger.slug ?? NOT_FOUND}</dd>
             <dt>Manifest Path</dt>
-            <dd>{manifestPath}</dd>
+            <dd>{manifestPath ?? NOT_FOUND}</dd>
             <dt>Branch</dt>
-            <dd>{trigger.branch}</dd>
+            <dd>{trigger.branch ?? NOT_FOUND}</dd>
             <dt>Commit</dt>
-            <dd>{trigger.hash.substring(0, 7)}</dd>
+            <dd>{trigger.hash?.substring(0, 7) ?? NOT_FOUND}</dd>
           </dl>
         </div>
       </div>
