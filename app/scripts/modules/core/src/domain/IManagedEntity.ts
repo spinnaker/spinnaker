@@ -34,3 +34,56 @@ export interface IManagedResource {
   managedResourceSummary?: IManagedResourceSummary;
   isManaged?: boolean;
 }
+
+export enum ManagedResourceEventType {
+  ResourceCreated = 'ResourceCreated',
+  ResourceUpdated = 'ResourceUpdated',
+  ResourceDeleted = 'ResourceDeleted',
+  ResourceMissing = 'ResourceMissing',
+  ResourceValid = 'ResourceValid',
+  ResourceDeltaDetected = 'ResourceDeltaDetected',
+  ResourceDeltaResolved = 'ResourceDeltaResolved',
+  ResourceActuationLaunched = 'ResourceActuationLaunched',
+  ResourceCheckError = 'ResourceCheckError',
+  ResourceCheckUnresolvable = 'ResourceCheckUnresolvable',
+  ResourceActuationPaused = 'ResourceActuationPaused',
+  ResourceActuationResumed = 'ResourceActuationResumed',
+}
+
+export interface IManagedResourceDiff {
+  [fieldName: string]: {
+    key: string;
+    diffType: 'CHANGED' | 'ADDED' | 'REMOVED';
+    desired?: string;
+    actual?: string;
+    fields: IManagedResourceDiff;
+  };
+}
+
+export interface IManagedResourceEvent {
+  type: ManagedResourceEventType;
+  apiVersion: string;
+  kind: string;
+  id: string;
+  application: string;
+  timestamp: string;
+  plugin?: string;
+  tasks?: Array<{ id: string; name: string }>;
+  delta?: IManagedResourceDiff;
+  message?: string;
+  reason?: string;
+}
+
+export type IManagedResourceEventHistory = IManagedResourceEvent[];
+
+export type IManagedResourceEventHistoryResponse = Array<
+  Omit<IManagedResourceEvent, 'delta'> & {
+    delta?: {
+      [key: string]: {
+        state: 'CHANGED' | 'ADDED' | 'REMOVED';
+        desired: string;
+        current: string;
+      };
+    };
+  }
+>;
