@@ -3,15 +3,16 @@ import ReactGA from 'react-ga';
 import { Dropdown, MenuItem } from 'react-bootstrap';
 
 import { SETTINGS } from 'core/config/settings';
-import { HoverablePopover } from 'core/presentation';
-
-import { IManagedResourceSummary } from 'core/domain';
+import { HoverablePopover, Modal } from 'core/presentation';
+import { HelpField } from 'core/help';
 import { Application } from 'core/application';
+import { IManagedResourceSummary } from 'core/domain';
 import { ReactInjector } from 'core/reactShims';
 
-import './ManagedResourceDetailsIndicator.css';
 import { toggleResourcePause } from './toggleResourceManagement';
-import { HelpField } from 'core/help';
+import { ManagedResourceHistoryModal } from './ManagedResourceHistoryModal';
+
+import './ManagedResourceDetailsIndicator.css';
 
 export interface IManagedResourceDetailsIndicatorProps {
   resourceSummary: IManagedResourceSummary;
@@ -29,6 +30,8 @@ export const ManagedResourceDetailsIndicator = ({
   resourceSummary,
   application,
 }: IManagedResourceDetailsIndicatorProps) => {
+  const [showHistoryModal, setShowHistoryModal] = React.useState(false);
+
   if (!resourceSummary) {
     return null;
   }
@@ -99,7 +102,12 @@ export const ManagedResourceDetailsIndicator = ({
               </MenuItem>
             )}
             <li>
-              <a target="_blank" onClick={() => logClick('History', id)} href={`${SETTINGS.gateUrl}/history/${id}`}>
+              <a
+                onClick={() => {
+                  setShowHistoryModal(true);
+                  logClick('History', id);
+                }}
+              >
                 History
               </a>
             </li>
@@ -114,6 +122,9 @@ export const ManagedResourceDetailsIndicator = ({
             </li>
           </Dropdown.Menu>
         </Dropdown>
+        <Modal isOpen={showHistoryModal} onRequestClose={() => setShowHistoryModal(false)}>
+          <ManagedResourceHistoryModal resourceSummary={resourceSummary} />
+        </Modal>
       </div>
     </div>
   );
