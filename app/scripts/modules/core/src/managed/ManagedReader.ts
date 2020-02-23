@@ -1,7 +1,17 @@
 import { IPromise } from 'angular';
+import { get, set, flatMap } from 'lodash';
 
 import { API } from 'core/api';
-import { IManagedApplicationSummary, ManagedResourceStatus } from 'core/domain';
+import {
+  IManagedApplicationSummary,
+  ManagedResourceStatus,
+  IManagedResourceEventHistoryResponse,
+  IManagedResourceEventHistory,
+  IManagedResourceDiff,
+  IManagedResourceEvent,
+} from 'core/domain';
+
+const RESOURCE_DIFF_LIST_MATCHER = /^(.*)\[(.*)\]$/i;
 
 export const getResourceKindForLoadBalancerType = (type: string) => {
   switch (type) {
@@ -13,6 +23,42 @@ export const getResourceKindForLoadBalancerType = (type: string) => {
       return null;
   }
 };
+
+const transformManagedResourceDiff = (diff: IManagedResourceEventHistoryResponse[0]['delta']): IManagedResourceDiff =>
+  Object.keys(diff).reduce((transformed, key) => {
+    const diffNode = diff[key];
+    const fieldKeys = flatMap<string, string>(key.split('/').filter(Boolean), fieldKey => {
+      // Region keys currently come wrapped in {}, which is distracting and not useful. Let's trim those off.
+      if (fieldKey.startsWith('{') && fieldKey.endsWith('}')) {
+        return fieldKey.substring(1, fieldKey.length - 1);
+      }
+
+      // When items are added or removed from lists/sets, the API gives back a key like parentField[listItem].
+      // This trips up our slash-bashed hierarchy and means we need to extract both componnts of the list syntax,
+      // then flatten them out into the array of nested fields
+      const listMatch = fieldKey.match(RESOURCE_DIFF_LIST_MATCHER);
+
+      if (listMatch) {
+        const parentField = listMatch[1];
+        const listItem = listMatch[2];
+
+        return [parentField, listItem];
+      }
+
+      return fieldKey;
+    });
+    const path = `["${fieldKeys.join(`"]["fields"]["`)}"]`;
+
+    const existingTransformedNode: IManagedResourceDiff = get(transformed, path);
+    set(transformed, path, {
+      ...existingTransformedNode,
+      key,
+      diffType: diffNode.state,
+      actual: diffNode.current,
+      desired: diffNode.desired,
+    });
+    return transformed;
+  }, {} as IManagedResourceDiff);
 
 export class ManagedReader {
   public static getApplicationSummary(app: string): IPromise<IManagedApplicationSummary> {
@@ -30,6 +76,20 @@ export class ManagedReader {
         response.resources.forEach(resource => (resource.isPaused = resource.status === ManagedResourceStatus.PAUSED));
 
         return response;
+      });
+  }
+
+  public static getResourceHistory(resourceId: string): IPromise<IManagedResourceEventHistory> {
+    return API.one('history', resourceId)
+      .withParams({ limit: 100 })
+      .get()
+      .then((response: IManagedResourceEventHistoryResponse) => {
+        response.forEach(event => {
+          if (event.delta) {
+            (event as IManagedResourceEvent).delta = transformManagedResourceDiff(event.delta);
+          }
+        });
+        return response as IManagedResourceEventHistory;
       });
   }
 }
