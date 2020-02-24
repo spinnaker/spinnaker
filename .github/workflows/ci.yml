@@ -12,6 +12,7 @@ env:
 
 jobs:
   ci:
+    # Meta-job that depends on the other job statuses.  Branch protection then checks this job status.
     name: Deck CI
     needs: [test, build, functional-tests, packages]
     runs-on: ubuntu-latest
