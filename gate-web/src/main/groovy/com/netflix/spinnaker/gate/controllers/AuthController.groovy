@@ -91,7 +91,7 @@ class AuthController {
   @ApiOperation(value = "Get logged out message", response = String.class)
   @RequestMapping(value = "/loggedOut", method = RequestMethod.GET)
   String loggedOut() {
-    return LOGOUT_MESSAGES[r.nextInt(LOGOUT_MESSAGES.size()+1)]
+    return LOGOUT_MESSAGES[r.nextInt(LOGOUT_MESSAGES.size())]
   }
 
   /**
