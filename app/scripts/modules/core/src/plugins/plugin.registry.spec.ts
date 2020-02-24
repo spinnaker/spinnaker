@@ -2,7 +2,6 @@ import { IStageTypeConfig } from 'core/domain';
 import { API } from '../api';
 import { IDeckPlugin, IPluginManifest, IPluginMetaData, PluginRegistry } from './plugin.registry';
 import { Registry } from 'core/registry';
-import { mock } from 'angular';
 
 type TestPluginRegistry = PluginRegistry & {
   load(pluginManifestData: IPluginManifest): Promise<any>;
@@ -35,14 +34,11 @@ describe('PluginRegistry', () => {
     });
   });
 
-  it(
-    'loadPluginManifestFromDeck() should fetch /plugin-manifest.json from deck assets',
-    mock.inject(async ($http: any) => {
-      const spy = spyOn($http, 'get').and.callFake(() => Promise.resolve({ data: [] }));
-      await pluginRegistry.loadPluginManifestFromDeck();
-      expect(spy).toHaveBeenCalledWith('/plugin-manifest.json');
-    }),
-  );
+  it('loadPluginManifestFromDeck() should import() from /plugin-manifest.js', async () => {
+    loadModuleFromUrlSpy.and.callFake(() => Promise.resolve({ plugins: [] }));
+    await pluginRegistry.loadPluginManifestFromDeck();
+    expect(loadModuleFromUrlSpy).toHaveBeenCalledWith('/plugin-manifest.js');
+  });
 
   it('loadPluginManifestFromGate() should fetch from gate /plugins/deck/plugin-manifest.json', async () => {
     const spy = jasmine.createSpy('get', () => Promise.resolve([])).and.callThrough();

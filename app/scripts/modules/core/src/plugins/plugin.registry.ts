@@ -1,7 +1,6 @@
 import { API } from 'core/api';
 import { Registry } from 'core/registry';
 import { IStageTypeConfig } from 'core/domain';
-import { $http } from 'ngimport';
 
 export interface IDeckPlugin {
   stages?: IStageTypeConfig[];
@@ -92,10 +91,15 @@ export class PluginRegistry {
   /** Loads plugin manifest file served as a custom deck asset */
   public loadPluginManifestFromDeck() {
     const source = 'deck';
-    const uri = '/plugin-manifest.json';
-    const loadPromise = Promise.resolve($http.get<IPluginMetaData[]>(uri))
-      .then(response => response.data)
-      .catch((error: any) => {
+    const uri = '/plugin-manifest.js';
+    const loadPromise = this.loadModuleFromUrl(uri)
+      .then((pluginManifest: IPluginManifest) => {
+        if (!pluginManifest || !pluginManifest.plugins) {
+          throw new Error(`Expected plugin-manifest.js to contain an export named 'plugins' but it did not.`);
+        }
+        return pluginManifest.plugins;
+      })
+      .catch(error => {
         console.error(`Failed to load ${uri} from ${source}`);
         throw error;
       });
