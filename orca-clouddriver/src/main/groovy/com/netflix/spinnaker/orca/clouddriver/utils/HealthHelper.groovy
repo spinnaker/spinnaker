@@ -96,7 +96,7 @@ class HealthHelper {
     }
 
     // no health indicators is indicative of being down
-    boolean someAreDown = !healths || healths.any { it.state == 'Down' || it.state == 'OutOfService' }
+    boolean someAreDown = !healths || healths.any { it.state == 'Down' || it.state == 'OutOfService' || it.state == 'Starting' }
     boolean noneAreUp = !healths.any { it.state == 'Up' }
 
     return someAreDown && noneAreUp
