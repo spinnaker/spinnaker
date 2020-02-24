@@ -13,7 +13,7 @@ env:
 jobs:
   ci:
     name: Deck CI
-    needs: [test, build, packages]
+    needs: [test, build, functional-tests, packages]
     runs-on: ubuntu-latest
     steps:
       - run: echo test, build, packages successful
