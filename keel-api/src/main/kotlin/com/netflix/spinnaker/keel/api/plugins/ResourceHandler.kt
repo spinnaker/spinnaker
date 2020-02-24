@@ -166,5 +166,12 @@ fun Collection<ResourceHandler<*, *>>.supporting(
   }
     ?: throw UnsupportedKind(apiVersion, kind)
 
+fun <T : ResourceSpec> Collection<ResourceHandler<*, *>>.supporting(
+  specClass: Class<T>
+): ResourceHandler<*, *>? =
+  find {
+    it.supportedKind.specClass == specClass
+  }
+
 class UnsupportedKind(apiVersion: String, kind: String) :
   IllegalStateException("No resource handler supporting \"$kind\" in \"$apiVersion\" is available")

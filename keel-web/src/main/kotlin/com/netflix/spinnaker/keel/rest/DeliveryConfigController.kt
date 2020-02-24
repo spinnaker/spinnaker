@@ -73,6 +73,16 @@ class DeliveryConfigController(
   fun diff(@RequestBody deliveryConfig: SubmittedDeliveryConfig): List<EnvironmentDiff> =
     adHocDiffer.calculate(deliveryConfig)
 
+  @PostMapping(
+    path = ["/validate"],
+    consumes = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE],
+    produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
+  )
+  fun validate(@RequestBody deliveryConfig: SubmittedDeliveryConfig) =
+    // TODO: replace with JSON schema/OpenAPI spec validation when ready (for now, leveraging parsing error handling
+    //  in [ExceptionHandler])
+    mapOf("status" to "valid")
+
   @GetMapping(
     path = ["/{name}/artifacts"],
     produces = [APPLICATION_JSON_VALUE, APPLICATION_YAML_VALUE]
