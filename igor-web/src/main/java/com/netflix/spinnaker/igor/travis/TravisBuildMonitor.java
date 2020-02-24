@@ -27,12 +27,14 @@ import com.netflix.spinnaker.igor.build.model.GenericBuild;
 import com.netflix.spinnaker.igor.build.model.GenericProject;
 import com.netflix.spinnaker.igor.config.TravisProperties;
 import com.netflix.spinnaker.igor.history.EchoService;
+import com.netflix.spinnaker.igor.history.model.GenericBuildContent;
+import com.netflix.spinnaker.igor.history.model.GenericBuildEvent;
+import com.netflix.spinnaker.igor.model.BuildServiceProvider;
 import com.netflix.spinnaker.igor.polling.CommonPollingMonitor;
 import com.netflix.spinnaker.igor.polling.DeltaItem;
 import com.netflix.spinnaker.igor.polling.LockService;
 import com.netflix.spinnaker.igor.polling.PollContext;
 import com.netflix.spinnaker.igor.polling.PollingDelta;
-import com.netflix.spinnaker.igor.service.BuildServiceProvider;
 import com.netflix.spinnaker.igor.service.BuildServices;
 import com.netflix.spinnaker.igor.travis.client.model.v3.TravisBuildState;
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Build;
@@ -247,10 +249,16 @@ public class TravisBuildMonitor
             kv("master", master));
 
         GenericProject project = new GenericProject(branchedSlug, buildDelta.getGenericBuild());
-        TravisBuildContent content = new TravisBuildContent(project, master);
 
-        AuthenticatedRequest.allowAnonymous(
-            () -> echoService.get().postEvent(new TravisBuildEvent(content)));
+        GenericBuildContent content = new GenericBuildContent();
+        content.setProject(project);
+        content.setMaster(master);
+        content.setType("travis");
+
+        GenericBuildEvent event = new GenericBuildEvent();
+        event.setContent(content);
+
+        AuthenticatedRequest.allowAnonymous(() -> echoService.get().postEvent(event));
       } else {
         log.warn("Cannot send build event notification: Echo is not configured");
         log.info(

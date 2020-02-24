@@ -36,10 +36,10 @@ import com.netflix.spinnaker.igor.concourse.client.model.Pipeline;
 import com.netflix.spinnaker.igor.concourse.client.model.Resource;
 import com.netflix.spinnaker.igor.concourse.client.model.Team;
 import com.netflix.spinnaker.igor.config.ConcourseProperties;
+import com.netflix.spinnaker.igor.model.BuildServiceProvider;
 import com.netflix.spinnaker.igor.service.ArtifactDecorator;
 import com.netflix.spinnaker.igor.service.BuildOperations;
 import com.netflix.spinnaker.igor.service.BuildProperties;
-import com.netflix.spinnaker.igor.service.BuildServiceProvider;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
@@ -144,7 +144,7 @@ public class ConcourseService implements BuildOperations, BuildProperties {
   public GenericBuild getGenericBuild(String jobPath, Build b, boolean fetchResources) {
     Job job = toJob(jobPath);
 
-    GenericBuild build = GenericBuild.builder().build();
+    GenericBuild build = new GenericBuild();
     build.setId(b.getId());
     build.setBuilding(false);
     build.setNumber(b.getNumber());

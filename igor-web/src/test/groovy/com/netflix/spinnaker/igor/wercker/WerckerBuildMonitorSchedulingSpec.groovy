@@ -11,7 +11,7 @@ package com.netflix.spinnaker.igor.wercker
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.config.WerckerProperties
-import com.netflix.spinnaker.igor.service.BuildServiceProvider
+import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.service.BuildServices
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
 

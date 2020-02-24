@@ -20,7 +20,8 @@ import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.config.JenkinsProperties
 import com.netflix.spinnaker.igor.jenkins.client.model.ProjectsList
-import com.netflix.spinnaker.igor.service.BuildServiceProvider
+import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
+import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.service.BuildServices
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
 import rx.schedulers.TestScheduler

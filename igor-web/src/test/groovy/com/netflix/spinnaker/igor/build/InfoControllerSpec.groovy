@@ -21,8 +21,8 @@ import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.igor.config.GoogleCloudBuildProperties
 import com.netflix.spinnaker.igor.config.JenkinsConfig
 import com.netflix.spinnaker.igor.config.JenkinsProperties
-import com.netflix.spinnaker.igor.jenkins.JenkinsService
-import com.netflix.spinnaker.igor.service.BuildServiceProvider
+import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
+import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.service.BuildOperations
 import com.netflix.spinnaker.igor.service.BuildServices
 import com.netflix.spinnaker.igor.travis.service.TravisService
@@ -39,7 +39,6 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-
 /**
  * tests for the info controller
  */
@@ -241,12 +240,33 @@ class InfoControllerSpec extends Specification {
             .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
-        jenkinsService.getJobNames() >> [
-          'job1',
-          'job2',
-          'job3'
-        ]
+        jenkinsService.getJobs() >> ['list': [
+            ['name': 'job1'],
+            ['name': 'job2'],
+            ['name': 'job3']
+        ]]
         response.contentAsString == '["job1","job2","job3"]'
+    }
+
+    void 'is able to get jobs for a jenkins master with the folders plugin'() {
+        given:
+        JenkinsService jenkinsService = Stub(JenkinsService)
+        createMocks(['master1': jenkinsService])
+
+        when:
+        MockHttpServletResponse response = mockMvc.perform(get('/jobs/master1/')
+            .accept(MediaType.APPLICATION_JSON)).andReturn().response
+
+        then:
+        jenkinsService.getBuildServiceProvider() >> BuildServiceProvider.JENKINS
+        jenkinsService.getJobs() >> ['list': [
+            ['name': 'folder', 'list': [
+                ['name': 'job1'],
+                ['name': 'job2']
+            ] ],
+            ['name': 'job3']
+        ]]
+        response.contentAsString == '["folder/job/job1","folder/job/job2","job3"]'
     }
 
     void 'is able to get jobs for a travis master'() {
@@ -277,8 +297,9 @@ class InfoControllerSpec extends Specification {
 
         then:
         werckerService.getBuildServiceProvider() >> BuildServiceProvider.WERCKER
-        werckerService.getJobNames() >> [werckerJob]
+        werckerService.getJobs() >> [werckerJob]
         response.contentAsString == '["' + werckerJob + '"]'
+
     }
 
     private void setResponse(String body) {

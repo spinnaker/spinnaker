@@ -19,7 +19,6 @@ package com.netflix.spinnaker.igor.build.model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-/** TODO(rz): Jenkins in wrong module. */
 @Data
 @AllArgsConstructor
 public class GenericProject {

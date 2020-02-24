@@ -26,7 +26,10 @@ import com.netflix.spinnaker.igor.build.model.GenericGitRevision;
 import com.netflix.spinnaker.igor.build.model.GenericJobConfiguration;
 import com.netflix.spinnaker.igor.build.model.JobConfiguration;
 import com.netflix.spinnaker.igor.build.model.Result;
-import com.netflix.spinnaker.igor.service.*;
+import com.netflix.spinnaker.igor.model.BuildServiceProvider;
+import com.netflix.spinnaker.igor.service.ArtifactDecorator;
+import com.netflix.spinnaker.igor.service.BuildOperations;
+import com.netflix.spinnaker.igor.service.BuildProperties;
 import com.netflix.spinnaker.igor.travis.TravisCache;
 import com.netflix.spinnaker.igor.travis.client.TravisClient;
 import com.netflix.spinnaker.igor.travis.client.logparser.ArtifactParser;
@@ -66,9 +69,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit.RetrofitError;
 
-/** TODO(rz): The generic type of QueuingSupport isn't very good. */
-public class TravisService
-    implements BuildOperations, BuildProperties, BuildQueueOperations<Map<String, Integer>> {
+public class TravisService implements BuildOperations, BuildProperties {
 
   static final int TRAVIS_BUILD_RESULT_LIMIT = 100;
 
@@ -493,9 +494,8 @@ public class TravisService
     return baseUrl + "/" + repoSlug;
   }
 
-  @Override
-  public Map<String, Integer> getQueuedBuild(String queueId) {
-    Map<String, Integer> queuedJob = travisCache.getQueuedJob(groupKey, Integer.parseInt(queueId));
+  public Map<String, Integer> queuedBuild(int queueId) {
+    Map<String, Integer> queuedJob = travisCache.getQueuedJob(groupKey, queueId);
     Request requestResponse =
         travisClient.request(
             getAccessToken(), queuedJob.get("repositoryId"), queuedJob.get("requestId"));
@@ -507,7 +507,7 @@ public class TravisService
           requestResponse.getBuilds().get(0).getNumber(),
           queueId,
           groupKey);
-      travisCache.removeQuededJob(groupKey, Integer.parseInt(queueId));
+      travisCache.removeQuededJob(groupKey, queueId);
       LinkedHashMap<String, Integer> map = new LinkedHashMap<>(1);
       map.put("number", requestResponse.getBuilds().get(0).getNumber());
       return map;

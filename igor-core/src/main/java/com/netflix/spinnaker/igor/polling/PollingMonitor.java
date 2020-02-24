@@ -27,7 +27,6 @@ public interface PollingMonitor extends ApplicationListener<RemoteStatusChangedE
 
   Long getLastPoll();
 
-  /** TODO(rz): Duration. This value is used as seconds. */
   int getPollInterval();
 
   boolean isPollingEnabled();

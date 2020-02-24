@@ -29,12 +29,14 @@ import com.netflix.spinnaker.igor.gitlabci.service.GitlabCiPipelineUtis;
 import com.netflix.spinnaker.igor.gitlabci.service.GitlabCiResultConverter;
 import com.netflix.spinnaker.igor.gitlabci.service.GitlabCiService;
 import com.netflix.spinnaker.igor.history.EchoService;
+import com.netflix.spinnaker.igor.history.model.GenericBuildContent;
+import com.netflix.spinnaker.igor.history.model.GenericBuildEvent;
+import com.netflix.spinnaker.igor.model.BuildServiceProvider;
 import com.netflix.spinnaker.igor.polling.CommonPollingMonitor;
 import com.netflix.spinnaker.igor.polling.DeltaItem;
 import com.netflix.spinnaker.igor.polling.LockService;
 import com.netflix.spinnaker.igor.polling.PollContext;
 import com.netflix.spinnaker.igor.polling.PollingDelta;
-import com.netflix.spinnaker.igor.service.BuildServiceProvider;
 import com.netflix.spinnaker.igor.service.BuildServices;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.util.ArrayList;
@@ -225,10 +227,14 @@ public class GitlabCiBuildMonitor
             slug,
             GitlabCiPipelineUtis.genericBuild(pipeline, project.getPathWithNamespace(), address));
 
-    GitlabCiBuildContent content = new GitlabCiBuildContent(master, genericProject);
+    GenericBuildContent content = new GenericBuildContent();
+    content.setMaster(master);
+    content.setType("gitlab-ci");
+    content.setProject(genericProject);
 
-    AuthenticatedRequest.allowAnonymous(
-        () -> echoService.get().postEvent(new GitlabCiBuildEvent(content)));
+    GenericBuildEvent event = new GenericBuildEvent();
+    event.setContent(content);
+    AuthenticatedRequest.allowAnonymous(() -> echoService.get().postEvent(event));
   }
 
   @Override

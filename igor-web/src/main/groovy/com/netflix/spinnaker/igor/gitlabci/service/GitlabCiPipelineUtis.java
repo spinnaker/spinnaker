@@ -27,23 +27,23 @@ public class GitlabCiPipelineUtis {
   }
 
   public static GenericBuild genericBuild(Pipeline pipeline, String repoSlug, String baseUrl) {
-    GenericBuild.GenericBuildBuilder builder =
-        GenericBuild.builder()
-            .building(GitlabCiResultConverter.running(pipeline.getStatus()))
-            .number(pipeline.getId())
-            .duration(pipeline.getDuration())
-            .result(GitlabCiResultConverter.getResultFromGitlabCiState(pipeline.getStatus()))
-            .name(repoSlug)
-            .url(url(repoSlug, baseUrl, pipeline.getId()));
+    GenericBuild genericBuild = new GenericBuild();
+    genericBuild.setBuilding(GitlabCiResultConverter.running(pipeline.getStatus()));
+    genericBuild.setNumber(pipeline.getId());
+    genericBuild.setDuration(pipeline.getDuration());
+    genericBuild.setResult(
+        GitlabCiResultConverter.getResultFromGitlabCiState(pipeline.getStatus()));
+    genericBuild.setName(repoSlug);
+    genericBuild.setUrl(url(repoSlug, baseUrl, pipeline.getId()));
 
     if (pipeline.getFinishedAt() != null) {
-      builder.timestamp(Long.toString(pipeline.getFinishedAt().getTime()));
+      genericBuild.setTimestamp(Long.toString(pipeline.getFinishedAt().getTime()));
     }
 
-    return builder.build();
+    return genericBuild;
   }
 
   private static String url(final String repoSlug, final String baseUrl, final int id) {
-    return baseUrl + "/" + repoSlug + "/pipelines/" + id;
+    return baseUrl + "/" + repoSlug + "/pipelines/" + String.valueOf(id);
   }
 }

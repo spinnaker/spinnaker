@@ -18,10 +18,10 @@
 package com.netflix.spinnaker.igor.build
 
 import com.netflix.spinnaker.igor.config.GoogleCloudBuildProperties
-import com.netflix.spinnaker.igor.service.BuildServiceProvider
+import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
+import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.service.BuildService
 import com.netflix.spinnaker.igor.service.BuildServices
-import com.netflix.spinnaker.igor.service.JobNamesProvider
 import com.netflix.spinnaker.igor.wercker.WerckerService
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import groovy.util.logging.Slf4j
@@ -38,7 +38,7 @@ import org.springframework.web.servlet.HandlerMapping
 import javax.servlet.http.HttpServletRequest
 
 /**
- * A controller that provides build service information
+ * A controller that provides jenkins information
  */
 @RestController
 @Slf4j
@@ -85,10 +85,31 @@ class InfoController {
             throw new NotFoundException("Master '${master}' does not exist")
         }
 
-        if (buildService instanceof JobNamesProvider) {
-          return buildService.getJobNames()
+        if (buildService instanceof JenkinsService) {
+            JenkinsService jenkinsService = (JenkinsService) buildService
+            def jobList = []
+            def recursiveGetJobs
+
+            recursiveGetJobs = { list, prefix = "" ->
+                if (prefix) {
+                    prefix = prefix + "/job/"
+                }
+                list.each {
+                    if (it.list == null || it.list.empty) {
+                        jobList << prefix + it.name
+                    } else {
+                        recursiveGetJobs(it.list, prefix + it.name)
+                    }
+                }
+            }
+            recursiveGetJobs(jenkinsService.jobs.list)
+
+            return jobList
+        } else if (buildService instanceof WerckerService) {
+            WerckerService werckerService = (WerckerService) buildService
+            return werckerService.getJobs()
         } else {
-          return buildCache.getJobNames(master)
+            return buildCache.getJobNames(master)
         }
     }
 

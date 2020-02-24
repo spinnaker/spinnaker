@@ -67,7 +67,7 @@ public class IgorConfigurationProperties {
        */
       private int pollInterval = 60;
 
-      /** TODO(jc): Please document TODO(rz): Duration */
+      /** TODO(jc): Please document */
       private int lookBackWindowMins = 10 * 60 * 60;
 
       /** TODO(jc): Please document */

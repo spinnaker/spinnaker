@@ -28,7 +28,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class NexusAssetEvent implements Event {
+public class NexusAssetEvent extends Event {
   private final Content content;
   private final Map<String, String> details =
       ImmutableMap.<String, String>builder().put("type", "nexus").put("source", "igor").build();

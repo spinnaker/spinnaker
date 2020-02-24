@@ -26,6 +26,8 @@ import com.netflix.spinnaker.igor.concourse.client.model.Job;
 import com.netflix.spinnaker.igor.concourse.service.ConcourseService;
 import com.netflix.spinnaker.igor.config.ConcourseProperties;
 import com.netflix.spinnaker.igor.history.EchoService;
+import com.netflix.spinnaker.igor.history.model.GenericBuildContent;
+import com.netflix.spinnaker.igor.history.model.GenericBuildEvent;
 import com.netflix.spinnaker.igor.polling.*;
 import com.netflix.spinnaker.igor.service.BuildServices;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
@@ -181,10 +183,15 @@ public class ConcourseBuildMonitor
           new GenericProject(
               job.getTeamName() + "/" + job.getPipelineName() + "/" + job.getName(), build);
 
-      ConcourseBuildContent content = new ConcourseBuildContent(project, host.getName());
+      GenericBuildContent content = new GenericBuildContent();
+      content.setProject(project);
+      content.setMaster("concourse-" + host.getName());
+      content.setType("concourse");
 
-      AuthenticatedRequest.allowAnonymous(
-          () -> echoService.get().postEvent(new ConcourseBuildEvent(content)));
+      GenericBuildEvent event = new GenericBuildEvent();
+      event.setContent(content);
+
+      AuthenticatedRequest.allowAnonymous(() -> echoService.get().postEvent(event));
     } else {
       log.warn("Cannot send build event notification: Echo is not configured");
       log.info("({}) unable to push event for :" + build.getFullDisplayName());

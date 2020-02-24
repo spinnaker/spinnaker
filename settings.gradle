@@ -19,7 +19,6 @@ rootProject.name='igor'
 include 'igor-bom',
   'igor-core',
   'igor-monitor-artifactory',
-  'igor-monitor-jenkins',
   'igor-web'
 
 def setBuildFile(project) {

@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.igor.config;
 
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
+import com.netflix.spinnaker.igor.model.BuildServiceProvider;
 import com.netflix.spinnaker.igor.service.BuildService;
-import com.netflix.spinnaker.igor.service.BuildServiceProvider;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.Data;

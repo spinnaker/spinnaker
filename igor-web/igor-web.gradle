@@ -18,8 +18,8 @@ test {
 dependencies {
     implementation project(":igor-core")
     implementation project(":igor-monitor-artifactory")
-    implementation project(":igor-monitor-jenkins")
 
+    implementation platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
     compileOnly "org.projectlombok:lombok"
     annotationProcessor platform("com.netflix.spinnaker.kork:kork-bom:$korkVersion")
     annotationProcessor "org.projectlombok:lombok"

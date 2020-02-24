@@ -21,11 +21,13 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 
+@EqualsAndHashCode(callSuper = true)
 @RequiredArgsConstructor
 @Data
-public class ArtifactoryEvent implements Event {
+public class ArtifactoryEvent extends Event {
   private final Content content;
   private final Map<String, String> details =
       ImmutableMap.<String, String>builder()

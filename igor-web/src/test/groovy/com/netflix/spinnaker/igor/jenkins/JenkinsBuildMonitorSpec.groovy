@@ -24,6 +24,7 @@ import com.netflix.spinnaker.igor.history.model.Event
 import com.netflix.spinnaker.igor.jenkins.client.model.Build
 import com.netflix.spinnaker.igor.jenkins.client.model.Project
 import com.netflix.spinnaker.igor.jenkins.client.model.ProjectsList
+import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.polling.PollContext
 import com.netflix.spinnaker.igor.service.BuildServices
 import org.slf4j.Logger
@@ -56,9 +57,7 @@ class JenkinsBuildMonitorSpec extends Specification {
             buildServices,
             true,
             Optional.of(echoService),
-            new JenkinsProperties(masters: [
-              new JenkinsProperties.JenkinsHost(name: MASTER, address: "http://example.net")
-            ])
+            new JenkinsProperties()
         )
 
         monitor.worker = Schedulers.immediate().createWorker()
@@ -262,13 +261,18 @@ class JenkinsBuildMonitorSpec extends Specification {
             new Build(number: 3, timestamp: nowMinus30min, building: false, result: 'SUCCESS', duration: durationOf1min)
         ]
 
+        and:
+        monitor.log = Mock(Logger);
+
         when:
         monitor.pollSingle(new PollContext(MASTER))
 
         then: 'Builds are processed for job1'
         1 * echoService.postEvent({ it.content.project.name == 'job1'} as Event)
 
-        and: 'no builds are processed for job2 due to errors'
+        and: 'Errors are logged for job2; no builds are processed'
+        1 * monitor.log.error('Error communicating with jenkins for [{}:{}]: {}', _)
+        1 * monitor.log.error('Error processing builds for [{}:{}]', _)
         0 * echoService.postEvent({ it.content.project.name == 'job2'} as Event)
 
         and: 'Builds are not processed for job3'
