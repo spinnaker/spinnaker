@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.kork.plugins.update.front50
+package com.netflix.spinnaker.kork.plugins.update.repository
 
 import com.netflix.spinnaker.kork.exceptions.SystemException
+import com.netflix.spinnaker.kork.plugins.update.internal.Front50Service
 import com.netflix.spinnaker.kork.plugins.update.SpinnakerPluginInfo
 import org.pf4j.update.FileDownloader
 import org.pf4j.update.FileVerifier

@@ -12,25 +12,18 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
+package com.netflix.spinnaker.kork.plugins.update.internal
 
-package com.netflix.spinnaker.kork.plugins.update.front50
-
-import com.netflix.spinnaker.kork.plugins.update.SpinnakerPluginInfo
-import retrofit2.Call
-import retrofit2.http.GET
-import retrofit2.http.Path
+import okhttp3.OkHttpClient
 
 /**
- * List and get plugin info objects from Front50. Used in conjunction with [Front50UpdateRepository]
- * to populate a services plugin info cache to determine which plugins to load.
+ * Provider class for [OkHttpClient] to use in the plugin framework.
+ *
+ * We need to share an OkHttpClient around the plugin framework codebase, but we don't want to wire up an OkHttpClient
+ * Bean, since we would risk changing existing service configuration behavior. This class just wraps a single
+ * configured instance of OkHttpClient.
  */
-interface Front50Service {
-
-  @GET("/pluginInfo/{id}")
-  fun getById(@Path("id") id: String): Call<SpinnakerPluginInfo>
-
-  @GET("/pluginInfo")
-  fun listAll(): Call<Collection<SpinnakerPluginInfo>>
-}
+class PluginOkHttpClientProvider(
+  val okHttpClient: OkHttpClient
+)

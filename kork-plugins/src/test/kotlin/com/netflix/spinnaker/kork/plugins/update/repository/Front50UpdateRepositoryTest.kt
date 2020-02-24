@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.kork.plugins.update.front50
+package com.netflix.spinnaker.kork.plugins.update.repository
 
 import com.netflix.spinnaker.kork.exceptions.SystemException
 import com.netflix.spinnaker.kork.plugins.update.SpinnakerPluginInfo
 import com.netflix.spinnaker.kork.plugins.update.SpinnakerPluginInfo.SpinnakerPluginRelease
 import com.netflix.spinnaker.kork.plugins.update.SpinnakerPluginInfo.SpinnakerPluginRelease.State
+import com.netflix.spinnaker.kork.plugins.update.internal.Front50Service
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
@@ -76,11 +77,11 @@ class Front50UpdateRepositoryTest : JUnit5Minutests {
     val pluginReleaseState = State.CANDIDATE
 
     val subject = Front50UpdateRepository(
-      repositoryName,
-      front50Url,
-      SimpleFileDownloader(),
-      CompoundVerifier(),
-      front50Service
+            repositoryName,
+            front50Url,
+            SimpleFileDownloader(),
+            CompoundVerifier(),
+            front50Service
     )
 
     val plugin = SpinnakerPluginInfo()

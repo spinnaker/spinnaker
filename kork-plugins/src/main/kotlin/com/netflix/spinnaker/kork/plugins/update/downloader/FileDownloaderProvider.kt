@@ -22,20 +22,20 @@ import com.netflix.spinnaker.config.PluginsConfigurationProperties.PluginReposit
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import com.netflix.spinnaker.kork.plugins.config.Configurable
 import org.pf4j.update.FileDownloader
-import org.pf4j.update.SimpleFileDownloader
 import org.pf4j.update.UpdateRepository
 
-object FileDownloaderProvider {
+class FileDownloaderProvider(
+  private val compositeFileDownloader: CompositeFileDownloader
+) {
 
   private val mapper: ObjectMapper = ObjectMapper().registerModule(KotlinModule())
 
   /**
    * Get a [FileDownloader] for the [UpdateRepository].
    */
-  @JvmStatic
   fun get(fileDownloaderProperties: FileDownloaderProperties?): FileDownloader {
     if (fileDownloaderProperties?.className == null) {
-      return SimpleFileDownloader()
+      return compositeFileDownloader
     }
 
     val downloaderClass = javaClass.classLoader.loadClass(fileDownloaderProperties.className)

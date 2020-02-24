@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.kork.plugins.update
+package com.netflix.spinnaker.kork.plugins.update.repository
 
 import org.pf4j.update.DefaultUpdateRepository
 import org.pf4j.update.FileDownloader

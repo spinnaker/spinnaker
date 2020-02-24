@@ -19,7 +19,6 @@ package com.netflix.spinnaker.kork.plugins.update.downloader
 import com.netflix.spinnaker.config.PluginsConfigurationProperties
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import org.pf4j.update.SimpleFileDownloader
 import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
@@ -29,7 +28,7 @@ class FileDownloaderProviderTest : JUnit5Minutests {
   fun tests() = rootContext<FileDownloaderProvider> {
     context("file download provider") {
       fixture {
-        FileDownloaderProvider
+        FileDownloaderProvider(CompositeFileDownloader(listOf()))
       }
 
       test("creates the ProcessFileDownloader with custom config") {
@@ -42,9 +41,9 @@ class FileDownloaderProviderTest : JUnit5Minutests {
           .get { config.command }.isEqualTo("curl -O")
       }
 
-      test("defaults to SimpleFileDownloader") {
+      test("defaults to CompositeFileDownloader") {
         expectThat(get(null))
-          .isA<SimpleFileDownloader>()
+          .isA<CompositeFileDownloader>()
       }
     }
   }
