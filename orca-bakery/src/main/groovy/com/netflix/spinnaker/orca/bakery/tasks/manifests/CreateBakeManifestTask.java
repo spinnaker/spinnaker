@@ -124,6 +124,7 @@ public class CreateBakeManifestTask implements RetryableTask {
 
     BakeManifestRequest request;
     switch (context.getTemplateRenderer().toUpperCase()) {
+      case "HELM3":
       case "HELM2":
         request =
             new HelmBakeManifestRequest(
