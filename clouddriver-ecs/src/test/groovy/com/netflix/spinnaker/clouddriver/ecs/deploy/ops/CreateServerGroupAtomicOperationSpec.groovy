@@ -319,6 +319,28 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
     request.getRole() == null
   }
 
+  def 'should create services with multiple load balancers without a role'() {
+    given:
+    def description = Mock(CreateServerGroupDescription)
+
+    description.getApplication() >> 'mygreatapp'
+    description.getStack() >> 'stack1'
+    description.getFreeFormDetails() >> 'details2'
+    description.getTargetGroup() >> null
+
+    def operation = new CreateServerGroupAtomicOperation(description)
+
+    when:
+    def request = operation.makeServiceRequest('task-def-arn',
+      'arn:aws:iam::test:test-role',
+      'mygreatapp-stack1-details2-v0011',
+      1)
+
+    then:
+    request.getLoadBalancers() == []
+    request.getRole() == null
+  }
+
   def 'should create default Docker labels'() {
     given:
     def description = Mock(CreateServerGroupDescription)
@@ -908,7 +930,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
       request.loadBalancers.get(1).containerPort == 80
       request.serviceRegistries == []
       request.desiredCount == 3
-      request.role == 'arn:aws:iam::test:test-role'
+      request.role == null
       request.placementConstraints.size() == 1
       request.placementConstraints.get(0).type == 'memberOf'
       request.placementConstraints.get(0).expression == 'attribute:ecs.instance-type =~ t2.*'
@@ -1156,7 +1178,7 @@ class CreateServerGroupAtomicOperationSpec extends CommonAtomicOperation {
       request.loadBalancers.get(1).containerPort == 80
       request.serviceRegistries == []
       request.desiredCount == 3
-      request.role == 'arn:aws:iam::test:test-role'
+      request.role == null
       request.placementConstraints.size() == 1
       request.placementConstraints.get(0).type == 'memberOf'
       request.placementConstraints.get(0).expression == 'attribute:ecs.instance-type =~ t2.*'

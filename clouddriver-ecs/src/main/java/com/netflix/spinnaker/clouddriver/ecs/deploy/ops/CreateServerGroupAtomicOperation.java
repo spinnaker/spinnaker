@@ -520,7 +520,7 @@ public class CreateServerGroupAtomicOperation
     // N/A for non-load-balanced services
     // Services using awsvpc mode must not specify a role in order to use the
     // ECS service-linked role
-    if (!AWSVPC_NETWORK_MODE.equals(description.getNetworkMode()) && !loadBalancers.isEmpty()) {
+    if (!AWSVPC_NETWORK_MODE.equals(description.getNetworkMode()) && loadBalancers.size() == 1) {
       request.withRole(ecsServiceRole);
     }
 
