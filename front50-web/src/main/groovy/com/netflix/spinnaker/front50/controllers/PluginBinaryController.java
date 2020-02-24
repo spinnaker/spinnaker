@@ -18,15 +18,14 @@ package com.netflix.spinnaker.front50.controllers;
 import static java.lang.String.format;
 
 import com.google.common.hash.Hashing;
-import com.google.common.io.ByteStreams;
 import com.netflix.spinnaker.front50.plugins.PluginBinaryStorageService;
 import com.netflix.spinnaker.kork.exceptions.SystemException;
-import java.io.InputStream;
 import java.util.Optional;
 import lombok.SneakyThrows;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/pluginBinaries")
@@ -45,8 +44,8 @@ public class PluginBinaryController {
       @PathVariable String id,
       @PathVariable String version,
       @RequestParam("sha512sum") String sha512sum,
-      InputStream body) {
-    byte[] bytes = ByteStreams.toByteArray(body);
+      @RequestParam("plugin") MultipartFile body) {
+    byte[] bytes = body.getBytes();
     verifyChecksum(bytes, sha512sum);
     storageService().store(getKey(id, version), bytes);
   }
