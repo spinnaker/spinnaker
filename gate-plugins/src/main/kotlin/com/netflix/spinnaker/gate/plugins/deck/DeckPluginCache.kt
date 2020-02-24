@@ -49,10 +49,10 @@ class DeckPluginCache(
    * Refreshes the local file cache of _current_ plugins. Should Deck need plugin assets from an older plugin release
    * version, it will be downloaded and cached on-demand.
    *
-   * The default refresh interval is 5 minutes.
+   * The default refresh interval is every minute.
    */
   @Scheduled(
-    fixedDelayString = "\${spinnaker.extensibility.deck-proxy.cache-refresh-interval-ms:300000}",
+    fixedDelayString = "\${spinnaker.extensibility.deck-proxy.cache-refresh-interval-ms:60000}",
     initialDelay = 0
   )
   internal fun refresh() {
