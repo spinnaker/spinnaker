@@ -25,7 +25,6 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.deck.DeckDocker
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.DeckService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedService.DeployPriority;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.KubernetesSharedServiceSettings;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -81,14 +80,7 @@ public class KubernetesV2DeckService extends DeckService
   }
 
   @Override
-  public ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-    KubernetesSharedServiceSettings kubernetesSharedServiceSettings =
-        new KubernetesSharedServiceSettings(deploymentConfiguration);
-    ServiceSettings settings = defaultServiceSettings(deploymentConfiguration);
-    settings
-        .setArtifactId(getArtifactId(deploymentConfiguration))
-        .setLocation(kubernetesSharedServiceSettings.getDeployLocation())
-        .setEnabled(true);
-    return settings;
+  public Optional<String> buildAddress(String namespace) {
+    return Optional.empty();
   }
 }

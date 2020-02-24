@@ -25,11 +25,11 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.GateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedService.DeployPriority;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.KubernetesSharedServiceSettings;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Delegate;
@@ -53,15 +53,8 @@ public class KubernetesV2GateService extends GateService
   }
 
   @Override
-  public ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-    KubernetesSharedServiceSettings kubernetesSharedServiceSettings =
-        new KubernetesSharedServiceSettings(deploymentConfiguration);
-    ServiceSettings settings = defaultServiceSettings(deploymentConfiguration);
-    settings
-        .setArtifactId(getArtifactId(deploymentConfiguration))
-        .setLocation(kubernetesSharedServiceSettings.getDeployLocation())
-        .setEnabled(true);
-    return settings;
+  public Optional<String> buildAddress(String namespace) {
+    return Optional.empty();
   }
 
   @Override

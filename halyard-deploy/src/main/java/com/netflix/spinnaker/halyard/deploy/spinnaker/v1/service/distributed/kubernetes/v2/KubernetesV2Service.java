@@ -57,6 +57,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -751,8 +752,8 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T>, Kubernete
     return result;
   }
 
-  default String buildAddress(String namespace) {
-    return Strings.join(".", getServiceName(), namespace);
+  default Optional<String> buildAddress(String namespace) {
+    return Optional.of(Strings.join(".", getServiceName(), namespace));
   }
 
   default ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
@@ -761,10 +762,10 @@ public interface KubernetesV2Service<T> extends HasServiceSettings<T>, Kubernete
     ServiceSettings settings = defaultServiceSettings(deploymentConfiguration);
     String location = kubernetesSharedServiceSettings.getDeployLocation();
     settings
-        .setAddress(buildAddress(location))
         .setArtifactId(getArtifactId(deploymentConfiguration))
         .setLocation(location)
         .setEnabled(isEnabled(deploymentConfiguration));
+    buildAddress(location).ifPresent(settings::setAddress);
     if (runsOnJvm()) {
       // Use half the available memory allocated to the container for the JVM heap
       settings.getEnv().put("JAVA_OPTS", "-XX:MaxRAMPercentage=50.0");
