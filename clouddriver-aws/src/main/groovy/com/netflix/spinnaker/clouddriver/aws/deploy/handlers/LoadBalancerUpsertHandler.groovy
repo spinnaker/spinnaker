@@ -23,13 +23,17 @@ import com.amazonaws.services.elasticloadbalancing.model.CreateLoadBalancerListe
 import com.amazonaws.services.elasticloadbalancing.model.CreateLoadBalancerRequest
 import com.amazonaws.services.elasticloadbalancing.model.DeleteLoadBalancerListenersRequest
 import com.amazonaws.services.elasticloadbalancing.model.Listener
+import com.amazonaws.services.elasticloadbalancing.model.ListenerDescription
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerAttributes
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
 import com.amazonaws.services.elasticloadbalancing.model.ModifyLoadBalancerAttributesRequest
+import com.amazonaws.services.elasticloadbalancing.model.SetLoadBalancerPoliciesOfListenerRequest
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationException
+import groovy.util.logging.Slf4j
 
+@Slf4j
 class LoadBalancerUpsertHandler {
 
   private static final String BASE_PHASE = "UPSERT_ELB"
@@ -67,20 +71,27 @@ class LoadBalancerUpsertHandler {
 
       // no need to recreate existing listeners
       listeners.removeAll(existingListeners)
+      final List<ListenerDescription> listenerDescriptionsToRemove = loadBalancer
+        .listenerDescriptions
+        .findAll {
+          it.listener in listenersToRemove
+        }
 
-      listenersToRemove.each {
-        loadBalancing.deleteLoadBalancerListeners(
-          new DeleteLoadBalancerListenersRequest(loadBalancerName, [it.loadBalancerPort])
-        )
-        task.updateStatus BASE_PHASE, "Listener removed from ${loadBalancerName} (${it.loadBalancerPort}:${it.protocol}:${it.instancePort})."
-      }
-
-      def createListener = { Listener listener, boolean isRollback ->
+      def createListener = { ListenerDescription listenerDescription, boolean isRollback ->
         try {
-          loadBalancing.createLoadBalancerListeners(new CreateLoadBalancerListenersRequest(loadBalancerName, [listener]))
-          task.updateStatus BASE_PHASE, "Listener ${isRollback ? 'rolled back on' : 'added to'} ${loadBalancerName} (${listener.loadBalancerPort}:${listener.protocol}:${listener.instancePort})."
+          loadBalancing.createLoadBalancerListeners(new CreateLoadBalancerListenersRequest(loadBalancerName, [listenerDescription.listener]))
+          if (!listenerDescription.policyNames.isEmpty()) {
+            ensureSetLoadBalancerListenerPolicies(loadBalancerName, listenerDescription, loadBalancing)
+          }
+
+          task.updateStatus BASE_PHASE,
+            "Listener ${isRollback ? 'rolled back on' : 'added to'} ${loadBalancerName} " +
+              "(${listenerDescription.listener.loadBalancerPort}:${listenerDescription.listener.protocol}:${listenerDescription.listener.instancePort})."
         } catch (AmazonServiceException e) {
-          def exceptionMessage = "Failed to ${isRollback ? 'roll back' : 'add'} listener to ${loadBalancerName} (${listener.loadBalancerPort}:${listener.protocol}:${listener.instancePort}) - reason: ${e.errorMessage}."
+          def exceptionMessage = "Failed to ${isRollback ? 'roll back' : 'add'} listener to ${loadBalancerName} " +
+            "(${listenerDescription.listener.loadBalancerPort}:${listenerDescription.listener.protocol}:${listenerDescription.listener.instancePort}) " +
+            "- reason: ${e.errorMessage}."
+
           task.updateStatus BASE_PHASE, exceptionMessage
           amazonErrors << exceptionMessage
           return false
@@ -89,16 +100,36 @@ class LoadBalancerUpsertHandler {
       }
 
       boolean rollback = false
-      listeners
-        .each { Listener listener ->
-          if (!createListener(listener, false)) {
-            rollback = true
-          }
-        }
+      listenerDescriptionsToRemove.each {
+        try {
+          loadBalancing.deleteLoadBalancerListeners(
+            new DeleteLoadBalancerListenersRequest(loadBalancerName, [it.listener.loadBalancerPort])
+          )
 
-      if (rollback) {
-        listenersToRemove.each { Listener listener ->
-          createListener(listener, true)
+          task.updateStatus BASE_PHASE,
+            "Listener removed from ${loadBalancerName} (${it.listener.loadBalancerPort}:${it.listener.protocol}:${it.listener.instancePort})."
+        } catch(AmazonServiceException e) {
+          // Rollback as this failure will result in an exception when creating listeners.
+          task.updateStatus BASE_PHASE, "Failed to remove listener $it: $e.errorMessage."
+          amazonErrors << e.errorMessage
+        }
+      }
+
+      listeners.each { listener ->
+        final List<String> policyNames = loadBalancer
+          .listenerDescriptions.find {
+            it.listener.loadBalancerPort == listener.loadBalancerPort && it.listener.protocol == listener.protocol
+          }?.policyNames
+
+        final ListenerDescription description = new ListenerDescription(listener: listener, policyNames: policyNames)
+        if (!createListener(description, false)) {
+          rollback = true
+        }
+      }
+
+      if (amazonErrors || rollback) {
+        listenerDescriptionsToRemove.each {
+          createListener(it, true)
         }
       }
     }
@@ -149,4 +180,21 @@ class LoadBalancerUpsertHandler {
     listener.instancePort != 0 && listener.loadBalancerPort != 0 && listener.protocol
   }
 
+  /**
+   * Ensures policies set in the request are applied to the load balancer
+   */
+  private static void ensureSetLoadBalancerListenerPolicies(
+    String loadBalancerName, ListenerDescription listenerDescription, AmazonElasticLoadBalancing loadBalancing) {
+    final SetLoadBalancerPoliciesOfListenerRequest policyRequest = new SetLoadBalancerPoliciesOfListenerRequest()
+      .withLoadBalancerName(loadBalancerName)
+      .withLoadBalancerPort(listenerDescription.listener.loadBalancerPort)
+
+    try {
+      loadBalancing.setLoadBalancerPoliciesOfListener(
+        policyRequest.withPolicyNames(listenerDescription.policyNames)
+      )
+    } catch(AmazonServiceException e) {
+      log.error("Failed to set listener policies on loadbalancer $loadBalancerName: $e.errorMessage")
+    }
+  }
 }
