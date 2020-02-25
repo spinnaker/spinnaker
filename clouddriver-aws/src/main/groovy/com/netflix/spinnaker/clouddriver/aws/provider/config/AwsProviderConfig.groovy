@@ -46,6 +46,7 @@ import com.netflix.spinnaker.clouddriver.aws.provider.agent.InstanceCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.LaunchConfigCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.ReservationReportCachingAgent
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
@@ -69,7 +70,7 @@ class AwsProviderConfig {
                           EddaApiFactory eddaApiFactory,
                           ApplicationContext ctx,
                           Registry registry,
-                          ExecutorService reservationReportPool,
+                          Optional<ExecutorService> reservationReportPool,
                           Optional<Collection<AgentProvider>> agentProviders,
                           EddaTimeoutConfig eddaTimeoutConfig,
                           DynamicConfigService dynamicConfigService) {
@@ -94,6 +95,7 @@ class AwsProviderConfig {
   }
 
   @Bean
+  @ConditionalOnProperty("reports.reservation.enabled")
   ExecutorService reservationReportPool(ReservationReportConfigurationProperties reservationReportConfigurationProperties) {
     return Executors.newFixedThreadPool(
         reservationReportConfigurationProperties.threadPoolSize,
@@ -111,7 +113,7 @@ class AwsProviderConfig {
                                       EddaApiFactory eddaApiFactory,
                                       ApplicationContext ctx,
                                       Registry registry,
-                                      ExecutorService reservationReportPool,
+                                      Optional<ExecutorService> reservationReportPool,
                                       Collection<AgentProvider> agentProviders,
                                       EddaTimeoutConfig eddaTimeoutConfig,
                                       DynamicConfigService dynamicConfigService) {
@@ -157,13 +159,15 @@ class AwsProviderConfig {
     }
 
     // If there is an agent scheduler, then this provider has been through the AgentController in the past.
-    if (awsProvider.agentScheduler) {
-      synchronizeReservationReportCachingAgentAccounts(awsProvider, allAccounts)
-    } else {
-      // This caching agent runs across all accounts in one iteration (to maintain consistency).
-      newlyAddedAgents << new ReservationReportCachingAgent(
-        registry, amazonClientProvider, amazonS3DataProvider, allAccounts, objectMapper, reservationReportPool, ctx
-      )
+    if (reservationReportPool.isPresent()) {
+      if (awsProvider.agentScheduler) {
+        synchronizeReservationReportCachingAgentAccounts(awsProvider, allAccounts)
+      } else {
+        // This caching agent runs across all accounts in one iteration (to maintain consistency).
+        newlyAddedAgents << new ReservationReportCachingAgent(
+          registry, amazonClientProvider, amazonS3DataProvider, allAccounts, objectMapper, reservationReportPool, ctx
+        )
+      }
     }
 
     agentProviders.findAll { it.supports(AwsProvider.PROVIDER_NAME) }.each {
