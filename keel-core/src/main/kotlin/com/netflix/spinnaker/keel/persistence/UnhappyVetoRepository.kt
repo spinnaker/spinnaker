@@ -65,7 +65,7 @@ abstract class UnhappyVetoRepository(
 
   fun calculateExpirationTime(wait: Duration): Instant =
     when (wait) {
-      Duration.ZERO -> Instant.MAX
+      Duration.ZERO -> Instant.ofEpochMilli(Long.MAX_VALUE)
       else -> clock.instant().plus(wait)
     }
 
