@@ -1,8 +1,8 @@
 FROM alpine:3.11
-MAINTAINER delivery-engineering@netflix.com
-COPY --from=compile /compiled_sources/rosco-web/build/install/rosco /opt/rosco
-COPY --from=compile /compiled_sources/rosco-web/config              /opt/rosco
-COPY --from=compile /compiled_sources/rosco-web/config/packer       /opt/rosco/config/packer
+MAINTAINER sig-platform@spinnaker.io
+COPY rosco-web/build/install/rosco /opt/rosco
+COPY rosco-web/config              /opt/rosco
+COPY rosco-web/config/packer       /opt/rosco/config/packer
 
 WORKDIR /packer
 
