@@ -20,6 +20,7 @@ apply plugin: "java"
 
 dependencies {
   implementation(project(":orca-core"))
+  implementation(project(":orca-interlink"))
   implementation(project(":orca-queue"))
 
   implementation("com.netflix.spinnaker.kork:kork-sql")

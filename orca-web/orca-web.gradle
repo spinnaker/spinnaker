@@ -46,6 +46,7 @@ dependencies {
   implementation(project(":orca-igor"))
   implementation(project(":orca-integrations-cloudfoundry"))
   implementation(project(":orca-integrations-gremlin"))
+  implementation(project(":orca-interlink"))
   implementation(project(":orca-kayenta"))
   implementation(project(":orca-keel"))
   implementation(project(":orca-migration"))

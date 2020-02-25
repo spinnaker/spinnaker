@@ -76,9 +76,12 @@ import rx.schedulers.Schedulers;
   "com.netflix.spinnaker.orca.pipeline.util",
   "com.netflix.spinnaker.orca.preprocessors",
   "com.netflix.spinnaker.orca.telemetry",
-  "com.netflix.spinnaker.orca.notifications.scheduling"
+  "com.netflix.spinnaker.orca.notifications.scheduling",
 })
-@Import({PreprocessorConfiguration.class, PluginsAutoConfiguration.class})
+@Import({
+  PreprocessorConfiguration.class,
+  PluginsAutoConfiguration.class,
+})
 @EnableConfigurationProperties
 public class OrcaConfiguration {
   @Bean

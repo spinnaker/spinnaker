@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca
 
 import com.netflix.spinnaker.config.ErrorConfiguration
+import com.netflix.spinnaker.config.InterlinkConfiguration
 import com.netflix.spinnaker.config.QosConfiguration
 import com.netflix.spinnaker.config.StackdriverConfig
 import com.netflix.spinnaker.config.TomcatConfiguration
@@ -83,7 +84,8 @@ import org.springframework.scheduling.annotation.EnableAsync
   KeelConfiguration,
   QosConfiguration,
   CloudFoundryConfiguration,
-  GremlinConfiguration
+  GremlinConfiguration,
+  InterlinkConfiguration
 ])
 @ComponentScan([
   "com.netflix.spinnaker.config", "com.netflix.spinnaker.plugin"

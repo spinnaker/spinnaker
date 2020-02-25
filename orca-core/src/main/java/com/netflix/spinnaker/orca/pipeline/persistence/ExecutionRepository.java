@@ -156,6 +156,24 @@ public interface ExecutionRepository {
 
   List<String> retrieveAllExecutionIds(@Nonnull ExecutionType type);
 
+  /**
+   * Returns the name of the partition that this execution repository owns/handles. {@code null}
+   * means that it handles any partition (in other words, this execution repository is not partition
+   * aware)
+   */
+  @Nullable
+  default String getPartition() {
+    return null;
+  }
+
+  default boolean handlesPartition(@Nullable String partitionOfExecution) {
+    return partitionOfExecution
+            == null // executions with no partition are implied to be owned by current orca
+        || getPartition()
+            == null // this repository is not restricted to a partition, can handle any execution
+        || partitionOfExecution.equals(getPartition()); // both are set and must match
+  }
+
   final class ExecutionCriteria {
     private int pageSize = 3500;
     private Collection<ExecutionStatus> statuses = new ArrayList<>();

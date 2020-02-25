@@ -88,7 +88,7 @@ class OldPipelineCleanupPollingNotificationAgent(
       log.info("Agent {} started", notificationType)
       performCleanup()
     } catch (e: Exception) {
-      log.error("Agent {} failed to perform cleanup", e)
+      log.error("Agent {} failed to perform cleanup", javaClass, e)
     } finally {
       log.info("Agent {} completed in {}ms", notificationType, System.currentTimeMillis() - startTime)
       invocationTimer.stop(timerId)

@@ -125,7 +125,8 @@ class SqlTestConfig {
     mapper,
     properties.retries.transactions,
     orcaSqlProperties.batchReadSize,
-    orcaSqlProperties.stageReadSize
+    orcaSqlProperties.stageReadSize,
+    interlink = null
   )
 
   @Bean

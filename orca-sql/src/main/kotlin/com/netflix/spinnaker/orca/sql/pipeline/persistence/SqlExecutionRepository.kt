@@ -25,6 +25,12 @@ import com.netflix.spinnaker.orca.ExecutionStatus.CANCELED
 import com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
 import com.netflix.spinnaker.orca.ExecutionStatus.PAUSED
 import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
+import com.netflix.spinnaker.orca.interlink.Interlink
+import com.netflix.spinnaker.orca.interlink.events.PauseInterlinkEvent
+import com.netflix.spinnaker.orca.interlink.events.CancelInterlinkEvent
+import com.netflix.spinnaker.orca.interlink.events.DeleteInterlinkEvent
+import com.netflix.spinnaker.orca.interlink.events.InterlinkEvent
+import com.netflix.spinnaker.orca.interlink.events.ResumeInterlinkEvent
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionType.ORCHESTRATION
@@ -75,7 +81,8 @@ class SqlExecutionRepository(
   private val retryProperties: RetryProperties,
   private val batchReadSize: Int = 10,
   private val stageReadSize: Int = 200,
-  private val poolName: String = "default"
+  private val poolName: String = "default",
+  private val interlink: Interlink? = null
 ) : ExecutionRepository, ExecutionStatisticsRepository {
   companion object {
     val ulid = SpinULID(SecureRandom())
@@ -124,48 +131,57 @@ class SqlExecutionRepository(
     cancel(type, id, null, null)
   }
 
-  override fun cancel(type: ExecutionType, id: String, user: String?, reason: String?) {
-    validateHandledPartitionOrThrow(type, id)
-
+  fun doForeignAware(
+    event: InterlinkEvent,
+    block: (execution: Execution, dslContext: DSLContext) -> Unit
+  ) {
     withPool(poolName) {
-      jooq.transactional {
-        selectExecution(it, type, id)
+      jooq.transactional { dslContext ->
+        selectExecution(dslContext, event.executionType, event.executionId)
           ?.let { execution ->
-            execution.isCanceled = true
-            if (user != null) {
-              execution.canceledBy = user
+            if (isForeign(execution)) {
+              interlink?.publish(event.withPartition(execution.partition))
+                ?: throw ForeignExecutionException(event.executionId, execution.partition, partitionName)
+            } else {
+              block(execution, dslContext)
             }
-            if (reason != null && reason.isNotEmpty()) {
-              execution.cancellationReason = reason
-            }
-            if (execution.status == NOT_STARTED) {
-              execution.status = CANCELED
-            }
-            storeExecutionInternal(it, execution)
           }
       }
     }
   }
 
-  override fun pause(type: ExecutionType, id: String, user: String?) {
-    validateHandledPartitionOrThrow(type, id)
-
-    withPool(poolName) {
-      jooq.transactional {
-        selectExecution(it, type, id)
-          ?.let { execution ->
-            if (execution.status != RUNNING) {
-              throw UnpausablePipelineException("Unable to pause pipeline that is not RUNNING " +
-                "(executionId: $id, currentStatus: ${execution.status})")
-            }
-            execution.status = PAUSED
-            execution.paused = PausedDetails().apply {
-              pausedBy = user
-              pauseTime = currentTimeMillis()
-            }
-            storeExecutionInternal(it, execution)
-          }
+  override fun cancel(type: ExecutionType, id: String, user: String?, reason: String?) {
+    doForeignAware(CancelInterlinkEvent(type, id, user, reason)) {
+      execution: Execution, dslContext: DSLContext ->
+      execution.isCanceled = true
+      if (user != null) {
+        execution.canceledBy = user
       }
+      if (reason != null && reason.isNotEmpty()) {
+        execution.cancellationReason = reason
+      }
+      if (execution.status == NOT_STARTED) {
+        execution.status = CANCELED
+      }
+
+      storeExecutionInternal(dslContext, execution)
+    }
+  }
+
+  override fun pause(type: ExecutionType, id: String, user: String?) {
+    doForeignAware(PauseInterlinkEvent(type, id, user)) {
+      execution, dslContext ->
+      if (execution.status != RUNNING) {
+        throw UnpausablePipelineException("Unable to pause pipeline that is not RUNNING " +
+          "(executionId: ${execution.id}, currentStatus: ${execution.status})")
+      }
+      execution.status = PAUSED
+      execution.paused = PausedDetails().apply {
+        pausedBy = user
+        pauseTime = currentTimeMillis()
+      }
+
+      storeExecutionInternal(dslContext, execution)
     }
   }
 
@@ -174,22 +190,16 @@ class SqlExecutionRepository(
   }
 
   override fun resume(type: ExecutionType, id: String, user: String?, ignoreCurrentStatus: Boolean) {
-    validateHandledPartitionOrThrow(type, id)
-
-    withPool(poolName) {
-      jooq.transactional {
-        selectExecution(it, type, id)
-          ?.let { execution ->
-            if (!ignoreCurrentStatus && execution.status != PAUSED) {
-              throw UnresumablePipelineException("Unable to resume pipeline that is not PAUSED " +
-                "(executionId: $id, currentStatus: ${execution.status}")
-            }
-            execution.status = RUNNING
-            execution.paused?.resumedBy = user
-            execution.paused?.resumeTime = currentTimeMillis()
-            storeExecutionInternal(it, execution)
-          }
+    doForeignAware(ResumeInterlinkEvent(type, id, user, ignoreCurrentStatus)) {
+      execution, dslContext ->
+      if (!ignoreCurrentStatus && execution.status != PAUSED) {
+        throw UnresumablePipelineException("Unable to resume pipeline that is not PAUSED " +
+          "(executionId: ${execution.id}, currentStatus: ${execution.status}")
       }
+      execution.status = RUNNING
+      execution.paused?.resumedBy = user
+      execution.paused?.resumeTime = currentTimeMillis()
+      storeExecutionInternal(dslContext, execution)
     }
   }
 
@@ -204,6 +214,7 @@ class SqlExecutionRepository(
   }
 
   override fun updateStatus(type: ExecutionType, id: String, status: ExecutionStatus) {
+    // this is an internal operation, we don't expect to send interlink events to update the status of an execution
     validateHandledPartitionOrThrow(type, id)
 
     withPool(poolName) {
@@ -224,31 +235,28 @@ class SqlExecutionRepository(
   }
 
   override fun delete(type: ExecutionType, id: String) {
-    validateHandledPartitionOrThrow(type, id)
+    doForeignAware(DeleteInterlinkEvent(type, id)) {
+      execution, dslContext ->
+      val correlationField = if (type == PIPELINE) "pipeline_id" else "orchestration_id"
+      val (ulid, _) = mapLegacyId(jooq, type.tableName, id)
 
-    val correlationField = if (type == PIPELINE) "pipeline_id" else "orchestration_id"
-    val (ulid, _) = mapLegacyId(jooq, type.tableName, id)
+      val correlationId = jooq.select(field("id")).from("correlation_ids")
+        .where(field(correlationField).eq(ulid))
+        .limit(1)
+        .fetchOne()
+        ?.into(String::class.java)
+      val stageIds = jooq.select(field("id")).from(type.stagesTableName)
+        .where(field("execution_id").eq(ulid))
+        .fetch()
+        ?.into(String::class.java)?.toTypedArray()
 
-    val correlationId = jooq.select(field("id")).from("correlation_ids")
-      .where(field(correlationField).eq(ulid))
-      .limit(1)
-      .fetchOne()
-      ?.into(String::class.java)
-    val stageIds = jooq.select(field("id")).from(type.stagesTableName)
-      .where(field("execution_id").eq(ulid))
-      .fetch()
-      ?.into(String::class.java)?.toTypedArray()
-
-    withPool(poolName) {
-      jooq.transactional {
-        if (correlationId != null) {
-          it.delete(table("correlation_ids")).where(field("id").eq(correlationId)).execute()
-        }
-        if (stageIds != null) {
-          it.delete(type.stagesTableName).where(field("id").`in`(*stageIds)).execute()
-        }
-        it.delete(type.tableName).where(field("id").eq(ulid)).execute()
+      if (correlationId != null) {
+        dslContext.delete(table("correlation_ids")).where(field("id").eq(correlationId)).execute()
       }
+      if (stageIds != null) {
+        dslContext.delete(type.stagesTableName).where(field("id").`in`(*stageIds)).execute()
+      }
+      dslContext.delete(type.tableName).where(field("id").eq(ulid)).execute()
     }
   }
 
@@ -914,25 +922,39 @@ class SqlExecutionRepository(
         PagedIterator(batchReadSize, Execution::getId, nextPage)
     }
 
-  private fun validateHandledPartitionOrThrow(execution: Execution) {
+  private fun isForeign(execution: Execution, shouldThrow: Boolean = false): Boolean {
     val partition = execution.partition
-
-    if (partition != null && partitionName != null && partitionName != partition) {
+    val foreign = !handlesPartition(partition)
+    if (foreign && shouldThrow) {
       throw ForeignExecutionException(execution.id, partition, partitionName)
     }
+    return foreign
   }
 
-  private fun validateHandledPartitionOrThrow(executionType: ExecutionType, id: String) {
+  private fun isForeign(executionType: ExecutionType, id: String, shouldThrow: Boolean = false): Boolean {
     // Short circuit if we are handling all partitions
-    if (partitionName != null) {
-      try {
-        val execution = retrieve(executionType, id)
-        validateHandledPartitionOrThrow(execution)
-      } catch (_: ExecutionNotFoundException) {
-        // Execution not found, we can proceed since the rest is likely a noop anyway
-      }
+    if (partitionName == null) {
+      return false
+    }
+
+    return try {
+      val execution = retrieve(executionType, id)
+      isForeign(execution)
+    } catch (_: ExecutionNotFoundException) {
+      // Execution not found, we can proceed since the rest is likely a noop anyway
+      false
     }
   }
+
+  override fun getPartition(): String? {
+    return partitionName
+  }
+
+  private fun validateHandledPartitionOrThrow(executionType: ExecutionType, id: String): Boolean =
+    isForeign(executionType, id, true)
+
+  private fun validateHandledPartitionOrThrow(execution: Execution): Boolean =
+    isForeign(execution, true)
 
   class SyntheticStageRequired : IllegalArgumentException("Only synthetic stages can be inserted ad-hoc")
 }

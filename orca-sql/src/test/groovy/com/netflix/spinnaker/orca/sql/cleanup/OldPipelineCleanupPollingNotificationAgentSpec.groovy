@@ -65,7 +65,7 @@ class OldPipelineCleanupPollingNotificationAgentSpec extends Specification {
 
   def setupSpec() {
     currentDatabase = initTcMysqlDatabase()
-    executionRepository = new SqlExecutionRepository("test", currentDatabase.context, mapper, new RetryProperties(), 10, 100, "poolName")
+    executionRepository = new SqlExecutionRepository("test", currentDatabase.context, mapper, new RetryProperties(), 10, 100, "poolName", null)
   }
 
   def "should preserve the most recent 5 executions when cleaning up old pipeline executions"() {

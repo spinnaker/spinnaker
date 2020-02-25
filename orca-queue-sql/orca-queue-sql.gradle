@@ -20,6 +20,7 @@ dependencies {
   testImplementation(project(":orca-test-redis"))
   testImplementation(project(":orca-queue-tck"))
   testImplementation(project(":orca-sql"))
+  testImplementation(project(":orca-interlink"))
   testImplementation("org.testcontainers:mysql")
   testImplementation("org.springframework:spring-test")
   testImplementation("org.springframework.boot:spring-boot-test")

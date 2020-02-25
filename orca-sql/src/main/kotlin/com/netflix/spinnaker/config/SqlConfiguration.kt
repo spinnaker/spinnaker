@@ -21,6 +21,7 @@ import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import com.netflix.spinnaker.kork.sql.config.SqlProperties
 import com.netflix.spinnaker.kork.telemetry.InstrumentedProxy
+import com.netflix.spinnaker.orca.interlink.Interlink
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
 import com.netflix.spinnaker.orca.notifications.SqlNotificationClusterLock
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -40,6 +41,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Primary
 import java.time.Clock
+import java.util.Optional
 
 @Configuration
 @ConditionalOnProperty("sql.enabled")
@@ -58,7 +60,8 @@ class SqlConfiguration {
     mapper: ObjectMapper,
     registry: Registry,
     properties: SqlProperties,
-    orcaSqlProperties: OrcaSqlProperties
+    orcaSqlProperties: OrcaSqlProperties,
+    interlink: Optional<Interlink>
   ) =
     SqlExecutionRepository(
       orcaSqlProperties.partitionName,
@@ -66,7 +69,8 @@ class SqlConfiguration {
       mapper,
       properties.retries.transactions,
       orcaSqlProperties.batchReadSize,
-      orcaSqlProperties.stageReadSize
+      orcaSqlProperties.stageReadSize,
+      interlink = interlink.orElse(null)
     ).let {
       InstrumentedProxy.proxy(registry, it, "sql.executions", mapOf(Pair("repository", "primary"))) as ExecutionRepository
     }
