@@ -53,7 +53,9 @@ class NotificationController {
   EchoResponse create(@RequestBody Notification notification) {
     notificationServices?.find {
       it.supportsType(notification.notificationType) &&
-        (!notification.isInteractive() || it instanceof InteractiveNotificationService)
+        // Only delegate interactive notifications to interactive notification services, and vice-versa.
+        // This allows us to support two implementations in parallel for the same notification type.
+        ((it instanceof InteractiveNotificationService) ? notification.isInteractive() : !notification.isInteractive())
     }?.handle(notification)
   }
 
