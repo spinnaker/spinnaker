@@ -53,6 +53,7 @@ describe('PluginRegistry', () => {
       pluginModule = {
         plugin: {
           stages: [({ id: 'mystage' } as any) as IStageTypeConfig],
+          initialize: () => {},
         },
       };
     });

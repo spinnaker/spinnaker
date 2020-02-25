@@ -2,7 +2,7 @@ import { Page } from './Page';
 import { HomePage } from './HomePage';
 import { ApplicationConfigPage } from './ApplicationConfigPage';
 import { NewApplicationModalLocators } from '../locators/NewApplicationModalLocators';
-import { Client, RawResult, Element } from 'webdriverio';
+import { ElementArray, Element } from '@wdio/sync';
 
 export class ApplicationsListPage extends Page {
   public static locators = {
@@ -39,15 +39,14 @@ export class ApplicationsListPage extends Page {
     this.setInputText(NewApplicationModalLocators.emailInput, email);
   }
 
-  public applicationsLinks(): Client<RawResult<Element>>[] & RawResult<Element>[] {
+  public applicationsLinks(): ElementArray {
     this.awaitLocator(ApplicationsListPage.locators.applicationLinks);
     return browser.$$(ApplicationsListPage.locators.applicationLinks);
   }
 
-  public applicationLinkWithLabel(label: string): Client<RawResult<Element>> {
+  public applicationLinkWithLabel(label: string): Element {
     const links = this.applicationsLinks();
-    const labelLink = links.find(link => link.getText().includes(label));
-    return labelLink;
+    return links.find(link => link.getText().includes(label));
   }
 
   public deleteAppIfExists(label: string) {

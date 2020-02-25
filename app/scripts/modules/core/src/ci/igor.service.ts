@@ -76,4 +76,11 @@ export class IgorService {
       .one('accounts')
       .get();
   }
+
+  public static getCodeBuildProjects(account: string): IPromise<string[]> {
+    return API.one('codebuild')
+      .one('projects')
+      .one(account)
+      .get();
+  }
 }

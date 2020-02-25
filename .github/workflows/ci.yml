@@ -8,12 +8,13 @@ on:
       - release-*
 
 env:
-  NODE_VERSION: 10.15.1
+  NODE_VERSION: 12.16.0
 
 jobs:
   ci:
+    # Meta-job that depends on the other job statuses.  Branch protection then checks this job status.
     name: Deck CI
-    needs: [test, build, packages]
+    needs: [test, build, functional-tests, packages]
     runs-on: ubuntu-latest
     steps:
       - run: echo test, build, packages successful

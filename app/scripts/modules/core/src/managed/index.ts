@@ -4,6 +4,7 @@ export * from './ManagedWriter';
 export * from './ManagedResourceDetailsIndicator';
 export * from './managedResourceDetailsIndicator.component';
 export * from './ManagedResourceStatusIndicator';
+export * from './managed.module';
 export * from './managed.dataSource';
 export * from './managedResourceDecorators';
 export * from './ManagedMenuItem';

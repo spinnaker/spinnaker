@@ -13,9 +13,9 @@ import {
   DefaultSearchResultTab,
   ISearchResult,
   HeaderCell,
-  TableBody,
-  TableHeader,
-  TableRow,
+  SearchTableBody,
+  SearchTableHeader,
+  SearchTableRow,
   SearchResultType,
   ISearchResultSet,
 } from 'core/search';
@@ -158,13 +158,13 @@ class ServerGroupSearchResultType extends SearchResultType<IServerGroupSearchRes
   public TabComponent = DefaultSearchResultTab;
 
   public HeaderComponent = () => (
-    <TableHeader>
+    <SearchTableHeader>
       <HeaderCell col={this.cols.SERVERGROUP} />
       <HeaderCell col={this.cols.ACCOUNT} />
       <HeaderCell col={this.cols.REGION} />
       <HeaderCell col={this.cols.EMAIL} />
       <HeaderCell col={this.cols.HEALTH} />
-    </TableHeader>
+    </SearchTableHeader>
   );
 
   private RawDataComponent = ({ resultSet }: { resultSet: ISearchResultSet<IServerGroupSearchResult> }) => {
@@ -173,17 +173,17 @@ class ServerGroupSearchResultType extends SearchResultType<IServerGroupSearchRes
     const results = resultSet.results.slice();
 
     return (
-      <TableBody>
+      <SearchTableBody>
         {results.map(item => (
-          <TableRow key={itemKeyFn(item)}>
+          <SearchTableRow key={itemKeyFn(item)}>
             <HrefCell item={item} col={this.cols.SERVERGROUP} />
             <AccountCell item={item} col={this.cols.ACCOUNT} />
             <BasicCell item={item} col={this.cols.REGION} />
             <BasicCell item={item} col={this.cols.EMAIL} />
             <HealthCountsCell item={item} col={this.cols.HEALTH} />
-          </TableRow>
+          </SearchTableRow>
         ))}
-      </TableBody>
+      </SearchTableBody>
     );
   };
 

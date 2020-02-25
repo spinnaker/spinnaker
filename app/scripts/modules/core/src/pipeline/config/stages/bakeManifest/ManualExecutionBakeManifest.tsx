@@ -31,7 +31,10 @@ export function ManualExecutionBakeManifest(props: ITriggerTemplateComponentProp
   Bake (Manifest) stage and exactly one artifact of type `helm/chart`.
    */
   const bakeManifestStages = props.command.pipeline.stages.filter(stage => stage.type === BAKE_MANIFEST_STAGE_KEY);
-  if (bakeManifestStages.length !== 1 || bakeManifestStages[0].templateRenderer !== 'HELM2') {
+  if (
+    bakeManifestStages.length !== 1 ||
+    (bakeManifestStages[0].templateRenderer !== 'HELM2' && bakeManifestStages[0].templateRenderer !== 'HELM3')
+  ) {
     return null;
   }
   const expectedArtifacts = props.command.pipeline.expectedArtifacts || [];

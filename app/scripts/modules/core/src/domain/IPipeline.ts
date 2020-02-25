@@ -33,6 +33,7 @@ export interface IPipeline {
   };
   type?: string;
   updateTs?: number;
+  spelEvaluator?: string;
 }
 
 export interface IPipelineManualStartAlert {

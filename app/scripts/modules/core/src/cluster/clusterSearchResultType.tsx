@@ -15,9 +15,9 @@ import {
   DefaultSearchResultTab,
   SearchStatus,
   HeaderCell,
-  TableBody,
-  TableHeader,
-  TableRow,
+  SearchTableBody,
+  SearchTableHeader,
+  SearchTableRow,
   ISearchResult,
   SearchResultType,
   ISearchResultSet,
@@ -45,10 +45,10 @@ class ClustersSearchResultType extends SearchResultType<IClusterSearchResult> {
   public TabComponent = DefaultSearchResultTab;
 
   public HeaderComponent = () => (
-    <TableHeader>
+    <SearchTableHeader>
       <HeaderCell col={this.cols.CLUSTER} />
       <HeaderCell col={this.cols.ACCOUNT} />
-    </TableHeader>
+    </SearchTableHeader>
   );
 
   public DataComponent = ({ resultSet }: { resultSet: ISearchResultSet<IClusterSearchResult> }) => {
@@ -57,14 +57,14 @@ class ClustersSearchResultType extends SearchResultType<IClusterSearchResult> {
     const results = resultSet.results.slice().sort(itemSortFn);
 
     return (
-      <TableBody>
+      <SearchTableBody>
         {results.map(item => (
-          <TableRow key={itemKeyFn(item)}>
+          <SearchTableRow key={itemKeyFn(item)}>
             <HrefCell item={item} col={this.cols.CLUSTER} />
             <AccountCell item={item} col={this.cols.ACCOUNT} />
-          </TableRow>
+          </SearchTableRow>
         ))}
-      </TableBody>
+      </SearchTableBody>
     );
   };
 

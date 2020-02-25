@@ -9,9 +9,9 @@ import {
   DefaultSearchResultTab,
   ISearchResult,
   HeaderCell,
-  TableBody,
-  TableHeader,
-  TableRow,
+  SearchTableBody,
+  SearchTableHeader,
+  SearchTableRow,
   SearchResultType,
   ISearchResultSet,
 } from 'core/search';
@@ -48,12 +48,12 @@ class LoadBalancersSearchResultType extends SearchResultType<ILoadBalancerSearch
   public TabComponent = DefaultSearchResultTab;
 
   public HeaderComponent = () => (
-    <TableHeader>
+    <SearchTableHeader>
       <HeaderCell col={this.cols.LOADBALANCER} />
       <HeaderCell col={this.cols.ACCOUNT} />
       <HeaderCell col={this.cols.REGION} />
       <HeaderCell col={this.cols.TYPE} />
-    </TableHeader>
+    </SearchTableHeader>
   );
 
   public DataComponent = ({ resultSet }: { resultSet: ISearchResultSet<ILoadBalancerSearchResult> }) => {
@@ -66,19 +66,19 @@ class LoadBalancersSearchResultType extends SearchResultType<ILoadBalancerSearch
     const results = resultSet.results.slice().sort(itemSortFn);
 
     return (
-      <TableBody>
+      <SearchTableBody>
         {results
           .slice()
           .sort(itemSortFn)
           .map(item => (
-            <TableRow key={itemKeyFn(item)}>
+            <SearchTableRow key={itemKeyFn(item)}>
               <HrefCell item={item} col={this.cols.LOADBALANCER} />
               <AccountCell item={item} col={this.cols.ACCOUNT} />
               <BasicCell item={item} col={this.cols.REGION} />
               <BasicCell item={item} col={this.cols.TYPE} />
-            </TableRow>
+            </SearchTableRow>
           ))}
-      </TableBody>
+      </SearchTableBody>
     );
   };
 

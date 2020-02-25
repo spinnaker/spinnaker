@@ -1,3 +1,5 @@
+import '@wdio/sync';
+
 import { Page } from '../../core/pages/Page';
 
 export class CloneModalPage extends Page {
@@ -30,9 +32,7 @@ export class CloneModalPage extends Page {
     this.awaitLocator(CloneModalPage.locators.customInstanceCoresSelectArrow);
     this.click(CloneModalPage.locators.customInstanceCoresSelectArrow);
     browser.pause(300); // give the dropdown a moment to appear
-    const cores = browser
-      .elements(CloneModalPage.locators.customInstanceDropdownListItems)
-      .value.map((item: any) => item.getText());
+    const cores = $$(CloneModalPage.locators.customInstanceDropdownListItems).map((item: any) => item.getText());
     this.click(CloneModalPage.locators.customInstanceCoresSelectArrow);
     return cores;
   }
@@ -41,9 +41,7 @@ export class CloneModalPage extends Page {
     this.awaitLocator(CloneModalPage.locators.customInstanceMemorySelectArrow);
     this.click(CloneModalPage.locators.customInstanceMemorySelectArrow);
     browser.pause(300); // give the dropdown a moment to appear
-    const memory = browser
-      .elements(CloneModalPage.locators.customInstanceDropdownListItems)
-      .value.map((item: any) => item.getText());
+    const memory = $$(CloneModalPage.locators.customInstanceDropdownListItems).map((item: any) => item.getText());
     this.click(CloneModalPage.locators.customInstanceMemorySelectArrow);
     return memory;
   }

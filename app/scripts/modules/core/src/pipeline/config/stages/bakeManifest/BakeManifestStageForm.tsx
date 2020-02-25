@@ -14,11 +14,11 @@ interface IBakeManifestStageFormProps {
 export class BakeManifestStageForm extends React.Component<
   IBakeManifestStageFormProps & IFormikStageConfigInjectedProps
 > {
-  public HELM_RENDERER = 'HELM2';
+  public HELM_RENDERERS = new Set(['HELM2', 'HELM3']);
   public KUSTOMIZE_RENDERER = 'KUSTOMIZE';
 
   private templateRenderers = (): string[] => {
-    const renderers = [this.HELM_RENDERER];
+    const renderers = [...this.HELM_RENDERERS];
     if (SETTINGS.feature.kustomizeEnabled) {
       renderers.push(this.KUSTOMIZE_RENDERER);
     }
@@ -27,7 +27,7 @@ export class BakeManifestStageForm extends React.Component<
 
   private shouldRenderHelm(): boolean {
     const stage = this.props.formik.values;
-    return stage.templateRenderer === this.HELM_RENDERER;
+    return this.HELM_RENDERERS.has(stage.templateRenderer);
   }
 
   public render() {

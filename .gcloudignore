@@ -1,0 +1,6 @@
+# By default, the .git directory (along with .gitignore and everything listed
+# inside of it) does not get uploaded to Google Cloud Build. But the container
+# builds fail if the git directory is missing. Adding this file overrides that
+# behavior, but we'll still go ahead and exclude a few large cache directories.
+.gradle
+node_modules

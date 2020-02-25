@@ -1,4 +1,4 @@
-import * as WebdriverIO from 'webdriverio';
+import '@wdio/sync';
 import { defaultsDeep } from 'lodash';
 
 const DEFAULT_OPTIONS = {
@@ -12,29 +12,29 @@ export class Page {
     this.options = defaultsDeep({}, options, DEFAULT_OPTIONS);
   }
 
-  public open(url: string): WebdriverIO.Client<any> {
-    return browser.url(url);
+  public open(url: string): void {
+    browser.url(url);
   }
 
   public awaitLocator(locator: string, awaitExistsTime = this.options.awaitExistsTime) {
-    browser.waitForEnabled(locator, awaitExistsTime);
-    browser.waitForExist(locator, awaitExistsTime);
-    browser.waitForVisible(locator, awaitExistsTime);
+    $(locator).waitForEnabled(awaitExistsTime);
+    $(locator).waitForExist(awaitExistsTime);
+    $(locator).waitForDisplayed(awaitExistsTime);
   }
 
   public click(locator: string) {
     this.awaitLocator(locator);
-    browser.leftClick(locator);
+    $(locator).click();
   }
 
   public rightClick(locator: string) {
     this.awaitLocator(locator);
-    browser.rightClick(locator);
+    $(locator).click({ button: 'right' });
   }
 
   public setInputText(locator: string, value: string) {
     this.awaitLocator(locator);
-    browser.setValue(locator, value);
+    $(locator).setValue(value);
   }
 
   public scrollTo(locator: string) {

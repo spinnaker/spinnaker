@@ -220,7 +220,7 @@ export class TitusServerGroupConfigurationService {
 
   private configureSecurityGroupOptions(command: ITitusServerGroupCommand): void {
     const currentOptions = command.backingData.filtered.securityGroups;
-    if (command.credentials.includes('${') || command.region.includes('${')) {
+    if (command.credentials.includes('${') || (command.region && command.region.includes('${'))) {
       // If any of our dependencies are expressions, the only thing we can do is preserve current values
       command.backingData.filtered.securityGroups = command.securityGroups.map(group => ({ name: group, id: group }));
     } else {
@@ -309,7 +309,7 @@ export class TitusServerGroupConfigurationService {
 
   public configureLoadBalancerOptions(command: ITitusServerGroupCommand) {
     const currentTargetGroups = command.targetGroups || [];
-    if (command.credentials.includes('${') || command.region.includes('${')) {
+    if (command.credentials.includes('${') || (command.region && command.region.includes('${'))) {
       // If any of our dependencies are expressions, the only thing we can do is preserve current values
       command.targetGroups = currentTargetGroups;
       (command.backingData.filtered as any).targetGroups = currentTargetGroups;
