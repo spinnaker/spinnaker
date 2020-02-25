@@ -1,10 +1,9 @@
 import React from 'react';
 import { Option } from 'react-select';
 
-import { OmitControlledInputPropsFrom, StringsAsOptions } from 'core/presentation';
-
+import { StringsAsOptions } from './StringsAsOptions';
 import { isStringArray, orEmptyString, validationClassName } from './utils';
-import { IFormInputProps } from './interface';
+import { IFormInputProps, OmitControlledInputPropsFrom } from './interface';
 
 export interface ISelectInputProps
   extends IFormInputProps,
@@ -13,25 +12,23 @@ export interface ISelectInputProps
   options: Array<string | Option<string>>;
 }
 
-export class SelectInput extends React.Component<ISelectInputProps> {
-  public render() {
-    const { value, validation, options, inputClassName, ...otherProps } = this.props;
-    const className = `SelectInput form-control ${orEmptyString(inputClassName)} ${validationClassName(validation)}`;
+export function SelectInput(props: ISelectInputProps) {
+  const { value, validation, options, inputClassName, ...otherProps } = props;
+  const className = `SelectInput form-control ${orEmptyString(inputClassName)} ${validationClassName(validation)}`;
 
-    const SelectElement = ({ opts }: { opts: Array<Option<string>> }) => (
-      <select className={className} value={orEmptyString(value)} {...otherProps}>
-        {opts.map(option => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    );
+  const SelectElement = ({ opts }: { opts: Array<Option<string>> }) => (
+    <select className={className} value={orEmptyString(value)} {...otherProps}>
+      {opts.map(option => (
+        <option key={option.value} value={option.value} disabled={option.disabled}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+  );
 
-    if (isStringArray(options)) {
-      return <StringsAsOptions strings={options}>{opts => <SelectElement opts={opts} />}</StringsAsOptions>;
-    } else {
-      return <SelectElement opts={options as Array<Option<string>>} />;
-    }
+  if (isStringArray(options)) {
+    return <StringsAsOptions strings={options}>{opts => <SelectElement opts={opts} />}</StringsAsOptions>;
+  } else {
+    return <SelectElement opts={options as Array<Option<string>>} />;
   }
 }

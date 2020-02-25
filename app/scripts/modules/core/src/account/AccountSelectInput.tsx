@@ -1,10 +1,12 @@
 import React from 'react';
 import { $q } from 'ngimport';
 import { flatten, isEqual, map, uniq, xor } from 'lodash';
-import Select, { Option } from 'react-select';
+import { Option } from 'react-select';
 
 import { createFakeReactSyntheticEvent } from 'core/presentation/forms/inputs/utils';
-import { IFormInputProps } from '../presentation';
+import { IFormInputProps } from 'core/presentation/forms/inputs';
+import { ReactSelectInput } from 'core/presentation/forms/inputs/ReactSelectInput';
+import { SelectInput } from 'core/presentation/forms/inputs/SelectInput';
 
 import { AccountService, IAccount } from './AccountService';
 
@@ -94,73 +96,17 @@ export class AccountSelectInput extends React.Component<IAccountSelectInputProps
     }
   }
 
-  private SimpleSelect = () => {
-    const { name, value, onChange, ...otherProps } = this.props;
-    delete otherProps.renderFilterableSelectThreshold; // not for DOM consumption
+  public render() {
+    const { value, readOnly } = this.props;
+    const { mergedAccounts } = this.state;
+
     const { primaryAccounts, secondaryAccounts } = this.state;
     const showSeparator = primaryAccounts.length > 0 && secondaryAccounts.length > 0;
-    // When this select is used in Angular, the event is accessed in a $timeout, and React will have
-    // re-rendered the input, setting its value (the event.target.value) back to the previous value
-    // This can go away once we're out of Angular land.
-    const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-      onChange(createFakeReactSyntheticEvent({ value: e.target.value, name }));
-    };
-    return (
-      <div>
-        <select className="form-control input-sm" value={value} onChange={handleChange} required={true} {...otherProps}>
-          <option value="" disabled={true}>
-            Select...
-          </option>
-
-          {primaryAccounts.map(account => (
-            <option key={account} value={account}>
-              {account}
-            </option>
-          ))}
-
-          {showSeparator && (
-            <option value="-" disabled={true}>
-              ---------------
-            </option>
-          )}
-
-          {secondaryAccounts.map(account => (
-            <option key={account} value={account}>
-              {account}
-            </option>
-          ))}
-        </select>
-      </div>
-    );
-  };
-
-  private FilterableSelect = () => {
-    const { name, value, onChange, ...otherProps } = this.props;
-    delete otherProps.renderFilterableSelectThreshold; // not for DOM consumption
-    const { primaryAccounts, secondaryAccounts } = this.state;
-    const showSeparator = primaryAccounts.length > 0 && secondaryAccounts.length > 0;
-    const options: Option[] = primaryAccounts.map(a => ({ label: a, value: a }));
+    const options: Array<Option<string>> = primaryAccounts.map(a => ({ label: a, value: a }));
     if (showSeparator) {
       options.push({ label: '---------------', value: '-', disabled: true });
     }
     options.push(...secondaryAccounts.map(a => ({ label: a, value: a })));
-    return (
-      <Select
-        className="form-control input-sm"
-        options={options}
-        clearable={false}
-        value={value}
-        onChange={(option: Option<string>) => onChange(createFakeReactSyntheticEvent({ value: option.value, name }))}
-        required={true}
-        {...otherProps}
-      />
-    );
-  };
-
-  public render() {
-    const { value, readOnly, renderFilterableSelectThreshold } = this.props;
-    const { mergedAccounts } = this.state;
-    const { FilterableSelect, SimpleSelect } = this;
 
     if (isExpression(value)) {
       return (
@@ -180,12 +126,29 @@ export class AccountSelectInput extends React.Component<IAccountSelectInputProps
       );
     }
 
+    const { renderFilterableSelectThreshold, ...otherProps } = this.props;
     const useSimpleSelect = mergedAccounts.length < renderFilterableSelectThreshold;
 
     if (useSimpleSelect) {
-      return <SimpleSelect />;
+      // When this select is used in Angular, the event is accessed in a $timeout, and React will have
+      // re-rendered the input, setting its value (the event.target.value) back to the previous value
+      // This can go away once we're out of Angular land.
+      const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        e.persist();
+        this.props.onChange(e);
+      };
+
+      return (
+        <SelectInput
+          {...otherProps}
+          inputClassName="form-control input-sm"
+          onChange={handleChange}
+          required={true}
+          options={options}
+        />
+      );
     } else {
-      return <FilterableSelect />;
+      return <ReactSelectInput {...otherProps} clearable={false} required={true} options={options} />;
     }
   }
 }

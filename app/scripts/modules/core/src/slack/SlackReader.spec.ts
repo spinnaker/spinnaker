@@ -23,13 +23,13 @@ const mockSlackChannels: ISlackChannel[] = [
 ];
 
 describe('SlackReader', () => {
-  it('should fetch a list of public Slack channels', () => {
+  it('should fetch a list of public Slack channels', async () => {
     spyOn(SlackReader, 'getChannels').and.callThrough();
     spyOn(API, 'one')
       .and.callThrough()
       .and.returnValue({ getList: () => Promise.resolve(mockSlackChannels) });
 
-    SlackReader.getChannels().then((channels: ISlackChannel[]) => {
+    await SlackReader.getChannels().then((channels: ISlackChannel[]) => {
       expect(SlackReader.getChannels).toHaveBeenCalled();
       expect(channels.length).toEqual(2);
       expect(API.one).toHaveBeenCalledWith('slack/channels');
