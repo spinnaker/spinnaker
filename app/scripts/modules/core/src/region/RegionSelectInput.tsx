@@ -1,7 +1,7 @@
 import React from 'react';
-
 import { IRegion } from 'core/account/AccountService';
-import { IFormInputProps } from '../presentation';
+import { Option } from 'react-select';
+import { IFormInputProps, SelectInput } from '../presentation';
 
 export interface IRegionSelectInputProps extends IFormInputProps {
   account: string;
@@ -9,30 +9,21 @@ export interface IRegionSelectInputProps extends IFormInputProps {
   regions: IRegion[];
 }
 
-export class RegionSelectInput extends React.Component<IRegionSelectInputProps> {
-  public render() {
-    const { account, readOnly, regions, value, onChange, ...otherProps } = this.props;
-    if (!account) {
-      return <div>(Select an account)</div>;
-    }
+export function RegionSelectInput(props: IRegionSelectInputProps) {
+  const { account, readOnly, regions, ...otherProps } = props;
 
-    if (readOnly) {
-      return <p className="form-control-static">{value}</p>;
-    }
-
-    return (
-      <select className="form-control input-sm" value={value || ''} onChange={onChange} required={true} {...otherProps}>
-        <option value="" disabled={true}>
-          Select...
-        </option>
-        {regions.map(region => {
-          return (
-            <option key={region.name} value={region.name}>
-              {region.name} {region.deprecated ? "(deprecated in the '" + account + "' account)" : ''}
-            </option>
-          );
-        })}
-      </select>
-    );
+  if (!account) {
+    return <div>(Select an account)</div>;
+  } else if (readOnly) {
+    return <p className="form-control-static">{props.value}</p>;
   }
+
+  const options: Array<Option<string>> = regions.map(region => ({
+    value: region.name,
+    label: `${region.name}${region.deprecated ? " (deprecated in the '" + account + "' account)" : ''}`,
+  }));
+
+  options.unshift({ label: 'Select...', value: '', disabled: true });
+
+  return <SelectInput {...otherProps} options={options} />;
 }
