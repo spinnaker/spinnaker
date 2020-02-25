@@ -116,7 +116,12 @@ angular
         groupedRangeRules[addr].forEach(rule => {
           (rule.portRanges || []).forEach(range => {
             if (rule.protocol === '-1' || (range.startPort !== undefined && range.endPort !== undefined)) {
-              rules.push({ startPort: range.startPort, endPort: range.endPort, protocol: rule.protocol });
+              rules.push({
+                startPort: range.startPort,
+                endPort: range.endPort,
+                protocol: rule.protocol,
+                description: rule.description,
+              });
             }
           });
         });
