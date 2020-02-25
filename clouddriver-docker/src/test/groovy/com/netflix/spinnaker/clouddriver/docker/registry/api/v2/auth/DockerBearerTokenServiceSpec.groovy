@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
-import sun.misc.BASE64Decoder
+import java.util.Base64
 
 class DockerBearerTokenServiceSpec extends Specification {
   private static final REALM1 = "https://auth.docker.io"
