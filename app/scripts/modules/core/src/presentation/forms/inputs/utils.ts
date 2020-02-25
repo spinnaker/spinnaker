@@ -1,11 +1,11 @@
 import classNames from 'classnames';
-import { isString } from 'lodash';
+import { isString, isNil } from 'lodash';
 
 import { noop } from 'core/utils';
 
 import { IFormInputValidation } from './interface';
 
-export const orEmptyString = (val: any) => val || '';
+export const orEmptyString = (val: any) => (isNil(val) ? '' : val);
 
 export const validationClassName = (validation = {} as IFormInputValidation) => {
   return classNames({
