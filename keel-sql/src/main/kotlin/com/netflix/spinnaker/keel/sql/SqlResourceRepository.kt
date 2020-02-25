@@ -12,6 +12,7 @@ import com.netflix.spinnaker.keel.persistence.NoSuchResourceId
 import com.netflix.spinnaker.keel.persistence.ResourceHeader
 import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import com.netflix.spinnaker.keel.persistence.ResourceSummary
+import com.netflix.spinnaker.keel.persistence.metamodel.Tables.DIFF_FINGERPRINT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_EVENT
 import com.netflix.spinnaker.keel.persistence.metamodel.Tables.RESOURCE_LAST_CHECKED
@@ -35,26 +36,34 @@ open class SqlResourceRepository(
 ) : ResourceRepository {
 
   override fun deleteByApplication(application: String): Int {
-    val resourceIds = getUidByApplication(application)
+    val resourceIds = getResourceIdsByApplication(application)
+    val resourceUids = getUidByApplication(application)
 
-    resourceIds.forEach { uid ->
+    resourceUids.sorted().chunked(10).forEach { chunk ->
       sqlRetry.withRetry(WRITE) {
         jooq.deleteFrom(RESOURCE)
-          .where(RESOURCE.UID.eq(uid))
+          .where(RESOURCE.UID.`in`(*chunk.toTypedArray()))
           .execute()
-      }
-      sqlRetry.withRetry(WRITE) {
+
         jooq.deleteFrom(RESOURCE_LAST_CHECKED)
-          .where(RESOURCE_LAST_CHECKED.RESOURCE_UID.eq(uid))
+          .where(RESOURCE_LAST_CHECKED.RESOURCE_UID.`in`(*chunk.toTypedArray()))
           .execute()
-      }
-      sqlRetry.withRetry(WRITE) {
+
         jooq.deleteFrom(RESOURCE_EVENT)
-          .where(RESOURCE_EVENT.UID.eq(uid))
+          .where(RESOURCE_EVENT.UID.`in`(*chunk.toTypedArray()))
           .execute()
       }
     }
-    return resourceIds.size
+
+    resourceIds.sorted().chunked(10).forEach { chunk ->
+      sqlRetry.withRetry(WRITE) {
+        jooq.deleteFrom(DIFF_FINGERPRINT)
+          .where(DIFF_FINGERPRINT.RESOURCE_ID.`in`(*chunk.toTypedArray()))
+          .execute()
+      }
+    }
+
+    return resourceUids.size
   }
 
   override fun allResources(callback: (ResourceHeader) -> Unit) {
@@ -253,6 +262,11 @@ open class SqlResourceRepository(
     sqlRetry.withRetry(WRITE) {
       jooq.deleteFrom(RESOURCE_EVENT)
         .where(RESOURCE_EVENT.UID.eq(uid.toString()))
+        .execute()
+    }
+    sqlRetry.withRetry(WRITE) {
+      jooq.deleteFrom(DIFF_FINGERPRINT)
+        .where(DIFF_FINGERPRINT.RESOURCE_ID.eq(id))
         .execute()
     }
   }
