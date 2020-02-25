@@ -114,6 +114,7 @@ dependencies {
     api("com.squareup.retrofit:converter-simplexml:${versions.retrofit}")
     api("com.squareup.retrofit:retrofit-mock:${versions.retrofit}")
     api("com.squareup.retrofit:retrofit:${versions.retrofit}")
+    api("com.jakewharton.retrofit:retrofit1-okhttp3-client:1.1.0")
     api("commons-configuration:commons-configuration:1.8")
     api("commons-io:commons-io:2.5")
     api("de.danielbechler:java-object-diff:0.95")
