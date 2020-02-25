@@ -72,4 +72,9 @@ public class KubernetesCommandProperties {
   static final String CUSTOM_RESOURCES =
       "(V2 Only) Add Kubernetes custom resource to the list of custom resources to managed by clouddriver and made available for use in patch and delete manifest stages. "
           + "Fields besides the Kubernetes Kind (resource name) can be set using the flags \"--spinnaker-kind\" and \"--versioned\"";
+
+  static final String PROVIDER_VERSION_DESCRIPTION =
+      "There are currently two versions of the Kubernetes Provider: V1 and V2. "
+          + "This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker."
+          + "V1 is scheduled for removal in Spinnaker 1.21; we recommend using V2 only.";
 }

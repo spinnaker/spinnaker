@@ -7149,7 +7149,6 @@ hal config provider appengine account add ACCOUNT [parameters]
  * `--omit-services`: A list of regular expressions. Any service matching one of these regexes will be ignored by Spinnaker.
  * `--omit-versions`: A list of regular expressions. Any version matching one of these regexes will be ignored by Spinnaker.
  * `--project`: (*Required*) The Google Cloud Platform project this Spinnaker account will manage.
- * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
  * `--read-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to view this account's cloud resources.
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--services`: A list of regular expressions. Any service matching one of these regexes will be indexed by Spinnaker.
@@ -7205,7 +7204,6 @@ hal config provider appengine account edit ACCOUNT [parameters]
  * `--omit-services`: A list of regular expressions. Any service matching one of these regexes will be ignored by Spinnaker.
  * `--omit-versions`: A list of regular expressions. Any version matching one of these regexes will be ignored by Spinnaker.
  * `--project`: The Google Cloud Platform project this Spinnaker account will manage.
- * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
  * `--read-permissions`: A user must have at least one of these roles in order to view this account's cloud resources.
  * `--remove-read-permission`: Remove this permission from the list of read permissions.
  * `--remove-required-group-membership`: Remove this group from the list of required group memberships.
@@ -7373,7 +7371,6 @@ Using {{region}} will make Spinnaker use AWS regions in the hostname to access d
 
  * `--launching-lifecycle-hook-role-arn`: The ARN of the IAM role that allows the Auto Scaling group to publish to the specified notification target, for example, an Amazon SNS topic or an Amazon SQS queue.
  * `--no-validate`: (*Default*: `false`) Skip validation.
- * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
  * `--read-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to view this account's cloud resources.
  * `--regions`: (*Default*: `[]`) The AWS regions this Spinnaker account will manage.
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
@@ -7438,7 +7435,6 @@ Using {{region}} will make Spinnaker use AWS regions in the hostname to access d
 
  * `--launching-lifecycle-hook-role-arn`: The ARN of the IAM role that allows the Auto Scaling group to publish to the specified notification target, for example, an Amazon SNS topic or an Amazon SQS queue.
  * `--no-validate`: (*Default*: `false`) Skip validation.
- * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
  * `--read-permissions`: A user must have at least one of these roles in order to view this account's cloud resources.
  * `--regions`: The AWS regions this Spinnaker account will manage.
  * `--remove-read-permission`: Remove this permission from the list of read permissions.
@@ -7669,7 +7665,6 @@ hal config provider azure account add ACCOUNT [parameters]
  * `--object-id`: The objectId of your service principal. This is only required if using Packer to bake Windows images.
  * `--packer-resource-group`: The resource group to use if baking images with Packer.
  * `--packer-storage-account`: The storage account to use if baking images with Packer.
- * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
  * `--read-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to view this account's cloud resources.
  * `--regions`: (*Default*: `[westus, eastus]`) The Azure regions this Spinnaker account will manage.
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
@@ -7720,7 +7715,6 @@ hal config provider azure account edit ACCOUNT [parameters]
  * `--object-id`: The objectId of your service principal. This is only required if using Packer to bake Windows images.
  * `--packer-resource-group`: The resource group to use if baking images with Packer.
  * `--packer-storage-account`: The storage account to use if baking images with Packer.
- * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
  * `--read-permissions`: A user must have at least one of these roles in order to view this account's cloud resources.
  * `--regions`: The Azure regions this Spinnaker account will manage.
  * `--remove-read-permission`: Remove this permission from the list of read permissions.
@@ -8004,7 +7998,6 @@ hal config provider cloudfoundry account add ACCOUNT [parameters]
  * `--metrics-url, --metrics-uri, --metricsUri`: HTTP(S) URL of the metrics application for the CloudFoundry Foundation ie. `[https://metrics.sys.somesystem.com](https://metrics.sys.somesystem.com)`
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--password`: (*Required*) Password for the account to use on for this CloudFoundry Foundation
- * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
  * `--read-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to view this account's cloud resources.
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--skip-ssl-validation`: (*Default*: `false`) Skip SSL server certificate validation of the API endpoint
@@ -8050,7 +8043,6 @@ hal config provider cloudfoundry account edit ACCOUNT [parameters]
  * `--metrics-url, --metrics-uri, --metricsUri`: HTTP(S) URL of the metrics application for the CloudFoundry Foundation ie. `[https://metrics.sys.somesystem.com](https://metrics.sys.somesystem.com)`
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--password`: Password for the account to use on for this CloudFoundry Foundation
- * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
  * `--read-permissions`: A user must have at least one of these roles in order to view this account's cloud resources.
  * `--remove-read-permission`: Remove this permission from the list of read permissions.
  * `--remove-required-group-membership`: Remove this group from the list of required group memberships.
@@ -8182,7 +8174,6 @@ hal config provider dcos account add ACCOUNT [parameters]
  * `--environment`: The environment name for the account. Many accounts can share the same environment (e.g. dev, test, prod)
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--password`: Password for a user account
- * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
  * `--read-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to view this account's cloud resources.
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--service-key-file`: Path to a file containing the secret key for service account authentication
@@ -8226,7 +8217,6 @@ hal config provider dcos account edit ACCOUNT [parameters]
  * `--docker-registries`: (*Default*: `[]`) Provide the list of docker registries to use with this DC/OS account
  * `--environment`: The environment name for the account. Many accounts can share the same environment (e.g. dev, test, prod)
  * `--no-validate`: (*Default*: `false`) Skip validation.
- * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
  * `--read-permissions`: A user must have at least one of these roles in order to view this account's cloud resources.
  * `--remove-credential`: (*Default*: `[]`) Provide the cluster name and uid of credentials to remove: --remove-credential my-cluster my-user
  * `--remove-docker-registry`: Remove this docker registry from the list of docker registries to use as a source of images.
@@ -8486,7 +8476,6 @@ hal config provider docker-registry account add ACCOUNT [parameters]
  * `--password`: (*Sensitive data* - user will be prompted on standard input) Your docker registry password
  * `--password-command`: Command to retrieve docker token/password, commands must be available in environment
  * `--password-file`: The path to a file containing your docker password in plaintext (not a docker/config.json file)
- * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
  * `--read-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to view this account's cloud resources.
  * `--repositories`: (*Default*: `[]`) An optional list of repositories to cache images from. If not provided, Spinnaker will attempt to read accessible repositories from the registries _catalog endpoint
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
@@ -8547,7 +8536,6 @@ hal config provider docker-registry account edit ACCOUNT [parameters]
  * `--password`: (*Sensitive data* - user will be prompted on standard input) Your docker registry password
  * `--password-command`: Command to retrieve docker token/password, commands must be available in environment
  * `--password-file`: The path to a file containing your docker password in plaintext (not a docker/config.json file)
- * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
  * `--read-permissions`: A user must have at least one of these roles in order to view this account's cloud resources.
  * `--remove-read-permission`: Remove this permission from the list of read permissions.
  * `--remove-repository`: Remove this repository to the list of repositories to cache images from.
@@ -8679,7 +8667,6 @@ hal config provider ecs account add ACCOUNT [parameters]
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--environment`: The environment name for the account. Many accounts can share the same environment (e.g. dev, test, prod)
  * `--no-validate`: (*Default*: `false`) Skip validation.
- * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
  * `--read-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to view this account's cloud resources.
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--write-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to make changes to this account's cloud resources.
@@ -8720,7 +8707,6 @@ hal config provider ecs account edit ACCOUNT [parameters]
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--environment`: The environment name for the account. Many accounts can share the same environment (e.g. dev, test, prod)
  * `--no-validate`: (*Default*: `false`) Skip validation.
- * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
  * `--read-permissions`: A user must have at least one of these roles in order to view this account's cloud resources.
  * `--remove-read-permission`: Remove this permission from the list of read permissions.
  * `--remove-required-group-membership`: Remove this group from the list of required group memberships.
@@ -8852,7 +8838,6 @@ hal config provider google account add ACCOUNT [parameters]
  * `--json-path`: The path to a JSON service account that Spinnaker will use as credentials. This is only needed if Spinnaker is not deployed on a Google Compute Engine VM, or needs permissions not afforded to the VM it is running on. See [https://cloud.google.com/compute/docs/access/service-accounts](https://cloud.google.com/compute/docs/access/service-accounts) for more information.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--project`: (*Required*) The Google Cloud Platform project this Spinnaker account will manage.
- * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
  * `--read-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to view this account's cloud resources.
  * `--regions`: A list of regions for caching and mutating calls. This overwrites any default-regions set on the provider.
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
@@ -8899,7 +8884,6 @@ hal config provider google account edit ACCOUNT [parameters]
  * `--json-path`: The path to a JSON service account that Spinnaker will use as credentials. This is only needed if Spinnaker is not deployed on a Google Compute Engine VM, or needs permissions not afforded to the VM it is running on. See [https://cloud.google.com/compute/docs/access/service-accounts](https://cloud.google.com/compute/docs/access/service-accounts) for more information.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--project`: The Google Cloud Platform project this Spinnaker account will manage.
- * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
  * `--read-permissions`: A user must have at least one of these roles in order to view this account's cloud resources.
  * `--regions`: A list of regions for caching and mutating calls. This overwrites any default-regions set on the provider.
  * `--remove-image-project`: Remove this image project from the list of image projects to cache and deploy images from.
@@ -9208,7 +9192,6 @@ hal config provider huaweicloud account add ACCOUNT [parameters]
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--password`: (*Required*) (*Sensitive data* - user will be prompted on standard input) (Sensitive data - user will be prompted on standard input) The password used to access cloud.
  * `--project-name`: (*Required*) The name of the project within the cloud.
- * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
  * `--read-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to view this account's cloud resources.
  * `--regions`: (*Default*: `[]`) (*Required*) The region(s) of the cloud.
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
@@ -9257,7 +9240,6 @@ hal config provider huaweicloud account edit ACCOUNT [parameters]
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--password`: (*Sensitive data* - user will be prompted on standard input) (Sensitive data - user will be prompted on standard input) The password used to access cloud.
  * `--project-name`: The name of the project within the cloud.
- * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
  * `--read-permissions`: A user must have at least one of these roles in order to view this account's cloud resources.
  * `--regions`: (*Default*: `[]`) The region(s) of the cloud.
  * `--remove-read-permission`: Remove this permission from the list of read permissions.
@@ -9574,7 +9556,7 @@ This can only be set when --kinds is empty or not set.
 This can only be set when --namespaces is empty or not set.
  * `--only-spinnaker-managed`: (*Default*: `false`) (V2 Only) When true, Spinnaker will only cache/display applications that have been
 created by Spinnaker; as opposed to attempting to configure applications for resources already present in Kubernetes.
- * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
+ * `--provider-version`: (*Default*: `v2`) There are currently two versions of the Kubernetes Provider: V1 and V2. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.V1 is scheduled for removal in Spinnaker 1.21; we recommend using V2 only.
  * `--read-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to view this account's cloud resources.
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--service-account`: When true, Spinnaker attempt to authenticate against Kubernetes using a Kubernetes service account. This only works when Halyard & Spinnaker are deployed in Kubernetes. Read more about service accounts here: [https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/).
@@ -9644,7 +9626,7 @@ This can only be set when --kinds is empty or not set.
 This can only be set when --namespaces is empty or not set.
  * `--only-spinnaker-managed`: (V2 Only) When true, Spinnaker will only cache/display applications that have been
 created by Spinnaker; as opposed to attempting to configure applications for resources already present in Kubernetes.
- * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
+ * `--provider-version`: There are currently two versions of the Kubernetes Provider: V1 and V2. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.V1 is scheduled for removal in Spinnaker 1.21; we recommend using V2 only.
  * `--read-permissions`: A user must have at least one of these roles in order to view this account's cloud resources.
  * `--remove-custom-resource`: Remove this Kubernetes custom resource by name from the list of custom resources to manage.
  * `--remove-docker-registry`: Remove this docker registry from the list of docker registries to use as a source of images.
@@ -9798,7 +9780,6 @@ hal config provider oracle account add ACCOUNT [parameters]
  * `--fingerprint`: (*Required*) Fingerprint of the public key
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--private-key-passphrase`: (*Sensitive data* - user will be prompted on standard input) Passphrase used for the private key, if it is encrypted
- * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
  * `--read-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to view this account's cloud resources.
  * `--region`: (*Required*) An Oracle region (e.g., us-phoenix-1)
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
@@ -9845,7 +9826,6 @@ hal config provider oracle account edit ACCOUNT [parameters]
  * `--fingerprint`: Fingerprint of the public key
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--private-key-passphrase`: (*Sensitive data* - user will be prompted on standard input) Passphrase used for the private key, if it is encrypted
- * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
  * `--read-permissions`: A user must have at least one of these roles in order to view this account's cloud resources.
  * `--region`: An Oracle region (e.g., us-phoenix-1)
  * `--remove-read-permission`: Remove this permission from the list of read permissions.
@@ -10126,7 +10106,6 @@ hal config provider tencentcloud account add ACCOUNT [parameters]
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--environment`: The environment name for the account. Many accounts can share the same environment (e.g. dev, test, prod)
  * `--no-validate`: (*Default*: `false`) Skip validation.
- * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
  * `--read-permissions`: (*Default*: `[]`) A user must have at least one of these roles in order to view this account's cloud resources.
  * `--regions`: The Tencent CLoud regions this Spinnaker account will manage.
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
@@ -10170,7 +10149,6 @@ hal config provider tencentcloud account edit ACCOUNT [parameters]
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--environment`: The environment name for the account. Many accounts can share the same environment (e.g. dev, test, prod)
  * `--no-validate`: (*Default*: `false`) Skip validation.
- * `--provider-version`: Some providers support multiple versions/release tracks. This allows you to pick the version of the provider (not the resources it manages) to run within Spinnaker.
  * `--read-permissions`: A user must have at least one of these roles in order to view this account's cloud resources.
  * `--regions`: The Tencent CLoud regions this Spinnaker account will manage.
  * `--remove-read-permission`: Remove this permission from the list of read permissions.

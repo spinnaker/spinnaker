@@ -21,6 +21,7 @@ import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.AbstractEditAccountCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.containers.DockerRegistryReference;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
 import java.util.ArrayList;
@@ -218,6 +219,11 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
       description = KubernetesCommandProperties.CACHE_THREADS)
   private Integer cacheThreads;
 
+  @Parameter(
+      names = "--provider-version",
+      description = KubernetesCommandProperties.PROVIDER_VERSION_DESCRIPTION)
+  private Provider.ProviderVersion providerVersion;
+
   @Override
   protected Account editAccount(KubernetesAccount account) {
     boolean contextSet = context != null && !context.isEmpty();
@@ -337,6 +343,11 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
     account.setLiveManifestCalls(
         isSet(liveManifestCalls) ? liveManifestCalls : account.getLiveManifestCalls());
     account.setCacheThreads(isSet(cacheThreads) ? cacheThreads : account.getCacheThreads());
+
+    if (isSet(providerVersion)) {
+      account.setProviderVersion(providerVersion);
+    }
+
     return account;
   }
 }

@@ -24,7 +24,6 @@ import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -58,11 +57,6 @@ public abstract class AbstractAddAccountCommand extends AbstractHasAccountComman
       names = "--write-permissions",
       description = AccountCommandProperties.WRITE_PERMISSION_DESCRIPTION)
   private List<String> writePermissions = new ArrayList<>();
-
-  @Parameter(
-      names = "--provider-version",
-      description = AccountCommandProperties.PROVIDER_VERSION_DESCRIPTION)
-  private Provider.ProviderVersion providerVersion;
 
   @Parameter(
       names = "--environment",
@@ -99,7 +93,6 @@ public abstract class AbstractAddAccountCommand extends AbstractHasAccountComman
     account.setRequiredGroupMembership(requiredGroupMembership);
     account.getPermissions().add(Authorization.READ, readPermissions);
     account.getPermissions().add(Authorization.WRITE, writePermissions);
-    account.setProviderVersion(providerVersion);
     account.setEnvironment(isSet(environment) ? environment : account.getEnvironment());
     String providerName = getProviderName();
 

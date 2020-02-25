@@ -24,7 +24,6 @@ import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -92,11 +91,6 @@ public abstract class AbstractEditAccountCommand<T extends Account>
   private List<String> writePermissions;
 
   @Parameter(
-      names = "--provider-version",
-      description = AccountCommandProperties.PROVIDER_VERSION_DESCRIPTION)
-  private Provider.ProviderVersion providerVersion;
-
-  @Parameter(
       names = "--environment",
       arity = 1,
       description = AccountCommandProperties.ENVIRONMENT_DESCRIPTION)
@@ -154,9 +148,6 @@ public abstract class AbstractEditAccountCommand<T extends Account>
         writePermissions,
         addWritePermission,
         removeWritePermission);
-
-    account.setProviderVersion(
-        isSet(providerVersion) ? providerVersion : account.getProviderVersion());
 
     account.setEnvironment(isSet(environment) ? environment : account.getEnvironment());
 

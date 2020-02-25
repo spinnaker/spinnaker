@@ -21,6 +21,7 @@ import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.AbstractAddAccountCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.converter.LocalFileConverter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Provider.ProviderVersion;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.containers.DockerRegistryReference;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
 import java.util.ArrayList;
@@ -119,6 +120,11 @@ public class KubernetesAddAccountCommand extends AbstractAddAccountCommand {
       description = KubernetesCommandProperties.CACHE_THREADS)
   private int cacheThreads = 1;
 
+  @Parameter(
+      names = "--provider-version",
+      description = KubernetesCommandProperties.PROVIDER_VERSION_DESCRIPTION)
+  private ProviderVersion providerVersion = ProviderVersion.V2;
+
   @Override
   protected Account buildAccount(String accountName) {
     KubernetesAccount account = (KubernetesAccount) new KubernetesAccount().setName(accountName);
@@ -143,6 +149,7 @@ public class KubernetesAddAccountCommand extends AbstractAddAccountCommand {
     account.setCheckPermissionsOnStartup(checkPermissionsOnStartup);
     account.setLiveManifestCalls(liveManifestCalls);
     account.setCacheThreads(cacheThreads);
+    account.setProviderVersion(providerVersion);
 
     return account;
   }
