@@ -1,7 +1,7 @@
 # Not using the alpine image because it lacks a package gRPC needed to establish pub/sub listeners.
 FROM openjdk:11
-MAINTAINER delivery-engineering@netflix.com
-COPY --from=compile /compiled_sources/echo-web/build/install/echo /opt/echo
+MAINTAINER sig-platform@spinnaker.io
+COPY echo-web/build/install/echo /opt/echo
 
 RUN adduser --disabled-login --system spinnaker
 USER spinnaker

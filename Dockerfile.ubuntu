@@ -1,7 +1,6 @@
-
 FROM ubuntu:bionic
-MAINTAINER delivery-engineering@netflix.com
-COPY --from=compile /compiled_sources/echo-web/build/install/echo /opt/echo
+MAINTAINER sig-platform@spinnaker.io
+COPY echo-web/build/install/echo /opt/echo
 RUN apt-get update && apt-get -y install openjdk-11-jre-headless wget
 RUN adduser --disabled-login --system spinnaker
 USER spinnaker
