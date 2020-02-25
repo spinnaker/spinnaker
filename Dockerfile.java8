@@ -1,6 +1,6 @@
 FROM alpine:3.11
-MAINTAINER delivery-engineering@netflix.com
-COPY --from=compile /compiled_sources/fiat-web/build/install/fiat /opt/fiat
+MAINTAINER sig-platform@spinnaker.io
+COPY fiat-web/build/install/fiat /opt/fiat
 RUN apk --no-cache add --update bash openjdk8-jre
 RUN adduser -D -S spinnaker
 USER spinnaker

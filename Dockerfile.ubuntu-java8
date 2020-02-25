@@ -1,6 +1,6 @@
 FROM ubuntu:bionic
-MAINTAINER delivery-engineering@netflix.com
-COPY --from=compile /compiled_sources/fiat-web/build/install/fiat /opt/fiat
+MAINTAINER sig-platform@spinnaker.io
+COPY fiat-web/build/install/fiat /opt/fiat
 RUN apt-get update && apt-get -y install openjdk-8-jre-headless wget
 RUN adduser --disabled-login --system spinnaker
 USER spinnaker

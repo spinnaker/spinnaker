@@ -1,6 +1,12 @@
-FROM gcr.io/spinnaker-marketplace/gradle_cache
-MAINTAINER delivery-engineering@netflix.com
-ENV GRADLE_USER_HOME /gradle_cache/.gradle
-COPY . compiled_sources
-WORKDIR compiled_sources
-RUN ./gradlew --no-daemon fiat-web:installDist -x test
+FROM ubuntu:eoan
+MAINTAINER sig-platform@spinnaker.io
+
+RUN apt-get update \
+    && apt-get -y upgrade \
+    && apt-get install -y \
+        openjdk-8-jdk-headless \
+    && apt-get clean
+
+ENV GRADLE_USER_HOME /workspace/.gradle
+ENV GRADLE_OPTS -Xmx2048m
+CMD ./gradlew --no-daemon fiat-web:installDist -x test
