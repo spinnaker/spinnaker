@@ -114,55 +114,80 @@ public class Applications {
   }
 
   public List<CloudFoundryApplication> all() {
+    log.debug("Listing all applications from account {}", this.account);
+
     List<Application> newCloudFoundryAppList =
         collectPages("applications", page -> api.all(page, resultsPerPage, null, null));
 
-    // Evict Records from `cache` that are no longer in the foundation
+    log.debug(
+        "Fetched {} total apps from foundation account {}",
+        newCloudFoundryAppList.size(),
+        this.account);
+
     List<String> availableAppIds =
         newCloudFoundryAppList.stream().map(Application::getGuid).collect(toList());
-    serverGroupCache
-        .asMap()
-        .keySet()
-        .forEach(
-            key -> {
-              if (!availableAppIds.contains(key)) {
-                log.debug("Evicting the following SG with id '" + key + "'");
-                serverGroupCache.invalidate(key);
-              }
-            });
+
+    long invalidatedServerGroups =
+        serverGroupCache
+            .asMap()
+            .keySet()
+            .parallelStream()
+            .filter(appGuid -> !availableAppIds.contains(appGuid))
+            .peek(appGuid -> log.trace("Evicting the following SG with id '{}'", appGuid))
+            .peek(serverGroupCache::invalidate)
+            .count();
+
+    log.debug(
+        "Evicted {} serverGroups from the cache that aren't on the '{}' foundation anymore",
+        invalidatedServerGroups,
+        this.account);
 
     // if the update time doesn't match then we need to update the cache
     // if the app is not found in the cache we need to process with `map` and update the cache
-    List<Application> appsToBeUpdated;
     try {
-      appsToBeUpdated =
-          forkJoinPool
-              .submit(
-                  () ->
-                      newCloudFoundryAppList
-                          .parallelStream()
-                          .filter(
-                              a ->
-                                  Optional.ofNullable(findById(a.getGuid()))
-                                      .map(
-                                          r ->
-                                              !r.getUpdatedTime()
-                                                  .equals(
-                                                      a.getUpdatedAt().toInstant().toEpochMilli()))
-                                      .orElse(true))
-                          .collect(Collectors.toList()))
-              .get();
+      forkJoinPool.submit(
+          () ->
+              newCloudFoundryAppList
+                  .parallelStream()
+                  .filter(
+                      app -> {
+                        CloudFoundryServerGroup cachedApp = findById(app.getGuid());
+                        if (cachedApp != null) {
+                          if (!cachedApp
+                              .getUpdatedTime()
+                              .equals(app.getUpdatedAt().toInstant().toEpochMilli())) {
+                            log.trace(
+                                "App '{}' cached version is out of date on foundation '{}'",
+                                app.getName(),
+                                this.account);
+                            return true;
+                          } else {
+                            return false;
+                          }
+                        } else {
+                          log.trace(
+                              "App '{}' not found in cache for foundation '{}'",
+                              app.getName(),
+                              this.account);
+                          return true;
+                        }
+                      })
+                  .map(this::map)
+                  .forEach(sg -> serverGroupCache.put(sg.getId(), sg)));
+
+      forkJoinPool.submit(
+          () ->
+              // execute health check on instances, set number of available instances and health
+              // status
+              newCloudFoundryAppList
+                  .parallelStream()
+                  .forEach(
+                      a ->
+                          serverGroupCache.put(
+                              a.getGuid(), checkHealthStatus(findById(a.getGuid()), a))));
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
-
-    List<CloudFoundryServerGroup> serverGroups =
-        appsToBeUpdated.stream().map(this::map).collect(toList());
-    serverGroups.forEach(sg -> serverGroupCache.put(sg.getId(), sg));
-
-    // execute health check on instances, set number of available instances and health status
-    newCloudFoundryAppList.forEach(
-        a -> serverGroupCache.put(a.getGuid(), checkHealthStatus(findById(a.getGuid()), a)));
 
     Map<String, Set<CloudFoundryServerGroup>> serverGroupsByClusters = new HashMap<>();
     Map<String, Set<String>> clustersByApps = new HashMap<>();
