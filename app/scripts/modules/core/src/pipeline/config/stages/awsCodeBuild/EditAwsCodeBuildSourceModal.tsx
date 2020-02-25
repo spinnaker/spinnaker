@@ -6,6 +6,7 @@ import { Modal } from 'react-bootstrap';
 import {
   FormikFormField,
   FormValidator,
+  HelpField,
   IArtifact,
   IExpectedArtifact,
   IFormInputProps,
@@ -102,6 +103,7 @@ export class EditAwsCodeBuildSourceModal extends React.Component<IEditAwsCodeBui
               </div>
               <FormikFormField
                 fastField={false}
+                help={<HelpField id="pipeline.config.codebuild.sourceType" />}
                 label="Source Type"
                 name="type"
                 input={(inputProps: IFormInputProps) => (
@@ -110,6 +112,7 @@ export class EditAwsCodeBuildSourceModal extends React.Component<IEditAwsCodeBui
               />
               <FormikFormField
                 fastField={false}
+                help={<HelpField id="pipeline.config.codebuild.sourceVersion" />}
                 label="Source Version"
                 name="sourceVersion"
                 input={(inputProps: IFormInputProps) => <TextInput {...inputProps} />}
