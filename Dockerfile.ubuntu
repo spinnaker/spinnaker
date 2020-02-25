@@ -1,6 +1,6 @@
 FROM ubuntu:bionic
-MAINTAINER delivery-engineering@netflix.com
-COPY --from=compile /compiled_sources/clouddriver-web/build/install/clouddriver /opt/clouddriver
+MAINTAINER sig-platform@spinnaker.io
+COPY clouddriver-web/build/install/clouddriver /opt/clouddriver
 
 RUN apt-get update && apt-get install -y curl gnupg && \
     curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
