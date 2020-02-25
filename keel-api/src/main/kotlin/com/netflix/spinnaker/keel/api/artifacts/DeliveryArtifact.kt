@@ -5,7 +5,7 @@ enum class ArtifactType {
 }
 
 enum class ArtifactStatus {
-  FINAL, CANDIDATE, SNAPSHOT, RELEASE
+  FINAL, CANDIDATE, SNAPSHOT, RELEASE, UNKNOWN
 }
 
 sealed class DeliveryArtifact {
