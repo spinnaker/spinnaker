@@ -46,6 +46,7 @@
 .close:hover,
 .close:focus {
   background-color: closeButtonHoverColor;
+  outline: none;
 }
 
 @media belowMobileSize {
