@@ -1,7 +1,8 @@
 FROM ubuntu:bionic
-MAINTAINER delivery-engineering@netflix.com
-COPY --from=compile /compiled_sources/build/webpack /opt/deck/html
-COPY --from=compile /compiled_sources/docker        /opt/deck/docker
+MAINTAINER sig-platform@spinnaker.io
+
+COPY build/webpack /opt/deck/html
+COPY docker        /opt/deck/docker
 WORKDIR /opt/deck
 
 RUN docker/setup-apache2.sh
