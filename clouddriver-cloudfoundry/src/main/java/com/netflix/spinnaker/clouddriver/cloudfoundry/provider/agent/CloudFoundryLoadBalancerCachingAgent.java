@@ -77,7 +77,7 @@ public class CloudFoundryLoadBalancerCachingAgent extends AbstractCloudFoundryCa
         cacheData -> {
           long cacheTime = (long) cacheData.getAttributes().get("cacheTime");
           if (cacheTime < loadDataStart
-              && (int) cacheData.getAttributes().get("processedCount") > 0) {
+              && (int) cacheData.getAttributes().computeIfAbsent("processedCount", s -> 0) > 0) {
             toEvict.add(cacheData.getId());
           } else {
             toKeep.put(cacheData.getId(), cacheData);

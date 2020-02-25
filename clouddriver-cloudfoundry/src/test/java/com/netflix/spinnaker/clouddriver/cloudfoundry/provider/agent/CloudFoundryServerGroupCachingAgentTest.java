@@ -115,7 +115,7 @@ class CloudFoundryServerGroupCachingAgentTest {
   }
 
   @Test
-  void handleShouldReturnNullWhenServerGroupDoesNotExist() {
+  void handleShouldReturnAnEvictResultWhenServerGroupDoesNotExists() {
     String region = "org > space";
     String serverGroupName = "server-group";
     Map<String, Object> data =
@@ -133,12 +133,15 @@ class CloudFoundryServerGroupCachingAgentTest {
     when(cloudFoundryClient.getApplications()).thenReturn(mockApplications);
     when(mockApplications.findServerGroupByNameAndSpaceId(any(), any())).thenReturn(null);
 
+    when(mockProviderCache.filterIdentifiers(any(), any()))
+        .thenReturn(Collections.singletonList("key"));
+
     OnDemandAgent.OnDemandResult result =
         cloudFoundryServerGroupCachingAgent.handle(mockProviderCache, data);
 
-    assertThat(result).isNull();
-    verify(organizations).findSpaceByRegion(eq(region));
-    verify(mockApplications).findServerGroupByNameAndSpaceId(eq(serverGroupName), eq(spaceId));
+    assertThat(result).isNotNull();
+    assertThat(result.getEvictions()).hasSize(1);
+    assertThat(result.getEvictions().get(SERVER_GROUPS.getNs())).containsExactly("key");
   }
 
   @Test

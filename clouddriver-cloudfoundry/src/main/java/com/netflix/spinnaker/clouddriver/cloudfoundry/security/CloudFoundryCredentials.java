@@ -76,7 +76,7 @@ public class CloudFoundryCredentials implements AccountCredentials<CloudFoundryC
     this.password = password;
     this.environment = Optional.ofNullable(environment).orElse("dev");
     this.skipSslValidation = skipSslValidation;
-    this.resultsPerPage = Optional.ofNullable(resultsPerPage).orElse(500);
+    this.resultsPerPage = Optional.ofNullable(resultsPerPage).orElse(100);
     this.maxCapiConnectionsForCache = Optional.ofNullable(maxCapiConnectionsForCache).orElse(16);
   }
 
