@@ -121,6 +121,9 @@ class SqlExecutionRepositorySpec extends ExecutionRepositoryTck<ExecutionReposit
   }
 
   def "persists foreign executions when own partition is not set"() {
+    // Need to clear the DB here
+    cleanup()
+
     given:
     ExecutionRepository repo = createExecutionRepository(null)
     Execution e = new Execution(PIPELINE, "myapp")

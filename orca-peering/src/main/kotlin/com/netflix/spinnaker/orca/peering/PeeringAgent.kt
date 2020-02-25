@@ -160,6 +160,12 @@ class PeeringAgent(
 
     if (pipelineIdsToMigrate.isNotEmpty() || pipelineIdsToDelete.isNotEmpty()) {
       log.debug("Found ${completedPipelineKeys.size} completed $executionType candidates with ${migratedPipelineKeys.size} already copied for peering, ${pipelineIdsToMigrate.size} still need copying and ${pipelineIdsToDelete.size} need to be deleted")
+      val maxDeleteCount = dynamicConfigService.getConfig(java.lang.Integer::class.java, "pollers.peering.max-allowed-delete-count", Integer(100))
+      if (pipelineIdsToDelete.size > maxDeleteCount.toInt()) {
+        log.error("Number of pipelines to delete (${pipelineIdsToDelete.size}) > threshold ($maxDeleteCount) - not performing deletes - if this is expected you can set the pollers.peering.max-allowed-delete-count property to a larger number")
+        peeringMetrics.incrementNumErrors(executionType)
+      }
+
       destDB.deleteExecutions(executionType, pipelineIdsToDelete)
       peeringMetrics.incrementNumDeleted(executionType, pipelineIdsToDelete.size)
 

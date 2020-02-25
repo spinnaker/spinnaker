@@ -42,7 +42,8 @@ class TopApplicationExecutionCleanupPollingNotificationAgent(
   private val retrySupport: RetrySupport,
   @Value("\${pollers.top-application-execution-cleanup.interval-ms:3600000}") private val pollingIntervalMs: Long,
   @Value("\${pollers.top-application-execution-cleanup.threshold:2000}") private val threshold: Int,
-  @Value("\${pollers.top-application-execution-cleanup.chunk-size:1}") private val chunkSize: Int
+  @Value("\${pollers.top-application-execution-cleanup.chunk-size:1}") private val chunkSize: Int,
+  @Value("\${sql.partition-name}") private val partitionName: String?
 ) : AbstractPollingNotificationAgent(clusterLock) {
 
   private val log = LoggerFactory.getLogger(TopApplicationExecutionCleanupPollingNotificationAgent::class.java)
@@ -86,9 +87,18 @@ class TopApplicationExecutionCleanupPollingNotificationAgent(
   }
 
   private fun performCleanup() {
-    val applicationsWithOldOrchestrations = jooq
+    var queryBuilder = jooq
       .select(DSL.field("application"), DSL.count(DSL.field("id")).`as`("count"))
       .from(DSL.table("orchestrations"))
+      .where("1=1")
+
+    if (partitionName != null) {
+      queryBuilder = queryBuilder
+        .and(
+          DSL.field("`partition`").eq(partitionName))
+    }
+
+    val applicationsWithOldOrchestrations = queryBuilder
       .groupBy(DSL.field("application"))
       .having(DSL.count(DSL.field("id")).gt(threshold))
       .fetch()

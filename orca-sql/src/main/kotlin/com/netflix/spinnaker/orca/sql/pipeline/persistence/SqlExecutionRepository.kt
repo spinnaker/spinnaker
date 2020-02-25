@@ -17,6 +17,8 @@ package com.netflix.spinnaker.orca.sql.pipeline.persistence
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.core.RetrySupport
+import com.netflix.spinnaker.kork.exceptions.ConfigurationException
+import com.netflix.spinnaker.kork.exceptions.SystemException
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.routing.withPool
 import com.netflix.spinnaker.orca.ExecutionStatus
@@ -67,6 +69,7 @@ import org.slf4j.LoggerFactory
 import rx.Observable
 import java.lang.System.currentTimeMillis
 import java.security.SecureRandom
+import org.jooq.exception.TooManyRowsException
 
 /**
  * A generic SQL [ExecutionRepository].
@@ -90,6 +93,35 @@ class SqlExecutionRepository(
   }
 
   private val log = LoggerFactory.getLogger(javaClass)
+
+  init {
+    log.info("Creating SqlExecutionRepository with partition=$partitionName and pool=$poolName")
+
+    try {
+      withPool(poolName) {
+        jooq.transactional {
+          val record: Record? = jooq.fetchOne(table("partition_name"))
+
+          if (record == null) {
+            if (partitionName != null) {
+              jooq
+                .insertInto(table("partition_name"))
+                .values(1, partitionName)
+                .execute()
+            }
+          } else {
+            val dbPartitionName = record.get("name")?.toString()
+
+            if (partitionName != dbPartitionName) {
+              throw ConfigurationException("Invalid configuration detected: Can't change partition name to $partitionName on the database once it has been set to $dbPartitionName")
+            }
+          }
+        }
+      }
+    } catch (e: TooManyRowsException) {
+      throw SystemException("The partition_name table should have zero or one rows but multiple rows were found", e)
+    }
+  }
 
   override fun store(execution: Execution) {
     withPool(poolName) {

@@ -1,0 +1,22 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-partition-name-table
+      author: mvulfson
+      changes:
+        - createTable:
+            tableName: partition_name
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    nullable: true
+    rollback:
+      - dropTable:
+          tableName: partition_name

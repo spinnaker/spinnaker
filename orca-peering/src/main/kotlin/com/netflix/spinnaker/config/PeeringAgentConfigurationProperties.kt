@@ -27,4 +27,7 @@ class PeeringAgentConfigurationProperties {
   var threadCount: Int = 30
   var chunkSize: Int = 100
   var clockDriftMs: Long = 5000
+
+  // Only read via dynamicConfigService, here for completeness
+  var maxAllowedDeleteCount: Int = 1000
 }

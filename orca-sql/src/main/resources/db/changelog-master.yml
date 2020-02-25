@@ -41,3 +41,6 @@ databaseChangeLog:
 - include:
     file: changelog/20190911-notification-cluster-lock.yml
     relativeToChangelogFile: true
+- include:
+    file: changelog/20200221-partition-name-table.yml
+    relativeToChangelogFile: true

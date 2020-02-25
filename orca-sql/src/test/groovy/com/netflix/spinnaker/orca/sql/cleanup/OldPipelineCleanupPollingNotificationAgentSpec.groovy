@@ -60,7 +60,8 @@ class OldPipelineCleanupPollingNotificationAgentSpec extends Specification {
     0,
     10, // threshold days
     5,  // minimum pipeline executions
-    1
+    1,
+    null
   )
 
   def setupSpec() {

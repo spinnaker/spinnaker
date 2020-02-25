@@ -48,7 +48,8 @@ class OldPipelineCleanupPollingNotificationAgent(
   @Value("\${pollers.old-pipeline-cleanup.interval-ms:3600000}") private val pollingIntervalMs: Long,
   @Value("\${pollers.old-pipeline-cleanup.threshold-days:30}") private val thresholdDays: Long,
   @Value("\${pollers.old-pipeline-cleanup.minimum-pipeline-executions:5}") private val minimumPipelineExecutions: Int,
-  @Value("\${pollers.old-pipeline-cleanup.chunk-size:1}") private val chunkSize: Int
+  @Value("\${pollers.old-pipeline-cleanup.chunk-size:1}") private val chunkSize: Int,
+  @Value("\${sql.partition-name}") private val partitionName: String?
 ) : AbstractPollingNotificationAgent(clusterLock) {
 
   companion object {
@@ -106,7 +107,7 @@ class OldPipelineCleanupPollingNotificationAgent(
       .fetch(field("application"), String::class.java)
 
     for (chunk in candidateApplications.chunked(5)) {
-      val pipelineConfigsWithOldExecutions = jooq
+      var queryBuilder = jooq
         .select(field("application"), field("config_id"), count(field("id")).`as`("count"))
         .from(table("pipelines"))
         .where(
@@ -115,6 +116,14 @@ class OldPipelineCleanupPollingNotificationAgent(
           field("build_time").le(thresholdMillis))
         .and(
           field("status").`in`(*completedStatuses.toTypedArray()))
+
+        if (partitionName != null) {
+          queryBuilder = queryBuilder
+            .and(
+              field("`partition`").eq(partitionName))
+        }
+
+      val pipelineConfigsWithOldExecutions = queryBuilder
         .groupBy(field("application"), field("config_id"))
         .having(count(field("id")).gt(minimumPipelineExecutions))
         .fetch()
@@ -159,7 +168,7 @@ class OldPipelineCleanupPollingNotificationAgent(
   ): Int {
     val deletedExecutionCount = AtomicInteger()
 
-    val executionsToRemove = jooq
+    var queryBuilder = jooq
       .select(field("id"))
       .from(table("pipelines"))
       .where(
@@ -171,6 +180,14 @@ class OldPipelineCleanupPollingNotificationAgent(
           field("config_id").eq(pipelineConfigId)
         )
       )
+
+    if (partitionName != null) {
+      queryBuilder = queryBuilder
+        .and(
+          field("`partition`").eq(partitionName))
+    }
+
+    val executionsToRemove = queryBuilder
       .orderBy(field("build_time").desc())
       .limit(minimumPipelineExecutions, Int.MAX_VALUE)
       .fetch()

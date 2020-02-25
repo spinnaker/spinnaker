@@ -29,10 +29,9 @@ class PeeringAgentSpec extends Specification {
   MySqlRawAccess dest = Mock(MySqlRawAccess)
   PeeringMetrics metrics = Mock(PeeringMetrics)
   ExecutionCopier copier = Mock(ExecutionCopier)
-  DynamicConfigService dynamicConfigService = Mock(DynamicConfigService)
   def clockDrift = 100
 
-  PeeringAgent constructPeeringAgent() {
+  PeeringAgent constructPeeringAgent(DynamicConfigService dynamicConfigService = DynamicConfigService.NOOP) {
     return new PeeringAgent(
         "peeredId",
         1000,
@@ -48,7 +47,8 @@ class PeeringAgentSpec extends Specification {
 
   def "respects dynamic enabled prop"() {
     given:
-    def peeringAgent = constructPeeringAgent()
+    def dynamicConfigService = Mock(DynamicConfigService)
+    def peeringAgent = constructPeeringAgent(dynamicConfigService)
 
     when: 'disabled globally'
     peeringAgent.tick()
@@ -81,7 +81,6 @@ class PeeringAgentSpec extends Specification {
     def peeringAgent = constructPeeringAgent()
     peeringAgent.completedPipelinesMostRecentUpdatedTime = 1
     peeringAgent.completedOrchestrationsMostRecentUpdatedTime = 2
-    dynamicConfigService.isEnabled(_, _) >> { return true }
 
     def callCount = (int)Math.signum(toDelete.size() + toCopy.size())
     when:
@@ -123,7 +122,6 @@ class PeeringAgentSpec extends Specification {
   def "copies all running executions of #executionType"() {
     given:
     def peeringAgent = constructPeeringAgent()
-    dynamicConfigService.isEnabled(_, _) >> { return true }
 
     when:
     peeringAgent.peerActiveExecutions(executionType)
@@ -141,6 +139,44 @@ class PeeringAgentSpec extends Specification {
     ORCHESTRATION | []              | 0
     ORCHESTRATION | ["ID1"]         | 1
     ORCHESTRATION | ["ID1", "ID4"]  | 1
+  }
+
+  def "doesn't delete the world"() {
+    given:
+    def dynamicConfigService = Mock(DynamicConfigService)
+    def peeringAgent = constructPeeringAgent(dynamicConfigService)
+    peeringAgent.completedPipelinesMostRecentUpdatedTime = 1
+    peeringAgent.completedOrchestrationsMostRecentUpdatedTime = 1
+    dynamicConfigService.isEnabled(_, _) >> { return true }
+    dynamicConfigService.getConfig(Integer.class, "pollers.peering.max-allowed-delete-count", 100) >> { return 1 }
+
+    def copyCallCount = (int)Math.signum(toCopy.size())
+    def deleteCallCount = toDelete.size() > 0 ? 1 : 0
+    def deleteFailureCount = toDelete.size() > 0 ? 0 : 1
+
+    when:
+    peeringAgent.peerCompletedExecutions(executionType)
+
+    then:
+    1 * src.getCompletedExecutionIds(executionType, "peeredId", 1) >> srcKeys
+    1 * dest.getCompletedExecutionIds(executionType, "peeredId", 1) >> destKeys
+
+    deleteCallCount * dest.deleteExecutions(executionType, toDelete)
+    deleteCallCount * metrics.incrementNumDeleted(executionType, toDelete.size())
+    deleteFailureCount * metrics.incrementNumErrors(executionType)
+
+    copyCallCount * copier.copyInParallel(executionType, toCopy, ExecutionState.COMPLETED) >>
+        new ExecutionCopier.MigrationChunkResult(30, 2, false)
+
+    where:
+    // Note: since the logic for executions and orchestrations should be the same, it's overkill to have the same set of tests for each
+    // but it's easy so why not?
+    executionType | srcKeys          | destKeys                                         || toDelete | toCopy
+    PIPELINE      | [key("ID3", 30)] | [key("IDx", 10), key("IDy", 10), key("ID3", 10)] || []       | ["ID3"]
+    PIPELINE      | [key("ID3", 30)] | [key("IDx", 10), key("ID3", 10)]                 || ["IDx"]  | ["ID3"]
+
+    ORCHESTRATION | [key("ID3", 30)] | [key("IDx", 10), key("IDy", 10), key("ID3", 10)] || []       | ["ID3"]
+    ORCHESTRATION | [key("ID3", 30)] | [key("IDx", 10), key("ID3", 10)]                 || ["IDx"]  | ["ID3"]
   }
 
   private static def key(id, updatedat) {

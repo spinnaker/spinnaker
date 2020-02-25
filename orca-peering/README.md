@@ -20,8 +20,8 @@ This is an semi-experimental approach to solve the problem of having multiple `o
 
 
 The peering mechanism accomplishes a few things:
-1. (complete) Peer (copy) executions (both pipelines and orchestrations) from a database of a peer to the local cluster database
-2. (in-progress) Allow for an `orca` cluster to perform actions on a foreign execution (e.g. executions running on a peer)
+1. Peer (copy) executions (both pipelines and orchestrations) from a database of a peer to the local cluster database
+2. Allow for an `orca` cluster to perform actions on a foreign execution (e.g. executions running on a peer, see `orca-interlink` module)
 3. (still to come) Take ownership and resume an execution previously operated on by a peer
 
 
@@ -109,7 +109,26 @@ sql:
 |`pollers.peering.intervalMs`       | `5000`     | interval to run migrations at (each run performs a delta copy).<br> Shorter = less lag but more CPU and DB load |
 |`pollers.peering.threadCount`      | `30`       | number of threads to use to perform bulk migration. A large number here only helps with the initial bulk import. After that, the delta is usually small enough that anything above 2 is unlikely to make a difference |
 |`pollers.peering.chunkSize`        | `100`      | chunk size used when copying data (this is the max number of rows that will be modified at a time) |
-|`pollers.peering.clockDriftMs`     | `5000`     | allows for this much clock drift across `orca` instances operating on a single DB|
+|`pollers.peering.clockDriftMs`     | `5000`     | allows for this much clock drift across `orca` instances operating on a single DB |
+|`pollers.peering.maxAllowedDeleteCount`| `100`  | maximum number of executions to delete at a time. If the delete Δ > this number no deletes occur and the error metric is incremented. <br> This is to prevent accidental deletion of all executions; the number can be set via `DynamicConfigService` | 
+
+Notes about some of the parameters above:
+
+* `pollers.peering.intervalMs`
+    This is the interval at which the peering agent runs (e.g. time between previous run of the agent completing and a new run starting).  
+    Together with the time it takes to perform a single run of the agent this determines the latency of copying an execution from one DB to another.  
+    As a reference, on a MySQL orca installation with about 6million past executions and about 200 active executions at any time, a single agent run will take about 8s.  
+    The smaller the number the the shorter the peering lag, but heavier load on the database.
+    
+* `pollers.peering.clockDriftMs`
+    This settings defines the "fudge" factor in comparing the `updated_at` timestamp on an execution.  
+    Because the timestamp is written by the instances (and not the DB itself) there is no guarantee that the timestamps on the instances are synchronized.
+    
+* `pollers.peering.maxAllowedDeleteCount`
+    This setting provides a safety mechanism from catastrophic failure of the peering agent in the event that it (incorrectly) decides to delete all executions from the local DB.
+    This number should be bigger than the maximum number of executions deleted during regular operation but much smaller than the total number of executions present.  
+    A ballpark of 0.25% of all executions is probably reasonable.
+
 
 ### Emitted metrics
 The following metrics are emitted by the peering agent and can/should be used for monitoring health of the peering system.
@@ -133,5 +152,6 @@ The following dynamic properties are exposed and can be controlled at runtime vi
 
 | Property | Default | Notes |
 |----------|---------|-------|
-|`pollers.peering.enabled`          | `true` | if set to `false` turns off all peering |
-|`pollers.peering.<PEERID>.enabled` | `true` | if set to `false` turns off all peering for peer with given ID | 
+|`pollers.peering.enabled`                 | `true` | if set to `false` turns off all peering |
+|`pollers.peering.<PEERID>.enabled`        | `true` | if set to `false` turns off all peering for peer with given ID | 
+|`pollers.peering.max-allowed-delete-count`| 100    | maximum number of executions that are allowed to be deleted in a single run of the agent |
