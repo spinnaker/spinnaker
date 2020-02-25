@@ -1,6 +1,6 @@
 FROM alpine:3.11
-MAINTAINER delivery-engineering@netflix.com
-COPY --from=compile /compiled_sources/gate-web/build/install/gate /opt/gate
+MAINTAINER sig-platform@spinnaker.io
+COPY gate-web/build/install/gate /opt/gate
 RUN apk --no-cache add --update bash openjdk11-jre
 RUN adduser -D -S spinnaker
 USER spinnaker
