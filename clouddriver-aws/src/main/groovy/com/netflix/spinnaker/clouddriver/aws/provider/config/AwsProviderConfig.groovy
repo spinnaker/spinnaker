@@ -165,7 +165,7 @@ class AwsProviderConfig {
       } else {
         // This caching agent runs across all accounts in one iteration (to maintain consistency).
         newlyAddedAgents << new ReservationReportCachingAgent(
-          registry, amazonClientProvider, amazonS3DataProvider, allAccounts, objectMapper, reservationReportPool, ctx
+          registry, amazonClientProvider, amazonS3DataProvider, allAccounts, objectMapper, reservationReportPool.get(), ctx
         )
       }
     }
