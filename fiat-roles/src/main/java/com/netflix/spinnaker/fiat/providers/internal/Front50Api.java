@@ -20,13 +20,14 @@ import com.netflix.spinnaker.fiat.model.resources.Application;
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
 import java.util.List;
 import retrofit.http.GET;
+import retrofit.http.Query;
 
 public interface Front50Api {
   @GET("/permissions/applications")
   List<Application> getAllApplicationPermissions();
 
   @GET("/v2/applications")
-  List<Application> getAllApplications();
+  List<Application> getAllApplications(@Query("restricted") boolean restricted);
 
   @GET("/serviceAccounts")
   List<ServiceAccount> getAllServiceAccounts();
