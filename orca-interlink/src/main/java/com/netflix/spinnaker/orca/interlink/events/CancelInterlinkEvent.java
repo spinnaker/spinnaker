@@ -18,10 +18,13 @@ package com.netflix.spinnaker.orca.interlink.events;
 
 import static com.netflix.spinnaker.orca.interlink.events.InterlinkEvent.EventType.CANCEL;
 
+import com.netflix.spinnaker.orca.pipeline.CompoundExecutionOperator;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import javax.annotation.Nullable;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
 
 @Data
 @AllArgsConstructor
@@ -46,7 +49,7 @@ public class CancelInterlinkEvent implements InterlinkEvent {
   }
 
   @Override
-  public void applyTo(ExecutionRepository executionRepository) {
-    executionRepository.cancel(executionType, executionId, canceledBy, cancellationReason);
+  public void applyTo(CompoundExecutionOperator executionOperator) {
+    executionOperator.cancel(executionType, executionId, canceledBy, cancellationReason);
   }
 }

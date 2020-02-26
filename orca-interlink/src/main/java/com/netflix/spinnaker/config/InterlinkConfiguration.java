@@ -28,6 +28,7 @@ import com.netflix.spinnaker.kork.pubsub.config.PubsubConfig;
 import com.netflix.spinnaker.orca.interlink.Interlink;
 import com.netflix.spinnaker.orca.interlink.MessageFlagger;
 import com.netflix.spinnaker.orca.interlink.aws.InterlinkAmazonMessageHandler;
+import com.netflix.spinnaker.orca.pipeline.CompoundExecutionOperator;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import java.time.Clock;
 import lombok.extern.slf4j.Slf4j;
@@ -46,7 +47,9 @@ public class InterlinkConfiguration {
   @Bean
   @ConditionalOnProperty({"pubsub.enabled", "pubsub.amazon.enabled"})
   public AmazonPubsubMessageHandlerFactory amazonPubsubMessageHandlerFactory(
-      ObjectMapper objectMapper, ExecutionRepository repository) {
+      ObjectMapper objectMapper,
+      ExecutionRepository repository,
+      CompoundExecutionOperator executionOperator) {
     return new AmazonPubsubMessageHandlerFactory() {
       @Override
       public AmazonPubsubMessageHandler create(
@@ -57,7 +60,7 @@ public class InterlinkConfiguration {
           return null;
         }
 
-        return new InterlinkAmazonMessageHandler(objectMapper, repository);
+        return new InterlinkAmazonMessageHandler(objectMapper, repository, executionOperator);
       }
     };
   }

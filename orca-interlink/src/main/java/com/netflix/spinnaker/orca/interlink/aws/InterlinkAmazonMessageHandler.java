@@ -24,6 +24,7 @@ import com.netflix.spinnaker.kork.pubsub.aws.NotificationMessage;
 import com.netflix.spinnaker.kork.pubsub.aws.api.AmazonPubsubMessageHandler;
 import com.netflix.spinnaker.orca.interlink.InterlinkMessageHandlingException;
 import com.netflix.spinnaker.orca.interlink.events.InterlinkEvent;
+import com.netflix.spinnaker.orca.pipeline.CompoundExecutionOperator;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import lombok.extern.slf4j.Slf4j;
 
@@ -31,11 +32,15 @@ import lombok.extern.slf4j.Slf4j;
 public class InterlinkAmazonMessageHandler implements AmazonPubsubMessageHandler {
   private final ObjectMapper objectMapper;
   private final ExecutionRepository executionRepository;
+  private final CompoundExecutionOperator executionOperator;
 
   public InterlinkAmazonMessageHandler(
-      ObjectMapper objectMapper, ExecutionRepository executionRepository) {
+      ObjectMapper objectMapper,
+      ExecutionRepository executionRepository,
+      CompoundExecutionOperator executionOperator) {
     this.objectMapper = objectMapper;
     this.executionRepository = executionRepository;
+    this.executionOperator = executionOperator;
   }
 
   @Override
@@ -55,7 +60,7 @@ public class InterlinkAmazonMessageHandler implements AmazonPubsubMessageHandler
   @VisibleForTesting
   void handleInternal(InterlinkEvent event) {
     if (executionRepository.handlesPartition(event.getPartition())) {
-      event.applyTo(executionRepository);
+      event.applyTo(executionOperator);
     } else {
       log.debug(
           "Execution repository with local partition {} does not handle this event's partition {}, "

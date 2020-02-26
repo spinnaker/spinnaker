@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.interlink
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.interlink.events.*
+import com.netflix.spinnaker.orca.pipeline.CompoundExecutionOperator
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import spock.lang.Shared
 import spock.lang.Specification
@@ -54,13 +55,13 @@ class InterlinkSpec extends Specification {
   @Unroll
   def "event type #event.getEventType() applies the `#methodName` method"() {
     given:
-    def executionRepo = Mock(ExecutionRepository)
+    def executionOperator = Mock(CompoundExecutionOperator)
 
     when:
-    event.applyTo(executionRepo)
+    event.applyTo(executionOperator)
 
     then:
-    1 * executionRepo."$methodName"(*_)
+    1 * executionOperator."$methodName"(*_)
 
     where:
     event  | methodName

@@ -36,9 +36,7 @@ import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.libdiffs.ComparableLooseVersion;
 import com.netflix.spinnaker.orca.libdiffs.DefaultComparableLooseVersion;
 import com.netflix.spinnaker.orca.listeners.*;
-import com.netflix.spinnaker.orca.pipeline.DefaultStageDefinitionBuilderFactory;
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory;
+import com.netflix.spinnaker.orca.pipeline.*;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import java.time.Clock;
@@ -225,5 +223,11 @@ public class OrcaConfiguration {
   public ForceExecutionCancellationCommand forceExecutionCancellationCommand(
       ExecutionRepository executionRepository, Clock clock) {
     return new ForceExecutionCancellationCommand(executionRepository, clock);
+  }
+
+  @Bean
+  public CompoundExecutionOperator compoundExecutionOperator(
+      ExecutionRepository repository, ExecutionRunner runner, RetrySupport retrySupport) {
+    return new CompoundExecutionOperator(repository, runner, retrySupport);
   }
 }

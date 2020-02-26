@@ -21,22 +21,21 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public interface ExecutionRunner {
-  void start(@Nonnull Execution execution) throws Exception;
+  void start(@Nonnull Execution execution);
 
-  default void restart(@Nonnull Execution execution, @Nonnull String stageId) throws Exception {
+  default void restart(@Nonnull Execution execution, @Nonnull String stageId) {
     throw new UnsupportedOperationException();
   }
 
-  default void reschedule(@Nonnull Execution execution) throws Exception {
+  default void reschedule(@Nonnull Execution execution) {
     throw new UnsupportedOperationException();
   }
 
-  default void unpause(@Nonnull Execution execution) throws Exception {
+  default void unpause(@Nonnull Execution execution) {
     throw new UnsupportedOperationException();
   }
 
-  default void cancel(@Nonnull Execution execution, @Nonnull String user, @Nullable String reason)
-      throws Exception {
+  default void cancel(@Nonnull Execution execution, @Nonnull String user, @Nullable String reason) {
     throw new UnsupportedOperationException();
   }
 }

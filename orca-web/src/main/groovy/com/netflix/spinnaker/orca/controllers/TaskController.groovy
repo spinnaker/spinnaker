@@ -24,6 +24,7 @@ import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.model.OrchestrationViewModel
+import com.netflix.spinnaker.orca.pipeline.CompoundExecutionOperator
 import com.netflix.spinnaker.orca.pipeline.EvaluateVariablesStage
 import com.netflix.spinnaker.orca.pipeline.ExecutionRunner
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
@@ -77,6 +78,9 @@ class TaskController {
 
   @Autowired
   ExecutionRunner executionRunner
+
+  @Autowired
+  CompoundExecutionOperator executionOperator;
 
   @Autowired
   Collection<StageDefinitionBuilder> stageBuilders
@@ -173,7 +177,7 @@ class TaskController {
   @RequestMapping(value = "/tasks/{id}/cancel", method = RequestMethod.PUT)
   @ResponseStatus(HttpStatus.ACCEPTED)
   void cancelTask(@PathVariable String id) {
-    cancelExecution(ORCHESTRATION, id)
+    executionOperator.cancel(ORCHESTRATION, id)
   }
 
   @PreFilter("hasPermission(this.getOrchestration(filterObject)?.application, 'APPLICATION', 'EXECUTE')")
@@ -181,7 +185,7 @@ class TaskController {
   @ResponseStatus(HttpStatus.ACCEPTED)
   void cancelTasks(@RequestBody List<String> taskIds) {
     taskIds.each {
-      cancelExecution(ORCHESTRATION, it)
+      executionOperator.cancel(ORCHESTRATION, it)
     }
   }
 
@@ -428,25 +432,21 @@ class TaskController {
   void cancel(
     @PathVariable String id, @RequestParam(required = false) String reason,
     @RequestParam(defaultValue = "false") boolean force) {
-    cancelExecution(PIPELINE, id, reason)
+    executionOperator.cancel(PIPELINE, id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"), reason)
   }
 
   @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'EXECUTE')")
   @RequestMapping(value = "/pipelines/{id}/pause", method = RequestMethod.PUT)
   @ResponseStatus(HttpStatus.ACCEPTED)
   void pause(@PathVariable String id) {
-    executionRepository.pause(PIPELINE, id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"))
-    def pipeline = executionRepository.retrieve(PIPELINE, id)
-    executionRunner.reschedule(pipeline)
+    executionOperator.pause(PIPELINE, id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"))
   }
 
   @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'EXECUTE')")
   @RequestMapping(value = "/pipelines/{id}/resume", method = RequestMethod.PUT)
   @ResponseStatus(HttpStatus.ACCEPTED)
   void resume(@PathVariable String id) {
-    executionRepository.resume(PIPELINE, id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"))
-    def pipeline = executionRepository.retrieve(PIPELINE, id)
-    executionRunner.unpause(pipeline)
+    executionOperator.resume(PIPELINE, id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"), false)
   }
 
   @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
@@ -621,21 +621,6 @@ class TaskController {
     return filterPipelinesByHistoryCutoff(allPipelines, limit)
   }
 
-  private void cancelExecution(ExecutionType executionType, String id) {
-    cancelExecution(executionType, id, null)
-  }
-
-  private void cancelExecution(ExecutionType executionType, String id, String reason) {
-    executionRepository.retrieve(executionType, id).with { execution ->
-      executionRunner.cancel(
-        execution,
-        AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"),
-        reason
-      )
-    }
-    executionRepository.updateStatus(executionType, id, ExecutionStatus.CANCELED)
-  }
-
   private static void validateSearchForPipelinesByTriggerParameters(long triggerTimeStartBoundary, long triggerTimeEndBoundary, int startIndex, int size) {
     if (triggerTimeStartBoundary < 0) {
       throw new IllegalArgumentException(String.format("triggerTimeStartBoundary must be >= 0: triggerTimeStartBoundary=%s", triggerTimeStartBoundary))
@@ -720,13 +705,6 @@ class TaskController {
         stage.tasks = []
       }
     }
-  }
-
-  private static Closure reverseBuildTime = { a, b ->
-    def aBuildTime = a.buildTime ?: 0
-    def bBuildTime = b.buildTime ?: 0
-
-    return bBuildTime <=> aBuildTime ?: b.id <=> a.id
   }
 
   private static Closure startTimeOrId = { a, b ->

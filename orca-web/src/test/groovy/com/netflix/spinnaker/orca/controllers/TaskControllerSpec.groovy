@@ -19,9 +19,9 @@ package com.netflix.spinnaker.orca.controllers
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.collect.Collections2
 import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
+import com.netflix.spinnaker.orca.pipeline.CompoundExecutionOperator
 import com.netflix.spinnaker.orca.pipeline.ExecutionRunner
 import com.netflix.spinnaker.orca.pipeline.model.*
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -52,6 +52,7 @@ class TaskControllerSpec extends Specification {
   def executionRepository = Mock(ExecutionRepository)
   def front50Service = Mock(Front50Service)
   def executionRunner = Mock(ExecutionRunner)
+  def executionOperator = Mock(CompoundExecutionOperator)
   def mapper = new ObjectMapper()
   def registry = new NoopRegistry()
 
@@ -72,7 +73,8 @@ class TaskControllerSpec extends Specification {
         clock: clock,
         mapper: mapper,
         registry: registry,
-        contextParameterProcessor: new ContextParameterProcessor()
+        contextParameterProcessor: new ContextParameterProcessor(),
+        executionOperator: executionOperator
       )
     ).build()
   }
@@ -98,12 +100,8 @@ class TaskControllerSpec extends Specification {
 
     then:
     response.andExpect(status().isAccepted())
-    1 * executionRepository.retrieve(ORCHESTRATION, 'id2') >> orc2
-    1 * executionRunner.cancel(orc2, 'anonymous', null)
-    1 * executionRepository.updateStatus(ORCHESTRATION, 'id2', ExecutionStatus.CANCELED)
-    1 * executionRepository.retrieve(ORCHESTRATION, 'id1') >> orc1
-    1 * executionRunner.cancel(orc1, 'anonymous', null)
-    1 * executionRepository.updateStatus(ORCHESTRATION, 'id1', ExecutionStatus.CANCELED)
+    1 * executionOperator.cancel(ORCHESTRATION, 'id1')
+    1 * executionOperator.cancel(ORCHESTRATION, 'id2')
     0 * _
   }
 
