@@ -52,7 +52,11 @@
   <div class="form-group">
     <div class="col-md-12 checkbox">
       <label>
-        <input type="checkbox" ng-model="$ctrl.command.useSourceCapacity" />
+        <input
+          type="checkbox"
+          ng-model="$ctrl.command.useSourceCapacity"
+          ng-change="$ctrl.command.preferSourceCapacity=$ctrl.command.useSourceCapacity"
+        />
         <b>If available, use the previous server group's capacity</b>
       </label>
       <help-field key="ecs.capacity.overwrite"></help-field>

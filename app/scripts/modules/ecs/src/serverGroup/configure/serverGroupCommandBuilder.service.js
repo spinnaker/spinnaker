@@ -149,6 +149,7 @@ angular
               ecsClusterName: '',
               targetGroup: '',
               copySourceScalingPoliciesAndActions: true,
+              preferSourceCapacity: true,
               useSourceCapacity: true,
               viewState: {
                 useAllImageSelection: false,
