@@ -25,7 +25,7 @@
     "int": "protractor protractor.conf.js",
     "modules": "./gradle/buildModules.sh",
     "prettier": "prettier --write 'app/**/*.{js,jsx,ts,tsx,html,css,less}'",
-    "functional": "test/functional/run.js --serve-deck --replay-fixtures --browser chrome --headless"
+    "functional": "test/functional/run.js --replay-fixtures --serve-deck --imposter-port=8084 --browser=chrome --headless"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.4.1",

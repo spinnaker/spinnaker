@@ -89,7 +89,7 @@ jobs:
 
       - name: Functional Tests
         if: steps.purebump.outputs.ispurebump != 'true'
-        run: node test/functional/run.js --replay-fixtures --serve-deck --imposter-port=8084 --browser=chrome --headless
+        run: yarn functional
 
   build:
     name: Production Build

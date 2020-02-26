@@ -2,7 +2,7 @@ import '@wdio/sync';
 import { defaultsDeep } from 'lodash';
 
 const DEFAULT_OPTIONS = {
-  awaitExistsTime: 10000,
+  awaitExistsTime: 60000,
 };
 
 export class Page {
