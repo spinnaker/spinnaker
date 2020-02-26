@@ -12,8 +12,10 @@ import com.netflix.spinnaker.keel.orca.ExecutionDetailResponse
 import com.netflix.spinnaker.keel.orca.OrcaExecutionStages
 import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus
 import com.netflix.spinnaker.keel.orca.OrcaService
+import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
+import com.netflix.spinnaker.keel.test.combinedInMemoryRepository
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -42,6 +44,7 @@ internal class CanaryConstraintEvaluatorTests : JUnit5Minutests {
   companion object {
     val clock: Clock = Clock.systemUTC()
     val deliveryConfigRepository = InMemoryDeliveryConfigRepository(clock)
+    val repository: KeelRepository = combinedInMemoryRepository(deliveryConfigRepository = deliveryConfigRepository)
     val orcaService: OrcaService = mockk(relaxed = true)
     val eventPublisher: ApplicationEventPublisher = mockk(relaxed = true)
     val type: String = "canary"
@@ -91,7 +94,7 @@ internal class CanaryConstraintEvaluatorTests : JUnit5Minutests {
     val subject = CanaryConstraintEvaluator(
       handlers = handlers,
       orcaService = orcaService,
-      deliveryConfigRepository = deliveryConfigRepository,
+      repository = repository,
       clock = clock,
       eventPublisher = eventPublisher
     )

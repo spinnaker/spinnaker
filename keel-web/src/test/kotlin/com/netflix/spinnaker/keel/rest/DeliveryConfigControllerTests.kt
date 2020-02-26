@@ -3,7 +3,6 @@ package com.netflix.spinnaker.keel.rest
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.netflix.spinnaker.keel.KeelApplication
 import com.netflix.spinnaker.keel.SPINNAKER_API_V1
-import com.netflix.spinnaker.keel.actuation.ResourcePersister
 import com.netflix.spinnaker.keel.api.artifacts.DebianArtifact
 import com.netflix.spinnaker.keel.constraints.ConstraintState
 import com.netflix.spinnaker.keel.constraints.ConstraintStatus.OVERRIDE_PASS
@@ -12,6 +11,7 @@ import com.netflix.spinnaker.keel.core.api.DependsOnConstraint
 import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.core.api.SubmittedEnvironment
 import com.netflix.spinnaker.keel.core.api.SubmittedResource
+import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
@@ -67,7 +67,7 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
   lateinit var artifactRepository: InMemoryArtifactRepository
 
   @Autowired
-  lateinit var resourcePersister: ResourcePersister
+  lateinit var repository: KeelRepository
 
   fun tests() = rootContext {
     after {
@@ -78,7 +78,7 @@ internal class DeliveryConfigControllerTests : JUnit5Minutests {
 
     context("getting a delivery config manifest") {
       before {
-        resourcePersister.upsert(
+        repository.upsertDeliveryConfig(
           SubmittedDeliveryConfig(
             name = "keel-manifest",
             application = "keel",

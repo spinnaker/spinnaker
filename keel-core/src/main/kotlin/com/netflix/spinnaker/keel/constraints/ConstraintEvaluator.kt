@@ -6,7 +6,7 @@ import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.artifacts.DeliveryArtifact
 import com.netflix.spinnaker.keel.constraints.ConstraintEvaluator.Companion.getConstraintForEnvironment
 import com.netflix.spinnaker.keel.events.ConstraintStateChanged
-import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
+import com.netflix.spinnaker.keel.persistence.KeelRepository
 import org.springframework.context.ApplicationEventPublisher
 
 interface ConstraintEvaluator<T : Constraint> {
@@ -50,7 +50,7 @@ inline fun <reified T : Constraint> SupportedConstraintType(name: String): Suppo
   SupportedConstraintType(name, T::class.java)
 
 abstract class StatefulConstraintEvaluator<T : Constraint> : ConstraintEvaluator<T> {
-  abstract val deliveryConfigRepository: DeliveryConfigRepository
+  abstract val repository: KeelRepository
 
   override fun canPromote(
     artifact: DeliveryArtifact,
@@ -59,7 +59,7 @@ abstract class StatefulConstraintEvaluator<T : Constraint> : ConstraintEvaluator
     targetEnvironment: Environment
   ): Boolean {
     val constraint = getConstraintForEnvironment(deliveryConfig, targetEnvironment.name, supportedType.type)
-    var state = deliveryConfigRepository
+    var state = repository
       .getConstraintState(
         deliveryConfig.name,
         targetEnvironment.name,
@@ -74,7 +74,7 @@ abstract class StatefulConstraintEvaluator<T : Constraint> : ConstraintEvaluator
         type = constraint.type,
         status = ConstraintStatus.PENDING
       ).also {
-        deliveryConfigRepository.storeConstraintState(it)
+        repository.storeConstraintState(it)
         eventPublisher.publishEvent(ConstraintStateChanged(targetEnvironment, constraint, null, it))
       }
     }

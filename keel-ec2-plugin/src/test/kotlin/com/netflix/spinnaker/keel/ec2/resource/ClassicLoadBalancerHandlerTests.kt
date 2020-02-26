@@ -5,7 +5,6 @@ import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.api.Exportable
 import com.netflix.spinnaker.keel.api.ec2.ClassicLoadBalancerSpec
-import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverService
@@ -28,6 +27,7 @@ import com.netflix.spinnaker.keel.orca.OrcaTaskLauncher
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
 import com.netflix.spinnaker.keel.serialization.configuredYamlMapper
+import com.netflix.spinnaker.keel.test.combinedMockRepository
 import com.netflix.spinnaker.keel.test.resource
 import de.danielbechler.diff.node.DiffNode
 import de.danielbechler.diff.node.DiffNode.State
@@ -69,10 +69,12 @@ internal class ClassicLoadBalancerHandlerTests : JUnit5Minutests {
     // we're just using this to get notifications
     every { environmentFor(any()) } returns Environment("test")
   }
+
+  val combinedRepository = combinedMockRepository(deliveryConfigRepository = deliveryConfigRepository)
   private val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
   private val taskLauncher = OrcaTaskLauncher(
     orcaService,
-    deliveryConfigRepository,
+    combinedRepository,
     publisher
   )
   private val mapper = ObjectMapper().registerKotlinModule()

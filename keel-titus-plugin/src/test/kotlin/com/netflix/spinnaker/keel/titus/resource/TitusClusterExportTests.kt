@@ -25,6 +25,7 @@ import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.OrcaTaskLauncher
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
+import com.netflix.spinnaker.keel.test.combinedMockRepository
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -50,10 +51,11 @@ internal class TitusClusterExportTests : JUnit5Minutests {
   val orcaService = mockk<OrcaService>()
   val resolvers = emptyList<Resolver<TitusClusterSpec>>()
   val deliveryConfigRepository: InMemoryDeliveryConfigRepository = mockk()
+  val combinedRepository = combinedMockRepository(deliveryConfigRepository = deliveryConfigRepository)
   val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
   val taskLauncher = OrcaTaskLauncher(
     orcaService,
-    deliveryConfigRepository,
+    combinedRepository,
     publisher
   )
   val clock = Clock.systemDefaultZone()

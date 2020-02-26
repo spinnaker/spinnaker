@@ -23,6 +23,7 @@ import com.netflix.spinnaker.keel.ec2.NoImageSatisfiesConstraints
 import com.netflix.spinnaker.keel.ec2.SPINNAKER_EC2_API_V1
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
+import com.netflix.spinnaker.keel.test.combinedInMemoryRepository
 import com.netflix.spinnaker.keel.test.resource
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import dev.minutest.junit.JUnit5Minutests
@@ -59,11 +60,11 @@ internal class ImageResolverTests : JUnit5Minutests {
     val cloudDriverService = mockk<CloudDriverService>()
     val deliveryConfigRepository = InMemoryDeliveryConfigRepository()
     val artifactRepository = InMemoryArtifactRepository()
+    val combinedRepository = combinedInMemoryRepository(deliveryConfigRepository = deliveryConfigRepository, artifactRepository = artifactRepository)
     val imageService = mockk<ImageService>()
     private val subject = ImageResolver(
       dynamicConfigService,
-      deliveryConfigRepository,
-      artifactRepository,
+      combinedRepository,
       imageService
     )
     val images = listOf(

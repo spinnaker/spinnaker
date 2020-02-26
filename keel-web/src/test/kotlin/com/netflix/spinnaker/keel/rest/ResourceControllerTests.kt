@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.KeelApplication
-import com.netflix.spinnaker.keel.actuation.ResourcePersister
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.diff.AdHocDiffer
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
@@ -45,9 +44,6 @@ internal class ResourceControllerTests {
 
   @MockkBean
   lateinit var authorizationSupport: AuthorizationSupport
-
-  @MockkBean
-  lateinit var resourcePersister: ResourcePersister
 
   @MockkBean
   lateinit var adHocDiffer: AdHocDiffer

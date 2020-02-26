@@ -4,7 +4,7 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.events.ResourceActuationPaused
 import com.netflix.spinnaker.keel.events.ResourceEvent
 import com.netflix.spinnaker.keel.pause.ResourcePauser
-import com.netflix.spinnaker.keel.persistence.ResourceRepository
+import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.ResourceRepository.Companion.DEFAULT_MAX_EVENTS
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import org.slf4j.LoggerFactory.getLogger
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping(path = ["/resources/events"])
 class EventController(
-  private val resourceRepository: ResourceRepository,
+  private val repository: KeelRepository,
   private val resourcePauser: ResourcePauser
 ) {
   private val log by lazy { getLogger(javaClass) }
@@ -32,10 +32,10 @@ class EventController(
     @RequestParam("limit") limit: Int?
   ): List<ResourceEvent> {
     log.debug("Getting state history for: $id")
-    val resource = resourceRepository.get(id)
+    val resource = repository.getResource(id)
     val pauseScope = resourcePauser.getPauseScope(resource)
-    return resourceRepository
-      .eventHistory(id, limit ?: DEFAULT_MAX_EVENTS)
+    return repository
+      .resourceEventHistory(id, limit ?: DEFAULT_MAX_EVENTS)
       .also {
         if (pauseScope != null) {
           // for user clarity we add a pause event to the resource history if the resource is paused.

@@ -21,15 +21,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
-import com.netflix.spinnaker.keel.persistence.ArtifactRepository
-import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
+import com.netflix.spinnaker.keel.persistence.KeelRepository
 
 class SampleDockerImageResolver(
-  deliveryConfigRepository: DeliveryConfigRepository,
-  artifactRepository: ArtifactRepository
+  repository: KeelRepository
 ) : DockerImageResolver<SampleSpecWithContainer>(
-  deliveryConfigRepository,
-  artifactRepository
+  repository
 ) {
 
   override val apiVersion: String = SAMPLE_API_VERSION

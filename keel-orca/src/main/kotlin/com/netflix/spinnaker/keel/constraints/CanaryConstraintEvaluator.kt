@@ -7,7 +7,7 @@ import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
 import com.netflix.spinnaker.keel.core.api.CanaryConstraint
 import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus
 import com.netflix.spinnaker.keel.orca.OrcaService
-import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
+import com.netflix.spinnaker.keel.persistence.KeelRepository
 import java.time.Clock
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -57,7 +57,7 @@ import org.springframework.stereotype.Component
 class CanaryConstraintEvaluator(
   private val handlers: List<CanaryConstraintDeployHandler>,
   private val orcaService: OrcaService,
-  override val deliveryConfigRepository: DeliveryConfigRepository,
+  override val repository: KeelRepository,
   private val clock: Clock,
   override val eventPublisher: ApplicationEventPublisher
 ) : StatefulConstraintEvaluator<CanaryConstraint>() {
@@ -93,7 +93,7 @@ class CanaryConstraintEvaluator(
           }
         }
       }
-      deliveryConfigRepository.storeConstraintState(
+      repository.storeConstraintState(
         state.copy(
           status = ConstraintStatus.FAIL,
           judgedBy = judge,
@@ -104,7 +104,7 @@ class CanaryConstraintEvaluator(
     }
 
     if (status.passed(constraint)) {
-      deliveryConfigRepository.storeConstraintState(
+      repository.storeConstraintState(
         state.copy(
           status = ConstraintStatus.PASS,
           judgedBy = judge,
@@ -128,7 +128,7 @@ class CanaryConstraintEvaluator(
         "another artifact version may still be under evaluation."
 
       if (state.comment != message) {
-        deliveryConfigRepository.storeConstraintState(state.copy(comment = message))
+        repository.storeConstraintState(state.copy(comment = message))
       }
 
       return false
@@ -136,7 +136,7 @@ class CanaryConstraintEvaluator(
 
     if (regionsToTrigger.isEmpty()) {
       if (!status.anyRunning()) {
-        deliveryConfigRepository.storeConstraintState(
+        repository.storeConstraintState(
           state.copy(
             status = ConstraintStatus.FAIL,
             judgedBy = judge,
@@ -144,7 +144,7 @@ class CanaryConstraintEvaluator(
             attributes = attributes.copy(status = status),
             comment = "Failure encountered launching canaries"))
       } else if (attributes.status != status) {
-        deliveryConfigRepository.storeConstraintState(
+        repository.storeConstraintState(
           state.copy(
             attributes = attributes.copy(status = status)))
       }
@@ -169,7 +169,7 @@ class CanaryConstraintEvaluator(
       }
         .toSet())
 
-    deliveryConfigRepository.storeConstraintState(
+    repository.storeConstraintState(
       state.copy(
         attributes = attributes,
         comment = "Running canaries in ${attributes.launchedRegions}"))

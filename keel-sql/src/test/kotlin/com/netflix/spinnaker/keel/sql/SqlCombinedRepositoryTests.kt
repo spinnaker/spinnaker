@@ -1,8 +1,6 @@
 package com.netflix.spinnaker.keel.sql
 
-import com.fasterxml.jackson.databind.jsontype.NamedType
-import com.netflix.spinnaker.keel.core.api.ManualJudgementConstraint
-import com.netflix.spinnaker.keel.persistence.CleanerTests
+import com.netflix.spinnaker.keel.persistence.CombinedRepositoryTests
 import com.netflix.spinnaker.keel.resources.ResourceTypeIdentifier
 import com.netflix.spinnaker.keel.serialization.configuredObjectMapper
 import com.netflix.spinnaker.kork.sql.config.RetryProperties
@@ -11,12 +9,10 @@ import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import java.time.Clock
 import org.junit.jupiter.api.AfterAll
 
-internal object SqlCleanerTests : CleanerTests<SqlDeliveryConfigRepository, SqlResourceRepository, SqlArtifactRepository>() {
+internal object SqlCombinedRepositoryTests : CombinedRepositoryTests<SqlDeliveryConfigRepository, SqlResourceRepository, SqlArtifactRepository>() {
   private val testDatabase = initTestDatabase()
   private val jooq = testDatabase.context
-  private val objectMapper = configuredObjectMapper().apply {
-    registerSubtypes(NamedType(ManualJudgementConstraint::class.java, "manual-judgement"))
-  }
+  private val objectMapper = configuredObjectMapper()
   private val retryProperties = RetryProperties(1, 0)
   private val sqlRetry = SqlRetry(SqlRetryProperties(retryProperties, retryProperties))
 

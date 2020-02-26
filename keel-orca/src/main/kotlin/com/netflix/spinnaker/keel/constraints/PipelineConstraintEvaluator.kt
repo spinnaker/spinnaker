@@ -9,8 +9,7 @@ import com.netflix.spinnaker.keel.core.api.PipelineConstraint
 import com.netflix.spinnaker.keel.model.toOrcaNotification
 import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus
 import com.netflix.spinnaker.keel.orca.OrcaService
-import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
-import java.lang.Exception
+import com.netflix.spinnaker.keel.persistence.KeelRepository
 import java.time.Clock
 import java.util.HashMap
 import kotlinx.coroutines.runBlocking
@@ -38,7 +37,7 @@ import org.springframework.stereotype.Component
 @Component
 class PipelineConstraintEvaluator(
   private val orcaService: OrcaService,
-  override val deliveryConfigRepository: DeliveryConfigRepository,
+  override val repository: KeelRepository,
   override val eventPublisher: ApplicationEventPublisher,
   private val clock: Clock
 ) : StatefulConstraintEvaluator<PipelineConstraint>() {
@@ -64,7 +63,7 @@ class PipelineConstraintEvaluator(
 
     // TODO: if the constraint has timed out but the pipeline is still running, should we cancel it?
     if (timedOut(constraint, state, attributes)) {
-      deliveryConfigRepository
+      repository
         .storeConstraintState(
           state.copy(
             status = FAIL,
@@ -103,11 +102,11 @@ class PipelineConstraintEvaluator(
         )
       }
 
-      deliveryConfigRepository.storeConstraintState(state.copy(attributes = attributes))
+      repository.storeConstraintState(state.copy(attributes = attributes))
       return false
     } else if (attributes?.executionId == null) {
       // If we don't have an executionId or available retries, fail
-      deliveryConfigRepository
+      repository
         .storeConstraintState(
           state.copy(
             status = FAIL,
@@ -123,7 +122,7 @@ class PipelineConstraintEvaluator(
       // Persist the pipeline status if changed
       if (attributes.lastExecutionStatus !=
         (state.attributes as PipelineConstraintStateAttributes?)?.lastExecutionStatus) {
-        deliveryConfigRepository
+        repository
           .storeConstraintState(
             state.copy(attributes = attributes))
       }
@@ -147,7 +146,7 @@ class PipelineConstraintEvaluator(
         attributes = attributes)
     }
 
-    deliveryConfigRepository.storeConstraintState(newState)
+    repository.storeConstraintState(newState)
     return status.isSuccess()
   }
 

@@ -31,6 +31,7 @@ import com.netflix.spinnaker.keel.orca.OrcaTaskLauncher
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
 import com.netflix.spinnaker.keel.test.DummyResourceSpec
+import com.netflix.spinnaker.keel.test.combinedInMemoryRepository
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -52,7 +53,8 @@ class OrcaTaskLauncherTests : JUnit5Minutests {
     val orcaService: OrcaService = mockk()
     val deliveryConfigRepository = InMemoryDeliveryConfigRepository(clock)
     val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
-    val taskLauncher = OrcaTaskLauncher(orcaService, deliveryConfigRepository, publisher)
+    val combinedRepository = combinedInMemoryRepository(deliveryConfigRepository = deliveryConfigRepository)
+    val taskLauncher = OrcaTaskLauncher(orcaService, combinedRepository, publisher)
     val resource: Resource<DummyResourceSpec> = resource()
     val request = slot<OrchestrationRequest>()
   }

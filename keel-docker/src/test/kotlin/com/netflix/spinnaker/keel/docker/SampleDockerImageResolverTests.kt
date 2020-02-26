@@ -23,8 +23,11 @@ import com.netflix.spinnaker.keel.api.Resource
 import com.netflix.spinnaker.keel.api.artifacts.DockerArtifact
 import com.netflix.spinnaker.keel.api.artifacts.TagVersionStrategy.SEMVER_TAG
 import com.netflix.spinnaker.keel.exceptions.NoDockerImageSatisfiesConstraints
+import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryArtifactRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
+import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
+import com.netflix.spinnaker.keel.test.combinedInMemoryRepository
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import strikt.api.expect
@@ -40,6 +43,8 @@ import strikt.assertions.isEqualTo
 class SampleDockerImageResolverTests : JUnit5Minutests {
   val configRepo: InMemoryDeliveryConfigRepository = InMemoryDeliveryConfigRepository()
   val artifactRepo: InMemoryArtifactRepository = InMemoryArtifactRepository()
+  val resourceRepo: InMemoryResourceRepository = InMemoryResourceRepository()
+  val repository: KeelRepository = combinedInMemoryRepository(configRepo, artifactRepo, resourceRepo)
 
   private val artifact = DockerArtifact(name = "spkr/keeldemo", reference = "spkr/keeldemo", tagVersionStrategy = SEMVER_TAG, deliveryConfigName = "mydeliveryconfig")
 
@@ -92,7 +97,7 @@ class SampleDockerImageResolverTests : JUnit5Minutests {
 
   fun tests() = rootContext<SampleDockerImageResolver> {
     fixture {
-      SampleDockerImageResolver(configRepo, artifactRepo)
+      SampleDockerImageResolver(repository)
     }
 
     context("resolving from versioned tag provider") {

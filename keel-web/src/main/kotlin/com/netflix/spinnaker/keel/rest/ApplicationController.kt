@@ -18,8 +18,7 @@
 package com.netflix.spinnaker.keel.rest
 
 import com.netflix.spinnaker.keel.pause.ResourcePauser
-import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
-import com.netflix.spinnaker.keel.persistence.ResourceRepository
+import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.ResourceStatus.PAUSED
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
@@ -34,8 +33,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping(path = ["/application"])
 class ApplicationController(
-  private val resourceRepository: ResourceRepository,
-  private val deliveryConfigRepository: DeliveryConfigRepository,
+  private val repository: KeelRepository,
   private val resourcePauser: ResourcePauser
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -49,7 +47,7 @@ class ApplicationController(
     @RequestParam("includeDetails", required = false, defaultValue = "false") includeDetails: Boolean
   ): Map<String, Any> {
     if (includeDetails) {
-      var resources = resourceRepository.getSummaryByApplication(application)
+      var resources = repository.getSummaryByApplication(application)
       resources = resources.map { summary ->
         if (resourcePauser.resourceIsPaused(summary.id)) {
           // we only update the status if the individual resource is paused,
@@ -59,7 +57,7 @@ class ApplicationController(
           summary
         }
       }
-      val constraintStates = deliveryConfigRepository.constraintStateFor(application)
+      val constraintStates = repository.constraintStateFor(application)
 
       return mapOf(
         "applicationPaused" to resourcePauser.applicationIsPaused(application),
@@ -70,7 +68,7 @@ class ApplicationController(
     }
     return mapOf(
       "applicationPaused" to resourcePauser.applicationIsPaused(application),
-      "hasManagedResources" to resourceRepository.hasManagedResources(application)
+      "hasManagedResources" to repository.hasManagedResources(application)
     )
   }
 

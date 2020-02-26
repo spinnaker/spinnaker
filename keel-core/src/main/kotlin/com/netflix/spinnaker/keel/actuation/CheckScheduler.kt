@@ -3,9 +3,7 @@ package com.netflix.spinnaker.keel.actuation
 import com.netflix.spinnaker.keel.activation.ApplicationDown
 import com.netflix.spinnaker.keel.activation.ApplicationUp
 import com.netflix.spinnaker.keel.persistence.AgentLockRepository
-import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
-import com.netflix.spinnaker.keel.persistence.PeriodicallyCheckedRepository
-import com.netflix.spinnaker.keel.persistence.ResourceRepository
+import com.netflix.spinnaker.keel.persistence.KeelRepository
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.CoroutineContext
@@ -22,8 +20,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class CheckScheduler(
-  private val resourceRepository: ResourceRepository,
-  private val deliveryConfigRepository: DeliveryConfigRepository,
+  private val repository: KeelRepository,
   private val resourceActuator: ResourceActuator,
   private val environmentPromotionChecker: EnvironmentPromotionChecker,
   @Value("\${keel.resource-check.min-age-duration:60s}") private val resourceCheckMinAgeDuration: Duration,
@@ -54,9 +51,10 @@ class CheckScheduler(
       publisher.publishEvent(ScheduledResourceCheckStarting)
 
       val job = launch {
-        resourceRepository
-          .launchForEachItem {
-            resourceActuator.checkResource(it)
+        repository
+          .resourcesDueForCheck(resourceCheckMinAgeDuration, resourceCheckBatchSize)
+          .forEach {
+            launch { resourceActuator.checkResource(it) }
           }
       }
 
@@ -74,9 +72,10 @@ class CheckScheduler(
       publisher.publishEvent(ScheduledEnvironmentCheckStarting)
 
       val job = launch {
-        deliveryConfigRepository
-          .launchForEachItem {
-            environmentPromotionChecker.checkEnvironments(it)
+        repository
+          .deliveryConfigsDueForCheck(resourceCheckMinAgeDuration, resourceCheckBatchSize)
+          .forEach {
+            launch { environmentPromotionChecker.checkEnvironments(it) }
           }
       }
 
@@ -94,23 +93,16 @@ class CheckScheduler(
         val agentName: String = it.javaClass.simpleName
         val lockAcquired = agentLockRepository.tryAcquireLock(agentName, it.lockTimeoutSeconds)
         if (lockAcquired) {
-            runBlocking {
-              log.debug("invoking $agentName")
-              it.invokeAgent()
-            }
+          runBlocking {
+            log.debug("invoking $agentName")
+            it.invokeAgent()
+          }
           log.debug("invoking $agentName completed")
         }
       }
     } else {
       log.debug("invoking agent disabled")
     }
-  }
-
-  private fun <T : Any> PeriodicallyCheckedRepository<T>.launchForEachItem(block: suspend CoroutineScope.(T) -> Unit) {
-    itemsDueForCheck(resourceCheckMinAgeDuration, resourceCheckBatchSize)
-      .forEach {
-        launch { block(it) }
-      }
   }
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }

@@ -20,8 +20,8 @@ package com.netflix.spinnaker.keel.rest
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.serviceAccount
+import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
-import com.netflix.spinnaker.keel.persistence.ResourceRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.security.core.Authentication
@@ -31,13 +31,13 @@ import org.springframework.stereotype.Component
 @Component
 class AuthorizationSupport(
   private val permissionEvaluator: FiatPermissionEvaluator,
-  private val resourceRepository: ResourceRepository
+  private val repository: KeelRepository
 ) {
   val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
 
   fun userCanModifyResource(name: String): Boolean =
     try {
-      val resource = resourceRepository.get(name)
+      val resource = repository.getResource(name)
       userCanModifySpec(resource.serviceAccount, resource.id)
     } catch (e: NoSuchResourceException) {
       // If resource doesn't exist return true so a 404 is propagated from the controller.

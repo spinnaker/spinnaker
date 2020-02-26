@@ -20,6 +20,7 @@ import com.netflix.spinnaker.keel.events.ArtifactVersionDeployed
 import com.netflix.spinnaker.keel.persistence.ArtifactRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryResourceRepository
+import com.netflix.spinnaker.keel.test.combinedInMemoryRepository
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -82,11 +83,14 @@ internal class CurrentlyDeployedDockerImageApproverTests : JUnit5Minutests {
     val deliveryConfigRepository = InMemoryDeliveryConfigRepository()
     val resourceRepository = InMemoryResourceRepository()
     val artifactRepository = mockk<ArtifactRepository>(relaxUnitFun = true)
+    val combinedRepository = combinedInMemoryRepository(
+      deliveryConfigRepository = deliveryConfigRepository,
+      resourceRepository = resourceRepository,
+      artifactRepository = artifactRepository
+    )
 
     val subject = CurrentlyDeployedDockerImageApprover(
-      artifactRepository = artifactRepository,
-      resourceRepository = resourceRepository,
-      deliveryConfigRepository = deliveryConfigRepository
+      combinedRepository
     )
   }
 

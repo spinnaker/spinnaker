@@ -10,8 +10,7 @@ import com.netflix.spinnaker.keel.core.api.EnvironmentArtifactVeto
 import com.netflix.spinnaker.keel.events.ArtifactEvent
 import com.netflix.spinnaker.keel.events.ArtifactRegisteredEvent
 import com.netflix.spinnaker.keel.events.ArtifactSyncEvent
-import com.netflix.spinnaker.keel.persistence.ArtifactRepository
-import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
+import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.yaml.APPLICATION_YAML_VALUE
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import org.slf4j.LoggerFactory
@@ -32,8 +31,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping(path = ["/artifacts"])
 class ArtifactController(
   private val publisher: ApplicationEventPublisher,
-  private val artifactRepository: ArtifactRepository,
-  private val deliveryConfigRepository: DeliveryConfigRepository
+  private val repository: KeelRepository
 ) {
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
@@ -83,8 +81,8 @@ class ArtifactController(
       "A version to pin is required."
     }
 
-    val deliveryConfig = deliveryConfigRepository.get(pin.deliveryConfigName)
-    artifactRepository.pinEnvironment(deliveryConfig, pin.copy(pinnedBy = user))
+    val deliveryConfig = repository.getDeliveryConfig(pin.deliveryConfigName)
+    repository.pinEnvironment(deliveryConfig, pin.copy(pinnedBy = user))
   }
 
   @DeleteMapping(
@@ -92,8 +90,8 @@ class ArtifactController(
   )
   @ResponseStatus(ACCEPTED)
   fun deletePin(@RequestBody pin: EnvironmentArtifactPin) {
-    val deliveryConfig = deliveryConfigRepository.get(pin.deliveryConfigName)
-    artifactRepository.deletePin(deliveryConfig, pin.targetEnvironment, pin.reference, valueOf(pin.type.toUpperCase()))
+    val deliveryConfig = repository.getDeliveryConfig(pin.deliveryConfigName)
+    repository.deletePin(deliveryConfig, pin.targetEnvironment, pin.reference, valueOf(pin.type.toUpperCase()))
   }
 
   @DeleteMapping(
@@ -104,8 +102,8 @@ class ArtifactController(
     @PathVariable("deliveryConfig") deliveryConfigName: String,
     @PathVariable("targetEnvironment") targetEnvironment: String
   ) {
-    val deliveryConfig = deliveryConfigRepository.get(deliveryConfigName)
-    artifactRepository.deletePin(deliveryConfig, targetEnvironment)
+    val deliveryConfig = repository.getDeliveryConfig(deliveryConfigName)
+    repository.deletePin(deliveryConfig, targetEnvironment)
   }
 
   @PostMapping(
@@ -116,13 +114,13 @@ class ArtifactController(
     @RequestHeader("X-SPINNAKER-USER") user: String,
     @RequestBody veto: EnvironmentArtifactVeto
   ) {
-    val deliveryConfig = deliveryConfigRepository.get(veto.deliveryConfigName)
-    val artifact = artifactRepository.get(
+    val deliveryConfig = repository.getDeliveryConfig(veto.deliveryConfigName)
+    val artifact = repository.getArtifact(
       deliveryConfigName = veto.deliveryConfigName,
       reference = veto.reference,
       type = valueOf(veto.type))
 
-    artifactRepository.markAsVetoedIn(deliveryConfig, artifact, veto.version, veto.targetEnvironment, true)
+    repository.markAsVetoedIn(deliveryConfig, artifact, veto.version, veto.targetEnvironment, true)
   }
 
   @DeleteMapping(
@@ -136,12 +134,12 @@ class ArtifactController(
     @PathVariable("reference") reference: String,
     @PathVariable("version") version: String
   ) {
-    val deliveryConfig = deliveryConfigRepository.get(deliveryConfigName)
-    val artifact = artifactRepository.get(
+    val deliveryConfig = repository.getDeliveryConfig(deliveryConfigName)
+    val artifact = repository.getArtifact(
       deliveryConfigName = deliveryConfigName,
       reference = reference,
       type = valueOf(type))
-    artifactRepository.deleteVeto(deliveryConfig, artifact, version, targetEnvironment)
+    repository.deleteVeto(deliveryConfig, artifact, version, targetEnvironment)
   }
 
   @GetMapping(
@@ -152,7 +150,7 @@ class ArtifactController(
     @PathVariable name: String,
     @PathVariable type: ArtifactType
   ): List<String> =
-    artifactRepository.versions(name, type)
+    repository.artifactVersions(name, type)
 
   // Debian Artifacts should contain a releaseStatus in the metadata
   private fun Artifact.isFromArtifactEvent() =

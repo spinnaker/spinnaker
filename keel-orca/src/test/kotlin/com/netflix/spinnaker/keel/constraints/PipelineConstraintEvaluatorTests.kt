@@ -10,6 +10,7 @@ import com.netflix.spinnaker.keel.orca.OrcaExecutionStatus
 import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
+import com.netflix.spinnaker.keel.test.combinedInMemoryRepository
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.Runs
@@ -35,6 +36,7 @@ internal class PipelineConstraintEvaluatorTests : JUnit5Minutests {
   companion object {
     val clock: Clock = Clock.systemUTC()
     val deliveryConfigRepository = InMemoryDeliveryConfigRepository(clock)
+    val combinedRepository = combinedInMemoryRepository(deliveryConfigRepository = deliveryConfigRepository)
     val eventPublisher: ApplicationEventPublisher = mockk(relaxed = true)
   }
 
@@ -59,7 +61,7 @@ internal class PipelineConstraintEvaluatorTests : JUnit5Minutests {
     val executionId = randomUID().toString()
     val capturedId = slot<String>()
     val trigger = slot<HashMap<String, Any>>()
-    val subject = PipelineConstraintEvaluator(orcaService, deliveryConfigRepository, eventPublisher, clock)
+    val subject = PipelineConstraintEvaluator(orcaService, combinedRepository, eventPublisher, clock)
   }
 
   fun tests() = rootContext<Fixture> {

@@ -28,8 +28,7 @@ import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.core.TagComparator
 import com.netflix.spinnaker.keel.exceptions.NoDockerImageSatisfiesConstraints
-import com.netflix.spinnaker.keel.persistence.ArtifactRepository
-import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
+import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.NoMatchingArtifactException
 
 /**
@@ -38,8 +37,7 @@ import com.netflix.spinnaker.keel.persistence.NoMatchingArtifactException
  * Implement the methods in this interface for each cloud provider.
  */
 abstract class DockerImageResolver<T : ResourceSpec>(
-  val deliveryConfigRepository: DeliveryConfigRepository,
-  val artifactRepository: ArtifactRepository
+  val repository: KeelRepository
 ) : Resolver<T> {
 
   /**
@@ -77,8 +75,8 @@ abstract class DockerImageResolver<T : ResourceSpec>(
     if (container is DigestProvider) {
       return resource
     }
-    val deliveryConfig = deliveryConfigRepository.deliveryConfigFor(resource.id)
-    val environment = deliveryConfigRepository.environmentFor(resource.id)
+    val deliveryConfig = repository.deliveryConfigFor(resource.id)
+    val environment = repository.environmentFor(resource.id)
     val artifact = getArtifact(container, deliveryConfig)
     val account = getAccountFromSpec(resource)
     val tag: String = findTagGivenDeliveryConfig(deliveryConfig, environment, artifact)
@@ -102,7 +100,7 @@ abstract class DockerImageResolver<T : ResourceSpec>(
     }
 
   fun findTagGivenDeliveryConfig(deliveryConfig: DeliveryConfig, environment: Environment, artifact: DeliveryArtifact) =
-    artifactRepository.latestVersionApprovedIn(
+    repository.latestVersionApprovedIn(
       deliveryConfig,
       artifact,
       environment.name

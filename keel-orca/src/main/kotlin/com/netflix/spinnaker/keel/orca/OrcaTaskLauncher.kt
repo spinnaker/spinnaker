@@ -30,7 +30,7 @@ import com.netflix.spinnaker.keel.model.Job
 import com.netflix.spinnaker.keel.model.OrchestrationRequest
 import com.netflix.spinnaker.keel.model.OrchestrationTrigger
 import com.netflix.spinnaker.keel.model.toOrcaNotification
-import com.netflix.spinnaker.keel.persistence.DeliveryConfigRepository
+import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.persistence.TaskRecord
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
@@ -42,7 +42,7 @@ import org.springframework.stereotype.Component
 @Component
 class OrcaTaskLauncher(
   private val orcaService: OrcaService,
-  private val deliveryConfigRepository: DeliveryConfigRepository,
+  private val repository: KeelRepository,
   private val publisher: ApplicationEventPublisher
 ) : TaskLauncher {
   override suspend fun submitJob(
@@ -96,7 +96,7 @@ class OrcaTaskLauncher(
       }
 
   private val Resource<*>.notifications: Set<NotificationConfig>
-    get() = deliveryConfigRepository
+    get() = repository
       .environmentFor(id)
       .notifications
       .toSet()

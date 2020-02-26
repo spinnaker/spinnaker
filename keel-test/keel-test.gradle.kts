@@ -4,4 +4,5 @@ plugins {
 
 dependencies {
   api(project(":keel-core"))
+  implementation("io.mockk:mockk")
 }

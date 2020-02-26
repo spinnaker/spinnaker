@@ -20,7 +20,6 @@ import com.netflix.spinnaker.keel.api.ec2.TargetTrackingPolicy
 import com.netflix.spinnaker.keel.api.ec2.byRegion
 import com.netflix.spinnaker.keel.api.ec2.resolve
 import com.netflix.spinnaker.keel.api.ec2.resolveCapacity
-import com.netflix.spinnaker.keel.api.id
 import com.netflix.spinnaker.keel.api.plugins.Resolver
 import com.netflix.spinnaker.keel.api.serviceAccount
 import com.netflix.spinnaker.keel.clouddriver.CloudDriverCache
@@ -45,6 +44,7 @@ import com.netflix.spinnaker.keel.orca.OrcaService
 import com.netflix.spinnaker.keel.orca.OrcaTaskLauncher
 import com.netflix.spinnaker.keel.orca.TaskRefResponse
 import com.netflix.spinnaker.keel.persistence.memory.InMemoryDeliveryConfigRepository
+import com.netflix.spinnaker.keel.test.combinedMockRepository
 import com.netflix.spinnaker.keel.test.resource
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
@@ -86,9 +86,10 @@ internal class ClusterHandlerTests : JUnit5Minutests {
   val clock = Clock.systemDefaultZone()
   val publisher: ApplicationEventPublisher = mockk(relaxUnitFun = true)
   val deliveryConfigRepository: InMemoryDeliveryConfigRepository = mockk()
+  val combinedRepository = combinedMockRepository(deliveryConfigRepository = deliveryConfigRepository)
   val taskLauncher = OrcaTaskLauncher(
     orcaService,
-    deliveryConfigRepository,
+    combinedRepository,
     publisher
   )
 
