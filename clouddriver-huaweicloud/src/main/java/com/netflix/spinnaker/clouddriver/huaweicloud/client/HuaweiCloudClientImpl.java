@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.huaweicloud.client;
 import com.huawei.openstack4j.api.OSClient;
 import com.huawei.openstack4j.model.compute.ext.AvailabilityZone;
 import com.huawei.openstack4j.openstack.vpc.v1.domain.SecurityGroup;
+import com.huawei.openstack4j.openstack.vpc.v1.domain.Vpc;
 import com.netflix.spinnaker.clouddriver.huaweicloud.exception.HuaweiCloudException;
 import java.util.Collections;
 import java.util.List;
@@ -40,6 +41,10 @@ public class HuaweiCloudClientImpl implements HuaweiCloudClient {
     }
   }
 
+  private static List emptyList() {
+    return Collections.emptyList();
+  }
+
   private OSClient getRegionClient(String region) {
     return this.provider.getAuthClient().useRegion(region);
   }
@@ -49,7 +54,7 @@ public class HuaweiCloudClientImpl implements HuaweiCloudClient {
     return handleInvoking(
         String.format("getting zones in region(%s)", region),
         () -> getRegionClient(region).compute().zones().list(),
-        Collections.emptyList());
+        emptyList());
   }
 
   @Override
@@ -58,6 +63,14 @@ public class HuaweiCloudClientImpl implements HuaweiCloudClient {
     return handleInvoking(
         String.format("getting all security groups in region(%s)", region),
         () -> getRegionClient(region).vpc().securityGroups().list(),
-        Collections.emptyList());
+        emptyList());
+  }
+
+  @Override
+  public List<? extends Vpc> getVpcs(String region) throws HuaweiCloudException {
+    return handleInvoking(
+        String.format("getting all vpcs in region(%s)", region),
+        () -> getRegionClient(region).vpc().vpcs().list(),
+        emptyList());
   }
 }

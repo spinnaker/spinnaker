@@ -30,6 +30,7 @@ import org.springframework.stereotype.Component;
 public class Keys implements KeyParser {
 
   public static enum Namespace {
+    NETWORKS,
     SECURITY_GROUPS,
     ON_DEMAND;
 
@@ -103,6 +104,13 @@ public class Keys implements KeyParser {
     Map<String, String> result = new HashMap();
 
     switch (ns) {
+      case NETWORKS:
+        if (parts.length == 5) {
+          result.put("account", parts[2]);
+          result.put("region", parts[3]);
+          result.put("id", parts[4]);
+        }
+        break;
       case SECURITY_GROUPS:
         if (parts.length == 6) {
           Names names = Names.parseName(parts[4]);
@@ -127,6 +135,18 @@ public class Keys implements KeyParser {
     result.put("provider", parts[0]);
     result.put("type", parts[1]);
     return result;
+  }
+
+  public static String getNetworkKey(String networkId, String account, String region) {
+    return getCloudProviderId()
+        + SEPARATOR
+        + Namespace.NETWORKS
+        + SEPARATOR
+        + account
+        + SEPARATOR
+        + region
+        + SEPARATOR
+        + networkId;
   }
 
   public static String getSecurityGroupKey(

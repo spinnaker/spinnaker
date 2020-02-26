@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.Getter;
 
 public class CacheResultBuilder {
 
@@ -80,20 +81,14 @@ public class CacheResultBuilder {
     return new DefaultCacheResult(keep, evict);
   }
 
+  @Getter
   public static class CacheMutation {
     private final List<String> toEvict = new ArrayList();
 
     private final Map<String, CacheData> toKeep = new HashMap();
-
-    public List<String> getToEvict() {
-      return toEvict;
-    }
-
-    public Map<String, CacheData> getToKeep() {
-      return toKeep;
-    }
   }
 
+  @Getter
   public static class NamespaceCache {
     private final String namespace;
 
@@ -103,18 +98,6 @@ public class CacheResultBuilder {
 
     public NamespaceCache(String namespace) {
       this.namespace = namespace;
-    }
-
-    public String getNamespace() {
-      return namespace;
-    }
-
-    public List<String> getToEvict() {
-      return toEvict;
-    }
-
-    public Map<String, CacheDataBuilder> getToKeep() {
-      return toKeep;
     }
 
     public CacheDataBuilder getCacheDataBuilder(String key) {
