@@ -4,10 +4,10 @@ import { flatten, isEqual, map, uniq, xor } from 'lodash';
 import { Option } from 'react-select';
 
 import { createFakeReactSyntheticEvent } from 'core/presentation/forms/inputs/utils';
-import { IFormInputProps } from 'core/presentation/forms/inputs';
 import { ReactSelectInput } from 'core/presentation/forms/inputs/ReactSelectInput';
 import { SelectInput } from 'core/presentation/forms/inputs/SelectInput';
 
+import { IFormInputProps } from '../presentation/forms/inputs';
 import { AccountService, IAccount } from './AccountService';
 
 export interface IAccountSelectInputProps extends IFormInputProps {
