@@ -75,9 +75,10 @@ class PluginBinaryController(
 
       val response = okHttpClient.newCall(request).execute()
       if (!response.isSuccessful) {
-        throw SystemException("Failed to upload plugin binary: $response")
+        val reason = response.body()?.string() ?: "Unknown reason: ${response.code()}"
+        throw SystemException("Failed to upload plugin binary: $reason")
       }
-    }
+    }.call()
   }
 
   private fun verifyChecksum(body: ByteArray, sha512sum: String) {
