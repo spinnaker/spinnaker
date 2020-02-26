@@ -195,7 +195,8 @@ export const ManagedResourceHistoryModal = ({ resourceSummary }: IManagedResourc
                         }
                       >
                         <TableCell>
-                          <AccountTag account={account} /> <span className="where-column-arrow" /> {resourceDisplayName}
+                          <AccountTag account={account} />{' '}
+                          <span className="sp-margin-s-left">{resourceDisplayName}</span>
                         </TableCell>
                         <TableCell>
                           <i
