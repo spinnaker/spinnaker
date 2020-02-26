@@ -112,6 +112,7 @@ class PeeringAgent(
     log.debug("Starting active $executionType copy for peering")
 
     val activePipelineIds = srcDB.getActiveExecutionIds(executionType, peeredId)
+      .plus(srcDB.getActiveExecutionIds(executionType, null))
 
     if (activePipelineIds.isNotEmpty()) {
       log.debug("Found ${activePipelineIds.size} active $executionType, copying all")
@@ -139,6 +140,7 @@ class PeeringAgent(
 
     // Compute diff
     val completedPipelineKeys = srcDB.getCompletedExecutionIds(executionType, peeredId, updatedAfter)
+      .plus(srcDB.getCompletedExecutionIds(executionType, null, updatedAfter))
     val migratedPipelineKeys = destDB.getCompletedExecutionIds(executionType, peeredId, updatedAfter)
 
     val completedPipelineKeysMap = completedPipelineKeys

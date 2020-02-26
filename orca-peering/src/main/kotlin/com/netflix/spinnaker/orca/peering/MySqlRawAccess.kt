@@ -34,25 +34,37 @@ open class MySqlRawAccess(
     maxPacketSize -= 8192
   }
 
-  override fun getCompletedExecutionIds(executionType: Execution.ExecutionType, partitionName: String, updatedAfter: Long): List<ExecutionDiffKey> {
+  override fun getCompletedExecutionIds(executionType: Execution.ExecutionType, partitionName: String?, updatedAfter: Long): List<ExecutionDiffKey> {
+    val partitionConstraint = if (partitionName == null) {
+      field("`partition`").isNull
+    } else {
+      field("`partition`").eq(partitionName)
+    }
+
     return withPool(poolName) {
       jooq
         .select(field("id"), field("updated_at"))
         .from(getExecutionTable(executionType))
         .where(field("status").`in`(*completedStatuses.toTypedArray())
           .and(field("updated_at").gt(updatedAfter))
-          .and(field("`partition`").eq(partitionName).or(field("`partition`").isNull)))
+          .and(partitionConstraint))
         .fetchInto(ExecutionDiffKey::class.java)
     }
   }
 
-  override fun getActiveExecutionIds(executionType: Execution.ExecutionType, partitionName: String): List<String> {
+  override fun getActiveExecutionIds(executionType: Execution.ExecutionType, partitionName: String?): List<String> {
+    val partitionConstraint = if (partitionName == null) {
+      field("`partition`").isNull
+    } else {
+      field("`partition`").eq(partitionName)
+    }
+
     return withPool(poolName) {
       jooq
         .select(field("id"))
         .from(getExecutionTable(executionType))
         .where(field("status").notIn(*completedStatuses.toTypedArray())
-          .and(field("`partition`").eq(partitionName).or(field("`partition`").isNull)))
+          .and(partitionConstraint))
         .fetch(field("id"), String::class.java)
     }
   }

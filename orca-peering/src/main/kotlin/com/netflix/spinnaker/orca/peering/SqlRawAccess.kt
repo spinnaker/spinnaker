@@ -32,12 +32,12 @@ abstract class SqlRawAccess(
   /**
    *  Returns a list of execution IDs and their update_at times for completed executions
    */
-  abstract fun getCompletedExecutionIds(executionType: Execution.ExecutionType, partitionName: String, updatedAfter: Long): List<ExecutionDiffKey>
+  abstract fun getCompletedExecutionIds(executionType: Execution.ExecutionType, partitionName: String?, updatedAfter: Long): List<ExecutionDiffKey>
 
   /**
    *  Returns a list of execution IDs for active (not completed) executions
    */
-  abstract fun getActiveExecutionIds(executionType: Execution.ExecutionType, partitionName: String): List<String>
+  abstract fun getActiveExecutionIds(executionType: Execution.ExecutionType, partitionName: String?): List<String>
 
   /**
    * Returns a list of stage IDs that belong to the given executions

@@ -61,6 +61,7 @@ class PeeringAgentSpec extends Specification {
       return false
     }
     0 * src.getCompletedExecutionIds(_, _, _)
+    0 * dest.getCompletedExecutionIds(_, _, _)
 
     when: 'disabled for a given agent only'
     peeringAgent.tick()
@@ -88,6 +89,7 @@ class PeeringAgentSpec extends Specification {
 
     then:
     1 * src.getCompletedExecutionIds(executionType, "peeredId", mostRecentTimeStamp) >> srcKeys
+    1 * src.getCompletedExecutionIds(executionType, null, mostRecentTimeStamp) >> srcKeysNull
     1 * dest.getCompletedExecutionIds(executionType, "peeredId", mostRecentTimeStamp) >> destKeys
 
     callCount * dest.deleteExecutions(executionType, toDelete)
@@ -97,26 +99,30 @@ class PeeringAgentSpec extends Specification {
         new ExecutionCopier.MigrationChunkResult(30, 2, false)
 
     if (executionType == PIPELINE) {
-      peeringAgent.completedPipelinesMostRecentUpdatedTime == srcKeys.max { it.updated_at }?.updated_at ?: 1
+      peeringAgent.completedPipelinesMostRecentUpdatedTime == (srcKeys + srcKeysNull).max { it.updated_at }?.updated_at ?: 1
       peeringAgent.completedOrchestrationsMostRecentUpdatedTime == 2
     } else {
       peeringAgent.completedPipelinesMostRecentUpdatedTime == 1
-      peeringAgent.completedOrchestrationsMostRecentUpdatedTime == srcKeys.max { it.updated_at }?.updated_at ?: 2
+      peeringAgent.completedOrchestrationsMostRecentUpdatedTime == (srcKeys + srcKeysNull).max { it.updated_at }?.updated_at ?: 2
     }
 
     where:
     // Note: since the logic for executions and orchestrations should be the same, it's overkill to have the same set of tests for each
     // but it's easy so why not?
-    executionType | mostRecentTimeStamp | srcKeys                                          | destKeys                                         || toDelete              | toCopy
-    PIPELINE      | 1                   | [key("ID1", 10), key("ID2", 20), key("ID3", 30)] | [key("ID1", 10), key("ID2", 10), key("ID4", 10)] || ["ID4"]               | ["ID2", "ID3"]
-    PIPELINE      | 1                   | [key("ID1", 10), key("ID2", 20), key("ID3", 30)] | [key("ID1", 10), key("ID2", 20), key("ID3", 30)] || []                    | []
-    PIPELINE      | 1                   | []                                               | [key("ID1", 10), key("ID2", 20), key("ID3", 30)] || ["ID1", "ID2", "ID3"] | []
-    PIPELINE      | 1                   | [key("ID1", 10), key("ID2", 20), key("ID3", 30)] | []                                               || []                    | ["ID1", "ID2", "ID3"]
+    executionType | mostRecentTimeStamp | srcKeys          | srcKeysNull                      | destKeys                                         || toDelete              | toCopy
+    PIPELINE      | 1                   | [key("ID1", 10)] | [key("ID2", 20), key("ID3", 30)] | [key("ID1", 10), key("ID2", 10), key("ID4", 10)] || ["ID4"]               | ["ID2", "ID3"]
+    PIPELINE      | 1                   | [key("ID1", 10)] | [key("ID2", 20), key("ID3", 30)] | [key("ID1", 10), key("ID2", 20), key("ID3", 30)] || []                    | []
+    PIPELINE      | 1                   | []               | []                               | [key("ID1", 10), key("ID2", 20), key("ID3", 30)] || ["ID1", "ID2", "ID3"] | []
+    PIPELINE      | 1                   | [key("ID1", 10)] | [key("ID2", 20), key("ID3", 30)] | []                                               || []                    | ["ID1", "ID2", "ID3"]
+    PIPELINE      | 1                   | []               | [key("ID2", 20)]                 | []                                               || []                    | ["ID2"]
+    PIPELINE      | 1                   | [key("ID1", 10)] | []                               | []                                               || []                    | ["ID1"]
 
-    ORCHESTRATION | 2                   | [key("ID1", 10), key("ID2", 20), key("ID3", 30)] | [key("ID1", 10), key("ID2", 10), key("ID4", 10)] || ["ID4"]               | ["ID2", "ID3"]
-    ORCHESTRATION | 2                   | [key("ID1", 10), key("ID2", 20), key("ID3", 30)] | [key("ID1", 10), key("ID2", 20), key("ID3", 30)] || []                    | []
-    ORCHESTRATION | 2                   | []                                               | [key("ID1", 10), key("ID2", 20), key("ID3", 30)] || ["ID1", "ID2", "ID3"] | []
-    ORCHESTRATION | 2                   | [key("ID1", 10), key("ID2", 20), key("ID3", 30)] | []                                               || []                    | ["ID1", "ID2", "ID3"]
+    ORCHESTRATION | 2                   | [key("ID1", 10)] | [key("ID2", 20), key("ID3", 30)] | [key("ID1", 10), key("ID2", 10), key("ID4", 10)] || ["ID4"]               | ["ID2", "ID3"]
+    ORCHESTRATION | 2                   | [key("ID1", 10)] | [key("ID2", 20), key("ID3", 30)] | [key("ID1", 10), key("ID2", 20), key("ID3", 30)] || []                    | []
+    ORCHESTRATION | 2                   | []               | []                               | [key("ID1", 10), key("ID2", 20), key("ID3", 30)] || ["ID1", "ID2", "ID3"] | []
+    ORCHESTRATION | 2                   | [key("ID1", 10)] | [key("ID2", 20), key("ID3", 30)] | []                                               || []                    | ["ID1", "ID2", "ID3"]
+    ORCHESTRATION | 2                   | []               | [key("ID2", 20)]                 | []                                               || []                    | ["ID2"]
+    ORCHESTRATION | 2                   | [key("ID1", 10)] | []                               | []                                               || []                    | ["ID1"]
   }
 
   def "copies all running executions of #executionType"() {
@@ -128,17 +134,18 @@ class PeeringAgentSpec extends Specification {
 
     then:
     1 * src.getActiveExecutionIds(executionType, "peeredId") >> activeIds
-    copyCallCount * copier.copyInParallel(executionType, activeIds, ExecutionState.ACTIVE) >>
+    1 * src.getActiveExecutionIds(executionType, null) >> activeIdsNull
+    copyCallCount * copier.copyInParallel(executionType, activeIds + activeIdsNull, ExecutionState.ACTIVE) >>
         new ExecutionCopier.MigrationChunkResult(30, 2, false)
 
     where:
-    executionType | activeIds       | copyCallCount
-    PIPELINE      | []              | 0
-    PIPELINE      | ["ID1"]         | 1
-    PIPELINE      | ["ID1", "ID4"]  | 1
-    ORCHESTRATION | []              | 0
-    ORCHESTRATION | ["ID1"]         | 1
-    ORCHESTRATION | ["ID1", "ID4"]  | 1
+    executionType | activeIds       | activeIdsNull | copyCallCount
+    PIPELINE      | []              | []            | 0
+    PIPELINE      | ["ID1"]         | []            | 1
+    PIPELINE      | ["ID1", "ID4"]  | ["ID5"]       | 1
+    ORCHESTRATION | []              | []            | 0
+    ORCHESTRATION | ["ID1"]         | []            | 1
+    ORCHESTRATION | ["ID1", "ID4"]  | ["ID5"]       | 1
   }
 
   def "doesn't delete the world"() {
@@ -159,6 +166,7 @@ class PeeringAgentSpec extends Specification {
 
     then:
     1 * src.getCompletedExecutionIds(executionType, "peeredId", 1) >> srcKeys
+    1 * src.getCompletedExecutionIds(executionType, null, 1) >> []
     1 * dest.getCompletedExecutionIds(executionType, "peeredId", 1) >> destKeys
 
     deleteCallCount * dest.deleteExecutions(executionType, toDelete)
@@ -179,7 +187,7 @@ class PeeringAgentSpec extends Specification {
     ORCHESTRATION | [key("ID3", 30)] | [key("IDx", 10), key("ID3", 10)]                 || ["IDx"]  | ["ID3"]
   }
 
-  private static def key(id, updatedat) {
-    return new SqlRawAccess.ExecutionDiffKey(id, updatedat)
+  private static def key(id, updated_at) {
+    return new SqlRawAccess.ExecutionDiffKey(id, updated_at)
   }
 }
