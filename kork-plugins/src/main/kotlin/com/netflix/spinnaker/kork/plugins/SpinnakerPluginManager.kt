@@ -25,6 +25,7 @@ import com.netflix.spinnaker.kork.plugins.loaders.SpinnakerDevelopmentPluginLoad
 import com.netflix.spinnaker.kork.plugins.loaders.SpinnakerJarPluginLoader
 import com.netflix.spinnaker.kork.plugins.repository.PluginRefPluginRepository
 import com.netflix.spinnaker.kork.plugins.sdk.SdkFactory
+import com.netflix.spinnaker.kork.version.VersionResolver
 import org.pf4j.CompoundPluginLoader
 import org.pf4j.CompoundPluginRepository
 import org.pf4j.DefaultPluginManager
@@ -34,6 +35,7 @@ import org.pf4j.PluginLoader
 import org.pf4j.PluginRepository
 import org.pf4j.PluginStatusProvider
 import org.pf4j.PluginWrapper
+import org.pf4j.VersionManager
 import java.nio.file.Path
 
 /**
@@ -46,7 +48,9 @@ import java.nio.file.Path
  */
 @Beta
 open class SpinnakerPluginManager(
-  private val statusProvider: PluginStatusProvider,
+  private val systemVersionResolver: VersionResolver,
+  val spinnakerVersionManager: VersionManager,
+  val statusProvider: PluginStatusProvider,
   configFactory: ConfigFactory,
   sdkFactories: List<SdkFactory>,
   private val serviceName: String,
@@ -72,9 +76,23 @@ open class SpinnakerPluginManager(
     override fun enablePlugin(pluginId: String?) = statusProvider.enablePlugin(pluginId)
   }
 
+  private inner class VersionManagerDelegate : VersionManager {
+    override fun checkVersionConstraint(version: String, constraint: String): Boolean = spinnakerVersionManager.checkVersionConstraint(version, constraint)
+
+    override fun compareVersions(v1: String, v2: String): Int = spinnakerVersionManager.compareVersions(v1, v2)
+  }
+
+  override fun getSystemVersion(): String {
+    // TODO(jonsie): For now this is ok, but eventually we will want to throw an exception if the
+    // system version is null.
+    return systemVersionResolver.resolve(serviceName) ?: "0.0.0"
+  }
+
   override fun createExtensionFactory(): ExtensionFactory = ExtensionFactoryDelegate()
 
   override fun createPluginStatusProvider(): PluginStatusProvider = PluginStatusProviderDelegate()
+
+  override fun createVersionManager(): VersionManager = VersionManagerDelegate()
 
   override fun createPluginLoader(): PluginLoader =
     CompoundPluginLoader()

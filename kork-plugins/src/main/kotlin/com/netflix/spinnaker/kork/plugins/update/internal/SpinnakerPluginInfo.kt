@@ -16,19 +16,24 @@
 
 package com.netflix.spinnaker.kork.plugins.update.internal
 
-import retrofit2.Call
-import retrofit2.http.GET
-import retrofit2.http.Path
+import com.fasterxml.jackson.annotation.JsonSetter
+import org.pf4j.update.PluginInfo
 
-/**
- * List and get plugin info objects from Front50. Used in conjunction with [Front50UpdateRepository]
- * to populate a services plugin info cache to determine which plugins to load.
- */
-interface Front50Service {
+class SpinnakerPluginInfo : PluginInfo() {
 
-  @GET("/pluginInfo/{id}")
-  fun getById(@Path("id") id: String): Call<SpinnakerPluginInfo>
+  @Suppress("UNCHECKED_CAST")
+  fun getReleases(): List<SpinnakerPluginRelease> {
+    return releases as List<SpinnakerPluginRelease>
+  }
 
-  @GET("/pluginInfo")
-  fun listAll(): Call<Collection<SpinnakerPluginInfo>>
+  @JsonSetter("releases")
+  fun setReleases(spinnakerReleases: List<SpinnakerPluginRelease>) {
+    releases = spinnakerReleases
+  }
+
+  data class SpinnakerPluginRelease(val state: State) : PluginRelease() {
+    enum class State {
+      CANDIDATE, RELEASE
+    }
+  }
 }

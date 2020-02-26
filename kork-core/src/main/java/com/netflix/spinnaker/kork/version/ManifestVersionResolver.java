@@ -35,6 +35,10 @@ import lombok.extern.slf4j.Slf4j;
  *
  * <p>This class iterates through matching JARs, rather than looking directly at itself, to support
  * the use case where OSS services are being extended via a library pattern.
+ *
+ * <p>This class also supports reading the custom attribute `Implementation-OSS-Version`. This
+ * attribute is useful if JARs are built in a process outside the context of OSS, but you need a
+ * mechanism to get the underlining OSS version.
  */
 @Slf4j
 public class ManifestVersionResolver implements VersionResolver {
@@ -42,9 +46,15 @@ public class ManifestVersionResolver implements VersionResolver {
   private static final String GROUP = "com.netflix.spinnaker";
 
   private final String group;
+  private boolean ossAttribute = false;
 
   public ManifestVersionResolver() {
     this(null);
+  }
+
+  public ManifestVersionResolver(boolean ossAttribute) {
+    this.ossAttribute = ossAttribute;
+    this.group = null;
   }
 
   /** Constructor is only available for testing. */
@@ -97,6 +107,9 @@ public class ManifestVersionResolver implements VersionResolver {
 
   private String extractImplementationVersion(Manifest manifest) {
     Attributes mainAttributes = manifest.getMainAttributes();
+    if (ossAttribute) {
+      return mainAttributes.getValue("Implementation-OSS-Version");
+    }
     return mainAttributes.getValue("Implementation-Version");
   }
 

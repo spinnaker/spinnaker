@@ -5,6 +5,7 @@ apply from: "$rootDir/gradle/lombok.gradle"
 
 dependencies {
   api(platform(project(":spinnaker-dependencies")))
+  implementation project(":kork-core")
   implementation project(":kork-exceptions")
   implementation project(":kork-security")
 

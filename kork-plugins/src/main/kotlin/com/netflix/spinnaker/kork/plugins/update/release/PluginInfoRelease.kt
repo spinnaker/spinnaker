@@ -14,26 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.kork.plugins.update
+package com.netflix.spinnaker.kork.plugins.update.release
 
-import com.fasterxml.jackson.annotation.JsonSetter
 import org.pf4j.update.PluginInfo
 
-class SpinnakerPluginInfo : PluginInfo() {
-
-  @Suppress("UNCHECKED_CAST")
-  fun getReleases(): List<SpinnakerPluginRelease> {
-    return releases as List<SpinnakerPluginRelease>
-  }
-
-  @JsonSetter("releases")
-  fun setReleases(spinnakerReleases: List<SpinnakerPluginRelease>) {
-    releases = spinnakerReleases
-  }
-
-  data class SpinnakerPluginRelease(val state: State) : PluginRelease() {
-    enum class State {
-      CANDIDATE, RELEASE
-    }
-  }
-}
+/**
+ * A tuple of [pluginId] and [PluginInfo.PluginRelease]
+ */
+data class PluginInfoRelease(val pluginId: String, val props: PluginInfo.PluginRelease)

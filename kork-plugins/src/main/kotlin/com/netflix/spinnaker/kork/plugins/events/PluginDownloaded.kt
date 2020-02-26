@@ -15,21 +15,20 @@
  */
 package com.netflix.spinnaker.kork.plugins.events
 
-import com.netflix.spinnaker.kork.plugins.update.PluginUpdateService
+import com.netflix.spinnaker.kork.plugins.update.SpinnakerUpdateManager
 import org.springframework.context.ApplicationEvent
 
 /**
  * An event emitted whenever a plugin has been downloaded (successfully or not).
  *
- * @param source The [PluginUpdateService], which has emitted this event.
+ * @param source The [SpinnakerUpdateManager], which has emitted this event.
  * @param operation Defines whether the plugin was being installed or updated.
  * @param status Whether or not the plugin download succeeded
  * @param pluginId The ID of the plugin
  * @param version The version of the plugin downloaded
  */
 class PluginDownloaded(
-  source: PluginUpdateService,
-  val operation: Operation,
+  source: SpinnakerUpdateManager,
   val status: Status,
   val pluginId: String,
   val version: String
@@ -37,17 +36,5 @@ class PluginDownloaded(
   enum class Status {
     SUCCEEDED,
     FAILED
-  }
-
-  enum class Operation {
-    /**
-     * When a plugin does not exist yet for a service.
-     */
-    INSTALL,
-
-    /**
-     * When a plugin exists for a service, but is not the correct version.
-     */
-    UPDATE
   }
 }

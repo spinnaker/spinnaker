@@ -17,9 +17,9 @@
 package com.netflix.spinnaker.kork.plugins.update.repository
 
 import com.netflix.spinnaker.kork.exceptions.SystemException
-import com.netflix.spinnaker.kork.plugins.update.SpinnakerPluginInfo
-import com.netflix.spinnaker.kork.plugins.update.SpinnakerPluginInfo.SpinnakerPluginRelease
-import com.netflix.spinnaker.kork.plugins.update.SpinnakerPluginInfo.SpinnakerPluginRelease.State
+import com.netflix.spinnaker.kork.plugins.update.internal.SpinnakerPluginInfo
+import com.netflix.spinnaker.kork.plugins.update.internal.SpinnakerPluginInfo.SpinnakerPluginRelease
+import com.netflix.spinnaker.kork.plugins.update.internal.SpinnakerPluginInfo.SpinnakerPluginRelease.State
 import com.netflix.spinnaker.kork.plugins.update.internal.Front50Service
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext

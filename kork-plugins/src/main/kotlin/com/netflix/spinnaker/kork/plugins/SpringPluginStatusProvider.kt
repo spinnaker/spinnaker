@@ -15,6 +15,8 @@
  */
 package com.netflix.spinnaker.kork.plugins
 
+import com.netflix.spinnaker.config.PluginsConfigurationProperties.CONFIG_NAMESPACE
+import com.netflix.spinnaker.config.PluginsConfigurationProperties.DEFAULT_ROOT_PATH
 import org.pf4j.PluginStatusProvider
 import org.slf4j.LoggerFactory
 import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent
@@ -59,7 +61,13 @@ class SpringPluginStatusProvider(
   private fun enabledPropertyName(pluginId: String): String =
     "$ROOT_CONFIG.$pluginId.enabled"
 
+  fun pluginVersion(pluginId: String): String? =
+    environment.getProperty(versionPropertyName(pluginId))?.toString()
+
+  private fun versionPropertyName(pluginId: String): String =
+    "$ROOT_CONFIG.$pluginId.version"
+
   companion object {
-    const val ROOT_CONFIG: String = "spinnaker.extensibility.plugins"
+    const val ROOT_CONFIG: String = "$CONFIG_NAMESPACE.$DEFAULT_ROOT_PATH"
   }
 }

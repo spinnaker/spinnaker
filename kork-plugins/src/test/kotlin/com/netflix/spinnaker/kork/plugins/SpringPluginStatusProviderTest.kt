@@ -26,6 +26,7 @@ import org.springframework.core.env.ConfigurableEnvironment
 import org.springframework.core.env.MapPropertySource
 import org.springframework.core.env.MutablePropertySources
 import strikt.api.expectThat
+import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
 
@@ -64,6 +65,12 @@ class SpringPluginStatusProviderTest : JUnit5Minutests {
       expectThat(subject.isPluginDisabled("hello")).describedAs("enabled state").isFalse()
       subject.disablePlugin("hello")
       expectThat(subject.isPluginDisabled("hello")).describedAs("disabled state").isTrue()
+    }
+
+    test("get plugin version") {
+      val versionProp = "${SpringPluginStatusProvider.ROOT_CONFIG}.hello.version"
+      every { environment.getProperty(versionProp) } returns "1.0.0"
+      expectThat(subject.pluginVersion("hello")).isEqualTo("1.0.0")
     }
   }
 

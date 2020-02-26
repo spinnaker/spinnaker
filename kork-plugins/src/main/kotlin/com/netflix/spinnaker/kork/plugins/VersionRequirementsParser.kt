@@ -26,6 +26,8 @@ import java.util.regex.Pattern
  * - `service` is the service name that is supported by a plugin
  * - `operator` is a version constraint operator (`>`, `<`, `>=`, `<=`)
  * - `version` is the service version that is being constrained
+ *
+ * TODO(jonsie): Add range constraint support (>= 1.0.0 & < 2.0.0)
  */
 object VersionRequirementsParser {
 
