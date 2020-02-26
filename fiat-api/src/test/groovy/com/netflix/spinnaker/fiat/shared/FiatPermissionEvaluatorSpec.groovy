@@ -24,6 +24,7 @@ import com.netflix.spinnaker.fiat.model.resources.Resource
 import com.netflix.spinnaker.fiat.model.resources.ResourceType
 import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
+import com.netflix.spinnaker.kork.common.Header
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.slf4j.MDC
 import org.springframework.security.core.context.SecurityContextHolder
@@ -155,8 +156,8 @@ class FiatPermissionEvaluatorSpec extends FiatSharedSpecification {
   @Unroll
   def "should support legacy fallback when fiat is unavailable"() {
     given:
-    MDC.put(AuthenticatedRequest.Header.USER.header, "fallback")
-    MDC.put(AuthenticatedRequest.Header.ACCOUNTS.header, "account1,account2")
+    MDC.put(Header.USER.header, "fallback")
+    MDC.put(Header.ACCOUNTS.header, "account1,account2")
 
     when:
     def permission = evaluator.getPermission("testUser")
